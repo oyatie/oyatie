@@ -94,7 +94,7 @@ registry µservice (planned; ADR-0155) will index versions at runtime.
 
 ### 6. Validation
 
-The `oya-check-event-schema-versioning` gate enforces that every
+The `check-event-schema-versioning` gate enforces that every
 AsyncAPI 3.1.0 schema in every µservice declares the canonical
 `version` header.
 

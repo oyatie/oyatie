@@ -4,7 +4,7 @@ template_id: TPL-PHASE
 status: Accepted
 date: 2026-05-12
 purpose: |
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md

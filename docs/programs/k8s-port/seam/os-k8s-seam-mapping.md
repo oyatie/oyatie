@@ -260,7 +260,7 @@ are, under their current names.
 classified without moving a byte.
 
 **Two open defects recorded, not fixed here:** `registry/stores/registry-store.json` carries the key
-`oya-managed-k8s-tenant-quota-api` against a crate actually named `k8s-tenant-quota-api` — a retired
+`managed-k8s-tenant-quota-api` against a crate actually named `k8s-tenant-quota-api` — a retired
 prefix plus an infix the crate does not have; and the `k8s` charter reserves `core/` for the owned
 control plane while all four `k8s/core/*` crates are product kernels. Both are out of this lane's
 scope and neither is a reason to move anything.

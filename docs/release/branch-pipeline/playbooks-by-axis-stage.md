@@ -10,7 +10,7 @@ purpose: |
   per-stage cadence, gate set, canary cohort, and reviewer-agent dispatch profile.
   Extends progressive-delivery playbook patterns from docs/release/progressive-delivery/.
 planned_enforcement_ref:
-  - oya-governance-promotion-gate-staging-to-prod
+  - governance-promotion-gate-staging-to-prod
 related_adrs: [ADR-0001, ADR-0040, ADR-0041, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -57,7 +57,7 @@ Per-axis differentiation of the four-layer pipeline. Every axis follows the same
 
 **Hot-fix tolerance.** For regulated verticals (healthcare/fintech/gov), `requires_human_signoff: true` mandatory; per-axis lead + per-vertical compliance officer signatures.
 
-**Canary cohort.** Per-vertical-pack scoped; regulated tenants opted out per `oya-platform-tenant-cohort-kernel`.
+**Canary cohort.** Per-vertical-pack scoped; regulated tenants opted out per `platform-tenant-cohort-kernel`.
 
 ## 5. Foundry axis
 
@@ -113,7 +113,7 @@ When a single change crosses ≥ 2 axes (per [ADR-0011](../../decisions/ADR-0011
 
 | Stage | Lockstep mechanic |
 |---|---|
-| local-dev → origin/dev | `oya-contract-diff` runs as a CI lane; all consumer axes must clear |
+| local-dev → origin/dev | `contract-diff` runs as a CI lane; all consumer axes must clear |
 | origin/dev → staging | fast-forward across all affected axes in one promoter cycle (single-flight global) |
 | staging → prod | gate 4 (zero SLO-fast alerts) must hold across **every** affected axis; gate 5 (reviewer re-affirm) collected from every affected axis's per-class reviewer |
 

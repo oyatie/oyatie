@@ -8,15 +8,15 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify bidirectional cross-citations between `bominal/` and `oyatie/` PRDs.
 - enforces: Directive A1 (MASTERPLAN) — bidirectional bominal<->oyatie PRD cite.
-- kernel_crate: `oya-governance-portfolio-citation-kernel` — `PortfolioCitation { source_repo, source_prd, target_repo, target_prd }`, verdict `PortfolioCitationFitnessReport { citations_checked }`.
-- runner_path: `tools/oya-governance-portfolio-citation`
+- kernel_crate: `governance-portfolio-citation-kernel` — `PortfolioCitation { source_repo, source_prd, target_repo, target_prd }`, verdict `PortfolioCitationFitnessReport { citations_checked }`.
+- runner_path: `tools/governance-portfolio-citation`
 - inputs: `bominal/docs/prd/**/*.md` (read-only mirror), `oyatie/docs/prd/**/*.md`.
 - failure_modes:
   - oyatie PRD references a bominal PRD that does not reciprocate
   - bominal PRD missing oyatie back-cite
   - cited PRD path unresolved
 - adr_citations: ADR-0052 (inventory — the bidirectional citation requirement is grounded in the cross-repo artifact inventory that classifies PRDs as authoritative artifacts requiring back-links)
-- ci_invocation: `cargo run -p oya-governance-portfolio-citation`
+- ci_invocation: `cargo run -p governance-portfolio-citation`
 - runtime_budget: 800 ms
 - severity: HIGH
 - kernel_sketch:

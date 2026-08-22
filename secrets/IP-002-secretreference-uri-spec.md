@@ -16,18 +16,18 @@ acceptance_lanes: [doc-coverage, contract-test]
 
 ## Intent
 
-Reconcile the canonical SecretReference URI grammar with the crate-backed parser and test corpus now present in `cloud/cloud-secrets/crates/oya-secrets-domain/**`. This spec remains the contract every SDK + LEAN-A11 lane consumes, but future machine-readable artifacts must track the shipped parser rather than invent a second shape.
+Reconcile the canonical SecretReference URI grammar with the crate-backed parser and test corpus now present in `cloud/cloud-secrets/crates/secrets-domain/**`. This spec remains the contract every SDK + LEAN-A11 lane consumes, but future machine-readable artifacts must track the shipped parser rather than invent a second shape.
 
 ## ChangeSet boundary
 
-Current implementation surface: parser, normalized serializer, config-wrapper parser, and TTL clamp live in `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`; direct parser/TTL coverage lives in `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs`. Planned machine-readable JSON/ABNF/corpus artifacts must mirror this implementation before they become release authority.
+Current implementation surface: parser, normalized serializer, config-wrapper parser, and TTL clamp live in `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs`; direct parser/TTL coverage lives in `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs`. Planned machine-readable JSON/ABNF/corpus artifacts must mirror this implementation before they become release authority.
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs` | update/verify | current `SecretReferenceUri` parser, serializer, config wrapper, and TTL clamp |
-| `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs` | update/verify | current valid/invalid parser coverage and TTL ceiling tests |
+| `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs` | update/verify | current `SecretReferenceUri` parser, serializer, config wrapper, and TTL clamp |
+| `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs` | update/verify | current valid/invalid parser coverage and TTL ceiling tests |
 | `secrets/contracts/secret-reference-uri.json` | planned | service-owned machine-readable mirror of the crate-backed contract, not independent authority |
 | `secrets/contracts/secret-reference-uri.abnf` | planned | ABNF mirror of the crate-backed contract |
 | `secrets/contracts/secret-reference-uri-test-corpus.jsonl` | planned | expanded corpus once generated SDKs consume the same cases |
@@ -47,8 +47,8 @@ nonzero-digit      = %x31-39
 ## Acceptance Gates
 
 ```bash
-buck2 test //cloud/cloud-secrets/crates/oya-secrets-domain:secret-reference-uri-test
-buck2 build //cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain[check]
+buck2 test //cloud/cloud-secrets/crates/secrets-domain:secret-reference-uri-test
+buck2 build //cloud/cloud-secrets/crates/secrets-domain:secrets-domain[check]
 ```
 
 ## Test Plan
@@ -67,8 +67,8 @@ Current crate tests must round-trip canonical OpenBao references, parse `${...}`
 
 - `secrets/policy/secret-isolation.md` §"TI-03"
 - `secrets/contracts/proto/cloud-secrets.proto`
-- `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`
-- `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs`
+- `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs`
+- `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs`
 
 ## Wave 15-IP-substance A-G
 
@@ -79,7 +79,7 @@ Current crate tests must round-trip canonical OpenBao references, parse `${...}`
 Define the URI grammar and test corpus as service-owned contract artifacts, then require every Rust/TS/Python parser and the resolver domain crate to consume the same cases. The current shipped grammar accepts only the OpenBao scheme, non-empty safe path segments, optional positive numeric version suffix, and `${...}` config wrappers; query strings and traversal are rejected.
 
 ### C. Deliverables
-- Current crate-backed parser and TTL clamp in `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`, with direct tests in `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs`.
+- Current crate-backed parser and TTL clamp in `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs`, with direct tests in `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs`.
 - Contract alignment with `contracts/openapi/cloud-secrets.yaml` and `contracts/proto/cloud-secrets.proto`.
 - Machine-readable ABNF/JSON/corpus mirrors remain planned follow-ups and must match the crate-backed parser before generated SDKs depend on them.
 - Policy evidence from `policy/secret-isolation.md` and `policy/tenant-scope.cedar`.
@@ -89,20 +89,20 @@ Define the URI grammar and test corpus as service-owned contract artifacts, then
 1. Keep the crate-backed parser contract as `openbao:secret/<path>[@vN]` plus `${...}` config wrapper support.
 2. Keep valid/invalid fixtures for generic safe path segments, version pins, forbidden traversal, forbidden query strings, and secret-shaped literals.
 3. Mirror the shipped grammar into OpenAPI, proto, and SDK docs so generated clients do not invent local variants.
-4. Preserve the resolver-domain parser, normalized serializer, and TTL clamp in `oya-secrets-domain`.
+4. Preserve the resolver-domain parser, normalized serializer, and TTL clamp in `secrets-domain`.
 5. Add Rust/TS/Python corpus tests once a shared fixture file is generated from the same contract.
 6. Wire LEAN-A11 to flag raw-secret literals and allow only SecretReference strings.
 7. Publish migration notes for existing config references.
 
 ### E. Acceptance
-- `buck2 test //cloud/cloud-secrets/crates/oya-secrets-domain:secret-reference-uri-test`.
-- `buck2 build //cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain[check]`.
-- Branch-protected `oya-ci-required` / owned `oya-ci` evidence for doc-coverage and LEAN-A11 before external release claims.
+- `buck2 test //cloud/cloud-secrets/crates/secrets-domain:secret-reference-uri-test`.
+- `buck2 build //cloud/cloud-secrets/crates/secrets-domain:secrets-domain[check]`.
+- Branch-protected `presubmit` / owned `ci` evidence for doc-coverage and LEAN-A11 before external release claims.
 - Every accepted reference carries a tenant-safe path and never serializes a raw value.
 - `secret-resolve-latency` SLO remains bound to runtime resolve, not grammar parsing alone.
 
 ### F. Evidence
-Primary evidence lives in `PRD.md` FR-01/FR-02, `ARCHITECTURE.md` SecretReference resolver sections, `manifest.json` crate and contract lists, `policy/secret-isolation.md`, `contracts/openapi/cloud-secrets.yaml`, `contracts/proto/cloud-secrets.proto`, and the crate-backed parser/tests under `cloud/cloud-secrets/crates/oya-secrets-domain/`.
+Primary evidence lives in `PRD.md` FR-01/FR-02, `ARCHITECTURE.md` SecretReference resolver sections, `manifest.json` crate and contract lists, `policy/secret-isolation.md`, `contracts/openapi/cloud-secrets.yaml`, `contracts/proto/cloud-secrets.proto`, and the crate-backed parser/tests under `cloud/cloud-secrets/crates/secrets-domain/`.
 
 ### G. Counterpart Comparison
 AWS Secrets Manager ARNs, Google Secret Manager resource names, and HashiCorp Vault paths all provide runtime lookup indirection, but the parity matrices show they do not enforce Oyatie's `Secret<T>` wrapper, cache TTL ceiling, no-log guarantee, or LEAN-A11 raw-secret blocker. This IP closes that counterpart gap by making the reference grammar itself the only allowed configuration surface.

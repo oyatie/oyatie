@@ -10,12 +10,12 @@ This team owns the construction vertical: project management, bid management, su
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Construction (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-construction-kernel` — `Project`, `SubmittalPackage`, `Rfi`, `PunchItem`, `SafetyIncident`, `SubcontractorBid`
-  - `oya-vertical-construction-domain-*` — project lifecycle, bid management, submittal/RFI workflow, punch-list
+  - `vertical-construction-kernel` — `Project`, `SubmittalPackage`, `Rfi`, `PunchItem`, `SafetyIncident`, `SubcontractorBid`
+  - `vertical-construction-domain-*` — project lifecycle, bid management, submittal/RFI workflow, punch-list
   - Products owned: `products/vertical-construction/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — safety incidents, contract changes)
-- **Catalog records:** `crates/oya-vertical-construction-*`
+- **Catalog records:** `crates/vertical-construction-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at activation
 

@@ -1,4 +1,4 @@
-# ESO -> OpenBao runbook (oya-kms)
+# ESO -> OpenBao runbook (kms)
 
 Captures the **OpenBao-side** setup that pairs with the Kubernetes manifests in
 this directory. The k8s objects (ClusterSecretStore / ClusterRoleBinding /
@@ -18,7 +18,7 @@ directory, then run the OpenBao steps below.
 |------|------|---------|
 | `clustersecretstore-openbao-oya.yaml` | `ClusterSecretStore openbao-oya`, `ClusterSecretStore openbao-cloud-k8s-csi`, `ClusterSecretStore openbao-cloud-iam-svid-operator` | ESO `vault` providers pointed at OpenBao with separate OpenBao roles for CI, cloud-k8s CSI, and cloud-iam SVID-operator prefixes |
 | `clusterrolebinding-external-secrets-auth-delegator.yaml` | `ClusterRoleBinding` | grants the ESO SA `system:auth-delegator` for TokenReview |
-| `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `oya-ci` |
+| `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `ci` |
 
 ## TLS migration (8200/8201 -> 8202/8203)
 
@@ -30,10 +30,10 @@ private key, or issued leaf in git or captured output.
    only `8200/8201`. Do not apply the empty public-CA scaffold directly. Have
    the trusted bootstrap generate and apply populated ConfigMaps from the
    offline root's **public certificate only**. Bootstrap Secret
-   `oya-kms/openbao-server-tls` with keys `tls.crt` and `tls.key`. Confirm the
+   `kms/openbao-server-tls` with keys `tls.crt` and `tls.key`. Confirm the
    populated ConfigMap `openbao-offline-root-ca` exists in both
    `external-secrets` and `arc-runners`, the certificate covers
-   `openbao.oya-kms.svc` and the Secret/ConfigMaps exist without printing data.
+   `openbao.kms.svc` and the Secret/ConfigMaps exist without printing data.
 2. Apply `infra/kms/openbao-ci-identity.k8s.yaml`, then use the authenticated,
    no-echo **initial** bootstrap below. Its readback covers OpenBao state and
    the create-only KV record only; it does not touch the not-yet-deployed
@@ -45,16 +45,16 @@ private key, or issued leaf in git or captured output.
    `infra/gitops/values.yaml` from `openbao.k8s.yaml` to
    `openbao-tls-migration.k8s.yaml` and adds an exact-path Application for
    `infra/kms/openbao-ci-identity.k8s.yaml` with `cascadeDelete: true`. Merge only
-   after `oya-ci-required` and review; then require both Argo Applications to be
+   after `presubmit` and review; then require both Argo Applications to be
    Synced and Healthy. Record the Namespace and `openbao-data` PVC UIDs before
    and after reconciliation; both must remain identical.
-4. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
+4. **Wait/readback.** Wait for Deployment `kms/openbao` rollout completion;
    verify the mounted config and Secret references, Service ports `8200..8203`,
    and successful authenticated TLS health on `8202`. Verify plaintext `8200`
    still answers during this dual-listener phase.
 5. Only after step 4 succeeds, use a second reviewed PR to add exact-path GitOps
    Applications for
-   `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml` and
+   `infra/external-secrets/clustersecretstore-openbao-tls-migration.yaml` and
    `storage/adapters/nativelink/nativelink-cas.k8s.yaml`, both with `cascadeDelete: true`;
    do not deploy either by raw apply. That value adds Argo's foreground resources
    finalizer so a later reviewed Application removal cannot orphan live objects.
@@ -67,13 +67,13 @@ private key, or issued leaf in git or captured output.
 
 Before `warm_reads_licensed` is true, run the cache canary manually on `dev` with
 `prelicense_probe=true`, but only after setting repository variable
-`OYA_CAS_IDENTITY_PROOF_ENABLED=true`. The next trusted `dev` push seeds the CAS
+`OYATIE_CAS_IDENTITY_PROOF_ENABLED=true`. The next trusted `dev` push seeds the CAS
 through the isolated writer PKI; the explicit canary then reads those entries
 through the reader PKI without changing the license. Leave the variable absent
 until every prerequisite below exists. Scheduled runs remain fail-closed while
 unlicensed.
 
-**Rollback is ordered.** First set `OYA_CAS_IDENTITY_PROOF_ENABLED=false`, keep
+**Rollback is ordered.** First set `OYATIE_CAS_IDENTITY_PROOF_ENABLED=false`, keep
 `warm_reads_licensed=false`, and wait for all cache identity jobs/clients to
 quiesce. Revert the second promotion commit and wait for its two
 `cascadeDelete: true` Applications plus NativeLink/migration-store resources to
@@ -85,17 +85,17 @@ Preserve the bootstrap TLS Secret for diagnosis/forward repair; do not print or
 export it.
 
 The OIDC role payloads in `openbao-ci-identity-contract` bind audience
-`oya-openbao`, immutable repository/owner IDs, public visibility,
+`openbao`, immutable repository/owner IDs, public visibility,
 self-hosted runners, exact `sub`/`workflow_ref`, and exact event/ref claims. JWTs are
 bounded to five minutes; issued client leaves are bounded to three hours.
 
 ### Authenticated CI identity bootstrap
 
 Prerequisites are an unsealed OpenBao, an authenticated operator session in
-`BAO_TOKEN`, the public OpenBao HTTPS CA in `OYA_OPENBAO_CA_CERT`, and a
+`BAO_TOKEN`, the public OpenBao HTTPS CA in `OYATIE_OPENBAO_CA_CERT`, and a
 ceremony-issued NativeLink server leaf, key, and independent public CA in
-`OYA_NATIVELINK_SERVER_CERT`, `OYA_NATIVELINK_SERVER_KEY`, and
-`OYA_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao`,
+`OYATIE_NATIVELINK_SERVER_CERT`, `OYATIE_NATIVELINK_SERVER_KEY`, and
+`OYATIE_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao`,
 `kubectl`, and OpenSSL; the commands redirect PKI material to a mode-0700
 temporary directory and print no token, private key, certificate, or ConfigMap
 body. The KV-v2 `cas=0` write is create-only, so an existing, soft-deleted, or
@@ -108,38 +108,38 @@ umask 077
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 : "${BAO_TOKEN:?BAO_TOKEN is required}"
-: "${OYA_OPENBAO_CA_CERT:?OYA_OPENBAO_CA_CERT is required}"
-: "${OYA_NATIVELINK_SERVER_CERT:?OYA_NATIVELINK_SERVER_CERT is required}"
-: "${OYA_NATIVELINK_SERVER_KEY:?OYA_NATIVELINK_SERVER_KEY is required}"
-: "${OYA_NATIVELINK_SERVER_CA_CERT:?OYA_NATIVELINK_SERVER_CA_CERT is required}"
-for path in "$OYA_OPENBAO_CA_CERT" "$OYA_NATIVELINK_SERVER_CERT" \
-  "$OYA_NATIVELINK_SERVER_KEY" "$OYA_NATIVELINK_SERVER_CA_CERT"; do
+: "${OYATIE_OPENBAO_CA_CERT:?OYATIE_OPENBAO_CA_CERT is required}"
+: "${OYATIE_NATIVELINK_SERVER_CERT:?OYATIE_NATIVELINK_SERVER_CERT is required}"
+: "${OYATIE_NATIVELINK_SERVER_KEY:?OYATIE_NATIVELINK_SERVER_KEY is required}"
+: "${OYATIE_NATIVELINK_SERVER_CA_CERT:?OYATIE_NATIVELINK_SERVER_CA_CERT is required}"
+for path in "$OYATIE_OPENBAO_CA_CERT" "$OYATIE_NATIVELINK_SERVER_CERT" \
+  "$OYATIE_NATIVELINK_SERVER_KEY" "$OYATIE_NATIVELINK_SERVER_CA_CERT"; do
   [ -s "$path" ] || { echo "required PKI input is absent or empty" >&2; exit 1; }
 done
-ca_begin_count="$(grep -c '^-----BEGIN ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
-ca_end_count="$(grep -c '^-----END ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+ca_begin_count="$(grep -c '^-----BEGIN ' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || true)"
+ca_end_count="$(grep -c '^-----END ' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || true)"
 if [ "$ca_begin_count" -ne 1 ] || [ "$ca_end_count" -ne 1 ] || \
-  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT" || \
-  ! grep -qx -- '-----END CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT"; then
+  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || \
+  ! grep -qx -- '-----END CERTIFICATE-----' "$OYATIE_NATIVELINK_SERVER_CA_CERT"; then
   echo "NativeLink server CA must contain exactly one PEM certificate" >&2
   exit 1
 fi
-openssl verify -purpose sslserver -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
-  "$OYA_NATIVELINK_SERVER_CERT" >/dev/null
-openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
+openssl verify -purpose sslserver -CAfile "$OYATIE_NATIVELINK_SERVER_CA_CERT" \
+  "$OYATIE_NATIVELINK_SERVER_CERT" >/dev/null
+openssl x509 -in "$OYATIE_NATIVELINK_SERVER_CERT" -noout \
   -ext subjectAltName >"$tmp/server-sans.txt"
 tr ',' '\n' <"$tmp/server-sans.txt" | \
   sed 's/^[[:space:]]*//; /^$/d; /X509v3 Subject Alternative Name:/d' | \
   LC_ALL=C sort -u >"$tmp/server-sans.actual"
 cat >"$tmp/server-sans.expected" <<'EOF'
-DNS:nativelink-cas-reader.oya-ci.svc.cluster.local
-DNS:nativelink-cas-writer.oya-ci.svc.cluster.local
+DNS:nativelink-cas-reader.ci.svc.cluster.local
+DNS:nativelink-cas-writer.ci.svc.cluster.local
 EOF
 cmp -s "$tmp/server-sans.actual" "$tmp/server-sans.expected" || {
   echo "NativeLink server certificate SANs are not the exact two service DNS names" >&2
   exit 1
 }
-openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
+openssl x509 -in "$OYATIE_NATIVELINK_SERVER_CERT" -noout \
   -ext extendedKeyUsage >"$tmp/server-eku.txt"
 grep -Fq "TLS Web Server Authentication" "$tmp/server-eku.txt" || {
   echo "NativeLink server certificate lacks the server-auth EKU" >&2
@@ -149,9 +149,9 @@ if grep -Fq "TLS Web Client Authentication" "$tmp/server-eku.txt"; then
   echo "NativeLink server certificate must not carry the client-auth EKU" >&2
   exit 1
 fi
-openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -pubkey -noout \
+openssl x509 -in "$OYATIE_NATIVELINK_SERVER_CERT" -pubkey -noout \
   >"$tmp/server-cert.pub"
-openssl pkey -in "$OYA_NATIVELINK_SERVER_KEY" -pubout \
+openssl pkey -in "$OYATIE_NATIVELINK_SERVER_KEY" -pubout \
   >"$tmp/server-key.pub"
 cmp -s "$tmp/server-cert.pub" "$tmp/server-key.pub" || {
   echo "NativeLink server certificate and key do not match" >&2
@@ -160,10 +160,10 @@ cmp -s "$tmp/server-cert.pub" "$tmp/server-key.pub" || {
 kubectl apply -f infra/kms/openbao-ci-identity.k8s.yaml >/dev/null
 for namespace in external-secrets arc-runners; do
   kubectl -n "$namespace" create configmap openbao-offline-root-ca \
-    --from-file=ca.crt="$OYA_OPENBAO_CA_CERT" \
+    --from-file=ca.crt="$OYATIE_OPENBAO_CA_CERT" \
     --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 done
-kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+kubectl -n kms get configmap openbao-ci-identity-contract \
   -o jsonpath='{.data.jwt-config\.json}' >"$tmp/jwt-config.json"
 bao auth enable -path=jwt jwt >/dev/null 2>&1 || bao auth list -format=json | grep -q '"jwt/"'
 bao write auth/jwt/config @"$tmp/jwt-config.json" >/dev/null
@@ -179,16 +179,16 @@ for identity in writer reader; do
     bao write -field=certificate "$mount/root/generate/internal" \
       common_name="Oyatie CAS ${identity} client root" ttl=8760h >"$tmp/${identity}-client-ca.crt"
   fi
-  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+  kubectl -n kms get configmap openbao-ci-identity-contract \
     -o "jsonpath={.data.pki-cas-${identity}\.json}" >"$tmp/pki-role.json"
   bao write "$mount/roles/$role" @"$tmp/pki-role.json" >/dev/null
-  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+  kubectl -n kms get configmap openbao-ci-identity-contract \
     -o "jsonpath={.data.ci-cas-${identity}\.hcl}" >"$tmp/policy.hcl"
   bao policy write "ci-cas-${identity}" "$tmp/policy.hcl" >/dev/null
 done
 
 for binding in github-cas-writer-dev-push github-cas-reader-integrity-canary; do
-  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+  kubectl -n kms get configmap openbao-ci-identity-contract \
     -o "jsonpath={.data.${binding}\.json}" >"$tmp/jwt-role.json"
   bao write "auth/jwt/role/$binding" @"$tmp/jwt-role.json" >/dev/null
 done
@@ -197,8 +197,8 @@ done
 # create-only precondition, so it closes the get/put race and refuses existing
 # or soft-deleted keys as well as concurrent creators.
 bao kv put -mount=secret -cas=0 oya/ci/nativelink-cas-tls \
-  server-cert=@"$OYA_NATIVELINK_SERVER_CERT" \
-  server-key=@"$OYA_NATIVELINK_SERVER_KEY" \
+  server-cert=@"$OYATIE_NATIVELINK_SERVER_CERT" \
+  server-key=@"$OYATIE_NATIVELINK_SERVER_KEY" \
   writer-client-ca=@"$tmp/writer-client-ca.crt" \
   reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null || {
   echo "NativeLink TLS record is not new; refusing overwrite" >&2
@@ -225,13 +225,13 @@ umask 077
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 : "${BAO_TOKEN:?BAO_TOKEN is required}"
-: "${OYA_NATIVELINK_SERVER_CERT:?OYA_NATIVELINK_SERVER_CERT is required}"
-: "${OYA_NATIVELINK_SERVER_CA_CERT:?OYA_NATIVELINK_SERVER_CA_CERT is required}"
-ca_begin_count="$(grep -c '^-----BEGIN ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
-ca_end_count="$(grep -c '^-----END ' "$OYA_NATIVELINK_SERVER_CA_CERT" || true)"
+: "${OYATIE_NATIVELINK_SERVER_CERT:?OYATIE_NATIVELINK_SERVER_CERT is required}"
+: "${OYATIE_NATIVELINK_SERVER_CA_CERT:?OYATIE_NATIVELINK_SERVER_CA_CERT is required}"
+ca_begin_count="$(grep -c '^-----BEGIN ' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || true)"
+ca_end_count="$(grep -c '^-----END ' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || true)"
 if [ "$ca_begin_count" -ne 1 ] || [ "$ca_end_count" -ne 1 ] || \
-  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT" || \
-  ! grep -qx -- '-----END CERTIFICATE-----' "$OYA_NATIVELINK_SERVER_CA_CERT"; then
+  ! grep -qx -- '-----BEGIN CERTIFICATE-----' "$OYATIE_NATIVELINK_SERVER_CA_CERT" || \
+  ! grep -qx -- '-----END CERTIFICATE-----' "$OYATIE_NATIVELINK_SERVER_CA_CERT"; then
   echo "NativeLink server CA must contain exactly one PEM certificate" >&2
   exit 1
 fi
@@ -239,20 +239,20 @@ bao kv get -mount=secret -field=server-cert \
   oya/ci/nativelink-cas-tls >"$tmp/stored-server.crt"
 openssl x509 -in "$tmp/stored-server.crt" -outform DER \
   >"$tmp/stored-server.der"
-openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -outform DER \
+openssl x509 -in "$OYATIE_NATIVELINK_SERVER_CERT" -outform DER \
   >"$tmp/ceremony-server.der"
 cmp -s "$tmp/stored-server.der" "$tmp/ceremony-server.der" || {
   echo "stored NativeLink server certificate differs from the ceremony" >&2
   exit 1
 }
-openssl verify -purpose sslserver -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
+openssl verify -purpose sslserver -CAfile "$OYATIE_NATIVELINK_SERVER_CA_CERT" \
   "$tmp/stored-server.crt" >/dev/null
 kubectl -n arc-runners create configmap nativelink-server-ca \
-  --from-file=ca.crt="$OYA_NATIVELINK_SERVER_CA_CERT" \
+  --from-file=ca.crt="$OYATIE_NATIVELINK_SERVER_CA_CERT" \
   --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 kubectl -n arc-runners get configmap nativelink-server-ca \
   -o jsonpath='{.data.ca\.crt}' >"$tmp/projected-ca.crt"
-cmp -s "$tmp/projected-ca.crt" "$OYA_NATIVELINK_SERVER_CA_CERT" || {
+cmp -s "$tmp/projected-ca.crt" "$OYATIE_NATIVELINK_SERVER_CA_CERT" || {
   echo "projected NativeLink server CA differs from the ceremony" >&2
   exit 1
 }
@@ -272,21 +272,21 @@ set -eu
 # ESO has projected the initial Secret without printing data, then restart
 # NativeLink and wait for the replacement pod to become Available. Identity proof
 # MUST NOT begin before this rollout completes.
-kubectl -n oya-ci get externalsecret nativelink-cas-tls >/dev/null
-kubectl -n oya-ci get deployment nativelink-cas >/dev/null
-kubectl -n oya-ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
+kubectl -n ci get externalsecret nativelink-cas-tls >/dev/null
+kubectl -n ci get deployment nativelink-cas >/dev/null
+kubectl -n ci wait --for=condition=Ready externalsecret/nativelink-cas-tls \
   --timeout=5m >/dev/null
-refresh_time="$(kubectl -n oya-ci get externalsecret nativelink-cas-tls \
+refresh_time="$(kubectl -n ci get externalsecret nativelink-cas-tls \
   -o jsonpath='{.status.refreshTime}')"
-secret_rv="$(kubectl -n oya-ci get secret nativelink-cas-tls \
+secret_rv="$(kubectl -n ci get secret nativelink-cas-tls \
   -o jsonpath='{.metadata.resourceVersion}')"
 [ -n "$refresh_time" ] && [ -n "$secret_rv" ] || {
   echo "NativeLink TLS Secret projection metadata is incomplete" >&2
   exit 1
 }
-kubectl -n oya-ci rollout restart deployment/nativelink-cas >/dev/null
-kubectl -n oya-ci rollout status deployment/nativelink-cas --timeout=10m >/dev/null
-kubectl -n oya-ci wait --for=condition=Available deployment/nativelink-cas \
+kubectl -n ci rollout restart deployment/nativelink-cas >/dev/null
+kubectl -n ci rollout status deployment/nativelink-cas --timeout=10m >/dev/null
+kubectl -n ci wait --for=condition=Available deployment/nativelink-cas \
   --timeout=10m >/dev/null
 ```
 
@@ -323,7 +323,7 @@ receipt or fail closed:
    If Flannel is live, stop and rebuild/reprovision the disposable cell from the
    canonical Talos+Cilium declarations. Do not claim or attempt an in-place
    Flannel migration.
-2. Service `oya-kms/openbao` has an EndpointSlice with at least one endpoint
+2. Service `kms/openbao` has an EndpointSlice with at least one endpoint
    whose `conditions.ready` and `conditions.serving` are both `true`, whose
    `conditions.terminating` is `false` or absent, and whose ports include `8200`
    and `8202`. A connection timeout without this readback is not network-policy
@@ -365,17 +365,17 @@ auth/kubernetes/config  disable_local_ca_jwt=true
   `clusterrolebinding-external-secrets-auth-delegator.yaml`, so the TokenReview
   is authorized.
 - This **avoids** having to grant `system:auth-delegator` to **OpenBao's own**
-  ServiceAccount. OpenBao runs as a plain Deployment SA in `oya-kms` and is not
+  ServiceAccount. OpenBao runs as a plain Deployment SA in `kms` and is not
   wired for delegated TokenReview; leaving the flag at its default (`false`)
   makes OpenBao try the TokenReview with ITS local SA token, which 403s and
   breaks every ExternalSecret bound to this store.
 
 If you ever flip `disable_local_ca_jwt` back to `false`, you MUST instead grant
-`system:auth-delegator` to OpenBao's ServiceAccount in `oya-kms`.
+`system:auth-delegator` to OpenBao's ServiceAccount in `kms`.
 
 ## OpenBao-side setup
 
-Run these against OpenBao (e.g. `kubectl -n oya-kms exec` into the pod, or via a
+Run these against OpenBao (e.g. `kubectl -n kms exec` into the pod, or via a
 port-forward with `BAO_ADDR=http://127.0.0.1:8200` and an authenticated token).
 `bao` and `vault` CLIs are interchangeable against OpenBao.
 
@@ -414,7 +414,7 @@ under `secret/data/cloud-k8s/csi/*`, and the cloud-iam SVID-operator join token
 under `secret/data/cloud-iam/pdp-svid-operator/*` (KV v2 prefixes reads with `data/`).
 
 ```sh
-bao policy write oya-ci-read - <<'EOF'
+bao policy write ci-read - <<'EOF'
 path "secret/data/oya/ci/*" {
   capabilities = ["read"]
 }
@@ -439,10 +439,10 @@ Binds each role to the ESO ServiceAccount and attaches only the matching read
 policy. These are the `role` values the ClusterSecretStores reference.
 
 ```sh
-bao write auth/kubernetes/role/eso-oya-ci \
+bao write auth/kubernetes/role/eso-ci \
     bound_service_account_names=external-secrets \
     bound_service_account_namespaces=external-secrets \
-    policies=oya-ci-read \
+    policies=ci-read \
     ttl=1h
 
 bao write auth/kubernetes/role/eso-cloud-k8s-csi \
@@ -461,7 +461,7 @@ bao write auth/kubernetes/role/eso-cloud-iam-svid-operator \
 ### 5. Seed the governed secrets
 
 Store the actual GitHub CI commit-status token (mint via
-`github admin user generate-access-token --username oya-admin --token-name jenkins-ci --scopes write:repository --raw`).
+`github admin user generate-access-token --username admin --token-name jenkins-ci --scopes write:repository --raw`).
 This is the source of truth the `github-ci-token` ExternalSecret pulls from.
 
 ```sh
@@ -501,8 +501,8 @@ kubectl get clustersecretstore openbao-cloud-k8s-csi -o jsonpath='{.status.condi
 kubectl get clustersecretstore openbao-cloud-iam-svid-operator -o jsonpath='{.status.conditions}'
 
 # ExternalSecret should report SecretSynced, and the target Secret should exist
-kubectl -n oya-ci get externalsecret github-ci-token
-kubectl -n oya-ci get secret github-ci-token
+kubectl -n ci get externalsecret github-ci-token
+kubectl -n ci get secret github-ci-token
 
 # cloud-k8s CSI ExternalSecrets should sync through the dedicated store/role
 kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-block-volume-credentials
@@ -510,7 +510,7 @@ kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-object-credentials
 kubectl -n cloud-k8s-system get externalsecret cloud-k8s-csi-file-credentials
 
 # cloud-iam SVID operator join-token ExternalSecret should sync through its dedicated store/role
-kubectl -n cloud-iam get externalsecret oya-cloud-iam-pdp-svid-operator-join-token
+kubectl -n cloud-iam get externalsecret cloud-iam-pdp-svid-operator-join-token
 ```
 
 If the ClusterSecretStore is not Ready with a `permission denied` / `403` on

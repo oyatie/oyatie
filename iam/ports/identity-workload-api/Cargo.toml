@@ -9,7 +9,7 @@ description = "Workload-identity API DTO contract layer: transport-neutral reque
 
 # INVARIANT: api layer depends inward on the pure domain only. It carries no
 # adapter/app dependency (serde DTOs <-> domain values). Mirrors the flat
-# oya-accounting-journal-api exemplar.
+# accounting-journal-api exemplar.
 [dependencies]
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 serde = { workspace = true, features = ["derive"] }

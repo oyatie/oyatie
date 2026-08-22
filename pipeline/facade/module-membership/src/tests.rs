@@ -33,12 +33,12 @@ fn registry() -> Value {
                 { "meta_dir": "kernel/", "current_dirs": ["cloud/cloud-kernel"] }
             ],
             "absorbs_current_crate_globs": [
-                { "meta_dir": "governance/", "globs": ["libs/oya-check-*"] },
-                { "capability": "data", "globs": ["libs/oya-data-*"] }
+                { "meta_dir": "governance/", "globs": ["libs/check-*"] },
+                { "capability": "data", "globs": ["libs/data-*"] }
             ],
             "frozen_unmapped_baseline": {
                 "burn_down_target": 0,
-                "crates": ["libs/oya-shared-idempotency-key-kernel"]
+                "crates": ["libs/shared-idempotency-key-kernel"]
             }
         }
     })
@@ -61,13 +61,13 @@ fn codes(findings: &BTreeSet<Finding>) -> BTreeSet<String> {
 fn every_crate_mapped_passes() {
     let obs = observed(
         vec![
-            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-            "oya/identity/crates/oya-identity-kernel",
-            "oya/crm/crates/oya-crm-kernel",
-            "cloud/cloud-kernel/crates/oya-cloud-kernel-app",
-            "libs/oya-check-cohesion",
-            "libs/oya-data-sql-kernel",
-            "libs/oya-shared-idempotency-key-kernel",
+            "cloud/cloud-iam/crates/cloud-iam-kernel",
+            "oya/identity/crates/identity-kernel",
+            "oya/crm/crates/crm-kernel",
+            "cloud/cloud-kernel/crates/cloud-kernel-app",
+            "libs/check-cohesion",
+            "libs/data-sql-kernel",
+            "libs/shared-idempotency-key-kernel",
         ],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
@@ -88,7 +88,7 @@ fn every_crate_mapped_passes() {
 fn red_crate_in_no_capability_unmapped_new_fails() {
     // A NEW crate under a scan root that maps to no capability and is NOT in the frozen baseline.
     let obs = observed(
-        vec!["oya/widget/crates/oya-widget-kernel"],
+        vec!["oya/widget/crates/widget-kernel"],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
     let c = codes(&evaluate_keyed(&policy(), &obs));
@@ -100,7 +100,7 @@ fn red_crate_in_no_capability_unmapped_new_fails() {
 fn red_new_top_level_dir_common_fails() {
     // A NEW top-level dir `common/` (the canonical junk-drawer) outside the closed set.
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"],
+        vec!["cloud/cloud-iam/crates/cloud-iam-kernel"],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs", "common"],
     );
     let findings = evaluate_keyed(&policy(), &obs);
@@ -121,7 +121,7 @@ fn red_crate_in_two_capabilities_fails() {
     reg["capabilities"][1]["absorbs_current_dirs"] = json!(["cloud/cloud-data", "cloud/cloud-iam"]);
     let obs = json!({
         "crate_count": 1,
-        "crates": ["cloud/cloud-iam/crates/oya-cloud-iam-kernel"],
+        "crates": ["cloud/cloud-iam/crates/cloud-iam-kernel"],
         "top_level_dirs": ["cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": reg,
     });
@@ -138,7 +138,7 @@ fn red_crate_in_two_capabilities_fails() {
 #[test]
 fn frozen_baseline_crate_is_advisory_not_a_failure() {
     let obs = observed(
-        vec!["libs/oya-shared-idempotency-key-kernel"],
+        vec!["libs/shared-idempotency-key-kernel"],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
     let findings = evaluate_keyed(&policy(), &obs);
@@ -157,7 +157,7 @@ fn retired_v1_products_map_in_place_not_to_app() {
         "current_dirs": ["oya/notes"]
     });
     let mapping = parse_mapping(&reg).expect("retired_v1_products is a recognized coverage key");
-    let homes = homes_for(&mapping, "oya/notes/crates/oya-notes-domain");
+    let homes = homes_for(&mapping, "oya/notes/crates/notes-domain");
     assert_eq!(homes, vec![RETIRE_IN_PLACE_HOME.to_owned()]);
     assert!(
         !homes.iter().any(|home| home.contains("app")),
@@ -167,8 +167,8 @@ fn retired_v1_products_map_in_place_not_to_app() {
     let obs = json!({
         "crate_count": 2,
         "crates": [
-            "oya/notes/crates/oya-notes-domain",
-            "libs/oya-shared-idempotency-key-kernel"
+            "oya/notes/crates/notes-domain",
+            "libs/shared-idempotency-key-kernel"
         ],
         "top_level_dirs": ["cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": reg,
@@ -204,10 +204,10 @@ fn stale_frozen_entry_now_mapped_fails() {
     reg["membership_lint_coverage"]["absorbs_current_crate_globs"]
         .as_array_mut()
         .unwrap()
-        .push(json!({ "capability": "iam", "globs": ["libs/oya-shared-idempotency-*"] }));
+        .push(json!({ "capability": "iam", "globs": ["libs/shared-idempotency-*"] }));
     let obs = json!({
         "crate_count": 1,
-        "crates": ["libs/oya-shared-idempotency-key-kernel"],
+        "crates": ["libs/shared-idempotency-key-kernel"],
         "top_level_dirs": ["cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": reg,
     });
@@ -219,7 +219,7 @@ fn stale_frozen_entry_now_mapped_fails() {
 fn stale_frozen_entry_not_in_tree_fails() {
     // The frozen entry no longer exists in the tree → drift.
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"],
+        vec!["cloud/cloud-iam/crates/cloud-iam-kernel"],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
     let c = codes(&evaluate_keyed(&policy(), &obs));
@@ -232,11 +232,11 @@ fn stale_frozen_entry_not_in_tree_fails() {
 fn base_crate_with_fewer_than_three_consumers_fails() {
     let obs = json!({
         "crate_count": 1,
-        "crates": ["base/oya-base-clock"],
+        "crates": ["base/base-clock"],
         "top_level_dirs": ["base", "cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": registry(),
         "base_admission_facts": {
-            "base/oya-base-clock": { "capability_consumers": ["iam", "data"], "strictly_below_all_consumers": true }
+            "base/base-clock": { "capability_consumers": ["iam", "data"], "strictly_below_all_consumers": true }
         }
     });
     let c = codes(&evaluate_keyed(&policy(), &obs));
@@ -247,11 +247,11 @@ fn base_crate_with_fewer_than_three_consumers_fails() {
 fn base_crate_not_strictly_below_consumers_fails() {
     let obs = json!({
         "crate_count": 1,
-        "crates": ["base/oya-base-clock"],
+        "crates": ["base/base-clock"],
         "top_level_dirs": ["base", "cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": registry(),
         "base_admission_facts": {
-            "base/oya-base-clock": { "capability_consumers": ["iam", "data", "cell"], "strictly_below_all_consumers": false }
+            "base/base-clock": { "capability_consumers": ["iam", "data", "cell"], "strictly_below_all_consumers": false }
         }
     });
     let c = codes(&evaluate_keyed(&policy(), &obs));
@@ -262,11 +262,11 @@ fn base_crate_not_strictly_below_consumers_fails() {
 fn base_crate_with_three_consumers_below_all_passes() {
     let obs = json!({
         "crate_count": 1,
-        "crates": ["base/oya-base-clock"],
+        "crates": ["base/base-clock"],
         "top_level_dirs": ["base", "cloud", "oya", "libs", "tools", "specs", "docs"],
         "registry": registry(),
         "base_admission_facts": {
-            "base/oya-base-clock": { "capability_consumers": ["iam", "data", "cell"], "strictly_below_all_consumers": true }
+            "base/base-clock": { "capability_consumers": ["iam", "data", "cell"], "strictly_below_all_consumers": true }
         }
     });
     // The base/ crate itself maps to the base/ meta dir via the closed top-level set; it is not in
@@ -298,8 +298,8 @@ fn wrong_gate_id_fails_closed() {
     p["gate_id"] = json!("not-the-gate");
     let obs = observed(
         vec![
-            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-            "libs/oya-shared-idempotency-key-kernel",
+            "cloud/cloud-iam/crates/cloud-iam-kernel",
+            "libs/shared-idempotency-key-kernel",
         ],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
@@ -348,16 +348,16 @@ fn freeze_policy(census: Vec<&str>) -> Value {
 #[test]
 fn frozen_census_tolerates_every_crate_that_exists_today() {
     let p = freeze_policy(vec![
-        "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-        "oya/identity/crates/oya-identity-kernel",
+        "cloud/cloud-iam/crates/cloud-iam-kernel",
+        "oya/identity/crates/identity-kernel",
     ]);
     let obs = observed(
         vec![
-            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-            "oya/identity/crates/oya-identity-kernel",
+            "cloud/cloud-iam/crates/cloud-iam-kernel",
+            "oya/identity/crates/identity-kernel",
             // The shared registry fixture's own unmapped-baseline entry; present so this test
             // isolates the freeze rather than tripping MEM-STALE-FROZEN-BASELINE.
-            "libs/oya-shared-idempotency-key-kernel",
+            "libs/shared-idempotency-key-kernel",
         ],
         vec!["cloud", "oya", "libs"],
     );
@@ -370,11 +370,11 @@ fn frozen_census_tolerates_every_crate_that_exists_today() {
 fn a_crate_born_under_a_frozen_root_is_a_regression() {
     // THE WHOLE POINT: the new crate maps cleanly to a registered capability, so membership alone
     // is green. Only the freeze catches it.
-    let p = freeze_policy(vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"]);
+    let p = freeze_policy(vec!["cloud/cloud-iam/crates/cloud-iam-kernel"]);
     let obs = observed(
         vec![
-            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-            "cloud/cloud-iam/crates/oya-cloud-iam-brand-new",
+            "cloud/cloud-iam/crates/cloud-iam-kernel",
+            "cloud/cloud-iam/crates/cloud-iam-brand-new",
         ],
         vec!["cloud"],
     );
@@ -383,7 +383,7 @@ fn a_crate_born_under_a_frozen_root_is_a_regression() {
         .iter()
         .find(|f| f.code == "MEM-NEW-LEGACY-ROOT-CRATE")
         .unwrap_or_else(|| panic!("expected a freeze finding: {findings:#?}"));
-    assert_eq!(hit.key, "cloud/cloud-iam/crates/oya-cloud-iam-brand-new");
+    assert_eq!(hit.key, "cloud/cloud-iam/crates/cloud-iam-brand-new");
     // The remedy must name where the crate SHOULD go, not merely that it is unwelcome.
     assert!(hit.detail.contains("capability root"), "{}", hit.detail);
     assert_eq!(evaluate(&p, &obs).verdict, Verdict::Red);
@@ -393,10 +393,10 @@ fn a_crate_born_under_a_frozen_root_is_a_regression() {
 fn a_crate_born_outside_every_frozen_root_is_not_a_freeze_finding() {
     // The freeze must not become a repo-wide "no new crates" rule: a crate in a capability root is
     // exactly the destination the reorg wants, and must land freely.
-    let p = freeze_policy(vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"]);
+    let p = freeze_policy(vec!["cloud/cloud-iam/crates/cloud-iam-kernel"]);
     let obs = observed(
         vec![
-            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "cloud/cloud-iam/crates/cloud-iam-kernel",
             "iam/core/pdp-kernel",
         ],
         vec!["cloud", "iam"],
@@ -411,11 +411,11 @@ fn a_moved_crate_must_shrink_the_census_in_the_same_change() {
     // Burn-down that is not recorded leaves slack behind: a crate later re-created at that exact
     // path would land pre-forgiven. The move is only complete when the census entry is gone.
     let p = freeze_policy(vec![
-        "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
-        "oya/identity/crates/oya-identity-kernel",
+        "cloud/cloud-iam/crates/cloud-iam-kernel",
+        "oya/identity/crates/identity-kernel",
     ]);
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel"],
+        vec!["cloud/cloud-iam/crates/cloud-iam-kernel"],
         vec!["cloud"],
     );
     let findings = evaluate_keyed(&p, &obs);
@@ -423,7 +423,7 @@ fn a_moved_crate_must_shrink_the_census_in_the_same_change() {
         .iter()
         .find(|f| f.code == "MEM-STALE-LEGACY-ROOT-BASELINE")
         .unwrap_or_else(|| panic!("expected a stale-census finding: {findings:#?}"));
-    assert_eq!(hit.key, "oya/identity/crates/oya-identity-kernel");
+    assert_eq!(hit.key, "oya/identity/crates/identity-kernel");
     assert_eq!(evaluate(&p, &obs).verdict, Verdict::Red);
 }
 
@@ -432,7 +432,7 @@ fn a_policy_without_the_freeze_block_is_inert() {
     // Fixture / adopting-repo contract: no block ⇒ no freeze findings at all, in either direction.
     // The live gate's non-inertness is asserted separately over the COMMITTED policy.
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-brand-new"],
+        vec!["cloud/cloud-iam/crates/cloud-iam-brand-new"],
         vec!["cloud"],
     );
     let c = codes(&evaluate_keyed(&policy(), &obs));
@@ -445,7 +445,7 @@ fn a_policy_without_the_freeze_block_is_inert() {
 fn every_freeze_code_is_registered() {
     let p = freeze_policy(vec!["oya/identity/crates/gone"]);
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-brand-new"],
+        vec!["cloud/cloud-iam/crates/cloud-iam-brand-new"],
         vec!["cloud"],
     );
     let findings = evaluate_keyed(&p, &obs);

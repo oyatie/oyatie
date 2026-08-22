@@ -19,7 +19,7 @@ Bind provisioning to `microservices/cloud-iac/policy/iac-isolation.md`, `microse
 - Singapore tenant examples in `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`.
 - Incident/rollback event examples in `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`.
 - Isolation and restore drill evidence references.
-- Registry binding through `microservices/cloud-iac/catalog/oya-cloud-iac-iac-registry-kernel.yaml`.
+- Registry binding through `microservices/cloud-iac/catalog/cloud-iac-iac-registry-kernel.yaml`.
 
 ## D. Implementation
 1. Add `sg_pdpa_pack_ref`, `mas_profile`, and `operational_resilience_drill_ref` to j97 examples.

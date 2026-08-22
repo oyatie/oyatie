@@ -7,4 +7,4 @@ AppProject bootstrap.
 
 Note: this module CREATES the namespace + the AppProject. It
 does NOT create per-pod manifests (those are Tier A / ArgoCD).
-The discipline gate `oya-check-iac-tier-discipline` enforces.
+The discipline gate `check-iac-tier-discipline` enforces.

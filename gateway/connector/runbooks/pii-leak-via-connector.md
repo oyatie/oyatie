@@ -19,10 +19,10 @@ doc_status: published
 
 - Detection signal `PIILeakViaConnector` fires from detection substrate (family 8: policy violation)
 - Audit event `ConnectorActionInvoked` for a data-class-tagged field shows destination outside tenant's approved data-residency zone
-- DLP egress scan alerts: `oya_connector_dlq_pii_egress_blocked_total > 0`
+- DLP egress scan alerts: `connector_dlq_pii_egress_blocked_total > 0`
 - Tenant-admin reports that personal data appeared in an external system where it should not
 - Security researcher responsible-disclosure report references PII exposure in connector payload
-- `oya_connector_payload_pii_detected_total{connector="<X>",destination="external"} > 0`
+- `connector_payload_pii_detected_total{connector="<X>",destination="external"} > 0`
 
 ## B. Pre-checks
 
@@ -46,7 +46,7 @@ doc_status: published
 3. **Confirm DLP block status** — did the egress scan catch it before transmission?
    ```bash
    curl -s http://connector-adapter-worker.connector:9090/metrics \
-     | grep oya_connector_payload_pii_detected_total
+     | grep connector_payload_pii_detected_total
    # Check: _blocked vs _transmitted counters
    ```
 4. **Assess GDPR/PIPA 72h window** — determine if breach notification is required.
@@ -130,12 +130,12 @@ doc_status: published
 ```bash
 # Confirm no more PII egress
 curl -s http://connector-adapter-worker.connector:9090/metrics \
-  | grep "oya_connector_payload_pii_transmitted_total{connector=\"${CONNECTOR_NAME}\"}"
+  | grep "connector_payload_pii_transmitted_total{connector=\"${CONNECTOR_NAME}\"}"
 # Expected: counter should not be incrementing post-patch
 
 # Confirm DLP block active
 kubectl exec -n connector deploy/connector-adapter-worker -- \
-  curl localhost:9090/metrics | grep oya_connector_dlq_pii_egress_blocked_total
+  curl localhost:9090/metrics | grep connector_dlq_pii_egress_blocked_total
 
 # Confirm OAuth grants revoked
 kubectl exec -n connect deploy/connect-oauth-broker -- \

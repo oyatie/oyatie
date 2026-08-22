@@ -1,4 +1,4 @@
-# Implementation-ready acceptance criteria — `oya-managed-k8s-control-plane-host`
+# Implementation-ready acceptance criteria — `managed-k8s-control-plane-host`
 
 Each criterion is verifiable against the code in this lane (kernel + api +
 adapters + app) or against the named follow-on. ✅ = covered + tested in this lane.
@@ -38,7 +38,7 @@ adapters + app) or against the named follow-on. ✅ = covered + tested in this l
 - ✅ **AC-A3** `POST /admin/control-planes/teardown` returns 204 (idempotent).
 - ✅ **AC-A4** Tier defaults to `hosted_kamaji` when omitted (ADR-0376 default).
 - ✅ **AC-A5** `GET /healthz` returns 200 `ok`.
-- ✅ **AC-A6** The production `[[bin]]` fails closed without `$OYA_MGMT_KUBECONFIG`
+- ✅ **AC-A6** The production `[[bin]]` fails closed without `$OYATIE_MGMT_KUBECONFIG`
   (`BootError::MissingMgmtKubeconfig`); it never falls back to the in-memory fake.
 
 ## Registry / governance
@@ -58,14 +58,14 @@ adapters + app) or against the named follow-on. ✅ = covered + tested in this l
 
 - **AC-D1** Live Kamaji `TenantControlPlane` / Talos control-plane reconcile +
   NetworkPolicy/datastore isolation enforcement (`kamaji-provider-live-integration`).
-- **AC-D2** Billing/SLA/DPIA/external GA (`oya-managed-k8s-commercial-ga`).
+- **AC-D2** Billing/SLA/DPIA/external GA (`managed-k8s-commercial-ga`).
 
 ## Verification commands (this lane, targeted)
 
 ```
-cargo fmt -p oya-managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app} --check
-cargo clippy -p oya-managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app} --all-targets -- -D warnings
-cargo nextest run -p oya-managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app}
+cargo fmt -p managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app} --check
+cargo clippy -p managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app} --all-targets -- -D warnings
+cargo nextest run -p managed-k8s-control-plane-host-{kernel,api,adapter-capi,adapter-inmemory,app}
 ./bin/oya gate validate architecture-boundaries
 ./bin/oya gate validate dependency-seam
 ./bin/oya gate validate data-class

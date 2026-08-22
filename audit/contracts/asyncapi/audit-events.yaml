@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-audit-chain — audit events
+  title: audit-chain — audit events
   version: 1.0.0
   summary: AuditEmitted, SealMinted, VerificationFailed, RetentionApplied, KeyRotated events
   description: |

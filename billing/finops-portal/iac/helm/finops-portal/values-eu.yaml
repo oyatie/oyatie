@@ -7,9 +7,9 @@ image:
   registry: eu-registry.oya.internal
 
 env:
-  OYA_FINOPS_PORTAL_REGION: eu-central-1
-  OYA_FINOPS_PORTAL_LOCALE_DEFAULT: en-EU
-  OYA_FINOPS_PORTAL_CURRENCY_DEFAULT: eur
+  OYATIE_FINOPS_PORTAL_REGION: eu-central-1
+  OYATIE_FINOPS_PORTAL_LOCALE_DEFAULT: en-EU
+  OYATIE_FINOPS_PORTAL_CURRENCY_DEFAULT: eur
 
 features:
   gdprArticle30: true

@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-012: oya-cloud-iac-iac-*-app crates (all 5 BCs)
+# IP-012: cloud-iac-iac-*-app crates (all 5 BCs)
 
 ## Intent
 
@@ -27,12 +27,12 @@ Five new crates per ADR-0105: one `-app` per BC. Catalog rows. Dockerfile per ap
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-*-app.yaml` | create (5 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-app/{Cargo.toml,src/main.rs,src/wiring.rs,Dockerfile}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-*-app.yaml` | create (5 rows) |
 
 ## Code Shape
 
@@ -63,9 +63,9 @@ async fn main() -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo build --release --workspace -p oya-cloud-iac-iac-*-app --all-features
-docker build -t cloud-iac-applier:test -f microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-app/Dockerfile .
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo build --release --workspace -p cloud-iac-iac-*-app --all-features
+docker build -t cloud-iac-applier:test -f microservices/cloud-iac/src/crates/cloud-iac-iac-applier-app/Dockerfile .
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

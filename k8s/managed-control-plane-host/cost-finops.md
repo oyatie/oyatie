@@ -1,8 +1,8 @@
-# Cost / FinOps — `oya-managed-k8s-control-plane-host`
+# Cost / FinOps — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376 (control-plane economics is the deciding force behind the
 two-tier model). non_claim: this is the cost MODEL the product layer reasons
-about; metering/billing is deferred to `oya-managed-k8s-commercial-ga`.
+about; metering/billing is deferred to `managed-k8s-commercial-ga`.
 
 ## The economic thesis (ADR-0376)
 
@@ -34,5 +34,5 @@ lower cost, logical separation).
 ## Deferred
 
 - Metering of managed clusters, the per-tenant cost attribution, and the billing
-  components → `oya-managed-k8s-commercial-ga` (ADR-0376). This lane emits NO
+  components → `managed-k8s-commercial-ga` (ADR-0376). This lane emits NO
   billing components and makes NO pricing claim.

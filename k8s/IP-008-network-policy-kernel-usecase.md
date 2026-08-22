@@ -6,12 +6,12 @@ impl_plan_id: IP-008-network-policy-kernel-usecase
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud + ops-security
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-cedar-derived-policy-paired]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, check-cedar-derived-policy-paired]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-008: oya-cloud-k8s-network-policy-{kernel,domain,usecase,adapter}
+# IP-008: cloud-k8s-network-policy-{kernel,domain,usecase,adapter}
 
 ## Intent
 
@@ -25,16 +25,16 @@ Four new Rust crates. Catalog rows.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-network-policy-kernel/{Cargo.toml,src/*}` | create |
-| `.../oya-cloud-k8s-network-policy-domain/{Cargo.toml,src/{lib.rs,cedar_to_crs.rs,pair_validation.rs}}` | create |
-| `.../oya-cloud-k8s-network-policy-usecase/{Cargo.toml,src/{lib.rs,apply.rs,reconcile.rs}}` | create |
-| `.../oya-cloud-k8s-network-policy-adapter/{Cargo.toml,src/{lib.rs,k8s_networkpolicy_client.rs,istio_authpolicy_client.rs}}` | create |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-network-policy-{kernel,domain,usecase,adapter}.yaml` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-network-policy-kernel/{Cargo.toml,src/*}` | create |
+| `.../cloud-k8s-network-policy-domain/{Cargo.toml,src/{lib.rs,cedar_to_crs.rs,pair_validation.rs}}` | create |
+| `.../cloud-k8s-network-policy-usecase/{Cargo.toml,src/{lib.rs,apply.rs,reconcile.rs}}` | create |
+| `.../cloud-k8s-network-policy-adapter/{Cargo.toml,src/{lib.rs,k8s_networkpolicy_client.rs,istio_authpolicy_client.rs}}` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-network-policy-{kernel,domain,usecase,adapter}.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAMES: oya-cloud-k8s-network-policy-{kernel,domain,usecase,adapter}
+NAMES: cloud-k8s-network-policy-{kernel,domain,usecase,adapter}
 JUSTIFICATION: microservice + bc + layer per ADR-0105; exemptions: none
 ```
 
@@ -43,7 +43,7 @@ JUSTIFICATION: microservice + bc + layer per ADR-0105; exemptions: none
 ```rust
 // domain/src/cedar_to_crs.rs
 use cedar_policy::Policy;
-use oya_cloud_k8s_network_policy_kernel::entities::*;
+use cloud_k8s_network_policy_kernel::entities::*;
 
 pub fn derive_pair(
     cedar_fragment: &Policy,
@@ -67,7 +67,7 @@ where NPE: NetworkPolicyEmitter, APE: AuthorizationPolicyEmitter {
 impl<NPE, APE> ApplyUseCase<NPE, APE> where NPE: NetworkPolicyEmitter, APE: AuthorizationPolicyEmitter {
     pub async fn apply_pair(&self, cedar_sha: String, namespace: String,
                             np: NetworkPolicy, ap: AuthorizationPolicy) -> Result<ApplyResult, UseCaseError> {
-        // Atomic: emit both or rollback. The LEAN check `oya-check-cedar-derived-policy-paired`
+        // Atomic: emit both or rollback. The LEAN check `check-cedar-derived-policy-paired`
         // verifies the pair invariant at CI time.
     }
 }
@@ -77,10 +77,10 @@ impl<NPE, APE> ApplyUseCase<NPE, APE> where NPE: NetworkPolicyEmitter, APE: Auth
 
 ```bash
 for crate in network-policy-{kernel,domain,usecase,adapter}; do
-  cargo check -p oya-cloud-k8s-$crate
-  cargo nextest run -p oya-cloud-k8s-$crate
+  cargo check -p cloud-k8s-$crate
+  cargo nextest run -p cloud-k8s-$crate
 done
-cargo run -p oya-dev-cli -- gate validate cedar-derived-policy-paired --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate cedar-derived-policy-paired --microservice cloud-k8s
 ```
 
 ## Test Plan

@@ -29,7 +29,7 @@ contract.
    TTL.
 3. OpenBao secret reference projection works for S3 access keys.
 4. ServiceMonitor scrapes `:9325` and metrics land in Mimir.
-5. `oya-check-tenant-cost-labels-coverage` reports full coverage on
+5. `check-tenant-cost-labels-coverage` reports full coverage on
    the rendered chart.
 6. Volume erasure-coding shape (10+4) is applied per ADR-0196 §EC.
 
@@ -57,7 +57,7 @@ contract.
 
 - Geo-replication (separate IP).
 - Lifecycle policies (separate IP).
-- Pre-signed URL substrate (separate IP — see `oya-shared-object-
+- Pre-signed URL substrate (separate IP — see `shared-object-
   store-kernel` for the trait).
 - Ceph RGW scale-up dry-run (separate IP, parked until ADR-0196 D-2
   trigger).

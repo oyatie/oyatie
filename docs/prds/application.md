@@ -99,14 +99,14 @@ capability-registration protocol; Application never owns product-specific logic.
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `auth` | `oya-application-auth-{domain,application,infrastructure,rest}` | OIDC/SAML sign-in; token issuance; MFA | `Session`, `OidcProvider` |
-| `product-enablement` | `oya-application-product-enablement-{domain,application,infrastructure,rest}` | Product catalog; enable/disable; seat licensing | `ProductLicense`, `EnabledProduct` |
-| `user-provisioning` | `oya-application-user-provisioning-{domain,application}` | User create/suspend; role assignment; HR sync | `TenantUser` |
-| `billing` | `oya-application-billing-{domain,application,infrastructure,rest}` | Plan management; invoicing; seat counts | `BillingPlan`, `Invoice` |
-| `navigation` | `oya-application-navigation-{domain,application,rest}` | App-switcher; product links; notifications | `NavItem` |
+| `auth` | `application-auth-{domain,application,infrastructure,rest}` | OIDC/SAML sign-in; token issuance; MFA | `Session`, `OidcProvider` |
+| `product-enablement` | `application-product-enablement-{domain,application,infrastructure,rest}` | Product catalog; enable/disable; seat licensing | `ProductLicense`, `EnabledProduct` |
+| `user-provisioning` | `application-user-provisioning-{domain,application}` | User create/suspend; role assignment; HR sync | `TenantUser` |
+| `billing` | `application-billing-{domain,application,infrastructure,rest}` | Plan management; invoicing; seat counts | `BillingPlan`, `Invoice` |
+| `navigation` | `application-navigation-{domain,application,rest}` | App-switcher; product links; notifications | `NavItem` |
 
 ```
-NAME: oya-application-product-enablement-rest
+NAME: application-product-enablement-rest
 JUSTIFICATION:
 - microservice = application: B2B unified shell µservice; flat catalog; ADR-0056 v4.1; "Application" not "Shell" per oyatie override
 - bc-tokens = product-enablement: application has multiple BCs; product-enablement BC owns ProductLicense entity + enable/disable use-cases; ADR-0056 v4.1 BC-optionality

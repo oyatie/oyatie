@@ -105,7 +105,7 @@ doc_status: draft_target_non_claim
 > **Status:** published; wave-gated promotion targets remain in §2.4
 > **Owning team:** founder-governed product authority (with axis-workflow as primary executor)
 > **Owning axis:** cross-cutting product layer (NOT a single µservice)
-> **Catalog reference:** `oya/workplace-integration/catalog/oya-workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
+> **Catalog reference:** `oya/workplace-integration/catalog/workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
 > **Last updated:** 2026-05-20 by founder-governed product authority
 > **Path convention:** repo-local service artifacts use `oya/<service>/...`; machine-readable service specs use `specs/microservices/*.json`; legacy `microservices/...` paths are not authoritative in this checkout.
 
@@ -2462,10 +2462,10 @@ Pass: Cedar denies undeclared resource access.
 
 This product consumes current SSOT doctrine for the intelligence substrate, cellular automation, and cloud-native delivery:
 
-- D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
+- D-CICD-AUTHORITY binds this lane to the branch-protected `presubmit` cloud-ci/ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
 - D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
-- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology. Enforcement evidence flows through central governance and the branch-protected `oya-ci-required` gate, not scattered local lanes.
-- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
+- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology. Enforcement evidence flows through central governance and the branch-protected `presubmit` gate, not scattered local lanes.
+- D-CICD-AUTHORITY keeps one canonical CI authority now (`presubmit`) and the owned ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
 
 ## References
 
@@ -2493,12 +2493,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| WORKPLACE-PRD-AC-001 | The Workplace Integration PRD is used as a planning contract and cross-service HR, payroll, calendar, messenger, and workflow saga readiness is evaluated | The planned-maturity gate scans product PRDs | workplace saga acceptance is linked to test and evidence paths instead of generic prose | WORKPLACE-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| WORKPLACE-PRD-AC-002 | a workplace-flow promotion packet references this PRD | Readiness evidence is evaluated | fresh saga, HR/payroll/calendar/messenger integration, audit, and user-pain evidence is required outside this PRD | WORKPLACE-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| WORKPLACE-PRD-AC-001 | The Workplace Integration PRD is used as a planning contract and cross-service HR, payroll, calendar, messenger, and workflow saga readiness is evaluated | The planned-maturity gate scans product PRDs | workplace saga acceptance is linked to test and evidence paths instead of generic prose | WORKPLACE-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| WORKPLACE-PRD-AC-002 | a workplace-flow promotion packet references this PRD | Readiness evidence is evaluated | fresh saga, HR/payroll/calendar/messenger integration, audit, and user-pain evidence is required outside this PRD | WORKPLACE-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| Workplace saga/workflow integration planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one Workplace row names saga, workflow, HR/payroll, calendar/messenger, and audit obligations | `oya-ci-required` |
-| Workplace product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A workplace promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `oya-ci-required` |
+| Workplace saga/workflow integration planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one Workplace row names saga, workflow, HR/payroll, calendar/messenger, and audit obligations | `presubmit` |
+| Workplace product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | A workplace promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |

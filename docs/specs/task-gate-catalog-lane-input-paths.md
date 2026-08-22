@@ -3,7 +3,7 @@
 ## Objective
 
 Add a pure, static `LANE_INPUT_GLOBS` table to
-`crates/oya-governance-gate-catalog-domain` that maps each governance lane in
+`crates/governance-gate-catalog-domain` that maps each governance lane in
 `AGGREGATED_VALIDATE_LANES` (`src/lib.rs`) to its declared input path-globs, plus
 a pure fn `lanes_for_changed(changed: &[&str]) -> Vec<&'static str>` that returns
 the subset of lanes a given changed-file set could affect — with a conservative
@@ -12,18 +12,18 @@ a lane that has not yet been declared.
 
 This is the data table that gate-lane affected-scope selection reads. It is the
 gate-lane sibling of the existing cargo-scope selector in
-`crates/oya-dev-cli/src/commands/verify_affected.rs` (ADR-0360 O1): that file
+`crates/dev-cli/src/commands/verify_affected.rs` (ADR-0360 O1): that file
 narrows the *cargo* build/test scope from a changed-file set; this table narrows
 the *governance-gate-lane* scope from the same kind of changed-file set.
 
 **Scope guardrail:** lib + unit tests ONLY. NO consumer wiring. `gate run-all`
-(`crates/oya-dev-cli/src/commands/gate/run_all.rs`) consumes the new fn in a
+(`crates/dev-cli/src/commands/gate/run_all.rs`) consumes the new fn in a
 later window; that crate is out of scope for this task.
 
 ## Vertical
 
 `foundation-cicd` lane. Crate touched (the ONLY crate this task may touch):
-`crates/oya-governance-gate-catalog-domain`. Plus lane docs
+`crates/governance-gate-catalog-domain`. Plus lane docs
 (`tasks/gate-catalog-lane-input-paths-plan.md`) and this spec
 (`docs/specs/task-gate-catalog-lane-input-paths.md`).
 
@@ -35,7 +35,7 @@ the `#![cfg_attr(test, allow(clippy::unwrap_used, ...))]` Tier-3 test exemption;
 the new code stays inside the same Tier-1 contract. NO new dependency is added —
 the path-glob matcher is a self-contained pure fn, mirroring the established
 house pattern `simple_glob_matches` in
-`crates/oya-dev-cli/src/workspace_hygiene_gate.rs:436` (no `glob` crate in the
+`crates/dev-cli/src/workspace_hygiene_gate.rs:436` (no `glob` crate in the
 workspace; a kernel crate must stay dependency-free).
 
 ## Authority chain
@@ -56,7 +56,7 @@ normalization the cargo selector assumes). The matcher supports exactly three
 glob shapes, kept deliberately small and pure:
 
 1. **Exact**: `Cargo.lock` — matches the path verbatim.
-2. **Directory prefix**: `microservices/**` or `crates/oya-foo/` — matches any
+2. **Directory prefix**: `microservices/**` or `crates/foo/` — matches any
    path under that directory.
 3. **Suffix / extension**: `**/*.openslo.yaml` or `*.md` — matches any path whose
    tail matches the suffix.
@@ -142,8 +142,8 @@ Required test coverage:
 Verification command (warm shared target dir):
 ```
 export CARGO_TARGET_DIR=/Users/jasonlee/Developer/source/target
-cargo check -p oya-governance-gate-catalog-domain --all-targets
-cargo nextest run -p oya-governance-gate-catalog-domain
+cargo check -p governance-gate-catalog-domain --all-targets
+cargo nextest run -p governance-gate-catalog-domain
 ```
 
 ## Observability / SLO touchpoints
@@ -157,12 +157,12 @@ or modified by this task.
 ## Crate boundary (explicit)
 
 **In scope (this task may touch):**
-- `crates/oya-governance-gate-catalog-domain/src/lib.rs` — new symbols added.
+- `crates/governance-gate-catalog-domain/src/lib.rs` — new symbols added.
 - `tasks/gate-catalog-lane-input-paths-plan.md` — plan artifact (read-only reference).
 - `docs/specs/task-gate-catalog-lane-input-paths.md` — this file.
 
 **Explicitly out of scope (must NOT be touched):**
-- `crates/oya-dev-cli/**` — consumer wiring deferred to a later window.
+- `crates/dev-cli/**` — consumer wiring deferred to a later window.
 - Root `Cargo.toml` / workspace `[members]` — no new crate, no new dep.
 - Any other crate or file in the workspace.
 - Existing `AGGREGATED_VALIDATE_LANES` / `AGGREGATED_NON_GATE_COMMANDS` string
@@ -191,7 +191,7 @@ is no schema file to write or update.
   lanes that do not match.
 - Unmapped lanes are always present in the output regardless of `changed`.
 - Output is duplicate-free and in catalog order.
-- `cargo check -p oya-governance-gate-catalog-domain --all-targets` and
-  `cargo nextest run -p oya-governance-gate-catalog-domain` both green with the
+- `cargo check -p governance-gate-catalog-domain --all-targets` and
+  `cargo nextest run -p governance-gate-catalog-domain` both green with the
   warm shared target dir.
-- No new dependency; no consumer (`oya-dev-cli`) edit.
+- No new dependency; no consumer (`dev-cli`) edit.

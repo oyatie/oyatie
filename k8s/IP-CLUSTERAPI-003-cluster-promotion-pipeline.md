@@ -1,7 +1,7 @@
 # IP-CLUSTERAPI-003 — Cluster promotion pipeline
 
 > ADR anchor: ADR-0202, ADR-0139, ADR-0171.
-> Owner: `oya-cloud-k8s`.
+> Owner: `cloud-k8s`.
 > Estimate: 4 days.
 
 ## Goal

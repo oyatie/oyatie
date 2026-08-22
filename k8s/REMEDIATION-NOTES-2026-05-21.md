@@ -8,13 +8,13 @@ Per ADR-0336, Redis vocabulary replaced with Valkey in:
 - `microservices/cloud-k8s/performance-benchmark-numbers-2026-05-20.md`
 - `microservices/cloud-k8s/multi-region.md`
 - `microservices/cloud-k8s/iac/kustomize/components/storage-classes/kustomization.yaml`
-- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
+- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-valkey-hot.yaml`
 
 Counterpart-fact preservations:
 - None.
 
 Files renamed (git mv):
-- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-redis-hot.yaml` -> `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
+- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-redis-hot.yaml` -> `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-valkey-hot.yaml`
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
@@ -26,7 +26,7 @@ Values: RTO 1800 seconds, RPO 300 seconds, runbooks `control-plane-restore.md`, 
 
 ### Capacity model
 
-Values: cluster bootstrap p99 <= 30 minutes, node join p99 <= 5 minutes, 10 baseline launch nodes, 5,000 max nodes/cluster, workload-class NodePools `oya-app`, `oya-batch`, `oya-gpu`, `oya-regulatory`, and manifest `criticality_tier: T2` mapped to Tier-2 cell placement. ADR: ADR-0340. Alternatives considered: tenant-app request-rate sizing or Tier-1 ledger placement; rejected because cloud-k8s capacity is cluster/node churn and it is substrate but not the canonical money/identity/key ledger. Cost: exact per-tenant CPU/RAM/storage/connection baselines still require D-2 manifest data.
+Values: cluster bootstrap p99 <= 30 minutes, node join p99 <= 5 minutes, 10 baseline launch nodes, 5,000 max nodes/cluster, workload-class NodePools `app`, `batch`, `gpu`, `regulatory`, and manifest `criticality_tier: T2` mapped to Tier-2 cell placement. ADR: ADR-0340. Alternatives considered: tenant-app request-rate sizing or Tier-1 ledger placement; rejected because cloud-k8s capacity is cluster/node churn and it is substrate but not the canonical money/identity/key ledger. Cost: exact per-tenant CPU/RAM/storage/connection baselines still require D-2 manifest data.
 
 ### Sustainability + cost attribution
 

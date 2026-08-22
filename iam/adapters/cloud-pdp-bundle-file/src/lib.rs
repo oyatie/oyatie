@@ -1,4 +1,4 @@
-//! # oya-cloud-iam-pdp-bundle-file-adapter
+//! # cloud-iam-pdp-bundle-file-adapter
 //!
 //! File-backed [`PolicyBundleStore`] adapter (ADR-0559, G004 slice 1) with
 //! cryptographic signature verification at the store boundary (ADR-0536 D-2,
@@ -30,7 +30,7 @@
 //! never serve a decision — the mTLS trust-root precedent).
 //!
 //! Every error is fail-closed ([`BundleStoreError`]): at boot the service
-//! REFUSES TO START (the oya-identity precedent — a serving process is a
+//! REFUSES TO START (the identity precedent — a serving process is a
 //! correctly-configured process), and on reload the serving bundle keeps
 //! serving.
 //!
@@ -43,7 +43,7 @@
 //!
 //! The OWNED aws-lc-rs Ed25519 verifier ([`Ed25519ChainVerifier`], ADR-0506,
 //! ring-free) is reused from the audit digest-chain adapter — the first legal
-//! `iam/ → libs/oya-shared-audit-*` lib→lib edge (no layer inversion).
+//! `iam/ → libs/shared-audit-*` lib→lib edge (no layer inversion).
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -52,10 +52,10 @@
 use std::path::{Path, PathBuf};
 
 use iam_cloud_pdp_kernel::{BundleStoreError, PolicyBundleStore};
-use oya_shared_audit_digest_adapter_awslc::Ed25519ChainVerifier;
-use oya_shared_audit_event_kernel::{ChainVerifier, DigestChainError, decode_hex};
-use oya_shared_pdp_kernel::PolicyBundle;
-use oya_shared_platform_contracts_kernel::pdp::PolicyVersion;
+use shared_audit_digest_adapter_awslc::Ed25519ChainVerifier;
+use shared_audit_event_kernel::{ChainVerifier, DigestChainError, decode_hex};
+use shared_pdp_kernel::PolicyBundle;
+use shared_platform_contracts_kernel::pdp::PolicyVersion;
 use serde::{Deserialize, Serialize};
 
 /// One detached signature over a signed policy-bundle envelope's inner bytes.
@@ -277,10 +277,10 @@ mod tests {
     use std::collections::BTreeMap;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    use oya_shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
-    use oya_shared_audit_event_kernel::{ChainSigner, encode_hex};
-    use oya_shared_pdp_kernel::{TemplateLink, TemplateSrc};
-    use oya_shared_platform_contracts_kernel::pdp::EntityRef;
+    use shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
+    use shared_audit_event_kernel::{ChainSigner, encode_hex};
+    use shared_pdp_kernel::{TemplateLink, TemplateSrc};
+    use shared_platform_contracts_kernel::pdp::EntityRef;
 
     /// TEST-SIDE signer only. Production private-key custody is a deferred
     /// founder-gated slice; this slice ships verify-against-trusted-public-keys
@@ -329,7 +329,7 @@ mod tests {
     }
 
     fn test_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("oya-cloud-iam-pdp-bundle-file-{name}"));
+        let dir = std::env::temp_dir().join(format!("cloud-iam-pdp-bundle-file-{name}"));
         std::fs::create_dir_all(&dir).expect("temp dir");
         dir
     }
@@ -577,7 +577,7 @@ mod tests {
     fn missing_bundle_file_is_unavailable_not_a_default() {
         let signer = Ed25519ChainSigner::generate("psk-1").unwrap();
         let trust = trust_dir_for("missing-bundle", &[("psk-1", &signer)]);
-        let store = FilePolicyBundleStore::new("/nonexistent/oya-pdp/bundle.json", &trust);
+        let store = FilePolicyBundleStore::new("/nonexistent/pdp/bundle.json", &trust);
         let err = store.load().unwrap_err();
         assert!(matches!(err, BundleStoreError::Unavailable { .. }), "{err}");
     }
@@ -599,7 +599,7 @@ mod tests {
         let inner = serde_json::to_string(&seed_bundle()).unwrap();
         let bundle_path = bundle_file("absent-trust", &signed_doc_json(&inner, "psk-1", &signer));
         let absent = std::env::temp_dir().join(format!(
-            "oya-cloud-iam-pdp-bundle-file-{}-absent-trust-does-not-exist",
+            "cloud-iam-pdp-bundle-file-{}-absent-trust-does-not-exist",
             unique("absent")
         ));
         let _ = std::fs::remove_dir_all(&absent);

@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0704-D1
     description: "Live apex source-of-truth for topic k8s_port: Live Kubernetes Go→Rust port engine and owned-kernel interfaces."
     exit_criteria: "docs/decisions/ADR-0704-k8s-port-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0704: Live Kubernetes Go→Rust port engine and owned-kernel interfaces
 
@@ -46,19 +46,19 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 ## Preserved member gists
 
 - **ADR-66** (ADR-0066-live-code-introspection-docs-portal): ### 1. Extractor-as-canonical-source Every fact in the docs portal MUST originate from a canonical extractor over one of these sources. Hand-authored markdown is allowed only for prose narrative (rationale, decision context, deliberate-mode pre-mortem); structured facts (lane lists, lane commands, µservice counts, endpoint inventories, dep graphs) 
-- **ADR-93** (ADR-0093-latency-budget-reporter-rename): - Rename type `DeadlineMiddleware` → `LatencyBudgetReporter` in `oya-http-deadline-middleware-domain` (also renamed; see below). - Rename crate `oya-http-deadline-middleware-domain` → `oya-http-latency-budget-middleware-infrastructure` (also picks up the middleware-infrastructure layer rename from ADR-0092 D3). - Rename associated identifiers: - `D
+- **ADR-93** (ADR-0093-latency-budget-reporter-rename): - Rename type `DeadlineMiddleware` → `LatencyBudgetReporter` in `http-deadline-middleware-domain` (also renamed; see below). - Rename crate `http-deadline-middleware-domain` → `http-latency-budget-middleware-infrastructure` (also picks up the middleware-infrastructure layer rename from ADR-0092 D3). - Rename associated identifiers: - `D
 - **ADR-134** (ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog): Adopt the following remediation items as a **proposed remediation backlog**, organized into two lanes: **(A) product-SLO** (the original five — LLM circuit breaker, per-tenant rate limit, provider-degraded shed, Workflow Studio golden signals, error-budget burn rate) and **(B) build/CI/CD pipeline** (the P0 + LATER items, per ADR-0514). Each item m
-- **ADR-142** (ADR-0142-crdt-portability-trait): oyatie owns a CRDT portability trait kernel; Loro is the primary adapter; Yjs and Automerge are maintained as **INV-PORTABILITY-CI- COMPILE** alternates — they compile in CI on every change, exercising the trait surface, but are NOT deployed. ### Layer A — trait kernel (this ADR's primary artifact) A new crate `crates/oya-shared-crdt-portability-ke
+- **ADR-142** (ADR-0142-crdt-portability-trait): oyatie owns a CRDT portability trait kernel; Loro is the primary adapter; Yjs and Automerge are maintained as **INV-PORTABILITY-CI- COMPILE** alternates — they compile in CI on every change, exercising the trait surface, but are NOT deployed. ### Layer A — trait kernel (this ADR's primary artifact) A new crate `crates/shared-crdt-portability-ke
 - **ADR-198** (ADR-0198-k8s-node-autoscaling-karpenter): ### D-1. Karpenter 1.11 is the canonical node autoscaler - **License:** Apache 2.0. - **Source:** kubernetes-sigs/karpenter (CNCF; vendor-neutral core) + cloud-provider plugins. - **Cluster Autoscaler is removed** from the substrate. There is no fallback; if Karpenter fails, the manually-fixed nodepool (per NodePool CRD) survives and absorbs steady
 - **ADR-208** (ADR-0208-realtime-transport-tier): ### Three-tier transport model | Tier | Use | When | |---|---|---| | **SSE (Server-Sent Events)** | One-way server → client streams | Log tail, metric tail, AI streaming responses, status feed, deploy progress | | **WebSocket** | Bidirectional client-facing product surfaces | Workflow Studio canvas collab (Loro CRDT sync), shared cursors, chat | | 
 - **ADR-222** (ADR-0222-saga-compensation-portfolio-policy): ### D-1. Saga shape Every cross-µservice write is a saga consisting of an ordered list of steps. Each step declares: ```rust pub struct SagaStep { pub step_id: StepId, // unique within the saga pub target_microservice: MicroserviceId, pub forward_action: ActionRef, // capability + input pub compensation_action: CompensationRef, // Cancel | Refund |
 - **ADR-241** (ADR-0241-dr-business-continuity-portfolio-policy): ### D-1. Four DR tiers | Tier | RTO | RPO | Replication shape | Drill cadence | Typical µservices | | --- | --- | --- | --- | --- | --- | | **T1** | < 5 min | 0 (zero data loss) | Active-active multi-AZ + cross-region warm standby | Quarterly + ad-hoc on every release | Intelligence runtime (capability invocation), audit chain, observability, identity k
 - **ADR-276** (ADR-0276-backup-portability-format-gdpr-article-20): ### D-1: Format — JSON-LD 1.1 with per-µservice schemas referenced by URI The canonical wire format is **JSON-LD 1.1** per the W3C Recommendation of 2020-07-16. Every exported document is a JSON-LD node with a mandatory `@context` field referencing the per-µservice schema URI: ```json { "@context": "https://contracts.oyatie.dev/portability/v1/mail/
 - **ADR-394** (First-party Rust internal developer platform (Leptos portal + ops BFF)): ### 1. One first-party portal Oyatie builds and operates a **first-party Rust internal developer platform** consisting of: 1. a Leptos SSR + hydration portal shell; 2. an owned Rust operations BFF that composes capability APIs without becoming a domain owner; 3. catalog, documentation, scorecard, SLO, runbook, release, incident, cost, and provision
-- **ADR-569** (Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outb): Commission **`libs/oya-data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via sqlx) realization of `oya-data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5. ### D1 — `SqlxChangeStreamSource { pool: PgPool }`, async-
+- **ADR-569** (Commission the data outbox CDC change-stream Postgres adapter (data-outb): Commission **`libs/data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via sqlx) realization of `data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5. ### D1 — `SqlxChangeStreamSource { pool: PgPool }`, async-
 - **ADR-611** (Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 sh): Land, under the sanctioned `kernel/` nested workspace, one owned-Rust deliverable: 1. **`kernel/core/asterinas-boundary`** — a zero-dependency compile-time boundary crate: the black-box pin of the upstream release ISO (`asterinas-release-v0.17.2.json`, digest-embedded via `include_str!` so pin and manifest cannot drift) and the **closed** boot-read
 - **ADR-632** (Public product protocols, internal RPC, transport security, serialization, telem): ### D1 — Public product contract: REST, versioned webhooks, events, and deliberate streaming Public synchronous APIs are HTTPS REST documented by OpenAPI 3.2.0. Public asynchronous delivery uses versioned, authenticated, signed, idempotent, replay-protected webhooks described with AsyncAPI 3.1.0; CloudEvents 1.0.2 is the event envelope where its st
-- **ADR-637** (Owned deterministic Go-to-Rust port engine): ### D1 — reusable engine, explicit home, and neutral policy split The program SHALL build `oya-port`, an owned, Kubernetes-agnostic deterministic Go-to-Rust port engine at `build/port-engine/*`. The one root Cargo workspace members-line amendment needed to admit that root is authorized by this ADR as the ADR-0538 exception described above. It MUST 
+- **ADR-637** (Owned deterministic Go-to-Rust port engine): ### D1 — reusable engine, explicit home, and neutral policy split The program SHALL build `port`, an owned, Kubernetes-agnostic deterministic Go-to-Rust port engine at `build/port-engine/*`. The one root Cargo workspace members-line amendment needed to admit that root is authorized by this ADR as the ADR-0538 exception described above. It MUST 
 - **ADR-638** (Mechanically maintained Kubernetes Rust port): ### D1 — destination, scope, and doctrine-first divergence Generated Kubernetes Rust output SHALL live under `k8s/`. `os/`, `cloud/cloud-k8s`, and managed-Kubernetes facades MUST consume it only through approved `k8s/ports/**` seams; they MUST NOT become alternate homes for generated upstream code. The program adopts full A-prime scope from the sta
 
 ## Consequences
@@ -85,7 +85,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-93 residual
 
-**ADR-0093-latency-budget-reporter-rename** — - Rename type `DeadlineMiddleware` → `LatencyBudgetReporter` in `oya-http-deadline-middleware-domain` (also renamed; see below). - Rename crate `oya-http-deadline-middleware-domain` → `oya-http-latency-budget-middleware-infrastructure` (also picks up the middleware-infrastructure layer rename from ADR-0092 D3). - Rename associated identifiers: - `DEADLINE_EXCEEDED_BODY_PREFIX` → `LATENCY_BUDGET_EX
+**ADR-0093-latency-budget-reporter-rename** — - Rename type `DeadlineMiddleware` → `LatencyBudgetReporter` in `http-deadline-middleware-domain` (also renamed; see below). - Rename crate `http-deadline-middleware-domain` → `http-latency-budget-middleware-infrastructure` (also picks up the middleware-infrastructure layer rename from ADR-0092 D3). - Rename associated identifiers: - `DEADLINE_EXCEEDED_BODY_PREFIX` → `LATENCY_BUDGET_EX
 
 ### ADR-632 residual
 
@@ -93,11 +93,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-569 residual
 
-**Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres) behind the ChangeSt** — Commission **`libs/oya-data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via sqlx) realization of `oya-data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5. ### D1 — `SqlxChangeStreamSource { pool: PgPool }`, async-over-sync-kernel split The adapter's async `poll_c
+**Commission the data outbox CDC change-stream Postgres adapter (data-outbox-adapter-postgres) behind the ChangeSt** — Commission **`libs/data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via sqlx) realization of `data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5. ### D1 — `SqlxChangeStreamSource { pool: PgPool }`, async-over-sync-kernel split The adapter's async `poll_c
 
 ### ADR-637 residual
 
-**Owned deterministic Go-to-Rust port engine** — ### D1 — reusable engine, explicit home, and neutral policy split The program SHALL build `oya-port`, an owned, Kubernetes-agnostic deterministic Go-to-Rust port engine at `build/port-engine/*`. The one root Cargo workspace members-line amendment needed to admit that root is authorized by this ADR as the ADR-0538 exception described above. It MUST be reviewed as a root-membership change and MUST N
+**Owned deterministic Go-to-Rust port engine** — ### D1 — reusable engine, explicit home, and neutral policy split The program SHALL build `port`, an owned, Kubernetes-agnostic deterministic Go-to-Rust port engine at `build/port-engine/*`. The one root Cargo workspace members-line amendment needed to admit that root is authorized by this ADR as the ADR-0538 exception described above. It MUST be reviewed as a root-membership change and MUST N
 
 ### ADR-208 residual
 
@@ -121,7 +121,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-142 residual
 
-**ADR-0142-crdt-portability-trait** — oyatie owns a CRDT portability trait kernel; Loro is the primary adapter; Yjs and Automerge are maintained as **INV-PORTABILITY-CI- COMPILE** alternates — they compile in CI on every change, exercising the trait surface, but are NOT deployed. ### Layer A — trait kernel (this ADR's primary artifact) A new crate `crates/oya-shared-crdt-portability-kernel/`: - `pub trait CrdtDoc` — the shared surface
+**ADR-0142-crdt-portability-trait** — oyatie owns a CRDT portability trait kernel; Loro is the primary adapter; Yjs and Automerge are maintained as **INV-PORTABILITY-CI- COMPILE** alternates — they compile in CI on every change, exercising the trait surface, but are NOT deployed. ### Layer A — trait kernel (this ADR's primary artifact) A new crate `crates/shared-crdt-portability-kernel/`: - `pub trait CrdtDoc` — the shared surface
 
 ### ADR-134 residual
 

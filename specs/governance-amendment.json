@@ -76,7 +76,7 @@
     "mode": "mechanical-partial",
     "mechanical_components": [
       {
-        "lane": "oya-governance-pr-merge-gate-kernel",
+        "lane": "governance-pr-merge-gate-kernel",
         "verifies": "PR cannot merge without `## Ratification` section signed by >=2 council-architecture handles for amendments touching scope.applies_to paths"
       },
       {

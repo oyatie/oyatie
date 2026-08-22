@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-009-dsr-cascade-runner
 status: pending
 owner: axis-tenancy + council-privacy
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-dsr-handler-conformance]
+acceptance_lanes: [cargo-check, cargo-nextest, governance-dsr-handler-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -15,18 +15,18 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-dsr-handler-confor
 
 ## Intent
 
-`oya-tenancy-dsr-cascade-{kernel,domain,usecase,adapter,rest,worker,app}` crates: DSR ingestion; cross-µservice Workflow fan-out (`TenantDeletionRequested`); per-µservice receipt aggregation; Merkle root computation; proof-of-erasure certificate generation; per-pack legal-SLA timer.
+`tenancy-dsr-cascade-{kernel,domain,usecase,adapter,rest,worker,app}` crates: DSR ingestion; cross-µservice Workflow fan-out (`TenantDeletionRequested`); per-µservice receipt aggregation; Merkle root computation; proof-of-erasure certificate generation; per-pack legal-SLA timer.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-dsr-cascade-kernel/` | create — DsrRequest, ErasureReceipt, ProofOfErasure entities + ports |
-| `oya-tenancy-dsr-cascade-domain/` | create — Merkle aggregation; per-pack SLA enum |
-| `oya-tenancy-dsr-cascade-usecase/` | create — submit / aggregate / complete orchestrators |
-| `oya-tenancy-dsr-cascade-adapter/` | create — Workflow fan-out + audit-chain proof signer |
-| `oya-tenancy-dsr-cascade-rest/` | create — `POST /dsr-requests`, `GET /dsr-requests/{id}`, `GET /dsr-requests/{id}/proof-of-erasure` |
-| `oya-tenancy-dsr-cascade-worker/` | create — cascade orchestrator; SLA timer; missing-receipt escalation |
+| `tenancy-dsr-cascade-kernel/` | create — DsrRequest, ErasureReceipt, ProofOfErasure entities + ports |
+| `tenancy-dsr-cascade-domain/` | create — Merkle aggregation; per-pack SLA enum |
+| `tenancy-dsr-cascade-usecase/` | create — submit / aggregate / complete orchestrators |
+| `tenancy-dsr-cascade-adapter/` | create — Workflow fan-out + audit-chain proof signer |
+| `tenancy-dsr-cascade-rest/` | create — `POST /dsr-requests`, `GET /dsr-requests/{id}`, `GET /dsr-requests/{id}/proof-of-erasure` |
+| `tenancy-dsr-cascade-worker/` | create — cascade orchestrator; SLA timer; missing-receipt escalation |
 | Catalog rows | create — 7 entries |
 
 ## Code Shape
@@ -86,8 +86,8 @@ pub async fn run_cascade(deps: &Deps, dsr: &DsrRequest) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof
-cargo run -p oya-dev-cli -- gate validate dsr-handler-conformance
+cargo nextest run -p tenancy-dsr-cascade-worker --test dsr_cascade_proof
+cargo run -p dev-cli -- gate validate dsr-handler-conformance
 ```
 
 ## Test Plan

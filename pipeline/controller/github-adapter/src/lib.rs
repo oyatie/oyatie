@@ -1,10 +1,10 @@
-//! # oya-ci-controller-github-adapter
+//! # ci-controller-github-adapter
 //!
-//! GitHub commit-status poster for the oya-ci controller (the `oya-ci-required`
+//! GitHub commit-status poster for the ci controller (the `presubmit`
 //! producer).
 //!
 //! Implements [`CommitStatusPoster`] via reqwest blocking HTTP. The HTTP shape
-//! is lifted from the proven oya-ci-webhook-gateway-github-adapter (ADR-0387 D5).
+//! is lifted from the proven ci-webhook-gateway-github-adapter (ADR-0387 D5).
 //! Forge-of-record = GitHub (D2/D-FORGE; GitHub dropped).
 //!
 //! ## Endpoint
@@ -16,7 +16,7 @@
 //! - `Authorization: Bearer <token>`
 //! - `X-GitHub-Api-Version: 2022-11-28`
 //! - `Accept: application/vnd.github+json`
-//! - `User-Agent: oya-ci-controller` (GitHub rejects UA-less requests)
+//! - `User-Agent: ci-controller` (GitHub rejects UA-less requests)
 //!
 //! Accepts any 2xx (`is_success`; GitHub returns 201 Created). Any other status
 //! -> `KernelError::DownstreamTransport`.
@@ -104,7 +104,7 @@ impl GitHubCommitStatusPoster {
             .bearer_auth(&self.github_token)
             .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
             .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", "oya-ci-controller")
+            .header("User-Agent", "ci-controller")
             .timeout(self.request_timeout)
     }
 
@@ -147,7 +147,7 @@ impl GitHubCommitStatusPoster {
     }
 
     /// Fetch trusted GitHub PR/review API data, validate it against the expected
-    /// candidate head, and post the `oya-pr-review` commit status.
+    /// candidate head, and post the `pr-review` commit status.
     ///
     /// Success carries the exact durable GitHub review URL. Invalid or missing
     /// evidence posts a terminal failure on the expected head before returning
@@ -178,7 +178,7 @@ impl GitHubCommitStatusPoster {
                     expected_head_sha,
                     CommitState::Success,
                     REVIEW_CONTEXT,
-                    &format!("oya-pr-review approved by {}", packet.reviewer.login),
+                    &format!("pr-review approved by {}", packet.reviewer.login),
                     Some(&packet.evidence_url),
                 )?;
                 Ok(packet)
@@ -188,7 +188,7 @@ impl GitHubCommitStatusPoster {
                     KernelError::InvalidInput(_) => CommitState::Failure,
                     KernelError::DownstreamTransport(_) => CommitState::Error,
                 };
-                let description = format!("oya-pr-review rejected: {error}");
+                let description = format!("pr-review rejected: {error}");
                 if let Err(post_error) =
                     self.post(expected_head_sha, state, REVIEW_CONTEXT, &description, None)
                 {

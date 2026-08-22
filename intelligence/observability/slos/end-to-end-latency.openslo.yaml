@@ -30,7 +30,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_request_duration_seconds_bucket{
+                sum(rate(cloud_intelligence_request_duration_seconds_bucket{
                   service="cloud-intelligence",stream="false",outcome!="client_cancelled",le="2.0"
                 }[5m])) by (operation)
         total:
@@ -38,7 +38,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_request_duration_seconds_count{
+                sum(rate(cloud_intelligence_request_duration_seconds_count{
                   service="cloud-intelligence",stream="false",outcome!="client_cancelled"
                 }[5m])) by (operation)
   timeWindow:

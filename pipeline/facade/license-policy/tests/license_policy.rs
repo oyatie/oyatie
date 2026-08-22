@@ -19,8 +19,8 @@ fn row(package_name: &str, license: Option<&str>) -> Value {
 #[test]
 fn accepted_workspace_licenses_are_green() {
     let input = json!({ "rows": [
-        row("oya-good-domain", Some("Apache-2.0")),
-        row("oya-mit-kernel", Some("MIT OR BSD-3-Clause")),
+        row("good-domain", Some("Apache-2.0")),
+        row("mit-kernel", Some("MIT OR BSD-3-Clause")),
     ] });
 
     assert_eq!(evaluate(&input).verdict, Verdict::Green);
@@ -30,11 +30,11 @@ fn accepted_workspace_licenses_are_green() {
 #[test]
 fn forbidden_review_unknown_and_missing_licenses_are_stable_findings() {
     let input = json!({ "rows": [
-        row("oya-gpl-domain", Some("GPL-3.0")),
-        row("oya-lgpl-domain", Some("LGPL-3.0")),
-        row("oya-vendor-domain", Some("Vendor-Commercial")),
-        row("oya-missing-domain", None),
-        row("oya-blank-domain", Some("   ")),
+        row("gpl-domain", Some("GPL-3.0")),
+        row("lgpl-domain", Some("LGPL-3.0")),
+        row("vendor-domain", Some("Vendor-Commercial")),
+        row("missing-domain", None),
+        row("blank-domain", Some("   ")),
     ] });
 
     let findings = evaluate_keyed(&input);
@@ -43,11 +43,11 @@ fn forbidden_review_unknown_and_missing_licenses_are_stable_findings() {
         .map(|finding| (finding.code.as_str(), finding.key.as_str()))
         .collect::<Vec<_>>();
 
-    assert!(pairs.contains(&("license_policy_forbidden_license", "oya-gpl-domain")));
-    assert!(pairs.contains(&("license_policy_review_required", "oya-lgpl-domain")));
-    assert!(pairs.contains(&("license_policy_unknown_license", "oya-vendor-domain")));
-    assert!(pairs.contains(&("license_policy_missing_license", "oya-missing-domain")));
-    assert!(pairs.contains(&("license_policy_missing_license", "oya-blank-domain")));
+    assert!(pairs.contains(&("license_policy_forbidden_license", "gpl-domain")));
+    assert!(pairs.contains(&("license_policy_review_required", "lgpl-domain")));
+    assert!(pairs.contains(&("license_policy_unknown_license", "vendor-domain")));
+    assert!(pairs.contains(&("license_policy_missing_license", "missing-domain")));
+    assert!(pairs.contains(&("license_policy_missing_license", "blank-domain")));
     assert_eq!(evaluate(&input).verdict, Verdict::Red);
 }
 
@@ -65,8 +65,8 @@ fn empty_corpus_is_red_to_prevent_false_green() {
 #[test]
 fn evaluate_is_bare_projection_of_evaluate_keyed() {
     let input = json!({ "rows": [
-        row("oya-gpl-domain", Some("GPL-3.0")),
-        row("oya-vendor-domain", Some("Vendor-Commercial")),
+        row("gpl-domain", Some("GPL-3.0")),
+        row("vendor-domain", Some("Vendor-Commercial")),
     ] });
     let projected = evaluate_keyed(&input)
         .into_iter()
@@ -91,7 +91,7 @@ fn repo_root() -> PathBuf {
 fn producer_binary(root: &Path, value: Option<&str>) -> Result<PathBuf, String> {
     let Some(bin) = value else {
         return Err(
-            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+            "FAIL-CLOSED: missing OYATIE_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
     ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
@@ -105,7 +105,7 @@ fn materialized_scm_facts(root: &Path) -> PathBuf {
 fn producer_binary_env_is_required_for_gate() {
     let root = Path::new("/repo");
     let producer = producer_binary(root, None).expect_err("missing producer env must fail closed");
-    assert!(producer.contains("OYA_CI_PRODUCER_BIN"));
+    assert!(producer.contains("OYATIE_CI_PRODUCER_BIN"));
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
@@ -115,7 +115,7 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         "missing materialized scm-facts face at {}; run the producer-regen/materialization boundary before this gate",
         scm_facts.display()
     );
-    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let producer_bin = std::env::var("OYATIE_CI_PRODUCER_BIN").ok();
     let mut command = Command::new(
         producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}")),
     );

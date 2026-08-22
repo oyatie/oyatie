@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the tenancy µservice's monthly cloud cost across infrastructure (compute + storage + network), per Layer-A + Layer-B component, per pack region; surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out where vendor pricing may have moved.
+Track the tenancy µservice's monthly cloud cost across infrastructure (compute + storage + network), per Layer-A + Layer-B component, per pack region; surface budget breach via the `check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out where vendor pricing may have moved.
 
 ## Cost Categories
 
@@ -49,17 +49,17 @@ Per `capacity-model.md` §"Worked example: oyatie XS tier (M01 launch; 20 tenant
 | Patroni REST controllers (sidecars) | (collocated with Postgres pods) | – | – | – |
 | Valkey (tenant-validate cache) | 3 × VM.Standard.E4 2-core, 16 GB | $108 | – | $108 |
 | Valkey (cell-assignment cache) | 2 × VM.Standard.E4 1-core, 8 GB | $36 | – | $36 |
-| `oya-tenancy-tenant-lifecycle-rest` | 3 × VM.Standard.E4 2-core, 4 GB | $108 | – | $108 |
-| `oya-tenancy-tenant-lifecycle-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-tenant-lifecycle-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-isolation-policy-rest` | 3 × VM.Standard.E4 2-core, 4 GB | $108 | – | $108 |
-| `oya-tenancy-isolation-policy-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-isolation-policy-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-cell-assignment-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-cell-assignment-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-dsr-cascade-rest` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-dsr-cascade-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
-| `oya-tenancy-dsr-cascade-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-tenant-lifecycle-rest` | 3 × VM.Standard.E4 2-core, 4 GB | $108 | – | $108 |
+| `tenancy-tenant-lifecycle-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-tenant-lifecycle-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-isolation-policy-rest` | 3 × VM.Standard.E4 2-core, 4 GB | $108 | – | $108 |
+| `tenancy-isolation-policy-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-isolation-policy-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-cell-assignment-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-cell-assignment-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-dsr-cascade-rest` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-dsr-cascade-worker` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
+| `tenancy-dsr-cascade-app` | 2 × VM.Standard.E4 2-core, 4 GB | $72 | – | $72 |
 | Object-storage (Postgres WAL archive + audit-chain) | – | – | $50 (1.9 TB; 30d retention) | $50 |
 | KMS keyring (per-pack) | – | $10 | – | $10 |
 | Load balancer (per-pack Istio gateway + public LB) | – | $20 | – | $20 |
@@ -117,7 +117,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice tenancy` — exit 0; current spend within 110%.
+- `cargo run -p dev-cli -- gate validate cost-budget --microservice tenancy` — exit 0; current spend within 110%.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh; re-run formulas with current data.
 

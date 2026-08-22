@@ -405,7 +405,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         oyatie_destinations: &[
             "specs/microservices/accounting.json",
             "specs/microservices/treasury.json",
-            "microservices/treasury/crates/oya-treasury-cash-domain",
+            "microservices/treasury/crates/treasury-cash-domain",
             "microservices/payments",
             "microservices/finops-portal",
             "microservices/treasury",
@@ -458,9 +458,9 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/procurement.json",
-            "microservices/procurement/crates/oya-procurement-source-to-pay-domain",
+            "microservices/procurement/crates/procurement-source-to-pay-domain",
             "specs/microservices/warehouse.json",
-            "microservices/warehouse/crates/oya-warehouse-inventory-domain",
+            "microservices/warehouse/crates/warehouse-inventory-domain",
             "microservices/marketplace",
             "microservices/workflow-engine",
             "microservices/warehouse",
@@ -509,7 +509,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         surfaces: &["BOM", "MRP", "Capacity Planning", "Shop Floor", "Routing"],
         oyatie_destinations: &[
             "specs/microservices/production-planning.json",
-            "microservices/production-planning/crates/oya-production-planning-domain",
+            "microservices/production-planning/crates/production-planning-domain",
             "microservices/production-planning",
         ],
         first_write_owner: "production-planning-domain",
@@ -535,7 +535,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/quality-management.json",
-            "microservices/quality-management/crates/oya-quality-management-domain",
+            "microservices/quality-management/crates/quality-management-domain",
             "microservices/quality-management",
         ],
         first_write_owner: "quality-management-domain",
@@ -561,7 +561,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/plant-maintenance.json",
-            "microservices/plant-maintenance/crates/oya-plant-maintenance-domain",
+            "microservices/plant-maintenance/crates/plant-maintenance-domain",
             "microservices/plant-maintenance",
         ],
         first_write_owner: "plant-maintenance-domain",
@@ -673,7 +673,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         surfaces: &["Sourcing", "Contract Management", "Supplier Performance"],
         oyatie_destinations: &[
             "specs/microservices/procurement.json",
-            "microservices/procurement/crates/oya-procurement-source-to-pay-domain",
+            "microservices/procurement/crates/procurement-source-to-pay-domain",
             "microservices/marketplace",
             "microservices/workflow-engine",
             "microservices/ontology",
@@ -695,7 +695,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         surfaces: &["Sales Force", "Service", "Marketing", "Loyalty"],
         oyatie_destinations: &[
             "specs/microservices/crm.json",
-            "microservices/crm/crates/oya-crm-customer-engagement-domain",
+            "microservices/crm/crates/crm-customer-engagement-domain",
             "microservices/crm",
             "microservices/community",
             "microservices/marketplace",
@@ -723,7 +723,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/supply-chain-planning.json",
-            "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain",
+            "microservices/supply-chain-planning/crates/supply-chain-planning-domain",
             "microservices/supply-chain-planning",
             "microservices/production-planning",
             "microservices/warehouse",
@@ -749,7 +749,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/global-trade.json",
-            "microservices/global-trade/crates/oya-global-trade-compliance-domain",
+            "microservices/global-trade/crates/global-trade-compliance-domain",
             "microservices/global-trade",
             "microservices/compliance",
             "microservices/connector",
@@ -799,7 +799,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/warehouse.json",
-            "microservices/warehouse/crates/oya-warehouse-inventory-domain",
+            "microservices/warehouse/crates/warehouse-inventory-domain",
             "microservices/warehouse",
         ],
         first_write_owner: "warehouse-inventory",
@@ -824,7 +824,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/treasury.json",
-            "microservices/treasury/crates/oya-treasury-cash-domain",
+            "microservices/treasury/crates/treasury-cash-domain",
             "microservices/treasury",
             "microservices/payments",
             "microservices/finops-portal",
@@ -849,7 +849,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         ],
         oyatie_destinations: &[
             "specs/microservices/real-estate.json",
-            "microservices/real-estate/crates/oya-real-estate-portfolio-domain",
+            "microservices/real-estate/crates/real-estate-portfolio-domain",
             "microservices/real-estate",
             "microservices/plant-maintenance",
             "microservices/finops-portal",

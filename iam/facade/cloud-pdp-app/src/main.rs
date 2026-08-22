@@ -1,4 +1,4 @@
-//! oya-cloud-iam-pdp binary entrypoint.
+//! cloud-iam-pdp binary entrypoint.
 //!
 //! Boots the cloud-iam policy-decision-point service (REST + gRPC) from
 //! environment configuration and drains gracefully on SIGTERM/ctrl-c
@@ -51,7 +51,7 @@ async fn main() {
     };
 
     // Production boot (ADR-0561 slice-1b-iii-a/b): build an `MtlsContext` from the
-    // delivered cert mount (`OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR`, the kubernetes.io/tls
+    // delivered cert mount (`OYATIE_CLOUD_IAM_PDP_MTLS_CERT_DIR`, the kubernetes.io/tls
     // Secret projection) and boot over mTLS via `server::start_with_mtls`. This is
     // FAIL-CLOSED: an absent/empty/malformed mount is a BOOT REFUSAL (exit 1),
     // NEVER a downgrade to plain TCP. `server::boot_from_config` is the SAME body

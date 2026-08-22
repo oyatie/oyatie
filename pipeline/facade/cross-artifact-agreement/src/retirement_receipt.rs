@@ -4440,7 +4440,7 @@ mod tests {
         );
         let retired_staleness_gate =
             ["cloud-ci-staleness-reaper/", "readable_archive_path"].concat();
-        let retired_doc_axis_gate = ["oya-check-doc-axis/", "ReadableArchiveDirectory"].concat();
+        let retired_doc_axis_gate = ["check-doc-axis/", "ReadableArchiveDirectory"].concat();
         assert!(!include_str!("retirement_receipt.rs").contains(&retired_staleness_gate));
         assert!(!include_str!("retirement_receipt.rs").contains(&retired_doc_axis_gate));
     }

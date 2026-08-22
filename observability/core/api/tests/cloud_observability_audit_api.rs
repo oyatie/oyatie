@@ -19,7 +19,7 @@ use observability_api::{
     CloudObservabilityAuditReadTopicRef, ConfiguredBearerPrincipalVerifier, PrincipalVerifier,
     VerifiedPrincipal, read_cloud_observability_audit_from_api,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
 const TENANT: &str = "ten_alpha";
 const OTHER_TENANT: &str = "ten_other";
@@ -146,7 +146,7 @@ fn residency() -> ObservabilityResidency {
     ObservabilityResidency::new(ObservabilityResidencyCreate {
         tenant_id: TENANT.to_string(),
         region: REGION.to_string(),
-        regional_pack: "oya-pack-alpha".to_string(),
+        regional_pack: "pack-alpha".to_string(),
         residency: ResidencyClass::StrictHomeRegion,
         metric_storage_region: REGION.to_string(),
         log_storage_region: REGION.to_string(),

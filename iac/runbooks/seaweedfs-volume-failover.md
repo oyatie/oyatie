@@ -10,7 +10,7 @@ adr_authority: ADR-0196
 ## When this fires
 
 - `SeaweedfsVolumeServerDown` (≥ 1 volume server unreachable for ≥ 5 min).
-- p95 read latency on `oya-evidence-shared-prod` > 500 ms for ≥ 5 min.
+- p95 read latency on `evidence-shared-prod` > 500 ms for ≥ 5 min.
 
 ## First five minutes
 

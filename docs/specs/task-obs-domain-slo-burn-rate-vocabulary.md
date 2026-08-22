@@ -2,7 +2,7 @@
 
 ## Objective
 
-Add an SLO burn-rate alerting vocabulary to the pure `oya-observability-domain`
+Add an SLO burn-rate alerting vocabulary to the pure `observability-domain`
 kernel crate. The vocabulary consists of:
 
 1. An `SLOObjective` value object capturing a target reliability ratio and
@@ -20,8 +20,8 @@ exporter, no OTel SDK dependency, no heap allocation on the classifier hot path.
 ## Vertical
 
 Lane: `observability`
-Crate (sole target): `oya-observability-domain`
-(`crates/oya-observability-domain/`)
+Crate (sole target): `observability-domain`
+(`crates/observability-domain/`)
 
 ## Module layout (flat clean-arch, mod-based)
 
@@ -151,12 +151,12 @@ Table-driven tests covering every `AlertDecision` tier boundary:
 demonstrating that the page threshold is strict >= and the classifier falls
 through correctly.
 
-All tests use `oya_observability_domain` public re-exports only; no `src/`
+All tests use `observability_domain` public re-exports only; no `src/`
 module paths.
 
 ## Boundaries
 
-- One crate only: `oya-observability-domain`
+- One crate only: `observability-domain`
 - New files: `src/slo.rs`, `tests/slo_burn_rate.rs`
 - Modified: `src/lib.rs` (add `pub mod slo` + re-exports)
 - Untouched: root `Cargo.toml`, `src/severity.rs`, existing tests

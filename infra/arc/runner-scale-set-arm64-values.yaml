@@ -1,6 +1,6 @@
 # =============================================================================
 # RETIRED (2026-08-11) — custom ARC runner fleet decommissioned.
-# Merge CI is GitHub-hosted ubuntu-latest only (oya-ci-required). Soft multi-arch
+# Merge CI is GitHub-hosted ubuntu-latest only (presubmit). Soft multi-arch
 # stays on GitHub-hosted ubuntu-24.04-arm / windows / macos. Lab CAS = founder
 # laptop NativeLink (+ tunnel), not ARC overflow.
 # Desired state: maxRunners 0. Live cluster: apply/sync then remove Argo apps
@@ -8,7 +8,7 @@
 # Historical capacity prose below is provenance only.
 # =============================================================================
 #
-# Runner scale set `oya-arm64` — HISTORICAL. Was the owned CI runner fleet holding
+# Runner scale set `arm64` — HISTORICAL. Was the owned CI runner fleet holding
 # merge authority (founder ruling 2026-07-29). ADR-0630 (archive).
 #
 # ONE SCALE SET PER ARCHITECTURE. The cluster is heterogeneous by design
@@ -21,7 +21,7 @@ githubConfigUrl: https://github.com/jason931225/oyatie
 # Administration:write + Metadata:read. Keys live in the cluster secret, never in
 # git. See ADR-0630 for why an App rather than a PAT.
 githubConfigSecret: oyatie-arc-app
-runnerScaleSetName: oya-arm64
+runnerScaleSetName: arm64
 # Argo renders the chart without reliable live `lookup` discovery during
 # candidate validation. Bind the pinned sibling controller explicitly.
 controllerServiceAccount:
@@ -71,7 +71,7 @@ template:
     # another architecture and silently build for the wrong platform, poisoning
     # that platform's buck2 cache namespace (action keys include cpu:/os:).
     # Hostname is intentionally *not* pinned: dual-worker general capacity
-    # spreads across oya-talos-worker-{1,2} via required anti-affinity below.
+    # spreads across talos-worker-{1,2} via required anti-affinity below.
     # WaitForFirstConsumer + nodePathMap admit general only on those two nodes.
     nodeSelector:
       kubernetes.io/arch: arm64
@@ -103,7 +103,7 @@ template:
         # infra/ci/runner-image/Dockerfile (which is itself pinned to a base image
         # digest). Carries buck2, rustc/cargo from rust-toolchain.toml, clang+lld at
         # the ABSOLUTE path toolchains/BUCK invokes, and pwsh — the last of which is
-        # not optional: oya-ci-required.yml runs the gate matrix's main step under
+        # not optional: presubmit.yml runs the gate matrix's main step under
         # `shell: pwsh`, and the stock actions-runner image has none, so all 45 gate
         # legs would fail on this fleet with a missing-shell error that reads like a
         # gate failure. GitHub-hosted ubuntu images ship pwsh, which is why the
@@ -115,31 +115,31 @@ template:
         # slice drifted the live fleet from this declaration within hours by upgrading
         # from a scratchpad values file, which is the defect a committed declaration
         # exists to prevent.
-        image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
+        image: registry.registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
         command: ["/home/runner/run.sh"]
         env:
-          - name: OYA_RUNNER_POD_NAME
+          - name: OYATIE_RUNNER_POD_NAME
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
-          - name: OYA_RUNNER_POD_UID
+          - name: OYATIE_RUNNER_POD_UID
             valueFrom:
               fieldRef:
                 fieldPath: metadata.uid
-          - name: OYA_RUNNER_NODE_NAME
+          - name: OYATIE_RUNNER_NODE_NAME
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
           # W2: mTLS client identity paths for cache-wiring (ADR-0560) when warm is licensed.
           # Mode stays off until specs/cache-warm-license.json flips; certs optional so pods
           # still schedule if secret is absent. Hosted ubuntu-latest has no these mounts (W3 tunnel).
-          - name: OYA_CACHE_TLS_CLIENT_CERT
+          - name: OYATIE_CACHE_TLS_CLIENT_CERT
             value: /etc/nativelink/client/client.pem
-          - name: OYA_CACHE_TLS_CA_CERTS
+          - name: OYATIE_CACHE_TLS_CA_CERTS
             value: /etc/nativelink/ca/ca.crt
-          - name: OYA_CACHE_TLS_SERVER_CA_CERT
+          - name: OYATIE_CACHE_TLS_SERVER_CA_CERT
             value: /etc/nativelink/ca/ca.crt
-          - name: OYA_CI_RE_TLS_CLIENT_CERT
+          - name: OYATIE_CI_RE_TLS_CLIENT_CERT
             value: /etc/nativelink/client/client.pem
         volumeMounts:
           - name: workspace
@@ -189,7 +189,7 @@ template:
         configMap:
           name: nativelink-server-ca
           optional: true
-      # W2: mTLS client leaf+key (projected). Ops copies secret from oya-ci → arc-runners
+      # W2: mTLS client leaf+key (projected). Ops copies secret from ci → arc-runners
       # via ops PEM sync in docs/ideas/hosted-ci-lab-cas-agent-fleet.md. optional so scale set still
       # schedules when secret absent (warm overlay then stays off).
       - name: nativelink-client-reader
@@ -207,7 +207,7 @@ template:
                 oya.io/lifecycle: disposable-ci-workspace
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: oya-ci-workspace-general
+              storageClassName: ci-workspace-general
               resources:
                 requests:
                   storage: 44Gi

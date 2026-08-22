@@ -10,7 +10,7 @@ purpose: |
   and agent-navigability pointer. An autonomous executor reading this
   README can enter the milestone and locate the first open phase without
   escalation.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md

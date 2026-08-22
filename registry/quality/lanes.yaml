@@ -1,10 +1,10 @@
 # Oyatie quality lane registry. Source of truth mirrored by docs/standards/ci-lanes.md.
 # Fields: id, stage, status, owner_team, purpose, source, runtime_budget_seconds, optional check_command.
 # `check_command` is local/transitional bridge feedback and wired-command catalog data only.
-# Merge authority is the single `oya-ci-required` fan-in plus constituent cloud-ci/Rust gate packets.
+# Merge authority is the single `presubmit` fan-in plus constituent cloud-ci/Rust gate packets.
 # Do not treat local bridge command rows as protected-branch authority.
 lanes:
-  - id: oya-governance-authority-cohesion
+  - id: governance-authority-cohesion
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -12,7 +12,7 @@ lanes:
     source: root-hub-pointers.json / docs/AGENTS.md / ADR-0116
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate authority-cohesion
-  - id: oya-governance-claim-ceiling
+  - id: governance-claim-ceiling
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -20,7 +20,7 @@ lanes:
     source: ADR-0037 / registry/catalog
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate claim-ceiling
-  - id: oya-governance-codeowners-mirror
+  - id: governance-codeowners-mirror
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -28,7 +28,7 @@ lanes:
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate codeowners-mirror
-  - id: oya-governance-cohesion
+  - id: governance-cohesion
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -36,7 +36,7 @@ lanes:
     source: ADR-0011
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate cohesion
-  - id: oya-governance-data-class
+  - id: governance-data-class
     stage: foundation
     status: active
     owner_team: council-privacy
@@ -44,7 +44,7 @@ lanes:
     source: ADR-0008
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate data-class
-  - id: oya-governance-doc-catalog
+  - id: governance-doc-catalog
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -52,7 +52,7 @@ lanes:
     source: DOC-CATALOG.md
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate doc-catalog
-  - id: oya-governance-docs
+  - id: governance-docs
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -60,7 +60,7 @@ lanes:
     source: DOCUMENTATION.md / registry/docs/pipeline.tsv
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate documentation-system
-  - id: oya-governance-quality-lanes
+  - id: governance-quality-lanes
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -68,7 +68,7 @@ lanes:
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate quality-lanes
-  - id: oya-governance-honest-claims
+  - id: governance-honest-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -76,7 +76,7 @@ lanes:
     source: ADR-0129 / specs/plan-schema.json / specs/masterplan.json
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate honest-claims
-  - id: oya-governance-aspirational-enforcement
+  - id: governance-aspirational-enforcement
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -84,7 +84,7 @@ lanes:
     source: ADR-0135 / ADR-0133
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate aspirational-enforcement
-  - id: oya-governance-banned-primitives
+  - id: governance-banned-primitives
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -92,7 +92,7 @@ lanes:
     source: specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives
-  - id: oya-governance-workspace-hygiene
+  - id: governance-workspace-hygiene
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -100,7 +100,7 @@ lanes:
     source: specs/workspace-hygiene.json / ADR-0123
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate workspace-hygiene
-  - id: oya-governance-hyperscaler-maturity-claims
+  - id: governance-hyperscaler-maturity-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -108,7 +108,7 @@ lanes:
     source: specs/hyperscaler-gates.json / ADR-0123
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate hyperscaler-maturity-claims
-  - id: oya-governance-design-spec-maturity-claims
+  - id: governance-design-spec-maturity-claims
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -116,7 +116,7 @@ lanes:
     source: specs/design-spec-maturity-claims.json / ADR-0123
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate design-spec-maturity-claims
-  - id: oya-governance-foundation-bypass
+  - id: governance-foundation-bypass
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -124,7 +124,7 @@ lanes:
     source: ADR-0040
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate foundation-bypass
-  - id: oya-governance-glossary-cross-doc-coverage
+  - id: governance-glossary-cross-doc-coverage
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -132,7 +132,7 @@ lanes:
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate glossary-cross-doc-coverage
-  - id: oya-governance-glossary-vocabulary
+  - id: governance-glossary-vocabulary
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -140,7 +140,7 @@ lanes:
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate glossary-vocabulary
-  - id: oya-governance-placeholder-debt
+  - id: governance-placeholder-debt
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -148,7 +148,7 @@ lanes:
     source: AGENTS.md Done-Definition / MISTAKES doctrine
     runtime_budget_seconds: 300
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate placeholder-debt
-  - id: oya-governance-dependency-seam
+  - id: governance-dependency-seam
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -156,7 +156,7 @@ lanes:
     source: ADR-0092 / registry/dependency-rationales.json
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error
-  - id: oya-governance-plane-class
+  - id: governance-plane-class
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -164,7 +164,7 @@ lanes:
     source: ADR-0004
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate plane-class
-  - id: oya-governance-raci-team-coverage
+  - id: governance-raci-team-coverage
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -172,7 +172,7 @@ lanes:
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate raci-team-coverage
-  - id: oya-governance-readme-doc-coverage
+  - id: governance-readme-doc-coverage
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -180,7 +180,7 @@ lanes:
     source: README.md / DOC-CATALOG.md
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate readme-doc-coverage
-  - id: oya-governance-runbook-index-resolves
+  - id: governance-runbook-index-resolves
     stage: foundation
     status: active
     owner_team: ops-sre-reliability
@@ -196,7 +196,7 @@ lanes:
     source: SLO-CATALOG.md
     runtime_budget_seconds: 180
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate slo-coverage
-  - id: oya-governance-catalog-records
+  - id: governance-catalog-records
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -204,7 +204,7 @@ lanes:
     source: ADR-0015 / registry/catalog
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- catalog validate
-  - id: oya-governance-product-index
+  - id: governance-product-index
     stage: foundation
     status: active
     owner_team: axis-foundry
@@ -212,7 +212,7 @@ lanes:
     source: products/README.md
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate product-index
-  - id: oya-governance-brand-residue
+  - id: governance-brand-residue
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -260,7 +260,7 @@ lanes:
     source: ADR-0013
     runtime_budget_seconds: 300
     check_command: cargo deny check
-  - id: oya-foundation-demo-smoke
+  - id: foundation-demo-smoke
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -300,7 +300,7 @@ lanes:
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate typescript-workspace --lane test
-  - id: oya-governance-api-semver
+  - id: governance-api-semver
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -308,7 +308,7 @@ lanes:
     source: ADR-0037
     runtime_budget_seconds: 300
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate api-semver
-  - id: oya-governance-cargo-prefix
+  - id: governance-cargo-prefix
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -316,7 +316,7 @@ lanes:
     source: ADR-0017
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate cargo-prefix
-  - id: oya-governance-loop-recovery-patterns
+  - id: governance-loop-recovery-patterns
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -324,7 +324,7 @@ lanes:
     source: specs/agent-durable-goal.json score_cards + autonomous_foundry.meta_agent_anomaly_watch
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate loop-recovery-patterns
-  - id: oya-governance-master-plan-completion
+  - id: governance-master-plan-completion
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -332,7 +332,7 @@ lanes:
     source: NEXT-004 (evidence/goals/masterplan-actionability-durable-goal-2026-05-16.json) + scripts/audit-master-plan-completion.py port (audit B-7)
     runtime_budget_seconds: 60
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate master-plan-completion
-  - id: oya-governance-retired-vocabulary
+  - id: governance-retired-vocabulary
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -340,7 +340,7 @@ lanes:
     source: feedback_no_silent_regression + feedback_no_exceptions_canonical
     runtime_budget_seconds: 60
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate retired-vocabulary
-  - id: oya-governance-protection-context-match
+  - id: governance-protection-context-match
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -348,7 +348,7 @@ lanes:
     source: feedback_no_silent_regression + 2026-05-15 PR #3 merge-block incident
     runtime_budget_seconds: 30
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate protection-context-match
-  - id: oya-governance-vacuous-green
+  - id: governance-vacuous-green
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -356,7 +356,7 @@ lanes:
     source: ADR-0221 M-06
     runtime_budget_seconds: 60
     check_command: bash tools/governance/adr-0221-governance-gates.sh vacuous-green
-  - id: oya-governance-adr-orphan-citation
+  - id: governance-adr-orphan-citation
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -364,7 +364,7 @@ lanes:
     source: ADR-0221 M-13
     runtime_budget_seconds: 60
     check_command: bash tools/governance/adr-0221-governance-gates.sh orphan-citation
-  - id: oya-governance-version-pin-source-citation
+  - id: governance-version-pin-source-citation
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -372,7 +372,7 @@ lanes:
     source: ADR-0221 M-01
     runtime_budget_seconds: 60
     check_command: bash tools/governance/adr-0221-governance-gates.sh version-pin
-  - id: oya-governance-buildability-line-count
+  - id: governance-buildability-line-count
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -404,7 +404,7 @@ lanes:
     source: ADR-0009
     runtime_budget_seconds: 3600
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate cross-tenant-access-fuzz
-  - id: oya-governance-vendor-contract-recency
+  - id: governance-vendor-contract-recency
     stage: nightly
     status: active
     owner_team: council-architecture
@@ -412,7 +412,7 @@ lanes:
     source: VENDOR-PARTNER-LEDGER.md
     runtime_budget_seconds: 900
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate vendor-contract-recency
-  - id: oya-governance-mobile-native
+  - id: governance-mobile-native
     stage: nightly
     status: active
     owner_team: axis-foundry
@@ -466,7 +466,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate api-semver
   - id: lean-a5-documentation
     stage: per-pr
-    # crate oya-shared-documentation-check-cli is report-only until M02-P22.
+    # crate shared-documentation-check-cli is report-only until M02-P22.
     status: active
     severity: report-only
     owner_team: council-architecture
@@ -476,7 +476,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate documentation-system
   - id: lean-a10-regression
     stage: per-pr
-    # crate oya-check-regression is planned in M02-P21 IP-005.
+    # crate check-regression is planned in M02-P21 IP-005.
     status: planned
     severity: BLOCKER
     owner_team: council-architecture
@@ -539,11 +539,11 @@ lanes:
     status: active
     severity: report-only
     owner_team: council-architecture
-    purpose: enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags
+    purpose: enforces 1:1 parity between `pub const *_ROUTE` constants in crates/ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags
     source: slice-J (commit pending)
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate openapi-rest-route-parity
     runtime_budget_seconds: 30
-  - id: oya-governance-merge-queue-ref-hygiene
+  - id: governance-merge-queue-ref-hygiene
     stage: nightly
     status: active
     severity: report-only
@@ -553,7 +553,7 @@ lanes:
     check_command: cargo run -p oya-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600
     runtime_budget_seconds: 60
   # PR #143 Fix-D — high-risk auto-decision refusal grounding.
-  - id: oya-governance-high-risk-auto-decision-refusal
+  - id: governance-high-risk-auto-decision-refusal
     stage: per-pr
     status: active
     severity: blocker
@@ -563,7 +563,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate high-risk-auto-decision-refusal
     runtime_budget_seconds: 60
   # PR #143 Fix-D — SLSA L3 evidence grounding.
-  - id: oya-governance-slsa-l3-evidence-grounded
+  - id: governance-slsa-l3-evidence-grounded
     stage: per-pr
     status: active
     severity: blocker
@@ -575,7 +575,7 @@ lanes:
   # PR #143 ADR-0145 enforcement lanes (advisory / deferred mode).
   # Skeleton crates ship; strict-mode promotion tracked under
   # registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*.
-  - id: oya-governance-otel-trace-propagation
+  - id: governance-otel-trace-propagation
     stage: per-pr
     status: active
     severity: report-only
@@ -584,7 +584,7 @@ lanes:
     source: ADR-0145
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate otel-trace-propagation
     runtime_budget_seconds: 30
-  - id: oya-governance-ontology-projection-coverage
+  - id: governance-ontology-projection-coverage
     stage: per-pr
     status: active
     severity: blocker
@@ -593,7 +593,7 @@ lanes:
     source: ADR-0145
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate ontology-projection-coverage
     runtime_budget_seconds: 30
-  - id: oya-governance-audit-chain-seal-coverage
+  - id: governance-audit-chain-seal-coverage
     stage: per-pr
     status: active
     severity: report-only
@@ -604,7 +604,7 @@ lanes:
     runtime_budget_seconds: 30
   # ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture
   # discipline lanes (authored 2026-05-18).
-  - id: oya-governance-layered-architecture-discipline
+  - id: governance-layered-architecture-discipline
     stage: per-pr
     status: active
     severity: blocker
@@ -613,7 +613,7 @@ lanes:
     source: ADR-0148, ADR-0182, ADR-0183, ADR-0184
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate layered-architecture-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-client-stack-discipline
+  - id: governance-client-stack-discipline
     stage: per-pr
     status: active
     severity: blocker
@@ -623,7 +623,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate client-stack-discipline
     runtime_budget_seconds: 60
   # PR #143 Fix-M/N/R/S/T/U batches — 1 strict + 11 advisory lanes (close-out 2026-05-18).
-  - id: oya-governance-vendor-lockin-discipline
+  - id: governance-vendor-lockin-discipline
     stage: per-pr
     status: active
     severity: blocker
@@ -632,7 +632,7 @@ lanes:
     source: ADR-0173
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate vendor-lockin-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-authz-tier-discipline
+  - id: governance-authz-tier-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -641,7 +641,7 @@ lanes:
     source: ADR-0191
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate authz-tier-discipline
     runtime_budget_seconds: 30
-  - id: oya-governance-tenant-cost-labels-coverage
+  - id: governance-tenant-cost-labels-coverage
     stage: per-pr
     status: active
     severity: report-only
@@ -650,7 +650,7 @@ lanes:
     source: ADR-0199
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate tenant-cost-labels-coverage
     runtime_budget_seconds: 60
-  - id: oya-governance-backup-retention-discipline
+  - id: governance-backup-retention-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -659,7 +659,7 @@ lanes:
     source: ADR-0197
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate backup-retention-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-vector-store-discipline
+  - id: governance-vector-store-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -668,7 +668,7 @@ lanes:
     source: ADR-0192
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate vector-store-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-olap-tier-discipline
+  - id: governance-olap-tier-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -677,7 +677,7 @@ lanes:
     source: ADR-0193
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate olap-tier-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-wasm-runtime-discipline
+  - id: governance-wasm-runtime-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -687,7 +687,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate wasm-runtime-discipline
     runtime_budget_seconds: 30
     promotion_target: T+60d after ADR-0200 land; flip to blocker
-  - id: oya-governance-iac-tier-discipline
+  - id: governance-iac-tier-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -697,7 +697,7 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate iac-tier-discipline
     runtime_budget_seconds: 30
     promotion_target: T+90d after ADR-0202 land; flip to blocker
-  - id: oya-governance-a11y-discipline
+  - id: governance-a11y-discipline
     stage: per-pr
     status: active
     severity: report-only
@@ -706,7 +706,7 @@ lanes:
     source: ADR-0207
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate a11y-discipline
     runtime_budget_seconds: 60
-  - id: oya-governance-i18n-coverage
+  - id: governance-i18n-coverage
     stage: per-pr
     status: active
     severity: report-only
@@ -715,7 +715,7 @@ lanes:
     source: ADR-0206
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate i18n-coverage
     runtime_budget_seconds: 60
-  - id: oya-governance-compliance-evidence-coverage
+  - id: governance-compliance-evidence-coverage
     stage: per-pr
     status: active
     severity: report-only
@@ -724,7 +724,7 @@ lanes:
     source: ADR-0209
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate compliance-evidence-coverage
     runtime_budget_seconds: 60
-  - id: oya-governance-realtime-transport-tier
+  - id: governance-realtime-transport-tier
     stage: per-pr
     status: active
     severity: report-only
@@ -733,7 +733,7 @@ lanes:
     source: ADR-0208
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate realtime-transport-tier
     runtime_budget_seconds: 30
-  - id: oya-governance-adr-planning-completeness
+  - id: governance-adr-planning-completeness
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -741,7 +741,7 @@ lanes:
     source: ADR-0364
     runtime_budget_seconds: 60
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate adr-planning-completeness
-  - id: oya-governance-masterplan-drift
+  - id: governance-masterplan-drift
     stage: per-pr
     status: active
     owner_team: council-architecture
@@ -749,7 +749,7 @@ lanes:
     source: ADR-0364
     runtime_budget_seconds: 60
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate masterplan-drift
-  - id: oya-governance-adr-supersession-consistency
+  - id: governance-adr-supersession-consistency
     stage: per-pr
     status: active
     owner_team: council-architecture

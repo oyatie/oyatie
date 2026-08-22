@@ -85,7 +85,7 @@ Caveats:
 The benchmark harness is at `benchmarks/k8sbench/`. Run with:
 
 ```sh
-cargo run -p oya-dev-cli -- benchmarks cloud-k8s \
+cargo run -p dev-cli -- benchmarks cloud-k8s \
     --workload bootstrap \
     --shape oyatie-paid-onprem-connected \
     --output ./benchmark-results.json

@@ -23,11 +23,11 @@ velero:
     backupStorageLocation:
       - name: default
         provider: aws
-        bucket: oya-velero-backup-shared-prod
+        bucket: velero-backup-shared-prod
         config:
-          region: oya-on-prem
+          region: on-prem
           # SeaweedFS S3 endpoint (per ADR-0196)
-          s3Url: http://oya-cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333
+          s3Url: http://cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333
           s3ForcePathStyle: "true"
           # Server-side encryption via age (per ADR-0197 §Encryption)
           # Velero-level encryption is delegated to the age-encryption sidecar;
@@ -40,7 +40,7 @@ velero:
       - name: default
         provider: aws
         config:
-          region: oya-on-prem
+          region: on-prem
     # Use the kopia (filesystem backup) uploader — modern replacement for restic in Velero
     uploaderType: kopia
     # Default backup TTL — regulatory packs override
@@ -126,7 +126,7 @@ microservice: cloud-iac
 boundedContext: backup
 tier: M
 plane: control
-partOf: oya-cloud-iac
+partOf: cloud-iac
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:
@@ -134,5 +134,5 @@ costAttribution:
   workloadClass: "batch"
 
 # ---- canonical helm library ----
-oya-helpers:
+helpers:
   enabled: true

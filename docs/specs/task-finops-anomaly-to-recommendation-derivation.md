@@ -1,6 +1,6 @@
 # Spec: finops-anomaly-to-recommendation-derivation
 
-**Crate**: `oya-cloud-finops-domain`
+**Crate**: `cloud-finops-domain`
 **Lane**: cloud
 **Priority**: med
 **Effort**: M
@@ -9,7 +9,7 @@
 ## Summary
 
 Add a public, pure, deterministic derivation function that maps detected `CostAnomaly` values to
-`FinopsRecommendation` values in `oya-cloud-finops-domain`.
+`FinopsRecommendation` values in `cloud-finops-domain`.
 
 ## Function Signature
 
@@ -60,4 +60,4 @@ across emitted recommendations. This ensures:
 - No new workspace member.
 - Root `Cargo.toml` untouched.
 - No new dependencies.
-- All changes inside `oya-cloud-finops-domain`.
+- All changes inside `cloud-finops-domain`.

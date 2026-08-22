@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-test, lean-a1, lean-a2]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: oya-cloud-secrets-secret-reference-resolver-usecase
+# IP-005: cloud-secrets-secret-reference-resolver-usecase
 
 ## Intent
 
@@ -25,12 +25,12 @@ One new crate; depends on `-kernel` + `-domain`.
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-secret-reference-resolver-usecase/Cargo.toml` | create |
+| `…/cloud-secrets-secret-reference-resolver-usecase/Cargo.toml` | create |
 | `…/src/lib.rs` | create |
 | `…/src/resolve.rs` | create — orchestrator: `pub struct ResolveUseCase<O, C, A> { openbao: O, cache: C, audit: A }` |
 | `…/src/list.rs` | create — list orchestrator |
 | `…/src/policy_eval.rs` | create — Cedar policy hook |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-usecase.yaml` | create |
+| `microservices/cloud-secrets/catalog/cloud-secrets-secret-reference-resolver-usecase.yaml` | create |
 
 ## Code Shape
 
@@ -63,9 +63,9 @@ where
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-usecase
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-secrets-secret-reference-resolver-usecase
-cargo run -p oya-dev-cli -- gate validate lean-a2 --crate oya-cloud-secrets-secret-reference-resolver-usecase
+cargo nextest run -p cloud-secrets-secret-reference-resolver-usecase
+cargo run -p dev-cli -- gate validate lean-a1 --crate cloud-secrets-secret-reference-resolver-usecase
+cargo run -p dev-cli -- gate validate lean-a2 --crate cloud-secrets-secret-reference-resolver-usecase
 ```
 
 ## Test Plan
@@ -88,10 +88,10 @@ cargo run -p oya-dev-cli -- gate validate lean-a2 --crate oya-cloud-secrets-secr
 Secret resolution touches cache, OpenBao, policy, audit, and revocation state. If orchestration is left to individual callers, some paths can skip audit emission, over-cache raw values, or retry through degraded policy state.
 
 ### B. Approach
-Centralize the resolve flow in `oya-cloud-secrets-secret-reference-resolver-usecase`: parse, check cache, query OpenBao on miss, evaluate tenant policy, emit `SecretAccessed`, write bounded cache, and return a redaction-safe `ResolvedSecret`. Ports from the kernel are injected so the usecase remains testable.
+Centralize the resolve flow in `cloud-secrets-secret-reference-resolver-usecase`: parse, check cache, query OpenBao on miss, evaluate tenant policy, emit `SecretAccessed`, write bounded cache, and return a redaction-safe `ResolvedSecret`. Ports from the kernel are injected so the usecase remains testable.
 
 ### C. Deliverables
-- `oya-cloud-secrets-secret-reference-resolver-usecase` crate and catalog entry.
+- `cloud-secrets-secret-reference-resolver-usecase` crate and catalog entry.
 - `ResolveSecret` orchestration over `OpenBaoClient`, `SecretCache`, `RevocationConsumer`, and `AuditChainBridgeClient`.
 - Audit event mapping to `contracts/asyncapi/cloud-secrets-events.yaml`.
 - SLO linkage to `slos/secret-resolve-latency.openslo.yaml` and `slos/audit-log-completeness.openslo.yaml`.
@@ -107,14 +107,14 @@ Centralize the resolve flow in `oya-cloud-secrets-secret-reference-resolver-usec
 7. Cache only allowed results with domain-clamped TTL and zeroize on drop.
 
 ### E. Acceptance
-- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-usecase`.
-- `cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-secrets-secret-reference-resolver-usecase`.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --crate oya-cloud-secrets-secret-reference-resolver-usecase`.
+- `cargo nextest run -p cloud-secrets-secret-reference-resolver-usecase`.
+- `cargo run -p dev-cli -- gate validate lean-a1 --crate cloud-secrets-secret-reference-resolver-usecase`.
+- `cargo run -p dev-cli -- gate validate lean-a2 --crate cloud-secrets-secret-reference-resolver-usecase`.
 - Tests cover cache hit, cache miss, policy deny, OpenBao error, revocation invalidation, and audit failure.
 - Every resolve attempt produces exactly one audit outcome.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-02/FR-06/FR-08, `manifest.json`, `catalog/oya-cloud-secrets-secret-reference-resolver-usecase.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `runbooks/secret-leak-detected.md`, and `dashboards/secret-resolution-rate.json`.
+Evidence anchors are `PRD.md` FR-02/FR-06/FR-08, `manifest.json`, `catalog/cloud-secrets-secret-reference-resolver-usecase.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `runbooks/secret-leak-detected.md`, and `dashboards/secret-resolution-rate.json`.
 
 ### G. Counterpart Comparison
 AWS, Azure, GCP, and Vault SDKs retrieve values, but the parity matrix calls out Oyatie's stronger SDK and audit contract: `Secret<T>`, no-log behavior, cache TTL ceilings, revocation push, and audit-chain sealing. This usecase is where those counterpart advantages become mandatory flow control.

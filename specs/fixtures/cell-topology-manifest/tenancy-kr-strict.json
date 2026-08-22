@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "authority": {
     "spec": "specs/cell-topology-manifest-contract.json",
-    "cloud_ci_gate": "oya-cloud-ci-cell-topology-manifest-contract",
+    "cloud_ci_gate": "cloud-ci-cell-topology-manifest-contract",
     "source_adrs": [
       "ADR-0009",
       "ADR-0049",
@@ -21,7 +21,7 @@
         "cell_tier": "dedicated",
         "residency_class": "strict_kr",
         "region_disposition": "active_passive",
-        "storage_class": "oya-pg-hot",
+        "storage_class": "pg-hot",
         "quarterly_isolation_evidence": {
           "quarter": "2026-Q3",
           "network": "evidence://cell/kr-seoul-1-dedicated-001/2026-Q3/network",

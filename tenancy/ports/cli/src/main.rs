@@ -3,13 +3,13 @@
 //! # Scope
 //!
 //! This crate ships the TENANT-facing CLI surface. It is distinct from
-//! the internal `oya-dev-cli` per ADR-0167 §"Decision":
+//! the internal `dev-cli` per ADR-0167 §"Decision":
 //!
 //! - Tier-A semver-protected per ADR-0037.
-//! - Depends on the public SDK only (no `oya-check-*`, no `oya-foundry-*`).
+//! - Depends on the public SDK only (no `check-*`, no `foundry-*`).
 //! - Distributed to tenants via Homebrew tap, apt repo, winget, ghcr.
-//! - Built in the workspace as `oya-tenant` to avoid colliding with
-//!   the internal `oya-dev-cli` binary target.
+//! - Built in the workspace as `tenant` to avoid colliding with
+//!   the internal `dev-cli` binary target.
 //!
 //! # Skeleton scope (v0.1)
 //!
@@ -25,9 +25,9 @@
 //! # Naming justification
 //!
 //! The crate de-brands to `tenancy-cli` (ADR-0562 capability-first home
-//! tenancy/ports/cli); the tenant-facing binary NAME `oya-tenant` is
+//! tenancy/ports/cli); the tenant-facing binary NAME `tenant` is
 //! deliberately preserved (Tier-A distribution channel id, ADR-0167) and
-//! distinguishes this CLI from the internal `oya-dev-cli`.
+//! distinguishes this CLI from the internal `dev-cli`.
 //!
 //! # References
 //!
@@ -48,7 +48,7 @@ use clap_complete::{Shell, generate};
 #[command(name = "oya", version, about = "Oyatie tenant CLI (ADR-0167)")]
 struct Cli {
     /// Output format: `human` (default), `json`, or `ndjson`.
-    #[arg(long, global = true, default_value = "human", env = "OYA_OUTPUT")]
+    #[arg(long, global = true, default_value = "human", env = "OYATIE_OUTPUT")]
     output: String,
 
     #[command(subcommand)]

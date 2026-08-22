@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0706-D1
     description: "Live apex source-of-truth for topic observability: Live observability, SLO, and progressive-delivery telemetry."
     exit_criteria: "docs/decisions/ADR-0706-observability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0706: Live observability, SLO, and progressive-delivery telemetry
 
@@ -55,7 +55,7 @@ licence-homogeneous*. Read the two together.
 
 `observability/iac/helm/` holds **15 charts**. Licences below are the UPSTREAM projects', taken
 from each repository's own licence field, not from chart names — every chart in that directory is
-an oyatie-authored wrapper named `oya-observability-*`, so the wrapper name says nothing about
+an oyatie-authored wrapper named `observability-*`, so the wrapper name says nothing about
 what it deploys.
 
 | Upstream | Licence |

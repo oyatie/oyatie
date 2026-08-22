@@ -3,13 +3,13 @@
   "schemaVersion": 39,
   "tags": ["api-gateway", "bot", "abuse-defence"],
   "panels": [
-    {"id": 1, "type": "heatmap", "title": "Bot-score distribution heatmap", "targets": [{"expr": "sum(rate(oya_api_gateway_bot_score_bucket[5m])) by (le)"}]},
-    {"id": 2, "type": "stat", "title": "% traffic at score ≤80 (human-like)", "targets": [{"expr": "sum(rate(oya_api_gateway_bot_score_bucket{le=\"80\"}[5m])) / sum(rate(oya_api_gateway_bot_score_count[5m]))"}]},
-    {"id": 3, "type": "graph", "title": "CAPTCHA challenges issued/sec", "targets": [{"expr": "sum(rate(oya_api_gateway_captcha_challenge_issued_total[5m]))"}]},
-    {"id": 4, "type": "graph", "title": "CAPTCHA pass rate", "targets": [{"expr": "sum(rate(oya_api_gateway_captcha_passed_total[5m])) / sum(rate(oya_api_gateway_captcha_challenge_issued_total[5m]))"}]},
-    {"id": 5, "type": "graph", "title": "Honeypot hits/sec", "targets": [{"expr": "sum(rate(oya_api_gateway_honeypot_hits_total[5m]))"}]},
-    {"id": 6, "type": "table", "title": "Top ASNs by bot-score ≥80", "targets": [{"expr": "topk(15, sum(rate(oya_api_gateway_requests_total{bot_score_class=\"high\"}[15m])) by (asn))"}]},
-    {"id": 7, "type": "graph", "title": "Friendly crawler verified rate (Googlebot/Bingbot)", "targets": [{"expr": "sum(rate(oya_api_gateway_friendly_crawler_verified_total[5m]))"}]},
-    {"id": 8, "type": "graph", "title": "Residential-proxy ASN rate", "targets": [{"expr": "sum(rate(oya_api_gateway_requests_total{asn_class=\"residential_proxy\"}[5m]))"}]}
+    {"id": 1, "type": "heatmap", "title": "Bot-score distribution heatmap", "targets": [{"expr": "sum(rate(api_gateway_bot_score_bucket[5m])) by (le)"}]},
+    {"id": 2, "type": "stat", "title": "% traffic at score ≤80 (human-like)", "targets": [{"expr": "sum(rate(api_gateway_bot_score_bucket{le=\"80\"}[5m])) / sum(rate(api_gateway_bot_score_count[5m]))"}]},
+    {"id": 3, "type": "graph", "title": "CAPTCHA challenges issued/sec", "targets": [{"expr": "sum(rate(api_gateway_captcha_challenge_issued_total[5m]))"}]},
+    {"id": 4, "type": "graph", "title": "CAPTCHA pass rate", "targets": [{"expr": "sum(rate(api_gateway_captcha_passed_total[5m])) / sum(rate(api_gateway_captcha_challenge_issued_total[5m]))"}]},
+    {"id": 5, "type": "graph", "title": "Honeypot hits/sec", "targets": [{"expr": "sum(rate(api_gateway_honeypot_hits_total[5m]))"}]},
+    {"id": 6, "type": "table", "title": "Top ASNs by bot-score ≥80", "targets": [{"expr": "topk(15, sum(rate(api_gateway_requests_total{bot_score_class=\"high\"}[15m])) by (asn))"}]},
+    {"id": 7, "type": "graph", "title": "Friendly crawler verified rate (Googlebot/Bingbot)", "targets": [{"expr": "sum(rate(api_gateway_friendly_crawler_verified_total[5m]))"}]},
+    {"id": 8, "type": "graph", "title": "Residential-proxy ASN rate", "targets": [{"expr": "sum(rate(api_gateway_requests_total{asn_class=\"residential_proxy\"}[5m]))"}]}
   ]
 }

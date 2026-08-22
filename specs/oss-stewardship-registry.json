@@ -8,7 +8,7 @@
       "consumer"
     ],
     "stewardship_class_definitions": {
-      "maintainer": "Oyatie has commit + release authority on the upstream. Examples: every oya-* crate; intelligence-shuffle-sharding; oya-dev-cli; oya-shared-policy-engine-client; internal hooks + tools.",
+      "maintainer": "Oyatie has commit + release authority on the upstream. Examples: every oya-* crate; intelligence-shuffle-sharding; dev-cli; shared-policy-engine-client; internal hooks + tools.",
       "contributor": "Oyatie actively patches upstream + commits staff time. CVE-response SLA: P0 patch within 7 days; P1 patch within 30 days.",
       "consumer": "Oyatie pins + audits without upstream contribution. CVE-response SLA: P0 patch upstream-monitored; pin update within 14 days of public CVE disclosure."
     },
@@ -34,14 +34,14 @@
     "validation_check": "json-valid + every entry has stewardship_class in enum + per-class-required-fields populated + license not in forbidden-license list + owner_team in council/axis/ops taxonomy",
     "authoring_authority": "ADR-0345 (this ADR)",
     "enforcement_lanes": [
-      "oya-check-oss-stewardship-registry-presence",
-      "oya-check-oss-stewardship-class-declaration",
-      "oya-check-oss-stewardship-cve-sla",
-      "oya-check-oss-stewardship-owner-team",
-      "oya-check-oss-stewardship-resourcing-declaration",
-      "oya-check-oss-stewardship-license-cross-check",
-      "oya-governance-stewardship-class-vocabulary",
-      "oya-check-oss-stewardship-adr-provenance"
+      "check-oss-stewardship-registry-presence",
+      "check-oss-stewardship-class-declaration",
+      "check-oss-stewardship-cve-sla",
+      "check-oss-stewardship-owner-team",
+      "check-oss-stewardship-resourcing-declaration",
+      "check-oss-stewardship-license-cross-check",
+      "governance-stewardship-class-vocabulary",
+      "check-oss-stewardship-adr-provenance"
     ]
   },
   "_metadata": {
@@ -57,7 +57,7 @@
       "axis-compliance",
       "ops-platform"
     ],
-    "terminology_binding": "OSS stewardship uses 'class' (relationship label), NOT 'tier'. The word 'tier' is reserved exclusively for ADR-0248 cellular tiers (Tier 0..4) and ADR-0338 pod runtime tiers (Tier 0..3). Vocabulary discipline enforced day-1 by oya-governance-stewardship-class-vocabulary lane.",
+    "terminology_binding": "OSS stewardship uses 'class' (relationship label), NOT 'tier'. The word 'tier' is reserved exclusively for ADR-0248 cellular tiers (Tier 0..4) and ADR-0338 pod runtime tiers (Tier 0..3). Vocabulary discipline enforced day-1 by governance-stewardship-class-vocabulary lane.",
     "completeness_note": "Maintainer-class enumeration at landing time is REPRESENTATIVE (key oya-* crates by category); Wave 15X-OSS-stewardship completes the per-crate enumeration across ~200+ oya-* crates via Cargo workspace introspection + per-crate manifest authoring. Contributor + Consumer enumerations are FLOOR-COMPLETE per ADR-0345 §D-4 + §D-5.",
     "out_of_scope": "Transitive dependencies (covered by cargo-vet + cargo-deny + cargo-audit per dependency-policy §3); Bominal-corpus parallel registry (authored independently per feedback_bominal_inheritance_precedence)."
   },
@@ -89,7 +89,7 @@
       "notes": "Substrate crate materializing the cellular shuffle-sharding algorithm per ADR-0248. Authored from-scratch by Oyatie as part of the cell-as-pattern retirement per ADR-0333. Maintainer-class with 10% engineering-time commitment because the algorithm is on the hot path for every cellular tenant placement decision."
     },
     {
-      "dep_name": "oya-dev-cli",
+      "dep_name": "dev-cli",
       "stewardship_class": "maintainer",
       "owner_team": "ops-platform",
       "secondary_owner_teams": [
@@ -103,7 +103,7 @@
       "maintainer_engineering_time_percent": 8,
       "audit_subscription_cost_usd": null,
       "license": "Apache-2.0",
-      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/oya-dev-cli",
+      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/dev-cli",
       "adr_provenance": [
         "ADR-0218"
       ],
@@ -115,7 +115,7 @@
       "notes": "Canonical Oyatie CLI front for cargo, OpenTofu, lane invocation, gate validation. Maintainer-class; 8% engineering-time commitment because it is consumed by every agent and every developer for daily work."
     },
     {
-      "dep_name": "oya-shared-policy-engine-client",
+      "dep_name": "shared-policy-engine-client",
       "stewardship_class": "maintainer",
       "owner_team": "axis-policy-engine",
       "secondary_owner_teams": [
@@ -128,7 +128,7 @@
       "maintainer_engineering_time_percent": 12,
       "audit_subscription_cost_usd": null,
       "license": "Apache-2.0",
-      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/oya-shared-policy-engine-client",
+      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/shared-policy-engine-client",
       "adr_provenance": [
         "ADR-0150",
         "ADR-0183",
@@ -142,7 +142,7 @@
       "notes": "Cedar wrapper crate; canonical Oyatie binding to the Cedar policy engine. 12% engineering-time commitment because Cedar is the universal authorization gate per ADR-0243 and every Cedar evaluation crosses this wrapper."
     },
     {
-      "dep_name": "oya-shared-workflow-engine",
+      "dep_name": "shared-workflow-engine",
       "stewardship_class": "maintainer",
       "owner_team": "axis-workflow",
       "secondary_owner_teams": [
@@ -155,7 +155,7 @@
       "maintainer_engineering_time_percent": 10,
       "audit_subscription_cost_usd": null,
       "license": "Apache-2.0",
-      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/oya-shared-workflow-engine",
+      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/shared-workflow-engine",
       "adr_provenance": [
         "ADR-0335"
       ],
@@ -167,7 +167,7 @@
       "notes": "Durable-function runtime substrate absorbed from the retired foundry µservice per ADR-0335. 10% engineering-time commitment because the workflow runtime is the agentic-pipeline backbone."
     },
     {
-      "dep_name": "oya-shared-ontology-projection",
+      "dep_name": "shared-ontology-projection",
       "stewardship_class": "maintainer",
       "owner_team": "axis-ontology",
       "secondary_owner_teams": [
@@ -180,7 +180,7 @@
       "maintainer_engineering_time_percent": 6,
       "audit_subscription_cost_usd": null,
       "license": "Apache-2.0",
-      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/oya-shared-ontology-projection",
+      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/shared-ontology-projection",
       "adr_provenance": [
         "ADR-0247",
         "ADR-0335"
@@ -193,7 +193,7 @@
       "notes": "Palantir-Ontology-equivalent projection substrate per the unified-ecosystem thesis. 6% engineering-time commitment."
     },
     {
-      "dep_name": "oya-crates-domain-layer",
+      "dep_name": "crates-domain-layer",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -218,7 +218,7 @@
       "notes": "Roll-up entry covering every oya-*-domain crate across ~77 µservices per ADR-0105 13-layer enum. Per-crate engineering-time-percent is declared in each crate's manifest under Wave 15X-OSS-stewardship; the 5% value here is the corpus-wide default for domain-layer crates."
     },
     {
-      "dep_name": "oya-crates-kernel-layer",
+      "dep_name": "crates-kernel-layer",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -243,7 +243,7 @@
       "notes": "Roll-up entry covering every oya-*-kernel crate across ~77 µservices. Per-crate engineering-time-percent is declared in each crate's manifest under Wave 15X-OSS-stewardship."
     },
     {
-      "dep_name": "oya-crates-app-layer",
+      "dep_name": "crates-app-layer",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -268,7 +268,7 @@
       "notes": "Roll-up entry covering every oya-*-app crate across ~77 µservices."
     },
     {
-      "dep_name": "oya-crates-api-layer",
+      "dep_name": "crates-api-layer",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -293,7 +293,7 @@
       "notes": "Roll-up entry covering every oya-*-api crate across ~77 µservices."
     },
     {
-      "dep_name": "oya-crates-adapter-layer",
+      "dep_name": "crates-adapter-layer",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -318,7 +318,7 @@
       "notes": "Roll-up entry covering every oya-*-adapter-* crate (cloud/provider adapters) across µservices."
     },
     {
-      "dep_name": "oya-crates-check-and-governance-lanes",
+      "dep_name": "crates-check-and-governance-lanes",
       "stewardship_class": "maintainer",
       "owner_team": "council-architecture",
       "secondary_owner_teams": [
@@ -341,7 +341,7 @@
       ],
       "first_added_adr": "ADR-0322",
       "last_class_change_adr": "ADR-0345",
-      "notes": "Roll-up entry covering every oya-check-* and oya-governance-* lane crate. 8% engineering-time commitment because the lanes are the substance-bar enforcement substrate."
+      "notes": "Roll-up entry covering every check-* and governance-* lane crate. 8% engineering-time commitment because the lanes are the substance-bar enforcement substrate."
     },
     {
       "dep_name": "cilium",

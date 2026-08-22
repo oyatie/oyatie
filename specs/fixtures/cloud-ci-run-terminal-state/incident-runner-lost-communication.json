@@ -107,7 +107,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:07:57Z",
       "completed_at": "2026-08-01T01:14:08Z",
-      "runner_name": "oya-arm64-lh4ch-runner-dmtdq",
+      "runner_name": "arm64-lh4ch-runner-dmtdq",
       "steps": [
         {
           "number": 1,
@@ -249,7 +249,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:22:50Z",
       "completed_at": "2026-08-01T01:28:34Z",
-      "runner_name": "oya-arm64-lh4ch-runner-dr8k8",
+      "runner_name": "arm64-lh4ch-runner-dr8k8",
       "steps": [
         {
           "number": 1,
@@ -302,7 +302,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T01:13:32Z",
       "completed_at": "2026-08-01T01:55:36Z",
-      "runner_name": "oya-arm64-lh4ch-runner-vdf7p",
+      "runner_name": "arm64-lh4ch-runner-vdf7p",
       "steps": [
         {
           "number": 1,
@@ -403,7 +403,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:07:57Z",
       "completed_at": "2026-08-01T01:13:27Z",
-      "runner_name": "oya-arm64-lh4ch-runner-9lztm",
+      "runner_name": "arm64-lh4ch-runner-9lztm",
       "steps": [
         {
           "number": 1,
@@ -450,7 +450,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:14:12Z",
       "completed_at": "2026-08-01T01:17:26Z",
-      "runner_name": "oya-arm64-lh4ch-runner-2jdkx",
+      "runner_name": "arm64-lh4ch-runner-2jdkx",
       "steps": [
         {
           "number": 1,
@@ -503,7 +503,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T01:17:31Z",
       "completed_at": "2026-08-01T01:22:44Z",
-      "runner_name": "oya-arm64-lh4ch-runner-z4kcz",
+      "runner_name": "arm64-lh4ch-runner-z4kcz",
       "steps": [
         {
           "number": 1,
@@ -556,7 +556,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T01:28:40Z",
       "completed_at": "2026-08-01T01:41:41Z",
-      "runner_name": "oya-arm64-lh4ch-runner-q8hz9",
+      "runner_name": "arm64-lh4ch-runner-q8hz9",
       "steps": [
         {
           "number": 1,
@@ -645,7 +645,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T02:00:38Z",
       "completed_at": "2026-08-01T02:01:01Z",
-      "runner_name": "oya-arm64-lh4ch-runner-bh57v",
+      "runner_name": "arm64-lh4ch-runner-bh57v",
       "steps": [
         {
           "number": 1,
@@ -704,7 +704,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:59:38Z",
       "completed_at": "2026-08-01T02:00:25Z",
-      "runner_name": "oya-arm64-lh4ch-runner-knb78",
+      "runner_name": "arm64-lh4ch-runner-knb78",
       "steps": [
         {
           "number": 1,
@@ -763,7 +763,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:54:13Z",
       "completed_at": "2026-08-01T01:55:02Z",
-      "runner_name": "oya-arm64-lh4ch-runner-xmkhc",
+      "runner_name": "arm64-lh4ch-runner-xmkhc",
       "steps": [
         {
           "number": 1,
@@ -822,7 +822,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T02:00:29Z",
       "completed_at": "2026-08-01T02:01:22Z",
-      "runner_name": "oya-arm64-lh4ch-runner-ght2j",
+      "runner_name": "arm64-lh4ch-runner-ght2j",
       "steps": [
         {
           "number": 1,
@@ -881,7 +881,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:54:12Z",
       "completed_at": "2026-08-01T01:54:36Z",
-      "runner_name": "oya-arm64-lh4ch-runner-xs5fb",
+      "runner_name": "arm64-lh4ch-runner-xs5fb",
       "steps": [
         {
           "number": 1,
@@ -940,7 +940,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:48:14Z",
       "completed_at": "2026-08-01T01:49:00Z",
-      "runner_name": "oya-arm64-lh4ch-runner-zlt7k",
+      "runner_name": "arm64-lh4ch-runner-zlt7k",
       "steps": [
         {
           "number": 1,
@@ -999,7 +999,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:41:49Z",
       "completed_at": "2026-08-01T01:43:36Z",
-      "runner_name": "oya-arm64-lh4ch-runner-ptrfq",
+      "runner_name": "arm64-lh4ch-runner-ptrfq",
       "steps": [
         {
           "number": 1,
@@ -1058,7 +1058,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T02:00:14Z",
       "completed_at": "2026-08-01T02:00:33Z",
-      "runner_name": "oya-arm64-lh4ch-runner-6cxfq",
+      "runner_name": "arm64-lh4ch-runner-6cxfq",
       "steps": [
         {
           "number": 1,
@@ -1117,7 +1117,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:50:49Z",
       "completed_at": "2026-08-01T01:51:57Z",
-      "runner_name": "oya-arm64-lh4ch-runner-4qdcg",
+      "runner_name": "arm64-lh4ch-runner-4qdcg",
       "steps": [
         {
           "number": 1,
@@ -1176,7 +1176,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:55:37Z",
       "completed_at": "2026-08-01T01:56:27Z",
-      "runner_name": "oya-arm64-lh4ch-runner-gzlc6",
+      "runner_name": "arm64-lh4ch-runner-gzlc6",
       "steps": [
         {
           "number": 1,
@@ -1235,7 +1235,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:49:59Z",
       "completed_at": "2026-08-01T01:50:44Z",
-      "runner_name": "oya-arm64-lh4ch-runner-5br8f",
+      "runner_name": "arm64-lh4ch-runner-5br8f",
       "steps": [
         {
           "number": 1,
@@ -1294,7 +1294,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T01:52:01Z",
       "completed_at": "2026-08-01T01:52:46Z",
-      "runner_name": "oya-arm64-lh4ch-runner-t6s99",
+      "runner_name": "arm64-lh4ch-runner-t6s99",
       "steps": [
         {
           "number": 1,
@@ -1353,7 +1353,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:45:49Z",
       "completed_at": "2026-08-01T01:46:13Z",
-      "runner_name": "oya-arm64-lh4ch-runner-f7hf6",
+      "runner_name": "arm64-lh4ch-runner-f7hf6",
       "steps": [
         {
           "number": 1,
@@ -1412,7 +1412,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:46:18Z",
       "completed_at": "2026-08-01T01:47:16Z",
-      "runner_name": "oya-arm64-lh4ch-runner-k87z8",
+      "runner_name": "arm64-lh4ch-runner-k87z8",
       "steps": [
         {
           "number": 1,
@@ -1471,7 +1471,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:56:43Z",
       "completed_at": "2026-08-01T01:57:03Z",
-      "runner_name": "oya-arm64-lh4ch-runner-hp2mx",
+      "runner_name": "arm64-lh4ch-runner-hp2mx",
       "steps": [
         {
           "number": 1,
@@ -1530,7 +1530,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:51:34Z",
       "completed_at": "2026-08-01T01:51:55Z",
-      "runner_name": "oya-arm64-lh4ch-runner-4nhk7",
+      "runner_name": "arm64-lh4ch-runner-4nhk7",
       "steps": [
         {
           "number": 1,
@@ -1589,7 +1589,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:44:30Z",
       "completed_at": "2026-08-01T01:45:00Z",
-      "runner_name": "oya-arm64-lh4ch-runner-md2t9",
+      "runner_name": "arm64-lh4ch-runner-md2t9",
       "steps": [
         {
           "number": 1,
@@ -1648,7 +1648,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:49:05Z",
       "completed_at": "2026-08-01T01:49:31Z",
-      "runner_name": "oya-arm64-lh4ch-runner-c7pf7",
+      "runner_name": "arm64-lh4ch-runner-c7pf7",
       "steps": [
         {
           "number": 1,
@@ -1707,7 +1707,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:53:44Z",
       "completed_at": "2026-08-01T01:54:07Z",
-      "runner_name": "oya-arm64-lh4ch-runner-4w7kt",
+      "runner_name": "arm64-lh4ch-runner-4w7kt",
       "steps": [
         {
           "number": 1,
@@ -1766,7 +1766,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:52:34Z",
       "completed_at": "2026-08-01T01:53:07Z",
-      "runner_name": "oya-arm64-lh4ch-runner-7sbmn",
+      "runner_name": "arm64-lh4ch-runner-7sbmn",
       "steps": [
         {
           "number": 1,
@@ -1825,7 +1825,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:54:42Z",
       "completed_at": "2026-08-01T01:55:33Z",
-      "runner_name": "oya-arm64-lh4ch-runner-vtnld",
+      "runner_name": "arm64-lh4ch-runner-vtnld",
       "steps": [
         {
           "number": 1,
@@ -1879,12 +1879,12 @@
     },
     {
       "id": 91309033958,
-      "name": "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)",
+      "name": "gate · dependency-automation (ADR-0535, owned deps.toml Rust bump-bot contract; external bot configs remain absent)",
       "status": "completed",
       "conclusion": "success",
       "started_at": "2026-08-01T01:53:12Z",
       "completed_at": "2026-08-01T01:53:39Z",
-      "runner_name": "oya-arm64-lh4ch-runner-d8jlp",
+      "runner_name": "arm64-lh4ch-runner-d8jlp",
       "steps": [
         {
           "number": 1,
@@ -1943,7 +1943,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:58:03Z",
       "completed_at": "2026-08-01T01:58:33Z",
-      "runner_name": "oya-arm64-lh4ch-runner-bsl4g",
+      "runner_name": "arm64-lh4ch-runner-bsl4g",
       "steps": [
         {
           "number": 1,
@@ -2002,7 +2002,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:47:48Z",
       "completed_at": "2026-08-01T01:48:09Z",
-      "runner_name": "oya-arm64-lh4ch-runner-jc5tr",
+      "runner_name": "arm64-lh4ch-runner-jc5tr",
       "steps": [
         {
           "number": 1,
@@ -2061,7 +2061,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:47:21Z",
       "completed_at": "2026-08-01T01:47:43Z",
-      "runner_name": "oya-arm64-lh4ch-runner-2wphk",
+      "runner_name": "arm64-lh4ch-runner-2wphk",
       "steps": [
         {
           "number": 1,
@@ -2120,7 +2120,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:56:57Z",
       "completed_at": "2026-08-01T01:57:45Z",
-      "runner_name": "oya-arm64-lh4ch-runner-pggpz",
+      "runner_name": "arm64-lh4ch-runner-pggpz",
       "steps": [
         {
           "number": 1,
@@ -2179,7 +2179,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:49:36Z",
       "completed_at": "2026-08-01T01:49:54Z",
-      "runner_name": "oya-arm64-lh4ch-runner-h84bf",
+      "runner_name": "arm64-lh4ch-runner-h84bf",
       "steps": [
         {
           "number": 1,
@@ -2238,7 +2238,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:53:17Z",
       "completed_at": "2026-08-01T01:54:09Z",
-      "runner_name": "oya-arm64-lh4ch-runner-94tzt",
+      "runner_name": "arm64-lh4ch-runner-94tzt",
       "steps": [
         {
           "number": 1,
@@ -2297,7 +2297,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:43:41Z",
       "completed_at": "2026-08-01T01:44:23Z",
-      "runner_name": "oya-arm64-lh4ch-runner-pft9d",
+      "runner_name": "arm64-lh4ch-runner-pft9d",
       "steps": [
         {
           "number": 1,
@@ -2356,7 +2356,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:59:19Z",
       "completed_at": "2026-08-01T01:59:40Z",
-      "runner_name": "oya-arm64-lh4ch-runner-7c9xc",
+      "runner_name": "arm64-lh4ch-runner-7c9xc",
       "steps": [
         {
           "number": 1,
@@ -2415,7 +2415,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:55:08Z",
       "completed_at": "2026-08-01T01:55:31Z",
-      "runner_name": "oya-arm64-lh4ch-runner-4rwmp",
+      "runner_name": "arm64-lh4ch-runner-4rwmp",
       "steps": [
         {
           "number": 1,
@@ -2474,7 +2474,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:50:58Z",
       "completed_at": "2026-08-01T01:51:29Z",
-      "runner_name": "oya-arm64-lh4ch-runner-khwvk",
+      "runner_name": "arm64-lh4ch-runner-khwvk",
       "steps": [
         {
           "number": 1,
@@ -2533,7 +2533,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:45:06Z",
       "completed_at": "2026-08-01T01:45:43Z",
-      "runner_name": "oya-arm64-lh4ch-runner-csc9f",
+      "runner_name": "arm64-lh4ch-runner-csc9f",
       "steps": [
         {
           "number": 1,
@@ -2592,7 +2592,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:52:01Z",
       "completed_at": "2026-08-01T01:52:28Z",
-      "runner_name": "oya-arm64-lh4ch-runner-2vp9f",
+      "runner_name": "arm64-lh4ch-runner-2vp9f",
       "steps": [
         {
           "number": 1,
@@ -2651,7 +2651,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:57:49Z",
       "completed_at": "2026-08-01T01:58:12Z",
-      "runner_name": "oya-arm64-lh4ch-runner-cjh95",
+      "runner_name": "arm64-lh4ch-runner-cjh95",
       "steps": [
         {
           "number": 1,
@@ -2710,7 +2710,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:52:51Z",
       "completed_at": "2026-08-01T01:53:13Z",
-      "runner_name": "oya-arm64-lh4ch-runner-98967",
+      "runner_name": "arm64-lh4ch-runner-98967",
       "steps": [
         {
           "number": 1,
@@ -2769,7 +2769,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:55:37Z",
       "completed_at": "2026-08-01T01:55:59Z",
-      "runner_name": "oya-arm64-lh4ch-runner-ksgg9",
+      "runner_name": "arm64-lh4ch-runner-ksgg9",
       "steps": [
         {
           "number": 1,
@@ -2828,7 +2828,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:59:46Z",
       "completed_at": "2026-08-01T02:00:09Z",
-      "runner_name": "oya-arm64-lh4ch-runner-5b5gb",
+      "runner_name": "arm64-lh4ch-runner-5b5gb",
       "steps": [
         {
           "number": 1,
@@ -2887,7 +2887,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:56:32Z",
       "completed_at": "2026-08-01T01:56:53Z",
-      "runner_name": "oya-arm64-lh4ch-runner-ksvsh",
+      "runner_name": "arm64-lh4ch-runner-ksvsh",
       "steps": [
         {
           "number": 1,
@@ -2946,7 +2946,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:56:04Z",
       "completed_at": "2026-08-01T01:56:38Z",
-      "runner_name": "oya-arm64-lh4ch-runner-sjq49",
+      "runner_name": "arm64-lh4ch-runner-sjq49",
       "steps": [
         {
           "number": 1,
@@ -3005,7 +3005,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:58:47Z",
       "completed_at": "2026-08-01T01:59:13Z",
-      "runner_name": "oya-arm64-lh4ch-runner-t878p",
+      "runner_name": "arm64-lh4ch-runner-t878p",
       "steps": [
         {
           "number": 1,
@@ -3064,7 +3064,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T01:57:08Z",
       "completed_at": "2026-08-01T01:57:58Z",
-      "runner_name": "oya-arm64-lh4ch-runner-s7qrb",
+      "runner_name": "arm64-lh4ch-runner-s7qrb",
       "steps": [
         {
           "number": 1,
@@ -3123,7 +3123,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:58:18Z",
       "completed_at": "2026-08-01T01:58:41Z",
-      "runner_name": "oya-arm64-lh4ch-runner-vbh9z",
+      "runner_name": "arm64-lh4ch-runner-vbh9z",
       "steps": [
         {
           "number": 1,
@@ -3241,7 +3241,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:58:38Z",
       "completed_at": "2026-08-01T01:59:03Z",
-      "runner_name": "oya-arm64-lh4ch-runner-7b8mj",
+      "runner_name": "arm64-lh4ch-runner-7b8mj",
       "steps": [
         {
           "number": 1,
@@ -3300,7 +3300,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T01:59:10Z",
       "completed_at": "2026-08-01T01:59:33Z",
-      "runner_name": "oya-arm64-lh4ch-runner-8pv2t",
+      "runner_name": "arm64-lh4ch-runner-8pv2t",
       "steps": [
         {
           "number": 1,
@@ -3354,12 +3354,12 @@
     },
     {
       "id": 91312488237,
-      "name": "oya-ci-required",
+      "name": "presubmit",
       "status": "completed",
       "conclusion": "failure",
       "started_at": "2026-08-01T02:01:26Z",
       "completed_at": "2026-08-01T02:01:28Z",
-      "runner_name": "oya-arm64-lh4ch-runner-klxhv",
+      "runner_name": "arm64-lh4ch-runner-klxhv",
       "steps": [
         {
           "number": 1,

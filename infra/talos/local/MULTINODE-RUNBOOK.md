@@ -28,11 +28,11 @@ Each VM is brought up via `talos-local.sh up --role <role> --name <name>`, with 
 Bootstraps etcd and generates the cluster config bundle:
 
 ```sh
-infra/talos/local/talos-local.sh up --role control-plane --name oya-local-cp-0 \
+infra/talos/local/talos-local.sh up --role control-plane --name local-cp-0 \
   --cpus 2 --ram-gb 2 --disk-gb 20
 # After the VM boots and the IP shows in dhcpd_leases, apply the cell patch:
-WORKDIR="${OYA_TALOS_WORKDIR:-$HOME/.oya/talos-local}"
-CP0_IP=$(infra/talos/local/talos-local.sh status | awk '/oya-local-cp-0/ {print $NF}')
+WORKDIR="${OYATIE_TALOS_WORKDIR:-$HOME/.oya/talos-local}"
+CP0_IP=$(infra/talos/local/talos-local.sh status | awk '/local-cp-0/ {print $NF}')
 talosctl apply-config --insecure --nodes "$CP0_IP" \
   --file "$WORKDIR/controlplane.yaml" \
   --config-patch @infra/talos/local/patches/cell-foundation.yaml
@@ -45,9 +45,9 @@ Join the etcd quorum. Each gets the foundation cell patch:
 
 ```sh
 for n in cp-1 cp-2; do
-  infra/talos/local/talos-local.sh up --role control-plane --name oya-local-$n \
+  infra/talos/local/talos-local.sh up --role control-plane --name local-$n \
     --cpus 2 --ram-gb 2 --disk-gb 20
-  IP=$(infra/talos/local/talos-local.sh status | awk "/oya-local-$n/ {print \$NF}")
+  IP=$(infra/talos/local/talos-local.sh status | awk "/local-$n/ {print \$NF}")
   talosctl apply-config --insecure --nodes "$IP" \
     --file "$WORKDIR/controlplane.yaml" \
     --config-patch @infra/talos/local/patches/cell-foundation.yaml
@@ -60,9 +60,9 @@ Wait for etcd quorum to converge: `talosctl etcd status --nodes $CP0_IP` should 
 
 ```sh
 for n in worker-0 worker-1; do
-  infra/talos/local/talos-local.sh up --role worker --name oya-local-$n \
+  infra/talos/local/talos-local.sh up --role worker --name local-$n \
     --cpus 4 --ram-gb 8 --disk-gb 20
-  IP=$(infra/talos/local/talos-local.sh status | awk "/oya-local-$n/ {print \$NF}")
+  IP=$(infra/talos/local/talos-local.sh status | awk "/local-$n/ {print \$NF}")
   talosctl apply-config --insecure --nodes "$IP" \
     --file "$WORKDIR/worker.yaml" \
     --config-patch @infra/talos/local/patches/cell-tenant.yaml
@@ -72,9 +72,9 @@ done
 ### 4. CI specialty — `ci-0`
 
 ```sh
-infra/talos/local/talos-local.sh up --role worker --name oya-local-ci-0 \
+infra/talos/local/talos-local.sh up --role worker --name local-ci-0 \
   --cpus 6 --ram-gb 16 --disk-gb 40
-IP=$(infra/talos/local/talos-local.sh status | awk '/oya-local-ci-0/ {print $NF}')
+IP=$(infra/talos/local/talos-local.sh status | awk '/local-ci-0/ {print $NF}')
 talosctl apply-config --insecure --nodes "$IP" \
   --file "$WORKDIR/worker.yaml" \
   --config-patch @infra/talos/local/patches/cell-ci.yaml
@@ -83,9 +83,9 @@ talosctl apply-config --insecure --nodes "$IP" \
 ### 5. Storage specialty — `storage-0`
 
 ```sh
-infra/talos/local/talos-local.sh up --role worker --name oya-local-storage-0 \
+infra/talos/local/talos-local.sh up --role worker --name local-storage-0 \
   --cpus 2 --ram-gb 8 --disk-gb 100
-IP=$(infra/talos/local/talos-local.sh status | awk '/oya-local-storage-0/ {print $NF}')
+IP=$(infra/talos/local/talos-local.sh status | awk '/local-storage-0/ {print $NF}')
 talosctl apply-config --insecure --nodes "$IP" \
   --file "$WORKDIR/worker.yaml" \
   --config-patch @infra/talos/local/patches/cell-storage.yaml

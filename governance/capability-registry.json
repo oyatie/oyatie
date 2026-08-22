@@ -118,13 +118,12 @@
         "iam",
         "iam/cloud-iam",
         "iam/identity",
-        "iam/oya-identity",
-        "iam/consent-graph",
+        "iam/identity",
         "iam/tenant-rbac",
         "iam/authn-device-firmware"
       ],
       "dag_node": "identity",
-      "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."
+      "boundary_note": "Coarse collapse per founder ruling: identity + identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."
     },
     {
       "name": "policy",
@@ -196,8 +195,7 @@
         "observability"
       ],
       "absorbs_current_dirs": [
-        "observability",
-        "observability/diagnostics"
+        "observability"
       ],
       "dag_node": "observability"
     },
@@ -228,10 +226,7 @@
         "storage/CAS"
       ],
       "absorbs_current_dirs": [
-        "storage",
-        "storage/drive",
-        "storage/imaging",
-        "storage/recordings"
+        "storage"
       ],
       "dag_node": "storage",
       "boundary_note": "ADR-0719 D-20: storage = bytes (object/CAS + optional block). drive/recordings/imaging dumps REMOVE as later app/. S3 API is the sold facade. STRATUM S2 floor unchanged."
@@ -385,8 +380,8 @@
       ],
       "absorbs_current_dirs": [
         "billing",
-        "billing/oya-meter",
-        "billing/oya-cost"
+        "billing/meter",
+        "billing/cost"
       ],
       "dag_node": "billing",
       "boundary_note": "Coarse collapse: metering + billing + tax + finops/cost as sub-modules. First-class cross-cutting sold-ness capability per founder ruling."
@@ -486,18 +481,13 @@
       "_comment": "The cloud/+oya/ deployable SaaS verticals + the web/application shell that are app/<product>/ composition members (app_products_note made machine-readable). They wire 2+ capabilities for a tenant and define no capability engine. PRE-MOVE these live at oya/<product>/; POST-move at app/<product>/. V1 (ADR-0719 D-22): application, foundry, hr, payroll, accounting, ledger, payments, calendar, mail, messenger, community (no SecureDrop). payments is an app not a cap. current_dirs is live trees only — no SAP ghosts. D41 retired notes/slides/sites/office; do not absorb. Pages/Grid (docs/sheets dumps) are Palantir Foundry primitives under app/foundry (ADR-0719 D-21), not D41 kills. Ontology is Foundry's heart, not sheets. workplace-integration is the 'etc.' catch-all surface in app_products_note. application is the developer application/web shell (product-developer-application-shell) → app/ (ADR-0719 D-16: not a console/ capability).",
       "meta_dir": "app/",
       "current_dirs": [
+        "app/application",
         "app/calendar",
         "app/community",
-        "app/global-trade",
+        "app/foundry",
         "app/hr",
         "app/payroll",
-        "app/sheets",
-        "oya/application",
-        "oya/docs",
-        "oya/global-trade",
-        "oya/governance",
-        "oya/intelligence",
-        "oya/payments"
+        "app/payments"
       ]
     },
     "retired_v1_products": {
@@ -523,12 +513,12 @@
     ],
     "absorbs_current_crate_globs": [
       {
-        "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",
+        "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/check-* and libs/governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",
         "meta_dir": "governance/",
         "globs": [
-          "libs/oya-check-*",
-          "libs/oya-governance-*",
-          "tools/oya-governance-*",
+          "libs/check-*",
+          "libs/governance-*",
+          "tools/governance-*",
           "governance/corpus/*",
           "governance/check/*"
         ]
@@ -537,80 +527,80 @@
         "_comment": "Off-runtime-ladder build/CI engines + buck2/workspace/manifest-generation tooling. ADR-0562 §1 build/ charter: 'buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines'. The remaining tools/*-app crates are build/CI tooling, not capability engines.",
         "meta_dir": "build/",
         "globs": [
-          "libs/oya-advisory-mirror-kernel",
-          "libs/oya-buck-syntax-kernel",
-          "libs/oya-cargo-lock-transform-kernel",
-          "libs/oya-ci-gate-contract",
-          "libs/oya-ci-config",
-          "libs/oya-crate-registrar-app",
-          "libs/oya-crate-registrar-kernel",
-          "libs/oya-workspace-members-kernel",
+          "libs/advisory-mirror-kernel",
+          "libs/buck-syntax-kernel",
+          "libs/cargo-lock-transform-kernel",
+          "libs/ci-gate-contract",
+          "libs/ci-config",
+          "libs/crate-registrar-app",
+          "libs/crate-registrar-kernel",
+          "libs/workspace-members-kernel",
           "tools/fixup-ledger-merge-driver-app",
-          "tools/oya-architecture-graph-generator-app",
-          "tools/oya-buck-test-wiring-app",
-          "tools/oya-cargo-lock-merge-driver-app",
-          "tools/oya-checkout-guard-app",
-          "tools/oya-fabric-loop-state-app",
-          "tools/oya-friction-ledger-merge-driver-app",
-          "tools/oya-lane-supervisor-app",
-          "tools/oya-reorg-codemod-app",
-          "tools/oya-tooling-agent-read",
-          "tools/oya-xtask-metadata-augment-app"
+          "tools/architecture-graph-generator-app",
+          "tools/buck-test-wiring-app",
+          "tools/cargo-lock-merge-driver-app",
+          "tools/checkout-guard-app",
+          "tools/fabric-loop-state-app",
+          "tools/friction-ledger-merge-driver-app",
+          "tools/lane-supervisor-app",
+          "tools/reorg-codemod-app",
+          "tools/tooling-agent-read",
+          "tools/xtask-metadata-augment-app"
         ]
       },
       {
         "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
         "capability": "data",
         "globs": [
-          "libs/oya-data-*"
+          "libs/data-*"
         ]
       }
     ],
     "frozen_unmapped_baseline": {
-      "_comment": "BORN-ADVISORY FROZEN BASELINE (ADR-0562 §6 strangler burn-down). These current crates are genuinely ambiguous PRE-MOVE — they are the libs/oya-shared-* cross-capability junk-drawer the reorg explicitly dissolves PER-CRATE (idempotency/outbox/pagination/pdp/scim/webauthn/etc. each home to a different capability or to base/ pending the >=3-consumer admission check), the libs/oya-http-* middleware (base/ candidates pending the ADR-0280 DAG admission verification), and other base/ candidates pending DAG admission. They are NOT force-mapped to a wrong capability. The membership lint is ADVISORY for these but enforces NO REGRESSION: no NEW crate may join this list, no NEW top-level dir may appear, and the list burns DOWN as the strangler moves home each crate. FLIP-TO-BLOCKING TRIGGER: when this list reaches size 0 (post-strangler), the lint promotes from born-advisory to blocking. Each entry is a current crate dir (repo-relative).",
+      "_comment": "BORN-ADVISORY FROZEN BASELINE (ADR-0562 §6 strangler burn-down). These current crates are genuinely ambiguous PRE-MOVE — they are the libs/shared-* cross-capability junk-drawer the reorg explicitly dissolves PER-CRATE (idempotency/outbox/pagination/pdp/scim/webauthn/etc. each home to a different capability or to base/ pending the >=3-consumer admission check), the libs/http-* middleware (base/ candidates pending the ADR-0280 DAG admission verification), and other base/ candidates pending DAG admission. They are NOT force-mapped to a wrong capability. The membership lint is ADVISORY for these but enforces NO REGRESSION: no NEW crate may join this list, no NEW top-level dir may appear, and the list burns DOWN as the strangler moves home each crate. FLIP-TO-BLOCKING TRIGGER: when this list reaches size 0 (post-strangler), the lint promotes from born-advisory to blocking. Each entry is a current crate dir (repo-relative).",
       "burn_down_target": 0,
       "crates": [
-        "libs/oya-http-middleware-kernel",
-        "libs/oya-http-router-kernel",
-        "libs/oya-http-runtime-hyper-adapter",
-        "libs/oya-http-sse-kernel",
-        "libs/oya-http-telemetry-middleware-infrastructure",
-        "libs/oya-http-tenant-middleware-infrastructure",
-        "libs/oya-shared-architecture-check-cli",
-        "libs/oya-shared-audit-chain-client-kernel",
-        "libs/oya-shared-audit-digest-adapter-awslc",
-        "libs/oya-shared-audit-event-kernel",
-        "libs/oya-shared-backbone-grpc-generated-adapter",
-        "libs/oya-shared-backbone-proto-contracts-kernel",
-        "libs/oya-shared-backbone-rest-runtime-adapter",
-        "libs/oya-shared-backup-kernel",
-        "libs/oya-shared-bounded-contexts-check-cli",
-        "libs/oya-shared-compliance-evidence-kernel",
-        "libs/oya-shared-connector-kernel",
-        "libs/oya-shared-hyperscaler-metrics-adapter-prometheus",
-        "libs/oya-shared-hyperscaler-metrics-kernel",
-        "libs/oya-shared-i18n-kernel",
-        "libs/oya-shared-idempotency-key-kernel",
-        "libs/oya-shared-oidc-client-kernel",
-        "libs/oya-shared-olap-clickhouse-adapter",
-        "libs/oya-shared-olap-client-kernel",
-        "libs/oya-shared-pdp-kernel",
-        "libs/oya-shared-platform-contracts-kernel",
-        "libs/oya-shared-postgres-command-adapter-sqlx",
-        "libs/oya-shared-postgres-command-kernel",
-        "libs/oya-shared-protocol-parity-kernel",
-        "libs/oya-shared-protocol-transport-kernel",
-        "libs/oya-shared-realtime-transport-kernel",
-        "libs/oya-shared-resource-provider-contract-kernel",
-        "libs/oya-shared-scim-server-kernel",
-        "libs/oya-shared-tracing-client-kernel",
-        "libs/oya-shared-transactional-outbox-adapter-sqlx",
-        "libs/oya-shared-transactional-outbox-dispatch-app",
-        "libs/oya-shared-transactional-outbox-kernel",
-        "libs/oya-shared-transactional-outbox-poller-app",
-        "libs/oya-shared-transactional-outbox-worker-app",
-        "libs/oya-shared-ulid-id-kernel",
-        "libs/oya-shared-wasm-runtime-kernel"
+        "libs/http-middleware-kernel",
+        "libs/http-router-kernel",
+        "libs/http-runtime-hyper-adapter",
+        "libs/http-sse-kernel",
+        "libs/http-telemetry-middleware-infrastructure",
+        "libs/http-tenant-middleware-infrastructure",
+        "libs/shared-architecture-check-cli",
+        "libs/shared-audit-chain-client-kernel",
+        "libs/shared-audit-digest-adapter-awslc",
+        "libs/shared-audit-event-kernel",
+        "libs/shared-backbone-grpc-generated-adapter",
+        "libs/shared-backbone-proto-contracts-kernel",
+        "libs/shared-backbone-rest-runtime-adapter",
+        "libs/shared-backup-kernel",
+        "libs/shared-bounded-contexts-check-cli",
+        "libs/shared-compliance-evidence-kernel",
+        "libs/shared-connector-kernel",
+        "libs/shared-hyperscaler-metrics-adapter-prometheus",
+        "libs/shared-hyperscaler-metrics-kernel",
+        "libs/shared-i18n-kernel",
+        "libs/shared-idempotency-key-kernel",
+        "libs/shared-oidc-client-kernel",
+        "libs/shared-olap-clickhouse-adapter",
+        "libs/shared-olap-client-kernel",
+        "libs/shared-pdp-kernel",
+        "libs/shared-platform-contracts-kernel",
+        "libs/shared-postgres-command-adapter-sqlx",
+        "libs/shared-postgres-command-kernel",
+        "libs/shared-protocol-parity-kernel",
+        "libs/shared-protocol-transport-kernel",
+        "libs/shared-realtime-transport-kernel",
+        "libs/shared-resource-provider-contract-kernel",
+        "libs/shared-scim-server-kernel",
+        "libs/shared-tracing-client-kernel",
+        "libs/shared-transactional-outbox-adapter-sqlx",
+        "libs/shared-transactional-outbox-dispatch-app",
+        "libs/shared-transactional-outbox-kernel",
+        "libs/shared-transactional-outbox-poller-app",
+        "libs/shared-transactional-outbox-worker-app",
+        "libs/shared-ulid-id-kernel",
+        "libs/shared-wasm-runtime-kernel"
       ]
     }
   }

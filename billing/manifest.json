@@ -17,9 +17,9 @@
       "name": "cloud-billing",
       "description": "Code-backed Cloud Billing local foundation for billing account, cloud billing event, platform metering handoff, invoice arithmetic, tenant class, billable component, and metering/invoice/tax/audit evidence metadata guardrails. No live billing REST server, SDK, worker, settlement rail, payment processor, tax authority adapter, FOCUS export runtime, database, Kafka, Valkey, measured SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by CS-CLOUD-BILLING-TAX-001.",
       "crates": [
-        "oya-cloud-billing-domain",
-        "oya-cloud-billing-kernel",
-        "oya-metering-domain"
+        "cloud-billing-domain",
+        "cloud-billing-kernel",
+        "metering-domain"
       ]
     }
   ],
@@ -49,25 +49,25 @@
     {
       "tier": "T2",
       "name": "billing-account-event-invoice-domain-invariants",
-      "file": "crates/oya-cloud-billing-domain/src/lib.rs",
+      "file": "crates/cloud-billing-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "tenant-class-paid-component-metering-invoice-tax-audit-evidence-guardrail-metadata",
-      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+      "file": "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "platform-metering-event-idempotency-and-unit-invariants",
-      "file": "crates/oya-metering-domain/src/lib.rs",
+      "file": "crates/metering-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "billing-kernel-usage-line-item-tax-profile-admission",
-      "file": "crates/oya-cloud-billing-kernel/src/lib.rs",
+      "file": "crates/cloud-billing-kernel/src/lib.rs",
       "risk_class": "medium"
     }
   ],
@@ -84,7 +84,7 @@
       "id": "CS-CLOUD-BILLING-TAX-001",
       "title": "Tenant class, paid billing components, metering/invoice/tax/audit evidence guardrail, and Cloud Billing/Tax manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
+      "file": "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs"
     }
   ],
   "regulatory_packs": [
@@ -298,10 +298,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Cloud Billing is intended Tier-2 first-party financial application workload. CS-CLOUD-BILLING-TAX-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-cloud-billing-domain/src/lib.rs",
-    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
-    "crates/oya-metering-domain/src/lib.rs",
-    "crates/oya-cloud-billing-kernel/src/lib.rs"
+    "crates/cloud-billing-domain/src/lib.rs",
+    "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs",
+    "crates/metering-domain/src/lib.rs",
+    "crates/cloud-billing-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -337,12 +337,12 @@
   ],
   "data_classes_processed": [],
   "implemented_source_files": [
-    "crates/oya-cloud-billing-domain/src/lib.rs",
-    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
-    "crates/oya-metering-domain/src/lib.rs",
-    "crates/oya-cloud-billing-kernel/src/lib.rs",
-    "crates/oya-cloud-billing-tax-app/src/lib.rs",
-    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
+    "crates/cloud-billing-domain/src/lib.rs",
+    "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs",
+    "crates/metering-domain/src/lib.rs",
+    "crates/cloud-billing-kernel/src/lib.rs",
+    "crates/cloud-billing-tax-app/src/lib.rs",
+    "crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
   ],
   "explicit_non_claims": [
     "No live billing REST/gRPC server, SDK, worker, message broker, metering outbox, database ledger, payment processor, settlement rail, tax authority adapter, FOCUS export, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",

@@ -4,7 +4,7 @@ doc_status: published
 
 # Oyatie Runbook — Plugin Runtime Sandbox Escape
 
-> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `presubmit` are green.
 > **Owner:** `axis-saas + cloud-intelligence + central governance + ops-security`
 > **Severity scope:** Sev 1.
 > **Authority:** ADR-0036 plugin substrate trust model, ADR-0534 higher-trust gate marketplace extension, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.

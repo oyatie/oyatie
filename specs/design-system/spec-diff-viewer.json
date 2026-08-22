@@ -39,8 +39,8 @@
     "copy/export omits hidden secrets and redacted fields"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs",
-    "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
+    "crates/dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs",
+    "crates/saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
   ],
   "consumers": [
     "$ref:specs/microservices/workflow.json#frontend_components",

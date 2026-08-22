@@ -25,6 +25,6 @@ outputs:
   - evidence_ref
   - state
 observability:
-  metric: oya_marketplace_deal_offer_create_total
+  metric: marketplace_deal_offer_create_total
   trace: marketplace.deal-offer-create
   audit_event: MarketplaceDealAccepted

@@ -73,13 +73,13 @@
     },
     "OpenTelemetry-metrics": {
       "source_path": "(planned per capability.telemetry.metrics; not yet operational)",
-      "shape": "oya_* counter/gauge/histogram metrics per artifact",
+      "shape": "* counter/gauge/histogram metrics per artifact",
       "freshness": "real-time",
       "consumer": "drift-detector dashboards (Wave 7) + per-artifact telemetry capability"
     }
   },
   "real_time_observability": {
-    "metric_naming_convention": "^oya_[a-z][a-z0-9_]*$",
+    "metric_naming_convention": "^[a-z][a-z0-9_]*$",
     "observability_standard": "opentelemetry",
     "cardinality_budgets_authority": "/registry/artifact-capabilities-registry.json rows[].capability_overrides.telemetry.metrics[].cardinality_budget",
     "dashboard_authority": "(planned; per-artifact capability_overrides.telemetry.dashboard)"
@@ -93,7 +93,7 @@
   "edges": [
     {
       "edge_id": "settings-template-kernel__generates__per-account-files",
-      "subject_id": "oya-intelligence-settings-template-kernel",
+      "subject_id": "intelligence-settings-template-kernel",
       "subject_type": "Artifact",
       "predicate": "generates",
       "object_id": "per-account-settings-files",
@@ -106,7 +106,7 @@
     },
     {
       "edge_id": "settings-template-kernel__consumes__registry-accounts-toml",
-      "subject_id": "oya-intelligence-settings-template-kernel",
+      "subject_id": "intelligence-settings-template-kernel",
       "subject_type": "Artifact",
       "predicate": "consumes",
       "object_id": "registry/accounts/*.toml",
@@ -141,7 +141,7 @@
       "predicate": "reads",
       "object_id": "SecretStorePort",
       "object_type": "Block",
-      "object_description": "SecretStorePort trait implemented by oya-intelligence-account-adapter-openbao; resolves sref://openbao/... references to actual secret values at render time",
+      "object_description": "SecretStorePort trait implemented by intelligence-account-adapter-openbao; resolves sref://openbao/... references to actual secret values at render time",
       "added_at": "2026-05-15T00:00:00Z",
       "added_by": "worker-registry",
       "source_amendment": "v6-PRE-4",

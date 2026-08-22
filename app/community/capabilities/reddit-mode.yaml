@@ -7,7 +7,7 @@
 #   - community/policy/anonymity-mode-pseudonymous.cedar
 #   - community/ARCHITECTURE.md §community-as-4-mixture-product
 
-capability_id: oya-community-reddit-mode
+capability_id: community-reddit-mode
 tier: product-surface
 microservice: community
 status: Accepted

@@ -206,14 +206,14 @@ Use flat service naming:
 
 Examples:
 
-- `oya-tenancy-kernel`
-- `oya-identity-api`
-- `oya-workflow-engine-domain`
-- `oya-ontology-function-api`
-- `oya-intelligence-capability-kernel`
-- `oya-cloud-compute-adapter-oci`
-- `oya-search-index-vector-domain`
-- `oya-ops-docs-portal-rest`
+- `tenancy-kernel`
+- `identity-api`
+- `workflow-engine-domain`
+- `ontology-function-api`
+- `intelligence-capability-kernel`
+- `cloud-compute-adapter-oci`
+- `search-index-vector-domain`
+- `ops-docs-portal-rest`
 
 Do not add artificial grouping slots such as shared, vertical, module, or
 infrastructure-tier names inside package identity. A package name should reveal

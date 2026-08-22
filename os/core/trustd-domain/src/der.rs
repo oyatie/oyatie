@@ -13,7 +13,7 @@
 //! signature, not a keyed-hash MAC.
 //!
 //! The DER produced here is what a peer presents and what the
-//! `oya-identity-workload-svid-trustd-adapter` parses with `x509-parser`. A real
+//! `identity-workload-svid-trustd-adapter` parses with `x509-parser`. A real
 //! rustls transport handing that adapter the post-handshake leaf DER is the
 //! SEPARATE slice-1b-ii (the PDP mTLS wiring), not this module.
 //!

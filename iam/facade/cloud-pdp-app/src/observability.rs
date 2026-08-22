@@ -1,7 +1,7 @@
 //! Tracing pipeline bootstrap (structured JSON logs; K8s-native stdout).
 
 /// Install the global tracing subscriber (idempotent: a second call is a
-/// no-op so tests can race it safely — the oya-identity precedent).
+/// no-op so tests can race it safely — the identity precedent).
 pub fn init() {
     let _ = tracing_subscriber::fmt()
         .json()

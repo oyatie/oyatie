@@ -30,7 +30,7 @@ n/a
 
 5. Defect: Graph materialization is a fake abstraction until storage/query ownership is pinned. Evidence: planner-v2.md:60-62 lists `nodes`, `edges`, `reverse_indexes`, `unresolved_refs`, `owners`, `freshness`, `impact_queries`; planner-v2.md:43 accepts one edge file or audit-chain. `.omc/graph` currently has no files from `find .omc/graph -maxdepth 2 -type f`. Concrete fix: VL should produce exactly one tracked graph artifact and one checker assertion before naming the full materialization layer.
 
-6. Defect: Scale SLOs are specified without measurement hooks. Evidence: planner-v2.md:110-117 adds p99 validation/runtime SLOs; no command or evidence file captures timings. Concrete fix: require `scripts/check.sh` or `oya-dev-cli gate validate active-artifact-contract --json` to emit duration fields into `/evidence/lane-run-${RUN_ID}.json`.
+6. Defect: Scale SLOs are specified without measurement hooks. Evidence: planner-v2.md:110-117 adds p99 validation/runtime SLOs; no command or evidence file captures timings. Concrete fix: require `scripts/check.sh` or `dev-cli gate validate active-artifact-contract --json` to emit duration fields into `/evidence/lane-run-${RUN_ID}.json`.
 
 ## Architect r2 disagreements
 Architect r2 goes too easy on the tracking gap. At architect-r2.md:31-32 it says untracked consensus artifacts do not invalidate architecture. For this loop they do invalidate approval, because the user explicitly required verified claims via `git ls-files`.

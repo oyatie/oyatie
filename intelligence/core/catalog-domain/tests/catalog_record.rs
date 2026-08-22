@@ -6,15 +6,15 @@ use intelligence_catalog_domain::{
     ApiStability, CatalogError, CatalogIndex, CatalogRecordInput, CatalogRole, SecurityReview,
     SupplyChainAttestation,
 };
-use oya_data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 
 #[test]
 fn catalog_record_validates_existing_registry_shape() {
-    let record = valid_record("oya-intelligence-capability-kernel")
+    let record = valid_record("intelligence-capability-kernel")
         .build()
         .expect("catalog record is valid");
 
-    assert_eq!(record.crate_id.value, "oya-intelligence-capability-kernel");
+    assert_eq!(record.crate_id.value, "intelligence-capability-kernel");
     assert_eq!(record.role.value, CatalogRole::Kernel);
     assert_eq!(record.api_stability.value, ApiStability::Preview);
     assert_eq!(record.security_review.value, SecurityReview::Unreviewed);
@@ -54,7 +54,7 @@ fn catalog_record_accepts_de_branded_and_legacy_crate_ids() {
         "marketplace-plugin-kernel",
         "observability-aggregate",
         "iac-core-domain",
-        "oya-intelligence-capability-kernel",
+        "intelligence-capability-kernel",
     ] {
         let record = valid_record(crate_id)
             .build()
@@ -81,7 +81,7 @@ fn catalog_record_rejects_invalid_crate_id() {
 fn catalog_record_accepts_usecase_role() {
     let record = CatalogRecordInput {
         role: "usecase".into(),
-        ..valid_record("oya-intelligence-subagent-runtime-usecase")
+        ..valid_record("intelligence-subagent-runtime-usecase")
     }
     .build()
     .expect("usecase role is valid");
@@ -94,7 +94,7 @@ fn catalog_record_rejects_non_privacy_owned_data_class_labels() {
     for data_class in ["AUDIT", "SECRET", "CHILDREN"] {
         let invalid = CatalogRecordInput {
             data_classes_owned: vec![data_class.into()],
-            ..valid_record("oya-intelligence-capability-kernel")
+            ..valid_record("intelligence-capability-kernel")
         };
 
         assert_eq!(invalid.build(), Err(CatalogError::InvalidDataClass));
@@ -105,25 +105,25 @@ fn catalog_record_rejects_non_privacy_owned_data_class_labels() {
 fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
     let invalid_role = CatalogRecordInput {
         role: "service".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(invalid_role.build(), Err(CatalogError::InvalidRole));
 
     let invalid_plane = CatalogRecordInput {
         plane: "frontend".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(invalid_plane.build(), Err(CatalogError::InvalidPlane));
 
     let empty_context = CatalogRecordInput {
         context: "".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(empty_context.build(), Err(CatalogError::EmptyContext));
 
     let missing_classes = CatalogRecordInput {
         data_classes_owned: Vec::new(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(
         missing_classes.build(),
@@ -132,7 +132,7 @@ fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
 
     let invalid_operational_class = CatalogRecordInput {
         operational_classes_owned: vec!["CHILDREN".into()],
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(
         invalid_operational_class.build(),
@@ -141,7 +141,7 @@ fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
 
     let invalid_api_stability = CatalogRecordInput {
         api_stability: "production".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(
         invalid_api_stability.build(),
@@ -150,7 +150,7 @@ fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
 
     let invalid_security_review = CatalogRecordInput {
         security_review: "rubber-stamped".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(
         invalid_security_review.build(),
@@ -159,7 +159,7 @@ fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
 
     let invalid_supply_chain = CatalogRecordInput {
         supply_chain: "magic".into(),
-        ..valid_record("oya-intelligence-capability-kernel")
+        ..valid_record("intelligence-capability-kernel")
     };
     assert_eq!(
         invalid_supply_chain.build(),
@@ -169,7 +169,7 @@ fn catalog_record_rejects_invalid_role_plane_context_and_missing_classes() {
 
 #[test]
 fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
-    let first = valid_record("oya-intelligence-capability-kernel")
+    let first = valid_record("intelligence-capability-kernel")
         .build()
         .unwrap();
     let duplicate = first.clone();
@@ -179,14 +179,14 @@ fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
     );
 
     let index = CatalogIndex::from_records(vec![first]).expect("index is valid");
-    assert!(index.lookup("oya-intelligence-capability-kernel").is_some());
+    assert!(index.lookup("intelligence-capability-kernel").is_some());
     assert_eq!(
         index.validate_required_crates([
-            "oya-intelligence-capability-kernel",
-            "oya-intelligence-run-kernel"
+            "intelligence-capability-kernel",
+            "intelligence-run-kernel"
         ]),
         Err(CatalogError::MissingCrateRecord {
-            crate_id: "oya-intelligence-run-kernel".into(),
+            crate_id: "intelligence-run-kernel".into(),
         })
     );
 }
@@ -194,13 +194,13 @@ fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
 #[test]
 fn catalog_index_requires_review_for_plane_class_changes() {
     let baseline = CatalogIndex::from_records(vec![
-        valid_record_with_plane("oya-intelligence-capability-kernel", "control")
+        valid_record_with_plane("intelligence-capability-kernel", "control")
             .build()
             .unwrap(),
     ])
     .expect("baseline index is valid");
     let current = CatalogIndex::from_records(vec![
-        valid_record_with_plane("oya-intelligence-capability-kernel", "data")
+        valid_record_with_plane("intelligence-capability-kernel", "data")
             .build()
             .unwrap(),
     ])
@@ -211,7 +211,7 @@ fn catalog_index_requires_review_for_plane_class_changes() {
         Err(CatalogError::PlaneChanged)
     );
     assert_eq!(
-        current.validate_plane_stability(&baseline, ["oya-intelligence-capability-kernel"]),
+        current.validate_plane_stability(&baseline, ["intelligence-capability-kernel"]),
         Ok(())
     );
 }

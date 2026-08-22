@@ -490,7 +490,7 @@ Compliance pack and cell certification decision: `docs/decisions/ADR-0708-platfo
 Observability emission contract: `docs/decisions/ADR-0706-observability-live-apex.md`.
 Existing KR planning source: `docs/localization-packs/kr.md`.
 Existing KR pack manifest source: `docs/localization-packs/kr/pack.yaml`.
-Regional pack precedent: `docs/regional-packs/oya-pack-kr/PACK.md`.
+Regional pack precedent: `docs/regional-packs/pack-kr/PACK.md`.
 Compliance pack schema: `specs/compliance-pack-schema.json`.
 Cedar fragment schema: `specs/cedar-fragment-schema.json`.
 Audit event class registry: `specs/audit-event-class-registry.json`.

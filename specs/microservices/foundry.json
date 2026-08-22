@@ -17,7 +17,7 @@
     "doc_class_note": "This file replaces the prior six-to-one consolidation spec authored by ADR-0136. Per ADR-0335, the foundry µservice is retired and absorbed into the intelligence µservice as the canonical AI substrate per ADR-0255 KS#14 two-layer intelligence doctrine. The historical artifacts under microservices/intelligence/ remain as historical evidence but are no longer live authority.",
     "purpose": "Retirement marker — foundry µservice retired and absorbed into intelligence µservice. Do not cite this file as live authority. Cite microservices/intelligence/manifest.json for AI substrate concerns and ADR-0335 for the retirement decision.",
     "do_not_treat_as_live_authority": true,
-    "do_not_generate_new_oya_foundry_crates": true
+    "do_not_generate_new_foundry_crates": true
   },
   "retirement": {
     "wave": "15I",
@@ -44,8 +44,8 @@
     "self_modification_principal_authority": "ADR-0247",
     "self_modification_principal_status": "active (Cedar principal namespace persists even though the µservice retires)",
     "crate_transition_debt_policy": {
-      "policy": "existing oya-foundry-* crates retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent)",
-      "new_code_policy": "new AI substrate code lands under oya-intelligence-* per ADR-0255 and the intelligence manifest",
+      "policy": "existing foundry-* crates retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent)",
+      "new_code_policy": "new AI substrate code lands under intelligence-* per ADR-0255 and the intelligence manifest",
       "future_rename_policy": "the full rename cascade is sequenced as a separate cleanup wave per ADR-0335 D-43"
     },
     "absorbed_responsibilities": [

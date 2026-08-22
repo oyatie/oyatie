@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Canonical MFL-NNNN row shape for `docs/MISTAKES-LEDGER.md`. Every prevention-class learning gets exactly one row. The `mechanical_prevention` field is mandatory; process-only fixes are forbidden per CONSTITUTION §Decision principles Do.3.
-enforcing_fitness_lane: oya-governance-mistakes-ledger-cite
+enforcing_fitness_lane: governance-mistakes-ledger-cite
 owner_team: council-architecture
 related:
   - docs/MISTAKES-LEDGER.md
@@ -52,7 +52,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
     One-line description of the missing system / process / contract.
   mechanical_prevention:
     kind: ci_lane | hook | validator | fitness_function | schema_check | runtime_gate
-    name: oya-governance-<lane> | scripts/hooks/<hook>.mjs | <validator-name>
+    name: governance-<lane> | scripts/hooks/<hook>.mjs | <validator-name>
     enforced_at: pre-commit | pr-time | merge-gate | runtime
   shipped_on: YYYY-MM-DD | "target:<wave-gate>"
   links:
@@ -65,7 +65,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 ## Example
 
 ```
-| MFL-0010 | 2026-05-09 | RUNBOOKS-INDEX referenced 49 P0 runbook files that did not exist on disk after cleanup | No CI gate verifying RUNBOOKS-INDEX entries resolve to real files | `oya-governance-runbook-index-resolves` lane + per-runbook stub authoring at index-update time | shipped 2026-05-09 | per Codex Round 2 verdict + RUNBOOKS-INDEX §1 |
+| MFL-0010 | 2026-05-09 | RUNBOOKS-INDEX referenced 49 P0 runbook files that did not exist on disk after cleanup | No CI gate verifying RUNBOOKS-INDEX entries resolve to real files | `governance-runbook-index-resolves` lane + per-runbook stub authoring at index-update time | shipped 2026-05-09 | per Codex Round 2 verdict + RUNBOOKS-INDEX §1 |
 ```
 
 ## Authoring rules

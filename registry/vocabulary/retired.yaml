@@ -4,7 +4,7 @@
 #
 # Each row asserts that the listed `term` MUST NOT appear in any live
 # document (excluding evidence/audits/, which is a historical record).
-# CI lane `oya-governance-retired-vocabulary` reads this file and
+# CI lane `governance-retired-vocabulary` reads this file and
 # fails fast on any drift.
 #
 # Adding a row: every retirement commit that removes a CLI surface,
@@ -22,9 +22,9 @@
 #                            or leave blank for changes that did not
 #                            require an ADR.
 #
-# Lane: oya-governance-retired-vocabulary
+# Lane: governance-retired-vocabulary
 # Kernel: governance/check/retired-vocabulary
-# Runner: crates/oya-dev-cli/src/retired_vocabulary_gate.rs
+# Runner: crates/dev-cli/src/retired_vocabulary_gate.rs
 # Lane invocation: `oya gate validate retired-vocabulary`
 
 retired:

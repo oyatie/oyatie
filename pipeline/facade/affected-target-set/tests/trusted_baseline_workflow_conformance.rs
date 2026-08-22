@@ -5,7 +5,7 @@ use std::{fs, path::PathBuf};
 fn repo_root() -> PathBuf {
     let mut path = std::env::current_dir().expect("current_dir");
     loop {
-        if path.join(".github/workflows/oya-ci-required.yml").is_file() {
+        if path.join(".github/workflows/presubmit.yml").is_file() {
             return path;
         }
         assert!(path.pop(), "could not locate repository root");
@@ -13,7 +13,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn workflow() -> String {
-    fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
+    fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
         .expect("read required workflow")
 }
 
@@ -29,7 +29,7 @@ fn affected_set_job_is_retired_and_hub_exclusivity_runs_in_the_test_job() {
         "the trusted-baseline artifact machinery is retired with the lane"
     );
     assert!(
-        workflow.contains("oya-cloud-ci-hub-exclusivity"),
+        workflow.contains("cloud-ci-hub-exclusivity"),
         "the hub-exclusivity producer must still be invoked by the merge path"
     );
     assert!(

@@ -54,5 +54,5 @@ audit_storage:
     break_glass_principal_arn: "arn:openbao:audit-chain-break-glass-${pack}"
 
   monitoring:
-    metric_filter: oya_audit_chain_s3_*
+    metric_filter: audit_chain_s3_*
     sla_target_per_request: 99.95

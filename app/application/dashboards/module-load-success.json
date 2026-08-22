@@ -1,0 +1,123 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "application",
+    "owner_team": "axis-application + ops-security",
+    "audience": "operator + tenant admin (tenant-scoped variant)",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir endpoint"
+  },
+  "uid": "app-module-load-success",
+  "title": "Application Shell — Module Load Success",
+  "tags": ["application", "module-loader", "integrity"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "pack",
+        "type": "custom",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ],
+        "label": "Pack"
+      },
+      {
+        "name": "module",
+        "type": "query",
+        "query": "label_values(application_module_load_total, module)",
+        "label": "Module"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Load success rate (5 min)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum(rate(application_module_load_total{pack=\"$pack\", module=\"$module\", result=\"loaded\"}[5m])) / (sum(rate(application_module_load_total{pack=\"$pack\", module=\"$module\"}[5m])) > 0)", "refId": "A"}
+      ],
+      "options": {
+        "thresholds": [
+          {"value": 0, "color": "red"},
+          {"value": 0.95, "color": "yellow"},
+          {"value": 0.99, "color": "green"}
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "SRI mismatches (1 h)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum(increase(application_module_load_total{pack=\"$pack\", module=\"$module\", result=\"sri_mismatch\"}[1h]))", "refId": "A"}
+      ],
+      "options": {
+        "thresholds": [
+          {"value": 0, "color": "green"},
+          {"value": 1, "color": "red"}
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Signature invalid events (1 h)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum(increase(application_module_load_total{pack=\"$pack\", module=\"$module\", result=\"signature_invalid\"}[1h]))", "refId": "A"}
+      ],
+      "options": {
+        "thresholds": [
+          {"value": 0, "color": "green"},
+          {"value": 1, "color": "red"}
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Module load attempts by result",
+      "gridPos": {"x": 0, "y": 4, "w": 18, "h": 8},
+      "targets": [
+        {"expr": "sum by (result) (rate(application_module_load_total{pack=\"$pack\", module=\"$module\"}[1m]))", "legendFormat": "{{result}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Time-to-load distribution (p50 / p99 / p999)",
+      "gridPos": {"x": 0, "y": 12, "w": 18, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (le) (rate(application_module_load_time_seconds_bucket{pack=\"$pack\", module=\"$module\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(application_module_load_time_seconds_bucket{pack=\"$pack\", module=\"$module\"}[5m])))", "legendFormat": "p99", "refId": "B"},
+        {"expr": "histogram_quantile(0.999, sum by (le) (rate(application_module_load_time_seconds_bucket{pack=\"$pack\", module=\"$module\"}[5m])))", "legendFormat": "p999", "refId": "C"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Recent module-load rejections (24h)",
+      "gridPos": {"x": 0, "y": 20, "w": 18, "h": 8},
+      "targets": [
+        {"expr": "topk(50, sum by (module, version, result) (increase(application_module_load_total{pack=\"$pack\", result!=\"loaded\"}[24h])))", "format": "table", "refId": "A"}
+      ]
+    }
+  ]
+}

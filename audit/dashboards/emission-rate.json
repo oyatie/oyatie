@@ -6,7 +6,7 @@
     "owner_team": "ops-sre-reliability + axis-audit-chain",
     "audience": "internal operators (cross-tenant view; admin-only RBAC + Cedar)",
     "tenant_scoped": false,
-    "datasource": "Mimir (oya-self + oya-aggregate); audit-chain self-SLI series"
+    "datasource": "Mimir (self + aggregate); audit-chain self-SLI series"
   },
   "uid": "audit-chain-emission-rate",
   "title": "Audit-Chain Emission Rate",
@@ -45,7 +45,7 @@
       "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "sum by (source_microservice) (rate(oya_audit_chain_emitted_total{pack=\"$pack\"}[1m]))",
+          "expr": "sum by (source_microservice) (rate(audit_chain_emitted_total{pack=\"$pack\"}[1m]))",
           "legendFormat": "{{source_microservice}}",
           "refId": "A"
         }
@@ -58,7 +58,7 @@
       "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_audit_chain_emit_duration_seconds_bucket{pack=\"$pack\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(audit_chain_emit_duration_seconds_bucket{pack=\"$pack\"}[5m])))",
           "refId": "A"
         }
       ],
@@ -75,9 +75,9 @@
       "title": "Rejection rate (rate-limit + spoofing + size + cross-pack)",
       "gridPos": {"x": 6, "y": 8, "w": 6, "h": 4},
       "targets": [
-        {"expr": "rate(oya_audit_chain_rate_limit_429_total{pack=\"$pack\"}[5m])", "legendFormat": "429", "refId": "A"},
-        {"expr": "rate(oya_audit_chain_tenant_spoofing_attempt_total{pack=\"$pack\"}[5m])", "legendFormat": "spoofing", "refId": "B"},
-        {"expr": "rate(oya_audit_chain_cross_pack_emission_rejected_total{pack=\"$pack\"}[5m])", "legendFormat": "cross-pack", "refId": "C"}
+        {"expr": "rate(audit_chain_rate_limit_429_total{pack=\"$pack\"}[5m])", "legendFormat": "429", "refId": "A"},
+        {"expr": "rate(audit_chain_tenant_spoofing_attempt_total{pack=\"$pack\"}[5m])", "legendFormat": "spoofing", "refId": "B"},
+        {"expr": "rate(audit_chain_cross_pack_emission_rejected_total{pack=\"$pack\"}[5m])", "legendFormat": "cross-pack", "refId": "C"}
       ]
     },
     {
@@ -87,7 +87,7 @@
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "topk(10, sum by (tenant_partition) (rate(oya_audit_chain_emitted_total{pack=\"$pack\"}[5m])))",
+          "expr": "topk(10, sum by (tenant_partition) (rate(audit_chain_emitted_total{pack=\"$pack\"}[5m])))",
           "legendFormat": "{{tenant_partition}}",
           "refId": "A"
         }
@@ -100,7 +100,7 @@
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "sum by (event_class) (rate(oya_audit_chain_emitted_total{pack=\"$pack\"}[5m]))",
+          "expr": "sum by (event_class) (rate(audit_chain_emitted_total{pack=\"$pack\"}[5m]))",
           "legendFormat": "{{event_class}}",
           "refId": "A"
         }
@@ -113,7 +113,7 @@
       "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "oya_audit_chain_unsealed_buffer_depth_seconds{pack=\"$pack\"}",
+          "expr": "audit_chain_unsealed_buffer_depth_seconds{pack=\"$pack\"}",
           "legendFormat": "{{tenant_partition}}",
           "refId": "A"
         }

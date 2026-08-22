@@ -14,7 +14,7 @@ You will: create a 3-level conglomerate (holding → operations → subsidiary),
 ## Pre-requisites
 
 - A tenant with `tenant_class = paid`.
-- `oya-dev-cli` ≥ 1.42.0.
+- `dev-cli` ≥ 1.42.0.
 - Three tenant-admin principals (one per tenant level).
 - KYB-clearance evidence files (`./kyb-evidence-*.json`).
 

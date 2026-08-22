@@ -11,7 +11,7 @@ companion_docs:
   - microservices/feature-flags/runbooks/flag-mutation-cascade.md
   - microservices/feature-flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/incident-response.md
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Stale Targeting Rule
@@ -27,7 +27,7 @@ planned_enforcement_ref: oya-governance-adr-adherence-matrix
 
 1. Check which flag has the stale rule:
    ```bash
-   oya metrics query "oya_feature_flag_stale_targeting_rule_total" --since 10m
+   oya metrics query "feature_flag_stale_targeting_rule_total" --since 10m
    ```
 2. Check Cedar fragment version in each cell:
    ```bash
@@ -85,7 +85,7 @@ oya flags archive <flag_key> \
   --step-up-token $STEP_UP_TOKEN
 ```
 
-This emits `FlagArchived` audit event. CI lane `oya-governance-flag-lifecycle` will go green.
+This emits `FlagArchived` audit event. CI lane `governance-flag-lifecycle` will go green.
 
 ### Case E — Targeting rule logic error
 

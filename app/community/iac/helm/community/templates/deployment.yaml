@@ -10,7 +10,7 @@ metadata:
   labels:
     app.kubernetes.io/name: community
     app.kubernetes.io/component: {{ . | kebabcase }}
-    app.kubernetes.io/part-of: oya-community
+    app.kubernetes.io/part-of: community
     oyatie/microservice: community
 spec:
   replicas: {{ $c.replicas }}

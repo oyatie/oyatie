@@ -1,6 +1,6 @@
-//! # oya-ci-tide-app
+//! # ci-tide-app
 //!
-//! Tide merge-queue loop for the oya-ci platform (Phase 2, ADR-0513).
+//! Tide merge-queue loop for the ci platform (Phase 2, ADR-0513).
 //!
 //! ## Responsibilities
 //!
@@ -9,14 +9,14 @@
 //! - For each open PR: fetch commit status + reviews + fresh mergeable state.
 //! - Evaluate eligibility via `kernel::is_mergeable`.
 //! - When stale-but-approved: refresh the PR branch and wait for
-//!   `oya-ci-required` to rerun on the new head before merging.
+//!   `presubmit` to rerun on the new head before merging.
 //! - When eligible and `dry_run == true`: log `"WOULD MERGE #<n>"`.
 //! - When eligible and `dry_run == false`: call `client.merge_pull(n, method)`.
 //!
 //! ## Safety default
 //!
 //! `dry_run` defaults to `true` in [`TideConfig`]. Tide merges NOTHING until
-//! `OYA_TIDE_DRY_RUN=false` is explicitly set in the deploy substrate.
+//! `OYATIE_TIDE_DRY_RUN=false` is explicitly set in the deploy substrate.
 //!
 //! ## Deferred (Phase 2+)
 //!
@@ -195,7 +195,7 @@ impl TideRunner {
                             Ok(()) => {
                                 info!(
                                     pr = pr.number,
-                                    "tide: stale branch refresh requested for #{}; waiting for oya-ci-required on the new head",
+                                    "tide: stale branch refresh requested for #{}; waiting for presubmit on the new head",
                                     pr.number
                                 );
                             }
@@ -313,7 +313,7 @@ mod tests {
             repo_owner: "jason931225".to_owned(),
             repo_name: "oyatie".to_owned(),
             base_branch: "dev".to_owned(),
-            required_status_context: "oya-ci-required".to_owned(),
+            required_status_context: "presubmit".to_owned(),
             approval_policy: ApprovalPolicy { min_approvals: 1 },
             poll_interval_secs: 60,
             merge_method: MergeMethod::Rebase,

@@ -18,12 +18,12 @@ Allow tenants to bind an upstream OIDC or SAML IdP — Google Workspace, Okta Wo
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-external-idp-federation-kernel/Cargo.toml` | manifest |
-| `crates/oya-identity-external-idp-federation-kernel/src/lib.rs` | `ExternalIdpFederation` trait |
-| `crates/oya-identity-external-idp-federation-domain/src/lib.rs` | per-IdP claim mapping rules |
-| `crates/oya-identity-external-idp-federation-usecase/src/lib.rs` | binding lifecycle (add/remove/disable) |
-| `crates/oya-identity-external-idp-federation-adapter/src/lib.rs` | Zitadel external-IdP API wrapper |
-| `crates/oya-identity-external-idp-federation-api/src/lib.rs` | CRUD over bindings |
+| `crates/identity-external-idp-federation-kernel/Cargo.toml` | manifest |
+| `crates/identity-external-idp-federation-kernel/src/lib.rs` | `ExternalIdpFederation` trait |
+| `crates/identity-external-idp-federation-domain/src/lib.rs` | per-IdP claim mapping rules |
+| `crates/identity-external-idp-federation-usecase/src/lib.rs` | binding lifecycle (add/remove/disable) |
+| `crates/identity-external-idp-federation-adapter/src/lib.rs` | Zitadel external-IdP API wrapper |
+| `crates/identity-external-idp-federation-api/src/lib.rs` | CRUD over bindings |
 
 ## Binding lifecycle
 

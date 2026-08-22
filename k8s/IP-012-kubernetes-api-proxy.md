@@ -6,12 +6,12 @@ impl_plan_id: IP-012-kubernetes-api-proxy
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud + ops-security
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-kubernetes-api-proxy-only-path]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, check-kubernetes-api-proxy-only-path]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-012: oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}
+# IP-012: cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}
 
 ## Intent
 
@@ -25,19 +25,19 @@ Scaffold `kubernetes-api-proxy` BC — the HTTP reverse-proxy that mediates ever
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-kubernetes-api-proxy-kernel/{Cargo.toml,src/*}` | create — ApiCall, CallerPrincipal, PolicyDecision, AuditRecord entities + ApiCallMediator port |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-usecase/{Cargo.toml,src/{lib.rs,mediate.rs,cedar_eval.rs,audit_emit.rs}}` | create |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-adapter/{Cargo.toml,src/{lib.rs,reverse_proxy.rs,kube_upstream.rs,audit_chain_client.rs}}` | create |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-rest/{Cargo.toml,src/{lib.rs,routes.rs}}` | create — receives kubectl-shape traffic |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-worker/{Cargo.toml,src/{lib.rs,policy_cache_refresher.rs}}` | create — refresh Cedar fragments |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-sdk/{Cargo.toml,src/{lib.rs,client.rs}}` | create — operator + Foundry SDK |
-| `.../oya-cloud-k8s-kubernetes-api-proxy-app/{Cargo.toml,src/main.rs}` | create — composition root binary |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}.yaml` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-kubernetes-api-proxy-kernel/{Cargo.toml,src/*}` | create — ApiCall, CallerPrincipal, PolicyDecision, AuditRecord entities + ApiCallMediator port |
+| `.../cloud-k8s-kubernetes-api-proxy-usecase/{Cargo.toml,src/{lib.rs,mediate.rs,cedar_eval.rs,audit_emit.rs}}` | create |
+| `.../cloud-k8s-kubernetes-api-proxy-adapter/{Cargo.toml,src/{lib.rs,reverse_proxy.rs,kube_upstream.rs,audit_chain_client.rs}}` | create |
+| `.../cloud-k8s-kubernetes-api-proxy-rest/{Cargo.toml,src/{lib.rs,routes.rs}}` | create — receives kubectl-shape traffic |
+| `.../cloud-k8s-kubernetes-api-proxy-worker/{Cargo.toml,src/{lib.rs,policy_cache_refresher.rs}}` | create — refresh Cedar fragments |
+| `.../cloud-k8s-kubernetes-api-proxy-sdk/{Cargo.toml,src/{lib.rs,client.rs}}` | create — operator + Foundry SDK |
+| `.../cloud-k8s-kubernetes-api-proxy-app/{Cargo.toml,src/main.rs}` | create — composition root binary |
+| `microservices/cloud-k8s/catalog/cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAMES: oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}
+NAMES: cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}
 JUSTIFICATION: 7 layers per ADR-0105; no exemptions.
 ```
 
@@ -65,10 +65,10 @@ impl<M> MediateUseCase<M> where M: ApiCallMediator {
 
 ```bash
 for crate in kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}; do
-  cargo check -p oya-cloud-k8s-$crate
-  cargo nextest run -p oya-cloud-k8s-$crate
+  cargo check -p cloud-k8s-$crate
+  cargo nextest run -p cloud-k8s-$crate
 done
-cargo run -p oya-dev-cli -- gate validate kubernetes-api-proxy-only-path --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate kubernetes-api-proxy-only-path --microservice cloud-k8s
 ```
 
 ## Test Plan

@@ -55,7 +55,7 @@ slo:
 env:
   RUST_LOG: info
   OTEL_TRACES_EXPORTER: otlp
-  OYA_FINOPS_PORTAL_LISTEN: "0.0.0.0:8080"
+  OYATIE_FINOPS_PORTAL_LISTEN: "0.0.0.0:8080"
 
 # Probes
 livenessProbe:

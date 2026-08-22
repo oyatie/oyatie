@@ -9,13 +9,13 @@
     "docs/AGENTS.md",
     "/specs/masterplan.json#masterplan_v2",
     "Accepted and Amended ADRs after higher-number contradiction review",
-    "live git/GitHub protected-PR and oya-ci-required evidence"
+    "live git/GitHub protected-PR and presubmit evidence"
   ],
   "past": {
     "authority_consolidation": [
       "Masterplan v2 absorbed former sequencing, planning-closure, roadmap, and agent-harness planning surfaces; those sources remain provenance or evidence inputs, not parallel live plan authorities.",
       "ADR-0363 retired the bespoke Oya VCS claim/verify/done/promote ratchet in favor of isolated git worktrees and protected GitHub pull requests.",
-      "ADR-0515 retired the pre-cutover CI backbone and made the single protected oya-ci-required context the admission target.",
+      "ADR-0515 retired the pre-cutover CI backbone and made the single protected presubmit context the admission target.",
       "The zero-based masterplan v2 sequencing was founder-ratified on 2026-07-02 before any execution-wave dispatch."
     ],
     "sequencing_ratification": {
@@ -36,9 +36,9 @@
       "baseline_relation": "PR #1340 was based on the snapshotted origin/dev commit, advanced to immutable head 1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857, and was squash-merged as 73fea9ffc3d48f331f7cb6f086657a9d7b4a096b. The squash merge is an ancestor of origin/dev at the 2026-07-21 reconciliation query.",
       "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
       "protected_pr_against_dev": true,
-      "candidate_oya_ci_required_green": true,
+      "candidate_presubmit_green": true,
       "merged_to_dev": true,
-      "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.",
+      "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful presubmit check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.",
       "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
       "protected_pr_number": 1340,
       "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
@@ -83,7 +83,7 @@
       "phase0_complete": false,
       "p0_0_green": false,
       "closed_with_evidence": {
-        "required_context": "oya-ci-required",
+        "required_context": "presubmit",
         "live_on_dev_branch_protection": true,
         "green_post_merge_run_id": "29166693819",
         "green_post_merge_commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
@@ -93,14 +93,14 @@
       "remaining_gaps": [
         {
           "gap": "trusted_producer_isolation",
-          "required_evidence": "The live oya-ci-required producer and gate catalog execute from trusted trunk/controller state rather than candidate bytes."
+          "required_evidence": "The live presubmit producer and gate catalog execute from trusted trunk/controller state rather than candidate bytes."
         },
         {
           "gap": "candidate_pr_isolation",
           "required_evidence": "Candidate code is data under test and cannot modify or delete its own required producer, gate catalog, branch-protection mapping, or runner isolation."
         },
         {
-          "gap": "no_oya_cli_merge_authority",
+          "gap": "no_cli_merge_authority",
           "required_evidence": "All remaining oya CLI references are retired or demonstrably local/advisory only; no CLI result becomes protected merge or Phase-0 exit authority."
         },
         {
@@ -153,7 +153,7 @@
         "generated_artifact_freshness": "passed"
       },
       "generated_faces": "Official materializer used locally; no tracked generated JSON is part of the candidate diff.",
-      "authority_limit": "Local results are shift-left evidence only. The protected oya-ci-required context and server-side review remain admission authority."
+      "authority_limit": "Local results are shift-left evidence only. The protected presubmit context and server-side review remain admission authority."
     },
     "factual_reconciliation": {
       "queried_at": "2026-07-21T01:25:13Z",
@@ -198,7 +198,7 @@
       "protected_context_receipts": [
         {
           "commit_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
-          "context": "oya-ci-required",
+          "context": "presubmit",
           "status": "completed",
           "conclusion": "success",
           "started_at": "2026-07-13T18:11:17Z",
@@ -207,7 +207,7 @@
         },
         {
           "commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
-          "context": "oya-ci-required",
+          "context": "presubmit",
           "status": "completed",
           "conclusion": "success",
           "started_at": "2026-07-13T19:04:38Z",
@@ -347,13 +347,13 @@
       "Confirm the authority order and the historical systems that are now provenance only.",
       "Review the present evidence ceilings: baseline, ADR lifecycle counts, retired external-claim import receipt, and Phase-0 gaps.",
       "Resolve every founder choice marked blocks_binding_plan, and explicitly scope or defer any other Proposed ADR the plan would use.",
-      "Record that the consolidation was admitted through PR #1340 with green oya-ci-required and GitHub APPROVED metadata, without treating that repository admission as founder-choice or qualified-human authority closure.",
+      "Record that the consolidation was admitted through PR #1340 with green presubmit and GitHub APPROVED metadata, without treating that repository admission as founder-choice or qualified-human authority closure.",
       "Close planning_entry_contract with evidence; only then begin binding plan approval and later execution-wave dispatch."
     ],
     "planning_entry_conditions": [
       "Supported ADR lifecycle metadata reflects every founder choice and reciprocal amendment/supersession links.",
       "No Proposed ADR is used as binding authority.",
-      "The consolidation PR is merged to dev with oya-ci-required green and review complete.",
+      "The consolidation PR is merged to dev with presubmit green and review complete.",
       "Phase-0 open gaps remain explicit and no readiness claim exceeds live evidence.",
       "The masterplan sequencing digest remains the ratified value or carries a fresh founder ratification.",
       "No execution wave dispatched while the pre-planning contract was open."
@@ -363,12 +363,12 @@
       "masterplan_v2.planning_entry_contract.state is not closed",
       "masterplan_v2.planning_entry_contract.dispatch_allowed is not true",
       "any founder_choice_matrix row with blocks_binding_plan=true is unresolved",
-      "the consolidation change is not merged to dev through a protected PR with oya-ci-required green and independent review complete",
+      "the consolidation change is not merged to dev through a protected PR with presubmit green and independent review complete",
       "the canonical sequencing digest differs from sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c without a fresh founder ratification record",
       "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves is non-empty before all prior conditions close"
     ],
     "stop_state": "blocked-preplanning-authority-closure"
   },
-  "claim_ceiling": "This dated consolidation snapshot, reconciled against live Git/GitHub on 2026-07-21, attests that PR #1340 merged to dev with successful oya-ci-required checks on its immutable final head and squash-merge commits and with GitHub APPROVED metadata. It does not attest a qualified-human approval, an Accepted founder choice, Phase-0 completion, Stage-1 PASS, binding plan approval, execution-wave dispatch, rollout, or product completion.",
+  "claim_ceiling": "This dated consolidation snapshot, reconciled against live Git/GitHub on 2026-07-21, attests that PR #1340 merged to dev with successful presubmit checks on its immutable final head and squash-merge commits and with GitHub APPROVED metadata. It does not attest a qualified-human approval, an Accepted founder choice, Phase-0 completion, Stage-1 PASS, binding plan approval, execution-wave dispatch, rollout, or product completion.",
   "updated_at": "2026-07-21T01:25:13Z"
 }

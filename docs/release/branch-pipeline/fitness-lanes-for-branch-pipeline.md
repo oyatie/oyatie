@@ -22,25 +22,25 @@ doc_status: published
 
 | Lane | Severity | Scope | Source |
 |---|---|---|---|
-| 1. `oya-governance-promotion-gate-local-dev-to-origin-dev` | BLOCKER | local-dev → origin/dev PR | this composer |
-| 2. `oya-governance-promotion-gate-staging-to-prod` | BLOCKER | staging → prod transition | this composer |
-| 3. `oya-governance-pr-review-verdict-present` | BLOCKER | local-dev → origin/dev (every PR) | this composer |
-| 4. `oya-governance-pr-comment-resolution` | BLOCKER | staging → prod (per change set landed on staging) | this composer |
-| 5. `oya-governance-canary-regression-sla` | HIGH | staging (event-driven on regression) | this composer |
-| 6. `oya-governance-capability-stage-binding` | BLOCKER | Foundry capability records | this composer |
+| 1. `governance-promotion-gate-local-dev-to-origin-dev` | BLOCKER | local-dev → origin/dev PR | this composer |
+| 2. `governance-promotion-gate-staging-to-prod` | BLOCKER | staging → prod transition | this composer |
+| 3. `governance-pr-review-verdict-present` | BLOCKER | local-dev → origin/dev (every PR) | this composer |
+| 4. `governance-pr-comment-resolution` | BLOCKER | staging → prod (per change set landed on staging) | this composer |
+| 5. `governance-canary-regression-sla` | HIGH | staging (event-driven on regression) | this composer |
+| 6. `governance-capability-stage-binding` | BLOCKER | Foundry capability records | this composer |
 
 Plus three mutator-allowlist lanes (also new this composer, listed below):
-- `oya-governance-no-direct-origin-dev-commit` (BLOCKER)
-- `oya-governance-no-direct-staging-commit` (BLOCKER)
-- `oya-governance-no-direct-prod-commit` (BLOCKER)
+- `governance-no-direct-origin-dev-commit` (BLOCKER)
+- `governance-no-direct-staging-commit` (BLOCKER)
+- `governance-no-direct-prod-commit` (BLOCKER)
 
 And cadence/latency lanes:
-- `oya-governance-dev-promotion-cadence` (MED)
-- `oya-governance-reviewer-verdict-latency` (MED)
-- `oya-governance-branch-protection-drift` (BLOCKER)
-- `oya-governance-reviewer-verdict-quality` (MED)
+- `governance-dev-promotion-cadence` (MED)
+- `governance-reviewer-verdict-latency` (MED)
+- `governance-branch-protection-drift` (BLOCKER)
+- `governance-reviewer-verdict-quality` (MED)
 
-## 2. Lane 1 — `oya-governance-promotion-gate-local-dev-to-origin-dev`
+## 2. Lane 1 — `governance-promotion-gate-local-dev-to-origin-dev`
 
 **Severity:** BLOCKER (gate-class).
 
@@ -57,7 +57,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 ```json
 {
-  "lane": "oya-governance-promotion-gate-local-dev-to-origin-dev",
+  "lane": "governance-promotion-gate-local-dev-to-origin-dev",
   "pr_id": "<int>",
   "head_sha": "<sha>",
   "result": "PASS|FAIL",
@@ -72,7 +72,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Escalation.** FAIL → `EVT-DEV-PROMOTION-BLOCKED` audit event; routes to `staging-fixer` Mode-B for resolution. No automatic page (the originating agent + fixer handle).
 
-## 3. Lane 2 — `oya-governance-promotion-gate-staging-to-prod`
+## 3. Lane 2 — `governance-promotion-gate-staging-to-prod`
 
 **Severity:** BLOCKER (gate-class).
 
@@ -89,7 +89,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 ```json
 {
-  "lane": "oya-governance-promotion-gate-staging-to-prod",
+  "lane": "governance-promotion-gate-staging-to-prod",
   "staging_head_sha": "<sha>",
   "result": "PASS|FAIL",
   "gates": {
@@ -105,7 +105,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Escalation.** FAIL with `prod_promotion_failure_rate` > 5% → HIGH alert to `@council-architecture` for gate tuning consideration.
 
-## 4. Lane 3 — `oya-governance-pr-review-verdict-present`
+## 4. Lane 3 — `governance-pr-review-verdict-present`
 
 **Severity:** BLOCKER (scoped to local-dev → origin/dev).
 
@@ -114,7 +114,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Output schema:** `{pr_id, missing_reviewers: [], present_verdicts: [{reviewer, verdict, icm_record_id}]}`.
 
-## 5. Lane 4 — `oya-governance-pr-comment-resolution`
+## 5. Lane 4 — `governance-pr-comment-resolution`
 
 **Severity:** BLOCKER (scoped to staging → prod).
 
@@ -123,7 +123,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Output schema:** `{staging_head_sha, prs_landed: [], unresolved_comments: []}`.
 
-## 6. Lane 5 — `oya-governance-canary-regression-sla`
+## 6. Lane 5 — `governance-canary-regression-sla`
 
 **Severity:** HIGH.
 
@@ -135,7 +135,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Escalation.** SLA miss → page per-axis on-call. Does not block other promotions.
 
-## 7. Lane 6 — `oya-governance-capability-stage-binding`
+## 7. Lane 6 — `governance-capability-stage-binding`
 
 **Severity:** BLOCKER.
 
@@ -147,33 +147,33 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 ## 8. Mutator-allowlist lanes (3 lanes)
 
-### 8.1 `oya-governance-no-direct-origin-dev-commit` (BLOCKER)
+### 8.1 `governance-no-direct-origin-dev-commit` (BLOCKER)
 
-Verifies every commit on `origin/dev` is a `dev-promoter` squash-merge commit (mutator identity = `oya-intelligence-dev-promoter` Cosign identity). Direct human or other-agent commits → FAIL with the offending sha.
+Verifies every commit on `origin/dev` is a `dev-promoter` squash-merge commit (mutator identity = `intelligence-dev-promoter` Cosign identity). Direct human or other-agent commits → FAIL with the offending sha.
 
-### 8.2 `oya-governance-no-direct-staging-commit` (BLOCKER)
+### 8.2 `governance-no-direct-staging-commit` (BLOCKER)
 
-Verifies every commit on `staging` is a `staging-promoter` fast-forward (mutator identity = `oya-intelligence-staging-promoter`). Direct commits → FAIL.
+Verifies every commit on `staging` is a `staging-promoter` fast-forward (mutator identity = `intelligence-staging-promoter`). Direct commits → FAIL.
 
-### 8.3 `oya-governance-no-direct-prod-commit` (BLOCKER)
+### 8.3 `governance-no-direct-prod-commit` (BLOCKER)
 
-Verifies every commit on `prod` is a `prod-promoter` fast-forward (mutator identity = `oya-intelligence-prod-promoter`). Direct commits → FAIL.
+Verifies every commit on `prod` is a `prod-promoter` fast-forward (mutator identity = `intelligence-prod-promoter`). Direct commits → FAIL.
 
 ## 9. Cadence + quality lanes
 
-### 9.1 `oya-governance-dev-promotion-cadence` (MED)
+### 9.1 `governance-dev-promotion-cadence` (MED)
 
 Verifies `staging-promoter` runs on schedule (event-driven on every new origin/dev commit; batch cadence ≤ 5 min if no event). Stale > 30 min → FAIL.
 
-### 9.2 `oya-governance-reviewer-verdict-latency` (MED)
+### 9.2 `governance-reviewer-verdict-latency` (MED)
 
 Verifies per-reviewer-agent P95 from `pr.opened` to verdict-recorded ≤ 15 min. P95 > 15 min over rolling 7-day window → FAIL.
 
-### 9.3 `oya-governance-branch-protection-drift` (BLOCKER)
+### 9.3 `governance-branch-protection-drift` (BLOCKER)
 
 Nightly. Reconciles live branch-protection state to the schema in [`branch-protection-rules.md`](branch-protection-rules.md). Drift → FAIL; auto-PR to restore.
 
-### 9.4 `oya-governance-reviewer-verdict-quality` (MED)
+### 9.4 `governance-reviewer-verdict-quality` (MED)
 
 Tracks per-reviewer-agent acceptance-rate baseline. Outliers (per-reviewer `APPROVE` rate > 2σ from cohort baseline) → FAIL; routes to reviewer-agent governance for retraining.
 

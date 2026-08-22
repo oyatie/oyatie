@@ -17,10 +17,10 @@
       "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-AR-bad-advisory-claiming-enforced.json",
       "retirement_phase": "P0.16",
       "evidence_path": "docs/governance-lanes/diataxis-doc-class.md",
-      "no_new_oya_cli_surface": true,
+      "no_new_cli_surface": true,
       "claims_enforced": true,
       "has_wired_buck2_target": false
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
 }

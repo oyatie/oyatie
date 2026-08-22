@@ -165,7 +165,7 @@ the measured-boot baseline + the operator card public keys.
 **Q18. Can I use Vault Enterprise instead of the platform HSMs?**
 
 Yes — Vault Enterprise with HSM-backed seal can be the CMK backend at paid. The HSM still has to be FIPS 140-3 L3 + CC EAL 4+.
-Vault is supported via a `cloud-kms` adapter; see `crates/oya-cloud-kms-adapter-vault-enterprise/`.
+Vault is supported via a `cloud-kms` adapter; see `crates/cloud-kms-adapter-vault-enterprise/`.
 
 ---
 

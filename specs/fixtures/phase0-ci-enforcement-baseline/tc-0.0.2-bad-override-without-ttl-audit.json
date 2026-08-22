@@ -24,7 +24,7 @@
     "action": "disable_required_context",
     "audit_chain_event": null,
     "blast_radius_statement": null,
-    "context": "oya-ci-required",
+    "context": "presubmit",
     "owner": "platform-toolchain",
     "revert_or_fix_follow_up": null,
     "reviewer_acknowledgment": null,

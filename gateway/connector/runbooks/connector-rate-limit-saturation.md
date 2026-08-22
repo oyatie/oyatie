@@ -12,7 +12,7 @@ doc_status: published
 
 ## A. Trigger conditions
 
-- `oya_connector_action_rate_limit_total{outcome="hit"} > threshold` for 10+ minutes
+- `connector_action_rate_limit_total{outcome="hit"} > threshold` for 10+ minutes
 - Single tenant consuming >50% of vendor's daily quota
 - Cascading 429s causing DLQ growth
 
@@ -26,7 +26,7 @@ doc_status: published
 
 1. **Identify hotspot** (≤2min)
    ```promql
-   topk(10, sum by (tenant_id, connector) (rate(oya_connector_action_rate_limit_total{outcome="hit"}[5m])))
+   topk(10, sum by (tenant_id, connector) (rate(connector_action_rate_limit_total{outcome="hit"}[5m])))
    ```
 
 2. **Per-tenant throttle** (≤5min)
@@ -53,10 +53,10 @@ doc_status: published
 
 ```promql
 # Rate-limit hit rate trending down
-sum(rate(oya_connector_action_rate_limit_total{outcome="hit"}[5m]))
+sum(rate(connector_action_rate_limit_total{outcome="hit"}[5m]))
 
 # Shard distribution balanced
-sum by (shard) (oya_valkey_keys_total{db="connector"})
+sum by (shard) (valkey_keys_total{db="connector"})
 ```
 
 ## E. Rollback

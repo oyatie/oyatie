@@ -13,7 +13,7 @@ pub use iam_cloud_domain::{
     CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
     CloudIamPlacementBoundary as CloudIamApiPlacementBoundary,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE: &str = "cloud.iam.identity_provider.create";
 pub const CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE: &str = "cloud.iam.identity_provider.delete";
@@ -1987,7 +1987,7 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         CloudIamError::InvalidRoleName => "role name must be canonical lowercase",
         CloudIamError::InvalidScope => "STS scopes must be non-empty cloud.* scopes",
         CloudIamError::InvalidSubjectUri => "federated subject must be saml:// or oidc://",
-        CloudIamError::InvalidRegionalPack => "regional pack must use oya-pack- prefix",
+        CloudIamError::InvalidRegionalPack => "regional pack must use pack- prefix",
         CloudIamError::InvalidIssuerUri => "issuer_uri must be https",
         CloudIamError::InvalidAudience => "audience must be non-empty",
         CloudIamError::InvalidVerificationMaterialRef => {

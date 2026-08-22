@@ -1,0 +1,11 @@
+rust_binary(
+    name = "shared-bounded-contexts-check-cli",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "shared-bounded-contexts-check-cli"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+    ],
+)

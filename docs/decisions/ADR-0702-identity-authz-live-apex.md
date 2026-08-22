@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0702-D1
     description: "Live apex source-of-truth for topic identity_authz: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture."
     exit_criteria: "docs/decisions/ADR-0702-identity-authz-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0702: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture
 
@@ -45,11 +45,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ## Preserved member gists
 
-- **ADR-2** (ADR-0002-tenant-and-identity-kernel): We establish two co-located kernel crates that together form the *tenant + identity substrate*: - `crates/oya-tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types. - `crates/oya-identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-bac
-- **ADR-7** (ADR-0007-cedar-authorization-policy-and-persona-tier): We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across all axes, **persona tiers T1–T4** as the autonomy-ceiling scale, and **per-capability runtime enforcement** that consults both Cedar and the autonomy ceiling on every invocation. ### Cedar surface - Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/oya-poli
+- **ADR-2** (ADR-0002-tenant-and-identity-kernel): We establish two co-located kernel crates that together form the *tenant + identity substrate*: - `crates/tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types. - `crates/identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-bac
+- **ADR-7** (ADR-0007-cedar-authorization-policy-and-persona-tier): We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across all axes, **persona tiers T1–T4** as the autonomy-ceiling scale, and **per-capability runtime enforcement** that consults both Cedar and the autonomy ceiling on every invocation. ### Cedar surface - Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/poli
 - **ADR-43** (ADR-0043-secrets-management-openbao-and-hsm-per-cell): We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Intelligence subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill
-- **ADR-95** (ADR-0095-tenant-slug-in-tenancy-kernel): Add a SECOND newtype to `oya-tenancy-kernel`: ```rust pub const TENANT_SLUG_MAX_LEN: usize = 128; pub struct TenantSlug(String); impl TenantSlug { pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> { /* … */ } pub fn as_str(&self) -> &str { /* … */ } pub fn into_inner(self) -> String { /* … */ } } impl TryFrom<&str> for Ten
-- **ADR-155** (ADR-0155-per-tenant-resource-quotas): Adopt per-tenant quotas on five canonical axes (rate, concurrent, memory, storage, connections) as MANDATORY across every µservice. 1. The canonical spec is `docs/standards/per-tenant-resource-quotas-canonical.md`. 2. The trait surface lives in `crates/oya-shared-tenant-quota-kernel/`. 3. The tenancy µservice OWNS canonical quota definitions; runti
+- **ADR-95** (ADR-0095-tenant-slug-in-tenancy-kernel): Add a SECOND newtype to `tenancy-kernel`: ```rust pub const TENANT_SLUG_MAX_LEN: usize = 128; pub struct TenantSlug(String); impl TenantSlug { pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> { /* … */ } pub fn as_str(&self) -> &str { /* … */ } pub fn into_inner(self) -> String { /* … */ } } impl TryFrom<&str> for Ten
+- **ADR-155** (ADR-0155-per-tenant-resource-quotas): Adopt per-tenant quotas on five canonical axes (rate, concurrent, memory, storage, connections) as MANDATORY across every µservice. 1. The canonical spec is `docs/standards/per-tenant-resource-quotas-canonical.md`. 2. The trait surface lives in `crates/shared-tenant-quota-kernel/`. 3. The tenancy µservice OWNS canonical quota definitions; runti
 - **ADR-163** (ADR-0163-tenant-environment-tiers): Every oyatie tenant has three environment tiers. Each tier is a logically isolated dataset within the tenant's cell: ### Tier definitions - **`test`** — sandbox environment. Tenant integrations land here first. Data is ephemeral (90-day TTL default; per-pack overlay). Outbound side effects (email send, SMS send, webhook dispatch, billing event) are
 - **ADR-191** (ADR-0191-edge-authz-tier-vs-origin-cedar-pdp): **Two tiers; one concern per tier. Neither tier reimplements the other.** ### Edge tier — Envoy Gateway (ADR-0182, ADR-0157) Owned by `api-gateway` µservice. Enforces: | Concern | Mechanism | Source of truth | Failure response | |---|---|---|---| | IP block (geo deny-list) | MaxMind GeoIP + per-pack policy | residency policy + abuse ledger | 403 wi
 - **ADR-214** (ADR-0214-cross-tenant-real-time-visibility): # ADR-0214: Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension)
@@ -60,15 +60,15 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-326** (ADR-0326-per-tenant-data-residency-attestation): Residency is a first-class tenant attribute with four named tiers: - **R-1 `multi_region`** — tenant accepts the global default cell topology; data may move freely across regions; no cross-border bar. - **R-2 `single_region`** — tenant's data must stay within a named region (e.g. `region: eu_west`, `region: kr_central`). The cell-placement enforcer
 - **ADR-329** (Tier system retired; replaced by tenant-class model): ### B.1 Decision statement The Bronze/Silver/Gold/Platinum capability-tier doctrine codified by ADR-0316 is retired in full. The capability-tier-grant primitive, the per-microservice `capability-tiers/tier-matrix.md` artifact, the centralised `registry/capability-tiers/` directory, the `capability-tier-deltas-vs-counterparts-*.md` audit deliverable
 - **ADR-330** (Tenant Class — demo_trial vs paid with Composable Billing Components): The decision is recorded as a numbered set of normative clauses. Every clause is a load-bearing commitment; downstream microservice work, governance lanes, and CI checks bind to clause numbers. Numbering is immutable once accepted. ### B.1 The tenant_class enum 1. **B.1.1** The tenant_class field on every oyatie tenant principal is a closed enum wi
-- **ADR-543** (Commission the cloud-kms K8s operator (G002 slice 2)): Ship the cloud-kms operator as three single-concern crates plus GitOps surfaces: - `oya-cloud-kms-operator-kernel` — pure reconciler kernel (typed desired-state for KeyRings, SealingRoots, KeyVersion rotation; `reconcile(observed, desired) -> Vec<Action>`; injected clock; ZERO kube dependencies — the cutover-stable seam). - `oya-cloud-kms-operator-
-- **ADR-553** (Commission the oya-identity runnable workload-identity service (G005 slice 1)): Promote `oya-identity` to a runnable workload-identity service binary that composes the existing workload-identity crates (domain, usecase, Cedar adapter, OIDC validation adapter, REST/gRPC delivery) behind one boot path: - `iam/facade/identity-service/src/server.rs` — the single composition root used by both `main` and the E2E suite: fail-fast con
+- **ADR-543** (Commission the cloud-kms K8s operator (G002 slice 2)): Ship the cloud-kms operator as three single-concern crates plus GitOps surfaces: - `cloud-kms-operator-kernel` — pure reconciler kernel (typed desired-state for KeyRings, SealingRoots, KeyVersion rotation; `reconcile(observed, desired) -> Vec<Action>`; injected clock; ZERO kube dependencies — the cutover-stable seam). - `cloud-kms-operator-
+- **ADR-553** (Commission the identity runnable workload-identity service (G005 slice 1)): Promote `identity` to a runnable workload-identity service binary that composes the existing workload-identity crates (domain, usecase, Cedar adapter, OIDC validation adapter, REST/gRPC delivery) behind one boot path: - `iam/facade/identity-service/src/server.rs` — the single composition root used by both `main` and the E2E suite: fail-fast con
 - **ADR-572** (Fail-closed authz for the Cedar policy publish control plane (AUTH-005 remediati): Make the publish surface fail-closed, with the authorization decision modelled as **ports** owned by the boundary crate (clean architecture per ADR-0131; ports model the owned W5 destination so they do not change at cutover; the concrete cloud-iam PDP client + credential store are **adapters** that live outside this crate). The new source file `iam
 - **ADR-573** (Fail-closed authz for the Cloud KMS crypto control plane (AUTH-005 / C5 remediat): Make the Cloud KMS crypto surfaces fail-closed, with the authorization decision modelled as **ports** owned by the boundary crate (clean architecture per ADR-0131; ports model the owned W5 destination so they do not change at cutover; the concrete cloud-iam PDP client + credential store are **adapters** that live outside this crate). The new source
 - **ADR-589** (Fail-closed authz for the DSR erasure cascade (AUTH-005 / Wave-2b remediation)): The erasure cascade is UNREACHABLE without (1) a verified principal and (2) a passing server-side PDP decision. The caller-supplied `allowed_surfaces` field is removed entirely. 1. **Unforgeable verified principal.** A new `compliance/ports/dsr-usecase/src/authz.rs` introduces `VerifiedDsrPrincipal` (private fields, `pub(crate)` constructor, public
 - **ADR-592** (Tenant-scoped, body-fingerprinted accounting idempotency keys (cross-tenant coll): 1. **Tenant-scope every accounting idempotency key, tenant-id first.** Introduce a single-sourced builder `scoped_idempotency_key(tenant_id, scope, primary_ref)` in the core crate that emits the *logical* key `idem-v2:<tenant_id>:<scope>:<primary_ref>`. The tenant id is the leading keyed component, so two tenants can never collide on a shared calle
 - **ADR-593** (Fail-closed authz for the Accounting + Payroll money-mutation control planes (AU): Wire a **fail-closed, verified-principal + cloud-iam-PDP** authz seam onto the money-mutation routes of both crates, mirroring the proven doctrine that landed for the Cloud KMS crypto control plane (ADR-0573), the Cedar policy publish control plane (ADR-0572), `intelligence/adapters/rest` (`constant_time_eq` bearer compare + a PDP `decide` port), t
 - **ADR-603** (Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation)): Install the established unforgeable-authz seam (mirroring ADR-0572 / #815 and the `intelligence/adapters/rest` doctrine) in a new `src/authz.rs` owned by this crate: 1. **Unforgeable verified identity.** A `VerifiedPrincipal { principal_id, tenant_id }` with **private fields**, a `pub(crate)` constructor, and a `cfg(test)` constructor only. Externa
-- **ADR-607** (Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecy): Make all three facades fail-closed against a SERVER-VERIFIED principal and a consulted Cedar PDP, mirroring the merged `tenant-quota-adapter-cedar` (ADR-0243, Cedar as the universal gate) and the clean-arch ports/adapters layering (ADR-0131): - A `VerifiedCaller` is bound from a constant-time bearer check; the `x-oya-tenant-id` header compare is de
+- **ADR-607** (Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecy): Make all three facades fail-closed against a SERVER-VERIFIED principal and a consulted Cedar PDP, mirroring the merged `tenant-quota-adapter-cedar` (ADR-0243, Cedar as the universal gate) and the clean-arch ports/adapters layering (ADR-0131): - A `VerifiedCaller` is bound from a constant-time bearer check; the `x-tenant-id` header compare is de
 
 ## Consequences
 
@@ -90,11 +90,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-607 residual
 
-**Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-host / tenant-quota)** — Make all three facades fail-closed against a SERVER-VERIFIED principal and a consulted Cedar PDP, mirroring the merged `tenant-quota-adapter-cedar` (ADR-0243, Cedar as the universal gate) and the clean-arch ports/adapters layering (ADR-0131): - A `VerifiedCaller` is bound from a constant-time bearer check; the `x-oya-tenant-id` header compare is deleted — identity is never caller-asserted. authn r
+**Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-host / tenant-quota)** — Make all three facades fail-closed against a SERVER-VERIFIED principal and a consulted Cedar PDP, mirroring the merged `tenant-quota-adapter-cedar` (ADR-0243, Cedar as the universal gate) and the clean-arch ports/adapters layering (ADR-0131): - A `VerifiedCaller` is bound from a constant-time bearer check; the `x-tenant-id` header compare is deleted — identity is never caller-asserted. authn r
 
 ### ADR-553 residual
 
-**Commission the oya-identity runnable workload-identity service (G005 slice 1)** — Promote `oya-identity` to a runnable workload-identity service binary that composes the existing workload-identity crates (domain, usecase, Cedar adapter, OIDC validation adapter, REST/gRPC delivery) behind one boot path: - `iam/facade/identity-service/src/server.rs` — the single composition root used by both `main` and the E2E suite: fail-fast config -> JWKS/Cedar/seed load -> independently bound
+**Commission the identity runnable workload-identity service (G005 slice 1)** — Promote `identity` to a runnable workload-identity service binary that composes the existing workload-identity crates (domain, usecase, Cedar adapter, OIDC validation adapter, REST/gRPC delivery) behind one boot path: - `iam/facade/identity-service/src/server.rs` — the single composition root used by both `main` and the E2E suite: fail-fast config -> JWKS/Cedar/seed load -> independently bound
 
 ### ADR-329 residual
 
@@ -106,7 +106,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-2 residual
 
-**ADR-0002-tenant-and-identity-kernel** — We establish two co-located kernel crates that together form the *tenant + identity substrate*: - `crates/oya-tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types. - `crates/oya-identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-backed RBAC/ABAC and STS-issued short-lived credentia
+**ADR-0002-tenant-and-identity-kernel** — We establish two co-located kernel crates that together form the *tenant + identity substrate*: - `crates/tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types. - `crates/identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-backed RBAC/ABAC and STS-issued short-lived credentia
 
 ### ADR-572 residual
 
@@ -114,7 +114,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-543 residual
 
-**Commission the cloud-kms K8s operator (G002 slice 2)** — Ship the cloud-kms operator as three single-concern crates plus GitOps surfaces: - `oya-cloud-kms-operator-kernel` — pure reconciler kernel (typed desired-state for KeyRings, SealingRoots, KeyVersion rotation; `reconcile(observed, desired) -> Vec<Action>`; injected clock; ZERO kube dependencies — the cutover-stable seam). - `oya-cloud-kms-operator-k8s-adapter` — ADR-0510 transient adapter: kube-rs
+**Commission the cloud-kms K8s operator (G002 slice 2)** — Ship the cloud-kms operator as three single-concern crates plus GitOps surfaces: - `cloud-kms-operator-kernel` — pure reconciler kernel (typed desired-state for KeyRings, SealingRoots, KeyVersion rotation; `reconcile(observed, desired) -> Vec<Action>`; injected clock; ZERO kube dependencies — the cutover-stable seam). - `cloud-kms-operator-k8s-adapter` — ADR-0510 transient adapter: kube-rs
 
 ### ADR-326 residual
 
@@ -126,7 +126,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-95 residual
 
-**ADR-0095-tenant-slug-in-tenancy-kernel** — Add a SECOND newtype to `oya-tenancy-kernel`: ```rust pub const TENANT_SLUG_MAX_LEN: usize = 128; pub struct TenantSlug(String); impl TenantSlug { pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> { /* … */ } pub fn as_str(&self) -> &str { /* … */ } pub fn into_inner(self) -> String { /* … */ } } impl TryFrom<&str> for TenantSlug { /* delegates to try_new */ } impl FromSt
+**ADR-0095-tenant-slug-in-tenancy-kernel** — Add a SECOND newtype to `tenancy-kernel`: ```rust pub const TENANT_SLUG_MAX_LEN: usize = 128; pub struct TenantSlug(String); impl TenantSlug { pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> { /* … */ } pub fn as_str(&self) -> &str { /* … */ } pub fn into_inner(self) -> String { /* … */ } } impl TryFrom<&str> for TenantSlug { /* delegates to try_new */ } impl FromSt
 
 ### ADR-311 residual
 
@@ -154,7 +154,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-155 residual
 
-**ADR-0155-per-tenant-resource-quotas** — Adopt per-tenant quotas on five canonical axes (rate, concurrent, memory, storage, connections) as MANDATORY across every µservice. 1. The canonical spec is `docs/standards/per-tenant-resource-quotas-canonical.md`. 2. The trait surface lives in `crates/oya-shared-tenant-quota-kernel/`. 3. The tenancy µservice OWNS canonical quota definitions; runtime µservices query it. 4. Exceeded quota → `429 To
+**ADR-0155-per-tenant-resource-quotas** — Adopt per-tenant quotas on five canonical axes (rate, concurrent, memory, storage, connections) as MANDATORY across every µservice. 1. The canonical spec is `docs/standards/per-tenant-resource-quotas-canonical.md`. 2. The trait surface lives in `crates/shared-tenant-quota-kernel/`. 3. The tenancy µservice OWNS canonical quota definitions; runtime µservices query it. 4. Exceeded quota → `429 To
 
 ### ADR-593 residual
 
@@ -162,7 +162,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-7 residual
 
-**ADR-0007-cedar-authorization-policy-and-persona-tier** — We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across all axes, **persona tiers T1–T4** as the autonomy-ceiling scale, and **per-capability runtime enforcement** that consults both Cedar and the autonomy ceiling on every invocation. ### Cedar surface - Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/oya-policy-cedar-*`). - Per-tenant scope: tenant admins au
+**ADR-0007-cedar-authorization-policy-and-persona-tier** — We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across all axes, **persona tiers T1–T4** as the autonomy-ceiling scale, and **per-capability runtime enforcement** that consults both Cedar and the autonomy ceiling on every invocation. ### Cedar surface - Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/policy-cedar-*`). - Per-tenant scope: tenant admins au
 
 ### ADR-163 residual
 

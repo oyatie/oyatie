@@ -6,7 +6,7 @@
     "owner_team": "axis-foundry + axis-observability",
     "audience": "promotion-gate consumers (CI lane + reviewer agent + on-call IC)",
     "tenant_scoped": false,
-    "datasource": "Mimir aggregate (oya-ci + oya-aggregate); recording-rules"
+    "datasource": "Mimir aggregate (ci + aggregate); recording-rules"
   },
   "uid": "obs-gate-eligibility",
   "title": "Gate Eligibility — Promotion Readiness View",
@@ -71,8 +71,8 @@
       "title": "PromotionExecuted + RollbackExecuted events",
       "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
       "targets": [
-        {"expr": "increase(oya_promotion_executed_total[5m])", "legendFormat": "promoted (rate per 5m)", "refId": "A"},
-        {"expr": "increase(oya_rollback_executed_total[5m])", "legendFormat": "rolled back (rate per 5m)", "refId": "B"}
+        {"expr": "increase(promotion_executed_total[5m])", "legendFormat": "promoted (rate per 5m)", "refId": "A"},
+        {"expr": "increase(rollback_executed_total[5m])", "legendFormat": "rolled back (rate per 5m)", "refId": "B"}
       ]
     },
     {

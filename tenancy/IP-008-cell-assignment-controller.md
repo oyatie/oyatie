@@ -15,18 +15,18 @@ acceptance_lanes: [cargo-check, cargo-nextest, layer-correctness]
 
 ## Intent
 
-Build `oya-tenancy-cell-assignment-{kernel,domain,usecase,adapter,adapter-citus,worker,app}` crates: consistent-hash shard-key derivation; cell-health probe loop (1s cadence); least-loaded cell selection; Citus pg_dist_shard rebalance orchestrator; integrity checksum before/after.
+Build `tenancy-cell-assignment-{kernel,domain,usecase,adapter,adapter-citus,worker,app}` crates: consistent-hash shard-key derivation; cell-health probe loop (1s cadence); least-loaded cell selection; Citus pg_dist_shard rebalance orchestrator; integrity checksum before/after.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-cell-assignment-kernel/` | create — CellId, ShardKey, CellHealth, RebalanceTask entities + ports |
-| `oya-tenancy-cell-assignment-domain/` | create — consistent-hash derivation; least-loaded; rebalance plan |
-| `oya-tenancy-cell-assignment-usecase/` | create — assign + rebalance orchestrators |
-| `oya-tenancy-cell-assignment-adapter/` | create — Valkey cache for hot reads |
-| `oya-tenancy-cell-assignment-adapter-citus/` | create — pg_dist_shard writes; citus_move_shard_placement |
-| `oya-tenancy-cell-assignment-worker/` | create — health probe loop + rebalance scheduler |
+| `tenancy-cell-assignment-kernel/` | create — CellId, ShardKey, CellHealth, RebalanceTask entities + ports |
+| `tenancy-cell-assignment-domain/` | create — consistent-hash derivation; least-loaded; rebalance plan |
+| `tenancy-cell-assignment-usecase/` | create — assign + rebalance orchestrators |
+| `tenancy-cell-assignment-adapter/` | create — Valkey cache for hot reads |
+| `tenancy-cell-assignment-adapter-citus/` | create — pg_dist_shard writes; citus_move_shard_placement |
+| `tenancy-cell-assignment-worker/` | create — health probe loop + rebalance scheduler |
 
 ## Code Shape
 
@@ -72,8 +72,8 @@ pub async fn rebalance_shard(deps: &Deps, shard_id: i64, source: &str, target: &
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy
-cargo nextest run -p oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity
+cargo nextest run -p tenancy-cell-assignment-worker --test rebalance_on_unhealthy
+cargo nextest run -p tenancy-cell-assignment-adapter-citus --test rebalance_integrity
 ```
 
 ## Test Plan

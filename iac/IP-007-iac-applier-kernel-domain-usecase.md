@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-iac-apply-scope, oya-cloud-iac-provenance-slsa-l3]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, check-iac-apply-scope, cloud-iac-provenance-slsa-l3]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-007: oya-cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd}
+# IP-007: cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd}
 
 ## Intent
 
@@ -27,13 +27,13 @@ Six new crates per ADR-0105: `-kernel`, `-domain`, `-usecase`, `-api`, `-adapter
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs,src/errors.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-domain/{Cargo.toml,src/lib.rs,src/dep_order.rs,src/retry_policy.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-usecase/{Cargo.toml,src/lib.rs,src/apply_orchestrator.rs,src/slsa_verifier.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-api/{Cargo.toml,src/lib.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-adapter/{Cargo.toml,src/lib.rs,src/k8s_client.rs,src/event_emitter.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-adapter-argocd/{Cargo.toml,src/lib.rs,src/argocd_client.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-applier-*.yaml` | create (6 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs,src/errors.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-domain/{Cargo.toml,src/lib.rs,src/dep_order.rs,src/retry_policy.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-usecase/{Cargo.toml,src/lib.rs,src/apply_orchestrator.rs,src/slsa_verifier.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-api/{Cargo.toml,src/lib.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-adapter/{Cargo.toml,src/lib.rs,src/k8s_client.rs,src/event_emitter.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-adapter-argocd/{Cargo.toml,src/lib.rs,src/argocd_client.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-applier-*.yaml` | create (6 rows) |
 
 ## Code Shape
 
@@ -88,10 +88,10 @@ where M: ClusterMutator, R: ReconcilerClient, S: SlsaVerifier, E: ApplyEventEmit
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-applier-kernel -p oya-cloud-iac-iac-applier-domain -p oya-cloud-iac-iac-applier-usecase -p oya-cloud-iac-iac-applier-api -p oya-cloud-iac-iac-applier-adapter -p oya-cloud-iac-iac-applier-adapter-argocd --all-features
-cargo nextest run --workspace -p oya-cloud-iac-iac-applier-* --all-features
-cloud-ci/oya-ci governance gate `iac-apply-scope` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `provenance-slsa-l3` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check --workspace -p cloud-iac-iac-applier-kernel -p cloud-iac-iac-applier-domain -p cloud-iac-iac-applier-usecase -p cloud-iac-iac-applier-api -p cloud-iac-iac-applier-adapter -p cloud-iac-iac-applier-adapter-argocd --all-features
+cargo nextest run --workspace -p cloud-iac-iac-applier-* --all-features
+cloud-ci/ci governance gate `iac-apply-scope` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `provenance-slsa-l3` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

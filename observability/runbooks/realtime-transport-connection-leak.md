@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: observability-realtime-transport-connection-leak.
 - Primary service namespace: `observability`.
-- Owning rotation: PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary.
+- Owning rotation: PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary.
 - Incident channel: `#inc-observability-live`.
 - External dependencies: Grafana Enterprise Support; ClickHouse support; Oracle OCI object storage status desk.
 - API authority: `https://observability.internal.oyatie.dev/v1/observability/realtime-transport-connection-leak/incident-handoff`.
@@ -26,12 +26,12 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/observability-realtime-transport-connection-leak-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `ObservabilityRealtimeTransportConnectionLeakCritical` when `oya_observability_realtime_transport_connection_leak_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `ObservabilityRealtimeTransportConnectionLeakSloBurn` when `oya_observability_realtime_transport_connection_leak_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open a sev0 if `oya_observability_realtime_transport_connection_leak_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
-- Open a sev1 if `oya_observability_realtime_transport_connection_leak_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `ObservabilityRealtimeTransportConnectionLeakCritical` when `observability_realtime_transport_connection_leak_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `ObservabilityRealtimeTransportConnectionLeakSloBurn` when `observability_realtime_transport_connection_leak_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `observability_realtime_transport_connection_leak_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `observability_realtime_transport_connection_leak_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `observability.realtime-transport-connection-leak.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate observability-realtime-transport-connection-leak --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate observability-realtime-transport-connection-leak --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="observability",runbook="realtime-transport-connection-leak"}`.
@@ -45,9 +45,9 @@ doc_status: published
 - Loki signature `observability.realtime_transport_connection_leak.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=ObservabilityRealtimeTransportConnectionLeakDegraded` on deployment `observability-realtime-transport-connection-leak-worker`.
 - Audit-chain shows missing or delayed `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT --since 30m`.
-- Metric pattern: `oya_observability_realtime_transport_connection_leak_error_ratio` rises before `oya_observability_realtime_transport_connection_leak_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_observability_realtime_transport_connection_leak_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_observability_realtime_transport_connection_leak_queue_depth`; isolate before fleet mitigation.
+- Metric pattern: `observability_realtime_transport_connection_leak_error_ratio` rises before `observability_realtime_transport_connection_leak_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `observability_realtime_transport_connection_leak_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `observability_realtime_transport_connection_leak_queue_depth`; isolate before fleet mitigation.
 - Fleet-wide shape: at least three cells report `ObservabilityRealtimeTransportConnectionLeakCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=realtime-transport-connection-leak.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=realtime-transport-connection-leak.break_glass` means manual intervention is active; confirm two-person authorization.
@@ -60,16 +60,16 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n observability get pods -l app=observability-realtime-transport-connection-leak -o wide`.
 5. Read structured logs: `kubectl -n observability logs deploy/observability-realtime-transport-connection-leak-worker --since=30m | rg "observability.realtime_transport_connection_leak.incident_state|ObservabilityRealtimeTransportConnectionLeakCritical|EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="observability",runbook="realtime-transport-connection-leak"}' --since=30m --limit=200`.
-7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_realtime_transport_connection_leak_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_realtime_transport_connection_leak_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_realtime_transport_connection_leak_queue_depth{cell="prod-us-east-1"}'`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_realtime_transport_connection_leak_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_realtime_transport_connection_leak_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_realtime_transport_connection_leak_queue_depth{cell="prod-us-east-1"}'`.
 10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101&var-incident=$INCIDENT_ID"`.
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops observability realtime-transport-connection-leak status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate observability-realtime-transport-connection-leak --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-observability-domain realtime_transport_connection_leak -- --nocapture`.
-16. Check API contract smoke: `curl -s https://observability.internal.oyatie.dev/v1/observability/realtime-transport-connection-leak/incident-handoff -H "x-oya-tenant: $TENANT"`.
+14. Run production snapshot gate: `cargo run -p dev-cli -- gate validate observability-realtime-transport-connection-leak --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p observability-domain realtime_transport_connection_leak -- --nocapture`.
+16. Check API contract smoke: `curl -s https://observability.internal.oyatie.dev/v1/observability/realtime-transport-connection-leak/incident-handoff -H "x-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n observability get configmap observability-realtime-transport-connection-leak-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.observability.realtime_transport_connection_leak.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status observability-realtime-transport-connection-leak-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -77,16 +77,16 @@ doc_status: published
 21. Check policy file: `test -f microservices/observability/policy/tenant-isolation.cedar || test -f microservices/observability/policy/tenant-isolation.md`.
 22. Check SLO files: `ls microservices/observability/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/observability/catalog -maxdepth 1 -type f | sort | rg "observability|realtime"`.
-24. Confirm no cross-cell spread: `oya ops cells query --metric oya_observability_realtime_transport_connection_leak_error_ratio --window 30m --threshold 0.02`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric observability_realtime_transport_connection_leak_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice observability --runbook realtime-transport-connection-leak --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Realtime Transport Connection Leak incident decision tree
 1. Is ObservabilityRealtimeTransportConnectionLeakCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_observability_realtime_transport_connection_leak_queue_depth grow while oya_observability_realtime_transport_connection_leak_error_ratio is flat?
+2. Does observability_realtime_transport_connection_leak_queue_depth grow while observability_realtime_transport_connection_leak_error_ratio is flat?
    |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
    |-- no: local regression or bad input; continue branch selection.
 3. Does audit-chain show EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT gaps?
@@ -120,42 +120,42 @@ Realtime Transport Connection Leak incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice observability --incident $INCIDENT_ID --channel #inc-observability-live`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-observability --incident $INCIDENT_ID --summary realtime-transport-connection-leak`.
 18. Confirm breaker effect: `oya ops breaker status observability-realtime-transport-connection-leak-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://observability.internal.oyatie.dev/v1/observability/realtime-transport-connection-leak/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://observability.internal.oyatie.dev/v1/observability/realtime-transport-connection-leak/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=realtime-transport-connection-leak`.
 
 ### Mitigation Branch Guidance
 - Branch A: confirmed security boundary failure.
-  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `oya_observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: suspected false positive.
-  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `oya_observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=102` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: forensic evidence unavailable.
-  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `oya_observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=103` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: customer or regulator visible impact.
-  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `oya_observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-realtime-transport-connection-leak-circuit-breaker` open until `observability_realtime_transport_connection_leak_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=104` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "realtime_transport_connection_leak|ObservabilityRealtimeTransportConnectionLeakCritical|observability.realtime_transport_connection_leak.incident_state" crates microservices/observability -g "!microservices/observability/runbooks/**"`.
-2. Patch domain invariant: `edit oya-observability-domain where realtime_transport_connection_leak state transition is validated`.
+2. Patch domain invariant: `edit observability-domain where realtime_transport_connection_leak state transition is validated`.
 3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-observability-domain realtime_transport_connection_leak_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate observability-realtime-transport-connection-leak --fixture incident-realtime-transport-connection-leak.json`.
+6. Add regression test: `cargo test -p observability-domain realtime_transport_connection_leak_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate observability-realtime-transport-connection-leak --fixture incident-realtime-transport-connection-leak.json`.
 8. Add SLO assertion: `update microservices/observability/slos/* with alert ObservabilityRealtimeTransportConnectionLeakCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/observability/dashboards/tail-sampling-fidelity.json with oya_observability_realtime_transport_connection_leak_error_ratio, oya_observability_realtime_transport_connection_leak_lag_seconds, and oya_observability_realtime_transport_connection_leak_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-observability-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-observability-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate observability-policy --microservice observability`.
+9. Add dashboard panel: `update microservices/observability/dashboards/tail-sampling-fidelity.json with observability_realtime_transport_connection_leak_error_ratio, observability_realtime_transport_connection_leak_lag_seconds, and observability_realtime_transport_connection_leak_queue_depth`.
+10. Rebuild affected crate: `cargo check -p observability-domain --all-targets`.
+11. Run targeted tests: `cargo test -p observability-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate observability-policy --microservice observability`.
 13. Deploy canary: `oya deploy canary --microservice observability --component realtime-transport-connection-leak-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_observability_realtime_transport_connection_leak_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric observability_realtime_transport_connection_leak_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-realtime-transport-connection-leak-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.observability.realtime_transport_connection_leak.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: merge only after reviewer approval plus green Jenkins CI and `oya gate run-all --ci-required`; record `resolved-$INCIDENT_ID` in the incident evidence.
@@ -164,9 +164,9 @@ Realtime Transport Connection Leak incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-observability-domain`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-cloud-observability-api`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
-- `oya-dev-cli`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `observability-domain`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `cloud-observability-api`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `dev-cli`: inspect for realtime_transport_connection_leak invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/observability/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/observability/dashboards/tail-sampling-fidelity.json`: verify this surface only when the incident evidence points there.
 - `microservices/observability/slos/`: verify this surface only when the incident evidence points there.
@@ -174,9 +174,9 @@ Realtime Transport Connection Leak incident decision tree
 
 ## Verification Checklist
 - ObservabilityRealtimeTransportConnectionLeakCritical and ObservabilityRealtimeTransportConnectionLeakSloBurn are both resolved in Alertmanager for 30 minutes.
-- oya_observability_realtime_transport_connection_leak_error_ratio < 0.005 for 3 consecutive 10 minute windows.
-- oya_observability_realtime_transport_connection_leak_lag_seconds < 120 for all production cells.
-- oya_observability_realtime_transport_connection_leak_queue_depth is draining and not growing for the affected tenant.
+- observability_realtime_transport_connection_leak_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- observability_realtime_transport_connection_leak_lag_seconds < 120 for all production cells.
+- observability_realtime_transport_connection_leak_queue_depth is draining and not growing for the affected tenant.
 - dashboard https://grafana.dev.oyatie.internal/d/observability-substrate/realtime-transport-connection-leak?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101 shows green panels for the affected cell.
 - audit-chain query for EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT returns mitigation and resolution events.
 - circuit breaker observability-realtime-transport-connection-leak-circuit-breaker is closed after rollback window.
@@ -231,7 +231,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary.
+- Primary on-call: PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary.
 - Incident SLA: ack 5m for sev1, 15m for sev2, checkpoint every 20m.
 - Incident commander: first responder from axis-observability + ops-sre-reliability; transfer only by explicit message in #inc-observability-live.
 - Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
@@ -258,7 +258,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source observability --runbook realtime-transport-connection-leak --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include oya_observability_realtime_transport_connection_leak_error_ratio, oya_observability_realtime_transport_connection_leak_lag_seconds, oya_observability_realtime_transport_connection_leak_queue_depth, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include observability_realtime_transport_connection_leak_error_ratio, observability_realtime_transport_connection_leak_lag_seconds, observability_realtime_transport_connection_leak_queue_depth, current breaker state, and audit seal status.
 - Keep observability-realtime-transport-connection-leak-circuit-breaker owner as axis-observability + ops-sre-reliability until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after EVT-OBSERVABILITY-REALTIME_TRANSPORT_CONNECTION_LEAK-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.

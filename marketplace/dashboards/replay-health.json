@@ -18,7 +18,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_marketplace_revenue_share_accrue_total[5m])) by (tenant_id,region,status)"
+          "expr": "sum(rate(marketplace_revenue_share_accrue_total[5m])) by (tenant_id,region,status)"
         }
       ]
     },
@@ -28,7 +28,7 @@
       "type": "table",
       "targets": [
         {
-          "expr": "sum(rate(oya_audit_chain_events_total{service=\"marketplace\",event=\"MarketplaceDisputeOpened\"}[5m])) by (tenant_id,cell_id)"
+          "expr": "sum(rate(audit_chain_events_total{service=\"marketplace\",event=\"MarketplaceDisputeOpened\"}[5m])) by (tenant_id,cell_id)"
         }
       ]
     }

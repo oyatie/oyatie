@@ -31,6 +31,6 @@ outputs:
   - compensating_ledger_entry_id
   - state
 observability:
-  metric: oya_marketplace_revenue_share_clawback_total
+  metric: marketplace_revenue_share_clawback_total
   trace: marketplace.revenue-share-clawback
   audit_event: MarketplaceRevenueShareClawbackPosted

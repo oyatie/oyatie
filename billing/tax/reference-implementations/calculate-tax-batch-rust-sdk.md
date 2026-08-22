@@ -1,4 +1,4 @@
-# Reference implementation — Calculate batch tax + file a return via `oya-cloud-billing-tax-sdk`
+# Reference implementation — Calculate batch tax + file a return via `cloud-billing-tax-sdk`
 
 Runnable Rust program that calculates tax on a batch of cross-border transactions, aggregates EU OSS, generates a quarterly OSS
 VAT return XML, and submits it to a loopback Revenue Online Service.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-billing-tax-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-billing-tax-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 time = { version = "0.3", features = ["macros"] }
@@ -28,11 +28,11 @@ uuid = { version = "1.10", features = ["v7"] }
 
 ```rust
 use anyhow::Result;
-use oya_cloud_billing_tax_sdk::{
+use cloud_billing_tax_sdk::{
     BuyerType, CalculateRequest, FilingFormat, Jurisdiction, Line, Location, OssScheme, Period,
     TaxClient, TaxConfig, Tenant,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -204,7 +204,7 @@ INFO  filing submitted submission_id=sub-… status=Accepted ack=ROS-ACK-… aud
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_billing_tax_sdk::testkit::Hermetic` with an in-process rate-card snapshot + a loopback
+The `hermetic` feature uses `cloud_billing_tax_sdk::testkit::Hermetic` with an in-process rate-card snapshot + a loopback
 Revenue Online Service simulator; tests finish in ≤ 90 s.
 
 ## Error budget

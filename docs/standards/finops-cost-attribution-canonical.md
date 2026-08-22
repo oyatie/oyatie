@@ -91,7 +91,7 @@ Per-µservice `Chart.yaml` + `values.yaml`:
 ```yaml
 # Chart.yaml
 dependencies:
-  - name: oya-helpers
+  - name: helpers
     version: 0.1.0
     repository: "file://../../../../governance/iac/helm/_oya-helpers"
 
@@ -130,7 +130,7 @@ metadata:
     NodePools.
   - **Allocation columns** — declare how costs split across workloads.
 - FOCUS export lands in SeaweedFS bucket
-  `oya-finops-focus-export-shared-<env>` per ADR-0196.
+  `finops-focus-export-shared-<env>` per ADR-0196.
 
 ## Cost anomaly alerts (canonical)
 
@@ -148,7 +148,7 @@ Runbooks live at `docs/runbooks/finops-<alert-slug>.md`.
 
 | Gate                                          | Lane mode | Behavior                                              |
 |-----------------------------------------------|-----------|-------------------------------------------------------|
-| `oya-check-tenant-cost-labels-coverage`       | advisory  | renders Helm + reports workloads missing the label block |
+| `check-tenant-cost-labels-coverage`       | advisory  | renders Helm + reports workloads missing the label block |
 
 Strict promotion follows when the per-µservice coverage backlog reaches
 zero.
@@ -171,7 +171,7 @@ Tenant `t-1234`, Pro tier, period 2026-Q2:
   $4,200.
 - Foundry capability invocations — 1.2M × $0.00015: $180.
 - Audit-chain emit — 18M rows × $0.000002: $36.
-- Storage (`oya-class-tenant-pii`) — 240 GB × $0.20: $48.
+- Storage (`class-tenant-pii`) — 240 GB × $0.20: $48.
 - Customer-success credit: −$200.
 - **Total**: $4,264.
 

@@ -20,10 +20,10 @@
       "tenant-work"
     ],
     "crate_refs_planned": [
-      "oya-accounting-journal-kernel",
-      "oya-accounting-journal-domain",
-      "oya-accounting-journal-app",
-      "oya-accounting-journal-rest"
+      "accounting-journal-kernel",
+      "accounting-journal-domain",
+      "accounting-journal-app",
+      "accounting-journal-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
   },
@@ -91,49 +91,49 @@
       "given": "a journal voucher is posted",
       "when": "the accounting service persists it",
       "then": "debits equal credits, legal_entity_id is present, period is open, and audit-chain evidence links source documents",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/journal.rs::test_post_requires_balanced_open_period"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/journal.rs::test_post_requires_balanced_open_period"
     },
     {
       "id": "AC-02",
       "given": "a payroll run posts to accounting",
       "when": "the payroll bridge emits a journal",
       "then": "source payroll digest, wage ledger refs, approval evidence, and reversal path are recorded",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/payroll_bridge.rs::test_payroll_digest_required_for_posting"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/payroll_bridge.rs::test_payroll_digest_required_for_posting"
     },
     {
       "id": "AC-03",
       "given": "a KR VAT period reaches filing date",
       "when": "deadline calendar evaluates the tenant",
       "then": "VAT return workflow opens with HomeTax export hash, review, and evidence requirements",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/vat.rs::test_kr_vat_deadline_opens_workflow"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/vat.rs::test_kr_vat_deadline_opens_workflow"
     },
     {
       "id": "AC-04",
       "given": "a procurement/AP invoice needs approval",
       "when": "approval thresholds are evaluated",
       "then": "Workflow routes policy, budget, vendor, and evidence checks before posting liability or payment request",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/ap.rs::test_invoice_approval_before_liability_post"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/ap.rs::test_invoice_approval_before_liability_post"
     },
     {
       "id": "AC-05",
       "given": "financial close evidence is incomplete",
       "when": "close promotion is requested",
       "then": "close is refused, missing evidence paths are reported, and no manual shell/SSH workaround is offered",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/close.rs::test_close_refuses_missing_evidence"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/close.rs::test_close_refuses_missing_evidence"
     },
     {
       "id": "AC-06",
       "given": "journal posting, payroll posting, or KR VAT deadline evaluation is evaluated by the app layer",
       "when": "the app crate prepares downstream integration metadata",
       "then": "metadata-only audit and Workflow dispatch envelopes carry journal identity, source digest, evidence refs, idempotency, and data-class metadata without external I/O",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-app/tests/app_envelopes.rs::{post_journal_emits_audit_event,payroll_posting_emits_accounting_audit_event,vat_deadline_emits_workflow_dispatch}"
+      "test_ref": "microservices/accounting/crates/accounting-journal-app/tests/app_envelopes.rs::{post_journal_emits_audit_event,payroll_posting_emits_accounting_audit_event,vat_deadline_emits_workflow_dispatch}"
     },
     {
       "id": "AC-07",
       "given": "an external caller submits journal, payroll-posting, or VAT-deadline JSON",
       "when": "the API DTO contract parses the request",
       "then": "camelCase fields, stable enum labels, consistent validation error envelope shape, and deterministic conversion into accounting domain/app inputs are preserved without transport runtime I/O",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-api/tests/contracts.rs::{journal_post_request_uses_camel_case_and_stable_enums,payroll_posting_request_converts_to_app_input,vat_deadline_request_converts_to_workflow_input,error_envelope_has_consistent_shape}"
+      "test_ref": "microservices/accounting/crates/accounting-journal-api/tests/contracts.rs::{journal_post_request_uses_camel_case_and_stable_enums,payroll_posting_request_converts_to_app_input,vat_deadline_request_converts_to_workflow_input,error_envelope_has_consistent_shape}"
     },
     {
       "id": "AC-08",
@@ -147,28 +147,28 @@
       "given": "accounting journal changes are proposed for review",
       "when": "the self-hostable CI quality gate runs",
       "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across accounting domain/app/API packages before promotion",
-      "test_ref": "microservices/accounting/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-accounting-journal-domain, oya-accounting-journal-app, oya-accounting-journal-api; oya gate validate api-semver --contracts-dir microservices/accounting/contracts"
+      "test_ref": "microservices/accounting/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for accounting-journal-domain, accounting-journal-app, accounting-journal-api; oya gate validate api-semver --contracts-dir microservices/accounting/contracts"
     },
     {
       "id": "AC-10",
       "given": "a future accounting HTTP adapter receives JSON for journal posting, payroll posting, VAT workflow planning, or health checks",
       "when": "the accounting runtime adapter router dispatches the request through the repo-native Hyper foundation",
       "then": "OpenAPI-aligned JSON responses and validation error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, ledger storage, Workflow execution, statutory filing rails, payment execution, Payroll calls, and runtime audit emission",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-infrastructure/tests/runtime.rs::{accounting_runtime_dispatches_journal_payroll_and_vat,accounting_runtime_rejects_invalid_json_and_domain_errors,accounting_runtime_manifest_and_health_preserve_honest_non_claims}"
+      "test_ref": "microservices/accounting/crates/accounting-journal-infrastructure/tests/runtime.rs::{accounting_runtime_dispatches_journal_payroll_and_vat,accounting_runtime_rejects_invalid_json_and_domain_errors,accounting_runtime_manifest_and_health_preserve_honest_non_claims}"
     },
     {
       "id": "AC-11",
       "given": "a future durable accounting ledger persistence adapter needs a stable contract for journal-post audit, payroll-posting audit, and VAT Workflow dispatch metadata",
       "when": "the in-memory accounting storage reference adapter records app-layer accounting envelopes",
       "then": "topic, tenant, legal-entity, primary refs, evidence counts, payload data-class labels, and idempotency keys are preserved while durable ledger backend, Postgres/RLS, Workflow execution, statutory filing rails, payment execution, Payroll calls, and audit-chain emission remain explicit non-claims",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-storage-adapter-inmemory/tests/storage.rs::{accounting_storage_records_metadata_without_durable_backend_claim,accounting_storage_refuses_duplicate_idempotency_keys,accounting_storage_reservation_validates_key_shape_and_allows_commit}"
+      "test_ref": "microservices/accounting/crates/accounting-journal-storage-adapter-inmemory/tests/storage.rs::{accounting_storage_records_metadata_without_durable_backend_claim,accounting_storage_refuses_duplicate_idempotency_keys,accounting_storage_reservation_validates_key_shape_and_allows_commit}"
     },
     {
       "id": "AC-12",
       "given": "a future accounting ledger, tax workflow, or cloud filing adapter needs the statutory basis for a tax rulepack",
       "when": "the accounting statutory rulepack source manifest is built",
       "then": "source-versioned official NTS/HomeTax/Law.go.kr/IRS URLs, accounting period, evidence refs, digests, effective dates, and approval evidence are required while ledger persistence, Workflow execution, statutory filing rails, payment execution, cloud deployment, and runtime audit emission remain explicit non-claims",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-domain/tests/rulepack_manifest.rs::{accounting_statutory_rulepack_manifest_requires_official_sources_without_runtime_claims,accounting_statutory_rulepack_manifest_rejects_empty_sources_and_overclaims,accounting_statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources,united_states_accounting_manifest_can_reference_irs_sources_without_filing_claim}"
+      "test_ref": "microservices/accounting/crates/accounting-journal-domain/tests/rulepack_manifest.rs::{accounting_statutory_rulepack_manifest_requires_official_sources_without_runtime_claims,accounting_statutory_rulepack_manifest_rejects_empty_sources_and_overclaims,accounting_statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources,united_states_accounting_manifest_can_reference_irs_sources_without_filing_claim}"
     }
   ],
   "scope": {
@@ -341,7 +341,7 @@
         "notes": "EU expansion covers GDPR, works-council/local labor overlays, VAT, statutory accounting exports, and data-residency policy."
       }
     ],
-    "validation_lane_ref": "oya-governance-regional-pack-contracts"
+    "validation_lane_ref": "governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -387,7 +387,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-accounting-journal-domain -- double_entry",
+      "verification_ref": "cargo nextest -p accounting-journal-domain -- double_entry",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -507,11 +507,11 @@
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
+      "verification": "cargo nextest -p security-domain -- cross_tenant"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
+      "verification": "cargo bench -p bench -- enterprise_hot_paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
@@ -588,7 +588,7 @@
     },
     {
       "id": "D-04",
-      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier tenant-rbac crate naming; Accounting implementation crates use oya-accounting-<bounded-context>-<layer> under microservices/accounting/crates/.",
+      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier tenant-rbac crate naming; Accounting implementation crates use accounting-<bounded-context>-<layer> under microservices/accounting/crates/.",
       "date": "2026-05-23"
     },
     {

@@ -568,10 +568,10 @@ mod tests {
     use std::path::PathBuf;
 
     /// Root of the corpus fixtures. Under cargo, CARGO_MANIFEST_DIR points at the
-    /// crate dir; under buck2 the rust_test target injects OYA_TESTDATA_DIR via
+    /// crate dir; under buck2 the rust_test target injects OYATIE_TESTDATA_DIR via
     /// `$(location :testdata)` (CARGO_MANIFEST_DIR is not defined there).
     fn testdata_root() -> PathBuf {
-        if let Ok(dir) = std::env::var("OYA_TESTDATA_DIR") {
+        if let Ok(dir) = std::env::var("OYATIE_TESTDATA_DIR") {
             return PathBuf::from(dir);
         }
         PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or(".")).join("testdata")

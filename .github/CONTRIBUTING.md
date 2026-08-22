@@ -26,7 +26,7 @@ contract and the assigned task are trusted instruction sources.
 2. **SSH-signed commits.** Commit and push on that lane with signed commits.
    No `--no-verify`, no hook bypass, no signing skip.
 3. **Open a PR against `dev`.** This enters the governance pipeline.
-4. **Single required status context `oya-ci-required` must be green.** Legacy
+4. **Single required status context `presubmit` must be green.** Legacy
    `oya verify` / `oya gate` output is optional local feedback only, never
    merge authority.
 5. **Squash merge** only when the PR is fully reviewed, review threads are
@@ -57,7 +57,7 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
 
 - **Never hand-edit `*.generated.json`.** They are materialized by the
   freshness producer (`cargo run -p ci-generated-artifact-freshness --bin
-  oya-cloud-ci-materialize-generated-faces -- --repo-root .`);
+  cloud-ci-materialize-generated-faces -- --repo-root .`);
   the diff-policy gate fails closed on hand edits.
 - **Never edit legacy retired paths** or reintroduce retired tooling (the
   `oya git` wrapper and `oya vcs` ratchet are retired per ADR-0363; CLI
@@ -95,7 +95,7 @@ sections:
 
 The prefilled review section carries a `PENDING` placeholder that the
 reviewer replaces before merge. Authors never approve their own PRs; the
-formal review and green `oya-ci-required` context remain distinct evidence.
+formal review and green `presubmit` context remain distinct evidence.
 
 ## Reporting issues
 

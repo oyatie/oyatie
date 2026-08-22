@@ -21,13 +21,13 @@ farm; wire Jenkins → GitHub Commit Status API; prove the required checks post 
 deliberate, reversible step — never flip the host before checks demonstrably post green. Exit: a
 reviewed PR merges on green checks alone, no admin override.
 
-**T2 — Crate colocation (make absorption true in the filesystem).** Move the 116 `oya-intelligence-*`
+**T2 — Crate colocation (make absorption true in the filesystem).** Move the 116 `intelligence-*`
 crates physically under `microservices/intelligence/` per ADR-0131/0357 vertical-slice nesting
 (task #10). Catalog records move with crates (architecture-boundaries will fail otherwise). Pure
 structure; no behavior change. Exit: `oya gate run-all` green with code colocated; "absorbed into
 Intelligence" is true on disk, not just in docs.
 
-**T3 — First real service: workload identity (NOT enterprise IAM).** Build the minimum `oya-identity-*`
+**T3 — First real service: workload identity (NOT enterprise IAM).** Build the minimum `identity-*`
 crates that implement the already-specified principal + Cedar authz gate
 (`IP-journey-j85/j80/j76-principal-and-authz-gate`): an OIDC issuer/verifier, a `principal` model,
 and token issuance gated by Cedar default-deny. Deploy it on the farm via the GitOps pipeline. Do
@@ -53,7 +53,7 @@ not the first deliverable.
       it covers workload (service) principals, not just human/customer tenants.
 
 ## Minimum scope (the first proof)
-**In:** GitHub + Jenkins commit-status (T1); intelligence crate colocation (T2); `oya-identity-*`
+**In:** GitHub + Jenkins commit-status (T1); intelligence crate colocation (T2); `identity-*`
 OIDC issuer/verifier + principal + Cedar authz-gate; one deployed service-to-service authenticated
 token exchange with audit evidence.
 **Out:** SCIM, SAML, passkeys, step-up auth, account recovery, human-facing login UI, multi-region,
@@ -70,7 +70,7 @@ is proven).
 - **A merge queue** — ADR-0363 §3: auto-merge + required checks suffice at current volume.
 
 ## Open Questions
-- Does `oya-identity-*` reuse an existing OIDC library from the approved allowlist, or is there a
+- Does `identity-*` reuse an existing OIDC library from the approved allowlist, or is there a
   blessed crate? (dependency-seam check before coding.)
 - Where does the Cedar policy engine live — its own crate, or inside identity? (layering decision.)
 - Is the k3s farm's ArgoCD wired to deploy a *new* service today, or only the existing demo lanes?

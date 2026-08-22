@@ -6,7 +6,7 @@ display_name: Query Eligibility Verdict
 description: |
   Read the latest eligibility verdict for a (microservice, source_sha, target_env) tuple
   from Mimir-native recording-rules (per ADR-0139). The verdict is the gate decision
-  consumed by `oya-governance-promotion-readiness` CI lane and by tenant-facing dashboards.
+  consumed by `governance-promotion-readiness` CI lane and by tenant-facing dashboards.
 
 owner_team: axis-observability
 maturity: stable

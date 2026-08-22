@@ -1,0 +1,20 @@
+[package]
+name = "shared-transactional-outbox-worker-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+shared-transactional-outbox-adapter-sqlx = { path = "../shared-transactional-outbox-adapter-sqlx" }
+shared-transactional-outbox-dispatch-app = { path = "../shared-transactional-outbox-dispatch-app" }
+shared-transactional-outbox-kernel = { path = "../shared-transactional-outbox-kernel" }
+
+[lib]
+name = "shared_transactional_outbox_worker_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

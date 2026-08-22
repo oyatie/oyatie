@@ -14,15 +14,15 @@ description = "Provider-pool composition root (usecase layer per ADR-0105). Wire
 #
 # The [[bin]] composition root (src/main.rs, pooling-convergence slice 1,
 # .omc/pooling-convergence.json) additionally path-deps on the bespoke hyper backbone
-# (oya-http-runtime-hyper-adapter Layer 5 + router/middleware kernels) and the
+# (http-runtime-hyper-adapter Layer 5 + router/middleware kernels) and the
 # anthropic/openai compat-api ingress crates to bind a runnable process. These are
 # workspace-internal path-deps, not a new external workspace dependency seam.
 [dependencies]
 intelligence-provider-pool-kernel = { path = "../provider-pool-kernel" }
 intelligence-account-kernel = { path = "../account-kernel" }
-oya-http-runtime-hyper-adapter = { path = "../../../libs/oya-http-runtime-hyper-adapter" }
-oya-http-router-kernel = { path = "../../../libs/oya-http-router-kernel" }
-oya-http-middleware-kernel = { path = "../../../libs/oya-http-middleware-kernel" }
+http-runtime-hyper-adapter = { path = "../../../libs/http-runtime-hyper-adapter" }
+http-router-kernel = { path = "../../../libs/http-router-kernel" }
+http-middleware-kernel = { path = "../../../libs/http-middleware-kernel" }
 intelligence-anthropic-compat-api = { path = "../../adapters/anthropic-compat-api" }
 intelligence-openai-compat-api = { path = "../../adapters/openai-compat-api" }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time", "net"] }

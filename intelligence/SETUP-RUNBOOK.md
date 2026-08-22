@@ -19,30 +19,30 @@ transient adapter and is not a cloud-intelligence contract:
 Then verify the ExternalSecret syncs:
 
 ```sh
-kubectl -n oya-cloud-intelligence get externalsecret cloud-intelligence-secrets -o yaml | grep -E "status|lastSyncedAt"
-kubectl -n oya-cloud-intelligence get secret cloud-intelligence-secrets   # exists after sync
+kubectl -n cloud-intelligence get externalsecret cloud-intelligence-secrets -o yaml | grep -E "status|lastSyncedAt"
+kubectl -n cloud-intelligence get secret cloud-intelligence-secrets   # exists after sync
 ```
 
 ## 2. Build the image  **[HUMAN-AUTH]**
 
 ```sh
 kubectl apply -f microservices/cloud-intelligence/k8s/buildkit-build.yaml
-kubectl -n oya-ci wait --for=condition=complete job/cloud-intelligence-image-build --timeout=15m
-kubectl -n oya-registry exec deploy/registry -- ls /var/lib/registry/docker/registry/v2/repositories/cloud-intelligence/_manifests/tags
+kubectl -n ci wait --for=condition=complete job/cloud-intelligence-image-build --timeout=15m
+kubectl -n registry exec deploy/registry -- ls /var/lib/registry/docker/registry/v2/repositories/cloud-intelligence/_manifests/tags
 ```
 
 ## 3. Sync ArgoCD
 
 ```sh
 argocd app sync cloud-intelligence
-kubectl -n oya-cloud-intelligence wait deploy/cloud-intelligence --for=condition=available --timeout=5m
-kubectl -n oya-cloud-intelligence get pods   # 3 running pods
+kubectl -n cloud-intelligence wait deploy/cloud-intelligence --for=condition=available --timeout=5m
+kubectl -n cloud-intelligence get pods   # 3 running pods
 ```
 
 ## 4. Verify
 
 ```sh
-kubectl -n oya-cloud-intelligence port-forward svc/cloud-intelligence 8080:8080 &
+kubectl -n cloud-intelligence port-forward svc/cloud-intelligence 8080:8080 &
 curl -sS -H "Authorization: Bearer <one of INGRESS_PROXY_KEYS>" \
   http://localhost:8080/healthz
 # expect: {"status":"ok"}
@@ -64,7 +64,7 @@ Per `README.md` "Live fanout" section: set `ANTHROPIC_BASE_URL` / `OPENAI_BASE_U
 
 ## Rotation
 
-90-day rotation: re-run step 1 with new values; ESO refreshes within 5 min; Deployment pods pick up via env (restart pods to force-refresh: `kubectl -n oya-cloud-intelligence rollout restart deploy/cloud-intelligence`).
+90-day rotation: re-run step 1 with new values; ESO refreshes within 5 min; Deployment pods pick up via env (restart pods to force-refresh: `kubectl -n cloud-intelligence rollout restart deploy/cloud-intelligence`).
 
 ---
 
@@ -79,9 +79,9 @@ The chart lives at `microservices/cloud-intelligence/iac/k8s/helm/`. It packages
 
 - `Chart.yaml` — chart named `cloud-intelligence`, version `0.1.0`.
 - `values.yaml` — image pinned by digest, `kata-cloud-hypervisor` runtime class (Tier-2
-  isolation), service account `oya-cloud-intelligence`, ClusterIP on port 8080.
-- `templates/deployment.yaml` — injects `OYA_CLOUD_INTEL_LISTEN_ADDR`,
-  `OYA_CLOUD_INTEL_TENANT_ID`, and `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`
+  isolation), service account `cloud-intelligence`, ClusterIP on port 8080.
+- `templates/deployment.yaml` — injects `OYATIE_CLOUD_INTEL_LISTEN_ADDR`,
+  `OYATIE_CLOUD_INTEL_TENANT_ID`, and `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`
   (from the ESO-managed secret).
 - `templates/externalsecret.yaml` — ESO `SecretStore` + `ExternalSecret`
   projecting owned cloud-secrets/cloud-kms handles.
@@ -127,7 +127,7 @@ verification, and smoke-test commands.
 ### What still requires founder action before first traffic
 
 1. **Publish the container image** — build `bin/cloud-intelligence` and push a
-   cosign-signed image to `registry.oyatie.dev/oya-cloud-intelligence:0.1.0` with the
+   cosign-signed image to `registry.oyatie.dev/cloud-intelligence:0.1.0` with the
    production digest. Update `image.digest` in `values.yaml` (or via the ApplicationSet
    parameter) to the real digest.
 2. **Secret-provider adapter access** — bind the `cloud-intelligence-service-role`

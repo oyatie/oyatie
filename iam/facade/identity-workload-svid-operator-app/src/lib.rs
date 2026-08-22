@@ -11,12 +11,12 @@
 //! environment; an invalid/empty value is a HARD startup error (the binary exits
 //! non-zero, mirroring the kms-operator-app precedent — never boots with a
 //! degraded config):
-//! - `OYA_SVID_OPERATOR_CELL_ID`        — the cell id (forms the SPIFFE authority).
-//! - `OYA_SVID_OPERATOR_NAMESPACE`      — the Secret namespace (default `cloud-iam`).
-//! - `OYA_SVID_OPERATOR_TTL_SECS`       — leaf lifetime seconds (default 3600).
-//! - `OYA_SVID_OPERATOR_ROTATION_WINDOW_SECS` — pre-expiry rotation window (default 600).
+//! - `OYATIE_SVID_OPERATOR_CELL_ID`        — the cell id (forms the SPIFFE authority).
+//! - `OYATIE_SVID_OPERATOR_NAMESPACE`      — the Secret namespace (default `cloud-iam`).
+//! - `OYATIE_SVID_OPERATOR_TTL_SECS`       — leaf lifetime seconds (default 3600).
+//! - `OYATIE_SVID_OPERATOR_ROTATION_WINDOW_SECS` — pre-expiry rotation window (default 600).
 //!
-//! The Secret name is FIXED to `oya-cloud-iam-pdp-svid` (the consumer contract).
+//! The Secret name is FIXED to `cloud-iam-pdp-svid` (the consumer contract).
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -28,7 +28,7 @@ use iam_identity_workload_svid_operator_k8s::ExponentialBackoff;
 use iam_identity_workload_svid_operator_kernel::{Clock, DesiredState};
 
 /// The fixed Secret name the consumer (`MtlsContext::from_path`) mounts.
-pub const PDP_SVID_SECRET_NAME: &str = "oya-cloud-iam-pdp-svid";
+pub const PDP_SVID_SECRET_NAME: &str = "cloud-iam-pdp-svid";
 /// The default Secret namespace (the cloud-iam namespace).
 pub const DEFAULT_NAMESPACE: &str = "cloud-iam";
 /// The default leaf lifetime in seconds (1 hour).
@@ -37,19 +37,19 @@ pub const DEFAULT_TTL_SECS: u64 = 3_600;
 pub const DEFAULT_ROTATION_WINDOW_SECS: u64 = 600;
 
 /// Env var: the cell id (forms `spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`).
-pub const ENV_CELL_ID: &str = "OYA_SVID_OPERATOR_CELL_ID";
+pub const ENV_CELL_ID: &str = "OYATIE_SVID_OPERATOR_CELL_ID";
 /// Env var: the Secret namespace.
-pub const ENV_NAMESPACE: &str = "OYA_SVID_OPERATOR_NAMESPACE";
+pub const ENV_NAMESPACE: &str = "OYATIE_SVID_OPERATOR_NAMESPACE";
 /// Env var: the leaf lifetime in seconds.
-pub const ENV_TTL_SECS: &str = "OYA_SVID_OPERATOR_TTL_SECS";
+pub const ENV_TTL_SECS: &str = "OYATIE_SVID_OPERATOR_TTL_SECS";
 /// Env var: the pre-expiry rotation window in seconds.
-pub const ENV_ROTATION_WINDOW_SECS: &str = "OYA_SVID_OPERATOR_ROTATION_WINDOW_SECS";
+pub const ENV_ROTATION_WINDOW_SECS: &str = "OYATIE_SVID_OPERATOR_ROTATION_WINDOW_SECS";
 
 /// Why the operator refused to start. Every variant is fail-closed: an invalid
 /// config exits the process non-zero rather than booting degraded.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum OperatorStartupConfigError {
-    /// `OYA_SVID_OPERATOR_CELL_ID` was missing or empty (no SPIFFE authority).
+    /// `OYATIE_SVID_OPERATOR_CELL_ID` was missing or empty (no SPIFFE authority).
     MissingCellId,
     /// The cell id carried whitespace/control/`/` (cannot form a cell authority).
     MalformedCellId(String),
@@ -60,7 +60,7 @@ pub enum OperatorStartupConfigError {
         /// The offending raw value.
         value: String,
     },
-    /// `OYA_SVID_OPERATOR_TTL_SECS` resolved to zero (a leaf must outlive issuance).
+    /// `OYATIE_SVID_OPERATOR_TTL_SECS` resolved to zero (a leaf must outlive issuance).
     ZeroTtl,
     /// The rotation window was >= the TTL (a leaf would be born already-rotating).
     RotationWindowNotBelowTtl {

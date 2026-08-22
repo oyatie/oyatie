@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-observability-timescaledb-extension
+name: observability-timescaledb-extension
 description: |
   TimescaleDB 2.26.x community-edition (Apache-2.0) extension hook for
   observability µservice's Postgres database per ADR-0194. Mirrors the

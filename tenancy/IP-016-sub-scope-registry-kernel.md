@@ -17,7 +17,7 @@ This IP creates the zero-I/O substrate for sub-scopes. It is not a UI, not an ad
 
 ## B. Approach
 
-Author `oya-tenancy-sub-scope-registry-kernel` as a pure Rust crate under the tenancy flat-layout target. The kernel defines `SubScopeId`, `SubScopeKind`, `SubScope`, `SubScopeParent`, `SubScopePath`, `HierarchyEdge`, and `SubScopeRegistryPort`. It enforces cycle refusal, maximum depth, tenant boundary preservation, immutable root scope, and namespace normalization before persistence exists.
+Author `tenancy-sub-scope-registry-kernel` as a pure Rust crate under the tenancy flat-layout target. The kernel defines `SubScopeId`, `SubScopeKind`, `SubScope`, `SubScopeParent`, `SubScopePath`, `HierarchyEdge`, and `SubScopeRegistryPort`. It enforces cycle refusal, maximum depth, tenant boundary preservation, immutable root scope, and namespace normalization before persistence exists.
 
 The hierarchy model is an adjacency edge plus materialized path projection: the kernel validates the edge set and produces a canonical path representation for the future Postgres closure-table adapter in `IP-023-sub-scope-registry-adapter-postgres.md`.
 
@@ -25,13 +25,13 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/Cargo.toml` | create | Register pure kernel dependencies only. |
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/lib.rs` | create | Export public types and deny unsafe code. |
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/entities.rs` | create | `SubScope`, `SubScopeId`, `SubScopeKind`, `SubScopePath`. |
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/hierarchy.rs` | create | Cycle, depth, parent-kind, and tenant-boundary validators. |
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/ports.rs` | create | `SubScopeRegistryPort` and `SubScopeHierarchyReadPort`. |
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/errors.rs` | create | `SubScopeKernelError` with no `anyhow`. |
-| `microservices/tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml` | update/create | Catalog row already listed in `manifest.json` and must match crate path. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/Cargo.toml` | create | Register pure kernel dependencies only. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/src/lib.rs` | create | Export public types and deny unsafe code. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/src/entities.rs` | create | `SubScope`, `SubScopeId`, `SubScopeKind`, `SubScopePath`. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/src/hierarchy.rs` | create | Cycle, depth, parent-kind, and tenant-boundary validators. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/src/ports.rs` | create | `SubScopeRegistryPort` and `SubScopeHierarchyReadPort`. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-kernel/src/errors.rs` | create | `SubScopeKernelError` with no `anyhow`. |
+| `microservices/tenancy/catalog/tenancy-sub-scope-registry-kernel.yaml` | update/create | Catalog row already listed in `manifest.json` and must match crate path. |
 
 ## D. Implementation
 
@@ -45,16 +45,16 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 
 ## E. Acceptance
 
-- `cargo check -p oya-tenancy-sub-scope-registry-kernel --all-features`.
-- `cargo nextest run -p oya-tenancy-sub-scope-registry-kernel --all-features`.
+- `cargo check -p tenancy-sub-scope-registry-kernel --all-features`.
+- `cargo nextest run -p tenancy-sub-scope-registry-kernel --all-features`.
 - Property tests prove no cycles, max depth 6, stable path ordering, and same-tenant-only parentage.
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-sub-scope-registry-kernel`.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tenancy`.
+- `cargo run -p dev-cli -- gate validate layer-correctness --crate tenancy-sub-scope-registry-kernel`.
+- `cargo run -p dev-cli -- gate validate per-microservice-layout --microservice tenancy`.
 
 ## F. Evidence
 
 - `microservices/tenancy/PRD.md` requires `TenantContext` as the only valid tenant representation and calls tenancy the single authority for every tenant decision.
-- `microservices/tenancy/manifest.json` already lists `microservices/tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml`.
+- `microservices/tenancy/manifest.json` already lists `microservices/tenancy/catalog/tenancy-sub-scope-registry-kernel.yaml`.
 - `microservices/tenancy/IP-023-sub-scope-registry-adapter-postgres.md` depends on this kernel for `sub_scopes` and closure-table persistence.
 - `microservices/tenancy/policy/tenant-scope.cedar` and `microservices/tenancy/policy/action-authorization.cedar` are the future policy consumers for sub-scope permissions.
 
@@ -71,4 +71,4 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-016-sub-scope-registry-kernel.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-016-sub-scope-registry-kernel.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

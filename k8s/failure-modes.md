@@ -176,7 +176,7 @@ Each carries: FM-ID; Trigger; Detection; Tenant impact; Severity; Immediate miti
 | Field | Value |
 |---|---|
 | Trigger | LEAN check missed a cross-namespace policy gap; live drift |
-| Detection | `oya_cross_namespace_cleartext_attempt_total > 0` OR continuous-state-validator alarms |
+| Detection | `cross_namespace_cleartext_attempt_total > 0` OR continuous-state-validator alarms |
 | Tenant impact | Potential confidentiality breach (DPIA R-01) |
 | Severity | Sev-1 (security breach) |
 | Immediate mitigation | Apply emergency default-deny override; engage ops-security; freeze affected namespaces; forensic trace |
@@ -189,7 +189,7 @@ Each carries: FM-ID; Trigger; Detection; Tenant impact; Severity; Immediate miti
 | Field | Value |
 |---|---|
 | Trigger | Kyverno admission failure (operator error or supply-chain compromise) |
-| Detection | `oya_admission_unsigned_image_admitted_total > 0` |
+| Detection | `admission_unsigned_image_admitted_total > 0` |
 | Tenant impact | Untrusted image potentially running |
 | Severity | Sev-1 (supply chain) |
 | Immediate mitigation | Force Kyverno reconcile; identify admitted unsigned pod; terminate; investigate supply chain |
@@ -202,7 +202,7 @@ Each carries: FM-ID; Trigger; Detection; Tenant impact; Severity; Immediate miti
 | Field | Value |
 |---|---|
 | Trigger | api-proxy pod crashloop; Cedar evaluator stuck; OpenBao token unreachable |
-| Detection | `oya_kubernetes_api_proxy_request_duration_seconds{quantile="0.99"} > 1s` for ≥ 2min |
+| Detection | `kubernetes_api_proxy_request_duration_seconds{quantile="0.99"} > 1s` for ≥ 2min |
 | Tenant impact | All kubectl + Foundry capability + CI access frozen |
 | Severity | Sev-1 |
 | Immediate mitigation | Verify api-proxy HA replicas; restart; verify Cedar fragment integrity; verify OpenBao reachability |

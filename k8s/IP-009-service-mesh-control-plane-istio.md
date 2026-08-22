@@ -6,12 +6,12 @@ impl_plan_id: IP-009-service-mesh-control-plane-istio
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-istio-strict-mtls]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, check-istio-strict-mtls]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-009: oya-cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}
+# IP-009: cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}
 
 ## Intent
 
@@ -25,15 +25,15 @@ Three new crates: kernel, usecase, adapter-istio (backend-qualified per ADR-0105
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-service-mesh-control-plane-kernel/{Cargo.toml,src/*}` | create |
-| `.../oya-cloud-k8s-service-mesh-control-plane-usecase/{Cargo.toml,src/{lib.rs,install.rs,canary_upgrade.rs,rollback.rs}}` | create |
-| `.../oya-cloud-k8s-service-mesh-control-plane-adapter-istio/{Cargo.toml,src/{lib.rs,istioctl.rs,operator_cr.rs}}` | create |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}.yaml` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-service-mesh-control-plane-kernel/{Cargo.toml,src/*}` | create |
+| `.../cloud-k8s-service-mesh-control-plane-usecase/{Cargo.toml,src/{lib.rs,install.rs,canary_upgrade.rs,rollback.rs}}` | create |
+| `.../cloud-k8s-service-mesh-control-plane-adapter-istio/{Cargo.toml,src/{lib.rs,istioctl.rs,operator_cr.rs}}` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAMES: oya-cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}
+NAMES: cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}
 JUSTIFICATION:
 - microservice = cloud-k8s; bc-tokens = service-mesh-control-plane
 - layers: kernel + usecase + adapter (+ backend `-istio` for adapter)
@@ -77,10 +77,10 @@ impl<I> CanaryUpgradeUseCase<I> where I: IstioCommander {
 
 ```bash
 for crate in service-mesh-control-plane-{kernel,usecase,adapter-istio}; do
-  cargo check -p oya-cloud-k8s-$crate
-  cargo nextest run -p oya-cloud-k8s-$crate
+  cargo check -p cloud-k8s-$crate
+  cargo nextest run -p cloud-k8s-$crate
 done
-cargo run -p oya-dev-cli -- gate validate istio-strict-mtls-enforced --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate istio-strict-mtls-enforced --microservice cloud-k8s
 ```
 
 ## Test Plan

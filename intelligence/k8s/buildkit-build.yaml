@@ -4,14 +4,14 @@
 # microservices/cloud-intelligence/Dockerfile, referenced via --opt filename=...
 #
 # Cache backend: SeaweedFS-on-Talos (ADR-0381 D4) on the shared
-# oya-ci-buildkit-cache bucket. Cell-pinned (soft) to oya.cell/ci.
+# ci-buildkit-cache bucket. Cell-pinned (soft) to oya.cell/ci.
 #
 # Re-run: delete + re-apply (or bump the image tag in --output).
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: cloud-intelligence-image-build
-  namespace: oya-ci
+  namespace: ci
   labels:
     oya.adr/decided-by: ADR-0381-D1
     oya.microservice: cloud-intelligence
@@ -51,13 +51,13 @@ spec:
             - |
               set -euo pipefail
               CONTEXT_URL="https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/jason931225/oyatie.git#refs/heads/dev"
-              CACHE_PARAMS="type=s3,region=oya-local,bucket=oya-ci-buildkit-cache,endpoint_url=http://seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333,access_key_id=oya-ci-anon,secret_access_key=oya-ci-anon,use_path_style=true"
-              buildctl --addr "tcp://buildkitd.oya-ci.svc.cluster.local:1234" \
+              CACHE_PARAMS="type=s3,region=local,bucket=ci-buildkit-cache,endpoint_url=http://seaweedfs-bucket-api.storage.svc.cluster.local:8333,access_key_id=ci-anon,secret_access_key=ci-anon,use_path_style=true"
+              buildctl --addr "tcp://buildkitd.ci.svc.cluster.local:1234" \
                 build \
                 --frontend dockerfile.v0 \
                 --opt "context=${CONTEXT_URL}" \
                 --opt "filename=microservices/cloud-intelligence/Dockerfile" \
-                --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev,push=true,registry.insecure=true" \
+                --output "type=image,name=registry.registry.svc.cluster.local:5000/cloud-intelligence:dev,push=true,registry.insecure=true" \
                 --import-cache "${CACHE_PARAMS}" \
                 --export-cache "${CACHE_PARAMS},mode=max" \
                 --metadata-file=/tmp/buildkit-meta.json
@@ -105,7 +105,7 @@ spec:
               # later rotated or compromised. A defensible trade for in-cluster
               # signing with no egress. Only the tlog is a change from v2: the
               # v2 invocation passed no --timestamp-server-url (`cosign sign
-              # --key oya-ci/cosign-key`, commit 33134e055) and trusted
+              # --key ci/cosign-key`, commit 33134e055) and trusted
               # timestamping is opt-in, so v2 produced no signed timestamp
               # either. --use-signing-config=false dropping the TSA path is the
               # likely mechanism for v3, not a verified one.
@@ -131,8 +131,8 @@ spec:
               echo "f7622ed3cf22e55e1ae6377c080979ff77a22da9981c11df222a2e444991e7cf  /tmp/cosign" | sha256sum -c -
               chmod +x /tmp/cosign
               /tmp/cosign sign --use-signing-config=false --tlog-upload=false \
-                --key oya-ci/cosign-key \
-                "registry.oya-registry.svc.cluster.local:5000/cloud-intelligence@${DIGEST}"
+                --key ci/cosign-key \
+                "registry.registry.svc.cluster.local:5000/cloud-intelligence@${DIGEST}"
           env:
             - name: GIT_USERNAME
               valueFrom: { secretKeyRef: { name: gateway-build-git, key: username } }
@@ -146,7 +146,7 @@ spec:
                   optional: true
           volumeMounts:
             - name: cosign-key
-              mountPath: /workspace/oya-ci
+              mountPath: /workspace/ci
               readOnly: true
           securityContext:
             runAsUser: 1000

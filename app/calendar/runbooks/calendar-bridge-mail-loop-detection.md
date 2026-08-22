@@ -15,15 +15,15 @@ doc_status: published
 
 ## Symptom
 
-The cross-µservice invitation bridge (`oya-calendar-invitation-flow-
+The cross-µservice invitation bridge (`calendar-invitation-flow-
 worker` → `mail` µservice via Workflow `mail.SendCalendarInvitation`
 events; mail µservice replies via `mail.InvitationReplyReceived`)
 enters a loop. Visible as:
 
-- `oya_calendar_invitation_flow_outbound_total{tenant_id,
+- `calendar_invitation_flow_outbound_total{tenant_id,
   invitation_id}` emits >5 outbound events for the same
   `invitation_id` within 5 minutes.
-- `oya_calendar_invitation_flow_inbound_total{tenant_id,
+- `calendar_invitation_flow_inbound_total{tenant_id,
   invitation_id}` similarly elevated.
 - The same iMIP / iTIP message bounces between calendar and mail
   with `METHOD:REPLY` → recursive `METHOD:COUNTER` → recursive
@@ -78,8 +78,8 @@ Loop triggers (each is a real iTIP RFC ambiguity):
 ### Step 1 — Identify the looping invitation_id
 
 ```bash
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar invitation top-by-outbound-count --window 5m --limit 5
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar invitation top-by-outbound-count --window 5m --limit 5
 ```
 
 Output: `(invitation_id, tenant_id, outbound_count_5m, inbound_count_5m, attendee_count)`.
@@ -87,8 +87,8 @@ Output: `(invitation_id, tenant_id, outbound_count_5m, inbound_count_5m, attende
 ### Step 2 — Inspect the invitation history
 
 ```bash
-inv_id=$(cargo run -p oya-dev-cli -- calendar invitation top-by-outbound-count --window 5m --limit 1 --output json | jq -r '.[0].invitation_id')
-cargo run -p oya-dev-cli -- calendar invitation describe-history --invitation-id "$inv_id" --since 1h
+inv_id=$(cargo run -p dev-cli -- calendar invitation top-by-outbound-count --window 5m --limit 1 --output json | jq -r '.[0].invitation_id')
+cargo run -p dev-cli -- calendar invitation describe-history --invitation-id "$inv_id" --since 1h
 ```
 
 The history shows the sequence of METHOD events. Look for:
@@ -102,7 +102,7 @@ The history shows the sequence of METHOD events. Look for:
 ### Step 3 — Confirm mail-side state
 
 ```bash
-cargo run -p oya-dev-cli -- mail trace-by-calendar-invitation --invitation-id "$inv_id"
+cargo run -p dev-cli -- mail trace-by-calendar-invitation --invitation-id "$inv_id"
 ```
 
 Output shows the SMTP envelope chain. Confirm whether the loop is
@@ -117,7 +117,7 @@ authoritative; a subsequent COUNTER from the same attendee should be
 refused. Add a circuit-breaker:
 
 ```bash
-cargo run -p oya-dev-cli -- calendar invitation circuit-break \
+cargo run -p dev-cli -- calendar invitation circuit-break \
   --invitation-id "$inv_id" \
   --reason "rfc-5546-3.2.7-counter-reply-loop" \
   --duration 1h
@@ -130,7 +130,7 @@ Notify the affected attendee + organiser via the support channel.
 Throttle the organiser's REQUEST emissions:
 
 ```bash
-cargo run -p oya-dev-cli -- calendar invitation throttle-organiser \
+cargo run -p dev-cli -- calendar invitation throttle-organiser \
   --invitation-id "$inv_id" \
   --rate "1 per 5min" \
   --duration 1h
@@ -142,14 +142,14 @@ Filter out empty RSVPs at the inbound side:
 
 ```bash
 # Server-side filter: refuse method=REPLY with empty PARTSTAT
-kubectl -n calendar patch configmap oya-calendar-invitation-flow-config --type merge -p \
+kubectl -n calendar patch configmap calendar-invitation-flow-config --type merge -p \
   '{"data":{"reject_empty_rsvp":"true"}}'
 ```
 
 Kick the inbound worker to reload config:
 
 ```bash
-kubectl -n calendar rollout restart deploy/oya-calendar-invitation-flow-worker
+kubectl -n calendar rollout restart deploy/calendar-invitation-flow-worker
 ```
 
 ### Case D — Mailing-list expansion
@@ -159,7 +159,7 @@ Mitigation is to throttle by `From:` domain at the inbound side:
 
 ```bash
 # Apply a domain-level throttle (e.g., lists.tenant.com)
-cargo run -p oya-dev-cli -- calendar invitation throttle-domain \
+cargo run -p dev-cli -- calendar invitation throttle-domain \
   --domain "lists.<tenant-domain>" \
   --rate "100 rpm" \
   --duration 1h
@@ -173,14 +173,14 @@ attendee addresses instead of the list address.
 
 ```bash
 # Outbound + inbound counts for the invitation_id are flat
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_invitation_flow_(outbound|inbound)_total' |
+  grep 'calendar_invitation_flow_(outbound|inbound)_total' |
   grep <invitation_id_substring>
 
 # Notification-delivery-freshness + rsvp-fanout-latency SLOs recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo notification-delivery-freshness
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo notification-delivery-freshness
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
 ```
 
 ## Post-incident

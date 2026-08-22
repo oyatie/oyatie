@@ -1591,7 +1591,7 @@ uncited-acronym	BNPL	docs/standards/fintech-compliance.md
 uncited-acronym	BOARD	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	BOARD	docs/personas/MASTER-ROSTER-2026-05-21.md
 uncited-acronym	BOK	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	BOK	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	BOK	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	BOK	docs/standards/fintech-compliance.md
 uncited-acronym	BOL	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 uncited-acronym	BOM	docs/advanced-cicd/release-versioning/release-versioning-strategy.md
@@ -1916,7 +1916,7 @@ uncited-acronym	CCO	docs/personas/cco-naveen-iyer.md
 uncited-acronym	CCP	docs/teams/vertical-food/CHARTER.md
 uncited-acronym	CCTV	docs/DESIGN.md
 uncited-acronym	CCTV	docs/PRD.md
-uncited-acronym	CCTV	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	CCTV	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	CCTV	docs/standards/voice-video-call-architecture.md
 uncited-acronym	CDD	docs/standards/fintech-compliance.md
 uncited-acronym	CDE	docs/SPEC.md
@@ -2192,7 +2192,7 @@ uncited-acronym	CNP	docs/operators/ADR-0145-runtime-impact-changelog.md
 uncited-acronym	CNPJ	docs/regional-packs/_TEMPLATE.md
 uncited-acronym	CNS	docs/GTM-PLAN.md
 uncited-acronym	CNS	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	CNS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	CNS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	CO	docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 uncited-acronym	CO	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	CO	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
@@ -2789,7 +2789,7 @@ uncited-acronym	DHKEM	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	DHL	docs/teams/vertical-logistics/CHARTER.md
 uncited-acronym	DI	docs/INTERNATIONALIZATION.md
 uncited-acronym	DI	docs/architecture/product-graph.md
-uncited-acronym	DI	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	DI	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	DI	docs/standards/clean-architecture.md
 uncited-acronym	DI	docs/standards/fintech-compliance.md
 uncited-acronym	DIAGNOSTIC	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
@@ -3471,7 +3471,7 @@ uncited-acronym	EEOC	docs/user-journeys/j152-ahmad-hassan-construction-site-inci
 uncited-acronym	EEOC	docs/user-journeys/j152-ahmad-hassan-construction-site-incident-bilingual/ux-flow.md
 uncited-acronym	EEXIST	docs/products/foundry/supervisor/jsonl-supervisor-adapter/SECURITY.md
 uncited-acronym	EFT	docs/standards/fintech-compliance.md
-uncited-acronym	EFTA	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	EFTA	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	EFTA	docs/standards/fintech-compliance.md
 uncited-acronym	EG	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	EHA	docs/standards/documentation-rigor.md
@@ -4168,7 +4168,7 @@ uncited-acronym	FERPA	docs/personas/returning-intern-jia-han.md
 uncited-acronym	FERPA	docs/personas/training-specialist-mehmet-yilmaz.md
 uncited-acronym	FERPA	docs/standards/migration-playbook.md
 uncited-acronym	FERPA	docs/teams/vertical-education/CHARTER.md
-uncited-acronym	FETA	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	FETA	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	FETA	docs/standards/fintech-compliance.md
 uncited-acronym	FFIEC	docs/COMPLIANCE-MATRIX.md
 uncited-acronym	FFIEC	docs/regional-packs/_TEMPLATE.md
@@ -4357,7 +4357,7 @@ uncited-acronym	FX	docs/checklists/regional-pack-onboarding.md
 uncited-acronym	FX	docs/products/erp-coverage/PRD.md
 uncited-acronym	FX	docs/products/workplace-integration/PRD.md
 uncited-acronym	FX	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	FX	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	FX	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	FX	docs/standards/fintech-compliance.md
 uncited-acronym	FX	docs/user-journeys/REPORT-j116-j150-remainder.md
 uncited-acronym	FX	docs/user-journeys/j106-multi-currency-cross-border-payment/README.md
@@ -4515,7 +4515,7 @@ uncited-acronym	GL	docs/PRD.md
 uncited-acronym	GL	docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 uncited-acronym	GL	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	GL	docs/products/README.md
-uncited-acronym	GL	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	GL	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	GL	docs/standards/migration-playbook.md
 uncited-acronym	GL	docs/teams/vertical-corporate/CHARTER.md
 uncited-acronym	GLBA	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
@@ -4541,7 +4541,7 @@ uncited-acronym	GPS	docs/user-journeys/j03-988-crisis-line-minor-self-report/sto
 uncited-acronym	GPS	docs/user-journeys/j151-captain-olufemi-typhoon-evacuation-and-co-op-cash-flow/README.md
 uncited-acronym	GPT	docs/PRD.md
 uncited-acronym	GPT	docs/products/foundry/PRD.md
-uncited-acronym	GRAC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	GRAC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	GRACEFULLY	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/integration-test-plan.md
 uncited-acronym	GRAPH	docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/handshake.md
 uncited-acronym	GRAPH	docs/user-journeys/j91-us-state-money-transmitter-licensing/handshake.md
@@ -4989,7 +4989,7 @@ uncited-acronym	ICS	docs/user-journeys/j144-laid-off-builds-job-search-pipeline-
 uncited-acronym	ICS	docs/user-journeys/j145-laid-off-applies-via-community-handshake-linkedin-mode/ux-flow.md
 uncited-acronym	ICT	docs/GTM-PLAN.md
 uncited-acronym	ICT	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	ICT	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	ICT	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	ICT	docs/standards/fintech-compliance.md
 uncited-acronym	ICU	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	ICU	docs/architecture/keystone-bundle-audit-report.md
@@ -5027,7 +5027,7 @@ uncited-acronym	IE	docs/regional-packs/README.md
 uncited-acronym	IE	docs/standards/emoji-sticker-reaction-system.md
 uncited-acronym	IE	docs/standards/fintech-compliance.md
 uncited-acronym	IEC	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
-uncited-acronym	IEC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	IEC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	IEC	docs/standards/documentation-rigor.md
 uncited-acronym	IEC	docs/user-journeys/j95-iso-27001-soc-2-annual-audit/README.md
 uncited-acronym	IEC	docs/user-journeys/j95-iso-27001-soc-2-annual-audit/handshake.md
@@ -5495,7 +5495,7 @@ uncited-acronym	JUDICIAL	docs/user-journeys/j141-internal-audit-respects-employe
 uncited-acronym	JUSTIFICATION	docs/architecture/memory-spec-runbook-audit-2026-05-21.md
 uncited-acronym	JVM	docs/TOOLCHAIN.md
 uncited-acronym	JWKS	docs/standards/step-up-auth-classes.md
-uncited-acronym	KAKAO	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KAKAO	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KB	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	KB	docs/architecture/keystone-bundle-intern-walkthrough.md
 uncited-acronym	KB	docs/architecture/keystone-bundle-reading-order.md
@@ -5509,14 +5509,14 @@ uncited-acronym	KB	docs/user-stories/b2b-work-surfaces.md
 uncited-acronym	KB	docs/user-stories/b2c-consumer-surfaces.md
 uncited-acronym	KCB	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	KCB	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	KCB	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KCB	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KCB	docs/standards/fintech-compliance.md
 uncited-acronym	KCC	docs/COMPLIANCE-MATRIX.md
 uncited-acronym	KCC	docs/DESIGN.md
 uncited-acronym	KCC	docs/DOC-CATALOG.md
 uncited-acronym	KCC	docs/PRD.md
 uncited-acronym	KCC	docs/automation/audit-chain-map-spec.md
-uncited-acronym	KCC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KCC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KCC	docs/runbooks/ops/regulator-notification-procedure.md
 uncited-acronym	KCC	docs/standards/emoji-sticker-reaction-system.md
 uncited-acronym	KCC	docs/standards/observability.md
@@ -5524,7 +5524,7 @@ uncited-acronym	KCC	docs/teams/gtm-partnerships/CHARTER.md
 uncited-acronym	KCC	docs/teams/ops-compliance/CHARTER.md
 uncited-acronym	KCC	docs/teams/vertical-fintech/CHARTER.md
 uncited-acronym	KCS	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	KCS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KCS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KDF	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	KDIC	docs/standards/fintech-compliance.md
 uncited-acronym	KEM	docs/standards/documentation-rigor.md
@@ -5541,7 +5541,7 @@ uncited-acronym	KEYSTONE	docs/user-journeys/j141-internal-audit-respects-employe
 uncited-acronym	KFB	docs/teams/vertical-fintech/CHARTER.md
 uncited-acronym	KFTC	docs/DESIGN.md
 uncited-acronym	KFTC	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	KFTC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KFTC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KFTC	docs/standards/fintech-compliance.md
 uncited-acronym	KFTC	docs/teams/vertical-fintech/CHARTER.md
 uncited-acronym	KG	docs/COMPETITIVE-GAP-ANALYSIS.md
@@ -5549,18 +5549,18 @@ uncited-acronym	KG	docs/DESIGN.md
 uncited-acronym	KG	docs/DOC-CATALOG.md
 uncited-acronym	KG	docs/PRD.md
 uncited-acronym	KG	docs/checklists/wave-gate.md
-uncited-acronym	KG	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KG	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KHIRA	docs/architecture/product-graph.md
 uncited-acronym	KICA	docs/products/workplace-integration/PRD.md
 uncited-acronym	KICC	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	KICC	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	KICC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KICC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KICC	docs/standards/fintech-compliance.md
 uncited-acronym	KID	docs/standards/voice-video-call-architecture.md
 uncited-acronym	KINX	docs/products/cloud/PRD.md
 uncited-acronym	KIOSK	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	KIX	docs/products/cloud/PRD.md
-uncited-acronym	KMD	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KMD	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KMP	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	KMP	docs/TOOLCHAIN.md
 uncited-acronym	KMP	docs/standards/ci-lanes.md
@@ -5568,9 +5568,9 @@ uncited-acronym	KODA	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	KODA	docs/DESIGN.md
 uncited-acronym	KODA	docs/GTM-PLAN.md
 uncited-acronym	KODA	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	KODA	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KODA	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KOFIA	docs/standards/fintech-compliance.md
-uncited-acronym	KOSHA	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KOSHA	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KP	docs/architecture/keystone-bundle-intern-walkthrough.md
 uncited-acronym	KP	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	KPI	docs/DESIGN.md
@@ -5580,7 +5580,7 @@ uncited-acronym	KRW	docs/INTERNATIONALIZATION.md
 uncited-acronym	KRW	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	KRW	docs/prds/accounting.md
 uncited-acronym	KRW	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	KRW	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KRW	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KRW	docs/standards/fintech-compliance.md
 uncited-acronym	KRW	docs/user-journeys/j106-multi-currency-cross-border-payment/README.md
 uncited-acronym	KRW	docs/user-journeys/j106-multi-currency-cross-border-payment/handshake.md
@@ -5595,11 +5595,11 @@ uncited-acronym	KS	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	KS	docs/architecture/memory-spec-runbook-audit-2026-05-21.md
 uncited-acronym	KS	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 uncited-acronym	KS	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
-uncited-acronym	KS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KS	docs/user-journeys/j154-tomas-pieter-channel-partner-co-marketing-launch/story.md
 uncited-acronym	KS	docs/user-stories/b2b-work-surfaces.md
 uncited-acronym	KSD	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	KSD	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KSD	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KSD	docs/standards/fintech-compliance.md
 uncited-acronym	KSDA	docs/standards/fintech-compliance.md
 uncited-acronym	KST	docs/INTERNATIONALIZATION.md
@@ -5623,7 +5623,7 @@ uncited-acronym	KT	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	KT	docs/products/cloud/PRD.md
 uncited-acronym	KT	docs/products/workplace-integration/PRD.md
 uncited-acronym	KT	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	KT	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	KT	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	KT	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	KT	docs/teams/gtm-marketing/CHARTER.md
 uncited-acronym	KT	docs/teams/gtm-partnerships/CHARTER.md
@@ -5665,7 +5665,7 @@ uncited-acronym	LB	docs/products/cloud/PRD.md
 uncited-acronym	LB	docs/standards/api-surface-separation.md
 uncited-acronym	LB	docs/standards/voice-video-call-architecture.md
 uncited-acronym	LB	docs/teams/axis-cloud/CHARTER.md
-uncited-acronym	LBS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	LBS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	LCD	docs/user-journeys/j146-laid-off-uses-marketplace-as-temporary-income/story.md
 uncited-acronym	LCP	docs/standards/ux-best-practices.md
 uncited-acronym	LE	docs/architecture/persona-journey-microservice-cross-coverage-matrix-2026-05-21.md
@@ -5692,12 +5692,12 @@ uncited-acronym	LG	docs/DESIGN.md
 uncited-acronym	LG	docs/GTM-PLAN.md
 uncited-acronym	LG	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	LG	docs/products/foundry/PRD.md
-uncited-acronym	LG	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	LG	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	LG	docs/user-journeys/j01-emergency-911-dispatch/ux-flow.md
 uncited-acronym	LGTM	docs/research/hyperscaler-best-practices-2026-05-12.md
 uncited-acronym	LGTM	docs/standards/hyperscaler-best-practices.md
 uncited-acronym	LGU	docs/COMPETITIVE-GAP-ANALYSIS.md
-uncited-acronym	LGU	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	LGU	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	LICENSE	docs/research/lts-versions-verified-2026-05-12.md
 uncited-acronym	LICENSE	docs/standards/emoji-sticker-reaction-system.md
 uncited-acronym	LICENSE	docs/standards/lts-versions-verified.md
@@ -6259,7 +6259,7 @@ uncited-acronym	NEW	docs/user-journeys/j152-ahmad-hassan-construction-site-incid
 uncited-acronym	NFC	docs/INTERNATIONALIZATION.md
 uncited-acronym	NFC	docs/products/workplace-integration/PRD.md
 uncited-acronym	NFC	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	NFC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	NFC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	NFC	docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/story.md
 uncited-acronym	NFC	docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/ux-flow.md
 uncited-acronym	NFC	docs/user-journeys/j127-dual-tenant-identity-employee-resigns-and-keeps-personal/story.md
@@ -6290,7 +6290,7 @@ uncited-acronym	NHIS	docs/architecture/product-graph.md
 uncited-acronym	NHIS	docs/localization-packs/kr.md
 uncited-acronym	NHIS	docs/prds/payroll.md
 uncited-acronym	NHIS	docs/prds/workflow.md
-uncited-acronym	NHIS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	NHIS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	NHIS	docs/teams/vertical-corporate/CHARTER.md
 uncited-acronym	NHIS	docs/teams/vertical-healthcare/CHARTER.md
 uncited-acronym	NHK	docs/user-stories/b2c-consumer-surfaces.md
@@ -6301,7 +6301,7 @@ uncited-acronym	NHN	docs/PRD.md
 uncited-acronym	NHN	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	NHN	docs/products/cloud/PRD.md
 uncited-acronym	NHN	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	NHN	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	NHN	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	NHN	docs/teams/gtm-marketing/CHARTER.md
 uncited-acronym	NHN	docs/teams/gtm-partnerships/CHARTER.md
 uncited-acronym	NIBSS	docs/DESIGN.md
@@ -6310,7 +6310,7 @@ uncited-acronym	NIC	docs/standards/authz-tier-boundaries.md
 uncited-acronym	NIC	docs/standards/voice-video-call-architecture.md
 uncited-acronym	NICE	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	NICE	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	NICE	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	NICE	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	NICE	docs/standards/fintech-compliance.md
 uncited-acronym	NIN	docs/DESIGN.md
 uncited-acronym	NIST	docs/COMPLIANCE-MATRIX.md
@@ -6374,7 +6374,7 @@ uncited-acronym	NTP	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	NTP	docs/performance-budgets/truetime-hlc-uncertainty-budget.md
 uncited-acronym	NTS	docs/COMPLIANCE-MATRIX.md
 uncited-acronym	NTS	docs/INTERNATIONALIZATION.md
-uncited-acronym	NTS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	NTS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	NUMBER	docs/user-journeys/j129-court-warrant-pierces-personal-tenant-with-judicial-oversight/story.md
 uncited-acronym	NV	docs/standards/voice-video-call-architecture.md
 uncited-acronym	NVD	docs/standards/documentation-rigor.md
@@ -6634,7 +6634,7 @@ uncited-acronym	OSKO	docs/INTERNATIONALIZATION.md
 uncited-acronym	OSKO	docs/standards/fintech-compliance.md
 uncited-acronym	OSV	docs/standards/documentation-rigor.md
 uncited-acronym	OT	docs/DOC-CATALOG.md
-uncited-acronym	OT	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	OT	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	OT	docs/runbooks/vertical-industrial/ot-safety-anomaly.md
 uncited-acronym	OT	docs/teams/ops-security/CHARTER.md
 uncited-acronym	OT	docs/teams/vertical-industrial/CHARTER.md
@@ -6739,7 +6739,7 @@ uncited-acronym	PASS	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-2
 uncited-acronym	PASS	docs/checklists/cross-axis-contract-change-checklist.md
 uncited-acronym	PASS	docs/checklists/per-phase-completion-checklist.md
 uncited-acronym	PASS	docs/checklists/pr-review-checklist.md
-uncited-acronym	PASS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	PASS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	PASS	docs/release/branch-pipeline/governance-lanes-for-branch-pipeline.md
 uncited-acronym	PASS	docs/release/progressive-delivery/canary-rail-spec.md
 uncited-acronym	PASS	docs/release/progressive-delivery/playbook-foundry.md
@@ -6931,7 +6931,7 @@ uncited-acronym	PG	docs/architecture/product-graph.md
 uncited-acronym	PG	docs/localization-packs/kr.md
 uncited-acronym	PG	docs/products/README.md
 uncited-acronym	PG	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	PG	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	PG	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	PG	docs/standards/fintech-compliance.md
 uncited-acronym	PG	docs/standards/migration-playbook.md
 uncited-acronym	PG	docs/teams/vertical-fintech/CHARTER.md
@@ -6967,7 +6967,7 @@ uncited-acronym	PIPC	docs/automation/audit-chain-map-spec.md
 uncited-acronym	PIPC	docs/checklists/incident-response.md
 uncited-acronym	PIPC	docs/checklists/legacy-adr-deletion.md
 uncited-acronym	PIPC	docs/checklists/vertical-onboarding.md
-uncited-acronym	PIPC	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	PIPC	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	PIPC	docs/runbooks/ops/regulator-notification-procedure.md
 uncited-acronym	PIPC	docs/runbooks/tenant-data-residency-violation.md
 uncited-acronym	PIPC	docs/standards/autonomy-ceiling.md
@@ -7007,7 +7007,7 @@ uncited-acronym	PKCE	docs/prds/application.md
 uncited-acronym	PKCE	docs/standards/crate-naming-convention.md
 uncited-acronym	PKCS	docs/standards/fips-hsm-substrate-root-signing.md
 uncited-acronym	PKI	docs/architecture/hyperscaler-pattern-attribution.md
-uncited-acronym	PKI	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	PKI	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	PKI	docs/standards/messenger-e2e-encryption-mls.md
 uncited-acronym	PKV	docs/user-journeys/j136-hr-administers-benefits-open-enrollment/story.md
 uncited-acronym	PL	docs/COMPLIANCE-MATRIX.md
@@ -7093,7 +7093,7 @@ uncited-acronym	PORTAL	docs/user-journeys/j98-au-privacy-apra-cps-234-tenant/han
 uncited-acronym	PORTAL	docs/user-journeys/j99-cross-jurisdiction-multi-pack-conflict-resolution/handshake.md
 uncited-acronym	POSCO	docs/GTM-PLAN.md
 uncited-acronym	POSCO	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	POSCO	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	POSCO	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	POSH	docs/user-journeys/j135-hr-handles-harassment-complaint-with-dual-tenant-boundary/README.md
 uncited-acronym	POSH	docs/user-journeys/j135-hr-handles-harassment-complaint-with-dual-tenant-boundary/story.md
 uncited-acronym	POSITIVE	docs/architecture/ip-corpus-line-audit-2026-05-21.md
@@ -7957,7 +7957,7 @@ uncited-acronym	RPS	docs/templates/prd-template.md
 uncited-acronym	RQ	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	RR	docs/standards/documentation-rigor.md
 uncited-acronym	RRN	docs/PRIVACY-PROGRAM.md
-uncited-acronym	RRN	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	RRN	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	RRN	docs/standards/fintech-compliance.md
 uncited-acronym	RRN	docs/user-stories/b2b-work-surfaces.md
 uncited-acronym	RRULE	docs/products/workplace-integration/PRD.md
@@ -7990,7 +7990,7 @@ uncited-acronym	RTCP	docs/standards/voice-video-call-architecture.md
 uncited-acronym	RTF	docs/standards/voice-video-call-architecture.md
 uncited-acronym	RTGS	docs/DESIGN.md
 uncited-acronym	RTGS	docs/INTERNATIONALIZATION.md
-uncited-acronym	RTGS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	RTGS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	RTGS	docs/standards/fintech-compliance.md
 uncited-acronym	RTGS	docs/user-journeys/j133-hr-conducts-layoff-with-dignity-and-compliance/handshake.md
 uncited-acronym	RTGS	docs/user-journeys/j133-hr-conducts-layoff-with-dignity-and-compliance/story.md
@@ -8000,7 +8000,7 @@ uncited-acronym	RTL	docs/DESIGN.md
 uncited-acronym	RTL	docs/INTERNATIONALIZATION.md
 uncited-acronym	RTL	docs/checklists/regional-pack-onboarding.md
 uncited-acronym	RTL	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	RTL	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	RTL	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	RTL	docs/standards/emoji-sticker-reaction-system.md
 uncited-acronym	RTL	docs/standards/i18n-canonical.md
 uncited-acronym	RTL	docs/standards/locale-routing.md
@@ -8168,7 +8168,7 @@ uncited-acronym	SCF	docs/COMPLIANCE-MATRIX.md
 uncited-acronym	SCHEMA	docs/standards/cedar-policy-discipline.md
 uncited-acronym	SCI	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	SCI	docs/regional-packs/_TEMPLATE.md
-uncited-acronym	SCI	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SCI	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SCI	docs/standards/fintech-compliance.md
 uncited-acronym	SCIF	docs/standards/fips-hsm-substrate-root-signing.md
 uncited-acronym	SCM	docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
@@ -8210,7 +8210,7 @@ uncited-acronym	SDR	docs/personas/sdr-kofi-asante.md
 uncited-acronym	SDS	docs/GTM-PLAN.md
 uncited-acronym	SDS	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	SDS	docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
-uncited-acronym	SDS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SDS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SE	docs/DESIGN.md
 uncited-acronym	SE	docs/GTM-PLAN.md
 uncited-acronym	SE	docs/advanced-cicd/release-versioning/INDEX.md
@@ -8376,7 +8376,7 @@ uncited-acronym	SI	docs/GTM-PLAN.md
 uncited-acronym	SI	docs/HIRING-CAPACITY-PLAN.md
 uncited-acronym	SI	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	SI	docs/checklists/regional-pack-onboarding.md
-uncited-acronym	SI	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SI	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SIDE	docs/user-journeys/j91-us-state-money-transmitter-licensing/story.md
 uncited-acronym	SIEM	docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 uncited-acronym	SIEM	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
@@ -8406,9 +8406,9 @@ uncited-acronym	SIS	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	SIS	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 uncited-acronym	SK	docs/GTM-PLAN.md
 uncited-acronym	SK	docs/VENDOR-PARTNER-LEDGER.md
-uncited-acronym	SK	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SK	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SKT	docs/COMPETITIVE-GAP-ANALYSIS.md
-uncited-acronym	SKT	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SKT	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SKT	docs/user-journeys/j01-emergency-911-dispatch/handshake.md
 uncited-acronym	SKT	docs/user-journeys/j01-emergency-911-dispatch/ux-flow.md
 uncited-acronym	SKU	docs/FINOPS-PLAN.md
@@ -8488,7 +8488,7 @@ uncited-acronym	SMS	docs/architecture/enterprise-software-coverage-matrix-2026-0
 uncited-acronym	SMS	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	SMS	docs/architecture/keystone-bundle-intern-walkthrough.md
 uncited-acronym	SMS	docs/products/workplace-integration/PRD.md
-uncited-acronym	SMS	docs/regional-packs/oya-pack-kr/PACK.md
+uncited-acronym	SMS	docs/regional-packs/pack-kr/PACK.md
 uncited-acronym	SMS	docs/standards/ux-best-practices.md
 uncited-acronym	SMS	docs/user-journeys/j01-emergency-911-dispatch/handshake.md
 uncited-acronym	SMS	docs/user-journeys/j03-988-crisis-line-minor-self-report/ux-flow.md

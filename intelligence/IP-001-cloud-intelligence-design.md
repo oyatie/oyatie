@@ -18,7 +18,7 @@ Take the cloud-intelligence µservice from its current code-backed local foundat
 - Bedrock-shaped audit + low-PII metering with default-off body logging (brief §3, §9),
 - TTFT-headline SLOs + OTel metrics (brief §4).
 
-The pure kernel state machine (`crates/oya-cloud-intelligence-kernel/src/lib.rs`) is **already implemented and unit-tested** (round-robin select, failure→blacklist→jittered-cooldown→lazy-restore, success-reset, `ProviderChannel`, hash-only `KeyFingerprint`). This IP does **not** re-author the kernel; it wires the kernel into a production rest layer and authors the design-spec package.
+The pure kernel state machine (`crates/cloud-intelligence-kernel/src/lib.rs`) is **already implemented and unit-tested** (round-robin select, failure→blacklist→jittered-cooldown→lazy-restore, success-reset, `ProviderChannel`, hash-only `KeyFingerprint`). This IP does **not** re-author the kernel; it wires the kernel into a production rest layer and authors the design-spec package.
 
 ### Out of scope (Non-Goals from PRD §3)
 
@@ -46,7 +46,7 @@ The pure kernel state machine (`crates/oya-cloud-intelligence-kernel/src/lib.rs`
 
 ### T1 — Canonical OpenAI-compatible ingress surface (rest crate) [brief §2]
 
-Add the canonical routes to `crates/oya-cloud-intelligence-rest` alongside the existing transparent `/proxy/{group}/{*rest}` path:
+Add the canonical routes to `crates/cloud-intelligence-rest` alongside the existing transparent `/proxy/{group}/{*rest}` path:
 
 - `POST /v1/chat/completions` — non-stream + `"stream": true` SSE (`text/event-stream`, `data:`-prefixed, terminal `data: [DONE]`).
 - `POST /v1/embeddings`, `GET /v1/models`.
@@ -78,7 +78,7 @@ Wire the existing kernel `KeyPool` behind a per-channel guard (the kernel mutate
 
 Per-provider circuit breaker: consume upstream `Retry-After`; set key cooldown to `Retry-After` when present, else jittered-exponential (`record_failure` jitter seed from a runtime entropy source). All-keys-cooling-down → fast-fail `Retry-After` = soonest restore.
 
-**Acceptance:** PRD AC-3, AC-4.1; kernel transitions already covered by `oya-cloud-intelligence-kernel` unit tests.
+**Acceptance:** PRD AC-3, AC-4.1; kernel transitions already covered by `cloud-intelligence-kernel` unit tests.
 
 ### T4 — Per-tenant key pools + concurrent token budgets [brief §6, §8]
 
@@ -151,7 +151,7 @@ Contracts (T1/T2/T6) are authored first as the interface source of truth (api-an
 
 | Mode | Detection | Mitigation |
 |---|---|---|
-| All keys in a pool blacklisted | `active_count == 0`; `oya_cloud_intelligence_pool_exhausted` | 503 `gateway_key_exhausted` + `Retry-After` = soonest restore; page per `runbooks/key-exhaustion.md` |
+| All keys in a pool blacklisted | `active_count == 0`; `cloud_intelligence_pool_exhausted` | 503 `gateway_key_exhausted` + `Retry-After` = soonest restore; page per `runbooks/key-exhaustion.md` |
 | Provider-wide outage (every key 5xx) | per-provider breaker open | provider-fallback then 503 `gateway_provider_unavailable`; `runbooks/provider-outage.md` |
 | Tenant budget exhausted | budget window check | 429 `budget_exceeded` for that tenant only |
 | Upstream `Retry-After` storm | 429 rate + breaker | honor `Retry-After` as cooldown; exclude from error budget |
@@ -181,5 +181,5 @@ Contracts (T1/T2/T6) are authored first as the interface source of truth (api-an
 - `microservices/cloud-intelligence/PRD.md` (§4 recommended design, §6 acceptance criteria).
 - `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain).
 - ADR-0090, ADR-0105, ADR-0131, ADR-0373, ADR-0373, ADR-0373.
-- Kernel: `crates/oya-cloud-intelligence-kernel/src/lib.rs` (implemented, unit-tested).
-- Rest foundation: `crates/oya-cloud-intelligence-rest/src/{proxy,channel,keystore,auth,metrics,logging,state,config}.rs`.
+- Kernel: `crates/cloud-intelligence-kernel/src/lib.rs` (implemented, unit-tested).
+- Rest foundation: `crates/cloud-intelligence-rest/src/{proxy,channel,keystore,auth,metrics,logging,state,config}.rs`.

@@ -18,11 +18,11 @@ Bridge every identity-class event into the `audit-chain` µservice with Ed25519 
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-audit-emitter-kernel/Cargo.toml` | trait + types |
-| `crates/oya-identity-audit-emitter-kernel/src/lib.rs` | `AuditEmitter` trait + 18 event types |
-| `crates/oya-identity-audit-emitter-usecase/src/lib.rs` | dispatcher + sign + enqueue |
-| `crates/oya-identity-audit-emitter-app/src/lib.rs` | background drainer |
-| `crates/oya-identity-audit-emitter-adapter-audit-chain-bridge/src/lib.rs` | gRPC to audit-chain |
+| `crates/identity-audit-emitter-kernel/Cargo.toml` | trait + types |
+| `crates/identity-audit-emitter-kernel/src/lib.rs` | `AuditEmitter` trait + 18 event types |
+| `crates/identity-audit-emitter-usecase/src/lib.rs` | dispatcher + sign + enqueue |
+| `crates/identity-audit-emitter-app/src/lib.rs` | background drainer |
+| `crates/identity-audit-emitter-adapter-audit-chain-bridge/src/lib.rs` | gRPC to audit-chain |
 
 ## Event types
 

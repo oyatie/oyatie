@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every workspace dep is LTS-pinned per `lts-versions-verified` spec and `cargo deny` policy passes.
 - enforces: Directive 8 (MASTERPLAN), `.omc/scratch/lts-versions-verified-2026-05-12.md`.
-- kernel_crate: `oya-governance-lts-dependency-kernel` — `DepPin { crate_id, dep_name, requested, verified_lts }`, verdict `LtsDependencyFitnessReport { deps_checked }`.
-- runner_path: `tools/oya-governance-lts-dependency`
+- kernel_crate: `governance-lts-dependency-kernel` — `DepPin { crate_id, dep_name, requested, verified_lts }`, verdict `LtsDependencyFitnessReport { deps_checked }`.
+- runner_path: `tools/governance-lts-dependency`
 - inputs: `Cargo.toml` workspace dep table, lts-verified registry, `cargo deny` report.
 - failure_modes:
   - dep request differs from LTS pin
   - cargo deny reports advisory/license violation
   - dep on yanked version
-- ci_invocation: `cargo run -p oya-governance-lts-dependency`
+- ci_invocation: `cargo run -p governance-lts-dependency`
 - runtime_budget: 1800 ms
 - severity: BLOCKER
 - kernel_sketch:

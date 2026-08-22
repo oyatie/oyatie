@@ -26,11 +26,11 @@
       "name": "cloud-iam",
       "description": "Bounded context 'cloud-iam' for tenant identity, authorization, STS, provider translation, role and principal lifecycle.",
       "crates": [
-        "oya-cloud-iam-domain",
-        "oya-cloud-iam-app",
-        "oya-cloud-iam-api",
-        "oya-cloud-iam-adapter-oci",
-        "oya-cloud-iam-adapter-selfhosted"
+        "cloud-iam-domain",
+        "cloud-iam-app",
+        "cloud-iam-api",
+        "cloud-iam-adapter-oci",
+        "cloud-iam-adapter-selfhosted"
       ]
     }
   ],
@@ -58,61 +58,61 @@
     {
       "tier": "T2",
       "name": "identity-provider-registry-snapshot",
-      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
+      "file": "crates/cloud-iam-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "identity-provider-registry-evidence-event",
-      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
+      "file": "crates/cloud-iam-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "public-api-version-carrier-enforcement",
-      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "file": "crates/cloud-iam-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "typed-tenant-cell-region-boundary",
-      "file": "crates/oya-cloud-iam-domain/src/lib.rs",
+      "file": "crates/cloud-iam-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "identity-provider-mutation-api",
-      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "file": "crates/cloud-iam-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "role-create-api",
-      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "file": "crates/cloud-iam-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "sts-token-issuance-api",
-      "file": "crates/oya-cloud-iam-api/src/lib.rs",
+      "file": "crates/cloud-iam-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "cedar-policy-bind",
-      "file": "crates/oya-cloud-iam-app/src/lib.rs",
+      "file": "crates/cloud-iam-app/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "provider-translation-oci",
-      "file": "crates/oya-cloud-iam-adapter-oci/src/lib.rs",
+      "file": "crates/cloud-iam-adapter-oci/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "provider-translation-selfhosted",
-      "file": "crates/oya-cloud-iam-adapter-selfhosted/src/lib.rs",
+      "file": "crates/cloud-iam-adapter-selfhosted/src/lib.rs",
       "risk_class": "high"
     }
   ],
@@ -293,7 +293,7 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md",
     "microservices/cloud-iam/feature-parity-matrix-2026-05-20.md",
-    "crates/oya-cloud-iam-api/src/lib.rs"
+    "crates/cloud-iam-api/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

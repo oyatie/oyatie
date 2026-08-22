@@ -3,7 +3,7 @@
 //! This is the contract's executable specification: it implements
 //! [`MessagingSubstrate`] exactly as the trait docs promise and is proven
 //! by the [`crate::conformance`] harness in this crate's tests (the same
-//! reference-provider play as `oya-shared-resource-provider-contract-kernel`,
+//! reference-provider play as `shared-resource-provider-contract-kernel`,
 //! per the masterplan no-false-green rule). The boundary kernels also test
 //! their composition logic against it. It is NOT a production broker: no
 //! durability across process restart — production traffic goes through the

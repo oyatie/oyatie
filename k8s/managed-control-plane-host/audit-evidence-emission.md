@@ -1,4 +1,4 @@
-# Audit / evidence emission — `oya-managed-k8s-control-plane-host`
+# Audit / evidence emission — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376 (audit_chain seal_events for provision/teardown/
 datastore-bound/tier-selected), ADR-0263 observability emission contract,

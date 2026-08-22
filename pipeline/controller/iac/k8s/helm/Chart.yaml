@@ -1,6 +1,6 @@
 apiVersion: v2
-name: oya-ci-controller
-description: oya-ci controller (Phase 1 bespoke-Prow plank+crier) — kube-rs controller that spawns K8s gate Jobs and posts GitHub commit-statuses.
+name: ci-controller
+description: ci controller (Phase 1 bespoke-Prow plank+crier) — kube-rs controller that spawns K8s gate Jobs and posts GitHub commit-statuses.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

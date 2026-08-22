@@ -10,14 +10,14 @@ This team owns the public-sector vertical: government forms, procurement workflo
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Public Sector (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-public-sector-kernel` — `GovForm`, `ProcurementRequest`, `Submission`, `PublicRecord`, `AuditLog`
-  - `oya-vertical-public-sector-domain-*` — form lifecycle, procurement workflow, submission management
+  - `vertical-public-sector-kernel` — `GovForm`, `ProcurementRequest`, `Submission`, `PublicRecord`, `AuditLog`
+  - `vertical-public-sector-domain-*` — form lifecycle, procurement workflow, submission management
   - Per-region integrations: KR (정부24, 조달청 G2B, 국민신문고), US (Login.gov, SAM.gov, GSA eBuy), EU (TED procurement, Once-Only principle)
   - Products owned: `products/vertical-public-sector/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — every form submission, procurement decision)
   - `Region / AZ / Cell` (consumer — data residency is mandatory per jurisdiction)
-- **Catalog records:** `crates/oya-vertical-public-sector-*`
+- **Catalog records:** `crates/vertical-public-sector-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD; data residency + FedRAMP/CSAP compliance ADR at activation
 

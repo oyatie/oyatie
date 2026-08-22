@@ -27,7 +27,7 @@ metadata:
       # PQC: X25519MLKEM768 in ssl_ecdh_curve above; ed25519+ml_dsa_65 cert chain
     # Bot-mgmt bot-score header forwarding (ADR-0297)
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Oya-Bot-Score $http_x_oya_bot_score;
+      proxy_set_header X-Oya-Bot-Score $http_x_bot_score;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       # OCSP stapling
       ssl_stapling on;

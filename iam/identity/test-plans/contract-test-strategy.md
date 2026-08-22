@@ -252,23 +252,23 @@ Every conformance set ties back to consumer-driven pacts and explicit SemVer gat
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-identity-jwks-availability` target `0.99999`.
+- SLO target: `identity-jwks-availability` target `0.99999`.
 - Regression-detection criterion: JWKS OpenAPI schema must remain cacheable and public-safe.
-- SLO target: `oya-identity-oidc-token-verify-latency` target `0.999`.
+- SLO target: `identity-oidc-token-verify-latency` target `0.999`.
 - Regression-detection criterion: verifier proto request fields must not require extra network lookup by default.
-- SLO target: `oya-identity-oidc-token-issue-latency` target `0.99`.
+- SLO target: `identity-oidc-token-issue-latency` target `0.99`.
 - Regression-detection criterion: token response schema must not add synchronous external dependency fields.
-- SLO target: `oya-identity-webauthn-authenticate-latency` target `0.99`.
+- SLO target: `identity-webauthn-authenticate-latency` target `0.99`.
 - Regression-detection criterion: WebAuthn finish schema must keep bounded payload size.
-- SLO target: `oya-identity-scim-availability` target `0.9995`.
+- SLO target: `identity-scim-availability` target `0.9995`.
 - Regression-detection criterion: SCIM error schema must remain RFC-compatible for client retries.
-- SLO target: `oya-identity-step-up-grant-latency` target `0.95`.
+- SLO target: `identity-step-up-grant-latency` target `0.95`.
 - Regression-detection criterion: ACR grant contract must keep decision fields sufficient for caller-side branching.
-- SLO target: `oya-identity-audit-emit-completeness` target `1.0`.
+- SLO target: `identity-audit-emit-completeness` target `1.0`.
 - Regression-detection criterion: every AsyncAPI event has `tenant_id`, `principal_id`, and `audit_event_class`.
-- SLO target: `oya-identity-aaguid-refresh-freshness` target `0.999`.
+- SLO target: `identity-aaguid-refresh-freshness` target `0.999`.
 - Regression-detection criterion: metadata-stale event remains in AsyncAPI catalog.
-- SLO target: `oya-identity-zitadel-instance-health` target `0.9999`.
+- SLO target: `identity-zitadel-instance-health` target `0.9999`.
 - Regression-detection criterion: instance admin contract keeps health state enumerable and backward-compatible.
 
 ## CI Pipeline Integration
@@ -280,16 +280,16 @@ Every conformance set ties back to consumer-driven pacts and explicit SemVer gat
 - Command: `oya contract asyncapi validate microservices/identity/contracts/asyncapi/multi-context-events.yaml --version 3.1.0`.
 - Command: `buf lint microservices/identity/contracts/proto`.
 - Command: `buf breaking microservices/identity/contracts/proto --against .git#branch=dev`.
-- Command: `cargo test -p oya-identity-contract-tests --all-features`.
-- Command: `cargo test -p oya-identity-consumer-pacts --all-features`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-openapi-rest-route-parity`.
-- Check crate enforcement: `oya-check-event-schema-versioning`.
-- Check crate enforcement: `oya-check-adr-citation`.
-- Check crate enforcement: `oya-check-pr-traceability`.
+- Command: `cargo test -p identity-contract-tests --all-features`.
+- Command: `cargo test -p identity-consumer-pacts --all-features`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-openapi-rest-route-parity`.
+- Check crate enforcement: `check-event-schema-versioning`.
+- Check crate enforcement: `check-adr-citation`.
+- Check crate enforcement: `check-pr-traceability`.
 - Artifact: `identity-openapi-diff.json`.
 - Artifact: `identity-asyncapi-diff.json`.
 - Artifact: `identity-buf-breaking.json`.

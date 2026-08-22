@@ -10,11 +10,11 @@
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
-// PERMIT 1 — anonymous read of platform status (oya-self tenant, public-class)
+// PERMIT 1 — anonymous read of platform status (self tenant, public-class)
 // =============================================================================
 //
 // The public status page reads aggregated tenancy availability metrics from
-// the oya-self tenant. Platform-wide health (e.g., "validate path availability
+// the self tenant. Platform-wide health (e.g., "validate path availability
 // over the last 30 days") with no per-customer attribution.
 
 permit (
@@ -24,11 +24,11 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-self" &&
+  resource.tenant_id == "tenant:self" &&
   resource has data_class &&
   resource.data_class == "PUBLIC" &&
   resource has metric_name &&
-  resource.metric_name like "oya_tenancy_public_*"
+  resource.metric_name like "tenancy_public_*"
 };
 
 // =============================================================================
@@ -108,7 +108,7 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-self", "tenant:oya-aggregate"])
+  !(resource.tenant_id in ["tenant:self", "tenant:aggregate"])
 };
 
 // =============================================================================

@@ -10,16 +10,16 @@ This team owns the corporate vertical product: HR, payroll, general ledger, mail
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Corporate (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-corporate-kernel` — `Employee`, `PayrollRun`, `GLEntry`, `OrgUnit`, `MailMessage`, `Comms`
-  - `oya-vertical-corporate-domain-*` — HR lifecycle, payroll calculation, GL journal, mail routing use-cases
-  - `oya-vertical-corporate-adapter-*` — KR 근로기준법 payroll adapter, K-IFRS GL adapter, 국민연금/건강보험 EDI
-  - Per-region extensions: `oya-pack-kr` → `KrPayrollExtension` (통상임금, 사대보험), JP → `JpPayrollExtension` (賞与, 社保), US → `UsPayrollExtension` (W-2/1099, FLSA)
+  - `vertical-corporate-kernel` — `Employee`, `PayrollRun`, `GLEntry`, `OrgUnit`, `MailMessage`, `Comms`
+  - `vertical-corporate-domain-*` — HR lifecycle, payroll calculation, GL journal, mail routing use-cases
+  - `vertical-corporate-adapter-*` — KR 근로기준법 payroll adapter, K-IFRS GL adapter, 국민연금/건강보험 EDI
+  - Per-region extensions: `pack-kr` → `KrPayrollExtension` (통상임금, 사대보험), JP → `JpPayrollExtension` (賞与, 社保), US → `UsPayrollExtension` (W-2/1099, FLSA)
   - Products owned: `products/vertical-corporate/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (consumer) — Employee, OrgUnit nodes in OG
   - `Audit-chain event` (emitter) — HR lifecycle events, payroll runs, GL entries
   - `DSR / consent withdrawal cascade` (ack required) — employee PII in search index
-- **Catalog records:** `crates/oya-vertical-corporate-*`
+- **Catalog records:** `crates/vertical-corporate-*`
 - **Runbooks:** `runbooks/payroll-run-failure.md`, `runbooks/gl-reconciliation.md`, `runbooks/employee-dsr-cascade.md`
 - **ADRs:** ADR-0033 (HR domain), ADR-0033 (payroll schema), ADR-0033 (GL schema), ADR-0050 (wave plan — corporate sections)
 

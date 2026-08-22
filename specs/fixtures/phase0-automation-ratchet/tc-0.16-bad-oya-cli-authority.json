@@ -2,17 +2,17 @@
   "description": "Blocking Phase-0 invariants cannot be mapped to new or required oya CLI invocations.",
   "expected_verdict": "RED",
   "expected_violations": [
-    "blocking_invariant_mapped_to_oya_cli"
+    "blocking_invariant_mapped_to_cli"
   ],
-  "fixture_id": "TC-0.16-BAD-oya-cli-authority",
+  "fixture_id": "TC-0.16-BAD-cli-authority",
   "rows": [
     {
-      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-oya-cli-authority.json",
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-cli-authority.json",
       "classification": "automated_blocking_now",
       "enforceable_or_automatable": true,
       "evidence_path": "local oya gate output",
-      "id": "BAD-oya-gate-required-context",
-      "no_new_oya_cli_surface": false,
+      "id": "BAD-gate-required-context",
+      "no_new_cli_surface": false,
       "owner": "platform-toolchain",
       "requirement": "P0.0 required context cannot be satisfied by oya gate run-all --ci-required.",
       "retirement_phase": "never",

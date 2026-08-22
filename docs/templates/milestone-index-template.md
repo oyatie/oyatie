@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Canonical Milestone INDEX shape (≤100 lines). One file per milestone under `.omc/plans/milestones/M0N/INDEX.md`. Anchors phase list, names dependencies, acceptance gate, hyperscaler practices inherited, agent-navigability pointer.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md

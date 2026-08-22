@@ -1,5 +1,5 @@
 ---
-# Namespaced Role for the oya-ci controller.
+# Namespaced Role for the ci controller.
 # Grants the controller the minimum permissions to: create/watch gate Jobs,
 # watch owned Pods, and read Pod logs for failure summaries.
 # NO cluster-scoped permissions. NO secrets read via API (token arrives via ESO env).

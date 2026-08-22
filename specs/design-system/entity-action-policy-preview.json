@@ -39,8 +39,8 @@
     "approval requests include audit-chain destination before submission"
   ],
   "test_refs": [
-    "crates/oya-ontology-domain/tests/actions.rs::test_cedar_action_gate",
-    "crates/oya-ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling"
+    "crates/ontology-domain/tests/actions.rs::test_cedar_action_gate",
+    "crates/ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling"
   ],
   "consumers": [
     "$ref:specs/microservices/ontology.json#frontend_components",

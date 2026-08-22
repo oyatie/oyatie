@@ -7,18 +7,18 @@
 
 ## A — Trigger conditions
 
-- `oya_api_gateway_ddos_scrub_dropped_bytes` > 10Gbps sustained 60s.
-- `oya_api_gateway_requests_total{code="429"}` rate > 50k/s for >2min.
-- `oya_api_gateway_tls_handshake_duration_seconds_bucket{le="2"}` p99 > 2s for >1min.
+- `api_gateway_ddos_scrub_dropped_bytes` > 10Gbps sustained 60s.
+- `api_gateway_requests_total{code="429"}` rate > 50k/s for >2min.
+- `api_gateway_tls_handshake_duration_seconds_bucket{le="2"}` p99 > 2s for >1min.
 - Out-of-band: PagerDuty alert from upstream DDoS provider (Magic Transit / Akamai Prolexic).
 
 ## B — Pre-checks
 
-1. Confirm legitimate traffic baseline from last hour: `sum(rate(oya_api_gateway_requests_total{tenant_id!=""}[5m])) by (cell)`. Expect ≤ 6M req/s globally.
+1. Confirm legitimate traffic baseline from last hour: `sum(rate(api_gateway_requests_total{tenant_id!=""}[5m])) by (cell)`. Expect ≤ 6M req/s globally.
 2. Verify BGP-layer scrub is engaged at provider (Cloudflare Magic Transit / AWS Shield Advanced / on-prem Prolexic): `curl https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/magic/router/health -H "Authorization: Bearer $CF_API_TOKEN"` — expect `"status": "scrubbing"`.
-3. Identify source ASNs: `oya_api_gateway_requests_total{code="403"}` by `asn`. ASN concentration > 30% indicates targeted attack from specific ASN.
+3. Identify source ASNs: `api_gateway_requests_total{code="403"}` by `asn`. ASN concentration > 30% indicates targeted attack from specific ASN.
 4. Verify rate-limit Valkey cluster health: `valkey-cli -h <cell-valkey> ping` → PONG.
-5. Verify circuit breakers not tripped (would suggest upstream degradation, not edge): `oya_api_gateway_upstream_circuit_open_total` should be flat.
+5. Verify circuit breakers not tripped (would suggest upstream degradation, not edge): `api_gateway_upstream_circuit_open_total` should be flat.
 
 ## C — Procedure
 
@@ -45,7 +45,7 @@
    - `oyatie-status post --severity sev-1 --message "DDoS mitigation engaged"`.
 8. **Monitor SLO recovery:**
    - Watch `dashboards/edge-overview.json`; p99 latency target ≤200ms.
-   - Watch `oya_api_gateway_requests_total{code=~"5.."}` rate target ≤0.01 of total.
+   - Watch `api_gateway_requests_total{code=~"5.."}` rate target ≤0.01 of total.
 9. **If sustained >2h or escalating:** escalate to CTO + customer comms team.
 10. **De-escalate** when attack volume returns to baseline + 1σ for ≥10min:
     - Revert WAF mode: `curl -X PATCH ... -d '{"value":"medium"}'`.
@@ -55,8 +55,8 @@
 
 ## D — Verification
 
-- `oya_api_gateway_requests_total{code="429"}` rate < 5k/s.
-- `oya_api_gateway_tls_handshake_duration_seconds` p99 < 200ms.
+- `api_gateway_requests_total{code="429"}` rate < 5k/s.
+- `api_gateway_tls_handshake_duration_seconds` p99 < 200ms.
 - Customer-facing latency restored to baseline + 10%.
 - Status page updated to "monitoring" then "resolved".
 

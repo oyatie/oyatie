@@ -10,8 +10,8 @@
 # git-daemon (GPL-2.0). No BSL/SSPL/source-available components.
 #
 # Build + load onto the local k3s farm:
-#   docker build -t oya-git-server:local -f infra/ci/argocd/git-server.Dockerfile infra/ci/argocd
-#   k3s ctr images import <(docker save oya-git-server:local)   # or push to the in-cluster registry
+#   docker build -t git-server:local -f infra/ci/argocd/git-server.Dockerfile infra/ci/argocd
+#   k3s ctr images import <(docker save git-server:local)   # or push to the in-cluster registry
 FROM alpine:3.20
 
 RUN apk add --no-cache git git-daemon \

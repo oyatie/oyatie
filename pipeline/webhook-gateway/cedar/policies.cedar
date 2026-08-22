@@ -17,7 +17,7 @@ permit (
 permit (
     principal == Service::"ci-webhook-gateway",
     action == Action::"pipeline.kick",
-    resource == Service::"jenkins-oya-ci-lane"
+    resource == Service::"jenkins-ci-lane"
 );
 
 // Deny any cross-tenant data action — the gateway has no tenant data path.

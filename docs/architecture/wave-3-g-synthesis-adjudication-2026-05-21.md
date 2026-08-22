@@ -48,7 +48,7 @@ companion_docs:
 inbound_citations:
   - docs/architecture/keystone-bundle-2026-05-20-synthesis.md
   - docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 adjudication_methodology: multispectrum-review-v2.4.0
 review_doctrine_reference: feedback_multispectrum_review_v22
 synthesis_inputs:
@@ -1070,7 +1070,7 @@ rigor.md §2 row 3.
    known-deferred categories.
 3. **Capability-tier registry referenced but not present on disk.**
    ADR-0316 doctrine + ADR-0321 dossiers reference per-capability-tier
-   registry shape (`oya-governance-capability-tier-registry-shape`)
+   registry shape (`governance-capability-tier-registry-shape`)
    but no `specs/capability-tier-registry.json` file is enumerated.
 
 ### §4.3 Capability-Tier-over-µservice Ratio
@@ -1368,7 +1368,7 @@ walker tool path `tools/doc-graph-walker/`. The corpus-rigor audit redo
 - `docs/standards/documentation-rigor.md:211-212`
 - `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:87-88`
 
-**Severity:** P1. The §3.1 lane (`oya-governance-doc-graph-6hops`)
+**Severity:** P1. The §3.1 lane (`governance-doc-graph-6hops`)
 becomes BLOCKER from 2026-07-16 per documentation-rigor.md §3.1.
 Without the walker, BLOCKER promotion cannot proceed.
 
@@ -1708,7 +1708,7 @@ dimensions in documentation-rigor.md §1.2.
 | Scalability | **PARTIAL** | Capacity math present in ADR-0246 (Cedar eval), ADR-0263 (cardinality budgets), ADR-0248 (cellular shuffle-sharding). Missing in ADR-0311 (passkey throughput), ADR-0314 (DealSet throughput), ADR-0317 (UX shell render rate). |
 | Performance | **PARTIAL** | F6 budget-honesty gate from 2026-05-20 synthesis §5.8 still partly open. ADR-0252 (HLC + TrueTime) has explicit tier-budget. ADR-0314 missing. |
 | Optimization | **PARTIAL** | Per-call cost models present in ADR-0246 amendment (library-first) + ADR-0255 amendment (provider-BYOK). Missing for marketplace ADRs (0249, 0314). |
-| Code quality | **PARTIAL** | Test class enumeration present in some ADRs; lint pass naming consistent (`oya-check-*`); SemVer + ABI policy per ADR-0258. But contract-version conformance at 10-11% per §6.9. |
+| Code quality | **PARTIAL** | Test class enumeration present in some ADRs; lint pass naming consistent (`check-*`); SemVer + ABI policy per ADR-0258. But contract-version conformance at 10-11% per §6.9. |
 
 **ADR cluster roll-up:** 1 PASS / 1 PASS-W-PARTIAL / 4 PARTIAL — bias
 toward PARTIAL on the operational dimensions (Scalability / Performance /
@@ -1846,13 +1846,13 @@ Per the remediation surfaces above:
 - **Build tools/persona-journey-cross-coverage/** — enables Wave 3-J
   scope quantification per §5.5.
 - **Author CI lanes** named by the ADR cluster:
-  - `oya-governance-capability-tier-registry-shape`
-  - `oya-governance-b2b-leader-coverage-dossier`
-  - `oya-governance-b2b-new-microservice-doc-anchors`
-  - `oya-governance-erp-parity-module-map`
-  - `oya-governance-no-grouping`
-  - `oya-governance-coverage-matrix-current`
-  - `oya-governance-doc-graph-6hops`
+  - `governance-capability-tier-registry-shape`
+  - `governance-b2b-leader-coverage-dossier`
+  - `governance-b2b-new-microservice-doc-anchors`
+  - `governance-erp-parity-module-map`
+  - `governance-no-grouping`
+  - `governance-coverage-matrix-current`
+  - `governance-doc-graph-6hops`
 - **Acceptance:** Walker emits per-doc reachability; capability-tier
   registry populated for all 165 ADR-0321 vendors + all SAP modules in
   ADR-0315 §D-1.
@@ -3196,7 +3196,7 @@ MEMORY.md` enumerates ~50+ memory files. Spot-check against Wave-3-G:
 | feedback_branch_pipeline_implemented.md | PASS | Branch pipeline doctrine unaffected by Wave-3-G |
 | feedback_layer_enum_adr_0105_13_canonical.md | PARTIAL | Layer-enum drift in ADR-0263 §D-6 (per §6.11) not re-verified |
 | feedback_self_merge_via_contract_path.md | PASS | Self-merge pattern preserved |
-| feedback_oya_git_canonical_2026_05_18.md | PASS | No git-tooling regression in Wave-3-G |
+| feedback_git_canonical_2026_05_18.md | PASS | No git-tooling regression in Wave-3-G |
 | feedback_byok_everywhere_credentials.md | PASS | KS#10 §D-4 BYOK doctrine preserved |
 | feedback_unified_ecosystem_thesis_2026_05_21.md | **MEMORY MISSING** | Should be written as Wave-3-I memory remediation |
 | feedback_capability_tier_doctrine_2026_05_21.md | **MEMORY MISSING** | Same |

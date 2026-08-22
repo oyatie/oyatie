@@ -92,8 +92,8 @@ fn cargo_nextest_posts_correct_body() {
     );
 }
 
-/// Test 5 — oya-pr-review context posts with correct JSON body.
+/// Test 5 — pr-review context posts with correct JSON body.
 #[test]
-fn oya_pr_review_posts_correct_body() {
+fn pr_review_posts_correct_body() {
     assert_posts_body(CommitStatusContext::OyaPrReview, CommitStatusState::Success);
 }

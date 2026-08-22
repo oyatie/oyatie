@@ -1,7 +1,7 @@
 # Runbook: Broken pods diagnosis and fix — 2026-05-28
 
 **Branch:** `fix/talos-broken-pods-2026-05-28`
-**Cluster:** `admin@oya-local` (Talos single-node, vfkit)
+**Cluster:** `admin@local` (Talos single-node, vfkit)
 **Scope:** kube-system/hubble-relay, observability/grafana, observability/mimir-*, kyverno/migrate-resources
 
 ---
@@ -54,7 +54,7 @@ kubectl get externalsecret grafana-admin -n observability
 kubectl get clustersecretstore
 # No resources found
 
-kubectl exec -n oya-kms deploy/openbao -- sh -c "VAULT_ADDR=http://127.0.0.1:8200 bao kv get ..."
+kubectl exec -n kms deploy/openbao -- sh -c "VAULT_ADDR=http://127.0.0.1:8200 bao kv get ..."
 # Error: Vault is sealed
 ```
 
@@ -87,7 +87,7 @@ Two changes in `microservices/observability/iac/k8s/helm/values.yaml`:
      devBootstrapSecret:
        enabled: true
        adminUser: "admin"
-       adminPassword: "oya-dev-bootstrap-changeme"
+       adminPassword: "dev-bootstrap-changeme"
    ```
 
 New template `templates/grafana-admin-bootstrap-secret.yaml` emits a `Secret` named `grafana-admin` when `grafana.devBootstrapSecret.enabled=true` AND `config.environment != production`. The ExternalSecret's `creationPolicy: Owner` means it will adopt and overwrite this Secret with real credentials once OpenBao is unsealed.
@@ -96,7 +96,7 @@ New template `templates/grafana-admin-bootstrap-secret.yaml` emits a `Secret` na
 
 1. **Unseal OpenBao:**
    ```bash
-   kubectl exec -n oya-kms deploy/openbao -- sh -c \
+   kubectl exec -n kms deploy/openbao -- sh -c \
      "VAULT_ADDR=http://127.0.0.1:8200 bao operator unseal <unseal-key>"
    ```
 
@@ -109,7 +109,7 @@ New template `templates/grafana-admin-bootstrap-secret.yaml` emits a `Secret` na
 
 3. **Populate the Grafana admin secret in OpenBao:**
    ```bash
-   kubectl exec -n oya-kms deploy/openbao -- sh -c \
+   kubectl exec -n kms deploy/openbao -- sh -c \
      "VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=<root-token> \
       bao kv put oya/observability/grafana-admin \
         admin-user=admin \
@@ -117,7 +117,7 @@ New template `templates/grafana-admin-bootstrap-secret.yaml` emits a `Secret` na
    ```
    After this, the ExternalSecret will sync within `refreshInterval: 5m`, overwrite the bootstrap Secret, and Grafana will use the real credentials on next pod restart.
 
-4. **Rotate the bootstrap password** — `oya-dev-bootstrap-changeme` is a placeholder. Change it before any real data is stored in this Grafana instance.
+4. **Rotate the bootstrap password** — `dev-bootstrap-changeme` is a placeholder. Change it before any real data is stored in this Grafana instance.
 
 ### Expected outcome after ArgoCD sync
 

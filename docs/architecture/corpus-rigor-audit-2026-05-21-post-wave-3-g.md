@@ -3129,10 +3129,10 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/PRIVACY-PROGRAM.md:357` — `- `/Users/jasonlee/oyatie/docs/raw/rename-and-contradiction.md` H1, H2, H3, H17, H18, [wave name placeholder marker per PRD §3.1]0, [wave name placeholder marker per PRD §3.1]1 (Data Use Boundary group)`
 
 ### §11.2 foundry-fitness stale lane
-- `docs/MISTAKES-LEDGER.md:45` — `| MFL-0001 | 2026-05-09 | Legacy ADRs cited in active consolidated docs after pack consolidation | No CI gate enforcing only-new-pack-citations | `oya-governance-adr-citation``
-- `docs/ADR-CONSOLIDATION-PLAN.md:34` — `5. **Doc-catalog validator** `oya-governance-adr-citation` warns on bare ADR-#### refs without a status annotation.`
-- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.`
-- `docs/VENDOR-PARTNER-LEDGER.md:97` — `- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `oya-governance-vendor-contract-recency``
+- `docs/MISTAKES-LEDGER.md:45` — `| MFL-0001 | 2026-05-09 | Legacy ADRs cited in active consolidated docs after pack consolidation | No CI gate enforcing only-new-pack-citations | `governance-adr-citation``
+- `docs/ADR-CONSOLIDATION-PLAN.md:34` — `5. **Doc-catalog validator** `governance-adr-citation` warns on bare ADR-#### refs without a status annotation.`
+- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `governance-archive-orphan-kernel`, `governance-archive-orphan-app`, workspace members, and catalog entries.`
+- `docs/VENDOR-PARTNER-LEDGER.md:97` — `- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `governance-vendor-contract-recency``
 - `docs/ADR-LEGACY-REGRESSION-MAPPING.md:143` — `| ADR-0201 | Native phone/tablet CI quality bar (Android Compose + iOS SwiftUI) | Proposed | native mobile CI quality bar | ADR-0051 mobile-and-native-client-strategy | FULL | Mobi`
 - `docs/CONTRADICTION-LEDGER.md:51` — `| `LEDG-009` | `gap-docs-project.md` J-001 | Client-supplied tenant auth in Emergency / Medical / Records services (X-Tenant-ID header) is a tenant isolation breach | SaaS + Vertic`
 - `docs/plans/rename-plan-2026-05-12.md:31` — `> locked **Policy B** (collapse foundry-fitness under a `fitness` umbrella),`
@@ -3160,7 +3160,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 
 ### §11.5 retired external tooling (grit/rtk/icm/oya vcs)
 - `docs/CHANGELOG.md:238` — `- Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-REC`
-- `docs/GLOSSARY.md:568` — `| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.`
+- `docs/GLOSSARY.md:568` — `| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.`
 - `docs/DOC-COVERAGE.md:206` — `Required sections per Impl-Plan: `## Concrete File Targets`, `## Code Shape`, `## Acceptance Gates`, `## Load test`, `## Grit Claim Symbols`, `## ICM Rows to Emit`.`
 - `docs/MASTERPLAN.md:96` — `5. Promote only through Oya VCS claim, verify, done, and promote transitions with evidence.`
 - `retired bootstrap doc line 164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
@@ -3182,7 +3182,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102` — `2. Validates every spec path exists and is syntactically valid (OpenAPI 3 / Protobuf / AsyncAPI 2.6 / Cedar / JSON Schema).`
 - `docs/decisions/ADR-0709-general-live-apex.md — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
 - `docs/user-stories/b2c-consumer-surfaces.md:2240` — `- **AsyncAPI 3.0 (event contracts).**`
-- `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
+- `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
 - `docs/architecture/adr-corpus-line-audit-2026-05-21.md:334` — `#### AsyncAPI 2.x / 3.0.0 (canonical: 3.1.0)`
 - `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117` — `- H2: repair hard contract conformance blockers: stale OpenAPI 3.1.0 / AsyncAPI 3.0.0 files in api-gateway, connect, and feature-flags before expanding new coverage.`
 - `docs/architecture/keystone-bundle-2026-05-20-synthesis.md:324` — `| 5 IPs reference OpenAPI 3.1 / AsyncAPI 3.0 / 2.x | **TRUE P0** — Phase-2 action: pin to 3.2.0 / 3.1.0. |`
@@ -3320,7 +3320,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/application/contracts/openapi/tenant-admin-console.yaml | OpenAPI | PASS |
 | microservices/application/contracts/openapi/application.yaml | OpenAPI | PASS |
 | microservices/consent-graph/contracts/openapi/consent-graph.yaml | OpenAPI | PASS |
-| microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml | OpenAPI | PASS |
+| microservices/developer-sdk/contracts/openapi/ecosystem.yaml | OpenAPI | PASS |
 | microservices/developer-sdk/contracts/openapi/developer-sdk.yaml | OpenAPI | PASS |
 | microservices/governance/contracts/openapi/governance.yaml | OpenAPI | PASS |
 | microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml | OpenAPI | PASS |

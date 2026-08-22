@@ -16,10 +16,10 @@
     "owning_axis": "ecosystem-infrastructure-backbone",
     "paired_with": "$ref:specs/microservices/workflow.json (engine half — together they form n8n-class first hero product)",
     "crate_refs_planned": [
-      "oya-saas-workflow-studio-kernel",
-      "oya-saas-workflow-studio-domain",
-      "oya-saas-workflow-studio-app",
-      "oya-saas-workflow-studio-api"
+      "saas-workflow-studio-kernel",
+      "saas-workflow-studio-domain",
+      "saas-workflow-studio-app",
+      "saas-workflow-studio-api"
     ],
     "scaffolding_status": "PLANNED — crates to be authored in downstream IP",
     "user_facing_surface": true
@@ -76,35 +76,35 @@
       "given": "visually-built workflow",
       "when": "save action",
       "then": "editor emits canonical $ref:contracts/workflow_spec.v1.json",
-      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
+      "test_ref": "crates/saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
     },
     {
       "id": "AC-02",
       "given": "workflow_spec.v1.json document",
       "when": "loaded into editor",
       "then": "renders semantically identical visual; round-trip emit byte-equal to input",
-      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
+      "test_ref": "crates/saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
     },
     {
       "id": "AC-03",
       "given": "editor open with pending changes",
       "when": "network disconnect",
       "then": "local edit buffer persists; resume without loss on reconnect",
-      "test_ref": "crates/oya-saas-workflow-studio-app/tests/durability.rs::test_offline_buffer"
+      "test_ref": "crates/saas-workflow-studio-app/tests/durability.rs::test_offline_buffer"
     },
     {
       "id": "AC-04",
       "given": "workflow with jurisdiction overlays",
       "when": "switch jurisdiction in editor",
       "then": "overlay-resolved view renders; base view also reachable",
-      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/overlay.rs::test_jurisdiction_view_switch"
+      "test_ref": "crates/saas-workflow-studio-domain/tests/overlay.rs::test_jurisdiction_view_switch"
     },
     {
       "id": "AC-05",
       "given": "LLM-authored spec via API",
       "when": "validated against schema",
       "then": "valid: opens in editor; invalid: precise per-line error",
-      "test_ref": "crates/oya-saas-workflow-studio-api/tests/llm_submission.rs::test_validation_error_precision",
+      "test_ref": "crates/saas-workflow-studio-api/tests/llm_submission.rs::test_validation_error_precision",
       "doctrine_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"
     },
     {
@@ -112,21 +112,21 @@
       "given": "two users editing same definition",
       "when": "concurrent saves",
       "then": "CRDT-merge OR explicit conflict UI; never silent loss",
-      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/collab.rs::test_no_silent_overwrite"
+      "test_ref": "crates/saas-workflow-studio-domain/tests/collab.rs::test_no_silent_overwrite"
     },
     {
       "id": "AC-07",
       "given": "editor in kr jurisdiction",
       "when": "author touches PII field",
       "then": "visual data_class marker + Cedar policy preview before save",
-      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"
+      "test_ref": "crates/saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"
     },
     {
       "id": "AC-08",
       "given": "per-seat license check",
       "when": "editor opens",
       "then": "Cedar policy gate enforces seat; audit row emitted",
-      "test_ref": "crates/oya-saas-workflow-studio-app/tests/licensing.rs::test_per_seat_cedar"
+      "test_ref": "crates/saas-workflow-studio-app/tests/licensing.rs::test_per_seat_cedar"
     }
   ],
   "scope": {
@@ -216,7 +216,7 @@
     ]
   },
   "data_model": {
-    "entities_ref": "$ref:crates/oya-saas-workflow-studio-kernel (planned: EditorSession with local_buffer_blake3 + crdt_state; NodeLibrary keyed by closed-enum DomainTag {Agentic,Dev,Business,Healthcare,SupplyChain,Delivery})",
+    "entities_ref": "$ref:crates/saas-workflow-studio-kernel (planned: EditorSession with local_buffer_blake3 + crdt_state; NodeLibrary keyed by closed-enum DomainTag {Agentic,Dev,Business,Healthcare,SupplyChain,Delivery})",
     "persistence": {
       "editor_session": "per-tenant cell + Redis ephemeral",
       "definitions": "git-backed via $ref:specs/microservices/workflow.json store"
@@ -306,7 +306,7 @@
         "GA": 2
       },
       "verification_ref": "synthetic Lighthouse-style budget via cargo nextest",
-      "lane_ref": "oya-governance-perf-budget"
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "save_round_trip_p99_ms",
@@ -315,8 +315,8 @@
         "stable": 200,
         "GA": 100
       },
-      "verification_ref": "cargo nextest -p oya-saas-workflow-studio-domain -- test_save_p99",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo nextest -p saas-workflow-studio-domain -- test_save_p99",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "round_trip_byte_equality_rate_pct",
@@ -326,7 +326,7 @@
         "GA": 100
       },
       "verification_ref": "cargo nextest -- test_load_emit_byte_equal over corpus 100 specs",
-      "lane_ref": "oya-governance-workflow-spec-roundtrip"
+      "lane_ref": "governance-workflow-spec-roundtrip"
     },
     {
       "name": "editor_availability_slo_pct",
@@ -336,7 +336,7 @@
         "GA": 99.95
       },
       "verification_ref": "oya gate validate workflow-studio-availability --window 30d",
-      "lane_ref": "oya-governance-canary-observability"
+      "lane_ref": "governance-canary-observability"
     }
   ],
   "risks": [
@@ -344,7 +344,7 @@
       "id": "R-01",
       "severity": "high",
       "risk": "spec drift between editor and engine",
-      "mitigation": "round-trip contract test on every PR via oya-governance-workflow-spec-roundtrip lane (AC-02)"
+      "mitigation": "round-trip contract test on every PR via governance-workflow-spec-roundtrip lane (AC-02)"
     },
     {
       "id": "R-02",
@@ -810,7 +810,7 @@
       "observed_in": "Zapier (8000+ connectors), n8n (200+ connectors)",
       "citation": "zapier.com/features; docs.n8n.io/workflows — connectors lack data_class / PII annotations",
       "risk": "workflows silently move PII or regulated data through connectors without author awareness; compliance breach",
-      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); oya-governance-cedar-preview-required lane"
+      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); governance-cedar-preview-required lane"
     },
     {
       "name": "no_machine_readable_workflow_spec",
@@ -840,77 +840,77 @@
       "rationale": "Production enterprise workflows (supply-chain, healthcare orchestration) regularly exceed 1000 nodes; Palantir Foundry pipelines routinely hit 10k+ steps",
       "target": "canvas render of 10,000-node workflow completes in <100ms p99 (60fps interaction); virtualized node rendering mandatory",
       "verification": "synthetic canvas bench: generate 10k-node spec, measure first-render and pan/zoom p99 in headless browser harness",
-      "lane_ref": "oya-governance-perf-budget (canvas-scale variant)"
+      "lane_ref": "governance-perf-budget (canvas-scale variant)"
     },
     {
       "requirement": "canvas_interaction_p99_under_50ms",
       "rationale": "Linear-grade responsiveness: every user interaction (node select, drag, edge draw) must feel instant; Figma achieves <16ms at 60fps; we target <50ms p99",
       "target": "<50ms p99 for all canvas interaction ops: node drag, edge connect, config panel open, zoom",
       "verification": "cargo bench canvas-interaction-p99 via headless Leptos WASM harness",
-      "lane_ref": "oya-governance-perf-budget"
+      "lane_ref": "governance-perf-budget"
     },
     {
       "requirement": "10k_concurrent_editor_sessions_per_region",
       "rationale": "Stripe-grade multi-tenant: 10k simultaneous editors sharing per-tenant cell infrastructure without noisy-neighbor degradation",
       "target": "10,000 concurrent editor sessions per region; p99 save latency stays <100ms under full load",
       "verification": "canary load-test: 10k concurrent WebSocket editor sessions; measure save p99 and CRDT merge latency",
-      "lane_ref": "oya-governance-canary-observability"
+      "lane_ref": "governance-canary-observability"
     },
     {
       "requirement": "crdt_merge_under_10ms_p99",
       "rationale": "Collaborative editing (Google Docs-grade): CRDT merge must be imperceptible to users; yrs/loro can achieve <5ms for typical document sizes",
       "target": "<10ms p99 CRDT merge for concurrent edits on 1000-node workflow spec",
-      "verification": "cargo bench crdt-merge-p99 -p oya-saas-workflow-studio-domain",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification": "cargo bench crdt-merge-p99 -p saas-workflow-studio-domain",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "requirement": "tti_cold_under_2s_p99_global",
       "rationale": "Google-grade TTI: users in any region (including KR) must reach interactive canvas in <2s cold; CDN edge cache + WASM streaming required",
       "target": "TTI <2s p99 cold start globally (GA); <3s preview; node library progressive loading within 500ms of canvas interactive",
       "verification": "synthetic Lighthouse budget via cargo nextest; CDN-hit verification per region",
-      "lane_ref": "oya-governance-perf-budget (editor_tti_cold_p99_seconds metric)"
+      "lane_ref": "governance-perf-budget (editor_tti_cold_p99_seconds metric)"
     },
     {
       "requirement": "zero_cross_tenant_canvas_state_leak",
       "rationale": "AWS-grade tenancy isolation: no editor session may observe another tenant's node data, execution history, or ontology descriptors at any layer (render, CRDT state, WebSocket, CDN cache key)",
       "target": "cross_tenant_leak_count = 0 at all waves; per-tenant CDN cache key; WebSocket session scoped to tenant cell",
       "verification": "cargo nextest test_no_cross_tenant_leak; CDN cache-key audit; WebSocket session isolation test",
-      "lane_ref": "oya-governance-tenancy-isolation"
+      "lane_ref": "governance-tenancy-isolation"
     },
     {
       "requirement": "secrets_zero_plaintext_in_editor_state",
       "rationale": "Stripe-grade secrets: credential values (API keys, tokens) must never appear in editor CRDT state, execution history, or browser memory as plaintext",
       "target": "all credential fields in node config panels use SecretRef type; plaintext value never round-trips through editor; secrets resolved at engine execution time only",
-      "verification": "oya-governance-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
-      "lane_ref": "oya-governance-security-headers + secrets-zero-plaintext lane"
+      "verification": "governance-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
+      "lane_ref": "governance-security-headers + secrets-zero-plaintext lane"
     },
     {
       "requirement": "wcag_22_aa_100pct_keyboard_navigation",
       "rationale": "Linear-grade accessibility: every canvas operation, node config, diff view, replay, and policy preview must be keyboard-operable; screen-reader compatible node graph (aria-label on every edge and node)",
       "target": "100% keyboard navigation coverage; WCAG 2.2 AA in both dark and light themes; axe-core CI scan zero violations",
       "verification": "axe-core automated scan in CI; manual keyboard navigation audit per component at each wave",
-      "lane_ref": "oya-governance-a11y (planned)"
+      "lane_ref": "governance-a11y (planned)"
     },
     {
       "requirement": "definition_load_under_200ms_for_1000_node_spec",
       "rationale": "Palantir-grade large-graph UX: loading a 1000-node pipeline definition into the editor must complete in <200ms; requires streaming parse + virtual canvas",
       "target": "<200ms spec parse + initial render for 1000-node workflow_spec.v1.json; streaming JSON parse mandatory above 500 nodes",
       "verification": "cargo bench definition-load-p99 with generated 1000-node corpus",
-      "lane_ref": "oya-governance-perf-budget"
+      "lane_ref": "governance-perf-budget"
     },
     {
       "requirement": "availability_99_95_pct_with_mttr_60s",
       "rationale": "Stripe-grade SLA: editor availability 99.95% equates to <26 minutes downtime/month; auto-rollback canary must trigger within 60s of regression detection",
       "target": "editor_availability_slo_pct = 99.95% at GA; MTTR <60s via auto-rollback canary (ADR-0114)",
       "verification": "oya gate validate workflow-studio-availability --window 30d; canary-observability-rollback lane",
-      "lane_ref": "oya-governance-canary-observability"
+      "lane_ref": "governance-canary-observability"
     }
   ],
   "best_practices": [
     {
       "id": "BP-01",
       "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
-      "planned_enforcement_ref": "oya-governance-workflow-spec-roundtrip"
+      "planned_enforcement_ref": "governance-workflow-spec-roundtrip"
     },
     {
       "id": "BP-02",
@@ -940,7 +940,7 @@
     {
       "id": "BP-01",
       "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
-      "enforced_by_lane_ref": "oya-governance-workflow-spec-roundtrip"
+      "enforced_by_lane_ref": "governance-workflow-spec-roundtrip"
     }
   ],
   "patterns": [
@@ -967,7 +967,7 @@
     {
       "name": "visual_model_above_spec_model",
       "why_forbidden": "reverses source-of-truth",
-      "detection_lane": "oya-governance-workflow-spec-roundtrip"
+      "detection_lane": "governance-workflow-spec-roundtrip"
     },
     {
       "name": "silent_merge_on_concurrent_edit",
@@ -977,12 +977,12 @@
     {
       "name": "bypass_cedar_policy_preview",
       "why_forbidden": "author surprised by policy impact post-deploy",
-      "detection_lane": "oya-governance-cedar-preview-required"
+      "detection_lane": "governance-cedar-preview-required"
     },
     {
       "name": "embedded_execution_in_editor",
       "why_forbidden": "breaks audit-chain integrity",
-      "detection_lane": "oya-governance-editor-execution-forbidden"
+      "detection_lane": "governance-editor-execution-forbidden"
     },
     {
       "name": "per_tenant_branding_mid_render",
@@ -992,7 +992,7 @@
     {
       "name": "non_deterministic_node_library_load",
       "why_forbidden": "confuses LLM authoring",
-      "detection_lane": "oya-governance-node-library-determinism (3x re-load assertion)"
+      "detection_lane": "governance-node-library-determinism (3x re-load assertion)"
     }
   ],
   "goals": {
@@ -1002,15 +1002,15 @@
     },
     "security": {
       "target": "XSS-free + strict CSP + per-tenant CDN cache key + Cedar at every save + no LLM-content trust",
-      "verification_lane_ref": "OWASP audit + oya-governance-security-headers"
+      "verification_lane_ref": "OWASP audit + governance-security-headers"
     },
     "performance": {
       "target": "TTI <2s p99 cold + save <100ms p99 + round-trip 100% byte-equality",
-      "verification_lane_ref": "oya-governance-perf-budget + cargo-nextest"
+      "verification_lane_ref": "governance-perf-budget + cargo-nextest"
     },
     "efficiency": {
       "target": "<$5 per-seat per-month at GA; CDN-cached static assets",
-      "verification_ref": "$ref:crates/oya-cloud-finops-kernel"
+      "verification_ref": "$ref:crates/cloud-finops-kernel"
     },
     "reliability": {
       "target": "99.95% availability + MTTR <60s (auto-rollback canary)",

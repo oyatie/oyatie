@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-008: oya-cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres}
+# IP-008: cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres}
 
 ## Intent
 
@@ -27,14 +27,14 @@ Six new crates per ADR-0105. Plus the Postgres schema migration files at `micros
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-domain/{Cargo.toml,src/lib.rs,src/catalog_version.rs,src/provenance_validate.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-usecase/{Cargo.toml,src/lib.rs,src/catalog_orchestrator.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-api/{Cargo.toml,src/lib.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-adapter/{Cargo.toml,src/lib.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-adapter-postgres/{Cargo.toml,src/lib.rs,src/state_index_store.rs,src/chart_catalog_store.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-domain/{Cargo.toml,src/lib.rs,src/catalog_version.rs,src/provenance_validate.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-usecase/{Cargo.toml,src/lib.rs,src/catalog_orchestrator.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-api/{Cargo.toml,src/lib.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-adapter/{Cargo.toml,src/lib.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-adapter-postgres/{Cargo.toml,src/lib.rs,src/state_index_store.rs,src/chart_catalog_store.rs}` | create |
 | `microservices/cloud-iac/iac/postgres/migrations/{0001_initial.sql,0002_provenance.sql,0003_append_only_trigger.sql}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-registry-*.yaml` | create (6 rows) |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-registry-*.yaml` | create (6 rows) |
 
 ## Code Shape
 
@@ -99,10 +99,10 @@ impl ApplyStateIndexStore for PostgresApplyStateIndexStore {
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-registry-* --all-features
-cargo nextest run --workspace -p oya-cloud-iac-iac-registry-* --all-features
+cargo check --workspace -p cloud-iac-iac-registry-* --all-features
+cargo nextest run --workspace -p cloud-iac-iac-registry-* --all-features
 psql -f microservices/cloud-iac/iac/postgres/migrations/0001_initial.sql  # against test Postgres
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

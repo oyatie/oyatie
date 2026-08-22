@@ -7,7 +7,7 @@ purpose: |
   Canonical ADR shape for every oyatie architectural decision. Enforces BNF v4.1
   naming justification, Bominal inheritance citation, and concrete file-path consequences.
   Every executor authoring a new ADR MUST start from this template.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/naming.md
@@ -121,7 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is Buck2/cloud-ci gate packets and the `oya-ci-required` context.
+- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is Buck2/cloud-ci gate packets and the `presubmit` context.
 
 ---
 

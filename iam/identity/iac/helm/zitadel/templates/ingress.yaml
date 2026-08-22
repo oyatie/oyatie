@@ -8,7 +8,7 @@ metadata:
     pack: {{ .Values.packLabel | quote }}
 spec:
   parentRefs:
-    - name: oya-identity-gateway
+    - name: identity-gateway
       namespace: istio-ingress
       sectionName: https
   hostnames:

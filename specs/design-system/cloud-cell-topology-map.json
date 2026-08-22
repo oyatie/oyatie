@@ -39,8 +39,8 @@
     "stale telemetry blocks topology-derived rollout decisions"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/deployment_ops_contract.rs::deployment_ops_contract_forbids_manual_ssh",
-    "crates/oya-cloud-cell-domain/tests/topology.rs::test_tenant_route_visibility"
+    "crates/dev-cli/tests/deployment_ops_contract.rs::deployment_ops_contract_forbids_manual_ssh",
+    "crates/cloud-cell-domain/tests/topology.rs::test_tenant_route_visibility"
   ],
   "consumers": [
     "$ref:docs/products/cloud/PRD.md#11g-frontend-components"

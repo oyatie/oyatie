@@ -1,7 +1,7 @@
 # DNS Engineer — First Week on `cloud-network-dns`
 
 Audience: a DNS/SRE engineer with Route 53 + NS1 + Cloudflare + BIND/PowerDNS experience joining the
-`oya-cloud-network-dns-*` lane. Goal: by Friday EOD you can provision a tenant zone, enable DNSSEC, configure geo-routing,
+`cloud-network-dns-*` lane. Goal: by Friday EOD you can provision a tenant zone, enable DNSSEC, configure geo-routing,
 set up health-checks, and walk a DoH/DoQ query.
 
 ## Day 1 — read before touching

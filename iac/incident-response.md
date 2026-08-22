@@ -237,7 +237,7 @@ Inherits observability on-call structure; cloud-iac adds a dedicated axis-cloud-
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `incident-runbook-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; every FM-ID has matching runbook.
+- cloud-ci/ci governance gate `incident-runbook-coverage` for --microservice cloud-iac is green in the branch-protected `presubmit` context — exit 0; every FM-ID has matching runbook.
 - Quarterly DR-failover drill validates response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates Sev-1 regional outage; comms + regulatory notification chain rehearsed.
 

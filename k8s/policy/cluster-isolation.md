@@ -51,7 +51,7 @@ Cross-pack workload scheduling is **forbidden** at the cluster boundary; a tenan
 
 Inter-cluster (cross-pack) network communication uses **Istio multi-cluster mesh** (primary-remote topology after M03 per ADR-0121 §"Migration triggers"). All cross-cluster traffic is mTLS-terminated at each cluster's east-west gateway; no cleartext crosses pack boundaries. Payload replication between packs is forbidden (per `policy/data-residency.md`); only mesh control-plane gossip + JWT-validated API calls flow.
 
-LEAN check `oya-check-cross-cluster-mtls-strict` validates every multi-cluster peer carries an mTLS-strict PeerAuthentication CR.
+LEAN check `check-cross-cluster-mtls-strict` validates every multi-cluster peer carries an mTLS-strict PeerAuthentication CR.
 
 ## Namespace Tenancy Model
 
@@ -79,9 +79,9 @@ Properties:
 | `cilium-system` | Cilium agent + operator | axis-cloud (JIT) | observability |
 | `cosign-system` | Kyverno + Cosign admission webhooks | axis-foundry (JIT) | observability |
 | `cloud-k8s-system` | this µservice's own components (api-proxy, bootstrap-worker) | axis-cloud (JIT) | observability |
-| `oya-foundry` | Foundry runtime components | axis-foundry (JIT) | observability |
-| `oya-observability` | observability µservice Grafana stack | axis-observability | observability operators |
-| `oya-ci` | CI runner-scoped namespace | CI principal | CI principal |
+| `foundry` | Foundry runtime components | axis-foundry (JIT) | observability |
+| `observability` | observability µservice Grafana stack | axis-observability | observability operators |
+| `ci` | CI runner-scoped namespace | CI principal | CI principal |
 
 Any attempt to create a namespace matching reserved prefixes (`kube-*`, `istio-*`, `cilium-*`, `cosign-*`, `cloud-k8s-*`, `oya-*`) by non-platform principals is refused at admission.
 
@@ -132,7 +132,7 @@ spec:
     mode: STRICT
 ```
 
-Applies cluster-wide. Cleartext between pods is refused. LEAN check `oya-check-istio-strict-mtls` validates this CR is present + unmodified.
+Applies cluster-wide. Cleartext between pods is refused. LEAN check `check-istio-strict-mtls` validates this CR is present + unmodified.
 
 ### Invariant CI-06: Per-cross-namespace allowance is Cedar-explicit
 
@@ -140,7 +140,7 @@ Cross-namespace communication (e.g., tenant-A's workload → cell µservice's sh
 - A Cilium NetworkPolicy allow-rule (L3/L4)
 - An Istio AuthorizationPolicy allow-rule (L7)
 
-The `network-policy` BC's `usecase` layer reads the Cedar fragment + emits both CRs atomically. LEAN check `oya-check-cedar-derived-policy-paired` validates every cross-namespace NetworkPolicy has a matching AuthorizationPolicy.
+The `network-policy` BC's `usecase` layer reads the Cedar fragment + emits both CRs atomically. LEAN check `check-cedar-derived-policy-paired` validates every cross-namespace NetworkPolicy has a matching AuthorizationPolicy.
 
 ## API-Server Mediation (No Direct Access Invariants)
 
@@ -153,7 +153,7 @@ Direct port 6443 access to the kube-apiserver is forbidden:
 - External callers (operator `kubectl`, Foundry agent capability calls, CI runners) route through `https://k8s-api-<pack>.oyatie.dev` (Envoy ingress → `kubernetes-api-proxy` → kube-apiserver).
 - `kubernetes-api-proxy` validates OIDC + applies Cedar policy + emits audit-chain record per call.
 
-LEAN check `oya-check-kubernetes-api-proxy-only-path` validates the host-NetworkPolicy is present.
+LEAN check `check-kubernetes-api-proxy-only-path` validates the host-NetworkPolicy is present.
 
 ### Invariant CI-08: Cedar policy on every API call
 
@@ -192,7 +192,7 @@ Per Kubernetes PSS v1.30+. Enforced by Kyverno admission policy. Refuses Pod spe
 - Disable seccomp default
 - Allow privilege escalation
 
-LEAN check `oya-check-pod-security-standard-restricted` validates the Kyverno policy is present + unmodified.
+LEAN check `check-pod-security-standard-restricted` validates the Kyverno policy is present + unmodified.
 
 ### Invariant CI-11: Service Account tokens not auto-mounted
 
@@ -215,7 +215,7 @@ Every image pull is verified via:
 - Trivy CVE scan; admission refused on Critical CVE.
 - Grype scan for SBOM completeness.
 
-Per ADR-0117 §"Supply chain". LEAN check `oya-check-cosign-admission` validates Kyverno policy presence.
+Per ADR-0117 §"Supply chain". LEAN check `check-cosign-admission` validates Kyverno policy presence.
 
 ## etcd Isolation
 
@@ -234,20 +234,20 @@ kube-apiserver `--encryption-provider-config` flag set; KMS provider per pack. e
 
 ### Invariant CI-15: etcd snapshot 5-min cadence
 
-`oya-cloud-k8s-cluster-bootstrap-worker` triggers `etcdctl snapshot save` every 5 min. Snapshot is Ed25519-signed at creation + uploaded to per-pack object storage. Snapshot retention 14d.
+`cloud-k8s-cluster-bootstrap-worker` triggers `etcdctl snapshot save` every 5 min. Snapshot is Ed25519-signed at creation + uploaded to per-pack object storage. Snapshot retention 14d.
 
 ## Failure Modes
 
 ### FM-01: NetworkPolicy regression → cross-tenant cleartext
 
 **Behaviour:** LEAN check refuses merge; continuous-state validator alarms on live drift.
-**Detection:** `oya-check-network-policy-conformance` lane + continuous validator + Cilium policy-drift alert.
+**Detection:** `check-network-policy-conformance` lane + continuous validator + Cilium policy-drift alert.
 **Recovery:** auto-rollback to git state; ops-security incident if intentional.
 
 ### FM-02: PeerAuthentication CR mutated to PERMISSIVE
 
 **Behaviour:** LEAN refuses merge; continuous-state validator alarms.
-**Detection:** `oya-check-istio-strict-mtls`.
+**Detection:** `check-istio-strict-mtls`.
 **Recovery:** auto-rollback; ops-security incident.
 
 ### FM-03: kube-apiserver direct access attempt
@@ -265,7 +265,7 @@ kube-apiserver `--encryption-provider-config` flag set; KMS provider per pack. e
 ### FM-05: Cosign signature missing or mismatched
 
 **Behaviour:** admission refuses image pull.
-**Detection:** Kyverno admission event; `oya_admission_image_rejected_total > 0`.
+**Detection:** Kyverno admission event; `admission_image_rejected_total > 0`.
 **Recovery:** investigate supply chain.
 
 ### FM-06: Cross-pack scheduling attempted
@@ -277,13 +277,13 @@ kube-apiserver `--encryption-provider-config` flag set; KMS provider per pack. e
 ### FM-07: Cedar policy fragment introduces over-broad allow
 
 **Behaviour:** PR review + Cedar fuzz CI lane catches at PR; live runtime audit detects post-merge.
-**Detection:** CI lane + `oya_authorization_anomaly_total > 0`.
+**Detection:** CI lane + `authorization_anomaly_total > 0`.
 **Recovery:** revert Cedar fragment; engage council-privacy.
 
 ### FM-08: Bootstrap kubeadm token leaked
 
 **Behaviour:** Secret-scanner detects on commit; OpenBao rotates the token.
-**Detection:** `oya-governance-evidence-secret-scan` + GitHub secret-scanning.
+**Detection:** `governance-evidence-secret-scan` + GitHub secret-scanning.
 **Recovery:** rotate token (TTL ≤ 24h already); audit nodes joined within leak window.
 
 ## Audit Trail
@@ -322,7 +322,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-isolation-overlay.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cluster-isolation-conformance --pack <pack>` — exit 0.
+- `cargo run -p dev-cli -- gate validate cluster-isolation-conformance --pack <pack>` — exit 0.
 - Annual cross-tenant pen-test.
 - Quarterly Cedar fragment + NetworkPolicy + AuthorizationPolicy drift audit.
 - Continuous: LEAN lanes + state-drift CronJob.

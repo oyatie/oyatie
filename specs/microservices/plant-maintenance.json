@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "plant-maintenance",
     "bounded_context": "enterprise-asset-maintenance",
-    "crate_prefix": "oya-plant-maintenance",
-    "primary_crate": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain",
+    "crate_prefix": "plant-maintenance",
+    "primary_crate": "microservices/plant-maintenance/crates/plant-maintenance-domain",
     "product_id": "plant-maintenance",
     "owning_axis": "axis-enterprise"
   },
@@ -47,35 +47,35 @@
       "given": "an equipment asset has tenant, legal entity, plant, functional location, criticality, installation/warranty dates, source refs, and registration evidence",
       "when": "the plant-maintenance domain registers the equipment asset",
       "then": "equipment, tenant, legal entity, plant, functional location, criticality, dates, source refs, registration evidence, idempotency key, state, schema version, and false durable-registry/IoT/cloud flags are present",
-      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::asset_master_drives_preventive_plan_work_order_and_completion"
+      "test_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain/tests/plant_maintenance.rs::asset_master_drives_preventive_plan_work_order_and_completion"
     },
     {
       "id": "AC-02",
       "given": "a registered equipment asset needs scheduled preventive maintenance",
       "when": "preventive-maintenance plan metadata is approved",
       "then": "plan, equipment, tenant, legal entity, plant, functional location, interval, lead time, labor estimate, spare-part count, next due date, strategy source, approval evidence, idempotency key, state, and false scheduler/inventory/Workflow/cloud flags are present",
-      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
+      "test_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
     },
     {
       "id": "AC-03",
       "given": "an approved preventive-maintenance plan is ready for execution",
       "when": "maintenance work-order release metadata is prepared",
       "then": "work order, plan, equipment, tenant, legal entity, plant, functional location, priority, planned start, labor/spare-part plan, safety permit flag, job instruction source, release evidence, idempotency key, state, and false inventory/procurement/technician-dispatch/Workflow/cloud flags are present",
-      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
+      "test_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow}"
     },
     {
       "id": "AC-04",
       "given": "a released maintenance work order has completion evidence and measured labor/spare/downtime values",
       "when": "work-order completion metadata is recorded",
       "then": "work order, equipment, tenant, legal entity, plant, completion date, planned/actual labor, labor variance, planned/actual spare parts, remaining spare parts, downtime, measurement/completion evidence, recalculation flag, and false accounting/meter-write/runtime-audit/cloud flags are present",
-      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_spare_part_over_consumption}"
+      "test_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain/tests/plant_maintenance.rs::{asset_master_drives_preventive_plan_work_order_and_completion,plant_maintenance_refuses_spare_part_over_consumption}"
     },
     {
       "id": "AC-05",
       "given": "untrusted identifiers, source refs, evidence refs, dates, intervals, quantities, or overclaim paths enter the plant-maintenance domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid dates, warranty dates before installation, invalid preventive intervals, zero labor/spare quantities, missing equipment registration, missing plan approval, missing work-order release, and spare-part over-consumption are refused",
-      "test_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain/tests/plant_maintenance.rs::{plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow,plant_maintenance_validates_dates_refs_intervals_and_quantities,plant_maintenance_refuses_spare_part_over_consumption}"
+      "test_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain/tests/plant_maintenance.rs::{plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow,plant_maintenance_validates_dates_refs_intervals_and_quantities,plant_maintenance_refuses_spare_part_over_consumption}"
     }
   ],
   "decision_log": [
@@ -119,7 +119,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/plant-maintenance/crates/oya-plant-maintenance-domain",
+    "primary_crate_ref": "microservices/plant-maintenance/crates/plant-maintenance-domain",
     "entities_ref": [
       {
         "entity": "Enterprise",

@@ -1,6 +1,6 @@
 # Weekly non-blocking license-policy check over the resolved dependency graph.
 #
-# Not part of the merge path: merge authority is the `oya-ci-required` context.
+# Not part of the merge path: merge authority is the `presubmit` context.
 # A red run here means a dependency's license left the deny.toml allow-list, or an
 # exception expired — a signal to fix the dependency or review the policy, never a
 # merge blocker. It is scheduled rather than per-PR deliberately: a license
@@ -25,7 +25,7 @@
 # born-blocking. Checkout is the same SHA-pinned actions/checkout as every other
 # workflow. The check is EmbarkStudios/cargo-deny-action@v2.1.1 (commit
 # 3c6349835b2b7b196a839186cb8b78e02f7b5f25), which ships cargo-deny 0.20.2 and
-# provisions Rust 1.97.1 — the workspace rust-toolchain.toml pin — so this advisory
+# provisions Rust 1.98.0 — the workspace rust-toolchain.toml pin — so this advisory
 # lane adds no unbaselined shell.
 
 name: license-weekly-advisory
@@ -51,4 +51,4 @@ jobs:
         with:
           command: check
           command-arguments: licenses
-          rust-version: "1.97.1"
+          rust-version: "1.98.0"

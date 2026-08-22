@@ -33,9 +33,9 @@ rust_test(
 )
 
 rust_binary(
-    name = "oya-ci-tide",
+    name = "ci-tide",
     srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
-    crate_root = "src/bin/oya-ci-tide.rs",
+    crate_root = "src/bin/ci-tide.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-tide-app",

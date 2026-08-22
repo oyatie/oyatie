@@ -1,0 +1,9 @@
+rust_binary(
+    name = "governance-predictable-naming-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/governance-predictable-naming-kernel:governance-predictable-naming-kernel",
+    ],
+)

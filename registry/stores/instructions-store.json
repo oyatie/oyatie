@@ -8,7 +8,7 @@
     "multispectrum doctrine RETIRED (D-MULTISPECTRUM-RETIRED) — not carried",
     "CURRENT-TRUTH-KEEP only; stale/superseded/retired mechanisms dropped per D-AUTHORITY-CONVERSATION"
   ],
-  "notes": "Durable disciplines from docs/AGENTS.md + standards/* were extracted and re-expressed via the canon's CURRENT mechanisms: GitHub Actions = live CI authority (D-CICD-AUTHORITY), cloud-native pipeline gates not CLI (D-CLOUD-NATIVE), one canonical blocking context oya-ci-required, central PaC/CaC/PaaS/CaaS governance (D-GOVERNANCE-CENTRAL). Retired-mechanism wrappers (multispectrum/foundry/Jenkins/oya gate|verify|check/Forgejo/agentic-VCS ratchet) were STRIPPED, keeping only the durable rule. body_ref points to the canon ruling or current standard that grounds each entry.",
+  "notes": "Durable disciplines from docs/AGENTS.md + standards/* were extracted and re-expressed via the canon's CURRENT mechanisms: GitHub Actions = live CI authority (D-CICD-AUTHORITY), cloud-native pipeline gates not CLI (D-CLOUD-NATIVE), one canonical blocking context presubmit, central PaC/CaC/PaaS/CaaS governance (D-GOVERNANCE-CENTRAL). Retired-mechanism wrappers (multispectrum/foundry/Jenkins/oya gate|verify|check/Forgejo/agentic-VCS ratchet) were STRIPPED, keeping only the durable rule. body_ref points to the canon ruling or current standard that grounds each entry.",
   "entities": [
     {
       "key": "trust-boundary-untrusted-data",
@@ -117,8 +117,8 @@
       "key": "one-canonical-ci-required-context",
       "scope": "all-agents",
       "category": "discipline",
-      "title": "ONE canonical CI — one blocking required context 'oya-ci-required'",
-      "directive": "Do not maintain two parallel CIs. There is ONE canonical CI = one shared Rust gate-logic + one pipeline definition + one surface-all aggregator producing ONE canonical BLOCKING required context 'oya-ci-required' (produced by GitHub Actions now; by the owned runner after cutover — a runner migration across TIME, not two simultaneous runners). No parallel-shadow run or verdict-agreement apparatus.",
+      "title": "ONE canonical CI — one blocking required context 'presubmit'",
+      "directive": "Do not maintain two parallel CIs. There is ONE canonical CI = one shared Rust gate-logic + one pipeline definition + one surface-all aggregator producing ONE canonical BLOCKING required context 'presubmit' (produced by GitHub Actions now; by the owned runner after cutover — a runner migration across TIME, not two simultaneous runners). No parallel-shadow run or verdict-agreement apparatus.",
       "applies_when": "commit",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-CICD-AUTHORITY",
@@ -573,8 +573,8 @@
       "key": "llm-is-cloud-intelligence-domain",
       "scope": "all-agents",
       "category": "routing",
-      "title": "Anything LLM = cloud-intelligence's domain; oya-intelligence is the tenant servicing layer",
-      "directive": "Anything LLM-related (inference, provider gateways/adapters, key-pools, model routing, prompts, agentic-LLM execution, eval) is the domain of cloud-intelligence (the cloud-owned Bedrock-analog framework + runtime), served to all tenants. oya-intelligence is the thin tenant-facing servicing layer that CONSUMES cloud-intelligence (oya = dogfood tenant). Any LLM functionality found elsewhere consolidates into cloud-intelligence's domain. Route LLM work accordingly.",
+      "title": "Anything LLM = cloud-intelligence's domain; intelligence is the tenant servicing layer",
+      "directive": "Anything LLM-related (inference, provider gateways/adapters, key-pools, model routing, prompts, agentic-LLM execution, eval) is the domain of cloud-intelligence (the cloud-owned Bedrock-analog framework + runtime), served to all tenants. intelligence is the thin tenant-facing servicing layer that CONSUMES cloud-intelligence (oya = dogfood tenant). Any LLM functionality found elsewhere consolidates into cloud-intelligence's domain. Route LLM work accordingly.",
       "applies_when": "author",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-LLM-DOMAIN",
@@ -677,21 +677,21 @@
       "scope": "all-agents",
       "category": "forbidden-vocab",
       "title": "Forbidden vocab — total eradication of retired terms",
-      "directive": "The canonical forbidden-vocabulary deny-list applies everywhere, including historical and superseded bodies, and the brand-residue gate blocks listed terms going forward. Founder-retired authority-body terminology must not be authored as a deciding owner. The retired oya CLI governance family ('oya gate' / 'oya verify' / 'oya check' / 'oya-dev-cli' / 'oya git' / 'oya vcs') must not be authored as the mechanism. CANONICAL NAMES (use these, not retired or ambiguous forms): the gate contract surface is 'oya-ci-gate-contract' (NOT 'oya-pipeline-gate-sdk'); the gate/pipeline-step extension surface is 'oya-ci-gate-sdk'; the VCS-agnostic facts boundary is 'scm-facts' (NOT 'git-facts' as a forward identifier — git is the transitional impl, per ADR-0526). External competitor proper nouns are governed only by their explicit stem-scoped policy rows.",
+      "directive": "The canonical forbidden-vocabulary deny-list applies everywhere, including historical and superseded bodies, and the brand-residue gate blocks listed terms going forward. Founder-retired authority-body terminology must not be authored as a deciding owner. The retired oya CLI governance family ('oya gate' / 'oya verify' / 'oya check' / 'dev-cli' / 'oya git' / 'oya vcs') must not be authored as the mechanism. CANONICAL NAMES (use these, not retired or ambiguous forms): the gate contract surface is 'ci-gate-contract' (NOT 'pipeline-gate-sdk'); the gate/pipeline-step extension surface is 'ci-gate-sdk'; the VCS-agnostic facts boundary is 'scm-facts' (NOT 'git-facts' as a forward identifier — git is the transitional impl, per ADR-0526). External competitor proper nouns are governed only by their explicit stem-scoped policy rows.",
       "applies_when": "always",
       "authority": "founder",
       "body_ref": "obsidian://decisions/canon#D-CLOUD-NATIVE",
       "edges": {
         "depends_on": [],
         "related": [
-          "oya-cli-retired-stays-retired",
+          "cli-retired-stays-retired",
           "multispectrum-retired",
           "decision-record-is-apex-authority"
         ]
       }
     },
     {
-      "key": "oya-cli-retired-stays-retired",
+      "key": "cli-retired-stays-retired",
       "scope": "all-agents",
       "category": "forbidden-vocab",
       "title": "The oya CLI is RETIRED and stays retired — record no revival",
@@ -732,7 +732,7 @@
       "scope": "all-agents",
       "category": "commit-protocol",
       "title": "Coordination = isolated worktree branch + PR against dev + required checks + reviewer APPROVE",
-      "directive": "Agent coordination uses plain git. Work on an isolated worktree branch (one lane = one worktree), commit and push on that lane, open a PR against dev. Merge readiness = the canonical required context (oya-ci-required, produced by GitHub Actions) green + reviewer APPROVE. GitHub (interim) protected-branch substrate is the forge target until the owned bespoke SCM is proven and cut over. No agentic-VCS wrapper / ratchet.",
+      "directive": "Agent coordination uses plain git. Work on an isolated worktree branch (one lane = one worktree), commit and push on that lane, open a PR against dev. Merge readiness = the canonical required context (presubmit, produced by GitHub Actions) green + reviewer APPROVE. GitHub (interim) protected-branch substrate is the forge target until the owned bespoke SCM is proven and cut over. No agentic-VCS wrapper / ratchet.",
       "applies_when": "commit",
       "authority": "doctrine",
       "body_ref": "obsidian://decisions/canon#D-FORGE-CLARIFY",

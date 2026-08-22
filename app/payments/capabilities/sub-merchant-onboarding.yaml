@@ -1,0 +1,68 @@
+---
+# Canonical capability record — v2 schema
+# ADR-0056 BNF v4.1; ADR-0105 13-layer; ADR-0243 Cedar universal gate
+apiVersion: oyatie.dev/v2
+kind: Capability
+metadata:
+  name: sub-merchant-onboarding
+  microservice: payments
+  bounded_context: kyc-kyb
+  owner_team: axis-payments + ops-compliance
+  date: 2026-05-20
+  related_adrs: [ADR-0056, ADR-0105, ADR-0243, ADR-0244, ADR-0251]
+  ip_refs: [IP-013, IP-014]
+spec:
+  description: |
+    KYC/KYB sub-merchant onboarding via PSP-hosted verification flows
+    (Stripe / Adyen MarketPay). Covers document submission, AML risk
+    scoring, KR-PASS identity verification for KR tenants, and lifecycle
+    management (pending → verified → restricted → suspended).
+  tier: T1
+  risk_class: financial-kyb
+  cedar_gate: policy/sub-merchant-onboarding.cedar
+  audience_types: [B2B_TENANT, PARTNER_AGENCY]
+  inputs:
+    - name: business_name
+      type: String
+      required: true
+    - name: business_registration_number
+      type: String
+      required: true
+    - name: tos_accepted_at
+      type: Timestamp
+      required: true
+    - name: kyc_tier
+      type: Enum[Basic, Enhanced, Full]
+      required: true
+    - name: kr_pass_token
+      type: String
+      required: false
+      note: "Required for KR tenants per pack-kr-fss"
+    - name: aml_risk_score
+      type: u8
+      required: false
+      note: "Auto-populated by AmlMonitoringWorker"
+  outputs:
+    - name: sub_merchant_id
+      type: UUID
+    - name: verification_status
+      type: Enum[Pending, UnderReview, Verified, Restricted]
+    - name: psp_account_id
+      type: String
+      note: "Stripe connected-account ID or Adyen accountHolder code"
+  audit_events:
+    - oya.payments.sub-merchant.onboarded
+    - oya.payments.sub-merchant.restricted
+    - oya.payments.aml.suspicious-activity-detected
+  slo_refs:
+    - name: payments-charge-api-availability
+      note: "Sub-merchant onboarding prerequisite for charge capability"
+  hyperscaler_precedents:
+    - name: Stripe Connect
+      url: https://stripe.com/docs/connect/accounts
+      note: "Platform-facilitator pattern; connected-account onboarding"
+    - name: Adyen MarketPay
+      url: https://docs.adyen.com/marketpay/
+      note: "AccountHolder + shareholder/UBO onboarding"
+    - name: Square Sellers
+      url: https://developer.squareup.com/docs/seller-dashboard

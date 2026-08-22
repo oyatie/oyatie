@@ -10,7 +10,7 @@ use iac_rest::{
     MODULE_REGISTRY_REST_METHOD, MODULE_REGISTRY_VERSIONS_REST_ROUTE,
     match_module_registry_rest_route, module_registry_rest_router, module_registry_route_surfaces,
 };
-use oya_http_router_kernel::HttpMethod;
+use http_router_kernel::HttpMethod;
 
 #[test]
 fn rest_router_registers_official_opentofu_module_registry_templates() {

@@ -20,9 +20,9 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing `oya-cloud-billing-kernel` crate (`crates/oya-cloud-billing-kernel/src/lib.rs`, 185 lines) which encodes the rule that every billable line item must declare its tax-profile reference before finalization. This is the M03-P03-IP-002 minimum viable kernel — pure I/O-free, deterministic, and the canonical proof surface for "no line item ships without tax provenance."
+Document the existing `cloud-billing-kernel` crate (`crates/cloud-billing-kernel/src/lib.rs`, 185 lines) which encodes the rule that every billable line item must declare its tax-profile reference before finalization. This is the M03-P03-IP-002 minimum viable kernel — pure I/O-free, deterministic, and the canonical proof surface for "no line item ships without tax provenance."
 
-This IP is distinct from IP-001 (`oya-cloud-billing-domain`): the domain crate is the full aggregate-root model (account / event / invoice / line_item), while the kernel crate is the narrow algebra that closes the spec-compliance loop between usage record and finalized money amount.
+This IP is distinct from IP-001 (`cloud-billing-domain`): the domain crate is the full aggregate-root model (account / event / invoice / line_item), while the kernel crate is the narrow algebra that closes the spec-compliance loop between usage record and finalized money amount.
 
 ## §B Scope
 
@@ -38,7 +38,7 @@ In scope:
 
 Out of scope:
 
-- Tax computation itself (delegated to IP-003 `oya-cloud-billing-tax-app` and the per-pack tax engine).
+- Tax computation itself (delegated to IP-003 `cloud-billing-tax-app` and the per-pack tax engine).
 - Currency conversion (the kernel works in `unit_price_micros`, a single-currency micro-unit; FX is upstream).
 - Persistence (the kernel is I/O-free; persistence is in IP-006 REST API + IP-007 events + IP-010 audit-chain).
 
@@ -94,8 +94,8 @@ The kernel does not perform Cedar evaluation; it is the substrate algebra. Cedar
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-kernel/src/lib.rs` (185 lines, 6 tests).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-kernel/Cargo.toml`.
+- `/Users/jasonlee/oyatie/crates/cloud-billing-kernel/src/lib.rs` (185 lines, 6 tests).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-kernel/Cargo.toml`.
 
 ### §F.2 Tests demonstrating invariants
 
@@ -109,7 +109,7 @@ The kernel does not perform Cedar evaluation; it is the substrate algebra. Cedar
 
 ### §F.3 Downstream consumers
 
-- `oya-cloud-billing-tax-app` (IP-003): resolves `tax_profile_ref` from regional pack + line item kind.
+- `cloud-billing-tax-app` (IP-003): resolves `tax_profile_ref` from regional pack + line item kind.
 - `cloud-billing-invoice-worker` Kubernetes deployment (IaC `microservices/cloud-billing/iac/oyatie-public-cloud/invoice-worker.tf`): calls `finalize_line` per line item before assembling `InvoiceGenerate`.
 - `finops-portal`: reads finalized subtotals via the IP-006 OpenAPI invoice endpoint.
 

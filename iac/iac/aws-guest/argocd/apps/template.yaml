@@ -2,9 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: "{{microservice}}-{{cluster_id}}"
-  namespace: oya-cd-argocd
+  namespace: cd-argocd
   labels:
-    app.kubernetes.io/part-of: oya-ci-cd-substrate
+    app.kubernetes.io/part-of: ci-cd-substrate
     oyatie.com/adr: ADR-0349
     oyatie.com/image-promotion: ADR-0181
     oyatie.com/context: "aws-guest"
@@ -18,7 +18,7 @@ metadata:
     oyatie.com/audit-chain-event: argocd-application-sync
     oyatie.com/fail-open: "false"
 spec:
-  project: "oya-aws-guest-tenants"
+  project: "aws-guest-tenants"
   source:
     repoURL: "{{repo_url}}"
     targetRevision: "{{target_revision}}"

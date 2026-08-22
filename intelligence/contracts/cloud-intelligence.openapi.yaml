@@ -79,7 +79,7 @@ paths:
   /metrics:
     get:
       tags: [internal]
-      summary: Prometheus/OpenTelemetry exposition (oya_cloud_intelligence_*)
+      summary: Prometheus/OpenTelemetry exposition (cloud_intelligence_*)
       security: []
       responses:
         '200':

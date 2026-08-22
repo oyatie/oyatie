@@ -3,7 +3,7 @@
 use hr_employment_domain::{
     HrDomainError, LeaveBalanceAccrualInput, evaluate_leave_balance_accrual,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 // ---------------------------------------------------------------------------
 // [RED] Additional acceptance-criteria tests (hr-3 full coverage)

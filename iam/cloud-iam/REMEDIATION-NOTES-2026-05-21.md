@@ -62,7 +62,7 @@ Follow-ups:
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-iam/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-iam-api/src/lib.rs.
+- Values: pod_runtime_tier=1; evidence=microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-iam/feature-parity-matrix-2026-05-20.md, crates/cloud-iam-api/src/lib.rs.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-0.
 - Why: Foundation identity substrate: cloud-iam handles tenant principals, authorization, STS, and provider projection data, matching ADR-0338's Tier-1 floor for cloud-iam and ADR-0340's Tier-0 cellular class.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

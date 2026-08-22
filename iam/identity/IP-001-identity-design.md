@@ -7,9 +7,9 @@ bounded_context: workload-identity
 status: proposed
 related_adrs: [ADR-0002, ADR-0131, ADR-0183]
 related_crates:
-  - oya-identity-workload-domain
-  - oya-identity-workload-oidc-adapter
-  - oya-identity-workload-authz-cedar-adapter
+  - identity-workload-domain
+  - identity-workload-oidc-adapter
+  - identity-workload-authz-cedar-adapter
 date: 2026-05-26
 owner_team: axis-identity
 research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
@@ -28,19 +28,19 @@ Land three crates that together provide workload-token validation and Cedar PARC
 authorization for the fleet, behind stable swap-in traits, fail-closed, with an
 immutable decision log:
 
-1. `oya-identity-workload-domain` — pure kernel.
-2. `oya-identity-workload-oidc-adapter` — `ring` OIDC/JWS validation (8-step pipeline).
-3. `oya-identity-workload-authz-cedar-adapter` — Cedar PARC PDP behind a trait.
+1. `identity-workload-domain` — pure kernel.
+2. `identity-workload-oidc-adapter` — `ring` OIDC/JWS validation (8-step pipeline).
+3. `identity-workload-authz-cedar-adapter` — Cedar PARC PDP behind a trait.
 
 ## Sequenced slices
 
-### Slice 1 — `oya-identity-workload-domain` (pure kernel, zero deps)
+### Slice 1 — `identity-workload-domain` (pure kernel, zero deps)
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-workload-domain/Cargo.toml` | no deps beyond std (matches catalog: pure kernel) |
-| `crates/oya-identity-workload-domain/src/lib.rs` | `WorkloadPrincipal`, lifecycle state machine, PARC decision types |
-| `crates/oya-identity-workload-domain/tests/workload_domain.rs` | lifecycle + decision-type tests |
+| `crates/identity-workload-domain/Cargo.toml` | no deps beyond std (matches catalog: pure kernel) |
+| `crates/identity-workload-domain/src/lib.rs` | `WorkloadPrincipal`, lifecycle state machine, PARC decision types |
+| `crates/identity-workload-domain/tests/workload_domain.rs` | lifecycle + decision-type tests |
 
 Public surface (excerpt):
 
@@ -73,13 +73,13 @@ suspended→retired; retired→active rejected; retired id non-reuse;
 `AuthzDecision` implicit-deny shape (empty determining_policies + Deny); decision
 error typing.
 
-### Slice 2 — `oya-identity-workload-oidc-adapter` (`ring` OIDC)
+### Slice 2 — `identity-workload-oidc-adapter` (`ring` OIDC)
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-workload-oidc-adapter/Cargo.toml` | deps: `ring`, `base64`, `serde`, `serde_json` (matches catalog) |
-| `crates/oya-identity-workload-oidc-adapter/src/lib.rs` | 8-step pipeline + RSA JWK (n/e) → PKCS#1 DER bridge for ring |
-| `crates/oya-identity-workload-oidc-adapter/tests/oidc_validation.rs` | the RFC 8725/9068 test matrix |
+| `crates/identity-workload-oidc-adapter/Cargo.toml` | deps: `ring`, `base64`, `serde`, `serde_json` (matches catalog) |
+| `crates/identity-workload-oidc-adapter/src/lib.rs` | 8-step pipeline + RSA JWK (n/e) → PKCS#1 DER bridge for ring |
+| `crates/identity-workload-oidc-adapter/tests/oidc_validation.rs` | the RFC 8725/9068 test matrix |
 
 The 8-step pipeline (PRD §3.1) is implemented as an ordered, fail-fast function
 returning `Result<Rfc9068Claims, DecisionError>`. The `kid`→alg binding table is
@@ -93,13 +93,13 @@ unknown `kid`; wrong issuer; key-not-belongs-to-issuer; wrong audience; expired
 (outside skew); nbf in future; skew boundary (exactly 60s ok, 61s not);
 `jku` not allowlisted; malformed compact JWS; missing `typ`.
 
-### Slice 3 — `oya-identity-workload-authz-cedar-adapter` (Cedar PARC)
+### Slice 3 — `identity-workload-authz-cedar-adapter` (Cedar PARC)
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-workload-authz-cedar-adapter/Cargo.toml` | in-crate evaluator; documents upstream `cedar-policy` swap (manifest `consumes_upstream_oss`) |
-| `crates/oya-identity-workload-authz-cedar-adapter/src/lib.rs` | `WorkloadAuthorizer` trait + faithful Cedar-semantics evaluator |
-| `crates/oya-identity-workload-authz-cedar-adapter/tests/cedar_authz.rs` | PARC + forbid-wins + lifecycle-precondition tests |
+| `crates/identity-workload-authz-cedar-adapter/Cargo.toml` | in-crate evaluator; documents upstream `cedar-policy` swap (manifest `consumes_upstream_oss`) |
+| `crates/identity-workload-authz-cedar-adapter/src/lib.rs` | `WorkloadAuthorizer` trait + faithful Cedar-semantics evaluator |
+| `crates/identity-workload-authz-cedar-adapter/tests/cedar_authz.rs` | PARC + forbid-wins + lifecycle-precondition tests |
 
 ```rust
 pub trait WorkloadAuthorizer: Send + Sync {

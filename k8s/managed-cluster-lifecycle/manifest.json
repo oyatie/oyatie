@@ -17,9 +17,9 @@
       "name": "managed-k8s-cluster-lifecycle",
       "description": "Tenant-facing managed-Kubernetes cluster lifecycle admission. Consumes QuotaDecisionPort (managed-k8s-tenant-quota) before ControlPlaneProvisioning (managed-k8s-control-plane-host); quota denial/not-found/failure fails closed and does not invoke provisioning.",
       "crates": [
-        "oya-managed-k8s-cluster-lifecycle-kernel",
-        "oya-managed-k8s-cluster-lifecycle-api",
-        "oya-managed-k8s-cluster-lifecycle-app"
+        "managed-k8s-cluster-lifecycle-kernel",
+        "managed-k8s-cluster-lifecycle-api",
+        "managed-k8s-cluster-lifecycle-app"
       ]
     }
   ],
@@ -55,7 +55,7 @@
     {
       "name": "cluster-lifecycle-create-admission-latency",
       "target": "0.95",
-      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
+      "sli": "histogram_quantile(0.95, sum(rate(managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
       "file": "k8s/observability/slos/cluster-lifecycle/create-admission-latency.openslo.yaml"
     }
   ],
@@ -166,7 +166,7 @@
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Narrow composition over QuotaDecisionPort + ControlPlaneProvisioning ports; no new storage or external dependency. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"
+    "microservices/managed-k8s-cluster-lifecycle/crates/managed-k8s-cluster-lifecycle-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],

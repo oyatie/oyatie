@@ -16,13 +16,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum by (framework) (oya_compliance_required_artifacts_emitted{microservice="compliance"})
+                sum by (framework) (compliance_required_artifacts_emitted{microservice="compliance"})
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum by (framework) (oya_compliance_required_artifacts_total{microservice="compliance"})
+                sum by (framework) (compliance_required_artifacts_total{microservice="compliance"})
   objectives:
     - displayName: 100% of required artifacts emitted per framework per quarter
       target: 1.0

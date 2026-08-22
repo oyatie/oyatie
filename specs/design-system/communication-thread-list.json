@@ -37,8 +37,8 @@
     "personal work-masked projections do not render hidden details"
   ],
   "test_refs": [
-    "crates/oya-tenant-context-ui/tests/thread_list.rs::test_policy_badges_render",
-    "crates/oya-tenant-context-ui/tests/thread_list.rs::test_no_spinner_only_loading"
+    "crates/tenant-context-ui/tests/thread_list.rs::test_policy_badges_render",
+    "crates/tenant-context-ui/tests/thread_list.rs::test_no_spinner_only_loading"
   ],
   "consumers": [
     "$ref:specs/tenant-rbac-packaging.json",
@@ -48,7 +48,7 @@
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",
-    "cargo test -p oya-dev-cli product_prd_json -- --nocapture"
+    "cargo test -p dev-cli product_prd_json -- --nocapture"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

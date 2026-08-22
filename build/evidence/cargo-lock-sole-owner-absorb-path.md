@@ -25,7 +25,7 @@ Dual-homes path trees **only** so freshness/`cargo metadata` can resolve members
 | --- | --- |
 | `#1646` | Add `ci/controller/{app,github-adapter,k8s-adapter,kernel}` members + lock packages `ci-controller-*` |
 | `#1926` | Un-exclude ready: add harness crates + lock packages `os-oci-executor-oracle`, `os-attestation-relying-party` |
-| `#1839` | Drop `cloud/cloud-os/crates/oya-*` glob + prune `oya-cloud-os-*-domain` lock packages |
+| `#1839` | Drop `cloud/cloud-os/crates/oya-*` glob + prune `cloud-os-*-domain` lock packages |
 | build tip | Refresh missing `port-engine-*` lock packages for existing `build/port-engine/*/*` members |
 
 ## Post-land follow-ups

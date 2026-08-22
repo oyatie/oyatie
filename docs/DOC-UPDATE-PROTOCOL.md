@@ -1,12 +1,12 @@
 ---
-purpose: Tombstone. Retired May 2026 oya-doc update protocol.
+purpose: Tombstone. Retired May 2026 doc update protocol.
 doc_status: archived
 status: historical
 ---
 
 # DOC-UPDATE-PROTOCOL.md — historical tombstone
 
-**Historical.** Draft v0.1 (2026-05-09). Step list for the retired `oya-governance-doc-catalog` / `oya doc` pipeline.
+**Historical.** Draft v0.1 (2026-05-09). Step list for the retired `governance-doc-catalog` / `oya doc` pipeline.
 
 **Current protocol (one):** [`AGENTS.md`](AGENTS.md) (same-wave load-bearing co-change + Done-Definition) and [`specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json).
 

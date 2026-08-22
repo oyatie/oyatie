@@ -103,7 +103,7 @@ fn audit_chain_runtime_evidence_plan_preserves_ref_boundaries_and_source_contrac
             .starts_with("evidence/audit-chain-runtime/tenant-rbac/")
             && requirement
                 .source_plan_ref
-                .starts_with("crates/oya-tenant-rbac-audit-chain-emission/")
+                .starts_with("crates/tenant-rbac-audit-chain-emission/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.tenant_partition == "tenant-scoped"
             && requirement.outbox_topic == "oya.platform.audit"

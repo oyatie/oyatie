@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: compliance-regulator-evidence-export-failure.
 - Primary service namespace: `compliance`.
-- Owning rotation: PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer.
+- Owning rotation: PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer.
 - Incident channel: `#inc-compliance-regulatory`.
 - External dependencies: Sigstore support; SeaweedFS support; external auditor portal support; regulator submission portal desk.
 - API authority: `https://compliance.internal.oyatie.dev/v1/compliance/regulator-evidence-export-failure/incident-handoff`.
@@ -26,12 +26,12 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/compliance-regulator-evidence-export-failure-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `ComplianceRegulatorEvidenceExportFailureCritical` when `oya_compliance_regulator_evidence_export_failure_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `ComplianceRegulatorEvidenceExportFailureSloBurn` when `oya_compliance_regulator_evidence_export_failure_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open a sev0 if `oya_compliance_regulator_evidence_export_failure_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
-- Open a sev1 if `oya_compliance_regulator_evidence_export_failure_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `ComplianceRegulatorEvidenceExportFailureCritical` when `compliance_regulator_evidence_export_failure_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `ComplianceRegulatorEvidenceExportFailureSloBurn` when `compliance_regulator_evidence_export_failure_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `compliance_regulator_evidence_export_failure_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `compliance_regulator_evidence_export_failure_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `compliance.regulator-evidence-export-failure.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate compliance-regulator-evidence-export-failure --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate compliance-regulator-evidence-export-failure --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="compliance",runbook="regulator-evidence-export-failure"}`.
@@ -45,9 +45,9 @@ doc_status: published
 - Loki signature `compliance.regulator_evidence_export_failure.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=ComplianceRegulatorEvidenceExportFailureDegraded` on deployment `compliance-regulator-evidence-export-failure-worker`.
 - Audit-chain shows missing or delayed `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT --since 30m`.
-- Metric pattern: `oya_compliance_regulator_evidence_export_failure_error_ratio` rises before `oya_compliance_regulator_evidence_export_failure_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_compliance_regulator_evidence_export_failure_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_compliance_regulator_evidence_export_failure_queue_depth`; isolate before fleet mitigation.
+- Metric pattern: `compliance_regulator_evidence_export_failure_error_ratio` rises before `compliance_regulator_evidence_export_failure_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `compliance_regulator_evidence_export_failure_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `compliance_regulator_evidence_export_failure_queue_depth`; isolate before fleet mitigation.
 - Fleet-wide shape: at least three cells report `ComplianceRegulatorEvidenceExportFailureCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=regulator-evidence-export-failure.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=regulator-evidence-export-failure.break_glass` means manual intervention is active; confirm two-person authorization.
@@ -60,16 +60,16 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n compliance get pods -l app=compliance-regulator-evidence-export-failure -o wide`.
 5. Read structured logs: `kubectl -n compliance logs deploy/compliance-regulator-evidence-export-failure-worker --since=30m | rg "compliance.regulator_evidence_export_failure.incident_state|ComplianceRegulatorEvidenceExportFailureCritical|EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="compliance",runbook="regulator-evidence-export-failure"}' --since=30m --limit=200`.
-7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_regulator_evidence_export_failure_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_regulator_evidence_export_failure_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_regulator_evidence_export_failure_queue_depth{cell="prod-us-east-1"}'`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_regulator_evidence_export_failure_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_regulator_evidence_export_failure_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_regulator_evidence_export_failure_queue_depth{cell="prod-us-east-1"}'`.
 10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117&var-incident=$INCIDENT_ID"`.
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops compliance regulator-evidence-export-failure status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate compliance-regulator-evidence-export-failure --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-compliance-domain regulator_evidence_export_failure -- --nocapture`.
-16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/regulator-evidence-export-failure/incident-handoff -H "x-oya-tenant: $TENANT"`.
+14. Run production snapshot gate: `cargo run -p dev-cli -- gate validate compliance-regulator-evidence-export-failure --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p compliance-domain regulator_evidence_export_failure -- --nocapture`.
+16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/regulator-evidence-export-failure/incident-handoff -H "x-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n compliance get configmap compliance-regulator-evidence-export-failure-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.compliance.regulator_evidence_export_failure.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status compliance-regulator-evidence-export-failure-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -77,16 +77,16 @@ doc_status: published
 21. Check policy file: `test -f microservices/compliance/policy/pack-overlay-authorization.cedar || test -f microservices/compliance/policy/pack-overlay-authorization.md`.
 22. Check SLO files: `ls microservices/compliance/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/compliance/catalog -maxdepth 1 -type f | sort | rg "compliance|regulator"`.
-24. Confirm no cross-cell spread: `oya ops cells query --metric oya_compliance_regulator_evidence_export_failure_error_ratio --window 30m --threshold 0.02`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric compliance_regulator_evidence_export_failure_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice compliance --runbook regulator-evidence-export-failure --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Regulator Evidence Export Failure incident decision tree
 1. Is ComplianceRegulatorEvidenceExportFailureCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_compliance_regulator_evidence_export_failure_queue_depth grow while oya_compliance_regulator_evidence_export_failure_error_ratio is flat?
+2. Does compliance_regulator_evidence_export_failure_queue_depth grow while compliance_regulator_evidence_export_failure_error_ratio is flat?
    |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
    |-- no: local regression or bad input; continue branch selection.
 3. Does audit-chain show EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT gaps?
@@ -120,42 +120,42 @@ Regulator Evidence Export Failure incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice compliance --incident $INCIDENT_ID --channel #inc-compliance-regulatory`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-compliance --incident $INCIDENT_ID --summary regulator-evidence-export-failure`.
 18. Confirm breaker effect: `oya ops breaker status compliance-regulator-evidence-export-failure-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/regulator-evidence-export-failure/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/regulator-evidence-export-failure/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=regulator-evidence-export-failure`.
 
 ### Mitigation Branch Guidance
 - Branch A: single tenant isolated.
-  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `oya_compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: fleet-wide propagation.
-  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `oya_compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: dependency regression.
-  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `oya_compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: operator ceremony incomplete.
-  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `oya_compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-regulator-evidence-export-failure-circuit-breaker` open until `compliance_regulator_evidence_export_failure_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=120` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "regulator_evidence_export_failure|ComplianceRegulatorEvidenceExportFailureCritical|compliance.regulator_evidence_export_failure.incident_state" crates microservices/compliance -g "!microservices/compliance/runbooks/**"`.
-2. Patch domain invariant: `edit oya-compliance-domain where regulator_evidence_export_failure state transition is validated`.
+2. Patch domain invariant: `edit compliance-domain where regulator_evidence_export_failure state transition is validated`.
 3. Patch API guard: `edit microservices/compliance/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-compliance-domain regulator_evidence_export_failure_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate compliance-regulator-evidence-export-failure --fixture incident-regulator-evidence-export-failure.json`.
+6. Add regression test: `cargo test -p compliance-domain regulator_evidence_export_failure_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate compliance-regulator-evidence-export-failure --fixture incident-regulator-evidence-export-failure.json`.
 8. Add SLO assertion: `update microservices/compliance/slos/* with alert ComplianceRegulatorEvidenceExportFailureCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/compliance/dashboards/evidence-coverage.json with oya_compliance_regulator_evidence_export_failure_error_ratio, oya_compliance_regulator_evidence_export_failure_lag_seconds, and oya_compliance_regulator_evidence_export_failure_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-compliance-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-compliance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate compliance-policy --microservice compliance`.
+9. Add dashboard panel: `update microservices/compliance/dashboards/evidence-coverage.json with compliance_regulator_evidence_export_failure_error_ratio, compliance_regulator_evidence_export_failure_lag_seconds, and compliance_regulator_evidence_export_failure_queue_depth`.
+10. Rebuild affected crate: `cargo check -p compliance-domain --all-targets`.
+11. Run targeted tests: `cargo test -p compliance-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate compliance-policy --microservice compliance`.
 13. Deploy canary: `oya deploy canary --microservice compliance --component regulator-evidence-export-failure-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_compliance_regulator_evidence_export_failure_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric compliance_regulator_evidence_export_failure_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close compliance-regulator-evidence-export-failure-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.compliance.regulator_evidence_export_failure.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -164,9 +164,9 @@ Regulator Evidence Export Failure incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-compliance-domain`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-regional-pack-domain`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
-- `oya-regional-pack-api`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `compliance-domain`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `regional-pack-domain`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `regional-pack-api`: inspect for regulator_evidence_export_failure invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/compliance/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/compliance/dashboards/evidence-coverage.json`: verify this surface only when the incident evidence points there.
 - `microservices/compliance/slos/`: verify this surface only when the incident evidence points there.
@@ -174,9 +174,9 @@ Regulator Evidence Export Failure incident decision tree
 
 ## Verification Checklist
 - ComplianceRegulatorEvidenceExportFailureCritical and ComplianceRegulatorEvidenceExportFailureSloBurn are both resolved in Alertmanager for 30 minutes.
-- oya_compliance_regulator_evidence_export_failure_error_ratio < 0.005 for 3 consecutive 10 minute windows.
-- oya_compliance_regulator_evidence_export_failure_lag_seconds < 120 for all production cells.
-- oya_compliance_regulator_evidence_export_failure_queue_depth is draining and not growing for the affected tenant.
+- compliance_regulator_evidence_export_failure_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- compliance_regulator_evidence_export_failure_lag_seconds < 120 for all production cells.
+- compliance_regulator_evidence_export_failure_queue_depth is draining and not growing for the affected tenant.
 - dashboard https://grafana.dev.oyatie.internal/d/compliance-substrate/regulator-evidence-export-failure?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117 shows green panels for the affected cell.
 - audit-chain query for EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT returns mitigation and resolution events.
 - circuit breaker compliance-regulator-evidence-export-failure-circuit-breaker is closed after rollback window.
@@ -231,7 +231,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer.
+- Primary on-call: PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer.
 - Incident SLA: ack 3m for sev0/sev1, 10m for sev2, regulator clock checkpoint every 15m.
 - Incident commander: first responder from axis-compliance + DPO office + ops-security; transfer only by explicit message in #inc-compliance-regulatory.
 - Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
@@ -258,7 +258,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source compliance --runbook regulator-evidence-export-failure --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include oya_compliance_regulator_evidence_export_failure_error_ratio, oya_compliance_regulator_evidence_export_failure_lag_seconds, oya_compliance_regulator_evidence_export_failure_queue_depth, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include compliance_regulator_evidence_export_failure_error_ratio, compliance_regulator_evidence_export_failure_lag_seconds, compliance_regulator_evidence_export_failure_queue_depth, current breaker state, and audit seal status.
 - Keep compliance-regulator-evidence-export-failure-circuit-breaker owner as axis-compliance + DPO office + ops-security until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after EVT-COMPLIANCE-REGULATOR_EVIDENCE_EXPORT_FAILURE-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.

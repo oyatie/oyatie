@@ -20,7 +20,7 @@ purpose: |
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-test-evidence
+planned_enforcement_ref: governance-test-evidence
 companion_docs:
   - docs/QA-TEST-STRATEGY.md
   - docs/standards/code-style-rust.md
@@ -64,7 +64,7 @@ The hyperscaler consensus in 2025–2026 is an expanded pyramid:
 | Unit | `#[cfg(test)] mod tests` in same file | `cargo nextest` | every PR |
 | Integration | `tests/` directory of each crate | `cargo nextest` | every PR |
 | Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `cargo nextest` + pact-style verifier | every PR |
-| E2E | `oya-intelligence-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
+| E2E | `intelligence-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
 | Property | `proptest` or `quickcheck` inside `tests/properties/` | `cargo nextest` | every PR (short config); nightly (long config) |
 | Fuzz | `fuzz/` per crate; `cargo-fuzz` | `cargo fuzz run` | nightly + on diff to unsafe surfaces |
 | Mutation | n/a | `cargo-mutants` | nightly on kernel/domain |
@@ -143,7 +143,7 @@ Mandatory on:
 - The audit-chain shard parser (per ADR-0003 / DOC-CATALOG lane
   `audit-chain-replay`).
 
-Lane: `oya-governance-fuzz-coverage` refuses PRs that add `unsafe`
+Lane: `governance-fuzz-coverage` refuses PRs that add `unsafe`
 without a `fuzz_targets/<symbol>.rs` harness, and refuses parser changes
 without a regression case.
 
@@ -176,7 +176,7 @@ each consumer crate run a contract test that:
 3. Asserts the schema-vs-types parity (per `spec-contract-mirror` lane in
    [DOC-CATALOG.md](../DOC-CATALOG.md) §4).
 
-Adding a consumer without a contract test = `oya-governance-contract-coverage`
+Adding a consumer without a contract test = `governance-contract-coverage`
 fail.
 
 ## 8. Coverage budget — `cargo-llvm-cov`
@@ -188,7 +188,7 @@ fail.
 - Coverage is **advisory** at PR time and **enforced** at wave-gate
   reviews; a regression of >5 percentage points blocks the wave.
 
-The lane `oya-governance-coverage-delta` runs on every PR and emits
+The lane `governance-coverage-delta` runs on every PR and emits
 a comment with deltas; merge-blocking is reserved for the wave gate.
 
 ## 9. Flaky-test 14-day SLA
@@ -199,7 +199,7 @@ Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
    row is filed (class: `mechanical` if there is a fix; `cultural`
    otherwise).
 2. The fix SLA is **14 calendar days**.
-   escalates; day 14: the lane `oya-governance-flaky-sla` opens a
+   escalates; day 14: the lane `governance-flaky-sla` opens a
    blocking PR check on the owning crate.
 4. Resolution requires either fix (delete `#[ignore]`) or retirement
    (delete the test with ADR-tracked rationale).
@@ -217,11 +217,11 @@ Per [`docs/AGENTS.md`](../AGENTS.md) Done-Definition:
 
 This standard adds:
 
-- `oya-governance-test-evidence` — nextest evidence pasted in PR.
-- `oya-governance-fuzz-coverage` — fuzz harness mandatory where named.
-- `oya-governance-mutation-budget` — nightly mutation budget on
+- `governance-test-evidence` — nextest evidence pasted in PR.
+- `governance-fuzz-coverage` — fuzz harness mandatory where named.
+- `governance-mutation-budget` — nightly mutation budget on
   kernel/domain.
-- `oya-governance-flaky-sla` — 14-day SLA enforcement.
+- `governance-flaky-sla` — 14-day SLA enforcement.
 
 ## 11. Anti-patterns
 

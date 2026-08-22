@@ -1,6 +1,6 @@
 context: managed-k8s-cluster-lifecycle
 role: kernel
-crate: oya-managed-k8s-cluster-lifecycle-kernel
+crate: managed-k8s-cluster-lifecycle-kernel
 capability: managed-k8s-cluster-lifecycle-request-validation
 plane: control
 slo: preview-control-plane

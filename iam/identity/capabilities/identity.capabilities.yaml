@@ -37,8 +37,8 @@ capabilities:
       - { name: determiningPolicies, type: array }
       - { name: errors, type: array }
     slo_targets:
-      - oya-identity-workload-authorize-latency-p99
-      - oya-identity-workload-decision-correctness
+      - identity-workload-authorize-latency-p99
+      - identity-workload-decision-correctness
     audit_events_emitted:
       - IdentityWorkloadAuthorizationDecided
     failure_modes:
@@ -70,7 +70,7 @@ capabilities:
       - { name: valid, type: boolean }
       - { name: claims, type: object }
     slo_targets:
-      - oya-identity-workload-validation-availability
+      - identity-workload-validation-availability
     audit_events_emitted:
       - IdentityWorkloadTokenValidated
     failure_modes:
@@ -103,7 +103,7 @@ capabilities:
     outputs:
       - { name: principal, type: object }
     slo_targets:
-      - oya-identity-workload-validation-availability
+      - identity-workload-validation-availability
     audit_events_emitted:
       - IdentityWorkloadPrincipalSuspended
       - IdentityWorkloadPrincipalRetired

@@ -30,7 +30,7 @@ last_reviewed: 2026-08-11
 ## Lane split
 
 - **PRODUCTIZED:** control-plane APIs, provision adapters, SECA/open SDK, reusable PaaS surfaces.
-- **OYA_SPECIFIC:** cell/Cedar/jurisdiction packs and curated SKU composition — namespaced, minimal.
+- **OYATIE_SPECIFIC:** cell/Cedar/jurisdiction packs and curated SKU composition — namespaced, minimal.
 - Ephemeral agent/session kits are **not** product.
 
 ## Cite / do not duplicate

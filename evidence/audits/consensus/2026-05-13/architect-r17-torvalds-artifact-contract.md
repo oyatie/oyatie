@@ -19,7 +19,7 @@ Not reject: the direction is right. One graph substrate + contributed registries
    Evidence: schema requires instance fields `node_types`, `edge_types`, `invariants`, `contributing_registry_protocol` at `knowledge-graph-schema.json:31-36`; the shipped catalogs live under `_canonical_node_types` and `_canonical_invariants` at `120` and `394` onward. Generic JSON Schema validators will ignore those custom keywords.
    Fix: split into `knowledge-graph.schema.json` and `knowledge-graph-catalog.json`, or promote these catalogs into first-class schema-validated data with `$defs` plus validator tests.
 4. Defect: no evidence the promised single Rust validator exists.
-   Evidence: graph validator is `crates/oya-check-knowledge-graph (planned)` at `knowledge-graph-schema.json:27-28`; contract validator is planned at `active-machine-readable-artifact-contract.json:37-38`; `find crates ...` found many `oya-check-*` crates but not `oya-check-knowledge-graph` or `oya-check-active-artifact-contract`.
+   Evidence: graph validator is `crates/check-knowledge-graph (planned)` at `knowledge-graph-schema.json:27-28`; contract validator is planned at `active-machine-readable-artifact-contract.json:37-38`; `find crates ...` found many `check-*` crates but not `check-knowledge-graph` or `check-active-artifact-contract`.
    Fix: implement the minimal validator first: load registries, resolve paths against HEAD, fail on unknown refs, duplicate ids, and operational-without-evidence.
 5. Defect: enforcement lanes are named but not wired.
    Evidence: artifact registry rows require planned lanes/hooks/crates at `artifact-capabilities-registry.json:20-35` and `54-77`; `rg` found no `lean-a-active-artifact-contract`, `lean-a-knowledge-graph-integrity`, `lean-a-building-block-drift`, `lean-a-attestation-format`, or `lean-a-ops-portal-claim-matrix` in `registry/quality/lanes.yaml` / workflows. Existing tail lanes are unrelated planned quality lanes at `registry/quality/lanes.yaml:435-475`.
@@ -60,7 +60,7 @@ Not reject: the direction is right. One graph substrate + contributed registries
 - Innovation: the 9-capability contract unifies enforcement, provenance, telemetry, and self-maintenance in one control-plane vocabulary. Good idea. Needs generated profiles and hard validators or it becomes YAML cosplay in JSON.
 
 ## Missing capabilities (priority order)
-1. Minimal `oya-check-knowledge-graph`/`oya-check-active-artifact-contract` validator with HEAD path resolution.
+1. Minimal `check-knowledge-graph`/`check-active-artifact-contract` validator with HEAD path resolution.
 2. ADR + migration policy for v3.0.0 public contract and graph/registry split.
 3. Active CI/quality lane that fails on untracked artifact refs, broken refs, duplicate ids, and operational-without-evidence.
 4. Durable audit archive for consensus outputs; ban `/tmp` as evidence_ref except as transient input.

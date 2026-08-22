@@ -10,15 +10,15 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cross-cutting (emitters live in every axis; chain infrastructure lives here)
 - **Surfaces:**
-  - `oya-platform-audit-chain-kernel` — `AuditRecord`, `BlockHash`, `ChainShard`, `TenantChainId`
-  - `oya-platform-audit-chain-app` — append use-cases, hash-chain integrity, periodic root anchoring
-  - `oya-platform-audit-chain-adapter-postgres` — append-only store adapter (Postgres + write-ahead)
-  - `oya-platform-audit-chain-api` — read surface for evidence queries, regulatory replay, trust-portal feed
+  - `platform-audit-chain-kernel` — `AuditRecord`, `BlockHash`, `ChainShard`, `TenantChainId`
+  - `platform-audit-chain-app` — append use-cases, hash-chain integrity, periodic root anchoring
+  - `platform-audit-chain-adapter-postgres` — append-only store adapter (Postgres + write-ahead)
+  - `platform-audit-chain-api` — read surface for evidence queries, regulatory replay, trust-portal feed
   - Evidence portal (search-axis surface, but audit team owns the evidence-emission spec it reads from)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (owner) — every axis is an emitter; schema changes require all-emitter review
   - `DSR / consent withdrawal cascade` (co-owner with `platform-privacy-dub`) — proof-of-erasure record spec
-- **Catalog records:** `crates/oya-platform-audit-chain-*`
+- **Catalog records:** `crates/platform-audit-chain-*`
 - **Runbooks:** `runbooks/audit-chain-integrity-check.md`, `runbooks/dsr-cascade-proof-of-erasure.md`, `runbooks/regulatory-replay.md`
 - **ADRs:** ADR-0003 (audit chain — sole owner and maintainer)
 
@@ -30,7 +30,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 - Regulatory replay: reconstruct state at any prior timestamp per regulator request
 - DSR cascade: proof-of-erasure record emission + cryptographic invalidation pointer
 - Evidence portal API (read side) for regulators and tenants
-- Fitness function `oya-governance-audit-emission` — CI hard-fail on any surface that touches regulated data without emitting a chain record
+- Fitness function `governance-audit-emission` — CI hard-fail on any surface that touches regulated data without emitting a chain record
 - Cross-axis emission contract: publish the `AuditEmitter` trait that every axis implements
 - Per-tenant chain query surface for `ops-compliance`
 
@@ -56,7 +56,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 | All 7 axes | `AuditEmitter` trait, chain append endpoint | Every regulated capability invocation |
 | `ops-compliance` | Regulatory replay API, per-regulator evidence packs | Monthly + on-demand |
 | `council-privacy` | DSR cascade proof-of-erasure, consent withdrawal records | Per DSR event |
-| `axis-foundry` | Evidence chain emission for every agent step (ADR-0003 + `oya-intelligence-evidence`) | Every Foundry run |
+| `axis-foundry` | Evidence chain emission for every agent step (ADR-0003 + `intelligence-evidence`) | Every Foundry run |
 | `gtm-customer-success` | Trust portal evidence export for design-partner auditors | Per audit request |
 
 ## Success metrics
@@ -92,7 +92,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Axis emits regulated event without chain record | Catastrophic | `oya-governance-audit-emission` CI gate; coverage metric tracked weekly |
+| Axis emits regulated event without chain record | Catastrophic | `governance-audit-emission` CI gate; coverage metric tracked weekly |
 | Hash-chain integrity violation (data corruption or tamper) | Catastrophic | Daily integrity-check runbook; periodic root anchoring published publicly |
 | Replay fails to reconstruct prior state | High | Replay tests run in CI against snapshot fixtures; quarterly regulator-drill |
 | DSR cascade proof-of-erasure delayed > 24 h | High | Automated cascade monitor; PagerDuty alert at 20 h |

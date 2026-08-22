@@ -11,7 +11,7 @@ purpose: |
   contributors MUST avoid. This document converts real Wave-3-G failures into
   reviewable, CI-addressable, and incident-aware contribution rules.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json + docs/standards/documentation-rigor.md
-planned_enforcement_ref: oya-governance-anti-pattern-catalogue
+planned_enforcement_ref: governance-anti-pattern-catalogue
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/standards/doc-style.md
@@ -157,7 +157,7 @@ Examples: repeated headings, missing frontmatter, wrong CLI primitive strings,
 broken links, unresolved ADR identifiers, absent tenant_id fields, forbidden
 retired tool names, and line-count floors not paired with required anchors.
 
-Those belong in oya-governance-* lanes.
+Those belong in governance-* lanes.
 
 Some anti-patterns are review-caught.
 
@@ -2289,7 +2289,7 @@ Anchor: ADR-0131 per-microservice flat layout.
 The enforcement goal is prevention, not punishment.
 
 Every anti-pattern that can be detected mechanically SHOULD become an
-oya-governance-* lane.
+governance-* lane.
 
 Every lane SHOULD report the anti-pattern ID.
 
@@ -2305,7 +2305,7 @@ The absence of a lane is not permission to repeat a known incident.
 
 ### §6.2 Candidate Lanes
 
-`oya-governance-template-stamp-detect` detects AP-A01, AP-A08, and AP-A09.
+`governance-template-stamp-detect` detects AP-A01, AP-A08, and AP-A09.
 
 It compares repeated sections after normalizing entity names, IDs, tiers, and
 service slugs.
@@ -2313,103 +2313,103 @@ service slugs.
 It reports similarity clusters and asks for either bespoke deltas or explicit
 scaffold tagging.
 
-`oya-governance-clause-loop-detect` detects AP-A02 and AP-A07.
+`governance-clause-loop-detect` detects AP-A02 and AP-A07.
 
 It counts repeated clause labels and unique paragraph bodies.
 
 It fails when the ratio of labels to unique bodies crosses a configured
 threshold.
 
-`oya-governance-doc-density` detects AP-A03, AP-A15, and AP-A16.
+`governance-doc-density` detects AP-A03, AP-A15, and AP-A16.
 
 It maps doc class to required anchors from documentation-rigor.md §2.
 
 It refuses line-floor claims without density anchors.
 
-`oya-governance-generated-provenance` detects AP-A04 and AP-A23.
+`governance-generated-provenance` detects AP-A04 and AP-A23.
 
 It requires generated files to declare generator, input manifest, and promotion
 status.
 
 It refuses generated placeholders from serving as canonical accepted doctrine.
 
-`oya-governance-reference-resolve` detects AP-A06, AP-A14, AP-L03, and AP-L04.
+`governance-reference-resolve` detects AP-A06, AP-A14, AP-L03, and AP-L04.
 
 It resolves ADR IDs, companion docs, spec refs, and Markdown links.
 
 It emits broken edge reports for six-hop traversal.
 
-`oya-governance-vague-verb-lint` detects AP-A05 and AP-L01.
+`governance-vague-verb-lint` detects AP-A05 and AP-L01.
 
 It flags high-risk verbs unless nearby text names owner, object, action,
 policy, event, and contract.
 
-`oya-governance-future-work-owned` detects AP-A24 and AP-L12.
+`governance-future-work-owned` detects AP-A24 and AP-L12.
 
 It requires future-work rows to include owner, target artifact, status, and
 blocking condition.
 
-`oya-governance-adr-status-coherence` detects AP-A12.
+`governance-adr-status-coherence` detects AP-A12.
 
 It cross-checks frontmatter status with synthesis reports, promotion ledgers,
 and accepted enum values.
 
-`oya-governance-interservice-contract` detects AP-R01, AP-R02, AP-R06, AP-R13,
+`governance-interservice-contract` detects AP-R01, AP-R02, AP-R06, AP-R13,
 AP-R16, and AP-R17.
 
 It validates contracts, audit emission owner, trace propagation, and Workflow
 or Ontology reasons.
 
-`oya-governance-cedar-fragment-discipline` detects AP-R03 and AP-R05.
+`governance-cedar-fragment-discipline` detects AP-R03 and AP-R05.
 
 It checks Cedar fragment count, schema registration, and audit-event class
 registration.
 
-`oya-governance-tenant-scope-propagation` detects AP-R08, AP-L15, and related
+`governance-tenant-scope-propagation` detects AP-R08, AP-L15, and related
 schema drift.
 
 It checks tenant_id and sub_scope_path in tenant-bearing persistence,
 telemetry, events, and policy context.
 
-`oya-governance-byok-terminology` detects AP-R09 and AP-L14.
+`governance-byok-terminology` detects AP-R09 and AP-L14.
 
 It refuses unqualified BYOK in canonical docs and schemas.
 
-`oya-governance-consistency-tier` detects AP-R07 and AP-R20.
+`governance-consistency-tier` detects AP-R07 and AP-R20.
 
 It requires every multi-region replicated state primitive to choose HLC default
 or TrueTime tier.
 
-`oya-governance-vcs-lifecycle` detects AP-C01, AP-C02, AP-C06, AP-C09,
+`governance-vcs-lifecycle` detects AP-C01, AP-C02, AP-C06, AP-C09,
 AP-C11, and AP-C12.
 
 It checks claim scope, changed files, verify evidence, done state, promotion
 bundle, and environment.
 
-`oya-governance-retired-primitive-lint` detects AP-C08 and AP-L06.
+`governance-retired-primitive-lint` detects AP-C08 and AP-L06.
 
 It flags retired command primitives in actionable command blocks.
 
-`oya-governance-review-thread-discipline` detects AP-C04 and AP-C16.
+`governance-review-thread-discipline` detects AP-C04 and AP-C16.
 
 It refuses bulk-resolution and requires per-thread disposition.
 
-`oya-governance-self-merge-contract` detects AP-C05.
+`governance-self-merge-contract` detects AP-C05.
 
 It requires review evidence, reviewer-agent verdict, Code Review
 section, and admission gate green before self-merge.
 
-`oya-governance-frontmatter-authority` detects AP-A20, AP-A21, and AP-L08.
+`governance-frontmatter-authority` detects AP-A20, AP-A21, and AP-L08.
 
 It requires enforcement fields, authority chain, companion docs, and maintenance
 metadata.
 
-`oya-governance-version-specificity` detects AP-L02.
+`governance-version-specificity` detects AP-L02.
 
 It checks known protocol and regulation tokens for version or effective-date
 qualifiers.
 
-`oya-governance-glossary-vocabulary` detects AP-L05, AP-L07, AP-L15, and
+`governance-glossary-vocabulary` detects AP-L05, AP-L07, AP-L15, and
 AP-L16.
 
 It compares canonical terms to glossary and vocabulary warning registries.

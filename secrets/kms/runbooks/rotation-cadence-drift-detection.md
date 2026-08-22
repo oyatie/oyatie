@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-kms-rotation-cadence-drift-detection.
 - Primary namespace: `cloud-kms`.
-- Owning rotation: PagerDuty `oya-cloud-kms-primary`.
-- Compliance secondary: PagerDuty `oya-compliance-primary`.
+- Owning rotation: PagerDuty `cloud-kms-primary`.
+- Compliance secondary: PagerDuty `compliance-primary`.
 - Incident channel: `#inc-cloud-kms`.
 - Customer channel: `#support-cloud-kms-compliance`.
 - Protected surface: CMK rotation schedules, KEK promotion, decrypt-only grace, PCI/SOC2/FedRAMP/KR K-FSI evidence.
@@ -37,12 +37,12 @@ doc_status: published
 - Alert `CloudKmsRotationOverdueCritical` fires for any regulated tenant.
 - Alert `CloudKmsDecryptOnlyGraceExpired` fires.
 - Alert `CloudKmsRotationEvidenceExportStale` fires.
-- Metric `oya_cloud_kms_rotation_overdue_cmk_total` is non-zero.
-- Metric `oya_cloud_kms_rotation_cadence_drift_total` increases.
-- Metric `oya_cloud_kms_rotation_job_lag_seconds` exceeds 3600.
-- Metric `oya_cloud_kms_decrypt_only_kek_expired_total` is non-zero.
-- Metric `oya_cloud_kms_rotation_exception_expired_total` is non-zero.
-- Metric `oya_cloud_kms_rotation_policy_none_production_total` is non-zero for paid tenant_class.
+- Metric `cloud_kms_rotation_overdue_cmk_total` is non-zero.
+- Metric `cloud_kms_rotation_cadence_drift_total` increases.
+- Metric `cloud_kms_rotation_job_lag_seconds` exceeds 3600.
+- Metric `cloud_kms_decrypt_only_kek_expired_total` is non-zero.
+- Metric `cloud_kms_rotation_exception_expired_total` is non-zero.
+- Metric `cloud_kms_rotation_policy_none_production_total` is non-zero for paid tenant_class.
 - Compliance scan finds missing rotation evidence for PCI, SOC2, FedRAMP, or KR K-FSI.
 - Tenant asks why a CMK has not rotated by contractual cadence.
 - BYOK tenant rotation webhook is stale.
@@ -82,11 +82,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-kms --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-kms --severity sev2`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="kms-rotation")'`.
-6. Query overdue CMKs: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_rotation_overdue_cmk_total{cell="'$CELL'"}'`.
-7. Query drift count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_rotation_cadence_drift_total{cell="'$CELL'"}'`.
-8. Query job lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_rotation_job_lag_seconds{cell="'$CELL'"}'`.
-9. Query expired grace: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_decrypt_only_kek_expired_total{cell="'$CELL'"}'`.
-10. Query production none: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_rotation_policy_none_production_total{cell="'$CELL'"}'`.
+6. Query overdue CMKs: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_rotation_overdue_cmk_total{cell="'$CELL'"}'`.
+7. Query drift count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_rotation_cadence_drift_total{cell="'$CELL'"}'`.
+8. Query job lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_rotation_job_lag_seconds{cell="'$CELL'"}'`.
+9. Query expired grace: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_decrypt_only_kek_expired_total{cell="'$CELL'"}'`.
+10. Query production none: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_rotation_policy_none_production_total{cell="'$CELL'"}'`.
 11. Open rotation dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/rotation?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 12. Open compliance dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/compliance-evidence?orgId=1&var-tenant=$TENANT"`.
 13. Read rotation logs: `kubectl -n cloud-kms logs deploy/cloud-kms-rotation-worker --since=60m | rg "rotation|cadence|decrypt_only|exception"`.
@@ -134,7 +134,7 @@ doc_status: published
 
 ## Mitigation
 1. Pause cryptoshred when expired grace is present: `oya flags set oya.cloud_kms.cryptoshred.pause=true --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
-2. Hold new cadence policy deploys: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
+2. Hold new cadence policy deploys: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `presubmit` required; local/Jenkins rehearsals are non-authoritative).
 3. Freeze evidence export: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID-drift.json`.
 4. Correct invalid cadence dry-run: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --dry-run`.
 5. Correct invalid cadence confirmed: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --confirm $INCIDENT_ID`.
@@ -163,20 +163,20 @@ doc_status: published
 6. Add regression fixture for paid tenant_class production cadence none.
 7. Add regression fixture for tenant_class upgrade cadence propagation.
 8. Add regression fixture for exception expiry.
-9. Run domain tests: `cargo test -p oya-cloud-kms-domain rotation -- --nocapture`.
-10. Run API tests: `cargo test -p oya-cloud-kms-api rotation -- --nocapture`.
-11. Verify the branch-protected production-snapshot gate for `cloud-kms-rotation` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
+9. Run domain tests: `cargo test -p cloud-kms-domain rotation -- --nocapture`.
+10. Run API tests: `cargo test -p cloud-kms-api rotation -- --nocapture`.
+11. Verify the branch-protected production-snapshot gate for `cloud-kms-rotation` in `presubmit` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 12. Verify cadence scan: `oya kms rotation drift scan --tenant $TENANT --cell $CELL --expect none`.
 13. Verify evidence export: `oya kms evidence export --tenant $TENANT --surface rotation --expect complete`.
-14. Unhold promotions: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
+14. Unhold promotions: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `presubmit` required; local/Jenkins rehearsals are non-authoritative).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_KMS_ROTATION_DRIFT_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist
 - `CloudKmsRotationCadenceDrift` is green.
 - `CloudKmsRotationOverdueCritical` is green.
-- `oya_cloud_kms_rotation_overdue_cmk_total` is zero.
-- `oya_cloud_kms_rotation_policy_none_production_total` is zero.
-- `oya_cloud_kms_decrypt_only_kek_expired_total` is zero.
+- `cloud_kms_rotation_overdue_cmk_total` is zero.
+- `cloud_kms_rotation_policy_none_production_total` is zero.
+- `cloud_kms_decrypt_only_kek_expired_total` is zero.
 - Drift scan returns no unapproved rows.
 - Compliance export includes all affected CMKs.
 - Rotation started and completed events are sealed.
@@ -234,9 +234,9 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-kms-primary` for rotation drift.
-- Page `oya-compliance-primary` for regulated tenant or evidence gaps.
-- Page `oya-crypto-operations-primary` when drift is blocked by quorum or HSM health.
+- Page `cloud-kms-primary` for rotation drift.
+- Page `compliance-primary` for regulated tenant or evidence gaps.
+- Page `crypto-operations-primary` when drift is blocked by quorum or HSM health.
 - Page tenant custodian when BYOK or XKS external rotation is stale.
 - Notify `#inc-cloud-kms` with tenant, CMK, and compliance pack scope.
 - Notify `#support-cloud-kms-compliance` before tenant-facing messages.

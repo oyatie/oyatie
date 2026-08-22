@@ -31,7 +31,7 @@
           "adr": "ADR-0515",
           "path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
           "status": "Accepted",
-          "binding": "The single required oya-ci-required context is the merge/admission authority for future PRs; local legacy CLI output is not readiness or merge authority."
+          "binding": "The single required presubmit context is the merge/admission authority for future PRs; local legacy CLI output is not readiness or merge authority."
         }
       ],
       "planning_only_dependencies": [
@@ -92,11 +92,11 @@
         "contract": "Pack activation, data access, retention, and cross-cell decisions are Cedar-gated with default deny"
       },
       {
-        "path": "libs/oya-shared-pdp-kernel/src/lib.rs",
+        "path": "libs/shared-pdp-kernel/src/lib.rs",
         "contract": "Embedded PDP port; every allow/deny decision emits an attributable audit record and fails closed on audit-chain emission error"
       },
       {
-        "path": "secrets/kms/crates/oya-cloud-kms-api/src/lib.rs",
+        "path": "secrets/kms/crates/cloud-kms-api/src/lib.rs",
         "contract": "KMS encrypt/decrypt/schedule-delete API boundary requires tenant, principal, authorization receipt, data_class, purpose, idempotency, region, and cell context"
       },
       {
@@ -342,7 +342,7 @@
           "Emit audit-chain evidence for key creation, import/BYOK proof, rotation, decrypt, denied decrypt, schedule deletion, cancellation, and shred completion."
         ],
         "source_contract_refs": [
-          "secrets/kms/crates/oya-cloud-kms-api/src/lib.rs",
+          "secrets/kms/crates/cloud-kms-api/src/lib.rs",
           "/specs/compliance-pack-schema.json#encryption_byok_required"
         ],
         "evidence_required": [
@@ -365,7 +365,7 @@
         ],
         "source_contract_refs": [
           "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-          "libs/oya-shared-pdp-kernel/src/lib.rs"
+          "libs/shared-pdp-kernel/src/lib.rs"
         ],
         "evidence_required": [
           "cedar-fragment-set",

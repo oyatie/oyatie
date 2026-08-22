@@ -4,7 +4,7 @@
   "status": "Proposed-target",
   "source_resource_catalog": "specs/cloud-resource-contract-parity-catalog.json",
   "source_operation_contract": "specs/cloud-control-plane-operation-contract.json",
-  "purpose": "Binds every G002 resource contract to metadata-level Cedar decision fields, tenant/account/project scope, audit-chain fields, fail-closed quota/cost admission, and oya-meter/oya-billing integration points before later runtime evidence work.",
+  "purpose": "Binds every G002 resource contract to metadata-level Cedar decision fields, tenant/account/project scope, audit-chain fields, fail-closed quota/cost admission, and meter/billing integration points before later runtime evidence work.",
   "claim_controls": {
     "metadata_only": true,
     "no_runtime_policy_engine": true,
@@ -14,7 +14,7 @@
     "pure_dogfood": true,
     "can_claim_now": [
       "Oyatie Cloud has proposed enforceability metadata bindings for every G002 resource contract.",
-      "Every binding includes Cedar decision metadata, tenant/account/project scope, audit-chain fields, fail-closed quota admission, and oya-meter/oya-billing integration points."
+      "Every binding includes Cedar decision metadata, tenant/account/project scope, audit-chain fields, fail-closed quota admission, and meter/billing integration points."
     ],
     "cannot_claim_yet": [
       "policy engine availability",
@@ -152,7 +152,7 @@
           "identityprovider.resource_hours",
           "identityprovider.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -165,7 +165,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -262,7 +262,7 @@
           "policybinding.resource_hours",
           "policybinding.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -275,7 +275,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -372,7 +372,7 @@
           "vminstance.resource_hours",
           "vminstance.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -385,7 +385,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -482,7 +482,7 @@
           "machineimage.resource_hours",
           "machineimage.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -495,7 +495,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -592,7 +592,7 @@
           "k8scluster.resource_hours",
           "k8scluster.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -605,7 +605,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -702,7 +702,7 @@
           "nodepool.resource_hours",
           "nodepool.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -715,7 +715,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -812,7 +812,7 @@
           "function.resource_hours",
           "function.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -825,7 +825,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -922,7 +922,7 @@
           "container.resource_hours",
           "container.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -935,7 +935,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1032,7 +1032,7 @@
           "objectbucket.resource_hours",
           "objectbucket.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1045,7 +1045,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1142,7 +1142,7 @@
           "blockvolume.resource_hours",
           "blockvolume.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1155,7 +1155,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1252,7 +1252,7 @@
           "fileshare.resource_hours",
           "fileshare.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1265,7 +1265,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1362,7 +1362,7 @@
           "vpc.resource_hours",
           "vpc.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1375,7 +1375,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1472,7 +1472,7 @@
           "subnet.resource_hours",
           "subnet.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1485,7 +1485,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1582,7 +1582,7 @@
           "loadbalancer.resource_hours",
           "loadbalancer.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1595,7 +1595,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1692,7 +1692,7 @@
           "dnszone.resource_hours",
           "dnszone.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1705,7 +1705,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1802,7 +1802,7 @@
           "postgresdatabase.resource_hours",
           "postgresdatabase.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1815,7 +1815,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -1912,7 +1912,7 @@
           "warehouse.resource_hours",
           "warehouse.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -1925,7 +1925,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2022,7 +2022,7 @@
           "stream.resource_hours",
           "stream.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2035,7 +2035,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2132,7 +2132,7 @@
           "keyring.resource_hours",
           "keyring.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2145,7 +2145,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2242,7 +2242,7 @@
           "key.resource_hours",
           "key.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2255,7 +2255,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2352,7 +2352,7 @@
           "secret.resource_hours",
           "secret.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2365,7 +2365,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2462,7 +2462,7 @@
           "slotier.resource_hours",
           "slotier.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2475,7 +2475,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2572,7 +2572,7 @@
           "controlplaneeventstream.resource_hours",
           "controlplaneeventstream.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2585,7 +2585,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2682,7 +2682,7 @@
           "billingaccount.resource_hours",
           "billingaccount.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2695,7 +2695,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2792,7 +2792,7 @@
           "meter.resource_hours",
           "meter.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2805,7 +2805,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -2902,7 +2902,7 @@
           "quota.resource_hours",
           "quota.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -2915,7 +2915,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3012,7 +3012,7 @@
           "catalogitem.resource_hours",
           "catalogitem.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3025,7 +3025,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3122,7 +3122,7 @@
           "marketplaceinstallation.resource_hours",
           "marketplaceinstallation.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3135,7 +3135,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3232,7 +3232,7 @@
           "securitypolicypack.resource_hours",
           "securitypolicypack.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3245,7 +3245,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3342,7 +3342,7 @@
           "securityfinding.resource_hours",
           "securityfinding.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3355,7 +3355,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3452,7 +3452,7 @@
           "declarativeapisurface.resource_hours",
           "declarativeapisurface.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3465,7 +3465,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3562,7 +3562,7 @@
           "reconcilerworkflow.resource_hours",
           "reconcilerworkflow.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3575,7 +3575,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3672,7 +3672,7 @@
           "clustercell.resource_hours",
           "clustercell.operation_count"
         ],
-        "integration_point": "oya-meter",
+        "integration_point": "meter",
         "runtime_status": "integration_point_only"
       },
       "billing": {
@@ -3685,7 +3685,7 @@
           "currency",
           "rated_usage_ref"
         ],
-        "integration_point": "oya-billing",
+        "integration_point": "billing",
         "runtime_status": "integration_point_only",
         "rated_usage_join_keys": [
           "operation_id",
@@ -3731,15 +3731,15 @@
     },
     "metering": {
       "source_artifacts": [
-        "cloud/cloud-billing/crates/oya-meter",
-        "cloud/cloud-billing/crates/oya-metering-domain"
+        "cloud/cloud-billing/crates/meter",
+        "cloud/cloud-billing/crates/metering-domain"
       ],
       "runtime_status": "integration_point_only"
     },
     "billing": {
       "source_artifacts": [
-        "cloud/cloud-billing/crates/oya-billing",
-        "cloud/cloud-billing/crates/oya-cloud-billing-domain",
+        "cloud/cloud-billing/crates/billing",
+        "cloud/cloud-billing/crates/cloud-billing-domain",
         "billing/contracts/proto/cloud-billing.proto"
       ],
       "runtime_status": "integration_point_only"

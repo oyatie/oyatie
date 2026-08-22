@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-platform
+name: platform
 description: >-
   App-of-apps Helm chart — generates the Argo CD Application set for a cell's platform stack.
   Helm-first delivery (ADR/fleet-delivery-stack). Cilium + Argo CD are NOT here — they are

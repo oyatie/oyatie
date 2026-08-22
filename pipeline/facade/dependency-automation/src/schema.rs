@@ -186,7 +186,7 @@ engine = "owned-rust-bump-bot"
 changeset_transport = "scm-facts"
 github_actions = "adapter-only"
 external_bots = "disabled"
-merge_authority = "oya-ci-required"
+merge_authority = "presubmit"
 [rust]
 channel = "stable"
 pin = "1.96.0"

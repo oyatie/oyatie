@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-oidc-token-verify-latency
+  name: identity-oidc-token-verify-latency
   displayName: "identity: OIDC token-verify (cache-hit) p999 ≤ 8ms"
   labels:
     microservice: identity
@@ -24,16 +24,16 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_oidc_verify_duration_seconds_bucket{le="0.008"}[5m]))
+                sum(rate(identity_oidc_verify_duration_seconds_bucket{le="0.008"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_oidc_verify_duration_seconds_count[5m]))
+                sum(rate(identity_oidc_verify_duration_seconds_count[5m]))
   objectives:
     - target: 0.999
       displayName: "p999 ≤ 8ms for 99.9% of 5min windows over 30d"
   timeWindow: [{ duration: 30d, isRolling: true }]
   budgetingMethod: Occurrences
-  alertPolicies: [{ alertPolicyRef: oya-canonical-burn-rate-multi-window }]
+  alertPolicies: [{ alertPolicyRef: canonical-burn-rate-multi-window }]

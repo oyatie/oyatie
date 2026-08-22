@@ -6,7 +6,7 @@ error-handling Tier-3 per ADR-0083.
 
 ## Goal
 
-Land the buildable, tested foundation of `oya-managed-k8s-control-plane-host`:
+Land the buildable, tested foundation of `managed-k8s-control-plane-host`:
 the pure kernel, the shared `ControlPlaneProvisioning` port, both adapters
 (kube-rs CAPI — live reconcile honest-deferred — and the deterministic
 in-memory fake), and the composition-root app (axum admin/status API +
@@ -14,7 +14,7 @@ fail-closed `[[bin]]` main).
 
 ## Changesets (this IP)
 
-1. **kernel** (`oya-managed-k8s-control-plane-host-kernel`) — `ControlPlaneTier`,
+1. **kernel** (`managed-k8s-control-plane-host-kernel`) — `ControlPlaneTier`,
    `ControlPlaneStatus` state machine (with `can_transition_to`/`transition`/
    `IllegalTransition`), `DatastoreClass`; all enums `as_str`/`parse`; std+serde;
    `#![forbid(unsafe_code)]`. Exhaustive unit tests for both tier branches +
@@ -45,7 +45,7 @@ fail-closed `[[bin]]` main).
 
 - The live Kamaji `TenantControlPlane` / Talos control-plane CRD reconcile
   (`kamaji-provider-live-integration`).
-- Billing / SLA / DPIA / external GA (`oya-managed-k8s-commercial-ga`, per
+- Billing / SLA / DPIA / external GA (`managed-k8s-commercial-ga`, per
   ADR-0376).
 - The sibling microservices that CONSUME the port (`cluster-lifecycle`,
   `tenant-quota`, `sla-observability`).

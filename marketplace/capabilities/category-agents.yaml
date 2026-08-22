@@ -93,7 +93,7 @@ tenant_class_caps:
     payouts_enabled: true
     autonomy_level_max: fully-autonomous
 observability:
-  metric: oya_marketplace_category_agents_listing_total
+  metric: marketplace_category_agents_listing_total
   trace: marketplace.category-agents.listing
   audit_event: MarketplaceCategoryAgentsListingPublished
 inputs:

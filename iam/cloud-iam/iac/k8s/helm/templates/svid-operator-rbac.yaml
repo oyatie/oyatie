@@ -23,7 +23,7 @@ metadata:
     app.kubernetes.io/part-of: oyatie-microservices
     oyatie.com/adr-0349: argocd-managed
 rules:
-  # The operator PRODUCES + rotates exactly the oya-cloud-iam-pdp-svid Secret.
+  # The operator PRODUCES + rotates exactly the cloud-iam-pdp-svid Secret.
   # SCOPED rule: get/update/patch are constrained by resourceNames to that single
   # Secret — it observes leaf expiry (get) and projects the kubernetes.io/tls
   # material (update/patch). Kubernetes RBAC honors resourceNames for
@@ -31,17 +31,17 @@ rules:
   # never removes the SVID Secret).
   - apiGroups: [""]
     resources: ["secrets"]
-    resourceNames: ["oya-cloud-iam-pdp-svid"]
+    resourceNames: ["cloud-iam-pdp-svid"]
     verbs: ["get", "update", "patch"]
   # NAMESPACE-scoped rule (the RBAC floor, not a wider claim). Per the Kubernetes
   # RBAC reference: `create` (and `deletecollection`) can NEVER be resourceNames-
   # scoped (the object name is not known at authorization time); `list`/`watch`
   # CAN be resourceNames-scoped, but ONLY when the client sends a matching
   # metadata.name field selector — otherwise the request is denied. The operator
-  # only ever creates oya-cloud-iam-pdp-svid, and its informer SHOULD narrow
-  # list/watch with a metadata.name=oya-cloud-iam-pdp-svid field selector; once
+  # only ever creates cloud-iam-pdp-svid, and its informer SHOULD narrow
+  # list/watch with a metadata.name=cloud-iam-pdp-svid field selector; once
   # the binary guarantees that selector, list/watch can also carry
-  # resourceNames: ["oya-cloud-iam-pdp-svid"] here. Until then, scoping them would
+  # resourceNames: ["cloud-iam-pdp-svid"] here. Until then, scoping them would
   # 403 the operator, so they stay namespace-wide. To additionally shield other
   # Secrets in a shared namespace, run the operator in a Secret-isolated namespace
   # (watchedNamespace).

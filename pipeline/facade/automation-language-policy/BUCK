@@ -1,7 +1,7 @@
 rust_library(
     name = "ci-automation-language-policy",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
-    crate = "oya_cloud_ci_rust_first_automation_hygiene_app",
+    crate = "cloud_ci_rust_first_automation_hygiene_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -14,7 +14,7 @@ rust_library(
 rust_test(
     name = "ci-automation-language-policy-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
-    crate = "oya_cloud_ci_rust_first_automation_hygiene_app",
+    crate = "cloud_ci_rust_first_automation_hygiene_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -29,12 +29,12 @@ rust_test(
 # and requires every current exception to carry a Rust/Buck2/cloud-native replacement path.
 # Target name de-branded to `ci-automation-language-policy-gate` (ADR-0562/0563 keystone move
 # + homogeneous matrix `ci-<dir>-gate` convention); the crate IDENT stays
-# `oya_cloud_ci_rust_first_automation_hygiene_app*` because the src/tests `use` it by that name
+# `cloud_ci_rust_first_automation_hygiene_app*` because the src/tests `use` it by that name
 # (renaming the ident is a separate source-level de-brand, out of scope for the move remainder).
 rust_test(
     name = "ci-automation-language-policy-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
-    crate = "oya_cloud_ci_rust_first_automation_hygiene_app_gate",
+    crate = "cloud_ci_rust_first_automation_hygiene_app_gate",
     crate_root = "tests/rust_first_automation_hygiene.rs",
     visibility = ["PUBLIC"],
     deps = [

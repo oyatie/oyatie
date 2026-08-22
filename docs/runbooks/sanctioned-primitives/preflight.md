@@ -31,7 +31,7 @@ Run the active rows in order. A failing active probe blocks the session until re
 | 3 | `rustup` | `rustup --version` | `rustup show active-toolchain` matches `rust-toolchain.toml` | `rustup::toolchain-drift` |
 | 4 | external lock tool surface | retired by ADR-0116 | no probe; Foundry pipeline admission owns coordination | `external-coordination::retired-lock-tool` |
 | 5 | external memory-store surface | retired by ADR-0116 | no probe; durable evidence belongs in the Foundry/Oya VCS artifacts | `external-coordination::retired-memory-tool` |
-| 6 | `oya-dev-cli` | `cargo run --quiet -p oya-dev-cli -- --help \| head -1` | `cargo run --quiet -p oya-dev-cli -- gate run-all --include-deferred \| tail -1` | `oya-dev-cli::gate-aggregator-missing` |
+| 6 | `dev-cli` | `cargo run --quiet -p dev-cli -- --help \| head -1` | `cargo run --quiet -p dev-cli -- gate run-all --include-deferred \| tail -1` | `dev-cli::gate-aggregator-missing` |
 | 7 | legacy read helper | compatibility/provenance only during cutover | no prescribed preflight; do not make it a forward closure authority | `legacy-read-helper::unexpected-required-surface` |
 | 8 | GitHub Actions pins | `grep -RnE 'uses:\s+[^@]+@[a-f0-9]{40}' .github/workflows/ \| head -1` returns rc 0 | every `uses: <action>@<sha>` SHA resolves (`gh api /repos/<action>/commits/<sha>`) | `gha::broken-action-sha` |
 | 9 | nextest profile | `grep -q '\[profile.ci\]' .config/nextest.toml` | `cargo nextest list --profile ci --workspace > /dev/null` | `nextest::missing-profile-ci` |
@@ -51,7 +51,7 @@ When any active probe fails:
 ## Wiring
 
 - Citation: `docs/AGENTS.md` D17 (mistakes-ledger row D17 lane).
-- Fitness lane: `oya-governance-mistakes-ledger-kernel` verifies every ledger row carries a preflight reference here.
+- Fitness lane: `governance-mistakes-ledger-kernel` verifies every ledger row carries a preflight reference here.
 - Verify gate: `oya gate validate mistakes-ledger` invokes the kernel as a required check.
 - Backfill rows: `gha::broken-action-sha`, `nextest::missing-profile-ci`, `bash::missing-shebang` — see `registry/mistakes-ledger.json` and `docs/MISTAKES-LEDGER.md` MFL-0014..MFL-0016.
 

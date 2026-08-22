@@ -6,7 +6,7 @@
     "owner_team": "axis-audit-chain + ops-sre-reliability",
     "audience": "operators (cross-tenant; admin RBAC)",
     "tenant_scoped": false,
-    "datasource": "Mimir oya-self + oya-aggregate"
+    "datasource": "Mimir self + aggregate"
   },
   "uid": "audit-chain-seal-latency",
   "title": "Seal Latency + Cross-Channel Publication",
@@ -44,7 +44,7 @@
       "title": "Seal latency p99",
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_audit_chain_seal_duration_seconds_bucket{pack=\"$pack\"}[5m])))", "refId": "A"}
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(audit_chain_seal_duration_seconds_bucket{pack=\"$pack\"}[5m])))", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.5}, {"color": "red", "value": 1}]}}}
     },
@@ -54,7 +54,7 @@
       "title": "HSM signing-call rate",
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "rate(oya_audit_chain_hsm_sign_total{pack=\"$pack\"}[5m])", "refId": "A"}
+        {"expr": "rate(audit_chain_hsm_sign_total{pack=\"$pack\"}[5m])", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "ops"}}
     },
@@ -64,7 +64,7 @@
       "title": "HSM partition health",
       "gridPos": {"x": 0, "y": 4, "w": 6, "h": 4},
       "targets": [
-        {"expr": "oya_audit_chain_hsm_avail{pack=\"$pack\"}", "refId": "A"}
+        {"expr": "audit_chain_hsm_avail{pack=\"$pack\"}", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}]}}
     },
@@ -74,7 +74,7 @@
       "title": "Active signing key fingerprint",
       "gridPos": {"x": 6, "y": 4, "w": 6, "h": 4},
       "targets": [
-        {"expr": "oya_audit_chain_active_signing_key_fingerprint{pack=\"$pack\"}", "refId": "A"}
+        {"expr": "audit_chain_active_signing_key_fingerprint{pack=\"$pack\"}", "refId": "A"}
       ]
     },
     {
@@ -97,9 +97,9 @@
       "title": "Root publication lag per channel (seconds)",
       "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
       "targets": [
-        {"expr": "oya_audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"s3\"}", "legendFormat": "s3", "refId": "A"},
-        {"expr": "oya_audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"mimir\"}", "legendFormat": "mimir", "refId": "B"},
-        {"expr": "oya_audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"github\"}", "legendFormat": "github", "refId": "C"}
+        {"expr": "audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"s3\"}", "legendFormat": "s3", "refId": "A"},
+        {"expr": "audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"mimir\"}", "legendFormat": "mimir", "refId": "B"},
+        {"expr": "audit_chain_root_publication_lag_seconds{pack=\"$pack\", channel=\"github\"}", "legendFormat": "github", "refId": "C"}
       ]
     },
     {
@@ -108,7 +108,7 @@
       "title": "Periods sealed (per second)",
       "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (tenant_partition) (rate(oya_audit_chain_seal_minted_total{pack=\"$pack\"}[1m]))", "legendFormat": "{{tenant_partition}}", "refId": "A"}
+        {"expr": "sum by (tenant_partition) (rate(audit_chain_seal_minted_total{pack=\"$pack\"}[1m]))", "legendFormat": "{{tenant_partition}}", "refId": "A"}
       ]
     }
   ]

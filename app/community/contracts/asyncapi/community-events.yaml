@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-community-events
+  title: community-events
   version: 0.1.0
   description: |
     Event surface for the community µservice. Consumed by foundry-guardrails

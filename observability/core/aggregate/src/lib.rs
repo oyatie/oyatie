@@ -17,7 +17,7 @@ use compute_resource::{CloudResourceError, ResourceId};
 use iam_cloud_domain::IamRoleId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 
@@ -31,7 +31,7 @@ const ALERT_ID_PREFIX: &str = "alert_";
 const DASHBOARD_ID_PREFIX: &str = "dash_";
 const AUDIT_CURSOR_PREFIX: &str = "cur/";
 const IDEMPOTENCY_KEY_PREFIX: &str = "idem/";
-const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_PREFIX: &str = "pack-";
 const SHA256_PREFIX: &str = "sha256:";
 const FNV_HASH_PREFIX: &str = "fnv1a64:";
 const SIGNED_EXPORT_URI_PREFIX: &str = "s3+signed://";
@@ -1646,7 +1646,7 @@ mod tests {
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
-    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
+    use data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 
@@ -1678,7 +1678,7 @@ mod tests {
         ObservabilityResidency::new(ObservabilityResidencyCreate {
             tenant_id: TENANT.to_string(),
             region: REGION.to_string(),
-            regional_pack: "oya-pack-alpha".to_string(),
+            regional_pack: "pack-alpha".to_string(),
             residency: residency_class(),
             metric_storage_region: REGION.to_string(),
             log_storage_region: REGION.to_string(),
@@ -1799,7 +1799,7 @@ mod tests {
             ..ObservabilityResidencyCreate {
                 tenant_id: TENANT.to_string(),
                 region: REGION.to_string(),
-                regional_pack: "oya-pack-alpha".to_string(),
+                regional_pack: "pack-alpha".to_string(),
                 residency: residency_class(),
                 metric_storage_region: REGION.to_string(),
                 log_storage_region: REGION.to_string(),

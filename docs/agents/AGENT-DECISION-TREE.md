@@ -76,10 +76,10 @@ flowchart TD
 
 ## D2 — `cargo build` / `cargo check` fails
 
-1. Run `oya-tooling-agent-read log` on the build output (no raw `cargo` capture).
+1. Run `tooling-agent-read log` on the build output (no raw `cargo` capture).
 2. Invoke the `silent-failure-hunter` reviewer agent against the failing crate.
 3. Apply [`docs/standards/error-handling.md`](../standards/error-handling.md) (`thiserror` in libs; `anyhow`/`eyre` at binary edge; no `unwrap` outside tests).
-4. Lane that will block on the same defect: `oya-governance-error-boundary` and `-no-unwrap-prod`.
+4. Lane that will block on the same defect: `governance-error-boundary` and `-no-unwrap-prod`.
 5. Re-run; if green, store `errors-resolved`; if still red after two iterations and the cause is outside your claim scope, see D8.
 
 ## D3 — `cargo nextest` fails
@@ -96,15 +96,15 @@ Map lane → standard → resolution:
 
 | Lane | Standard | Action |
 |---|---|---|
-| `oya-governance-data-class` | [`standards/data-class.md`](../standards/data-class.md) | Add `oyatie.data_class = "..."` to every new kernel field. |
-| `oya-governance-banned-primitives` | [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Move raw `git`/`gh` outside agent-instructions fence OR justify via Directive 12. |
-| `oya-governance-adr-citation` | [`standards/doc-style.md`](../standards/doc-style.md) | Cite the governing ADR by ID in PR body `## Summary`. |
-| `oya-governance-doc-freshness` | CHK-DOCFRESH | Update stale doc in this same PR. |
-| `oya-governance-cohesion` / `-glossary` / `-bypass` | [`standards/doc-style.md`](../standards/doc-style.md), [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Apply the named correction. |
-| `oya-governance-lts-dependency` | [`standards/dependency-policy.md`](../standards/dependency-policy.md) | Pin to current LTS or add ADR-tracked exception. |
-| `oya-governance-image-discipline` | [`standards/image-discipline.md`](../standards/image-discipline.md) | Switch to distroless; trim layers; rerun. |
-| `oya-governance-autonomy-ceiling` | [`standards/autonomy-ceiling.md`](../standards/autonomy-ceiling.md) | Declare T1/T2/T3/T4 + Cedar policy. |
-| `oya-governance-audit-emission` | [`standards/observability.md`](../standards/observability.md) | Emit the `EVT-*` row. |
+| `governance-data-class` | [`standards/data-class.md`](../standards/data-class.md) | Add `oyatie.data_class = "..."` to every new kernel field. |
+| `governance-banned-primitives` | [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Move raw `git`/`gh` outside agent-instructions fence OR justify via Directive 12. |
+| `governance-adr-citation` | [`standards/doc-style.md`](../standards/doc-style.md) | Cite the governing ADR by ID in PR body `## Summary`. |
+| `governance-doc-freshness` | CHK-DOCFRESH | Update stale doc in this same PR. |
+| `governance-cohesion` / `-glossary` / `-bypass` | [`standards/doc-style.md`](../standards/doc-style.md), [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Apply the named correction. |
+| `governance-lts-dependency` | [`standards/dependency-policy.md`](../standards/dependency-policy.md) | Pin to current LTS or add ADR-tracked exception. |
+| `governance-image-discipline` | [`standards/image-discipline.md`](../standards/image-discipline.md) | Switch to distroless; trim layers; rerun. |
+| `governance-autonomy-ceiling` | [`standards/autonomy-ceiling.md`](../standards/autonomy-ceiling.md) | Declare T1/T2/T3/T4 + Cedar policy. |
+| `governance-audit-emission` | [`standards/observability.md`](../standards/observability.md) | Emit the `EVT-*` row. |
 
 ## D5 — Need to invoke `git` or `gh` directly (Directive 12)
 

@@ -25,7 +25,7 @@ spec:
     - type: Pods
       pods:
         metric:
-          name: oya_community_request_queue_depth
+          name: community_request_queue_depth
         target:
           type: AverageValue
           averageValue: "500"

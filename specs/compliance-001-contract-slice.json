@@ -88,6 +88,6 @@
     "required_commands": [
       "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
     ],
-    "branch_protection_authority": "oya-ci-required remains the only merge-authority status context per ADR-0515; this Buck2 gate target is the pure-evaluator review/merge evidence."
+    "branch_protection_authority": "presubmit remains the only merge-authority status context per ADR-0515; this Buck2 gate target is the pure-evaluator review/merge evidence."
   }
 }

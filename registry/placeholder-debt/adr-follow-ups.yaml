@@ -26,10 +26,10 @@ follow_ups:
     intent: |
       Wire billing emission events when a tenant quota record is set or changed.
       The managed-K8s tenant quota service declares Unimplemented::BillingEmission
-      in oya-managed-k8s-tenant-quota-app. This follow-up implements the typed
+      in managed-k8s-tenant-quota-app. This follow-up implements the typed
       emission once the billing event bus is available (wave follow-on).
     driver_docs:
-      - microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs
+      - microservices/managed/crates/managed-k8s-tenant-quota-app/src/lib.rs
     owner: axis-cloud-k8s + axis-billing
     trigger: Billing event bus reaches GA or managed-K8s tenant quota promotes past dev.
     status: pending
@@ -39,10 +39,10 @@ follow_ups:
     intent: |
       Wire audit-chain seal events on quota decision check calls.
       The managed-K8s tenant quota service declares Unimplemented::AuditChainEmission
-      in oya-managed-k8s-tenant-quota-app. This follow-up emits a typed audit event
+      in managed-k8s-tenant-quota-app. This follow-up emits a typed audit event
       per ADR-0376 threat model when the audit chain substrate is wired.
     driver_docs:
-      - microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs
+      - microservices/managed/crates/managed-k8s-tenant-quota-app/src/lib.rs
     owner: axis-cloud-k8s + axis-audit-chain
     trigger: Audit chain emission substrate available for the managed-K8s domain.
     status: pending
@@ -395,14 +395,14 @@ follow_ups:
 
   - id: adr-0145-audit-client-impl
     intent: |
-      Production implementation of `oya-shared-audit-chain-client-kernel`
+      Production implementation of `shared-audit-chain-client-kernel`
       — wires every µservice's calling site to the audit-chain µservice's
       canonical gRPC seal surface. Replaces the skeleton's
       `SkeletonAuditChainClient::emit_seal` returning
       `SkeletonNotYetImplemented`.
     driver_docs:
       - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-      - crates/oya-shared-audit-chain-client-kernel/src/lib.rs
+      - crates/shared-audit-chain-client-kernel/src/lib.rs
     owner: council-architecture + axis-audit-chain
     trigger: |
       First µservice past skeleton phase requires real seal emission
@@ -412,7 +412,7 @@ follow_ups:
 
   - id: adr-0145-tracing-client-impl
     intent: |
-      Production implementation of `oya-shared-tracing-client-kernel` —
+      Production implementation of `shared-tracing-client-kernel` —
       W3C Trace Context injection/extraction via OpenTelemetry SDK +
       Hubble OTel exporter (Cilium mesh) integration; Tier-2 namespaces
       additionally integrate Istio Ambient telemetry. Replaces the
@@ -420,7 +420,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - docs/adr-archive/ADR-0148-service-mesh-cilium-ambient-layered.md
-      - crates/oya-shared-tracing-client-kernel/src/lib.rs
+      - crates/shared-tracing-client-kernel/src/lib.rs
     owner: council-architecture + axis-observability
     trigger: |
       First µservice past skeleton phase requires real trace propagation
@@ -493,7 +493,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/idempotency-keys-canonical.md
-      - crates/oya-shared-idempotency-key-kernel/src/lib.rs
+      - crates/shared-idempotency-key-kernel/src/lib.rs
       - governance/check/idempotency-key-coverage/src/lib.rs
     owner: council-architecture + axis-all-microservices
     trigger: |
@@ -509,7 +509,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/cursor-pagination-canonical.md
-      - crates/oya-shared-cursor-pagination-kernel/src/lib.rs
+      - crates/shared-cursor-pagination-kernel/src/lib.rs
     owner: council-architecture + axis-all-microservices
     trigger: |
       ≥ 80% of µservice OpenAPI list endpoints declare cursor + page_size.
@@ -558,7 +558,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0702-identity-authz-live-apex.md
       - docs/standards/per-tenant-resource-quotas-canonical.md
-      - crates/oya-shared-tenant-quota-kernel/src/lib.rs
+      - crates/shared-tenant-quota-kernel/src/lib.rs
     owner: axis-tenancy + axis-all-microservices
     trigger: tenancy µservice ships canonical quota definitions and ≥ 80% of µservices integrate the trait.
     status: pending
@@ -570,7 +570,7 @@ follow_ups:
       Strict-mode promotion of `oya gate validate id-discipline`.
     driver_docs:
       - docs/decisions/ADR-0709-general-live-apex.md
-      - crates/oya-shared-ulid-id-kernel/src/lib.rs
+      - crates/shared-ulid-id-kernel/src/lib.rs
       - governance/check/id-discipline/src/lib.rs
     owner: council-architecture + axis-all-microservices
     trigger: every µservice's schemas declare ULID for id-shaped fields.
@@ -584,7 +584,7 @@ follow_ups:
     driver_docs:
       - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/outbox-pattern-canonical.md
-      - crates/oya-shared-outbox-pattern-kernel/src/lib.rs
+      - crates/shared-outbox-pattern-kernel/src/lib.rs
     owner: council-architecture + axis-messenger + axis-mail + axis-social + axis-tasks + axis-calendar
     trigger: "the five carrier µservices declare `outbox_required: true` and ship the outbox publisher worker."
     status: pending
@@ -606,7 +606,7 @@ follow_ups:
   # PR #143 close-out 2026-05-18 — ontology-projection-coverage promotion debt.
   - id: adr-0145-ontology-projection-strict-mode-readiness
     intent: |
-      Promote `oya-governance-ontology-projection-coverage` from
+      Promote `governance-ontology-projection-coverage` from
       advisory (report-only) to blocker (strict). Blocked on 8
       canonical-entity-owner manifests that currently declare an empty
       `ontology_projections` array despite owning canonical entities:
@@ -617,7 +617,7 @@ follow_ups:
       the last owner's projection declaration.
     driver_docs:
       - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-      - registry/quality/lanes.yaml#oya-governance-ontology-projection-coverage
+      - registry/quality/lanes.yaml#governance-ontology-projection-coverage
       - governance/check/ontology-projection-coverage/src/lib.rs
     owner: axis-ontology + axis-mail + axis-calendar + axis-messenger + axis-tasks + axis-drive + axis-meet + axis-recordings + axis-network
     trigger: |
@@ -642,8 +642,8 @@ follow_ups:
     intent: |
       PR #143 close-out surfaced multiple registry entries where
       seam_adapter_trait values include parenthetical annotations like
-      `crates/oya-edge-cdn-kernel (not yet created — would be created
-      on adoption)`. The validator at crates/oya-dev-cli/src/lib.rs:1164-1176
+      `crates/edge-cdn-kernel (not yet created — would be created
+      on adoption)`. The validator at crates/dev-cli/src/lib.rs:1164-1176
       strips no annotations on the trait field (only impls strip
       whitespace-delimited trailing parentheticals). Doctrine choices:
       (a) align validator to strip parentheticals on trait field
@@ -655,7 +655,7 @@ follow_ups:
       Inline fix deferred to PR-144 because the choice is doctrinal.
     driver_docs:
       - registry/vendor-lockin-phaseout/index.json
-      - crates/oya-dev-cli/src/lib.rs
+      - crates/dev-cli/src/lib.rs
       - docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
     owner: council-architecture + axis-foundry
     trigger: |
@@ -667,18 +667,18 @@ follow_ups:
   - id: workspace-manifest-parser-comment-handling
     intent: |
       Replace the naive `,`-split workspace member parser at
-      crates/oya-dev-cli/src/workspace_manifest.rs:21-52 with a proper
+      crates/dev-cli/src/workspace_manifest.rs:21-52 with a proper
       TOML parser (toml crate, kernel-tier exempt). Current implementation
       silently corrupts the members array when an inline comment appears
       between entries: the comment collapses with the next quoted entry,
       yielding a non-empty path that includes the comment text + opening
       quote. PR #143 close-out 2026-05-18 hit this when adding a comment
-      above the new `oya-collab-crdt-portability-kernel` member; the
+      above the new `collab-crdt-portability-kernel` member; the
       vendor-lockin-discipline gate failed even though the entry existed
       because the parser saw a malformed path. Inline fix removed the
       comment; structural fix is to use the toml crate.
     driver_docs:
-      - crates/oya-dev-cli/src/workspace_manifest.rs
+      - crates/dev-cli/src/workspace_manifest.rs
       - Cargo.toml
     owner: axis-foundry + council-quality
     trigger: |
@@ -691,18 +691,18 @@ follow_ups:
   # PR #143 close-out 2026-05-18 — Loro adapter impl follow-up.
   - id: adr-0142-collab-crdt-loro-adapter-impl
     intent: |
-      Author `oya-collab-crdt-loro-adapter` crate implementing
-      `oya_collab_crdt_portability_kernel::CrdtPortabilityRuntime` over
+      Author `collab-crdt-loro-adapter` crate implementing
+      `collab_crdt_portability_kernel::CrdtPortabilityRuntime` over
       Loro 1.x. PR #143 close-out 2026-05-18 landed the kernel trait
       (resolving the vendor-lockin-discipline BLOCKER on the
       seam_adapter_trait reference); the impl is queued because Tier
       I-asterisk doctrine exempts impl-resolution until adoption is
       finalised. Once the adapter ships, also queue
-      `oya-collab-crdt-yrs-adapter` per ADR-0142.
+      `collab-crdt-yrs-adapter` per ADR-0142.
     driver_docs:
       - docs/adr-archive/ADR-0142-crdt-portability-trait.md
       - docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
-      - crates/oya-collab-crdt-portability-kernel/src/lib.rs
+      - crates/collab-crdt-portability-kernel/src/lib.rs
       - registry/vendor-lockin-phaseout/index.json
     owner: axis-connect-collab + council-architecture
     trigger: |
@@ -725,7 +725,7 @@ follow_ups:
       branches (no panic / no todo!()).
     driver_docs:
       - docs/adr-archive/ADR-0167-tenant-cli.md
-      - crates/oya-tenant-cli/src/main.rs
+      - crates/tenant-cli/src/main.rs
     owner: axis-tenant-experience
     trigger: |
       Public SDK API surface stabilizes — target M01.5 for workflow /
@@ -745,7 +745,7 @@ follow_ups:
       adapter + runnable test asserting noop dead-letter semantics.
     driver_docs:
       - docs/adr-archive/ADR-0169-webhook-dlq-retry.md
-      - crates/oya-shared-webhook-delivery-kernel/src/lib.rs
+      - crates/shared-webhook-delivery-kernel/src/lib.rs
     owner: axis-tenant-experience + ops-sre-reliability
     trigger: |
       Outbound webhook v1 acceptance criterion in M02.5; depends on
@@ -762,7 +762,7 @@ follow_ups:
       currently kicks the cloud-ci oyaCiLane pipeline (admission +
       oya gate run-all) and reports the reviewer gate as a typed
       Unimplemented (HTTP 501) boundary; this follow-up makes the
-      reviewer verdict (oya-pr-review) a real dispatched + trusted-runner-
+      reviewer verdict (pr-review) a real dispatched + trusted-runner-
       signed status rather than a not-yet-built boundary.
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
@@ -814,7 +814,7 @@ follow_ups:
   - id: adr-0373-cloud-intelligence-openbao-wire-in
     intent: |
       Wire the production OpenBao-backed `KeyMaterialRepository` adapter
-      into `oya-cloud-intelligence-app` so pooled provider keys are sourced
+      into `cloud-intelligence-app` so pooled provider keys are sourced
       from `secret/data/agent-gateway/<provider>` at startup and on a
       periodic refresh task (PRD §4.5 vault-only secrets). The composition
       root currently surfaces a typed `Unimplemented::OpenBaoResolution`
@@ -826,9 +826,9 @@ follow_ups:
       already implements the at-most-once load).
     driver_docs:
       - microservices/cloud-intelligence/PRD.md
-      - crates/oya-cloud-intelligence-app/src/lib.rs
-      - crates/oya-cloud-intelligence-app/src/main.rs
-      - crates/oya-cloud-intelligence-rest/src/keystore.rs
+      - crates/cloud-intelligence-app/src/lib.rs
+      - crates/cloud-intelligence-app/src/main.rs
+      - crates/cloud-intelligence-rest/src/keystore.rs
     owner: council-foundry + ops-security
     trigger: |
       First cell-deploy of the cloud-intelligence gateway against a real OpenBao
@@ -878,7 +878,7 @@ follow_ups:
 
   - id: adr-0374-provider-pool-app-openbao-secret-resolution
     intent: |
-      Wire the `oya-intelligence-provider-pool-app` production
+      Wire the `intelligence-provider-pool-app` production
       `HyperProviderInvocationTransport` to an OpenBao-backed credential
       resolver so the chosen `ProviderAccountId` is exchanged for the
       provider's live OAuth/api access token via `sref://...` →
@@ -891,7 +891,7 @@ follow_ups:
       adapter lands the production path activates without caller change.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-provider-pool-app/src/lib.rs
     owner: council-foundry + ops-security
     trigger: |
       First cell-deploy of the provider-pool composition root against a
@@ -913,7 +913,7 @@ follow_ups:
       absent — callers can rely on the boundary surface today.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-provider-pool-app/src/lib.rs
     owner: council-foundry + axis-audit
     trigger: |
       First production tenant requiring auditable provider-pool
@@ -923,7 +923,7 @@ follow_ups:
 
   - id: adr-0374-attribution-app-openbao-credential-resolution
     intent: |
-      Wire the `oya-intelligence-attribution-app` production
+      Wire the `intelligence-attribution-app` production
       `HyperCitationRendererTransport` to an OpenBao-backed credential
       resolver so the renderer audience access token is exchanged for
       the citation renderer's live OAuth material via `secretref://...`
@@ -936,7 +936,7 @@ follow_ups:
       path activates without caller change.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-attribution-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-attribution-app/src/lib.rs
     owner: council-intelligence + ops-security
     trigger: |
       First cell-deploy of the attribution composition root against a
@@ -959,7 +959,7 @@ follow_ups:
       surface today.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-attribution-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-attribution-app/src/lib.rs
     owner: council-intelligence + axis-audit
     trigger: |
       First production tenant requiring auditable attribution dispatch
@@ -968,7 +968,7 @@ follow_ups:
     status: pending
   - id: adr-0374-intelligence-eval-app-hosted-runner-dispatch
     intent: |
-      Wire the `oya-intelligence-eval-app` production
+      Wire the `intelligence-eval-app` production
       `HyperEvalRunnerStatusSource` to a hosted-eval-runner HTTP/gRPC
       client so each queued `EvalWorkerJob` is translated into a real
       `EvalRunnerStatus::Accepted` / `EvalRunnerStatus::Queued` /
@@ -982,7 +982,7 @@ follow_ups:
       change.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-eval-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-eval-app/src/lib.rs
     owner: council-foundry + ops-security
     trigger: |
       First cell-deploy of the intelligence-eval composition root against
@@ -1005,7 +1005,7 @@ follow_ups:
       boundary surface today.
     driver_docs:
       - microservices/intelligence/PRD.md
-      - microservices/intelligence/crates/oya-intelligence-eval-app/src/lib.rs
+      - microservices/intelligence/crates/intelligence-eval-app/src/lib.rs
     owner: council-foundry + axis-audit
     trigger: |
       First production tenant requiring auditable intelligence-eval
@@ -1016,7 +1016,7 @@ follow_ups:
   - id: kamaji-provider-live-integration
     intent: |
       Wire the LIVE Cluster API control-plane reconciliation into the
-      `oya-managed-k8s-control-plane-host-adapter-capi` crate (ADR-0376):
+      `managed-k8s-control-plane-host-adapter-capi` crate (ADR-0376):
       create/read/delete a Kamaji `TenantControlPlane`
       (controlplane.cluster.x-k8s.io) for the HOSTED tier and reference the
       dedicated Talos control plane (ADR-0375 CABPT/CACPPT spoke) for the
@@ -1037,8 +1037,8 @@ follow_ups:
       - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - microservices/managed-k8s-control-plane-host/PRD.md
       - microservices/managed-k8s-control-plane-host/threat-model.md
-      - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs
-      - crates/oya-managed-k8s-control-plane-host-api/src/lib.rs
+      - crates/managed-k8s-control-plane-host-adapter-capi/src/lib.rs
+      - crates/managed-k8s-control-plane-host-api/src/lib.rs
     owner: council-architecture + ops-platform
     trigger: |
       The dogfood tenant-zero milestone where Oyatie provisions its OWN clusters

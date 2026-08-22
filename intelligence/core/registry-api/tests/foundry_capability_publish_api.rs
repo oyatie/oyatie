@@ -88,7 +88,7 @@ fn publish_body(capability_id: &str) -> FoundryCapabilityPublishRequest {
         eval_linguistic_passed: true,
         signed_eval_run: true,
         owner_team: "axis-foundry".to_string(),
-        catalog_record_path: "registry/catalog/oya-workflow-payroll.yaml".to_string(),
+        catalog_record_path: "registry/catalog/workflow-payroll.yaml".to_string(),
         docs_path: "docs.oyatie.com/capabilities/cap.workflow.approve-payroll/".to_string(),
         published_at_epoch_seconds: 1_778_413_600,
     }

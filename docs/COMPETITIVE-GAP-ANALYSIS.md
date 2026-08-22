@@ -27,7 +27,7 @@ Each Gap row gets a proposed expansion + estimated investment + wave placement.
 
 | Surface | Incumbent benchmark | Oyatie posture | Score | Gap + expansion |
 |---|---|---|---|---|
-| Workflow engine | Microsoft Power Automate / ServiceNow / Salesforce Flow | ADR-0035 state-machine + DAG hybrid; planned in `oya-saas-workflow-*` | Parity (planned) | **Gap: visual editor maturity.** Expand: Workflow Studio with Foundry-driven authoring (#566); add workflow-template marketplace per vertical (8-15 templates per vertical at GA) |
+| Workflow engine | Microsoft Power Automate / ServiceNow / Salesforce Flow | ADR-0035 state-machine + DAG hybrid; planned in `saas-workflow-*` | Parity (planned) | **Gap: visual editor maturity.** Expand: Workflow Studio with Foundry-driven authoring (#566); add workflow-template marketplace per vertical (8-15 templates per vertical at GA) |
 | Plugin substrate | Salesforce AppExchange / Slack App Directory / Microsoft AppSource | ADR-0036/0157/0161/0162 manifest + trust + signing + Wasmtime sandbox | Edge (sandbox + signing) | **Gap: developer experience + revenue share economics.** Expand: plugin SDK in 4 languages (Rust + TS + Python + Go), per-plugin sandboxed dev environment, marketplace revenue share (industry 30%), curated review queue |
 | Tenant onboarding self-serve | HubSpot / Zendesk free-tier signup | Issue #1204 / #1212 KR-first manual onboarding | **Gap (high)** | Self-serve onboarding ≤ 5min; per-vertical guided setup; Foundry-driven configuration agent; design-partner referral flow |
 | Marketplace economics | Salesforce AppExchange (30%) / Apple App Store (15-30%) | undefined | **Gap (high)** | Per-tier revenue share matrix; ISV onboarding playbook; payout cadence; per-region tax handling |
@@ -42,14 +42,14 @@ Each Gap row gets a proposed expansion + estimated investment + wave placement.
 
 | Surface | Incumbent | Oyatie posture | Score | Gap + expansion |
 |---|---|---|---|---|
-| Mail | Google Gmail / Microsoft Outlook / Naver Mail | Greenfield; planned `oya-workspace-mail-*` | **Gap (catastrophic without depth)** | Build out: per-tenant deliverability ≥ 99.9%; per-region mail-security (KR 메일 보안 / JP / EU); agent-driven triage (Foundry capability); migration wizard from Gmail / Outlook / Naver Mail (must be ≤ 1h per tenant) |
+| Mail | Google Gmail / Microsoft Outlook / Naver Mail | Greenfield; planned `workspace-mail-*` | **Gap (catastrophic without depth)** | Build out: per-tenant deliverability ≥ 99.9%; per-region mail-security (KR 메일 보안 / JP / EU); agent-driven triage (Foundry capability); migration wizard from Gmail / Outlook / Naver Mail (must be ≤ 1h per tenant) |
 | Calendar | Google Calendar / Outlook Calendar / Naver Calendar | Greenfield | Gap | Smart scheduling (Foundry); team-availability views; resource booking; conferencing room integration |
 | Docs / Sheets / Slides | Google Docs / Microsoft 365 / Naver Docs | Yrs CRDT planned | Gap | Real-time collaboration parity ≤ 80ms p99; export to PPTX/DOCX/XLSX/HWP/HWPX; offline mode; revision history; comment threading; granular permissions |
-| Drive / Cloud Storage | Google Drive / Dropbox / OneDrive / Naver MyBox | Planned per `oya-workspace-drive-*` | Gap | Native sync clients (Win/Mac/Linux/iOS/Android); team-drive concept; advanced sharing; selective-sync; offline-first |
+| Drive / Cloud Storage | Google Drive / Dropbox / OneDrive / Naver MyBox | Planned per `workspace-drive-*` | Gap | Native sync clients (Win/Mac/Linux/iOS/Android); team-drive concept; advanced sharing; selective-sync; offline-first |
 | Meet / Video | Google Meet / Zoom / Microsoft Teams Meetings / Naver Whale Meet | Planned WebRTC SFU | Gap | Sub-150ms RTT KR-intra; AI summary + transcription; recording vault; live captioning per-language; webinar mode (1000+ attendees); meeting room hardware integration (Logitech / Poly) |
-| Chat | Slack / Microsoft Teams / Discord / KakaoWork | Planned `oya-workspace-chat-*` | Gap | Bot ecosystem; thread-first UX; voice channels; cross-tenant federation |
-| Forms | Google Forms / SurveyMonkey / Typeform / Naver Form | Planned `oya-workspace-forms-*` | Gap | Conditional logic; payment integration; vertical-form templates (clinical intake, KR HR forms, education enrollment) |
-| Sites / Wiki | Google Sites / Notion / Confluence / Naver Cafe | Planned `oya-workspace-sites-*` | **Gap (high)** | Notion-class structured note-taking + database views; Confluence-class wiki; per-tenant intranet templates |
+| Chat | Slack / Microsoft Teams / Discord / KakaoWork | Planned `workspace-chat-*` | Gap | Bot ecosystem; thread-first UX; voice channels; cross-tenant federation |
+| Forms | Google Forms / SurveyMonkey / Typeform / Naver Form | Planned `workspace-forms-*` | Gap | Conditional logic; payment integration; vertical-form templates (clinical intake, KR HR forms, education enrollment) |
+| Sites / Wiki | Google Sites / Notion / Confluence / Naver Cafe | Planned `workspace-sites-*` | **Gap (high)** | Notion-class structured note-taking + database views; Confluence-class wiki; per-tenant intranet templates |
 | Tasks / Notes / Keep | Google Tasks + Keep / Microsoft To Do / Notion / Naver Memo | Planned shallow | **Gap** | Calendar integration; per-team kanban; project-management bridge to vertical-construction etc. |
 | Translate | Google Translate / DeepL / Naver Papago / Kakao i Translation | Planned via Foundry adapter | Parity (via providers) | Per-pack quality benchmarks vs Papago for KR↔JP↔EN |
 | **Edge to build** | (none yet) | (build the cohesion: Mail + Doc + Drive + Calendar + Foundry agent natively integrated, not bolted on) | — | This is THE differentiator: agent-native productivity from day one |

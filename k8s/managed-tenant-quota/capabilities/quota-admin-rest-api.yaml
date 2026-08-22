@@ -6,4 +6,4 @@ description: >
   POST /tenants/{id}/quota/check. Backed by QuotaAdminPort + QuotaDecisionPort.
   ADR-0376.
 risk_class: medium
-file: microservices/managed/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs
+file: microservices/managed/crates/managed-k8s-tenant-quota-app/src/lib.rs

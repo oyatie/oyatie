@@ -10,7 +10,7 @@ grafana:
     existingSecret: "openbao://secret/observability/grafana/admin"
   database:
     type: postgres
-    host: "oya-observability-grafana-postgres"
+    host: "observability-grafana-postgres"
     name: grafana
     user: "${openbao:secret/observability/grafana/postgres-user}"
     password: "${openbao:secret/observability/grafana/postgres-password}"
@@ -20,24 +20,24 @@ grafana:
       datasources:
         - name: Mimir
           type: prometheus
-          url: http://oya-observability-mimir.observability.svc:9009/prometheus
+          url: http://observability-mimir.observability.svc:9009/prometheus
           jsonData:
             httpHeaderName1: 'X-Scope-OrgID'
           secureJsonData:
             httpHeaderValue1: '${TENANT}'  # set per Grafana org per RBAC
         - name: Loki
           type: loki
-          url: http://oya-observability-loki.observability.svc:3100
+          url: http://observability-loki.observability.svc:3100
         - name: Tempo
           type: tempo
-          url: http://oya-observability-tempo.observability.svc:3200
+          url: http://observability-tempo.observability.svc:3200
         - name: Pyroscope
           type: phlare
-          url: http://oya-observability-pyroscope.observability.svc:4040
+          url: http://observability-pyroscope.observability.svc:4040
   dashboardsProvider:
     enabled: true
   dashboardsConfigMaps:
-    - configMapName: oya-observability-dashboards  # bundles microservices/observability/dashboards/*.json
+    - configMapName: observability-dashboards  # bundles microservices/observability/dashboards/*.json
   # SSO + RBAC declared via OpenTofu; UI editing forbidden
   grafana.ini:
     security:

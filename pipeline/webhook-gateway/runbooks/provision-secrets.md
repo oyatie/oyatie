@@ -44,10 +44,10 @@ vault kv put secret/oya/ci-webhook-gateway \
 
 - `github_ed25519_pub`: the full public key string from step 1 (including the
   `ssh-ed25519 AAAA...` prefix).
-- `jenkins_api_token`: a Jenkins API token scoped to the `oya-ci-gate` job.
+- `jenkins_api_token`: a Jenkins API token scoped to the `ci-gate` job.
   Generate via Jenkins UI → user → Configure → API Token → Add new token.
 - `github_token`: a GitHub PAT (or fine-grained token) with
-  `repo:status` write scope for `oya-admin/oyatie` (used to post commit statuses).
+  `repo:status` write scope for `admin/oyatie` (used to post commit statuses).
 
 Confirm the write:
 
@@ -59,7 +59,7 @@ vault kv get secret/oya/ci-webhook-gateway
 
 ## 3. Configure the GitHub webhook  **[HUMAN-AUTH]**
 
-In GitHub, as a repo admin of `oya-admin/oyatie`:
+In GitHub, as a repo admin of `admin/oyatie`:
 
 - Repo → **Settings → Webhooks → Add Webhook → GitHub (Gitea-compatible)**.
 - **Target URL**: `https://ci-webhook-gateway.oyatie.com/webhook/github`
@@ -67,7 +67,7 @@ In GitHub, as a repo admin of `oya-admin/oyatie`:
 - **HTTP Method**: POST. **Content type**: `application/json`.
 - **Signing key type**: Ed25519. **Public key**: paste the content of
   `~/.ssh/ci_webhook_github_ed25519.pub` (matching what you stored in OpenBao).
-  The gateway reads `OYA_CI_WEBHOOK_GITHUB_ED25519_PUB` from the ESO secret
+  The gateway reads `OYATIE_CI_WEBHOOK_GITHUB_ED25519_PUB` from the ESO secret
   and verifies the `X-GitHub-Signature` header on every delivery.
 - **Trigger events**: Custom events → **Pull Request** (opened, reopened,
   synchronized). The gateway ignores all other event types.
@@ -81,11 +81,11 @@ In GitHub, as a repo admin of `oya-admin/oyatie`:
 1. Open a test PR against `dev` in GitHub.
 2. GitHub webhook delivery shows `202` in the GitHub delivery log.
 3. The ci-webhook-gateway pod logs show `signature: verified` and
-   `dispatched: oya-ci-gate`.
-4. Jenkins shows the `oya-ci-gate` build triggered with the correct
+   `dispatched: ci-gate`.
+4. Jenkins shows the `ci-gate` build triggered with the correct
    `PR_NUMBER`, `PR_SHA`, `REPO_OWNER`, `REPO_NAME` variables.
 5. On a green gate run, the GitHub commit status for the PR SHA shows
-   `oya-ci-gate: success`.
+   `ci-gate: success`.
 6. GitHub auto-merge (if enabled) merges the PR on green without admin override.
 
 If step 2 shows a signature error, confirm:

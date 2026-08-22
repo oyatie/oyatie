@@ -74,9 +74,9 @@ Send via mail µservice (handled by invitation-flow).
 
 ### Step 3 — Investigate root cause
 
-Did `SELECT … FOR UPDATE` fire? Check `oya-calendar-room-booking-usecase` logs:
+Did `SELECT … FOR UPDATE` fire? Check `calendar-room-booking-usecase` logs:
 ```bash
-kubectl logs -n calendar -l app=oya-calendar-room-booking-rest | grep "for_update_acquired"
+kubectl logs -n calendar -l app=calendar-room-booking-rest | grep "for_update_acquired"
 ```
 
 If FOR UPDATE missed:

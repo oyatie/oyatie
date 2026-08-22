@@ -68,10 +68,10 @@
   ],
   "required_readback": [
     "root.status.sync.revision_equals_candidate_head",
-    "oya-live-postgres-network-policy.status.sync.revision_equals_candidate_head",
-    "oya-live-postgres-network-policy.status.health_is_healthy_before_scale_set",
-    "oya-live-postgres-arm64.values_source_revision_equals_candidate_head",
-    "oya-live-postgres-arm64.status.health_is_healthy",
+    "live-postgres-network-policy.status.sync.revision_equals_candidate_head",
+    "live-postgres-network-policy.status.health_is_healthy_before_scale_set",
+    "live-postgres-arm64.values_source_revision_equals_candidate_head",
+    "live-postgres-arm64.status.health_is_healthy",
     "both_live_postgres_jobs_execute_for_candidate_head"
   ],
   "rollback_json_patch": [

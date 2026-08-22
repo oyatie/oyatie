@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers
 apiVersion: v2
-name: oya-observability-clickhouse
+name: observability-clickhouse
 description: |
   ClickHouse 26.3 LTS OLAP analytics warehouse per ADR-0193.
   Distributed cluster via ClickHouse Keeper (Raft consensus; replaces

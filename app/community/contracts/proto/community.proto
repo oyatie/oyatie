@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package oya.community.v1;
 
-option go_package = "github.com/oyatie/oya-community/gen/proto/community/v1;communityv1";
+option go_package = "github.com/oyatie/community/gen/proto/community/v1;communityv1";
 
 import "google/protobuf/timestamp.proto";
 

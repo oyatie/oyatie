@@ -26,7 +26,7 @@
         "name": "microservice",
         "type": "query",
         "datasource": "Mimir",
-        "query": "label_values(oya_promotion_eligibility_verdict, microservice)",
+        "query": "label_values(promotion_eligibility_verdict, microservice)",
         "refresh": 1,
         "label": "Microservice"
       },
@@ -68,7 +68,7 @@
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "targets": [
         {
-          "expr": "oya_promotion_budget_remaining_pct{microservice=\"$microservice\",target_env=\"$environment\"}",
+          "expr": "promotion_budget_remaining_pct{microservice=\"$microservice\",target_env=\"$environment\"}",
           "refId": "A"
         }
       ],
@@ -91,8 +91,8 @@
       "title": "Burn-rate (fast-1h vs slow-6h)",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "oya_promotion_burn_rate_fast_1h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "fast 1h", "refId": "A"},
-        {"expr": "oya_promotion_burn_rate_slow_6h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "slow 6h", "refId": "B"}
+        {"expr": "promotion_burn_rate_fast_1h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "fast 1h", "refId": "A"},
+        {"expr": "promotion_burn_rate_slow_6h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "slow 6h", "refId": "B"}
       ],
       "alert": {
         "name": "fast-burn-page",
@@ -109,7 +109,7 @@
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "oya_promotion_eligibility_verdict{microservice=\"$microservice\"}",
+          "expr": "promotion_eligibility_verdict{microservice=\"$microservice\"}",
           "format": "table",
           "instant": false,
           "refId": "A"
@@ -122,7 +122,7 @@
       "title": "Per-SLI burn-rate breakdown",
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "oya_promotion_burn_rate_fast_1h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "{{sli}} — fast 1h", "refId": "A"}
+        {"expr": "promotion_burn_rate_fast_1h{microservice=\"$microservice\",target_env=\"$environment\"}", "legendFormat": "{{sli}} — fast 1h", "refId": "A"}
       ]
     }
   ]

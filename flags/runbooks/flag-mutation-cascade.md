@@ -11,7 +11,7 @@ companion_docs:
   - microservices/feature-flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/runbooks/experiment-rollback.md
   - microservices/feature-flags/incident-response.md
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Flag Mutation Cascade
@@ -19,7 +19,7 @@ planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ## A. Trigger conditions
 
 - A flag mutation (value or targeting rule change) causes unexpected behavior across multiple µservices.
-- `oya_feature_flag_eval_total{reason="TARGETING_MATCH"}` spikes unexpectedly after a flag update.
+- `feature_flag_eval_total{reason="TARGETING_MATCH"}` spikes unexpectedly after a flag update.
 - Multiple µservices report errors correlated with a flag state change.
 - SLO error budget burn across >2 µservices simultaneously after a flag mutation.
 - A pack overlay was applied to a flag that several µservices depend on.
@@ -97,7 +97,7 @@ For each degraded µservice: check if they have a kill-switch for the affected f
 ### Step 5 — Verify cascade resolution (≤10 minutes)
 
 After flag revert or kill-switch:
-- Watch `oya_feature_flag_eval_total` — `reason` distribution should normalize.
+- Watch `feature_flag_eval_total` — `reason` distribution should normalize.
 - Watch affected µservice SLO metrics — error budget burn rate should drop.
 - Confirm `FlagUpdated` (revert) or `KillSwitchEngaged` audit events are present and sealed.
 

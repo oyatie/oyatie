@@ -6,7 +6,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-20
 owner: council-documentation
-planned_enforcement_ref: oya-governance-brief-template
+planned_enforcement_ref: governance-brief-template
 related_adrs:
   - ADR-0321
   - ADR-0322

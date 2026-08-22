@@ -850,32 +850,32 @@
         {
           "provider": "anthropic",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-intelligence-adapter-anthropic-subscription-*"
+          "adapter_crate": "crates/intelligence-adapter-anthropic-subscription-*"
         },
         {
           "provider": "anthropic",
           "mode": "api",
-          "adapter_crate": "crates/oya-intelligence-adapter-anthropic-api-*"
+          "adapter_crate": "crates/intelligence-adapter-anthropic-api-*"
         },
         {
           "provider": "openai",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-intelligence-adapter-openai-subscription-*"
+          "adapter_crate": "crates/intelligence-adapter-openai-subscription-*"
         },
         {
           "provider": "openai",
           "mode": "api",
-          "adapter_crate": "crates/oya-intelligence-adapter-openai-api-*"
+          "adapter_crate": "crates/intelligence-adapter-openai-api-*"
         },
         {
           "provider": "gemini",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-intelligence-adapter-gemini-subscription-*"
+          "adapter_crate": "crates/intelligence-adapter-gemini-subscription-*"
         },
         {
           "provider": "gemini",
           "mode": "api",
-          "adapter_crate": "crates/oya-intelligence-adapter-gemini-api-*"
+          "adapter_crate": "crates/intelligence-adapter-gemini-api-*"
         }
       ]
     },
@@ -999,58 +999,58 @@
     }
   },
   "regional_packs": {
-    "oya-pack-kr": {
+    "pack-kr": {
       "region": "South Korea",
       "first_wave": "W-Cloud-Preview",
       "owner_team": "regional-packs"
     },
-    "oya-pack-jp": {
+    "pack-jp": {
       "region": "Japan",
       "first_wave": "W-Cloud-Preview",
       "owner_team": "regional-packs"
     },
-    "oya-pack-us": {
+    "pack-us": {
       "region": "United States",
       "first_wave": "W-Cloud-Preview",
       "owner_team": "regional-packs"
     },
-    "oya-pack-eu": {
+    "pack-eu": {
       "region": "European Union",
       "first_wave": "W-Cloud-Preview",
       "owner_team": "regional-packs"
     },
-    "oya-pack-in": {
+    "pack-in": {
       "region": "India",
       "first_wave": "W-Region-Fan-Out wave 1",
       "owner_team": "regional-packs"
     },
-    "oya-pack-br": {
+    "pack-br": {
       "region": "Brazil",
       "first_wave": "W-Region-Fan-Out wave 1",
       "owner_team": "regional-packs"
     },
-    "oya-pack-ksa": {
+    "pack-ksa": {
       "region": "Saudi Arabia",
       "first_wave": "W-Region-Fan-Out wave 2",
       "owner_team": "regional-packs"
     },
-    "oya-pack-ae": {
+    "pack-ae": {
       "region": "UAE",
       "first_wave": "W-Region-Fan-Out wave 2",
       "owner_team": "regional-packs"
     },
-    "oya-pack-au": {
+    "pack-au": {
       "region": "Australia + NZ",
       "first_wave": "W-Region-Fan-Out wave 2",
       "owner_team": "regional-packs"
     },
-    "oya-pack-sg": {
+    "pack-sg": {
       "region": "Singapore",
       "first_wave": "W-Region-Fan-Out wave 2",
       "owner_team": "regional-packs"
     }
   },
-  "validation_lane": "oya-governance-doc-catalog",
+  "validation_lane": "governance-doc-catalog",
   "validation_runs_on": "every PR touching docs/**",
   "purpose": "Machine-readable catalog of every consolidated doc + per-product PRD + team charter + regional pack. Mirrored from DOC-CATALOG.md."
 }

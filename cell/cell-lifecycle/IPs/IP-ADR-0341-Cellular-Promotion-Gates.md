@@ -20,11 +20,11 @@ source_adrs:
   - ADR-0044
   - ADR-0330
 enforced_by:
-  - oya-check-cell-promotion-gates
-  - oya-governance-cell-tier-promotion-evidence
-  - oya-governance-cell-tier-numbering-convention
-  - oya-governance-cell-promotion-quiet-window
-  - oya-governance-cell-orchestrator-binding
+  - check-cell-promotion-gates
+  - governance-cell-tier-promotion-evidence
+  - governance-cell-tier-numbering-convention
+  - governance-cell-promotion-quiet-window
+  - governance-cell-orchestrator-binding
   - Kyverno enforce-cell-promotion-gates
 ---
 
@@ -96,7 +96,7 @@ enforced_by:
 057. The state transition stores both lexical state names and numeric tiers to make audits resilient to display-name changes.
 058. Promotion direction is interpreted as moving toward a more critical tier when the target number is lower.
 059. Demotion direction is interpreted as moving toward a less critical tier when the target number is higher.
-060. The lane `oya-governance-cell-tier-numbering-convention` protects this interpretation from inversion.
+060. The lane `governance-cell-tier-numbering-convention` protects this interpretation from inversion.
 061. Local command handlers must return tier-numbering refusal reasons clearly because wrong direction is a safety issue, not a data-entry mistake.
 062. Emergency override evidence still records the skipped gate snapshot; it does not erase the normal gate contract.
 063. The domain model must support override event references without making override the normal command path.
@@ -136,7 +136,7 @@ enforced_by:
 093. Future entries must include `event_id`, `from_tier`, `to_tier`, `evaluator_version`, and `gate_snapshot_sha256`.
 094. Future entries should include `cell_id` and `recorded_at` when the manifest schema accepts those fields.
 095. Future entries must be written only by the self-modification path or by a reviewed operational evidence PR.
-096. Manual edits to history without an audit-chain event id should fail `oya-governance-cell-tier-promotion-evidence`.
+096. Manual edits to history without an audit-chain event id should fail `governance-cell-tier-promotion-evidence`.
 
 ## 7. PRD Adoption
 097. The PRD adoption block must state that ADR-0341 is now a functional requirement for promotion behavior.
@@ -349,9 +349,9 @@ enforced_by:
 278. Static verification confirms manifest JSON parses after adding the ADR-0341 fields.
 279. Static verification confirms PRD has a single `ADR-0341 adoption` section.
 280. Static verification confirms ARCH has a single `ADR-0341 integration` section.
-281. Citation verification runs `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions`.
-282. Cohesion verification runs `cargo run -q -p oya-dev-cli -- gate validate cohesion`.
-283. Inventory refresh runs `cargo run -q -p oya-dev-cli -- doc inventory --write`.
+281. Citation verification runs `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions`.
+282. Cohesion verification runs `cargo run -q -p dev-cli -- gate validate cohesion`.
+283. Inventory refresh runs `cargo run -q -p dev-cli -- doc inventory --write`.
 284. Downstream implementation verification must add unit tests for tier direction, stale evidence, missing gate, idempotency retry, and audit-chain ordering.
 285. Downstream implementation verification must add integration tests with fake observability, tenancy, audit-chain, and policy adapters.
 286. Downstream implementation verification must prove no code path stores raw telemetry or compliance payloads in LifecycleHistory.

@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, oya-governance-openslo-conformance]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, governance-openslo-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -18,7 +18,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 ## Intent
 
 Two parts:
-1. SDK crates: `oya-cloud-iac-iac-renderer-sdk` and `oya-cloud-iac-iac-registry-sdk` for µservice + tenant consumption per `sdk-plan.md`.
+1. SDK crates: `cloud-iac-iac-renderer-sdk` and `cloud-iac-iac-registry-sdk` for µservice + tenant consumption per `sdk-plan.md`.
 2. OpenSLO manifests for cloud-iac's own self-SLOs (apply success rate; drift coverage; render p99; registry read latency) at `microservices/cloud-iac/slos/`.
 
 ## ChangeSet boundary
@@ -29,13 +29,13 @@ Two SDK crates + four OpenSLO manifests. Catalog rows.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-sdk/{Cargo.toml,src/lib.rs,src/client.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-sdk/{Cargo.toml,src/lib.rs,src/client.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-sdk/{Cargo.toml,src/lib.rs,src/client.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-sdk/{Cargo.toml,src/lib.rs,src/client.rs}` | create |
 | `microservices/cloud-iac/slos/availability.openslo.yaml` | create — apply success-rate SLO |
 | `microservices/cloud-iac/slos/latency.openslo.yaml` | create — apply p99 latency SLO |
 | `microservices/cloud-iac/slos/correctness.openslo.yaml` | create — render-determinism SLO |
 | `microservices/cloud-iac/slos/freshness.openslo.yaml` | create — drift-detection coverage SLO |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-*-sdk.yaml` | create (2 rows) |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-*-sdk.yaml` | create (2 rows) |
 
 ## Code Shape
 
@@ -83,12 +83,12 @@ spec:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_cloud_iac_apply_completed_total{state="completed"}[1m]))
+              query: sum(rate(cloud_iac_apply_completed_total{state="completed"}[1m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_cloud_iac_apply_completed_total[1m]))
+              query: sum(rate(cloud_iac_apply_completed_total[1m]))
   objectives:
     - displayName: "≥99.5% apply success over 30d"
       target: 0.995
@@ -119,12 +119,12 @@ spec:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(oya_cloud_iac_drift_cycles_completed_within_1h)
+              query: sum(cloud_iac_drift_cycles_completed_within_1h)
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(oya_cloud_iac_drift_cycles_expected_within_1h)
+              query: sum(cloud_iac_drift_cycles_expected_within_1h)
   objectives:
     - displayName: "≥99.5% clusters polled per 1h cycle"
       target: 0.995
@@ -137,9 +137,9 @@ spec:
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-renderer-sdk -p oya-cloud-iac-iac-registry-sdk --all-features
-cargo nextest run -p oya-cloud-iac-iac-renderer-sdk -p oya-cloud-iac-iac-registry-sdk --all-features
-cloud-ci/oya-ci governance gate `openslo-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check -p cloud-iac-iac-renderer-sdk -p cloud-iac-iac-registry-sdk --all-features
+cargo nextest run -p cloud-iac-iac-renderer-sdk -p cloud-iac-iac-registry-sdk --all-features
+cloud-ci/ci governance gate `openslo-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

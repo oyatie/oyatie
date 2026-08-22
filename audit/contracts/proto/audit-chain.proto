@@ -2,7 +2,7 @@
 // oyatie.contract.transport: grpc-http2
 // oyatie.contract.identity: spiffe-mtls-tls13
 
-// oya-audit-chain — gRPC contract
+// audit-chain — gRPC contract
 // Internal sibling-service gRPC contract; public clients use contracts/openapi/audit-chain.yaml.
 // Per Bominal ADR-0028 + ADR-0003.
 

@@ -54,7 +54,7 @@ deferred; everything ships as one unit.
     SLI, 30-day SLO target, error-budget windows, burn-rate alert
     thresholds (2 % / 1 h fast burn, 5 % / 6 h slow burn — Google SRE
     workbook Ch. 5).
-10. **`oya-observability-slo-engine` crate** — reads OpenSLO manifests,
+10. **`observability-slo-engine` crate** — reads OpenSLO manifests,
     queries Prometheus/Mimir via PromQL for burn-rate computation, emits
     per-component eligibility verdicts. The differentiator: it knows about
     components, ledger, release pointers, and the agentic gate. The TSDB
@@ -72,7 +72,7 @@ deferred; everything ships as one unit.
     target environment. Added to `branch-protection.yaml`
     required-status-checks on `dev` and `staging`.
 14. **Continuous burn-rate evaluator** — runs inside
-    `oya-observability-slo-engine`; 1-minute cadence; writes eligibility
+    `observability-slo-engine`; 1-minute cadence; writes eligibility
     records for every (component, environment, current-sha) tuple.
     Idempotent. Event source.
 15. **Event-driven promote workflows** — `promote-dev-to-staging.yml` and
@@ -98,7 +98,7 @@ deferred; everything ships as one unit.
     `staging`.
 20. **Decommission of FUTURE-marked stubs** — references in
     `promote-dev-to-staging.yml` and `promote-staging-to-production.yml`
-    to `oya-governance-canary-cohort-observability` /
+    to `governance-canary-cohort-observability` /
     `-full-rollout-observability` are replaced by Layer-B components; no
     placeholder lanes remain.
 
@@ -161,7 +161,7 @@ gate is a permissive gate.
   M01; or (b) gate lands last and retroactively gates earlier components.
   (a) is the hyperscaler answer; (b) is the simpler integration.
 - Whether the burn-rate evaluator runs as a long-lived service or as a
-  scheduled job inside `oya-observability-slo-engine` against Prometheus
+  scheduled job inside `observability-slo-engine` against Prometheus
   snapshots. (Long-lived service is the hyperscaler answer.)
 - How `release/<component>/<environment>` ref proliferation interacts
   with GitHub branch-protection (per-rule cap on matched refs); may need

@@ -10,7 +10,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::{AzCode, RegionCode};
-use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
+use data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
 const DCOPS_SITE_SCHEMA_VERSION: u32 = 1;
 const DCOPS_FACILITY_ZONE_SCHEMA_VERSION: u32 = 1;
@@ -2972,7 +2972,7 @@ mod tests {
             kind: EquipmentKind::Server,
             lifecycle: EquipmentLifecycle::Ordered,
             procurement_ref: "proc/order-1/server".to_string(),
-            vendor: "oya-approved-vendor".to_string(),
+            vendor: "approved-vendor".to_string(),
             model: "srv-1".to_string(),
             ordered_at_epoch_seconds: 20,
         }

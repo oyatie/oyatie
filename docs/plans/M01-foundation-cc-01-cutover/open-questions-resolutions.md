@@ -27,18 +27,18 @@ Evidence: `ls docs/decisions/ | tail -15` shows ADR-0049, ADR-0050, ADR-0051 and
 
 ---
 
-## Q1 — Helper implementation language for `tools/oya-agent-read/` (RECOMMENDED — Rust)
+## Q1 — Helper implementation language for `tools/agent-read/` (RECOMMENDED — Rust)
 
 **Choice: Rust.** Rationale:
 
 1. Workspace idiom — every other crate in this repo is `oya-*` Rust (140+ crates per `Cargo.toml`).
-2. The helper emits audit-chain events, which are typed in the existing `oya-platform-audit-chain-kernel`. Reusing the kernel from Rust is direct; from Node/TS it requires an FFI or a re-implementation.
+2. The helper emits audit-chain events, which are typed in the existing `platform-audit-chain-kernel`. Reusing the kernel from Rust is direct; from Node/TS it requires an FFI or a re-implementation.
 3. Distribution: Rust binaries are static and trivially shippable; no Node runtime dependency for agent boxes.
-4. Fitness lanes (`oya-governance-*`) are Rust kernels; banned-primitives lane (P7 §"Outputs") would be a sibling.
+4. Fitness lanes (`governance-*`) are Rust kernels; banned-primitives lane (P7 §"Outputs") would be a sibling.
 
-Crate naming follows the flat-crates convention: `oya-tooling-agent-read` (kernel) + `oya-tooling-agent-read-cli` (binary). Actually — the simpler shape per Linus discipline: a single binary crate `oya-tooling-agent-read` with `src/main.rs` and a small `lib.rs` for the readable surface. Defer the kernel/cli split until evidence justifies it.
+Crate naming follows the flat-crates convention: `tooling-agent-read` (kernel) + `tooling-agent-read-cli` (binary). Actually — the simpler shape per Linus discipline: a single binary crate `tooling-agent-read` with `src/main.rs` and a small `lib.rs` for the readable surface. Defer the kernel/cli split until evidence justifies it.
 
-The plan's P2 should be updated to enumerate Rust file claims rather than language-agnostic placeholders. Since `tools/oya-tooling-agent-read/` does not exist yet, the chicken-and-egg applies — see Q3 resolution.
+The plan's P2 should be updated to enumerate Rust file claims rather than language-agnostic placeholders. Since `tools/tooling-agent-read/` does not exist yet, the chicken-and-egg applies — see Q3 resolution.
 
 ---
 
@@ -50,14 +50,14 @@ The plan's P2 should be updated to enumerate Rust file claims rather than langua
 **Resolution:** The fallback from `docs/plans/M01-foundation-cc-01-cutover/pre-cutover-drafts.md §Draft 2` is the actual path:
 
 ```
-     -c "agent=<id> path=tools/oya-tooling-agent-read window=open started_at=<ts>" \
+     -c "agent=<id> path=tools/tooling-agent-read window=open started_at=<ts>" \
      -i critical \
-     -k "scaffold-lock,oya-tooling-agent-read,open"
-2. <agent creates tools/oya-tooling-agent-read/{Cargo.toml, src/main.rs, src/lib.rs}>
-3. <agent appends "tools/oya-tooling-agent-read" to Cargo.toml workspace.members>
-     -c "agent=<id> path=tools/oya-tooling-agent-read window=closed finished_at=<ts>" \
+     -k "scaffold-lock,tooling-agent-read,open"
+2. <agent creates tools/tooling-agent-read/{Cargo.toml, src/main.rs, src/lib.rs}>
+3. <agent appends "tools/tooling-agent-read" to Cargo.toml workspace.members>
+     -c "agent=<id> path=tools/tooling-agent-read window=closed finished_at=<ts>" \
      -i critical \
-     -k "scaffold-lock,oya-tooling-agent-read,closed"
+     -k "scaffold-lock,tooling-agent-read,closed"
 ```
 
 Plan should be updated to:
@@ -70,13 +70,13 @@ Plan should be updated to:
 
 The plan flags P6/P7/P9 as requiring `git mv` (archive), `git rm` (delete), `gh issue create` (file upstream bug). Spec rule: "agents do not use git/gh". The Planner interprets this as "humans orchestrating the cutover may." This is consistent with the spec's §Constraints item 1 wording ("Agent-side git/gh is banned") which scopes the ban to agents, not humans.
 
-**Defer to user confirmation** but proceed under the interpretation that human-orchestrator git invocations are permitted for the three flagged events. The `oya-agent-read` helper does NOT need a write counterpart for these — they are explicitly human steps.
+**Defer to user confirmation** but proceed under the interpretation that human-orchestrator git invocations are permitted for the three flagged events. The `agent-read` helper does NOT need a write counterpart for these — they are explicitly human steps.
 
 Mitigation: each carve-out emits `BLOCKED_ON_HUMAN_ORCHESTRATOR` in the autopilot worker prompt.
 
 ---
 
-## Q4 — CI extension to flag archive-path tokens (CONFIRMED — into `oya-governance-banned-primitives`)
+## Q4 — CI extension to flag archive-path tokens (CONFIRMED — into `governance-banned-primitives`)
 
 
 ---
@@ -94,7 +94,7 @@ The pre-cutover demo script (`docs/plans/M01-foundation-cc-01-cutover/pre-cutove
 
 ---
 
-## Q7 — `oya-agent-write` future surface (CONFIRMED OUT-OF-SCOPE for this cutover)
+## Q7 — `agent-write` future surface (CONFIRMED OUT-OF-SCOPE for this cutover)
 
 
 ---

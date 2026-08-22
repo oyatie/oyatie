@@ -14,7 +14,7 @@
 //                  cross-employer industry channels)
 //
 // Owner:   axis-community + ops-security + council-privacy
-// Audit:   every permit/deny emits oya_community_persona_anchored_policy_eval_total
+// Audit:   every permit/deny emits community_persona_anchored_policy_eval_total
 // References:
 //   - ADR-0243 (Cedar universal gate)
 //   - ADR-0244 (tenant scoping primitive)

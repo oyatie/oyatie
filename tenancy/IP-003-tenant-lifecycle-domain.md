@@ -11,22 +11,22 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-003: oya-tenancy-tenant-lifecycle-domain
+# IP-003: tenancy-tenant-lifecycle-domain
 
 ## Intent
 
-`oya-tenancy-tenant-lifecycle-domain` crate: lifecycle FSM (Created → Activated → Suspended/Resumed → DeletionRequested → Deleted with soft-delete grace), plan-tier rules, jurisdiction validators. Pure logic; no I/O.
+`tenancy-tenant-lifecycle-domain` crate: lifecycle FSM (Created → Activated → Suspended/Resumed → DeletionRequested → Deleted with soft-delete grace), plan-tier rules, jurisdiction validators. Pure logic; no I/O.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/Cargo.toml` | create |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/lib.rs` | create |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/fsm.rs` | create — state machine |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/plan_tier.rs` | create |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/jurisdiction_validator.rs` | create |
-| `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-domain.yaml` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-domain/Cargo.toml` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-domain/src/lib.rs` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-domain/src/fsm.rs` | create — state machine |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-domain/src/plan_tier.rs` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-domain/src/jurisdiction_validator.rs` | create |
+| `microservices/tenancy/catalog/tenancy-tenant-lifecycle-domain.yaml` | create |
 
 ## Code Shape
 
@@ -50,9 +50,9 @@ pub fn next_state(current: TenantStatus, transition: Transition) -> Result<Tenan
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-domain --all-features
-cargo nextest run -p oya-tenancy-tenant-lifecycle-domain --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-tenant-lifecycle-domain
+cargo check -p tenancy-tenant-lifecycle-domain --all-features
+cargo nextest run -p tenancy-tenant-lifecycle-domain --all-features
+cargo run -p dev-cli -- gate validate layer-correctness --crate tenancy-tenant-lifecycle-domain
 ```
 
 ## Test Plan

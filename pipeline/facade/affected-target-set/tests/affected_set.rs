@@ -40,8 +40,8 @@ fn policy() -> Policy {
             ],
             "require_owner_patterns": [
                 "**/*.rs",
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/linker.ld",
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld"
+                "cloud/cloud-kernel/crates/cloud-kernel-arch-aarch64-adapter/linker.ld",
+                "cloud/cloud-kernel/crates/cloud-kernel-arch-x86-64-adapter/linker.ld"
             ],
             "package_definition_basenames": ["BUCK.v2", "BUCK"],
             "package_sibling_basenames": ["Cargo.toml", "build.rs"],
@@ -90,12 +90,12 @@ fn red_class_cf16525_out_of_scope_source_lands_in_the_affected_seeds() {
     // for that diff shape MUST include the owning identity targets as seeds.
     let p = policy();
     let changes = [Change::Present(
-        "oya/identity/crates/oya-identity-workload-app/src/server.rs".into(),
+        "oya/identity/crates/identity-workload-app/src/server.rs".into(),
     )];
     let plan = plan_changes(&changes, &p);
     let owner_map = owners(&[(
-        "oya/identity/crates/oya-identity-workload-app/src/server.rs",
-        &["root//oya/identity/crates/oya-identity-workload-app:oya-identity-workload-app"],
+        "oya/identity/crates/identity-workload-app/src/server.rs",
+        &["root//oya/identity/crates/identity-workload-app:identity-workload-app"],
     )]);
     let decision = resolve(&plan, &owner_map, &p);
     match decision {
@@ -103,7 +103,7 @@ fn red_class_cf16525_out_of_scope_source_lands_in_the_affected_seeds() {
             assert!(
                 seeds
                     .iter()
-                    .any(|s| s.contains("oya-identity-workload-app")),
+                    .any(|s| s.contains("identity-workload-app")),
                 "the out-of-scope target must be a seed; got {seeds:?}"
             );
         }
@@ -157,7 +157,7 @@ fn red_predicate_1_nonempty_diff_with_empty_selection_refuses() {
         }"#,
     )
     .expect("pack parses");
-    let path = ".github/workflows/oya-ci-required.yml";
+    let path = ".github/workflows/presubmit.yml";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     // Production reality: `owner()` is empty for `.github/**` (it is nobody's declared src).
@@ -400,13 +400,13 @@ fn owned_non_source_asset_closes_the_include_str_seam() {
     let plan = plan_changes(&changes, &p);
     let decision = resolve(
         &plan,
-        &owners(&[("oya/svc/asset/template.md", &["root//oya/svc:oya-svc"])]),
+        &owners(&[("oya/svc/asset/template.md", &["root//oya/svc:svc"])]),
         &p,
     );
     assert_eq!(
         decision,
         Decision::Affected {
-            seeds: vec!["root//oya/svc:oya-svc".into()]
+            seeds: vec!["root//oya/svc:svc".into()]
         }
     );
 }
@@ -451,9 +451,9 @@ fn red_f2_buildfile_and_config_classes_escalate_to_full() {
     // a silent no-op without these classes. ALL must escalate to FULL.
     let p = policy();
     for path in [
-        "libs/oya-buck-syntax-kernel/BUCK.v2",
+        "libs/buck-syntax-kernel/BUCK.v2",
         "ci/facade/affected-target-set/BUCK.v2",
-        "libs/oya-thing/PACKAGE",
+        "libs/thing/PACKAGE",
         "PACKAGE",
         ".buckconfig.local",
     ] {
@@ -493,7 +493,7 @@ fn deleted_source_file_escalates_to_full() {
     // owner() cannot resolve a path that no longer exists at HEAD, but deleting a source can
     // break every dependent of its former target — mechanical escalation, never skip.
     let p = policy();
-    let changes = [Change::Deleted("libs/oya-thing/src/gone.rs".into())];
+    let changes = [Change::Deleted("libs/thing/src/gone.rs".into())];
     let plan = plan_changes(&changes, &p);
     assert!(matches!(
         resolve(&plan, &BTreeMap::new(), &p),
@@ -504,7 +504,7 @@ fn deleted_source_file_escalates_to_full() {
 #[test]
 fn deleted_package_definition_escalates_to_full() {
     let p = policy();
-    let changes = [Change::Deleted("libs/oya-thing/BUCK".into())];
+    let changes = [Change::Deleted("libs/thing/BUCK".into())];
     let plan = plan_changes(&changes, &p);
     assert!(matches!(
         resolve(&plan, &BTreeMap::new(), &p),
@@ -535,12 +535,12 @@ fn modified_buck_file_escalates_to_full() {
     // seeding only "its own package" (the previous, wrong behavior) missed those dependents.
     let p = policy();
     let changes = [Change::Present(
-        "cloud/cloud-iam/crates/oya-iam/BUCK".into(),
+        "cloud/cloud-iam/crates/iam/BUCK".into(),
     )];
     let plan = plan_changes(&changes, &p);
     match resolve(&plan, &BTreeMap::new(), &p) {
         Decision::Full { reasons } => assert!(
-            reasons.iter().any(|r| r.contains("oya-iam/BUCK")),
+            reasons.iter().any(|r| r.contains("iam/BUCK")),
             "FULL reason must name the buildfile; got {reasons:?}"
         ),
         other => panic!("a BUCK change must escalate to FULL, got {other:?}"),
@@ -577,14 +577,14 @@ fn cargo_manifest_seeds_its_enclosing_package() {
     // downstream -> the adapter escalates to FULL.
     let p = policy();
     let changes = [Change::Present(
-        "oya/svc/crates/oya-svc-app/Cargo.toml".into(),
+        "oya/svc/crates/svc-app/Cargo.toml".into(),
     )];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(&plan, &BTreeMap::new(), &p);
     assert_eq!(
         decision,
         Decision::Affected {
-            seeds: vec!["//oya/svc/crates/oya-svc-app:".into()]
+            seeds: vec!["//oya/svc/crates/svc-app:".into()]
         }
     );
 }
@@ -593,7 +593,7 @@ fn cargo_manifest_seeds_its_enclosing_package() {
 fn deleted_cargo_manifest_escalates_to_full() {
     let p = policy();
     let changes = [Change::Deleted(
-        "oya/svc/crates/oya-svc-app/Cargo.toml".into(),
+        "oya/svc/crates/svc-app/Cargo.toml".into(),
     )];
     let plan = plan_changes(&changes, &p);
     assert!(matches!(
@@ -609,13 +609,13 @@ fn build_script_is_a_package_sibling_not_a_refusal() {
     // the enclosing package like Cargo.toml.
     let p = policy();
     let changes = [Change::Present(
-        "oya/svc/crates/oya-svc-app/build.rs".into(),
+        "oya/svc/crates/svc-app/build.rs".into(),
     )];
     let plan = plan_changes(&changes, &p);
     assert_eq!(
         resolve(&plan, &BTreeMap::new(), &p),
         Decision::Affected {
-            seeds: vec!["//oya/svc/crates/oya-svc-app:".into()]
+            seeds: vec!["//oya/svc/crates/svc-app:".into()]
         }
     );
 }
@@ -624,12 +624,12 @@ fn build_script_is_a_package_sibling_not_a_refusal() {
 fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
     // F1 (reviewer-reproduced, the bad one): the prior pack out-of-graph-exempted
     // cloud/cloud-kernel/** — FACTUALLY FALSE (the cited
-    // oya-cloud-kernel-user-layout-kernel/src/lib.rs is owned by two host-buildable Buck2
+    // cloud-kernel-user-layout-kernel/src/lib.rs is owned by two host-buildable Buck2
     // targets). The exemption made an OWNED .rs break PASS as NO-GRAPH-TARGETS — the exact
     // cf16525 class, reintroduced by my own pack. The exemption is DELETED: an owned kernel
     // source is an ordinary owner-required file and lands in its cone as a seed.
     let p = policy();
-    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/src/lib.rs";
+    let path = "cloud/cloud-kernel/crates/cloud-kernel-user-layout-kernel/src/lib.rs";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(
@@ -637,8 +637,8 @@ fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
         &owners(&[(
             path,
             &[
-                "root//cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel:oya-cloud-kernel-user-layout-kernel",
-                "root//cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel:host-tests",
+                "root//cloud/cloud-kernel/crates/cloud-kernel-user-layout-kernel:cloud-kernel-user-layout-kernel",
+                "root//cloud/cloud-kernel/crates/cloud-kernel-user-layout-kernel:host-tests",
             ],
         )]),
         &p,
@@ -647,7 +647,7 @@ fn red_f1_owned_kernel_source_lands_in_its_cone_no_exemption() {
         Decision::Affected { seeds } => assert!(
             seeds
                 .iter()
-                .any(|s| s.contains("oya-cloud-kernel-user-layout-kernel")),
+                .any(|s| s.contains("cloud-kernel-user-layout-kernel")),
             "owned kernel source must seed its target; got {seeds:?}"
         ),
         other => panic!("owned kernel source must be Affected (not exempted), got {other:?}"),
@@ -661,7 +661,7 @@ fn bare_metal_kernel_backend_without_buck2_platform_refuses_until_wired() {
     // owner-required Rust source REFUSES as unowned instead of silently passing or exposing an
     // incompatible target that wildcard builds skip.
     let p = policy();
-    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/lib.rs";
+    let path = "cloud/cloud-kernel/crates/cloud-kernel-arch-x86-64-adapter/src/lib.rs";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
@@ -679,7 +679,7 @@ fn bare_metal_kernel_linker_script_without_buck2_platform_refuses_until_wired() 
     // Without an exact owner-required pattern they would be unowned but not owner-required,
     // reopening the no-graph-targets false-green seam for linker-script edits.
     let p = policy();
-    let path = "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld";
+    let path = "cloud/cloud-kernel/crates/cloud-kernel-arch-x86-64-adapter/linker.ld";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
@@ -699,7 +699,7 @@ fn genuinely_unowned_kernel_userspace_source_refuses() {
     // hand exemption that also swallows owned siblings.
     let p = policy();
     let path =
-        "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-src/src/main.rs";
+        "cloud/cloud-kernel/crates/cloud-kernel-arch-x86-64-adapter/user-src/src/main.rs";
     let changes = [Change::Present(path.into())];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(&plan, &owners(&[(path, &[])]), &p);
@@ -720,18 +720,18 @@ fn unwired_test_file_refusal_is_the_fix_on_touch_forcing_function() {
     // until the file is wired into a BUCK target (fix-on-touch ratchet).
     let p = policy();
     let changes = [Change::Present(
-        "cloud/svc/crates/oya-svc-sdk/tests/contract.rs".into(),
+        "cloud/svc/crates/svc-sdk/tests/contract.rs".into(),
     )];
     let plan = plan_changes(&changes, &p);
     let decision = resolve(
         &plan,
-        &owners(&[("cloud/svc/crates/oya-svc-sdk/tests/contract.rs", &[])]),
+        &owners(&[("cloud/svc/crates/svc-sdk/tests/contract.rs", &[])]),
         &p,
     );
     assert_eq!(
         decision,
         Decision::RefuseUnowned {
-            paths: vec!["cloud/svc/crates/oya-svc-sdk/tests/contract.rs".into()]
+            paths: vec!["cloud/svc/crates/svc-sdk/tests/contract.rs".into()]
         }
     );
 }
@@ -936,7 +936,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
                 "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
                 "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
                 "root//governance/check/data-class:check-data-class-unittest",
-                "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy",
+                "root//libs/check-license-policy:check-license-policy-license-policy",
             ],
         ),
     ];
@@ -953,7 +953,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
             "root//ci/facade/cross-artifact-agreement:",
             "root//ci/facade/generated-artifact-freshness:",
             "root//governance/check/active-artifact-contract:",
-            "root//libs/oya-check-dependency-seam:",
+            "root//libs/check-dependency-seam:",
             "root//marketplace/facade/dev-cli:",
         ] {
             assert!(
@@ -1046,9 +1046,9 @@ fn governance_marker_owners_reaches_its_consumers_instead_of_escalating_to_full(
         // Asserts the retirement control plane's OWNERS boundary exists (and `registry/OWNERS` does not).
         "ci/facade/automation-language-policy",
         // `[owners]` policy-as-data: the marker file name and the breadth bound.
-        "libs/oya-ci-config",
+        "libs/ci-config",
         // Born-accounting writes `<dir>/OWNERS` and validates owner principals.
-        "libs/oya-crate-registrar-kernel",
+        "libs/crate-registrar-kernel",
     ] {
         assert!(
             packages.contains(required),
@@ -1084,7 +1084,7 @@ fn the_root_owners_file_is_covered_by_the_same_declaration() {
 #[test]
 fn the_owners_seed_list_is_a_superset_of_the_mechanically_derived_github_list() {
     let owners_pkgs = shipped_seed_packages("os/OWNERS");
-    let github_pkgs = shipped_seed_packages(".github/workflows/oya-ci-required.yml");
+    let github_pkgs = shipped_seed_packages(".github/workflows/presubmit.yml");
     let missing: Vec<&String> = github_pkgs.difference(&owners_pkgs).collect();
     assert!(
         missing.is_empty(),

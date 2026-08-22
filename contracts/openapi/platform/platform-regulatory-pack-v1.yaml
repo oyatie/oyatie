@@ -117,7 +117,7 @@ components:
         pack_id:
           type: string
           minLength: 1
-          description: Regional pack id, using the oya-pack-* namespace.
+          description: Regional pack id, using the pack-* namespace.
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
         region:

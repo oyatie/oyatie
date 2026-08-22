@@ -6,14 +6,14 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# kube-rs Controller application library + binary for the oya-ci controller.
-# Phase 1 of oya-ci bespoke-Prow: spawns K8s gate Jobs, watches them, posts
+# kube-rs Controller application library + binary for the ci controller.
+# Phase 1 of ci bespoke-Prow: spawns K8s gate Jobs, watches them, posts
 # terminal GitHub commit-statuses via crier pattern.
-# ADR-0387 (ci-gate substrate); see docs/ideas/oya-ci-bespoke-prow.md Phase 1.
+# ADR-0387 (ci-gate substrate); see docs/ideas/ci-bespoke-prow.md Phase 1.
 
 [[bin]]
-name = "oya-ci-controller"
-path = "src/bin/oya-ci-controller.rs"
+name = "ci-controller"
+path = "src/bin/ci-controller.rs"
 
 [lib]
 name = "ci_controller_app"

@@ -29,12 +29,12 @@ Critic r1 finding #3: v2 steps 3-6 were "mush". v3 provides Command / Expected f
 
 | Step | Action | Command | Expected failure | Expected success | Artifact path |
 |---|---|---|---|---|---|
-| 1 | Wire oya-dev-cli subcommand | `cargo run -p oya-dev-cli -- gate validate active-artifact-contract --help` | exit 2 (no subcommand registered) | exit 0 + help text shows the subcommand | `crates/oya-dev-cli/src/commands/gate.rs` |
-| 2 | Failing fixture for missing-row artifact | `cargo run -p oya-dev-cli -- gate validate active-artifact-contract --registry tests/fixtures/missing-row-registry.json` | exit 0 (false negative) | exit 1 + violation `R03-missing-capability` or `R01-artifact-path-not-in-head` printed | `crates/oya-dev-cli/tests/fixtures/missing-row-registry.json` |
+| 1 | Wire dev-cli subcommand | `cargo run -p dev-cli -- gate validate active-artifact-contract --help` | exit 2 (no subcommand registered) | exit 0 + help text shows the subcommand | `crates/dev-cli/src/commands/gate.rs` |
+| 2 | Failing fixture for missing-row artifact | `cargo run -p dev-cli -- gate validate active-artifact-contract --registry tests/fixtures/missing-row-registry.json` | exit 0 (false negative) | exit 1 + violation `R03-missing-capability` or `R01-artifact-path-not-in-head` printed | `crates/dev-cli/tests/fixtures/missing-row-registry.json` |
 | 3 | Flip `lean-a-active-artifact-contract` to active | `grep "lean-a-active-artifact-contract" registry/quality/lanes.yaml \| grep "status: active"` | grep returns empty | grep returns the line | `registry/quality/lanes.yaml` |
 | 4 | Grit pre-done validation OR bounded ICM fallback | `scripts/hooks/grit-pre-done-validate-artifact-contract.sh` (or scaffold-lock with `expires_at` field within 24h) | exit non-zero on violation | exit 0 + scaffold-lock includes `expires_at: 2026-05-14T00:00:00Z` (24h max) | `scripts/hooks/grit-pre-done-validate-artifact-contract.sh` |
-| 5 | Emit evidence/status bundle | `cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence /evidence/lane-run-${RUN_ID}.json` | no file written or schema-invalid | file written; contains `outcome`, `validation_duration_ms`, `head_commit_sha`, `green_ci_run_url` | `/evidence/lane-run-${RUN_ID}.json` |
-| 6 | ONE tracked graph artifact + ONE checker assertion (critic r1 fix #5 narrowed) | `cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-graph-edges /registry/graph/active-artifact-contract-edges.json && cargo run -p oya-check-active-artifact-contract --test graph_edge_emission` | no graph file OR test fails | graph file present with `[{source: artifact_id, target: capability_id, edge_type: declares}]`; test passes | `/registry/graph/active-artifact-contract-edges.json` |
+| 5 | Emit evidence/status bundle | `cargo run -p dev-cli -- gate validate active-artifact-contract --emit-evidence /evidence/lane-run-${RUN_ID}.json` | no file written or schema-invalid | file written; contains `outcome`, `validation_duration_ms`, `head_commit_sha`, `green_ci_run_url` | `/evidence/lane-run-${RUN_ID}.json` |
+| 6 | ONE tracked graph artifact + ONE checker assertion (critic r1 fix #5 narrowed) | `cargo run -p dev-cli -- gate validate active-artifact-contract --emit-graph-edges /registry/graph/active-artifact-contract-edges.json && cargo run -p check-active-artifact-contract --test graph_edge_emission` | no graph file OR test fails | graph file present with `[{source: artifact_id, target: capability_id, edge_type: declares}]`; test passes | `/registry/graph/active-artifact-contract-edges.json` |
 | 7 | Gate before resuming migrations | manual review of steps 1-6 all green | any step red | all 6 green; commit message references `VL-OPERATIONAL` keyword | (no artifact; gate event) |
 
 ## §6 Architectural amendments — narrowed per critic r1 (fixes #4 + #5 + #6)
@@ -67,8 +67,8 @@ Critic r1 finding #3: v2 steps 3-6 were "mush". v3 provides Command / Expected f
 ### Amendment 10 — Control-plane scale SLOs (CRITIC R1 FIX #6 — measurement hooks added)
 
 **v3 measurement hooks:**
-- `oya-dev-cli gate validate active-artifact-contract` emits `validation_duration_ms` field into evidence bundle (step 5 above)
-- `oya-gen-graph-materialize` (post-VL) emits `graph_build_duration_ms`
+- `dev-cli gate validate active-artifact-contract` emits `validation_duration_ms` field into evidence bundle (step 5 above)
+- `gen-graph-materialize` (post-VL) emits `graph_build_duration_ms`
 - Stale-state window tracked via evidence-bundle `emitted_at` vs previous run timestamp
 - Lane `lean-a-control-plane-slo` (post-VL) compares emissions vs SLOs from `/specs/control-plane-slos.json`
 

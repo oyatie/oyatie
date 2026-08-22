@@ -1,5 +1,5 @@
 # deps.toml — closed-schema DATA contract for owned dependency automation (not cargo-deny;
-# that lives in deny.toml). Formerly oya-deps.toml; filename is brand-free.
+# that lives in deny.toml). Formerly deps.toml; filename is brand-free.
 # ADR-0535 rejects external dependency-bot adoption for the owned stack. The destination actuator is an
 # in-house Rust bump-bot that opens scm-facts ChangeSets and runs license/advisory/version gates
 # before proposing dependency changes. GitHub PRs are a transitional adapter, not the source of truth.
@@ -16,11 +16,11 @@ engine = "owned-rust-bump-bot"
 changeset_transport = "scm-facts"
 github_actions = "adapter-only"
 external_bots = "disabled"
-merge_authority = "oya-ci-required"
+merge_authority = "presubmit"
 
 [rust]
 channel = "stable"
-pin = "1.97.1"
+pin = "1.98.0"
 update_policy = "latest-stable"
 drift_guard = "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs"
 exclusions = []
@@ -76,7 +76,7 @@ reason = "Human policy row remains aligned with the machine policy."
 [freshness]
 mirror = "ci/facade/dep-freshness/mirror/freshness.json"
 manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
-producer = "oya-dep-freshness-producer"
+producer = "dep-freshness-producer"
 kernel = "ci/facade/dep-freshness/src/kernel.rs"
 
 # THRESHOLD IS DATA, not a constant in code, so it can be tuned without a code

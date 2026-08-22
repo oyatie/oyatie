@@ -13,14 +13,14 @@ read_scope: canonical direction, cloud-kms artifacts, reverse references, chat h
 1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2235`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2494`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable canonical sequence: `specs/master-plan-sequencing.json:704-868`, including deployment contexts, OpenTofu substrate, OS matrix, Rust language policy, and OCI Always Free profile.
 3. Microservice-owned product purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`, with the missing local `PRD.md` recorded as a finding.
-4. Architecture equivalent read: `crates/oya-cloud-kms-domain/src/lib.rs:1-7`, `contracts/openapi/cloud/cloud-kms-v1.yaml:1-12`, `docs/products/cloud/PRD.md:121-121`, because `microservices/cloud-kms/ARCHITECTURE.md` is absent.
+4. Architecture equivalent read: `crates/cloud-kms-domain/src/lib.rs:1-7`, `contracts/openapi/cloud/cloud-kms-v1.yaml:1-12`, `docs/products/cloud/PRD.md:121-121`, because `microservices/cloud-kms/ARCHITECTURE.md` is absent.
 5. Documentation rigor anchors: `docs/standards/documentation-rigor.md:133-190`, `docs/standards/brief-template.md:101-117`, `docs/standards/brief-template.md:666-1304`, `docs/standards/brief-template.md:1720-1854`.
 
 ## Executive Verdict
 
 This audit did not find a source tree for a deployable cloud-kms service under `microservices/cloud-kms/`.
 The local path contains ten documentation artifacts and no local PRD, architecture file, OpenAPI contract, OpenSLO file, OpenTofu context directory, supported OS manifest, Rust source, or local tests.
-The repo does contain canonical cloud-kms runtime artifacts outside the microservice path: `contracts/openapi/cloud/cloud-kms-v1.yaml`, `crates/oya-cloud-kms-domain`, `crates/oya-cloud-kms-api`, and `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs`.
+The repo does contain canonical cloud-kms runtime artifacts outside the microservice path: `contracts/openapi/cloud/cloud-kms-v1.yaml`, `crates/cloud-kms-domain`, `crates/cloud-kms-api`, and `crates/cloud-kms-api/tests/cloud_kms_api.rs`.
 That split is the central coherence problem.
 The product thesis is strong: key lifecycle, envelope encryption, tenant CMKs, rotation, BYOK/HYOK, HSM validation, cryptoshredding, audit receipts, and KMS-use evidence.
 The ownership package is weak: the microservice folder documents high-value behavior but does not own enough machine-readable deployability or contract evidence for an intern-buildable Phase 0 cloud infrastructure service.
@@ -36,7 +36,7 @@ The FAQ sharpens that purpose: AWS KMS, Google Cloud KMS, Azure Key Vault, Vault
 The domain crate confirms the runtime boundary more narrowly: it owns typed control/data invariants for `cloud.kms.encrypt` and `cloud.kms.decrypt`, including per-tenant keys, per-cell HSM partition binding, residency, pack-certified/FIPS validation, key-use receipts, and key-destruction evidence.
 The domain crate explicitly does not perform cryptography or HSM I/O; adapter/runtime crates consume the invariants.
 The OpenAPI contract confirms the public API surface currently consists of authorize-encrypt and authorize-decrypt receipt operations, not general-purpose key CRUD, aliasing, signing, random generation, import, external-key-store management, or HSM cluster lifecycle.
-The cloud product PRD names `oya-cloud-kms-api` as the KMS encrypt/decrypt authorization receipt REST API and names KMS/BYOK/HYOK as a cloud product capability.
+The cloud product PRD names `cloud-kms-api` as the KMS encrypt/decrypt authorization receipt REST API and names KMS/BYOK/HYOK as a cloud product capability.
 That means the real product purpose is two-layered.
 Layer one is currently implemented in Rust as policy-bound authorization and receipt recording for encrypt/decrypt use events.
 Layer two is described in local docs as a broader KMS control plane for lifecycle, custody, HSM partitions, rotation, cryptoshredding, and external provider adapters.
@@ -81,8 +81,8 @@ Local `cost-budget.md`: absent.
 Local `dpia.md`: absent.
 Local `compliance.md`: absent.
 Representative repo-level contract read: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-420`.
-Representative repo-level code read: `crates/oya-cloud-kms-domain/src/lib.rs:1-260`.
-Representative repo-level tests read: `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:1-352`.
+Representative repo-level code read: `crates/cloud-kms-domain/src/lib.rs:1-260`.
+Representative repo-level tests read: `crates/cloud-kms-api/tests/cloud_kms_api.rs:1-352`.
 Chat-history raw matches processed: 48.
 Chat-history relevant clusters processed: Wave 2 Batch 2.1 dispatch at chat line 15245 and active task reminder at chat line 15231.
 Counterpart research sources used: AWS KMS official docs, Google Cloud KMS official docs, HashiCorp Vault official docs.
@@ -99,8 +99,8 @@ Internal reference 2: `retired tenant_class adoption artifact:24-25` declares de
 Internal reference 3: `retired tenant_class adoption artifact:42-43` declares paid p95 and availability. Target OpenSLO file does not exist locally.
 Internal reference 4: `retired tenant_class adoption artifact:60-61` declares paid p95 and availability. Target OpenSLO file does not exist locally.
 Internal reference 5: `retired tenant_class adoption artifact:78-79` declares paid p95 and availability. Target OpenSLO file does not exist locally.
-Internal reference 6: `faqs/kms-engineer-faq.md:7-12` says cloud-kms is the canonical policy and receipt surface and downstream providers are adapters. Target architecture file is absent, but repo-level domain crate supports the invariant at `crates/oya-cloud-kms-domain/src/lib.rs:1-7`.
-Internal reference 7: `faqs/kms-engineer-faq.md:60-68` describes cryptoshredding with destruction receipts and fail-closed behavior. Target local API contract for destruction receipts is absent; repo-level domain struct exists at `crates/oya-cloud-kms-domain/src/lib.rs:203-220`.
+Internal reference 6: `faqs/kms-engineer-faq.md:7-12` says cloud-kms is the canonical policy and receipt surface and downstream providers are adapters. Target architecture file is absent, but repo-level domain crate supports the invariant at `crates/cloud-kms-domain/src/lib.rs:1-7`.
+Internal reference 7: `faqs/kms-engineer-faq.md:60-68` describes cryptoshredding with destruction receipts and fail-closed behavior. Target local API contract for destruction receipts is absent; repo-level domain struct exists at `crates/cloud-kms-domain/src/lib.rs:203-220`.
 Internal reference 8: `faqs/kms-engineer-faq.md:132-136` says cloud-iam performs principal/session policy and cloud-kms verifies action, AAD, data class, and residency. Target local Cedar policy file is absent.
 Internal reference 9: `faqs/kms-engineer-faq.md:165-168` names a Vault adapter crate path. The local microservice path has no adapter inventory.
 Internal reference 10: `reference-implementations/envelope-encrypt-rust-sdk.md:6-23` declares a Rust SDK dependency and example. Target SDK crate is not under the microservice path.
@@ -131,14 +131,14 @@ Outbound reference 4: `faqs/kms-engineer-faq.md:132-136` references cloud-iam. R
 Outbound reference 5: `faqs/kms-engineer-faq.md:172-176` references Foundry hooks and audit evidence. Reverse references appear in `docs/products/cloud/PRD.md:549` and runtime bindings, but no local event schema file exists.
 Outbound reference 6: `migration-playbooks/from-aws-kms-and-vault-enterprise.md:11-38` references AWS KMS and Vault Enterprise. It does not include Google Cloud KMS despite Google being one of the top-3 counterparts for this audit.
 Outbound reference 7: `benchmarks/...md:1` references AWS KMS, Google Cloud KMS, Azure Key Vault, and Vault Enterprise. That is useful but not aligned to this audit's self-hosted Vault counterpart.
-Outbound reference 8: `reference-implementations/...md:14-20` references `oya-cloud-kms-sdk`, `oya-audit-chain-sdk`, and `oya-cloud-iam-sdk`. The repo-level crates visible in this audit are `oya-cloud-kms-domain` and `oya-cloud-kms-api`, not a local SDK crate.
+Outbound reference 8: `reference-implementations/...md:14-20` references `cloud-kms-sdk`, `audit-chain-sdk`, and `cloud-iam-sdk`. The repo-level crates visible in this audit are `cloud-kms-domain` and `cloud-kms-api`, not a local SDK crate.
 Outbound reference 9: `retired tenant_class adoption artifact:85-99` declares invariants including external provider indirection and receipts. Runtime proof exists in the API/domain crates, but not in local microservice docs.
 Outbound reference 10: `tutorials/...md:11-210` walks lifecycle operations but does not link to the OpenAPI contract or runtime crate tests.
-Reverse reference 1: `docs/SPEC.md:155` declares `cloud.kms.encrypt` and `cloud.kms.decrypt` stable, REST, KCMVP/FIPS, per-tenant key, OpenAPI source `contracts/openapi/cloud/cloud-kms-v1.yaml`, and crate `oya-cloud-kms-api`.
-Reverse reference 2: `registry/openapi/schema-bindings.tsv:21-28` binds CloudKms schemas to the OpenAPI contract and `crates/oya-cloud-kms-api/src/lib.rs`.
+Reverse reference 1: `docs/SPEC.md:155` declares `cloud.kms.encrypt` and `cloud.kms.decrypt` stable, REST, KCMVP/FIPS, per-tenant key, OpenAPI source `contracts/openapi/cloud/cloud-kms-v1.yaml`, and crate `cloud-kms-api`.
+Reverse reference 2: `registry/openapi/schema-bindings.tsv:21-28` binds CloudKms schemas to the OpenAPI contract and `crates/cloud-kms-api/src/lib.rs`.
 Reverse reference 3: `registry/openapi/runtime-bindings.tsv:5-6` binds encrypt/decrypt operations to API functions and tests.
-Reverse reference 4: `registry/catalog/oya-cloud-kms-domain.yaml:1-9` classifies the catalog record as preview, internal-only, security-review unreviewed, and source-only supply chain.
-Reverse reference 5: `docs/products/cloud/PRD.md:121` identifies `oya-cloud-kms-api` as the KMS encrypt/decrypt authorization receipt REST API.
+Reverse reference 4: `registry/catalog/cloud-kms-domain.yaml:1-9` classifies the catalog record as preview, internal-only, security-review unreviewed, and source-only supply chain.
+Reverse reference 5: `docs/products/cloud/PRD.md:121` identifies `cloud-kms-api` as the KMS encrypt/decrypt authorization receipt REST API.
 Reverse reference 6: `docs/products/cloud/PRD.md:173` expects KMS API p99 <=100 ms and KCMVP/FIPS binding.
 Reverse reference 7: `docs/products/cloud/PRD.md:549` expects `oya.audit.cloud_kms_use` emission on decrypt.
 Reverse reference 8: `docs/products/cloud/PRD.md:731` names KMS/BYOK/HYOK and indefinite KMS-use audit events.
@@ -175,7 +175,7 @@ The missing local compliance/DPIA blocks a reader from connecting FIPS/KCMVP/Com
 The missing local failure-mode index means runbooks are standalone, not a complete failure tree.
 Buildability gap 1: no `README.md` entrypoint. An intern cannot find a canonical start path under the folder.
 Buildability gap 2: no `PRD.md`; cite local absence against `docs/standards/documentation-rigor.md:175-190` and brief-template header expectations at `docs/standards/brief-template.md:101-117`.
-Buildability gap 3: no `ARCHITECTURE.md`; the closest architecture facts are outside the path at `crates/oya-cloud-kms-domain/src/lib.rs:1-7`.
+Buildability gap 3: no `ARCHITECTURE.md`; the closest architecture facts are outside the path at `crates/cloud-kms-domain/src/lib.rs:1-7`.
 Buildability gap 4: no `contracts/` under the microservice despite `docs/SPEC.md:155` and `registry/openapi/runtime-bindings.tsv:5-6`.
 Buildability gap 5: no `slos/` despite tenant_class SLO claims at `retired tenant_class adoption artifact:24-25`, `:42-43`, `:60-61`, and `:78-79`.
 Buildability gap 6: no `iac/` despite six-context IaC requirements at ADR-0328 D-16 and `specs/master-plan-sequencing.json:704-776`.
@@ -191,8 +191,8 @@ Weak section 3: `migration-playbooks/from-aws-kms-and-vault-enterprise.md:6-39` 
 Weak section 4: `benchmarks/...md:91-100` gives a make command and absent evidence path rather than reproducible benchmark harness details.
 Weak section 5: runbooks are deep and useful, but they assume existing `oya ops` surfaces, dashboards, and metrics that are not locally specified.
 Positive evidence 1: `reference-implementations/envelope-encrypt-rust-sdk.md:25-164` gives a real Rust SDK flow with tenant, AAD, receipt, rotation, and cryptoshred semantics.
-Positive evidence 2: `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:114-352` proves API-level behavior for drift rejection, authorization denial, idempotency, conflicts, AAD validation, and data class validation.
-Positive evidence 3: `crates/oya-cloud-kms-domain/src/lib.rs:71-113` models origins, usages, HSM validation, states, purposes, and operations.
+Positive evidence 2: `crates/cloud-kms-api/tests/cloud_kms_api.rs:114-352` proves API-level behavior for drift rejection, authorization denial, idempotency, conflicts, AAD validation, and data class validation.
+Positive evidence 3: `crates/cloud-kms-domain/src/lib.rs:71-113` models origins, usages, HSM validation, states, purposes, and operations.
 Positive evidence 4: `contracts/openapi/cloud/cloud-kms-v1.yaml:9-168` exposes the encrypt/decrypt authorization endpoints and required headers.
 Positive evidence 5: `contracts/openapi/cloud/cloud-kms-v1.yaml:176-301` defines the request body fields and purpose enum.
 Intern-buildability result: a strong senior engineer can triangulate the service from repo-wide sources; a cold intern cannot build it from the microservice folder alone.
@@ -443,8 +443,8 @@ Authorized SQL files: none local.
 Generated SDK output: none local.
 Frontend Swift/Kotlin/WinUI3: none local.
 Backend Rust source under local `src/`: absent.
-Repo-level Rust source exists in `crates/oya-cloud-kms-domain/src/lib.rs` and `crates/oya-cloud-kms-api/src/lib.rs`.
-Repo-level Rust tests exist in `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs`.
+Repo-level Rust source exists in `crates/cloud-kms-domain/src/lib.rs` and `crates/cloud-kms-api/src/lib.rs`.
+Repo-level Rust tests exist in `crates/cloud-kms-api/tests/cloud_kms_api.rs`.
 Canonical build invocation required by ADR-0328: `cargo build --workspace --release --all-features --locked`.
 Local docs do not name the canonical build invocation.
 Local reference implementation names `cargo run --release` at `reference-implementations/envelope-encrypt-rust-sdk.md:166-170`.
@@ -466,7 +466,7 @@ Severity for Dimension 9: P1 for canonical workflow drift; no P0/P1 forbidden so
 | severity | dimension | short description | citation | remediation hint |
 |---|---|---|---|---|
 | P1 | 1,3 | Local PRD is absent for a Phase 0 service with broad external dependencies. | `docs/standards/documentation-rigor.md:175-190`; inventory in Section 2 | Add `PRD.md` with purpose, personas, API scope, non-goals, and acceptance criteria. |
-| P1 | 1,3 | Local architecture doc is absent; closest architecture is outside path. | `crates/oya-cloud-kms-domain/src/lib.rs:1-7`; inventory in Section 2 | Add `ARCHITECTURE.md` mapping domain/API/adapters/HSM/audit/cloud-iac. |
+| P1 | 1,3 | Local architecture doc is absent; closest architecture is outside path. | `crates/cloud-kms-domain/src/lib.rs:1-7`; inventory in Section 2 | Add `ARCHITECTURE.md` mapping domain/API/adapters/HSM/audit/cloud-iac. |
 | P1 | 2,3 | Local contract folder absent despite stable repo contract bindings. | `docs/SPEC.md:155`; `registry/openapi/runtime-bindings.tsv:5-6` | Add local contract pointer or mirrored ownership manifest under `microservices/cloud-kms/contracts/`. |
 | P1 | 1,3 | SLO files absent despite four tenant_class SLO claims. | `retired tenant_class adoption artifact:24-25`; `:42-43`; `:60-61`; `:78-79` | Add OpenSLO specs per tenant_class and context. |
 | P1 | 4,6,7 | Six deployment contexts have no local manifest or IaC directories. | `specs/master-plan-sequencing.json:704-746`; `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235` | Add context manifest and OpenTofu modules or explicit N/A records. |
@@ -483,9 +483,9 @@ Severity for Dimension 9: P1 for canonical workflow drift; no P0/P1 forbidden so
 | P2 | 1 | paid depends on Vault Enterprise HSM seal without self-hosted Vault boundary explanation. | `retired tenant_class adoption artifact:67-83`; Vault seal docs | Clarify when Vault is internal backing substrate vs external counterpart. |
 | P2 | 1 | Cross-region "Spanner-class TrueTime" claim lacks deployment-context proof. | `faqs/kms-engineer-faq.md:114-120`; `specs/master-plan-sequencing.json:704-746` | Add clock/causal-order design per context. |
 | P2 | 2 | Brief-template reverse reference expects absent runbook/SLO paths. | `docs/standards/brief-template.md:1657-1662` | Either land those files or update template example after Wave 14. |
-| P2 | 3 | Cedar authorization is described but local policy files are absent. | `faqs/kms-engineer-faq.md:132-136`; `crates/oya-cloud-kms-api/src/lib.rs:101-106` | Add `policies/` or contract pointer for KMS surfaces and data-class gates. |
+| P2 | 3 | Cedar authorization is described but local policy files are absent. | `faqs/kms-engineer-faq.md:132-136`; `crates/cloud-kms-api/src/lib.rs:101-106` | Add `policies/` or contract pointer for KMS surfaces and data-class gates. |
 | P2 | 5 | Google Cloud KMS migration is absent from local migration playbooks. | `migration-playbooks/from-aws-kms-and-vault-enterprise.md:1-4`; Google Cloud KMS overview docs | Add GCP KMS/HSM/EKM migration plan. |
-| P3 | 2 | Repo catalog says `security_review: unreviewed` while docs use high assurance language. | `registry/catalog/oya-cloud-kms-domain.yaml:8-9`; `retired tenant_class adoption artifact:49-83` | Make security review state visible in local docs. |
+| P3 | 2 | Repo catalog says `security_review: unreviewed` while docs use high assurance language. | `registry/catalog/cloud-kms-domain.yaml:8-9`; `retired tenant_class adoption artifact:49-83` | Make security review state visible in local docs. |
 | P3 | 1 | Runbooks are individually strong but not indexed. | `runbooks/hsm-cluster-failover.md:1-11`; `runbooks/key-material-quorum-loss.md:1-11`; `runbooks/rotation-cadence-drift-detection.md:1-11` | Add `runbooks/README.md` with trigger taxonomy. |
 
 Finding totals:
@@ -504,7 +504,7 @@ Open question 5: Does demo_trial mean the same thing across all contexts, or sho
 Open question 6: Are HSM signing, MAC/HMAC, random generation, and key import in scope for the cloud-kms API, or should they be explicit future tenant_class adoption model?
 Open question 7: Which team owns the absent `cloud.kms_key_used.v1` event schema: cloud-kms, audit-chain, or contracts?
 Open question 8: Should `cloud-kms` own tenant CA signing for cloud-network mTLS, or should that be a separate certificate-authority microservice?
-Open question 9: Is the current repo-level `oya-cloud-kms-domain` security review state acceptable for Phase 0, given registry status is unreviewed?
+Open question 9: Is the current repo-level `cloud-kms-domain` security review state acceptable for Phase 0, given registry status is unreviewed?
 Open question 10: Should Wave 14 aggregate a cross-service "crypto custody" doctrine joining cloud-kms, cloud-secrets, audit-chain, identity, cloud-iam, cloud-storage, and cloud-data?
 
 ## Appendix A - Evidence Ledger for Wave 14
@@ -544,27 +544,27 @@ Evidence row 32: repo-level OpenAPI encrypt endpoint is at `contracts/openapi/cl
 Evidence row 33: repo-level OpenAPI decrypt endpoint is at `contracts/openapi/cloud/cloud-kms-v1.yaml:89-168`.
 Evidence row 34: repo-level OpenAPI request fields and KMS purpose enum are at `contracts/openapi/cloud/cloud-kms-v1.yaml:176-301`.
 Evidence row 35: repo-level OpenAPI receipt schema is at `contracts/openapi/cloud/cloud-kms-v1.yaml:316-393`.
-Evidence row 36: API crate says it owns tenant/header/path/body normalization at `crates/oya-cloud-kms-api/src/lib.rs:1-4`.
-Evidence row 37: API crate exports encrypt/decrypt surfaces at `crates/oya-cloud-kms-api/src/lib.rs:14-15`.
-Evidence row 38: API crate status codes are at `crates/oya-cloud-kms-api/src/lib.rs:17-37`.
-Evidence row 39: API crate request models are at `crates/oya-cloud-kms-api/src/lib.rs:108-150`.
-Evidence row 40: API crate receipt model is at `crates/oya-cloud-kms-api/src/lib.rs:210-225`.
-Evidence row 41: domain crate declares it does not perform cryptography or HSM I/O at `crates/oya-cloud-kms-domain/src/lib.rs:1-7`.
-Evidence row 42: domain crate key origins include OyatieManaged, BYOK, and HYOK at `crates/oya-cloud-kms-domain/src/lib.rs:71-76`.
-Evidence row 43: domain crate HSM validation enum includes KCMVP/FIPS/Common Criteria/PCI at `crates/oya-cloud-kms-domain/src/lib.rs:84-91`.
-Evidence row 44: domain crate purpose enum includes storage, workspace, secret provider, replication, and backup at `crates/oya-cloud-kms-domain/src/lib.rs:102-113`.
-Evidence row 45: domain crate key create shape is at `crates/oya-cloud-kms-domain/src/lib.rs:121-137`.
-Evidence row 46: domain crate destruction receipt shape is at `crates/oya-cloud-kms-domain/src/lib.rs:203-220`.
-Evidence row 47: API tests reject path/body key drift at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:114-133`.
-Evidence row 48: API tests reject header and tenant drift at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:135-157`.
-Evidence row 49: API tests reject unauthorized same-tenant principal at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:159-178`.
-Evidence row 50: API tests cover idempotent encrypt replay at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:203-232`.
-Evidence row 51: API tests cover idempotent decrypt replay at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:234-253`.
-Evidence row 52: API tests cover reused idempotency key drift at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:255-272`.
-Evidence row 53: API tests cover duplicate event conflicts at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:274-304`.
-Evidence row 54: API tests cover malformed AAD fingerprint at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:306-331`.
-Evidence row 55: API tests cover invalid data class labels at `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:334-352`.
-Evidence row 56: cloud product PRD identifies `oya-cloud-kms-api` at `docs/products/cloud/PRD.md:121`.
+Evidence row 36: API crate says it owns tenant/header/path/body normalization at `crates/cloud-kms-api/src/lib.rs:1-4`.
+Evidence row 37: API crate exports encrypt/decrypt surfaces at `crates/cloud-kms-api/src/lib.rs:14-15`.
+Evidence row 38: API crate status codes are at `crates/cloud-kms-api/src/lib.rs:17-37`.
+Evidence row 39: API crate request models are at `crates/cloud-kms-api/src/lib.rs:108-150`.
+Evidence row 40: API crate receipt model is at `crates/cloud-kms-api/src/lib.rs:210-225`.
+Evidence row 41: domain crate declares it does not perform cryptography or HSM I/O at `crates/cloud-kms-domain/src/lib.rs:1-7`.
+Evidence row 42: domain crate key origins include OyatieManaged, BYOK, and HYOK at `crates/cloud-kms-domain/src/lib.rs:71-76`.
+Evidence row 43: domain crate HSM validation enum includes KCMVP/FIPS/Common Criteria/PCI at `crates/cloud-kms-domain/src/lib.rs:84-91`.
+Evidence row 44: domain crate purpose enum includes storage, workspace, secret provider, replication, and backup at `crates/cloud-kms-domain/src/lib.rs:102-113`.
+Evidence row 45: domain crate key create shape is at `crates/cloud-kms-domain/src/lib.rs:121-137`.
+Evidence row 46: domain crate destruction receipt shape is at `crates/cloud-kms-domain/src/lib.rs:203-220`.
+Evidence row 47: API tests reject path/body key drift at `crates/cloud-kms-api/tests/cloud_kms_api.rs:114-133`.
+Evidence row 48: API tests reject header and tenant drift at `crates/cloud-kms-api/tests/cloud_kms_api.rs:135-157`.
+Evidence row 49: API tests reject unauthorized same-tenant principal at `crates/cloud-kms-api/tests/cloud_kms_api.rs:159-178`.
+Evidence row 50: API tests cover idempotent encrypt replay at `crates/cloud-kms-api/tests/cloud_kms_api.rs:203-232`.
+Evidence row 51: API tests cover idempotent decrypt replay at `crates/cloud-kms-api/tests/cloud_kms_api.rs:234-253`.
+Evidence row 52: API tests cover reused idempotency key drift at `crates/cloud-kms-api/tests/cloud_kms_api.rs:255-272`.
+Evidence row 53: API tests cover duplicate event conflicts at `crates/cloud-kms-api/tests/cloud_kms_api.rs:274-304`.
+Evidence row 54: API tests cover malformed AAD fingerprint at `crates/cloud-kms-api/tests/cloud_kms_api.rs:306-331`.
+Evidence row 55: API tests cover invalid data class labels at `crates/cloud-kms-api/tests/cloud_kms_api.rs:334-352`.
+Evidence row 56: cloud product PRD identifies `cloud-kms-api` at `docs/products/cloud/PRD.md:121`.
 Evidence row 57: cloud product PRD expects KMS API p99 <=100 ms at `docs/products/cloud/PRD.md:173`.
 Evidence row 58: cloud product PRD expects `cloud.kms_key_used.v1` event schema at `docs/products/cloud/PRD.md:526`.
 Evidence row 59: cloud product PRD expects audit emission `oya.audit.cloud_kms_use` at `docs/products/cloud/PRD.md:549`.
@@ -572,7 +572,7 @@ Evidence row 60: cloud product PRD names KMS/BYOK/HYOK and indefinite audit rete
 Evidence row 61: cloud product PRD says HYOK integration evidence is still missing at `docs/products/cloud/PRD.md:779`.
 Evidence row 62: runtime binding registry maps encrypt/decrypt functions and tests at `registry/openapi/runtime-bindings.tsv:5-6`.
 Evidence row 63: schema binding registry maps eight CloudKms schemas at `registry/openapi/schema-bindings.tsv:21-28`.
-Evidence row 64: catalog says security review is unreviewed and supply chain is source-only at `registry/catalog/oya-cloud-kms-domain.yaml:8-9`.
+Evidence row 64: catalog says security review is unreviewed and supply chain is source-only at `registry/catalog/cloud-kms-domain.yaml:8-9`.
 Evidence row 65: master plan lists cloud-kms in Phase 0 shared infrastructure at `specs/master-plan-sequencing.json:403-410`.
 Evidence row 66: chat history line 15245 records Wave 2 Batch 2.1 dispatch and cloud-kms PID 9861 with four deliverables expected.
 Evidence row 67: chat history line 15231 records the active task reminder for Wave 2 Batch 2.1, eight one-per-microservice audits, and four docs per service.

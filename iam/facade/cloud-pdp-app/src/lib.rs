@@ -1,4 +1,4 @@
-//! # oya-cloud-iam-pdp-app
+//! # cloud-iam-pdp-app
 //!
 //! The runnable cloud-iam policy-decision-point service (ADR-0559, G004
 //! slice 1).
@@ -20,7 +20,7 @@
 //!   expressible (Cedar natively; the API carries PARC + entity slice +
 //!   context, never an RBAC-only shape).
 //! - **Fail-closed boot**: a policy bundle that cannot load REFUSES the boot
-//!   (the oya-identity precedent). A serving process is a
+//!   (the identity precedent). A serving process is a
 //!   correctly-configured process.
 //! - **PDP, not PEP**: decisions are deterministic + side-effect-free per
 //!   request — same request + same bundle ⇒ same decision content. The only
@@ -37,8 +37,8 @@ use std::sync::Arc;
 
 use iam_cloud_pdp_kernel::DecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, PolicyVersion,
 };
 
@@ -105,7 +105,7 @@ impl PdpState {
     /// are not decisions and never enter the decision-audit chain).
     pub(crate) fn log_refusal(request_id: &str, error: &PdpError) {
         tracing::warn!(
-            target: "oya_cloud_iam_pdp::refusal",
+            target: "cloud_iam_pdp::refusal",
             request_id,
             error = %error,
             "authorization request refused (fail-closed: PEPs must treat as deny)",

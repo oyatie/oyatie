@@ -52,7 +52,7 @@ Per PRD outcome 1: "A demo_trial tenant gets the full product surface, full qual
 - No demo_trial-only rate cards (free-tier is `unit_price_micros = 0` rather than a separate code path).
 - No demo_trial-only SLO targets (the same availability targets apply).
 
-This rule is CI-enforced by `oya-governance-paid-quality-bar-parity` (per ADR-0330 §B.3.5).
+This rule is CI-enforced by `governance-paid-quality-bar-parity` (per ADR-0330 §B.3.5).
 
 ### §C.2 Cap structure
 
@@ -116,7 +116,7 @@ Demo_trial tenants **may** purchase free marketplace listings (`cap.cloud.billin
 
 1. Free-tier signup flow creates tenant with `tenant_class = demo_trial`.
 2. tenancy µservice emits `tenant.created` event.
-3. cloud-billing creates a BillingAccount with `regional_pack = oya-pack-electronic-tax` (default) and `payment_method = pm_demo_trial` placeholder.
+3. cloud-billing creates a BillingAccount with `regional_pack = pack-electronic-tax` (default) and `payment_method = pm_demo_trial` placeholder.
 4. cloud-iam emits principal tokens with `tenant_class = demo_trial`, `billing_components = []`, `cap_breached = false`.
 
 ### §D.2 Soft cap (80% breach)

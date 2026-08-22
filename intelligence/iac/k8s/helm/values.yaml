@@ -1,6 +1,6 @@
 microservice:
   id: cloud-intelligence
-  cargoPackage: oya-cloud-intelligence-app
+  cargoPackage: cloud-intelligence-app
   tenantClass: contributor
 
 replicaCount: 1
@@ -9,13 +9,13 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-cloud-intelligence
+  name: cloud-intelligence
   automountToken: false
   nonClaim: "static-promotion-manifest-only-no-live-sync"
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-cloud-intelligence
+  repository: cloud-intelligence
   tag: "0.1.0"
   # Replaced by scripts/build/build-and-push-cloud-intelligence.sh after image publish.
   # Operator action item per microservices/cloud-intelligence/runbooks/enroll-first-subscription.md step 0.

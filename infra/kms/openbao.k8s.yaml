@@ -9,9 +9,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-kms
+  name: kms
   labels:
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0043
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: openbao-config
-  namespace: oya-kms
+  namespace: kms
 data:
   openbao.hcl: |
     # This backend is REMOVED at OpenBao v2.7.0 (a minor). The binding version
@@ -32,8 +32,8 @@ data:
       address     = "0.0.0.0:8200"
       tls_disable = true   # plaintext listener is fenced by the NetworkPolicy below
     }
-    api_addr     = "http://openbao.oya-kms.svc.cluster.local:8200"
-    cluster_addr = "http://openbao.oya-kms.svc.cluster.local:8201"
+    api_addr     = "http://openbao.kms.svc.cluster.local:8200"
+    cluster_addr = "http://openbao.kms.svc.cluster.local:8201"
     ui        = true
     log_level = "info"
     default_lease_ttl = "768h"
@@ -43,7 +43,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: openbao-data
-  namespace: oya-kms
+  namespace: kms
 spec:
   accessModes: ["ReadWriteOnce"]
   resources: { requests: { storage: 2Gi } }
@@ -52,7 +52,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openbao
-  namespace: oya-kms
+  namespace: kms
   labels: { app.kubernetes.io/name: openbao }
 spec:
   replicas: 1
@@ -110,7 +110,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openbao
-  namespace: oya-kms
+  namespace: kms
 spec:
   selector: { app.kubernetes.io/name: openbao }
   ports:
@@ -121,10 +121,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: openbao-ingress
-  namespace: oya-kms
+  namespace: kms
   labels:
     app.kubernetes.io/name: openbao
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0043
 spec:
   podSelector:
@@ -141,6 +141,6 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-kms
+              kubernetes.io/metadata.name: kms
       ports:
         - { protocol: TCP, port: 8201 }

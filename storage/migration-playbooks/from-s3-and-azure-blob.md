@@ -113,11 +113,11 @@ For Azure Blob, use the `azure-blob-to-oya` migrator (similar; uses Azure Storag
 
 For each application that writes to S3/Azure today, configure dual-write:
 ```rust
-use oya_cloud_storage_sdk::DualWrite;
+use cloud_storage_sdk::DualWrite;
 
 let storage = DualWrite::builder()
-    .primary(oya_cloud_storage_sdk::S3Client::from_aws(...))
-    .secondary(oya_cloud_storage_sdk::OyaClient::connect(cfg).await?)
+    .primary(cloud_storage_sdk::S3Client::from_aws(...))
+    .secondary(cloud_storage_sdk::OyaClient::connect(cfg).await?)
     .strategy(DualWriteStrategy::WriteBoth_ReadPrimary)
     .build()?;
 ```

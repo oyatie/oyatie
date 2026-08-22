@@ -9,7 +9,7 @@
     "created_at": "2026-05-17",
     "owner_team": "council-architecture + axis-foundry",
     "adr": "ADR-0133",
-    "purpose": "Machine-readable findings + audit invariants for the continuous 6-axis industry-best-practice + hyperscaler-grade conformance program. Consumed by oya-governance-industry-best-practice-conformance CI lane."
+    "purpose": "Machine-readable findings + audit invariants for the continuous 6-axis industry-best-practice + hyperscaler-grade conformance program. Consumed by governance-industry-best-practice-conformance CI lane."
   },
   "axes": [
     {
@@ -308,7 +308,7 @@
     }
   },
   "findings_initial_run": {
-    "_note": "Initial findings inventory will be populated during the first quarterly audit cycle by oya-governance-industry-best-practice-conformance lane. This document spec'ds the schema + axis structure; per-finding rows land in evidence/audits/industry-best-practice-conformance/2026-Q2.json on first run.",
+    "_note": "Initial findings inventory will be populated during the first quarterly audit cycle by governance-industry-best-practice-conformance lane. This document spec'ds the schema + axis structure; per-finding rows land in evidence/audits/industry-best-practice-conformance/2026-Q2.json on first run.",
     "expected_count_estimate": {
       "axis-1-pipeline": "~10-15 gaps (missing SBOM stage on some lanes; redundant test-runner lanes)",
       "axis-2-directory": "~30 legacy-grandfathered (one per existing µservice not yet migrated per ADR-0131 migration table)",
@@ -320,7 +320,7 @@
     "total_estimate": "~130 findings on first run; ~80% legacy-grandfathered; ~20% remediable in M01 timeframe"
   },
   "ci_lane_contract": {
-    "name": "oya-governance-industry-best-practice-conformance",
+    "name": "governance-industry-best-practice-conformance",
     "severity": "BLOCKER",
     "added_to": ".github/branch-protection.yaml required_status_checks on dev",
     "behaviour": [
@@ -330,7 +330,7 @@
       "Refuse PR when severity ∈ {critical, high} AND no legacy-grandfathered exception is on file",
       "Emit structured JSON with finding rows; attach to PR comment + audit-chain seal"
     ],
-    "implementation_path": "microservices/governance/src/crates/oya-governance-industry-best-practice-conformance-{kernel,domain,usecase,api,adapter}/ — crate skeletons authored in this scaffold pass; first runtime implementation lands in microservices/governance/IP-INDUSTRY-CONFORMANCE-001 (the inaugural implementation plan tracking AC-INDUSTRY-CONFORMANCE-001 through AC-INDUSTRY-CONFORMANCE-007 against axis-1 through axis-7)"
+    "implementation_path": "microservices/governance/src/crates/governance-industry-best-practice-conformance-{kernel,domain,usecase,api,adapter}/ — crate skeletons authored in this scaffold pass; first runtime implementation lands in microservices/governance/IP-INDUSTRY-CONFORMANCE-001 (the inaugural implementation plan tracking AC-INDUSTRY-CONFORMANCE-001 through AC-INDUSTRY-CONFORMANCE-007 against axis-1 through axis-7)"
   },
   "quarterly_refresh": {
     "command": "oya dev industry-best-practice-refresh --quarter <YYYY-Q>",

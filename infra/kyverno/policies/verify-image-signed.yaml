@@ -6,7 +6,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: verify-oya-registry-images-keyless
+  name: verify-registry-images-keyless
   labels:
     oyatie.com/admission-adapter: kyverno
     oyatie.com/slsa-level: "2"
@@ -34,7 +34,7 @@ spec:
                 - Pod
       verifyImages:
         - imageReferences:
-            - "registry.oya-registry.svc.cluster.local:5000/*"
+            - "registry.registry.svc.cluster.local:5000/*"
           mutateDigest: true
           verifyDigest: true
           required: true
@@ -54,7 +54,7 @@ spec:
                 - Pod
       verifyImages:
         - imageReferences:
-            - "registry.oya-registry.svc.cluster.local:5000/*"
+            - "registry.registry.svc.cluster.local:5000/*"
           mutateDigest: true
           verifyDigest: true
           required: true
@@ -81,7 +81,7 @@ spec:
                 - Pod
       verifyImages:
         - imageReferences:
-            - "registry.oya-registry.svc.cluster.local:5000/*"
+            - "registry.registry.svc.cluster.local:5000/*"
           mutateDigest: true
           verifyDigest: true
           required: true

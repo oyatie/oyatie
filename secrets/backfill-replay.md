@@ -30,7 +30,7 @@ cloud-secrets is **mostly stateless at the application layer** — OpenBao is th
 When Raft snapshot or backend storage corrupt, restore from a known-good Raft snapshot.
 
 ```bash
-cargo run -p oya-cloud-secrets-openbao-operator-app -- backend restore \
+cargo run -p cloud-secrets-openbao-operator-app -- backend restore \
     --pack <pack> \
     --from-backup-time "<utc>" \
     --target-cluster openbao-<pack>
@@ -46,7 +46,7 @@ Properties:
 When audit-chain recovers from outage, audit-emitter replays from local audit-device file:
 
 ```bash
-cargo run -p oya-cloud-secrets-audit-emitter-app -- replay \
+cargo run -p cloud-secrets-audit-emitter-app -- replay \
     --pack <pack> \
     --from-file /var/log/openbao/audit/audit.log.YYYY-MM-DD \
     --bridge-endpoint audit-chain.<pack>.svc.cluster.local:443
@@ -62,7 +62,7 @@ Properties:
 After region failover or controller restart, reconcile namespace state:
 
 ```bash
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- reconcile \
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- reconcile \
     --pack <pack> \
     --tenancy-source tenancy.<pack>.svc.cluster.local
 ```
@@ -77,7 +77,7 @@ Properties:
 After scheduler outage, identify missed rotations and re-queue:
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- reconcile-missed \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- reconcile-missed \
     --pack <pack> \
     --grace-window 30m
 ```
@@ -107,16 +107,16 @@ After replay:
 
 ```bash
 # OpenBao state
-cargo run -p oya-cloud-secrets-openbao-operator-app -- cluster verify --pack <pack>
+cargo run -p cloud-secrets-openbao-operator-app -- cluster verify --pack <pack>
 
 # audit-chain integrity
-cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window <replay-window>
+cargo run -p audit-chain-app -- verify-seal --pack <pack> --window <replay-window>
 
 # Namespace reconciliation
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- inventory-diff --pack <pack>
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- inventory-diff --pack <pack>
 
 # Rotation queue depth
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
 ```
 
 ## RPO + RTO Summary

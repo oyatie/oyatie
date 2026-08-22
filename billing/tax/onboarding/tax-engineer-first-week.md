@@ -1,7 +1,7 @@
 # Tax Engineer — First Week on `cloud-billing-tax`
 
 Audience: a tax/indirect-tax engineer with Avalara AvaTax + Vertex + Stripe Tax integration experience joining the
-`oya-cloud-billing-tax-*` lane. Goal: by Friday EOD you can calculate tax on a multi-jurisdiction transaction, upload an exemption
+`cloud-billing-tax-*` lane. Goal: by Friday EOD you can calculate tax on a multi-jurisdiction transaction, upload an exemption
 certificate, track nexus, and generate a filing artefact.
 
 ## Day 1 — read before touching
@@ -24,7 +24,7 @@ cd .worktrees/$USER-tax-week1
 ```bash
 make dev-cell.up CELL=tax-loopback-1 PROFILE=cloud-billing-tax-dev
 make dev-tenant.create T=oyatie.b2b.smb.acme-software TENANT_CLASS=paid
-make dev-tax-codes.attach T=oyatie.b2b.smb.acme-software CATALOG=oya-tax-codes-multiregion-paid-v1
+make dev-tax-codes.attach T=oyatie.b2b.smb.acme-software CATALOG=tax-codes-multiregion-paid-v1
 ```
 
 Calculate tax on a single line item — a SaaS subscription sold from a CA seller to a TX customer:
@@ -50,7 +50,7 @@ tax_lines:
   - jurisdiction: US-TX (Capital Metro RTA)  rate: 1.00 %   amount: $12.00
 total_tax           : $99.00
 effective_rate      : 8.25 %
-rate_card_version   : oya-tax-codes-multiregion-paid-v1@2026-05-01
+rate_card_version   : tax-codes-multiregion-paid-v1@2026-05-01
 audit_chain_event   : ce-2026-05-20T09:21:11Z-…
 ```
 

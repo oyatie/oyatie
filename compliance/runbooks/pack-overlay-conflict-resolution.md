@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: compliance-pack-overlay-conflict-resolution.
 - Primary service namespace: `compliance`.
-- Owning rotation: PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer.
+- Owning rotation: PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer.
 - Incident channel: `#inc-compliance-regulatory`.
 - External dependencies: Sigstore support; SeaweedFS support; external auditor portal support; regulator submission portal desk.
 - API authority: `https://compliance.internal.oyatie.dev/v1/compliance/pack-overlay-conflict-resolution/incident-handoff`.
@@ -26,12 +26,12 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/compliance-pack-overlay-conflict-resolution-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `CompliancePackOverlayConflictResolutionCritical` when `oya_compliance_pack_overlay_conflict_resolution_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `CompliancePackOverlayConflictResolutionSloBurn` when `oya_compliance_pack_overlay_conflict_resolution_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open a sev0 if `oya_compliance_pack_overlay_conflict_resolution_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
-- Open a sev1 if `oya_compliance_pack_overlay_conflict_resolution_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `CompliancePackOverlayConflictResolutionCritical` when `compliance_pack_overlay_conflict_resolution_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `CompliancePackOverlayConflictResolutionSloBurn` when `compliance_pack_overlay_conflict_resolution_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `compliance_pack_overlay_conflict_resolution_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `compliance_pack_overlay_conflict_resolution_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `compliance.pack-overlay-conflict-resolution.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="compliance",runbook="pack-overlay-conflict-resolution"}`.
@@ -45,9 +45,9 @@ doc_status: published
 - Loki signature `compliance.pack_overlay_conflict_resolution.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=CompliancePackOverlayConflictResolutionDegraded` on deployment `compliance-pack-overlay-conflict-resolution-worker`.
 - Audit-chain shows missing or delayed `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT --since 30m`.
-- Metric pattern: `oya_compliance_pack_overlay_conflict_resolution_error_ratio` rises before `oya_compliance_pack_overlay_conflict_resolution_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_compliance_pack_overlay_conflict_resolution_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_compliance_pack_overlay_conflict_resolution_queue_depth`; isolate before fleet mitigation.
+- Metric pattern: `compliance_pack_overlay_conflict_resolution_error_ratio` rises before `compliance_pack_overlay_conflict_resolution_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `compliance_pack_overlay_conflict_resolution_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `compliance_pack_overlay_conflict_resolution_queue_depth`; isolate before fleet mitigation.
 - Fleet-wide shape: at least three cells report `CompliancePackOverlayConflictResolutionCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=pack-overlay-conflict-resolution.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=pack-overlay-conflict-resolution.break_glass` means manual intervention is active; confirm two-person authorization.
@@ -60,16 +60,16 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n compliance get pods -l app=compliance-pack-overlay-conflict-resolution -o wide`.
 5. Read structured logs: `kubectl -n compliance logs deploy/compliance-pack-overlay-conflict-resolution-worker --since=30m | rg "compliance.pack_overlay_conflict_resolution.incident_state|CompliancePackOverlayConflictResolutionCritical|EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="compliance",runbook="pack-overlay-conflict-resolution"}' --since=30m --limit=200`.
-7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_pack_overlay_conflict_resolution_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_pack_overlay_conflict_resolution_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_compliance_pack_overlay_conflict_resolution_queue_depth{cell="prod-us-east-1"}'`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_pack_overlay_conflict_resolution_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_pack_overlay_conflict_resolution_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=compliance_pack_overlay_conflict_resolution_queue_depth{cell="prod-us-east-1"}'`.
 10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116&var-incident=$INCIDENT_ID"`.
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops compliance pack-overlay-conflict-resolution status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-compliance-domain pack_overlay_conflict_resolution -- --nocapture`.
-16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/pack-overlay-conflict-resolution/incident-handoff -H "x-oya-tenant: $TENANT"`.
+14. Run production snapshot gate: `cargo run -p dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p compliance-domain pack_overlay_conflict_resolution -- --nocapture`.
+16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/pack-overlay-conflict-resolution/incident-handoff -H "x-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n compliance get configmap compliance-pack-overlay-conflict-resolution-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.compliance.pack_overlay_conflict_resolution.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status compliance-pack-overlay-conflict-resolution-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -77,16 +77,16 @@ doc_status: published
 21. Check policy file: `test -f microservices/compliance/policy/pack-overlay-authorization.cedar || test -f microservices/compliance/policy/pack-overlay-authorization.md`.
 22. Check SLO files: `ls microservices/compliance/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/compliance/catalog -maxdepth 1 -type f | sort | rg "compliance|pack"`.
-24. Confirm no cross-cell spread: `oya ops cells query --metric oya_compliance_pack_overlay_conflict_resolution_error_ratio --window 30m --threshold 0.02`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric compliance_pack_overlay_conflict_resolution_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice compliance --runbook pack-overlay-conflict-resolution --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Pack Overlay Conflict Resolution incident decision tree
 1. Is CompliancePackOverlayConflictResolutionCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_compliance_pack_overlay_conflict_resolution_queue_depth grow while oya_compliance_pack_overlay_conflict_resolution_error_ratio is flat?
+2. Does compliance_pack_overlay_conflict_resolution_queue_depth grow while compliance_pack_overlay_conflict_resolution_error_ratio is flat?
    |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
    |-- no: local regression or bad input; continue branch selection.
 3. Does audit-chain show EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT gaps?
@@ -120,42 +120,42 @@ Pack Overlay Conflict Resolution incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice compliance --incident $INCIDENT_ID --channel #inc-compliance-regulatory`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-compliance --incident $INCIDENT_ID --summary pack-overlay-conflict-resolution`.
 18. Confirm breaker effect: `oya ops breaker status compliance-pack-overlay-conflict-resolution-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/pack-overlay-conflict-resolution/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/pack-overlay-conflict-resolution/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=pack-overlay-conflict-resolution`.
 
 ### Mitigation Branch Guidance
 - Branch A: single tenant isolated.
-  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `oya_compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: fleet-wide propagation.
-  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `oya_compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: dependency regression.
-  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `oya_compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: operator ceremony incomplete.
-  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `oya_compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `compliance-pack-overlay-conflict-resolution-circuit-breaker` open until `compliance_pack_overlay_conflict_resolution_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
   - Required audit: emit `EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "pack_overlay_conflict_resolution|CompliancePackOverlayConflictResolutionCritical|compliance.pack_overlay_conflict_resolution.incident_state" crates microservices/compliance -g "!microservices/compliance/runbooks/**"`.
-2. Patch domain invariant: `edit oya-compliance-domain where pack_overlay_conflict_resolution state transition is validated`.
+2. Patch domain invariant: `edit compliance-domain where pack_overlay_conflict_resolution state transition is validated`.
 3. Patch API guard: `edit microservices/compliance/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-compliance-domain pack_overlay_conflict_resolution_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --fixture incident-pack-overlay-conflict-resolution.json`.
+6. Add regression test: `cargo test -p compliance-domain pack_overlay_conflict_resolution_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate compliance-pack-overlay-conflict-resolution --fixture incident-pack-overlay-conflict-resolution.json`.
 8. Add SLO assertion: `update microservices/compliance/slos/* with alert CompliancePackOverlayConflictResolutionCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/compliance/dashboards/dsar-pipeline.json with oya_compliance_pack_overlay_conflict_resolution_error_ratio, oya_compliance_pack_overlay_conflict_resolution_lag_seconds, and oya_compliance_pack_overlay_conflict_resolution_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-compliance-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-compliance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate compliance-policy --microservice compliance`.
+9. Add dashboard panel: `update microservices/compliance/dashboards/dsar-pipeline.json with compliance_pack_overlay_conflict_resolution_error_ratio, compliance_pack_overlay_conflict_resolution_lag_seconds, and compliance_pack_overlay_conflict_resolution_queue_depth`.
+10. Rebuild affected crate: `cargo check -p compliance-domain --all-targets`.
+11. Run targeted tests: `cargo test -p compliance-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate compliance-policy --microservice compliance`.
 13. Deploy canary: `oya deploy canary --microservice compliance --component pack-overlay-conflict-resolution-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_compliance_pack_overlay_conflict_resolution_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric compliance_pack_overlay_conflict_resolution_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close compliance-pack-overlay-conflict-resolution-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.compliance.pack_overlay_conflict_resolution.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -164,9 +164,9 @@ Pack Overlay Conflict Resolution incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-compliance-domain`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-regional-pack-domain`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
-- `oya-regional-pack-api`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `compliance-domain`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `regional-pack-domain`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `regional-pack-api`: inspect for pack_overlay_conflict_resolution invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/compliance/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/compliance/dashboards/dsar-pipeline.json`: verify this surface only when the incident evidence points there.
 - `microservices/compliance/slos/`: verify this surface only when the incident evidence points there.
@@ -174,9 +174,9 @@ Pack Overlay Conflict Resolution incident decision tree
 
 ## Verification Checklist
 - CompliancePackOverlayConflictResolutionCritical and CompliancePackOverlayConflictResolutionSloBurn are both resolved in Alertmanager for 30 minutes.
-- oya_compliance_pack_overlay_conflict_resolution_error_ratio < 0.005 for 3 consecutive 10 minute windows.
-- oya_compliance_pack_overlay_conflict_resolution_lag_seconds < 120 for all production cells.
-- oya_compliance_pack_overlay_conflict_resolution_queue_depth is draining and not growing for the affected tenant.
+- compliance_pack_overlay_conflict_resolution_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- compliance_pack_overlay_conflict_resolution_lag_seconds < 120 for all production cells.
+- compliance_pack_overlay_conflict_resolution_queue_depth is draining and not growing for the affected tenant.
 - dashboard https://grafana.dev.oyatie.internal/d/compliance-substrate/pack-overlay-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116 shows green panels for the affected cell.
 - audit-chain query for EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT returns mitigation and resolution events.
 - circuit breaker compliance-pack-overlay-conflict-resolution-circuit-breaker is closed after rollback window.
@@ -231,7 +231,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-compliance-primary; DPO escalation bridge; legal-duty officer.
+- Primary on-call: PagerDuty compliance-primary; DPO escalation bridge; legal-duty officer.
 - Incident SLA: ack 3m for sev0/sev1, 10m for sev2, regulator clock checkpoint every 15m.
 - Incident commander: first responder from axis-compliance + DPO office + ops-security; transfer only by explicit message in #inc-compliance-regulatory.
 - Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
@@ -258,7 +258,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source compliance --runbook pack-overlay-conflict-resolution --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include oya_compliance_pack_overlay_conflict_resolution_error_ratio, oya_compliance_pack_overlay_conflict_resolution_lag_seconds, oya_compliance_pack_overlay_conflict_resolution_queue_depth, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include compliance_pack_overlay_conflict_resolution_error_ratio, compliance_pack_overlay_conflict_resolution_lag_seconds, compliance_pack_overlay_conflict_resolution_queue_depth, current breaker state, and audit seal status.
 - Keep compliance-pack-overlay-conflict-resolution-circuit-breaker owner as axis-compliance + DPO office + ops-security until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after EVT-COMPLIANCE-PACK_OVERLAY_CONFLICT_RESOLUTION-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.

@@ -1,5 +1,5 @@
 {{- if .Values.networkPolicy.enabled }}
-# NetworkPolicy: ingress from GitHub (oya-forge) and istio-gateway (oya-gateway);
+# NetworkPolicy: ingress from GitHub (forge) and istio-gateway (gateway);
 # egress to Jenkins :8080, GitHub API :443, OpenBao :8200, OTel :4317, DNS :53.
 # ADR-0387: ci-webhook-gateway-talos-deploy.
 apiVersion: networking.k8s.io/v1

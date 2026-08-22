@@ -25,18 +25,18 @@ Six new crates: kernel, domain, usecase, api, adapter, app.
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-kernel/` | `TenantNamespace`, `MicroserviceScope`, `NamespacePolicy` |
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-domain/` | pure scope-policy generation logic |
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-usecase/` | orchestrate provision + seal + reconcile |
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-api/` | typed contracts |
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-adapter/` | OpenBao namespace API + event consumer |
-| `…/oya-cloud-secrets-per-tenant-namespace-controller-app/` | controller binary |
+| `…/cloud-secrets-per-tenant-namespace-controller-kernel/` | `TenantNamespace`, `MicroserviceScope`, `NamespacePolicy` |
+| `…/cloud-secrets-per-tenant-namespace-controller-domain/` | pure scope-policy generation logic |
+| `…/cloud-secrets-per-tenant-namespace-controller-usecase/` | orchestrate provision + seal + reconcile |
+| `…/cloud-secrets-per-tenant-namespace-controller-api/` | typed contracts |
+| `…/cloud-secrets-per-tenant-namespace-controller-adapter/` | OpenBao namespace API + event consumer |
+| `…/cloud-secrets-per-tenant-namespace-controller-app/` | controller binary |
 | 6× catalog yamls | create |
 
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-per-tenant-namespace-controller-*'
+cargo nextest run -p 'cloud-secrets-per-tenant-namespace-controller-*'
 # Tenant onboard e2e
 cargo nextest run --features tenant-onboard-e2e
 ```
@@ -65,7 +65,7 @@ Per-tenant secret isolation is only real if tenant onboarding, microservice regi
 Build a controller that consumes tenancy events, provisions OpenBao namespaces and per-microservice policies, seals namespaces on deprovision, and schedules cryptographic erasure without deleting evidence prematurely.
 
 ### C. Deliverables
-- `oya-cloud-secrets-per-tenant-namespace-controller-{kernel,domain,usecase,api,adapter,app}`.
+- `cloud-secrets-per-tenant-namespace-controller-{kernel,domain,usecase,api,adapter,app}`.
 - Event bindings for `TenantRegistered`, `TenantDeprovisioned`, and `MicroserviceRegistered`.
 - Policy output aligned with `policy/tenant-scope.cedar` and `policy/secret-isolation.md`.
 - Catalog entries for namespace controller crates.
@@ -81,13 +81,13 @@ Build a controller that consumes tenancy events, provisions OpenBao namespaces a
 7. Add e2e tests for onboard, deprovision, microservice registration, and region failover.
 
 ### E. Acceptance
-- `cargo nextest run -p 'oya-cloud-secrets-per-tenant-namespace-controller-*'`.
+- `cargo nextest run -p 'cloud-secrets-per-tenant-namespace-controller-*'`.
 - `cargo nextest run --features tenant-onboard-e2e`.
 - Tenant namespace provisioning completes within the PRD p99 target.
 - Orphan namespaces are flagged for review, never silently deleted.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-04, `manifest.json`, `catalog/oya-cloud-secrets-per-tenant-namespace-controller-*.yaml`, `policy/tenant-scope.cedar`, `policy/secret-isolation.md`, `contracts/asyncapi/cloud-secrets-events.yaml`, and `multi-region.md`.
+Evidence anchors are `PRD.md` FR-04, `manifest.json`, `catalog/cloud-secrets-per-tenant-namespace-controller-*.yaml`, `policy/tenant-scope.cedar`, `policy/secret-isolation.md`, `contracts/asyncapi/cloud-secrets-events.yaml`, and `multi-region.md`.
 
 ### G. Counterpart Comparison
 Vault Enterprise namespaces, AWS accounts/IAM, GCP projects, Azure vaults, and OCI vaults all provide isolation primitives. Oyatie's counterpart standard is stronger tenant-pack binding plus cryptographic erasure and per-microservice policy generation, which this controller owns.

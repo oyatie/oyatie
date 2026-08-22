@@ -1364,7 +1364,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 42 refs / 241 lines = 17.43 per 100 lines
 - artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
-### ADR-0223 — ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md
+### ADR-0223 — ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md
 - status: Accepted
 - depth: C-partial; lines=102; substance_markers=3
 - cross-ref-density: 14 refs / 102 lines = 13.73 per 100 lines
@@ -4676,35 +4676,35 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - Expected scaffold count: 8
 - Expected implementation count: 4
 - Implementation-grade crates by audit heuristic: 0
-### Crate `oya-governance-audit-event-emission`
+### Crate `governance-audit-event-emission`
 - scaffold status: present; files=4; rust_files=2; lines=114
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-byok-disambiguation`
+### Crate `governance-byok-disambiguation`
 - scaffold status: present; files=7; rust_files=3; lines=674
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-capability-tier-coverage`
+### Crate `governance-capability-tier-coverage`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-cedar-coverage`
+### Crate `governance-cedar-coverage`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-naming-justifications`
+### Crate `governance-naming-justifications`
 - scaffold status: present; files=7; rust_files=3; lines=712
 - implementation status: partial-implementation; cli=False; test_markers=7
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-no-template-stamping`
+### Crate `governance-no-template-stamping`
 - scaffold status: present; files=11; rust_files=3; lines=683
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-pack-overlay-completeness`
+### Crate `governance-pack-overlay-completeness`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-substance-bar`
+### Crate `governance-substance-bar`
 - scaffold status: present; files=7; rust_files=3; lines=662
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected

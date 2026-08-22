@@ -99,8 +99,8 @@
   },
   "rows": [
     {
-      "crate_name": "oya-check-adr-citation",
-      "crate_manifest": "libs/oya-check-adr-citation/Cargo.toml",
+      "crate_name": "check-adr-citation",
+      "crate_manifest": "libs/check-adr-citation/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -124,8 +124,8 @@
       }
     },
     {
-      "crate_name": "oya-check-adr-placeholders",
-      "crate_manifest": "libs/oya-check-adr-placeholders/Cargo.toml",
+      "crate_name": "check-adr-placeholders",
+      "crate_manifest": "libs/check-adr-placeholders/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -149,8 +149,8 @@
       }
     },
     {
-      "crate_name": "oya-check-cedar-fragment-coverage",
-      "crate_manifest": "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "crate_name": "check-cedar-fragment-coverage",
+      "crate_manifest": "libs/check-cedar-fragment-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -174,8 +174,8 @@
       }
     },
     {
-      "crate_name": "oya-check-claim-ceiling",
-      "crate_manifest": "libs/oya-check-claim-ceiling/Cargo.toml",
+      "crate_name": "check-claim-ceiling",
+      "crate_manifest": "libs/check-claim-ceiling/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -199,8 +199,8 @@
       }
     },
     {
-      "crate_name": "oya-check-codeowners-mirror",
-      "crate_manifest": "libs/oya-check-codeowners-mirror/Cargo.toml",
+      "crate_name": "check-codeowners-mirror",
+      "crate_manifest": "libs/check-codeowners-mirror/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -224,8 +224,8 @@
       }
     },
     {
-      "crate_name": "oya-check-cost-budget",
-      "crate_manifest": "libs/oya-check-cost-budget/Cargo.toml",
+      "crate_name": "check-cost-budget",
+      "crate_manifest": "libs/check-cost-budget/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -249,8 +249,8 @@
       }
     },
     {
-      "crate_name": "oya-check-doc-catalog",
-      "crate_manifest": "libs/oya-check-doc-catalog/Cargo.toml",
+      "crate_name": "check-doc-catalog",
+      "crate_manifest": "libs/check-doc-catalog/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -274,8 +274,8 @@
       }
     },
     {
-      "crate_name": "oya-check-documentation-system",
-      "crate_manifest": "libs/oya-check-documentation-system/Cargo.toml",
+      "crate_name": "check-documentation-system",
+      "crate_manifest": "libs/check-documentation-system/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -299,8 +299,8 @@
       }
     },
     {
-      "crate_name": "oya-check-glossary-coverage",
-      "crate_manifest": "libs/oya-check-glossary-coverage/Cargo.toml",
+      "crate_name": "check-glossary-coverage",
+      "crate_manifest": "libs/check-glossary-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -324,8 +324,8 @@
       }
     },
     {
-      "crate_name": "oya-check-glossary-vocabulary",
-      "crate_manifest": "libs/oya-check-glossary-vocabulary/Cargo.toml",
+      "crate_name": "check-glossary-vocabulary",
+      "crate_manifest": "libs/check-glossary-vocabulary/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -349,8 +349,8 @@
       }
     },
     {
-      "crate_name": "oya-check-mobile-native",
-      "crate_manifest": "libs/oya-check-mobile-native/Cargo.toml",
+      "crate_name": "check-mobile-native",
+      "crate_manifest": "libs/check-mobile-native/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -374,8 +374,8 @@
       }
     },
     {
-      "crate_name": "oya-check-placeholder-debt",
-      "crate_manifest": "libs/oya-check-placeholder-debt/Cargo.toml",
+      "crate_name": "check-placeholder-debt",
+      "crate_manifest": "libs/check-placeholder-debt/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -399,8 +399,8 @@
       }
     },
     {
-      "crate_name": "oya-check-pr-traceability",
-      "crate_manifest": "libs/oya-check-pr-traceability/Cargo.toml",
+      "crate_name": "check-pr-traceability",
+      "crate_manifest": "libs/check-pr-traceability/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -424,8 +424,8 @@
       }
     },
     {
-      "crate_name": "oya-check-pre-push",
-      "crate_manifest": "libs/oya-check-pre-push/Cargo.toml",
+      "crate_name": "check-pre-push",
+      "crate_manifest": "libs/check-pre-push/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -449,8 +449,8 @@
       }
     },
     {
-      "crate_name": "oya-check-protection-context-match",
-      "crate_manifest": "libs/oya-check-protection-context-match/Cargo.toml",
+      "crate_name": "check-protection-context-match",
+      "crate_manifest": "libs/check-protection-context-match/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -474,8 +474,8 @@
       }
     },
     {
-      "crate_name": "oya-check-quality-lane",
-      "crate_manifest": "libs/oya-check-quality-lane/Cargo.toml",
+      "crate_name": "check-quality-lane",
+      "crate_manifest": "libs/check-quality-lane/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -499,8 +499,8 @@
       }
     },
     {
-      "crate_name": "oya-check-raci-coverage",
-      "crate_manifest": "libs/oya-check-raci-coverage/Cargo.toml",
+      "crate_name": "check-raci-coverage",
+      "crate_manifest": "libs/check-raci-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -524,8 +524,8 @@
       }
     },
     {
-      "crate_name": "oya-check-readme-coverage",
-      "crate_manifest": "libs/oya-check-readme-coverage/Cargo.toml",
+      "crate_name": "check-readme-coverage",
+      "crate_manifest": "libs/check-readme-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -549,8 +549,8 @@
       }
     },
     {
-      "crate_name": "oya-check-release-pack",
-      "crate_manifest": "libs/oya-check-release-pack/Cargo.toml",
+      "crate_name": "check-release-pack",
+      "crate_manifest": "libs/check-release-pack/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -574,8 +574,8 @@
       }
     },
     {
-      "crate_name": "oya-check-retired-vocabulary",
-      "crate_manifest": "libs/oya-check-retired-vocabulary/Cargo.toml",
+      "crate_name": "check-retired-vocabulary",
+      "crate_manifest": "libs/check-retired-vocabulary/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -599,8 +599,8 @@
       }
     },
     {
-      "crate_name": "oya-check-runbook-freshness",
-      "crate_manifest": "libs/oya-check-runbook-freshness/Cargo.toml",
+      "crate_name": "check-runbook-freshness",
+      "crate_manifest": "libs/check-runbook-freshness/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -624,8 +624,8 @@
       }
     },
     {
-      "crate_name": "oya-check-runbook-index",
-      "crate_manifest": "libs/oya-check-runbook-index/Cargo.toml",
+      "crate_name": "check-runbook-index",
+      "crate_manifest": "libs/check-runbook-index/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -649,8 +649,8 @@
       }
     },
     {
-      "crate_name": "oya-check-slo-coverage",
-      "crate_manifest": "libs/oya-check-slo-coverage/Cargo.toml",
+      "crate_name": "check-slo-coverage",
+      "crate_manifest": "libs/check-slo-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -674,8 +674,8 @@
       }
     },
     {
-      "crate_name": "oya-check-supply-chain",
-      "crate_manifest": "libs/oya-check-supply-chain/Cargo.toml",
+      "crate_name": "check-supply-chain",
+      "crate_manifest": "libs/check-supply-chain/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -699,8 +699,8 @@
       }
     },
     {
-      "crate_name": "oya-check-typescript-workspace",
-      "crate_manifest": "libs/oya-check-typescript-workspace/Cargo.toml",
+      "crate_name": "check-typescript-workspace",
+      "crate_manifest": "libs/check-typescript-workspace/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "reorg_target",

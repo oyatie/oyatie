@@ -11,5 +11,5 @@
   },
   "expected_invalid": {},
   "expected_over_broad": {},
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs::owners_schema_fixtures_execute_red_green_cases"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-accounting-registry-app/src/main.rs::owners_schema_fixtures_execute_red_green_cases"
 }

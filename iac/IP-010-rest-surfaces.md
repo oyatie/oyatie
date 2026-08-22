@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-governance-openapi-conformance]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, governance-openapi-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-010: oya-cloud-iac-iac-*-rest crates (all 5 BCs)
+# IP-010: cloud-iac-iac-*-rest crates (all 5 BCs)
 
 ## Intent
 
@@ -27,12 +27,12 @@ Five new crates per ADR-0105: one `-rest` per BC. Catalog rows. OpenAPI conforma
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-rest/{Cargo.toml,src/lib.rs,src/routes.rs,src/middleware.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-*-rest.yaml` | create (5 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-rest/{Cargo.toml,src/lib.rs,src/routes.rs,src/middleware.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-rest/{Cargo.toml,src/lib.rs,src/routes.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-*-rest.yaml` | create (5 rows) |
 
 ## Code Shape
 
@@ -64,10 +64,10 @@ async fn trigger_render<S: Deps>(
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-*-rest --all-features
-cargo nextest run --workspace -p oya-cloud-iac-iac-*-rest --all-features
+cargo check --workspace -p cloud-iac-iac-*-rest --all-features
+cargo nextest run --workspace -p cloud-iac-iac-*-rest --all-features
 # OpenAPI conformance: assert handler set matches contracts/openapi/cloud-iac.yaml
-cloud-ci/oya-ci governance gate `openapi-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `openapi-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

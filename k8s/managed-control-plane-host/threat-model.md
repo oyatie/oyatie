@@ -1,4 +1,4 @@
-# Threat model — `oya-managed-k8s-control-plane-host`
+# Threat model — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376. Maturity: design-spec (the live reconcile is
 honest-deferred; the threat model frames the surface the live integration must
@@ -35,7 +35,7 @@ model and the central threat this microservice exists to contain.
 | T1 | Tenant pod in a hosted control plane reaches the management API server / etcd | Per-tenant namespace + datastore isolation (Kamaji); Cilium L3/L4 deny + Istio Ambient ztunnel mTLS (ADR-0148); **live-integration must add an explicit NetworkPolicy fitness check.** |
 | T2 | Tenant reaches a SIBLING tenant's control plane or datastore | Per-tenant `DatastoreClass::EtcdPerTenant` gives physical datastore separation; pooled-relational uses per-tenant logical separation enforced by Kamaji; cross-tenant deny verified by the cross-tenant-access-fuzz discipline. |
 | T3 | A tenant principal provisions/tears down a control plane directly | Cedar `forbid(principal in Role::"tenant", ...)` — belt-and-suspenders over default-deny; tenants act only transitively via the cluster-lifecycle service identity. |
-| T4 | This service is pointed at a TENANT cluster kubeconfig (boundary violation) | Operational boundary: the service reads ONLY the management kubeconfig (`$OYA_MGMT_KUBECONFIG`), fail-closed; it never holds a tenant-cluster kubeconfig (`operational-boundaries.md`). |
+| T4 | This service is pointed at a TENANT cluster kubeconfig (boundary violation) | Operational boundary: the service reads ONLY the management kubeconfig (`$OYATIE_MGMT_KUBECONFIG`), fail-closed; it never holds a tenant-cluster kubeconfig (`operational-boundaries.md`). |
 | T5 | A provision/teardown happens without an audit trail | Cedar `forbid` when `context.audit_chain_emit != true`; seal events on every state-changing decision (`audit-evidence-emission.md`). |
 | T6 | Silent fake success masks an unbuilt reconcile (supply-chain/trust) | Honest-claims: the CAPI adapter returns a typed `Unimplemented` (HTTP 501), never `Ok(...)`; tracked in placeholder-debt. |
 | T7 | Compromised management cluster = total blast radius (hosted-tier concentration) | ADR-0376 known consequence: management-cluster HA + hardening is a hard prerequisite for hosted-tier density; dedicated tier remains the sovereign escape hatch with no shared substrate. |

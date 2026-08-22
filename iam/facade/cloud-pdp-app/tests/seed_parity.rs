@@ -1,6 +1,6 @@
 //! Seed-parity guard: the crate-local Cedar seeds must stay byte-identical
 //! to the canonical FD-001 seeds in
-//! `libs/oya-shared-platform-contracts-kernel/cedar/` (the
+//! `libs/shared-platform-contracts-kernel/cedar/` (the
 //! iam-pdp-cedar conformance-suite pattern). Crate-local
 //! copies exist because buck2 targets sandbox their srcs; this test makes
 //! the duplication drift-impossible on the cargo lane.
@@ -33,15 +33,15 @@ fn crate_local_cedar_seeds_match_canonical() {
     const PAIRS: &[(&str, &str)] = &[
         (
             "cedar/platform.cedarschema",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform.cedarschema",
+            "libs/shared-platform-contracts-kernel/cedar/platform.cedarschema",
         ),
         (
             "cedar/platform-policies.cedar",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform-policies.cedar",
+            "libs/shared-platform-contracts-kernel/cedar/platform-policies.cedar",
         ),
         (
             "cedar/platform-templates.cedar",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform-templates.cedar",
+            "libs/shared-platform-contracts-kernel/cedar/platform-templates.cedar",
         ),
     ];
     let (Some(crate_dir), Some(root)) = (manifest_dir(), repo_root()) else {
@@ -70,6 +70,6 @@ fn crate_local_cedar_seeds_match_canonical() {
     assert!(
         mismatches.is_empty(),
         "crate-local cedar seeds drifted from canonical: {mismatches:?} — \
-         re-copy from libs/oya-shared-platform-contracts-kernel/cedar/"
+         re-copy from libs/shared-platform-contracts-kernel/cedar/"
     );
 }

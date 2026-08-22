@@ -46,26 +46,26 @@ DOSSIER-BC-003: Bounded context `webauthn-relying-party` states: WebAuthn L3 reg
 DOSSIER-BC-004: Bounded context `scim-server` states: SCIM 2.0 RFC 7643/7644 inbound endpoint per tenant per ADR-0190.; crate count=7.
 DOSSIER-BC-005: Bounded context `hris-adapter` states: Pluggable adapter contract for non-SCIM HRIS (Workday/BambooHR/Rippling); poller worker.; crate count=6.
 DOSSIER-BC-006: Bounded context `step-up-orchestrator` states: Step-up ACR grant flow per ADR-0189; JIT IT-approval bridge.; crate count=6.
-DOSSIER-CRATE-001: Existing crate `oya-identity-zitadel-instance-controller-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-002: Existing crate `oya-identity-zitadel-instance-controller-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-003: Existing crate `oya-identity-zitadel-instance-controller-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-004: Existing crate `oya-identity-zitadel-instance-controller-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-005: Existing crate `oya-identity-zitadel-instance-controller-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-006: Existing crate `oya-identity-zitadel-instance-controller-adapter` remains untouched by this document-stage IP.
-DOSSIER-CRATE-007: Existing crate `oya-identity-oidc-issuer-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-008: Existing crate `oya-identity-oidc-issuer-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-009: Existing crate `oya-identity-oidc-issuer-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-010: Existing crate `oya-identity-oidc-issuer-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-011: Existing crate `oya-identity-oidc-issuer-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-012: Existing crate `oya-identity-oidc-issuer-rest` remains untouched by this document-stage IP.
-DOSSIER-CRATE-013: Existing crate `oya-identity-oidc-issuer-sdk` remains untouched by this document-stage IP.
-DOSSIER-CRATE-014: Existing crate `oya-identity-oidc-issuer-adapter-zitadel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-015: Existing crate `oya-identity-webauthn-relying-party-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-016: Existing crate `oya-identity-webauthn-relying-party-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-017: Existing crate `oya-identity-webauthn-relying-party-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-018: Existing crate `oya-identity-webauthn-relying-party-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-019: Existing crate `oya-identity-webauthn-relying-party-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-020: Existing crate `oya-identity-webauthn-relying-party-rest` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `identity-zitadel-instance-controller-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-002: Existing crate `identity-zitadel-instance-controller-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-003: Existing crate `identity-zitadel-instance-controller-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-004: Existing crate `identity-zitadel-instance-controller-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-005: Existing crate `identity-zitadel-instance-controller-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-006: Existing crate `identity-zitadel-instance-controller-adapter` remains untouched by this document-stage IP.
+DOSSIER-CRATE-007: Existing crate `identity-oidc-issuer-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-008: Existing crate `identity-oidc-issuer-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-009: Existing crate `identity-oidc-issuer-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-010: Existing crate `identity-oidc-issuer-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-011: Existing crate `identity-oidc-issuer-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-012: Existing crate `identity-oidc-issuer-rest` remains untouched by this document-stage IP.
+DOSSIER-CRATE-013: Existing crate `identity-oidc-issuer-sdk` remains untouched by this document-stage IP.
+DOSSIER-CRATE-014: Existing crate `identity-oidc-issuer-adapter-zitadel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-015: Existing crate `identity-webauthn-relying-party-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-016: Existing crate `identity-webauthn-relying-party-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-017: Existing crate `identity-webauthn-relying-party-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-018: Existing crate `identity-webauthn-relying-party-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-019: Existing crate `identity-webauthn-relying-party-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-020: Existing crate `identity-webauthn-relying-party-rest` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/identity/contracts/openapi/identity.yaml, microservices/identity/contracts/openapi/multi-context-split.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/identity/contracts/asyncapi/identity-events.yaml, microservices/identity/contracts/asyncapi/multi-context-events.yaml.
 DOSSIER-CONTRACT-003: proto3: microservices/identity/contracts/proto/identity.proto, microservices/identity/contracts/proto/multi_context_split.proto.
@@ -83,13 +83,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `identity` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `identity` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `identity` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -218,7 +218,7 @@ MAINT-24M-024: Month 24: `identity` should have wrapper drift near zero; primiti
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `identity` is `per_request`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `identity` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `identity` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `identity` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `identity` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.18` vCPU per tenant becomes 1.80 at 10 tenants, 18.00 at 100, and 180.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `256` MiB per tenant becomes 2560 MiB at 10 tenants, 25600 MiB at 100, and 256000 MiB at 1000.
@@ -333,9 +333,9 @@ VERIFY-009: Static read confirms `identity` ARCH has an `ADR-0339 integration` s
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `cargo run -q -p dev-cli -- gate validate cohesion` must pass before commit.
+VERIFY-015: `cargo run -q -p dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `identity` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `identity` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `identity` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

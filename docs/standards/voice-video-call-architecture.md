@@ -193,7 +193,7 @@ Signaling is the out-of-band channel that negotiates everything required to esta
 
 Two signaling planes are recognised:
 
-- **Meet signaling plane** — dedicated WebSocket gateway exposed by `oya-meet-meeting-instance-rest`. Calendar-bound. Lobby + waiting room state machine. Host control panel. RFC 6455 WebSocket framing over TLS 1.3.
+- **Meet signaling plane** — dedicated WebSocket gateway exposed by `meet-meeting-instance-rest`. Calendar-bound. Lobby + waiting room state machine. Host control panel. RFC 6455 WebSocket framing over TLS 1.3.
 - **Messenger huddles signaling plane** — same WebSocket gateway as Messenger text messaging, framed as `HuddleSignaling` frames distinguishable from `MessagePosted` frames at the wire-protocol layer (per `messenger/IP-012-websocket-frame-protocol.md`). Channel ACL inherited automatically.
 
 Both planes converge on the same LiveKit access token JWT format (issued by either the meet or messenger adapter; the LiveKit SFU does not distinguish).
@@ -285,8 +285,8 @@ Sidecar pattern: each µservice cell runs its own LiveKit StatefulSet. Messenger
 
 A tenant is pinned to a specific cell within its pack region (per ADR-0117). All meetings and huddles for that tenant route to that cell's LiveKit cluster by default. The pinning lives in:
 
-- `oya-meet-meeting-room-kernel::TenantCellBinding` (port trait; resolved at room-create time by `oya-meet-meeting-room-adapter-postgres`).
-- `oya-messenger-huddles-kernel::TenantCellBinding` (same shape).
+- `meet-meeting-room-kernel::TenantCellBinding` (port trait; resolved at room-create time by `meet-meeting-room-adapter-postgres`).
+- `messenger-huddles-kernel::TenantCellBinding` (same shape).
 
 Cell affinity is honoured at the access-token issuance step: the issued LiveKit JWT carries a `room_name = "<instance_id>"` and the `ws_url` field directs the client to the tenant's pinned cell's LiveKit WebSocket endpoint (e.g., `wss://meet-cell-us-east-1a.<pack>.oyatie.example/`). DNS round-robin or per-cell anycast lifts the load across StatefulSet pods.
 
@@ -770,7 +770,7 @@ Per Meet IP-009, transcription uses **Whisper** (OpenAI Whisper-large for batch;
 The real-time path:
 
 1. LiveKit publishes the in-call audio mixdown to a "transcription bot" participant (a server-side participant that joins the room solely to consume audio).
-2. The transcription worker (`oya-meet-transcription-worker` per IP-009) receives audio frames (Opus, 48 kHz, mono) and decodes to PCM.
+2. The transcription worker (`meet-transcription-worker` per IP-009) receives audio frames (Opus, 48 kHz, mono) and decodes to PCM.
 3. PCM is fed into a streaming Whisper model (Whisper-medium-v3) with a 30-second sliding window and 5-second overlap (per the Whisper paper's recommended streaming configuration; OpenAI 2022).
 4. As VAD-segmented utterances complete, caption frames are emitted with:
    - `start_ms`, `end_ms` (relative to meeting start)
@@ -1544,7 +1544,7 @@ Per §8.4. Pack retention floors enforced:
 - pack-kr: 1–5y (Labor + 전자문서법).
 - All packs: tenant-declared minimum + max.
 
-`oya-meet-recording-worker` runs nightly retention-sweep: recordings whose `retention_bound` < now-30d are deleted (30-day soft-delete window for accidental restore).
+`meet-recording-worker` runs nightly retention-sweep: recordings whose `retention_bound` < now-30d are deleted (30-day soft-delete window for accidental restore).
 
 ### 19.4 PHI in recordings
 
@@ -1764,9 +1764,9 @@ This appendix walks through a concrete end-to-end call: Alice (in pack-us-defaul
 ### Step 2 — Alice opens the room
 
 1. Web app calls `POST /api/meet/instance/<room-id>/join`.
-2. `oya-meet-meeting-instance-rest` evaluates Cedar `Action::"join_meeting"` against Alice's identity + the meeting-room policy → permit.
-3. The instance use case (`oya-meet-meeting-instance-usecase`) calls `MeetingSfuClient::create_room` (idempotent — if room exists, return descriptor).
-4. The LiveKit adapter (`oya-meet-meeting-instance-adapter-livekit`) calls LiveKit API; LiveKit responds with `RoomDescriptor { room_name, sfu_ws_url: "wss://meet-cell-us-east-1a.us-default.oyatie.example/" }`.
+2. `meet-meeting-instance-rest` evaluates Cedar `Action::"join_meeting"` against Alice's identity + the meeting-room policy → permit.
+3. The instance use case (`meet-meeting-instance-usecase`) calls `MeetingSfuClient::create_room` (idempotent — if room exists, return descriptor).
+4. The LiveKit adapter (`meet-meeting-instance-adapter-livekit`) calls LiveKit API; LiveKit responds with `RoomDescriptor { room_name, sfu_ws_url: "wss://meet-cell-us-east-1a.us-default.oyatie.example/" }`.
 5. The use case calls `MeetingSfuClient::issue_participant_token` to generate Alice's JWT with `room_join: true`, `can_publish: true`, `can_subscribe: true`, `room: <instance_id>`, `identity: alice@...`, TTL 1h.
 6. Response: `{ ws_url, token }`.
 
@@ -1826,7 +1826,7 @@ This appendix walks through a concrete end-to-end call: Alice (in pack-us-defaul
 ### Step 9 — Transcription kicks in
 
 1. Recording start triggers transcription start (Cedar permit; not E2E mode).
-2. Transcription worker (`oya-meet-transcription-worker`) joins the room as a server-side participant.
+2. Transcription worker (`meet-transcription-worker`) joins the room as a server-side participant.
 3. Whisper-medium GPU pool allocated; audio stream begins flowing.
 4. Caption frames emitted every 1–2 seconds; pushed to Alice + Bob via WebSocket.
 5. Captions render on each client; latency ~ 400 ms.
@@ -1867,7 +1867,7 @@ These figures help tenants plan bandwidth contracts.
 | Captions absent | Transcription worker not spawned or GPU pool full | `kubectl get pods -l app=transcription-worker`; check GPU utilization | Scale GPU pool; retry |
 | Recording missing chunks at end | egress worker crashed mid-recording | Recording manifest's `chunks` array; gap markers | Post-meeting reconcile runs; resumable from last flush |
 | Live stream egress to YouTube fails | Wrong stream key; YouTube quota | SRS logs; YouTube Live Streaming API status | Re-fetch stream key from tenant config; check YouTube quota |
-| E2E mode: handshake takes > 5s | MLS group too large; client CPU limited | MLS handshake metric `oya_meet_e2e_handshake_duration` | Reduce group size; client CPU profiling |
+| E2E mode: handshake takes > 5s | MLS group too large; client CPU limited | MLS handshake metric `meet_e2e_handshake_duration` | Reduce group size; client CPU profiling |
 | Cross-region call drops media | SFU mesh link broken between pack-eu and pack-us | Mesh metrics; check inter-region link | Failover to in-region SFU only; degraded UX |
 | All clients report "Failed to connect" | Pack region down | Cell-level alerting; ADR-0241 DR triggers | DR failover to paired cell/region |
 

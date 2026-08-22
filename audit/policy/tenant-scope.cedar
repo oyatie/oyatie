@@ -3,7 +3,7 @@
 //
 // Purpose: enforce per-tenant scope on emission + query + verification + export reads.
 // Owner:   ops-security + axis-audit-chain
-// Audit:   every deny emits oya_audit_chain_unauthorized_attempt_total
+// Audit:   every deny emits audit_chain_unauthorized_attempt_total
 // References: threat-model.md T-I-01, T-S-01; tenant-isolation analogue from observability
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

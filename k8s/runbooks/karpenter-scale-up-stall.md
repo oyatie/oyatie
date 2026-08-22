@@ -17,7 +17,7 @@ adr_authority: ADR-0198
 
 1. **Identify** the stalled NodePool:
    ```sh
-   kubectl describe nodepool oya-app oya-batch oya-gpu oya-regulatory
+   kubectl describe nodepool app batch gpu regulatory
    ```
    Look for `Status.Conditions` indicating provisioning issues.
 2. **Check** capacity-type availability for the NodePool's requirements

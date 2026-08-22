@@ -8,7 +8,7 @@ purpose: |
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/<impl-plan-name>.md.
   An autonomous executor reading this plan must be able to act without escalation:
   concrete file targets, crate names with BNF v4.1 justification, code skeletons,
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md
@@ -53,7 +53,7 @@ acceptance_lanes:
 ## Intent
 
 One to two sentences. What this implementation plan delivers. Present tense;
-durable outcome framing. Example: "Scaffolds the `oya-hr-employee-domain` crate
+durable outcome framing. Example: "Scaffolds the `hr-employee-domain` crate
 with Employment entity, EmployeeRepository port-trait, and unit tests. Establishes
 the domain boundary for the HR µservice's Employee BC."
 

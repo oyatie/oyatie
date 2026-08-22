@@ -8,7 +8,7 @@ purpose: |
   Every BC must be registered before a crate carrying its bc-tokens can be scaffolded.
   Carries naming justification (BNF v4.1), ownership, Ontology entries, Workflow
   events, and acceptance criteria.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/bounded-contexts.md

@@ -1,7 +1,7 @@
 //! gRPC subsystem: tonic transport for the workload-identity services.
 //!
 //! Serves `WorkloadAuthorizer` + `WorkloadTokenValidator` from
-//! `oya-identity-workload-rest::grpc` (the shared delivery core — both RPC
+//! `identity-workload-rest::grpc` (the shared delivery core — both RPC
 //! services delegate to the same use-cases as the REST surface, so the two
 //! protocols can never drift).
 

@@ -18,7 +18,7 @@ fn desired() -> DesiredState {
         spiffe_id: "spiffe://oyatie.cell-7/platform/cloud-iam-pdp".to_owned(),
         ttl_secs: 3_600,
         rotation_window_secs: 600,
-        secret_name: "oya-cloud-iam-pdp-svid".to_owned(),
+        secret_name: "cloud-iam-pdp-svid".to_owned(),
         secret_namespace: "cloud-iam".to_owned(),
     }
 }

@@ -8,7 +8,7 @@ purpose: |
   Covers naming justification (BNF v4.1), Cargo workspace entries, layer
   skeleton, BC list, [package.metadata.oya] schema, test scaffolding, and
   µservice without escalation.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/prd-template.md
@@ -216,7 +216,7 @@ src/
 ```
 
 Layer note: worker crates MUST be stateless (no module-level mutable state);
-`oya-check-statelessness-cli` CI lane enforces this.
+`check-statelessness-cli` CI lane enforces this.
 
 ### `crates/oya-<µservice>-<bc>-app/`
 

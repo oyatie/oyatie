@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading managed Kubernetes + on-prem Kubernetes distributions. Drives the `oya-governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-CLOUD-K8S) and tells gtm-customer-success what to claim. Re-validated bi-annually.
+Quantitative + qualitative parity comparison vs the industry-leading managed Kubernetes + on-prem Kubernetes distributions. Drives the `governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-CLOUD-K8S) and tells gtm-customer-success what to claim. Re-validated bi-annually.
 
 ## Competitor Set
 

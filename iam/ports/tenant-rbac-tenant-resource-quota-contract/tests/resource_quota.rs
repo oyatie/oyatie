@@ -128,10 +128,10 @@ fn tenant_resource_quota_contract_preserves_quota_refs_and_scope() {
                 .starts_with("evidence/resource-quota/fd001-tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && requirement
                 .source_admission_policy_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-admission-policy/")
+                .starts_with("crates/tenant-rbac-tenant-admission-policy/")
             && requirement.applies_to_all_manifest_workloads
             && !requirement.runtime_enforcement_attached
     }));

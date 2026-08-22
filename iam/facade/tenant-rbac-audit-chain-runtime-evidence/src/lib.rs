@@ -25,7 +25,7 @@ const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const TENANT_PARTITION: &str = "tenant-scoped";
 const OUTBOX_TOPIC: &str = "oya.platform.audit";
 const SOURCE_PLAN_REF: &str =
-    "crates/oya-tenant-rbac-audit-chain-emission/src/lib.rs::tenant_rbac_audit_chain_emission_plan";
+    "crates/tenant-rbac-audit-chain-emission/src/lib.rs::tenant_rbac_audit_chain_emission_plan";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum AuditChainRuntimeEvidenceRequirementKind {
@@ -606,7 +606,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_plan_ref,
-        "crates/oya-tenant-rbac-audit-chain-emission/",
+        "crates/tenant-rbac-audit-chain-emission/",
         TenantRbacAuditChainRuntimeEvidenceError::InvalidSourcePlanRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

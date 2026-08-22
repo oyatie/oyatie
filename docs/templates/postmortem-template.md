@@ -6,7 +6,7 @@ date: 2026-05-12
 purpose: |
   Google-SRE blameless postmortem. Mandatory for every Sev-1/Sev-2. Names systems, processes, and contracts; never people in root-cause analysis. Includes regulator notification matrix and machine-readable action-item table.
 supersedes: docs/templates/incident-postmortem-template.md
-enforcing_fitness_lane: oya-governance-postmortem-shape
+enforcing_fitness_lane: governance-postmortem-shape
 owner_team: ops-sre-reliability
 related:
   - docs/INCIDENT-MANAGEMENT.md

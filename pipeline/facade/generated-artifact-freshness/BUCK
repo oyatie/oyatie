@@ -7,14 +7,14 @@ rust_library(
     deps = [
         "//pipeline/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//pipeline/facade/planning-projection:ci-planning-projection",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
 )
 
 rust_binary(
-    name = "oya-cloud-ci-freshness-app-bin",
+    name = "cloud-ci-freshness-app-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
@@ -24,9 +24,9 @@ rust_binary(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-face-settle-bin",
+    name = "cloud-ci-face-settle-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-face-settle.rs",
+    crate_root = "src/bin/cloud-ci-face-settle.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-generated-artifact-freshness",
@@ -34,9 +34,9 @@ rust_binary(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-materialize-generated-faces-bin",
+    name = "cloud-ci-materialize-generated-faces-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-materialize-generated-faces.rs",
+    crate_root = "src/bin/cloud-ci-materialize-generated-faces.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-generated-artifact-freshness",
@@ -52,7 +52,7 @@ rust_test(
     deps = [
         "//pipeline/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//pipeline/facade/planning-projection:ci-planning-projection",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
@@ -70,9 +70,9 @@ rust_test(
 )
 
 rust_test(
-    name = "oya-cloud-ci-face-settle-fixtures",
+    name = "cloud-ci-face-settle-fixtures",
     srcs = glob(["tests/**/*.rs"]),
-    crate = "oya_cloud_ci_face_settle_fixtures",
+    crate = "cloud_ci_face_settle_fixtures",
     crate_root = "tests/face_settle.rs",
     visibility = ["PUBLIC"],
     deps = [

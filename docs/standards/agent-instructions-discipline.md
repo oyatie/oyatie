@@ -18,11 +18,11 @@ purpose: |
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-agent-instructions-fence
+planned_enforcement_ref: governance-agent-instructions-fence
 enforcement_status:
-  oya-governance-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-governance-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
-  oya-governance-banned-primitives: existing (via AGENTS.md + git-workflow.md; claude-code-harness.md is retired tombstone)
+  governance-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  governance-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
+  governance-banned-primitives: existing (via AGENTS.md + git-workflow.md; claude-code-harness.md is retired tombstone)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/doc-style.md
@@ -64,7 +64,7 @@ Rules:
 5. The opening and closing tokens MUST be byte-identical to the form
    above; whitespace MAY appear around them but not inside the marker.
 
-Lane: `oya-governance-agent-instructions-fence` validates the
+Lane: `governance-agent-instructions-fence` validates the
 mechanical shape.
 
 ## 2. What goes inside the fence
@@ -85,7 +85,7 @@ What does NOT go inside the fence:
 
 ## 3. Banned-token grep scope
 
-The lane `oya-governance-banned-primitives` greps INSIDE fences for
+The lane `governance-banned-primitives` greps INSIDE fences for
 tokens that violate the sanctioned-primitive triad or the user-machine
 boundary.
 
@@ -97,7 +97,7 @@ boundary.
 | `~/.codex/` mutation | **FAIL** (unconditional) |
 | `cargo ...`, `cosign ...`, `syft ...` | PASS |
 | `gh pr merge` without `## Code Review` in target PR | **FAIL** |
-| Bare `curl` / `wget` to external endpoints | **FAIL** (use a sanctioned MCP / `oya-tooling-agent-read`) |
+| Bare `curl` / `wget` to external endpoints | **FAIL** (use a sanctioned MCP / `tooling-agent-read`) |
 | Process kill via `kill -9 $(pgrep claude)` | **FAIL** (use `/oh-my-claudecode:cancel`) |
 
 The grep is scoped to fence interiors only — banned tokens in the prose
@@ -122,7 +122,7 @@ understands what the directive accomplishes without the fence body.
 | Fence with no prose, only the fence | NO — refused at PR review |
 | Prose with no fence | YES — prose-only doc is fine |
 
-Lane: `oya-governance-dual-audience` checks the adjacency rule.
+Lane: `governance-dual-audience` checks the adjacency rule.
 
 ## 5. Per-doc-class fence usage
 

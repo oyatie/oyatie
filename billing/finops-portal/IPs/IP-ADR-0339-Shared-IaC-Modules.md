@@ -45,23 +45,23 @@ DOSSIER-BC-002: Bounded context `cost-allocation-policy` states: Who-pays-for-wh
 DOSSIER-BC-003: Bounded context `anomaly-explanation` states: Surface why-did-spend-spike root-cause attribution.; crate count=3.
 DOSSIER-BC-004: Bounded context `focus-export` states: FOCUS 1.3 export download surface (per ADR-0199 D-4).; crate count=2.
 DOSSIER-BC-005: Bounded context `credit-ledger` states: Customer-success negotiated credits + committed-use discount ledger.; crate count=3.
-DOSSIER-CRATE-001: Existing crate `oya-finops-portal-tenant-billing-presentation-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-002: Existing crate `oya-finops-portal-tenant-billing-presentation-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-003: Existing crate `oya-finops-portal-tenant-billing-presentation-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-004: Existing crate `oya-finops-portal-tenant-billing-presentation-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-005: Existing crate `oya-finops-portal-tenant-billing-presentation-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-006: Existing crate `oya-finops-portal-cost-allocation-policy-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-007: Existing crate `oya-finops-portal-cost-allocation-policy-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-008: Existing crate `oya-finops-portal-cost-allocation-policy-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-009: Existing crate `oya-finops-portal-cost-allocation-policy-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-010: Existing crate `oya-finops-portal-anomaly-explanation-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-011: Existing crate `oya-finops-portal-anomaly-explanation-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-012: Existing crate `oya-finops-portal-anomaly-explanation-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-013: Existing crate `oya-finops-portal-focus-export-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-014: Existing crate `oya-finops-portal-focus-export-adapter-seaweedfs` remains untouched by this document-stage IP.
-DOSSIER-CRATE-015: Existing crate `oya-finops-portal-credit-ledger-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-016: Existing crate `oya-finops-portal-credit-ledger-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-017: Existing crate `oya-finops-portal-credit-ledger-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `finops-portal-tenant-billing-presentation-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-002: Existing crate `finops-portal-tenant-billing-presentation-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-003: Existing crate `finops-portal-tenant-billing-presentation-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-004: Existing crate `finops-portal-tenant-billing-presentation-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-005: Existing crate `finops-portal-tenant-billing-presentation-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-006: Existing crate `finops-portal-cost-allocation-policy-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-007: Existing crate `finops-portal-cost-allocation-policy-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-008: Existing crate `finops-portal-cost-allocation-policy-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-009: Existing crate `finops-portal-cost-allocation-policy-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-010: Existing crate `finops-portal-anomaly-explanation-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-011: Existing crate `finops-portal-anomaly-explanation-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-012: Existing crate `finops-portal-anomaly-explanation-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-013: Existing crate `finops-portal-focus-export-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-014: Existing crate `finops-portal-focus-export-adapter-seaweedfs` remains untouched by this document-stage IP.
+DOSSIER-CRATE-015: Existing crate `finops-portal-credit-ledger-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-016: Existing crate `finops-portal-credit-ledger-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-017: Existing crate `finops-portal-credit-ledger-usecase` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: no public openapi file declared in manifest.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
@@ -75,13 +75,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `finops-portal` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `finops-portal` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `finops-portal` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -210,7 +210,7 @@ MAINT-24M-024: Month 24: `finops-portal` should have wrapper drift near zero; pr
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `finops-portal` is `per_query`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `finops-portal` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `finops-portal` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `finops-portal` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `finops-portal` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.12` vCPU per tenant becomes 1.20 at 10 tenants, 12.00 at 100, and 120.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `256` MiB per tenant becomes 2560 MiB at 10 tenants, 25600 MiB at 100, and 256000 MiB at 1000.
@@ -325,9 +325,9 @@ VERIFY-009: Static read confirms `finops-portal` ARCH has an `ADR-0339 integrati
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `cargo run -q -p dev-cli -- gate validate cohesion` must pass before commit.
+VERIFY-015: `cargo run -q -p dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `finops-portal` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `finops-portal` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `finops-portal` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

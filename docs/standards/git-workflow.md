@@ -14,9 +14,9 @@ purpose: |
   sunset at M01-P08 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-banned-primitives
+planned_enforcement_ref: governance-banned-primitives
 enforcement_status:
-  oya-governance-banned-primitives: existing
+  governance-banned-primitives: existing
   F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
@@ -37,7 +37,7 @@ This standard codifies **pragmatic git/gh** under the live operating
 contract ([`docs/AGENTS.md`](../AGENTS.md)): direct `git` / `gh` invocation is
 the forward contribution path (isolated worktree → PR against `dev`).
 Merge admission is reviewer APPROVE plus [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md)
-`oya-ci-required`. Historical "Directive 12" wording lived under retired
+`presubmit`. Historical "Directive 12" wording lived under retired
 harness plan paths (`.omc/plans/**` provenance only; ADR-0619).
 
 ## 1. The default surface
@@ -48,7 +48,7 @@ tombstone** only), agent fences default to plain `git` / `gh` plus in-tree
 read/build tools:
 
 - plain `git` + `gh` for worktree, commit, push, and PR lifecycle;
-- `oya-tooling-agent-read` or equivalent in-tree composed read primitives when present.
+- `tooling-agent-read` or equivalent in-tree composed read primitives when present.
 
 External harness locks (grit/icm/OMC claim cycles) are retired (ADR-0116 /
 ADR-0619). For everything else, §2 applies.
@@ -98,7 +98,7 @@ is canonical because of the sunset clause, not despite it.
 > §Temporary seam. CI guard `F-FORBIDDEN-PRIMITIVES-CI-GUARD` is **pending
 > Wave-B webhook receiver** deployment; until then, the per-invocation
 
-Lane: `oya-governance-banned-primitives` (existing; Wave-A: catches
+Lane: `governance-banned-primitives` (existing; Wave-A: catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
 sections; Wave-B: `F-FORBIDDEN-PRIMITIVES-CI-GUARD` will add CI-level
 blocking once webhook receiver is deployed per ADR-0116).
@@ -120,7 +120,7 @@ migration-candidate row in
 [`docs/MISTAKES-LEDGER.md`](../MISTAKES-LEDGER.md):
 
 ```
-| MFL-NNNN | Direct `git <pattern>` invoked N times in 30d | tooling-gap | mechanical | extend `oya-tooling-agent-read` w/ <op> | <date> |
+| MFL-NNNN | Direct `git <pattern>` invoked N times in 30d | tooling-gap | mechanical | extend `tooling-agent-read` w/ <op> | <date> |
 ```
 
 The owning team (default: `axis-foundry`) opens an issue to grow the
@@ -130,14 +130,14 @@ patterns that exceed the threshold.
 ## 6. Pragmatic gh patterns
 
 Several common `gh` patterns currently lack a sanctioned wrapper. Each
-is a candidate for `oya-tooling-agent-read` once usage justifies:
+is a candidate for `tooling-agent-read` once usage justifies:
 
 | Pattern | Current path | Migration target |
 |---|---|---|
-| `gh pr checks <num>` | direct `gh` | `oya-tooling-agent-read pr checks <num>` |
-| `gh api repos/.../pulls/<n>/comments` | direct `gh` | `oya-tooling-agent-read pr comments <n>` |
-| `gh run list` | direct `gh` | `oya-tooling-agent-read run list` |
-| `gh issue view <num>` | direct `gh` | `oya-tooling-agent-read issue view <num>` |
+| `gh pr checks <num>` | direct `gh` | `tooling-agent-read pr checks <num>` |
+| `gh api repos/.../pulls/<n>/comments` | direct `gh` | `tooling-agent-read pr comments <n>` |
+| `gh run list` | direct `gh` | `tooling-agent-read run list` |
+| `gh issue view <num>` | direct `gh` | `tooling-agent-read issue view <num>` |
 
 When a pattern crosses the 5-per-30d threshold, the migration row
 is auto-created.

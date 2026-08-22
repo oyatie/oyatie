@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-audit-chain-postgres
+name: audit-chain-postgres
 description: Postgres HA primary + replica for audit-chain WAL + index. Per ADR-0117 + ADR-0028.
 type: application
 version: 0.1.0

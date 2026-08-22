@@ -5,7 +5,7 @@
 use intelligence_step_domain::{
     StepDisposition, StepError, StepKind, StepLedger, StepStart, StepState,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
     privacy_data_classes_from(&data_classes).expect("test fixture uses privacy data classes")

@@ -1,6 +1,6 @@
-//! # oya-ci-controller-kernel
+//! # ci-controller-kernel
 //!
-//! Pure-domain kernel for the oya-ci controller (Phase 1, bespoke-Prow ADR).
+//! Pure-domain kernel for the ci controller (Phase 1, bespoke-Prow ADR).
 //! No I/O, no async, no kube, no tokio. #![forbid(unsafe_code)].
 //!
 //! Owns:
@@ -58,7 +58,7 @@ pub type Result<T> = std::result::Result<T, KernelError>;
 // Commit-status vocabulary (forge-neutral)
 // ---------------------------------------------------------------------------
 
-/// Forge-neutral commit-status state values (subset used by the oya-ci gate).
+/// Forge-neutral commit-status state values (subset used by the ci gate).
 /// Maps onto the GitHub status API.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -91,7 +91,7 @@ impl std::fmt::Display for CommitState {
 // ---------------------------------------------------------------------------
 
 /// Commit-status context produced by trusted review admission.
-pub const REVIEW_CONTEXT: &str = "oya-pr-review";
+pub const REVIEW_CONTEXT: &str = "pr-review";
 
 /// Forge-neutral pull-request review verdict.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -170,7 +170,7 @@ impl ReviewAdmissionPolicy {
     /// the trusted admission boundary; it is not caller-asserted metadata.
     pub fn canonical_sha256(&self) -> String {
         let mut hasher = Sha256::new();
-        hasher.update(b"oya-ci/review-admission-policy/v1");
+        hasher.update(b"ci/review-admission-policy/v1");
         update_canonical_string(&mut hasher, &self.policy_ref);
         update_canonical_string(&mut hasher, &self.version);
         update_canonical_string(&mut hasher, &self.issuer);
@@ -414,16 +414,16 @@ pub struct GateRun {
     pub delivery_id: String, // data_class: INTERNAL_ONLY
     /// Base branch (usually `"dev"`).
     pub base_ref: String, // data_class: INTERNAL_ONLY
-    /// Repository full name, e.g. `"oya-admin/oyatie"`.
+    /// Repository full name, e.g. `"admin/oyatie"`.
     pub repo: String, // data_class: INTERNAL_ONLY
 }
 
 impl GateRun {
-    /// Deterministic K8s Job name: `oya-ci-gate-pr<N>-<sha[..8]>`.
+    /// Deterministic K8s Job name: `ci-gate-pr<N>-<sha[..8]>`.
     /// Deterministic = idempotent create-conflict dedup on re-delivery.
     pub fn job_name(&self) -> String {
         let sha_short: String = self.head_sha.chars().take(8).collect();
-        format!("oya-ci-gate-pr{}-{sha_short}", self.pr_number)
+        format!("ci-gate-pr{}-{sha_short}", self.pr_number)
     }
     /// Stable cloud-native run id used by status APIs, metrics, logs, traces, and events.
     ///
@@ -442,7 +442,7 @@ impl GateRun {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GateRunSpec {
     pub run: GateRun, // data_class: INTERNAL_ONLY
-    /// Rust-CI image (e.g. `"registry.oya-registry.svc.cluster.local:5000/rust-ci:dev"`).
+    /// Rust-CI image (e.g. `"registry.registry.svc.cluster.local:5000/rust-ci:dev"`).
     pub image: String, // data_class: INTERNAL_ONLY
     /// Git clone URL (e.g. `"https://github.com/jason931225/oyatie.git"`).
     pub forge_clone_url: String, // data_class: INTERNAL_ONLY
@@ -490,7 +490,7 @@ pub enum GateOutcome {
 /// Legacy `oya verify` / `oya gate` invocations can provide local migration
 /// evidence only; they are not accepted by this policy as merge or Phase-0 exit
 /// authority.
-pub const PHASE0_REQUIRED_CI_CONTEXTS: [&str; 2] = ["cloud-ci-required", "oya-ci-required"];
+pub const PHASE0_REQUIRED_CI_CONTEXTS: [&str; 2] = ["cloud-ci-required", "presubmit"];
 
 /// Toolchain pipeline surfaces that must be tenant-separated before any live
 /// tenant-isolation claim is allowed.
@@ -564,7 +564,7 @@ impl Phase0CiPolicyViolation {
                 "missing_cloud_ci_required_context"
             }
             Phase0CiPolicyViolation::LegacyOyaCliRequiredContext => {
-                "legacy_oya_cli_required_context"
+                "legacy_cli_required_context"
             }
             Phase0CiPolicyViolation::UntrustedOrLegacyStatusProducer => {
                 "untrusted_or_legacy_status_producer"
@@ -617,7 +617,7 @@ pub fn evaluate_phase0_ci_policy(input: &Phase0CiPolicyInput) -> Phase0CiPolicyV
     if input
         .protected_required_contexts
         .iter()
-        .any(|context| context == "oya-verify")
+        .any(|context| context == "verify")
     {
         violations.insert(Phase0CiPolicyViolation::LegacyOyaCliRequiredContext);
     }
@@ -631,9 +631,9 @@ pub fn evaluate_phase0_ci_policy(input: &Phase0CiPolicyInput) -> Phase0CiPolicyV
     ) || producer_command.contains("oya ")
         || !matches!(
             producer_kind,
-            "minimal_rust_bridge_adapter" | "oya-ci-controller"
+            "minimal_rust_bridge_adapter" | "ci-controller"
         )
-        || producer_controller != "oya-ci-controller"
+        || producer_controller != "ci-controller"
     {
         violations.insert(Phase0CiPolicyViolation::UntrustedOrLegacyStatusProducer);
     }
@@ -789,17 +789,17 @@ pub enum ReconcileDecision {
     AlreadyTerminal,
 }
 
-// The protected required context for the P0.0 cloud-ci/oya-ci target. Legacy
-// `oya-ci-gate` can remain bridge feedback only; it is not merge or Phase-0
+// The protected required context for the P0.0 cloud-ci/ci target. Legacy
+// `ci-gate` can remain bridge feedback only; it is not merge or Phase-0
 // exit authority.
-pub const GATE_CONTEXT: &str = "oya-ci-required";
+pub const GATE_CONTEXT: &str = "presubmit";
 
 // ---------------------------------------------------------------------------
 // Gate-run observability contract — API-native debug packet
 // ---------------------------------------------------------------------------
 
-/// Stable schema label for the productized oya-ci run observability envelope.
-pub const GATE_RUN_OBSERVABILITY_SCHEMA: &str = "oya-ci/run-observability-packet/v1";
+/// Stable schema label for the productized ci run observability envelope.
+pub const GATE_RUN_OBSERVABILITY_SCHEMA: &str = "ci/run-observability-packet/v1";
 
 /// Status API path prefix. Runtime routers expose run status by deterministic run id.
 pub const GATE_RUN_STATUS_API_PREFIX: &str = "/gate-runs";
@@ -809,11 +809,11 @@ pub const GATE_RUN_STATUS_API_PREFIX: &str = "/gate-runs";
 
 /// Metric names exposed by the controller and backing telemetry adapter.
 pub const GATE_RUN_OBSERVABILITY_METRICS: [&str; 5] = [
-    "oya_ci_gate_run_requests_total",
-    "oya_ci_gate_status_api_requests_total",
-    "oya_ci_gate_job_spawn_total",
-    "oya_ci_gate_reconcile_total",
-    "oya_ci_gate_status_post_total",
+    "ci_gate_run_requests_total",
+    "ci_gate_status_api_requests_total",
+    "ci_gate_job_spawn_total",
+    "ci_gate_reconcile_total",
+    "ci_gate_status_post_total",
 ];
 
 /// Log fields required on structured controller logs for API/debug correlation.
@@ -847,7 +847,7 @@ impl GateRunObservabilityPhase {
     }
 }
 
-/// Machine-readable status/API/telemetry join packet for one oya-ci gate run.
+/// Machine-readable status/API/telemetry join packet for one ci gate run.
 ///
 /// This is not a loose evidence file. It is the API-native envelope that lets
 /// cloud-native debuggers join status APIs, controller logs, metrics, and K8s
@@ -923,7 +923,7 @@ fn pod_reason_name(reason: &PodReason) -> String {
     }
 }
 
-/// Build a stable status API path for a deterministic oya-ci run id.
+/// Build a stable status API path for a deterministic ci run id.
 pub fn gate_run_status_api_path(run_id: &str) -> String {
     format!("{GATE_RUN_STATUS_API_PREFIX}/{run_id}")
 }
@@ -1034,7 +1034,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
         return ReconcileDecision::PostTerminal {
             state: CommitState::Failure,
             context: GATE_CONTEXT,
-            description: "oya-ci-required: run disappeared (job deleted before verdict posted)"
+            description: "presubmit: run disappeared (job deleted before verdict posted)"
                 .to_owned(),
         };
     }
@@ -1059,7 +1059,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
         return ReconcileDecision::PostTerminal {
             state: CommitState::Success,
             context: GATE_CONTEXT,
-            description: "oya-ci-required full gate target passed".to_owned(),
+            description: "presubmit full gate target passed".to_owned(),
         };
     }
 
@@ -1072,10 +1072,10 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
     if let Some(cond) = failed_condition {
         let reason = cond.reason.as_deref().unwrap_or("");
         let description = match reason {
-            "DeadlineExceeded" => "oya-ci-required failed: deadline exceeded (timeout)".to_owned(),
+            "DeadlineExceeded" => "presubmit failed: deadline exceeded (timeout)".to_owned(),
             _ => {
                 // BackoffLimitExceeded or unknown — gate logic failure
-                "oya-ci-required failed: required gate exited non-zero".to_owned()
+                "presubmit failed: required gate exited non-zero".to_owned()
             }
         };
         return ReconcileDecision::PostTerminal {
@@ -1093,7 +1093,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                 return ReconcileDecision::PostTerminal {
                     state: CommitState::Failure,
                     context: GATE_CONTEXT,
-                    description: "oya-ci-required failed: OOMKilled — raise Job memory limit"
+                    description: "presubmit failed: OOMKilled — raise Job memory limit"
                         .to_owned(),
                 };
             }
@@ -1102,7 +1102,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                     state: CommitState::Failure,
                     context: GATE_CONTEXT,
                     description:
-                        "oya-ci-required failed: pod evicted (node-pressure or preemption)"
+                        "presubmit failed: pod evicted (node-pressure or preemption)"
                             .to_owned(),
                 };
             }
@@ -1112,7 +1112,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                     state: CommitState::Error,
                     context: GATE_CONTEXT,
                     description:
-                        "oya-ci-required error: InvalidImageName — operator must fix gate image config"
+                        "presubmit error: InvalidImageName — operator must fix gate image config"
                             .to_owned(),
                 };
             }
@@ -1127,7 +1127,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                 return ReconcileDecision::PostTerminal {
                     state: CommitState::Failure,
                     context: GATE_CONTEXT,
-                    description: format!("oya-ci-required failed: {label}"),
+                    description: format!("presubmit failed: {label}"),
                 };
             }
             // Pull/container errors within grace fall through to pending / await-change below.
@@ -1142,7 +1142,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
             return ReconcileDecision::AwaitChange;
         }
         return ReconcileDecision::PostPending {
-            description: "oya-ci-required: running trusted required gate target".to_owned(),
+            description: "presubmit: running trusted required gate target".to_owned(),
         };
     }
 
@@ -1150,7 +1150,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
     ReconcileDecision::PostTerminal {
         state: CommitState::Failure,
         context: GATE_CONTEXT,
-        description: "oya-ci-required failed: required gate exited non-zero".to_owned(),
+        description: "presubmit failed: required gate exited non-zero".to_owned(),
     }
 }
 
@@ -1514,14 +1514,14 @@ mod tests {
             head_sha: "abcdef1234567890".to_owned(),
             delivery_id: "d1".to_owned(),
             base_ref: "dev".to_owned(),
-            repo: "oya-admin/oyatie".to_owned(),
+            repo: "admin/oyatie".to_owned(),
         };
-        assert_eq!(run.job_name(), "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(run.job_name(), "ci-gate-pr42-abcdef12");
     }
 
     #[test]
     fn gate_context_is_phase0_required_context() {
-        assert_eq!(GATE_CONTEXT, "oya-ci-required");
+        assert_eq!(GATE_CONTEXT, "presubmit");
         assert!(phase0_context_is_required_authority(GATE_CONTEXT));
     }
 
@@ -1539,12 +1539,12 @@ mod tests {
             forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
             active_deadline_seconds: 3600,
             ttl_seconds_after_finished: 86400,
-            namespace: "oya-ci".to_owned(),
-            runner_service_account: "oya-ci-gate-runner".to_owned(),
+            namespace: "ci".to_owned(),
+            runner_service_account: "ci-gate-runner".to_owned(),
         };
         let handle = JobHandle {
             job_name: spec.run.job_name(),
-            namespace: "oya-ci".to_owned(),
+            namespace: "ci".to_owned(),
             already_exists: false,
         };
 
@@ -1556,20 +1556,20 @@ mod tests {
         );
 
         assert_eq!(packet.schema, GATE_RUN_OBSERVABILITY_SCHEMA);
-        assert_eq!(packet.run_id, "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(packet.run_id, "ci-gate-pr42-abcdef12");
         assert_eq!(
             packet.status_api_path,
-            "/gate-runs/oya-ci-gate-pr42-abcdef12"
+            "/gate-runs/ci-gate-pr42-abcdef12"
         );
         assert_eq!(
             packet.status_url.as_deref(),
-            Some("https://ci.example.test/gate-runs/oya-ci-gate-pr42-abcdef12")
+            Some("https://ci.example.test/gate-runs/ci-gate-pr42-abcdef12")
         );
-        assert!(packet.metrics.contains(&"oya_ci_gate_reconcile_total"));
+        assert!(packet.metrics.contains(&"ci_gate_reconcile_total"));
         assert!(packet.logs.contains(&"decision"));
 
         let json = serde_json::to_value(&packet).expect("packet serializes");
-        assert_eq!(json["run_id"], "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(json["run_id"], "ci-gate-pr42-abcdef12");
         assert_eq!(json["phase"], "accepted");
         assert!(
             !json.to_string().contains("multispectrum"),
@@ -1745,7 +1745,7 @@ mod phase0_ci_enforcement_baseline_tests {
         }
     }
 
-    fn contains_oya_cli_authority(value: &str) -> bool {
+    fn contains_cli_authority(value: &str) -> bool {
         let lower = value.to_ascii_lowercase();
         lower.contains("oya gate")
             || lower.contains("oya verify")
@@ -1772,9 +1772,9 @@ mod phase0_ci_enforcement_baseline_tests {
         let trusted_source = matches!(
             row["review_authority_source"].as_str().map(str::trim),
             Some(
-                "trusted_runner_signed_oya_pr_review_status"
+                "trusted_runner_signed_pr_review_status"
                     | "trusted_cloud_ci_review_admission_packet"
-                    | "trusted_server_side_oya_pr_review_status"
+                    | "trusted_server_side_pr_review_status"
             )
         );
         let blocks_merge = row["review_blocks_merge"].as_bool() == Some(true);
@@ -1865,14 +1865,14 @@ mod phase0_ci_enforcement_baseline_tests {
                 violations.insert("unknown_classification".to_owned());
             }
 
-            if row["no_new_oya_cli_surface"].as_bool() != Some(true) {
-                violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
+            if row["no_new_cli_surface"].as_bool() != Some(true) {
+                violations.insert("blocking_invariant_mapped_to_cli".to_owned());
             }
             if row["target_gate_or_controller"]
                 .as_str()
-                .is_some_and(contains_oya_cli_authority)
+                .is_some_and(contains_cli_authority)
             {
-                violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
+                violations.insert("blocking_invariant_mapped_to_cli".to_owned());
             }
 
             if row["evidence_path"]
@@ -1966,10 +1966,10 @@ mod phase0_ci_enforcement_baseline_tests {
             covered_terms.extend(claim_row_terms(row));
             let evidence = claim_row_evidence(row);
             if tier == "mechanically_enforced"
-                && (contains_oya_cli_authority(&evidence) || contains_oya_cli_authority(text))
+                && (contains_cli_authority(&evidence) || contains_cli_authority(text))
             {
                 violations
-                    .insert("forbidden_local_or_oya_evidence_for_mechanical_claim".to_owned());
+                    .insert("forbidden_local_or_evidence_for_mechanical_claim".to_owned());
             }
 
             let terms = claim_row_terms(row);
@@ -2097,7 +2097,7 @@ mod phase0_ci_enforcement_baseline_tests {
         for gap_key in [
             "trusted_producer",
             "candidate_pr_untrusted",
-            "no_oya_cli_authority",
+            "no_cli_authority",
             "override_kill_switch",
             "structured_result_output",
             "tenant_pipeline_isolation",
@@ -2118,8 +2118,8 @@ mod phase0_ci_enforcement_baseline_tests {
             ],
         );
         assert!(
-            checked_in_contexts.contains(&"oya-ci-required")
-                && !checked_in_contexts.contains(&"oya-verify"),
+            checked_in_contexts.contains(&"presubmit")
+                && !checked_in_contexts.contains(&"verify"),
             "baseline should expose the local target context without legacy oya CLI authority"
         );
 
@@ -2132,11 +2132,11 @@ mod phase0_ci_enforcement_baseline_tests {
             ],
         );
         assert!(
-            live_contexts == vec!["oya-ci-required"]
+            live_contexts == vec!["presubmit"]
                 && live_contexts
                     .iter()
                     .all(|context| phase0_context_is_required_authority(context)),
-            "baseline must record exactly the single live oya-ci-required protected context"
+            "baseline must record exactly the single live presubmit protected context"
         );
     }
 
@@ -2209,7 +2209,7 @@ mod phase0_ci_enforcement_baseline_tests {
         let empty_context_input = Phase0CiPolicyInput {
             protected_required_contexts: vec![],
             producer_kind: Some("minimal_rust_bridge_adapter".to_owned()),
-            producer_controller: Some("oya-ci-controller".to_owned()),
+            producer_controller: Some("ci-controller".to_owned()),
             producer_command: None,
             candidate_bytes_policy: Some("untrusted_input_only".to_owned()),
             gate_definition_source: Some("trusted_dev_or_controller_state".to_owned()),
@@ -2228,7 +2228,7 @@ mod phase0_ci_enforcement_baseline_tests {
         );
 
         let missing_producer_input = Phase0CiPolicyInput {
-            protected_required_contexts: vec!["oya-ci-required".to_owned()],
+            protected_required_contexts: vec!["presubmit".to_owned()],
             producer_kind: None,
             producer_controller: None,
             producer_command: None,
@@ -2340,7 +2340,7 @@ mod phase0_ci_enforcement_baseline_tests {
             .expect("AC-0.0 required-context row");
         assert_eq!(
             required_context_row["target_gate_or_controller"].as_str(),
-            Some("oya-ci-required branch-protection context"),
+            Some("presubmit branch-protection context"),
             "automation matrix should name the exact live required context, not retain an obsolete alternative"
         );
         assert!(
@@ -2516,7 +2516,7 @@ mod phase0_ci_enforcement_baseline_tests {
             fixture_paths.iter().any(|path| path.contains("good-"))
                 && fixture_paths
                     .iter()
-                    .any(|path| path.contains("bad-oya-cli"))
+                    .any(|path| path.contains("bad-cli"))
                 && fixture_paths
                     .iter()
                     .any(|path| path.contains("bad-missing-field")),

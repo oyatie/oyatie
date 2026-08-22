@@ -46,7 +46,7 @@ outputs:
     type: integer
 
 slo_targets:
-  - oya-identity-step-up-grant-latency
+  - identity-step-up-grant-latency
 
 audit_events_emitted:
   - IdentityStepUpGranted

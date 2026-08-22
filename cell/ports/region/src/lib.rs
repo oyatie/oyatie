@@ -674,7 +674,7 @@ fn cloud_region_issue(error: &CloudRegionError) -> &'static str {
         CloudRegionError::InvalidCellId => "cell id must be canonical and use the cell- prefix",
         CloudRegionError::InvalidDisplayName => "display_name must be non-empty",
         CloudRegionError::InvalidRegulatoryPack => {
-            "regulatory pack id must use the oya-pack- prefix"
+            "regulatory pack id must use the pack- prefix"
         }
         CloudRegionError::EmptyRegulatoryPackSet => "region must name at least one regulatory pack",
         CloudRegionError::DuplicateRegulatoryPack => "regulatory pack ids must be unique",

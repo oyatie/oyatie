@@ -19,12 +19,12 @@ purpose: |
   `standards/error-handling.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-error-boundary
+planned_enforcement_ref: governance-error-boundary
 enforcement_status:
-  oya-governance-error-boundary: existing
-  oya-governance-no-unwrap-prod: existing
-  oya-governance-silent-failure: F-PENDING-SILENT-FAILURE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-governance-audit-emission: existing
+  governance-error-boundary: existing
+  governance-no-unwrap-prod: existing
+  governance-silent-failure: F-PENDING-SILENT-FAILURE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  governance-audit-emission: existing
   F-FITNESS-ERROR-HANDLING-LANES: meta-lane per OP-11 audit
   F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION: meta-lane per OP-11
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
@@ -64,7 +64,7 @@ Hyperscaler consensus (AWS, Microsoft, Google) on Rust error handling:
   propagation at the top level. The crate MUST NOT re-export `anyhow::Error`
   from any `pub fn` consumed by another crate.
 
-Lane: `oya-governance-error-boundary` refuses library crates that
+Lane: `governance-error-boundary` refuses library crates that
 declare `anyhow` as a non-`dev-dependencies` entry, and refuses binary
 crates that expose `anyhow::Error` in a `pub fn` signature.
 
@@ -122,7 +122,7 @@ propagation. Rules:
 
 ## 4. No `unwrap()` / `expect()` outside tests
 
-Lane `oya-governance-no-unwrap-prod` (clippy `unwrap_used = "deny"`)
+Lane `governance-no-unwrap-prod` (clippy `unwrap_used = "deny"`)
 refuses:
 
 - `.unwrap()`
@@ -181,7 +181,7 @@ PR that touches error paths and refuses:
 6. **Error returned but not surfaced to the audit chain** at cross-pillar
    boundaries — see §7.
 
-Lane: `oya-governance-silent-failure` (F-PENDING-SILENT-FAILURE; clippy-driven;
+Lane: `governance-silent-failure` (F-PENDING-SILENT-FAILURE; clippy-driven;
 full gate is the reviewer-agent verdict; crate creation tracked in
 registry/stub-audit/2026-05-17/missing-fitness-crates.json; enforced at PR review
 until crate lands; meta-policy ADR-0133 chained-enforcement planning contract).
@@ -198,7 +198,7 @@ cross-axis contract surface) MUST emit an `EVT-ERROR-*` audit event with:
   [`data-class.md`](data-class.md).
 - `tenant_id`, `actor_id`, `trace_id` (W3C trace context).
 
-The lane `oya-governance-audit-emission` validates that every
+The lane `governance-audit-emission` validates that every
 cross-pillar error path has an emission point. Source:
 [`observability.md`](observability.md) §3.
 

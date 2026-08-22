@@ -1,0 +1,21 @@
+rust_library(
+    name = "shared-transactional-outbox-dispatch-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_transactional_outbox_dispatch_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-transactional-outbox-kernel:shared-transactional-outbox-kernel",
+    ],
+)
+
+rust_test(
+    name = "shared-transactional-outbox-dispatch-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_transactional_outbox_dispatch_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-transactional-outbox-kernel:shared-transactional-outbox-kernel",
+    ],
+)

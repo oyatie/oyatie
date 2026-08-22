@@ -33,7 +33,7 @@ Files renamed (git mv):
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-network/README.md, microservices/cloud-network/performance-benchmark-numbers-2026-05-20.md, crates/oya-cloud-network-domain/src/lib.rs.
+- Values: pod_runtime_tier=1; evidence=microservices/cloud-network/README.md, microservices/cloud-network/performance-benchmark-numbers-2026-05-20.md, crates/cloud-network-domain/src/lib.rs.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-1.
 - Why: Network substrate control plane: tenant VPCs, routes, ingress/egress policy, and mTLS enforcement touch tenant data-plane topology, so ADR-0338 Tier-1 is required instead of first-party app placement.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

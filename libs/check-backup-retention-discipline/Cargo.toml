@@ -1,0 +1,23 @@
+[package]
+name = "check-backup-retention-discipline"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Advisory gate per ADR-0197 D-5 — validates µservice backup retention
+# declarations against canonical-neutral regulatory-pack floors
+# (pack-primary=5y, pack-health=6y, pack-secondary/financial/public-sector/generic=7y).
+# Authored 2026-05-18.
+
+[dependencies]
+shared-backup-kernel = { path = "../shared-backup-kernel" }
+
+[lib]
+name = "check_backup_retention_discipline"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

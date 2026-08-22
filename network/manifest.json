@@ -17,11 +17,11 @@
       "name": "cloud-network",
       "description": "Code-backed Cloud Network local foundation for VPC/subnet/load-balancer/DNS-zone domain invariants, provider-neutral OCI/self-hosted command shaping, and Cilium/Envoy/CoreDNS cell guardrail metadata. No live Cilium policy apply, Envoy xDS, CoreDNS deployment, REST server, SDK, worker, measured SLO, active-active DR, sharding automation, or audit-chain persistence is claimed by CS-CLOUD-NETWORK-DNS-001.",
       "crates": [
-        "oya-cloud-network-domain",
-        "oya-cloud-network-vpc-api",
-        "oya-cloud-network-lb-api",
-        "oya-cloud-network-adapter-oci",
-        "oya-cloud-network-adapter-selfhosted"
+        "cloud-network-domain",
+        "cloud-network-vpc-api",
+        "cloud-network-lb-api",
+        "cloud-network-adapter-oci",
+        "cloud-network-adapter-selfhosted"
       ]
     }
   ],
@@ -48,37 +48,37 @@
     {
       "tier": "T1",
       "name": "vpc-subnet-route-security-domain-invariants",
-      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "file": "crates/cloud-network-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "load-balancer-tls-mtls-target-domain-invariants",
-      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "file": "crates/cloud-network-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cilium-envoy-coredns-cell-guardrail-metadata",
-      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "file": "crates/cloud-network-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-network-vpc-create-api-boundary",
-      "file": "crates/oya-cloud-network-vpc-api/src/lib.rs",
+      "file": "crates/cloud-network-vpc-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-network-lb-create-api-boundary",
-      "file": "crates/oya-cloud-network-lb-api/src/lib.rs",
+      "file": "crates/cloud-network-lb-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "oci-and-selfhosted-network-command-shaping-adapters",
-      "file": "crates/oya-cloud-network-adapter-oci/src/lib.rs",
+      "file": "crates/cloud-network-adapter-oci/src/lib.rs",
       "risk_class": "high"
     }
   ],
@@ -95,7 +95,7 @@
       "id": "CS-CLOUD-NETWORK-DNS-001",
       "title": "Cilium/Envoy/CoreDNS cell guardrail foundation and Cloud Network manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs"
+      "file": "crates/cloud-network-domain/tests/cloud_network_dns_guardrails.rs"
     }
   ],
   "regulatory_packs": [
@@ -261,10 +261,10 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Network control-plane code is Tier-1 intended future substrate. CS-CLOUD-NETWORK-DNS-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-cloud-network-domain/src/lib.rs",
-    "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs",
-    "crates/oya-cloud-network-vpc-api/src/lib.rs",
-    "crates/oya-cloud-network-lb-api/src/lib.rs"
+    "crates/cloud-network-domain/src/lib.rs",
+    "crates/cloud-network-domain/tests/cloud_network_dns_guardrails.rs",
+    "crates/cloud-network-vpc-api/src/lib.rs",
+    "crates/cloud-network-lb-api/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],

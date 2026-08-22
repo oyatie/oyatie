@@ -10,7 +10,7 @@
     "status": "planning-gate-matrix",
     "owner_team": "platform-security + platform-toolchain + ops-sre-reliability + council-architecture",
     "created_at": "2026-06-30T00:00:00Z",
-    "source_request": "REGSEC-002: define a productized universal pipeline matrix for chaos engineering, security scanners, SAST, DAST, IAST, BAS, automated pentesting, NIST SSDF, OWASP ASVS/SAMM/WSTG, SLSA, and existing oya-check supply-chain evidence without mutating product code or assuming a GitHub Actions north star.",
+    "source_request": "REGSEC-002: define a productized universal pipeline matrix for chaos engineering, security scanners, SAST, DAST, IAST, BAS, automated pentesting, NIST SSDF, OWASP ASVS/SAMM/WSTG, SLSA, and existing check supply-chain evidence without mutating product code or assuming a GitHub Actions north star.",
     "claim_boundary": "Planning/gate matrix only. This spec does not claim any lane is implemented, wired to branch protection, or production-ready. Mechanically-enforced claims require a Rust gate/controller, RED/GREEN fixtures, live required-context evidence, and audit-chain records per the claim contract.",
     "related_specs": [
       "/specs/bespoke-cloud-toolchain-services.json",

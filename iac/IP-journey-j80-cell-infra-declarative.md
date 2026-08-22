@@ -18,8 +18,8 @@ Bind the journey to the existing renderer/validator/applier/registry/rollback sp
 ## C. Deliverables
 - Extend the j80 request/response examples in `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`.
 - Add async event examples to `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`.
-- Bind renderer catalog evidence from `microservices/cloud-iac/catalog/oya-cloud-iac-iac-renderer-kernel.yaml`.
-- Bind validator catalog evidence from `microservices/cloud-iac/catalog/oya-cloud-iac-iac-validator-kernel.yaml`.
+- Bind renderer catalog evidence from `microservices/cloud-iac/catalog/cloud-iac-iac-renderer-kernel.yaml`.
+- Bind validator catalog evidence from `microservices/cloud-iac/catalog/cloud-iac-iac-validator-kernel.yaml`.
 - Reference KR residency and tenant isolation through `microservices/cloud-iac/policy/tenant-scope.cedar` and `microservices/cloud-iac/policy/data-residency.md`.
 
 ## D. Implementation

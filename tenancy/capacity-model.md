@@ -93,7 +93,7 @@ valkey_cell_memory = N_tenants × 128 B (cell-assignment entry) × 2
 
 For XS tier: 20 tenants × 256 B × 2 × 1.5 ≈ 16 KB; 8 GB is the floor (Valkey min pod sizing).
 
-## Layer-B Sizing (oya-tenancy-*)
+## Layer-B Sizing (tenancy-*)
 
 ```
 tenant_lifecycle_rest_replicas  = max(3, ceil(qps_rest / 100)) × 2 HA
@@ -157,11 +157,11 @@ Per `policy/rls-isolation.md` and threat-model.md T-D-01:
 | Max DSR submissions / day | 5 | 1 | 10 | 5 | unlimited |
 | Max RLS-policy reads / day | 1000 | 100 | 10000 | 1000 | unlimited |
 
-Excess returns HTTP 429 + emits `oya_tenancy_rate_limit_exceeded_total{tenant_id, dimension}`.
+Excess returns HTTP 429 + emits `tenancy_rate_limit_exceeded_total{tenant_id, dimension}`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice tenancy` — exit 0; deployed replica counts ≥ formula minimums.
+- `cargo run -p dev-cli -- gate validate capacity-conformance --microservice tenancy` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `V_validate_qps_per_tenant` average.
 - Annual reference-architecture refresh: re-verify against current Citus + Patroni published sizing guides.
 

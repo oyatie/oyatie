@@ -512,7 +512,7 @@ fn build_seat_snapshots_empty_pool_yields_empty_vec() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Route handler tests (build_app via oya_http_runtime_hyper_adapter::dispatch)
+// Route handler tests (build_app via http_runtime_hyper_adapter::dispatch)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // NOTE: We test route handlers by invoking the compiled binary's `build_app`

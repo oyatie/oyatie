@@ -5,13 +5,13 @@
   "tags": ["tenancy", "dr", "ADR-0248"],
   "panels": [
     {"id": 1, "type": "stat", "title": "Promoted DR pairs (last 24h)",
-     "targets": [{"expr": "sum(rate(oya_tenancy_dr_pairing_promoted_total[24h]))"}]},
+     "targets": [{"expr": "sum(rate(tenancy_dr_pairing_promoted_total[24h]))"}]},
     {"id": 2, "type": "timeseries", "title": "RPO seconds (P99)",
-     "targets": [{"expr": "histogram_quantile(0.99, sum(rate(oya_tenancy_dr_rpo_seconds_bucket[5m])) by (le))"}]},
+     "targets": [{"expr": "histogram_quantile(0.99, sum(rate(tenancy_dr_rpo_seconds_bucket[5m])) by (le))"}]},
     {"id": 3, "type": "timeseries", "title": "RTO seconds (P99)",
-     "targets": [{"expr": "histogram_quantile(0.99, sum(rate(oya_tenancy_dr_rto_seconds_bucket[5m])) by (le))"}]},
+     "targets": [{"expr": "histogram_quantile(0.99, sum(rate(tenancy_dr_rto_seconds_bucket[5m])) by (le))"}]},
     {"id": 4, "type": "table", "title": "DR pairs by jurisdiction",
-     "targets": [{"expr": "sum by (home_region, dr_region, jurisdiction) (oya_tenancy_dr_pair_state)"}]}
+     "targets": [{"expr": "sum by (home_region, dr_region, jurisdiction) (tenancy_dr_pair_state)"}]}
   ],
   "binding_adrs": ["ADR-0248", "ADR-0263"]
 }

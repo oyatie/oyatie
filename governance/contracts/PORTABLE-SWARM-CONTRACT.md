@@ -11,7 +11,7 @@
 | **Live law INDEX** | Fast resume | Hindsight tags `oyatie`+`law:live` + metadata `origin_dev` (if MCP available) |
 | **Work DAG / claim** | What to do next | **`bd` only** — ready / claim / close / gate / swarm |
 | **Integ topology** | Where unit work assembles | ADR-0711 + `specs/integ-branch-envelopes.json` — durable `integ/<root>` |
-| **Merge admission** | Land on `dev` | dual-critic (any two independent models/reviews) + **`oya-ci-required`** + `gh` merge path (PR head must be `integ/*` or `hotfix/*`) |
+| **Merge admission** | Land on `dev` | dual-critic (any two independent models/reviews) + **`presubmit`** + `gh` merge path (PR head must be `integ/*` or `hotfix/*`) |
 
 ## Session start (every runtime)
 
@@ -145,7 +145,7 @@ agent-swarm folklore. Full text: ADR-0711 D-9. Machine notes:
    (`{oya,cloud}/<service>/specs/`) — ADR-0119 + ADR-0131 colocation; live apex ADR-0701.
 4. Trunk-based scoped parallel lanes: serialize only at trunk + hub contention; integ resets to
    `dev` after land.
-5. Hermetic policy-as-data gates under sole `oya-ci-required` (ADR-0700 / ADR-0515); declared SCM
+5. Hermetic policy-as-data gates under sole `presubmit` (ADR-0700 / ADR-0515); declared SCM
    facts only.
 6. Selective / affected testing (ADR-0554): workers never full-rebuild; read `err.txt`; no
    `cargo`/`buck2` in lanes.
@@ -214,9 +214,9 @@ Mirror of ADR-0711 Amendment B.
 6. **Pattern-First Law (binding):** establish / follow `specs/naming-taxonomy.json` BEFORE mass
    renames. Kinds + role-first grammar + mechanical classification rules are the pattern;
    renames are instances. **Forbidden leading brand prefixes** on durable names: `oya-` /
-   `oya_` / `cloud-` / `cloud_`. **Forbidden:** ADR numbers as required path/filename segments
+   `` / `cloud-` / `cloud_`. **Forbidden:** ADR numbers as required path/filename segments
    or inside CI job `name:` fields. Brand prefix alone ≠ `keep_forever`. Taxonomy **replaces**
-   indefensible prior naming (does not encode `oya-ci-required` / ADR-in-job-titles / brand
+   indefensible prior naming (does not encode `presubmit` / ADR-in-job-titles / brand
    prefixes as forever grammar).
 7. **naming_sweep[]** on envelopes MUST cite taxonomy `kind` + `grammar_compliant` +
    `name_forever`. Merge-gate contexts dual-emit legacy+forever in-repo until founder flips
@@ -254,8 +254,8 @@ clusters (not paraphrases). Machine copy: `specs/agentic-operating-patterns.json
 4. Brand / opaque / ADR-in-title durable names (`oya-*` / `cloud-*` / ADR-in-job-title).
 5. Silent blocked “success”; rubber-stamp thread resolve; merge ego after green; observation-density scoreboards.
 
-**OVERRULE (naming):** distill notes that said keep name `oya-ci-required` are **overturned**.
-Forever name is **`merge-admission-required`**. Brand/ADR-in-title bans stand. Legacy protection
+**OVERRULE (naming):** distill notes that said keep name `presubmit` are **overturned**.
+Forever name is **`presubmit`**. Brand/ADR-in-title bans stand. Legacy protection
 pin is dual-emit cutover only.
 
 ### Amendment D (2026-08-10) — Anti-drift documentation doctrine

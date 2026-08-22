@@ -37,7 +37,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     env = {
-        "OYA_TESTDATA_DIR": "$(location :testdata)/testdata",
+        "OYATIE_TESTDATA_DIR": "$(location :testdata)/testdata",
     },
     deps = [
         "//os/core/kernel:os-kernel",

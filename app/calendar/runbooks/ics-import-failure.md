@@ -51,7 +51,7 @@ doc_status: published
    ```
 5. Check parser version + RFC 5545 corpus pass rate:
    ```bash
-   cargo run -p oya-calendar-ics-import-export-app -- parser version
+   cargo run -p calendar-ics-import-export-app -- parser version
    ```
 
 ## Mitigation steps
@@ -125,7 +125,7 @@ oya calendar ics-import notify-tenant --job-id <id> --status failed --reason "<s
 - Was the parser bound appropriate?
 - Was the vendor extension a new pattern? Update parser if needed.
 - If injection: emit ADR + threat-model update for T-T-02.
-- Update LEAN check `oya-check-ics-parser-conformance` if a new corpus entry was added.
+- Update LEAN check `check-ics-parser-conformance` if a new corpus entry was added.
 
 ## Drills
 

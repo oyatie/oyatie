@@ -23,20 +23,20 @@
     "owning_axis": "ecosystem-infrastructure-backbone",
     "backbone_pair": "$ref:specs/microservices/workflow.json (jointly form ecosystem-as-a-product backbone)",
     "crate_refs_current": [
-      "$ref:registry/catalog/oya-ontology-kernel.yaml",
-      "$ref:registry/catalog/oya-ontology-api.yaml",
-      "$ref:registry/catalog/oya-ontology-domain.yaml"
+      "$ref:registry/catalog/ontology-kernel.yaml",
+      "$ref:registry/catalog/ontology-api.yaml",
+      "$ref:registry/catalog/ontology-domain.yaml"
     ],
     "crate_rename_resolution": {
       "status": "resolved",
-      "current_kernel_ref": "$ref:registry/catalog/oya-ontology-kernel.yaml",
+      "current_kernel_ref": "$ref:registry/catalog/ontology-kernel.yaml",
       "via_adr": "ADR-0122",
       "resolved_at": "2026-05-16",
       "ref": "$ref:memory/feedback_glossary_ontology_not_object_graph"
     },
     "crate_refs_planned": [
-      "oya-ontology-usecase",
-      "oya-ontology-adapter"
+      "ontology-usecase",
+      "ontology-adapter"
     ],
     "user_facing_surface": true
   },
@@ -95,14 +95,14 @@
       "given": "typed entity schema (e.g., Patient)",
       "when": "OntologyEngine::register_type()",
       "then": "EntityTypeId returned + queryable; conflicts rejected",
-      "test_ref": "crates/oya-ontology-kernel/tests/types.rs::test_register_type"
+      "test_ref": "crates/ontology-kernel/tests/types.rs::test_register_type"
     },
     {
       "id": "AC-02",
       "given": "entity instance create with tier-classified properties",
       "when": "persisted",
       "then": "per-property tier enforced; data_class recorded; entity_created audit row emitted",
-      "test_ref": "crates/oya-ontology-domain/tests/instance.rs::test_tier_enforcement",
+      "test_ref": "crates/ontology-domain/tests/instance.rs::test_tier_enforcement",
       "doctrine_ref": "$ref:bominal/decisions/ADR-0133"
     },
     {
@@ -110,35 +110,35 @@
       "given": "typed link between entities",
       "when": "created",
       "then": "cardinality enforced (1:1/1:N/M:N); cross-tenant link refused unless explicit policy permits",
-      "test_ref": "crates/oya-ontology-domain/tests/links.rs::test_no_cross_tenant_link_unless_policy"
+      "test_ref": "crates/ontology-domain/tests/links.rs::test_no_cross_tenant_link_unless_policy"
     },
     {
       "id": "AC-04",
       "given": "typed action invoked (e.g., dischargePatient)",
       "when": "Cedar policy + autonomy_tier check",
       "then": "executes only if policy permits; action_invoked row with provenance (caller, tier, refs)",
-      "test_ref": "crates/oya-ontology-domain/tests/actions.rs::test_cedar_action_gate"
+      "test_ref": "crates/ontology-domain/tests/actions.rs::test_cedar_action_gate"
     },
     {
       "id": "AC-05",
       "given": "workflow step references entity-type",
       "when": "workflow engine calls ontology adapter",
       "then": "type checked at workflow-deploy time, NOT runtime; deploy fails on unknown type",
-      "test_ref": "crates/oya-saas-workflow-domain/tests/ontology_ref.rs::test_deploy_type_check"
+      "test_ref": "crates/saas-workflow-domain/tests/ontology_ref.rs::test_deploy_type_check"
     },
     {
       "id": "AC-06",
       "given": "query for entities matching graph traversal (semantic+kinetic+dynamic)",
       "when": "submitted via API",
       "then": "returns within latency budget; cross-tier joins enforce tier ceiling",
-      "test_ref": "crates/oya-ontology-api/tests/graph_traversal.rs::test_kg_3layer_join_perf"
+      "test_ref": "crates/ontology-api/tests/graph_traversal.rs::test_kg_3layer_join_perf"
     },
     {
       "id": "AC-07",
       "given": "LLM tool-call invokes typed action",
       "when": "Foundry capability registry routes",
       "then": "Cedar autonomy_tier ceiling enforced; LLM input as data; audit row emitted",
-      "test_ref": "crates/oya-ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling",
+      "test_ref": "crates/ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling",
       "doctrine_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"
     },
     {
@@ -146,14 +146,14 @@
       "given": "jurisdiction-overlay schema (e.g., kr-patient)",
       "when": "querying in kr cell",
       "then": "overlay fields available; base fields unchanged elsewhere",
-      "test_ref": "crates/oya-ontology-domain/tests/overlay.rs::test_jurisdiction_overlay_query"
+      "test_ref": "crates/ontology-domain/tests/overlay.rs::test_jurisdiction_overlay_query"
     },
     {
       "id": "AC-09",
       "given": "KG dynamic-state read",
       "when": "OTel telemetry consulted",
       "then": "returns within freshness budget (<2s lag); never silent stale",
-      "test_ref": "crates/oya-ontology-adapter/tests/dynamic_state.rs::test_freshness_budget",
+      "test_ref": "crates/ontology-adapter/tests/dynamic_state.rs::test_freshness_budget",
       "ref": "$ref:registry/knowledge-graph-dynamic.json"
     },
     {
@@ -161,7 +161,7 @@
       "given": "graph mutation via kinetic layer",
       "when": "applied",
       "then": "audit topic emitted; idempotency_key honored; lock pattern engaged",
-      "test_ref": "crates/oya-ontology-domain/tests/kinetic.rs::test_audit_idempotency_lock",
+      "test_ref": "crates/ontology-domain/tests/kinetic.rs::test_audit_idempotency_lock",
       "ref": "$ref:registry/knowledge-graph-kinetic.json"
     }
   ],
@@ -261,7 +261,7 @@
     ]
   },
   "data_model": {
-    "entities_ref": "$ref:crates/oya-ontology-kernel/src/lib.rs (current: data-classed ObjectEntity/ObjectProperty kernel with PropertyTier classification; planned: EntityType with PropertyDescriptor[Tier classification per $ref:bominal/decisions/ADR-0133], EntityInstance, ActionInvocation with autonomy_tier)",
+    "entities_ref": "$ref:crates/ontology-kernel/src/lib.rs (current: data-classed ObjectEntity/ObjectProperty kernel with PropertyTier classification; planned: EntityType with PropertyDescriptor[Tier classification per $ref:bominal/decisions/ADR-0133], EntityInstance, ActionInvocation with autonomy_tier)",
     "tier_enum": [
       "Tier1Sensitive",
       "Tier2Restricted",
@@ -362,8 +362,8 @@
         "stable": 10,
         "GA": 5
       },
-      "verification_ref": "cargo bench -p oya-ontology-kernel -- type_lookup_p99",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p ontology-kernel -- type_lookup_p99",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "entity_read_p99_ms",
@@ -372,8 +372,8 @@
         "stable": 50,
         "GA": 20
       },
-      "verification_ref": "cargo bench -p oya-ontology-domain -- entity_read_p99",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p ontology-domain -- entity_read_p99",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "action_p99_ms",
@@ -382,8 +382,8 @@
         "stable": 100,
         "GA": 50
       },
-      "verification_ref": "cargo bench -p oya-ontology-domain -- action_p99",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p ontology-domain -- action_p99",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "kg_3layer_join_p99_ms",
@@ -392,8 +392,8 @@
         "stable": 500,
         "GA": 200
       },
-      "verification_ref": "cargo bench -p oya-ontology-api -- kg_3layer_join_p99",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p ontology-api -- kg_3layer_join_p99",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "cross_tenant_link_leak_count",
@@ -413,7 +413,7 @@
         "GA": 0
       },
       "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d",
-      "lane_ref": "oya-governance-ontology-tier-enforcement"
+      "lane_ref": "governance-ontology-tier-enforcement"
     },
     {
       "name": "dynamic_layer_freshness_lag_seconds",
@@ -423,7 +423,7 @@
         "GA": 2
       },
       "verification_ref": "cargo nextest -- test_freshness_budget",
-      "lane_ref": "oya-governance-ontology-dynamic-freshness"
+      "lane_ref": "governance-ontology-dynamic-freshness"
     },
     {
       "name": "action_audit_chain_completeness_pct",
@@ -433,7 +433,7 @@
         "GA": 100
       },
       "verification_ref": "jq cross-check audit-chain vs invocation count",
-      "lane_ref": "oya-governance-audit-chain-emission"
+      "lane_ref": "governance-audit-chain-emission"
     },
     {
       "name": "type_registry_availability_slo_pct",
@@ -443,7 +443,7 @@
         "GA": 99.95
       },
       "verification_ref": "oya gate validate ontology-type-registry-availability --window 30d",
-      "lane_ref": "oya-governance-canary-observability"
+      "lane_ref": "governance-canary-observability"
     }
   ],
   "risks": [
@@ -457,7 +457,7 @@
       "id": "R-02",
       "severity": "critical",
       "risk": "cross-tenant link via policy mis-config",
-      "mitigation": "default-deny Cedar + AC-03 + lane oya-governance-ontology-tenancy-isolation"
+      "mitigation": "default-deny Cedar + AC-03 + lane governance-ontology-tenancy-isolation"
     },
     {
       "id": "R-03",
@@ -637,7 +637,7 @@
       "id": "BP-01",
       "rule": "tier classification per property",
       "ref": "$ref:bominal/decisions/ADR-0133",
-      "planned_enforcement_ref": "oya-governance-ontology-tier-enforcement"
+      "planned_enforcement_ref": "governance-ontology-tier-enforcement"
     },
     {
       "id": "BP-02",
@@ -775,7 +775,7 @@
     {
       "name": "cross_tenant_raw_sql_bypass_rls",
       "why_forbidden": "tenant-isolation violation",
-      "detection_lane": "oya-governance-no-raw-sql-cross-tenant"
+      "detection_lane": "governance-no-raw-sql-cross-tenant"
     },
     {
       "name": "untyped_entity_creation",
@@ -785,12 +785,12 @@
     {
       "name": "tier_violating_query",
       "why_forbidden": "data-class violation",
-      "detection_lane": "oya-governance-ontology-tier-enforcement"
+      "detection_lane": "governance-ontology-tier-enforcement"
     },
     {
       "name": "llm_tool_call_without_cedar_check",
       "why_forbidden": "privilege escalation",
-      "detection_lane": "oya-governance-cedar-coverage"
+      "detection_lane": "governance-cedar-coverage"
     },
     {
       "name": "direct_cross_cell_db_access",
@@ -810,12 +810,12 @@
     {
       "name": "action_without_audit_chain_emission",
       "why_forbidden": "provenance gap",
-      "detection_lane": "oya-governance-audit-chain-emission"
+      "detection_lane": "governance-audit-chain-emission"
     },
     {
       "name": "unsourced_ontology_competitor_benchmark_claim",
       "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts",
-      "detection_lane": "future oya-governance-source-backed-competitive-claims"
+      "detection_lane": "future governance-source-backed-competitive-claims"
     },
     {
       "name": "external_graph_engine_as_canonical_authority",
@@ -845,15 +845,15 @@
     },
     "security": {
       "target": "per-tenant Postgres RLS + Cedar at every action + tier classification on every property + cryptographically-signed audit chain (post-ADR-0083)",
-      "verification_lane_ref": "oya-governance-ontology-tenancy-isolation + oya-governance-cedar-coverage"
+      "verification_lane_ref": "governance-ontology-tenancy-isolation + governance-cedar-coverage"
     },
     "performance": {
       "target": "type-lookup p99 <5ms + entity-read p99 <20ms + action p99 <50ms + 3-layer KG join p99 <200ms",
-      "verification_lane_ref": "oya-governance-perf-budget"
+      "verification_lane_ref": "governance-perf-budget"
     },
     "efficiency": {
       "target": "<$0.001 per entity-read + <$0.01 per action + per-tenant overhead <$10/month",
-      "verification_ref": "$ref:crates/oya-cloud-finops-kernel"
+      "verification_ref": "$ref:crates/cloud-finops-kernel"
     },
     "reliability": {
       "target": "type registry SLO 99.95% + instance store SLO 99.95% + MTTR <60s auto-rollback canary",
@@ -1056,8 +1056,8 @@
         "purpose": "Rust workspace member crate per ADR-0015 + ADR-0056 BNF v4.1",
         "id_pattern": "^oya-[a-z0-9-]+$",
         "examples": [
-          "oya-intelligence-evidence-domain",
-          "oya-application-product-enablement-kernel"
+          "intelligence-evidence-domain",
+          "application-product-enablement-kernel"
         ],
         "contributing_registries": [
           "Cargo.toml [workspace.members]",
@@ -1153,7 +1153,7 @@
           "gen:plan-acceptance-attestation"
         ],
         "contributing_registries": [
-          "crates/oya-gen-*",
+          "crates/gen-*",
           "/registry/reusable-building-blocks-registry.json"
         ]
       },
@@ -1165,7 +1165,7 @@
           "heal:artifact-capabilities-registry"
         ],
         "contributing_registries": [
-          "crates/oya-heal-*"
+          "crates/heal-*"
         ]
       },
       "OwnerTeam": {
@@ -1208,10 +1208,10 @@
       },
       "Metric": {
         "purpose": "OpenTelemetry-aligned metric per cap_telemetry",
-        "id_pattern": "^oya_[a-z][a-z0-9_]*$",
+        "id_pattern": "^[a-z][a-z0-9_]*$",
         "examples": [
-          "oya_artifact_registry_row_count",
-          "oya_forbidden_primitive_invocation_total"
+          "artifact_registry_row_count",
+          "forbidden_primitive_invocation_total"
         ],
         "contributing_registries": [
           "/registry/artifact-capabilities-registry.json (rows[*].capabilities.telemetry.metrics)"
@@ -1242,7 +1242,7 @@
         "purpose": "Typed compliance attestation join node: one control satisfied by a concrete lane_id with freshness policy.",
         "id_pattern": "^lane-satisfaction:[a-z0-9-]+:[a-z0-9][a-z0-9.:-]*$",
         "examples": [
-          "lane-satisfaction:oya-governance-supply-chain:control:soc2-cc6.1",
+          "lane-satisfaction:governance-supply-chain:control:soc2-cc6.1",
           "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"
         ],
         "contributing_registries": [
@@ -1254,7 +1254,7 @@
         "purpose": "Machine-readable evidence location proving a lane satisfied a compliance control, including JSONL path and freshness window.",
         "id_pattern": "^evidence:[a-z0-9_./:@#-]+$",
         "examples": [
-          "evidence:evidence/audit-chain.jsonl#oya-governance-supply-chain",
+          "evidence:evidence/audit-chain.jsonl#governance-supply-chain",
           "evidence:evidence/multispectrum/ontology-rename-sweep-1778949351.json"
         ],
         "contributing_registries": [
@@ -1328,8 +1328,8 @@
         "purpose": "Unit, integration, nextest, gate, or smoke test that proves an acceptance criterion.",
         "id_pattern": "^test:[a-z0-9_./:-]+$",
         "examples": [
-          "test:crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable",
-          "test:cargo-nextest:oya-dev-cli"
+          "test:crates/dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable",
+          "test:cargo-nextest:dev-cli"
         ],
         "contributing_registries": [
           "crates/**/tests/*.rs",
@@ -1388,7 +1388,7 @@
         "purpose": "Atlas SQL migration or other schema-evolution unit",
         "id_pattern": "^migration:[a-z0-9-]+$",
         "examples": [
-          "migration:2026XX_oya_shared_write_action_port_init"
+          "migration:2026XX_shared_write_action_port_init"
         ],
         "contributing_registries": [
           "crates/*/migrations/*.sql"
@@ -1985,7 +1985,7 @@
       {
         "name": "reachable_entity_types_for_diff",
         "description": "Given candidate diff files and deterministic review_tiering blast_radius_score signals, returns reachable KG entity types, downstream consumers, and tiering evidence before PR review dispatch.",
-        "query_sketch": "WITH RECURSIVE candidate_diff_files AS (SELECT path, status, additions, deletions FROM :diff_name_status), diff_signals AS (SELECT bool_or(path ~ 'crates/.*/src/lib\\.rs|contracts/.*\\.yaml') AS public_api_touched, bool_or(path ~ 'crates/.*-kernel/src/') AS kernel_layer_touched, bool_or(path ~ 'OpenBao|SecretReference|infra/kyverno/|registry/secrets/') AS secret_or_admission_touched, bool_or(path ~ 'evidence/audit-chain\\.jsonl|oya-intelligence-audit-chain-') AS audit_chain_schema_touched, count(*) FILTER (WHERE path ~ 'docs/decisions/ADR-.*\\.md') AS ADR_introduced_or_amended_count, count(*) FILTER (WHERE path ~ 'Cargo\\.toml') AS cargo_deps_changed_count, sum(additions + deletions) AS lines_touched, count(*) FILTER (WHERE status = 'A') AS new_files_count, count(*) FILTER (WHERE status = 'A' AND path ~ '^(crates|tools)/.*/Cargo\\.toml$') AS new_crates_count, bool_or(:pr_body ~ 'BREAKING:' OR path ~ 'breaking_change: true') AS breaking_change_marker, bool_or(path ~ '^(specs|docs/standards|registry/microservices|docs/decisions)/') AS meta_review_triggered FROM candidate_diff_files), touched_nodes AS (SELECT DISTINCT n.id, n.node_type FROM knowledge_graph_nodes n JOIN candidate_diff_files d ON n.source_path = d.path OR d.path LIKE n.source_path || '%'), reachable AS (SELECT id, node_type FROM touched_nodes UNION SELECT e.target, n.node_type FROM graph_edges e JOIN reachable r ON e.source = r.id JOIN knowledge_graph_nodes n ON n.id = e.target WHERE e.edge_type IN ('depends_on','exposes','consumes','validates','satisfies','prerequisite_for','owned_by')) SELECT reachable.node_type AS reachable_entity_types, array_agg(DISTINCT reachable.id) AS downstream_consumers, diff_signals.*, (:blast_radius_score) AS blast_radius_score FROM reachable CROSS JOIN diff_signals GROUP BY reachable.node_type, diff_signals.public_api_touched, diff_signals.kernel_layer_touched, diff_signals.secret_or_admission_touched, diff_signals.audit_chain_schema_touched, diff_signals.ADR_introduced_or_amended_count, diff_signals.cargo_deps_changed_count, diff_signals.lines_touched, diff_signals.new_files_count, diff_signals.new_crates_count, diff_signals.breaking_change_marker, diff_signals.meta_review_triggered ORDER BY blast_radius_score DESC, reachable.node_type"
+        "query_sketch": "WITH RECURSIVE candidate_diff_files AS (SELECT path, status, additions, deletions FROM :diff_name_status), diff_signals AS (SELECT bool_or(path ~ 'crates/.*/src/lib\\.rs|contracts/.*\\.yaml') AS public_api_touched, bool_or(path ~ 'crates/.*-kernel/src/') AS kernel_layer_touched, bool_or(path ~ 'OpenBao|SecretReference|infra/kyverno/|registry/secrets/') AS secret_or_admission_touched, bool_or(path ~ 'evidence/audit-chain\\.jsonl|intelligence-audit-chain-') AS audit_chain_schema_touched, count(*) FILTER (WHERE path ~ 'docs/decisions/ADR-.*\\.md') AS ADR_introduced_or_amended_count, count(*) FILTER (WHERE path ~ 'Cargo\\.toml') AS cargo_deps_changed_count, sum(additions + deletions) AS lines_touched, count(*) FILTER (WHERE status = 'A') AS new_files_count, count(*) FILTER (WHERE status = 'A' AND path ~ '^(crates|tools)/.*/Cargo\\.toml$') AS new_crates_count, bool_or(:pr_body ~ 'BREAKING:' OR path ~ 'breaking_change: true') AS breaking_change_marker, bool_or(path ~ '^(specs|docs/standards|registry/microservices|docs/decisions)/') AS meta_review_triggered FROM candidate_diff_files), touched_nodes AS (SELECT DISTINCT n.id, n.node_type FROM knowledge_graph_nodes n JOIN candidate_diff_files d ON n.source_path = d.path OR d.path LIKE n.source_path || '%'), reachable AS (SELECT id, node_type FROM touched_nodes UNION SELECT e.target, n.node_type FROM graph_edges e JOIN reachable r ON e.source = r.id JOIN knowledge_graph_nodes n ON n.id = e.target WHERE e.edge_type IN ('depends_on','exposes','consumes','validates','satisfies','prerequisite_for','owned_by')) SELECT reachable.node_type AS reachable_entity_types, array_agg(DISTINCT reachable.id) AS downstream_consumers, diff_signals.*, (:blast_radius_score) AS blast_radius_score FROM reachable CROSS JOIN diff_signals GROUP BY reachable.node_type, diff_signals.public_api_touched, diff_signals.kernel_layer_touched, diff_signals.secret_or_admission_touched, diff_signals.audit_chain_schema_touched, diff_signals.ADR_introduced_or_amended_count, diff_signals.cargo_deps_changed_count, diff_signals.lines_touched, diff_signals.new_files_count, diff_signals.new_crates_count, diff_signals.breaking_change_marker, diff_signals.meta_review_triggered ORDER BY blast_radius_score DESC, reachable.node_type"
       },
       {
         "name": "trace_agent_decision_chain",
@@ -2221,7 +2221,7 @@
     },
     {
       "date": "2026-05-16",
-      "decision": "F-CRATE-RENAME-ONTOLOGY-SWEEP resolved: oya-ontology-kernel is a workspace crate and registry/catalog/oya-ontology-kernel.yaml is the current catalog ref"
+      "decision": "F-CRATE-RENAME-ONTOLOGY-SWEEP resolved: ontology-kernel is a workspace crate and registry/catalog/ontology-kernel.yaml is the current catalog ref"
     }
   ],
   "sources_scanned": [
@@ -2232,9 +2232,9 @@
     "$ref:specs/products/ontology.json#type_system (inlined from deleted registry/knowledge-graph-semantic.json per ADR-0139)",
     "$ref:registry/knowledge-graph-kinetic.json",
     "$ref:registry/knowledge-graph-dynamic.json",
-    "$ref:crates/oya-ontology-kernel",
-    "$ref:crates/oya-ontology-api",
-    "$ref:crates/oya-ontology-domain",
+    "$ref:crates/ontology-kernel",
+    "$ref:crates/ontology-api",
+    "$ref:crates/ontology-domain",
     "$ref:evidence/autoresearch/ontology-competitive-map.json",
     "official:palantir-foundry-ontology-docs",
     "official:neo4j-docs",

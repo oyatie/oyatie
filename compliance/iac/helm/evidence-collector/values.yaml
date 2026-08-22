@@ -36,7 +36,7 @@ collectors:
     framework: [soc2-type-2, pci-dss]
   dsarCompletionRecord:
     enabled: true
-    eventDriven: true                 # emitted by oya-dsr-usecase per request
+    eventDriven: true                 # emitted by dsr-usecase per request
     framework: gdpr
   baaInventoryEntry:
     enabled: true
@@ -49,12 +49,12 @@ collectors:
 
 # Storage — SeaweedFS via filer (per ADR-0145).
 storage:
-  seaweedfsFilerEndpoint: oya-seaweedfs-filer.shared-storage.svc:8888
+  seaweedfsFilerEndpoint: seaweedfs-filer.shared-storage.svc:8888
   bucketByFramework:
-    soc2-type-2: oya-compliance-evidence-soc2
-    gdpr:        oya-compliance-evidence-gdpr
-    hipaa:       oya-compliance-evidence-hipaa
-    pci-dss:     oya-compliance-evidence-pci
+    soc2-type-2: compliance-evidence-soc2
+    gdpr:        compliance-evidence-gdpr
+    hipaa:       compliance-evidence-hipaa
+    pci-dss:     compliance-evidence-pci
 
 # Audit-chain seal — SHA-256 hex; verified via Sigstore / Cosign chain.
 auditChain:

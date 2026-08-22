@@ -37,7 +37,7 @@ outputs:
     type: object (SCIM JSON)
 
 slo_targets:
-  - oya-identity-scim-availability
+  - identity-scim-availability
 
 audit_events_emitted:
   - IdentityScimRequestReceived

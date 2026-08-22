@@ -22,7 +22,7 @@ connectorCatalogRest:
   enabled: true
   replicaCount: 3
   image:
-    repository: oya-connector-catalog-rest
+    repository: connector-catalog-rest
     tag: "0.1.0"
   resources:
     requests:
@@ -56,7 +56,7 @@ oauthBrokerRest:
   enabled: true
   replicaCount: 3
   image:
-    repository: oya-connector-oauth-broker-rest
+    repository: connector-oauth-broker-rest
     tag: "0.1.0"
   resources:
     requests:
@@ -80,7 +80,7 @@ webhookReceiverEdge:
   enabled: true
   replicaCount: 5
   image:
-    repository: oya-connector-webhook-receiver-edge
+    repository: connector-webhook-receiver-edge
     tag: "0.1.0"
   resources:
     requests:
@@ -105,7 +105,7 @@ connectorAdapterWorker:
   replicaCount: 5
   runtimeClass: kata-qemu  # Cloud Hypervisor + Kata per ADR-0254
   image:
-    repository: oya-connector-adapter-worker
+    repository: connector-adapter-worker
     tag: "0.1.0"
   resources:
     requests:
@@ -133,7 +133,7 @@ dlqReplayWorker:
   enabled: true
   replicaCount: 2
   image:
-    repository: oya-connector-dlq-replay-worker
+    repository: connector-dlq-replay-worker
     tag: "0.1.0"
   resources:
     requests:
@@ -147,7 +147,7 @@ schemaDriftMonitor:
   enabled: true
   replicaCount: 1
   image:
-    repository: oya-connector-schema-drift-monitor
+    repository: connector-schema-drift-monitor
     tag: "0.1.0"
   schedule: "0 */6 * * *"  # Every 6 hours
   resources:

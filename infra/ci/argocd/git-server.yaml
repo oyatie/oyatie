@@ -71,16 +71,16 @@ spec:
               set -eux
               export HOME=/tmp
               git config --global user.email ci@oya.local
-              git config --global user.name oya-ci
+              git config --global user.name ci
               git config --global init.defaultBranch main
-              git init --bare /srv/git/oya-demo.git
+              git init --bare /srv/git/demo.git
               rm -rf /tmp/wt && mkdir -p /tmp/wt
               cp /manifests/*.yaml /tmp/wt/
               cd /tmp/wt
               git init
               git add -A
               git commit -m "seed gitops demo"
-              git remote add origin /srv/git/oya-demo.git
+              git remote add origin /srv/git/demo.git
               git push origin HEAD:refs/heads/main
           # Writes only to mounted volumes (/srv/git, /tmp), so a read-only root
           # filesystem is safe; runs as the image's user with all caps dropped.
@@ -99,7 +99,7 @@ spec:
           # BUILD time, so this runs non-root with a read-only root filesystem.
           # No runtime apk-add (the prior anti-pattern). Build/load per the
           # Dockerfile header before applying on the farm.
-          image: oya-git-server:local
+          image: git-server:local
           imagePullPolicy: IfNotPresent
           ports: [{ name: git, containerPort: 9418 }]
           securityContext:
@@ -131,17 +131,17 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: oya-gitops-demo
+  name: gitops-demo
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: "git://git-server.argocd.svc.cluster.local/oya-demo.git"
+    repoURL: "git://git-server.argocd.svc.cluster.local/demo.git"
     targetRevision: main
     path: .
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: oya-gitops-demo
+    namespace: gitops-demo
   syncPolicy:
     automated: { prune: true, selfHeal: true }
     syncOptions: ["CreateNamespace=true"]

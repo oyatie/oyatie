@@ -113,9 +113,9 @@ helm lint microservices/cloud-secrets/iac/helm/openbao
 helm lint microservices/cloud-secrets/iac/helm/postgres
 helm lint microservices/cloud-secrets/iac/helm/hsm-operator
 kubectl --dry-run=client apply -k microservices/cloud-secrets/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
-cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets   # no raw secrets in IaC
+cargo run -p dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate version-pinning-conformance
+cargo run -p dev-cli -- gate validate lean-a11 --microservice cloud-secrets   # no raw secrets in IaC
 ```
 
 ## Test Plan

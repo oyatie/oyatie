@@ -341,7 +341,7 @@ Measured 2026-08-09: a new doc at the top level of docs/ failed ADR-0555 born-ac
 three registration codes at once — unjustified, unowned, unreachable. A reviewed
 specs/reachability-registry.json prefix clears two of them, because REACHED implies JUSTIFIED. The
 third cannot be cleared where the file sits: ownership resolves to the NEAREST ANCESTOR OWNERS, and
-an OWNERS covering more paths than [owners] max_paths_per_owners_file (oya-ci.toml, 2000) owns
+an OWNERS covering more paths than [owners] max_paths_per_owners_file (ci.toml, 2000) owns
 NOTHING AT ALL — it fails closed with no fall-through to a broader file. The root OWNERS is far past
 that cap, and a new docs/OWNERS would have covered 2631 paths, also past it. So a top-level
 docs/*.md is STRUCTURALLY UNOWNABLE, and adding docs/OWNERS would have looked like a fix while
@@ -373,8 +373,8 @@ FRESH-WORKTREE RECIPE, measured cost 8m25s cold sweep plus roughly 15 minutes of
 worktree has NO materialized generated faces, so most gates fail on absence and diagnose themselves
 ("this gate reads the materialized tracked-path face ... absent in a clean worktree"). The standard
 invocation is NOT sufficient on its own:
-    buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
-    buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base $(git rev-parse HEAD)
+    buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root .
+    buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base $(git rev-parse HEAD)
 The second is required for cross-artifact-agreement's event-tuple face; without it you get a single
 failure at 72/73 that reads exactly like a real defect.
 

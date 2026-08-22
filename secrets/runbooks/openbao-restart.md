@@ -73,7 +73,7 @@ Consumer SDKs have ≤60s cache TTL; resolution continues briefly. Extend cache 
 
 ```bash
 # CAREFUL: emergency mode; only for >60s outage
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin emergency-cache-extend \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- admin emergency-cache-extend \
     --pack <pack> --ttl 300 --incident-id <ulid>
 # Reverts automatically at incident close
 ```
@@ -82,10 +82,10 @@ cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin emergency-
 
 ```bash
 # Check Postgres backend
-cargo run -p oya-cloud-secrets-openbao-operator-app -- backend status --pack <pack>
+cargo run -p cloud-secrets-openbao-operator-app -- backend status --pack <pack>
 
 # Check HSM partition (auto-unseal dependency)
-cargo run -p oya-cloud-secrets-hsm-integration-app -- partition status --pack <pack>
+cargo run -p cloud-secrets-hsm-integration-app -- partition status --pack <pack>
 
 # Check node-level events
 kubectl get events -n cloud-secrets-<pack> --sort-by='.lastTimestamp' | tail 50
@@ -131,7 +131,7 @@ See §"Backend recovery" below.
 ```bash
 bao operator raft list-peers
 bao status
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- health-check --pack <pack>
+cargo run -p cloud-secrets-secret-reference-resolver-app -- health-check --pack <pack>
 ```
 
 ## §D — Backend recovery (Postgres corruption)
@@ -157,7 +157,7 @@ kubectl -n cloud-secrets-<pack> exec postgres-0 -- patronictl failover
 ### Step 3 — Restore from backup (if all replicas corrupt)
 
 ```bash
-cargo run -p oya-cloud-secrets-openbao-operator-app -- backend restore \
+cargo run -p cloud-secrets-openbao-operator-app -- backend restore \
     --pack <pack> \
     --from-backup-time "<last-known-good-utc>" \
     --target-cluster postgres-<pack>
@@ -190,7 +190,7 @@ Engage OCI support; confirm region is fully down (not a transient blip).
 
 ```bash
 # From DR region operator
-cargo run -p oya-cloud-secrets-openbao-operator-app -- region promote-dr \
+cargo run -p cloud-secrets-openbao-operator-app -- region promote-dr \
     --pack <pack> \
     --primary-region <down-region> \
     --new-primary-region <dr-region>
@@ -200,7 +200,7 @@ cargo run -p oya-cloud-secrets-openbao-operator-app -- region promote-dr \
 
 ```bash
 # Service discovery for SDK consumers
-cargo run -p oya-cloud-iac-app -- dns update \
+cargo run -p cloud-iac-app -- dns update \
     --record "openbao-<pack>.oyatie.dev" \
     --target-region <dr-region>
 ```
@@ -212,7 +212,7 @@ SDK consumers use a service-discovery client; on DNS change, new resolves go to 
 Monitor:
 
 ```bash
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- region status --pack <pack>
+cargo run -p cloud-secrets-secret-reference-resolver-app -- region status --pack <pack>
 ```
 
 ### Step 5 — Tenant notification
@@ -231,11 +231,11 @@ bao status
 bao operator raft list-peers
 
 # Resolve operations succeed
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- bench resolve \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- bench resolve \
     --pack <pack> --acceptance "p99 ≤ 25ms"
 
 # Audit-chain consistent
-cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
+cargo run -p audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
 ```
 
 ## References

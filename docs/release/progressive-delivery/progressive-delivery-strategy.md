@@ -9,8 +9,8 @@ purpose: |
   Single coherent progressive-delivery strategy. Pins the change-class decision matrix
   (blue/green vs canary vs rolling) and the default rails. Extends ADR-0040; does not duplicate.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-rollback-evidence
+  - governance-canary-required
+  - governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -47,7 +47,7 @@ Per [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md), progress
 - **Flagger** (CNCF) — primary K8s-native rail. Lightweight, service-mesh-native (works on Istio Ambient per [ADR-0044](../../decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md)). New default for axes that do not need cross-axis analysis primitives.
 - **Argo Rollouts** (CNCF Graduated) — second sanctioned option. Used where blue/green primitives, cross-axis analysis-templates, or per-cell experiment graphs are needed.
 
-Both are adapted behind `oya-platform-rollout-controller-kernel` (NEW; provider-agnostic core) + per-controller adapter crate (`-adapter-flagger`, `-adapter-argo-rollouts`).
+Both are adapted behind `platform-rollout-controller-kernel` (NEW; provider-agnostic core) + per-controller adapter crate (`-adapter-flagger`, `-adapter-argo-rollouts`).
 
 ## 4. Canary stage progression (default)
 
@@ -57,11 +57,11 @@ Wall-clock floors: 5 min (stage 1), 10 min (stage 2), 30 min (stage 3), 1 h (sta
 
 ## 5. Stable cohorts
 
-Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `oya-platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../decisions/ADR-0034-per-vertical-data-class-overrides.md)).
+Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../decisions/ADR-0034-per-vertical-data-class-overrides.md)).
 
 ## 6. Rollback unit
 
-Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `oya-governance-rollback-evidence`.
+Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `governance-rollback-evidence`.
 
 ## 7. Anti-scope
 
@@ -69,9 +69,9 @@ This strategy does not own: SLO catalog (per [ADR-0042](../../decisions/ADR-0042
 
 ## 8. Compliance gates
 
-- `oya-governance-canary-required` (NEW; BLOCKER) — refuses kernel/domain/app/api/adapter changes without canary manifest.
-- `oya-governance-rollback-evidence` (NEW; BLOCKER) — refuses release without signed D14 rollback artefact.
-- `oya-governance-cohort-honor` (NEW; HIGH) — verifies cohort-honour at canary cut.
+- `governance-canary-required` (NEW; BLOCKER) — refuses kernel/domain/app/api/adapter changes without canary manifest.
+- `governance-rollback-evidence` (NEW; BLOCKER) — refuses release without signed D14 rollback artefact.
+- `governance-cohort-honor` (NEW; HIGH) — verifies cohort-honour at canary cut.
 - `cloud-ci-slo-coverage` (existing; extended) — requires burn-rate alert per service.
 
 ## 9. ADR citations

@@ -4,7 +4,7 @@
 // artifact policy manifest plus the SCM facts snapshot materialized from the candidate tree,
 // then run the Rust predicate. It does not call git, does not invoke a CI-provider API, and does
 // not depend on a local merge driver. That makes the same test shape portable to any project
-// adopting oya-ci.
+// adopting ci.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
@@ -19,13 +19,13 @@ use ci_generated_artifact_policy::{
     frozen_reference_face_paths_keyed,
 };
 
-const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
-const SCHEMA_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCHEMA";
-const SCM_FACTS_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS";
+const MANIFEST_ENV: &str = "OYATIE_CI_GENERATED_ARTIFACT_MANIFEST";
+const SCHEMA_ENV: &str = "OYATIE_CI_GENERATED_ARTIFACT_SCHEMA";
+const SCM_FACTS_ENV: &str = "OYATIE_CI_GENERATED_ARTIFACT_SCM_FACTS";
 // The firewall ratchet policy is the authoritative, repo-agnostic source of the frozen-reference
 // set (ADR-0551 `frozen_reference.face_path`). Adopters override the location; the default is the
 // committed oyatie firewall policy.
-const RATCHET_POLICY_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY";
+const RATCHET_POLICY_ENV: &str = "OYATIE_CI_GENERATED_ARTIFACT_RATCHET_POLICY";
 const RATCHET_POLICY_DEFAULT_PATH: &str = "ci/facade/baseline-ratchet/ratchet-policy.json";
 
 fn repo_root() -> PathBuf {
@@ -53,7 +53,7 @@ fn input_path(env_name: &str, repo_relative_path: &str) -> PathBuf {
 /// CI "Materialize cloud-ci generated faces" step runs, minus `--github-event` (which only reads
 /// `GITHUB_EVENT_PATH`).
 const MATERIALIZE_CMD: &str = "buck2 run \
-     //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
+     //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin \
      -- --repo-root .";
 
 fn read_json(path: PathBuf) -> Value {
@@ -203,7 +203,7 @@ fn census_epoch_receipt_declares_every_active_historical_and_event_identity_inpu
         "parser commit a2b326eebd418ae970847b5e1bca3782c61c52ab",
         "parser tree 0cdece525bc54f83ec51d3ba67a4308d0ce43812",
         "parser blob ab3884dbf4a657869fd87920b016cc4734a1c27f",
-        ".github/workflows/oya-ci-required.yml",
+        ".github/workflows/presubmit.yml",
     ] {
         assert!(
             source_inputs.contains(required),
@@ -286,7 +286,7 @@ fn history_only_retirement_facts_is_the_exact_controller_owned_untracked_face() 
             "registry/history-only-retirement/control-plane.json",
             "specs/history-only-retirement-control-plane.schema.json",
             "specs/history-only-retirement-facts.schema.json",
-            ".github/workflows/oya-ci-required.yml",
+            ".github/workflows/presubmit.yml",
             "full-depth SCM checkout"
         ]))
     );
@@ -467,7 +467,7 @@ fn stale_scm_facts_for_deleted_generated_outputs_are_red() {
         "legacy/generated/ops-workspace-shell.d.ts",
     ];
     let scm_facts = json!({
-        "schema": "oya-ci/scm-facts/v1",
+        "schema": "ci/scm-facts/v1",
         "tracked_paths": stale_paths,
         "last_touch_commit": {}
     });
@@ -503,7 +503,7 @@ fn live_manifest_covers_gitignore_generated_output_conventions() {
         "proto/example.pb.rs",
     ];
     let scm_facts = json!({
-        "schema": "oya-ci/scm-facts/v1",
+        "schema": "ci/scm-facts/v1",
         "tracked_paths": generated_convention_paths,
         "last_touch_commit": {}
     });
@@ -520,7 +520,7 @@ fn live_manifest_covers_gitignore_generated_output_conventions() {
     }
 
     let gitkeep_scm_facts = json!({
-        "schema": "oya-ci/scm-facts/v1",
+        "schema": "ci/scm-facts/v1",
         "tracked_paths": ["app/generated/.gitkeep"],
         "last_touch_commit": {}
     });

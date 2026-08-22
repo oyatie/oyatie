@@ -389,7 +389,7 @@ MEASURED from existing benchmark.
 ### §6.3 Oyatie post-tenant_class target
 
 Catalog density, paid tenant default (single canonical catalog
-`oya-tax-codes-global-v1` per R-T-08 in coherence audit):
+`tax-codes-global-v1` per R-T-08 in coherence audit):
 - Tax-code count: **≥ 9,800** in the canonical catalog.
 - Country coverage: **≥ 200 countries (UN member states with a tax code)**.
 - Native filing formats: **≥ 90 formats**.

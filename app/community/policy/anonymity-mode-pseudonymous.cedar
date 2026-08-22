@@ -12,7 +12,7 @@
 //                  moderation tools; karma; NSFW gating; ranking algorithms)
 //
 // Owner:   axis-community + council-privacy
-// Audit:   every permit/deny emits oya_community_pseudonymous_policy_eval_total
+// Audit:   every permit/deny emits community_pseudonymous_policy_eval_total
 // References:
 //   - ADR-0243 (Cedar universal gate)
 //   - ADR-0244 (tenant scoping primitive)

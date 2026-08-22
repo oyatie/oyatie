@@ -223,14 +223,14 @@ file's `#[cfg(test)]` is not thereby a production caller, because the whole *cra
 test consumers.
 
 *A second, independent correction, same date:* a review of unit 2 reported a byte-identical ungated
-twin at `cloud/cloud-os/crates/oya-cloud-os-secrets-domain/`, with the trustd and cluster-mgmt twins
+twin at `cloud/cloud-os/crates/cloud-os-secrets-domain/`, with the trustd and cluster-mgmt twins
 alongside it. **No such path exists.** On both `origin/dev` and this branch,
 `git ls-tree -r --name-only origin/dev -- cloud/cloud-os` returns exactly **one** file,
 `cloud/cloud-os/manifest.json`; the crates were migrated into `os/` before this branch rebased. The
 review had read a **stale sibling worktree** still carrying 555 `cloud/cloud-os` files on an old
 branch. The rule: verify a path claim against the **worktree the branch is checked out in**, with
 `git ls-tree <ref>` rather than a bare `ls`, before treating it as a class gap. Note that
-`cloud/cloud-os/manifest.json` still registers 41 `oya-cloud-os-*` crates that no longer exist —
+`cloud/cloud-os/manifest.json` still registers 41 `cloud-os-*` crates that no longer exist —
 a dangling registry row inherited from that migration, out of scope here and not introduced by G004.
 
 ---
@@ -441,7 +441,7 @@ Two of the three are one act: REACHED implies JUSTIFIED, so a reviewed
 
 `unowned` is the one with a location consequence, and it cannot be satisfied at `docs/<file>.md` at
 all. Ownership resolves to the NEAREST ancestor `OWNERS`, and an `OWNERS` covering more than
-`[owners] max_paths_per_owners_file` tracked paths (`oya-ci.toml`, 2000) owns **nothing** —
+`[owners] max_paths_per_owners_file` tracked paths (`ci.toml`, 2000) owns **nothing** —
 fail-closed, with no fall-through to a broader ancestor. Measured: root `OWNERS` is far past the
 bound, and a new `docs/OWNERS` would cover **2631** paths, also past it. So a top-level `docs/*.md`
 is structurally unownable, and adding `docs/OWNERS` would have looked like a fix while changing

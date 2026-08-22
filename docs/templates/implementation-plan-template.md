@@ -4,7 +4,7 @@ template_id: TPL-IP
 status: Accepted
 date: 2026-05-12
 purpose: |
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md
@@ -119,7 +119,7 @@ $ <sanctioned command>                                        # expect: <capture
 
 ## Decision log (Linus good-taste row)
 
-One row stating: what special case was eliminated? what data reshape removed the branch? If "none — no candidates," state that explicitly. Empty = `oya-governance-plan-hierarchy` fail.
+One row stating: what special case was eliminated? what data reshape removed the branch? If "none — no candidates," state that explicitly. Empty = `governance-plan-hierarchy` fail.
 
 ## Cross-references
 

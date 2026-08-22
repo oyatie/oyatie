@@ -8,25 +8,25 @@
       "id": 1,
       "type": "stat",
       "title": "Active engagements",
-      "targets": [{ "expr": "sum(oya_compliance_regulator_engagement_active)" }]
+      "targets": [{ "expr": "sum(compliance_regulator_engagement_active)" }]
     },
     {
       "id": 2,
       "type": "timeseries",
       "title": "Engagement evidence reads / minute",
-      "targets": [{ "expr": "sum(rate(oya_compliance_auditor_read_total[1m]))" }]
+      "targets": [{ "expr": "sum(rate(compliance_auditor_read_total[1m]))" }]
     },
     {
       "id": 3,
       "type": "timeseries",
       "title": "Engagement export bundles / hour",
-      "targets": [{ "expr": "sum(rate(oya_compliance_auditor_export_total[1h]))" }]
+      "targets": [{ "expr": "sum(rate(compliance_auditor_export_total[1h]))" }]
     },
     {
       "id": 4,
       "type": "table",
       "title": "Engagements by tenant + framework",
-      "targets": [{ "expr": "sum by (tenant_id, framework) (oya_compliance_regulator_engagement_active)" }]
+      "targets": [{ "expr": "sum by (tenant_id, framework) (compliance_regulator_engagement_active)" }]
     }
   ],
   "binding_adrs": ["ADR-0243", "ADR-0263"]

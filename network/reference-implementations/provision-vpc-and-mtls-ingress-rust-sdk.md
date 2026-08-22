@@ -1,4 +1,4 @@
-# Reference implementation — Provision VPC + deploy service + create mTLS ingress via `oya-cloud-network-sdk`
+# Reference implementation — Provision VPC + deploy service + create mTLS ingress via `cloud-network-sdk`
 
 Runnable Rust program that provisions a tenant VPC, deploys two services, creates an mTLS-enforced HTTP/3 ingress, pushes a
 Cedar L7 policy, and tails the flow-log allow/deny stream.
@@ -14,8 +14,8 @@ edition = "2024"
 [dependencies]
 anyhow = "1"
 futures = "0.3"
-oya-cloud-network-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-network-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
@@ -28,11 +28,11 @@ tracing-subscriber = "0.3"
 ```rust
 use anyhow::Result;
 use futures::StreamExt;
-use oya_cloud_network_sdk::{
+use cloud_network_sdk::{
     Cidr, FlowVerdict, IngressTlsMode, NetworkClient, NetworkConfig, ServiceSpec, Tenant,
     VpcCreateRequest,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 
@@ -76,7 +76,7 @@ async fn main() -> Result<()> {
         .service_apply(
             ServiceSpec::builder()
                 .name("webapp")
-                .image("ghcr.io/oya-samples/echo:0.4.1")
+                .image("ghcr.io/samples/echo:0.4.1")
                 .replicas(2)
                 .port("http", 8080)
                 .spiffe_id("spiffe://oyatie.b2b.smb.acme-software/webapp")
@@ -88,7 +88,7 @@ async fn main() -> Result<()> {
         .service_apply(
             ServiceSpec::builder()
                 .name("pgproxy")
-                .image("ghcr.io/oya-samples/pgproxy:0.2.0")
+                .image("ghcr.io/samples/pgproxy:0.2.0")
                 .replicas(1)
                 .port("postgres", 5432)
                 .spiffe_id("spiffe://oyatie.b2b.smb.acme-software/pgproxy")
@@ -187,7 +187,7 @@ INFO  flow log tail complete allow=412 deny=3
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_network_sdk::testkit::Hermetic` to spin a single-process loopback cell with Cilium in
+The `hermetic` feature uses `cloud_network_sdk::testkit::Hermetic` to spin a single-process loopback cell with Cilium in
 kernel-bypass mode (XDP) and a SoftHSM-backed SPIFFE; tests finish in ≤ 60 s.
 
 ## Error budget

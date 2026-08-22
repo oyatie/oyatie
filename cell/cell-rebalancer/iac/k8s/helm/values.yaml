@@ -1,6 +1,6 @@
 microservice:
   id: cell-rebalancer
-  cargoPackage: oya-cell-rebalancer-app
+  cargoPackage: cell-rebalancer-app
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-cell-rebalancer
+  name: cell-rebalancer
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-cell-rebalancer
+  repository: cell-rebalancer
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-cell-rebalancer-cedar
+  policyConfigMapName: cell-rebalancer-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     // Deployed Cedar mirrors the authored PBAC policy directories for this capability.

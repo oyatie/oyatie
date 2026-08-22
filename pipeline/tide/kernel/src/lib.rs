@@ -1,6 +1,6 @@
-//! # oya-ci-tide-kernel
+//! # ci-tide-kernel
 //!
-//! Pure-domain kernel for the oya-ci tide component (Phase 2, ADR-0513).
+//! Pure-domain kernel for the ci tide component (Phase 2, ADR-0513).
 //! No I/O, no async, no network. #![forbid(unsafe_code)].
 //!
 //! Owns:
@@ -15,7 +15,7 @@
 //! A PR is merge-eligible iff ALL of:
 //! 1. The configured `required_status_context` has state `success` on the HEAD SHA.
 //! 2. The number of **author≠reviewer** approving reviews >=
-//!    `approval_policy.min_approvals` (floor ≥1; `OYA_TIDE_MIN_APPROVALS=0` is
+//!    `approval_policy.min_approvals` (floor ≥1; `OYATIE_TIDE_MIN_APPROVALS=0` is
 //!    clamped). Self-APPROVE and tip-green/thread-resolution are observation only
 //!    (`observation≠APPROVE`, `registry/fixuptasks.jsonl#F-PR5-06`).
 //! 3. No blocking label (`hold` / `do-not-merge`) is present.
@@ -35,7 +35,7 @@
 //! ## Security
 //!
 //! - `dry_run` defaults to `true` — tide merges NOTHING until explicitly configured live.
-//! - Token never hardcoded; always read from `OYA_GITHUB_TOKEN`.
+//! - Token never hardcoded; always read from `OYATIE_GITHUB_TOKEN`.
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -72,7 +72,7 @@ pub type Result<T> = std::result::Result<T, TideError>;
 
 /// Env var carrying the forge API token (injected from the deploy substrate).
 /// Never hardcoded.
-pub const ENV_GITHUB_TOKEN: &str = "OYA_GITHUB_TOKEN";
+pub const ENV_GITHUB_TOKEN: &str = "OYATIE_GITHUB_TOKEN";
 
 /// Default forge API base URL (GitHub, forge of record).
 pub const DEFAULT_FORGE_BASE_URL: &str = "https://api.github.com";
@@ -87,7 +87,7 @@ pub const DEFAULT_REPO_NAME: &str = "oyatie";
 pub const DEFAULT_BASE_BRANCH: &str = "dev";
 
 /// Default required commit-status context (must match branch-protection rule).
-pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "oya-ci-required";
+pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "presubmit";
 
 /// Default minimum approving reviews required.
 pub const DEFAULT_MIN_APPROVALS: u32 = 1;
@@ -147,7 +147,7 @@ pub enum MergeState {
     /// Branch is up to date and mergeable once all other gates pass.
     Clean,
     /// Branch is behind the protected base. Tide must refresh the branch and
-    /// let `oya-ci-required` rerun on the new head before any merge action.
+    /// let `presubmit` rerun on the new head before any merge action.
     Behind,
     /// Textual conflict or otherwise dirty merge state.
     Dirty,
@@ -206,13 +206,13 @@ impl Default for ApprovalPolicy {
 pub struct TideConfig {
     /// Forge API base URL (e.g. `https://api.github.com`).
     pub forge_base_url: String,
-    /// Repository owner (e.g. `oya-admin`).
+    /// Repository owner (e.g. `admin`).
     pub repo_owner: String,
     /// Repository name (e.g. `oyatie`).
     pub repo_name: String,
     /// Base branch to poll PRs against (default: `dev`).
     pub base_branch: String,
-    /// Required commit-status context that must be `success` (default: `oya-ci-required`).
+    /// Required commit-status context that must be `success` (default: `presubmit`).
     pub required_status_context: String,
     /// Approval policy (default: 1 approving review).
     pub approval_policy: ApprovalPolicy,
@@ -229,36 +229,36 @@ pub struct TideConfig {
 impl TideConfig {
     /// Build config from a key→value lookup (injectable for tests).
     pub fn from_lookup(get: impl Fn(&str) -> Option<String>) -> Self {
-        let forge_base_url = get("OYA_TIDE_FORGE_BASE_URL")
+        let forge_base_url = get("OYATIE_TIDE_FORGE_BASE_URL")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_FORGE_BASE_URL.to_owned());
-        let repo_owner = get("OYA_TIDE_REPO_OWNER")
+        let repo_owner = get("OYATIE_TIDE_REPO_OWNER")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_REPO_OWNER.to_owned());
-        let repo_name = get("OYA_TIDE_REPO_NAME")
+        let repo_name = get("OYATIE_TIDE_REPO_NAME")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_REPO_NAME.to_owned());
-        let base_branch = get("OYA_TIDE_BASE_BRANCH")
+        let base_branch = get("OYATIE_TIDE_BASE_BRANCH")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_BASE_BRANCH.to_owned());
-        let required_status_context = get("OYA_TIDE_REQUIRED_STATUS_CONTEXT")
+        let required_status_context = get("OYATIE_TIDE_REQUIRED_STATUS_CONTEXT")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned());
         // Floor ≥ DEFAULT_MIN_APPROVALS (1): env may raise the bar, never lower it
         // to 0 (F-PR5-06 / observation≠APPROVE — tip-green alone must not merge).
-        let min_approvals: u32 = get("OYA_TIDE_MIN_APPROVALS")
+        let min_approvals: u32 = get("OYATIE_TIDE_MIN_APPROVALS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_MIN_APPROVALS)
             .max(DEFAULT_MIN_APPROVALS);
-        let poll_interval_secs: u64 = get("OYA_TIDE_POLL_INTERVAL_SECS")
+        let poll_interval_secs: u64 = get("OYATIE_TIDE_POLL_INTERVAL_SECS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_POLL_INTERVAL_SECS);
-        let merge_method = get("OYA_TIDE_MERGE_METHOD")
+        let merge_method = get("OYATIE_TIDE_MERGE_METHOD")
             .as_deref()
             .map(MergeMethod::from_env_value)
             .unwrap_or(MergeMethod::Rebase);
         // dry_run defaults to true; must be explicitly "false" to enable live merging.
-        let dry_run = get("OYA_TIDE_DRY_RUN")
+        let dry_run = get("OYATIE_TIDE_DRY_RUN")
             .map(|v| !v.trim().eq_ignore_ascii_case("false"))
             .unwrap_or(true);
 
@@ -421,7 +421,7 @@ pub enum IneligibleReason {
     /// The forge reports the PR is not mergeable (conflicts).
     NotMergeable,
     /// PR has valid approval/CI but is behind the protected base. The queue must
-    /// refresh the branch and wait for `oya-ci-required` on the new head.
+    /// refresh the branch and wait for `presubmit` on the new head.
     StaleBase,
     /// A blocking label is present.
     BlockingLabel { label: String },
@@ -565,7 +565,7 @@ fn review_is_later(candidate: &Review, current: &Review) -> bool {
 // ForgeClient trait seam — I/O boundary
 // ---------------------------------------------------------------------------
 
-/// Forge API client seam. Implemented by `oya-ci-tide-github-adapter`.
+/// Forge API client seam. Implemented by `ci-tide-github-adapter`.
 /// All methods are synchronous (adapter wraps reqwest blocking or spawns
 /// via `tokio::task::spawn_blocking`).
 pub trait ForgeClient: Send + Sync {
@@ -833,7 +833,7 @@ mod tests {
     #[test]
     fn min_approvals_env_zero_clamps_to_floor_one() {
         let cfg = TideConfig::from_lookup(|k| {
-            if k == "OYA_TIDE_MIN_APPROVALS" {
+            if k == "OYATIE_TIDE_MIN_APPROVALS" {
                 Some("0".to_owned())
             } else {
                 None
@@ -1081,7 +1081,7 @@ mod tests {
     #[test]
     fn dry_run_false_only_when_explicitly_false() {
         let cfg = TideConfig::from_lookup(|k| {
-            if k == "OYA_TIDE_DRY_RUN" {
+            if k == "OYATIE_TIDE_DRY_RUN" {
                 Some("false".to_owned())
             } else {
                 None
@@ -1095,7 +1095,7 @@ mod tests {
         for val in &["true", "yes", "1", "FALSE_NOT", ""] {
             let v = val.to_string();
             let cfg = TideConfig::from_lookup(move |k| {
-                if k == "OYA_TIDE_DRY_RUN" {
+                if k == "OYATIE_TIDE_DRY_RUN" {
                     Some(v.clone())
                 } else {
                     None
@@ -1103,7 +1103,7 @@ mod tests {
             });
             assert!(
                 cfg.dry_run,
-                "expected dry_run=true for OYA_TIDE_DRY_RUN={val}"
+                "expected dry_run=true for OYATIE_TIDE_DRY_RUN={val}"
             );
         }
     }

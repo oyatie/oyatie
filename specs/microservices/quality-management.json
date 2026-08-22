@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "quality-management",
     "bounded_context": "quality-inspection-and-notification",
-    "crate_prefix": "oya-quality-management",
-    "primary_crate": "microservices/quality-management/crates/oya-quality-management-domain",
+    "crate_prefix": "quality-management",
+    "primary_crate": "microservices/quality-management/crates/quality-management-domain",
     "product_id": "quality-management",
     "owning_axis": "axis-enterprise"
   },
@@ -49,35 +49,35 @@
       "given": "a material has defined inspection characteristics, sampling, AQL, effective date, source refs, and approval evidence",
       "when": "the quality-management domain approves the inspection plan",
       "then": "tenant, legal entity, plant, item, plan type, characteristic count, sample size, AQL basis points, effective date, source refs, approval evidence, idempotency key, state, schema version, and false inspection-runtime/inventory-mutation/Workflow/cloud flags are present",
-      "test_ref": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::inspection_plan_drives_quality_lot_certificate_and_notification"
+      "test_ref": "microservices/quality-management/crates/quality-management-domain/tests/quality_management.rs::inspection_plan_drives_quality_lot_certificate_and_notification"
     },
     {
       "id": "AC-02",
       "given": "an approved inspection plan exists and an inspection lot has accepted/rejected result quantities",
       "when": "inspection-lot usage-decision metadata is recorded",
       "then": "inspection lot, plan, tenant, legal entity, plant, item, batch, source refs, result evidence, inspected/accepted/rejected quantities, defect count, AQL, max rejected quantity, pass/fail decision, certificate-allowed flag, notification-required flag, and false inventory/Workflow/cloud flags are present",
-      "test_ref": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_unapproved_plan_and_invalid_results}"
+      "test_ref": "microservices/quality-management/crates/quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_unapproved_plan_and_invalid_results}"
     },
     {
       "id": "AC-03",
       "given": "a usage decision was made and the inspection passed",
       "when": "quality-certificate metadata is prepared",
       "then": "certificate, inspection lot, tenant, legal entity, plant, item, batch, customer, result count, certificate profile, evidence, idempotency key, ready-for-output flag, and false PDF/email/outbound-delivery/cloud flags are present",
-      "test_ref": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_certificate_and_notification_overclaims}"
+      "test_ref": "microservices/quality-management/crates/quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_certificate_and_notification_overclaims}"
     },
     {
       "id": "AC-04",
       "given": "an inspection lot fails its acceptance threshold",
       "when": "a quality notification is opened",
       "then": "notification, inspection lot, tenant, legal entity, plant, item, severity, defect count, corrective-action due days, defect source, evidence, idempotency key, corrective-action-required flag, and false CAPA Workflow/supplier-network/maintenance/cloud flags are present",
-      "test_ref": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_certificate_and_notification_overclaims}"
+      "test_ref": "microservices/quality-management/crates/quality-management-domain/tests/quality_management.rs::{inspection_plan_drives_quality_lot_certificate_and_notification,quality_management_refuses_certificate_and_notification_overclaims}"
     },
     {
       "id": "AC-05",
       "given": "untrusted identifiers, source refs, evidence refs, dates, limits, quantities, or overclaim flags enter the quality-management domain",
       "when": "domain validation runs",
       "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, invalid dates, invalid AQL, inconsistent inspection totals, missing plan approval, missing usage decision, certificate on rejected inspection, notification on accepted inspection, and invalid corrective-action due days are refused",
-      "test_ref": "microservices/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs::{quality_management_refuses_unapproved_plan_and_invalid_results,quality_management_refuses_certificate_and_notification_overclaims,quality_management_validates_refs_dates_and_limits}"
+      "test_ref": "microservices/quality-management/crates/quality-management-domain/tests/quality_management.rs::{quality_management_refuses_unapproved_plan_and_invalid_results,quality_management_refuses_certificate_and_notification_overclaims,quality_management_validates_refs_dates_and_limits}"
     }
   ],
   "decision_log": [
@@ -121,7 +121,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/quality-management/crates/oya-quality-management-domain",
+    "primary_crate_ref": "microservices/quality-management/crates/quality-management-domain",
     "entities_ref": [
       {
         "entity": "Quality",

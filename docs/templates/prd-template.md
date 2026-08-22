@@ -9,7 +9,7 @@ purpose: |
   Workflow + Ontology integration points, acceptance criteria, and Bominal
   inheritance citations. An autonomous executor filling this template can scaffold
   the µservice without escalation.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/INDEX.md
@@ -249,7 +249,7 @@ Cross-region story:
 Sharding:
 - Postgres + Citus for tenant-bound state; `tenant_id` partition key enforced
 - ClickHouse replicas for analytics/audit queries
-- `oya-check-shardability-cli` CI lane verifies partition key presence (M02 substrate phase)
+- `check-shardability-cli` CI lane verifies partition key presence (M02 substrate phase)
 
 ---
 

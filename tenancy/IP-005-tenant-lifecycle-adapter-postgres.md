@@ -6,12 +6,12 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-005-tenant-lifecycle-adapter-postgres
 status: pending
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, oya-governance-tenant-context-setlocal-present]
+acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, governance-tenant-context-setlocal-present]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: oya-tenancy-tenant-lifecycle-adapter-postgres
+# IP-005: tenancy-tenant-lifecycle-adapter-postgres
 
 ## Intent
 
@@ -21,9 +21,9 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, oya-g
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-tenant-lifecycle-adapter-postgres/Cargo.toml` | create |
-| `oya-tenancy-tenant-lifecycle-adapter-postgres/src/{lib,repository,migration_runner,connection_pool}.rs` | create |
-| `oya-tenancy-tenant-lifecycle-adapter-postgres/migrations/*` | create — schema + RLS DDL |
+| `tenancy-tenant-lifecycle-adapter-postgres/Cargo.toml` | create |
+| `tenancy-tenant-lifecycle-adapter-postgres/src/{lib,repository,migration_runner,connection_pool}.rs` | create |
+| `tenancy-tenant-lifecycle-adapter-postgres/migrations/*` | create — schema + RLS DDL |
 | catalog row | create |
 
 ## Code Shape
@@ -34,8 +34,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, oya-g
 impl TenantRepository for PostgresTenantRepository {
     async fn create(&self, t: &Tenant) -> Result<(), RepositoryError> {
         let mut conn = self.pool.acquire().await?;
-        // Note: tenancy-internal tables also tenant-scoped to tenant:oya-system
-        conn.execute(sqlx::query("SET LOCAL app.current_tenant_id = $1").bind("tenant:oya-system")).await?;
+        // Note: tenancy-internal tables also tenant-scoped to tenant:system
+        conn.execute(sqlx::query("SET LOCAL app.current_tenant_id = $1").bind("tenant:system")).await?;
         sqlx::query!(
             "INSERT INTO tenancy.tenants (tenant_id, status, jurisdiction_code, plan_tier, cell_id, created_at) VALUES ($1,$2,$3,$4,$5,$6)",
             t.tenant_id.as_str(), t.status, t.jurisdiction_code, t.plan_tier, t.cell_id, t.created_at
@@ -58,9 +58,9 @@ pub async fn checkout_tenant_scoped(pool: &PgPool, tenant_id: &TenantId) -> Resu
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present
-cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass
+cargo nextest run -p tenancy-tenant-lifecycle-adapter-postgres
+cargo run -p dev-cli -- gate validate tenant-context-setlocal-present
+cargo run -p dev-cli -- gate validate rls-no-superuser-bypass
 ```
 
 ## Test Plan

@@ -45,7 +45,7 @@ repository-local hooks are advisory only and cannot attest approval.
 
 ## 2.1 Merge-hold preflight packet (GH #902)
 
-The merge-hold source of truth is `oya-governance-pr-merge-gate-kernel`'s
+The merge-hold source of truth is `governance-pr-merge-gate-kernel`'s
 `evaluate_merge_hold` packet contract. Adapters normalize SCM/API observations
 into that pure kernel; no adapter may decide readiness from prose, branch names,
 or eventual CI completion.
@@ -77,14 +77,14 @@ post-merge product-completion packet.
 
 Worker-completed implementation cards are not complete from a local diff, local
 test output, or pushed branch alone. Completion evidence MUST name a protected
-PR against `dev`, current-head `oya-ci-required` evidence, independent reviewer
+PR against `dev`, current-head `presubmit` evidence, independent reviewer
 approval evidence, and zero unresolved review threads before downstream cards
 unblock.
 
 The existing PR records all facts below on the same head SHA:
 
 - isolated worktree/branch, pushed commit SHA, and PR target `dev`;
-- `oya-ci-required` status, check/status URL, and observation timestamp;
+- `presubmit` status, check/status URL, and observation timestamp;
 - exact failing checks before each fix and exact checks fixed by subsequent
   commits;
 - review-thread resolution, including resolved/unresolved counts and thread IDs
@@ -92,7 +92,7 @@ The existing PR records all facts below on the same head SHA:
 - reviewer approval state, reviewer identity, verdict, review URL, approved head
   SHA, and timestamp; the approved head SHA MUST match the packet head SHA;
 - local CLI merge authority: `none`; local commands/hooks are advisory
-  shift-left evidence only and do not supersede `oya-ci-required`;
+  shift-left evidence only and do not supersede `presubmit`;
 - generated-face status: either none touched or producer-materialized only; hand
   edits to `*.generated.json` remain forbidden;
 - SEC-001 threat-model addendum: for public-input, agentic/runtime, plugin,

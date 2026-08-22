@@ -33,7 +33,7 @@
   "sealing_cadence": {
     "hot_leaf_append": "≤ 100 ms p99",
     "subtree_root_seal": "every hour (per-tenant subtree root recomputed + Ed25519-signed)",
-    "daily_root_anchor": "per-pack root anchored to immutable storage (oya-s3-cold per ADR-0161) daily",
+    "daily_root_anchor": "per-pack root anchored to immutable storage (s3-cold per ADR-0161) daily",
     "fleet_wide_root": "global root computed daily; published to trust portal (ADR-0038)"
   },
   "sealing_key_custody": {

@@ -6,14 +6,14 @@
 //! - **Declarative reconciler, not a product CLI**: the primary surface is the [`reconcile`]
 //!   library API — desired state (latest stable) in, reconciled tree + report out, fail-closed on
 //!   residual drift. The binary is a thin adapter a scheduled workflow or the future typed
-//!   cloud-ci runner invokes, exactly like the other `oya-cloud-ci-*` automation binaries.
+//!   cloud-ci runner invokes, exactly like the other `cloud-ci-*` automation binaries.
 //! - **Pure planner**: NO network I/O. `std` has no HTTP client, and adding `reqwest`/`std::net`
 //!   would violate the dependency policy (no ad-hoc dependencies) and the gate hermeticity scanner
 //!   (which scans for exactly those tokens). The latest stable version arrives as a flag or
-//!   environment value (`--latest-stable <v>` / `OYA_LATEST_STABLE_RUST`); the scheduled fetch
+//!   environment value (`--latest-stable <v>` / `OYATIE_LATEST_STABLE_RUST`); the scheduled fetch
 //!   belongs to the workflow step (curl to `https://static.rust-lang.org/dist/channel-rust-stable.toml`).
 //! - **Pin-field surgical editor**: rewrites target the declared pin fields the evaluators
-//!   actually enforce (toolchain `channel`, `oya-deps` `pin`, `rust-version`, JSON toolchain
+//!   actually enforce (toolchain `channel`, `deps` `pin`, `rust-version`, JSON toolchain
 //!   keys, Docker ARG/image pins, workflow `toolchain:` lines, `build/toolchains/` text) plus the
 //!   explicitly curated current-policy row in `docs/standards/dependency-policy.md`. Active docs
 //!   are rewritten ONLY for `rust:` image refs — never blanket version tokens, so dated
@@ -67,7 +67,7 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
 ];
 
 /// The one managed-file doc whose toolchain row is a declared current-policy pin location
-/// (`oya-deps.toml` declares it `update = "sync-rust-pin"`). Its `| Rust toolchain | <v> stable |`
+/// (`deps.toml` declares it `update = "sync-rust-pin"`). Its `| Rust toolchain | <v> stable |`
 /// row is rewritten on a bump; every other doc is rewritten only for `rust:` image refs.
 const DEPENDENCY_POLICY_DOC: &str = "docs/standards/dependency-policy.md";
 
@@ -173,7 +173,7 @@ pub fn parse_stable_version(text: &str) -> Result<String, ProposerError> {
         .trim();
     if trimmed.is_empty() {
         return Err(ProposerError::VersionInvalid(
-            "latest stable version is empty; pass --latest-stable <v> or OYA_LATEST_STABLE_RUST"
+            "latest stable version is empty; pass --latest-stable <v> or OYATIE_LATEST_STABLE_RUST"
                 .to_owned(),
         ));
     }
@@ -548,7 +548,7 @@ fn rewrite_workflow_pins(text: &str, old: &str, new: &str) -> String {
 }
 
 /// Rewrite the declared current-policy toolchain row in `docs/standards/dependency-policy.md`
-/// (`| Rust toolchain | <v> stable | ...`), which `oya-deps.toml` declares as a
+/// (`| Rust toolchain | <v> stable | ...`), which `deps.toml` declares as a
 /// `sync-rust-pin` managed file.
 fn rewrite_dependency_policy_row(text: &str, old: &str, new: &str) -> String {
     text.replace(
@@ -563,7 +563,7 @@ fn rewrite_dependency_policy_row(text: &str, old: &str, new: &str) -> String {
 fn rewrite_for_path(rel: &str, text: &str, old: &str, new: &str) -> String {
     if rel == "rust-toolchain.toml" {
         rewrite_toml_key(text, "channel", old, new)
-    } else if rel == "deps.toml" || rel == "oya-deps.toml" {
+    } else if rel == "deps.toml" || rel == "deps.toml" {
         rewrite_toml_key(text, "pin", old, new)
     } else if rel == "Cargo.toml" || rel.ends_with("/Cargo.toml") {
         rewrite_toml_key(text, "rust-version", old, new)
@@ -636,7 +636,7 @@ fn active_text_path(path: &str) -> bool {
 fn relevant_to_bump(path: &str) -> bool {
     path == "rust-toolchain.toml"
         || path == "deps.toml"
-        || path == "oya-deps.toml"
+        || path == "deps.toml"
         || path == "Cargo.toml"
         || path.ends_with("/Cargo.toml")
         || path.ends_with("manifest.json")
@@ -673,7 +673,7 @@ fn tracked_paths(repo_root: &Path) -> Option<std::collections::HashSet<String>> 
 }
 
 /// Enumerate the rewrite surface: the same walk the freshness drift evaluator performs, plus the
-/// ADR-0535 gate surfaces (`oya-deps.toml`, `build/toolchains/BUCK`).
+/// ADR-0535 gate surfaces (`deps.toml`, `build/toolchains/BUCK`).
 ///
 /// RESTRICTED TO TRACKED FILES in a real checkout. The unrestricted walk rewrote anything matching
 /// `relevant_to_bump`, so running this in a non-clean tree silently edited untracked user state —
@@ -1248,7 +1248,7 @@ uses: some/action@v1.97.1
     fn fixture_root() -> PathBuf {
         let nonce = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
-            "oya-toolchain-bump-proposer-test-{}-{nonce}",
+            "toolchain-bump-proposer-test-{}-{nonce}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&root);
@@ -1267,7 +1267,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.97.1\"\ncomponents = [\"rustfmt\", \"clippy\"]\nprofile = \"minimal\"\n",
         );
-        write(&root, "deps.toml", &oya_deps_fixture("1.97.1"));
+        write(&root, "deps.toml", &deps_fixture("1.97.1"));
         // The fixture DECLARES a drift guard, so the fixture must also contain it.
         // Without this the dependency-automation gate reports
         // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
@@ -1295,7 +1295,7 @@ uses: some/action@v1.97.1
         );
         write(
             &root,
-            ".github/workflows/oya-ci-required.yml",
+            ".github/workflows/presubmit.yml",
             "toolchain: \"1.97.1\"\nrustup toolchain install 1.97.1\n",
         );
         write(
@@ -1341,7 +1341,7 @@ uses: some/action@v1.97.1
         assert!(read(&root, "build/toolchains/BUCK").contains("# Rust 1.98.0 toolchain"));
         assert!(read(&root, "build/toolchains/BUCK").contains("1.98.0-aarch64-apple-darwin"));
         assert!(
-            read(&root, ".github/workflows/oya-ci-required.yml").contains("toolchain: \"1.98.0\"")
+            read(&root, ".github/workflows/presubmit.yml").contains("toolchain: \"1.98.0\"")
         );
         assert!(read(&root, "tenancy/manifest.json").contains("\"rust\": \"1.98.0\""));
         assert!(
@@ -1388,7 +1388,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.97.1\"\n",
         );
-        write(&root, "deps.toml", &oya_deps_fixture("1.97.1"));
+        write(&root, "deps.toml", &deps_fixture("1.97.1"));
         // The fixture DECLARES a drift guard, so the fixture must also contain it.
         // Without this the dependency-automation gate reports
         // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
@@ -1443,7 +1443,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.98.0\"\n",
         );
-        write(&root, "deps.toml", &oya_deps_fixture("1.98.0"));
+        write(&root, "deps.toml", &deps_fixture("1.98.0"));
         write(
             &root,
             "Cargo.toml",
@@ -1478,7 +1478,7 @@ uses: some/action@v1.97.1
         let _ = fs::remove_dir_all(&root);
     }
 
-    /// The `[freshness]` artifacts `oya_deps_fixture` declares. Declared paths are existence-checked,
+    /// The `[freshness]` artifacts `deps_fixture` declares. Declared paths are existence-checked,
     /// so a fixture that names them must also create them.
     fn write_freshness_artifacts(root: &Path) {
         write(
@@ -1498,7 +1498,7 @@ uses: some/action@v1.97.1
         );
     }
 
-    fn oya_deps_fixture(pin: &str) -> String {
+    fn deps_fixture(pin: &str) -> String {
         format!(
             r#"schema_version = "1.0.0"
 
@@ -1513,7 +1513,7 @@ engine = "owned-rust-bump-bot"
 changeset_transport = "scm-facts"
 github_actions = "adapter-only"
 external_bots = "disabled"
-merge_authority = "oya-ci-required"
+merge_authority = "presubmit"
 
 [rust]
 channel = "stable"
@@ -1532,7 +1532,7 @@ bot_gate = "cloud-ci-dependency-automation"
 [freshness]
 mirror = "ci/facade/dep-freshness/mirror/freshness.json"
 manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
-producer = "oya-dep-freshness-producer"
+producer = "dep-freshness-producer"
 kernel = "ci/facade/dep-freshness/src/kernel.rs"
 stale_after_days = 90
 

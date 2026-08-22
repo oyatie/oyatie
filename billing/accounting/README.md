@@ -8,7 +8,7 @@ This flat microservice owns journal-voucher posting invariants, source-document 
 
 ## Current landed slice
 
-- `crates/oya-accounting-journal-domain` (`oya-accounting-journal-domain`): pure Rust domain invariants for balanced open-period posting, payroll digest intake, KR VAT evidence workflow, AP approval checks, and close-evidence refusal.
+- `crates/accounting-journal-domain` (`accounting-journal-domain`): pure Rust domain invariants for balanced open-period posting, payroll digest intake, KR VAT evidence workflow, AP approval checks, and close-evidence refusal.
 
 ## Does not own
 

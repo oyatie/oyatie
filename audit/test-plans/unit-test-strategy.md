@@ -261,17 +261,17 @@ The plan is written against the `audit/manifest.json` layer roster and ADR-0105 
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
+- SLO target: `audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
 - Regression criterion: every generated valid proof verifies and every mutated proof fails.
-- SLO target: `oya-audit-chain-evidence-export-freshness` target `0.95`.
+- SLO target: `audit-chain-evidence-export-freshness` target `0.95`.
 - Regression criterion: export manifest builder is O(periods + roots), not O(events).
-- SLO target: `oya-audit-chain-merkle-chain-verification-latency` target `0.95`.
+- SLO target: `audit-chain-merkle-chain-verification-latency` target `0.95`.
 - Regression criterion: proof verifier benchmark stays below 200 ms p95 equivalent on CI.
-- SLO target: `oya-audit-chain-seal-storage-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-storage-availability` target `0.9999`.
 - Regression criterion: WORM key naming helper rejects invalid pack and period before adapter call.
-- SLO target: `oya-audit-chain-seal-write-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-write-availability` target `0.9999`.
 - Regression criterion: idempotency key replay logic accepts exact digest replay only.
-- SLO target: `oya-audit-chain-seal-write-latency` target `0.99`.
+- SLO target: `audit-chain-seal-write-latency` target `0.99`.
 - Regression criterion: Merkle builder for unit fixture period stays within baseline allocation budget.
 - Meta-SLO target: tamper detection correctness `100%`.
 - Regression criterion: signature and proof mutation suites must kill all tamper-accepting mutants.
@@ -279,22 +279,22 @@ The plan is written against the `audit/manifest.json` layer roster and ADR-0105 
 ## CI Pipeline Integration
 
 - GitHub Actions job: `audit-chain-unit-test-strategy`.
-- Command: `cargo test -p oya-audit-chain-emission-kernel --all-features`.
-- Command: `cargo test -p oya-audit-chain-sealing-kernel --all-features`.
-- Command: `cargo test -p oya-audit-chain-verification-kernel --all-features`.
-- Command: `cargo test -p oya-audit-chain-query-kernel --all-features`.
-- Command: `cargo test -p oya-audit-chain-retention-cascade-kernel --all-features`.
-- Command: `cargo mutants -p oya-audit-chain-sealing-kernel --timeout 180`.
-- Command: `cargo mutants -p oya-audit-chain-verification-kernel --timeout 180`.
-- Command: `cargo mutants -p oya-audit-chain-retention-cascade-kernel --timeout 180`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-audit-chain-seal-coverage`.
-- Check crate enforcement: `oya-check-event-schema-versioning`.
-- Check crate enforcement: `oya-check-slo-coverage`.
-- Check crate enforcement: `oya-check-layered-architecture-discipline`.
+- Command: `cargo test -p audit-chain-emission-kernel --all-features`.
+- Command: `cargo test -p audit-chain-sealing-kernel --all-features`.
+- Command: `cargo test -p audit-chain-verification-kernel --all-features`.
+- Command: `cargo test -p audit-chain-query-kernel --all-features`.
+- Command: `cargo test -p audit-chain-retention-cascade-kernel --all-features`.
+- Command: `cargo mutants -p audit-chain-sealing-kernel --timeout 180`.
+- Command: `cargo mutants -p audit-chain-verification-kernel --timeout 180`.
+- Command: `cargo mutants -p audit-chain-retention-cascade-kernel --timeout 180`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-audit-chain-seal-coverage`.
+- Check crate enforcement: `check-event-schema-versioning`.
+- Check crate enforcement: `check-slo-coverage`.
+- Check crate enforcement: `check-layered-architecture-discipline`.
 - Artifact: `audit-chain-unit-junit.xml`.
 - Artifact: `audit-chain-unit-proptest-seeds`.
 - Artifact: `audit-chain-unit-mutants.json`.

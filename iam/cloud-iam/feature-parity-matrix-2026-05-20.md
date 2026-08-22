@@ -379,7 +379,7 @@ Ledger R46 Compliance overlays: map FedRAMP, SOC 2, ISO, KCMVP, eIDAS, Aadhaar, 
 Ledger R47 Regional isolation: define region, cell, tenant, sovereign pack, and data-residency boundaries.
 Ledger R48 Admin UX: define a UI/API split for policy authoring, federation setup, token inspection, and incident response.
 Ledger R49 SDK ownership: state whether the Rust SDK example becomes generated SDK output or remains educational sample code.
-Ledger R50 cloud-ci ownership: define the branch-protected `oya-ci-required` / owned `oya-ci` gate surface for intern-buildable workflows instead of shell fragments.
+Ledger R50 cloud-ci ownership: define the branch-protected `presubmit` / owned `ci` gate surface for intern-buildable workflows instead of shell fragments.
 Ledger R51 Migration tooling: replace Okta/AWS extraction examples with a governed Rust migration command and fixture tests.
 Ledger R52 Import validation: add dry-run, diff, approval, and rollback behavior for imported identities and policies.
 Ledger R53 Account linking: define how external IdP subjects link to Oyatie principals and how conflicts resolve.
@@ -394,7 +394,7 @@ Ledger R61 OpenTofu modules: add per-context modules before claiming deployabili
 Ledger R62 State backends: publish per-context state backend, locking, encryption, signing, and recovery model.
 Ledger R63 Module signing: connect OpenTofu modules to ADR-0039 sigstore expectations.
 Ledger R64 OS manifest: add Tier-1, Tier-2, out-of-scope, package format, and CI lane declarations.
-Ledger R65 Build invocation: document the branch-protected `oya-ci-required` / owned `oya-ci` build target; local Cargo runs are rehearsal only and are not release authority.
+Ledger R65 Build invocation: document the branch-protected `presubmit` / owned `ci` build target; local Cargo runs are rehearsal only and are not release authority.
 Ledger R66 SLO files: add OpenSLO for authorize, token issue, introspect, revoke, federation callback, provider translation, and audit append.
 Ledger R67 Capacity model: add role, principal, policy, IdP, token, and audit-event ceilings by tenant_class policy/context.
 Ledger R68 Cost budget: add tenant_class policies cost envelopes, with OCI demo_trial tenant_class explicitly zero paid infrastructure.

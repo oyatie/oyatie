@@ -61,7 +61,7 @@ capabilities:
     tier: T2
     risk_class: high
     rationale: >-
-      Pure kernel state machine (crates/oya-cloud-intelligence-kernel) — round-robin select,
+      Pure kernel state machine (crates/cloud-intelligence-kernel) — round-robin select,
       per-key failure-count blacklist threshold, jittered cooldown, lazy restore. Front-line
       denial-of-wallet / key-exhaustion control (OWASP LLM10). Brief §1, §10.
     data_class: [INTERNAL_ONLY]
@@ -69,7 +69,7 @@ capabilities:
     realm: internal
     slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
     surface_evidence:
-      - crates/oya-cloud-intelligence-kernel/src/lib.rs
+      - crates/cloud-intelligence-kernel/src/lib.rs
 
   - capability_id: cloud-intelligence.failover.ladder
     capability_name: In-Key-Retry → Rotate → Provider-Fallback → Graceful-503 Failover Ladder
@@ -113,7 +113,7 @@ capabilities:
     realm: admin
     slo_anchor: n/a
     surface_evidence:
-      - crates/oya-cloud-intelligence-rest/src/keystore.rs
+      - crates/cloud-intelligence-rest/src/keystore.rs
 
   - capability_id: cloud-intelligence.auth.two-realm
     capability_name: Two Constant-Time Auth Realms (admin + ingress)
@@ -128,7 +128,7 @@ capabilities:
     realm: both
     slo_anchor: n/a
     surface_evidence:
-      - crates/oya-cloud-intelligence-rest/src/auth.rs
+      - crates/cloud-intelligence-rest/src/auth.rs
 
   - capability_id: cloud-intelligence.audit.emission
     capability_name: Bedrock-Shaped Immutable Audit + Low-PII Metering Emission
@@ -163,7 +163,7 @@ capabilities:
     tier: T2
     risk_class: medium
     rationale: >-
-      oya_cloud_intelligence_* metrics (per-key success/failure, retries, upstream-latency
+      cloud_intelligence_* metrics (per-key success/failure, retries, upstream-latency
       histogram, ttft histogram, active-key gauge, per-tenant token counters); logs identify
       keys only by fingerprint, never raw key/prompt/completion. Brief §4, §5.
     data_class: [INTERNAL_ONLY]
@@ -171,5 +171,5 @@ capabilities:
     realm: internal
     slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
     surface_evidence:
-      - crates/oya-cloud-intelligence-rest/src/metrics.rs
-      - crates/oya-cloud-intelligence-rest/src/logging.rs
+      - crates/cloud-intelligence-rest/src/metrics.rs
+      - crates/cloud-intelligence-rest/src/logging.rs

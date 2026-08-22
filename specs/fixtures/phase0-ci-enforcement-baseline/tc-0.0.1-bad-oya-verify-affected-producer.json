@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "strict": false
   },
@@ -23,11 +23,11 @@
     "candidate_bytes_can_weaken_gate",
     "candidate_sourced_gate_definition"
   ],
-  "fixture_id": "TC-0.0.1-BAD-oya-verify-affected-producer",
+  "fixture_id": "TC-0.0.1-BAD-verify-affected-producer",
   "producer_contract": {
     "candidate_bytes_policy": "may_execute_candidate_repository_code",
     "command": "oya verify --affected --base dev",
-    "context": "oya-ci-required",
+    "context": "presubmit",
     "kind": "legacy_local_cli"
   },
   "purpose": "Proves oya verify affected mode is local feedback only and cannot produce a required P0.0 context.",

@@ -55,8 +55,8 @@ Jenkins controller + GitHub App registration; populating real Trivy/cosign creds
 - **Per-gate O7 cache adoption** — separate incremental lane; not coupled here.
 
 ## Open Questions
-- Status-context granularity: one `oya-verify` required check, or a small set
-  (`oya-verify`, `oya-pr-review`, `oya-supply-chain`)? (Leaning: 2–3, mapped from the
+- Status-context granularity: one `verify` required check, or a small set
+  (`verify`, `pr-review`, `supply-chain`)? (Leaning: 2–3, mapped from the
   current 15 so reviewers see meaningful gates.)
 - SBOM/attestation storage: in the OCI registry alongside the image (cosign attach) vs
   a SeaweedFS evidence bucket? (Leaning: registry via cosign, mirrored to evidence.)

@@ -17,16 +17,16 @@ opencost:
       enabled: false  # use cluster Mimir via Prometheus federation
     external:
       enabled: true
-      url: "http://oya-observability-mimir.observability.svc.cluster.local:9009/prometheus"
+      url: "http://observability-mimir.observability.svc.cluster.local:9009/prometheus"
       headers:
-        X-Scope-OrgID: oya-self  # tenant header per multi-tenant Mimir
+        X-Scope-OrgID: self  # tenant header per multi-tenant Mimir
 
   # ---- canonical tenant cost labels (per ADR-0199) ----
   exporter:
     extraEnv:
       # Aggregation keys — these labels MUST be present on every workload per
       # ADR-0199 mandatory tenant labels. The check
-      # `oya-check-tenant-cost-labels-coverage` enforces label presence in
+      # `check-tenant-cost-labels-coverage` enforces label presence in
       # rendered helm output.
       CLUSTER_ID: "${CLUSTER_NAME}"
       EMIT_KSM_V1_METRICS: "false"
@@ -106,7 +106,7 @@ microservice: observability
 boundedContext: finops
 tier: S
 plane: analytics
-partOf: oya-observability
+partOf: observability
 
 # ---- cost-attribution labels per ADR-0199 (self-attribution!) ----
 costAttribution:
@@ -114,5 +114,5 @@ costAttribution:
   workloadClass: "app"
 
 # ---- canonical helm library ----
-oya-helpers:
+helpers:
   enabled: true

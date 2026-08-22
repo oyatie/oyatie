@@ -58,7 +58,7 @@ MEMORY.md uses inline `SUPERSEDED` annotations but does not segregate these into
 |-------|-------------|----------------------|------|
 | `feedback_grit_claim_work_done.md` | `feedback_deprecate_external_agent_coord_tooling.md` (2026-05-16) | Listed under active entries with inline note | Agents may follow grit claim/work/done protocol, which is retired |
 | `feedback_rtk_proxy_fmt_silent_passthrough.md` | `feedback_deprecate_external_agent_coord_tooling.md` (2026-05-16) | Listed under active entries with inline note | Agents may attempt rtk bypass path for cargo |
-| `feedback_oya_vcs_canonical_2026_05_16.md` | `feedback_oya_git_canonical_2026_05_18.md` (2026-05-18) | Listed with "(SUPERSEDED)" in title | Body still contains detailed `oya vcs claim/work/done` agent flow as "How to apply" |
+| `feedback_vcs_canonical_2026_05_16.md` | `feedback_git_canonical_2026_05_18.md` (2026-05-18) | Listed with "(SUPERSEDED)" in title | Body still contains detailed `oya vcs claim/work/done` agent flow as "How to apply" |
 | `feedback_layer_enum_12_value_canonical.md` | `feedback_layer_enum_adr_0105_13_canonical.md` (2026-05-16) | Listed with "(SUPERSEDED)" in title | Body content is stub/correct, low risk |
 | `feedback_self_merge_on_ci_green.md` | `feedback_self_merge_via_contract_path.md` (2026-05-16) | Listed with "(SUPERSEDED)" in title | Body correctly warns; low risk |
 
@@ -98,7 +98,7 @@ Files missing both sections (P1 — agents cannot easily extract actionable guid
 | `feedback_naming_justification.md` | Naming | No labelled sections |
 | `feedback_no_exceptions_canonical.md` | Architecture | No labelled sections (also orphaned — §2.1) |
 | `feedback_no_silent_regression.md` | Quality bar | No labelled sections |
-| `feedback_oya_git_canonical_2026_05_18.md` | VCS canonical | No labelled sections |
+| `feedback_git_canonical_2026_05_18.md` | VCS canonical | No labelled sections |
 | `feedback_pipeline_clog_gotchas_2026_05_17.md` | Operational | No labelled sections |
 | `feedback_pr82_dishonest_exit_gate.md` | Process | No labelled sections |
 | `feedback_quality_performance_scalability_bar.md` | Quality bar | No labelled sections |
@@ -119,9 +119,9 @@ Several memories have `description:` fields that no longer accurately reflect th
 |------|------------------------|
 | `feedback_grit_claim_work_done.md` | Description says "rtk-ai/grit claim→work→done is the canonical agent-coordination primitive" — this is now the *superseded* position. Description does not start with SUPERSEDED unlike other superseded files. **P1** |
 | `feedback_workflow_objectgraph_adapter_layer.md` | Description still names "Object Graph" (old name); MEMORY.md index itself notes it is RETIRED per ADR-0145. Body body text uses "Object Graph" throughout, not "Ontology" per `feedback_glossary_ontology_not_object_graph.md`. **P1 — semantic inconsistency between memories** |
-| `feedback_flat_product_catalog.md` | Description and body both use "Object Graph" terminology (old); also lists `oya-intelligence-grit-cli` and `oya-intelligence-icm-cli` as planned crates under Foundry — both using deprecated tooling names. **P1** |
+| `feedback_flat_product_catalog.md` | Description and body both use "Object Graph" terminology (old); also lists `intelligence-grit-cli` and `intelligence-icm-cli` as planned crates under Foundry — both using deprecated tooling names. **P1** |
 | `feedback_autonomous_implementation_artifacts.md` | Body references `grit claim` and `grit done` as the acceptance gate flow (lines ~18-20), which is the retired grit protocol. Not superseded file. **P1** |
-| `feedback_repeat_mistake_prevention.md` | "Pre-flight runbook for every sanctioned primitive (grit, icm, oya-tooling-agent-read)" — names retired tools as sanctioned primitives. "After any error: search ICM with `rtk icm recall`" — uses retired rtk/icm invocation syntax. **P1** |
+| `feedback_repeat_mistake_prevention.md` | "Pre-flight runbook for every sanctioned primitive (grit, icm, tooling-agent-read)" — names retired tools as sanctioned primitives. "After any error: search ICM with `rtk icm recall`" — uses retired rtk/icm invocation syntax. **P1** |
 | `feedback_doc_coverage_enforced.md` | "Every Impl-Plan must contain: `## Grit Claim Symbols`, `## ICM Rows to Emit`" — retired tool references in a currently-active compliance rule. **P1** |
 | `feedback_autonomous_decision_principles.md` | Lists `grit done --agent <id> succeeds` as a completion criterion. Retired protocol. **P1** |
 | `feedback_naming_justification.md` | "Scaffold-time: emit the JUSTIFICATION block as ICM" — uses retired ICM invocation. **P1** |
@@ -457,7 +457,7 @@ Per documentation-rigor.md §2: "every step has … audit-stream tag emitted." T
 
 | # | ID | Corpus | File(s) | Finding |
 |---|----|--------|---------|---------|
-| 8 | P1-MEM-05 | Memory | 5 files | Superseded memories (`grit_claim_work_done`, `rtk_proxy_fmt`, `oya_vcs_2026_05_16`, `layer_enum_12_value`, `self_merge_on_ci_green`) interleaved with canonical entries in MEMORY.md with no section break. Risk of agent confusion. |
+| 8 | P1-MEM-05 | Memory | 5 files | Superseded memories (`grit_claim_work_done`, `rtk_proxy_fmt`, `vcs_2026_05_16`, `layer_enum_12_value`, `self_merge_on_ci_green`) interleaved with canonical entries in MEMORY.md with no section break. Risk of agent confusion. |
 | 9 | P1-MEM-06 | Memory | 35 files | 66% of feedback memories missing `Why:` and `How to apply:` body sections required by documentation-rigor §2. |
 | 10 | P1-MEM-07 | Memory | `feedback_grit_claim_work_done.md` | Description frontmatter says "rtk-ai/grit claim→work→done is the canonical agent-coordination primitive" — not marked SUPERSEDED in its description, only in MEMORY.md. Misleading description. |
 | 11 | P1-MEM-08 | Memory | `feedback_workflow_objectgraph_adapter_layer.md` | Body uses "Object Graph" throughout; MEMORY.md marks it RETIRED per ADR-0145; body does not reflect retirement or Ontology rename. |
@@ -535,7 +535,7 @@ Per documentation-rigor.md §2: "every step has … audit-stream tag emitted." T
     - Single-line purpose field in `_meta`.
 
 13. **Add `Why:` and `How to apply:` to high-priority memory files** (P1-MEM-06)
-    - Priority subset: `feedback_naming_justification.md`, `feedback_no_silent_regression.md`, `feedback_governance_pipeline_canonical.md`, `feedback_self_merge_via_contract_path.md`, `feedback_oya_git_canonical_2026_05_18.md`, `feedback_layer_enum_adr_0105_13_canonical.md`.
+    - Priority subset: `feedback_naming_justification.md`, `feedback_no_silent_regression.md`, `feedback_governance_pipeline_canonical.md`, `feedback_self_merge_via_contract_path.md`, `feedback_git_canonical_2026_05_18.md`, `feedback_layer_enum_adr_0105_13_canonical.md`.
 
 14. **Fix `feedback_grit_claim_work_done.md` description** (P1-MEM-07)
     - Change description to: `"SUPERSEDED 2026-05-16 by [[deprecate-external-agent-coord-tooling]] — grit/rtk/icm retired; Foundry pipeline is the canonical agentic workflow"`

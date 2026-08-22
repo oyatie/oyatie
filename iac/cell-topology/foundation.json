@@ -291,7 +291,7 @@
       "cell_tier": "dedicated",
       "residency_class": "strict_kr",
       "region_disposition": "active_passive",
-      "storage_class": "oya-pg-hot",
+      "storage_class": "pg-hot",
       "quarterly_isolation_evidence": {
         "quarter": "2026q2",
         "network": "evidence://cloud-iac/cell-topology/oyatie-cloud-provider/kr-seoul-1/oyatie-cloud-provider-kr-seoul-1-a-001/quarterly-isolation/2026q2/network",

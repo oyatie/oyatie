@@ -11,7 +11,7 @@ description: |
   Per-namespace default-deny posture applies; this capability adds explicit
   allow rules. Symmetric apply: NetworkPolicy + AuthorizationPolicy ALWAYS
   applied together (atomic CR write); LEAN check
-  `oya-check-cedar-derived-policy-paired` validates pairing.
+  `check-cedar-derived-policy-paired` validates pairing.
 
   Idempotent: re-applying same Cedar fragment is a no-op.
 

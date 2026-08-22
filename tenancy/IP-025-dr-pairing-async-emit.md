@@ -15,13 +15,13 @@ related_adrs: [ADR-0263, ADR-0252, ADR-0244]
 
 ## B. Approach
 
-Create `oya-tenancy-dr-pairing-async-emitter` as an adapter around `contracts/asyncapi/tenant-events.yaml`. It emits signed, idempotent promotion/restoration events with pair version, TrueTime/HLC ordering fields, home/DR cell ids, residency labels, and audit-chain correlation.
+Create `tenancy-dr-pairing-async-emitter` as an adapter around `contracts/asyncapi/tenant-events.yaml`. It emits signed, idempotent promotion/restoration events with pair version, TrueTime/HLC ordering fields, home/DR cell ids, residency labels, and audit-chain correlation.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-dr-pairing-async-emitter/Cargo.toml` | create | Adapter crate. |
+| `microservices/tenancy/src/crates/tenancy-dr-pairing-async-emitter/Cargo.toml` | create | Adapter crate. |
 | `src/emitter.rs` | create | Emits promotion/restoration envelopes. |
 | `src/signing.rs` | create | HMAC/Ed25519 envelope signing abstraction. |
 | `src/idempotency.rs` | create | Idempotency-key derivation and duplicate suppression. |
@@ -40,7 +40,7 @@ Create `oya-tenancy-dr-pairing-async-emitter` as an adapter around `contracts/as
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-dr-pairing-async-emitter --all-features`.
+- `cargo nextest run -p tenancy-dr-pairing-async-emitter --all-features`.
 - AsyncAPI validates with both DR channels.
 - Duplicate event with same idempotency key is a no-op.
 - Event with older pair version is rejected and emits diagnostic evidence.
@@ -65,10 +65,10 @@ Create `oya-tenancy-dr-pairing-async-emitter` as an adapter around `contracts/as
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-025-dr-pairing-async-emit.md` matched `asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-025-dr-pairing-async-emit.md` matched `asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Sustainability emission (per ADR-0344)
 - Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
 - Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
-- Surface evidence: `microservices/tenancy/IP-025-dr-pairing-async-emit.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-025-dr-pairing-async-emit.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

@@ -10,7 +10,7 @@ purpose: |
   Define how every oya-* crate is versioned: SemVer 2.0.0 mandatory, workspace
   lockstep until W-Foundry-Preview, independent thereafter, with cargo-semver-checks
   enforcement in CI and a breaking-change ADR gate.
-planned_enforcement_ref: oya-governance-semver-discipline
+planned_enforcement_ref: governance-semver-discipline
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -45,7 +45,7 @@ combinatorial skew problem during pre-GA.
 ### 2.2 Phase B — independent (post W-Foundry-Preview)
 
 Per-crate `version = "X.Y.Z"`. Crates may bump on their own cadence once:
-- `oya-governance-semver-discipline` is green for 60 days across the crate.
+- `governance-semver-discipline` is green for 60 days across the crate.
 - A per-crate `CHANGELOG.md` exists.
 - The crate has shipped at least one `1.0.0` release.
 
@@ -74,7 +74,7 @@ Per SemVer §9. Order: `alpha.N` < `beta.N` < `rc.N` < `<release>`.
 
 ## 5. `cargo-semver-checks` CI integration
 
-Lane: [`oya-governance-semver-discipline`](enforcement-lanes.md) (BLOCKER).
+Lane: [`governance-semver-discipline`](enforcement-lanes.md) (BLOCKER).
 
 ```bash
 # in CI per crate
@@ -121,8 +121,8 @@ cargo-semver-checks correctly says nothing happened. Honour that.
 ## 8. Cross-crate skew constraint
 
 Even in Phase B (independent cadence), the workspace asserts:
-- All `oya-platform-*` crates share `major` (compatibility kernel layer).
-- All `oya-foundry-*` crates share `major` (control-plane kernel layer).
+- All `platform-*` crates share `major` (compatibility kernel layer).
+- All `foundry-*` crates share `major` (control-plane kernel layer).
 - All `oya-{axis}-*` crates may diverge per-axis (axis-prefix layer).
 
 This is the same shape Kubernetes uses for version skew across kube components
@@ -130,7 +130,7 @@ This is the same shape Kubernetes uses for version skew across kube components
 
 ## 9. Publishing flow
 
-`origin/prod` tag `oya-vX.Y.0` → `release-cherry-pick` agent cuts
+`origin/prod` tag `vX.Y.0` → `release-cherry-pick` agent cuts
 `release/X.Y` → crate `Cargo.toml` set to `X.Y.0` → `cargo publish` per crate.
 
 `crates.io` (or internal registry) publish requires the lane to be green AND

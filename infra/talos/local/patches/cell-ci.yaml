@@ -1,8 +1,8 @@
 # ADR-0381 D2 — CI specialty cell patch.
 #
 # Applied to the 1 CI specialty worker (ci-0) hosting:
-#   - buildkitd Deployment (oya-ci; ADR-0381 D1).
-#   - ci-webhook-gateway (oya-ci; ADR-0374) — small enough to co-locate.
+#   - buildkitd Deployment (ci; ADR-0381 D1).
+#   - ci-webhook-gateway (ci; ADR-0374) — small enough to co-locate.
 #
 # The node carries:
 #   - `oya.cell/ci=true` label (scheduling selector for ADR-0083 Tier-3 batch).

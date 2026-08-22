@@ -5,8 +5,8 @@ info:
   summary: Workload-principal token validation + Cedar PARC authorization (PDP API).
   description: |
     REST contract for the workload-identity bounded context of the `identity`
-    µservice (crates `oya-identity-workload-domain`, `oya-identity-workload-oidc-adapter`,
-    `oya-identity-workload-authz-cedar-adapter` per ADR-0002 + ADR-0131).
+    µservice (crates `identity-workload-domain`, `identity-workload-oidc-adapter`,
+    `identity-workload-authz-cedar-adapter` per ADR-0002 + ADR-0131).
 
     This is the **PDP (Policy Decision Point) API**. Callers are PEPs (Policy
     Enforcement Points) — Envoy waypoints, sidecars, in-process gates — that ask

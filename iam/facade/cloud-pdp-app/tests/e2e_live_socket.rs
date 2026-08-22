@@ -3,7 +3,7 @@
 //! Boots the REAL service (`server::start` — the same boot path as `main`)
 //! on ephemeral loopback ports with a bundle file as the ConfigMap stand-in,
 //! then drives both delivery surfaces over real sockets: REST via reqwest,
-//! gRPC via the generated tonic client (the oya-identity e2e_service
+//! gRPC via the generated tonic client (the identity e2e_service
 //! precedent).
 //!
 //! RED fixtures (fail-closed boot doctrine):
@@ -31,7 +31,7 @@ fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
-        mtls_cert_dir: "/etc/oya-cloud-iam-pdp/tls".to_owned(),
+        mtls_cert_dir: "/etc/cloud-iam-pdp/tls".to_owned(),
     }
 }
 
@@ -136,7 +136,7 @@ async fn serves_decisions_over_live_rest_and_grpc_sockets() {
 #[tokio::test(flavor = "multi_thread")]
 async fn missing_bundle_file_refuses_boot() {
     let config = config_for(std::path::Path::new(
-        "/nonexistent/oya-cloud-iam-pdp/bundle.json",
+        "/nonexistent/cloud-iam-pdp/bundle.json",
     ));
     let err = server::start(&config)
         .await
@@ -203,7 +203,7 @@ async fn empty_trust_anchor_refuses_boot() {
     let inner = serde_json::to_string(&bundle).unwrap();
     let path = temp_bundle_file("red-empty-trust", &signed_bundle_doc(&inner));
     let empty_trust = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-empty-trust-{}",
+        "cloud-iam-pdp-empty-trust-{}",
         std::process::id()
     ));
     std::fs::create_dir_all(&empty_trust).unwrap();
@@ -213,7 +213,7 @@ async fn empty_trust_anchor_refuses_boot() {
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
-        mtls_cert_dir: "/etc/oya-cloud-iam-pdp/tls".to_owned(),
+        mtls_cert_dir: "/etc/cloud-iam-pdp/tls".to_owned(),
     };
     let err = server::start(&config)
         .await

@@ -22,7 +22,7 @@ use axum::http::{Request as HttpRequest, StatusCode, header};
 use http_body_util::BodyExt;
 use tower::ServiceExt;
 
-use oya_shared_platform_contracts_kernel::pdp::AuthorizationRequest;
+use shared_platform_contracts_kernel::pdp::AuthorizationRequest;
 
 use common::{bob_read_link, entity_ref, entity_slice, request, seeded_state};
 
@@ -262,7 +262,7 @@ async fn stale_zookie_pin_is_conflict_never_a_stale_answer() {
         entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
     );
     pinned.min_policy_version =
-        Some(oya_shared_platform_contracts_kernel::pdp::PolicyVersion::new("psv-000099").unwrap());
+        Some(shared_platform_contracts_kernel::pdp::PolicyVersion::new("psv-000099").unwrap());
     let body = authorize_body(&pinned);
     let (status, json) = post_authorize(router, &body).await;
     assert_eq!(status, StatusCode::CONFLICT);

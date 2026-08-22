@@ -1,6 +1,6 @@
 microservice:
   id: connector
-  cargoPackage: oya-shared-connector-kernel
+  cargoPackage: shared-connector-kernel
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-connector
+  name: connector
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-connector
+  repository: connector
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-connector-cedar
+  policyConfigMapName: connector-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(

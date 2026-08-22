@@ -1,6 +1,6 @@
 microservice:
   id: feature-flags
-  cargoPackage: oya-feature-flags
+  cargoPackage: feature-flags
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-feature-flags
+  name: feature-flags
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-feature-flags
+  repository: feature-flags
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-feature-flags-cedar
+  policyConfigMapName: feature-flags-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(

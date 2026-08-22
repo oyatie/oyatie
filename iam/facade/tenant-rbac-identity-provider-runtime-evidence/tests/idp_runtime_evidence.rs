@@ -110,7 +110,7 @@ fn idp_runtime_evidence_plan_preserves_ref_and_claim_boundaries() {
             .starts_with("evidence/identity-provider-runtime/tenant-rbac/")
             && requirement
                 .source_plan_ref
-                .starts_with("crates/oya-tenant-rbac-identity-provider-verification/")
+                .starts_with("crates/tenant-rbac-identity-provider-verification/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.expected_issuer == "https://identity.oyatie.com/tenant-rbac"
             && requirement.expected_audience == "tenant-rbac-api"

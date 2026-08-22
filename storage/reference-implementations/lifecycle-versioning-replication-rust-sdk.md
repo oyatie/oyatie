@@ -1,4 +1,4 @@
-# Reference implementation — Bucket + lifecycle + versioning + cross-region replication via `oya-cloud-storage-sdk`
+# Reference implementation — Bucket + lifecycle + versioning + cross-region replication via `cloud-storage-sdk`
 
 Runnable Rust program that provisions a WORM-locked bucket, uploads a versioned object, configures lifecycle, enables cross-region
 replication, and exercises the bucket via S3 SDK round-trip.
@@ -16,8 +16,8 @@ anyhow = "1"
 aws-config = "1.5"
 aws-credential-types = "1.2"
 aws-sdk-s3 = "1.55"
-oya-cloud-storage-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-storage-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
@@ -29,11 +29,11 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::Result;
-use oya_cloud_storage_sdk::{
+use cloud_storage_sdk::{
     BucketCreateRequest, LifecycleRule, LifecyclePolicyRequest, ObjectLockMode, ObjectPutRequest,
     ReplicationRequest, StorageClass, StorageClient, StorageConfig, Tenant,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 
@@ -249,7 +249,7 @@ INFO  s3-api round-trip OK s3_round_trip_price_usd=Some(248.55) s3_round_trip_co
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_storage_sdk::testkit::Hermetic` with an in-process MinIO + cross-region simulator; tests
+The `hermetic` feature uses `cloud_storage_sdk::testkit::Hermetic` with an in-process MinIO + cross-region simulator; tests
 finish in ≤ 75 s.
 
 ## Error budget

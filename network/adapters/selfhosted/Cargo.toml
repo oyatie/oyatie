@@ -15,7 +15,7 @@ doctest = false
 network-domain = { path = "../../core/domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
 network-residency = { path = "../../core/residency" }
 
 [lints]

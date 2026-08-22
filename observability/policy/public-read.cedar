@@ -19,11 +19,11 @@ forbid (
 );
 
 // =============================================================================
-// PERMIT 1 — anonymous read of platform status (oya-self tenant, public-class)
+// PERMIT 1 — anonymous read of platform status (self tenant, public-class)
 // =============================================================================
 //
 // The public status page reads aggregated platform availability metrics from
-// the oya-self tenant. These are platform-wide health indicators (e.g., "Mimir
+// the self tenant. These are platform-wide health indicators (e.g., "Mimir
 // cluster availability over the last 30 days") with no per-customer attribution.
 
 permit (
@@ -33,18 +33,18 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-self" &&
+  resource.tenant_id == "tenant:self" &&
   resource has data_class &&
   resource.data_class == "PUBLIC" &&
   resource has metric_name &&
-  resource.metric_name like "oya_observability_public_*"
+  resource.metric_name like "observability_public_*"
 };
 
 // =============================================================================
-// PERMIT 2 — anonymous read of differential-privacy aggregates (oya-aggregate)
+// PERMIT 2 — anonymous read of differential-privacy aggregates (aggregate)
 // =============================================================================
 //
-// The oya-aggregate tenant carries DP-noise-injected cross-tenant aggregates
+// The aggregate tenant carries DP-noise-injected cross-tenant aggregates
 // suitable for product marketing leaderboards. Per-tenant attribution is
 // statistically prevented by the noise; ε ≤ 1.
 
@@ -55,7 +55,7 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-aggregate" &&
+  resource.tenant_id == "tenant:aggregate" &&
   resource has data_class &&
   resource.data_class == "PUBLIC" &&
   resource has dp_epsilon &&
@@ -101,7 +101,7 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-self", "tenant:oya-aggregate"])
+  !(resource.tenant_id in ["tenant:self", "tenant:aggregate"])
 };
 
 // =============================================================================

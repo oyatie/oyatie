@@ -66,8 +66,8 @@ source_adr: ADR-0276
 - Step 03: Inspect audit-chain evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 04: Inspect policy-engine evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 05: Inspect api-gateway evidence, record blast_radius_max_tenants_per_job, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 06: Inspect oya-shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 07: Inspect oya-residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 06: Inspect shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 07: Inspect residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 08: Inspect finops-portal evidence, record migration_duration_p99_seconds.intra_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 09: Inspect tenancy evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 10: Inspect cloud-iac evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
@@ -75,8 +75,8 @@ source_adr: ADR-0276
 - Step 12: Inspect audit-chain evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 13: Inspect policy-engine evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 14: Inspect api-gateway evidence, record migration_duration_p99_seconds.intra_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 15: Inspect oya-shuffle-sharding evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 16: Inspect oya-residency-domain evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 15: Inspect shuffle-sharding evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 16: Inspect residency-domain evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 17: Inspect finops-portal evidence, record blast_radius_max_tenants_per_job, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 18: Inspect tenancy evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 19: Inspect cloud-iac evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
@@ -84,8 +84,8 @@ source_adr: ADR-0276
 - Step 21: Inspect audit-chain evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 22: Inspect policy-engine evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 23: Inspect api-gateway evidence, record blast_radius_max_tenants_per_job, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 24: Inspect oya-shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 25: Inspect oya-residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 24: Inspect shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 25: Inspect residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 26: Inspect finops-portal evidence, record migration_duration_p99_seconds.intra_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 27: Inspect tenancy evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 28: Inspect cloud-iac evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
@@ -93,8 +93,8 @@ source_adr: ADR-0276
 - Step 30: Inspect audit-chain evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 31: Inspect policy-engine evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 32: Inspect api-gateway evidence, record migration_duration_p99_seconds.intra_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 33: Inspect oya-shuffle-sharding evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 34: Inspect oya-residency-domain evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 33: Inspect shuffle-sharding evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 34: Inspect residency-domain evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 35: Inspect finops-portal evidence, record blast_radius_max_tenants_per_job, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 36: Inspect tenancy evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 37: Inspect cloud-iac evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
@@ -102,8 +102,8 @@ source_adr: ADR-0276
 - Step 39: Inspect audit-chain evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 40: Inspect policy-engine evidence, record migration_success_rate_percent, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 41: Inspect api-gateway evidence, record blast_radius_max_tenants_per_job, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 42: Inspect oya-shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
-- Step 43: Inspect oya-residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 42: Inspect shuffle-sharding evidence, record api_p99_latency_ms.create, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
+- Step 43: Inspect residency-domain evidence, record api_p99_latency_ms.status, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 44: Inspect finops-portal evidence, record migration_duration_p99_seconds.intra_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 - Step 45: Inspect tenancy evidence, record migration_duration_p99_seconds.cross_region, snapshot current job and tenant states, then run the least-invasive recovery action for this branch.
 

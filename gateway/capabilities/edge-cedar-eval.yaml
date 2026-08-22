@@ -3,7 +3,7 @@ name: edge-cedar-eval
 namespace: api-gateway
 display_name: Edge Cedar Policy Evaluation
 description: |
-  Per-request Cedar fragment evaluation via the caller-side oya-shared-policy-eval library
+  Per-request Cedar fragment evaluation via the caller-side shared-policy-eval library
   (per ADR-0246+amendment). Sub-1ms p99 admission decision; emits permit/deny audit event
   per ADR-0263 with the matched fragment ID.
 

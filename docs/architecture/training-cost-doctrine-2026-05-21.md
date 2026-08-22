@@ -7,7 +7,7 @@ status: 'Proposed'
 date: '2026-05-21'
 authority_tier: '2'
 line_floor: '1200'
-planned_enforcement_ref: 'oya-governance-doc-rigor'
+planned_enforcement_ref: 'governance-doc-rigor'
 purpose: >
   Doctrine for the 30-year career-arc claim: learning oyatie once creates transferable competence across personal life, education, apprenticeship, frontline work, office work, management, regulated roles, side businesses, and retirement-era personal use.
 related_adrs:
@@ -148,7 +148,7 @@ The user clicks approve. The substrate runs the following resolution path before
 
 Cross-context transfer claim: a user who learned approve in marketplace (approving a basket checkout) learns approve for free in workflow studio, HR capability tier (approving a leave request), ERP capability tier (approving a purchase order), incident response (approving a runbook step), clinical handoff (approving a discharge plan), and audit (approving an evidence package). The mechanical experience and the evidence trail are the same.
 
-Implementation reference: substrate routing belongs to `oya-ux-shell-action-router` (planned) plus `oya-intelligence-workflow-engine` plus `oya-intelligence-policy-engine-cedar` plus `oya-shared-audit-chain` plus `oya-shared-ontology`.
+Implementation reference: substrate routing belongs to `ux-shell-action-router` (planned) plus `intelligence-workflow-engine` plus `intelligence-policy-engine-cedar` plus `shared-audit-chain` plus `shared-ontology`.
 
 ### 2.3 Verb walkthrough: assign
 Assign places a workflow step on a different role's queue inside the current tenant. Substrate path is identical to approve plus a role-projection-target argument.
@@ -481,7 +481,7 @@ The savings table is robust to ±30 percent variation in any single parameter. A
 ### 8.8 Claim discipline
 Savings are claimable only when training analytics show all four of: lower time-to-first-successful-action, lower per-employee support-ticket volume, lower wrong-context-action denial rate, and stable accessibility-task-completion rate across role projections. If any of those four signals does not move in the right direction, the doctrine is not being realized and the savings table is hypothetical.
 
-The four signals are emitted by the substrate as audit-chain projections (`oya-shared-audit-chain`), Workflow Engine telemetry (`oya-intelligence-workflow-engine`), Cedar denial events (`oya-intelligence-policy-engine-cedar`), and UX shell timing (`oya-ux-shell-action-router`). The savings are auditable, not asserted.
+The four signals are emitted by the substrate as audit-chain projections (`shared-audit-chain`), Workflow Engine telemetry (`intelligence-workflow-engine`), Cedar denial events (`intelligence-policy-engine-cedar`), and UX shell timing (`ux-shell-action-router`). The savings are auditable, not asserted.
 
 ## Section 9 - Industry-pack training walkthroughs
 
@@ -877,15 +877,15 @@ None of the savings in §8.3 is claimable against a customer's case study unless
 Specifically: the marketing narrative may not state a per-employee training-cost saving above USD X for a customer unless the customer's substrate-telemetry projection for that period demonstrates the signals consistent with the savings. The audit-chain is the discipline.
 
 ### 11.6 Telemetry implementation references
-- `oya-shared-audit-chain` — emits per-verb sealed events with full context tuple.
-- `oya-intelligence-workflow-engine` — emits time-to-first-successful-action per user.
-- `oya-intelligence-policy-engine-cedar` — emits denial-class counts per root-cause.
-- `oya-shared-ux-shell-action-router` — emits verb-completion events with assistive-input modality.
+- `shared-audit-chain` — emits per-verb sealed events with full context tuple.
+- `intelligence-workflow-engine` — emits time-to-first-successful-action per user.
+- `intelligence-policy-engine-cedar` — emits denial-class counts per root-cause.
+- `shared-ux-shell-action-router` — emits verb-completion events with assistive-input modality.
 
 ## Section 12 - Doctrine evolution and review cadence
 
 ### 12.1 Annual doctrine review
-The doctrine is reviewed annually. Review owners: the documentation-rigor lane (`oya-governance-doc-rigor`), the UX shell maintainers, the Cedar policy maintainers, the Workflow Engine maintainers, and the audit-chain maintainers. The review confirms that the thirteen-verb enum remains bounded, that all pack overlays still implement the verbs identically, and that the telemetry signals remain produced and consumed.
+The doctrine is reviewed annually. Review owners: the documentation-rigor lane (`governance-doc-rigor`), the UX shell maintainers, the Cedar policy maintainers, the Workflow Engine maintainers, and the audit-chain maintainers. The review confirms that the thirteen-verb enum remains bounded, that all pack overlays still implement the verbs identically, and that the telemetry signals remain produced and consumed.
 
 Review output: a sealed audit-chain artifact citing this doctrine document by version, plus any ADRs that may have extended the verb enum, plus the latest sensitivity analysis on the §8.3 savings table against representative customer-segments.
 
@@ -1196,14 +1196,14 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
 - docs/decisions/ADR-0709-general-live-apex.md
 
 ### Implementation microservices referenced
-- oya-shared-ux-shell-action-router (planned; thirteen-verb enum enforcement)
-- oya-intelligence-workflow-engine (durable-process substrate)
-- oya-intelligence-policy-engine-cedar (authorization substrate)
-- oya-shared-audit-chain (evidence substrate)
-- oya-shared-ontology (object-graph substrate)
-- oya-shared-marketplace-settlement (universal settlement substrate)
-- oya-shared-compliance-pack (HIPAA/GDPR/SOC2/CSAP/PCI/EU-AI-Act overlay substrate per ADR-0251)
-- oya-shared-tenancy (tenant-membership primitive per ADR-0244)
+- shared-ux-shell-action-router (planned; thirteen-verb enum enforcement)
+- intelligence-workflow-engine (durable-process substrate)
+- intelligence-policy-engine-cedar (authorization substrate)
+- shared-audit-chain (evidence substrate)
+- shared-ontology (object-graph substrate)
+- shared-marketplace-settlement (universal settlement substrate)
+- shared-compliance-pack (HIPAA/GDPR/SOC2/CSAP/PCI/EU-AI-Act overlay substrate per ADR-0251)
+- shared-tenancy (tenant-membership primitive per ADR-0244)
 
 ### External references and precedent anchors
 - Apple ecosystem and Human Interface Guidelines: https://developer.apple.com/design/human-interface-guidelines/

@@ -1,4 +1,4 @@
-# PRD — `oya-managed-k8s-control-plane-host`
+# PRD — `managed-k8s-control-plane-host`
 
 **Status:** wave-3 design-spec + foundation crates (ADR-0376 lane). Maturity is
 **design-spec + tested foundation**, NOT runtime GA — the live Kamaji/Talos CRD
@@ -30,8 +30,8 @@ management-cluster multi-tenancy hardening posture (a tenant must NEVER reach th
 management cluster or a peer tenant's control plane).
 
 It is ONE of the four flat single-concern microservices ADR-0376 names; the
-others (`oya-managed-k8s-cluster-lifecycle`, `oya-managed-k8s-tenant-quota`,
-`oya-managed-k8s-sla-observability`) land in their own lanes and CONSUME the
+others (`managed-k8s-cluster-lifecycle`, `managed-k8s-tenant-quota`,
+`managed-k8s-sla-observability`) land in their own lanes and CONSUME the
 `ControlPlaneProvisioning` port this microservice owns.
 
 ## 2. Scope (this lane)
@@ -55,7 +55,7 @@ In-scope and BUILT:
 Explicitly OUT of scope (deferred to named follow-ons, NOT designed here per
 ADR-0376): billing/metering of managed clusters, the public SLA contract, the
 DPIA for hosting tenant control planes, and external multi-tenant GA — all owned
-by a future `oya-managed-k8s-commercial-ga` ADR.
+by a future `managed-k8s-commercial-ga` ADR.
 
 ## 3. Dogfood-first (ADR-0376)
 
@@ -80,7 +80,7 @@ trait ControlPlaneProvisioning: Send + Sync {
 `ProvisionRequest` = `{ cluster_ref, tier, datastore_class }`. The port is
 object-safe so the composition root holds `Arc<dyn ControlPlaneProvisioning>` and
 swaps adapters without a generic blast radius — this is the seam
-`oya-managed-k8s-cluster-lifecycle` and `oya-managed-k8s-sla-observability` will
+`managed-k8s-cluster-lifecycle` and `managed-k8s-sla-observability` will
 consume.
 
 ## 5. Operational boundary (hard invariant)
@@ -88,7 +88,7 @@ consume.
 This service runs in (and talks ONLY to) Oyatie's MANAGEMENT cluster. It NEVER
 runs tenant workloads and NEVER holds a tenant-cluster kubeconfig. The production
 boot path is fail-closed: it reads the management kubeconfig path from
-`$OYA_MGMT_KUBECONFIG` and refuses to start if absent (it never silently falls
+`$OYATIE_MGMT_KUBECONFIG` and refuses to start if absent (it never silently falls
 back to the in-memory fake). See `operational-boundaries.md`.
 
 ## 6. Authorization (Cedar)
@@ -115,4 +115,4 @@ See `implementation-ready-acceptance-criteria.md`. Summary: kernel state machine
 rejects illegal transitions; the in-memory adapter drives both tiers to `active`
 and tears down to `deleted`; the app's admin API returns 201/200/204 on the happy
 path and 400/501 on fail-closed/deferred paths; the production `[[bin]]` fails
-closed without `$OYA_MGMT_KUBECONFIG`.
+closed without `$OYATIE_MGMT_KUBECONFIG`.

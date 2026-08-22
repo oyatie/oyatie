@@ -17,9 +17,9 @@ maturity: preview
 created_at: 2026-05-27
 related_adrs: [ADR-0376, ADR-0375, ADR-0083, ADR-0105]
 related_artifacts:
-  - microservices/oya-managed-k8s-control-plane-host/PRD.md
-  - microservices/oya-managed-k8s-control-plane-host/cedar/policies.cedar
-  - microservices/oya-managed-k8s-control-plane-host/runbooks/control-plane-teardown.md
+  - microservices/managed-k8s-control-plane-host/PRD.md
+  - microservices/managed-k8s-control-plane-host/cedar/policies.cedar
+  - microservices/managed-k8s-control-plane-host/runbooks/control-plane-teardown.md
 autonomy_tier: T3
 # T3 = irreversible deletion of standing control-plane infrastructure (+ the
 # tenant datastore on the hosted tier); Cedar-gated to platform/control-plane-operator;

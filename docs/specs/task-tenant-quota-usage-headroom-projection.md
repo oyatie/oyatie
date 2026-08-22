@@ -2,11 +2,11 @@
 
 ## Objective
 Add pure, deterministic usage-aggregation and headroom-projection to the
-`oya-managed-k8s-tenant-quota-kernel` crate (ADR-0083 Tier-3: no I/O, no async).
+`managed-k8s-tenant-quota-kernel` crate (ADR-0083 Tier-3: no I/O, no async).
 These primitives feed lifecycle pre-checks and future billing/alerting pipelines.
 
 ## Crate boundary
-Crate: `oya-managed-k8s-tenant-quota-kernel` (sole modified crate).
+Crate: `managed-k8s-tenant-quota-kernel` (sole modified crate).
 No new workspace members. No edits to root `Cargo.toml`.
 
 ## Mod layout (flat-clean-arch, ADR-0509)
@@ -21,7 +21,7 @@ src/lib.rs
 ```
 
 All new types live in `mod usage_projection` inside `src/lib.rs` (single-file crate).
-They are re-exported at crate root so callers use `oya_managed_k8s_tenant_quota_kernel::QuotaHeadroom`.
+They are re-exported at crate root so callers use `managed_k8s_tenant_quota_kernel::QuotaHeadroom`.
 
 ## Contracts
 

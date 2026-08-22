@@ -255,7 +255,7 @@ mod tests {
         IdentityProvider::new(IdentityProviderCreate {
             id: "idp_alpha_oidc".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             kind: IdentityProviderKind::Oidc,
             issuer_uri: "https://idp.alpha.example/oidc".to_string(),
             audience: "urn:oyatie:cloud".to_string(),

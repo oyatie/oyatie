@@ -105,7 +105,7 @@ In scope for day one:
 - Deploy the five bootstrap µservices to your local cluster.
 - Run the canonical `0001_create_self_tenant.sql` migration.
 - Verify reserved-namespace protection works (i.e., that you cannot
-  create a tenant named `oya-bad`).
+  create a tenant named `bad`).
 - Create your personal sandbox tenant.
 - Exercise a Cedar-gated call (the call goes through the evaluator
   and you see the audit event land).
@@ -205,7 +205,7 @@ stream to emit on) needs policy evaluation.
 bundle from `microservices/policy-engine/fragments/bootstrap/`,
 verify the Ed25519 signatures with `cosign` against the org root
 key, and confirm that the reserved-namespace fragment denies
-attempts to register `oya-bad` as a tenant.
+attempts to register `bad` as a tenant.
 
 ### 3.4 `audit-chain` (per-stream provisioning)
 
@@ -540,7 +540,7 @@ actually denies attempts to register a reserved name.
    ```
    grpcurl -plaintext localhost:5000 \
      tenancy.v1.TenantService/CreateTenant \
-     -d '{"tenant_id":"oya-bad","audience_type":"B2B_TENANT"}'
+     -d '{"tenant_id":"bad","audience_type":"B2B_TENANT"}'
    ```
 
 5. Confirm the call fails with a `PERMISSION_DENIED` status and
@@ -756,7 +756,7 @@ before going home.
 6. `0001_create_self_tenant.sql` migration applied; `oyatie` row
    exists with `locked: true`.
 7. Reserved namespace check denies all five variant attempts
-   (oya-bad, oyatie-shadow, oyat-test, Oyatié, oуatie).
+   (bad, oyatie-shadow, oyat-test, Oyatié, oуatie).
 8. Sandbox tenant `oyatie.dev.intern-<your-id>` created and
    resolves inherited attributes from the parent.
 9. First Cedar-gated call (CreateObject on Ontology) succeeds; the

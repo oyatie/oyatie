@@ -19,8 +19,8 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 
 ## Detection
 
-- Alert: `oya_cloud_intelligence_pool_exhausted{provider="..."} == 1` (pool has zero active keys).
-- Metric: `oya_cloud_intelligence_active_keys{provider="..."}` gauge at 0 (mirrors `KeyPool::active_count`).
+- Alert: `cloud_intelligence_pool_exhausted{provider="..."} == 1` (pool has zero active keys).
+- Metric: `cloud_intelligence_active_keys{provider="..."}` gauge at 0 (mirrors `KeyPool::active_count`).
 - SLO: availability fast-burn alert (503s count against availability).
 - Symptom: callers see 503 with body `{"error":{"type":"gateway_key_exhausted", ...}}` + `Retry-After`.
 - Audit/usage: `status="key_exhausted"` records on `llm.audit.v1` / `llm.usage.v1`.
@@ -30,7 +30,7 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 1. **Scope.** One pool or all? `GET /admin/v1/pools` (admin bearer) → per-pool `active_keys`,
    `blacklisted_keys`, `soonest_restore_epoch_ms`. One pool = Sev 2; all pools = Sev 1.
 2. **Why blacklisted?** Inspect the dominant upstream failure on the metric
-   `oya_cloud_intelligence_key_failures_total{provider,code}`:
+   `cloud_intelligence_key_failures_total{provider,code}`:
    - `429` dominating → provider rate-limit / quota; the keys are healthy but throttled.
    - `401`/`403` dominating → **key is invalid/revoked/rotated upstream** — refresh will NOT
      help until the owned secret-provider handle resolves to corrected material.
@@ -45,10 +45,10 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 - The cooldown already honors upstream `Retry-After` (brief §10). Confirm `Retry-After` on the
   503 is sane (= soonest restore). The pool restores lazily — **no key is permanently lost**.
 - Reduce load: tighten per-tenant budgets for the noisiest tenant(s) (identify via
-  `oya_cloud_intelligence_tokens_total{tenant}`); the offending tenant should be the one feeling 429
+  `cloud_intelligence_tokens_total{tenant}`); the offending tenant should be the one feeling 429
   `budget_exceeded`, not the whole fleet (brief §6 — fail that tenant, not the gateway).
 - If a fallback provider pool has capacity, confirm the failover ladder is routing to it
-  (`oya_cloud_intelligence_fallback_total`); if not, check the fallback config.
+  (`cloud_intelligence_fallback_total`); if not, check the fallback config.
 
 ### If keys are invalid (401/403): rotate the secret-provider handle
 - The key material behind the `secret-ref://` / `kms-ref://` handle is stale/revoked.
@@ -64,7 +64,7 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 
 ## Recovery verification
 
-- `oya_cloud_intelligence_active_keys{provider}` > 0 for every pool.
+- `cloud_intelligence_active_keys{provider}` > 0 for every pool.
 - A synthetic `POST /v1/chat/completions` returns 200 (non-stream) and a streamed request
   terminates with `data: [DONE]` (completeness SLI green).
 - Availability + error-rate burn alerts clear.

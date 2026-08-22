@@ -40,7 +40,7 @@ In scope:
 Out of scope:
 
 - Cell substrate provisioning (cloud-iac µservice owns provisioning per ADR-0331).
-- Shuffle-sharding algorithm internals (oya-shuffle-sharding crate per ADR-0333).
+- Shuffle-sharding algorithm internals (shuffle-sharding crate per ADR-0333).
 - Per-cell observability (observability µservice owns metrics).
 
 ## §C Architecture
@@ -66,7 +66,7 @@ cloud-billing is deployed per-cell. Each cell runs:
 A tenant is bound to a single **home cell** at creation time:
 
 1. tenancy µservice receives signup request.
-2. tenancy calls `cloud-iac` to select a home cell using the `oya-shuffle-sharding` algorithm (per ADR-0333):
+2. tenancy calls `cloud-iac` to select a home cell using the `shuffle-sharding` algorithm (per ADR-0333):
    - Inputs: tenant_id (hashed), required_data_residency (from prospect's locale), tenant_class (demo_trial typically lands in Tier-3 Always-Free pool; paid lands in Tier-2 or Tier-1 per contract).
    - Output: `home_cell_id` (e.g. `cell-us-west-2-tier3-001`).
 3. tenant_id is permanently associated with home_cell_id.
@@ -117,7 +117,7 @@ Cross-region replication for disaster recovery is:
 
 ### §C.6 Shuffle-sharding for blast-radius
 
-Per ADR-0333 oya-shuffle-sharding:
+Per ADR-0333 shuffle-sharding:
 
 - A Tier-3 cell hosts ~1000–10000 tenants.
 - Each tenant's data is shuffle-sharded across a subset of the cell's storage nodes (typically 2-of-N).
@@ -200,7 +200,7 @@ For now, cross-cell traffic is gated by the cell-mesh policy (out of scope here)
 ### §F.2 Cross-µservice integration
 
 - cloud-iac µservice owns cell provisioning (per ADR-0331).
-- oya-shuffle-sharding crate owns selection algorithm (per ADR-0333).
+- shuffle-sharding crate owns selection algorithm (per ADR-0333).
 - cloud-iam principal STS carries home_cell_id claim.
 
 ### §F.3 ADR anchors
@@ -210,7 +210,7 @@ For now, cross-cell traffic is gated by the cell-mesh policy (out of scope here)
 - ADR-0252 HLC default (cross-cell causal ordering).
 - ADR-0263 audit-chain per cell with global roots.
 - ADR-0131 per-µservice flat layout (cloud-billing as flat µservice).
-- ADR-0333 oya-shuffle-sharding crate.
+- ADR-0333 shuffle-sharding crate.
 
 ### §F.4 REMEDIATION-NOTES
 

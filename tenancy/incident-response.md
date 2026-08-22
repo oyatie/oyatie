@@ -69,7 +69,7 @@ Regulatory notification chain begins (see §"Regulatory Notifications")
 72-hour clock starts (GDPR Art. 33)
 ```
 
-Two-channel corroboration: every Sev-1 / Sev-2 alert fires BOTH a Mimir metric (`oya_incident_active{microservice="tenancy",severity="N"}`) AND an OnCall page. If one channel silent, the other still fires.
+Two-channel corroboration: every Sev-1 / Sev-2 alert fires BOTH a Mimir metric (`incident_active{microservice="tenancy",severity="N"}`) AND an OnCall page. If one channel silent, the other still fires.
 
 ## Incident Lifecycle
 
@@ -253,7 +253,7 @@ On-call compensation + handoff per `microservices/tenancy/runbooks/jwt-key-rotat
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice tenancy` — exit 0; every FM-ID has matching runbook.
+- `cargo run -p dev-cli -- gate validate incident-runbook-coverage --microservice tenancy` — exit 0; every FM-ID has matching runbook.
 - Quarterly DR failover drill validates response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates Sev-1 RLS-bypass incident; comms + regulatory notification chain rehearsed.
 

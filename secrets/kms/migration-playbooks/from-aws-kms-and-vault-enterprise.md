@@ -82,10 +82,10 @@ For each workload that calls AWS KMS / Vault transit today, switch the SDK to du
 
 The SDK ships a dual-write wrapper:
 ```rust
-use oya_cloud_kms_sdk::DualWrite;
+use cloud_kms_sdk::DualWrite;
 
 let kms = DualWrite::builder()
-    .primary(oya_cloud_kms_sdk::KmsClient::connect(prim_cfg).await?)
+    .primary(cloud_kms_sdk::KmsClient::connect(prim_cfg).await?)
     .secondary(LegacyAwsKms::new(aws_region, cmk_arn))
     .strategy(DualWriteStrategy::EncryptBoth_DecryptFirstSuccess)
     .build()?;

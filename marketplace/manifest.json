@@ -137,8 +137,8 @@
   "cloud_ops_foundation": {
     "schema_version": 1,
     "evidence_guardrail": "CloudOpsFoundationGuardrail",
-    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
-    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+    "guardrail_file": "crates/cloud-capacity-domain/src/lib.rs",
+    "guardrail_tests": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
     "evidence_prefixes": {
       "capacity": "evidence/cloud-ops/capacity/",
       "cell": "evidence/cloud-ops/cell/",
@@ -215,8 +215,8 @@
       "name": "cloud-marketplace-local-foundation",
       "description": "Code-backed local foundation for seller onboarding, listing publication, private offers, entitlements, marketplace fee calculation, and kernel command shaping. No SaaS marketplace integration, seller portal runtime, settlement ledger, escrow, payout, revenue-share statement, external AWS/OCI marketplace adapter, measured SLO, active-active DR, or audit-chain persistence is claimed.",
       "crates": [
-        "oya-cloud-marketplace-domain",
-        "oya-cloud-marketplace-kernel"
+        "cloud-marketplace-domain",
+        "cloud-marketplace-kernel"
       ]
     }
   ],
@@ -244,19 +244,19 @@
     {
       "tier": "T2",
       "name": "seller-listing-private-offer-entitlement-domain-invariants",
-      "file": "crates/oya-cloud-marketplace-domain/src/lib.rs",
+      "file": "crates/cloud-marketplace-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "marketplace-kernel-command-shaping",
-      "file": "crates/oya-cloud-marketplace-kernel/src/lib.rs",
+      "file": "crates/cloud-marketplace-kernel/src/lib.rs",
       "risk_class": "medium"
     },
     {
       "tier": "T2",
       "name": "cloud-ops-marketplace-evidence-scope-guardrail",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
       "risk_class": "high"
     }
   ],
@@ -265,7 +265,7 @@
       "id": "CS-CLOUD-OPS-FOUNDATION-001",
       "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     }
   ],
   "marketplace_integrations": {

@@ -15,10 +15,10 @@
     },
     {
       "expected_verdict": "RED",
-      "fixture_id": "TC-0.0.1-BAD-legacy-oya-cli-authority",
+      "fixture_id": "TC-0.0.1-BAD-legacy-cli-authority",
       "observed_verdict": "RED",
       "violations": [
-        "legacy_oya_cli_required_context",
+        "legacy_cli_required_context",
         "untrusted_or_legacy_status_producer"
       ]
     }
@@ -37,7 +37,7 @@
       "specs/phase0-ci-enforcement-baseline.json#current_state_evidence",
       "infra/branch-protection/dev.json",
       ".github/branch-protection.yaml",
-      "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+      "infra/ci/jenkins/Jenkinsfile-ci-gate",
       "synthetic fixture candidate SHA uses 40-hex placeholder; claim_boundary marks p0_0_green=false and phase0_complete=false"
     ]
   },

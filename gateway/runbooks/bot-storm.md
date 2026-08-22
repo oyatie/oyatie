@@ -7,9 +7,9 @@
 
 ## A — Trigger conditions
 
-- `oya_api_gateway_bot_score_bucket{le="80"}` ratio < 0.7 for >5min (i.e. >30% of traffic is bot-scored ≥80).
-- `oya_api_gateway_captcha_challenge_issued_total` rate > 10k/s sustained.
-- `oya_api_gateway_honeypot_hits_total` rate spike.
+- `api_gateway_bot_score_bucket{le="80"}` ratio < 0.7 for >5min (i.e. >30% of traffic is bot-scored ≥80).
+- `api_gateway_captcha_challenge_issued_total` rate > 10k/s sustained.
+- `api_gateway_honeypot_hits_total` rate spike.
 - Customer report: "I'm being challenged with CAPTCHA on every request."
 
 ## B — Pre-checks
@@ -19,9 +19,9 @@
    - Reverse-DNS + forward-DNS check on Googlebot/Bingbot.
 2. Check bot-score model health:
    - Wasm filter crashes: `kubectl get pods -n api-gateway -l app=envoy --field-selector status.phase=CrashLoopBackOff` (should be empty).
-   - Model confidence histogram: `oya_api_gateway_bot_score_confidence_bucket`.
+   - Model confidence histogram: `api_gateway_bot_score_confidence_bucket`.
 3. Check ASN concentration:
-   - `oya_api_gateway_requests_total{bot_score=~"9.."}` by ASN; top-3 ASNs.
+   - `api_gateway_requests_total{bot_score=~"9.."}` by ASN; top-3 ASNs.
 
 ## C — Procedure
 
@@ -44,7 +44,7 @@
    - Activate honeypot routes for the attacker tenant; canary payload tracker.
    - Audit: `oya.api_gateway.honeypot.activated`.
 7. **Monitor false-positive rate:**
-   - `oya_api_gateway_bot_score_false_positive_ratio` — if > 0.05, lower threshold and engage human review.
+   - `api_gateway_bot_score_false_positive_ratio` — if > 0.05, lower threshold and engage human review.
 8. **Status page** if SEV-1.
 9. **De-escalate** when bot-score distribution returns to baseline + 1σ for ≥30min.
 

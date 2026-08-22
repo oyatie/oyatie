@@ -712,7 +712,7 @@ fn status_patches_project_demote_and_quarantine_actions() {
 #[test]
 fn persistent_domain_repo_reloads_operator_mutations_from_state_path() {
     let path = std::env::temp_dir().join(format!(
-        "oya-kms-operator-state-{}.json",
+        "kms-operator-state-{}.json",
         std::process::id()
     ));
     let _ = std::fs::remove_file(&path);

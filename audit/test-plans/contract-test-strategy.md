@@ -227,17 +227,17 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
+- SLO target: `audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
 - Regression-detection criterion: contracts require tenant, principal, event class, digest, proof, and signed root fields.
-- SLO target: `oya-audit-chain-evidence-export-freshness` target `0.95`.
+- SLO target: `audit-chain-evidence-export-freshness` target `0.95`.
 - Regression-detection criterion: export-ready event and bundle handle remain compatible with compliance and drive pacts.
-- SLO target: `oya-audit-chain-merkle-chain-verification-latency` target `0.95`.
+- SLO target: `audit-chain-merkle-chain-verification-latency` target `0.95`.
 - Regression-detection criterion: verify request contract keeps event id and expected digest enough for direct proof lookup.
-- SLO target: `oya-audit-chain-seal-storage-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-storage-availability` target `0.9999`.
 - Regression-detection criterion: signed-root lookup contract keeps storage failure code stable.
-- SLO target: `oya-audit-chain-seal-write-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-write-availability` target `0.9999`.
 - Regression-detection criterion: emit request idempotency contract cannot be removed in minor version.
-- SLO target: `oya-audit-chain-seal-write-latency` target `0.99`.
+- SLO target: `audit-chain-seal-write-latency` target `0.99`.
 - Regression-detection criterion: contract examples avoid fields that force synchronous export on emit path.
 - Meta-SLO target: tamper detection p99 under 60 seconds.
 - Regression-detection criterion: verification failed event contract remains subscribed by observability pact.
@@ -249,16 +249,16 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 - Command: `oya contract asyncapi validate audit/contracts/asyncapi/audit-events.yaml --version 3.1.0`.
 - Command: `buf lint audit/contracts/proto`.
 - Command: `buf breaking audit/contracts/proto --against .git#branch=dev`.
-- Command: `cargo test -p oya-audit-chain-contract-tests --all-features`.
-- Command: `cargo test -p oya-audit-chain-consumer-pacts --all-features`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-openapi-rest-route-parity`.
-- Check crate enforcement: `oya-check-event-schema-versioning`.
-- Check crate enforcement: `oya-check-audit-chain-seal-coverage`.
-- Check crate enforcement: `oya-check-pr-traceability`.
+- Command: `cargo test -p audit-chain-contract-tests --all-features`.
+- Command: `cargo test -p audit-chain-consumer-pacts --all-features`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-openapi-rest-route-parity`.
+- Check crate enforcement: `check-event-schema-versioning`.
+- Check crate enforcement: `check-audit-chain-seal-coverage`.
+- Check crate enforcement: `check-pr-traceability`.
 - Artifact: `audit-chain-openapi-diff.json`.
 - Artifact: `audit-chain-asyncapi-diff.json`.
 - Artifact: `audit-chain-buf-breaking.json`.

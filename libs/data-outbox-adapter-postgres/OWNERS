@@ -1,0 +1,6 @@
+# Owner of the data outbox CDC change-stream Postgres adapter (the
+# ADR-0510 transitional impl of data-outbox-kernel::ChangeStreamSource).
+# The `data` capability (ADR-0562 capability-registry: libs/data-* -> data)
+# is the owned data-plane substrate, owned by axis-cloud-platform — the same
+# team that owns the iam/ + tenancy/ persistence-substrate capability trees.
+axis-cloud-platform

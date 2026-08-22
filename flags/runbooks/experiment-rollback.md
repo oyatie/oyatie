@@ -11,7 +11,7 @@ companion_docs:
   - microservices/feature-flags/runbooks/experiment-stat-sig-violation.md
   - microservices/feature-flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/incident-response.md
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Experiment Rollback
@@ -95,7 +95,7 @@ See `backfill-replay.md §experiment-metric-re-attribution`.
 ## D. Verification
 
 - `ExperimentConcluded` audit event with `conclusion_reason: "rollback"` present and sealed.
-- `oya_experiment_assignments_total{experiment_id="<id>",variant!="control"}` = 0 after rollback.
+- `experiment_assignments_total{experiment_id="<id>",variant!="control"}` = 0 after rollback.
 - Primary metric recovering toward baseline.
 
 ## E. Rollback (of this rollback — i.e., re-activating)

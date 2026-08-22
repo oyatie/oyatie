@@ -11,15 +11,15 @@ build = "build.rs"
 [dependencies]
 iam-cloud-pdp-kernel = { path = "../../core/cloud-pdp-kernel" }
 iam-cloud-pdp-bundle-file = { path = "../../adapters/cloud-pdp-bundle-file" }
-oya-shared-pdp-kernel = { path = "../../../libs/oya-shared-pdp-kernel" }
+shared-pdp-kernel = { path = "../../../libs/shared-pdp-kernel" }
 iam-pdp-cedar = { path = "../../adapters/pdp-cedar" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-ulid-id-kernel = { path = "../../../libs/oya-shared-ulid-id-kernel" }
+shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
+shared-ulid-id-kernel = { path = "../../../libs/shared-ulid-id-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
 iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
 os-trustd-domain = { path = "../../../os/core/trustd-domain" }
-oya-http-runtime-hyper-adapter = { path = "../../../libs/oya-http-runtime-hyper-adapter" }
+http-runtime-hyper-adapter = { path = "../../../libs/http-runtime-hyper-adapter" }
 x509-parser = { workspace = true }
 aws-lc-rs = "1.17.0"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "signal"] }
@@ -43,7 +43,7 @@ futures-core = { version = "0.3", default-features = false }
 async-stream = "0.3"
 
 [build-dependencies]
-# Proto codegen — mirrors the oya-identity-workload-rest build.rs pattern.
+# Proto codegen — mirrors the identity-workload-rest build.rs pattern.
 protoc-bin-vendored.workspace = true
 tonic-prost-build.workspace = true
 
@@ -64,8 +64,8 @@ base64 = { version = "0.22", default-features = false, features = ["std"] }
 # G004 bundle-signing slice: the TEST-SIDE Ed25519 signer + envelope types to
 # write signed bundle fixtures and trust-anchor dirs (production key custody is a
 # deferred founder-gated slice). Dev-only — the lib never signs.
-oya-shared-audit-digest-adapter-awslc = { path = "../../../libs/oya-shared-audit-digest-adapter-awslc" }
-oya-shared-audit-event-kernel = { path = "../../../libs/oya-shared-audit-event-kernel" }
+shared-audit-digest-adapter-awslc = { path = "../../../libs/shared-audit-digest-adapter-awslc" }
+shared-audit-event-kernel = { path = "../../../libs/shared-audit-event-kernel" }
 
 [lib]
 name = "iam_cloud_pdp_app"

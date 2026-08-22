@@ -16,7 +16,7 @@ purpose = "Cloud CI gate ENFORCING the ADR-0565 zero-GraphQL doctrine: no GraphQ
 # evaluate_keyed(policy, observed) asserts the candidate tree carries no forbidden GraphQL library
 # nor schema file (absent an authorizing ADR reference). The observed signal is a hermetic,
 # read-only fs scan of the CANDIDATE tree (member Cargo.toml manifests via
-# oya-workspace-members-kernel + a .graphql/.gql/.sdl file walk), NOT a frozen merge-base (which
+# workspace-members-kernel + a .graphql/.gql/.sdl file walk), NOT a frozen merge-base (which
 # would be the PR/push baseline-asymmetry false-green). R0 pack-shaped: all repo-specifics
 # (forbidden_crates, schema_extensions, forbidding_adr, excluded_dirs) live in
 # no-graphql-without-adr-policy.json.
@@ -29,7 +29,7 @@ doctest = false
 [dependencies]
 serde_json = { workspace = true }
 toml = { workspace = true }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+workspace-members-kernel = { path = "../../../libs/workspace-members-kernel" }
 
 [lints]
 workspace = true

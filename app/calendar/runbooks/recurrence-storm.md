@@ -56,7 +56,7 @@ oya calendar rate-limit set --tenant <hashed-id> --resource rrule_expansion --li
 ### Step 2 — Scale up worker pods
 
 ```bash
-kubectl scale deployment -n calendar oya-calendar-recurrence-engine-worker --replicas=30
+kubectl scale deployment -n calendar calendar-recurrence-engine-worker --replicas=30
 ```
 
 ### Step 3 — Verify queue drain
@@ -72,7 +72,7 @@ Expected: should trend toward 0 over 5-15 min.
 Adjust pod memory request/limit (temporary; ADR for permanent change):
 
 ```bash
-kubectl set resources deployment/oya-calendar-recurrence-engine-worker -n calendar \
+kubectl set resources deployment/calendar-recurrence-engine-worker -n calendar \
   --requests=memory=4Gi --limits=memory=8Gi
 ```
 
@@ -98,7 +98,7 @@ oya calendar policy deny --tenant <hashed-id> --action rrule_submit --duration 2
 - Should the per-tenant rate-limit baseline be lowered?
 - Should worker memory be permanently increased?
 - Update threat-model.md T-D-01 mitigation if needed.
-- Update LEAN check `oya-check-rrule-bounds` if a new attack pattern was discovered.
+- Update LEAN check `check-rrule-bounds` if a new attack pattern was discovered.
 
 ## Drills
 

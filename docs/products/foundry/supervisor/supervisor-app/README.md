@@ -8,10 +8,10 @@ doc_status: published
 
 # Foundry Supervisor App — README
 
-**Crate:** `oya-intelligence-supervisor-app`  
+**Crate:** `intelligence-supervisor-app`  
 **Layer:** Application (12-layer-enum L5)  
 **Wave:** 2d (M02-P06)  
-**Entry point:** `bin/oya-intelligence-supervisor` (daemon binary)
+**Entry point:** `bin/intelligence-supervisor` (daemon binary)
 
 ## Overview
 
@@ -88,8 +88,8 @@ pub struct SupervisorConfig {
 ```
 
 **Source (in order of precedence):**
-1. Environment variables: `OYA_SUPERVISOR_MAX_IN_FLIGHT=12`
-2. TOML config file: `$OYA_CONFIG_PATH/supervisor.toml`
+1. Environment variables: `OYATIE_SUPERVISOR_MAX_IN_FLIGHT=12`
+2. TOML config file: `$OYATIE_CONFIG_PATH/supervisor.toml`
 3. Compiled defaults
 
 ### HTTP Webhook
@@ -119,12 +119,12 @@ The daemon runs an async watchdog that:
 
 ```bash
 # Start daemon with default config:
-export OYA_SUPERVISOR_MAX_IN_FLIGHT=12
-export OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=300
-oya-intelligence-supervisor
+export OYATIE_SUPERVISOR_MAX_IN_FLIGHT=12
+export OYATIE_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=300
+intelligence-supervisor
 
 # Or with config file:
-oya-intelligence-supervisor --config /etc/oya/supervisor.toml
+intelligence-supervisor --config /etc/oya/supervisor.toml
 
 # Inject message via webhook:
 curl -X POST http://localhost:8080/inbox \
@@ -199,12 +199,12 @@ let span = tracing::info_span!("foundry.supervisor.tick",
 Per v6 BLOCKER-4:
 
 ```
-oya_foundry_supervisor_inbox_depth{account_id}
-oya_foundry_supervisor_outbox_tail{account_id}
-oya_foundry_supervisor_idle_ticks_total
-oya_foundry_supervisor_quarantine_total
-oya_foundry_supervisor_session_active{provider_family}
-oya_foundry_supervisor_settings_drift_excluded_total{provider_family}
+foundry_supervisor_inbox_depth{account_id}
+foundry_supervisor_outbox_tail{account_id}
+foundry_supervisor_idle_ticks_total
+foundry_supervisor_quarantine_total
+foundry_supervisor_session_active{provider_family}
+foundry_supervisor_settings_drift_excluded_total{provider_family}
 ```
 
 ## References

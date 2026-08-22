@@ -21,7 +21,7 @@ members = [
   # why each satellite dir needed a hand-written exclude entry. Under the layer globs those
   # directories no longer match at all, so ~23 exclude entries simply cease to be necessary.
   #
-  # The canonical resolver remains libs/oya-workspace-members-kernel; gates must resolve
+  # The canonical resolver remains libs/workspace-members-kernel; gates must resolve
   # members there, never by parsing this array.
   "*/core/*",
   "*/ports/*",
@@ -35,15 +35,15 @@ members = [
   "app/*/ports/*",
   "app/*/adapters/*",
   "app/*/facade/*",
+  "app/*/crates/*",
+  "app/foundry/pages/crates/*",
+  "app/foundry/grid/core/*",
 
-  # LEGACY roots, retained until their capability moves land. Each is narrowed to the crate
-  # leaf shape (`oya-*`, `-app`) so non-crate siblings — scripts, completions, vendored trees —
-  # can never break cargo resolution. These lines are the reorg's remaining debt and shrink to
-  # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
-  "libs/oya-*",
-  "oya/*/crates/oya-*",
-  "tools/oya-*",
+  # LEGACY roots, retained until their capability moves land. Narrowed so non-crate
+  # siblings (scripts, completions, vendored trees) cannot break cargo resolution.
+  "libs/*",
   "tools/*-app",
+  "tools/tooling-agent-read",
 
   # Crates in conforming roots that legitimately sit OUTSIDE the four-layer shape.
   # `governance/` is a meta root off the runtime ladder (ADR-0615) and the two harness/testing
@@ -117,7 +117,7 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 version = "0.1.0"
-rust-version = "1.97.1"
+rust-version = "1.98.0"
 
 # Workspace lints baseline (TEMPORARY — re-tighten under Wave 15-ZA cleanup PR per ADR-0346 successor).
 #
@@ -140,13 +140,13 @@ unused_imports = "allow"
 # Layer enum (12 canonical values per ADR-0056 amended by ADR-0105 + ADR-0106 + ADR-0565):
 #   kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|worker|sdk|api
 # Adopted patterns (ADR-0105 §Adopted Patterns):
-#   oya-check-<feature>  — self-layering check family (the µservice IS the layer).
+#   check-<feature>  — self-layering check family (the µservice IS the layer).
 #   *-adapter-<backend>  — backend-qualifier sub-suffix where backend ∈
 #                          {fake,inmemory,aws,oci,gcp,azure,postgres,redis,sqlite,...}.
 # tools/ binding (ADR-0107 amended 2026-05-15 — NO implicit-app exception):
 #   Every crate under tools/ MUST carry a canonical layer suffix from the enum.
 #   Binary tools SHALL use `-app`. There is no directory-implicit naming.
-#   Sole doctrinal carve-out: `oya-tooling-agent-read` is locked by CLAUDE.md
+#   Sole doctrinal carve-out: `tooling-agent-read` is locked by CLAUDE.md
 #   sanctioned-primitive contract (ADR-0053), not by a layer-enum exception.
 # Microservice registry (open set; registered microservice names)
 [workspace.metadata.oya.microservices.cloud]
@@ -268,7 +268,7 @@ owner = "tenant-rbac-governance-council"
 rationale = "Tenant/RBAC control µservice for entitlement-to-scope packaging, tenant workload admission, policy evidence, and clean-architecture layer contracts."
 adr_cite = "ADR-0056"
 
-# M02 substrate µservices (registered when at least one workspace crate exists; see oya-shared-documentation-check-cli)
+# M02 substrate µservices (registered when at least one workspace crate exists; see shared-documentation-check-cli)
 [workspace.metadata.oya.microservices.application]
 owner = "council-application"
 rationale = "Application B2B unified shell — tenants sign in, enable µservices à-la-carte (per ADR-0061)."
@@ -436,7 +436,7 @@ rationale = "Cloud-cell µservice — per-cell isolation primitive (Bominal ADR-
 adr_cite = "ADR-0056"
 status = "active"
 
-[workspace.metadata.oya.microservices.oya-flags]
+[workspace.metadata.oya.microservices.flags]
 owner = "council-platform"
 rationale = "Bespoke Rust OpenFeature flag server — tenant-scoped flag evaluation at sub-ms latency; OFREP protocol surface (ADR-0481)."
 adr_cite = "ADR-0481"
@@ -511,7 +511,7 @@ opentelemetry = { version = "0.32.0", default-features = false, features = ["met
 opentelemetry-otlp = { version = "0.32.0", default-features = false, features = ["http-proto", "metrics", "reqwest-blocking-client"] }
 opentelemetry_sdk = { version = "0.32.0", default-features = false, features = ["metrics"] }
 # Hyper canonical HTTP backbone per ADR-0090 (user-issued 2026-05-14).
-# Only oya-http-runtime-hyper-adapter (Layer 5) consumes these directly;
+# Only http-runtime-hyper-adapter (Layer 5) consumes these directly;
 # Layers 1-4 remain std-only.
 #
 # Pooling-convergence campaign (slice 1, 2026-05-29; historical .omc/ plan retired from tracked durables):
@@ -598,14 +598,14 @@ regex = "1"
 # per ADR-0183 (Cedar app-authz). See registry/dependency-rationales.json.
 cedar-policy = "4.11"
 # ClickHouse 26.3 LTS OLAP client — dependency-seam: isolated to
-# oya-shared-olap-clickhouse-adapter only (layer_seam=adapter-only per ADR-0092).
+# shared-olap-clickhouse-adapter only (layer_seam=adapter-only per ADR-0092).
 # Version pin matches manifest.json lts_pins.clickhouse = "26.3.10.60-lts".
 # See registry/dependency-blessed-allowlist.json and registry/dependency-rationales.json.
 clickhouse = { version = "0.13", default-features = false, features = ["lz4"] }
 
 # Kubernetes client + controller-runtime + API types (ADR-0376 managed-k8s
 # control-plane-host adapter seam; policy_ref ADR-0092 layer_seam adapter-only).
-# Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY — the live
+# Isolated to managed-k8s-control-plane-host-adapter-capi ONLY — the live
 # Kamaji TenantControlPlane / Talos control-plane CRD reconciliation is
 # honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration),
 # so the adapter references kube-rs's dynamic API surface and returns a typed
@@ -619,7 +619,7 @@ k8s-openapi = { version = "0.27", default-features = false, features = ["latest"
 # (PrivacyDataClass::internal_only(), CapabilityCostProfile direct
 # construction, deterministic indexing on AuditChain::events, append_legacy_*
 # Result propagation). Site 3 (`append_classifications`) authorized by
-# ADR-0083 amendment 6a84735 (2026-05-15) + oya-audit-chain-domain version
+# ADR-0083 amendment 6a84735 (2026-05-15) + audit-chain-domain version
 # bump 0.1.0 → 0.2.0 + ~30 call-site `?` propagation in commit 4a434a7.
 # Each workspace member opts in via `[lints] workspace = true` in its own
 # Cargo.toml.

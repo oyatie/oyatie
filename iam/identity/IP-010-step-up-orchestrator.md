@@ -18,16 +18,16 @@ Implement the step-up flow per ADR-0189: when a consumer µservice receives a re
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-step-up-orchestrator-kernel/Cargo.toml` | manifest |
-| `crates/oya-identity-step-up-orchestrator-kernel/src/lib.rs` | StepUpOrchestrator trait + state machine |
-| `crates/oya-identity-step-up-orchestrator-domain/src/lib.rs` | Cedar PolicyFragment exporter |
-| `crates/oya-identity-step-up-orchestrator-rest/src/lib.rs` | axum routes |
-| `crates/oya-identity-step-up-orchestrator-adapter/src/lib.rs` | bridges to Zitadel re-auth + WebAuthn + IT-approval API |
-| `crates/oya-identity-step-up-orchestrator-kernel/tests/orchestrator.rs` | tests |
+| `crates/identity-step-up-orchestrator-kernel/Cargo.toml` | manifest |
+| `crates/identity-step-up-orchestrator-kernel/src/lib.rs` | StepUpOrchestrator trait + state machine |
+| `crates/identity-step-up-orchestrator-domain/src/lib.rs` | Cedar PolicyFragment exporter |
+| `crates/identity-step-up-orchestrator-rest/src/lib.rs` | axum routes |
+| `crates/identity-step-up-orchestrator-adapter/src/lib.rs` | bridges to Zitadel re-auth + WebAuthn + IT-approval API |
+| `crates/identity-step-up-orchestrator-kernel/tests/orchestrator.rs` | tests |
 
 ## ACR enum
 
-Already in `oya-shared-oidc-client-kernel::AcrLevel`. Re-exported.
+Already in `shared-oidc-client-kernel::AcrLevel`. Re-exported.
 
 ## Endpoints
 
@@ -125,7 +125,7 @@ These predicates live in `microservices/identity/policy/cedar-acr-predicates.ced
 
 - 10 orchestrator tests pass.
 - End-to-end browser test: routine→elevated→sensitive→critical succeeds within 30s.
-- `oya-check-step-up-auth-coverage` lane reports ≥80% sensitive-path coverage across the µservice fleet.
+- `check-step-up-auth-coverage` lane reports ≥80% sensitive-path coverage across the µservice fleet.
 
 ## Counterpart references - 010-step-up-orchestrator
 

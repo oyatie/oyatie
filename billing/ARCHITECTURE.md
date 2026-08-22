@@ -50,7 +50,7 @@ The microservice is authored under ADR-0131 (per-microservice flat layout — `s
 
 cloud-billing is cell-aware per ADR-0248. The metering bus is per-cell; the invoice ledger is per-cell; cross-cell traffic is forbidden for demo_trial tenants; paid tenants may operate cross-cell sub-tenancies via explicit Cedar grant. The home-cell anchor for a tenant is the deployment_context choice at provisioning time per ADR-0218.
 
-The kernel crate `oya-cloud-billing-domain` (1,030 lines as of 2026-05-21) is the architectural truth. The Rust types in the kernel — `BillingAccount`, `CloudBillingEvent`, `Invoice`, `InvoiceLineItem`, `BillingPeriod`, `RateCardRef`, `TaxRegistrationId`, `TaxInvoiceFormat`, `CloudBillingLedger`, `Money` — define the contract surface that downstream services see. This document describes the kernel's existing invariants and the architectural extensions required to address billing_components composability per ADR-0330.
+The kernel crate `cloud-billing-domain` (1,030 lines as of 2026-05-21) is the architectural truth. The Rust types in the kernel — `BillingAccount`, `CloudBillingEvent`, `Invoice`, `InvoiceLineItem`, `BillingPeriod`, `RateCardRef`, `TaxRegistrationId`, `TaxInvoiceFormat`, `CloudBillingLedger`, `Money` — define the contract surface that downstream services see. This document describes the kernel's existing invariants and the architectural extensions required to address billing_components composability per ADR-0330.
 
 cloud-billing's architectural style is **immutable-ledger + idempotent-ingest + deterministic-projection**. Every event is content-addressed; every aggregation is deterministically reproducible from the event log; every invoice reconstructs from line items; every settlement statement reconstructs from revenue events.
 
@@ -66,7 +66,7 @@ grpc         → src/grpc/ (proto3-server; HTTP/3 transport)
 application  → src/application/ (commands, queries, sagas — Subscription lifecycle, conversion, settlement orchestration)
 usecase      → src/usecase/ (per-component invoice generation, per-component settlement, dunning policy)
 domain       → src/domain/ (aggregates: BillingAccount, CloudBillingEvent, Invoice, Subscription, Settlement, Reservation, CreditMemo, SeatLicense, MeterAggregate, RateCard, FxLock)
-kernel       → src/kernel/ (re-exports from oya-cloud-billing-domain; tenant scope, identity, cedar evaluator, audit emitter)
+kernel       → src/kernel/ (re-exports from cloud-billing-domain; tenant scope, identity, cedar evaluator, audit emitter)
 adapter      → src/adapter/ (FX feed adapter, cloud-billing-tax client, payments client, audit-chain client, observability emitter)
 worker       → src/worker/ (metering bus consumer, period-close worker, settlement worker, dunning worker, cap-breach monitor, conversion engine, reservation recommender, focus-export worker, erp-export worker)
 governance   → src/governance/ (pack overlay loader, compliance evidence emitter, retention enforcer, cedar policy compiler)
@@ -74,9 +74,9 @@ sdk          → src/sdk/ (client SDK for tenant-side billing-state subscription
 app          → src/app/ (composition root binary; wires worker + rest + grpc + adapter clients)
 ```
 
-Plus the existing kernel crate `oya-cloud-billing-domain` outside of `microservices/cloud-billing/src/` — preserved per the kernel-preservation rule of this sprint. The microservice's `src/kernel/` re-exports from the existing crate.
+Plus the existing kernel crate `cloud-billing-domain` outside of `microservices/cloud-billing/src/` — preserved per the kernel-preservation rule of this sprint. The microservice's `src/kernel/` re-exports from the existing crate.
 
-The `oya-cloud-billing-kernel` crate at `crates/oya-cloud-billing-kernel/` is the domain-facing seam (re-export + adapter surface). It is preserved.
+The `cloud-billing-kernel` crate at `crates/cloud-billing-kernel/` is the domain-facing seam (re-export + adapter surface). It is preserved.
 
 ## 3. Domain Model Topology
 
@@ -537,14 +537,14 @@ cloud-billing publishes tenant_class on tenant-class-mutated events. tenancy sub
 ### 6.11 cloud-billing ↔ governance
 
 governance enforces the cloud-billing-related lanes:
-- `oya-governance-cloud-billing-source-of-truth`
-- `oya-governance-tenant-class-enum-closed`
-- `oya-governance-billing-components-subset-closed`
-- `oya-governance-paid-quality-bar-parity`
-- `oya-governance-cedar-tenant-class-attribute-coverage`
-- `oya-governance-audit-chain-tenant-class-transition`
-- `oya-governance-demo-trial-cap-enforcement`
-- `oya-governance-iam-principal-tenant-class-claim`
+- `governance-cloud-billing-source-of-truth`
+- `governance-tenant-class-enum-closed`
+- `governance-billing-components-subset-closed`
+- `governance-paid-quality-bar-parity`
+- `governance-cedar-tenant-class-attribute-coverage`
+- `governance-audit-chain-tenant-class-transition`
+- `governance-demo-trial-cap-enforcement`
+- `governance-iam-principal-tenant-class-claim`
 
 ## 7. Deployment Topology
 
@@ -637,7 +637,7 @@ Every state-mutation surface is gated by a Cedar permit. The catalog of permits 
 When `principal.tenant_class == "paid"` and BYOK is configured for the relevant provider:
 - Payment provider BYOK: payments uses tenant's PSP credentials.
 - KMS BYOK: cloud-kms uses tenant's KMS root.
-- LLM provider BYOK: oya-intelligence-inference uses tenant's provider key.
+- LLM provider BYOK: intelligence-inference uses tenant's provider key.
 
 cloud-billing reads BYOK status from tenant_billing_state.byok_modes and forwards to downstream µservices.
 
@@ -771,7 +771,7 @@ Total p99: 35 ms (matches the §5.1 PRD target).
 
 ### 12.2 Bulk ingest
 
-For high-volume per_usage emitters (oya-intelligence-inference, cloud-data-store), Kafka direct-publish is preferred over gRPC. The metering-bus-consumer batches ingest into the event ledger in 500-event chunks.
+For high-volume per_usage emitters (intelligence-inference, cloud-data-store), Kafka direct-publish is preferred over gRPC. The metering-bus-consumer batches ingest into the event ledger in 500-event chunks.
 
 ### 12.3 Read path optimization
 
@@ -804,7 +804,7 @@ finops-portal read queries hit the meter-aggregate table (pre-aggregated per hou
 | `BillingAccount.region` | PUBLIC | Region code |
 | `schema_version` | PUBLIC | Version metadata |
 
-The kernel enforces this at the type system via `Classified<T>` from `oya-data-boundary-kernel`.
+The kernel enforces this at the type system via `Classified<T>` from `data-boundary-kernel`.
 
 ## 14. Schema Versioning
 
@@ -822,7 +822,7 @@ Re-runnability: every event carries `schema_version`; re-aggregations interpret 
 
 ## 15. CLI Surface
 
-The `oya billing *` CLI subcommands (canonical reference at `docs/cli/oya-billing.md` once authored):
+The `oya billing *` CLI subcommands (canonical reference at `docs/cli/billing.md` once authored):
 
 ```
 oya billing tenant register --tenant-id <ten_*> --display-name <reverse-DNS> [--tenant-class demo_trial|paid] [--billing-components <subset>] [--deployment-context <ctx>]
@@ -861,23 +861,23 @@ Every command is Cedar-gated. The `oya` binary calls cloud-billing's gRPC API; d
 ### 16.1 Crate workspace
 
 cloud-billing's Rust workspace member crates:
-- `oya-cloud-billing-domain` (existing, 1,030 lines)
-- `oya-cloud-billing-kernel` (existing seam crate)
-- `oya-cloud-billing-app` (new under this sprint — composition root)
-- `oya-cloud-billing-rest` (new — REST handlers)
-- `oya-cloud-billing-grpc` (new — gRPC handlers)
-- `oya-cloud-billing-worker` (new — worker binaries)
-- `oya-cloud-billing-adapter-cloud-billing-tax` (new — tax client)
-- `oya-cloud-billing-adapter-payments` (new — payments client)
-- `oya-cloud-billing-adapter-cloud-kms` (new — kms client)
-- `oya-cloud-billing-adapter-cloud-storage` (new — focus / erp export targets)
-- `oya-cloud-billing-adapter-audit-chain` (new — audit-chain seal)
-- `oya-cloud-billing-adapter-notifications` (new — notification dispatch)
-- `oya-cloud-billing-adapter-fx-feed` (new — ECB-daily + vendor mid-rate)
-- `oya-cloud-billing-adapter-postgres` (new — event/invoice/settlement ledger)
-- `oya-cloud-billing-adapter-kafka` (new — metering bus consumer)
-- `oya-cloud-billing-tax-app` (existing — cross-µservice tax handoff)
-- `oya-cloud-billing-sdk` (new — client SDK)
+- `cloud-billing-domain` (existing, 1,030 lines)
+- `cloud-billing-kernel` (existing seam crate)
+- `cloud-billing-app` (new under this sprint — composition root)
+- `cloud-billing-rest` (new — REST handlers)
+- `cloud-billing-grpc` (new — gRPC handlers)
+- `cloud-billing-worker` (new — worker binaries)
+- `cloud-billing-adapter-cloud-billing-tax` (new — tax client)
+- `cloud-billing-adapter-payments` (new — payments client)
+- `cloud-billing-adapter-cloud-kms` (new — kms client)
+- `cloud-billing-adapter-cloud-storage` (new — focus / erp export targets)
+- `cloud-billing-adapter-audit-chain` (new — audit-chain seal)
+- `cloud-billing-adapter-notifications` (new — notification dispatch)
+- `cloud-billing-adapter-fx-feed` (new — ECB-daily + vendor mid-rate)
+- `cloud-billing-adapter-postgres` (new — event/invoice/settlement ledger)
+- `cloud-billing-adapter-kafka` (new — metering bus consumer)
+- `cloud-billing-tax-app` (existing — cross-µservice tax handoff)
+- `cloud-billing-sdk` (new — client SDK)
 
 ### 16.2 Dual-fixture tests
 
@@ -896,22 +896,22 @@ Each fixture is exercised against the same functional surface per the parity rul
 Lanes that gate cloud-billing PRs:
 
 - `ci-tenant-class-adoption-check`
-- `oya-governance-cloud-billing-source-of-truth`
-- `oya-governance-tenant-class-enum-closed`
-- `oya-governance-billing-components-subset-closed`
-- `oya-governance-paid-quality-bar-parity`
-- `oya-governance-cedar-tenant-class-attribute-coverage`
-- `oya-governance-audit-chain-tenant-class-transition`
-- `oya-governance-demo-trial-cap-enforcement`
-- `oya-governance-iam-principal-tenant-class-claim`
-- `oya-check-data-class`
-- `oya-check-supply-chain`
-- `oya-check-slo-coverage`
-- `oya-check-cedar-fragment-coverage`
-- `oya-check-readme-coverage`
-- `oya-check-glossary-vocabulary`
-- `oya-check-perf-budget`
-- `oya-check-license-policy`
+- `governance-cloud-billing-source-of-truth`
+- `governance-tenant-class-enum-closed`
+- `governance-billing-components-subset-closed`
+- `governance-paid-quality-bar-parity`
+- `governance-cedar-tenant-class-attribute-coverage`
+- `governance-audit-chain-tenant-class-transition`
+- `governance-demo-trial-cap-enforcement`
+- `governance-iam-principal-tenant-class-claim`
+- `check-data-class`
+- `check-supply-chain`
+- `check-slo-coverage`
+- `check-cedar-fragment-coverage`
+- `check-readme-coverage`
+- `check-glossary-vocabulary`
+- `check-perf-budget`
+- `check-license-policy`
 - All other ~50 governance lanes per the standard µservice promotion gate.
 
 ## 17. Operations + Runbooks
@@ -996,11 +996,11 @@ Sibling µservices cited:
 - tenancy (Phase-0 #16) — tenant lifecycle UX
 - governance (Phase-0 substrate) — CI lane enforcement
 - marketplace (Phase-1) — revenue_share-gated listings
-- oya-intelligence-inference (Phase-2) — per_usage emitter (llm_tokens, gpu_seconds)
-- oya-workflow-engine (Phase-2) — per_usage emitter (workflow_executions)
-- oya-search-index (Phase-2) — per_usage emitter (vector_search_queries)
-- oya-agentic-agent (Phase-2) — demo_trial cap (agents)
-- oya-messaging-mls (Phase-2) — demo_trial cap (MLS groups)
+- intelligence-inference (Phase-2) — per_usage emitter (llm_tokens, gpu_seconds)
+- workflow-engine (Phase-2) — per_usage emitter (workflow_executions)
+- search-index (Phase-2) — per_usage emitter (vector_search_queries)
+- agentic-agent (Phase-2) — demo_trial cap (agents)
+- messaging-mls (Phase-2) — demo_trial cap (MLS groups)
 - cloud-data-store (Phase-0 #04) — per_usage emitter (gb_stored, gb_egress)
 - cloud-api-gateway (Phase-0 #05) — per_usage emitter (api_calls)
 - crm (Phase-4A.3) — renewal outreach
@@ -1011,7 +1011,7 @@ Sibling µservices cited:
 - **tenant_class**: closed enum `{demo_trial, paid}` per ADR-0330.
 - **billing_components**: subset of `{revenue_share, per_seat, per_usage}` for paid tenants.
 - **deployment_context**: one of 6 — oyatie-public-cloud / guest-on-aws / guest-on-oci / on-prem / colo / oyatie-as-cloud-provider.
-- **regional_pack**: localization overlay (e.g., `oya-pack-electronic-tax` for KR).
+- **regional_pack**: localization overlay (e.g., `pack-electronic-tax` for KR).
 - **rate_card**: tenant-scoped or default pricing surface; versioned.
 - **meter**: usage-quantification primitive (e.g., `llm_input_tokens`, `vcpu_hour`, `pod_minute`).
 - **idempotency_key**: deduplication key on event emission; 7-day window.
@@ -1028,7 +1028,7 @@ Sibling µservices cited:
 
 ## 21. Substance Bar Evidence
 
-This document is authored under ADR-0322 substance-bar requirement (line floor 600+ for ARCHITECTURE; bespoke clauses). The kernel implementation in `crates/oya-cloud-billing-domain/src/lib.rs` (1,030 lines, hyperscaler-grade) is the substance truth; this document describes the kernel's invariants and architectural extensions required to address billing_components composability per ADR-0330.
+This document is authored under ADR-0322 substance-bar requirement (line floor 600+ for ARCHITECTURE; bespoke clauses). The kernel implementation in `crates/cloud-billing-domain/src/lib.rs` (1,030 lines, hyperscaler-grade) is the substance truth; this document describes the kernel's invariants and architectural extensions required to address billing_components composability per ADR-0330.
 
 Per-section bespoke content:
 - §2 Layer Map — per-µservice (not template)

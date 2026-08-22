@@ -133,13 +133,13 @@ New file: `microservices/intelligence/slos/guardrails-shadow-mode-fp-budget.open
 
 - **Indicator**: ratio of shadow evaluations where FP budget is NOT exhausted (good signal =
   system is within budget).
-- **Metric query**: `sum(rate(oya_intelligence_guardrails_shadow_within_budget_total[5m]))` /
-  `sum(rate(oya_intelligence_guardrails_shadow_total[5m]))`
+- **Metric query**: `sum(rate(intelligence_guardrails_shadow_within_budget_total[5m]))` /
+  `sum(rate(intelligence_guardrails_shadow_total[5m]))`
 - **Target**: `0.95` (95% of shadow evaluations must be within FP budget)
 
 OTel metric names (to be emitted by the adapter layer, not this pure kernel):
-- `oya_intelligence_guardrails_shadow_total` — counter, incremented per shadow evaluation
-- `oya_intelligence_guardrails_shadow_within_budget_total` — counter, incremented when
+- `intelligence_guardrails_shadow_total` — counter, incremented per shadow evaluation
+- `intelligence_guardrails_shadow_within_budget_total` — counter, incremented when
   `!budget_exhausted()`
 
 These counters are named here as contracts; the kernel itself is pure and emits nothing.

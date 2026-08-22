@@ -15,4 +15,4 @@ You are the observability facet. Read the PR diff and verify:
 
 Cite file:line. REJECT only when a surface ships invisible to production ops.
 
-Cross-reference: `oya-http-telemetry-middleware-infrastructure`, `oya-governance-observability-*`.
+Cross-reference: `http-telemetry-middleware-infrastructure`, `governance-observability-*`.

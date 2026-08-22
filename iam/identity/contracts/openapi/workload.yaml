@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-identity-workload
+  title: identity-workload
   version: 1.0.0
   summary: Workload (machine-to-machine) identity authorize + token-validation + principal-lifecycle surface
   description: |

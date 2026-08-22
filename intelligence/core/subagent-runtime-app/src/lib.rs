@@ -1,7 +1,7 @@
 //! `intelligence-subagent-runtime-app` — binary surface that closes
 //! the `subagent_runtime_pending=true` gap in IP-004 / IP-005 / IP-006.
 //!
-//! The kernel sibling (`oya-intelligence-subagent-runtime-kernel`) defines
+//! The kernel sibling (`intelligence-subagent-runtime-kernel`) defines
 //! the port + value-objects; this crate provides the binary entrypoint
 //! and the two canonical [`SubagentPort`] implementations:
 //!
@@ -9,7 +9,7 @@
 //!   Anthropic API key from a `SecretReference` (canonically backed by
 //!   local OpenBao per the SecretReference memory directive) and issues
 //!   an HTTPS POST to the `/v1/messages` endpoint. The HTTP transport is
-//!   delegated to the existing `oya-intelligence-adapter-anthropic-api-*`
+//!   delegated to the existing `intelligence-adapter-anthropic-api-*`
 //!   substrate when the live-network feature is enabled; until that
 //!   substrate exposes a message-completion shape, this crate carries
 //!   the JSON request/response shaping so production wiring is a single

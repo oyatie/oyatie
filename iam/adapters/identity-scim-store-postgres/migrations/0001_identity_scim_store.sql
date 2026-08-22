@@ -4,7 +4,7 @@
 -- policies per table, keyed on the canonical session GUC
 -- current_setting('oyatie.tenant_id', true) — the SAME GUC the shared command
 -- kernel sets via `SELECT set_config('oyatie.tenant_id', $1, true)` before any
--- tenant-scoped statement (libs/oya-shared-postgres-command-kernel
+-- tenant-scoped statement (libs/shared-postgres-command-kernel
 -- SET_LOCAL_TENANT_SQL):
 --
 --   1. A PERMISSIVE policy (FOR ALL) that ADMITS a row only when its tenant_id

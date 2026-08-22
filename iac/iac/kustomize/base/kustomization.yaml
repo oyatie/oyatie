@@ -17,23 +17,23 @@ resources:
   - cedar-policy-configmap.yaml
 
 helmCharts:
-  - name: oya-cloud-iac-argocd
+  - name: cloud-iac-argocd
     valuesFile: ../../helm/argocd/values.yaml
     releaseName: argocd
     namespace: cloud-iac
-  - name: oya-cloud-iac-opentofu
+  - name: cloud-iac-opentofu
     valuesFile: ../../helm/opentofu/values.yaml
     releaseName: opentofu
     namespace: cloud-iac
-  - name: oya-cloud-iac-helm-controller
+  - name: cloud-iac-helm-controller
     valuesFile: ../../helm/helm-controller/values.yaml
     releaseName: helm-controller
     namespace: cloud-iac
-  - name: oya-cloud-iac-kustomize-controller
+  - name: cloud-iac-kustomize-controller
     valuesFile: ../../helm/kustomize-controller/values.yaml
     releaseName: kustomize-controller
     namespace: cloud-iac
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-cloud-iac
+  app.kubernetes.io/part-of: cloud-iac
   oyatie/microservice: cloud-iac

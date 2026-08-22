@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-zitadel-instance-health
+  name: identity-zitadel-instance-health
   displayName: "identity: Zitadel pod health 99.99%"
   labels:
     microservice: identity
@@ -35,4 +35,4 @@ spec:
       displayName: "99.99% pod availability over 30d"
   timeWindow: [{ duration: 30d, isRolling: true }]
   budgetingMethod: Occurrences
-  alertPolicies: [{ alertPolicyRef: oya-canonical-burn-rate-multi-window }]
+  alertPolicies: [{ alertPolicyRef: canonical-burn-rate-multi-window }]

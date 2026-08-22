@@ -32,7 +32,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{
+                sum(rate(cloud_intelligence_requests_total{
                   service="cloud-intelligence",gateway_error="false",
                   outcome!~"client_cancelled|upstream_rate_limited"
                 }[5m]))
@@ -41,7 +41,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{
+                sum(rate(cloud_intelligence_requests_total{
                   service="cloud-intelligence",
                   outcome!~"client_cancelled|upstream_rate_limited"
                 }[5m]))

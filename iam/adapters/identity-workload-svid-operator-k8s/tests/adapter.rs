@@ -37,7 +37,7 @@ fn desired() -> DesiredState {
         spiffe_id: "spiffe://oyatie.cell-7/platform/cloud-iam-pdp".to_owned(),
         ttl_secs: 3_600,
         rotation_window_secs: 600,
-        secret_name: "oya-cloud-iam-pdp-svid".to_owned(),
+        secret_name: "cloud-iam-pdp-svid".to_owned(),
         secret_namespace: "cloud-iam".to_owned(),
     }
 }
@@ -153,9 +153,9 @@ fn secret_manifest_is_kubernetes_io_tls_with_three_data_members() {
         ca_crt_pem: "ca".to_owned(),
         leaf_not_after_epoch_seconds: 9_999,
     };
-    let manifest = secret_manifest("oya-cloud-iam-pdp-svid", "cloud-iam", &material);
+    let manifest = secret_manifest("cloud-iam-pdp-svid", "cloud-iam", &material);
     assert_eq!(manifest["type"], TLS_SECRET_TYPE);
-    assert_eq!(manifest["metadata"]["name"], "oya-cloud-iam-pdp-svid");
+    assert_eq!(manifest["metadata"]["name"], "cloud-iam-pdp-svid");
     assert_eq!(manifest["metadata"]["namespace"], "cloud-iam");
     // base64 of the three PEM members under the standard keys.
     use base64::Engine as _;

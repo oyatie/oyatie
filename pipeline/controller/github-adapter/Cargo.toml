@@ -6,10 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# GitHub commit-status poster adapter for the oya-ci controller (the
-# `oya-ci-required` producer). Implements kernel::CommitStatusPoster via reqwest
+# GitHub commit-status poster adapter for the ci controller (the
+# `presubmit` producer). Implements kernel::CommitStatusPoster via reqwest
 # blocking HTTP. Posts to the GitHub Statuses API: POST /repos/<owner>/<repo>/statuses/<sha>.
-# HTTP shape lifted from the proven oya-ci-webhook-gateway-github-adapter (ADR-0387 D5).
+# HTTP shape lifted from the proven ci-webhook-gateway-github-adapter (ADR-0387 D5).
 # Forge-of-record = GitHub (D2/D-FORGE).
 
 [lib]

@@ -2,7 +2,7 @@
 //!
 //! PDP-backed adapter for the tenancy authorization port (AUTH-005,
 //! ADR-0564 D7). Implements [`TenantLifecycleAuthorizer`] by DOGFOODING the
-//! repo's own embedded Cedar PDP substrate — `oya-shared-pdp-kernel`'s
+//! repo's own embedded Cedar PDP substrate — `shared-pdp-kernel`'s
 //! [`PolicyDecisionPoint`] port realized by `iam-pdp-cedar`'s
 //! `CedarPdp` (ADR-0536 D-2; cloud-iam is the IdP/PDP per ADR-0559). The
 //! tenancy service is therefore a Policy Enforcement Point over the SAME
@@ -37,13 +37,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
+use shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
 
 use tenancy_tenant_lifecycle_authz_port::{
     AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, AuthzError,
@@ -709,7 +709,7 @@ impl IdGenerator for SystemUlidIdGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_ulid_id_kernel::SeededIdGenerator;
+    use shared_ulid_id_kernel::SeededIdGenerator;
     use tenancy_tenant_lifecycle_authz_port::CallerIdentity;
 
     fn authorizer() -> PdpTenantLifecycleAuthorizer {

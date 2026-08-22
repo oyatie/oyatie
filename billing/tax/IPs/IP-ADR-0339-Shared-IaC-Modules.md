@@ -41,7 +41,7 @@ DOSSIER-010: DR replication shape is `active-active-multi-az-cross-region-warm` 
 DOSSIER-011: Regulatory packs declared: kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa.
 DOSSIER-012: Data classes processed: FINANCIAL, AUDIT.
 DOSSIER-BC-001: Bounded context `cloud-billing-tax` states: Bounded context 'cloud-billing-tax' for tax calculation, rate-card catalog, exemption certificate checks, filing artifact generation.; crate count=1.
-DOSSIER-CRATE-001: Existing crate `oya-cloud-billing-tax-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `cloud-billing-tax-app` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/cloud-billing-tax/contracts/openapi/cloud-billing-tax.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
@@ -56,13 +56,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `cloud-billing-tax` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -191,7 +191,7 @@ MAINT-24M-024: Month 24: `cloud-billing-tax` should have wrapper drift near zero
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `cloud-billing-tax` is `per_request`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `cloud-billing-tax` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `cloud-billing-tax` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `cloud-billing-tax` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `cloud-billing-tax` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.08` vCPU per tenant becomes 0.80 at 10 tenants, 8.00 at 100, and 80.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `192` MiB per tenant becomes 1920 MiB at 10 tenants, 19200 MiB at 100, and 192000 MiB at 1000.
@@ -306,9 +306,9 @@ VERIFY-009: Static read confirms `cloud-billing-tax` ARCH has an `ADR-0339 integ
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `cargo run -q -p dev-cli -- gate validate cohesion` must pass before commit.
+VERIFY-015: `cargo run -q -p dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `cloud-billing-tax` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-billing-tax` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-billing-tax` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

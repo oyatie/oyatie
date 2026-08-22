@@ -133,9 +133,9 @@ Federation, if ever required (open question), would be added under a separate AD
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate multi-region-topology --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate dr-pair-conformance --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate multi-region-topology --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate dr-pair-conformance --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate cross-pack-replication-forbidden --microservice cloud-secrets
 ```
 
 Annual ops-sre review: verify each active pack's DR posture matches this document.

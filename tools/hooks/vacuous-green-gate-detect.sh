@@ -2,7 +2,7 @@
 # tools/hooks/vacuous-green-gate-detect.sh
 #
 # Trigger:  Claude Code PostToolUse(Edit|Write) where target is registry/quality/lanes.yaml
-#           or under libs/oya-check-*/
+#           or under libs/check-*/
 # Purpose:  Detect potential vacuous-green test patterns: gates that pass with zero
 #           assertions or trivially true bodies. Advisory measurement, not enforcement.
 # Behavior: Greps the edited file for known vacuous-green heuristics:
@@ -38,8 +38,8 @@ if [ -z "$FILE_PATH" ]; then
     exit 0
 fi
 
-# Only act on lanes.yaml or oya-check-* crate files
-if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|libs/oya-check-' 2>/dev/null; then
+# Only act on lanes.yaml or check-* crate files
+if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|libs/check-' 2>/dev/null; then
     exit 0
 fi
 

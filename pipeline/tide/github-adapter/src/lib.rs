@@ -1,6 +1,6 @@
-//! # oya-ci-tide-github-adapter
+//! # ci-tide-github-adapter
 //!
-//! GitHub API client adapter for the oya-ci tide component.
+//! GitHub API client adapter for the ci tide component.
 //!
 //! Implements [`ForgeClient`] via reqwest blocking HTTP. Forge of record =
 //! GitHub (D-FORGE; GitHub interim until the Sapling-inspired bespoke SCM).
@@ -20,7 +20,7 @@
 //!
 //! ## Authentication
 //!
-//! `Authorization: Bearer <OYA_GITHUB_TOKEN>` — token read from env at
+//! `Authorization: Bearer <OYATIE_GITHUB_TOKEN>` — token read from env at
 //! construction time via [`GitHubHttpClient::from_config`]. Never hardcoded.
 //! GitHub also requires `X-GitHub-Api-Version`, `Accept`, and a `User-Agent`.
 //!
@@ -94,7 +94,7 @@ impl GitHubHttpClient {
             .bearer_auth(&self.token)
             .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
             .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", "oya-ci-tide")
+            .header("User-Agent", "ci-tide")
     }
 
     fn resolve_page_url(&self, page_url: &str) -> String {

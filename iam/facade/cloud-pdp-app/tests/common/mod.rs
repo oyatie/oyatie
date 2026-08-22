@@ -23,11 +23,11 @@ use iam_cloud_pdp_app::PdpState;
 use iam_cloud_pdp_bundle_file::{BundleSignature, SignedPolicyBundleDoc};
 use iam_cloud_pdp_kernel::InMemoryDecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
-use oya_shared_audit_event_kernel::{ChainSigner, encode_hex};
-use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
-use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
-use oya_shared_ulid_id_kernel::SeededIdGenerator;
+use shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
+use shared_audit_event_kernel::{ChainSigner, encode_hex};
+use shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
+use shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
+use shared_ulid_id_kernel::SeededIdGenerator;
 
 pub const SCHEMA_SRC: &str = include_str!("../../cedar/platform.cedarschema");
 pub const POLICIES_SRC: &str = include_str!("../../cedar/platform-policies.cedar");
@@ -217,7 +217,7 @@ pub fn seeded_state(links: Vec<TemplateLink>) -> (Arc<PdpState>, Arc<InMemoryDec
 /// directly for malformed-envelope RED fixtures.
 pub fn temp_bundle_file(tag: &str, contents: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-e2e-{}-{tag}",
+        "cloud-iam-pdp-e2e-{}-{tag}",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).expect("temp dir");
@@ -266,7 +266,7 @@ pub fn signed_bundle_doc(inner_json: &str) -> String {
 }
 
 /// Provision a trust-anchor directory trusting the process-global test signing
-/// key (the `OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` stand-in). Returns the dir.
+/// key (the `OYATIE_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` stand-in). Returns the dir.
 ///
 /// Each call writes a UNIQUE directory: parallel socket tests must not share one
 /// trust file (a concurrent read of a mid-write `.pub` yields truncated key
@@ -277,7 +277,7 @@ pub fn trust_dir(tag: &str) -> PathBuf {
     use std::sync::atomic::{AtomicU64, Ordering};
     static SEQ: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-trust-{}-{}-{tag}",
+        "cloud-iam-pdp-trust-{}-{}-{tag}",
         std::process::id(),
         SEQ.fetch_add(1, Ordering::Relaxed)
     ));

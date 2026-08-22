@@ -18,7 +18,7 @@ One paragraph: why this team exists, what it owns, what it does NOT own.
 - **Axis(es):** <list — e.g. cloud, search, vertical-healthcare>
 - **Per-product PRD(s):** <list of paths>
 - **Cross-axis contracts owned/co-owned:** <list rows from DESIGN §10>
-- **Catalog records (flat-crates target prefix):** <e.g. `crates/oya-cloud-iam-*`>
+- **Catalog records (flat-crates target prefix):** <e.g. `crates/cloud-iam-*`>
 - **Runbooks owned:** <list>
 - **ADRs authored / co-authored:** <list from new pack 0001-0050>
 
@@ -69,7 +69,7 @@ Team-level OKRs / KPIs with org-level rollup. Cite the org-level metric in [PRD 
 
 - Code review: per [`standards/code-review.md`](../standards/code-review.md)
 - PR shape: 5-section H2 template per CLAUDE.md
-- Pre-push: targeted Buck2/cloud-ci checks plus `oya-ci-required` per [`../../templates/checklists/pre-push.md`](../../templates/checklists/pre-push.md)
+- Pre-push: targeted Buck2/cloud-ci checks plus `presubmit` per [`../../templates/checklists/pre-push.md`](../../templates/checklists/pre-push.md)
 - ADR proposal cadence: monthly batch
 - Postmortem authorship: per [`templates/incident-postmortem-template.md`](incident-postmortem-template.md)
 

@@ -16,7 +16,7 @@ doc_status: published
 ## Symptom
 
 A newly-promoted IANA tzdb release (typically auto-promoted by the
-`oya-calendar-tzdb-refresh-worker` per ADR-CAL-0004) introduces a
+`calendar-tzdb-refresh-worker` per ADR-CAL-0004) introduces a
 regression. Visible as one or more of:
 
 - RFC 5545 RRULE corpus regression in CI post-promotion (named
@@ -24,7 +24,7 @@ regression. Visible as one or more of:
 - Tenant reports incorrect DST renderings on appointments (e.g.,
   Lebanon 2023 tzdb 2023a/2023b precedent).
 - Cross-tenant divergence rate
-  `oya_calendar_tzdb_cross_tenant_divergence_total` spikes >10× the
+  `calendar_tzdb_cross_tenant_divergence_total` spikes >10× the
   baseline.
 - Agenda-render p95 regresses (rare, but a tzdb bug can break
   in-flight calculations).
@@ -44,11 +44,11 @@ axis-calendar on-call + ops-sre-reliability on-call.
 
 ```bash
 # Which tzdb release is currently in cluster-default?
-kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
-  oya-dev-cli calendar tzdb show-current
+kubectl -n calendar exec deploy/calendar-event-store-app -- \
+  dev-cli calendar tzdb show-current
 
 # Which release was previously in cluster-default?
-git log --oneline --grep='chrono-tz' -- microservices/calendar/src/crates/oya-calendar-event-store-adapter/Cargo.toml | head -5
+git log --oneline --grep='chrono-tz' -- microservices/calendar/src/crates/calendar-event-store-adapter/Cargo.toml | head -5
 ```
 
 ### Step 2 — Quick reproducer
@@ -56,7 +56,7 @@ git log --oneline --grep='chrono-tz' -- microservices/calendar/src/crates/oya-ca
 ```bash
 # Run the RFC 5545 corpus + DST edge-case matrix against the
 # current tzdb pin
-cargo nextest run -p oya-calendar-recurrence-engine-domain \
+cargo nextest run -p calendar-recurrence-engine-domain \
   -- rfc_5545_libical_corpus rrule_edge_cases 2>&1 | tail -30
 ```
 
@@ -70,7 +70,7 @@ LST").
 # Pull the prior chrono-tz release from the bumping ChangeSet's parent commit
 git stash
 git checkout <prior-LTS-commit>
-cargo nextest run -p oya-calendar-recurrence-engine-domain \
+cargo nextest run -p calendar-recurrence-engine-domain \
   -- rfc_5545_libical_corpus rrule_edge_cases 2>&1 | tail -10
 git checkout -
 git stash pop
@@ -90,17 +90,17 @@ git checkout -b cal/tzdb-rollback-$(date +%Y%m%d)
 # Pin chrono-tz back to the prior LTS version
 # (replace 0.10.X with the actual prior pin)
 sed -i.bak 's|chrono-tz = "0\.10\..*"|chrono-tz = "0.10.X"|' \
-  microservices/calendar/src/crates/oya-calendar-event-store-adapter/Cargo.toml
+  microservices/calendar/src/crates/calendar-event-store-adapter/Cargo.toml
 
 cargo build --workspace
-cargo nextest run -p oya-calendar-recurrence-engine-domain
+cargo nextest run -p calendar-recurrence-engine-domain
 ```
 
 ### Step 2 — Validate corpus + edge-case matrix passes
 
 ```bash
 # Full corpus + DST matrix MUST be green before rollback ships
-cargo nextest run -p oya-calendar-recurrence-engine-domain \
+cargo nextest run -p calendar-recurrence-engine-domain \
   -- rfc_5545_libical_corpus rrule_edge_cases rfc_5545_python_dateutil_corpus 2>&1 | tail -5
 ```
 
@@ -119,7 +119,7 @@ gh pr create \
 <case description from Step 2>
 
 ## Verification
-- cargo nextest run -p oya-calendar-recurrence-engine-domain — green
+- cargo nextest run -p calendar-recurrence-engine-domain — green
 - `oya gate validate tzdb-staleness-bound --microservice calendar` — REPORT-ONLY (rollback exceeds 30d if upstream lingers; track via fix-up)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
@@ -133,7 +133,7 @@ Mark the PR with the `ops-rollback` label for expedited admission.
 
 ```bash
 # Pin the refresh worker to skip the offending release
-kubectl -n calendar patch configmap oya-calendar-tzdb-refresh-config --type merge -p \
+kubectl -n calendar patch configmap calendar-tzdb-refresh-config --type merge -p \
   '{"data":{"blocklist":"<release name>"}}'
 ```
 
@@ -151,20 +151,20 @@ Per-pack tenant notification via the standard ops-comms channel:
 ```bash
 # After PR merge to dev and admission to staging:
 # 1. Cluster-default tzdb release rolled back
-kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
-  oya-dev-cli calendar tzdb show-current
+kubectl -n calendar exec deploy/calendar-event-store-app -- \
+  dev-cli calendar tzdb show-current
 # expect: prior LTS release
 
 # 2. Corpus + edge-case matrix green
-cargo run -p oya-dev-cli -- gate validate rfc-5545-conformance --microservice calendar
+cargo run -p dev-cli -- gate validate rfc-5545-conformance --microservice calendar
 
 # 3. Cross-tenant divergence rate returning to baseline
-kubectl -n calendar exec deploy/oya-calendar-event-store-app -- \
+kubectl -n calendar exec deploy/calendar-event-store-app -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_tzdb_cross_tenant_divergence_total'
+  grep 'calendar_tzdb_cross_tenant_divergence_total'
 
 # 4. Staleness SLO (REPORT-ONLY tracking the rollback)
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo tzdb-staleness-bound
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo tzdb-staleness-bound
 ```
 
 ## Post-incident

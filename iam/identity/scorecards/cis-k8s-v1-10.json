@@ -68,7 +68,7 @@
     },
     "5.4.1_image_signed": {
       "pass": false,
-      "evidence": "CONTRADICTED 2026-07-26: this workload runs ghcr.io/zitadel/zitadel (values.yaml:11), and neither Kyverno verifyImages policy matches it \u2014 infra/kyverno/policies/verify-image-signed.yaml scopes to registry.oya-registry.svc.cluster.local:5000/* and require-signed-images.yaml to ghcr.io/oyatie/*. No cosign verification covers this image. (Separately, the buildkit signing job cannot execute at all \u2014 jq and curl are absent from moby/buildkit \u2014 but that pipeline does not build this image.)"
+      "evidence": "CONTRADICTED 2026-07-26: this workload runs ghcr.io/zitadel/zitadel (values.yaml:11), and neither Kyverno verifyImages policy matches it \u2014 infra/kyverno/policies/verify-image-signed.yaml scopes to registry.registry.svc.cluster.local:5000/* and require-signed-images.yaml to ghcr.io/oyatie/*. No cosign verification covers this image. (Separately, the buildkit signing job cannot execute at all \u2014 jq and curl are absent from moby/buildkit \u2014 but that pipeline does not build this image.)"
     },
     "5.4.2_image_pinned_by_digest": {
       "pass": false,

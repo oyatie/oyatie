@@ -14,7 +14,7 @@
 # ---
 # Canonical Foundry capability record. Lives under registry/capability-templates/<id>.yaml.
 # Validates against registry/quality/capability-record.schema.json. Enforced by:
-#   - oya-governance-capability-publish lane (publish gate)
+#   - governance-capability-publish lane (publish gate)
 #   - capability-schema-validator (CI; must pass before publish)
 # Status: Accepted. Date: 2026-05-12.
 # Supersedes: docs/templates/capability-record-template.yaml (preserves existing schema; adds T1-T4 autonomy enum,
@@ -52,12 +52,12 @@ provider:
     - claude-subscription
     - openai-subscription
     - gemini-subscription
-    - oya-internal-<model-id>             # post W-AI-Model-Substrate
+    - internal-<model-id>             # post W-AI-Model-Substrate
 
 autonomy:
   tier_required: T2                       # T1 (recommend) | T2 (flag+freeze) | T3 (execute-with-approval) | T4 (auto-execute)
-  cedar_policy_ref: policies/foundry/<id>.cedar   # MUST exist when tier >= T2; oya-governance-autonomy-ceiling enforces
-  runtime_gate_ref: crates/oya-intelligence-runtime-autonomy/src/lib.rs::AutonomyGate
+  cedar_policy_ref: policies/foundry/<id>.cedar   # MUST exist when tier >= T2; governance-autonomy-ceiling enforces
+  runtime_gate_ref: crates/intelligence-runtime-autonomy/src/lib.rs::AutonomyGate
 
 data_class:
   allowlist:                              # explicit per docs/PRIVACY-PROGRAM.md §2.2.1; default-deny
@@ -69,7 +69,7 @@ data_class:
     - GOVERNMENT_ISSUED_ID
 
 regulatory_packs_consumed:
-  - oya-pack-kr.PIPA
+  - pack-kr.PIPA
   - global.GDPR
   - global.HIPAA                          # only if PHI in allowlist (mutually exclusive with default blocklist)
 
@@ -104,7 +104,7 @@ side_effects:
   invokes_other_capabilities: []
 
 supply_chain:
-  cosign_signed: true                     # SLSA L2 minimum; oya-governance-supply-chain enforces
+  cosign_signed: true                     # SLSA L2 minimum; governance-supply-chain enforces
   cosign_signing_key_ref: keyless-oidc:github-actions-fulcio
   cosign_certificate_identity: https://github.com/oyatie/oyatie/.github/workflows/release.yaml@refs/heads/main
   rekor_log_index: <to-be-filled-at-publish>

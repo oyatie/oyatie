@@ -31,8 +31,8 @@ const PROGRAM_NAME: &str = "fd-001-tenant-rbac-generic";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const SOURCE_MANIFEST_REF: &str =
-    "crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
-const SOURCE_ADMISSION_POLICY_REF: &str = "crates/oya-tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
+    "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
+const SOURCE_ADMISSION_POLICY_REF: &str = "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
 const POLICY_REF_PREFIX: &str = "policy/availability/fd001/";
 const EXPECTED_EVIDENCE_REF: &str =
     "evidence/availability/fd001-tenant-rbac/availability-contract-review.jsonl";
@@ -586,12 +586,12 @@ fn validate_requirement(
     validate_doc_url(requirement.official_doc_url)?;
     validate_prefixed_ref(
         requirement.source_manifest_ref,
-        "crates/oya-tenant-rbac-tenant-workload-manifest/",
+        "crates/tenant-rbac-tenant-workload-manifest/",
         Fd001TenantAvailabilityError::InvalidSourceManifestRef,
     )?;
     validate_prefixed_ref(
         requirement.source_admission_policy_ref,
-        "crates/oya-tenant-rbac-tenant-admission-policy/",
+        "crates/tenant-rbac-tenant-admission-policy/",
         Fd001TenantAvailabilityError::InvalidSourceAdmissionPolicyRef,
     )?;
     if !requirement.applies_to_all_manifest_workloads {

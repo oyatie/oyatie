@@ -26,7 +26,7 @@
       "name": "tenancy",
       "description": "Bounded context 'tenancy' within tenancy (control plane)",
       "crates": [
-        "oya-tenancy-tenant-lifecycle-kernel"
+        "tenancy-tenant-lifecycle-kernel"
       ]
     }
   ],
@@ -80,25 +80,25 @@
     {
       "name": "tenancy-availability",
       "target": "0.9999",
-      "sli": "sum(rate(http_requests_total{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",status!~\"5..\"}[5m]))",
+      "sli": "sum(rate(http_requests_total{job=\"tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",status!~\"5..\"}[5m]))",
       "file": "tenancy/observability/slos/availability.openslo.yaml"
     },
     {
       "name": "tenancy-correctness-rls-probe",
       "target": "1.0",
-      "sli": "sum(rate(oya_tenancy_synthetic_cross_tenant_probe_success_total[5m]))",
+      "sli": "sum(rate(tenancy_synthetic_cross_tenant_probe_success_total[5m]))",
       "file": "tenancy/observability/slos/correctness.openslo.yaml"
     },
     {
       "name": "tenancy-freshness-rls-drift",
       "target": "0.995",
-      "sli": "sum(rate(oya_tenancy_rls_state_validator_runs_total{success=\"true\"}[5m]))",
+      "sli": "sum(rate(tenancy_rls_state_validator_runs_total{success=\"true\"}[5m]))",
       "file": "tenancy/observability/slos/freshness.openslo.yaml"
     },
     {
       "name": "tenancy-latency",
       "target": "≤",
-      "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
+      "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
       "file": "tenancy/observability/slos/latency.openslo.yaml"
     }
   ],
@@ -111,25 +111,25 @@
     },
     {
       "id": "IP-002-tenant-lifecycle-kernel",
-      "title": "IP-002: oya-tenancy-tenant-lifecycle-kernel",
+      "title": "IP-002: tenancy-tenant-lifecycle-kernel",
       "acceptance_status": "ga",
       "file": "microservices/tenancy/IP-002-tenant-lifecycle-kernel.md"
     },
     {
       "id": "IP-003-tenant-lifecycle-domain",
-      "title": "IP-003: oya-tenancy-tenant-lifecycle-domain",
+      "title": "IP-003: tenancy-tenant-lifecycle-domain",
       "acceptance_status": "ga",
       "file": "microservices/tenancy/IP-003-tenant-lifecycle-domain.md"
     },
     {
       "id": "IP-004-tenant-lifecycle-usecase",
-      "title": "IP-004: oya-tenancy-tenant-lifecycle-usecase",
+      "title": "IP-004: tenancy-tenant-lifecycle-usecase",
       "acceptance_status": "ga",
       "file": "microservices/tenancy/IP-004-tenant-lifecycle-usecase.md"
     },
     {
       "id": "IP-005-tenant-lifecycle-adapter-postgres",
-      "title": "IP-005: oya-tenancy-tenant-lifecycle-adapter-postgres",
+      "title": "IP-005: tenancy-tenant-lifecycle-adapter-postgres",
       "acceptance_status": "ga",
       "file": "microservices/tenancy/IP-005-tenant-lifecycle-adapter-postgres.md"
     },
@@ -313,7 +313,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "tenancy is a BNF v4.1 kebab-case microservice slug; generated names follow oya-tenancy-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "tenancy is a BNF v4.1 kebab-case microservice slug; generated names follow tenancy-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"

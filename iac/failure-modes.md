@@ -42,7 +42,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Kubernetes apiserver resource conflict; finalizer loop; webhook hang; OpenTofu state-lock not released |
-| Detection | `oya_cloud_iac_apply_duration_seconds{quantile="0.99"} > 900` for ≥ 5min OR specific apply job in `Running` state > 15min |
+| Detection | `cloud_iac_apply_duration_seconds{quantile="0.99"} > 900` for ≥ 5min OR specific apply job in `Running` state > 15min |
 | Tenant impact | One µservice's promotion blocked; queued applies for the same µservice queue up (per-µservice serialisation) |
 | Severity | Sev-2 (single-µservice blocked) — Sev-1 if cluster-wide |
 | Immediate mitigation | Abort apply via `kubectl delete pod` + `terraform force-unlock`; retry-with-backoff; if stuck-apply count > 3 over 1h, page secondary on-call |
@@ -55,7 +55,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Operator manually mutates a widely-shared resource (e.g., a ServiceMonitor) cascading into many µservices' drift reports |
-| Detection | `oya_cloud_iac_drift_events_total` rate > 100/min for ≥ 5min OR specific µservice drift-burst > 20 events in 5min |
+| Detection | `cloud_iac_drift_events_total` rate > 100/min for ≥ 5min OR specific µservice drift-burst > 20 events in 5min |
 | Tenant impact | Alert storm; on-call fatigue |
 | Severity | Sev-2 (operational; real drift may hide in noise) |
 | Immediate mitigation | Apply throttle: drift event grouping by µservice + resource-kind; silence flood patterns; manually triage signal |
@@ -81,7 +81,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Two iac-applier-worker replicas attempt apply on same (microservice, pack, env) simultaneously; advisory-lock contention |
-| Detection | `oya_iac_state_lock_wait_seconds_p99 > 30` OR `oya_iac_state_lock_timeout_total > 0` |
+| Detection | `iac_state_lock_wait_seconds_p99 > 30` OR `iac_state_lock_timeout_total > 0` |
 | Tenant impact | Apply latency degraded; one applier waits; second eventually aborts on lock-timeout |
 | Severity | Sev-3 (transient; resolved by lock release) — Sev-2 if persistent |
 | Immediate mitigation | Verify only one applier replica is processing; release stale locks via `terraform force-unlock` if held > 10min |
@@ -94,7 +94,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | ArgoCD application-controller crash; etcd unavailable; reconciler pod-eviction storm |
-| Detection | `argocd_app_info` cardinality drops; ArgoCD UI returns 5xx; `oya_cloud_iac_reconciler_alive == 0` |
+| Detection | `argocd_app_info` cardinality drops; ArgoCD UI returns 5xx; `cloud_iac_reconciler_alive == 0` |
 | Tenant impact | No automated git→cluster reconcile; manual apply via CLI required |
 | Severity | Sev-2 (degraded; not blocking pre-existing applies); Sev-1 if persistent > 1h |
 | Immediate mitigation | Verify HA replicas alive; restart unhealthy pods; failover ArgoCD primary to standby instance if pack has DR pair; engage Flux fallback for tenant-choice clusters |
@@ -107,7 +107,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | LEAN check failure missed at PR; Cedar policy bug; cluster RBAC misconfiguration |
-| Detection | `oya_cloud_iac_apply_scope_violation_total > 0` over 5min OR continuous-compliance lane alarm |
+| Detection | `cloud_iac_apply_scope_violation_total > 0` over 5min OR continuous-compliance lane alarm |
 | Tenant impact | Potential cross-µservice mutation (DPIA R-01; threat T-T-03) |
 | Severity | Sev-1 (security breach) |
 | Immediate mitigation | Engage ops-security; freeze affected applier; revoke applier SA token; begin forensic trace; trigger rollback if mutation already occurred |
@@ -120,7 +120,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Rekor public log outage; Fulcio CA rotation issue; transient network failure to Sigstore upstream |
-| Detection | `oya_cloud_iac_slsa_verify_failure_total > 0` |
+| Detection | `cloud_iac_slsa_verify_failure_total > 0` |
 | Tenant impact | Applies refused; promotions held pending substrate recovery |
 | Severity | Sev-2 (operational; gate fail-closed correct behavior) |
 | Immediate mitigation | Verify Sigstore upstream status; cache last-known-good Rekor entries from local mirror; if persistent > 30min, declare Sev-2 incident |
@@ -133,7 +133,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Upstream chart registry serves a tampered chart (typosquat or repo compromise) |
-| Detection | LEAN check `oya-check-helm-chart-allowlist` refusal OR Cosign verify failure mid-pipeline |
+| Detection | LEAN check `check-helm-chart-allowlist` refusal OR Cosign verify failure mid-pipeline |
 | Tenant impact | Apply refused at validator; no actual mutation occurred |
 | Severity | Sev-1 (supply-chain attempt; even if blocked) |
 | Immediate mitigation | Quarantine the chart; engage ops-security; verify upstream registry integrity; remove offending allowlist entry; emergency-rotate any signing keys that touched the chart |
@@ -146,7 +146,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Reverting to prior SHA introduces a new regression; rollback-of-rollback invoked |
-| Detection | `oya_cloud_iac_rollback_chain_depth > 1` |
+| Detection | `cloud_iac_rollback_chain_depth > 1` |
 | Tenant impact | µservice accumulates regression debt; on-going production instability |
 | Severity | Sev-2 (operational; gate functioning but situation indicates code quality issue) |
 | Immediate mitigation | Escalate to ExecSponsor; manual review; consider longer-lived prior-good pointer |
@@ -159,7 +159,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Workload µservice's pack-router config bug routes to wrong pack |
-| Detection | Integration test at CI; runtime detector emits `oya_cloud_iac_pack_misroute_total > 0` |
+| Detection | Integration test at CI; runtime detector emits `cloud_iac_pack_misroute_total > 0` |
 | Tenant impact | Cross-border-transfer violation (DPIA R-10); GDPR / KR PIPA breach risk |
 | Severity | Sev-1 (regulatory breach) |
 | Immediate mitigation | Quarantine misrouted data; engage ops-security + council-privacy; correct pack-router config; begin breach-notification chain |
@@ -172,7 +172,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Validator-worker outage; Postgres lag; Kubernetes apiserver throttling |
-| Detection | `oya_cloud_iac_drift_coverage_pct < 99.5` over 1h window |
+| Detection | `cloud_iac_drift_coverage_pct < 99.5` over 1h window |
 | Tenant impact | Silent drift may persist beyond 1h SLO target |
 | Severity | Sev-2 |
 | Immediate mitigation | Verify validator-worker pods; check Postgres replica lag; throttle other workloads if apiserver-throttled |
@@ -185,7 +185,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Worker crashloop; Postgres connection-pool exhaustion |
-| Detection | `oya_cloud_iac_registry_worker_alive == 0` for ≥ 2min |
+| Detection | `cloud_iac_registry_worker_alive == 0` for ≥ 2min |
 | Tenant impact | New apply-state writes blocked; reads succeed from replica |
 | Severity | Sev-2 |
 | Immediate mitigation | Restart registry-worker pods; check Postgres connection-pool size; scale up if exhausted |
@@ -198,7 +198,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | audit-chain µservice unreachable; transient network failure |
-| Detection | `oya_cloud_iac_audit_emit_failure_total > 0` |
+| Detection | `cloud_iac_audit_emit_failure_total > 0` |
 | Tenant impact | Audit-chain seal pending; apply may proceed (depending on policy); audit gap if persistent |
 | Severity | Sev-2 (compliance risk if persistent) |
 | Immediate mitigation | Verify audit-chain availability; buffer events to local persistent queue; replay on recovery; if > 1h, escalate to Sev-1 (audit gap is compliance-sensitive) |
@@ -224,7 +224,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Helm chart references current timestamp; environment-variable interpolation; non-deterministic value source |
-| Detection | LEAN check `oya-cloud-iac-render-determinism` fails OR runtime content-digest mismatch on re-render |
+| Detection | LEAN check `cloud-iac-render-determinism` fails OR runtime content-digest mismatch on re-render |
 | Tenant impact | Render cache invalidated unnecessarily; apply-state index may drift |
 | Severity | Sev-3 |
 | Immediate mitigation | Identify non-deterministic source in IaC; fix at PR; document non-determinism convention violation |

@@ -26,14 +26,14 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_ontology_function_evaluations_total{outcome="success"}[1m]))
+                sum(rate(ontology_function_evaluations_total{outcome="success"}[1m]))
         total:
           metricSource:
             metricSourceRef: prometheus
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_ontology_function_evaluations_total[1m]))
+                sum(rate(ontology_function_evaluations_total[1m]))
   objectives:
     - displayName: 99.99 % availability over 30 days
       target: 0.9999
@@ -43,5 +43,5 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - oya-burn-rate-fast-1h
-    - oya-burn-rate-slow-6h
+    - burn-rate-fast-1h
+    - burn-rate-slow-6h

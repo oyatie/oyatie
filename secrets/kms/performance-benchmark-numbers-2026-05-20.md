@@ -11,7 +11,7 @@ date: 2026-05-20
 2. Machine-readable deployment/context constraints: `specs/master-plan-sequencing.json:704-868`.
 3. Local microservice benchmark source: `microservices/cloud-kms/benchmarks/cloud-kms-vs-aws-kms-vs-azure-key-vault-vs-vault-enterprise.md:1-100`.
 4. Local tenant_class target source: `microservices/cloud-kms/retired tenant_class adoption artifact:13-83`.
-5. Runtime contract/code source: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:203-352`.
+5. Runtime contract/code source: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/cloud-kms-api/tests/cloud_kms_api.rs:203-352`.
 
 ## Methodology Disclosure
 

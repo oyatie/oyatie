@@ -24,7 +24,7 @@
   ],
   "properties": {
     "header_name": {
-      "const": "oya-degradation-class"
+      "const": "degradation-class"
     },
     "classes": {
       "type": "array",
@@ -84,7 +84,7 @@
       ],
       "properties": {
         "metric_name": {
-          "const": "oya_degradation_class"
+          "const": "degradation_class"
         },
         "labels": {
           "type": "array",

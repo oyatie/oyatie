@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "global-trade",
     "bounded_context": "global-trade-compliance",
-    "crate_prefix": "oya-global-trade",
-    "primary_crate": "microservices/global-trade/crates/oya-global-trade-compliance-domain",
+    "crate_prefix": "global-trade",
+    "primary_crate": "microservices/global-trade/crates/global-trade-compliance-domain",
     "product_id": "global-trade",
     "owning_axis": "axis-enterprise"
   },
@@ -49,42 +49,42 @@
       "given": "a trade party has tenant, legal entity, role, country, normalized party name, sanctions-list version ref, screening score, source ref, and audit evidence",
       "when": "the global-trade domain screens the party metadata",
       "then": "screening, tenant, legal entity, party, role, country, name, list version, score, source, evidence, outcome, hold flag, idempotency key, state, schema version, and false live-provider/list-download/block-mutation/cloud flags are present",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
     },
     {
       "id": "AC-02",
       "given": "a trade item has tenant, legal entity, origin/destination countries, HS code, export-control classification, customs value, duty rate, source ref, and audit evidence",
       "when": "trade-item classification metadata is prepared",
       "then": "classification, tenant, legal entity, item, origin/destination countries, HS code, export-control classification, customs value, duty rate, source, evidence, idempotency key, state, schema version, and false regulatory-content/legal-ruling/product-master/cloud flags are present",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::party_item_export_customs_and_landed_cost_flow"
     },
     {
       "id": "AC-03",
       "given": "a screened party and classified item are available with export-control classification, shipment value, license presence, embargo signal, source ref, and audit evidence",
       "when": "export-control assessment metadata is prepared",
       "then": "assessment, tenant, legal entity, classification, item, destination, export-control classification, shipment value, party outcome, license/embargo signals, decision, compliance-hold flag, source, evidence, idempotency key, state, schema version, and false license-management/government-filing/order-mutation/Workflow/cloud flags are present",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
     },
     {
       "id": "AC-04",
       "given": "an export-control assessment allows the transaction and declaration metadata has quantity, unit value, freight, insurance, incoterm, customs procedure, source ref, and audit evidence",
       "when": "customs declaration preparation metadata is prepared",
       "then": "declaration, assessment, tenant, legal entity, item, party, declaration type, decision, quantity, goods value, freight, insurance, declared customs value, incoterm, procedure, source, evidence, idempotency key, state, schema version, and false customs-submission/broker/shipment/document-archive/cloud flags are present",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
     },
     {
       "id": "AC-05",
       "given": "a prepared customs declaration has declared customs value, duty rate, brokerage fee, local transport cost, source ref, and audit evidence",
       "when": "landed-cost simulation metadata is prepared",
       "then": "landed-cost simulation, declaration, tenant, legal entity, declared customs value, duty rate, duty amount, brokerage fee, local transport cost, total landed cost, source, evidence, idempotency key, state, schema version, and false accounting/inventory/payment/cloud flags are present",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::{party_item_export_customs_and_landed_cost_flow,global_trade_refuses_unscreened_unclassified_or_held_flow}"
     },
     {
       "id": "AC-06",
       "given": "untrusted identifiers, country codes, HS/ECCN values, list/source/evidence refs, incoterms, customs procedures, amounts, quantities, duty rates, or overclaim paths enter the global-trade domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, invalid ISO country codes, invalid HS/ECCN values, path traversal, whitespace/control characters, credential-shaped refs, zero/overflow amounts, invalid quantities, invalid duty rates, missing party screening, missing item classification, missing export-control assessment, and compliance-hold customs preparation are refused",
-      "test_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain/tests/global_trade_compliance.rs::{global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_validates_refs_codes_amounts_and_rates,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
+      "test_ref": "microservices/global-trade/crates/global-trade-compliance-domain/tests/global_trade_compliance.rs::{global_trade_refuses_unscreened_unclassified_or_held_flow,global_trade_validates_refs_codes_amounts_and_rates,global_trade_records_compliance_holds_without_runtime_mutation_claim}"
     }
   ],
   "decision_log": [
@@ -128,7 +128,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/global-trade/crates/oya-global-trade-compliance-domain",
+    "primary_crate_ref": "microservices/global-trade/crates/global-trade-compliance-domain",
     "entities_ref": [
       {
         "entity": "Global",

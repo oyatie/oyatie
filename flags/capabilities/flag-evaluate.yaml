@@ -20,7 +20,7 @@ spec:
   transport:
     grpc: oyatie.feature_flags.v1.FlagEvaluationService/EvaluateBoolean
     rest: POST /api/v1/flags/{flag_key}/evaluate
-    sdk: oya-feature-flags-sdk::FlagClient::bool_value
+    sdk: feature-flags-sdk::FlagClient::bool_value
   slo_ref: slos/flag-eval-latency.openslo.yaml
   cedar_permit: policy/flag-mutation-authorization.cedar
   emergency_bypass: true

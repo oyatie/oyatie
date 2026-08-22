@@ -19,7 +19,7 @@ This runbook handles lost, destroyed, or coerced Shamir-share holders for any of
 
 1. **`meta-trust-root`** — the offline HSM key that signs the self-modification permits gate (ADR-0247 §D-8); see also `docs/runbooks/meta-trust-root-recovery.md`.
 2. **Cedar policy root** — the org root key that signs Cedar fragment intermediate keys (ADR-0243 §D-5).
-3. **Compliance-pack-publisher root** — the oya-compliance-office Ed25519 key root (ADR-0251 §D-2).
+3. **Compliance-pack-publisher root** — the compliance-office Ed25519 key root (ADR-0251 §D-2).
 
 **Share threshold math:** With 5-of-9:
 - Up to 4 share losses are **tolerable** — the key can still be reconstituted from the remaining 5.
@@ -266,7 +266,7 @@ There is no rollback for a completed Shamir ceremony. If the ceremony produced a
 - ADR-0247 §D-8 (Self-modification gate; meta-trust-root requirement)
 - ADR-0243 §D-5 (Cedar bootstrap chain of trust; org root key)
 - ADR-0246 (Policy-engine substrate; policy-root key)
-- ADR-0251 §D-2 (Compliance-pack-publisher signing; oya-compliance-office key)
+- ADR-0251 §D-2 (Compliance-pack-publisher signing; compliance-office key)
 - Synthesis §5.5 (F5-243-02: 5-of-9 Shamir ≥3 jurisdictions mandate)
 - `docs/runbooks/meta-trust-root-recovery.md`
 - `docs/runbooks/cedar-fragment-emergency-rollback.md`

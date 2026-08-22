@@ -37,7 +37,7 @@
       "registry_class": "TenancyResidencyAttestationCreated",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -71,7 +71,7 @@
       "registry_class": "TenancyResidencyAttestationRefreshed",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -105,7 +105,7 @@
       "registry_class": "TenancyResidencyAttestationExpired",
       "originating_adr": "ADR-0326",
       "severity": "WARN",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -139,7 +139,7 @@
       "registry_class": "TenancyResidencyAttestationSignatureInvalid",
       "originating_adr": "ADR-0326",
       "severity": "CRITICAL",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -173,7 +173,7 @@
       "registry_class": "TenancyResidencyAttestationMissing",
       "originating_adr": "ADR-0326",
       "severity": "CRITICAL",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -204,7 +204,7 @@
       "registry_class": "TenancyResidencyPlacementDecided",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-cell-placement-enforcement",
+      "source_gate": "governance-residency-cell-placement-enforcement",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -241,7 +241,7 @@
       "registry_class": "TenancyResidencyPlacementRefused",
       "originating_adr": "ADR-0326",
       "severity": "CRITICAL",
-      "source_gate": "oya-governance-residency-cell-placement-enforcement",
+      "source_gate": "governance-residency-cell-placement-enforcement",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -277,7 +277,7 @@
       "registry_class": "TenancyResidencyCrossBorderRefused",
       "originating_adr": "ADR-0326",
       "severity": "CRITICAL",
-      "source_gate": "oya-governance-residency-cross-border-bar",
+      "source_gate": "governance-residency-cross-border-bar",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -314,7 +314,7 @@
       "registry_class": "TenancyResidencyCrossBorderPermitted",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-cross-border-bar",
+      "source_gate": "governance-residency-cross-border-bar",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -350,7 +350,7 @@
       "registry_class": "TenancyResidencyTierUpgraded",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -385,7 +385,7 @@
       "registry_class": "TenancyResidencyTierDowngraded",
       "originating_adr": "ADR-0326",
       "severity": "WARN",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [
@@ -420,7 +420,7 @@
       "registry_class": "TenancyResidencyPackBindingChanged",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-pack-binding",
+      "source_gate": "governance-residency-pack-binding",
       "cedar_decision_event": true,
       "retention_class": "regulated",
       "emission_targets": [
@@ -456,7 +456,7 @@
       "registry_class": "TenancyResidencyRegulatoryAttestorEngaged",
       "originating_adr": "ADR-0326",
       "severity": "INFO",
-      "source_gate": "oya-governance-residency-attestation",
+      "source_gate": "governance-residency-attestation",
       "cedar_decision_event": false,
       "retention_class": "regulated",
       "emission_targets": [

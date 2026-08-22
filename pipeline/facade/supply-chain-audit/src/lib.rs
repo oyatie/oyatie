@@ -14,7 +14,7 @@
 //! only reads candidate-tree bytes: the separately materialized SCM tracked-path snapshot, the
 //! configured `Cargo.lock` files, and the vendored
 //! `advisory-mirror/{advisories.json,mirror-manifest.json}` produced by
-//! `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable and deterministic.
+//! `advisory-mirror-kernel`. That keeps the gate buck2-cacheable and deterministic.
 //!
 //! ## Lockfile corpus
 //! `policy.lockfile_corpus` is the reviewed authority: each entry pairs one repo-relative
@@ -70,7 +70,7 @@
 use std::collections::BTreeSet;
 use std::path::{Component, Path, PathBuf};
 
-use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
+use advisory_mirror_kernel::{Advisory, canonical_hash};
 use semver::{Version, VersionReq};
 use serde_json::{Value, json};
 
@@ -78,7 +78,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-supply-chain-audit";
 
 /// Stable tracked-tree boundary schema emitted by the out-of-graph SCM facts producer.
-const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v2";
+const SCM_FACTS_SCHEMA: &str = "ci/scm-facts/v2";
 
 /// The remediation doctrine pointer findings carry.
 pub const REMEDIATION_DOCTRINE: &str = "upgrade the affected crate to a patched version (bump the workspace pin / transitive dep), or — \
@@ -911,7 +911,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             "SCA-MIRROR-MALFORMED",
             MIRROR_KEY,
             format!(
-                "mirror-manifest.json content_hash `{declared_hash}` ≠ recomputed canonical_hash `{recomputed}` of advisories.json — the vendored mirror is corrupt or was regenerated without re-stamping the manifest. Regenerate via the oya-advisory-mirror-producer."
+                "mirror-manifest.json content_hash `{declared_hash}` ≠ recomputed canonical_hash `{recomputed}` of advisories.json — the vendored mirror is corrupt or was regenerated without re-stamping the manifest. Regenerate via the advisory-mirror-producer."
             ),
         ));
     }

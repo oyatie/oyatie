@@ -11,7 +11,7 @@ related_adrs:
 companion_docs:
   - microservices/feature-flags/runbooks/experiment-rollback.md
   - microservices/feature-flags/compliance.md
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Experiment Statistical Significance Violation
@@ -53,7 +53,7 @@ SRM invalidates all statistical conclusions from the experiment. Causes: bot tra
 1. Pause experiment immediately: `oya experiments pause <experiment_id> --tenant <tenant_id>`.
 2. Do NOT declare a winner.
 3. Diagnose SRM root cause:
-   - Bot traffic: check `oya_feature_flag_eval_total` for bot-score>50 traffic in experiment.
+   - Bot traffic: check `feature_flag_eval_total` for bot-score>50 traffic in experiment.
    - SDK bug: check SDK version distribution across assigned users.
    - Exclusion criteria: verify exclusion logic in targeting rule.
 4. Fix root cause; reset salt: `oya experiments reset-salt <experiment_id>`.

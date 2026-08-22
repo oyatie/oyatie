@@ -35,7 +35,7 @@
 //!   planning output is a hand-made artifact and fails closed.
 //!
 //! The canonical wire writers below intentionally DUPLICATE (never import) the
-//! owned writer in `tools/oya-fabric-loop-state-app`: the gate re-derives the
+//! owned writer in `tools/fabric-loop-state-app`: the gate re-derives the
 //! bytes independently, so a silent wire-format change on either side fails
 //! closed here instead of drifting unnoticed. Metric VALUES are integrity-
 //! guarded at write time by the fabric ports (`validate_pass_record` derives

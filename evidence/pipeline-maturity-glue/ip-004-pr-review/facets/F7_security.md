@@ -15,4 +15,4 @@ You are the security facet. Read the PR diff for security concerns. Identify:
 
 Cite file:line. REJECT on actually-broken paths; CHANGES_REQUESTED on missing-but-fixable.
 
-Cross-reference: `oya-secrets-domain` (canonical SecretReference + classified types) + `oya-data-boundary-kernel` (DataClass enum).
+Cross-reference: `secrets-domain` (canonical SecretReference + classified types) + `data-boundary-kernel` (DataClass enum).

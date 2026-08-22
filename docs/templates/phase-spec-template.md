@@ -6,7 +6,7 @@ date: 2026-05-13
 purpose: |
   Canonical Phase Spec shape for every phase under
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/. Carries entry/exit gates,
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/impl-plan-template.md
@@ -30,7 +30,7 @@ status: Proposed | Active | Complete
 entry_gate: |
   Exact condition that must be true before this phase begins.
   Name the prior phase and its exit criterion, or "none" for P01.
-  Example: "M03/P00 complete; oya-tenancy-kernel ships; targeted Buck2/cloud-ci gates are green."
+  Example: "M03/P00 complete; tenancy-kernel ships; targeted Buck2/cloud-ci gates are green."
 exit_gate: |
   Exact condition that declares this phase complete.
 depends_on:

@@ -17,7 +17,7 @@
 //! # Naming justification
 //! `messaging-queue-boundary-kernel` follows the ADR-0532/0533 de-branded
 //! grammar `<capability:messaging>-<topic:queue-boundary>-<layer:kernel>`,
-//! mirroring its sibling `messaging-substrate-kernel`. The `oya-queue.`
+//! mirroring its sibling `messaging-substrate-kernel`. The `queue.`
 //! topic prefix below is a WIRE identifier, not a crate name: it is
 //! deliberately unchanged by the de-brand, because renaming a topic is a
 //! behavior change and must not ride along inside a relocation.
@@ -73,7 +73,7 @@ impl QueueName {
     pub fn parse(value: &str) -> Result<Self, QueueError> {
         // Validation is delegated to the substrate name rules so the two
         // surfaces can never drift.
-        TopicName::parse(&format!("oya-queue.{value}")).map_err(|_| {
+        TopicName::parse(&format!("queue.{value}")).map_err(|_| {
             QueueError::InvalidQueueName {
                 value: value.to_owned(),
             }
@@ -117,9 +117,9 @@ impl<'a, S: MessagingSubstrate> WorkQueue<'a, S> {
         loss_class: LossClass,
         policy: DeadLetterPolicy,
     ) -> Result<Self, QueueError> {
-        let topic = TopicName::parse(&format!("oya-queue.{}", name.as_str()))?;
+        let topic = TopicName::parse(&format!("queue.{}", name.as_str()))?;
         let dead_letter_topic =
-            TopicName::parse(&format!("oya-queue.{}.dead-letter", name.as_str()))?;
+            TopicName::parse(&format!("queue.{}.dead-letter", name.as_str()))?;
         let subscription = SubscriptionName::parse("workers")?;
         let dead_letter_subscription = SubscriptionName::parse("dead-letter-review")?;
         let spec = TopicSpec {

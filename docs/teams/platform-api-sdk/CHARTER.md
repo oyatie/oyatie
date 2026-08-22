@@ -10,8 +10,8 @@ This team owns the public REST surface, OpenAPI specification generation, webhoo
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cross-cutting (SaaS primary consumer; cloud, search, ads publish their own API slices through this team's gateway)
 - **Surfaces:**
-  - `oya-platform-webhook-kernel` — `WebhookEndpoint`, `SigningKey`, `DeliveryAttempt`, `WebhookSignature`
-  - `oya-platform-webhook-app` — delivery, retry, signing, verification
+  - `platform-webhook-kernel` — `WebhookEndpoint`, `SigningKey`, `DeliveryAttempt`, `WebhookSignature`
+  - `platform-webhook-app` — delivery, retry, signing, verification
   - Public API gateway (routing, rate limiting, auth token validation)
   - `contracts/openapi/**/*.yaml` — OpenAPI specs for all public-facing surfaces (owner of the file format and stability tier annotations; each axis authors its own slice)
   - Per-language SDK generation pipeline (Rust, TypeScript, Python, Go as first class; others on demand)
@@ -19,7 +19,7 @@ This team owns the public REST surface, OpenAPI specification generation, webhoo
 - **Cross-axis contracts (DESIGN §10):**
   - `Public REST stability tier` (owner) — all public APIs declare their stability tier via ADR-0040
   - `Webhook delivery + signing` (owner) — external callers and ISVs depend on this contract
-- **Catalog records:** `crates/oya-platform-webhook-*`, `contracts/openapi/**/*.yaml`
+- **Catalog records:** `crates/platform-webhook-*`, `contracts/openapi/**/*.yaml`
 - **Runbooks:** `runbooks/webhook-delivery-failure.md`, `runbooks/api-gateway-rate-limit-incident.md`, `runbooks/sdk-release.md`
 - **ADRs:** ADR-0040 (API stability gate — sole owner)
 

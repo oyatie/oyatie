@@ -3,265 +3,265 @@
   "capability": "global-trade",
   "moves": [
     {
-      "old_path": "oya/hr/crates/oya-hr-employment-api",
+      "old_path": "oya/hr/crates/hr-employment-api",
       "new_path": "app/hr/ports/employment-api",
-      "old_cargo_name": "oya-hr-employment-api",
+      "old_cargo_name": "hr-employment-api",
       "new_cargo_name": "hr-employment-api"
     },
     {
-      "old_path": "oya/hr/crates/oya-hr-employment-app",
+      "old_path": "oya/hr/crates/hr-employment-app",
       "new_path": "app/hr/facade/employment-app",
-      "old_cargo_name": "oya-hr-employment-app",
+      "old_cargo_name": "hr-employment-app",
       "new_cargo_name": "hr-employment-app"
     },
     {
-      "old_path": "oya/hr/crates/oya-hr-employment-domain",
+      "old_path": "oya/hr/crates/hr-employment-domain",
       "new_path": "app/hr/core/employment-domain",
-      "old_cargo_name": "oya-hr-employment-domain",
+      "old_cargo_name": "hr-employment-domain",
       "new_cargo_name": "hr-employment-domain"
     },
     {
-      "old_path": "oya/hr/crates/oya-hr-employment-infrastructure",
+      "old_path": "oya/hr/crates/hr-employment-infrastructure",
       "new_path": "app/hr/adapters/employment-infrastructure",
-      "old_cargo_name": "oya-hr-employment-infrastructure",
+      "old_cargo_name": "hr-employment-infrastructure",
       "new_cargo_name": "hr-employment-infrastructure"
     },
     {
-      "old_path": "oya/hr/crates/oya-hr-employment-storage-adapter-inmemory",
+      "old_path": "oya/hr/crates/hr-employment-storage-adapter-inmemory",
       "new_path": "app/hr/adapters/employment-storage-inmemory",
-      "old_cargo_name": "oya-hr-employment-storage-adapter-inmemory",
+      "old_cargo_name": "hr-employment-storage-adapter-inmemory",
       "new_cargo_name": "hr-employment-storage-inmemory"
     },
     {
-      "old_path": "oya/payroll/crates/oya-payroll-run-api",
+      "old_path": "oya/payroll/crates/payroll-run-api",
       "new_path": "app/payroll/ports/run-api",
-      "old_cargo_name": "oya-payroll-run-api",
+      "old_cargo_name": "payroll-run-api",
       "new_cargo_name": "payroll-run-api"
     },
     {
-      "old_path": "oya/payroll/crates/oya-payroll-run-app",
+      "old_path": "oya/payroll/crates/payroll-run-app",
       "new_path": "app/payroll/facade/run-app",
-      "old_cargo_name": "oya-payroll-run-app",
+      "old_cargo_name": "payroll-run-app",
       "new_cargo_name": "payroll-run-app"
     },
     {
-      "old_path": "oya/payroll/crates/oya-payroll-run-domain",
+      "old_path": "oya/payroll/crates/payroll-run-domain",
       "new_path": "app/payroll/core/run-domain",
-      "old_cargo_name": "oya-payroll-run-domain",
+      "old_cargo_name": "payroll-run-domain",
       "new_cargo_name": "payroll-run-domain"
     },
     {
-      "old_path": "oya/payroll/crates/oya-payroll-run-infrastructure",
+      "old_path": "oya/payroll/crates/payroll-run-infrastructure",
       "new_path": "app/payroll/adapters/run-infrastructure",
-      "old_cargo_name": "oya-payroll-run-infrastructure",
+      "old_cargo_name": "payroll-run-infrastructure",
       "new_cargo_name": "payroll-run-infrastructure"
     },
     {
-      "old_path": "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory",
+      "old_path": "oya/payroll/crates/payroll-run-storage-adapter-inmemory",
       "new_path": "app/payroll/adapters/run-storage-inmemory",
-      "old_cargo_name": "oya-payroll-run-storage-adapter-inmemory",
+      "old_cargo_name": "payroll-run-storage-adapter-inmemory",
       "new_cargo_name": "payroll-run-storage-inmemory"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-domain",
+      "old_path": "oya/community/crates/community-post-store-domain",
       "new_path": "app/community/core/post-store-domain",
-      "old_cargo_name": "oya-community-post-store-domain",
+      "old_cargo_name": "community-post-store-domain",
       "new_cargo_name": "community-post-store-domain"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-usecase",
+      "old_path": "oya/community/crates/community-post-store-usecase",
       "new_path": "app/community/core/post-store-usecase",
-      "old_cargo_name": "oya-community-post-store-usecase",
+      "old_cargo_name": "community-post-store-usecase",
       "new_cargo_name": "community-post-store-usecase"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-api",
+      "old_path": "oya/community/crates/community-post-store-api",
       "new_path": "app/community/ports/post-store-api",
-      "old_cargo_name": "oya-community-post-store-api",
+      "old_cargo_name": "community-post-store-api",
       "new_cargo_name": "community-post-store-api"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-app",
+      "old_path": "oya/community/crates/community-post-store-app",
       "new_path": "app/community/facade/post-store-app",
-      "old_cargo_name": "oya-community-post-store-app",
+      "old_cargo_name": "community-post-store-app",
       "new_cargo_name": "community-post-store-app"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-adapter-postgres",
+      "old_path": "oya/community/crates/community-post-store-adapter-postgres",
       "new_path": "app/community/adapters/post-store-postgres",
-      "old_cargo_name": "oya-community-post-store-adapter-postgres",
+      "old_cargo_name": "community-post-store-adapter-postgres",
       "new_cargo_name": "community-post-store-postgres"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-grpc",
+      "old_path": "oya/community/crates/community-post-store-grpc",
       "new_path": "app/community/adapters/post-store-grpc",
-      "old_cargo_name": "oya-community-post-store-grpc",
+      "old_cargo_name": "community-post-store-grpc",
       "new_cargo_name": "community-post-store-grpc"
     },
     {
-      "old_path": "oya/community/crates/oya-community-post-store-rest",
+      "old_path": "oya/community/crates/community-post-store-rest",
       "new_path": "app/community/adapters/post-store-rest",
-      "old_cargo_name": "oya-community-post-store-rest",
+      "old_cargo_name": "community-post-store-rest",
       "new_cargo_name": "community-post-store-rest"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-domain",
+      "old_path": "oya/community/crates/community-social-domain",
       "new_path": "app/community/core/social-domain",
-      "old_cargo_name": "oya-community-social-domain",
+      "old_cargo_name": "community-social-domain",
       "new_cargo_name": "community-social-domain"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-app",
+      "old_path": "oya/community/crates/community-social-app",
       "new_path": "app/community/facade/social-app",
-      "old_cargo_name": "oya-community-social-app",
+      "old_cargo_name": "community-social-app",
       "new_cargo_name": "community-social-app"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-post-composition-usecase",
+      "old_path": "oya/community/crates/community-social-post-composition-usecase",
       "new_path": "app/community/core/social-post-composition-usecase",
-      "old_cargo_name": "oya-community-social-post-composition-usecase",
+      "old_cargo_name": "community-social-post-composition-usecase",
       "new_cargo_name": "community-social-post-composition-usecase"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-post-composition-api",
+      "old_path": "oya/community/crates/community-social-post-composition-api",
       "new_path": "app/community/ports/social-post-composition-api",
-      "old_cargo_name": "oya-community-social-post-composition-api",
+      "old_cargo_name": "community-social-post-composition-api",
       "new_cargo_name": "community-social-post-composition-api"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-post-composition-adapter-postgres",
+      "old_path": "oya/community/crates/community-social-post-composition-adapter-postgres",
       "new_path": "app/community/adapters/social-post-composition-postgres",
-      "old_cargo_name": "oya-community-social-post-composition-adapter-postgres",
+      "old_cargo_name": "community-social-post-composition-adapter-postgres",
       "new_cargo_name": "community-social-post-composition-postgres"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-post-composition-grpc",
+      "old_path": "oya/community/crates/community-social-post-composition-grpc",
       "new_path": "app/community/adapters/social-post-composition-grpc",
-      "old_cargo_name": "oya-community-social-post-composition-grpc",
+      "old_cargo_name": "community-social-post-composition-grpc",
       "new_cargo_name": "community-social-post-composition-grpc"
     },
     {
-      "old_path": "oya/community/crates/oya-community-social-post-composition-rest",
+      "old_path": "oya/community/crates/community-social-post-composition-rest",
       "new_path": "app/community/adapters/social-post-composition-rest",
-      "old_cargo_name": "oya-community-social-post-composition-rest",
+      "old_cargo_name": "community-social-post-composition-rest",
       "new_cargo_name": "community-social-post-composition-rest"
     },
     {
-      "old_path": "oya/sheets/crates/oya-sheets-domain",
+      "old_path": "oya/sheets/crates/sheets-domain",
       "new_path": "app/sheets/core/sheets-domain",
-      "old_cargo_name": "oya-sheets-domain",
+      "old_cargo_name": "sheets-domain",
       "new_cargo_name": "sheets-domain"
     },
     {
-      "old_path": "oya/global-trade/crates/oya-global-trade-compliance-domain",
+      "old_path": "oya/global-trade/crates/global-trade-compliance-domain",
       "new_path": "app/global-trade/core/compliance-domain",
-      "old_cargo_name": "oya-global-trade-compliance-domain",
+      "old_cargo_name": "global-trade-compliance-domain",
       "new_cargo_name": "global-trade-compliance-domain"
     }
   ],
   "artifacts": [
     {
-      "old_path": "registry/catalog/oya-hr-employment-api.yaml",
+      "old_path": "registry/catalog/hr-employment-api.yaml",
       "new_path": "registry/catalog/hr-employment-api.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-hr-employment-app.yaml",
+      "old_path": "registry/catalog/hr-employment-app.yaml",
       "new_path": "registry/catalog/hr-employment-app.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-hr-employment-domain.yaml",
+      "old_path": "registry/catalog/hr-employment-domain.yaml",
       "new_path": "registry/catalog/hr-employment-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-hr-employment-infrastructure.yaml",
+      "old_path": "registry/catalog/hr-employment-infrastructure.yaml",
       "new_path": "registry/catalog/hr-employment-infrastructure.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-hr-employment-storage-adapter-inmemory.yaml",
+      "old_path": "registry/catalog/hr-employment-storage-adapter-inmemory.yaml",
       "new_path": "registry/catalog/hr-employment-storage-inmemory.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-payroll-run-api.yaml",
+      "old_path": "registry/catalog/payroll-run-api.yaml",
       "new_path": "registry/catalog/payroll-run-api.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-payroll-run-app.yaml",
+      "old_path": "registry/catalog/payroll-run-app.yaml",
       "new_path": "registry/catalog/payroll-run-app.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-payroll-run-domain.yaml",
+      "old_path": "registry/catalog/payroll-run-domain.yaml",
       "new_path": "registry/catalog/payroll-run-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-payroll-run-infrastructure.yaml",
+      "old_path": "registry/catalog/payroll-run-infrastructure.yaml",
       "new_path": "registry/catalog/payroll-run-infrastructure.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-payroll-run-storage-adapter-inmemory.yaml",
+      "old_path": "registry/catalog/payroll-run-storage-adapter-inmemory.yaml",
       "new_path": "registry/catalog/payroll-run-storage-inmemory.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-domain.yaml",
+      "old_path": "registry/catalog/community-post-store-domain.yaml",
       "new_path": "registry/catalog/community-post-store-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-usecase.yaml",
+      "old_path": "registry/catalog/community-post-store-usecase.yaml",
       "new_path": "registry/catalog/community-post-store-usecase.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-api.yaml",
+      "old_path": "registry/catalog/community-post-store-api.yaml",
       "new_path": "registry/catalog/community-post-store-api.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-app.yaml",
+      "old_path": "registry/catalog/community-post-store-app.yaml",
       "new_path": "registry/catalog/community-post-store-app.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-adapter-postgres.yaml",
+      "old_path": "registry/catalog/community-post-store-adapter-postgres.yaml",
       "new_path": "registry/catalog/community-post-store-postgres.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-grpc.yaml",
+      "old_path": "registry/catalog/community-post-store-grpc.yaml",
       "new_path": "registry/catalog/community-post-store-grpc.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-post-store-rest.yaml",
+      "old_path": "registry/catalog/community-post-store-rest.yaml",
       "new_path": "registry/catalog/community-post-store-rest.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-domain.yaml",
+      "old_path": "registry/catalog/community-social-domain.yaml",
       "new_path": "registry/catalog/community-social-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-app.yaml",
+      "old_path": "registry/catalog/community-social-app.yaml",
       "new_path": "registry/catalog/community-social-app.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-post-composition-usecase.yaml",
+      "old_path": "registry/catalog/community-social-post-composition-usecase.yaml",
       "new_path": "registry/catalog/community-social-post-composition-usecase.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-post-composition-api.yaml",
+      "old_path": "registry/catalog/community-social-post-composition-api.yaml",
       "new_path": "registry/catalog/community-social-post-composition-api.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-post-composition-adapter-postgres.yaml",
+      "old_path": "registry/catalog/community-social-post-composition-adapter-postgres.yaml",
       "new_path": "registry/catalog/community-social-post-composition-postgres.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-post-composition-grpc.yaml",
+      "old_path": "registry/catalog/community-social-post-composition-grpc.yaml",
       "new_path": "registry/catalog/community-social-post-composition-grpc.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-community-social-post-composition-rest.yaml",
+      "old_path": "registry/catalog/community-social-post-composition-rest.yaml",
       "new_path": "registry/catalog/community-social-post-composition-rest.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-sheets-domain.yaml",
+      "old_path": "registry/catalog/sheets-domain.yaml",
       "new_path": "registry/catalog/sheets-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-global-trade-compliance-domain.yaml",
+      "old_path": "registry/catalog/global-trade-compliance-domain.yaml",
       "new_path": "registry/catalog/global-trade-compliance-domain.yaml"
     }
   ]

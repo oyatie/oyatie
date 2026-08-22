@@ -198,7 +198,7 @@ psql -c "UPDATE bootstrap_state SET stage = 'STAGE_1',
 Issue a new one-shot CA for the Stage-1 replacement runner. This CA has a fresh ≤8h validity window:
 ```
 vault write pki/root/generate/internal \
-  common_name="oya-bootstrap-stage1-replacement-<DATE>" \
+  common_name="bootstrap-stage1-replacement-<DATE>" \
   ttl="8h" \
   key_type="ed25519"
 ```

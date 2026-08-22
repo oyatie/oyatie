@@ -10,7 +10,7 @@
 //!
 //! A platform service (the PDP) serves *all* tenants and is owned by *none*, so
 //! the legacy tenant-rooted model (`spiffe://<tenant>` in
-//! `oya-identity-workload-domain::TrustDomain`) cannot name it. This kernel
+//! `identity-workload-domain::TrustDomain`) cannot name it. This kernel
 //! adopts the cell-rooted authority + tenant-in-path scheme already used by the
 //! api-gateway / SPIRE precedent (ADR-0295):
 //!
@@ -19,7 +19,7 @@
 //!
 //! This kernel is ADDITIVE: it does NOT touch the existing tenant-rooted
 //! `TrustDomain` (ADR-0561 schedules that convergence as a tracked follow-up).
-//! It reuses `oya-identity-workload-domain::TenantId` for the bound tenant.
+//! It reuses `identity-workload-domain::TenantId` for the bound tenant.
 //!
 //! ## Fail-closed
 //!

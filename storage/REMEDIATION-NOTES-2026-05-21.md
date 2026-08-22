@@ -42,7 +42,7 @@ Files renamed (git mv):
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-storage/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-storage-object-api/src/lib.rs.
+- Values: pod_runtime_tier=1; evidence=microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-storage/feature-parity-matrix-2026-05-20.md, crates/cloud-storage-object-api/src/lib.rs.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-1.
 - Why: Tenant data-plane storage substrate: object and block APIs handle tenant data, bucket/volume metadata, KMS-wrapped writes, and replication controls, requiring ADR-0338 Tier-1 isolation.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

@@ -25,11 +25,11 @@ Five new crates: kernel, usecase, api, adapter-hsm, app. The `adapter-hsm` is ba
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-hsm-integration-kernel/` | `HsmPartition`, `KekHandle`, `AttestationReport` |
-| `…/oya-cloud-secrets-hsm-integration-usecase/` | orchestrate sign + attest + KEK-generate |
-| `…/oya-cloud-secrets-hsm-integration-api/` | typed contracts |
-| `…/oya-cloud-secrets-hsm-integration-adapter-hsm/` | PKCS#11 binding (cryptoki crate); KMIP client |
-| `…/oya-cloud-secrets-hsm-integration-app/` | binary + attestation cron |
+| `…/cloud-secrets-hsm-integration-kernel/` | `HsmPartition`, `KekHandle`, `AttestationReport` |
+| `…/cloud-secrets-hsm-integration-usecase/` | orchestrate sign + attest + KEK-generate |
+| `…/cloud-secrets-hsm-integration-api/` | typed contracts |
+| `…/cloud-secrets-hsm-integration-adapter-hsm/` | PKCS#11 binding (cryptoki crate); KMIP client |
+| `…/cloud-secrets-hsm-integration-app/` | binary + attestation cron |
 | 5× catalog yamls | create |
 
 ## Code Shape
@@ -47,9 +47,9 @@ pub trait HsmPartitionClient: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-hsm-integration-*'
+cargo nextest run -p 'cloud-secrets-hsm-integration-*'
 # PKCS#11 smoke against OCI Cloud-HSM (CI staging)
-cargo nextest run -p oya-cloud-secrets-hsm-integration-adapter-hsm --features pkcs11-smoke
+cargo nextest run -p cloud-secrets-hsm-integration-adapter-hsm --features pkcs11-smoke
 ```
 
 ## Test Plan
@@ -76,7 +76,7 @@ Regulated packs require KEK operations to stay inside HSM partitions. A software
 Implement the HSM adapter around PKCS#11/KMIP with explicit partition identity, attestation verification, 4-eye KEK ceremony checks, and typed signing/wrap operations. The kernel/usecase crates describe the port; only `adapter-hsm` talks to vendor libraries.
 
 ### C. Deliverables
-- `oya-cloud-secrets-hsm-integration-{kernel,usecase,api,adapter-hsm,app}`.
+- `cloud-secrets-hsm-integration-{kernel,usecase,api,adapter-hsm,app}`.
 - `HsmPartitionClient`, `KekHandle`, and `AttestationReport` surfaces.
 - SoftHSM test fixture plus OCI Cloud-HSM staging smoke.
 - SLO linkage to `slos/hsm-availability.openslo.yaml`.
@@ -92,13 +92,13 @@ Implement the HSM adapter around PKCS#11/KMIP with explicit partition identity, 
 7. Run SoftHSM and OCI Cloud-HSM staging smoke tests.
 
 ### E. Acceptance
-- `cargo nextest run -p 'oya-cloud-secrets-hsm-integration-*'`.
-- `cargo nextest run -p oya-cloud-secrets-hsm-integration-adapter-hsm --features pkcs11-smoke`.
+- `cargo nextest run -p 'cloud-secrets-hsm-integration-*'`.
+- `cargo nextest run -p cloud-secrets-hsm-integration-adapter-hsm --features pkcs11-smoke`.
 - KEK material is never returned from adapter APIs.
 - KEK rotation requires two witness SPIFFE IDs and produces audit-chain evidence.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-05, `manifest.json`, `catalog/oya-cloud-secrets-hsm-integration-adapter-hsm.yaml`, `policy/data-residency.md`, `slos/hsm-availability.openslo.yaml`, `runbooks/hsm-key-rotation.md`, and the competitor parity HSM/FIPS/BYOK dimensions.
+Evidence anchors are `PRD.md` FR-05, `manifest.json`, `catalog/cloud-secrets-hsm-integration-adapter-hsm.yaml`, `policy/data-residency.md`, `slos/hsm-availability.openslo.yaml`, `runbooks/hsm-key-rotation.md`, and the competitor parity HSM/FIPS/BYOK dimensions.
 
 ### G. Counterpart Comparison
 Vault Enterprise, AWS KMS/CloudHSM, Azure Managed HSM, GCP Cloud KMS, OCI Cloud-HSM, and Akeyless all have key-management stories. Oyatie's target differs by requiring per-pack HSM partitions, daily attestation, KEK-of-KEKs, and audit-chain evidence as first-class service behavior.

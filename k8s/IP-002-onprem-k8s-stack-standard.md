@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud + ops-security
-acceptance_lanes: [docs-link-check, oya-governance-version-pinning-conformance]
+acceptance_lanes: [docs-link-check, governance-version-pinning-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -77,8 +77,8 @@ kubeadm_config:
 
 ```bash
 markdown-link-check docs/standards/cloud-k8s-stack.md
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
-cargo run -p oya-dev-cli -- gate validate cis-k8s-benchmark --microservice cloud-k8s --dry-run
+cargo run -p dev-cli -- gate validate version-pinning-conformance
+cargo run -p dev-cli -- gate validate cis-k8s-benchmark --microservice cloud-k8s --dry-run
 ```
 
 ## Test Plan

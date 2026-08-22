@@ -12,7 +12,7 @@ companion_docs:
   - microservices/feature-flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/compliance.md
   - microservices/feature-flags/policy/pack-flag-override.cedar
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Pack Override Cascade

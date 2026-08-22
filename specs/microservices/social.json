@@ -21,16 +21,16 @@
       "work"
     ],
     "crate_refs_planned": [
-      "oya-community-social-kernel",
+      "community-social-kernel",
       "community-social-domain",
       "community-social-app",
-      "oya-community-social-rest"
+      "community-social-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
     "crate_ref_bindings": [
       {
-        "crate": "oya-community-social-kernel",
-        "crate_name": "oya-community-social-kernel",
+        "crate": "community-social-kernel",
+        "crate_name": "community-social-kernel",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",
@@ -92,8 +92,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-social-rest",
-        "crate_name": "oya-community-social-rest",
+        "crate": "community-social-rest",
+        "crate_name": "community-social-rest",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",
@@ -113,7 +113,7 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       }
     ],
-    "naming_justification": "All planned community-social crates parse as oya-community-social-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
+    "naming_justification": "All planned community-social crates parse as community-social-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
   },
   "inherits": {
     "bominal_adrs": [
@@ -258,7 +258,7 @@
     "no_cross_suggest": true,
     "follow_graph_isolation": "personal follow graph and professional follow graph are separate Ontology sub-graphs; no shared node references",
     "notification_isolation": "social notification topics are pillar-prefixed; personal social notifications never route to work notification channels",
-    "enforcement_lane": "oya-governance-tenant-rbac-context-isolation"
+    "enforcement_lane": "governance-tenant-rbac-context-isolation"
   },
   "ecosystem_integration": {
     "workflow": {
@@ -375,28 +375,28 @@
     {
       "anti_pattern": "cross_context_feed_join",
       "why": "leaks personal social graph to employer; forbidden by ADR-0208",
-      "detection_lane": "oya-governance-tenant-rbac-context-isolation",
+      "detection_lane": "governance-tenant-rbac-context-isolation",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "biometric_persistence_from_ar",
       "why": "GDPR Art.9 special category data; face geometry is in-session only",
-      "detection_lane": "oya-governance-connect-ar-privacy",
+      "detection_lane": "governance-connect-ar-privacy",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "ad_signal_cross_context_targeting",
       "why": "personal ad profile must never inform professional ad auction and vice versa",
-      "detection_lane": "oya-governance-connect-ads-isolation",
+      "detection_lane": "governance-connect-ads-isolation",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
       "why": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-governance-foundry-model-auditability",
+      "detection_lane": "governance-foundry-model-auditability",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
@@ -406,7 +406,7 @@
       "dimension": "feed_load_p95_ms",
       "target": 120,
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-social-bench -- feed_load_p95",
+      "planned_verification_ref": "cargo bench -p community-social-bench -- feed_load_p95",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
@@ -420,14 +420,14 @@
       "dimension": "ar_frame_render_ms",
       "target": 16,
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-social-bench -- ar_frame_render_p95",
+      "planned_verification_ref": "cargo bench -p community-social-bench -- ar_frame_render_p95",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "follow_graph_edge_write_ms",
       "target": 50,
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-social-bench -- follow_graph_edge_write_p99",
+      "planned_verification_ref": "cargo bench -p community-social-bench -- follow_graph_edge_write_p99",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
@@ -447,7 +447,7 @@
     {
       "dimension": "scale_envelope",
       "target": "planning target: 1M MAU per cell, 10k feed-read QPS per cell, 5B follow/story edges per region",
-      "planned_verification_ref": "cargo bench -p oya-community-social-bench -- scale_envelope",
+      "planned_verification_ref": "cargo bench -p community-social-bench -- scale_envelope",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Capacity target only; no benchmark harness ships in PR #130."
     },
@@ -477,7 +477,7 @@
     },
     {
       "gate": "perf-budget",
-      "check": "cargo bench -p oya-community-social-bench -- feed_load_p95",
+      "check": "cargo bench -p community-social-bench -- feed_load_p95",
       "must_pass": true
     },
     {
@@ -671,8 +671,8 @@
         "stable": 150,
         "GA": 120
       },
-      "verification_ref": "cargo bench -p oya-community-social-bench -- feed_load_p95",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p community-social-bench -- feed_load_p95",
+      "lane_ref": "governance-perf-budget"
     },
     {
       "name": "story_ttl_purge_s",
@@ -822,17 +822,17 @@
     {
       "id": "BP-SOCIAL-01",
       "rule": "personal and professional feeds never blend",
-      "planned_enforcement_ref": "oya-governance-community-social-pillar"
+      "planned_enforcement_ref": "governance-community-social-pillar"
     },
     {
       "id": "BP-SOCIAL-02",
       "rule": "AR effects do not persist biometric data",
-      "planned_enforcement_ref": "oya-governance-connect-ar-privacy"
+      "planned_enforcement_ref": "governance-connect-ar-privacy"
     },
     {
       "id": "BP-SOCIAL-03",
       "rule": "professional cross-posting requires Workflow consent token",
-      "planned_enforcement_ref": "oya-governance-community-social-workflow-consent"
+      "planned_enforcement_ref": "governance-community-social-workflow-consent"
     }
   ],
   "patterns": [
@@ -866,22 +866,22 @@
     {
       "anti_pattern": "cross_context_feed_join",
       "why_forbidden": "leaks personal social graph to employer; forbidden by ADR-0208",
-      "detection_lane": "oya-governance-tenant-rbac-context-isolation"
+      "detection_lane": "governance-tenant-rbac-context-isolation"
     },
     {
       "anti_pattern": "biometric_persistence_from_ar",
       "why_forbidden": "GDPR Art.9 special category data; face geometry is in-session only",
-      "detection_lane": "oya-governance-connect-ar-privacy"
+      "detection_lane": "governance-connect-ar-privacy"
     },
     {
       "anti_pattern": "ad_signal_cross_context_targeting",
       "why_forbidden": "personal ad profile must never inform professional ad auction and vice versa",
-      "detection_lane": "oya-governance-connect-ads-isolation"
+      "detection_lane": "governance-connect-ads-isolation"
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
       "why_forbidden": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-governance-foundry-model-auditability"
+      "detection_lane": "governance-foundry-model-auditability"
     }
   ],
   "goals": {

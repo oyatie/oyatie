@@ -18,7 +18,7 @@ Audit date: 2026-05-20.
 
 cloud-storage is intended to be Oyatie's storage control and data plane for cloud-provider mode and for workloads hosted on other substrates.
 The root product PRD assigns bucket, object, block volume, file share, archive, backup, restore, KMS binding, policy, and SLO-bearing storage API ownership to cloud-storage.
-The root cloud PRD maps `oya-cloud-storage-kernel` to bucket, object, volume, filesystem, snapshot, and archive-tier concepts at `docs/products/cloud/PRD.md:131-137`.
+The root cloud PRD maps `cloud-storage-kernel` to bucket, object, volume, filesystem, snapshot, and archive-tier concepts at `docs/products/cloud/PRD.md:131-137`.
 The local tenant_class policy narrows the first written service-local purpose to object storage: buckets, object lifecycle, versioning, replication, storage classes, S3 API compatibility, retention, encryption, quota, and billing.
 The local FAQ says the physical object backend is MinIO Enterprise in the near term, with Reed-Solomon erasure coding and per-tenant KMS wrapping.
 ADR-0328 makes that adapter framing subordinate to the product boundary: cloud-storage owns bucket/object/container semantics, retention, encryption, quota, evidence, and billing, while S3 or OCI Object Storage may only be backing adapters.
@@ -106,7 +106,7 @@ Internal reference check: `ADR-0329/ADR-0330/ADR-0331:3` cites ADR-0248; target 
 Internal reference check: `ADR-0329/ADR-0330/ADR-0331:3` cites ADR-0251; target exists under `docs/decisions/`.
 Internal reference check: the retired tenant_class citation is superseded by ADR-0329, ADR-0330, and ADR-0331 under `docs/decisions/`.
 Internal reference check: `onboarding/storage-engineer-first-week.md:7-15` references the same ADR cluster and AWS S3 API; targets are external/root-level, not service-local.
-Internal reference check: `reference-implementations/lifecycle-versioning-replication-rust-sdk.md:6-26` references an `oya-cloud-storage-sdk`; no service-local crate source exists.
+Internal reference check: `reference-implementations/lifecycle-versioning-replication-rust-sdk.md:6-26` references an `cloud-storage-sdk`; no service-local crate source exists.
 Internal reference check: `benchmarks/cloud-storage-vs-s3-vs-gcs-vs-azure-blob-vs-r2-vs-minio.md:124-133` references `.foundry/evidence/benchmarks/cloud-storage/2026-05-13T22:14:42Z`; local `ls` found no such directory.
 Internal reference check: `migration-playbooks/from-s3-and-azure-blob.md:39-53` references `./bin/oya storage tenant register` and `storage bucket create`; no service-local CLI contract exists.
 Internal reference check: `tutorials/multi-class-lifecycle-versioning-and-replication.md:7-10` references `make dev-cell.up`, `make dev-tenant.create`, AWS CLI, and boto3; no service-local make target or Rust-only bootstrap contract exists.
@@ -173,7 +173,7 @@ Outbound reference category: governance and risk.
 Service-local docs do not provide matching risk treatment or incident runbooks.
 Outbound reference issue severity: P2.
 Outbound reference category: quality gates.
-`docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md:64` names provider-specific import outside an adapter crate as a failure mode using `aws_sdk_s3::Client` in `oya-cloud-storage-kernel`.
+`docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md:64` names provider-specific import outside an adapter crate as a failure mode using `aws_sdk_s3::Client` in `cloud-storage-kernel`.
 Service-local docs do not include an adapter-boundary rule preventing provider SDK imports in domain/kernel layers.
 Outbound reference issue severity: P1.
 Reference-to-this-service category: documentation coverage.

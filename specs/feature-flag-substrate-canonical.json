@@ -83,9 +83,9 @@
     "rationale": "one Cedar evaluator path; multiple consumers (auth + feature-flag)"
   },
   "client_sdks": [
-    "crates/oya-feature-flag-client (Rust, OpenFeature-wrapping)",
+    "crates/feature-flag-client (Rust, OpenFeature-wrapping)",
     "@oyatie/feature-flag-client (TypeScript)",
-    "oya_feature_flag_client (Python)"
+    "feature_flag_client (Python)"
   ],
   "anti_patterns_forbidden": [
     "ENV-var feature flags in workload µservices",

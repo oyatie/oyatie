@@ -22,7 +22,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 5. **Renamed terms** carry a "Replaces:" line listing prior Oyatie names (e.g. Bench replaces "shell" — ADR-0017).
 6. **Deprecated terms** are kept in §11 with their replacement, never removed.
 
-The fitness-function `oya-governance-glossary` walks every consolidated doc and flags any term with > 1 spelling, any uncited acronym, any synonym used inconsistently.
+The fitness-function `governance-glossary` walks every consolidated doc and flags any term with > 1 spelling, any uncited acronym, any synonym used inconsistently.
 
 ---
 
@@ -250,11 +250,11 @@ These are terms we use that don't have a clean industry term, or that we've expl
 | **Milestone (M0..M3)** *(RETIRED 2026-05-09)* | Legacy commercial-launch gates dropped during drawing-board re-framing. Replaced by descriptive wave names — see [PRD.md §3.1](PRD.md). Listed here for forensic reference only. | "Milestone" (PMI/PMBOK) | ADR-0050 / Issue #1219 / ADR-0040 (legacy refs) |
 | **Band (P0..P20)** | Backlog priority tiers; P0 highest. | "Priority tier" | This consolidation; v1 plan |
 | **Team** | A coordinated multi-worker work bundle with a shared brief; standing or tactical. *(The legacy "CUG / Closed-User-Group" terminology was retired 2026-05-09 and superseded by "Team" everywhere.)* | "Cross-functional team" / "Pod" / "Squad" | CLAUDE.md "Team Worker Brief Standards"; per-team charters under [`teams/`](teams/) |
-| **Claim ceiling** | Mechanical block preventing a preview slice from claiming a foundation guarantee that the foundation hasn't shipped. | "Capability gating" / "Feature flag with provenance" | (Oyatie); validator in `crates/oya-governance-claim-ceiling-kernel` |
+| **Claim ceiling** | Mechanical block preventing a preview slice from claiming a foundation guarantee that the foundation hasn't shipped. | "Capability gating" / "Feature flag with provenance" | (Oyatie); validator in `crates/governance-claim-ceiling-kernel` |
 | **Foundation bypass** | Tracked, expirable carve-out from a foundation gate. | "Tech-debt waiver" / "Exception ticket" | `registry/foundation-bypasses/` |
 | **Catalog record** | The YAML manifest describing a flat-crate. | "Service catalog entry" (Backstage) | `registry/catalog/` per ADR-0015/0222 |
 | **Capability record** | The YAML manifest declaring an agent capability. | "Tool manifest" / "Function spec" | `registry/capability-templates/` |
-| **Repoctl** | The internal CLI for everyday engineering tasks (check, push, validate, etc.). | "Developer CLI" | `crates/oya-tooling-cli-dev-runtime/` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` |
+| **Repoctl** | The internal CLI for everyday engineering tasks (check, push, validate, etc.). | "Developer CLI" | `crates/tooling-cli-dev-runtime/` compatibility binary; persona split planned under `crates/tooling-cli-*` |
 | **Ecosystem-as-a-Service (EaaS)** | The thesis that Oyatie's 7 axes form one cohesive product. | (industry uses "Platform-as-a-Service" / "Vertical SaaS"; EaaS is Oyatie's framing) | PRD §1 |
 
 ## 9. Korean ↔ English term parity (canonical pairs)
@@ -511,7 +511,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 
 ### 12.1 Crate naming
 
-Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `oya-platform-tenant-kernel`, `oya-identity-usecase`, `oya-intelligence-policy-app`, `oya-cloud-iam-rest`.
+Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `platform-tenant-kernel`, `identity-usecase`, `intelligence-policy-app`, `cloud-iam-rest`.
 
 ### 12.2 ADR naming
 
@@ -603,7 +603,7 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **Tenant membership** | Relationship between one identity and one tenant with scoped roles. | [ADR-0244](decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Okta group membership | role projection |
 | **Transient identity** | Time-boxed identity projection for apprentice, intern, resident, fellow, or extern roles. | [ADR-0320](decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | temporary access group | persona |
 | **Meta-trust-root** | Root of trust attesting agentic self-modification and Foundry authority. | [ADR-0293](decisions/ADR-0293-governance-meta-trust-root.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | SLSA provenance root | audit-chain |
-| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
+| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
 | **ChangeBundle** | Promotion package grouping verified ChangeSets for controller-owned movement. | [ADR-0110](decisions/ADR-0110-changeset-state-machine.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | merge queue batch | ChangeSet |
 | **Cell tier** | Deployment class controlling blast radius, compliance eligibility, and workload isolation. | [ADR-0248](decisions/ADR-0248-amazon-shape-cellular-architecture.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS cellular architecture | shuffle sharding |
 | **Sovereign cell** | Cell operating under jurisdiction-specific legal, data, and operational constraints. | [ADR-0240](decisions/ADR-0240-sovereign-cloud-per-regional-pack.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Azure sovereign cloud | pack overlay |
@@ -954,7 +954,7 @@ ADR-0252 chooses a dual time-coordination tier: HLC everywhere by default, TrueT
 
 HLC combines physical time with a logical counter so event ordering survives skew without treating wall-clock time as authority. TrueTime adds an uncertainty interval around clock reads, which lets qualified storage or coordination paths wait out uncertainty before committing externally visible order.
 
-Named µservices using the term include `audit-chain`, `identity`, `workflow-engine`, `observability`, `cloud-iac`, and the shared `oya-shared-time-kernel` crate. Audit Chain uses HLC ordering for tamper-evident emissions, while infrastructure exposes TrueTime provider wiring only for eligible cells.
+Named µservices using the term include `audit-chain`, `identity`, `workflow-engine`, `observability`, `cloud-iac`, and the shared `shared-time-kernel` crate. Audit Chain uses HLC ordering for tamper-evident emissions, while infrastructure exposes TrueTime provider wiring only for eligible cells.
 
 Related terms: audit-event class; cell; replay safety; observability; time coordination tier; sovereign cell.
 
@@ -986,7 +986,7 @@ Named µservices using the term include `cloud-secrets`, `intelligence`, `networ
 
 Related terms: SecretReference; compliance pack; Cedar; `audience_type`; cloud secrets; provider credential; encryption key.
 
-Authority citation: ADR-0255 D-4 and ADR-0251 D-10 BYOK disambiguation; `oya-governance-byok-disambiguation` crate; BYOK rotation runbooks.
+Authority citation: ADR-0255 D-4 and ADR-0251 D-10 BYOK disambiguation; `governance-byok-disambiguation` crate; BYOK rotation runbooks.
 
 ### Cell
 
@@ -1042,7 +1042,7 @@ Successor: `microservices/intelligence/` — the canonical AI substrate. Layer A
 
 retired external agent harness terminology: The "retired external agent harness" brand name for the internal pipeline is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. No replacement is needed; the underlying capability is now "intelligence" (consumer AI) or "oyatie.foundry workflow library inside dev-tools-cell-N" (self-modification).
 
-Crate transition debt: Existing `oya-foundry-*` workspace crates are retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent). New AI substrate code lands under `oya-intelligence-*`.
+Crate transition debt: Existing `foundry-*` workspace crates are retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent). New AI substrate code lands under `intelligence-*`.
 
 Related terms: intelligence; ontology; workflow studio; Cedar; audit-event class; capability tier; oyatie.foundry.* (Cedar principal namespace).
 

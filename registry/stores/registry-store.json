@@ -70,7 +70,7 @@
     "dropped_by_context_foundry": 202,
     "dropped_by_content_jenkins_bridge": 2,
     "kept_count": 619,
-    "notes": "Per D-FOUNDRY/D11(d) the foundry-context block is mid-rename (platform→oya-intelligence, fitness/oya-check-*→oya-governance, agentic-VCS→retired) and NOT yet sense-routed in source; this DRAFT EXCISES all 202 foundry-context + 71 foundry/vcs/jenkins-named crates rather than blindly swap keys (canon: 'never a blind swap'). oya-check-brand-residue KEPT (it IS the forbidden-token deny-list SSOT; names tokens as the enum it guards, not as residue)."
+    "notes": "Per D-FOUNDRY/D11(d) the foundry-context block is mid-rename (platform→intelligence, fitness/check-*→governance, agentic-VCS→retired) and NOT yet sense-routed in source; this DRAFT EXCISES all 202 foundry-context + 71 foundry/vcs/jenkins-named crates rather than blindly swap keys (canon: 'never a blind swap'). check-brand-residue KEPT (it IS the forbidden-token deny-list SSOT; names tokens as the enum it guards, not as residue)."
   },
   "normalizations": {
     "role_application_to_app": 16,
@@ -80,7 +80,7 @@
   "entity_count": 619,
   "entities": [
     {
-      "key": "oya-accounting-journal-api",
+      "key": "accounting-journal-api",
       "context": "accounting",
       "role": "api",
       "capability": "journal",
@@ -96,7 +96,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-accounting-journal-app",
+      "key": "accounting-journal-app",
       "context": "accounting",
       "role": "app",
       "capability": "journal",
@@ -112,7 +112,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-accounting-journal-domain",
+      "key": "accounting-journal-domain",
       "context": "accounting",
       "role": "domain",
       "capability": "journal",
@@ -127,7 +127,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-accounting-journal-runtime",
+      "key": "accounting-journal-runtime",
       "context": "accounting",
       "role": "runtime",
       "capability": "journal",
@@ -143,7 +143,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-accounting-journal-storage-adapter-inmemory",
+      "key": "accounting-journal-storage-adapter-inmemory",
       "context": "accounting",
       "role": "runtime",
       "capability": "accounting-journal-storage-inmemory",
@@ -159,7 +159,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-address-book-domain",
+      "key": "address-book-domain",
       "context": "address-book",
       "role": "domain",
       "capability": "address-book",
@@ -174,7 +174,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-analytics-api",
+      "key": "analytics-api",
       "context": "analytics",
       "role": "api",
       "capability": "analytics",
@@ -202,7 +202,7 @@
       ]
     },
     {
-      "key": "oya-analytics-app",
+      "key": "analytics-app",
       "context": "analytics",
       "role": "app",
       "capability": "analytics",
@@ -231,7 +231,7 @@
       ]
     },
     {
-      "key": "oya-analytics-domain",
+      "key": "analytics-domain",
       "context": "analytics",
       "role": "domain",
       "capability": "analytics",
@@ -262,7 +262,7 @@
       ]
     },
     {
-      "key": "oya-analytics-tenant-bootstrap-app",
+      "key": "analytics-tenant-bootstrap-app",
       "context": "analytics",
       "role": "app",
       "capability": "analytics-tenant-bootstrap",
@@ -293,7 +293,7 @@
       ]
     },
     {
-      "key": "oya-analytics-usecase",
+      "key": "analytics-usecase",
       "context": "analytics",
       "role": "usecase",
       "capability": "analytics",
@@ -321,7 +321,7 @@
       ]
     },
     {
-      "key": "oya-application-app",
+      "key": "application-app",
       "context": "application",
       "role": "app",
       "capability": "application",
@@ -336,7 +336,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-application-shell-frontend",
+      "key": "application-shell-frontend",
       "context": "application",
       "role": "app",
       "capability": "shell-frontend",
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-application",
+      "key": "audit-chain-application",
       "context": "audit",
       "role": "app",
       "capability": "audit-chain",
@@ -376,7 +376,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-audit-chain-domain",
+      "key": "audit-chain-domain",
       "context": "audit",
       "role": "domain",
       "capability": "audit-chain",
@@ -391,7 +391,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-audit-chain-emission-api",
+      "key": "audit-chain-emission-api",
       "context": "audit-chain",
       "role": "api",
       "capability": "audit-chain-emission-api",
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-emission-domain",
+      "key": "audit-chain-emission-domain",
       "context": "audit-chain",
       "role": "domain",
       "capability": "audit-chain-emission-domain",
@@ -443,7 +443,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-emission-kernel",
+      "key": "audit-chain-emission-kernel",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-emission-kernel",
@@ -469,7 +469,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-file-adapter",
+      "key": "audit-chain-file-adapter",
       "context": "audit",
       "role": "adapter",
       "capability": "audit-chain",
@@ -484,7 +484,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-audit-chain-query-api",
+      "key": "audit-chain-query-api",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-query-api",
@@ -511,7 +511,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-query-domain",
+      "key": "audit-chain-query-domain",
       "context": "audit-chain",
       "role": "domain",
       "capability": "audit-chain-query-domain",
@@ -537,7 +537,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-query-kernel",
+      "key": "audit-chain-query-kernel",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-query-kernel",
@@ -563,7 +563,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-retention-cascade-api",
+      "key": "audit-chain-retention-cascade-api",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-retention-cascade-api",
@@ -590,7 +590,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-retention-cascade-domain",
+      "key": "audit-chain-retention-cascade-domain",
       "context": "audit-chain",
       "role": "domain",
       "capability": "audit-chain-retention-cascade-domain",
@@ -616,7 +616,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-retention-cascade-kernel",
+      "key": "audit-chain-retention-cascade-kernel",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-retention-cascade-kernel",
@@ -642,7 +642,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-sealing-api",
+      "key": "audit-chain-sealing-api",
       "context": "audit-chain",
       "role": "api",
       "capability": "audit-chain-sealing-api",
@@ -668,7 +668,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-sealing-domain",
+      "key": "audit-chain-sealing-domain",
       "context": "audit-chain",
       "role": "domain",
       "capability": "audit-chain-sealing-domain",
@@ -694,7 +694,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-sealing-kernel",
+      "key": "audit-chain-sealing-kernel",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-sealing-kernel",
@@ -720,7 +720,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-usecase",
+      "key": "audit-chain-usecase",
       "context": "audit",
       "role": "app",
       "capability": "audit-chain",
@@ -735,7 +735,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-audit-chain-verification-api",
+      "key": "audit-chain-verification-api",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-verification-api",
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-verification-domain",
+      "key": "audit-chain-verification-domain",
       "context": "audit-chain",
       "role": "domain",
       "capability": "audit-chain-verification-domain",
@@ -788,7 +788,7 @@
       ]
     },
     {
-      "key": "oya-audit-chain-verification-kernel",
+      "key": "audit-chain-verification-kernel",
       "context": "audit-chain",
       "role": "kernel",
       "capability": "audit-chain-verification-kernel",
@@ -814,7 +814,7 @@
       ]
     },
     {
-      "key": "oya-authn-device-firmware",
+      "key": "authn-device-firmware",
       "context": "authn-device-firmware",
       "role": "app",
       "capability": "authenticator-firmware",
@@ -829,7 +829,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-billing",
+      "key": "billing",
       "context": "billing-substrate",
       "role": "app",
       "capability": "billing",
@@ -845,7 +845,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-calendar-domain",
+      "key": "calendar-domain",
       "context": "calendar",
       "role": "domain",
       "capability": "calendar",
@@ -860,7 +860,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cell-domain",
+      "key": "cell-domain",
       "context": "cell",
       "role": "domain",
       "capability": "cell-binding",
@@ -886,7 +886,7 @@
       ]
     },
     {
-      "key": "oya-check-adr-placeholders",
+      "key": "check-adr-placeholders",
       "context": "tooling",
       "role": "worker",
       "capability": "check-adr-placeholders",
@@ -916,7 +916,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-check-container-base-image",
+      "key": "check-container-base-image",
       "context": "tooling",
       "role": "worker",
       "capability": "check-container-base-image",
@@ -1014,10 +1014,10 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-adapter-aws",
+      "key": "cloud-billing-adapter-aws",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-billing-adapter-aws",
+      "capability": "cloud-billing-adapter-aws",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1033,10 +1033,10 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-adapter-fake",
+      "key": "cloud-billing-adapter-fake",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-billing-adapter-fake",
+      "capability": "cloud-billing-adapter-fake",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1052,10 +1052,10 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-app",
+      "key": "cloud-billing-app",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-cloud-billing-app",
+      "capability": "cloud-billing-app",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1071,10 +1071,10 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-application",
+      "key": "cloud-billing-application",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-cloud-billing-application",
+      "capability": "cloud-billing-application",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1090,7 +1090,7 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-domain",
+      "key": "cloud-billing-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-billing",
@@ -1114,7 +1114,7 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-kernel",
+      "key": "cloud-billing-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "billing",
@@ -1138,7 +1138,7 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-tax-app",
+      "key": "cloud-billing-tax-app",
       "context": "cloud",
       "role": "app",
       "capability": "billing-tax",
@@ -1162,10 +1162,10 @@
       ]
     },
     {
-      "key": "oya-cloud-billing-tax-application",
+      "key": "cloud-billing-tax-application",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-cloud-billing-tax-application",
+      "capability": "cloud-billing-tax-application",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1181,10 +1181,10 @@
       ]
     },
     {
-      "key": "oya-cloud-capacity-adapter-aws",
+      "key": "cloud-capacity-adapter-aws",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-capacity-adapter-aws",
+      "capability": "cloud-capacity-adapter-aws",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1204,10 +1204,10 @@
       ]
     },
     {
-      "key": "oya-cloud-capacity-adapter-fake",
+      "key": "cloud-capacity-adapter-fake",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-capacity-adapter-fake",
+      "capability": "cloud-capacity-adapter-fake",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1227,7 +1227,7 @@
       ]
     },
     {
-      "key": "oya-cloud-capacity-domain",
+      "key": "cloud-capacity-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-capacity",
@@ -1254,7 +1254,7 @@
       ]
     },
     {
-      "key": "oya-cloud-capacity-kernel",
+      "key": "cloud-capacity-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "cloud-capacity",
@@ -1281,7 +1281,7 @@
       ]
     },
     {
-      "key": "oya-cloud-cell-app",
+      "key": "cloud-cell-app",
       "context": "cloud",
       "role": "app",
       "capability": "cloud-cell-bind",
@@ -1307,10 +1307,10 @@
       ]
     },
     {
-      "key": "oya-cloud-cell-application",
+      "key": "cloud-cell-application",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-cloud-cell-application",
+      "capability": "cloud-cell-application",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1330,7 +1330,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-adapter-aws",
+      "key": "cloud-compute-adapter-aws",
       "context": "cloud",
       "role": "adapter",
       "capability": "compute-aws-ec2",
@@ -1353,7 +1353,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-adapter-oci",
+      "key": "cloud-compute-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "compute-oci",
@@ -1376,7 +1376,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-domain",
+      "key": "cloud-compute-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-compute",
@@ -1399,7 +1399,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-functions-api",
+      "key": "cloud-compute-functions-api",
       "context": "cloud",
       "role": "api",
       "capability": "compute-functions",
@@ -1422,7 +1422,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-k8s-api",
+      "key": "cloud-compute-k8s-api",
       "context": "cloud",
       "role": "api",
       "capability": "compute-k8s",
@@ -1445,7 +1445,7 @@
       ]
     },
     {
-      "key": "oya-cloud-compute-kernel",
+      "key": "cloud-compute-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "compute",
@@ -1459,12 +1459,12 @@
       "security_review": "unreviewed",
       "supply_chain": "source-only",
       "non_claims": [
-        "no oya-cloud-compute-kernel crate exists in this checkout",
+        "no cloud-compute-kernel crate exists in this checkout",
         "retained only for catalog compatibility during markdown retirement"
       ]
     },
     {
-      "key": "oya-cloud-compute-vm-api",
+      "key": "cloud-compute-vm-api",
       "context": "cloud",
       "role": "api",
       "capability": "compute-vm",
@@ -1487,7 +1487,7 @@
       ]
     },
     {
-      "key": "oya-cloud-data-adapter-fake",
+      "key": "cloud-data-adapter-fake",
       "context": "cloud",
       "role": "adapter",
       "capability": "data-fake",
@@ -1502,7 +1502,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-data-adapter-oci",
+      "key": "cloud-data-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "data-oci",
@@ -1517,7 +1517,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-data-domain",
+      "key": "cloud-data-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-data",
@@ -1540,7 +1540,7 @@
       ]
     },
     {
-      "key": "oya-cloud-data-kernel",
+      "key": "cloud-data-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "data",
@@ -1563,7 +1563,7 @@
       ]
     },
     {
-      "key": "oya-cloud-dcops-domain",
+      "key": "cloud-dcops-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-dcops",
@@ -1591,10 +1591,10 @@
       ]
     },
     {
-      "key": "oya-cloud-dcops-kernel",
+      "key": "cloud-dcops-kernel",
       "context": "compatibility",
       "role": "kernel",
-      "capability": "oya-cloud-dcops-kernel",
+      "capability": "cloud-dcops-kernel",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1614,10 +1614,10 @@
       ]
     },
     {
-      "key": "oya-cloud-finops-adapter-aws",
+      "key": "cloud-finops-adapter-aws",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-finops-adapter-aws",
+      "capability": "cloud-finops-adapter-aws",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1637,10 +1637,10 @@
       ]
     },
     {
-      "key": "oya-cloud-finops-adapter-fake",
+      "key": "cloud-finops-adapter-fake",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-finops-adapter-fake",
+      "capability": "cloud-finops-adapter-fake",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -1660,7 +1660,7 @@
       ]
     },
     {
-      "key": "oya-cloud-finops-api",
+      "key": "cloud-finops-api",
       "context": "cloud",
       "role": "api",
       "capability": "cloud-finops-report",
@@ -1687,7 +1687,7 @@
       ]
     },
     {
-      "key": "oya-cloud-finops-domain",
+      "key": "cloud-finops-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-finops",
@@ -1715,7 +1715,7 @@
       ]
     },
     {
-      "key": "oya-cloud-finops-kernel",
+      "key": "cloud-finops-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "cloud-finops",
@@ -1743,7 +1743,7 @@
       ]
     },
     {
-      "key": "oya-cloud-iac-api",
+      "key": "cloud-iac-api",
       "context": "cloud-iac",
       "role": "api",
       "capability": "cloud-iac-module-registry-api-boundary",
@@ -1771,7 +1771,7 @@
       }
     },
     {
-      "key": "oya-cloud-iac-app",
+      "key": "cloud-iac-app",
       "context": "cloud-iac",
       "role": "runtime",
       "capability": "cloud-iac-module-registry-app-object-pinning",
@@ -1804,7 +1804,7 @@
         "local release-index loader seeds the in-memory app registry from gate-validated repo-local OpenTofu module metadata only",
         "release-index archive_file is converted to a deterministic /artifacts/modules/<archive>.zip download location when no object source is configured",
         "optional archive_source_location can return OpenTofu s3::https:// or gcs::https:// archive source locations from module-registry download responses",
-        "local artifact route serves bytes from target/oya-cloud-iac/module-archives only when the deterministic archive file exists in the local workspace and no object source overrides the download location",
+        "local artifact route serves bytes from target/cloud-iac/module-archives only when the deterministic archive file exists in the local workspace and no object source overrides the download location",
         "local artifact route verifies bytes against release-index archive_sha256 before serving the archive",
         "local request-auth middleware requires Authorization Bearer credentials for registered module-registry and artifact routes only while leaving health/liveness public",
         "bounded loopback daemon harness proves request/response serving through Hyper but is not deployed service evidence",
@@ -1813,7 +1813,7 @@
       ]
     },
     {
-      "key": "oya-cloud-iac-domain",
+      "key": "cloud-iac-domain",
       "context": "cloud-iac",
       "role": "domain",
       "capability": "cloud-iac-foundation-domain",
@@ -1840,7 +1840,7 @@
       }
     },
     {
-      "key": "oya-cloud-iac-rest",
+      "key": "cloud-iac-rest",
       "context": "cloud-iac",
       "role": "rest",
       "capability": "cloud-iac-module-registry-rest-router",
@@ -1872,7 +1872,7 @@
       ]
     },
     {
-      "key": "oya-cloud-iac-runtime",
+      "key": "cloud-iac-runtime",
       "context": "cloud-iac",
       "role": "runtime",
       "capability": "cloud-iac-module-registry-runtime",
@@ -1904,7 +1904,7 @@
       ]
     },
     {
-      "key": "oya-cloud-iam-adapter-oci",
+      "key": "cloud-iam-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "iam-oci-identity-domain",
@@ -1923,7 +1923,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-iam-adapter-selfhosted",
+      "key": "cloud-iam-adapter-selfhosted",
       "context": "cloud",
       "role": "adapter",
       "capability": "iam-selfhosted-oidc-control-plane",
@@ -1942,7 +1942,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-iam-api",
+      "key": "cloud-iam-api",
       "context": "cloud",
       "role": "api",
       "capability": "iam",
@@ -1958,7 +1958,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-iam-app",
+      "key": "cloud-iam-app",
       "context": "cloud",
       "role": "app",
       "capability": "iam-cedar-bind",
@@ -1974,7 +1974,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-iam-domain",
+      "key": "cloud-iam-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-iam",
@@ -1989,7 +1989,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-iam-kernel",
+      "key": "cloud-iam-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "iam",
@@ -2008,7 +2008,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-intelligence-app",
+      "key": "cloud-intelligence-app",
       "context": "cloud-intelligence",
       "role": "app",
       "capability": "llm-oauth-subscription-pool-composition-root",
@@ -2031,7 +2031,7 @@
       },
       "non_claims": [
         "composition root for the OAuth subscription-pool µservice — wires kernel + Cedar adapter + REST adapter + real OpenBao Transit (D8) + ClickHouse + Valkey Stream EventSink adapters (D6) into a runnable axum binary",
-        "bin/cloud-intelligence reads config from env (OYA_CLOUD_INTEL_LISTEN_ADDR, OYA_CLOUD_INTEL_TENANT_ID, OYA_CLOUD_INTEL_OPENBAO_URL, OYA_CLOUD_INTEL_OPENBAO_TOKEN, OYA_CLOUD_INTEL_TRANSIT_KEY_NAME, OYA_CLOUD_INTEL_CLICKHOUSE_URL, OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD, OYA_CLOUD_INTEL_VALKEY_URL, etc.); production deployment on Talos via Helm + ArgoCD is a Stage-8 item",
+        "bin/cloud-intelligence reads config from env (OYATIE_CLOUD_INTEL_LISTEN_ADDR, OYATIE_CLOUD_INTEL_TENANT_ID, OYATIE_CLOUD_INTEL_OPENBAO_URL, OYATIE_CLOUD_INTEL_OPENBAO_TOKEN, OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME, OYATIE_CLOUD_INTEL_CLICKHOUSE_URL, OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD, OYATIE_CLOUD_INTEL_VALKEY_URL, etc.); production deployment on Talos via Helm + ArgoCD is a Stage-8 item",
         "wired with real OpenBao Transit + ClickHouse + Valkey Stream adapters; in-process mocks remain available via build_app_for_tests for unit/integration tests",
         "no Codex provider adapter (Stage-6 follow-up; current path is Anthropic-only)",
         "no production Helm chart / ArgoCD ApplicationSet (Stage-8)",
@@ -2039,7 +2039,7 @@
       ]
     },
     {
-      "key": "oya-cloud-intelligence-authz-cedar-adapter",
+      "key": "cloud-intelligence-authz-cedar-adapter",
       "context": "cloud-intelligence",
       "role": "adapter",
       "capability": "llm-oauth-subscription-pool-authz-cedar-gate",
@@ -2062,13 +2062,13 @@
         ]
       },
       "non_claims": [
-        "implements oya_cloud_intelligence_kernel::AuthzGate via the real cedar-policy engine + bundled policy at microservices/cloud-intelligence/policy/cloud-intelligence.cedar",
+        "implements cloud_intelligence_kernel::AuthzGate via the real cedar-policy engine + bundled policy at microservices/cloud-intelligence/policy/cloud-intelligence.cedar",
         "kernel-action → Cedar-action mapping is v1-hardcoded (SelectSeat→InvokeChatCompletion IngressRealm; Refresh/Invalidate→RefreshKeyPool AdminRealm); v2 wires the role through the JWT claim",
         "no HTTP listener, no OpenBao client, no token exchange, no event-sink fan-out; pure authorization seam consumed by the REST adapter"
       ]
     },
     {
-      "key": "oya-cloud-intelligence-codex-adapter",
+      "key": "cloud-intelligence-codex-adapter",
       "context": "cloud-intelligence",
       "role": "adapter",
       "capability": "openai-codex-oauth-subscription-adapter",
@@ -2092,18 +2092,18 @@
       "non_claims": [
         "cli_version is hard-coded as cli/0.27.0; operator must update the constant on every Codex CLI release that changes the User-Agent contract with chatgpt.com",
         "data endpoint (/backend-api/codex/responses) is undocumented and reverse-engineered from auth2api/CLIProxyAPI; it may change without notice",
-        "no Anthropic compat layer (this adapter targets OpenAI Codex only; Anthropic is handled by oya-cloud-intelligence-rest)",
+        "no Anthropic compat layer (this adapter targets OpenAI Codex only; Anthropic is handled by cloud-intelligence-rest)",
         "no automated browser OAuth flow; the operator manually obtains the refresh token from a logged-in ChatGPT browser session (Stage-6 deferred per ADR-0384 §v1-scope)",
-        "no Cedar policy evaluation (AuthzGate seam consumed from kernel; Cedar adapter lives in oya-cloud-intelligence-authz-cedar-adapter)",
+        "no Cedar policy evaluation (AuthzGate seam consumed from kernel; Cedar adapter lives in cloud-intelligence-authz-cedar-adapter)",
         "no ClickHouse or Valkey Stream concrete adapter (trait-only seams; real adapter crates ship separately)",
-        "no real OpenBao transit client (refresh token storage deferred to oya-cloud-intelligence-openbao-adapter follow-up PR)",
-        "no app composition crate (wiring deferred to oya-cloud-intelligence-app)",
+        "no real OpenBao transit client (refresh token storage deferred to cloud-intelligence-openbao-adapter follow-up PR)",
+        "no app composition crate (wiring deferred to cloud-intelligence-app)",
         "no token TTL cache or upstream singleflight for Codex refresh (deferred to a follow-up PR once the session endpoint's token TTL behavior is confirmed)",
         "Codex v1 scope only; no Cursor adapter work in this lane (per cloud-intelligence-reference-repo-audit memory: Cursor v3 / Codex v1)"
       ]
     },
     {
-      "key": "oya-cloud-intelligence-eventsink-clickhouse-adapter",
+      "key": "cloud-intelligence-eventsink-clickhouse-adapter",
       "context": "cloud-intelligence",
       "role": "adapter",
       "capability": "llm-oauth-subscription-pool-eventsink-clickhouse",
@@ -2126,7 +2126,7 @@
         ]
       },
       "non_claims": [
-        "implements EventSink from oya-cloud-intelligence-kernel; INSERTs LlmGatewayEvent rows into cloud_intelligence_receipts table via oya-shared-olap-clickhouse-adapter (ADR-0193)",
+        "implements EventSink from cloud-intelligence-kernel; INSERTs LlmGatewayEvent rows into cloud_intelligence_receipts table via shared-olap-clickhouse-adapter (ADR-0193)",
         "emit is best-effort — failures are logged via tracing::warn and swallowed per D6 non-fatal contract; errors never propagate to the request path",
         "no batching or coalescing of INSERT calls (Stage-8 follow-up)",
         "no DDL bootstrap — the cloud_intelligence_receipts table must exist before the adapter is used; creation is an operator runbook item",
@@ -2135,7 +2135,7 @@
       ]
     },
     {
-      "key": "oya-cloud-intelligence-eventsink-valkey-adapter",
+      "key": "cloud-intelligence-eventsink-valkey-adapter",
       "context": "cloud-intelligence",
       "role": "adapter",
       "capability": "llm-oauth-subscription-pool-eventsink-valkey-stream",
@@ -2157,7 +2157,7 @@
         ]
       },
       "non_claims": [
-        "implements EventSink from oya-cloud-intelligence-kernel; emits LlmGatewayEvent to Valkey Stream cloud-intelligence-receipts:<tenant_id> via XADD (one stream per tenant)",
+        "implements EventSink from cloud-intelligence-kernel; emits LlmGatewayEvent to Valkey Stream cloud-intelligence-receipts:<tenant_id> via XADD (one stream per tenant)",
         "emit is best-effort — failures are logged via tracing::warn and swallowed per D6 non-fatal contract; errors never propagate to the request path",
         "no consumer-group management or MAXLEN trimming (Stage-8 follow-up)",
         "no automatic reconnect beyond what the redis crate provides on the established connection",
@@ -2166,7 +2166,7 @@
       ]
     },
     {
-      "key": "oya-cloud-intelligence-kernel",
+      "key": "cloud-intelligence-kernel",
       "context": "cloud-intelligence",
       "role": "kernel",
       "capability": "llm-oauth-subscription-pool-state-machine",
@@ -2195,7 +2195,7 @@
       ]
     },
     {
-      "key": "oya-cloud-intelligence-openbao-adapter",
+      "key": "cloud-intelligence-openbao-adapter",
       "context": "cloud-intelligence",
       "role": "adapter",
       "capability": "openbao-transit-envelope-encryption",
@@ -2230,7 +2230,7 @@
       ]
     },
     {
-      "key": "oya-cloud-intelligence-rest",
+      "key": "cloud-intelligence-rest",
       "context": "cloud-intelligence",
       "role": "rest",
       "capability": "llm-oauth-subscription-pool-rest-adapter",
@@ -2256,7 +2256,7 @@
         "no Codex provider adapter (follow-up PR per ADR-0384 v1-scope; see TODO in lib.rs)",
         "no Cedar policy evaluation (D7 AuthzGate consumed from kernel seam; Cedar adapter lives in a separate crate)",
         "no ClickHouse or Valkey Stream concrete adapter (trait-only mocks; real adapter crates ship separately)",
-        "no real OpenBao transit client (trait-only mock; oya-cloud-intelligence-openbao-adapter ships in a follow-up PR)",
+        "no real OpenBao transit client (trait-only mock; cloud-intelligence-openbao-adapter ships in a follow-up PR)",
         "no app composition crate (separate PR per ADR-0384)",
         "no async reqwest migration (current hot-path uses hyper 1.x directly per blessed-dep doctrine; reqwest migration deferred to Stage-6)",
         "no retry/backoff tower ConcurrencyLimit wiring (tower::ConcurrencyLimit deferred; per-key kernel blacklist acts as circuit breaker)",
@@ -2267,7 +2267,7 @@
       ]
     },
     {
-      "key": "oya-cloud-kms-adapter-oci",
+      "key": "cloud-kms-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "kms-oci",
@@ -2295,7 +2295,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-kms-adapter-openbao",
+      "key": "cloud-kms-adapter-openbao",
       "context": "cloud",
       "role": "adapter",
       "capability": "kms-openbao-transit",
@@ -2323,7 +2323,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-kms-api",
+      "key": "cloud-kms-api",
       "context": "cloud",
       "role": "api",
       "capability": "kms",
@@ -2349,7 +2349,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-kms-domain",
+      "key": "cloud-kms-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-kms",
@@ -2364,7 +2364,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-kms-kernel",
+      "key": "cloud-kms-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "kms",
@@ -2393,10 +2393,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-marketplace-adapter-fake",
+      "key": "cloud-marketplace-adapter-fake",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-marketplace-adapter-fake",
+      "capability": "cloud-marketplace-adapter-fake",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -2416,10 +2416,10 @@
       ]
     },
     {
-      "key": "oya-cloud-marketplace-adapter-oci",
+      "key": "cloud-marketplace-adapter-oci",
       "context": "compatibility",
       "role": "adapter",
-      "capability": "oya-cloud-marketplace-adapter-oci",
+      "capability": "cloud-marketplace-adapter-oci",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -2493,7 +2493,7 @@
       ]
     },
     {
-      "key": "oya-cloud-network-adapter-oci",
+      "key": "cloud-network-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "network-oci-command-shaping",
@@ -2511,7 +2511,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-adapter-selfhosted",
+      "key": "cloud-network-adapter-selfhosted",
       "context": "cloud",
       "role": "adapter",
       "capability": "network-selfhosted-command-shaping",
@@ -2529,7 +2529,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-dns-api",
+      "key": "cloud-network-dns-api",
       "context": "cloud",
       "role": "api",
       "capability": "network-dns-api",
@@ -2547,7 +2547,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-domain",
+      "key": "cloud-network-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-network-foundation-domain",
@@ -2565,7 +2565,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-kernel",
+      "key": "cloud-network-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "network",
@@ -2583,7 +2583,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-lb-api",
+      "key": "cloud-network-lb-api",
       "context": "cloud",
       "role": "api",
       "capability": "network-lb-api",
@@ -2601,7 +2601,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-network-vpc-api",
+      "key": "cloud-network-vpc-api",
       "context": "cloud",
       "role": "api",
       "capability": "network-vpc-api",
@@ -2619,7 +2619,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-observability-adapter-fake",
+      "key": "cloud-observability-adapter-fake",
       "context": "cloud",
       "role": "adapter",
       "capability": "observability-fake",
@@ -2634,7 +2634,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-observability-adapter-oci",
+      "key": "cloud-observability-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "observability-oci",
@@ -2649,7 +2649,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-observability-api",
+      "key": "cloud-observability-api",
       "context": "cloud",
       "role": "api",
       "capability": "observability-audit",
@@ -2675,7 +2675,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-observability-domain",
+      "key": "cloud-observability-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-observability",
@@ -2690,7 +2690,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-observability-kernel",
+      "key": "cloud-observability-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "observability",
@@ -2718,7 +2718,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-region-api",
+      "key": "cloud-region-api",
       "context": "cloud",
       "role": "api",
       "capability": "region",
@@ -2734,7 +2734,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-region-domain",
+      "key": "cloud-region-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-region",
@@ -2749,7 +2749,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-region-kernel",
+      "key": "cloud-region-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "region",
@@ -2767,7 +2767,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-resource-domain",
+      "key": "cloud-resource-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-resource",
@@ -2782,7 +2782,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-resource-kernel",
+      "key": "cloud-resource-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "resource",
@@ -2810,7 +2810,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-storage-adapter-oci",
+      "key": "cloud-storage-adapter-oci",
       "context": "cloud",
       "role": "adapter",
       "capability": "storage-oci-command-shape",
@@ -2833,7 +2833,7 @@
       ]
     },
     {
-      "key": "oya-cloud-storage-adapter-s3",
+      "key": "cloud-storage-adapter-s3",
       "context": "cloud",
       "role": "adapter",
       "capability": "storage-s3-command-shape",
@@ -2856,7 +2856,7 @@
       ]
     },
     {
-      "key": "oya-cloud-storage-block-api",
+      "key": "cloud-storage-block-api",
       "context": "cloud",
       "role": "api",
       "capability": "storage-block",
@@ -2879,7 +2879,7 @@
       ]
     },
     {
-      "key": "oya-cloud-storage-domain",
+      "key": "cloud-storage-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-storage",
@@ -2902,7 +2902,7 @@
       ]
     },
     {
-      "key": "oya-cloud-storage-kernel",
+      "key": "cloud-storage-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "storage-kernel-retired",
@@ -2916,13 +2916,13 @@
       "security_review": "unreviewed",
       "supply_chain": "source-only",
       "non_claims": [
-        "no oya-cloud-storage-kernel crate exists in this workspace",
+        "no cloud-storage-kernel crate exists in this workspace",
         "storage foundation is implemented in domain api and adapter crates only",
         "retained as compatibility catalog metadata until retired by a dedicated cleanup ChangeSet"
       ]
     },
     {
-      "key": "oya-cloud-storage-object-api",
+      "key": "cloud-storage-object-api",
       "context": "cloud",
       "role": "api",
       "capability": "storage-object",
@@ -2945,7 +2945,7 @@
       ]
     },
     {
-      "key": "oya-cloud-surface-domain",
+      "key": "cloud-surface-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-surface",
@@ -2960,7 +2960,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cloud-surface-kernel",
+      "key": "cloud-surface-kernel",
       "context": "cloud",
       "role": "kernel",
       "capability": "surface",
@@ -2976,7 +2976,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-codeview-cli",
+      "key": "codeview-cli",
       "context": "codeview",
       "role": "worker",
       "capability": "codeview",
@@ -2991,7 +2991,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-collab-crdt-portability-kernel",
+      "key": "collab-crdt-portability-kernel",
       "context": "connect",
       "role": "kernel",
       "capability": "collab-crdt-portability-kernel",
@@ -3006,7 +3006,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-collab-runtime-domain",
+      "key": "collab-runtime-domain",
       "context": "collab-runtime",
       "role": "domain",
       "capability": "collab-runtime",
@@ -3171,7 +3171,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-audio-track-library-adapter-meilisearch",
+      "key": "community-social-audio-track-library-adapter-meilisearch",
       "context": "community-social",
       "role": "adapter",
       "capability": "audio-track-library",
@@ -3190,7 +3190,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-content-moderation-adapter-clamav",
+      "key": "community-social-content-moderation-adapter-clamav",
       "context": "community-social",
       "role": "adapter",
       "capability": "content-moderation",
@@ -3209,7 +3209,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-content-moderation-adapter-opswat",
+      "key": "community-social-content-moderation-adapter-opswat",
       "context": "community-social",
       "role": "adapter",
       "capability": "content-moderation",
@@ -3228,7 +3228,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-content-moderation-kernel",
+      "key": "community-social-content-moderation-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "content-moderation",
@@ -3247,7 +3247,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-copyright-claim-adapter-postgres",
+      "key": "community-social-copyright-claim-adapter-postgres",
       "context": "community-social",
       "role": "adapter",
       "capability": "copyright-claim",
@@ -3266,7 +3266,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-copyright-claim-kernel",
+      "key": "community-social-copyright-claim-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "copyright-claim",
@@ -3304,7 +3304,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-drm-adapter-fairplay",
+      "key": "community-social-drm-adapter-fairplay",
       "context": "community-social",
       "role": "adapter",
       "capability": "drm",
@@ -3323,7 +3323,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-drm-adapter-playready",
+      "key": "community-social-drm-adapter-playready",
       "context": "community-social",
       "role": "adapter",
       "capability": "drm",
@@ -3342,7 +3342,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-drm-adapter-widevine",
+      "key": "community-social-drm-adapter-widevine",
       "context": "community-social",
       "role": "adapter",
       "capability": "drm",
@@ -3361,7 +3361,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-federation-gateway-adapter-activitypub",
+      "key": "community-social-federation-gateway-adapter-activitypub",
       "context": "community-social",
       "role": "adapter",
       "capability": "federation-gateway",
@@ -3380,7 +3380,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-feed-timeline-adapter-valkey",
+      "key": "community-social-feed-timeline-adapter-valkey",
       "context": "community-social",
       "role": "adapter",
       "capability": "feed-timeline-adapter-valkey",
@@ -3399,7 +3399,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-feed-timeline-kernel",
+      "key": "community-social-feed-timeline-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "feed-timeline",
@@ -3418,7 +3418,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-follow-graph-adapter-postgres",
+      "key": "community-social-follow-graph-adapter-postgres",
       "context": "community-social",
       "role": "adapter",
       "capability": "follow-graph",
@@ -3437,7 +3437,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-follow-graph-kernel",
+      "key": "community-social-follow-graph-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "follow-graph",
@@ -3456,7 +3456,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-adapter-ffmpeg",
+      "key": "community-social-post-composition-adapter-ffmpeg",
       "context": "community-social",
       "role": "adapter",
       "capability": "post-composition",
@@ -3475,7 +3475,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-adapter-imagemagick",
+      "key": "community-social-post-composition-adapter-imagemagick",
       "context": "community-social",
       "role": "adapter",
       "capability": "post-composition",
@@ -3513,7 +3513,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-adapter-s3",
+      "key": "community-social-post-composition-adapter-s3",
       "context": "community-social",
       "role": "adapter",
       "capability": "post-composition",
@@ -3570,7 +3570,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-kernel",
+      "key": "community-social-post-composition-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "post-composition",
@@ -3627,7 +3627,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-search-adapter-meilisearch",
+      "key": "community-social-search-adapter-meilisearch",
       "context": "community-social",
       "role": "adapter",
       "capability": "search",
@@ -3646,7 +3646,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-short-video-storage-adapter-cloudfront",
+      "key": "community-social-short-video-storage-adapter-cloudfront",
       "context": "community-social",
       "role": "adapter",
       "capability": "short-video-storage",
@@ -3665,7 +3665,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-short-video-storage-adapter-s3",
+      "key": "community-social-short-video-storage-adapter-s3",
       "context": "community-social",
       "role": "adapter",
       "capability": "short-video-storage",
@@ -3684,7 +3684,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-short-video-transcode-adapter-ffmpeg",
+      "key": "community-social-short-video-transcode-adapter-ffmpeg",
       "context": "community-social",
       "role": "adapter",
       "capability": "short-video-transcode",
@@ -3703,7 +3703,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-short-video-transcode-kernel",
+      "key": "community-social-short-video-transcode-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "short-video-transcode",
@@ -3722,7 +3722,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-short-video-upload-kernel",
+      "key": "community-social-short-video-upload-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "short-video-upload",
@@ -3741,7 +3741,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-user-profile-adapter-postgres",
+      "key": "community-social-user-profile-adapter-postgres",
       "context": "community-social",
       "role": "adapter",
       "capability": "user-profile",
@@ -3760,7 +3760,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-user-profile-domain",
+      "key": "community-social-user-profile-domain",
       "context": "community-social",
       "role": "domain",
       "capability": "user-profile",
@@ -3779,7 +3779,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-user-profile-kernel",
+      "key": "community-social-user-profile-kernel",
       "context": "community-social",
       "role": "kernel",
       "capability": "user-profile",
@@ -3798,7 +3798,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-user-profile-rest",
+      "key": "community-social-user-profile-rest",
       "context": "community-social",
       "role": "rest",
       "capability": "user-profile",
@@ -3967,7 +3967,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-contact-center-voice-routing-app",
+      "key": "contact-center-voice-routing-app",
       "context": "contact-center",
       "role": "app",
       "capability": "voice-routing",
@@ -3982,7 +3982,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-contract-lifecycle-management-contract-obligation-app",
+      "key": "contract-lifecycle-management-contract-obligation-app",
       "context": "contract-lifecycle-management",
       "role": "app",
       "capability": "contract-obligation",
@@ -3998,7 +3998,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-cost",
+      "key": "cost",
       "context": "cost-allocation-substrate",
       "role": "app",
       "capability": "cost-allocation",
@@ -4013,7 +4013,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-crm-customer-engagement-domain",
+      "key": "crm-customer-engagement-domain",
       "context": "crm",
       "role": "domain",
       "capability": "customer-engagement",
@@ -4029,7 +4029,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-crm-revenue-app",
+      "key": "crm-revenue-app",
       "context": "crm",
       "role": "app",
       "capability": "revenue",
@@ -4045,7 +4045,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-data-boundary-kernel",
+      "key": "data-boundary-kernel",
       "context": "data",
       "role": "kernel",
       "capability": "data-boundary",
@@ -4060,7 +4060,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-data-pipeline-lineage-replay-service",
+      "key": "data-pipeline-lineage-replay-service",
       "context": "data-pipeline",
       "role": "app",
       "capability": "lineage-replay",
@@ -4075,7 +4075,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-data-warehouse-tenant-olap-service",
+      "key": "data-warehouse-tenant-olap-service",
       "context": "data-warehouse",
       "role": "app",
       "capability": "tenant-olap",
@@ -4090,7 +4090,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-design-collaboration-creative-artifact-service",
+      "key": "design-collaboration-creative-artifact-service",
       "context": "design-collaboration",
       "role": "app",
       "capability": "creative-artifact",
@@ -4120,7 +4120,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-dlp-domain",
+      "key": "dlp-domain",
       "context": "dlp",
       "role": "domain",
       "capability": "dlp",
@@ -4135,7 +4135,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-docs-domain",
+      "key": "docs-domain",
       "context": "docs",
       "role": "domain",
       "capability": "docs",
@@ -4150,7 +4150,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-document-format-domain",
+      "key": "document-format-domain",
       "context": "document-format",
       "role": "domain",
       "capability": "document-format",
@@ -4165,7 +4165,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-drive-domain",
+      "key": "drive-domain",
       "context": "drive",
       "role": "domain",
       "capability": "drive",
@@ -4180,7 +4180,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-dsr-application",
+      "key": "dsr-application",
       "context": "dsr",
       "role": "app",
       "capability": "dsr",
@@ -4195,7 +4195,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-dsr-domain",
+      "key": "dsr-domain",
       "context": "dsr",
       "role": "domain",
       "capability": "dsr",
@@ -4210,7 +4210,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-dsr-usecase",
+      "key": "dsr-usecase",
       "context": "dsr",
       "role": "app",
       "capability": "dsr",
@@ -4225,7 +4225,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ediscovery-domain",
+      "key": "ediscovery-domain",
       "context": "ediscovery",
       "role": "domain",
       "capability": "ediscovery",
@@ -4240,7 +4240,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-eventing-application",
+      "key": "eventing-application",
       "context": "eventing",
       "role": "app",
       "capability": "eventing",
@@ -4255,7 +4255,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-eventing-domain",
+      "key": "eventing-domain",
       "context": "eventing",
       "role": "domain",
       "capability": "eventing",
@@ -4270,7 +4270,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-eventing-file-adapter",
+      "key": "eventing-file-adapter",
       "context": "eventing",
       "role": "adapter",
       "capability": "eventing",
@@ -4285,7 +4285,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-financial-planning-forecast-scenario-app",
+      "key": "financial-planning-forecast-scenario-app",
       "context": "financial-planning",
       "role": "app",
       "capability": "forecast-scenario",
@@ -4316,7 +4316,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-forms-domain",
+      "key": "forms-domain",
       "context": "forms",
       "role": "domain",
       "capability": "forms",
@@ -4331,7 +4331,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-foundation-app",
+      "key": "foundation-app",
       "context": "foundation",
       "role": "app",
       "capability": "foundation-orchestration",
@@ -4362,7 +4362,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-governance-audit-event-emission",
+      "key": "governance-audit-event-emission",
       "context": "governance",
       "role": "test",
       "capability": "governance-audit-event-emission",
@@ -4388,7 +4388,7 @@
       ]
     },
     {
-      "key": "oya-governance-byok-disambiguation",
+      "key": "governance-byok-disambiguation",
       "context": "governance",
       "role": "test",
       "capability": "governance-byok-disambiguation",
@@ -4414,7 +4414,7 @@
       ]
     },
     {
-      "key": "oya-governance-capability-tier-coverage",
+      "key": "governance-capability-tier-coverage",
       "context": "governance",
       "role": "test",
       "capability": "governance-capability-tier-coverage",
@@ -4440,7 +4440,7 @@
       ]
     },
     {
-      "key": "oya-governance-cedar-coverage",
+      "key": "governance-cedar-coverage",
       "context": "governance",
       "role": "test",
       "capability": "governance-cedar-coverage",
@@ -4466,7 +4466,7 @@
       ]
     },
     {
-      "key": "oya-governance-naming-justifications",
+      "key": "governance-naming-justifications",
       "context": "governance",
       "role": "test",
       "capability": "governance-naming-justifications",
@@ -4518,7 +4518,7 @@
       ]
     },
     {
-      "key": "oya-governance-pack-overlay-completeness",
+      "key": "governance-pack-overlay-completeness",
       "context": "governance",
       "role": "test",
       "capability": "governance-pack-overlay-completeness",
@@ -4544,7 +4544,7 @@
       ]
     },
     {
-      "key": "oya-governance-substance-bar",
+      "key": "governance-substance-bar",
       "context": "governance",
       "role": "test",
       "capability": "governance-substance-bar",
@@ -4570,7 +4570,7 @@
       ]
     },
     {
-      "key": "oya-hr-employment-api",
+      "key": "hr-employment-api",
       "context": "hr",
       "role": "api",
       "capability": "employment",
@@ -4586,7 +4586,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-app",
+      "key": "hr-employment-app",
       "context": "hr",
       "role": "app",
       "capability": "employment",
@@ -4602,7 +4602,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-domain",
+      "key": "hr-employment-domain",
       "context": "hr",
       "role": "domain",
       "capability": "employment",
@@ -4618,7 +4618,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-runtime",
+      "key": "hr-employment-runtime",
       "context": "hr",
       "role": "runtime",
       "capability": "employment",
@@ -4636,7 +4636,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-storage-adapter-inmemory",
+      "key": "hr-employment-storage-adapter-inmemory",
       "context": "hr",
       "role": "runtime",
       "capability": "employment-storage-inmemory",
@@ -4654,7 +4654,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-deadline-middleware-domain",
+      "key": "http-deadline-middleware-domain",
       "context": "http",
       "role": "domain",
       "capability": "http-deadline-middleware",
@@ -4669,7 +4669,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-latency-budget-middleware-infrastructure",
+      "key": "http-latency-budget-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "latency-budget",
@@ -4684,7 +4684,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-middleware-kernel",
+      "key": "http-middleware-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "http-middleware",
@@ -4699,7 +4699,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-router-kernel",
+      "key": "http-router-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "http-router",
@@ -4725,7 +4725,7 @@
       ]
     },
     {
-      "key": "oya-http-runtime-hyper-adapter",
+      "key": "http-runtime-hyper-adapter",
       "context": "http",
       "role": "adapter",
       "capability": "http-runtime-hyper",
@@ -4751,7 +4751,7 @@
       ]
     },
     {
-      "key": "oya-http-sse-domain",
+      "key": "http-sse-domain",
       "context": "http",
       "role": "domain",
       "capability": "http-sse",
@@ -4766,7 +4766,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-sse-kernel",
+      "key": "http-sse-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "sse",
@@ -4781,7 +4781,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-telemetry-middleware-domain",
+      "key": "http-telemetry-middleware-domain",
       "context": "http",
       "role": "domain",
       "capability": "http-telemetry-middleware",
@@ -4796,7 +4796,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-telemetry-middleware-infrastructure",
+      "key": "http-telemetry-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "telemetry",
@@ -4811,7 +4811,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-tenant-middleware-domain",
+      "key": "http-tenant-middleware-domain",
       "context": "http",
       "role": "domain",
       "capability": "http-tenant-middleware",
@@ -4826,7 +4826,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-tenant-middleware-infrastructure",
+      "key": "http-tenant-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "tenant-middleware",
@@ -4841,7 +4841,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity",
+      "key": "identity",
       "context": "identity-substrate",
       "role": "app",
       "capability": "identity",
@@ -4856,7 +4856,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-api",
+      "key": "identity-api",
       "context": "platform",
       "role": "api",
       "capability": "identity-user",
@@ -4873,7 +4873,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-application",
+      "key": "identity-application",
       "context": "identity",
       "role": "app",
       "capability": "identity",
@@ -4888,7 +4888,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-domain",
+      "key": "identity-domain",
       "context": "identity",
       "role": "domain",
       "capability": "identity",
@@ -4903,7 +4903,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-oidc-issuer-kernel",
+      "key": "identity-oidc-issuer-kernel",
       "context": "identity",
       "role": "kernel",
       "capability": "identity-oidc-issuer-kernel",
@@ -4920,7 +4920,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-usecase",
+      "key": "identity-usecase",
       "context": "identity",
       "role": "app",
       "capability": "identity",
@@ -4935,7 +4935,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-api",
+      "key": "identity-workload-api",
       "context": "identity",
       "role": "api",
       "capability": "workload-identity",
@@ -4951,7 +4951,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-app",
+      "key": "identity-workload-app",
       "context": "identity",
       "role": "app",
       "capability": "workload-identity",
@@ -4967,7 +4967,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-authz-cedar-adapter",
+      "key": "identity-workload-authz-cedar-adapter",
       "context": "identity",
       "role": "adapter",
       "capability": "workload-identity",
@@ -4982,7 +4982,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-domain",
+      "key": "identity-workload-domain",
       "context": "identity",
       "role": "domain",
       "capability": "workload-identity",
@@ -4997,7 +4997,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-oidc-adapter",
+      "key": "identity-workload-oidc-adapter",
       "context": "identity",
       "role": "adapter",
       "capability": "workload-identity",
@@ -5013,7 +5013,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-identity-workload-rest",
+      "key": "identity-workload-rest",
       "context": "identity",
       "role": "rest",
       "capability": "workload-identity",
@@ -5029,7 +5029,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-incident-management-sre-incident-command-app",
+      "key": "incident-management-sre-incident-command-app",
       "context": "incident-management",
       "role": "app",
       "capability": "sre-incident-command",
@@ -5213,7 +5213,7 @@
         ]
       },
       "non_claims": [
-        "composition root that wires `oya-intelligence-attribution-kernel::plan_attribution` (pure metadata-only citation planning) through the `-domain` (tenant/principal policy binding), `-usecase` (idempotent + audit-event), `-worker` (job-lifecycle), and `-adapter` (citation-renderer envelope) layers into an end-to-end dispatch use-case (`dispatch_attribution`) that resolves the policy decision, runs the kernel/domain/usecase pipeline (honoring idempotency-cache short-circuits + audit-event fan-out), persists the receipt, and dispatches the renderer envelope with retry honoring on retryable transport failures",
+        "composition root that wires `intelligence-attribution-kernel::plan_attribution` (pure metadata-only citation planning) through the `-domain` (tenant/principal policy binding), `-usecase` (idempotent + audit-event), `-worker` (job-lifecycle), and `-adapter` (citation-renderer envelope) layers into an end-to-end dispatch use-case (`dispatch_attribution`) that resolves the policy decision, runs the kernel/domain/usecase pipeline (honoring idempotency-cache short-circuits + audit-event fan-out), persists the receipt, and dispatches the renderer envelope with retry honoring on retryable transport failures",
         "port surface for `AttributionRepository` (TenantId + IdempotencyKey → AttributionUsecaseReceipt), `AttributionPolicyStore` (TenantId + PrincipalId → AttributionPolicyDecision), `AttributionAuditSink` (push port for AttributionAuditEvent taps), and `CitationRendererTransport` (async envelope-driven renderer call), with in-memory reference adapters for tests + single-node bring-up",
         "typed `HyperCitationRendererTransport` scaffold that surfaces the `Unimplemented::OpenBaoCredentialResolution` honest boundary today (no silent stub: credential resolution returns `RendererTransportError::NonRetryable` referencing `registry/placeholder-debt/adr-follow-ups.yaml#adr-0374-attribution-app-openbao-credential-resolution`); a sibling `Unimplemented::BedrockAuditEmission` boundary tracks the immutable hash-chained `attribution.audit.v1` record emission that the in-memory sink fan-out is structured to feed",
         "no production deployment, daemonized listener readiness, Bedrock-shape audit-chain emission, OpenBao credential resolution, per-tenant rate limiting / budget admission, cross-tenant aggregation, or REST/gRPC surface (the kernel + this app are wired by sibling REST adapters downstream)"
@@ -5750,7 +5750,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-escalation-policy",
+      "key": "itsm-escalation-policy",
       "context": "itsm",
       "role": "domain",
       "capability": "escalation-policy",
@@ -5765,7 +5765,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-incident-room",
+      "key": "itsm-incident-room",
       "context": "itsm",
       "role": "domain",
       "capability": "incident-room",
@@ -5780,7 +5780,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-on-call-schedule",
+      "key": "itsm-on-call-schedule",
       "context": "itsm",
       "role": "domain",
       "capability": "on-call-schedule",
@@ -5795,7 +5795,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-postmortem",
+      "key": "itsm-postmortem",
       "context": "itsm",
       "role": "domain",
       "capability": "postmortem",
@@ -5810,7 +5810,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-service-management-service",
+      "key": "itsm-service-management-service",
       "context": "itsm",
       "role": "app",
       "capability": "service-management",
@@ -5825,7 +5825,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-itsm-status-update",
+      "key": "itsm-status-update",
       "context": "itsm",
       "role": "domain",
       "capability": "status-update",
@@ -5840,7 +5840,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-json-kernel",
+      "key": "json-kernel",
       "context": "json",
       "role": "kernel",
       "capability": "json",
@@ -5855,7 +5855,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-learning-management-course-progress-service",
+      "key": "learning-management-course-progress-service",
       "context": "learning-management",
       "role": "app",
       "capability": "course-progress",
@@ -5870,7 +5870,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-domain",
+      "key": "mail-domain",
       "context": "mail",
       "role": "domain",
       "capability": "mail",
@@ -5885,7 +5885,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-adapter-postgres",
+      "key": "mail-mailbox-store-adapter-postgres",
       "context": "mail",
       "role": "adapter",
       "capability": "mail-mailbox-store-postgres",
@@ -5904,7 +5904,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-api",
+      "key": "mail-mailbox-store-api",
       "context": "mail",
       "role": "domain",
       "capability": "mail-mailbox-store",
@@ -5923,7 +5923,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-app",
+      "key": "mail-mailbox-store-app",
       "context": "mail",
       "role": "app",
       "capability": "mailbox-store-write-orchestration",
@@ -5941,7 +5941,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-grpc",
+      "key": "mail-mailbox-store-grpc",
       "context": "mail",
       "role": "grpc",
       "capability": "mail-mailbox-store",
@@ -5959,7 +5959,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-rest",
+      "key": "mail-mailbox-store-rest",
       "context": "mail",
       "role": "rest",
       "capability": "mail-mailbox-store",
@@ -5978,7 +5978,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-mail-mailbox-store-usecase",
+      "key": "mail-mailbox-store-usecase",
       "context": "mail",
       "role": "usecase",
       "capability": "mail-mailbox-store",
@@ -5997,7 +5997,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-managed-k8s-cluster-lifecycle-api",
+      "key": "managed-k8s-cluster-lifecycle-api",
       "context": "managed-k8s-cluster-lifecycle",
       "role": "adapter",
       "capability": "managed-k8s-cluster-lifecycle-quota-before-provisioning",
@@ -6024,7 +6024,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-cluster-lifecycle-app",
+      "key": "managed-k8s-cluster-lifecycle-app",
       "context": "managed-k8s-cluster-lifecycle",
       "role": "app",
       "capability": "managed-k8s-cluster-lifecycle-composition-root",
@@ -6050,7 +6050,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-cluster-lifecycle-kernel",
+      "key": "managed-k8s-cluster-lifecycle-kernel",
       "context": "managed-k8s-cluster-lifecycle",
       "role": "kernel",
       "capability": "managed-k8s-cluster-lifecycle-request-validation",
@@ -6075,7 +6075,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-control-plane-host-adapter-capi",
+      "key": "managed-k8s-control-plane-host-adapter-capi",
       "context": "managed-k8s-control-plane-host",
       "role": "adapter",
       "capability": "managed-k8s-control-plane-host-capi-adapter",
@@ -6103,7 +6103,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-control-plane-host-adapter-inmemory",
+      "key": "managed-k8s-control-plane-host-adapter-inmemory",
       "context": "managed-k8s-control-plane-host",
       "role": "adapter",
       "capability": "managed-k8s-control-plane-host-inmemory-adapter",
@@ -6129,7 +6129,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-control-plane-host-api",
+      "key": "managed-k8s-control-plane-host-api",
       "context": "managed-k8s-control-plane-host",
       "role": "api",
       "capability": "managed-k8s-control-plane-provisioning-port",
@@ -6155,7 +6155,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-control-plane-host-app",
+      "key": "managed-k8s-control-plane-host-app",
       "context": "managed-k8s-control-plane-host",
       "role": "app",
       "capability": "managed-k8s-control-plane-host-composition-root",
@@ -6185,7 +6185,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-control-plane-host-kernel",
+      "key": "managed-k8s-control-plane-host-kernel",
       "context": "managed-k8s-control-plane-host",
       "role": "kernel",
       "capability": "managed-k8s-control-plane-host-tier-status-state-machine",
@@ -6212,7 +6212,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-sla-observability-adapter-inmemory",
+      "key": "managed-k8s-sla-observability-adapter-inmemory",
       "context": "managed-k8s-sla-observability",
       "role": "adapter",
       "capability": "managed-k8s-sla-inmemory-snapshot-store",
@@ -6239,7 +6239,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-sla-observability-api",
+      "key": "managed-k8s-sla-observability-api",
       "context": "managed-k8s-sla-observability",
       "role": "api",
       "capability": "managed-k8s-sla-observability-port",
@@ -6266,7 +6266,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-sla-observability-app",
+      "key": "managed-k8s-sla-observability-app",
       "context": "managed-k8s-sla-observability",
       "role": "app",
       "capability": "managed-k8s-sla-observability-composition",
@@ -6293,7 +6293,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-sla-observability-kernel",
+      "key": "managed-k8s-sla-observability-kernel",
       "context": "managed-k8s-sla-observability",
       "role": "kernel",
       "capability": "managed-k8s-sla-golden-signal-computation",
@@ -6320,7 +6320,7 @@
       ]
     },
     {
-      "key": "oya-managed-k8s-tenant-quota-adapter-cedar",
+      "key": "managed-k8s-tenant-quota-adapter-cedar",
       "context": "managed-k8s-tenant-quota",
       "role": "adapter",
       "capability": "quota-rbac-cedar-authz",
@@ -6335,7 +6335,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-managed-k8s-tenant-quota-adapter-inmemory",
+      "key": "managed-k8s-tenant-quota-adapter-inmemory",
       "context": "managed-k8s-tenant-quota",
       "role": "adapter",
       "capability": "quota-store-inmemory",
@@ -6350,7 +6350,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-managed-k8s-tenant-quota-api",
+      "key": "managed-k8s-tenant-quota-api",
       "context": "managed-k8s-tenant-quota",
       "role": "api",
       "capability": "quota-decision-port",
@@ -6365,7 +6365,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-managed-k8s-tenant-quota-app",
+      "key": "managed-k8s-tenant-quota-app",
       "context": "managed-k8s-tenant-quota",
       "role": "app",
       "capability": "quota-admin-rest-api",
@@ -6380,7 +6380,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-managed-k8s-tenant-quota-kernel",
+      "key": "managed-k8s-tenant-quota-kernel",
       "context": "managed-k8s-tenant-quota",
       "role": "kernel",
       "capability": "quota-decision-evaluate",
@@ -6395,7 +6395,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-marketing-automation-campaign-journey-app",
+      "key": "marketing-automation-campaign-journey-app",
       "context": "marketing-automation",
       "role": "app",
       "capability": "campaign-journey",
@@ -6425,7 +6425,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-meet-domain",
+      "key": "meet-domain",
       "context": "meet",
       "role": "domain",
       "capability": "meet",
@@ -6440,7 +6440,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-app",
+      "key": "messenger-app",
       "context": "messenger",
       "role": "app",
       "capability": "messenger-write-orchestration",
@@ -6458,7 +6458,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-domain",
+      "key": "messenger-domain",
       "context": "messenger",
       "role": "domain",
       "capability": "messenger",
@@ -6473,7 +6473,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-message-stream-adapter-postgres",
+      "key": "messenger-message-stream-adapter-postgres",
       "context": "messenger",
       "role": "adapter",
       "capability": "messenger-message-stream-postgres",
@@ -6492,7 +6492,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-message-stream-api",
+      "key": "messenger-message-stream-api",
       "context": "messenger",
       "role": "domain",
       "capability": "messenger-message-stream",
@@ -6510,7 +6510,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-message-stream-grpc",
+      "key": "messenger-message-stream-grpc",
       "context": "messenger",
       "role": "grpc",
       "capability": "messenger-message-stream",
@@ -6528,7 +6528,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-message-stream-rest",
+      "key": "messenger-message-stream-rest",
       "context": "messenger",
       "role": "rest",
       "capability": "messenger-message-stream",
@@ -6546,7 +6546,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-messenger-message-stream-usecase",
+      "key": "messenger-message-stream-usecase",
       "context": "messenger",
       "role": "usecase",
       "capability": "messenger-message-stream",
@@ -6564,7 +6564,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-meter",
+      "key": "meter",
       "context": "metering-substrate",
       "role": "app",
       "capability": "metering",
@@ -6579,10 +6579,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-metering-application",
+      "key": "metering-application",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-metering-application",
+      "capability": "metering-application",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -6598,7 +6598,7 @@
       ]
     },
     {
-      "key": "oya-metering-domain",
+      "key": "metering-domain",
       "context": "metering",
       "role": "domain",
       "capability": "metering",
@@ -6621,7 +6621,7 @@
       ]
     },
     {
-      "key": "oya-observability-domain",
+      "key": "observability-domain",
       "context": "observability",
       "role": "domain",
       "capability": "observability",
@@ -6636,7 +6636,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-observability-tracing-adapter",
+      "key": "observability-tracing-adapter",
       "context": "observability",
       "role": "adapter",
       "capability": "observability-tracing",
@@ -6651,7 +6651,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ontology-api",
+      "key": "ontology-api",
       "context": "platform",
       "role": "api",
       "capability": "object-graph-entity",
@@ -6666,7 +6666,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ontology-domain",
+      "key": "ontology-domain",
       "context": "ontology",
       "role": "domain",
       "capability": "ontology",
@@ -6681,7 +6681,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ontology-kernel",
+      "key": "ontology-kernel",
       "context": "ontology",
       "role": "kernel",
       "capability": "ontology",
@@ -6701,7 +6701,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ontology-query-engine-domain",
+      "key": "ontology-query-engine-domain",
       "context": "ontology",
       "role": "domain",
       "capability": "knowledge-graph-query-engine",
@@ -6716,7 +6716,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ontology-query-engine-usecase",
+      "key": "ontology-query-engine-usecase",
       "context": "ontology",
       "role": "usecase",
       "capability": "knowledge-graph-query-execution",
@@ -6733,7 +6733,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-docs-portal-adapter",
+      "key": "ops-docs-portal-adapter",
       "context": "ops",
       "role": "adapter",
       "capability": "ops-docs-portal",
@@ -6748,7 +6748,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-docs-portal-application",
+      "key": "ops-docs-portal-application",
       "context": "ops",
       "role": "app",
       "capability": "ops-docs-portal",
@@ -6763,7 +6763,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-docs-portal-kernel",
+      "key": "ops-docs-portal-kernel",
       "context": "ops",
       "role": "kernel",
       "capability": "ops-docs-portal",
@@ -6778,7 +6778,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-docs-portal-rest",
+      "key": "ops-docs-portal-rest",
       "context": "ops",
       "role": "rest",
       "capability": "ops-docs-portal-rest",
@@ -6793,7 +6793,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-docs-portal-usecase",
+      "key": "ops-docs-portal-usecase",
       "context": "ops",
       "role": "app",
       "capability": "ops-docs-portal",
@@ -6808,7 +6808,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-adapter",
+      "key": "ops-workspace-shell-adapter",
       "context": "ops",
       "role": "adapter",
       "capability": "ops-workspace-shell",
@@ -6823,7 +6823,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-app",
+      "key": "ops-workspace-shell-app",
       "context": "ops",
       "role": "app",
       "capability": "ops-workspace-shell",
@@ -6838,7 +6838,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-application",
+      "key": "ops-workspace-shell-application",
       "context": "ops",
       "role": "app",
       "capability": "ops-workspace-shell",
@@ -6853,7 +6853,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-kernel",
+      "key": "ops-workspace-shell-kernel",
       "context": "ops",
       "role": "kernel",
       "capability": "ops-workspace-shell",
@@ -6868,7 +6868,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-rest",
+      "key": "ops-workspace-shell-rest",
       "context": "ops",
       "role": "rest",
       "capability": "ops-workspace-shell-rest",
@@ -6883,7 +6883,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-runtime",
+      "key": "ops-workspace-shell-runtime",
       "context": "ops",
       "role": "runtime",
       "capability": "ops-workspace-shell",
@@ -6898,7 +6898,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ops-workspace-shell-usecase",
+      "key": "ops-workspace-shell-usecase",
       "context": "ops",
       "role": "app",
       "capability": "ops-workspace-shell",
@@ -6913,7 +6913,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-payments-adapter-adyen",
+      "key": "payments-adapter-adyen",
       "context": "payments",
       "role": "adapter",
       "capability": "payments-adapter-adyen",
@@ -6938,7 +6938,7 @@
       ]
     },
     {
-      "key": "oya-payments-adapter-stripe",
+      "key": "payments-adapter-stripe",
       "context": "payments",
       "role": "adapter",
       "capability": "payments-adapter-stripe",
@@ -6963,7 +6963,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-app",
+      "key": "payments-charge-app",
       "context": "payments",
       "role": "app",
       "capability": "payments-charge-app",
@@ -6988,7 +6988,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-domain",
+      "key": "payments-charge-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-charge-domain",
@@ -7013,7 +7013,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-grpc",
+      "key": "payments-charge-grpc",
       "context": "payments",
       "role": "rest",
       "capability": "payments-charge-grpc",
@@ -7039,7 +7039,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-kernel",
+      "key": "payments-charge-kernel",
       "context": "payments",
       "role": "kernel",
       "capability": "payments-charge-kernel",
@@ -7064,7 +7064,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-rest",
+      "key": "payments-charge-rest",
       "context": "payments",
       "role": "rest",
       "capability": "payments-charge-rest",
@@ -7089,7 +7089,7 @@
       ]
     },
     {
-      "key": "oya-payments-charge-usecase",
+      "key": "payments-charge-usecase",
       "context": "payments",
       "role": "app",
       "capability": "payments-charge-usecase",
@@ -7115,7 +7115,7 @@
       ]
     },
     {
-      "key": "oya-payments-dispute-domain",
+      "key": "payments-dispute-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-dispute-domain",
@@ -7140,7 +7140,7 @@
       ]
     },
     {
-      "key": "oya-payments-dispute-usecase",
+      "key": "payments-dispute-usecase",
       "context": "payments",
       "role": "usecase",
       "capability": "payments-dispute-usecase",
@@ -7165,7 +7165,7 @@
       ]
     },
     {
-      "key": "oya-payments-kyc-kyb-domain",
+      "key": "payments-kyc-kyb-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-kyc-kyb-domain",
@@ -7192,7 +7192,7 @@
       ]
     },
     {
-      "key": "oya-payments-kyc-kyb-usecase",
+      "key": "payments-kyc-kyb-usecase",
       "context": "payments",
       "role": "usecase",
       "capability": "payments-kyc-kyb-usecase",
@@ -7219,7 +7219,7 @@
       ]
     },
     {
-      "key": "oya-payments-payout-domain",
+      "key": "payments-payout-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-payout-domain",
@@ -7244,7 +7244,7 @@
       ]
     },
     {
-      "key": "oya-payments-payout-usecase",
+      "key": "payments-payout-usecase",
       "context": "payments",
       "role": "usecase",
       "capability": "payments-payout-usecase",
@@ -7269,7 +7269,7 @@
       ]
     },
     {
-      "key": "oya-payments-refund-domain",
+      "key": "payments-refund-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-refund-domain",
@@ -7294,7 +7294,7 @@
       ]
     },
     {
-      "key": "oya-payments-refund-usecase",
+      "key": "payments-refund-usecase",
       "context": "payments",
       "role": "usecase",
       "capability": "payments-refund-usecase",
@@ -7319,7 +7319,7 @@
       ]
     },
     {
-      "key": "oya-payments-settlement-domain",
+      "key": "payments-settlement-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-settlement-domain",
@@ -7344,7 +7344,7 @@
       ]
     },
     {
-      "key": "oya-payments-settlement-worker",
+      "key": "payments-settlement-worker",
       "context": "payments",
       "role": "worker",
       "capability": "payments-settlement-worker",
@@ -7369,7 +7369,7 @@
       ]
     },
     {
-      "key": "oya-payments-subscription-domain",
+      "key": "payments-subscription-domain",
       "context": "payments",
       "role": "domain",
       "capability": "payments-subscription-domain",
@@ -7394,7 +7394,7 @@
       ]
     },
     {
-      "key": "oya-payments-subscription-usecase",
+      "key": "payments-subscription-usecase",
       "context": "payments",
       "role": "usecase",
       "capability": "payments-subscription-usecase",
@@ -7470,7 +7470,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-payroll-run-runtime",
+      "key": "payroll-run-runtime",
       "context": "payroll",
       "role": "runtime",
       "capability": "run",
@@ -7504,7 +7504,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-performance-management-review-calibration-service",
+      "key": "performance-management-review-calibration-service",
       "context": "performance-management",
       "role": "app",
       "capability": "review-calibration",
@@ -7519,7 +7519,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-plant-maintenance-domain",
+      "key": "plant-maintenance-domain",
       "context": "plant-maintenance",
       "role": "domain",
       "capability": "enterprise-asset-maintenance",
@@ -7535,7 +7535,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-plant-maintenance-work-order-app",
+      "key": "plant-maintenance-work-order-app",
       "context": "plant-maintenance",
       "role": "app",
       "capability": "work-order",
@@ -7551,7 +7551,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-audit-chain-adapter-file",
+      "key": "platform-audit-chain-adapter-file",
       "context": "platform",
       "role": "adapter",
       "capability": "audit-chain-file",
@@ -7568,7 +7568,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-audit-chain-app",
+      "key": "platform-audit-chain-app",
       "context": "platform",
       "role": "app",
       "capability": "audit-chain-event",
@@ -7586,7 +7586,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-audit-chain-kernel",
+      "key": "platform-audit-chain-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "audit-chain",
@@ -7601,10 +7601,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-cell-kernel",
+      "key": "platform-cell-kernel",
       "context": "compatibility",
       "role": "kernel",
-      "capability": "oya-platform-cell-kernel",
+      "capability": "platform-cell-kernel",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -7624,7 +7624,7 @@
       ]
     },
     {
-      "key": "oya-platform-data-boundary-kernel",
+      "key": "platform-data-boundary-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "data-boundary",
@@ -7639,7 +7639,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-dsr-app",
+      "key": "platform-dsr-app",
       "context": "platform",
       "role": "app",
       "capability": "dsr",
@@ -7667,7 +7667,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-dsr-kernel",
+      "key": "platform-dsr-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "dsr",
@@ -7685,7 +7685,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-eventing-adapter-file",
+      "key": "platform-eventing-adapter-file",
       "context": "platform",
       "role": "adapter",
       "capability": "eventing-file-outbox",
@@ -7700,7 +7700,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-eventing-app",
+      "key": "platform-eventing-app",
       "context": "platform",
       "role": "app",
       "capability": "eventing-outbox",
@@ -7715,7 +7715,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-eventing-kernel",
+      "key": "platform-eventing-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "eventing",
@@ -7732,7 +7732,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-identity-app",
+      "key": "platform-identity-app",
       "context": "platform",
       "role": "app",
       "capability": "identity-token",
@@ -7747,7 +7747,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-identity-kernel",
+      "key": "platform-identity-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "identity",
@@ -7762,10 +7762,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-metering-app",
+      "key": "platform-metering-app",
       "context": "compatibility",
       "role": "app",
-      "capability": "oya-platform-metering-app",
+      "capability": "platform-metering-app",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -7781,10 +7781,10 @@
       ]
     },
     {
-      "key": "oya-platform-metering-kernel",
+      "key": "platform-metering-kernel",
       "context": "compatibility",
       "role": "kernel",
-      "capability": "oya-platform-metering-kernel",
+      "capability": "platform-metering-kernel",
       "plane": "control",
       "slo": "no-runtime-slo",
       "data_classes_owned": [
@@ -7800,7 +7800,7 @@
       ]
     },
     {
-      "key": "oya-platform-observability-adapter-tracing",
+      "key": "platform-observability-adapter-tracing",
       "context": "platform",
       "role": "adapter",
       "capability": "observability-tracing",
@@ -7817,7 +7817,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-observability-kernel",
+      "key": "platform-observability-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "observability",
@@ -7834,7 +7834,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-policy-cedar-kernel",
+      "key": "platform-policy-cedar-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "policy-cedar",
@@ -7849,7 +7849,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-regional-pack-kernel",
+      "key": "platform-regional-pack-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "regional-pack",
@@ -7864,7 +7864,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-residency-kernel",
+      "key": "platform-residency-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "residency",
@@ -7882,7 +7882,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-secrets-adapter-file",
+      "key": "platform-secrets-adapter-file",
       "context": "platform",
       "role": "adapter",
       "capability": "secrets-file",
@@ -7899,7 +7899,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-secrets-kernel",
+      "key": "platform-secrets-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "secrets",
@@ -7916,7 +7916,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-platform-tenant-kernel",
+      "key": "platform-tenant-kernel",
       "context": "platform",
       "role": "kernel",
       "capability": "tenant",
@@ -7931,7 +7931,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-policy-cedar-api",
+      "key": "policy-cedar-api",
       "context": "platform",
       "role": "api",
       "capability": "policy-cedar",
@@ -7946,7 +7946,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-policy-cedar-domain",
+      "key": "policy-cedar-domain",
       "context": "policy",
       "role": "domain",
       "capability": "policy-cedar",
@@ -7961,7 +7961,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-procurement-source-to-pay-domain",
+      "key": "procurement-source-to-pay-domain",
       "context": "procurement",
       "role": "domain",
       "capability": "source-to-pay",
@@ -7977,7 +7977,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-production-planning-domain",
+      "key": "production-planning-domain",
       "context": "production-planning",
       "role": "domain",
       "capability": "plan-to-produce",
@@ -7993,7 +7993,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-production-planning-mrp-app",
+      "key": "production-planning-mrp-app",
       "context": "production-planning",
       "role": "app",
       "capability": "mrp",
@@ -8009,7 +8009,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-quality-management-domain",
+      "key": "quality-management-domain",
       "context": "quality-management",
       "role": "domain",
       "capability": "quality-inspection-and-notification",
@@ -8025,7 +8025,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-quality-management-inspection-app",
+      "key": "quality-management-inspection-app",
       "context": "quality-management",
       "role": "app",
       "capability": "inspection",
@@ -8041,7 +8041,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-real-estate-lease-app",
+      "key": "real-estate-lease-app",
       "context": "real-estate",
       "role": "app",
       "capability": "lease",
@@ -8057,7 +8057,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-real-estate-portfolio-domain",
+      "key": "real-estate-portfolio-domain",
       "context": "real-estate",
       "role": "domain",
       "capability": "portfolio",
@@ -8073,7 +8073,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-recordings-domain",
+      "key": "recordings-domain",
       "context": "recordings",
       "role": "domain",
       "capability": "recordings",
@@ -8088,7 +8088,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-regional-pack-api",
+      "key": "regional-pack-api",
       "context": "platform",
       "role": "api",
       "capability": "regulatory-pack-bind",
@@ -8103,7 +8103,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-regional-pack-domain",
+      "key": "regional-pack-domain",
       "context": "regional",
       "role": "domain",
       "capability": "regional-pack",
@@ -8118,7 +8118,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-residency-domain",
+      "key": "residency-domain",
       "context": "residency",
       "role": "domain",
       "capability": "residency",
@@ -8133,7 +8133,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-resolve-scorecards-app",
+      "key": "resolve-scorecards-app",
       "context": "tooling",
       "role": "worker",
       "capability": "resolve-scorecards-app",
@@ -8148,7 +8148,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-retention-domain",
+      "key": "retention-domain",
       "context": "retention",
       "role": "domain",
       "capability": "retention",
@@ -8163,7 +8163,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-retention-dsr-domain",
+      "key": "retention-dsr-domain",
       "context": "retention-dsr",
       "role": "domain",
       "capability": "retention-dsr",
@@ -8178,7 +8178,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-bench-app",
+      "key": "saas-bench-app",
       "context": "saas",
       "role": "runtime",
       "capability": "saas-bench",
@@ -8193,7 +8193,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-plugin-app",
+      "key": "saas-plugin-app",
       "context": "saas",
       "role": "app",
       "capability": "saas-plugin",
@@ -8208,7 +8208,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-plugin-marketplace",
+      "key": "saas-plugin-marketplace",
       "context": "saas",
       "role": "domain",
       "capability": "saas-plugin-marketplace",
@@ -8238,7 +8238,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-plugin-runtime",
+      "key": "saas-plugin-runtime",
       "context": "saas",
       "role": "runtime",
       "capability": "saas-plugin-runtime",
@@ -8253,7 +8253,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-workflow-app",
+      "key": "saas-workflow-app",
       "context": "saas",
       "role": "app",
       "capability": "saas-workflow",
@@ -8268,7 +8268,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-workflow-domain",
+      "key": "saas-workflow-domain",
       "context": "saas",
       "role": "domain",
       "capability": "saas-workflow",
@@ -8283,7 +8283,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-workflow-kernel",
+      "key": "saas-workflow-kernel",
       "context": "saas",
       "role": "kernel",
       "capability": "saas-workflow",
@@ -8298,7 +8298,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-crawler-domain",
+      "key": "search-crawler-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-crawler",
@@ -8313,7 +8313,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-index-inverted-domain",
+      "key": "search-index-inverted-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-index-inverted",
@@ -8328,7 +8328,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-index-vector-domain",
+      "key": "search-index-vector-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-index-vector",
@@ -8343,7 +8343,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-parser-domain",
+      "key": "search-parser-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-parser",
@@ -8358,7 +8358,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-query-domain",
+      "key": "search-query-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-query",
@@ -8373,7 +8373,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-rag-domain",
+      "key": "search-rag-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-rag",
@@ -8388,7 +8388,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-rank-domain",
+      "key": "search-rank-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-rank",
@@ -8403,7 +8403,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-search-serp-domain",
+      "key": "search-serp-domain",
       "context": "search",
       "role": "domain",
       "capability": "search-serp",
@@ -8418,7 +8418,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-secrets-domain",
+      "key": "secrets-domain",
       "context": "secrets",
       "role": "domain",
       "capability": "secrets",
@@ -8433,7 +8433,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-secrets-file-adapter",
+      "key": "secrets-file-adapter",
       "context": "secrets",
       "role": "adapter",
       "capability": "secrets",
@@ -8448,7 +8448,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-architecture-check-cli",
+      "key": "shared-architecture-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-architecture-check",
@@ -8463,7 +8463,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-audit-chain-client-kernel",
+      "key": "shared-audit-chain-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "audit-chain-client",
@@ -8478,7 +8478,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-grpc-generated-adapter",
+      "key": "shared-backbone-grpc-generated-adapter",
       "context": "shared",
       "role": "grpc",
       "capability": "backbone-tonic-prost-generated-write-plan-adapter",
@@ -8496,7 +8496,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-grpc-transport-adapter",
+      "key": "shared-backbone-grpc-transport-adapter",
       "context": "shared",
       "role": "runtime",
       "capability": "backbone-tonic-transport-loopback-adapter",
@@ -8514,7 +8514,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-proto-contracts-kernel",
+      "key": "shared-backbone-proto-contracts-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "backbone-proto3-write-contracts",
@@ -8532,7 +8532,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-rest-runtime-adapter",
+      "key": "shared-backbone-rest-runtime-adapter",
       "context": "shared",
       "role": "runtime",
       "capability": "backbone-rest-hyper-loopback-adapter",
@@ -8550,7 +8550,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backup-kernel",
+      "key": "shared-backup-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "backup",
@@ -8565,7 +8565,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-bounded-contexts-check-cli",
+      "key": "shared-bounded-contexts-check-cli",
       "context": "shared",
       "role": "cli",
       "capability": "shared-bounded-contexts-check-cli",
@@ -8589,7 +8589,7 @@
       ]
     },
     {
-      "key": "oya-shared-compliance-evidence-kernel",
+      "key": "shared-compliance-evidence-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "compliance-evidence",
@@ -8606,7 +8606,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-connector-kernel",
+      "key": "shared-connector-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "connector",
@@ -8621,7 +8621,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-cursor-pagination-kernel",
+      "key": "shared-cursor-pagination-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "cursor-pagination",
@@ -8636,7 +8636,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-email-comms-kernel",
+      "key": "shared-email-comms-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "email-comms",
@@ -8653,7 +8653,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "key": "shared-hyperscaler-metrics-adapter-otlp",
       "context": "shared",
       "role": "adapter",
       "capability": "hyperscaler-metrics-otlp-exporter-harness",
@@ -8668,7 +8668,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "key": "shared-hyperscaler-metrics-adapter-prometheus",
       "context": "shared",
       "role": "adapter",
       "capability": "hyperscaler-metrics-prometheus-impl",
@@ -8683,7 +8683,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-kernel",
+      "key": "shared-hyperscaler-metrics-kernel",
       "context": "shared",
       "role": "domain",
       "capability": "hyperscaler-metrics-trait",
@@ -8698,7 +8698,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-i18n-kernel",
+      "key": "shared-i18n-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "i18n",
@@ -8714,7 +8714,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-idempotency-key-kernel",
+      "key": "shared-idempotency-key-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "idempotency-key",
@@ -8747,7 +8747,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-oidc-client-kernel",
+      "key": "shared-oidc-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "oidc-client",
@@ -8764,7 +8764,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-olap-clickhouse-adapter",
+      "key": "shared-olap-clickhouse-adapter",
       "context": "analytics",
       "role": "adapter",
       "capability": "olap-clickhouse",
@@ -8791,7 +8791,7 @@
       ]
     },
     {
-      "key": "oya-shared-olap-client-kernel",
+      "key": "shared-olap-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "olap-client",
@@ -8806,7 +8806,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-outbox-broker-http-adapter",
+      "key": "shared-outbox-broker-http-adapter",
       "context": "shared",
       "role": "adapter",
       "capability": "transactional-outbox-http-broker-gateway-publisher-executor",
@@ -8823,7 +8823,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-outbox-pattern-kernel",
+      "key": "shared-outbox-pattern-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "outbox-pattern",
@@ -8838,7 +8838,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-postgres-command-adapter-sqlx",
+      "key": "shared-postgres-command-adapter-sqlx",
       "context": "shared",
       "role": "adapter",
       "capability": "postgres-command-sqlx-executor",
@@ -8855,7 +8855,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-postgres-command-kernel",
+      "key": "shared-postgres-command-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "postgres-command",
@@ -8872,7 +8872,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-presence-kernel",
+      "key": "shared-presence-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "presence",
@@ -8888,7 +8888,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-parity-kernel",
+      "key": "shared-protocol-parity-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "protocol-parity",
@@ -8905,7 +8905,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-transport-kernel",
+      "key": "shared-protocol-transport-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "protocol-transport-plans",
@@ -8922,7 +8922,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-transport-retry-app",
+      "key": "shared-protocol-transport-retry-app",
       "context": "shared",
       "role": "app",
       "capability": "protocol-transport-bounded-retry",
@@ -8939,7 +8939,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-realtime-transport-kernel",
+      "key": "shared-realtime-transport-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "realtime-transport",
@@ -8954,7 +8954,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-scim-server-kernel",
+      "key": "shared-scim-server-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "scim-server",
@@ -8970,7 +8970,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-semver-check-cli",
+      "key": "shared-semver-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-semver-check",
@@ -8985,7 +8985,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-supply-chain-check-cli",
+      "key": "shared-supply-chain-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-supply-chain-check",
@@ -9000,7 +9000,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-tenant-quota-kernel",
+      "key": "shared-tenant-quota-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "tenant-quota",
@@ -9015,7 +9015,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-timeseries-kernel",
+      "key": "shared-timeseries-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "timeseries",
@@ -9030,7 +9030,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-tracing-client-kernel",
+      "key": "shared-tracing-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "tracing-client",
@@ -9045,7 +9045,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-adapter-sqlx",
+      "key": "shared-transactional-outbox-adapter-sqlx",
       "context": "shared",
       "role": "adapter",
       "capability": "transactional-outbox-sqlx-drain",
@@ -9062,7 +9062,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-dispatch-app",
+      "key": "shared-transactional-outbox-dispatch-app",
       "context": "shared",
       "role": "usecase",
       "capability": "transactional-outbox-dispatch-app",
@@ -9079,7 +9079,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-kernel",
+      "key": "shared-transactional-outbox-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "transactional-outbox-command-seam",
@@ -9096,7 +9096,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-poller-app",
+      "key": "shared-transactional-outbox-poller-app",
       "context": "shared",
       "role": "runtime",
       "capability": "transactional-outbox-bounded-poller-policy",
@@ -9113,7 +9113,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-runtime-tokio-app",
+      "key": "shared-transactional-outbox-runtime-tokio-app",
       "context": "shared",
       "role": "runtime",
       "capability": "transactional-outbox-tokio-runtime-sleeper-service-loop-supervisor",
@@ -9130,7 +9130,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-worker-app",
+      "key": "shared-transactional-outbox-worker-app",
       "context": "shared",
       "role": "app",
       "capability": "transactional-outbox-sqlx-worker-cycle",
@@ -9147,7 +9147,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-ulid-id-kernel",
+      "key": "shared-ulid-id-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "ulid-id",
@@ -9162,7 +9162,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-vector-store-kernel",
+      "key": "shared-vector-store-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "vector-store",
@@ -9177,7 +9177,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-wasm-runtime-kernel",
+      "key": "shared-wasm-runtime-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "wasm-runtime",
@@ -9192,7 +9192,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-webauthn-server-kernel",
+      "key": "shared-webauthn-server-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "webauthn-server",
@@ -9210,7 +9210,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-webhook-delivery-kernel",
+      "key": "shared-webhook-delivery-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "webhook-delivery",
@@ -9240,7 +9240,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shuffle-sharding",
+      "key": "shuffle-sharding",
       "context": "tenancy",
       "role": "kernel",
       "capability": "shuffle-sharding",
@@ -9264,7 +9264,7 @@
       ]
     },
     {
-      "key": "oya-social-app",
+      "key": "social-app",
       "context": "social",
       "role": "app",
       "capability": "social-write-orchestration",
@@ -9282,7 +9282,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-social-post-composition-adapter-postgres",
+      "key": "social-post-composition-adapter-postgres",
       "context": "social",
       "role": "adapter",
       "capability": "social-post-composition-postgres",
@@ -9301,7 +9301,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-social-post-composition-api",
+      "key": "social-post-composition-api",
       "context": "social",
       "role": "domain",
       "capability": "social-post-composition",
@@ -9319,7 +9319,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-social-post-composition-grpc",
+      "key": "social-post-composition-grpc",
       "context": "social",
       "role": "grpc",
       "capability": "social-post-composition",
@@ -9337,7 +9337,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-social-post-composition-rest",
+      "key": "social-post-composition-rest",
       "context": "social",
       "role": "rest",
       "capability": "social-post-composition",
@@ -9355,7 +9355,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-social-post-composition-usecase",
+      "key": "social-post-composition-usecase",
       "context": "social",
       "role": "usecase",
       "capability": "social-post-composition",
@@ -9373,7 +9373,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-supply-chain-planning-domain",
+      "key": "supply-chain-planning-domain",
       "context": "supply-chain-planning",
       "role": "domain",
       "capability": "enterprise-supply-chain-planning",
@@ -9389,7 +9389,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-supply-chain-planning-network-app",
+      "key": "supply-chain-planning-network-app",
       "context": "supply-chain-planning",
       "role": "app",
       "capability": "network",
@@ -9405,7 +9405,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tasks-domain",
+      "key": "tasks-domain",
       "context": "tasks",
       "role": "domain",
       "capability": "tasks",
@@ -9420,7 +9420,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenancy-api",
+      "key": "tenancy-api",
       "context": "platform",
       "role": "api",
       "capability": "tenant-create",
@@ -9435,7 +9435,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenancy-cell-assignment-kernel",
+      "key": "tenancy-cell-assignment-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-cell-assignment-kernel",
@@ -9460,7 +9460,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-data-residency-enforcer-adapter",
+      "key": "tenancy-data-residency-enforcer-adapter",
       "context": "tenancy",
       "role": "adapter",
       "capability": "tenancy-data-residency-enforcer-adapter",
@@ -9485,7 +9485,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-domain",
+      "key": "tenancy-domain",
       "context": "tenancy",
       "role": "domain",
       "capability": "tenancy",
@@ -9500,7 +9500,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenancy-dr-pairing-usecase",
+      "key": "tenancy-dr-pairing-usecase",
       "context": "tenancy",
       "role": "usecase",
       "capability": "tenancy-dr-pairing-usecase",
@@ -9525,7 +9525,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-dsr-cascade-kernel",
+      "key": "tenancy-dsr-cascade-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-dsr-cascade-kernel",
@@ -9550,7 +9550,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-isolation-policy-kernel",
+      "key": "tenancy-isolation-policy-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-isolation-policy-kernel",
@@ -9575,7 +9575,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-kernel",
+      "key": "tenancy-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy",
@@ -9590,7 +9590,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenancy-kyb-kyc-verifier-domain",
+      "key": "tenancy-kyb-kyc-verifier-domain",
       "context": "tenancy",
       "role": "domain",
       "capability": "tenancy-kyb-kyc-verifier-domain",
@@ -9617,7 +9617,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-lifecycle-locks-kernel",
+      "key": "tenancy-lifecycle-locks-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-lifecycle-locks-kernel",
@@ -9642,7 +9642,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-per-tenant-quota-usecase",
+      "key": "tenancy-per-tenant-quota-usecase",
       "context": "tenancy",
       "role": "usecase",
       "capability": "tenancy-per-tenant-quota-usecase",
@@ -9667,7 +9667,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-reserved-namespace-usecase",
+      "key": "tenancy-reserved-namespace-usecase",
       "context": "tenancy",
       "role": "usecase",
       "capability": "tenancy-reserved-namespace-usecase",
@@ -9692,7 +9692,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-sub-scope-registry-kernel",
+      "key": "tenancy-sub-scope-registry-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-sub-scope-registry-kernel",
@@ -9717,7 +9717,7 @@
       ]
     },
     {
-      "key": "oya-tenancy-tenant-lifecycle-kernel",
+      "key": "tenancy-tenant-lifecycle-kernel",
       "context": "tenancy",
       "role": "kernel",
       "capability": "tenancy-tenant-lifecycle-kernel",
@@ -9742,7 +9742,7 @@
       ]
     },
     {
-      "key": "oya-tenant-cli",
+      "key": "tenant-cli",
       "context": "tenant",
       "role": "runtime",
       "capability": "cli",
@@ -9757,7 +9757,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-api",
+      "key": "tenant-rbac-api",
       "context": "tenant-rbac",
       "role": "api",
       "capability": "tenant-rbac-governance",
@@ -9774,7 +9774,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-application",
+      "key": "tenant-rbac-application",
       "context": "tenant-rbac",
       "role": "app",
       "capability": "tenant-rbac-governance",
@@ -9789,7 +9789,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-audit-chain-emission",
+      "key": "tenant-rbac-audit-chain-emission",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "audit-chain-emission-plan",
@@ -9805,7 +9805,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-audit-chain-runtime-evidence",
+      "key": "tenant-rbac-audit-chain-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "audit-chain-runtime-evidence",
@@ -9821,7 +9821,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-auth-runtime",
+      "key": "tenant-rbac-auth-runtime",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "auth-runtime-foundation",
@@ -9837,7 +9837,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-cloud-deployment-evidence",
+      "key": "tenant-rbac-cloud-deployment-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "cloud-deployment-evidence",
@@ -9853,7 +9853,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-cloud-deployment-manifest",
+      "key": "tenant-rbac-cloud-deployment-manifest",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "cloud-deployment-manifest",
@@ -9869,7 +9869,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-cloud-readiness-gate",
+      "key": "tenant-rbac-cloud-readiness-gate",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "cloud-integration-readiness-gate",
@@ -9885,7 +9885,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-disbursement-evidence",
+      "key": "tenant-rbac-disbursement-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "disbursement-evidence-plan",
@@ -9901,7 +9901,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-domain",
+      "key": "tenant-rbac-domain",
       "context": "tenant-rbac",
       "role": "domain",
       "capability": "tenant-rbac-governance",
@@ -9917,7 +9917,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-erp-parity-map",
+      "key": "tenant-rbac-erp-parity-map",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "erp-sap-parity-composition-map",
@@ -9933,7 +9933,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-identity-provider-runtime-evidence",
+      "key": "tenant-rbac-identity-provider-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "identity-provider-runtime-evidence",
@@ -9949,7 +9949,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-identity-provider-verification",
+      "key": "tenant-rbac-identity-provider-verification",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "identity-provider-verification-plan",
@@ -9965,7 +9965,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-listener-gateway",
+      "key": "tenant-rbac-listener-gateway",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "listener-gateway-plan",
@@ -9981,7 +9981,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-listener-runtime-evidence",
+      "key": "tenant-rbac-listener-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "listener-runtime-evidence",
@@ -9997,7 +9997,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-local-inmemory-harness",
+      "key": "tenant-rbac-local-inmemory-harness",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "local-inmemory-service-harness",
@@ -10014,7 +10014,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-local-runtime-composition",
+      "key": "tenant-rbac-local-runtime-composition",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "local-runtime-composition",
@@ -10030,7 +10030,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-postgres-rls-runtime-evidence",
+      "key": "tenant-rbac-postgres-rls-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "postgres-rls-runtime-evidence-plan",
@@ -10046,7 +10046,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-postgres-rls-storage",
+      "key": "tenant-rbac-postgres-rls-storage",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "postgres-rls-storage-plan",
@@ -10062,7 +10062,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-postgres-rls-transaction-contract",
+      "key": "tenant-rbac-postgres-rls-transaction-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "postgres-rls-transaction-contract",
@@ -10078,7 +10078,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-postgres-rls-write-contract",
+      "key": "tenant-rbac-postgres-rls-write-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "postgres-rls-write-contract",
@@ -10094,7 +10094,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-runtime",
+      "key": "tenant-rbac-runtime",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-rbac-governance",
@@ -10110,7 +10110,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-slo-evidence",
+      "key": "tenant-rbac-slo-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "slo-evidence-contract",
@@ -10126,7 +10126,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-statutory-filing-evidence",
+      "key": "tenant-rbac-statutory-filing-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "statutory-filing-evidence-plan",
@@ -10142,7 +10142,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-storage-adapter-inmemory",
+      "key": "tenant-rbac-storage-adapter-inmemory",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-rbac-storage-inmemory",
@@ -10158,7 +10158,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-admission-policy",
+      "key": "tenant-rbac-tenant-admission-policy",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-admission-policy",
@@ -10174,7 +10174,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-autoscaling-contract",
+      "key": "tenant-rbac-tenant-autoscaling-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-autoscaling-contract",
@@ -10190,7 +10190,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-availability-contract",
+      "key": "tenant-rbac-tenant-availability-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-availability-contract",
@@ -10206,7 +10206,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-cost-allocation-contract",
+      "key": "tenant-rbac-tenant-cost-allocation-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-cost-allocation-contract",
@@ -10222,7 +10222,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-egress-policy-contract",
+      "key": "tenant-rbac-tenant-egress-policy-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-egress-policy-contract",
@@ -10238,7 +10238,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-image-provenance-contract",
+      "key": "tenant-rbac-tenant-image-provenance-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-image-provenance-contract",
@@ -10254,7 +10254,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-residency-contract",
+      "key": "tenant-rbac-tenant-residency-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-residency-contract",
@@ -10270,7 +10270,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-resource-quota-contract",
+      "key": "tenant-rbac-tenant-resource-quota-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-resource-quota-contract",
@@ -10286,7 +10286,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-secret-boundary-contract",
+      "key": "tenant-rbac-tenant-secret-boundary-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-secret-boundary-contract",
@@ -10302,7 +10302,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-workload-identity-contract",
+      "key": "tenant-rbac-tenant-workload-identity-contract",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-workload-identity-contract",
@@ -10318,7 +10318,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-workload-manifest",
+      "key": "tenant-rbac-tenant-workload-manifest",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-workload-manifest",
@@ -10334,7 +10334,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-tenant-workload-runtime-evidence",
+      "key": "tenant-rbac-tenant-workload-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-workload-runtime-evidence",
@@ -10350,7 +10350,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-workflow-adapter-inmemory",
+      "key": "tenant-rbac-workflow-adapter-inmemory",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "tenant-rbac-workflow-inmemory",
@@ -10366,7 +10366,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tenant-rbac-workflow-runtime-evidence",
+      "key": "tenant-rbac-workflow-runtime-evidence",
       "context": "tenant-rbac",
       "role": "runtime",
       "capability": "workflow-runtime-evidence",
@@ -10382,7 +10382,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tooling-agent-read",
+      "key": "tooling-agent-read",
       "context": "tooling",
       "role": "worker",
       "capability": "tooling-agent-read",
@@ -10397,7 +10397,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-tooling-cli-dev-runtime",
+      "key": "tooling-cli-dev-runtime",
       "context": "tooling",
       "role": "runtime",
       "capability": "dev-cli",
@@ -10412,7 +10412,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-treasury-cash-app",
+      "key": "treasury-cash-app",
       "context": "treasury",
       "role": "app",
       "capability": "cash-and-liquidity",
@@ -10428,7 +10428,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-treasury-cash-domain",
+      "key": "treasury-cash-domain",
       "context": "treasury",
       "role": "domain",
       "capability": "cash-management",
@@ -10444,7 +10444,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-trust-portal-domain",
+      "key": "trust-portal-domain",
       "context": "trust-portal",
       "role": "domain",
       "capability": "trust-portal",
@@ -10459,7 +10459,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-warehouse-fulfillment-app",
+      "key": "warehouse-fulfillment-app",
       "context": "warehouse",
       "role": "app",
       "capability": "fulfillment",
@@ -10475,7 +10475,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-warehouse-inventory-domain",
+      "key": "warehouse-inventory-domain",
       "context": "warehouse",
       "role": "domain",
       "capability": "inventory-and-warehouse-execution",
@@ -10491,7 +10491,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-whiteboard-canvas-collaboration-app",
+      "key": "whiteboard-canvas-collaboration-app",
       "context": "whiteboard",
       "role": "app",
       "capability": "canvas-collaboration",
@@ -10506,7 +10506,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-adapter",
+      "key": "workflow-engine-event-bus-adapter",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "event-bus-in-memory-preview-ports",
@@ -10524,7 +10524,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-adapter-kafka",
+      "key": "workflow-engine-event-bus-adapter-kafka",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "event-bus-kafka-plan-only-topics-producer-consumer-offsets",
@@ -10542,7 +10542,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-adapter-pulsar",
+      "key": "workflow-engine-event-bus-adapter-pulsar",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "event-bus-pulsar-plan-only-namespace-topic-producer-consumer-ack-offsets",
@@ -10560,7 +10560,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-api",
+      "key": "workflow-engine-event-bus-api",
       "context": "workflow-engine",
       "role": "api",
       "capability": "event-bus-openapi-boundary-and-problem-details",
@@ -10578,7 +10578,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-app",
+      "key": "workflow-engine-event-bus-app",
       "context": "workflow-engine",
       "role": "app",
       "capability": "event-bus-app-composition-root-and-dogfood-workload-plan-preview",
@@ -10596,7 +10596,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-domain",
+      "key": "workflow-engine-event-bus-domain",
       "context": "workflow-engine",
       "role": "domain",
       "capability": "event-bus-policy-residency-binding-and-delivery-authorization",
@@ -10614,7 +10614,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-kernel",
+      "key": "workflow-engine-event-bus-kernel",
       "context": "workflow-engine",
       "role": "kernel",
       "capability": "event-bus-cloudevents-asyncapi-source-level-planning",
@@ -10632,7 +10632,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-rest",
+      "key": "workflow-engine-event-bus-rest",
       "context": "workflow-engine",
       "role": "rest",
       "capability": "event-bus-source-level-rest-route-facade-and-problem-details",
@@ -10650,7 +10650,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-sdk",
+      "key": "workflow-engine-event-bus-sdk",
       "context": "workflow-engine",
       "role": "bindings",
       "capability": "event-bus-typed-sdk-facade-preview",
@@ -10668,7 +10668,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-usecase",
+      "key": "workflow-engine-event-bus-usecase",
       "context": "workflow-engine",
       "role": "usecase",
       "capability": "event-bus-idempotent-publish-delivery-orchestration",
@@ -10686,7 +10686,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-event-bus-worker",
+      "key": "workflow-engine-event-bus-worker",
       "context": "workflow-engine",
       "role": "worker",
       "capability": "event-bus-leased-job-worker-and-resume-throttle-preview",
@@ -10704,7 +10704,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-adapter",
+      "key": "workflow-engine-execution-engine-adapter",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "execution-engine-in-memory-preview-ports",
@@ -10722,7 +10722,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-adapter-postgres",
+      "key": "workflow-engine-execution-engine-adapter-postgres",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "execution-engine-postgres-plan-only-run-step-dispatch-timer-sql",
@@ -10740,7 +10740,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-api",
+      "key": "workflow-engine-execution-engine-api",
       "context": "workflow-engine",
       "role": "api",
       "capability": "execution-engine-source-level-command-boundary-and-http-shaped-dtos",
@@ -10758,7 +10758,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-app",
+      "key": "workflow-engine-execution-engine-app",
       "context": "workflow-engine",
       "role": "app",
       "capability": "execution-engine-source-level-app-composition-and-dogfood-workload-plan",
@@ -10776,7 +10776,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-domain",
+      "key": "workflow-engine-execution-engine-domain",
       "context": "workflow-engine",
       "role": "domain",
       "capability": "execution-engine-policy-scope-dispatch-retry-timer-binding",
@@ -10794,7 +10794,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-kernel",
+      "key": "workflow-engine-execution-engine-kernel",
       "context": "workflow-engine",
       "role": "kernel",
       "capability": "execution-engine-run-step-retry-timer-ports",
@@ -10812,7 +10812,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-rest",
+      "key": "workflow-engine-execution-engine-rest",
       "context": "workflow-engine",
       "role": "rest",
       "capability": "execution-engine-source-level-rest-route-facade",
@@ -10830,7 +10830,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-sdk",
+      "key": "workflow-engine-execution-engine-sdk",
       "context": "workflow-engine",
       "role": "bindings",
       "capability": "execution-engine-source-level-sdk-command-planning-and-in-process-preview",
@@ -10848,7 +10848,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-usecase",
+      "key": "workflow-engine-execution-engine-usecase",
       "context": "workflow-engine",
       "role": "usecase",
       "capability": "execution-engine-idempotent-port-orchestration",
@@ -10866,7 +10866,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-execution-engine-worker",
+      "key": "workflow-engine-execution-engine-worker",
       "context": "workflow-engine",
       "role": "worker",
       "capability": "execution-engine-source-level-leased-job-and-resume-throttle-worker-seam",
@@ -10884,7 +10884,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-adapter",
+      "key": "workflow-engine-state-machine-adapter",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "state-machine-in-memory-checkpoint-port",
@@ -10902,7 +10902,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-adapter-postgres",
+      "key": "workflow-engine-state-machine-adapter-postgres",
       "context": "workflow-engine",
       "role": "adapter",
       "capability": "state-machine-postgres-checkpoint-planning",
@@ -10920,7 +10920,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-api",
+      "key": "workflow-engine-state-machine-api",
       "context": "workflow-engine",
       "role": "api",
       "capability": "state-machine-transition-api-boundary",
@@ -10938,7 +10938,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-domain",
+      "key": "workflow-engine-state-machine-domain",
       "context": "workflow-engine",
       "role": "domain",
       "capability": "state-machine-transition-policy-binding",
@@ -10956,7 +10956,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-kernel",
+      "key": "workflow-engine-state-machine-kernel",
       "context": "workflow-engine",
       "role": "kernel",
       "capability": "deterministic-state-machine-transitions",
@@ -10974,7 +10974,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-state-machine-usecase",
+      "key": "workflow-engine-state-machine-usecase",
       "context": "workflow-engine",
       "role": "usecase",
       "capability": "state-machine-checkpoint-append-orchestration",
@@ -10992,7 +10992,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-api",
+      "key": "workflow-engine-trigger-orchestrator-api",
       "context": "workflow-engine",
       "role": "api",
       "capability": "trigger-orchestrator-source-level-api-boundary-and-problem-details",
@@ -11010,7 +11010,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-app",
+      "key": "workflow-engine-trigger-orchestrator-app",
       "context": "workflow-engine",
       "role": "app",
       "capability": "trigger-orchestrator-source-level-app-composition-and-dogfood-workload-plan",
@@ -11028,7 +11028,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-domain",
+      "key": "workflow-engine-trigger-orchestrator-domain",
       "context": "workflow-engine",
       "role": "domain",
       "capability": "trigger-orchestrator-policy-bound-domain-admission-and-kernel-delegation",
@@ -11046,7 +11046,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-kernel",
+      "key": "workflow-engine-trigger-orchestrator-kernel",
       "context": "workflow-engine",
       "role": "kernel",
       "capability": "trigger-orchestrator-source-level-trigger-admission-and-dispatch-plan-kernel",
@@ -11064,7 +11064,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-rest",
+      "key": "workflow-engine-trigger-orchestrator-rest",
       "context": "workflow-engine",
       "role": "rest",
       "capability": "trigger-orchestrator-source-level-rest-route-facade-and-problem-details",
@@ -11082,7 +11082,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-sdk",
+      "key": "workflow-engine-trigger-orchestrator-sdk",
       "context": "workflow-engine",
       "role": "bindings",
       "capability": "trigger-orchestrator-source-level-sdk-facade-and-in-process-preview-execution",
@@ -11100,7 +11100,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-usecase",
+      "key": "workflow-engine-trigger-orchestrator-usecase",
       "context": "workflow-engine",
       "role": "usecase",
       "capability": "trigger-orchestrator-source-level-idempotent-usecase-and-domain-delegation",
@@ -11118,7 +11118,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-engine-trigger-orchestrator-worker",
+      "key": "workflow-engine-trigger-orchestrator-worker",
       "context": "workflow-engine",
       "role": "worker",
       "capability": "trigger-orchestrator-source-level-leased-job-worker-and-retry-seam",
@@ -11136,7 +11136,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-studio-dsl-emitter-domain",
+      "key": "workflow-studio-dsl-emitter-domain",
       "context": "workflow-studio",
       "role": "domain",
       "capability": "dsl-emitter",
@@ -11153,7 +11153,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-studio-dsl-loader-domain",
+      "key": "workflow-studio-dsl-loader-domain",
       "context": "workflow-studio",
       "role": "domain",
       "capability": "dsl-loader",
@@ -11170,7 +11170,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-studio-policy-preview-domain",
+      "key": "workflow-studio-policy-preview-domain",
       "context": "workflow-studio",
       "role": "domain",
       "capability": "policy-preview",
@@ -11188,7 +11188,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workflow-studio-visual-canvas-kernel",
+      "key": "workflow-studio-visual-canvas-kernel",
       "context": "workflow-studio",
       "role": "kernel",
       "capability": "visual-canvas",
@@ -11205,7 +11205,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workplace-integration-doc-set-scaffold",
+      "key": "workplace-integration-doc-set-scaffold",
       "context": "workplace-integration",
       "role": "app",
       "capability": "doc-set-scaffold",
@@ -11220,7 +11220,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-address-book-kernel",
+      "key": "workspace-address-book-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "address-book",
@@ -11239,7 +11239,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-calendar-kernel",
+      "key": "workspace-calendar-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "calendar",
@@ -11258,7 +11258,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-chat-api",
+      "key": "workspace-chat-api",
       "context": "workspace",
       "role": "api",
       "capability": "chat",
@@ -11278,7 +11278,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-chat-kernel",
+      "key": "workspace-chat-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "chat",
@@ -11297,7 +11297,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-collab-runtime-kernel",
+      "key": "workspace-collab-runtime-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "collab-runtime",
@@ -11316,7 +11316,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-dlp-kernel",
+      "key": "workspace-dlp-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "dlp",
@@ -11334,7 +11334,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-docs-kernel",
+      "key": "workspace-docs-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "docs",
@@ -11353,7 +11353,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-document-format-kernel",
+      "key": "workspace-document-format-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "document-format",
@@ -11372,7 +11372,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-drive-api",
+      "key": "workspace-drive-api",
       "context": "workspace",
       "role": "api",
       "capability": "drive",
@@ -11392,7 +11392,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-drive-kernel",
+      "key": "workspace-drive-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "drive",
@@ -11411,7 +11411,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-dsr-kernel",
+      "key": "workspace-dsr-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "dsr",
@@ -11429,7 +11429,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-ediscovery-kernel",
+      "key": "workspace-ediscovery-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "ediscovery",
@@ -11448,7 +11448,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-forms-api",
+      "key": "workspace-forms-api",
       "context": "workspace",
       "role": "api",
       "capability": "forms",
@@ -11468,7 +11468,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-forms-kernel",
+      "key": "workspace-forms-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "forms",
@@ -11487,7 +11487,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-mail-kernel",
+      "key": "workspace-mail-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "mail",
@@ -11506,7 +11506,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-meet-api",
+      "key": "workspace-meet-api",
       "context": "workspace",
       "role": "api",
       "capability": "meet",
@@ -11526,7 +11526,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-meet-kernel",
+      "key": "workspace-meet-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "meet",
@@ -11545,7 +11545,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-notes-kernel",
+      "key": "workspace-notes-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "notes",
@@ -11564,7 +11564,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-recordings-kernel",
+      "key": "workspace-recordings-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "recordings",
@@ -11582,7 +11582,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-retention-kernel",
+      "key": "workspace-retention-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "retention",
@@ -11600,7 +11600,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-sheets-kernel",
+      "key": "workspace-sheets-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "sheets",
@@ -11619,7 +11619,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-sites-kernel",
+      "key": "workspace-sites-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "sites",
@@ -11638,7 +11638,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-slides-kernel",
+      "key": "workspace-slides-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "slides",
@@ -11657,7 +11657,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-tasks-kernel",
+      "key": "workspace-tasks-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "tasks",
@@ -11676,7 +11676,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-translate-kernel",
+      "key": "workspace-translate-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "translate",
@@ -11694,7 +11694,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-trust-portal-kernel",
+      "key": "workspace-trust-portal-kernel",
       "context": "workspace",
       "role": "kernel",
       "capability": "trust-portal",
@@ -11712,7 +11712,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-xtask-metadata-augment-app",
+      "key": "xtask-metadata-augment-app",
       "context": "xtask",
       "role": "app",
       "capability": "metadata-augment",

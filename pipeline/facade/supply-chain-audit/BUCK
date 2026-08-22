@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "//libs/advisory-mirror-kernel:advisory-mirror-kernel",
         "third-party//:semver",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -13,13 +13,13 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-supply-chain-audit-app-bin",
+    name = "cloud-ci-supply-chain-audit-app-bin",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-supply-chain-audit",
-        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "//libs/advisory-mirror-kernel:advisory-mirror-kernel",
         "third-party//:semver",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -33,7 +33,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "//libs/advisory-mirror-kernel:advisory-mirror-kernel",
         "third-party//:semver",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -59,7 +59,7 @@ rust_test(
     deps = [
         ":ci-supply-chain-audit",
         "//pipeline/facade/scm-facts-snapshot:ci-scm-facts-snapshot-lib",
-        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "//libs/advisory-mirror-kernel:advisory-mirror-kernel",
         "third-party//:semver",
         "third-party//:serde_json",
         "third-party//:tempfile",

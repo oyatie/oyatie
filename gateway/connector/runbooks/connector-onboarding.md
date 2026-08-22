@@ -24,7 +24,7 @@ doc_status: published
 ## C. Procedure
 
 1. **Catalog entry** — author `catalog/connectors/<name>.yaml` per `connector-catalog-schema.json`.
-2. **Adapter implementation** — Rust crate at `src/crates/oya-connector-adapters/<name>/` implementing the canonical adapter trait.
+2. **Adapter implementation** — Rust crate at `src/crates/connector-adapters/<name>/` implementing the canonical adapter trait.
 3. **Tests** — unit + property + real-vendor-sandbox integration (gated by Cedar `ci-scope.cedar`).
 4. **Cosign sign** — adapter binary signed via sigstore keyless OIDC.
 5. **Catalog publish** — submit to marketplace ingest per `marketplace/PRD.md`.
@@ -34,7 +34,7 @@ doc_status: published
 
 ## D. Verification
 
-- Adapter passes `oya-governance-connector-conformance` lane (action shape, error mapping, observability emission).
+- Adapter passes `governance-connector-conformance` lane (action shape, error mapping, observability emission).
 - Real-vendor-sandbox integration tests pass.
 - Catalog entry appears in tenant-facing search.
 

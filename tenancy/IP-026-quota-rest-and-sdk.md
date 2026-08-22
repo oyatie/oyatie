@@ -15,15 +15,15 @@ related_adrs: [ADR-0253, ADR-0258, ADR-0243, ADR-0263]
 
 ## B. Approach
 
-Extend tenancy REST and Rust SDK surfaces with quota read/update operations backed by `oya-tenancy-per-tenant-quota-usecase`. The API returns both configured and effective quota values, explains tier and pack sources, and emits audit-chain events for every mutation or hard-limit breach.
+Extend tenancy REST and Rust SDK surfaces with quota read/update operations backed by `tenancy-per-tenant-quota-usecase`. The API returns both configured and effective quota values, explains tier and pack sources, and emits audit-chain events for every mutation or hard-limit breach.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
 | `microservices/tenancy/contracts/openapi/tenancy.yaml` | update | Add quota routes and schemas. |
-| `microservices/tenancy/src/crates/oya-tenancy-quota-rest/Cargo.toml` | create | REST crate. |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-sdk/src/quota.rs` | update/create | Rust SDK quota client. |
+| `microservices/tenancy/src/crates/tenancy-quota-rest/Cargo.toml` | create | REST crate. |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-sdk/src/quota.rs` | update/create | Rust SDK quota client. |
 | `src/routes.rs` | create | REST handlers for read/update. |
 | `src/sdk_contract_tests.rs` | create | SDK/OpenAPI compatibility tests. |
 | `microservices/tenancy/capabilities/quota-update.yaml` | align | Capability references API and SDK. |
@@ -40,7 +40,7 @@ Extend tenancy REST and Rust SDK surfaces with quota read/update operations back
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-quota-rest --all-features`.
+- `cargo nextest run -p tenancy-quota-rest --all-features`.
 - OpenAPI validates with quota routes and schemas.
 - SDK contract tests prove no mismatch between OpenAPI quota class enum and Rust SDK enum.
 - Cedar-denied update emits `oya.tenancy.quota-update-denied`; accepted update emits `oya.tenancy.quota-updated`.
@@ -65,4 +65,4 @@ Extend tenancy REST and Rust SDK surfaces with quota read/update operations back
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-026-quota-rest-and-sdk.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-026-quota-rest-and-sdk.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

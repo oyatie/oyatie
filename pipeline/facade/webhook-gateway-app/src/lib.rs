@@ -16,7 +16,7 @@
 //! 4. `route_github_event` → `CiTriggerEvent`.
 //! 5. Replay guard: check + record the delivery key after verify, authz, and routing.
 //!    A replay within the TTL short-circuits with a benign 200 idempotent ack.
-//! 6. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
+//! 6. GitHub `post_all` queued statuses (CI system dispatches asynchronously via ci).
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -206,7 +206,7 @@ async fn handle_github_webhook(
     }
 
     // Step 5 — post queued statuses to GitHub.
-    // The oya-ci pipeline picks up the event asynchronously and posts final statuses.
+    // The ci pipeline picks up the event asynchronously and posts final statuses.
     if let Err(e) = state.status_poster.post_all(
         &state.github_owner,
         &state.github_repo,

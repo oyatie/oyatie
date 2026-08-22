@@ -141,8 +141,8 @@
   "cloud_ops_foundation": {
     "schema_version": 1,
     "evidence_guardrail": "CloudOpsFoundationGuardrail",
-    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
-    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+    "guardrail_file": "crates/cloud-capacity-domain/src/lib.rs",
+    "guardrail_tests": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
     "evidence_prefixes": {
       "capacity": "evidence/cloud-ops/capacity/",
       "cell": "evidence/cloud-ops/cell/",
@@ -219,9 +219,9 @@
       "name": "cloud-finops-local-foundation",
       "description": "Code-backed local foundation for FinOps rate cards, allocation rules, budget thresholds, report generation, anomalies, recommendations, kernel orchestration, and API boundary tests. No portal UI, OpenCost ingest, FOCUS export runtime, Mimir/Prometheus federation, invoice PDF renderer, database, measured SLO, active-active DR, or audit-chain persistence is claimed.",
       "crates": [
-        "oya-cloud-finops-domain",
-        "oya-cloud-finops-kernel",
-        "oya-cloud-finops-api"
+        "cloud-finops-domain",
+        "cloud-finops-kernel",
+        "cloud-finops-api"
       ]
     }
   ],
@@ -250,25 +250,25 @@
     {
       "tier": "T2",
       "name": "rate-card-allocation-budget-report-domain-invariants",
-      "file": "crates/oya-cloud-finops-domain/src/lib.rs",
+      "file": "crates/cloud-finops-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "finops-kernel-report-and-budget-orchestration",
-      "file": "crates/oya-cloud-finops-kernel/src/lib.rs",
+      "file": "crates/cloud-finops-kernel/src/lib.rs",
       "risk_class": "medium"
     },
     {
       "tier": "T2",
       "name": "finops-report-api-boundary",
-      "file": "crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs",
+      "file": "crates/cloud-finops-api/tests/cloud_finops_report_api.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "cloud-ops-finops-evidence-scope-guardrail",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
       "risk_class": "high"
     }
   ],
@@ -277,7 +277,7 @@
       "id": "CS-CLOUD-OPS-FOUNDATION-001",
       "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     }
   ],
   "finops_exports": {

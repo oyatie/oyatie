@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "treasury",
     "bounded_context": "cash-management",
-    "crate_prefix": "oya-treasury-cash",
-    "primary_crate": "microservices/treasury/crates/oya-treasury-cash-domain",
+    "crate_prefix": "treasury-cash",
+    "primary_crate": "microservices/treasury/crates/treasury-cash-domain",
     "product_id": "treasury",
     "owning_axis": "axis-enterprise"
   },
@@ -44,35 +44,35 @@
       "given": "a bank account is approved for treasury cash management",
       "when": "the treasury cash domain approves the account",
       "then": "tenant, legal entity, bank, currency, bank-account master ref, opening-balance evidence, control evidence, target balance, idempotency key, approval timestamp, state, and schema version are present",
-      "test_ref": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::approved_bank_account_records_cash_position_and_transfer_proposal"
+      "test_ref": "microservices/treasury/crates/treasury-cash-domain/tests/cash_position.rs::approved_bank_account_records_cash_position_and_transfer_proposal"
     },
     {
       "id": "AC-02",
       "given": "bank statement and exposure-flow evidence exist for an approved bank account",
       "when": "cash position is recorded",
       "then": "opening balance, actual inflow, actual outflow, computed closing balance, statement evidence, exposure-flow ref, position date, and false payment/bank-network/cloud/runtime-audit flags are present",
-      "test_ref": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::approved_bank_account_records_cash_position_and_transfer_proposal"
+      "test_ref": "microservices/treasury/crates/treasury-cash-domain/tests/cash_position.rs::approved_bank_account_records_cash_position_and_transfer_proposal"
     },
     {
       "id": "AC-03",
       "given": "a recorded cash position is available for liquidity planning",
       "when": "liquidity forecast projection runs",
       "then": "horizon, forecasted inflow/outflow, minimum liquidity target, projected closing balance, breach flag, shortfall amount, source ref, and evidence ref are deterministic",
-      "test_ref": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::{approved_bank_account_records_cash_position_and_transfer_proposal,treasury_refuses_unapproved_bank_account_and_missing_cash_position}"
+      "test_ref": "microservices/treasury/crates/treasury-cash-domain/tests/cash_position.rs::{approved_bank_account_records_cash_position_and_transfer_proposal,treasury_refuses_unapproved_bank_account_and_missing_cash_position}"
     },
     {
       "id": "AC-04",
       "given": "a source account has surplus and a target account has a liquidity need",
       "when": "cash transfer proposal metadata is produced",
       "then": "source/target accounts, amount, cash-pool ref, approval/proposal evidence, source surplus after transfer, target shortfall before transfer, and false payment/bank-network/cloud flags are present without executing funds movement",
-      "test_ref": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::{approved_bank_account_records_cash_position_and_transfer_proposal,treasury_refuses_currency_mismatch_and_insufficient_source_surplus,treasury_validates_refs_dates_money_and_transfer_need}"
+      "test_ref": "microservices/treasury/crates/treasury-cash-domain/tests/cash_position.rs::{approved_bank_account_records_cash_position_and_transfer_proposal,treasury_refuses_currency_mismatch_and_insufficient_source_surplus,treasury_validates_refs_dates_money_and_transfer_need}"
     },
     {
       "id": "AC-05",
       "given": "untrusted identifiers, dates, source refs, evidence refs, or money values enter the treasury domain",
       "when": "domain validation runs",
       "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, invalid dates, invalid horizons, lowercase currency codes, currency mismatches, same-account transfers, insufficient surplus, and no-need transfers are refused",
-      "test_ref": "microservices/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs::treasury_validates_refs_dates_money_and_transfer_need"
+      "test_ref": "microservices/treasury/crates/treasury-cash-domain/tests/cash_position.rs::treasury_validates_refs_dates_money_and_transfer_need"
     }
   ],
   "decision_log": [
@@ -116,7 +116,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/treasury/crates/oya-treasury-cash-domain",
+    "primary_crate_ref": "microservices/treasury/crates/treasury-cash-domain",
     "entities_ref": [
       {
         "entity": "Cash",

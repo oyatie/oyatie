@@ -92,7 +92,7 @@ fn cloud_deployment_evidence_plan_preserves_evidence_ref_boundaries() {
             .starts_with("evidence/cloud-deployment/tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-cloud-deployment-manifest/")
+                .starts_with("crates/tenant-rbac-cloud-deployment-manifest/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.requires_tenant_namespace
             && !requirement.runtime_evidence_attached

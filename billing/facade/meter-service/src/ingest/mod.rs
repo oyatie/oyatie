@@ -1,5 +1,5 @@
-//! ingest subsystem for oya-meter.
+//! ingest subsystem for meter.
 //!
 //! Hyperscaler pattern per ADR-0509: subsystem mod within single service crate.
 
-// TODO(ADR-0479): implement ingest per oya-meter feature parity table
+// TODO(ADR-0479): implement ingest per meter feature parity table

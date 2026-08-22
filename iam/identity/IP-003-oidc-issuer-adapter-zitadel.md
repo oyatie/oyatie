@@ -12,17 +12,17 @@ owner_team: axis-identity
 
 ## Goal
 
-Wire the `oya-shared-oidc-client-kernel` trait to a concrete Zitadel-talking adapter that fetches JWKS via Zitadel `/oauth/v2/keys`, verifies RS256 / ES256 with `aws-lc-rs`, caches JWKS for 24h with on-miss refresh, exposes JWKS refresh hook for emergency rotation, and emits audit events for verification failures that have security significance (signature-invalid, expired, audience-mismatch).
+Wire the `shared-oidc-client-kernel` trait to a concrete Zitadel-talking adapter that fetches JWKS via Zitadel `/oauth/v2/keys`, verifies RS256 / ES256 with `aws-lc-rs`, caches JWKS for 24h with on-miss refresh, exposes JWKS refresh hook for emergency rotation, and emits audit events for verification failures that have security significance (signature-invalid, expired, audience-mismatch).
 
 ## Files to create
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-oidc-issuer-adapter-zitadel/Cargo.toml` | adapter crate manifest; deps: `aws-lc-rs`, `reqwest`, kernel |
-| `crates/oya-identity-oidc-issuer-adapter-zitadel/src/lib.rs` | `ZitadelOidcAdapter` implementing `OidcClient` |
-| `crates/oya-identity-oidc-issuer-adapter-zitadel/src/jwks_cache.rs` | TTL'd cache with refresh-on-miss |
-| `crates/oya-identity-oidc-issuer-adapter-zitadel/src/aws_lc_verifier.rs` | `JwsVerifier` impl using aws-lc-rs |
-| `crates/oya-identity-oidc-issuer-adapter-zitadel/tests/zitadel_adapter.rs` | integration tests with mock Zitadel server |
+| `crates/identity-oidc-issuer-adapter-zitadel/Cargo.toml` | adapter crate manifest; deps: `aws-lc-rs`, `reqwest`, kernel |
+| `crates/identity-oidc-issuer-adapter-zitadel/src/lib.rs` | `ZitadelOidcAdapter` implementing `OidcClient` |
+| `crates/identity-oidc-issuer-adapter-zitadel/src/jwks_cache.rs` | TTL'd cache with refresh-on-miss |
+| `crates/identity-oidc-issuer-adapter-zitadel/src/aws_lc_verifier.rs` | `JwsVerifier` impl using aws-lc-rs |
+| `crates/identity-oidc-issuer-adapter-zitadel/tests/zitadel_adapter.rs` | integration tests with mock Zitadel server |
 
 ## Adapter responsibilities
 

@@ -8,9 +8,9 @@ disable_skills = true
 omitted_hook_events = ["SubagentStart","SubagentStop","PreCompact","PreToolUse","PostToolUse"]
 
 [[mcp_servers]]
-name = "oya-mcp-gateway"
+name = "mcp-gateway"
 transport = "Stdio"
-command_or_url = "$WORKSPACE_ROOT/target/release/oya-mcp-gateway"
+command_or_url = "$WORKSPACE_ROOT/target/release/mcp-gateway"
 
 [[permissions]]
 rule = "Bash(grit *)"

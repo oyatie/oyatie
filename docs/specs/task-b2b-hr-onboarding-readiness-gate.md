@@ -2,7 +2,7 @@
 
 **Vertical:** b2b  
 **Lane:** b2b-hr-onboarding-readiness-gate  
-**Crate (sole owner):** `oya-hr-employment-domain`  
+**Crate (sole owner):** `hr-employment-domain`  
 **ADR authority:** ADR-0509 (flat single-crate per service, mod-based subsystems)  
 **Stage authored:** SPEC (2026-05-29)
 
@@ -10,7 +10,7 @@
 
 ## Objective
 
-Extend the `oya-hr-employment-domain` pure-domain crate with a pre-hire onboarding readiness slice. The slice models a checklist of mandatory onboarding items (right-to-work/I-9 verification, background-check clearance, equipment and access provisioning, mandatory training) and a day-one gate that evaluates whether all mandatory items are cleared with audit evidence before an employee may transition to EMPLOYED. No storage, REST, gRPC, workflow dispatch, or new workspace members are introduced.
+Extend the `hr-employment-domain` pure-domain crate with a pre-hire onboarding readiness slice. The slice models a checklist of mandatory onboarding items (right-to-work/I-9 verification, background-check clearance, equipment and access provisioning, mandatory training) and a day-one gate that evaluates whether all mandatory items are cleared with audit evidence before an employee may transition to EMPLOYED. No storage, REST, gRPC, workflow dispatch, or new workspace members are introduced.
 
 ---
 
@@ -57,10 +57,10 @@ Error variants added to `HrDomainError`:
 
 ## Module Layout (flat clean-arch, ADR-0509)
 
-All new code lives inside `crates/oya-hr-employment-domain/src/lib.rs` following the codebase pattern of a single flat file with domain types + evaluator fns. No new modules or files are introduced in `src/`.
+All new code lives inside `crates/hr-employment-domain/src/lib.rs` following the codebase pattern of a single flat file with domain types + evaluator fns. No new modules or files are introduced in `src/`.
 
 ```
-crates/oya-hr-employment-domain/
+crates/hr-employment-domain/
   src/
     lib.rs          ← new types + evaluate_onboarding_readiness fn appended here
   tests/
@@ -96,7 +96,7 @@ crates/oya-hr-employment-domain/
 
 ## Testing Strategy
 
-File: `crates/oya-hr-employment-domain/tests/onboarding.rs`
+File: `crates/hr-employment-domain/tests/onboarding.rs`
 
 | Case | Expected outcome |
 |------|-----------------|
@@ -111,7 +111,7 @@ File: `crates/oya-hr-employment-domain/tests/onboarding.rs`
 | Invalid `legal_entity_id` | `Err(InvalidLegalEntityId)` |
 | Cleared mandatory item, `evidence_ref = None` | `Err(OnboardingItemNotCleared)` |
 
-Gate command: `cargo nextest run -p oya-hr-employment-domain`
+Gate command: `cargo nextest run -p hr-employment-domain`
 
 ---
 

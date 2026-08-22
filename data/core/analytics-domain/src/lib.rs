@@ -30,7 +30,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-pub use oya_shared_olap_client_kernel::{
+pub use shared_olap_client_kernel::{
     Aggregate, Filter, KernelError, OrderBy, OrderDir, QualifiedTable, Query, Row, TableName,
     TenantId, Value,
 };

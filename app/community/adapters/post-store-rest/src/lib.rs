@@ -11,10 +11,10 @@ use community_post_store_app::{
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
 use community_post_store_usecase::{CommunityUsecaseError, cast_vote, create_post, moderate_post};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const CREATE_POST_ROUTE: &str = "/spaces/{space_id}/posts";
 pub const CREATE_POST_METHOD: &str = "POST";
@@ -726,22 +726,22 @@ mod tests {
         );
         for binding in bindings {
             assert_eq!(binding.microservice, COMMUNITY_REST_MICROSERVICE);
-            assert_eq!(binding.request_total_metric, "oya_community_request_total");
+            assert_eq!(binding.request_total_metric, "community_request_total");
             assert_eq!(
                 binding.request_success_metric,
-                "oya_community_request_success_total"
+                "community_request_success_total"
             );
             assert_eq!(
                 binding.responses_total_metric,
-                "oya_community_responses_total"
+                "community_responses_total"
             );
             assert_eq!(
                 binding.responses_5xx_metric,
-                "oya_community_responses_5xx_total"
+                "community_responses_5xx_total"
             );
             assert_eq!(
                 binding.responses_429_metric,
-                "oya_community_responses_429_total"
+                "community_responses_429_total"
             );
         }
     }

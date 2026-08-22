@@ -13,7 +13,7 @@ info:
   license:
     name: Apache-2.0
 servers:
-  - url: http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099
+  - url: http://ci-webhook-gateway.ci.svc.cluster.local:8099
     description: In-cluster mesh address (TLS terminates at ingress).
 paths:
   /webhook/github:
@@ -111,10 +111,10 @@ components:
         snapshot_id:
           type: [string, "null"]
           description: Present for issue/claim-ref push board snapshot refresh dispatches.
-        kicked_through: { type: string, example: "oya-board-projection" }
+        kicked_through: { type: string, example: "board-projection" }
         trusted_runner_owns_from:
           type: [string, "null"]
-          example: "oya-pr-review"
+          example: "pr-review"
         delivery: { type: string }
     IgnoredResponse:
       type: object

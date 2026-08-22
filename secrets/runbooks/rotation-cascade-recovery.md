@@ -12,7 +12,7 @@ severity_default: Sev-2
 ## When to use
 
 - `RotationOverdue` event fired.
-- `oya_cloud_secrets_rotation_overdue_total > 0` for ≥5 min.
+- `cloud_secrets_rotation_overdue_total > 0` for ≥5 min.
 - Cascade rotation stuck (parent rotated; dependents not catching up).
 - Scheduler worker pod crash-looping.
 
@@ -21,7 +21,7 @@ severity_default: Sev-2
 ### Step 1 — Identify
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- list-overdue \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- list-overdue \
     --pack <pack> --since "1 hour ago"
 ```
 
@@ -36,7 +36,7 @@ Common causes:
 ### Step 3 — Manual rotation (after diagnosis)
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- rotate \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- rotate \
     --path "secret/<tenant>/<microservice>/<name>" \
     --priority high \
     --reason "manual-recovery"
@@ -51,7 +51,7 @@ Cascade dependencies: KEK → DEKs → derived signing keys → API keys. A cycl
 ### Step 1 — Examine cascade DAG
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- cascade-dag \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- cascade-dag \
     --root "secret/<tenant>/<microservice>/<name>" \
     --visualize
 ```
@@ -65,7 +65,7 @@ Options:
 - Or, break cycle if true cycle detected (file bug; should be impossible at scheduler-design level).
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- override-rotation-state \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- override-rotation-state \
     --path "secret/<tenant>/<microservice>/<name>" \
     --to-state "completed" \
     --justification "<text>" \
@@ -76,7 +76,7 @@ cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- override-rotation-s
 ### Step 3 — Re-trigger dependents
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- cascade-retry \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- cascade-retry \
     --root "secret/<tenant>/<microservice>/<name>"
 ```
 
@@ -115,7 +115,7 @@ Monitor:
 kubectl -n cloud-secrets-<pack> get pods -l app=key-rotation-scheduler -w
 
 # Queue depth
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
 ```
 
 ## §D — Rotation storm (too many concurrent rotations)
@@ -125,14 +125,14 @@ If many secrets become due simultaneously (e.g., after a long rotation pause):
 ### Step 1 — Throttle
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- set-concurrency \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- set-concurrency \
     --pack <pack> --max 50  # tune based on observed HSM headroom
 ```
 
 ### Step 2 — Drain in priority order
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- drain-queue \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- drain-queue \
     --pack <pack> \
     --order-by priority,due_at
 ```
@@ -142,7 +142,7 @@ cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- drain-queue \
 Verify scheduler config has `±10% jitter` enabled to prevent recurrence.
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- config show --pack <pack> | grep jitter
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- config show --pack <pack> | grep jitter
 ```
 
 If absent, file PR to enable.
@@ -151,15 +151,15 @@ If absent, file PR to enable.
 
 ```bash
 # No overdue rotations
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- list-overdue --pack <pack>
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- list-overdue --pack <pack>
 # Expect: empty
 
 # Scheduler queue drained
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- queue-depth --pack <pack>
 # Expect: < 10
 
 # Audit-chain has RotationCompleted events for each
-cargo run -p oya-audit-chain-app -- query --event-type SecretRotated --since "1 hour ago" --pack <pack>
+cargo run -p audit-chain-app -- query --event-type SecretRotated --since "1 hour ago" --pack <pack>
 ```
 
 ## References

@@ -37,7 +37,7 @@ capabilities:
     cross_tenant_consultation:
       allowed: yes-when-cedar-admits
       surface: free/busy projection only — NEVER raw event content
-      rule: oya-calendar-availability-resolver-domain enforces FreeBusyProjection minimum-necessary (PRD AC-02)
+      rule: calendar-availability-resolver-domain enforces FreeBusyProjection minimum-necessary (PRD AC-02)
     model:
       primary: tenant-default-llm (platform-runtime managed) for slot ranking
       fallback: rule-based heuristic (next-3-business-hours)
@@ -126,7 +126,7 @@ verification:
   - All T0 suggestions emit a Cedar-evaluable principal/action/resource triple to `policy/tenant-scope.cedar` BEFORE model invocation.
   - All T0 suggestions emit an audit-chain event (Ed25519-sealed; non-content payload only) on suggestion-shown + suggestion-accepted.
   - All T0 suggestions are labelled per EU AI Act Art. 50 in the UI surface.
-  - All T0 suggestions respect dual-context isolation: Personal-context suggestions NEVER consult Professional-context data; Professional-context suggestions NEVER consult Personal-context data. Enforced at `oya-calendar-availability-resolver-domain` per PRD AC-07.
+  - All T0 suggestions respect dual-context isolation: Personal-context suggestions NEVER consult Professional-context data; Professional-context suggestions NEVER consult Personal-context data. Enforced at `calendar-availability-resolver-domain` per PRD AC-07.
   - T0 suggestions do NOT create, modify, or delete events without explicit user action.
 
 references:

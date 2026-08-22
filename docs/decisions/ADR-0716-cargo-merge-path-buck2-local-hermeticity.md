@@ -18,20 +18,20 @@ milestone: W0
 deliverables:
   - id: ADR-0716-D1
     description: "Rewrite the required CI as a cargo-graph workflow: lint (fmt + clippy), test (materialize faces + cargo test --workspace), two live-postgres lanes, and the zero-build fan-in. All job/step names are self-explanatory, debranded, and carry no ADR or PR numbers."
-    exit_criteria: "The workflow contains no buck2 build/test verdict steps (buck2 appears only as the face materializer's internal helper, installed digest-pinned), no serial producer barrier, no affected-set baselines, and no artifact upload/download; swatinem/rust-cache with a shared key warms every lane. Warm PR wall clock is under 15 minutes (measured on two consecutive green runs), and the single protected oya-ci-required context is produced by the fan-in job only."
-    verified_by: "oya-ci-required"
+    exit_criteria: "The workflow contains no buck2 build/test verdict steps (buck2 appears only as the face materializer's internal helper, installed digest-pinned), no serial producer barrier, no affected-set baselines, and no artifact upload/download; swatinem/rust-cache with a shared key warms every lane. Warm PR wall clock is under 15 minutes (measured on two consecutive green runs), and the single protected presubmit context is produced by the fan-in job only."
+    verified_by: "presubmit"
   - id: ADR-0716-D2
     description: "Add buck2-weekly-smoke.yml: a scheduled, non-blocking buck2 build //... honesty check. Retire the cache-integrity canary workflows and the build-cache-policy gate crate; specs/cache-warm-license.json stays as the declarative warm-reads kill-switch at warm_reads_licensed=false."
     exit_criteria: "The canary schedule, canary executor, and docs-graph-drift adapter are deleted; the weekly smoke builds the full graph from a clean checkout with the digest-pinned installer; a red weekly run does not affect any PR, and no gate asserts the existence of the retired workflows."
-    verified_by: "buck2-weekly-smoke workflow run + oya-ci-required"
+    verified_by: "buck2-weekly-smoke workflow run + presubmit"
   - id: ADR-0716-D3
     description: "Amend the automation-language-policy inline-shell ratchet from a one-way shrink-only ceiling to shrink-only PLUS a reviewed replacement window (schema_version bump + reason + ADR), and give the gate crate a Cargo manifest so the cargo merge path enforces it."
     exit_criteria: "The gate crate is a cargo workspace member; cargo test --workspace executes the live-corpus ratchet tests; the replacement window is consumed by the ceiling validator and a window without reason+ADR fails closed."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0716-D4
     description: "Reduce PR paperwork: slim the PR template to issue/summary/verification/reviewer-verdict, and remove the post-merge product-completion packet requirement from the operating contract."
     exit_criteria: "The template has no required SLSA/SBOM/audit-emission/traceability fields; AGENTS.md and CLAUDE.md no longer require a post-merge packet; the local pr-traceability validator and its dev-cli callers are retired with this change."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 
 # ADR-0716: Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke
@@ -66,7 +66,7 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 ## Decision
 
 1. **The Cargo workspace graph is the CI merge path.** The required workflow runs lint, test,
-   and live-postgres, fanned in to the single protected `oya-ci-required` context. No
+   and live-postgres, fanned in to the single protected `presubmit` context. No
    Windows/macOS job: production is Linux VMs; per-PR nextest is native Linux amd64
    (D88-amend). Arm64 nextest runs nightly and on the release/promotion train, not
    as a required per-PR fan-in leg. No buck2 build/test verdict step (the face
@@ -80,8 +80,8 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
    `warm_reads_licensed: false` as the declarative kill-switch if a CAS is ever stood up.
 4. **CI names are self-explanatory and debranded.** Job and step names describe the work
    (`lint`, `test`, `live-postgres-adapters`, `Fan-in verdict`) and
-   reference no ADR or PR numbers. The protected context name `oya-ci-required` is branch
-   protection infrastructure, not branding; the dual-emit `merge-admission-required` job
+   reference no ADR or PR numbers. The protected context name `presubmit` is branch
+   protection infrastructure, not branding; the dual-emit `presubmit` job
    remains the forever-name mirror, and the protection flip stays founder-only.
 5. **The inline-shell ratchet gains a reviewed replacement window.** automation-language-policy
    stays shrink-only for ordinary PRs, but a deliberate CI redesign may replace the baseline
@@ -128,7 +128,7 @@ arch on a nightly + release train rather than doubling every PR.
 - **Arch (D88-amend):** per-PR / merge_group nextest is native amd64
   (`ubuntu-24.04`) only. Arm64 (`ubuntu-24.04-arm`) nextest runs on the
   nightly schedule, `workflow_dispatch`, and the staging/canary/production
-  promotion train. It is not a `needs` input to `oya-ci-required` on a PR.
+  promotion train. It is not a `needs` input to `presubmit` on a PR.
   rustfmt and live-postgres stay single-arch amd64.
 - **Compile proof on the PR is `cargo nextest`, not `cargo build`.** A
   background `cargo build --workspace --tests` next to the materializer

@@ -143,7 +143,7 @@ owned secret-provider handle:
 ```sh
 # Retrieve an ingress proxy key
 PROXY_KEY=$(kubectl -n cloud-intelligence exec deploy/cloud-intelligence -- \
-  printenv OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN 2>/dev/null || \
+  printenv OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN 2>/dev/null || \
   echo "<resolve secret-ref://cloud-intelligence/ingress-proxy-keys>")
 
 # Health check

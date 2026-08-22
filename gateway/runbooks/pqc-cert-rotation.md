@@ -47,7 +47,7 @@
 - New PQC hybrid cert served.
 - Client handshake negotiates new KEM.
 - Non-PQ clients still fall through to classical TLS 1.3 (per ADR-0253 graceful degradation).
-- `oya_api_gateway_pqc_handshake_negotiated_ratio` recovers to baseline.
+- `api_gateway_pqc_handshake_negotiated_ratio` recovers to baseline.
 
 ## F — Rollback
 

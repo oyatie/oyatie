@@ -39,8 +39,8 @@
     "failed gates preserve exact command output and do not collapse evidence"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/agent_durable_goal.rs::autonomous_foundry_has_no_human_escalation_paths",
-    "crates/oya-dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic"
+    "crates/dev-cli/tests/agent_durable_goal.rs::autonomous_foundry_has_no_human_escalation_paths",
+    "crates/dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic"
   ],
   "consumers": [
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"

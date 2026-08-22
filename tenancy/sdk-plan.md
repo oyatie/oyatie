@@ -26,7 +26,7 @@ Tenants performing programmatic tenancy administration (CI-driven onboarding, au
 
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
-| **Rust** | M01 (primary; every other µservice consumes tenancy via Rust kernel) | First-party authored (`oya-tenancy-tenant-lifecycle-sdk` crate) | axis-tenancy |
+| **Rust** | M01 (primary; every other µservice consumes tenancy via Rust kernel) | First-party authored (`tenancy-tenant-lifecycle-sdk` crate) | axis-tenancy |
 | **TypeScript** | M01+1 (first external-tenant SDK) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-tenancy + gtm |
 | **Python** | M02 | OpenAPI-generated; published to PyPI | axis-tenancy + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-tenancy + gtm |
@@ -41,14 +41,14 @@ Prioritisation: Rust first (every other µservice's kernel consumes `TenantConte
 
 ### Rust SDK (first-party)
 
-Lives in `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-sdk/`.
+Lives in `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-sdk/`.
 
 - Public surface: `TenancyClient::new(opts) -> TenancyClient; client.create_tenant(req).await -> Result<Tenant, ...>`.
 - Authentication: `TenancyClient` accepts an OIDC token provider (closure / trait impl).
 - Tenancy: `TenancyClient` is bound to a tenant at construction; JWT carries claim.
 - Retry policy: built-in exponential backoff for transient 5xx and 429.
 - Streaming: `client.stream_tenant_lifecycle_events(...)` via gRPC streaming.
-- Re-exports types from `oya-tenancy-tenant-lifecycle-kernel` so consumers see consistent shapes.
+- Re-exports types from `tenancy-tenant-lifecycle-kernel` so consumers see consistent shapes.
 - No `unsafe`; `#![deny(unsafe_code)]`.
 - Published to oyatie's internal crate registry; open-source decision scheduled-for-distinct-tracked-work until API stabilises (M02-onward).
 

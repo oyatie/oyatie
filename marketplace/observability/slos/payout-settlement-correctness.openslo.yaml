@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-developer-sdk-payout-settlement-correctness
-  displayName: "oya-developer-sdk-payout-settlement-correctness"
+  name: developer-sdk-payout-settlement-correctness
+  displayName: "developer-sdk-payout-settlement-correctness"
   labels:
     microservice: developer-sdk
     bounded_context: payout
     tier: external-facing
     plane: data
 spec:
-  service: oya-developer-sdk-payout-settlement-correctness
+  service: developer-sdk-payout-settlement-correctness
   description: |
     100% byte-equal payout settlement
   indicator:
     metadata:
-      name: oya-developer-sdk-payout-settlement-correctness-sli
+      name: developer-sdk-payout-settlement-correctness-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_developer_sdk_payout_settlement_mismatch_total[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total[24h])))'
+              query: '1 - (sum(rate(developer_sdk_payout_settlement_mismatch_total[24h])) / sum(rate(developer_sdk_payout_settlement_total[24h])))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_developer_sdk_payout_settlement_mismatch_total[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total[24h])))'
+              query: '1 - (sum(rate(developer_sdk_payout_settlement_mismatch_total[24h])) / sum(rate(developer_sdk_payout_settlement_total[24h])))'
   objectives:
     - target: 1.0
       displayName: "1.0 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-payout-settlement-correctness-fast-burn-1h
+        name: developer-sdk-payout-settlement-correctness-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-payout-settlement-correctness-slow-burn-6h
+        name: developer-sdk-payout-settlement-correctness-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

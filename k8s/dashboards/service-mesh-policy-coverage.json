@@ -52,7 +52,7 @@
       "title": "Cross-tenant cleartext attempts (alert > 0)",
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "sum(rate(oya_cross_namespace_cleartext_attempt_total[5m]))", "refId": "A"}
+        {"expr": "sum(rate(cross_namespace_cleartext_attempt_total[5m]))", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 0.01}]}}}
     },
@@ -80,8 +80,8 @@
       "title": "Tenant-scope policy decisions (allow vs deny)",
       "gridPos": {"x": 0, "y": 12, "w": 8, "h": 6},
       "targets": [
-        {"expr": "sum(rate(oya_kubernetes_api_proxy_cedar_decision_total{decision=\"allow\"}[5m]))", "legendFormat": "allow/s", "refId": "A"},
-        {"expr": "sum(rate(oya_kubernetes_api_proxy_cedar_decision_total{decision=\"deny\"}[5m]))", "legendFormat": "deny/s", "refId": "B"}
+        {"expr": "sum(rate(kubernetes_api_proxy_cedar_decision_total{decision=\"allow\"}[5m]))", "legendFormat": "allow/s", "refId": "A"},
+        {"expr": "sum(rate(kubernetes_api_proxy_cedar_decision_total{decision=\"deny\"}[5m]))", "legendFormat": "deny/s", "refId": "B"}
       ]
     },
     {
@@ -99,7 +99,7 @@
       "title": "Recent IstioPolicyChanged / NetworkPolicyApplied audit events",
       "gridPos": {"x": 0, "y": 18, "w": 24, "h": 10},
       "targets": [
-        {"expr": "topk(30, oya_cloud_k8s_audit_event_timestamp{event_kind=~\"IstioPolicyChanged|NetworkPolicyApplied\"})", "format": "table", "refId": "A"}
+        {"expr": "topk(30, cloud_k8s_audit_event_timestamp{event_kind=~\"IstioPolicyChanged|NetworkPolicyApplied\"})", "format": "table", "refId": "A"}
       ],
       "transformations": [
         {"id": "organize", "options": {"includeByName": {"event_kind": true, "namespace": true, "policy_name": true, "derived_from_cedar_sha": true, "executor": true, "ts": true}}}
@@ -111,8 +111,8 @@
       "title": "Cosign admission decisions (rejected unsigned images)",
       "gridPos": {"x": 0, "y": 28, "w": 12, "h": 6},
       "targets": [
-        {"expr": "sum(rate(oya_admission_image_rejected_total[5m]))", "legendFormat": "rejected/s", "refId": "A"},
-        {"expr": "sum(rate(oya_admission_image_admitted_total[5m]))", "legendFormat": "admitted/s", "refId": "B"}
+        {"expr": "sum(rate(admission_image_rejected_total[5m]))", "legendFormat": "rejected/s", "refId": "A"},
+        {"expr": "sum(rate(admission_image_admitted_total[5m]))", "legendFormat": "admitted/s", "refId": "B"}
       ]
     },
     {

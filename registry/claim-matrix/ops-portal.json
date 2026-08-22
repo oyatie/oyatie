@@ -41,7 +41,7 @@
     "Per-tenant statelessness/shardability is CI-proven at hyperscaler scale (1000-tenant nightly probe lane lean-a-shardability-nightly not yet wired)",
     "Write-action idempotency is enforceable (WriteActionTokenStore schema + reconciler workers + ApprovalTicketStore schema not yet in HEAD)",
     "Multi-party N-of-M approval is operationally tested (ops-multi-party-approval.cedar + ApprovalTicketStore + vote-vs-execute predicate split not yet in HEAD)",
-    "Bulkhead per-tenant quotas are enforced (oya-shared-ontology-bulkhead-port + 1000-tenant burst probe not yet in HEAD)",
+    "Bulkhead per-tenant quotas are enforced (shared-ontology-bulkhead-port + 1000-tenant burst probe not yet in HEAD)",
     "Workspace shell SSR p99 ≤500ms is measured (Leptos SSR ops-workspace-shell crate not yet in HEAD; k6 14-route mixed perf script not yet in HEAD)",
     "ops.oyatie.com docs portal hot/warm/cold extractor freshness budgets are met (per-extractor manifest.json freshness field not yet emitted from running daemon)",
     "Audit-chain on write actions is operational (ADR-0003 chain runtime not yet operational)",

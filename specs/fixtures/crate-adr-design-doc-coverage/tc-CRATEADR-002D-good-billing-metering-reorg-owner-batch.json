@@ -64,7 +64,7 @@
       "REORG-001 handoff",
       "governance/capability-registry.json"
     ],
-    "rationale": "REORG-001 selected libs/oya-metering-pipeline-kernel as the next clean leaf capability move; do not add new root-libs authority until move target is decided."
+    "rationale": "REORG-001 selected libs/metering-pipeline-kernel as the next clean leaf capability move; do not add new root-libs authority until move target is decided."
   },
   "gate_contract": {
     "gate_id": "crate-adr-design-doc-coverage",
@@ -97,8 +97,8 @@
   },
   "rows": [
     {
-      "crate_name": "oya-metering-pipeline-kernel",
-      "crate_manifest": "libs/oya-metering-pipeline-kernel/Cargo.toml",
+      "crate_name": "metering-pipeline-kernel",
+      "crate_manifest": "libs/metering-pipeline-kernel/Cargo.toml",
       "current_successor_crate_name": "billing-metering-pipeline-kernel",
       "current_successor_manifest": "billing/core/metering-pipeline-kernel/Cargo.toml",
       "owner_batch": "billing-metering-reorg",
@@ -111,7 +111,7 @@
       "source_reasons": [
         "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry"
       ],
-      "source_artifact_rationale": "REORG-001 selected libs/oya-metering-pipeline-kernel as the next clean leaf capability move; do not add new root-libs authority until move target is decided.",
+      "source_artifact_rationale": "REORG-001 selected libs/metering-pipeline-kernel as the next clean leaf capability move; do not add new root-libs authority until move target is decided.",
       "candidate_authority_from_source_artifact": [
         "CRATEADR-004",
         "REORG-001 handoff",
@@ -130,11 +130,11 @@
         "follow_up_required": true,
         "follow_up_status": "satisfied-by-current-reorg-evidence",
         "follow_up_semantics": "A separate move/retire/cite decision is required for this source row unless current repo evidence already proves the reorg decision and successor coverage. Current dev evidence resolves the move via REORG-003/ADR-0562 and the successor manifest/catalog, so this fixture does not create a new move card.",
-        "reorg_reason": "The source artifact selected the libs/oya-metering-pipeline-kernel root-libs crate as a billing-metering clean leaf move target; it must remain reorg-target coverage debt rather than being greenwashed by an unconditional root-libs ADR citation.",
+        "reorg_reason": "The source artifact selected the libs/metering-pipeline-kernel root-libs crate as a billing-metering clean leaf move target; it must remain reorg-target coverage debt rather than being greenwashed by an unconditional root-libs ADR citation.",
         "current_state_evidence": [
           {
             "path": "specs/reorg/billing-move-plan.json",
-            "evidence": "REORG-003 billing leaf move-plan maps old_path=libs/oya-metering-pipeline-kernel to new_path=billing/core/metering-pipeline-kernel"
+            "evidence": "REORG-003 billing leaf move-plan maps old_path=libs/metering-pipeline-kernel to new_path=billing/core/metering-pipeline-kernel"
           },
           {
             "path": "billing/core/metering-pipeline-kernel/Cargo.toml",

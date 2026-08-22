@@ -23,29 +23,29 @@ BASE_RESOURCES = [
 ]
 CSI_CHARTS = {
     "csi-block-volume": {
-        "chart_name": "oya-cloud-k8s-csi-block-volume",
+        "chart_name": "cloud-k8s-csi-block-volume",
         "driver": "block.csi.oyatie.com",
         "backend": "block-volume",
         "secret": "cloud-k8s-csi-block-volume-credentials",
-        "repository": "ghcr.io/oyatie/oya-cloud-k8s-csi-block-volume",
+        "repository": "ghcr.io/oyatie/cloud-k8s-csi-block-volume",
         "attach": "true",
         "modes": ["Persistent"],
     },
     "csi-object": {
-        "chart_name": "oya-cloud-k8s-csi-object",
+        "chart_name": "cloud-k8s-csi-object",
         "driver": "object.csi.oyatie.com",
         "backend": "seaweedfs-object",
         "secret": "cloud-k8s-csi-object-credentials",
-        "repository": "ghcr.io/oyatie/oya-cloud-k8s-csi-object",
+        "repository": "ghcr.io/oyatie/cloud-k8s-csi-object",
         "attach": "false",
         "modes": ["Persistent", "Ephemeral"],
     },
     "csi-file": {
-        "chart_name": "oya-cloud-k8s-csi-file",
+        "chart_name": "cloud-k8s-csi-file",
         "driver": "file.csi.oyatie.com",
         "backend": "file-storage",
         "secret": "cloud-k8s-csi-file-credentials",
-        "repository": "ghcr.io/oyatie/oya-cloud-k8s-csi-file",
+        "repository": "ghcr.io/oyatie/cloud-k8s-csi-file",
         "attach": "false",
         "modes": ["Persistent"],
     },
@@ -155,7 +155,7 @@ class RuntimeSubstrateValidationTest(unittest.TestCase):
                 text = read(chart_dir / template)
                 self.assertEqual(text.count("{{"), text.count("}}"), template)
                 self.assertIn(marker, text, template)
-                self.assertIn("app.kubernetes.io/part-of: oya-cloud-k8s", read(chart_dir / "templates" / "_helpers.tpl"))
+                self.assertIn("app.kubernetes.io/part-of: cloud-k8s", read(chart_dir / "templates" / "_helpers.tpl"))
             deployment = read(chart_dir / "templates" / "deployment.yaml")
             self.assertIn("runAsNonRoot: true", deployment)
             self.assertIn("seccompProfile: {type: RuntimeDefault}", deployment)

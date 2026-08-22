@@ -1,7 +1,7 @@
 {
   "title": "— Connector Usage by Tenant",
   "description": "Per-tenant connector invocation volume, error rate, latency, and circuit-breaker state. Precedent: Zapier usage analytics dashboard.",
-  "uid": "oya-connector-usage-by-tenant",
+  "uid": "connector-usage-by-tenant",
   "tags": ["connector", "connectors", "tenant", "per-tenant"],
   "microservice": "connector",
   "binding_adr": "ADR-0263",
@@ -12,13 +12,13 @@
       {
         "name": "tenant_id",
         "type": "query",
-        "query": "label_values(oya_connector_action_total, tenant_id)",
+        "query": "label_values(connector_action_total, tenant_id)",
         "label": "Tenant"
       },
       {
         "name": "connector",
         "type": "query",
-        "query": "label_values(oya_connector_action_total{tenant_id=\"$tenant_id\"}, connector)",
+        "query": "label_values(connector_action_total{tenant_id=\"$tenant_id\"}, connector)",
         "label": "Connector"
       }
     ]
@@ -30,7 +30,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum by (connector) (rate(oya_connector_action_total{tenant_id=\"$tenant_id\"}[5m]))",
+          "expr": "sum by (connector) (rate(connector_action_total{tenant_id=\"$tenant_id\"}[5m]))",
           "legendFormat": "{{connector}}"
         }
       ],
@@ -42,7 +42,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "100 * sum by (connector) (rate(oya_connector_action_total{tenant_id=\"$tenant_id\",result=\"error\"}[5m])) / sum by (connector) (rate(oya_connector_action_total{tenant_id=\"$tenant_id\"}[5m]))",
+          "expr": "100 * sum by (connector) (rate(connector_action_total{tenant_id=\"$tenant_id\",result=\"error\"}[5m])) / sum by (connector) (rate(connector_action_total{tenant_id=\"$tenant_id\"}[5m]))",
           "legendFormat": "{{connector}} error %"
         }
       ],
@@ -58,7 +58,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (connector, le) (rate(oya_connector_action_duration_seconds_bucket{tenant_id=\"$tenant_id\"}[5m]))) * 1000",
+          "expr": "histogram_quantile(0.99, sum by (connector, le) (rate(connector_action_duration_seconds_bucket{tenant_id=\"$tenant_id\"}[5m]))) * 1000",
           "legendFormat": "{{connector}} p99"
         }
       ],
@@ -70,7 +70,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "oya_connector_circuit_breaker_open_total{tenant_id=\"$tenant_id\"}",
+          "expr": "connector_circuit_breaker_open_total{tenant_id=\"$tenant_id\"}",
           "legendFormat": "{{connector}}"
         }
       ],
@@ -86,7 +86,7 @@
       "type": "bargauge",
       "targets": [
         {
-          "expr": "oya_connector_dlq_depth{tenant_id=\"$tenant_id\"}",
+          "expr": "connector_dlq_depth{tenant_id=\"$tenant_id\"}",
           "legendFormat": "{{connector}}"
         }
       ],
@@ -102,7 +102,7 @@
       "type": "table",
       "targets": [
         {
-          "expr": "topk(20, sum by (connector) (increase(oya_connector_action_total{tenant_id=\"$tenant_id\"}[30d])))",
+          "expr": "topk(20, sum by (connector) (increase(connector_action_total{tenant_id=\"$tenant_id\"}[30d])))",
           "legendFormat": "{{connector}}"
         }
       ],
@@ -114,11 +114,11 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "oya_connector_oauth_grants_active{tenant_id=\"$tenant_id\"}",
+          "expr": "connector_oauth_grants_active{tenant_id=\"$tenant_id\"}",
           "legendFormat": "Active grants"
         },
         {
-          "expr": "oya_connector_oauth_grants_expired{tenant_id=\"$tenant_id\"}",
+          "expr": "connector_oauth_grants_expired{tenant_id=\"$tenant_id\"}",
           "legendFormat": "Expired grants"
         }
       ],
@@ -131,7 +131,7 @@
       "description": "Per ADR-0297: bot challenge issued, blocked requests, scrape-pattern detected. Transparent to tenant-admin per §3.2.3 UX-floor tenant-telemetry invariant.",
       "targets": [
         {
-          "expr": "sum by (event_class) (rate(oya_connector_abuse_defence_events_total{tenant_id=\"$tenant_id\"}[5m]))",
+          "expr": "sum by (event_class) (rate(connector_abuse_defence_events_total{tenant_id=\"$tenant_id\"}[5m]))",
           "legendFormat": "{{event_class}}"
         }
       ],

@@ -358,7 +358,7 @@ fn strict_binding_is_closed_and_cannot_self_select_closure_evidence() {
 #[test]
 fn live_gate_parse_collect_evaluate_path_is_mode_generic() {
     let root = super::repo_root();
-    let policy_path = std::env::var_os("OYA_IDEA_ARCHIVE_POLICY")
+    let policy_path = std::env::var_os("OYATIE_IDEA_ARCHIVE_POLICY")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| {
             root.join("ci/facade/cross-artifact-agreement/idea-archive-policy.json")

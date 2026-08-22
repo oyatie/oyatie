@@ -25,7 +25,7 @@
       "ADR-0348": "planning-context-only"
     },
     "runtime_mutation_authority": "none",
-    "merge_authority": "plain git PR against dev plus protected oya-ci-required context per ADR-0515",
+    "merge_authority": "plain git PR against dev plus protected presubmit context per ADR-0515",
     "conflict_class": "repo-governance-specs-docs",
     "scope_note": "This slice records contract, plan, and fixture surfaces only. It does not promote ADR-0341 or ADR-0348 from planning context to runtime authority. ADR-0351 is the accepted source for the service-boundary split."
   },

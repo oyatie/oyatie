@@ -1,7 +1,7 @@
 # IP-CLUSTERAPI-001 — Cluster API ClusterClass templates
 
 > ADR anchor: ADR-0202, ADR-0171.
-> Owner: `oya-cloud-k8s`.
+> Owner: `cloud-k8s`.
 > Estimate: 5 days.
 
 ## Goal
@@ -19,10 +19,10 @@ cluster shape and drift accumulates.
 
 ### 1. ClusterClass families
 
-- `oya-prod-aws-large` (us-east-1, us-west-2, eu-central-1,
+- `prod-aws-large` (us-east-1, us-west-2, eu-central-1,
   eu-west-1).
-- `oya-prod-aws-medium` (regional capacity).
-- `oya-sovereign-baremetal-large` (KSA/UAE on-prem k8s per
+- `prod-aws-medium` (regional capacity).
+- `sovereign-baremetal-large` (KSA/UAE on-prem k8s per
   cloud-k8s IPs).
 
 ### 2. ControlPlane + Worker templates

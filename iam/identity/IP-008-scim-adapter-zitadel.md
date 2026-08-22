@@ -12,16 +12,16 @@ owner_team: axis-identity
 
 ## Goal
 
-Wire the `oya-shared-scim-server-kernel` reference impl to a Zitadel-talking adapter so SCIM operations propagate to Zitadel as the upstream identity authority. Specifically: SCIM POST `/Users` creates a Zitadel User in the corresponding Org; SCIM PATCH `active=false` revokes Zitadel sessions; SCIM DELETE issues a Zitadel User soft-delete + GDPR-DSR cascade trigger.
+Wire the `shared-scim-server-kernel` reference impl to a Zitadel-talking adapter so SCIM operations propagate to Zitadel as the upstream identity authority. Specifically: SCIM POST `/Users` creates a Zitadel User in the corresponding Org; SCIM PATCH `active=false` revokes Zitadel sessions; SCIM DELETE issues a Zitadel User soft-delete + GDPR-DSR cascade trigger.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-scim-server-adapter-zitadel/Cargo.toml` | manifest |
-| `crates/oya-identity-scim-server-adapter-zitadel/src/lib.rs` | `ZitadelScimBridge` impl of `UserStore` + `GroupStore` |
-| `crates/oya-identity-scim-server-adapter-zitadel/src/zitadel_client.rs` | thin Zitadel gRPC admin client |
-| `crates/oya-identity-scim-server-adapter-zitadel/tests/bridge.rs` | tests against mock Zitadel |
+| `crates/identity-scim-server-adapter-zitadel/Cargo.toml` | manifest |
+| `crates/identity-scim-server-adapter-zitadel/src/lib.rs` | `ZitadelScimBridge` impl of `UserStore` + `GroupStore` |
+| `crates/identity-scim-server-adapter-zitadel/src/zitadel_client.rs` | thin Zitadel gRPC admin client |
+| `crates/identity-scim-server-adapter-zitadel/tests/bridge.rs` | tests against mock Zitadel |
 
 ## Operation mapping
 

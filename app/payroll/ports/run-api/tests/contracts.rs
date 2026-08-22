@@ -87,7 +87,7 @@ fn openapi_contract_declares_auth_failures_for_money_mutations() {
     // Declared binding, not a cwd-relative guess: Buck runs the action from the sandbox root so
     // the bare path resolved there, but `cargo test` runs from this package's directory and the
     // read missed. Cargo names it in `.cargo/config.toml`; Buck binds it with $(location ...).
-    const BINDING: &str = "OYA_PAYROLL_OPENAPI_CONTRACT";
+    const BINDING: &str = "OYATIE_PAYROLL_OPENAPI_CONTRACT";
     let contract_path = std::env::var_os(BINDING)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| panic!("FAIL-CLOSED: declared contract binding {BINDING} is unset"));

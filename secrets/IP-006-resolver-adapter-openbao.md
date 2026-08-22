@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-test, integration-test]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: oya-cloud-secrets-secret-reference-resolver-adapter-openbao
+# IP-006: cloud-secrets-secret-reference-resolver-adapter-openbao
 
 ## Intent
 
@@ -19,7 +19,7 @@ Implement `OpenBaoClient` port against OpenBao 2.x HTTP API. mTLS via SPIFFE SVI
 
 ## ChangeSet boundary
 
-One new crate at `…/oya-cloud-secrets-secret-reference-resolver-adapter-openbao/`. Adapter-* per ADR-0105 Amendment 3.
+One new crate at `…/cloud-secrets-secret-reference-resolver-adapter-openbao/`. Adapter-* per ADR-0105 Amendment 3.
 
 ## Concrete File Targets
 
@@ -32,15 +32,15 @@ One new crate at `…/oya-cloud-secrets-secret-reference-resolver-adapter-openba
 | `…/src/kv_v2.rs` | create — KV v2 read/write/list |
 | `…/src/revoke.rs` | create — revoke endpoint |
 | `…/src/sse.rs` | create — server-sent events client for revocation push |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-adapter-openbao.yaml` | create |
+| `microservices/cloud-secrets/catalog/cloud-secrets-secret-reference-resolver-adapter-openbao.yaml` | create |
 
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-adapter-openbao
+cargo nextest run -p cloud-secrets-secret-reference-resolver-adapter-openbao
 # Integration test against sandbox OpenBao:
 docker-compose -f microservices/cloud-secrets/tests/integration/docker-compose.yml up -d
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-adapter-openbao --features integration
+cargo nextest run -p cloud-secrets-secret-reference-resolver-adapter-openbao --features integration
 ```
 
 ## Test Plan
@@ -65,9 +65,9 @@ OpenBao is the backing secret engine, but direct HTTP calls from product code wo
 Implement one adapter for the kernel `OpenBaoClient` port. It owns mTLS, Kubernetes auth exchange, KV v2 path translation, lease/revoke calls, and server-sent revocation events while presenting typed domain errors to the usecase layer.
 
 ### C. Deliverables
-- `oya-cloud-secrets-secret-reference-resolver-adapter-openbao` crate from `manifest.json`.
+- `cloud-secrets-secret-reference-resolver-adapter-openbao` crate from `manifest.json`.
 - `src/client.rs`, `src/auth.rs`, `src/kv_v2.rs`, `src/revoke.rs`, and `src/sse.rs`.
-- Catalog file `catalog/oya-cloud-secrets-secret-reference-resolver-adapter-openbao.yaml`.
+- Catalog file `catalog/cloud-secrets-secret-reference-resolver-adapter-openbao.yaml`.
 - Integration fixtures for sandbox OpenBao and testcontainers.
 - Policy and residency alignment with `policy/data-residency.md` and `multi-region.md`.
 
@@ -81,13 +81,13 @@ Implement one adapter for the kernel `OpenBaoClient` port. It owns mTLS, Kuberne
 7. Add integration tests against sandbox OpenBao and SoftHSM-backed unseal fixtures.
 
 ### E. Acceptance
-- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-adapter-openbao`.
+- `cargo nextest run -p cloud-secrets-secret-reference-resolver-adapter-openbao`.
 - Integration run with `--features integration` against sandbox OpenBao.
 - mTLS without SPIFFE validation is impossible.
 - All read/list/revoke calls include tenant namespace headers and never log response bodies.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-02/FR-08, `ARCHITECTURE.md` adapter-openbao mapping, `manifest.json`, `catalog/oya-cloud-secrets-secret-reference-resolver-adapter-openbao.yaml`, `policy/tenant-scope.cedar`, `policy/data-residency.md`, and `runbooks/openbao-restart.md`.
+Evidence anchors are `PRD.md` FR-02/FR-08, `ARCHITECTURE.md` adapter-openbao mapping, `manifest.json`, `catalog/cloud-secrets-secret-reference-resolver-adapter-openbao.yaml`, `policy/tenant-scope.cedar`, `policy/data-residency.md`, and `runbooks/openbao-restart.md`.
 
 ### G. Counterpart Comparison
 Vault clients, AWS IAM, Google IAM, and Azure managed identity all solve workload access differently. The cloud-secrets matrices show Oyatie's target is SPIFFE+mTLS plus per-tenant namespace isolation and revocation push, so this adapter must be stricter than a generic vendor client wrapper.

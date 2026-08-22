@@ -24,7 +24,7 @@ fn d5_all_five_contexts_produce_correct_context_strings() {
         (CommitStatusContext::CargoCheck, "cargo-check"),
         (CommitStatusContext::CargoClippy, "cargo-clippy"),
         (CommitStatusContext::CargoNextest, "cargo-nextest"),
-        (CommitStatusContext::OyaPrReview, "oya-pr-review"),
+        (CommitStatusContext::OyaPrReview, "pr-review"),
     ];
 
     for (context, expected_str) in expected_pairs {
@@ -107,28 +107,28 @@ fn d5_pending_status_includes_target_url_and_pending_state() {
 }
 
 // ---------------------------------------------------------------------------
-// D5-4: oya-pr-review context produces correct state + context in JSON
+// D5-4: pr-review context produces correct state + context in JSON
 // ---------------------------------------------------------------------------
 
 #[test]
-fn d5_oya_pr_review_context_formats_correctly() {
+fn d5_pr_review_context_formats_correctly() {
     let req = GitHubStatusRequest {
         owner: OWNER.to_owned(),
         repo: REPO.to_owned(),
         sha: SHA.to_owned(),
         state: CommitStatusState::Success,
         context: CommitStatusContext::OyaPrReview,
-        description: "oya-pr-review — passed".to_owned(),
+        description: "pr-review — passed".to_owned(),
         target_url: Some(BUILD_URL.to_owned()),
     };
     let json = req.to_api_json();
     assert!(
-        json.contains(r#""context":"oya-pr-review""#),
-        "oya-pr-review context should appear in JSON, got: {json}"
+        json.contains(r#""context":"pr-review""#),
+        "pr-review context should appear in JSON, got: {json}"
     );
     assert!(
         json.contains(r#""state":"success""#),
-        "oya-pr-review state should be success, got: {json}"
+        "pr-review state should be success, got: {json}"
     );
     assert_eq!(req.owner, OWNER);
     assert_eq!(req.repo, REPO);

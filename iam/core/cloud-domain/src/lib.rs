@@ -15,7 +15,7 @@ use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, MAX_TOKEN_TTL_SECONDS, Principal,
     issue_credential,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
 
 const IAM_PRINCIPAL_SCHEMA_VERSION: u32 = 1;
 const IAM_ROLE_SCHEMA_VERSION: u32 = 1;
@@ -30,7 +30,7 @@ const ROLE_ID_PREFIX: &str = "role_";
 const IDENTITY_PROVIDER_PREFIX: &str = "idp_";
 const CEDAR_POLICY_PREFIX: &str = "pol_";
 const STS_SESSION_PREFIX: &str = "sts_";
-const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_PREFIX: &str = "pack-";
 const CERT_REF_PREFIX: &str = "cert/";
 const JWKS_REF_PREFIX: &str = "jwks/";
 const CLOUD_SCOPE_PREFIX: &str = "cloud.";
@@ -1636,7 +1636,7 @@ mod tests {
         IdentityProviderCreate {
             id: "idp_alpha_saml".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             kind: IdentityProviderKind::Saml,
             issuer_uri: "https://idp.alpha.example/saml".to_string(),
             audience: "urn:oyatie:cloud".to_string(),
@@ -1653,7 +1653,7 @@ mod tests {
             display_name: "cloud provisioner".to_string(),
             external_subject: None,
             identity_provider_id: None,
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             mfa_state: MfaState::NotRequired,
             last_authenticated_at_epoch_seconds: None,
             created_at_epoch_seconds: 1_700_000_001,
@@ -1668,7 +1668,7 @@ mod tests {
             display_name: "Alice".to_string(),
             external_subject: None,
             identity_provider_id: None,
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             mfa_state: MfaState::Verified,
             last_authenticated_at_epoch_seconds: Some(1_700_000_002),
             created_at_epoch_seconds: 1_700_000_001,
@@ -1719,7 +1719,7 @@ mod tests {
                 display_name: "Federated Alice".to_string(),
                 external_subject: Some("saml://idp.alpha.example/alice".to_string()),
                 identity_provider_id: Some("idp_alpha_saml".to_string()),
-                region_pack: "oya-pack-alpha".to_string(),
+                region_pack: "pack-alpha".to_string(),
                 mfa_state: MfaState::Verified,
                 last_authenticated_at_epoch_seconds: Some(1_700_000_010),
                 created_at_epoch_seconds: 1_700_000_005,
@@ -1905,7 +1905,7 @@ mod tests {
                 display_name: "Partner".to_string(),
                 external_subject: Some("oidc://partner.example/sub-1".to_string()),
                 identity_provider_id: Some("idp_partner_oidc".to_string()),
-                region_pack: "oya-pack-alpha".to_string(),
+                region_pack: "pack-alpha".to_string(),
                 mfa_state: MfaState::Verified,
                 last_authenticated_at_epoch_seconds: Some(1_700_000_050),
                 created_at_epoch_seconds: 1_700_000_040,
@@ -2202,7 +2202,7 @@ mod tests {
         assert_eq!(record.tenant_id, "ten_alpha");
         assert_eq!(record.identity_provider_id, "idp_alpha_saml");
         assert_eq!(record.identity_provider_kind, IdentityProviderKind::Saml);
-        assert_eq!(record.region_pack, "oya-pack-alpha");
+        assert_eq!(record.region_pack, "pack-alpha");
         assert_eq!(record.issuer_ref, "https://idp.alpha.example/saml");
         assert_eq!(record.audience_ref, "urn:oyatie:cloud");
         assert_eq!(record.verification_material_ref, "cert/alpha-saml-signing");

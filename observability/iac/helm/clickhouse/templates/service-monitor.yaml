@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: oya-observability-clickhouse
+  name: observability-clickhouse
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability
@@ -9,7 +9,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      clickhouse.altinity.com/chi: oya-observability-clickhouse
+      clickhouse.altinity.com/chi: observability-clickhouse
   endpoints:
     - port: metrics
       interval: 30s

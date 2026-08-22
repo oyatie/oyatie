@@ -21,7 +21,7 @@ doc_status: published
 - Audit event `ConnectorAttestationRevoked` in ADR-0263 registry
 - Security team revokes MPO (Marketplace Publisher Operator) signing key
 - cosign keyless OIDC SBOM signature fails validation against Sigstore TUF root
-- `oya_connector_catalog_attestation_verify_fail_total{connector="<X>"} > 0`
+- `connector_catalog_attestation_verify_fail_total{connector="<X>"} > 0`
 - Connector's publisher namespace is suspended (abuse, ToS violation, breach)
 - Vendor discloses supply-chain compromise of their connector SDK
 
@@ -141,7 +141,7 @@ kubectl exec -n connect deploy/connect-catalog-api -- \
 
 # Circuit breaker closed
 curl -s http://connector-adapter-worker.connector:9090/metrics \
-  | grep "oya_connector_circuit_breaker_open_total{connector=\"${CONNECTOR_NAME}\"}"
+  | grep "connector_circuit_breaker_open_total{connector=\"${CONNECTOR_NAME}\"}"
 # Expected: 0
 
 # No new attestation-failure events

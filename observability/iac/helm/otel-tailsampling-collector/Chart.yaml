@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (per ADR-0064)
 apiVersion: v2
-name: oya-observability-otel-tailsampling-collector
+name: observability-otel-tailsampling-collector
 description: OpenTelemetry Collector tier configured with the Tail Sampling Processor per ADR-0210. Deployed as the gateway role downstream of per-node agent collectors (per ADR-0186 Stage 1). 100% sampling of errors / p99 / new-endpoint traces; 1% baseline.
 type: application
 version: 0.1.0

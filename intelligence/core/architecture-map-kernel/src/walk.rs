@@ -230,12 +230,12 @@ mod tests {
     fn cargo_walker_adds_crate_node_per_package() {
         let pkgs = vec![
             CargoPackage {
-                name: "oya-a".into(),
+                name: "a".into(),
                 owning_team: None,
                 dependencies: vec![],
             },
             CargoPackage {
-                name: "oya-b".into(),
+                name: "b".into(),
                 owning_team: None,
                 dependencies: vec![],
             },
@@ -248,12 +248,12 @@ mod tests {
     fn cargo_walker_creates_dep_edges() {
         let pkgs = vec![
             CargoPackage {
-                name: "oya-a".into(),
+                name: "a".into(),
                 owning_team: None,
-                dependencies: vec!["oya-b".into()],
+                dependencies: vec!["b".into()],
             },
             CargoPackage {
-                name: "oya-b".into(),
+                name: "b".into(),
                 owning_team: None,
                 dependencies: vec![],
             },
@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn cargo_walker_drops_external_deps() {
         let pkgs = vec![CargoPackage {
-            name: "oya-a".into(),
+            name: "a".into(),
             owning_team: None,
             dependencies: vec!["serde".into(), "tokio".into()],
         }];
@@ -276,9 +276,9 @@ mod tests {
     #[test]
     fn cargo_walker_skips_self_loop() {
         let pkgs = vec![CargoPackage {
-            name: "oya-a".into(),
+            name: "a".into(),
             owning_team: None,
-            dependencies: vec!["oya-a".into()],
+            dependencies: vec!["a".into()],
         }];
         let m = walk_cargo_metadata(&pkgs).unwrap();
         assert_eq!(m.edge_count(), 0);
@@ -393,13 +393,13 @@ mod tests {
     #[test]
     fn merge_combines_disjoint_maps() {
         let a = walk_cargo_metadata(&[CargoPackage {
-            name: "oya-a".into(),
+            name: "a".into(),
             owning_team: None,
             dependencies: vec![],
         }])
         .unwrap();
         let b = walk_cargo_metadata(&[CargoPackage {
-            name: "oya-b".into(),
+            name: "b".into(),
             owning_team: None,
             dependencies: vec![],
         }])
@@ -490,7 +490,7 @@ mod tests {
         .unwrap();
         // Cargo walker provides crate nodes (no edges across BC level).
         let cg = walk_cargo_metadata(&[CargoPackage {
-            name: "oya-ops-docs-portal-kernel".into(),
+            name: "ops-docs-portal-kernel".into(),
             owning_team: None,
             dependencies: vec![],
         }])

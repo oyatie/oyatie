@@ -302,45 +302,45 @@ The bar is deterministic, mutation-resistant, property-rich unit coverage for ev
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-identity-oidc-token-issue-latency` target `0.99`.
+- SLO target: `identity-oidc-token-issue-latency` target `0.99`.
 - Regression criterion: unit token builder allocation budget must not exceed the baseline by 10%.
-- SLO target: `oya-identity-oidc-token-verify-latency` target `0.999`.
+- SLO target: `identity-oidc-token-verify-latency` target `0.999`.
 - Regression criterion: JWKS lookup must stay O(1) by `kid`.
-- SLO target: `oya-identity-webauthn-authenticate-latency` target `0.99`.
+- SLO target: `identity-webauthn-authenticate-latency` target `0.99`.
 - Regression criterion: assertion validation pure-path benchmark below 5 ms on CI class runner.
-- SLO target: `oya-identity-scim-availability` target `0.9995`.
+- SLO target: `identity-scim-availability` target `0.9995`.
 - Regression criterion: SCIM patch parser must reject malformed input without panic.
-- SLO target: `oya-identity-step-up-grant-latency` target `0.95`.
+- SLO target: `identity-step-up-grant-latency` target `0.95`.
 - Regression criterion: ACR transition evaluator remains branch-complete under mutation tests.
-- SLO target: `oya-identity-jwks-availability` target `0.99999`.
+- SLO target: `identity-jwks-availability` target `0.99999`.
 - Regression criterion: key rotation state machine must preserve old-key overlap by property test.
-- SLO target: `oya-identity-audit-emit-completeness` target `1.0`.
+- SLO target: `identity-audit-emit-completeness` target `1.0`.
 - Regression criterion: every unit path that returns a security decision exposes an audit payload.
-- SLO target: `oya-identity-aaguid-refresh-freshness` target `0.999`.
+- SLO target: `identity-aaguid-refresh-freshness` target `0.999`.
 - Regression criterion: stale metadata decision never replaces the last signed blob.
-- SLO target: `oya-identity-zitadel-instance-health` target `0.9999`.
+- SLO target: `identity-zitadel-instance-health` target `0.9999`.
 - Regression criterion: instance spec rejects unpinned images and missing pack domains.
 
 ## CI Pipeline Integration
 
 - GitHub Actions job: `identity-unit-test-strategy`.
-- Command: `cargo test -p oya-identity-oidc-issuer-kernel --all-features`.
-- Command: `cargo test -p oya-identity-webauthn-relying-party-kernel --all-features`.
-- Command: `cargo test -p oya-identity-scim-server-kernel --all-features`.
-- Command: `cargo test -p oya-identity-step-up-orchestrator-kernel --all-features`.
-- Command: `cargo test -p oya-identity-multi-context-principal-resolver-kernel --all-features`.
-- Command: `cargo mutants -p oya-identity-oidc-issuer-kernel --timeout 120`.
-- Command: `cargo mutants -p oya-identity-webauthn-relying-party-kernel --timeout 120`.
-- Command: `cargo mutants -p oya-identity-scim-server-kernel --timeout 120`.
-- Command: `cargo mutants -p oya-identity-step-up-orchestrator-kernel --timeout 120`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-layered-architecture-discipline`.
-- Check crate enforcement: `oya-check-step-up-auth-coverage`.
-- Check crate enforcement: `oya-check-audit-chain-seal-coverage`.
-- Check crate enforcement: `oya-check-openapi-rest-route-parity`.
+- Command: `cargo test -p identity-oidc-issuer-kernel --all-features`.
+- Command: `cargo test -p identity-webauthn-relying-party-kernel --all-features`.
+- Command: `cargo test -p identity-scim-server-kernel --all-features`.
+- Command: `cargo test -p identity-step-up-orchestrator-kernel --all-features`.
+- Command: `cargo test -p identity-multi-context-principal-resolver-kernel --all-features`.
+- Command: `cargo mutants -p identity-oidc-issuer-kernel --timeout 120`.
+- Command: `cargo mutants -p identity-webauthn-relying-party-kernel --timeout 120`.
+- Command: `cargo mutants -p identity-scim-server-kernel --timeout 120`.
+- Command: `cargo mutants -p identity-step-up-orchestrator-kernel --timeout 120`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-layered-architecture-discipline`.
+- Check crate enforcement: `check-step-up-auth-coverage`.
+- Check crate enforcement: `check-audit-chain-seal-coverage`.
+- Check crate enforcement: `check-openapi-rest-route-parity`.
 - Artifact: `identity-unit-junit.xml`.
 - Artifact: `identity-unit-proptest-seeds`.
 - Artifact: `identity-unit-mutants.json`.

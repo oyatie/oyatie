@@ -204,7 +204,7 @@
     {
       "id": "protected-ci-depends-on-live-arc",
       "class": "governance-admission",
-      "acceptance_criteria": "The single required oya-ci-required context remains producible before, during, and after any migration.",
+      "acceptance_criteria": "The single required presubmit context remains producible before, during, and after any migration.",
       "verification_path": "Run an exact-SHA protected-branch admission rehearsal on preserved or replacement runners.",
       "suggested_owner": "cloud-ci-platform",
       "dependency_notes": "Active ARC runners are the protected CI substrate."

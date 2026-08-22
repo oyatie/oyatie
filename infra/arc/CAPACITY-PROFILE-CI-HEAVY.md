@@ -1,6 +1,6 @@
 # RETIRED — CI-heavy Talos + ARC capacity profile
 
-**Status: RETIRED (2026-08-11).** The custom ARC `oya-arm64` / live-postgres runner
+**Status: RETIRED (2026-08-11).** The custom ARC `arm64` / live-postgres runner
 fleets are decommissioned (`maxRunners: 0`). Do not size Talos workers for ARC
 concurrency.
 

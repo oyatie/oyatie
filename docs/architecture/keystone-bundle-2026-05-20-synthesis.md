@@ -303,7 +303,7 @@ The Phase-1 memory-spec-runbook audit produced a finding list. Each finding requ
 5. Cross-µservice consistency: 10 invariants per §3.2.2 — several broken at corpus level (field naming, layer enum, OpenAPI version)
 6. ANCHOR-INJECTED markers across all 46 µservices: ~12-15 per file × 46 µservices × 2 files = ~1,150 stubs need expansion (matches the 1,143 from anchor-sweep)
 
-**Note:** The audit doc itself has stale `planned_enforcement_ref: oya-governance-doc-rigor` — pre-rename. Phase-2 fixes this in audit's own front-matter too (`oya-governance-doc-rigor`).
+**Note:** The audit doc itself has stale `planned_enforcement_ref: governance-doc-rigor` — pre-rename. Phase-2 fixes this in audit's own front-matter too (`governance-doc-rigor`).
 
 **Phase-2 work split:**
 - Phase-2-A (parallel): expand the ~1,150 ANCHOR-INJECTED stubs into substantive prose per documentation-rigor.md §3.2.1 row obligations
@@ -313,12 +313,12 @@ The Phase-1 memory-spec-runbook audit produced a finding list. Each finding requ
 
 ### Phase-1 IP audit — adjudication (921 IPs across 46 µservices)
 
-**Headline:** the IP corpus is structurally large + pre-rename clean (0 stale `oya-governance-*` references in acceptance_lanes), but doctrine-binding is severely weak (14% of IPs cite any keystone-bundle ADR; 0% cite any amendment ADR).
+**Headline:** the IP corpus is structurally large + pre-rename clean (0 stale `governance-*` references in acceptance_lanes), but doctrine-binding is severely weak (14% of IPs cite any keystone-bundle ADR; 0% cite any amendment ADR).
 
 | Finding cluster | Adjudication |
 |---|---|
 | 921 IPs scanned (audit reports 846 flat + 75 in non-flat subdirs) | **TRUE finding** — non-flat IP layout violates ADR-0131. Phase-2 action: flatten the 75 IPs in `analytics/specs/`, `developer-sdk/implementation-plans/`, `finops-portal/implementation-plans/`, `plugin-app-store/implementation-plans/` to per-µservice root. |
-| Post-rename `oya-governance-*` in acceptance_lanes = 0 hits | **PASS** — the foundry → governance rename cleaned this corpus thoroughly. |
+| Post-rename `governance-*` in acceptance_lanes = 0 hits | **PASS** — the foundry → governance rename cleaned this corpus thoroughly. |
 | 5 IPs still bind ADR-0136 (superseded by ADR-0247) | **TRUE P0** — Phase-2 action: rebind to ADR-0247. |
 | 15 IPs / 63 lines reference `oya vcs` (superseded by `oya git`) | **TRUE P0** — Phase-2 action: rename. |
 | 5 IPs reference OpenAPI 3.1 / AsyncAPI 3.0 / 2.x | **TRUE P0** — Phase-2 action: pin to 3.2.0 / 3.1.0. |

@@ -94,7 +94,7 @@ fn postgres_rls_runtime_evidence_plan_preserves_official_docs_and_ref_boundaries
     assert!(plan.probes.iter().all(|probe| {
         probe
             .source_migration_ref
-            .starts_with("crates/oya-tenant-rbac-postgres-rls-storage/")
+            .starts_with("crates/tenant-rbac-postgres-rls-storage/")
     }));
     assert!(plan.probes.iter().all(|probe| {
         probe

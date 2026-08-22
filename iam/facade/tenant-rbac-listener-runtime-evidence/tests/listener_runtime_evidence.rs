@@ -98,7 +98,7 @@ fn listener_runtime_evidence_plan_preserves_ref_and_route_boundaries() {
             .starts_with("evidence/listener-runtime/tenant-rbac/")
             && requirement
                 .source_plan_ref
-                .starts_with("crates/oya-tenant-rbac-listener-gateway/")
+                .starts_with("crates/tenant-rbac-listener-gateway/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.required_route_count == 19
             && !requirement.runtime_evidence_attached

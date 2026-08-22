@@ -17,18 +17,18 @@ This is not a cosmetic naming check. It protects the tenancy authority boundary 
 
 ## B. Approach
 
-Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`, that resolves the platform-owner binding from `/specs/platform-owner-binding.json`, normalizes candidate names with Unicode confusable handling, and evaluates the action through `microservices/tenancy/policy/action-authorization.cedar` before returning allow/deny. The guard is called by tenant creation, tenant rename, sub-scope creation, and future operator portal flows.
+Implement a usecase-layer guard crate, `tenancy-reserved-namespace-usecase`, that resolves the platform-owner binding from `/specs/platform-owner-binding.json`, normalizes candidate names with Unicode confusable handling, and evaluates the action through `microservices/tenancy/policy/action-authorization.cedar` before returning allow/deny. The guard is called by tenant creation, tenant rename, sub-scope creation, and future operator portal flows.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-reserved-namespace-usecase/Cargo.toml` | create | Usecase crate. |
+| `microservices/tenancy/src/crates/tenancy-reserved-namespace-usecase/Cargo.toml` | create | Usecase crate. |
 | `src/lib.rs` | create | Public `ReservedNamespaceEnforcer`. |
 | `src/normalization.rs` | create | Unicode normalization and confusable skeleton generation. |
 | `src/reserved_set.rs` | create | Builds reserved tokens from platform-owner binding plus tenancy principal roster. |
 | `src/enforce.rs` | create | `enforce(candidate, actor, tenant_context)` command handler. |
-| `microservices/tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml` | update/create | Catalog evidence already referenced by service inventory. |
+| `microservices/tenancy/catalog/tenancy-reserved-namespace-usecase.yaml` | update/create | Catalog evidence already referenced by service inventory. |
 | `microservices/tenancy/policy/action-authorization.cedar` | update | Add action names for reserved namespace decisions if absent. |
 
 ## D. Implementation
@@ -43,11 +43,11 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-reserved-namespace-usecase --all-features`.
+- `cargo nextest run -p tenancy-reserved-namespace-usecase --all-features`.
 - Tests include at least 20 reserved-name and confusable cases.
 - Deny path emits `oya.tenancy.reserved-namespace-create-refused` and does not persist the requested slug.
 - Allow path proves a non-reserved tenant slug continues to `CreateTenantUseCase`.
-- `cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice tenancy` includes the reserved namespace action.
+- `cargo run -p dev-cli -- gate validate cedar-coverage --microservice tenancy` includes the reserved namespace action.
 
 ## F. Evidence
 
@@ -68,4 +68,4 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-017-reserved-namespace-enforcer.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-017-reserved-namespace-enforcer.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

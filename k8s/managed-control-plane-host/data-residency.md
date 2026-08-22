@@ -1,4 +1,4 @@
-# Data residency — `oya-managed-k8s-control-plane-host`
+# Data residency — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376, ADR-0009 (per-tenant per-region cells).
 
@@ -34,5 +34,5 @@ contents of any tenant cluster.
 ## Deferred
 
 The DPIA for HOSTING tenant control planes is explicitly deferred to
-`oya-managed-k8s-commercial-ga` (ADR-0376). This lane does not make a DPIA claim;
+`managed-k8s-commercial-ga` (ADR-0376). This lane does not make a DPIA claim;
 it records the data classes the live integration must cover.

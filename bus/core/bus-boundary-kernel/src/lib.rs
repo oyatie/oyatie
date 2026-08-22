@@ -16,7 +16,7 @@
 //! # Naming justification
 //! `messaging-bus-boundary-kernel` follows the ADR-0532/0533 de-branded
 //! grammar `<capability:messaging>-<topic:bus-boundary>-<layer:kernel>`,
-//! mirroring its sibling `messaging-substrate-kernel`. The `oya-bus.`
+//! mirroring its sibling `messaging-substrate-kernel`. The `bus.`
 //! topic prefix below is a WIRE identifier, not a crate name: it is
 //! deliberately unchanged by the de-brand, because renaming a topic is a
 //! behavior change and must not ride along inside a relocation.
@@ -36,7 +36,7 @@ use messaging_substrate_kernel::{
 };
 
 /// Envelope header carrying the event type.
-pub const EVENT_TYPE_HEADER: &str = "oya-event-type";
+pub const EVENT_TYPE_HEADER: &str = "event-type";
 
 /// Bus-surface errors.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -83,7 +83,7 @@ impl ChannelName {
     /// Returns [`BusError::InvalidChannelName`] when the derived topic
     /// name would not be a canonical slug.
     pub fn parse(value: &str) -> Result<Self, BusError> {
-        TopicName::parse(&format!("oya-bus.{value}")).map_err(|_| {
+        TopicName::parse(&format!("bus.{value}")).map_err(|_| {
             BusError::InvalidChannelName {
                 value: value.to_owned(),
             }
@@ -128,7 +128,7 @@ impl<'a, S: MessagingSubstrate> EventBus<'a, S> {
         channel: &ChannelName,
         loss_class: LossClass,
     ) -> Result<Self, BusError> {
-        let topic = TopicName::parse(&format!("oya-bus.{}", channel.as_str()))?;
+        let topic = TopicName::parse(&format!("bus.{}", channel.as_str()))?;
         substrate.ensure_topic(
             &topic,
             &TopicSpec {

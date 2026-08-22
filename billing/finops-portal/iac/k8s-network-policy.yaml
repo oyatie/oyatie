@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: finops-portal-default-deny
-  namespace: oya-finops-portal
+  namespace: finops-portal
 spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
@@ -13,7 +13,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: finops-portal-allow-substrate
-  namespace: oya-finops-portal
+  namespace: finops-portal
 spec:
   podSelector:
     matchLabels:
@@ -29,10 +29,10 @@ spec:
         - { protocol: UDP, port: 443 }
   egress:
     - to:
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: oya-observability } }
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: oya-audit-chain } }
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: oya-cloud-secrets } }
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: oya-tenancy } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: observability } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: audit-chain } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: cloud-secrets } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: tenancy } }
       ports:
         - { protocol: TCP, port: 443 }
         - { protocol: UDP, port: 443 }

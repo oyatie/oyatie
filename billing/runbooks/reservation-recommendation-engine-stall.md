@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-billing-reservation-recommendation-engine-stall.
 - Primary namespace: `cloud-billing`.
-- Owning rotation: PagerDuty `oya-cloud-billing-primary`.
-- FinOps secondary: PagerDuty `oya-finops-primary`.
+- Owning rotation: PagerDuty `cloud-billing-primary`.
+- FinOps secondary: PagerDuty `finops-primary`.
 - Incident channel: `#inc-cloud-billing`.
 - Customer channel: `#support-reservation-recommendations`.
 - Protected surface: reservation recommender, utilization forecasts, savings plans, convertible reservation guidance, tenant commitments.
@@ -37,14 +37,14 @@ doc_status: published
 - Alert `CloudBillingReservationForecastLagHigh` fires.
 - Alert `CloudBillingReservationSavingsModelError` fires.
 - Alert `CloudBillingReservationExportStale` fires.
-- Metric `oya_cloud_billing_reservation_recommendation_age_seconds` exceeds 86400.
-- Metric `oya_cloud_billing_reservation_forecast_lag_seconds` exceeds 7200.
-- Metric `oya_cloud_billing_reservation_recommender_queue_depth` exceeds 10000.
-- Metric `oya_cloud_billing_reservation_model_error_ratio` exceeds 0.02.
-- Metric `oya_cloud_billing_reservation_candidate_count` drops to zero for active tenants.
-- Metric `oya_cloud_billing_reservation_commitment_delta_usd` spikes.
-- Metric `oya_cloud_billing_reservation_utilization_input_stale_total` increases.
-- Metric `oya_cloud_billing_reservation_recommendation_export_error_total` increases.
+- Metric `cloud_billing_reservation_recommendation_age_seconds` exceeds 86400.
+- Metric `cloud_billing_reservation_forecast_lag_seconds` exceeds 7200.
+- Metric `cloud_billing_reservation_recommender_queue_depth` exceeds 10000.
+- Metric `cloud_billing_reservation_model_error_ratio` exceeds 0.02.
+- Metric `cloud_billing_reservation_candidate_count` drops to zero for active tenants.
+- Metric `cloud_billing_reservation_commitment_delta_usd` spikes.
+- Metric `cloud_billing_reservation_utilization_input_stale_total` increases.
+- Metric `cloud_billing_reservation_recommendation_export_error_total` increases.
 - Tenant UI shows recommendation generated more than 24 hours ago.
 - Finance asks why savings recommendations disappeared.
 - A tenant contract renewal depends on fresh reservation recommendations.
@@ -82,11 +82,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-billing --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-billing --severity sev2`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="reservation-recommender")'`.
-6. Query recommendation age: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_reservation_recommendation_age_seconds{tenant_id="'$TENANT'"}'`.
-7. Query forecast lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_reservation_forecast_lag_seconds{tenant_id="'$TENANT'"}'`.
-8. Query queue depth: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_reservation_recommender_queue_depth{cell="'$CELL'"}'`.
-9. Query model errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_reservation_model_error_ratio{cell="'$CELL'"}'`.
-10. Query candidate count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_reservation_candidate_count{tenant_id="'$TENANT'"}'`.
+6. Query recommendation age: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_reservation_recommendation_age_seconds{tenant_id="'$TENANT'"}'`.
+7. Query forecast lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_reservation_forecast_lag_seconds{tenant_id="'$TENANT'"}'`.
+8. Query queue depth: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_reservation_recommender_queue_depth{cell="'$CELL'"}'`.
+9. Query model errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_reservation_model_error_ratio{cell="'$CELL'"}'`.
+10. Query candidate count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_reservation_candidate_count{tenant_id="'$TENANT'"}'`.
 11. Open reservations dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/reservations?orgId=1&var-tenant=$TENANT&var-period=$PERIOD"`.
 12. Open forecast dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/forecasting?orgId=1&var-tenant=$TENANT&var-period=$PERIOD"`.
 13. Read worker logs: `kubectl -n cloud-billing logs deploy/cloud-billing-reservation-recommender --since=60m | rg "reservation|forecast|model|utilization|rate_card"`.
@@ -163,9 +163,9 @@ doc_status: published
 6. Patch export worker if recommendations generated but warehouse export failed.
 7. Add regression fixture for stale utilization input.
 8. Add regression fixture for rate-card change.
-9. Run domain tests: `cargo test -p oya-cloud-billing-domain reservation -- --nocapture`.
-10. Run API tests: `cargo test -p oya-cloud-finops-api cloud_finops_report_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-reservations --production-snapshot --period $PERIOD`.
+9. Run domain tests: `cargo test -p cloud-billing-domain reservation -- --nocapture`.
+10. Run API tests: `cargo test -p cloud-finops-api cloud_finops_report_api -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-billing-reservations --production-snapshot --period $PERIOD`.
 12. Verify fresh recommendations: `oya billing reservations recommender status --tenant $TENANT --period $PERIOD --expect fresh`.
 13. Release export hold: `oya billing reservations export unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -173,9 +173,9 @@ doc_status: published
 
 ## Verification Checklist
 - `CloudBillingReservationRecommendationStale` is green.
-- `oya_cloud_billing_reservation_recommendation_age_seconds` is below 86400.
-- `oya_cloud_billing_reservation_forecast_lag_seconds` is below 7200.
-- `oya_cloud_billing_reservation_recommender_queue_depth` returns to baseline.
+- `cloud_billing_reservation_recommendation_age_seconds` is below 86400.
+- `cloud_billing_reservation_forecast_lag_seconds` is below 7200.
+- `cloud_billing_reservation_recommender_queue_depth` returns to baseline.
 - Recommendation export is fresh.
 - Tenant UI shows fresh timestamp.
 - Auto-purchase remains disabled unless separately approved.
@@ -234,10 +234,10 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-billing-primary` for recommender staleness.
-- Page `oya-finops-primary` when recommendations drive customer savings or renewal.
-- Page `oya-cloud-compute-primary` when utilization aggregate is stale.
-- Page `oya-audit-chain-primary` when generation events are missing.
+- Page `cloud-billing-primary` for recommender staleness.
+- Page `finops-primary` when recommendations drive customer savings or renewal.
+- Page `cloud-compute-primary` when utilization aggregate is stale.
+- Page `audit-chain-primary` when generation events are missing.
 - Notify `#inc-cloud-billing` with tenant, period, and model version.
 - Notify `#support-reservation-recommendations` for tenant-visible staleness.
 - Notify `#customer-success-renewals` when renewal collateral is affected.

@@ -17,7 +17,7 @@ research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 ## Operator Contract
 - Runbook id: `identity-workload-jwks-fetch-failure`.
 - Service namespace: `identity`; bounded context `workload-identity`.
-- Owning rotation: PagerDuty `oya-identity-primary`; `ops-security` secondary.
+- Owning rotation: PagerDuty `identity-primary`; `ops-security` secondary.
 - Incident channel: `#inc-identity-security`.
 - Audit event class: `EVT-IDENTITY-WORKLOAD-JWKS_FETCH-INCIDENT` (ADR-0162 fields
   `incident_id`, `tenant_id`, `trust_domain`, `cell_id`, `runbook_id`,
@@ -40,10 +40,10 @@ visible, not hidden.
 
 ## Trigger Conditions
 - Page on `IdentityWorkloadJwksUnavailable` when
-  `sum(rate(oya_identity_workload_validate_request_total{failure="jwks-unavailable"}[5m])) > 0`
+  `sum(rate(identity_workload_validate_request_total{failure="jwks-unavailable"}[5m])) > 0`
   for 5 minutes in any production cell.
 - Page on `IdentityWorkloadValidationAvailBurn` when the
-  `oya-identity-workload-validation-availability` SLO burn rate ≥ 14.4x for 1h.
+  `identity-workload-validation-availability` SLO burn rate ≥ 14.4x for 1h.
 - Sev0 if more than one trust domain reports `jwks-unavailable` simultaneously
   (fleet-wide issuer or network failure).
 
@@ -51,8 +51,8 @@ visible, not hidden.
 - PEPs see `503` from `/tokens/validate` and `/authorize-with-token`; downstream
   calls fail closed (denied), so dependent µservices report authz denials, not
   data corruption.
-- Metric pattern: `oya_identity_workload_jwks_cache_age_seconds` exceeds the
-  cache TTL while `oya_identity_workload_jwks_fetch_error_total` climbs.
+- Metric pattern: `identity_workload_jwks_cache_age_seconds` exceeds the
+  cache TTL while `identity_workload_jwks_fetch_error_total` climbs.
 - Log signature `decision=deny reason=jwks-unavailable` with `trust_domain` set
   means the fail-closed path is working as designed — confirm cache state before
   assuming a bug.
@@ -60,9 +60,9 @@ visible, not hidden.
 ## Diagnostic Steps
 1. Set incident vars: `export INCIDENT_ID=INC-identity-workload-jwks-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-eu-frankfurt-1; export TD=acme.oyatie.dev`.
 2. Confirm which trust domains are affected: query
-   `oya_identity_workload_validate_request_total{failure="jwks-unavailable"}` by `trust_domain`.
-3. Check cache age vs TTL: query `oya_identity_workload_jwks_cache_age_seconds{trust_domain="$TD"}`.
-4. Check fetch errors: query `oya_identity_workload_jwks_fetch_error_total{trust_domain="$TD"}`.
+   `identity_workload_validate_request_total{failure="jwks-unavailable"}` by `trust_domain`.
+3. Check cache age vs TTL: query `identity_workload_jwks_cache_age_seconds{trust_domain="$TD"}`.
+4. Check fetch errors: query `identity_workload_jwks_fetch_error_total{trust_domain="$TD"}`.
 5. Verify the upstream issuer JWKS endpoint is reachable from the cell network
    (DNS, TLS, HTTP status) for the affected trust domain.
 6. Confirm whether the failure is fetch (network/DNS/TLS) or cache-expiry
@@ -101,8 +101,8 @@ visible, not hidden.
 
 ## Resolution Steps
 1. Confirm a successful JWKS fetch repopulated the cache for every affected
-   trust domain (`oya_identity_workload_jwks_cache_age_seconds` resets to ~0).
-2. Confirm `oya_identity_workload_validate_request_total{failure="jwks-unavailable"}`
+   trust domain (`identity_workload_jwks_cache_age_seconds` resets to ~0).
+2. Confirm `identity_workload_validate_request_total{failure="jwks-unavailable"}`
    returns to zero for 3 consecutive 10-minute windows.
 3. Confirm the validation-availability SLO burn rate is back below 1x.
 4. If config-driven, add a regression test asserting the trust-domain→JWKS map
@@ -118,7 +118,7 @@ visible, not hidden.
 - `EVT-IDENTITY-WORKLOAD-JWKS_FETCH-INCIDENT` has sealed mitigation + resolution rows.
 
 ## Escalation Path
-- Primary: `oya-identity-primary`; security secondary `ops-security-primary`.
+- Primary: `identity-primary`; security secondary `ops-security-primary`.
 - Upstream issuer owner: engage when the issuer JWKS endpoint or key rotation is
   the root cause and local network is proven healthy.
 - Architecture: page `council-architecture-reviewer` before any proposal to relax

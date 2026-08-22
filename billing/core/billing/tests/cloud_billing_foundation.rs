@@ -10,7 +10,7 @@ fn paid_guardrail_create() -> CloudBillingTenantGuardrailCreate {
         billing_account_id: "ba_ten_alpha".to_string(),
         tenant_class: TenantClass::Paid,
         billing_components: vec![BillingComponent::PerSeat, BillingComponent::PerUsage],
-        regional_pack: "oya-pack-electronic-tax".to_string(),
+        regional_pack: "pack-electronic-tax".to_string(),
         tax_invoice_format: TaxInvoiceFormat::ElectronicTaxInvoice,
         rate_card_ref: "rate/region-alpha/cloud/billing/v1".to_string(),
         invoice_id: "inv_ten_alpha_202605".to_string(),
@@ -138,7 +138,7 @@ fn guardrail_rejects_secret_like_or_wrong_scope_evidence_refs() {
 #[test]
 fn guardrail_rejects_regional_pack_tax_format_drift_and_invalid_ids() {
     let mut format_drift = paid_guardrail_create();
-    format_drift.regional_pack = "oya-pack-qualified-tax".to_string();
+    format_drift.regional_pack = "pack-qualified-tax".to_string();
     let format_error = CloudBillingTenantGuardrail::new(format_drift)
         .expect_err("regional tax pack determines the required invoice format");
     assert_eq!(format_error, CloudBillingError::InvalidTaxInvoiceFormat);

@@ -494,7 +494,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "pattern": "^oya_[a-z][a-z0-9_]*$"
+                "pattern": "^[a-z][a-z0-9_]*$"
               },
               "kind": {
                 "enum": [

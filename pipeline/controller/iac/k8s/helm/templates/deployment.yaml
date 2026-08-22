@@ -61,33 +61,33 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
-            - name: OYA_CI_CONTROLLER_LISTEN_ADDR
+            - name: OYATIE_CI_CONTROLLER_LISTEN_ADDR
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
-            - name: OYA_CI_CONTROLLER_NAMESPACE
+            - name: OYATIE_CI_CONTROLLER_NAMESPACE
               value: {{ .Values.config.namespace | quote }}
-            - name: OYA_CI_CONTROLLER_GITHUB_BASE
+            - name: OYATIE_CI_CONTROLLER_GITHUB_BASE
               value: {{ .Values.config.githubBase | quote }}
-            - name: OYA_CI_CONTROLLER_REPO_OWNER
+            - name: OYATIE_CI_CONTROLLER_REPO_OWNER
               value: {{ .Values.config.githubRepoOwner | quote }}
-            - name: OYA_CI_CONTROLLER_REPO_NAME
+            - name: OYATIE_CI_CONTROLLER_REPO_NAME
               value: {{ .Values.config.githubRepoName | quote }}
-            - name: OYA_CI_GATE_IMAGE
+            - name: OYATIE_CI_GATE_IMAGE
               value: "{{ .Values.gateJobImage.registry }}/{{ .Values.gateJobImage.repository }}:{{ .Values.gateJobImage.tag }}"
-            - name: OYA_CI_GATE_FORGE_CLONE_URL
+            - name: OYATIE_CI_GATE_FORGE_CLONE_URL
               value: {{ .Values.config.forgeCloneUrl | quote }}
-            - name: OYA_CI_GATE_ACTIVE_DEADLINE_SECS
+            - name: OYATIE_CI_GATE_ACTIVE_DEADLINE_SECS
               value: {{ .Values.config.gateActiveDeadlineSecs | quote }}
-            - name: OYA_CI_GATE_TTL_AFTER_FINISHED_SECS
+            - name: OYATIE_CI_GATE_TTL_AFTER_FINISHED_SECS
               value: {{ .Values.config.gateTtlAfterFinishedSecs | quote }}
-            - name: OYA_CI_CONTROLLER_GRACE_CYCLES
+            - name: OYATIE_CI_CONTROLLER_GRACE_CYCLES
               value: {{ .Values.config.graceCycles | quote }}
-            - name: OYA_CI_GATE_RUNNER_SA
+            - name: OYATIE_CI_GATE_RUNNER_SA
               value: {{ .Values.gateRunnerServiceAccount.name | quote }}
             # GITHUB_CI_TOKEN from OpenBao via ESO (github-ci-token Secret).
             - name: GITHUB_CI_TOKEN

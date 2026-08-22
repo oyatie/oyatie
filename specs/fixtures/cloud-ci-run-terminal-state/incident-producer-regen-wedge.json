@@ -18,7 +18,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T10:43:35Z",
       "completed_at": "2026-08-01T10:45:56Z",
-      "runner_name": "oya-arm64-lh4ch-runner-cj4lj",
+      "runner_name": "arm64-lh4ch-runner-cj4lj",
       "steps": [
         {
           "number": 1,
@@ -71,7 +71,7 @@
       "conclusion": "success",
       "started_at": "2026-08-01T11:03:33Z",
       "completed_at": "2026-08-01T11:03:51Z",
-      "runner_name": "oya-arm64-lh4ch-runner-j4h7n",
+      "runner_name": "arm64-lh4ch-runner-j4h7n",
       "steps": [
         {
           "number": 1,
@@ -213,7 +213,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T10:48:14Z",
       "completed_at": "2026-08-01T10:50:34Z",
-      "runner_name": "oya-arm64-lh4ch-runner-55st2",
+      "runner_name": "arm64-lh4ch-runner-55st2",
       "steps": [
         {
           "number": 1,
@@ -320,7 +320,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T10:50:38Z",
       "completed_at": "2026-08-01T10:53:02Z",
-      "runner_name": "oya-arm64-lh4ch-runner-mtrzd",
+      "runner_name": "arm64-lh4ch-runner-mtrzd",
       "steps": [
         {
           "number": 1,
@@ -456,7 +456,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T10:58:05Z",
       "completed_at": "2026-08-01T11:01:12Z",
-      "runner_name": "oya-arm64-lh4ch-runner-6cd7f",
+      "runner_name": "arm64-lh4ch-runner-6cd7f",
       "steps": [
         {
           "number": 1,
@@ -509,7 +509,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T11:00:18Z",
       "completed_at": "2026-08-01T11:03:28Z",
-      "runner_name": "oya-arm64-lh4ch-runner-jb9rb",
+      "runner_name": "arm64-lh4ch-runner-jb9rb",
       "steps": [
         {
           "number": 1,
@@ -598,7 +598,7 @@
       "conclusion": "failure",
       "started_at": "2026-08-01T11:06:05Z",
       "completed_at": "2026-08-01T11:08:41Z",
-      "runner_name": "oya-arm64-lh4ch-runner-78bwk",
+      "runner_name": "arm64-lh4ch-runner-78bwk",
       "steps": [
         {
           "number": 1,
@@ -646,12 +646,12 @@
     },
     {
       "id": 91361747565,
-      "name": "oya-ci-required",
+      "name": "presubmit",
       "status": "completed",
       "conclusion": "failure",
       "started_at": "2026-08-01T11:10:46Z",
       "completed_at": "2026-08-01T11:10:48Z",
-      "runner_name": "oya-arm64-lh4ch-runner-xxrmr",
+      "runner_name": "arm64-lh4ch-runner-xxrmr",
       "steps": [
         {
           "number": 1,

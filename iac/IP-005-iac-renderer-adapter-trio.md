@@ -32,11 +32,11 @@ Four new crates per ADR-0105: `-adapter`, `-adapter-helm`, `-adapter-kustomize`,
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-adapter/{Cargo.toml,src/lib.rs,src/event_emitter.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-adapter-helm/{Cargo.toml,src/lib.rs,src/helm_client.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-adapter-kustomize/{Cargo.toml,src/lib.rs,src/kustomize_client.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-adapter-opentofu/{Cargo.toml,src/lib.rs,src/opentofu_client.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-renderer-adapter*.yaml` | create (4 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-adapter/{Cargo.toml,src/lib.rs,src/event_emitter.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-adapter-helm/{Cargo.toml,src/lib.rs,src/helm_client.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-adapter-kustomize/{Cargo.toml,src/lib.rs,src/kustomize_client.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-adapter-opentofu/{Cargo.toml,src/lib.rs,src/opentofu_client.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-renderer-adapter*.yaml` | create (4 rows) |
 
 ## Code Shape
 
@@ -76,9 +76,9 @@ impl TerraformPlanComputer for OpenTofuAdapter {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
-cargo nextest run -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check -p cloud-iac-iac-renderer-adapter -p cloud-iac-iac-renderer-adapter-helm -p cloud-iac-iac-renderer-adapter-kustomize -p cloud-iac-iac-renderer-adapter-opentofu --all-features
+cargo nextest run -p cloud-iac-iac-renderer-adapter -p cloud-iac-iac-renderer-adapter-helm -p cloud-iac-iac-renderer-adapter-kustomize -p cloud-iac-iac-renderer-adapter-opentofu --all-features
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

@@ -23,13 +23,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(oya_analytics_billing_reconcile_within_tolerance_total)
+                sum(analytics_billing_reconcile_within_tolerance_total)
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(oya_analytics_billing_reconcile_total)
+                sum(analytics_billing_reconcile_total)
   timeWindow:
     - duration: 30d
       isRolling: true

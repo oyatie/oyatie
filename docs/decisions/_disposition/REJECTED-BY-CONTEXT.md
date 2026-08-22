@@ -76,7 +76,7 @@ doc_status: archived
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** The 2026-05-09 reframing folded the standalone "Foundry engineering platform" axis into Foundry. The thesis: every engineering surface that gates how we build (repoctl, catalog, claim-ceiling validator, foundation-bypass
 
-### ADR-32 — DCIM software for Oyatie-owned DC operations — `crates/oya-cloud-dcops-*` with anti-scope on custom 
+### ADR-32 — DCIM software for Oyatie-owned DC operations — `crates/cloud-dcops-*` with anti-scope on custom 
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** ADR-0028 commits the cloud microservice to a three-phase trajectory ending in greenfield Oyatie mega-DCs. From Phase 2 onward we operate physical infrastructure: rack-and-stack, power, cooling, network ops, sustainabilit
 
@@ -132,7 +132,7 @@ doc_status: archived
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** ### A.1 Named pressure: PR #177 surfaced 7 CI failures the local verifier missed On 2026-05-21, PR #177 was pushed to `dev` after the author ran `cargo check --workspace` locally and observed exit-0. CI subsequently surf
 
-### ADR-347 — Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + cr
+### ADR-347 — Foundry-fitness to governance bulk rename (doctrine-only; all governance-fitness-* CI lanes + cr
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** ### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement ADR-0335 (foundry retired, absorbed by intelligence) retired the foundry microservice as a first-class deliverable in the Oyatie cor
 
@@ -146,7 +146,7 @@ doc_status: archived
 
 ### ADR-537 — Dogfood bootstrap order + Rust-owned stack doctrine — the circular-dependency-free ten-step bring-up
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** The substrate has circular dependencies at first boot: oya-data encrypts with KMS keys while a naive KMS would store its state in oya-data; DNS names the control plane while the control plane would configure DNS; the CAS
+- **About:** The substrate has circular dependencies at first boot: data encrypts with KMS keys while a naive KMS would store its state in data; DNS names the control plane while the control plane would configure DNS; the CAS
 
 ### ADR-540 — Cargo workspace to Buck2 target parity gate
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -164,9 +164,9 @@ doc_status: archived
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** Machine-readable JSON is a load-bearing governed surface across the repo: `specs/root-hub-pointers.json` is the authoritative agent entry surface, `specs/masterplan.json` and `specs/master-plan-sequencing.json` drive seq
 
-### ADR-549 — oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
+### ADR-549 — buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`oya-cloud-ci-embedded-asset-hermeticity-app`, `oya-cloud-ci-kernel-purity-app`, `tools/oya-buck-test-wiring-app`, `oya-cloud-ci-account
+- **About:** Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`cloud-ci-embedded-asset-hermeticity-app`, `cloud-ci-kernel-purity-app`, `tools/buck-test-wiring-app`, `cloud-ci-account
 
 ### ADR-559 — Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -302,7 +302,7 @@ doc_status: archived
 
 ### ADR-603 — Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation)
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** `oya/crm/crates/oya-crm-revenue-app` exposes mutating multi-tenant CRM control planes (`adapter::http`, `adapter::grpc`, `adapter::asyncapi`) over the capabilities account-master, opportunity, quote, campaign, and servic
+- **About:** `oya/crm/crates/crm-revenue-app` exposes mutating multi-tenant CRM control planes (`adapter::http`, `adapter::grpc`, `adapter::asyncapi`) over the capabilities account-master, opportunity, quote, campaign, and servic
 
 ### ADR-607 — Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -452,9 +452,9 @@ doc_status: archived
 
 ## J. Eventing / audit stream (1)
 
-### ADR-569 — Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres)
+### ADR-569 — Commission the data outbox CDC change-stream Postgres adapter (data-outbox-adapter-postgres)
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** Story G003 (the owned `oya-data` persistence substrate; ADR-0536 D-10 change streams / D-13 messaging) has its SQL WRITE side commissioned: `libs/oya-data-sql-adapter-sqlx` is the ADR-0510 transitional Postgres implement
+- **About:** Story G003 (the owned `data` persistence substrate; ADR-0536 D-10 change streams / D-13 messaging) has its SQL WRITE side commissioned: `libs/data-sql-adapter-sqlx` is the ADR-0510 transitional Postgres implement
 
 ## K. Other (38)
 
@@ -472,7 +472,7 @@ doc_status: archived
 
 ### ADR-54 — Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
 - **How rejected:** deprecated without successor→rejected
-- **About:** `grit claim` requires a real indexed code symbol in the form `<file>::<Identifier>`. A *new* crate (e.g., `tools/oya-tooling-agent-read/`) has no source files yet, hence no indexed symbols, hence cannot be locked via `gr
+- **About:** `grit claim` requires a real indexed code symbol in the form `<file>::<Identifier>`. A *new* crate (e.g., `tools/tooling-agent-read/`) has no source files yet, hence no indexed symbols, hence cannot be locked via `gr
 
 ### ADR-111 — Merge queue: projected-merge-state + fix-at-any-stage
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -582,7 +582,7 @@ doc_status: archived
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** The founder directive of 2026-06-10 names a family of symptoms with no fundamental mechanism: missed directives from accepted ADRs, directive drift, lossy context across sessions, staleness, dead code, dead files, and un
 
-### ADR-553 — Commission the oya-identity runnable workload-identity service (G005 slice 1)
+### ADR-553 — Commission the identity runnable workload-identity service (G005 slice 1)
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
 - **About:** G005 promotes `oya/identity` from a set of library crates into a runnable service. The founder identity-layering directive (2026-06-10) fixes the architecture this slice must respect: **cloud-iam is the IdP substrate** (
 

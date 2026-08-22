@@ -107,7 +107,7 @@ use serde::{
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-use oya_governance_adr_shape_kernel::is_live_decision_status;
+use governance_adr_shape_kernel::is_live_decision_status;
 
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
@@ -154,7 +154,7 @@ pub use idea_archive_transition::{
     collect_idea_archive_observation, evaluate_idea_archive_transition,
     immutable_idea_archive_baseline, parse_idea_archive_policy,
 };
-pub use oya_check_adr_index::AdrDecisionRecord;
+pub use check_adr_index::AdrDecisionRecord;
 pub use prose_frontmatter_status::{
     PROSE_STATUS_AGREEMENT_VALIDATOR, PROSE_STATUS_CONTRADICTION_CODE,
     evaluate_adr_prose_frontmatter_status,
@@ -2148,7 +2148,7 @@ fn preplanning_candidate_facts_agree(
     let state_candidate = non_empty_field(state, "recorded_candidate_state")?;
     let state_protected = state.get("protected_pr_against_dev")?.as_bool()?;
     let state_green = state
-        .get("oya_ci_required_green_for_candidate")?
+        .get("presubmit_green_for_candidate")?
         .as_bool()?;
     let state_merged = state.get("merged_to_dev")?.as_bool()?;
     let completion_recorded = state.get("completion_packet_recorded")?.as_bool()?;
@@ -2171,7 +2171,7 @@ fn preplanning_candidate_facts_agree(
     let baseline_branch = non_empty_field(baseline, "branch")?;
     let baseline_candidate = non_empty_field(baseline, "candidate_state")?;
     let baseline_protected = baseline.get("protected_pr_against_dev")?.as_bool()?;
-    let baseline_green = baseline.get("candidate_oya_ci_required_green")?.as_bool()?;
+    let baseline_green = baseline.get("candidate_presubmit_green")?.as_bool()?;
     let baseline_merged = baseline.get("merged_to_dev")?.as_bool()?;
     let baseline_claim = non_empty_field(baseline, "claim_ceiling")?;
     let baseline_first_commit = non_empty_field(baseline, "candidate_first_content_commit")?;
@@ -2352,7 +2352,7 @@ fn preplanning_hold_shape_agrees(
 fn successful_protected_context_receipt(receipts: &[Value], commit_sha: &str) -> bool {
     receipts.iter().any(|entry| {
         non_empty_field(entry, "commit_sha") == Some(commit_sha)
-            && non_empty_field(entry, "context") == Some("oya-ci-required")
+            && non_empty_field(entry, "context") == Some("presubmit")
             && non_empty_field(entry, "status") == Some("completed")
             && non_empty_field(entry, "conclusion") == Some("success")
             && non_empty_field(entry, "started_at").is_some()
@@ -7052,14 +7052,14 @@ mod tests {
             "reviewer_eligibility_policy_ref": "registry/reviewer-eligibility/t4.json",
             "reviewer_eligibility_policy_version": "1.0.0",
             "reviewer_eligibility_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "reviewer_eligibility_policy_issuer": "oya-ci-review-controller",
+            "reviewer_eligibility_policy_issuer": "ci-review-controller",
             "policy_evaluated_at_unix_s": 1_800_000_000,
             "reviewer_eligibility_policy_effective_at_unix_s": 1_700_000_000,
             "reviewer_eligibility_policy_expires_at_unix_s": 1_900_000_000,
             "reviewer_eligibility_policy_revoked": false,
             "producer": {
                 "github_app_id": 15368,
-                "workload_identity": "github-actions:oya-ci/review-admission"
+                "workload_identity": "github-actions:ci/review-admission"
             },
             "verdict": "approved",
             "evidence_url": "https://github.com/jason931225/oyatie/pull/1944#pullrequestreview-1"

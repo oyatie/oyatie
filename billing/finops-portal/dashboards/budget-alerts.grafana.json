@@ -5,13 +5,13 @@
   "tags": ["finops-portal", "budget", "ADR-0199"],
   "panels": [
     {"id": 1, "type": "stat", "title": "Active alerts (hard breach)",
-     "targets": [{"expr": "sum(oya_finops_budget_alert_state{state=\"HARD_BREACH\"})"}]},
+     "targets": [{"expr": "sum(finops_budget_alert_state{state=\"HARD_BREACH\"})"}]},
     {"id": 2, "type": "stat", "title": "Forecast-breach alerts",
-     "targets": [{"expr": "sum(oya_finops_budget_alert_state{state=\"FORECAST_BREACH\"})"}]},
+     "targets": [{"expr": "sum(finops_budget_alert_state{state=\"FORECAST_BREACH\"})"}]},
     {"id": 3, "type": "timeseries", "title": "Alert firings per hour",
-     "targets": [{"expr": "sum(rate(oya_finops_budget_alert_fired_total[1h]))"}]},
+     "targets": [{"expr": "sum(rate(finops_budget_alert_fired_total[1h]))"}]},
     {"id": 4, "type": "table", "title": "Top alerting tenants",
-     "targets": [{"expr": "topk(10, sum by (tenant_id) (oya_finops_budget_alert_state))"}]}
+     "targets": [{"expr": "topk(10, sum by (tenant_id) (finops_budget_alert_state))"}]}
   ],
   "binding_adrs": ["ADR-0199", "ADR-0263"]
 }

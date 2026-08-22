@@ -7,7 +7,7 @@
 
 ## A — Trigger conditions
 
-- `oya_api_gateway_requests_total{code="429"}` rate per cell > 5k/s sustained 5min.
+- `api_gateway_requests_total{code="429"}` rate per cell > 5k/s sustained 5min.
 - Per-tenant 429 spike on dashboard `dashboards/rate-limit-hits.json`.
 - Customer ticket reporting unexpected 429s.
 
@@ -43,7 +43,7 @@
 
 ## D — Verification
 
-- `oya_api_gateway_requests_total{code="429", tenant_id=<id>}` rate < 100/s.
+- `api_gateway_requests_total{code="429", tenant_id=<id>}` rate < 100/s.
 - Per-tenant SLO `edge-availability` recovers to ≥0.9995.
 - Customer ticket resolved.
 

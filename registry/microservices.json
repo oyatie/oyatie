@@ -139,10 +139,10 @@
       "consumer_facing_surface": "internal AI-agent fleet via ingress proxy-key auth",
       "perf_authority": "ADR-0373 §SLO (TTFT p99 ≤2s, availability ≥99.9%, error-rate ≤0.1%)",
       "crates": [
-        "oya-cloud-intelligence-kernel",
-        "oya-cloud-intelligence-rest",
-        "oya-cloud-intelligence-authz-cedar-adapter",
-        "oya-cloud-intelligence-app"
+        "cloud-intelligence-kernel",
+        "cloud-intelligence-rest",
+        "cloud-intelligence-authz-cedar-adapter",
+        "cloud-intelligence-app"
       ],
       "contracts": {
         "openapi": "microservices/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml",
@@ -196,7 +196,7 @@
   "honest_gaps": [
     "Only 8 of ~27+ microservices populated this slice (ops + foundry + messenger + mail + community + connector + application + cloud-intelligence). Remaining ~20 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
     "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) — bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
-    "Markdown retirement: docs/microservices/intelligence.md / connector.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
+    "Markdown retirement: docs/microservices/intelligence.md / connector.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired check-doc-coverage check-crate refactor."
   ],
   "purpose": "Auto-backfilled purpose for microservices.json"
 }

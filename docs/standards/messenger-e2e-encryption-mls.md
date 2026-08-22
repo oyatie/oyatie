@@ -809,7 +809,7 @@ Registry storage:
 | App update with new MLS protocol version | Publish fresh KPs declaring new version in `capabilities` |
 
 The rotation cadence is enforced by a server-side worker
-(`oya-messenger-mls-keypackage-rotation-worker`) that issues push
+(`messenger-mls-keypackage-rotation-worker`) that issues push
 notifications to devices that fall behind.
 
 ### 4.9 HSM-backed signing for high-security tenants
@@ -2606,7 +2606,7 @@ formally-verified components (HACL*-derived crypto). Weaknesses:
 slower release cadence than mls-rs; FIPS support more nascent.
 
 **Decision:** mls-rs primary; openmls as a contingency option. The
-`oya-messenger-mls-adapter` BC isolates the choice behind a trait
+`messenger-mls-adapter` BC isolates the choice behind a trait
 boundary so a future swap is mechanical (per ADR-0211 §"Phase 2"
 posture).
 
@@ -2695,9 +2695,9 @@ storage, not the message store directly.
 
 Acceptance criteria (must run green in CI per Messenger PRD AC matrix):
 
-- `cargo nextest run -p oya-messenger-e2e-mls-*` exits 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice messenger` exits 0.
-- `cargo run -p oya-dev-cli -- gate validate mls-conformance --microservice messenger` exits 0 (new lane; checks against IETF MLS interop matrix).
+- `cargo nextest run -p messenger-e2e-mls-*` exits 0.
+- `cargo run -p dev-cli -- gate validate cedar-coverage --microservice messenger` exits 0.
+- `cargo run -p dev-cli -- gate validate mls-conformance --microservice messenger` exits 0 (new lane; checks against IETF MLS interop matrix).
 
 ---
 

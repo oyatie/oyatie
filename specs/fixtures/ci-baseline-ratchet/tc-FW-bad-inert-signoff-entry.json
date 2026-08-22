@@ -29,5 +29,5 @@
       "cloud-ci-total-accounting": {"unjustified": ["oya/long-gone/standing-ticket.rs"]}
     }
   },
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-firewall-app/tests/firewall.rs"
 }

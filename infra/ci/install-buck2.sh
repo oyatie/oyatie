@@ -64,7 +64,7 @@ windows_github_path=0
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
-    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-ecc3d807dd0b0feff1a423688bd598263b8339d223e685578a87196456c19d95}"
     BUCK2_BINARY_NAME="buck2"
@@ -72,21 +72,21 @@ case "$(uname -s)-$(uname -m)" in
   Linux-aarch64 | Linux-arm64)
     # Hosted ubuntu-24.04-arm and lab ARC are both aarch64. Same digest-pinned adapter
     # edge as x86_64: release tag selects the asset, SHA-256 pins the bytes.
-    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-e239bf72f40a7987db9024eb6d5e325642f6496c589dec6be54c1008d2618a19}"
     BUCK2_BINARY_NAME="buck2"
     ;;
   Darwin-arm64 | Darwin-aarch64)
     # GitHub macos-latest is Apple Silicon. Digests from facebook/buck2 2026-07-15 release API.
-    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-apple-darwin.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-088cacc72c400fa438be4052c36782f56b2af86287aadf13ece5e9772d72455c}"
     BUCK2_BINARY_NAME="buck2"
     ;;
   Darwin-x86_64)
     # macos-*-large / macos-15-intel class (Intel). Same pin discipline as other arms.
-    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-apple-darwin.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-46cc4bb1372ea3110c099240e05176bb9eff003e7e38233c1bb2ef268449dbb3}"
     BUCK2_BINARY_NAME="buck2"
@@ -102,7 +102,7 @@ case "$(uname -s)-$(uname -m)" in
         echo "Failed to convert RUNNER_TEMP to a Git Bash path for Windows Buck2 installation." >&2
         exit 1
       fi
-      BUCK2_INSTALL_DIR="${runner_temp_posix}/oya-ci-buck2-${BUCK2_RELEASE}"
+      BUCK2_INSTALL_DIR="${runner_temp_posix}/ci-buck2-${BUCK2_RELEASE}"
     fi
     BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-pc-windows-msvc.exe.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-719324109a8c5f9f95d9f1f6895ec500505eebcc466b193fa46e05f243276e59}"
@@ -120,19 +120,19 @@ case "$(uname -s)-$(uname -m)" in
         echo "Failed to convert RUNNER_TEMP to a Git Bash path for Windows Buck2 installation." >&2
         exit 1
       fi
-      BUCK2_INSTALL_DIR="${runner_temp_posix}/oya-ci-buck2-${BUCK2_RELEASE}"
+      BUCK2_INSTALL_DIR="${runner_temp_posix}/ci-buck2-${BUCK2_RELEASE}"
     fi
     BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-pc-windows-msvc.exe.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-9939fda2913e27fcda30a70e8d51833523d7083b9f56459626fa5bc161f10a86}"
     BUCK2_BINARY_NAME="buck2.exe"
     ;;
   *)
-    if [ "${OYA_CI_ALLOW_AMBIENT_BUCK2:-}" = "1" ] && command -v buck2 >/dev/null 2>&1; then
-      echo "Using ambient buck2 only because OYA_CI_ALLOW_AMBIENT_BUCK2=1 was set." >&2
+    if [ "${OYATIE_CI_ALLOW_AMBIENT_BUCK2:-}" = "1" ] && command -v buck2 >/dev/null 2>&1; then
+      echo "Using ambient buck2 only because OYATIE_CI_ALLOW_AMBIENT_BUCK2=1 was set." >&2
       buck2 --version
       exit 0
     fi
-    echo "Unsupported host for default pinned Buck2 install ($(uname -s)-$(uname -m)); set OYA_CI_ALLOW_AMBIENT_BUCK2=1 for local advisory use." >&2
+    echo "Unsupported host for default pinned Buck2 install ($(uname -s)-$(uname -m)); set OYATIE_CI_ALLOW_AMBIENT_BUCK2=1 for local advisory use." >&2
     exit 1
     ;;
 esac

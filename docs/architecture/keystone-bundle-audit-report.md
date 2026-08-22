@@ -570,7 +570,7 @@ from advisory to BLOCKER:
 - `microservices/identity/` (per ADR-0242)
 - `microservices/policy-engine/` (per ADR-0246, ADR-0243)
 - `microservices/audit-chain/` (per ADR-0242)
-- Cell pattern successor owners: tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/oya-shuffle-sharding` (per ADR-0248 and ADR-0333)
+- Cell pattern successor owners: tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/shuffle-sharding` (per ADR-0248 and ADR-0333)
 
 An intern starting from a fresh checkout has no guidance on which
 five µservices to scaffold first, in what order, with what initial
@@ -687,7 +687,7 @@ classification of µservice X matches X's PRD's self-declared tier.
 silently break the substrate-vs-product invariant.
 
 **Where remediation belongs.** Add a CI gate
-`oya-check-microservice-tier-coherence` that walks every PRD's
+`check-microservice-tier-coherence` that walks every PRD's
 `tier:` declaration and verifies it matches ADR-0245 §D-3's row.
 
 **Owner.** axis-foundry + axis-governance; estimated 1 day of
@@ -922,7 +922,7 @@ remediation PR.
 | Agent-A3 | onboarding-author | Author `docs/onboarding/intern-day-one.md` per gap #3. |
 | Agent-A4 | placeholder-signposter | For each `placeholder` occurrence in ADR-0249, add a citation to ADR-0250. |
 | Agent-A5 | walkthrough-author | Author `docs/architecture/keystone-bundle-intern-walkthrough.md` per gap #5. |
-| Agent-A6 | tier-coherence-author | Author CI gate `oya-check-microservice-tier-coherence` per gap #6. |
+| Agent-A6 | tier-coherence-author | Author CI gate `check-microservice-tier-coherence` per gap #6. |
 | Agent-A7 | cedar-validator | Extract every Cedar fragment in the bundle into a test corpus + CI lane per gap #7. |
 | Agent-A8 | launch-runbook-author | Author the `capability-launch-runbook-template.md` + Apple-Pay-class exemplar per gap #8. |
 

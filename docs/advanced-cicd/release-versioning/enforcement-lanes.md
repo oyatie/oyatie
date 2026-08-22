@@ -23,12 +23,12 @@ doc_status: published
 
 | Lane ID | Status | Severity | Scope | What it verifies |
 |---|---|---|---|---|
-| `oya-governance-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oya-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
-| `oya-governance-api-version-stability` | **NEW** | BLOCKER | every PR touching `contracts/openapi/**` | No removal / type change / rename in stable path-versions per [`api-versioning-spec.md`](api-versioning-spec.md) §6 |
-| `oya-governance-version-eol-warning` | **NEW** | HIGH (BLOCKER on EOL day) | nightly + per-PR | 90-day pre-EOL warning emitted per [`version-eol-policy.md`](version-eol-policy.md) §3 |
-| `oya-governance-release-branch-cut` | **NEW** | BLOCKER | release-cherry-pick agent invocation | Tag + branch + workspace version + lanes-green pre-cut all consistent per [`release-branch-cut-spec.md`](release-branch-cut-spec.md) §3 |
-| `oya-governance-cherry-pick-trail` | **NEW** | HIGH | release branch commits | Every commit on `release/X.Y` traces to a prod SHA via the agent's evidence chain per [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md) §8 |
-| `oya-governance-deprecation-notice` | **NEW** | BLOCKER | breaking-change PRs | 180-day sunset row present in SUNSET-LEDGER + ADR + dual reviewer-agent approval per [`breaking-change-process.md`](breaking-change-process.md) §4-§6 |
+| `governance-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oya-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
+| `governance-api-version-stability` | **NEW** | BLOCKER | every PR touching `contracts/openapi/**` | No removal / type change / rename in stable path-versions per [`api-versioning-spec.md`](api-versioning-spec.md) §6 |
+| `governance-version-eol-warning` | **NEW** | HIGH (BLOCKER on EOL day) | nightly + per-PR | 90-day pre-EOL warning emitted per [`version-eol-policy.md`](version-eol-policy.md) §3 |
+| `governance-release-branch-cut` | **NEW** | BLOCKER | release-cherry-pick agent invocation | Tag + branch + workspace version + lanes-green pre-cut all consistent per [`release-branch-cut-spec.md`](release-branch-cut-spec.md) §3 |
+| `governance-cherry-pick-trail` | **NEW** | HIGH | release branch commits | Every commit on `release/X.Y` traces to a prod SHA via the agent's evidence chain per [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md) §8 |
+| `governance-deprecation-notice` | **NEW** | BLOCKER | breaking-change PRs | 180-day sunset row present in SUNSET-LEDGER + ADR + dual reviewer-agent approval per [`breaking-change-process.md`](breaking-change-process.md) §4-§6 |
 
 ## 2. Lane wiring
 
@@ -47,10 +47,10 @@ post-release / nightly:
   - cherry-pick-trail           (HIGH; emits divergence report)
 ```
 
-All lanes run inside `oya-governance-quality-lane-kernel` (existing) and emit
+All lanes run inside `governance-quality-lane-kernel` (existing) and emit
 signed evidence rows to D14 per ADR-0050.
 
-## 3. `oya-governance-semver-discipline` (NEW · BLOCKER)
+## 3. `governance-semver-discipline` (NEW · BLOCKER)
 
 Inputs: PR diff against `origin/prod`, per-crate `Cargo.toml`, public-API
 manifest.
@@ -62,11 +62,11 @@ Checks:
    frontmatter + linked ADR + dual reviewer-agent approval.
 3. Workspace lockstep invariant (Phase A): all `oya-*` versions match.
 4. Phase B (post-W-Foundry-Preview): per-crate major bumps consistent with
-   layer rules (`oya-platform-*` shared major, `oya-foundry-*` shared major).
+   layer rules (`platform-*` shared major, `foundry-*` shared major).
 
 Outputs: PR comment with the SemVer report; D14 evidence row.
 
-## 4. `oya-governance-api-version-stability` (NEW · BLOCKER)
+## 4. `governance-api-version-stability` (NEW · BLOCKER)
 
 Inputs: PR diff on `contracts/openapi/**`, prior commit's OpenAPI spec,
 `x-stability` / `x-introduced` / `x-deprecated` / `x-sunset` fields.
@@ -82,7 +82,7 @@ Checks:
 
 Outputs: structured diff report; BLOCKER if any check fails.
 
-## 5. `oya-governance-version-eol-warning` (NEW · HIGH)
+## 5. `governance-version-eol-warning` (NEW · HIGH)
 
 Runs nightly via cron + per-PR for PRs targeting a release branch.
 
@@ -97,14 +97,14 @@ Checks:
 
 Outputs: nightly digest in `docs/release/EOL-DIGEST.md`; D14 row.
 
-## 6. `oya-governance-release-branch-cut` (NEW · BLOCKER)
+## 6. `governance-release-branch-cut` (NEW · BLOCKER)
 
 Invoked at branch-cut time by the `release-cherry-pick` agent or operator.
 
 Checks:
 1. All BLOCKER lanes green on the prod SHA being cut.
 2. No breaking-change PRs pending sunset on this major.
-3. Tag `oya-vX.Y.0` does not already exist.
+3. Tag `vX.Y.0` does not already exist.
 4. Branch `release/X.Y` does not already exist.
 5. Workspace `Cargo.toml` version stamped to `X.Y.0` on the cut commit.
 6. Branch-protection policy applied immediately on creation.
@@ -112,20 +112,20 @@ Checks:
 
 Outputs: success → cut proceeds; failure → cut refused, operator paged.
 
-## 7. `oya-governance-cherry-pick-trail` (NEW · HIGH)
+## 7. `governance-cherry-pick-trail` (NEW · HIGH)
 
 Runs weekly + on every cherry-pick commit.
 
 Checks:
 1. Every commit on `release/X.Y` (except the cut commit) has a matching
    commit on `origin/prod` (by content hash or `git cherry`).
-3. Every patch tag (`oya-vX.Y.Z`, Z ≥ 1) has a `gh release` record.
+3. Every patch tag (`vX.Y.Z`, Z ≥ 1) has a `gh release` record.
 4. No commit on `release/X.Y` lacks a Cosign keyless OIDC signature from the
    `release-cherry-pick` agent identity.
 
 Outputs: divergence report; HIGH severity findings.
 
-## 8. `oya-governance-deprecation-notice` (NEW · BLOCKER)
+## 8. `governance-deprecation-notice` (NEW · BLOCKER)
 
 Runs on every PR with `breaking_change: true` frontmatter.
 

@@ -27,7 +27,7 @@ Provision 4 VMs in the drill harness (`oya cloud-k8s drill-env provision --vms 4
 Run:
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s bootstrap \
+cargo run -p dev-cli -- cloud-k8s bootstrap \
     --profile demo-trial \
     --site drill-syd-1 \
     --control-plane-vms drill-cp-1,drill-cp-2,drill-cp-3 \
@@ -51,7 +51,7 @@ Acceptance: cluster is up, you can describe the role of each kubeadm phase from 
 Join 2 more workers:
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s node join \
+cargo run -p dev-cli -- cloud-k8s node join \
     --cluster drill-syd-1 \
     --vms drill-w-2,drill-w-3
 ```
@@ -100,7 +100,7 @@ oya cloud-k8s policy verify \
     --dest-port 80
 ```
 
-Expected: `DENY` with policy attribution `deny-all-ingress`. The verify command sources from the `oya-governance-cluster-isolation` lane's canonical test matrix.
+Expected: `DENY` with policy attribution `deny-all-ingress`. The verify command sources from the `governance-cluster-isolation` lane's canonical test matrix.
 
 Acceptance: cross-tenant traffic denied; same-tenant traffic permitted; both audit-chain emitted.
 

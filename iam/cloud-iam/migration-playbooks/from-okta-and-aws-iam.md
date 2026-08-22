@@ -115,7 +115,7 @@ For policies that govern AWS API calls, translate Cedar back to AWS IAM JSON and
   --role-name OyatieOrgAdmin
 ```
 
-The AWS IAM policy now carries the `_oya_cedar_digest` annotation pointing back to Cedar.
+The AWS IAM policy now carries the `_cedar_digest` annotation pointing back to Cedar.
 
 ## Phase 5 — Hard cut-over (Day 56…70)
 

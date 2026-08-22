@@ -27,5 +27,5 @@ serde_json = { workspace = true }
 workspace = true
 
 [[bin]]
-name = "oya-cloud-ci-generated-output-diff-policy"
+name = "cloud-ci-generated-output-diff-policy"
 path = "src/diff_policy.rs"

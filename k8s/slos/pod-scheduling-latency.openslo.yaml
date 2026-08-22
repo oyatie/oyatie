@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-cloud-k8s-pod-scheduling-latency
+  name: cloud-k8s-pod-scheduling-latency
   displayName: "cloud-k8s: pod scheduling latency p95 ≤ 5s"
   labels:
     microservice: cloud-k8s
@@ -44,4 +44,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

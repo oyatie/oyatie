@@ -95,7 +95,7 @@ Per-tenant cost includes per-pack overhead amortisation; unit cost falls as tena
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate cost-budget-conformance --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate cost-budget-conformance --microservice cloud-secrets
 # Cross-checks Helm replica counts + node sizes against this budget.
 ```
 

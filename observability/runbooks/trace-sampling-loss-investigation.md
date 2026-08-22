@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: observability-trace-sampling-loss-investigation.
 - Primary service namespace: `observability`.
-- Owning rotation: PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary.
+- Owning rotation: PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary.
 - Incident channel: `#inc-observability-live`.
 - External dependencies: Grafana Enterprise Support; ClickHouse support; Oracle OCI object storage status desk.
 - API authority: `https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff`.
@@ -26,12 +26,12 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/observability-trace-sampling-loss-investigation-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `ObservabilityTraceSamplingLossInvestigationCritical` when `oya_observability_trace_sampling_loss_investigation_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `ObservabilityTraceSamplingLossInvestigationSloBurn` when `oya_observability_trace_sampling_loss_investigation_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open a sev0 if `oya_observability_trace_sampling_loss_investigation_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
-- Open a sev1 if `oya_observability_trace_sampling_loss_investigation_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `ObservabilityTraceSamplingLossInvestigationCritical` when `observability_trace_sampling_loss_investigation_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `ObservabilityTraceSamplingLossInvestigationSloBurn` when `observability_trace_sampling_loss_investigation_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `observability_trace_sampling_loss_investigation_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `observability_trace_sampling_loss_investigation_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `observability.trace-sampling-loss-investigation.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="observability",runbook="trace-sampling-loss-investigation"}`.
@@ -45,9 +45,9 @@ doc_status: published
 - Loki signature `observability.trace_sampling_loss_investigation.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=ObservabilityTraceSamplingLossInvestigationDegraded` on deployment `observability-trace-sampling-loss-investigation-worker`.
 - Audit-chain shows missing or delayed `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT --since 30m`.
-- Metric pattern: `oya_observability_trace_sampling_loss_investigation_error_ratio` rises before `oya_observability_trace_sampling_loss_investigation_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_observability_trace_sampling_loss_investigation_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_observability_trace_sampling_loss_investigation_queue_depth`; isolate before fleet mitigation.
+- Metric pattern: `observability_trace_sampling_loss_investigation_error_ratio` rises before `observability_trace_sampling_loss_investigation_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `observability_trace_sampling_loss_investigation_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `observability_trace_sampling_loss_investigation_queue_depth`; isolate before fleet mitigation.
 - Fleet-wide shape: at least three cells report `ObservabilityTraceSamplingLossInvestigationCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=trace-sampling-loss-investigation.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=trace-sampling-loss-investigation.break_glass` means manual intervention is active; confirm two-person authorization.
@@ -60,16 +60,16 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n observability get pods -l app=observability-trace-sampling-loss-investigation -o wide`.
 5. Read structured logs: `kubectl -n observability logs deploy/observability-trace-sampling-loss-investigation-worker --since=30m | rg "observability.trace_sampling_loss_investigation.incident_state|ObservabilityTraceSamplingLossInvestigationCritical|EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="observability",runbook="trace-sampling-loss-investigation"}' --since=30m --limit=200`.
-7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_trace_sampling_loss_investigation_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_trace_sampling_loss_investigation_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_observability_trace_sampling_loss_investigation_queue_depth{cell="prod-us-east-1"}'`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_trace_sampling_loss_investigation_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_trace_sampling_loss_investigation_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=observability_trace_sampling_loss_investigation_queue_depth{cell="prod-us-east-1"}'`.
 10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117&var-incident=$INCIDENT_ID"`.
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops observability trace-sampling-loss-investigation status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-observability-domain trace_sampling_loss_investigation -- --nocapture`.
-16. Check API contract smoke: `curl -s https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff -H "x-oya-tenant: $TENANT"`.
+14. Run production snapshot gate: `cargo run -p dev-cli -- gate validate observability-trace-sampling-loss-investigation --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p observability-domain trace_sampling_loss_investigation -- --nocapture`.
+16. Check API contract smoke: `curl -s https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff -H "x-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n observability get configmap observability-trace-sampling-loss-investigation-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.observability.trace_sampling_loss_investigation.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status observability-trace-sampling-loss-investigation-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -77,16 +77,16 @@ doc_status: published
 21. Check policy file: `test -f microservices/observability/policy/tenant-isolation.cedar || test -f microservices/observability/policy/tenant-isolation.md`.
 22. Check SLO files: `ls microservices/observability/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/observability/catalog -maxdepth 1 -type f | sort | rg "observability|trace"`.
-24. Confirm no cross-cell spread: `oya ops cells query --metric oya_observability_trace_sampling_loss_investigation_error_ratio --window 30m --threshold 0.02`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric observability_trace_sampling_loss_investigation_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice observability --runbook trace-sampling-loss-investigation --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Trace Sampling Loss Investigation incident decision tree
 1. Is ObservabilityTraceSamplingLossInvestigationCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_observability_trace_sampling_loss_investigation_queue_depth grow while oya_observability_trace_sampling_loss_investigation_error_ratio is flat?
+2. Does observability_trace_sampling_loss_investigation_queue_depth grow while observability_trace_sampling_loss_investigation_error_ratio is flat?
    |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
    |-- no: local regression or bad input; continue branch selection.
 3. Does audit-chain show EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT gaps?
@@ -120,42 +120,42 @@ Trace Sampling Loss Investigation incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice observability --incident $INCIDENT_ID --channel #inc-observability-live`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-observability --incident $INCIDENT_ID --summary trace-sampling-loss-investigation`.
 18. Confirm breaker effect: `oya ops breaker status observability-trace-sampling-loss-investigation-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://observability.internal.oyatie.dev/v1/observability/trace-sampling-loss-investigation/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=trace-sampling-loss-investigation`.
 
 ### Mitigation Branch Guidance
 - Branch A: backlog with healthy dependencies.
-  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `oya_observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: downstream dependency degraded.
-  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `oya_observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: bad deploy introduced regression.
-  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `oya_observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: data replay or rebuild required.
-  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `oya_observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `observability-trace-sampling-loss-investigation-circuit-breaker` open until `observability_trace_sampling_loss_investigation_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=120` to the incident.
   - Required audit: emit `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "trace_sampling_loss_investigation|ObservabilityTraceSamplingLossInvestigationCritical|observability.trace_sampling_loss_investigation.incident_state" crates microservices/observability -g "!microservices/observability/runbooks/**"`.
-2. Patch domain invariant: `edit oya-observability-domain where trace_sampling_loss_investigation state transition is validated`.
+2. Patch domain invariant: `edit observability-domain where trace_sampling_loss_investigation state transition is validated`.
 3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-observability-domain trace_sampling_loss_investigation_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate observability-trace-sampling-loss-investigation --fixture incident-trace-sampling-loss-investigation.json`.
+6. Add regression test: `cargo test -p observability-domain trace_sampling_loss_investigation_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate observability-trace-sampling-loss-investigation --fixture incident-trace-sampling-loss-investigation.json`.
 8. Add SLO assertion: `update microservices/observability/slos/* with alert ObservabilityTraceSamplingLossInvestigationCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/observability/dashboards/clickhouse-ingest-throughput.json with oya_observability_trace_sampling_loss_investigation_error_ratio, oya_observability_trace_sampling_loss_investigation_lag_seconds, and oya_observability_trace_sampling_loss_investigation_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-observability-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-observability-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate observability-policy --microservice observability`.
+9. Add dashboard panel: `update microservices/observability/dashboards/clickhouse-ingest-throughput.json with observability_trace_sampling_loss_investigation_error_ratio, observability_trace_sampling_loss_investigation_lag_seconds, and observability_trace_sampling_loss_investigation_queue_depth`.
+10. Rebuild affected crate: `cargo check -p observability-domain --all-targets`.
+11. Run targeted tests: `cargo test -p observability-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate observability-policy --microservice observability`.
 13. Deploy canary: `oya deploy canary --microservice observability --component trace-sampling-loss-investigation-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_observability_trace_sampling_loss_investigation_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric observability_trace_sampling_loss_investigation_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close observability-trace-sampling-loss-investigation-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.observability.trace_sampling_loss_investigation.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: merge only after reviewer approval plus green Jenkins CI and `oya gate run-all --ci-required`; record `resolved-$INCIDENT_ID` in the incident evidence.
@@ -164,9 +164,9 @@ Trace Sampling Loss Investigation incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-observability-domain`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-cloud-observability-api`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
-- `oya-dev-cli`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `observability-domain`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `cloud-observability-api`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `dev-cli`: inspect for trace_sampling_loss_investigation invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/observability/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/observability/dashboards/clickhouse-ingest-throughput.json`: verify this surface only when the incident evidence points there.
 - `microservices/observability/slos/`: verify this surface only when the incident evidence points there.
@@ -174,9 +174,9 @@ Trace Sampling Loss Investigation incident decision tree
 
 ## Verification Checklist
 - ObservabilityTraceSamplingLossInvestigationCritical and ObservabilityTraceSamplingLossInvestigationSloBurn are both resolved in Alertmanager for 30 minutes.
-- oya_observability_trace_sampling_loss_investigation_error_ratio < 0.005 for 3 consecutive 10 minute windows.
-- oya_observability_trace_sampling_loss_investigation_lag_seconds < 120 for all production cells.
-- oya_observability_trace_sampling_loss_investigation_queue_depth is draining and not growing for the affected tenant.
+- observability_trace_sampling_loss_investigation_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- observability_trace_sampling_loss_investigation_lag_seconds < 120 for all production cells.
+- observability_trace_sampling_loss_investigation_queue_depth is draining and not growing for the affected tenant.
 - dashboard https://grafana.dev.oyatie.internal/d/observability-substrate/trace-sampling-loss-investigation?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117 shows green panels for the affected cell.
 - audit-chain query for EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT returns mitigation and resolution events.
 - circuit breaker observability-trace-sampling-loss-investigation-circuit-breaker is closed after rollback window.
@@ -231,7 +231,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-observability-primary; Opsgenie ops-sre-reliability-secondary.
+- Primary on-call: PagerDuty observability-primary; Opsgenie ops-sre-reliability-secondary.
 - Incident SLA: ack 5m for sev1, 15m for sev2, checkpoint every 20m.
 - Incident commander: first responder from axis-observability + ops-sre-reliability; transfer only by explicit message in #inc-observability-live.
 - Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
@@ -258,7 +258,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source observability --runbook trace-sampling-loss-investigation --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include oya_observability_trace_sampling_loss_investigation_error_ratio, oya_observability_trace_sampling_loss_investigation_lag_seconds, oya_observability_trace_sampling_loss_investigation_queue_depth, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include observability_trace_sampling_loss_investigation_error_ratio, observability_trace_sampling_loss_investigation_lag_seconds, observability_trace_sampling_loss_investigation_queue_depth, current breaker state, and audit seal status.
 - Keep observability-trace-sampling-loss-investigation-circuit-breaker owner as axis-observability + ops-sre-reliability until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.

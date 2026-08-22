@@ -10,7 +10,7 @@ contracts_consumed:
 contracts_exposed:
   - <contract-id>
 regulatory_packs_consumed:
-  - oya-pack-kr | oya-pack-jp | oya-pack-us | oya-pack-eu | oya-pack-in | oya-pack-br | oya-pack-ksa | oya-pack-ae | oya-pack-au | oya-pack-sg
+  - pack-kr | pack-jp | pack-us | pack-eu | pack-in | pack-br | pack-ksa | pack-ae | pack-au | pack-sg
 lifecycle:
   state: incubating | preview | stable | deprecated | retired
   preview_since: 2026-MM-DD

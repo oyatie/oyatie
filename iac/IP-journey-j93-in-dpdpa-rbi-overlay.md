@@ -18,7 +18,7 @@ Use the iac-validator to enforce DPDPA/RBI pack inputs before apply, iac-registr
 ## C. Deliverables
 - India pack validation examples in OpenAPI.
 - Denied and permitted validation events in AsyncAPI.
-- Registry catalog link to `microservices/cloud-iac/catalog/oya-cloud-iac-iac-registry-usecase.yaml`.
+- Registry catalog link to `microservices/cloud-iac/catalog/cloud-iac-iac-registry-usecase.yaml`.
 - Rollback runbook link to `microservices/cloud-iac/runbooks/rollback-orchestration.md`.
 
 ## D. Implementation
@@ -38,7 +38,7 @@ Use the iac-validator to enforce DPDPA/RBI pack inputs before apply, iac-registr
 ## F. Evidence
 - Journey: `docs/user-journeys/j93-in-dpdpa-rbi-financial-overlay/README.md`.
 - SLO: `microservices/cloud-iac/slos/iac-validator-availability.openslo.yaml`.
-- Catalog: `microservices/cloud-iac/catalog/oya-cloud-iac-iac-registry-usecase.yaml`.
+- Catalog: `microservices/cloud-iac/catalog/cloud-iac-iac-registry-usecase.yaml`.
 
 ## G. Counterparts
 | Counterpart | Gap closed |

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-identity-zitadel
+name: identity-zitadel
 description: |
   Helm chart for the identity µservice's Zitadel deployment per ADR-0187.
   Pinned to upstream Zitadel chart v9.34.1 (May 2026) [^1]; Zitadel app v2.55.0.

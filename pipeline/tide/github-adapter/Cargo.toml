@@ -6,7 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# GitHub API client adapter for the oya-ci tide component.
+# GitHub API client adapter for the ci tide component.
 # Implements kernel::ForgeClient via reqwest blocking HTTP.
 # Forge of record = GitHub (D-FORGE; ADR-0513 Phase 2).
 

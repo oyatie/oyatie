@@ -426,7 +426,7 @@ impl CommitStatusContext {
             CommitStatusContext::CargoCheck => "cargo-check",
             CommitStatusContext::CargoClippy => "cargo-clippy",
             CommitStatusContext::CargoNextest => "cargo-nextest",
-            CommitStatusContext::OyaPrReview => "oya-pr-review",
+            CommitStatusContext::OyaPrReview => "pr-review",
         }
     }
 
@@ -676,7 +676,7 @@ mod tests {
         assert_eq!(CommitStatusContext::CargoCheck.as_str(), "cargo-check");
         assert_eq!(CommitStatusContext::CargoClippy.as_str(), "cargo-clippy");
         assert_eq!(CommitStatusContext::CargoNextest.as_str(), "cargo-nextest");
-        assert_eq!(CommitStatusContext::OyaPrReview.as_str(), "oya-pr-review");
+        assert_eq!(CommitStatusContext::OyaPrReview.as_str(), "pr-review");
     }
 
     #[test]

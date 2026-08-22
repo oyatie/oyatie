@@ -63,69 +63,69 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: OYA_CLOUD_INTEL_LISTEN_ADDR
+            - name: OYATIE_CLOUD_INTEL_LISTEN_ADDR
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
-            - name: OYA_CLOUD_INTEL_TENANT_ID
+            - name: OYATIE_CLOUD_INTEL_TENANT_ID
               value: {{ .Values.config.tenantId | quote }}
-            - name: OYA_CLOUD_INTEL_ENVIRONMENT
+            - name: OYATIE_CLOUD_INTEL_ENVIRONMENT
               value: {{ .Values.config.environment | quote }}
-            - name: OYA_CLOUD_INTEL_INITIAL_SEATS
+            - name: OYATIE_CLOUD_INTEL_INITIAL_SEATS
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: initial_seats
                   optional: true
-            - name: OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS
+            - name: OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: tenant_provider_pools
                   optional: true
-            - name: OYA_CLOUD_INTEL_SECRET_PROVIDER_URL
+            - name: OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL
               value: {{ .Values.secretProvider.url | quote }}
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
             {{- if .Values.otel.enabled }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
             {{- end }}
-            - name: OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: secret_provider_token
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_URL
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_URL
               value: {{ .Values.clickhouse.url | quote }}
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_USER
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_USER
               value: {{ .Values.clickhouse.user | quote }}
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: clickhouse_password
-            - name: OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_ADMIN_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: admin_bearer_token
                   optional: true
-            - name: OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_INGRESS_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: ingress_bearer_token
                   optional: true
-            - name: OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
+            - name: OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
               value: {{ .Values.providerCompliance.anthropic.authMode | quote }}
-            - name: OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS
+            - name: OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS
               value: {{ .Values.providerCompliance.anthropic.oauthStatus | quote }}
-            - name: OYA_CLOUD_INTEL_CODEX_AUTH_MODE
+            - name: OYATIE_CLOUD_INTEL_CODEX_AUTH_MODE
               value: {{ .Values.providerCompliance.codex.authMode | quote }}
-            - name: OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS
+            - name: OYATIE_CLOUD_INTEL_CODEX_OAUTH_STATUS
               value: {{ .Values.providerCompliance.codex.oauthStatus | quote }}
           startupProbe:
             httpGet:

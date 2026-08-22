@@ -1,7 +1,7 @@
 //! Scorecard resolver kernel (ADR-0064 canonical base + localization).
 //!
 //! Naming justification:
-//! - Crate id `oya-resolve-scorecards-app` — `oya-` brand prefix (ADR-0017
+//! - Crate id `resolve-scorecards-app` — `oya-` brand prefix (ADR-0017
 //!   / MFL-0011), `resolve` verb (kernel-tier action), `scorecards`
 //!   subject, `app` Layer-3 (use-case orchestrator that wires kernel +
 //!   adapter IO).

@@ -82,7 +82,7 @@
   "drift_gate": {
     "name": "api-contract-ssot-drift (planned)",
     "rule": "regenerate the projections from the Rust source and diff against the committed contracts; any divergence (REST/gRPC/async out of sync with the source) fails the gate (lockfile-style, like cargo's Cargo.lock check).",
-    "ci": "runs as a Buck2/Rust cloud-ci gate behind the single protected oya-ci-required context (ADR-0515)"
+    "ci": "runs as a Buck2/Rust cloud-ci gate behind the single protected presubmit context (ADR-0515)"
   },
   "messaging_directives": {
     "launch_primary": "Apache Pulsar (eventing/messaging)",

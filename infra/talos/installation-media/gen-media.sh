@@ -30,7 +30,7 @@ imager() { docker run --rm -t --privileged -v /dev:/dev -v "$OUT:/out" -v "$SECR
 case "$PRESET" in
   control-plane)
     : "${CONTROLPLANE_ENDPOINT:?set CONTROLPLANE_ENDPOINT=https://<control-plane-ip-or-vip>:6443}"
-    CLUSTER="${CLUSTER:-oya-control-plane}"
+    CLUSTER="${CLUSTER:-control-plane}"
     # Stable cluster secrets (reused across re-gen so the baked PKI is consistent).
     [ -f "$SECRETS/secrets.yaml" ] || talosctl gen secrets -o "$SECRETS/secrets.yaml"
     talosctl gen config "$CLUSTER" "$CONTROLPLANE_ENDPOINT" \

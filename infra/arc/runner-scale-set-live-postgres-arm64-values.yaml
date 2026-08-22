@@ -11,7 +11,7 @@
 # ADR-0630 (archive).
 githubConfigUrl: https://github.com/jason931225/oyatie
 githubConfigSecret: oyatie-arc-app
-runnerScaleSetName: oya-live-postgres-arm64
+runnerScaleSetName: live-postgres-arm64
 # Argo CD renders Helm without live-cluster `lookup` access. Bind the scale set
 # to the 0.14.2 controller ServiceAccount name rendered by the sibling `arc`
 # Application instead of relying on discovery that is available only to Helm.
@@ -28,7 +28,7 @@ template:
   spec:
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-2
+      kubernetes.io/hostname: talos-worker-2
     securityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
@@ -44,9 +44,9 @@ template:
         args:
           - |
             umask 027
-            od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > /run/oya-ci-postgres/admin-password
-            od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > /run/oya-ci-postgres/app-password
-            chmod 0640 /run/oya-ci-postgres/admin-password /run/oya-ci-postgres/app-password
+            od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > /run/ci-postgres/admin-password
+            od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > /run/ci-postgres/app-password
+            chmod 0640 /run/ci-postgres/admin-password /run/ci-postgres/app-password
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -59,7 +59,7 @@ template:
           limits: { cpu: 100m, memory: 64Mi }
         volumeMounts:
           - name: postgres-credentials
-            mountPath: /run/oya-ci-postgres
+            mountPath: /run/ci-postgres
 
       # Kubernetes native sidecar: restartPolicy Always keeps PostgreSQL alive
       # for the runner lifetime, while startupProbe prevents the runner from
@@ -73,7 +73,7 @@ template:
           - name: POSTGRES_DB
             value: oyatie
           - name: POSTGRES_PASSWORD_FILE
-            value: /run/oya-ci-postgres/admin-password
+            value: /run/ci-postgres/admin-password
           - name: PGDATA
             value: /var/lib/postgresql/data/pgdata
         ports:
@@ -98,14 +98,14 @@ template:
           limits: { cpu: "2", memory: 2Gi }
         volumeMounts:
           - name: postgres-credentials
-            mountPath: /run/oya-ci-postgres
+            mountPath: /run/ci-postgres
             readOnly: true
           - name: postgres-data
             mountPath: /var/lib/postgresql/data
 
     containers:
       - name: runner
-        image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
+        image: registry.registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
         command: ["/home/runner/run.sh"]
         resources:
           requests:
@@ -119,7 +119,7 @@ template:
             ephemeral-storage: 8Gi
         volumeMounts:
           - name: postgres-credentials
-            mountPath: /run/oya-ci-postgres
+            mountPath: /run/ci-postgres
             readOnly: true
           - name: workspace
             mountPath: /home/runner/_work
@@ -143,7 +143,7 @@ template:
                 oya.io/lifecycle: disposable-ci-workspace
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: oya-ci-workspace-live-postgres
+              storageClassName: ci-workspace-live-postgres
               resources:
                 requests:
                   storage: 44Gi

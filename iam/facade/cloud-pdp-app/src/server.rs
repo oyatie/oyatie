@@ -3,7 +3,7 @@
 //!
 //! [`boot_from_config`] is the single PRODUCTION boot body run by both `main`
 //! and the production-path closure E2E, so the tested wiring IS the production
-//! wiring (the oya-identity "tested wiring IS production wiring" precedent): it
+//! wiring (the identity "tested wiring IS production wiring" precedent): it
 //! builds the [`MtlsContext`] from the delivered cert mount and boots over mTLS
 //! via [`start_with_mtls`], fail-closed. `start`/`start_with_mtls` remain the
 //! shared boot bodies (and test helpers); `start` (plain TCP) is now unreachable
@@ -25,7 +25,7 @@ use tracing::{error, info};
 use iam_cloud_pdp_bundle_file::FilePolicyBundleStore;
 use iam_cloud_pdp_kernel::{BundleStoreError, PdpConfig, PolicyBundleStore};
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
+use shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
 
 use std::path::Path;
 
@@ -275,7 +275,7 @@ pub async fn start_with_mtls(
         rest = %rest_addr,
         grpc = %grpc_addr,
         mtls = mtls.is_some(),
-        "oya-cloud-iam-pdp serving",
+        "cloud-iam-pdp serving",
     );
     Ok(ServiceHandle {
         rest_addr,
@@ -326,7 +326,7 @@ impl std::error::Error for BootError {
 /// over mTLS via [`start_with_mtls`].
 ///
 /// This is the SINGLE boot body `main` runs, so the tested wiring IS the
-/// production wiring (the oya-identity precedent; see this module's doc). The
+/// production wiring (the identity precedent; see this module's doc). The
 /// closure E2E exercises THIS function, not a parallel test-only path.
 ///
 /// # Errors

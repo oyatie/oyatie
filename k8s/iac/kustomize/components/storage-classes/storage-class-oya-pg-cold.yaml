@@ -1,11 +1,11 @@
-# Canonical StorageClass: oya-pg-cold
+# Canonical StorageClass: pg-cold
 # Per ADR-0161. HDD-class or archive-class storage for backups, archived
 # audit-chain seals, cold tenant exports. Tens-of-ms latency; cheap.
 
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: oya-pg-cold
+  name: pg-cold
   labels:
     oyatie.io/canonical: "true"
     oyatie.io/adr: "ADR-0161"

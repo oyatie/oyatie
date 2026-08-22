@@ -11,7 +11,7 @@
     "version": "1.0.0"
   },
   "additionalProperties": false,
-  "description": "A status projection is the API/console-friendly shape for querying one cloud-ci/oya-ci required-context run. It carries phase timing, gate counts, typed artifact and diagnostic references, retention/PII rules, and correlation back to the canonical run packet without requiring raw GitHub Actions log scraping.",
+  "description": "A status projection is the API/console-friendly shape for querying one cloud-ci/ci required-context run. It carries phase timing, gate counts, typed artifact and diagnostic references, retention/PII rules, and correlation back to the canonical run packet without requiring raw GitHub Actions log scraping.",
   "properties": {
     "schema_version": {
       "const": "cloud-ci-run-observability-status/v1"
@@ -28,13 +28,13 @@
         "required_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         },
         "merge_authority_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         },
         "control_plane": {
@@ -77,7 +77,7 @@
         "status_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         },
         "correlation_id": {
@@ -408,17 +408,17 @@
             "producer": {
               "properties": {
                 "required_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 },
                 "merge_authority_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 }
               }
             },
             "run": {
               "properties": {
                 "status_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 }
               }
             }

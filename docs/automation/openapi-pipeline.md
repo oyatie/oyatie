@@ -10,11 +10,11 @@ purpose: |
   (interactive) views in the mdbook; cross-validate runtime bindings against
   schema bindings; treat OpenAPI 3.1 YAML as the single source of truth for every
   HTTP-shaped Oyatie API surface.
-planned_enforcement_ref: oya-governance-openapi-publish
+planned_enforcement_ref: governance-openapi-publish
 extends_crates:
-  - oya-intelligence-openapi-kernel
-  - oya-intelligence-mdbook-kernel
-  - oya-intelligence-api-semver-kernel
+  - intelligence-openapi-kernel
+  - intelligence-mdbook-kernel
+  - intelligence-api-semver-kernel
 companion_docs:
   - INDEX.md
   - rustdoc-pipeline.md
@@ -39,7 +39,7 @@ Treat every `contracts/openapi/*.yaml` as the sole source of truth for the corre
 
 - `docs/site/src/api/openapi/<surface>/redoc.md` (rendered reference; auto-generated header).
 - `docs/site/src/api/openapi/<surface>/swagger.md` (interactive viewer embed).
-- `docs/site/src/api/openapi/<surface>/changelog.md` (per-version diff lifted from `oya-intelligence-api-semver-kernel`).
+- `docs/site/src/api/openapi/<surface>/changelog.md` (per-version diff lifted from `intelligence-api-semver-kernel`).
 - `crates/<surface>-api/src/generated/<surface>_runtime.rs` (axum routes + handler signatures; checked-in, regenerated on contract change).
 - `crates/<surface>-api/src/generated/<surface>_schema.rs` (serde-derived request/response types).
 - `clients/typescript/<surface>/src/generated/*.ts` (fetch client + types).
@@ -53,14 +53,14 @@ Treat every `contracts/openapi/*.yaml` as the sole source of truth for the corre
 | Per-PR touching `crates/*-api/**` | Bindings drift check (handler signature must match generated). |
 | Nightly | Full regeneration; full cross-validation across surfaces; orphan-surface detection. |
 
-## 5. Validation gates (`oya-governance-openapi-publish`)
+## 5. Validation gates (`governance-openapi-publish`)
 
 1. **3.1-only.** Any spec declaring `openapi: 3.0.x` fails immediately (BLOCKER).
 2. **Runtime ↔ schema parity.** For every operation in the spec, the generated runtime route exists and the handler signature accepts the generated schema type (BLOCKER).
 3. **Hand-written generated drift.** Any file under `*/generated/**` whose hash differs from the regenerated artifact (BLOCKER). The pipeline writes; humans do not.
-4. **Semver gate.** Breaking changes (per `oya-intelligence-api-semver-kernel`) without an explicit `x-oyatie-breaking-change: <ADR-id>` extension (BLOCKER).
+4. **Semver gate.** Breaking changes (per `intelligence-api-semver-kernel`) without an explicit `x-oyatie-breaking-change: <ADR-id>` extension (BLOCKER).
 5. **Consumer-axis declaration.** Every surface declares `consumer_axes:` in its metadata.toml; absent = HIGH.
-6. **Redoc/Swagger render.** Generated mdbook pages pass `oya-intelligence-mdbook-kernel::validate_mdbook_source`.
+6. **Redoc/Swagger render.** Generated mdbook pages pass `intelligence-mdbook-kernel::validate_mdbook_source`.
 
 ## 6. Cross-binding parity algorithm
 
@@ -76,6 +76,6 @@ For each operation `(method, path)` in the spec:
 
 ## 8. Out-of-scope
 
-- gRPC / connect surfaces (separate `proto-pipeline.md` once `oya-intelligence-proto-kernel` lands).
-- WebSocket / SSE protocols (tracked under `oya-intelligence-eventing-protocols-kernel`).
+- gRPC / connect surfaces (separate `proto-pipeline.md` once `intelligence-proto-kernel` lands).
+- WebSocket / SSE protocols (tracked under `intelligence-eventing-protocols-kernel`).
 - Internal cross-crate Rust APIs (covered by `rustdoc-pipeline.md`).

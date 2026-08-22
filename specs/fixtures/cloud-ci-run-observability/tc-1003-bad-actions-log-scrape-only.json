@@ -2,17 +2,17 @@
   "schema_version": "cloud-ci-run-observability-packet/v1",
   "packet_id": "cloud-ci-run-packet:github-actions:404040404:attempt-1",
   "producer": {
-    "required_context": "oya-ci-required",
-    "merge_authority_context": "oya-ci-required",
+    "required_context": "presubmit",
+    "merge_authority_context": "presubmit",
     "control_plane": "github-actions-bridge",
-    "workflow": ".github/workflows/oya-ci-required.yml",
+    "workflow": ".github/workflows/presubmit.yml",
     "retired_evidence_authority": false
   },
   "run": {
     "run_id": "404040404",
     "attempt": 1,
     "provider": "github-actions",
-    "status_context": "oya-ci-required",
+    "status_context": "presubmit",
     "started_at": "2026-06-29T11:00:00Z",
     "completed_at": "2026-06-29T11:06:00Z",
     "conclusion": "failed"

@@ -12,8 +12,8 @@ reverse proxy. **No third-party source was read or copied.**
 
 | Crate | Layer | Responsibility |
 |-------|-------|----------------|
-| [`oya-cloud-intelligence-kernel`](../../crates/oya-cloud-intelligence-kernel) | `kernel` | **Pure** key-pool state machine. No I/O, no async, no clock, no RNG, no external crate. Round-robin selection (`AtomicUsize`), per-key `failure_count` + blacklist threshold, jittered cooldown timestamps, success-reset / lazy restore-to-active, the `ProviderChannel` enum (OpenAI / Anthropic / Gemini). Time and jitter are injected so every transition is deterministic and unit-tested. |
-| [`oya-cloud-intelligence-rest`](../../crates/oya-cloud-intelligence-rest) | `rest` | The axum reverse-proxy app + binary. SSE streaming passthrough, per-provider channel adapters, owned secret-provider/KMS handles, failover/retry, two constant-time auth realms, Prometheus `/metrics`, hash-only logging. |
+| [`cloud-intelligence-kernel`](../../crates/cloud-intelligence-kernel) | `kernel` | **Pure** key-pool state machine. No I/O, no async, no clock, no RNG, no external crate. Round-robin selection (`AtomicUsize`), per-key `failure_count` + blacklist threshold, jittered cooldown timestamps, success-reset / lazy restore-to-active, the `ProviderChannel` enum (OpenAI / Anthropic / Gemini). Time and jitter are injected so every transition is deterministic and unit-tested. |
+| [`cloud-intelligence-rest`](../../crates/cloud-intelligence-rest) | `rest` | The axum reverse-proxy app + binary. SSE streaming passthrough, per-provider channel adapters, owned secret-provider/KMS handles, failover/retry, two constant-time auth realms, Prometheus `/metrics`, hash-only logging. |
 
 ## v1 feature checklist
 
@@ -36,7 +36,7 @@ reverse proxy. **No third-party source was read or copied.**
   `secret-ref://` / `kms-ref://` handles at startup and on periodic refresh.
   **No pooled key is ever read from a plaintext file or environment variable.**
   Concrete stores are transient adapters behind cloud-secrets/cloud-kms.
-- **Prometheus metrics** — `oya_cloud_intelligence_*`: per-key success/failure,
+- **Prometheus metrics** — `cloud_intelligence_*`: per-key success/failure,
   retries, upstream latency histogram, active-key gauge, request outcomes.
 - **Hash-only logging** — structured logs identify a key only by a
   non-reversible SHA-256-derived fingerprint. The key, the prompt, and the
@@ -89,7 +89,7 @@ Environment (all injected from k8s Secrets at deploy; never plaintext files):
 | Var | Purpose |
 |-----|---------|
 | `GATEWAY_CONFIG` | Path to the ConfigMap JSON above (non-secret). |
-| `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` | Short-lived token for the owned secret-provider adapter. |
+| `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` | Short-lived token for the owned secret-provider adapter. |
 | `ADMIN_TOKEN` | Admin/control realm token. |
 | `INGRESS_PROXY_KEYS` | Comma-separated ingress proxy-keys for the agent fleet. |
 
@@ -97,7 +97,7 @@ Environment (all injected from k8s Secrets at deploy; never plaintext files):
 
 | Route | Purpose |
 |-------|---------|
-| `ANY /proxy/{group}/{*rest}` | Reverse proxy. Caller presents `x-oya-proxy-key`; the gateway forwards to `<upstream_base_url>/<rest>` with pooled auth injected. |
+| `ANY /proxy/{group}/{*rest}` | Reverse proxy. Caller presents `x-proxy-key`; the gateway forwards to `<upstream_base_url>/<rest>` with pooled auth injected. |
 | `GET /healthz` | Liveness. |
 | `GET /metrics` | Prometheus exposition. |
 
@@ -111,21 +111,21 @@ Each agent sets these BEFORE invoking its provider SDK:
 
 ```sh
 # Anthropic SDK (Claude Code, claude-cli)
-export ANTHROPIC_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/anthropic"
+export ANTHROPIC_BASE_URL="http://cloud-intelligence.cloud-intelligence.svc.cluster.local:8080/v1/anthropic"
 export ANTHROPIC_API_KEY="$INGRESS_PROXY_KEY"   # one of the ingress proxy keys from secret-ref://cloud-intelligence/ingress-proxy-keys
 
 # OpenAI SDK (Codex, openai-cli)
-export OPENAI_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/openai"
+export OPENAI_BASE_URL="http://cloud-intelligence.cloud-intelligence.svc.cluster.local:8080/v1/openai"
 export OPENAI_API_KEY="$INGRESS_PROXY_KEY"
 
 # Gemini SDK
-export GEMINI_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/gemini"
+export GEMINI_BASE_URL="http://cloud-intelligence.cloud-intelligence.svc.cluster.local:8080/v1/gemini"
 export GEMINI_API_KEY="$INGRESS_PROXY_KEY"
 ```
 
 ### Namespace opt-in (cell-boundary)
 
-The Cilium L3/L4 NetworkPolicy at `infra/cilium/cell-boundaries/oya-cloud-intelligence-ingress.netpol.yaml` only allows traffic from namespaces labelled `oya.gateway-client=true`. For each agent-hosting namespace:
+The Cilium L3/L4 NetworkPolicy at `infra/cilium/cell-boundaries/cloud-intelligence-ingress.netpol.yaml` only allows traffic from namespaces labelled `oya.gateway-client=true`. For each agent-hosting namespace:
 
 ```sh
 kubectl label namespace <my-agent-ns> oya.gateway-client=true

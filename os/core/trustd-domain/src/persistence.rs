@@ -21,11 +21,11 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-const FORMAT_VERSION: &str = "oya-trustd-ca-state-v3";
-const STATE_AUTH_CONTEXT: &[u8] = b"oya-trustd-ca-state-auth-envelope-v3";
-const STATE_ROLLBACK_CONTEXT: &[u8] = b"oya-trustd-ca-state-monotonic-checkpoint-v3";
-const KEYPAIR_CONTEXT: &[u8] = b"oya-trustd-ca-keypair-private-der-v2";
-const SIGNER_CONTEXT: &[u8] = b"oya-trustd-ca-ecdsa-p256-pkcs8-der-v2";
+const FORMAT_VERSION: &str = "trustd-ca-state-v3";
+const STATE_AUTH_CONTEXT: &[u8] = b"trustd-ca-state-auth-envelope-v3";
+const STATE_ROLLBACK_CONTEXT: &[u8] = b"trustd-ca-state-monotonic-checkpoint-v3";
+const KEYPAIR_CONTEXT: &[u8] = b"trustd-ca-keypair-private-der-v2";
+const SIGNER_CONTEXT: &[u8] = b"trustd-ca-ecdsa-p256-pkcs8-der-v2";
 
 /// Boundary used to seal and open CA private material before durable storage.
 ///
@@ -635,7 +635,7 @@ mod tests {
             .unwrap()
             .as_nanos();
         std::env::temp_dir().join(format!(
-            "oya-trustd-{test_name}-{}-{nonce}.state",
+            "trustd-{test_name}-{}-{nonce}.state",
             std::process::id()
         ))
     }

@@ -22,10 +22,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `presubmit` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
+    "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `presubmit` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
   },
   "agent_entry_surface_allowlist": {
     "read_timing_class": "entry-surface",
@@ -64,7 +64,7 @@
   "entry_points": {
     "_retired_constitutional_authority": {
       "retired_on": "2026-05-15",
-      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Strike executed 2026-05-15. Content redistributed to 4 machine-readable successor specs (see decision_principles, forbidden_operations, decision_rights, governance_amendment entry_points below). docs/CONSTITUTION.md deleted; crates/oya-check-constitution-cite deleted; oya-dev-cli constitution-cite gate removed. Per-file citation sweep tracked as follow-up.",
+      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Strike executed 2026-05-15. Content redistributed to 4 machine-readable successor specs (see decision_principles, forbidden_operations, decision_rights, governance_amendment entry_points below). docs/CONSTITUTION.md deleted; crates/check-constitution-cite deleted; dev-cli constitution-cite gate removed. Per-file citation sweep tracked as follow-up.",
       "successor_specs": [
         "decision_principles",
         "forbidden_operations",
@@ -86,19 +86,19 @@
       "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
-    "adr_0346_oya_verify_ci_mirror": {
+    "adr_0346_verify_ci_mirror": {
       "current_path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "ADR-0346 legacy local-mirror verifier authority as amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its mirror semantics are migration input only, never protected-branch merge/exit authority; destination enforcement is cloud-ci/oya-ci required contexts plus Rust gate packets.",
-      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZA-oya-verify-full-ci-mirror",
+      "purpose": "ADR-0346 legacy local-mirror verifier authority as amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its mirror semantics are migration input only, never protected-branch merge/exit authority; destination enforcement is cloud-ci/ci required contexts plus Rust gate packets.",
+      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZA-verify-full-ci-mirror",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0347_foundry_fitness_governance_bulk_rename": {
       "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "ADR-0347 authority for the single Wave 15-ZB bulk rename of `oya-governance-*` lane prefixes to `oya-governance-*` and the associated residue, vocabulary, and inventory-presence governance lanes.",
+      "purpose": "ADR-0347 authority for the single Wave 15-ZB bulk rename of `governance-*` lane prefixes to `governance-*` and the associated residue, vocabulary, and inventory-presence governance lanes.",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZB-foundry-fitness-to-governance-rename",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
@@ -189,7 +189,7 @@
       "phase_deadline": "2026-06-30",
       "phase_status": "overdue-needs-replan",
       "promotion_boundary": "docs/AGENTS.md remains current authority until explicit PHASE-5 promotion evidence promotes /specs/agent-operating-contract.json; the missed PHASE-5 deadline does not auto-promote the projection.",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, single oya-ci-required merge authority, independent reviewer-agent discipline, retired legacy-tool notes).",
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, single presubmit merge authority, independent reviewer-agent discipline, retired legacy-tool notes).",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json"
     },
     "agent_operating_contract_machine_projection": {
@@ -315,7 +315,7 @@
       "current_path": "/specs/crate-naming-audit.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Per-package naming audit including retired_package_notes for traceability (e.g., oya-governance-archive-orphan retired by ADR-0118).",
+      "purpose": "Per-package naming audit including retired_package_notes for traceability (e.g., governance-archive-orphan retired by ADR-0118).",
       "target_path_after_md_retirement": "same"
     },
     "decision_principles": {
@@ -606,10 +606,10 @@
       "target_path_after_md_retirement": "machine-readable successor after regional-pack projection retirement"
     },
     "lane_supervisor_bridge": {
-      "current_path": "registry/catalog/oya-lane-supervisor-app.yaml",
+      "current_path": "registry/catalog/lane-supervisor-app.yaml",
       "kind": "registry",
       "migration_phase": "local-bridge-until-cloud-ci-lane-state",
-      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
+      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/lane-supervisor-app.yaml. Merge authority remains in cloud-ci/ci required contexts per ADR-0363.",
       "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
     },
     "loop_recovery_patterns": {
@@ -689,14 +689,14 @@
       "current_path": "/specs/phase0-ci-enforcement-baseline.json",
       "kind": "spec",
       "migration_phase": "phase0_p0_0_gap_packet_not_green",
-      "purpose": "P0.0 cloud-ci/oya-ci enforcement and tenant-isolation baseline (historically Prow-shaped). Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
+      "purpose": "P0.0 cloud-ci/ci enforcement and tenant-isolation baseline (historically Prow-shaped). Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
       "target_path_after_md_retirement": "same (machine-readable P0.0 baseline/gap packet)"
     },
     "phase0_ci_enforcement_result_schema": {
       "current_path": "/specs/phase0-ci-enforcement-result-schema.json",
       "kind": "spec",
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
-      "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
+      "purpose": "Structured result bundle schema for P0.0 cloud-ci/ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
     },
     "phase0_claim_evidence_map": {
@@ -795,14 +795,14 @@
         "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
       "retirement_correction_2026_05_21": {
         "previous_path": "/specs/microservices/shorts.json",
         "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       },
       "successor_path": "/app/community/manifest.json",
-      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates community-social-*)",
       "successor_retarget_2026_08_06": {
         "previous_path": "/oya/social/manifest.json",
         "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under app/community.",
@@ -958,10 +958,10 @@
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
       "successor_path": "/app/community/manifest.json",
-      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates community-social-*)",
       "successor_retarget_2026_08_06": {
         "previous_path": "/oya/social/manifest.json",
         "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under app/community.",
@@ -1057,10 +1057,10 @@
       "target_path_after_md_retirement": "same"
     },
     "reorg_codemod_bridge": {
-      "current_path": "registry/catalog/oya-reorg-codemod-app.yaml",
+      "current_path": "registry/catalog/reorg-codemod-app.yaml",
       "kind": "registry",
       "migration_phase": "phase-0-reorg-machinery-ships-unused-until-strangler",
-      "purpose": "Catalog row for the ADR-0562 Phase-0 reversible capability-move codemod + pre-move green-snapshot oracle (oya-reorg-codemod-app). Local bridge only; ships UNUSED until the per-capability strangler PRs invoke it; moves no real capability. Merge authority remains in cloud-ci/oya-ci required contexts.",
+      "purpose": "Catalog row for the ADR-0562 Phase-0 reversible capability-move codemod + pre-move green-snapshot oracle (reorg-codemod-app). Local bridge only; ships UNUSED until the per-capability strangler PRs invoke it; moves no real capability. Merge authority remains in cloud-ci/ci required contexts.",
       "target_path_after_md_retirement": "governance/capability-registry strangler tooling"
     },
     "reset_eligibility_current_observation": {
@@ -1090,7 +1090,7 @@
       "current_path": "/ci/facade/contract-slice-conformance/contract-slice-policy.json",
       "kind": "test",
       "migration_phase": "residency-001-contract-slice",
-      "purpose": "Owned Rust/Buck2 cloud-ci contract-slice-conformance gate validation for the ADR-0326 RESIDENCY-001 slice (residency-001-attestation, residency-001-regions, residency-001-regimes, residency-001-audit-events, residency-001-pack-matrix). Retires the prior local Python validator bridge; merge authority is oya-ci-required.",
+      "purpose": "Owned Rust/Buck2 cloud-ci contract-slice-conformance gate validation for the ADR-0326 RESIDENCY-001 slice (residency-001-attestation, residency-001-regions, residency-001-regimes, residency-001-audit-events, residency-001-pack-matrix). Retires the prior local Python validator bridge; merge authority is presubmit.",
       "target_path_after_md_retirement": "same"
     },
     "residency_placement_audit_events": {
@@ -1121,7 +1121,7 @@
       "retirement_reason": "Deleted with retired Oya VCS admission / provider crates and Jenkins adapter; the standalone evidence-file convention no longer has a live cloud-ci gate.",
       "kind": "retired-spec",
       "migration_phase": "retired",
-      "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
+      "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
     },
     "retired_pre_pr_multispectrum_checklist": {
       "current_path": null,
@@ -1129,7 +1129,7 @@
       "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template was previously treated as canonical)",
       "kind": "retired-template",
       "migration_phase": "retired",
-      "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
+      "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/ci gate packets for current review evidence."
     },
     "reusable_building_blocks_registry": {
       "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
@@ -1167,7 +1167,7 @@
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family and cloud-ci/governance release-promotion contexts; any legacy CI promotion job reference is bridge/provenance only until replaced."
+      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the observability-slo-engine crate family and cloud-ci/governance release-promotion contexts; any legacy CI promotion job reference is bridge/provenance only until replaced."
     },
     "spec_api_surface_separation": {
       "current_path": "/specs/api-surface-separation.json",
@@ -1261,7 +1261,7 @@
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-07-02-fabric-loop",
       "conflict_class": "repo-governance-specs-docs",
-      "purpose": "ADR-0516 fabric two-plane drive-loop state port contract: durable in-repo coordination plane + gitignored repo-adjacent execution plane behind CoordinationPlanePort/ExecutionPlanePort, with the named owned cloud-ci cutover target oya-cloud-ci-loop-state-service and its bridge-then-retire criteria. Verified by port-level tests in tools/oya-fabric-loop-state-app; on-demand read, never a mandatory entry surface."
+      "purpose": "ADR-0516 fabric two-plane drive-loop state port contract: durable in-repo coordination plane + gitignored repo-adjacent execution plane behind CoordinationPlanePort/ExecutionPlanePort, with the named owned cloud-ci cutover target cloud-ci-loop-state-service and its bridge-then-retire criteria. Verified by port-level tests in tools/fabric-loop-state-app; on-demand read, never a mandatory entry surface."
     },
     "spec_feature_flag_substrate_canonical": {
       "current_path": "/specs/feature-flag-substrate-canonical.json",
@@ -1285,7 +1285,7 @@
       "current_path": "/specs/industry-best-practice-conformance.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable findings + audit invariants for the continuous 6-axis industry-best-practice + hyperscaler-grade conformance program. Consumed by oya-governance-industry-best-practice-conformance CI lane."
+      "purpose": "Machine-readable findings + audit invariants for the continuous 6-axis industry-best-practice + hyperscaler-grade conformance program. Consumed by governance-industry-best-practice-conformance CI lane."
     },
     "spec_microservice_migration_tooling": {
       "current_path": "/specs/microservice-migration-tooling.json",

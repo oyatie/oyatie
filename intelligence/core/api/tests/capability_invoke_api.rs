@@ -11,7 +11,7 @@ use intelligence_api::{
     CapabilityInvokeApiSuccessResponse, CapabilityInvokeIdempotencyLedger, Foundation,
     invoke_capability_from_api,
 };
-use oya_application_app::{
+use application_app::{
     AdversarialKind, AutonomyTier, CapabilityAction, CapabilityRegistration,
     CostBudgetRegistration, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput,
     FoundationError, IdentityRegistration, PolicyEffect, PolicyRuleInput, PolicyScope,
@@ -266,7 +266,7 @@ fn capability_invoke_api_success_path_preserves_request_id_metadata() {
             legal_name: "API Tenant".to_string(),
             home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-gamma".to_string()],
+            regulatory_packs: vec!["pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -286,7 +286,7 @@ fn capability_invoke_api_success_path_preserves_request_id_metadata() {
             namespace: "workflow".to_string(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -500,7 +500,7 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
             legal_name: "API Ads Tenant".to_string(),
             home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-gamma".to_string()],
+            regulatory_packs: vec!["pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -520,7 +520,7 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
             namespace: "ads".to_string(),
             action: CapabilityAction::AdsBid,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -755,7 +755,7 @@ fn configured_foundation_for_api_capability(capability_id: &str) -> (Foundation,
             legal_name: "API Tenant".to_string(),
             home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-gamma".to_string()],
+            regulatory_packs: vec!["pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -775,7 +775,7 @@ fn configured_foundation_for_api_capability(capability_id: &str) -> (Foundation,
             namespace: "workflow".to_string(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

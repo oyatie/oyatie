@@ -1,15 +1,15 @@
-//! # oya-ci-controller-k8s-adapter
+//! # ci-controller-k8s-adapter
 //!
-//! K8s Job spawn + watch adapter for the oya-ci controller.
+//! K8s Job spawn + watch adapter for the ci controller.
 //!
 //! Implements:
 //! - [`JobSpawner`] — creates a labeled `batch/v1 Job` for a gate run
 //! - [`observe_job`] — projects a live Job + its owned Pods into a kernel
 //!   [`JobObservation`] for the pure state machine
 //!
-//! ## Job design (from oya-ci-bespoke-prow.md)
+//! ## Job design (from ci-bespoke-prow.md)
 //!
-//! - Labels (immutable identity): `oya.io/ci-controller=oya-ci-gate`,
+//! - Labels (immutable identity): `oya.io/ci-controller=ci-gate`,
 //!   `oya.io/ci-pr-number=<N>`, `oya.io/ci-head-sha=<sha>`,
 //!   `oya.io/ci-delivery-id=<id>`, `app.kubernetes.io/part-of=oyatie-microservices`
 //! - `backoffLimit: 0` — fail-closed, no silent retry
@@ -70,10 +70,10 @@ pub const ANNOT_CI_CANDIDATE_BYTES_POLICY: &str = "oya.io/ci-candidate-bytes-pol
 pub const ANNOT_CI_GATE_DEFINITION_SOURCE: &str = "oya.io/ci-gate-definition-source";
 
 /// Value for the LABEL_CI_CONTROLLER label — the watcher selector.
-pub const CI_CONTROLLER_VALUE: &str = "oya-ci-gate";
+pub const CI_CONTROLLER_VALUE: &str = "ci-gate";
 
 /// Label selector string for the kube-rs watcher.
-pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=oya-ci-gate";
+pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=ci-gate";
 
 // ---------------------------------------------------------------------------
 // Build the K8s Job spec
@@ -145,11 +145,11 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
     );
     annotations.insert(
         ANNOT_CI_PRODUCER_KIND.to_owned(),
-        "oya-ci-controller".to_owned(),
+        "ci-controller".to_owned(),
     );
     annotations.insert(
         ANNOT_CI_PRODUCER_CONTROLLER.to_owned(),
-        "oya-ci-controller".to_owned(),
+        "ci-controller".to_owned(),
     );
     annotations.insert(
         ANNOT_CI_CANDIDATE_BYTES_POLICY.to_owned(),
@@ -387,7 +387,7 @@ fn extract_pod_reasons(pod: &k8s_openapi::api::core::v1::Pod) -> Vec<PodReason> 
     reasons
 }
 
-/// Build a [`ListParams`] that filters only oya-ci-gate Jobs.
+/// Build a [`ListParams`] that filters only ci-gate Jobs.
 pub fn gate_job_list_params() -> ListParams {
     ListParams::default().labels(WATCHER_LABEL_SELECTOR)
 }
@@ -404,14 +404,14 @@ mod tests {
                 head_sha: "abcdef1234567890abcdef1234567890abcdef12".to_owned(),
                 delivery_id: "delivery-1".to_owned(),
                 base_ref: "dev".to_owned(),
-                repo: "oya-admin/oyatie".to_owned(),
+                repo: "admin/oyatie".to_owned(),
             },
             image: "registry.local/rust-ci:dev".to_owned(),
             forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
             active_deadline_seconds: 3600,
             ttl_seconds_after_finished: 600,
-            namespace: "oya-ci".to_owned(),
-            runner_service_account: "oya-ci-gate-runner".to_owned(),
+            namespace: "ci".to_owned(),
+            runner_service_account: "ci-gate-runner".to_owned(),
         }
     }
 
@@ -432,13 +432,13 @@ mod tests {
         );
         assert_eq!(
             annotations.get(ANNOT_CI_PRODUCER_KIND).map(String::as_str),
-            Some("oya-ci-controller")
+            Some("ci-controller")
         );
         assert_eq!(
             annotations
                 .get(ANNOT_CI_PRODUCER_CONTROLLER)
                 .map(String::as_str),
-            Some("oya-ci-controller")
+            Some("ci-controller")
         );
         assert_eq!(
             annotations

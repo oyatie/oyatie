@@ -1,0 +1,20 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-cell-grid-rest
+  namespace: sheets
+  labels:
+    app.kubernetes.io/name: sheets-cell-grid-rest
+    oyatie/microservice: sheets
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: sheets-cell-grid-rest
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: metrics

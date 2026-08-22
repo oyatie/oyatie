@@ -1,6 +1,6 @@
 microservice:
   id: cloud-iac
-  cargoPackage: oya-cloud-iac-app
+  cargoPackage: cloud-iac-app
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-cloud-iac
+  name: cloud-iac
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-cloud-iac
+  repository: cloud-iac
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-cloud-iac-cedar
+  policyConfigMapName: cloud-iac-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     // Deployed Cedar mirrors the authored PBAC policy directories for this capability.
@@ -726,12 +726,12 @@ cedar:
     };
 
     permit(
-      principal == ServicePrincipal::"oyatie.github-actions.oya-ci",
+      principal == ServicePrincipal::"oyatie.github-actions.ci",
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
       resource.microservice == "cloud-iac" &&
-      context.required_context == "oya-ci-required" &&
+      context.required_context == "presubmit" &&
       context.shared_rust_gate_logic == true &&
       context.surface_all_aggregator == true &&
       context.local_cli_authority == false &&
@@ -739,12 +739,12 @@ cedar:
     };
 
     permit(
-      principal == ServicePrincipal::"oyatie.owned-oya-ci.runner",
+      principal == ServicePrincipal::"oyatie.owned-ci.runner",
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
       resource.microservice == "cloud-iac" &&
-      context.required_context == "oya-ci-required" &&
+      context.required_context == "presubmit" &&
       context.cutover_proven == true &&
       context.shared_rust_gate_logic == true &&
       context.surface_all_aggregator == true &&
@@ -753,28 +753,28 @@ cedar:
     };
 
     forbid(
-      principal == ServicePrincipal::"oyatie.github-actions.oya-ci",
+      principal == ServicePrincipal::"oyatie.github-actions.ci",
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
       resource.microservice == "cloud-iac" &&
       (
-        context.required_context != "oya-ci-required" ||
+        context.required_context != "presubmit" ||
         context.local_cli_authority == true ||
-        context.lane_id.matches("^oya-governance-.*$")
+        context.lane_id.matches("^governance-.*$")
       )
     };
 
     forbid(
-      principal == ServicePrincipal::"oyatie.owned-oya-ci.runner",
+      principal == ServicePrincipal::"oyatie.owned-ci.runner",
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
       resource.microservice == "cloud-iac" &&
       (
-        context.required_context != "oya-ci-required" ||
+        context.required_context != "presubmit" ||
         context.local_cli_authority == true ||
-        context.lane_id.matches("^oya-governance-.*$")
+        context.lane_id.matches("^governance-.*$")
       )
     };
 
@@ -811,7 +811,7 @@ cedar:
     ) when {
       resource.microservice == "cloud-iac" &&
       context.doctrine.adr_0347 == true &&
-      context.lane_id.matches("^oya-governance-.*$") &&
+      context.lane_id.matches("^governance-.*$") &&
       context.historical_reference != true
     };
 

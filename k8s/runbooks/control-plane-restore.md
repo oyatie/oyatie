@@ -107,7 +107,7 @@ Total cluster-restore RTO: ≤ 30 min from snapshot decision to operational clus
 - `kubectl get nodes` all Ready
 - `kubectl get pods --all-namespaces` no CrashLoopBackOff in kube-system / cloud-k8s-system
 - Test: create + delete a namespace via `kubernetes-api-proxy` (verifies end-to-end path)
-- `oya_kubernetes_api_proxy_request_duration_seconds{quantile="0.99"} < 100ms` for ≥ 30 min
+- `kubernetes_api_proxy_request_duration_seconds{quantile="0.99"} < 100ms` for ≥ 30 min
 - audit-chain: verify post-restore events sealed (audit-chain integrity check)
 
 ## Post-incident updates

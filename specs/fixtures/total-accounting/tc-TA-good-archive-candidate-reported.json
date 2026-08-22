@@ -16,5 +16,5 @@
       "archive_candidate_reported": true
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-total-accounting-app/tests/total_accounting.rs"
 }

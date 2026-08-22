@@ -1,0 +1,228 @@
+asyncapi: 3.1.0
+info:
+  title: application — shell events
+  version: 1.0.0
+  summary: Session, route, module-load, CDN-purge events emitted by the Application Shell
+  description: |
+    Cross-µservice Workflow events emitted by the Application Shell's BCs.
+    Per ADR-0123 (cross-product auth) and ADR-0139 (SLO-gated promotion).
+
+    Consumers:
+    - `audit-chain` µservice (Ed25519 seal of every event per Bominal ADR-0028)
+    - `tenancy` µservice (session lifecycle for user-status sync)
+    - `observability` µservice (TTI signal + integrity-failure signal)
+    - `grafana-oncall` (incident paging on critical events)
+  contact:
+    name: axis-application
+
+defaultContentType: application/json
+
+servers:
+  workflow-events-bus:
+    host: workflow-events.application.svc.cluster.local
+    protocol: amqp
+    description: Internal AMQP event bus
+  github-actions:
+    host: api.github.com
+    protocol: https
+    description: GitHub repository_dispatch endpoint (release events)
+
+channels:
+  session-started:
+    address: workflow-events/application.session.started
+    messages:
+      SessionStartedMessage:
+        $ref: '#/components/messages/SessionStarted'
+    description: A user signed in successfully.
+
+  session-ended:
+    address: workflow-events/application.session.ended
+    messages:
+      SessionEndedMessage:
+        $ref: '#/components/messages/SessionEnded'
+    description: A user session ended (logout, timeout, or forced revocation).
+
+  module-loaded:
+    address: workflow-events/application.module.loaded
+    messages:
+      ModuleLoadedMessage:
+        $ref: '#/components/messages/ModuleLoaded'
+    description: A product module bundle was fetched, verified, and loaded into the shell.
+
+  module-load-rejected:
+    address: workflow-events/application.module.load.rejected
+    messages:
+      ModuleLoadRejectedMessage:
+        $ref: '#/components/messages/ModuleLoadRejected'
+    description: A module load was refused (SRI / signature / Cedar / revoked).
+
+  route-access-denied:
+    address: workflow-events/application.route.access.denied
+    messages:
+      RouteAccessDeniedMessage:
+        $ref: '#/components/messages/RouteAccessDenied'
+    description: A route access was refused (Cedar deny, default-deny, residency mismatch).
+
+  cdn-purge-requested:
+    address: workflow-events/application.cdn.purge.requested
+    messages:
+      CdnPurgeRequestedMessage:
+        $ref: '#/components/messages/CdnPurgeRequested'
+    description: An operator triggered a CDN purge.
+
+  module-rolled-back:
+    address: workflow-events/application.module.rolled.back
+    messages:
+      ModuleRolledBackMessage:
+        $ref: '#/components/messages/ModuleRolledBack'
+    description: A module pointer was reverted to a prior signed version.
+
+operations:
+  publishSessionStarted:
+    action: send
+    channel:
+      $ref: '#/channels/session-started'
+  publishSessionEnded:
+    action: send
+    channel:
+      $ref: '#/channels/session-ended'
+  publishModuleLoaded:
+    action: send
+    channel:
+      $ref: '#/channels/module-loaded'
+  publishModuleLoadRejected:
+    action: send
+    channel:
+      $ref: '#/channels/module-load-rejected'
+  publishRouteAccessDenied:
+    action: send
+    channel:
+      $ref: '#/channels/route-access-denied'
+  publishCdnPurgeRequested:
+    action: send
+    channel:
+      $ref: '#/channels/cdn-purge-requested'
+  publishModuleRolledBack:
+    action: send
+    channel:
+      $ref: '#/channels/module-rolled-back'
+
+components:
+  messages:
+    SessionStarted:
+      name: SessionStarted
+      title: Session Started
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, tenant_id, user_id, session_id, provider, mfa_factor, started_at, ip_address, user_agent, pack]
+        properties:
+          event_id: { type: string }
+          tenant_id: { type: string }
+          user_id: { type: string }
+          session_id: { type: string }
+          provider: { type: string, enum: [oidc, saml] }
+          mfa_factor: { type: string, enum: [none, totp, webauthn] }
+          started_at: { type: string, format: date-time }
+          ip_address: { type: string }
+          user_agent: { type: string }
+          pack: { type: string }
+
+    SessionEnded:
+      name: SessionEnded
+      title: Session Ended
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, session_id, tenant_id, user_id, ended_at, reason, pack]
+        properties:
+          event_id: { type: string }
+          session_id: { type: string }
+          tenant_id: { type: string }
+          user_id: { type: string }
+          ended_at: { type: string, format: date-time }
+          reason: { type: string, enum: [logout, timeout, forced-revocation, employee-terminated, hmac-rotated] }
+          pack: { type: string }
+
+    ModuleLoaded:
+      name: ModuleLoaded
+      title: Module Loaded
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, tenant_id, user_id, module, version, signer_key_id, sri_hash, loaded_at, pack]
+        properties:
+          event_id: { type: string }
+          tenant_id: { type: string }
+          user_id: { type: string }
+          module: { type: string }
+          version: { type: string }
+          signer_key_id: { type: string }
+          sri_hash: { type: string }
+          loaded_at: { type: string, format: date-time }
+          time_to_load_ms: { type: integer }
+          pack: { type: string }
+
+    ModuleLoadRejected:
+      name: ModuleLoadRejected
+      title: Module Load Rejected
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, tenant_id, user_id, module, version, reason, rejected_at, pack]
+        properties:
+          event_id: { type: string }
+          tenant_id: { type: string }
+          user_id: { type: string }
+          module: { type: string }
+          version: { type: string }
+          reason: { type: string, enum: [sri_mismatch, signature_invalid, signer_revoked, cedar_deny, residency_mismatch, manifest_malformed] }
+          rejected_at: { type: string, format: date-time }
+          pack: { type: string }
+
+    RouteAccessDenied:
+      name: RouteAccessDenied
+      title: Route Access Denied
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, tenant_id, user_id, path, reason, denied_at, pack]
+        properties:
+          event_id: { type: string }
+          tenant_id: { type: string }
+          user_id: { type: string }
+          path: { type: string }
+          reason: { type: string, enum: [cedar_default_deny, role_mismatch, residency_mismatch, mfa_required, anonymous_disallowed, cross_tenant] }
+          denied_at: { type: string, format: date-time }
+          pack: { type: string }
+
+    CdnPurgeRequested:
+      name: CdnPurgeRequested
+      title: CDN Purge Requested
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, pack, pattern, reason, requested_by, requested_at]
+        properties:
+          event_id: { type: string }
+          pack: { type: string }
+          pattern: { type: string }
+          reason: { type: string }
+          requested_by: { type: string }
+          requested_at: { type: string, format: date-time }
+
+    ModuleRolledBack:
+      name: ModuleRolledBack
+      title: Module Rolled Back
+      contentType: application/json
+      payload:
+        type: object
+        required: [event_id, module, from_version, to_version, reason, rolled_back_by, rolled_back_at]
+        properties:
+          event_id: { type: string }
+          module: { type: string }
+          from_version: { type: string }
+          to_version: { type: string }
+          reason: { type: string }
+          rolled_back_by: { type: string }
+          rolled_back_at: { type: string, format: date-time }

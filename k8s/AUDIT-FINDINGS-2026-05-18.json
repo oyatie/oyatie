@@ -32,7 +32,7 @@
           "hits": [
             {
               "line": 47,
-              "excerpt": "| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / SeaweedFS on-prem) | `oya-cloud-k8s-csi-storage-driver-*` (11 crates) |"
+              "excerpt": "| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / SeaweedFS on-prem) | `cloud-k8s-csi-storage-driver-*` (11 crates) |"
             }
           ],
           "hits_total": 1
@@ -96,13 +96,13 @@
           "hits": [
             {
               "line": 13,
-              "excerpt": "#   oya-valkey-hot \u2014 Valkey block storage, NVMe-class"
+              "excerpt": "#   valkey-hot \u2014 Valkey block storage, NVMe-class"
             }
           ],
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-pg-hot.yaml",
+          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-pg-hot.yaml",
           "hits": [
             {
               "line": 2,
@@ -112,7 +112,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml",
+          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-valkey-hot.yaml",
           "hits": [
             {
               "line": 2,

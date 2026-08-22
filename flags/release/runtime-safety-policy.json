@@ -7,7 +7,7 @@
     "declaration_only": true,
     "no_live_rollout_execution": true,
     "no_tenant_traffic_claim": true,
-    "no_oya_cd_parity_or_cutover_claim": true,
+    "no_cd_parity_or_cutover_claim": true,
     "no_public_sla_slo_claim": true,
     "no_measured_slo_claim": true,
     "no_runtime_observability_engine_claim": true
@@ -33,7 +33,7 @@
       50,
       100
     ],
-    "controller_boundary": "bridge-reference-or-oya-cd-adapter-boundary-only",
+    "controller_boundary": "bridge-reference-or-cd-adapter-boundary-only",
     "advance_requires": [
       "latest_slo_gate_verdict_is_eligible",
       "no_fast_burn_alert_firing",
@@ -49,7 +49,7 @@
       "no_live_rollout_execution",
       "no_service_mesh_traffic_split_claim",
       "no_tenant_traffic_claim",
-      "no_oya_cd_parity_or_cutover_claim"
+      "no_cd_parity_or_cutover_claim"
     ],
     "feature_flag_rollout": {
       "substrate": "OpenFeature",
@@ -59,7 +59,7 @@
     },
     "brownout": {
       "spec_ref": "specs/brownout-degradation-signal.json",
-      "header_name": "oya-degradation-class",
+      "header_name": "degradation-class",
       "classes": [
         "nominal",
         "degraded",
@@ -112,7 +112,7 @@
   },
   "verification": {
     "mode": "data-only-declaration",
-    "catalog_ref": "flags/catalog/oya-feature-flags-rollout-kernel.yaml",
+    "catalog_ref": "flags/catalog/feature-flags-rollout-kernel.yaml",
     "kanban_task": "t_62cf60fe",
     "rust_first_rationale": "No standalone Python, shell, or Node validator is shipped for this declaration. This surface is owned by the Rust/Buck2 cloud-ci contract-slice-conformance gate's release-001-runtime-safety-policy slice, which pins this file's claim-ceiling, progressive-delivery, brownout, rollback, and cleanup contracts, alongside the cloud-ci rust-first and total-accounting gates.",
     "claim_boundary": "This policy remains a declaration-only RELEASE-001 safety slice and carries no live rollout execution, tenant traffic, measured SLO, runtime observability engine, or Oya CD parity/cutover claim."

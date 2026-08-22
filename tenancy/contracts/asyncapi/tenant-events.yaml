@@ -1,10 +1,10 @@
 asyncapi: 3.1.0
 info:
-  title: oya-tenancy — tenant lifecycle events
+  title: tenancy — tenant lifecycle events
   version: 1.0.0
   summary: Tenant lifecycle, DSR cascade, JWT key rotation, and cell rebalance events emitted by tenancy
   description: |
-    Cross-µservice Workflow events emitted by `oya-tenancy-*-worker` crates.
+    Cross-µservice Workflow events emitted by `tenancy-*-worker` crates.
     Per Bominal ADR-0018 + ADR-0131.
 
     Consumers:

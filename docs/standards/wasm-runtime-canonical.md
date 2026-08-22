@@ -1,8 +1,8 @@
 # Standard — WASM runtime canonical (Wasmtime)
 
 > ADR anchor: `docs/decisions/ADR-0709-general-live-apex.md`.
-> Code anchor: `crates/oya-shared-wasm-runtime-kernel/`.
-> Gate anchor: `crates/oya-check-wasm-runtime-discipline/`.
+> Code anchor: `crates/shared-wasm-runtime-kernel/`.
+> Gate anchor: `crates/check-wasm-runtime-discipline/`.
 > Authored 2026-05-18.
 
 ## When to use WASM in oyatie
@@ -16,7 +16,7 @@ short-lived, capability-limited** workloads where the host needs:
 - Hot-loadable bytecode (no rebuild of the host binary).
 
 Three sanctioned WASM call sites exist today (each = one sandbox
-class in `oya-shared-wasm-runtime-kernel`):
+class in `shared-wasm-runtime-kernel`):
 
 1. **Envoy north-south filter** (`envoy-filter`) — WAF, regulatory
    response shaping, bespoke authz / observability filters.
@@ -66,10 +66,10 @@ posture; any reviewer from those teams should recognize it.
 ## Discipline
 
 - Only the canonical adapter sub-crate
-  (`oya-shared-wasm-runtime-kernel-adapter-wasmtime`) may depend
+  (`shared-wasm-runtime-kernel-adapter-wasmtime`) may depend
   on `wasmtime`.
 - No µservice may depend on `wasmer`, `wasmedge`, or `wasmtime`.
-- `oya-check-wasm-runtime-discipline` is the advisory gate; it
+- `check-wasm-runtime-discipline` is the advisory gate; it
   flips to BLOCKER at T+60d.
 
 ## References

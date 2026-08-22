@@ -39,13 +39,13 @@ All components introduced by ADR-0121 (on-prem k8s stack) and ADR-0131 (per-micr
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
-| kubeadm 1.35 (control-plane bootstrap) | `oya-cloud-k8s-cluster-bootstrap-*` (10 crates) |
-| containerd 2.3.0 LTS + runc 1.4.0 (CRI) | `oya-cloud-k8s-node-lifecycle-*` (8 crates) |
-| Cilium CNI 1.16 LTS (eBPF dataplane + NetworkPolicy + Hubble) | `oya-cloud-k8s-network-policy-*` (8 crates) |
-| Istio 1.29.2 (istiod control-plane) | `oya-cloud-k8s-service-mesh-control-plane-*` (9 crates) |
-| Envoy 1.32 (Istio sidecars + ingress gateway) | `oya-cloud-k8s-ingress-controller-*` (9 crates) |
-| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / SeaweedFS on-prem) | `oya-cloud-k8s-csi-storage-driver-*` (11 crates) |
-| kube-apiserver / kube-controller-manager / kube-scheduler / etcd | `oya-cloud-k8s-kubernetes-api-proxy-*` (10 crates) |
+| kubeadm 1.35 (control-plane bootstrap) | `cloud-k8s-cluster-bootstrap-*` (10 crates) |
+| containerd 2.3.0 LTS + runc 1.4.0 (CRI) | `cloud-k8s-node-lifecycle-*` (8 crates) |
+| Cilium CNI 1.16 LTS (eBPF dataplane + NetworkPolicy + Hubble) | `cloud-k8s-network-policy-*` (8 crates) |
+| Istio 1.29.2 (istiod control-plane) | `cloud-k8s-service-mesh-control-plane-*` (9 crates) |
+| Envoy 1.32 (Istio sidecars + ingress gateway) | `cloud-k8s-ingress-controller-*` (9 crates) |
+| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / SeaweedFS on-prem) | `cloud-k8s-csi-storage-driver-*` (11 crates) |
+| kube-apiserver / kube-controller-manager / kube-scheduler / etcd | `cloud-k8s-kubernetes-api-proxy-*` (10 crates) |
 | Cosign + Kyverno admission controller | (uses governance µservice supply-chain authority) |
 
 ### Out-of-scope
@@ -135,7 +135,7 @@ Seven trust boundaries:
 
 ## Assets & Data Classification
 
-Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data-class` LEAN lane.
+Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `check-data-class` LEAN lane.
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
@@ -163,7 +163,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Workload µservice in own cluster | Semi-trusted | SPIFFE SVID; mTLS via Cilium L3/L4 + Istio Ambient ztunnel/waypoint (no sidecar; per ADR-0148) | Pod-to-Pod within namespace; cross-namespace per AuthorizationPolicy at the waypoint |
 | Operator (axis-cloud) | Trusted internal | OIDC + MFA + JIT via OpenBao | Cluster mutation through `kubernetes-api-proxy`; never direct 6443 |
 | Foundry agent | Trusted internal | OIDC-bound + autonomy-ceiling | Cluster mutation via Foundry capability surface (`cloud-k8s.cluster.bootstrap`, etc.); audit-chain emit per call |
-| CI runner | Semi-trusted internal | `WORKFLOW_PAT` + reserved Mimir tenant + namespace-scoped SA | Read-only on cluster + write to `oya-ci` namespace |
+| CI runner | Semi-trusted internal | `WORKFLOW_PAT` + reserved Mimir tenant + namespace-scoped SA | Read-only on cluster + write to `ci` namespace |
 | `cell` µservice | Trusted internal | SPIFFE SVID | Tenant cell-scheduling via Workflow events; namespace policy reads via Ontology |
 | `observability` µservice | Trusted internal | SPIFFE SVID | Telemetry collection from kubelet / cAdvisor / Cilium Hubble |
 | External auditor | Read-only external | OIDC + MFA + JIT short-lived | Read-only on cluster audit log + Cedar evaluation; cannot mutate |
@@ -267,7 +267,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Kyverno CRs git-versioned at `microservices/cloud-k8s/iac/kustomize/base/`; PR-reviewed.
   - kubernetes-api-proxy refuses direct Kyverno-CR mutations from non-operator principals.
-  - LEAN check `oya-check-kyverno-policy-conformance` validates CRs match git source.
+  - LEAN check `check-kyverno-policy-conformance` validates CRs match git source.
 - Owner: axis-cloud + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC8.1; ISO 27001 A.8.32; CIS K8s 1.x (Admission Controllers)
@@ -277,7 +277,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
   - Per-namespace policies derived from Cedar fragments (PR-reviewed; CODEOWNERS-bound).
-  - LEAN check `oya-check-network-policy-conformance` validates deployed CR matches git source.
+  - LEAN check `check-network-policy-conformance` validates deployed CR matches git source.
   - Continuous-state-validator CronJob compares live CR to git; drift = alert + auto-rollback.
 - Owner: axis-cloud + ops-security
 - Residual: L
@@ -298,7 +298,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: etcd snapshot
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - Snapshot files Ed25519-signed at creation by `oya-cloud-k8s-cluster-bootstrap-worker`.
+  - Snapshot files Ed25519-signed at creation by `cloud-k8s-cluster-bootstrap-worker`.
   - Restore primitive validates signature before applying.
   - Snapshot storage WORM where supported.
 - Owner: axis-cloud + ops-security
@@ -521,7 +521,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - All RBAC managed via OpenTofu / Kustomize at `microservices/cloud-k8s/iac/`; PR-reviewed.
   - kubernetes-api-proxy adds Cedar layer ON TOP of RBAC; no operator gets cluster-admin without JIT.
-  - LEAN check `oya-check-rbac-conformance` greps for `cluster-admin` binding + flags.
+  - LEAN check `check-rbac-conformance` greps for `cluster-admin` binding + flags.
   - Annual RBAC audit.
 - Owner: ops-security
 - Residual: L
@@ -544,7 +544,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
   - Kyverno v1.13+ used; CVE-tracked.
-  - Policies fuzz-tested at CI time (`oya-check-kyverno-fuzz` lane).
+  - Policies fuzz-tested at CI time (`check-kyverno-fuzz` lane).
   - Defence-in-depth: Cilium / Istio policy layer below Kyverno.
 - Owner: axis-cloud + ops-security
 - Residual: L
@@ -617,18 +617,18 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
-| Vanilla kubeadm + LTS pinned versions | Preventive | axis-cloud | `oya-check-version-pinning-conformance` |
-| etcd encryption-at-rest (KMS envelope) | Preventive | ops-security + cloud-iac | `oya-check-etcd-encryption` lane |
-| Istio PeerAuthentication STRICT mesh-wide | Preventive | axis-cloud | `oya-check-istio-strict-mtls` lane |
-| Cilium NetworkPolicy enforced kernel-layer | Preventive | axis-cloud | `oya-check-network-policy-conformance` |
-| Cosign + Kyverno admission | Preventive | axis-foundry | `oya-check-cosign-admission` lane |
+| Vanilla kubeadm + LTS pinned versions | Preventive | axis-cloud | `check-version-pinning-conformance` |
+| etcd encryption-at-rest (KMS envelope) | Preventive | ops-security + cloud-iac | `check-etcd-encryption` lane |
+| Istio PeerAuthentication STRICT mesh-wide | Preventive | axis-cloud | `check-istio-strict-mtls` lane |
+| Cilium NetworkPolicy enforced kernel-layer | Preventive | axis-cloud | `check-network-policy-conformance` |
+| Cosign + Kyverno admission | Preventive | axis-foundry | `check-cosign-admission` lane |
 | kubernetes-api-proxy mediation (no direct 6443) | Preventive | axis-cloud + ops-security | NetworkPolicy probe + audit-chain coverage |
 | Cedar policy on every API call | Preventive + Audit | ops-security | Cedar fragment coverage CI lane |
 | audit-chain Ed25519 seal per cluster mutation | Detective + Non-repudiation | audit-chain | audit-chain regression tests |
 | 2-person rule for autonomy-tier T3 ops | Preventive (insider) | ops-security | OpenBao JIT elevation logs |
 | Pod Security Standard `restricted` enforced | Preventive | axis-cloud | Kyverno admission policy |
-| CIS Kubernetes Benchmark v1.9 lane (BLOCKER) | Preventive + Continuous | axis-cloud | `oya-check-cis-k8s-benchmark` lane |
-| NSA/CISA Kubernetes Hardening Guide v1.2 | Preventive | axis-cloud + ops-security | `oya-check-nsa-k8s-hardening` lane |
+| CIS Kubernetes Benchmark v1.9 lane (BLOCKER) | Preventive + Continuous | axis-cloud | `check-cis-k8s-benchmark` lane |
+| NSA/CISA Kubernetes Hardening Guide v1.2 | Preventive | axis-cloud + ops-security | `check-nsa-k8s-hardening` lane |
 
 ## Residual Risk Acceptance
 

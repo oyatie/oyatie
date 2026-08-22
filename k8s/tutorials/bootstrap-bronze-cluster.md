@@ -12,7 +12,7 @@ You will: provision 4 VMs, run the bootstrap, verify the cluster, schedule a wor
 
 ## Pre-requisites
 
-- `oya-dev-cli` ≥ 1.42.0.
+- `dev-cli` ≥ 1.42.0.
 - The drill-env harness running (`oya cloud-k8s drill-env status` shows green) OR access to 4 bare-metal / VM nodes with: 8 vCPU, 32 GiB RAM, 200 GiB NVMe, dual NIC, reachable on a flat L2 segment, hostnames resolving via DNS or `/etc/hosts`.
 - An SSH keypair where the public key is in `~/.ssh/oyatie_drill.pub` and authorized on all 4 nodes for the `oyatie-bootstrap` user with `NOPASSWD` sudo.
 
@@ -21,7 +21,7 @@ You will: provision 4 VMs, run the bootstrap, verify the cluster, schedule a wor
 Run the prerequisite linter:
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s preflight \
+cargo run -p dev-cli -- cloud-k8s preflight \
     --vms cp-1.drill,cp-2.drill,cp-3.drill,w-1.drill \
     --ssh-key ~/.ssh/oyatie_drill \
     --ssh-user oyatie-bootstrap
@@ -40,7 +40,7 @@ If preflight fails, fix in-place — the cluster cannot survive failures here.
 ## Step 2 — Bootstrap (≤ 30 min)
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s bootstrap \
+cargo run -p dev-cli -- cloud-k8s bootstrap \
     --profile demo-trial \
     --site drill-syd-1 \
     --control-plane-vms cp-1.drill,cp-2.drill,cp-3.drill \
@@ -86,7 +86,7 @@ Expected: zero lines except the header. If any pod is not Running, read the `Sta
 Run the conformance probe:
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s conformance --kubeconfig ./drill-syd-1.kubeconfig --profile demo-trial
+cargo run -p dev-cli -- cloud-k8s conformance --kubeconfig ./drill-syd-1.kubeconfig --profile demo-trial
 ```
 
 Should output `PASS` for: kubeadm-cluster-shape, cilium-cni-installed, etcd-quorum-healthy, coredns-rolled, no-pending-pods.
@@ -153,7 +153,7 @@ Output: `chain verified, 10 events, no signature gaps`.
 ## Step 6 — Tear down (≤ 5 min)
 
 ```sh
-cargo run -p oya-dev-cli -- cloud-k8s teardown --cluster drill-syd-1 --confirm-i-mean-it
+cargo run -p dev-cli -- cloud-k8s teardown --cluster drill-syd-1 --confirm-i-mean-it
 ```
 
 The `--confirm-i-mean-it` flag is intentional friction; teardown is destructive. The command writes `cluster_teardown_executed` to the audit-chain, drains all nodes, removes etcd state, and resets the VMs.

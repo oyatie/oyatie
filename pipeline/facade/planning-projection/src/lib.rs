@@ -116,7 +116,7 @@ fn issue_from_deliverable(value: &Value, milestone: Option<&str>) -> Result<Boar
     Ok(BoardIssue {
         title: format!("{id}: {description}"),
         body: format!(
-            "Generated from masterplan deliverable `{id}`.\n\n{description}\n\n<!-- oya-board-sync:{id} -->\n"
+            "Generated from masterplan deliverable `{id}`.\n\n{description}\n\n<!-- board-sync:{id} -->\n"
         ),
         deliverable_id: id,
         labels,

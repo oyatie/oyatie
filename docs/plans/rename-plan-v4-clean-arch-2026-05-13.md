@@ -29,7 +29,7 @@ purpose: |
   BNF v4.1: `oya-<microservice>[-<bc>]-<layer>` — microservice is slot2 open
   kebab (no shared|vertical binary; everything is shared per flat catalog);
   BC slot is OPTIONAL (omit when microservice has a single concept at the layer).
-  Check crates remain `oya-check-<rule-name>` flat namespace (BNF-exempt).
+  Check crates remain `check-<rule-name>` flat namespace (BNF-exempt).
   Atomic rename = old crate name GONE on disk; no aliases, no dead code.
   Carries forward Hybrid C topology (Shard 0 + Shard 1 atomic rename),
   xtask-metadata-augment (with `lockfile-rename --bnf-version v4.1` flag),
@@ -62,8 +62,8 @@ doc_status: published
 > over-engineered layers that did not earn their keep:
 >
 > 1. The verbose `oya-<context>-<feature>-<capability>-<role>` BNF (4–5 segments)
->    produced names like `oya-governance-architecture-conventions-kernel`.
-> 2. The `oya-governance-freeze-window-kernel` lane primitive duplicated
+>    produced names like `governance-architecture-conventions-kernel`.
+> 2. The `governance-freeze-window-kernel` lane primitive duplicated
 > 3. "Fitness" terminology, imported wholesale from *Building Evolutionary
 >    Architectures* jargon, never settled into the team's vocabulary and
 >    repeatedly produced 6-segment AMBER crates.
@@ -116,29 +116,29 @@ v3) and §6 R3 (re-audited blast-radius row).
    architecture fitness function family*. v4 imports their convention.
 4. **Mechanical change cost is one-time; cognitive load is forever.**
    v3's 37 renames + 31 compound-feature ADR rows + the closed enum + the
-   AMBER carve-out for `oya-governance-architecture-conventions-kernel`
+   AMBER carve-out for `governance-architecture-conventions-kernel`
    pay an ongoing readability tax. v4's higher one-time rename count (~50–90)
    buys a permanently simpler grammar.
 5. **Checks are cross-cutting, not layered.** A clean-architecture check
    crate is itself a `cli` plus optional library — but it does not "belong
    to" a layer of the system it inspects. v4 places checks in a flat
-   `oya-check-<rule-name>` namespace, outside the layered architecture, so
+   `check-<rule-name>` namespace, outside the layered architecture, so
    they can never accidentally pretend to be domain or application code.
 
 ### Decision Drivers (top 3)
 
 1. **The v3 BNF cannot parse the load-bearing CLI.** v3 row 36 forced
-   `oya-tooling-agent-read` → `oya-tooling-agent-cli-read` because the BNF
+   `tooling-agent-read` → `tooling-agent-cli-read` because the BNF
    required a role token. v4's `oya-<bounded-context>-<layer>` parses
-   `oya-codeview-cli` cleanly: bounded context = `codeview` (a domain noun);
+   `codeview-cli` cleanly: bounded context = `codeview` (a domain noun);
    layer = `cli`.
 2. **`fitness` is jargon, not vocabulary.** Every fitness-as-feature crate
    in v3 (rows 2–34) was an ADR-citation, an architectural check, a
    doc-coverage probe, or a supply-chain audit. None was a "fitness
    function" in any sense the team used informally. v4 collapses them all
-   under a flat `oya-check-<name>` namespace, where the noun (`check`)
+   under a flat `check-<name>` namespace, where the noun (`check`)
    matches the team's actual vocabulary.
-   `oya-governance-freeze-window-kernel` + `expedite_override_token`
+   `governance-freeze-window-kernel` + `expedite_override_token`
    the duration of Shard 1's atomic squash-merge. The fitness lane was
    a parallel implementation of a primitive the workspace already has.
 
@@ -168,14 +168,14 @@ canonical layer enum + canonical decision tree + flat check namespace.**
 **Option D — Status quo (do nothing; keep v3 BNF + lane primitives).**
 - Pros: v3 is consensus-approved; no further reviewer cost.
 - Cons: the three over-engineered layers persist; new crates inherit the
-  6-segment AMBER tax; `oya-tooling-agent-read` rename remains awkward;
+  6-segment AMBER tax; `tooling-agent-read` rename remains awkward;
   every "fitness" crate enforces a name the team does not use informally.
 
 **Option E — Thing-domain literal (rejected; the `<thing>` slot was removed in v4 iteration sequence and the final v4 BNF settled at 3-slot `oya-<shared|vertical>-<bounded-context>-<layer>`).**
 - Pros: explicit `oya-<bounded-context>-<thing>-<layer>` always, no optional
   slot, easier to parse.
 - Cons: forces a `<thing>` token where none semantically exists (e.g.
-  `oya-codeview-tool-cli` to satisfy the slot); pessimises the common case;
+  `codeview-tool-cli` to satisfy the slot); pessimises the common case;
   no hyperscaler analogue (Azure ships `azure_storage_blob` not
   `azure_storage_blob_object`). Per third correction, the entire `<thing>`
   slot is removed; granularity expressed via multi-token BC names.
@@ -184,7 +184,7 @@ canonical layer enum + canonical decision tree + flat check namespace.**
 - Pros: shortest grammar.
 - Cons: collapses every crate to 3 segments; cannot disambiguate a domain
   layer from an infrastructure layer of the same bounded context (e.g.
-  `oya-policy` could mean either `oya-policy-domain` or `oya-policy-api`).
+  `policy` could mean either `policy-domain` or `policy-api`).
 
 **Decision**: Option C. Options D, E, F are explicitly rejected per the
 drivers above; no single-viable-option invalidation rationale needed.
@@ -203,10 +203,10 @@ drivers above; no single-viable-option invalidation rationale needed.
    appears in zero crates after 90 days is auto-deprecated.
 
 2. **Scenario B — Row 35-equivalent has higher than estimated blast radius.**
-   v3 row 35 (`oya-platform-data-boundary-kernel`, 95 consumers) is renamed
-   under v4 to `oya-data-boundary-domain`. The xtask re-audit may surface a
+   v3 row 35 (`platform-data-boundary-kernel`, 95 consumers) is renamed
+   under v4 to `data-boundary-domain`. The xtask re-audit may surface a
    different crate as the new highest-blast-radius row (e.g.,
-   `oya-platform-eventing-kernel` may have a higher path-edge count once
+   `platform-eventing-kernel` may have a higher path-edge count once
    re-keyed by bounded context). Probability: M. Impact: H.
    **Mitigation (per §6 R3)**: Shard 0 step 15a produces the rename map
    AND emits a `cargo metadata` reverse-dep count for every renamed crate.
@@ -221,7 +221,7 @@ drivers above; no single-viable-option invalidation rationale needed.
    Cargo itself does not reserve `application`. However, IDE tooling
    (rust-analyzer, IntelliJ-Rust) may have heuristics that key on it.
    Probability: L. Impact: M.
-   **Mitigation**: pre-cutover smoke test on a `oya-policy-application`
+   **Mitigation**: pre-cutover smoke test on a `policy-application`
    skeleton in Shard 0; rust-analyzer + IntelliJ-Rust + VS Code rust
    extensions are all exercised in §8.1 IDE smoke gate (new gate). If any
    fails, escape hatch is to use `app` (shorter, v3-compatible). Layer
@@ -237,15 +237,15 @@ drivers above; no single-viable-option invalidation rationale needed.
   failures. Per §8.1 "Tests pass" gate.
 - **End-to-end (staging cutover smoke test)**: After Shard 1 merges to
   `staging` (via the 4-layer pipeline: worktree → local-dev → origin/dev →
-  staging), exercise the renamed `oya-codeview-cli` + `oya-dev-cli` against
-  a synthetic repo; assert all hardcoded `cargo run -p oya-tooling-*`
+  staging), exercise the renamed `codeview-cli` + `dev-cli` against
+  a synthetic repo; assert all hardcoded `cargo run -p tooling-*`
   invocations in CI workflows + scripts have been rewritten and resolve
   correctly. New §8.1 gate row "E2E staging smoke".
 - **Observability (post-cutover, 7-day rolling)**: emit `cargo doc
   --workspace --no-deps` graph + `cargo metadata --no-deps | jq` snapshot
   daily for 7 days post-Shard-1; new fitness-equivalent check
-  `oya-check-rename-baseline-reset` (renamed from v3's
-  `oya-governance-baseline-reset-kernel`) computes a daily delta and
+  `check-rename-baseline-reset` (renamed from v3's
+  `governance-baseline-reset-kernel`) computes a daily delta and
   zero unexpected deltas. Counts as the §8.2 "Impossible-to-fail score
   over 7 days" gate.
 
@@ -258,11 +258,11 @@ drivers above; no single-viable-option invalidation rationale needed.
 | Item | Count | Notes |
 |---|---:|---|
 | Total workspace crates audited | **140** | `Cargo.toml [workspace] members` array, verified `wc -l Cargo.toml` partition |
-| Estimated renames + new check crates = total crate-name ops | **~144 ops** (140 existing crates per Cargo.toml lines 3-142 + 4 new check crates per §4a; corrects v4-iter-1 claims of 145/151) | All 140 workspace crates are renamed under v4 (every crate either changes layer suffix or drops the deprecated context prefix). Plus 4 new check crates scaffolded fresh (`oya-check-architecture`, `oya-check-bounded-contexts`, `oya-check-supply-chain`, `oya-check-semver`). Final count produced by §3 audit + Codex iter-2 `src/`-inspection; xtask consumes `/tmp/rename-map.tsv`. Under the 12-value canonical layer enum, some `*-kernel` crates that turn out to be PURE types + ports may stay `kernel` (no layer change); some may relayer to `domain` if they carry business logic. |
+| Estimated renames + new check crates = total crate-name ops | **~144 ops** (140 existing crates per Cargo.toml lines 3-142 + 4 new check crates per §4a; corrects v4-iter-1 claims of 145/151) | All 140 workspace crates are renamed under v4 (every crate either changes layer suffix or drops the deprecated context prefix). Plus 4 new check crates scaffolded fresh (`check-architecture`, `check-bounded-contexts`, `check-supply-chain`, `check-semver`). Final count produced by §3 audit + Codex iter-2 `src/`-inspection; xtask consumes `/tmp/rename-map.tsv`. Under the 12-value canonical layer enum, some `*-kernel` crates that turn out to be PURE types + ports may stay `kernel` (no layer change); some may relayer to `domain` if they carry business logic. |
 | `[package.metadata.oya]` block additions | **140** | Schema simplified vs. v3 §3.1: drops `feature`, `capability`, `compound`; keeps `bounded_context`, `layer`, `audit_chain`. See §3.0 |
 | Dep-edge rewrites | **~200–400** (toml_edit handles all forms per §3.3.1 v3 matrix, carried forward) | Estimate, not gate; final count emerges from `cargo metadata --no-deps` diff in Shard 0 step 15a |
-| New `oya-check-*` crates (LEAN per iter-2 fold; collapsed from 11 → 4 per Codex iter-1 ITERATE-7 edit C1: "too verbose") | **4** | `oya-check-architecture` (orchestrator: subcommands for layer-correctness + dependency-direction + naming-collision + metadata-schema + lockfile-parity + lib-name-parity + check-namespace — all 7 inner checks consolidated as xtask subcommands), `oya-check-bounded-contexts` (BC registry validation + overlap governance + shared/vertical-kind dependency enforcement per supplement), `oya-check-supply-chain` (cargo deny wrapper), `oya-check-semver` (cargo-semver-checks rename-baseline-reset classifier). Scaffolded empty in Shard 0; populated in Shard 1; flipped from `--report-only` to BLOCKER in §8.2 follow-up (per B6 chicken-and-egg avoidance). See §4a "4 lean check crates" for full per-crate spec. |
-| Bounded-context kind taxonomy + verticals registry (FINAL per iter-2 fold supplement #2 — 3-slot BNF; supersedes the metadata-only kind taxonomy and the 5-axis enum) | **`shared` literal + open verticals registry** | The slot-2 token in `oya-<shared\|vertical>-<bc>-<layer>` is either the literal `shared` OR an open kebab vertical name registered in `[workspace.metadata.oya.verticals]`. Initial verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace). Future verticals: `healthcare`, `corporate`, etc., added by registry append + ADR cite. `shared` BCs depend only on other `shared` BCs. `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only. Cross-vertical deps refused by `oya-check-bounded-contexts`. xtask refuses crate names whose slot 2 is neither `shared` nor a registered vertical. |
+| New `check-*` crates (LEAN per iter-2 fold; collapsed from 11 → 4 per Codex iter-1 ITERATE-7 edit C1: "too verbose") | **4** | `check-architecture` (orchestrator: subcommands for layer-correctness + dependency-direction + naming-collision + metadata-schema + lockfile-parity + lib-name-parity + check-namespace — all 7 inner checks consolidated as xtask subcommands), `check-bounded-contexts` (BC registry validation + overlap governance + shared/vertical-kind dependency enforcement per supplement), `check-supply-chain` (cargo deny wrapper), `check-semver` (cargo-semver-checks rename-baseline-reset classifier). Scaffolded empty in Shard 0; populated in Shard 1; flipped from `--report-only` to BLOCKER in §8.2 follow-up (per B6 chicken-and-egg avoidance). See §4a "4 lean check crates" for full per-crate spec. |
+| Bounded-context kind taxonomy + verticals registry (FINAL per iter-2 fold supplement #2 — 3-slot BNF; supersedes the metadata-only kind taxonomy and the 5-axis enum) | **`shared` literal + open verticals registry** | The slot-2 token in `oya-<shared\|vertical>-<bc>-<layer>` is either the literal `shared` OR an open kebab vertical name registered in `[workspace.metadata.oya.verticals]`. Initial verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace). Future verticals: `healthcare`, `corporate`, etc., added by registry append + ADR cite. `shared` BCs depend only on other `shared` BCs. `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only. Cross-vertical deps refused by `check-bounded-contexts`. xtask refuses crate names whose slot 2 is neither `shared` nor a registered vertical. |
 | Cargo.lock churn events | **1** | Hybrid C atomic Shard 1 ⇒ single lockfile regen via `xtask-metadata-augment lockfile-rename` |
 | Bounded contexts identified | **~100 entries** (post-3rd-correction expansion) | Initial draft enumerates the v4-draft-4 ~72 single-token BCs PLUS the ~28 multi-token BCs that absorbed the dropped `thing` slot per third correction. Single-token BCs: `cell`, `region`, `compute`, `iam`, `billing`, `capacity`, `finops`, `marketplace`, `dcops`, `kms`, `storage`, `surface`, `network`, `observability`, `audit-chain`, `eventing`, `object-graph`, `policy-cedar`, `residency`, `regulatory-pack`, `secrets`, `tenant`, `identity`, `metering`, `dsr`, `data-boundary`, `foundry`, `codeview`, `dev`, `composition`, plus 23 workspace product axes. Multi-token BCs (new under 3-slot, populating slot 3): `compute-vm`, `compute-k8s`, `compute-functions`, `storage-object`, `storage-block`, `network-vpc`, `network-dns`, `network-lb`, `audit-chain-file`, `eventing-file`, `observability-tracing`, `secrets-file`, `foundry-evidence-file`, `foundry-run-file`, `foundry-step-file`, `billing-tax`, plus foundry sub-contexts (`foundry-adapter`, `foundry-bypass`, `foundry-capability`, `foundry-catalog`, `foundry-cloud-mutation`, `foundry-evidence`, `foundry-eval`, `foundry-mcp-gateway`, `foundry-policy`, `foundry-rag`, `foundry-registry`, `foundry-run`, `foundry-step`, `foundry-api-semver`, `foundry-mdbook`, `foundry-openapi`, `foundry-cargo-prefix`). Plus the flat `check` namespace. Each entry registered with A4 fields (`name`, `owner`, `rationale`, `adr_cite`). |
 | CI workflow updates | **3 files** (carry forward from v3 §1) | Same files as v3; the cargo run package targets change per the new rename map |
@@ -295,10 +295,10 @@ kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
 **BC optionality rule**: omit BC when the microservice has a single
-binary or single concept at that layer (e.g., `oya-medical-domain`,
-`oya-tenancy-kernel`, `oya-cloud-cli`). Include BC when the microservice
+binary or single concept at that layer (e.g., `medical-domain`,
+`tenancy-kernel`, `cloud-cli`). Include BC when the microservice
 has multiple binaries or multiple BC-level splits at the same layer (e.g.,
-`oya-workflow-state-machine-domain`, `oya-workflow-approvals-application`).
+`workflow-state-machine-domain`, `workflow-approvals-application`).
 
 **FINAL BNF v4.1**: each crate name encodes
 `oya-<microservice>[-<bc>]-<layer>`. The microservice slot is an open
@@ -309,21 +309,21 @@ in the flat catalog.
 Parser rule: split crate name on `-`; LAST token MUST be a layer value
 (one of 12 canonical); SECOND token (after `oya-`) MUST be `shared` OR
 a registered vertical name from the workspace verticals registry;
-remaining middle tokens (joined by `-`) = bounded-context. The `oya-check-*`
+remaining middle tokens (joined by `-`) = bounded-context. The `check-*`
 namespace is exempt — checks are cross-cutting and use the
-`oya-check-<rule-name>` shape.
+`check-<rule-name>` shape.
 
 Canonical examples (replace draft-5 examples):
-- `oya-shared-audit-chain-domain` — shared BC `audit-chain`, layer `domain`
-- `oya-shared-eventing-application` — shared BC `eventing`, layer `application`
-- `oya-shared-codeview-cli` — shared BC `codeview` (formerly v3 `oya-tooling-agent-read`), layer `cli`
-- `oya-shared-composition-app` — shared BC `composition` (formerly v3 `oya-foundation-app`), layer `app`
-- `oya-intelligence-policy-evaluator-cedar-domain` — vertical `foundry`, BC `policy-evaluator-cedar`, layer `domain`
-- `oya-cloud-compute-vm-rest` — vertical `cloud`, BC `compute-vm`, layer `rest`
-- `oya-cloud-storage-object-adapter-aws` — vertical `cloud`, BC `storage-object-adapter-aws` (multi-token BC; AWS-specific adapter), layer (none in this example — actually parses as BC `storage-object`, layer `adapter`, with `aws` as additional BC qualifier; see audit §3 for canonical resolution under the 12-layer enum: ports go in `kernel`, trait impls in `adapter`, framework wrappers in `infrastructure`)
-- `oya-workspace-drive-domain` — vertical `workspace`, BC `drive`, layer `domain`
-- `oya-workspace-chat-rest` — vertical `workspace`, BC `chat`, layer `rest`
-- `oya-healthcare-patient-charting-domain` — future vertical `healthcare`, BC `patient-charting`, layer `domain`
+- `shared-audit-chain-domain` — shared BC `audit-chain`, layer `domain`
+- `shared-eventing-application` — shared BC `eventing`, layer `application`
+- `shared-codeview-cli` — shared BC `codeview` (formerly v3 `tooling-agent-read`), layer `cli`
+- `shared-composition-app` — shared BC `composition` (formerly v3 `foundation-app`), layer `app`
+- `intelligence-policy-evaluator-cedar-domain` — vertical `foundry`, BC `policy-evaluator-cedar`, layer `domain`
+- `cloud-compute-vm-rest` — vertical `cloud`, BC `compute-vm`, layer `rest`
+- `cloud-storage-object-adapter-aws` — vertical `cloud`, BC `storage-object-adapter-aws` (multi-token BC; AWS-specific adapter), layer (none in this example — actually parses as BC `storage-object`, layer `adapter`, with `aws` as additional BC qualifier; see audit §3 for canonical resolution under the 12-layer enum: ports go in `kernel`, trait impls in `adapter`, framework wrappers in `infrastructure`)
+- `workspace-drive-domain` — vertical `workspace`, BC `drive`, layer `domain`
+- `workspace-chat-rest` — vertical `workspace`, BC `chat`, layer `rest`
+- `healthcare-patient-charting-domain` — future vertical `healthcare`, BC `patient-charting`, layer `domain`
 
 **Critical correction vs. v4-draft-1**: the layer enum has **12 closed
 values**, NOT 6. v4-draft-1's `api` layer was ambiguous (REST? gRPC?
@@ -342,7 +342,7 @@ Constraints:
 1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be
    `>=3`; there is NO upper bound (open-ended via multi-token BC names).
    Long names are encouraged when granularity demands them: e.g.,
-   `oya-audit-chain-emission-domain` parses as `BC=audit-chain-emission,
+   `audit-chain-emission-domain` parses as `BC=audit-chain-emission,
    layer=domain` — 5 segments, no AMBER tax, no special handling. The
    grammar treats every kebab token between `oya-` and the trailing
    layer token as part of the bounded-context slot.
@@ -367,7 +367,7 @@ Constraints:
    REPLACES the previously-considered `<thing>` slot (a separate slot
    was removed because granularity-via-BC-name is simpler and matches
    the Rust workspace pattern of `tokio-util`/`tonic-build`).
-4. **Check namespace (flat).** `oya-check-<rule-name>` does NOT carry a
+4. **Check namespace (flat).** `check-<rule-name>` does NOT carry a
    layer suffix. Checks are cross-cutting; a check crate may itself
    contain a `cli` entry point and a small library, but it is not "part
    of" the layered architecture of the workspace it inspects.
@@ -392,14 +392,14 @@ entry-point layers.
 
 **Concrete worked example** (canonical pattern):
 
-- `oya-policy-kernel` — `Policy`, `Decision`, `PolicyId` value objects +
+- `policy-kernel` — `Policy`, `Decision`, `PolicyId` value objects +
   `PolicyRepository` trait (port).
-- `oya-policy-domain` — `fn evaluate_policy(policy: &Policy, ctx:
+- `policy-domain` — `fn evaluate_policy(policy: &Policy, ctx:
   &Context) -> Decision` business logic operating on kernel types.
-- `oya-policy-application` — `CreatePolicyUseCase`,
+- `policy-application` — `CreatePolicyUseCase`,
   `EvaluatePolicyUseCase` orchestrators that hold `PolicyRepository`
   trait bounds.
-- `oya-policy-app` — the policy service binary running rest + grpc +
+- `policy-app` — the policy service binary running rest + grpc +
   worker wired with postgres adapters via DI.
 
 #### 2.2.2 Outer / external layers (2 values)
@@ -411,11 +411,11 @@ entry-point layers.
 
 **Concrete worked example** (canonical pattern):
 
-- `oya-policy-adapter-postgres` — `impl PolicyRepository for
+- `policy-adapter-postgres` — `impl PolicyRepository for
   PostgresClient` + `Policy ↔ row` mapping.
-- `oya-policy-infrastructure-tracing` — OpenTelemetry exporter wiring;
+- `policy-infrastructure-tracing` — OpenTelemetry exporter wiring;
   not bound to a port trait.
-- `oya-policy-infrastructure-pool` — postgres pool setup helpers not
+- `policy-infrastructure-pool` — postgres pool setup helpers not
   tied to a trait impl.
 
 #### 2.2.3 Presentation / entry-point layers (per protocol, 6 values)
@@ -452,7 +452,7 @@ simultaneously). Naming it `app` (not `application` or `runtime`)
 preserves Uncle Bob's terminology: the `app` IS the deployable
 "application" binary; the `application` layer is the use-case
 orchestration code that the `app` wires up. This dichotomy was
-implicit in v3 (`oya-foundation-app` was the composition root) and is
+implicit in v3 (`foundation-app` was the composition root) and is
 made explicit in v4.
 
 #### 2.2.4 Canonical decision tree (per-crate audit rule)
@@ -477,7 +477,7 @@ that carries business logic), SPLIT it OR document as an Exception in
 12. Pure client library for external consumers? → `sdk`
 
 **Audit implication** for §3: a v3 crate currently named
-`oya-intelligence-policy-kernel` might actually be a `domain` crate if it
+`intelligence-policy-kernel` might actually be a `domain` crate if it
 has business logic; the audit must inspect `src/` to classify
 correctly. This may flip layer assignments for some crates relative to
 v3 names. The audit is the source of truth; v3 naming is advisory only.
@@ -491,7 +491,7 @@ kernel ◀── domain ◀── application ◀── { adapter, infrastructur
 kernel ◀── sdk
 ```
 
-Planned advisory check: `oya-check-architecture` (LEAN-A1 per §4a) per §5 and by
+Planned advisory check: `check-architecture` (LEAN-A1 per §4a) per §5 and by
 `cargo-metadata`-driven workspace lints. Edges allowed:
 
 - `kernel` → nothing internal
@@ -512,7 +512,7 @@ Planned advisory check: `oya-check-architecture` (LEAN-A1 per §4a) per §5 and 
 `adapter`, `infrastructure`, and every presentation layer are
 *application's outbound surface*; they are allowed to depend on
 `application` traits — but the application MUST NOT depend on any of
-them. The `oya-check-architecture` crate (LEAN-A1) refuses any edge from
+them. The `check-architecture` crate (LEAN-A1) refuses any edge from
 `application` to `adapter` / `infrastructure` / presentation; from
 `domain` to anything except `kernel`; from `kernel` to anything; from
 `sdk` to anything except `kernel`; from any presentation layer to
@@ -528,27 +528,27 @@ rule-name       ::= kebab-token ( "-" kebab-token )*   (* 1..4 tokens *)
 
 A check crate:
 - MAY be a library crate (lints, custom clippy, helpers)
-- MAY be a binary crate (CLI runner invokable as `cargo run -p oya-check-<name>`)
+- MAY be a binary crate (CLI runner invokable as `cargo run -p check-<name>`)
 - MUST NOT depend on any `application` or `infrastructure` crate (checks
   are runtime-independent — they inspect manifests, ASTs, or external
   artefacts, never the running system)
 - MAY depend on any `domain` crate (e.g., a check that verifies an
-  invariant on `oya-data-boundary-domain` types may import that domain
+  invariant on `data-boundary-domain` types may import that domain
   for `proptest` shapes)
 
-The set of `oya-check-*` crates IS the workspace's enforcement surface.
+The set of `check-*` crates IS the workspace's enforcement surface.
 v4 ships six in Shard 0 (scaffolded empty) + Shard 1 (populated); the
 team adds more over time as new checks emerge.
 
 > **Check-namespace duality (clarification):** Two crate forms coexist by design:
 > 1. **LEAN check binaries** (4 crates, 3-slot BNF, `cli` layer):
->    `oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`,
->    `oya-shared-supply-chain-check-cli`, `oya-shared-semver-check-cli`.
+>    `shared-architecture-check-cli`, `shared-bounded-contexts-check-cli`,
+>    `shared-supply-chain-check-cli`, `shared-semver-check-cli`.
 >    These are the toolchain executables that *run* checks. Justification:
 >    slot2 = `shared` (cross-vertical toolchain), slot3 = check subject domain,
 >    slot4 = `cli` (12-enum value; presentation layer per ADR-0056).
 > 2. **Per-rule check crates** (29 crates, BNF-exempt flat namespace):
->    `oya-check-<rule-name>` per ADR-0056 line 79-80. These are the
+>    `check-<rule-name>` per ADR-0056 line 79-80. These are the
 >    individual rule implementations that the LEAN binaries discover/consume.
 >    Exemption claim: ADR-0056 BNF second production `crate ::= ... | "oya" "-"
 >    "check" "-" rule-name`.
@@ -593,7 +593,7 @@ Column semantics:
 - `kind` — `shared` or `vertical`; redundant with the `vertical` column
   for verification (kind == "shared" iff vertical == "shared").
 - `layer` — one of 12 canonical values per §2.2.
-- `layer_evidence` — file:line cite (e.g., `crates/oya-intelligence-policy-api/src/main.rs:42 — Router::new()`) OR `cargo metadata` query result OR explicit `PROTOCOL-UNKNOWN, deferred to ADR-0056 §<X>` deferral marker. **NO row may ship as `provisional`** post-iter-3.
+- `layer_evidence` — file:line cite (e.g., `crates/intelligence-policy-api/src/main.rs:42 — Router::new()`) OR `cargo metadata` query result OR explicit `PROTOCOL-UNKNOWN, deferred to ADR-0056 §<X>` deferral marker. **NO row may ship as `provisional`** post-iter-3.
 - `proposed_name` — 3-slot pattern `oya-<shared|vertical>-<bc>-<layer>`.
 - `bc_registry_status` — `REGISTERED` | `PROPOSED-NEW` | `DEPRECATED`.
 - `risk` — 1-5.
@@ -613,31 +613,31 @@ Column semantics:
 > open-item #1 from `.omc/plans/open-questions.md`.
 
 **v3 axis → v4.1 translation rule** (BNF v4.1 amendment applied row-by-row):
-- `oya-platform-<bc>-<layer>` → `oya-<bc>-<layer>` (drop slot2 entirely; BC promoted to slot2)
-- `oya-foundation-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; foundation prefix dropped)
-- `oya-tooling-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; tooling prefix dropped)
-- `oya-foundry-<bc>-<layer>` → unchanged (foundry is the µservice name)
-- `oya-cloud-<bc>-<layer>` → unchanged (cloud is the µservice name)
-- `oya-workspace-<bc>-<layer>` → `oya-connect-<bc>-<layer>` (workspace renamed to connect per Round 4 decision [[feedback-flat-product-catalog]])
-- `oya-shared-<bc>-<layer>` → `oya-<bc>-<layer>` (drop redundant shared prefix)
-- `oya-check-<rule>` → unchanged (BNF-exempt)
+- `platform-<bc>-<layer>` → `oya-<bc>-<layer>` (drop slot2 entirely; BC promoted to slot2)
+- `foundation-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; foundation prefix dropped)
+- `tooling-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; tooling prefix dropped)
+- `foundry-<bc>-<layer>` → unchanged (foundry is the µservice name)
+- `cloud-<bc>-<layer>` → unchanged (cloud is the µservice name)
+- `workspace-<bc>-<layer>` → `connect-<bc>-<layer>` (workspace renamed to connect per Round 4 decision [[feedback-flat-product-catalog]])
+- `shared-<bc>-<layer>` → `oya-<bc>-<layer>` (drop redundant shared prefix)
+- `check-<rule>` → unchanged (BNF-exempt)
 
 > **Atomic rename rule**: old crate name is DELETED from disk. No aliases.
-> No compatibility shims. After Shard 1, `oya-platform-*` directory does
+> No compatibility shims. After Shard 1, `platform-*` directory does
 > not exist; only `oya-<bc>-*` exists. Old `Cargo.toml` package names
 > are gone from `Cargo.lock` (verified by `lockfile-parity` gate).
 
 Examples of v4.1 `proposed_name` after translation:
-- `oya-platform-tenant-kernel` → `oya-tenancy-kernel`
+- `platform-tenant-kernel` → `tenancy-kernel`
   (BC promoted to slot2; domain noun `tenancy` per ADR-0125)
-- `oya-platform-identity-kernel` → `oya-identity-kernel`
-- `oya-platform-audit-chain-kernel` → `oya-audit-chain-kernel`
-- `oya-intelligence-policy-api` → `oya-intelligence-policy-rest`
-- `oya-cloud-storage-object-api` → `oya-cloud-storage-object-rest`
-- `oya-foundation-app` → `oya-application-app` (B2B shell µservice)
-- `oya-tooling-agent-read` → `oya-codeview-cli`
-- `oya-workspace-mail-kernel` → `oya-mail-domain`
-- `oya-workspace-chat-api` → `oya-connect-chat-rest`
+- `platform-identity-kernel` → `identity-kernel`
+- `platform-audit-chain-kernel` → `audit-chain-kernel`
+- `intelligence-policy-api` → `intelligence-policy-rest`
+- `cloud-storage-object-api` → `cloud-storage-object-rest`
+- `foundation-app` → `application-app` (B2B shell µservice)
+- `tooling-agent-read` → `codeview-cli`
+- `workspace-mail-kernel` → `mail-domain`
+- `workspace-chat-api` → `connect-chat-rest`
 
 > **Audit table format note (superseded by D1)**: the iter-1-fold-A
 > "thing-slot 2-slot column-schema rework" §5.1 step 15c is now
@@ -688,15 +688,15 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
   business logic per `docs/audits/convention-audit-2026-05-12.md`
   rationale, so they are domain crates under the 12-value enum.
   EXCEPTIONS expected (pure types + ports only → `kernel` under v4):
-  `oya-platform-data-boundary-kernel`, possibly several
-  `oya-foundry-*-kernel` crates that are pure check-rule type bundles.
+  `platform-data-boundary-kernel`, possibly several
+  `foundry-*-kernel` crates that are pure check-rule type bundles.
   These exceptions get re-classified to `oya-<bc>-kernel` (v4) during
   Codex iter-1 audit; the row stays in §3 with `domain → kernel`
   override note.
 - **v3 `*-app` → v4 default `application`**: most v3 app crates are
   use-case orchestrators (not composition-root binaries). EXCEPTION:
-  `oya-foundation-app` IS the composition root binary (it wires
-  `oya-intelligence-api` + `oya-tooling-cli-dev-runtime` + downstream
+  `foundation-app` IS the composition root binary (it wires
+  `intelligence-api` + `tooling-cli-dev-runtime` + downstream
   consumers per `docs/standards/clean-architecture.md`); under the
   12-value enum it is `app`, not `application`. Row 138 reflects this.
 - **v3 `*-adapter-<provider>` → v4 `adapter`**: trait-impl crates stay
@@ -709,43 +709,43 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
   crates or SDK-publish crates. New `*-infrastructure-*` and `*-sdk`
   crates will emerge organically post-Shard-1 as the team writes them.
 
-### 3.1 Platform / shared µservice crates (n = 28) — BNF v4.1: drop `oya-platform-` prefix, BC becomes slot2
+### 3.1 Platform / shared µservice crates (n = 28) — BNF v4.1: drop `platform-` prefix, BC becomes slot2
 
-> **v4.1 rule**: `oya-platform-<bc>-<layer>` → `oya-<bc>-<layer>`. Old
-> directory `crates/oya-platform-<bc>-<layer>/` is DELETED and replaced
+> **v4.1 rule**: `platform-<bc>-<layer>` → `oya-<bc>-<layer>`. Old
+> directory `crates/platform-<bc>-<layer>/` is DELETED and replaced
 > by `crates/oya-<bc>-<layer>/`. No alias. No compatibility shim.
 > Object Graph crates renamed to Ontology per [[feedback-glossary-ontology-not-object-graph]].
 
 | # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|:-:|--:|
-| 1 | `oya-platform-data-boundary-kernel` | `data-boundary` | — | `kernel` | pure types + ports (named-by-identity per clean-architecture.md §3; only kernel allowed cross-layer deps) | `oya-data-boundary-kernel` | **5** | ~95 |
-| 2 | `oya-platform-residency-kernel` | `residency` | — | `domain` | `STUB-pending-src-inspection` (v3 kernel with business logic) | `oya-residency-domain` | 3 | est. 10–20 |
-| 3 | `oya-platform-dsr-kernel` | `dsr` | — | `domain` | `STUB-pending-src-inspection` | `oya-dsr-domain` | 2 | est. 5–10 |
-| 4 | `oya-platform-dsr-app` | `dsr` | — | `application` | `STUB-pending-src-inspection` | `oya-dsr-application` | 2 | est. 3–5 |
-| 5 | `oya-platform-tenant-kernel` | `tenancy` | — | `domain` | `STUB-pending-src-inspection` | `oya-tenancy-domain` | 4 | est. 30–50 |
-| 6 | `oya-platform-tenant-api` | `tenancy` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST control-plane likely; gRPC event stream possible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
-| 7 | `oya-platform-identity-kernel` | `identity` | — | `domain` | `STUB-pending-src-inspection` | `oya-identity-domain` | 4 | est. 30–50 |
-| 8 | `oya-platform-identity-api` | `identity` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST + OIDC typical; gRPC mTLS plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
-| 9 | `oya-platform-identity-app` | `identity` | — | `application` | `STUB-pending-src-inspection` | `oya-identity-application` | 3 | est. 5–10 |
-| 10 | `oya-platform-metering-kernel` | `metering` | — | `domain` | `STUB-pending-src-inspection` | `oya-metering-domain` | 3 | est. 10–20 |
-| 11 | `oya-platform-metering-app` | `metering` | — | `application` | `STUB-pending-src-inspection` | `oya-metering-application` | 2 | est. 3–5 |
-| 12 | `oya-platform-cell-kernel` | `cell` | — | `domain` | `STUB-pending-src-inspection` | `oya-cell-domain` | 3 | est. 10–20 |
-| 13 | `oya-platform-audit-chain-kernel` | `audit-chain` | — | `domain` | `STUB-pending-src-inspection` | `oya-audit-chain-domain` | 4 | est. 30–50 |
-| 14 | `oya-platform-audit-chain-app` | `audit-chain` | — | `application` | `STUB-pending-src-inspection` | `oya-audit-chain-application` | 3 | est. 5–10 |
-| 15 | `oya-platform-audit-chain-adapter-file` | `audit-chain` | `file` | `adapter` | trait impl + DTO mapping; classified `adapter` | `oya-audit-chain-file-adapter` | 2 | est. 3–5 |
-| 16 | `oya-platform-eventing-kernel` | `eventing` | — | `domain` | `STUB-pending-src-inspection` | `oya-eventing-domain` | 4 | est. 30–50 |
-| 17 | `oya-platform-eventing-app` | `eventing` | — | `application` | `STUB-pending-src-inspection` | `oya-eventing-application` | 3 | est. 5–10 |
-| 18 | `oya-platform-eventing-adapter-file` | `eventing` | `file` | `adapter` | `STUB-pending-src-inspection` | `oya-eventing-file-adapter` | 2 | est. 3–5 |
-| 19 | `oya-platform-object-graph-kernel` | `ontology` | — | `domain` | `STUB-pending-src-inspection` (renamed object-graph → ontology per [[feedback-glossary-ontology-not-object-graph]]) | `oya-ontology-domain` | 3 | est. 10–20 |
-| 20 | `oya-platform-object-graph-api` | `ontology` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (GraphQL plausible given typed-entity semantics) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 21 | `oya-platform-observability-kernel` | `observability` | — | `domain` | `STUB-pending-src-inspection` | `oya-observability-domain` | 4 | est. 30–50 |
-| 22 | `oya-platform-observability-adapter-tracing` | `observability` | `tracing` | `adapter` | `STUB-pending-src-inspection` | `oya-observability-tracing-adapter` | 2 | est. 3–5 |
-| 23 | `oya-platform-policy-cedar-kernel` | `policy` | `cedar` | `domain` | `STUB-pending-src-inspection` | `oya-policy-cedar-domain` | 3 | est. 10–20 |
-| 24 | `oya-platform-policy-cedar-api` | `policy` | `cedar` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST request/response typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 25 | `oya-platform-regional-pack-kernel` | `regional-pack` | — | `domain` | `STUB-pending-src-inspection` | `oya-regional-pack-domain` | 2 | est. 5–10 |
-| 26 | `oya-platform-regulatory-pack-api` | `regulatory-pack` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 27 | `oya-platform-secrets-kernel` | `secrets` | — | `domain` | `STUB-pending-src-inspection` | `oya-secrets-domain` | 3 | est. 10–20 |
-| 28 | `oya-platform-secrets-adapter-file` | `secrets` | `file` | `adapter` | `STUB-pending-src-inspection` | `oya-secrets-file-adapter` | 2 | est. 3–5 |
+| 1 | `platform-data-boundary-kernel` | `data-boundary` | — | `kernel` | pure types + ports (named-by-identity per clean-architecture.md §3; only kernel allowed cross-layer deps) | `data-boundary-kernel` | **5** | ~95 |
+| 2 | `platform-residency-kernel` | `residency` | — | `domain` | `STUB-pending-src-inspection` (v3 kernel with business logic) | `residency-domain` | 3 | est. 10–20 |
+| 3 | `platform-dsr-kernel` | `dsr` | — | `domain` | `STUB-pending-src-inspection` | `dsr-domain` | 2 | est. 5–10 |
+| 4 | `platform-dsr-app` | `dsr` | — | `application` | `STUB-pending-src-inspection` | `dsr-application` | 2 | est. 3–5 |
+| 5 | `platform-tenant-kernel` | `tenancy` | — | `domain` | `STUB-pending-src-inspection` | `tenancy-domain` | 4 | est. 30–50 |
+| 6 | `platform-tenant-api` | `tenancy` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST control-plane likely; gRPC event stream possible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
+| 7 | `platform-identity-kernel` | `identity` | — | `domain` | `STUB-pending-src-inspection` | `identity-domain` | 4 | est. 30–50 |
+| 8 | `platform-identity-api` | `identity` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST + OIDC typical; gRPC mTLS plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
+| 9 | `platform-identity-app` | `identity` | — | `application` | `STUB-pending-src-inspection` | `identity-application` | 3 | est. 5–10 |
+| 10 | `platform-metering-kernel` | `metering` | — | `domain` | `STUB-pending-src-inspection` | `metering-domain` | 3 | est. 10–20 |
+| 11 | `platform-metering-app` | `metering` | — | `application` | `STUB-pending-src-inspection` | `metering-application` | 2 | est. 3–5 |
+| 12 | `platform-cell-kernel` | `cell` | — | `domain` | `STUB-pending-src-inspection` | `cell-domain` | 3 | est. 10–20 |
+| 13 | `platform-audit-chain-kernel` | `audit-chain` | — | `domain` | `STUB-pending-src-inspection` | `audit-chain-domain` | 4 | est. 30–50 |
+| 14 | `platform-audit-chain-app` | `audit-chain` | — | `application` | `STUB-pending-src-inspection` | `audit-chain-application` | 3 | est. 5–10 |
+| 15 | `platform-audit-chain-adapter-file` | `audit-chain` | `file` | `adapter` | trait impl + DTO mapping; classified `adapter` | `audit-chain-file-adapter` | 2 | est. 3–5 |
+| 16 | `platform-eventing-kernel` | `eventing` | — | `domain` | `STUB-pending-src-inspection` | `eventing-domain` | 4 | est. 30–50 |
+| 17 | `platform-eventing-app` | `eventing` | — | `application` | `STUB-pending-src-inspection` | `eventing-application` | 3 | est. 5–10 |
+| 18 | `platform-eventing-adapter-file` | `eventing` | `file` | `adapter` | `STUB-pending-src-inspection` | `eventing-file-adapter` | 2 | est. 3–5 |
+| 19 | `platform-object-graph-kernel` | `ontology` | — | `domain` | `STUB-pending-src-inspection` (renamed object-graph → ontology per [[feedback-glossary-ontology-not-object-graph]]) | `ontology-domain` | 3 | est. 10–20 |
+| 20 | `platform-object-graph-api` | `ontology` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (GraphQL plausible given typed-entity semantics) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 21 | `platform-observability-kernel` | `observability` | — | `domain` | `STUB-pending-src-inspection` | `observability-domain` | 4 | est. 30–50 |
+| 22 | `platform-observability-adapter-tracing` | `observability` | `tracing` | `adapter` | `STUB-pending-src-inspection` | `observability-tracing-adapter` | 2 | est. 3–5 |
+| 23 | `platform-policy-cedar-kernel` | `policy` | `cedar` | `domain` | `STUB-pending-src-inspection` | `policy-cedar-domain` | 3 | est. 10–20 |
+| 24 | `platform-policy-cedar-api` | `policy` | `cedar` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST request/response typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 25 | `platform-regional-pack-kernel` | `regional-pack` | — | `domain` | `STUB-pending-src-inspection` | `regional-pack-domain` | 2 | est. 5–10 |
+| 26 | `platform-regulatory-pack-api` | `regulatory-pack` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 27 | `platform-secrets-kernel` | `secrets` | — | `domain` | `STUB-pending-src-inspection` | `secrets-domain` | 3 | est. 10–20 |
+| 28 | `platform-secrets-adapter-file` | `secrets` | `file` | `adapter` | `STUB-pending-src-inspection` | `secrets-file-adapter` | 2 | est. 3–5 |
 
 > Note: rows 13–28 actually total 16 (audit-chain trio + eventing trio +
 > object-graph pair + observability pair + policy-cedar pair + regional/
@@ -757,37 +757,37 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
 
 | # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 29 | `oya-cloud-cell-app` | `cloud` | `cell` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-cell-application` | PROPOSED-NEW | 2 | est. 5–10 |
-| 30 | `oya-cloud-resource-kernel` | `cloud` | `resource` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-resource-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 31 | `oya-cloud-region-kernel` | `cloud` | `region` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-region-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 32 | `oya-cloud-region-api` | `cloud` | `region` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (cloud control-plane region API typically REST + AWS-SDK-style) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 33 | `oya-cloud-compute-kernel` | `cloud` | `compute` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-compute-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 34 | `oya-cloud-compute-vm-api` | `cloud` | `compute-vm` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (VM CRUD typically REST; vm-event streams could be gRPC) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 35 | `oya-cloud-compute-k8s-api` | `cloud` | `compute-k8s` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (k8s API surface is REST + WATCH streams; reasonable to split rest+worker per cluster-event consumer) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 36 | `oya-cloud-compute-functions-api` | `cloud` | `compute-functions` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (FaaS control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 37 | `oya-cloud-iam-kernel` | `cloud` | `iam` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-iam-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 38 | `oya-cloud-iam-api` | `cloud` | `iam` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (IAM control-plane typically REST; sigv4 auth) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 39 | `oya-cloud-billing-kernel` | `cloud` | `billing` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-billing-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 40 | `oya-cloud-billing-app` | `cloud` | `billing` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-billing-application` | PROPOSED-NEW | 2 | est. 5–10 |
-| 41 | `oya-cloud-billing-tax-app` | `cloud` | `billing-tax` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-billing-tax-application` | PROPOSED-NEW | 2 | est. 3–5 |
-| 42 | `oya-cloud-capacity-kernel` | `cloud` | `capacity` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-capacity-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 43 | `oya-cloud-finops-kernel` | `cloud` | `finops` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-finops-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 44 | `oya-cloud-finops-api` | `cloud` | `finops` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (finops dashboards typically REST + JSON) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 45 | `oya-cloud-marketplace-kernel` | `cloud` | `marketplace` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-marketplace-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 46 | `oya-cloud-dcops-kernel` | `cloud` | `dcops` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-dcops-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 47 | `oya-cloud-data-kernel` | `cloud` | `data` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (BC = `data` inside `cloud` vertical disambiguates from `shared/data-boundary`) | `oya-cloud-data-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 48 | `oya-cloud-kms-kernel` | `cloud` | `kms` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-kms-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 49 | `oya-cloud-kms-api` | `cloud` | `kms` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (KMS REST cipher ops typical; AWS KMS precedent) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 50 | `oya-cloud-storage-kernel` | `cloud` | `storage` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-storage-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 51 | `oya-cloud-storage-object-api` | `cloud` | `storage-object` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (S3-style REST + sigv4 typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 52 | `oya-cloud-storage-block-api` | `cloud` | `storage-block` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (EBS-style REST control + iSCSI data-plane; control-plane likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 53 | `oya-cloud-surface-kernel` | `cloud` | `surface` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-surface-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 54 | `oya-cloud-network-kernel` | `cloud` | `network` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-cloud-network-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 55 | `oya-cloud-network-vpc-api` | `cloud` | `network-vpc` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (VPC control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 56 | `oya-cloud-network-dns-api` | `cloud` | `network-dns` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (DNS-over-HTTPS REST control; resolver data-plane is DNS-over-TLS/UDP) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 57 | `oya-cloud-network-lb-api` | `cloud` | `network-lb` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (LB control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 58 | `oya-cloud-observability-kernel` | `cloud` | `observability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (BC = `observability` inside `cloud` vertical disambiguates from `shared/observability` at row 21) | `oya-cloud-observability-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 59 | `oya-cloud-observability-api` | `cloud` | `observability` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (OTLP ingestion is typically gRPC; control surface REST; may require split per supplement-2 multi-protocol exception) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 29 | `cloud-cell-app` | `cloud` | `cell` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `cloud-cell-application` | PROPOSED-NEW | 2 | est. 5–10 |
+| 30 | `cloud-resource-kernel` | `cloud` | `resource` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-resource-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 31 | `cloud-region-kernel` | `cloud` | `region` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-region-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 32 | `cloud-region-api` | `cloud` | `region` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (cloud control-plane region API typically REST + AWS-SDK-style) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 33 | `cloud-compute-kernel` | `cloud` | `compute` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-compute-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 34 | `cloud-compute-vm-api` | `cloud` | `compute-vm` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (VM CRUD typically REST; vm-event streams could be gRPC) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 35 | `cloud-compute-k8s-api` | `cloud` | `compute-k8s` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (k8s API surface is REST + WATCH streams; reasonable to split rest+worker per cluster-event consumer) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 36 | `cloud-compute-functions-api` | `cloud` | `compute-functions` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (FaaS control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 37 | `cloud-iam-kernel` | `cloud` | `iam` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-iam-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 38 | `cloud-iam-api` | `cloud` | `iam` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (IAM control-plane typically REST; sigv4 auth) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 39 | `cloud-billing-kernel` | `cloud` | `billing` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-billing-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 40 | `cloud-billing-app` | `cloud` | `billing` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `cloud-billing-application` | PROPOSED-NEW | 2 | est. 5–10 |
+| 41 | `cloud-billing-tax-app` | `cloud` | `billing-tax` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `cloud-billing-tax-application` | PROPOSED-NEW | 2 | est. 3–5 |
+| 42 | `cloud-capacity-kernel` | `cloud` | `capacity` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-capacity-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 43 | `cloud-finops-kernel` | `cloud` | `finops` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-finops-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 44 | `cloud-finops-api` | `cloud` | `finops` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (finops dashboards typically REST + JSON) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 45 | `cloud-marketplace-kernel` | `cloud` | `marketplace` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-marketplace-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 46 | `cloud-dcops-kernel` | `cloud` | `dcops` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-dcops-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 47 | `cloud-data-kernel` | `cloud` | `data` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (BC = `data` inside `cloud` vertical disambiguates from `shared/data-boundary`) | `cloud-data-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 48 | `cloud-kms-kernel` | `cloud` | `kms` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-kms-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 49 | `cloud-kms-api` | `cloud` | `kms` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (KMS REST cipher ops typical; AWS KMS precedent) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 50 | `cloud-storage-kernel` | `cloud` | `storage` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-storage-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 51 | `cloud-storage-object-api` | `cloud` | `storage-object` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (S3-style REST + sigv4 typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 52 | `cloud-storage-block-api` | `cloud` | `storage-block` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (EBS-style REST control + iSCSI data-plane; control-plane likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 53 | `cloud-surface-kernel` | `cloud` | `surface` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-surface-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 54 | `cloud-network-kernel` | `cloud` | `network` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `cloud-network-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 55 | `cloud-network-vpc-api` | `cloud` | `network-vpc` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (VPC control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 56 | `cloud-network-dns-api` | `cloud` | `network-dns` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (DNS-over-HTTPS REST control; resolver data-plane is DNS-over-TLS/UDP) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 57 | `cloud-network-lb-api` | `cloud` | `network-lb` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (LB control-plane typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 58 | `cloud-observability-kernel` | `cloud` | `observability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (BC = `observability` inside `cloud` vertical disambiguates from `shared/observability` at row 21) | `cloud-observability-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 59 | `cloud-observability-api` | `cloud` | `observability` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (OTLP ingestion is typically gRPC; control surface REST; may require split per supplement-2 multi-protocol exception) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
 
 > Note: rows 47, 58, 59 use compound bounded contexts `cloud-data` and
 > `cloud-observability` because both `data` (cf. row 1's `data-boundary`)
@@ -809,171 +809,171 @@ to the flat `check` namespace.
 
 | # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 60 | `oya-intelligence-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
-| 61 | `oya-intelligence-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-intelligence-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 63 | `oya-intelligence-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 64 | `oya-intelligence-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 65 | `oya-intelligence-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 66 | `oya-intelligence-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 67 | `oya-intelligence-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `oya-intelligence-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 68 | `oya-intelligence-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-governance-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 69 | `oya-intelligence-eval-app` | `foundry` | `eval` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-eval-application` | PROPOSED-NEW | 2 | est. 5–10 |
-| 70 | `oya-intelligence-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 71 | `oya-intelligence-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 72 | `oya-intelligence-policy-api` | `foundry` | `policy` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry policy decision API; likely REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 73 | `oya-intelligence-registry-api` | `foundry` | `registry` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (capability registry CRUD; likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 74 | `oya-intelligence-rag-api` | `foundry` | `rag` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (retrieval-augmented generation; streaming retrieval suggests gRPC or SSE-over-HTTP; multi-protocol candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 75 | `oya-intelligence-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 76 | `oya-intelligence-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 77 | `oya-intelligence-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 78 | `oya-intelligence-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 79 | `oya-intelligence-api-semver-kernel` | `foundry` | `api-semver` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-api-semver-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 80 | `oya-intelligence-mdbook-kernel` | `foundry` | `mdbook` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mdbook-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 81 | `oya-intelligence-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 82 | `oya-governance-cargo-prefix-kernel` | `foundry` | `cargo-prefix` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cargo-prefix-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 60 | `intelligence-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
+| 61 | `intelligence-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `intelligence-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 63 | `intelligence-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 64 | `intelligence-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 65 | `intelligence-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 66 | `intelligence-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 67 | `intelligence-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `intelligence-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 68 | `intelligence-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `governance-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 69 | `intelligence-eval-app` | `foundry` | `eval` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `intelligence-eval-application` | PROPOSED-NEW | 2 | est. 5–10 |
+| 70 | `intelligence-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 71 | `intelligence-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 72 | `intelligence-policy-api` | `foundry` | `policy` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry policy decision API; likely REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 73 | `intelligence-registry-api` | `foundry` | `registry` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (capability registry CRUD; likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 74 | `intelligence-rag-api` | `foundry` | `rag` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (retrieval-augmented generation; streaming retrieval suggests gRPC or SSE-over-HTTP; multi-protocol candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
+| 75 | `intelligence-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 76 | `intelligence-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `intelligence-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 77 | `intelligence-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 78 | `intelligence-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `intelligence-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 79 | `intelligence-api-semver-kernel` | `foundry` | `api-semver` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-api-semver-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 80 | `intelligence-mdbook-kernel` | `foundry` | `mdbook` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-mdbook-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 81 | `intelligence-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 82 | `governance-cargo-prefix-kernel` | `foundry` | `cargo-prefix` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `intelligence-cargo-prefix-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 
 > Conformant rows (60, 72, 73, 74) need only metadata-block additions, not
 > renames.
 
-#### 3.3.2 Foundry check crates (every v3 "fitness" crate; n = 29, all rename to flat `oya-check-<rule-name>` namespace per §2.1 BNF "check-crate" production; Codex iter-4 F1 — regenerated to 11-column 3-slot-equivalent schema with check-namespace exemption documented inline)
+#### 3.3.2 Foundry check crates (every v3 "fitness" crate; n = 29, all rename to flat `check-<rule-name>` namespace per §2.1 BNF "check-crate" production; Codex iter-4 F1 — regenerated to 11-column 3-slot-equivalent schema with check-namespace exemption documented inline)
 
 > **Check-namespace exemption (per §2.1 BNF)**: rows 83-111 use the
-> flat `oya-check-<rule-name>` namespace, which is the second
+> flat `check-<rule-name>` namespace, which is the second
 > production in the v4 BNF (`crate ::= ... | "oya" "-" "check" "-"
 > rule-name`). These crates are EXEMPT from the standard 3-slot
 > grammar — they do NOT carry a `vertical`/`bounded-context`/`layer`
-> triple in the name; `rule-name` is the sole non-`oya-check-` slot.
+> triple in the name; `rule-name` is the sole non-`check-` slot.
 > The 11-column audit schema fills these rows with documented exemption
 > markers (`vertical: check-namespace-exempt`, `bounded_context:
 > check-namespace-exempt`, `kind: check-namespace-exempt`,
 > `layer: check-namespace-exempt`) so the audit table format is
-> uniform across §3.1–§3.5; LEAN-A6 (`oya-check-architecture --
+> uniform across §3.1–§3.5; LEAN-A6 (`check-architecture --
 > check-namespace`) enforces the actual flat-shape regex
-> `^oya_check_[a-z][a-z0-9_]*$`.
+> `^check_[a-z][a-z0-9_]*$`.
 
 | # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 83 | `oya-governance-adr-citation-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `adr-citation`) | `oya-check-adr-citation` | PROPOSED-NEW | 2 | est. 5 |
-| 84 | `oya-governance-adr-index-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `adr-index`) | `oya-check-adr-index` | PROPOSED-NEW | 2 | est. 5 |
-| 85 | `oya-governance-authority-cohesion-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `authority-cohesion`) | `oya-check-authority-cohesion` | PROPOSED-NEW | 2 | est. 5 |
-| 86 | `oya-governance-brand-residue-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `brand-residue`) | `oya-check-brand-residue` | PROPOSED-NEW | 2 | est. 5 |
-| 87 | `oya-governance-claim-ceiling-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `claim-ceiling`) | `oya-check-claim-ceiling` | PROPOSED-NEW | 2 | est. 5 |
-| 89 | `oya-governance-cohesion-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cohesion`) | `oya-check-cohesion` | PROPOSED-NEW | 2 | est. 5 |
-| 90 | `oya-governance-constitution-cite-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | ~~`NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `constitution-cite`)~~ SUNSET 2026-05-15 | ~~`oya-check-constitution-cite`~~ SUNSET — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate) | SUNSET | n/a | n/a |
-| 91 | `oya-intelligence-cost-budget-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cost-budget`) | `oya-check-cost-budget` | PROPOSED-NEW | 2 | est. 5 |
-| 92 | `oya-governance-data-class-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `data-class`) | `oya-check-data-class` | PROPOSED-NEW | 2 | est. 5 |
-| 93 | `oya-governance-doc-catalog-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `doc-catalog`) | `oya-check-doc-catalog` | PROPOSED-NEW | 2 | est. 5 |
-| 94 | `oya-governance-documentation-system-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `documentation-system`) | `oya-check-documentation-system` | PROPOSED-NEW | 2 | est. 5 |
-| 95 | `oya-governance-glossary-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-coverage`) | `oya-check-glossary-coverage` | PROPOSED-NEW | 2 | est. 5 |
-| 96 | `oya-governance-glossary-vocabulary-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-vocabulary`) | `oya-check-glossary-vocabulary` | PROPOSED-NEW | 2 | est. 5 |
-| 97 | `oya-governance-license-policy-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `license-policy`) | `oya-check-license-policy` | PROPOSED-NEW | 2 | est. 5 |
-| 98 | `oya-intelligence-mobile-native-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `mobile-native`) | `oya-check-mobile-native` | PROPOSED-NEW | 2 | est. 5 |
-| 99 | `oya-governance-placeholder-debt-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `placeholder-debt`) | `oya-check-placeholder-debt` | PROPOSED-NEW | 2 | est. 5 |
-| 101 | `oya-governance-pre-push-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `pre-push`) | `oya-check-pre-push` | PROPOSED-NEW | 2 | est. 5 |
-| 102 | `oya-governance-quality-lane-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `quality-lane`) | `oya-check-quality-lane` | PROPOSED-NEW | 2 | est. 5 |
-| 103 | `oya-governance-raci-team-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `raci-coverage`) | `oya-check-raci-coverage` | PROPOSED-NEW | 2 | est. 5 |
-| 104 | `oya-governance-readme-doc-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `readme-coverage`) | `oya-check-readme-coverage` | PROPOSED-NEW | 2 | est. 5 |
-| 105 | `oya-intelligence-release-evidence-pack-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `release-pack`) | `oya-check-release-pack` | PROPOSED-NEW | 3 | est. 10–20 |
-| 106 | `oya-governance-runbook-freshness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-freshness`) | `oya-check-runbook-freshness` | PROPOSED-NEW | 2 | est. 5 |
-| 107 | `oya-governance-runbook-index-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-index`) | `oya-check-runbook-index` | PROPOSED-NEW | 2 | est. 5 |
-| 108 | `oya-governance-slo-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `slo-coverage`) | `oya-check-slo-coverage` | PROPOSED-NEW | 2 | est. 5 |
-| 109 | `oya-governance-supply-chain-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `supply-chain`) | `oya-check-supply-chain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 110 | `oya-governance-typescript-workspace-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `typescript-workspace`) | `oya-check-typescript-workspace` | PROPOSED-NEW | 2 | est. 5 |
-| 111 | `oya-governance-vendor-contract-recency-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `vendor-recency`) | `oya-check-vendor-recency` | PROPOSED-NEW | 2 | est. 5 |
+| 83 | `governance-adr-citation-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `adr-citation`) | `check-adr-citation` | PROPOSED-NEW | 2 | est. 5 |
+| 84 | `governance-adr-index-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `adr-index`) | `check-adr-index` | PROPOSED-NEW | 2 | est. 5 |
+| 85 | `governance-authority-cohesion-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `authority-cohesion`) | `check-authority-cohesion` | PROPOSED-NEW | 2 | est. 5 |
+| 86 | `governance-brand-residue-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `brand-residue`) | `check-brand-residue` | PROPOSED-NEW | 2 | est. 5 |
+| 87 | `governance-claim-ceiling-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `claim-ceiling`) | `check-claim-ceiling` | PROPOSED-NEW | 2 | est. 5 |
+| 89 | `governance-cohesion-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cohesion`) | `check-cohesion` | PROPOSED-NEW | 2 | est. 5 |
+| 90 | `governance-constitution-cite-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | ~~`NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `constitution-cite`)~~ SUNSET 2026-05-15 | ~~`check-constitution-cite`~~ SUNSET — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate) | SUNSET | n/a | n/a |
+| 91 | `intelligence-cost-budget-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cost-budget`) | `check-cost-budget` | PROPOSED-NEW | 2 | est. 5 |
+| 92 | `governance-data-class-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `data-class`) | `check-data-class` | PROPOSED-NEW | 2 | est. 5 |
+| 93 | `governance-doc-catalog-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `doc-catalog`) | `check-doc-catalog` | PROPOSED-NEW | 2 | est. 5 |
+| 94 | `governance-documentation-system-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `documentation-system`) | `check-documentation-system` | PROPOSED-NEW | 2 | est. 5 |
+| 95 | `governance-glossary-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-coverage`) | `check-glossary-coverage` | PROPOSED-NEW | 2 | est. 5 |
+| 96 | `governance-glossary-vocabulary-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-vocabulary`) | `check-glossary-vocabulary` | PROPOSED-NEW | 2 | est. 5 |
+| 97 | `governance-license-policy-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `license-policy`) | `check-license-policy` | PROPOSED-NEW | 2 | est. 5 |
+| 98 | `intelligence-mobile-native-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `mobile-native`) | `check-mobile-native` | PROPOSED-NEW | 2 | est. 5 |
+| 99 | `governance-placeholder-debt-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `placeholder-debt`) | `check-placeholder-debt` | PROPOSED-NEW | 2 | est. 5 |
+| 101 | `governance-pre-push-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `pre-push`) | `check-pre-push` | PROPOSED-NEW | 2 | est. 5 |
+| 102 | `governance-quality-lane-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `quality-lane`) | `check-quality-lane` | PROPOSED-NEW | 2 | est. 5 |
+| 103 | `governance-raci-team-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `raci-coverage`) | `check-raci-coverage` | PROPOSED-NEW | 2 | est. 5 |
+| 104 | `governance-readme-doc-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `readme-coverage`) | `check-readme-coverage` | PROPOSED-NEW | 2 | est. 5 |
+| 105 | `intelligence-release-evidence-pack-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `release-pack`) | `check-release-pack` | PROPOSED-NEW | 3 | est. 10–20 |
+| 106 | `governance-runbook-freshness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-freshness`) | `check-runbook-freshness` | PROPOSED-NEW | 2 | est. 5 |
+| 107 | `governance-runbook-index-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-index`) | `check-runbook-index` | PROPOSED-NEW | 2 | est. 5 |
+| 108 | `governance-slo-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `slo-coverage`) | `check-slo-coverage` | PROPOSED-NEW | 2 | est. 5 |
+| 109 | `governance-supply-chain-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `supply-chain`) | `check-supply-chain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 110 | `governance-typescript-workspace-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `typescript-workspace`) | `check-typescript-workspace` | PROPOSED-NEW | 2 | est. 5 |
+| 111 | `governance-vendor-contract-recency-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `vendor-recency`) | `check-vendor-recency` | PROPOSED-NEW | 2 | est. 5 |
 
 > Note: 29 check crates here (rows 83–111). Post-iter-2 LEAN collapse
 > (per §4a iter-2-fold-B), the workspace ships **4 LEAN check crates**
 > scaffolded fresh in Shard 0 (not renamed from existing crates):
-> `oya-check-architecture` (LEAN-A1; 7 subcommands consolidating
+> `check-architecture` (LEAN-A1; 7 subcommands consolidating
 > layer-correctness + dependency-direction + naming-collision +
 > metadata-schema + lockfile-parity + lib-name-parity + check-namespace),
-> `oya-check-bounded-contexts` (LEAN-A2; BC registry + cross-vertical
-> refusal + overlap governance), `oya-check-supply-chain` (LEAN-A3;
-> cargo-deny wrapper), `oya-check-semver` (LEAN-A4; cargo-semver-checks
+> `check-bounded-contexts` (LEAN-A2; BC registry + cross-vertical
+> refusal + overlap governance), `check-supply-chain` (LEAN-A3;
+> cargo-deny wrapper), `check-semver` (LEAN-A4; cargo-semver-checks
 > rename-baseline-reset classifier). The iter-1-fold-A 6-check list
-> (`oya-check-clean-architecture` + 5 siblings) and the iter-1-fold-A
+> (`check-clean-architecture` + 5 siblings) and the iter-1-fold-A
 > 11-check expansion are both SUPERSEDED — see §4a LEAN-A1–LEAN-A4 for
 > current canonical and §15a/§15b for the journey history.
 
-### 3.4 µservice crates (formerly workspace; n = 26) — BNF v4.1: `oya-workspace-*` → `oya-connect-*`
+### 3.4 µservice crates (formerly workspace; n = 26) — BNF v4.1: `workspace-*` → `connect-*`
 
 > **v4.1 rule**: workspace renamed to connect per Round 4 session decision
-> [[feedback-flat-product-catalog]]. Old `crates/oya-workspace-<bc>-<layer>/`
-> directory is DELETED; replaced by `crates/oya-connect-<bc>-<layer>/`.
+> [[feedback-flat-product-catalog]]. Old `crates/workspace-<bc>-<layer>/`
+> directory is DELETED; replaced by `crates/connect-<bc>-<layer>/`.
 > No alias. covers dual-context: Professional (B2B) + Personal (B2C)
 > per Bominal ADR-0208.
 
 | # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|:-:|--:|
-| 112 | `oya-workspace-address-book-kernel` | `connector` | `address-book` | `domain` | `STUB-pending-src-inspection` | `oya-address-book-domain` | 2 | est. 5–10 |
-| 113 | `oya-workspace-calendar-kernel` | `connector` | `calendar` | `domain` | `STUB-pending-src-inspection` | `oya-calendar-domain` | 2 | est. 5–10 |
-| 114 | `oya-workspace-chat-kernel` | `connector` | `messenger` | `domain` | `STUB-pending-src-inspection` (chat → messenger per ADR-0208 dual-context nomenclature) | `oya-messenger-domain` | 2 | est. 5–10 |
-| 115 | `oya-workspace-chat-api` | `connector` | `messenger` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (WebSocket / GraphQL subscriptions plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 116 | `oya-workspace-collab-runtime-kernel` | `connector` | `collab-runtime` | `domain` | `STUB-pending-src-inspection` | `oya-collab-runtime-domain` | 2 | est. 5–10 |
-| 117 | `oya-workspace-document-format-kernel` | `connector` | `document-format` | `domain` | `STUB-pending-src-inspection` | `oya-document-format-domain` | 2 | est. 5–10 |
-| 118 | `oya-workspace-dlp-kernel` | `connector` | `dlp` | `domain` | `STUB-pending-src-inspection` | `oya-dlp-domain` | 2 | est. 5–10 |
-| 119 | `oya-workspace-ediscovery-kernel` | `connector` | `ediscovery` | `domain` | `STUB-pending-src-inspection` | `oya-ediscovery-domain` | 2 | est. 5–10 |
-| 120 | `oya-workspace-docs-kernel` | `connector` | `docs` | `domain` | `STUB-pending-src-inspection` | `oya-docs-domain` | 2 | est. 5–10 |
-| 121 | `oya-workspace-drive-kernel` | `connector` | `drive` | `domain` | `STUB-pending-src-inspection` | `oya-drive-domain` | 2 | est. 5–10 |
-| 122 | `oya-workspace-drive-api` | `connector` | `drive` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical; GraphQL possible for UI surface) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 123 | `oya-retention-dsr-kernel` | `connector` | `dsr` | `domain` | `STUB-pending-src-inspection` | `oya-dsr-domain` | 2 | est. 5–10 |
-| 124 | `oya-workspace-forms-kernel` | `connector` | `forms` | `domain` | `STUB-pending-src-inspection` | `oya-forms-domain` | 2 | est. 5–10 |
-| 125 | `oya-workspace-forms-api` | `connector` | `forms` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 126 | `oya-workspace-mail-kernel` | `connector` | `mail` | `domain` | `STUB-pending-src-inspection` | `oya-mail-domain` | 2 | est. 5–10 |
-| 127 | `oya-workspace-meet-kernel` | `connector` | `meet` | `domain` | `STUB-pending-src-inspection` | `oya-meet-domain` | 2 | est. 5–10 |
-| 128 | `oya-workspace-meet-api` | `connector` | `meet` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST signaling + WebRTC data-plane split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
-| 129 | `oya-workspace-notes-kernel` | `connector` | `notes` | `domain` | `STUB-pending-src-inspection` | `oya-notes-domain` | 2 | est. 5–10 |
-| 130 | `oya-workspace-recordings-kernel` | `connector` | `recordings` | `domain` | `STUB-pending-src-inspection` | `oya-recordings-domain` | 2 | est. 5–10 |
-| 131 | `oya-workspace-retention-kernel` | `connector` | `retention` | `domain` | `STUB-pending-src-inspection` | `oya-retention-domain` | 2 | est. 5–10 |
-| 132 | `oya-workspace-sheets-kernel` | `connector` | `sheets` | `domain` | `STUB-pending-src-inspection` | `oya-sheets-domain` | 2 | est. 5–10 |
-| 133 | `oya-workspace-sites-kernel` | `connector` | `sites` | `domain` | `STUB-pending-src-inspection` | `oya-sites-domain` | 2 | est. 5–10 |
-| 134 | `oya-workspace-slides-kernel` | `connector` | `slides` | `domain` | `STUB-pending-src-inspection` | `oya-slides-domain` | 2 | est. 5–10 |
-| 135 | `oya-workspace-tasks-kernel` | `connector` | `tasks` | `domain` | `STUB-pending-src-inspection` | `oya-tasks-domain` | 2 | est. 5–10 |
-| 136 | `oya-workspace-translate-kernel` | `connector` | `translate` | `domain` | `STUB-pending-src-inspection` | `oya-translate-domain` | 2 | est. 5–10 |
-| 137 | `oya-workspace-trust-portal-kernel` | `connector` | `trust-portal` | `domain` | `STUB-pending-src-inspection` | `oya-trust-portal-domain` | 2 | est. 5–10 |
+| 112 | `workspace-address-book-kernel` | `connector` | `address-book` | `domain` | `STUB-pending-src-inspection` | `address-book-domain` | 2 | est. 5–10 |
+| 113 | `workspace-calendar-kernel` | `connector` | `calendar` | `domain` | `STUB-pending-src-inspection` | `calendar-domain` | 2 | est. 5–10 |
+| 114 | `workspace-chat-kernel` | `connector` | `messenger` | `domain` | `STUB-pending-src-inspection` (chat → messenger per ADR-0208 dual-context nomenclature) | `messenger-domain` | 2 | est. 5–10 |
+| 115 | `workspace-chat-api` | `connector` | `messenger` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (WebSocket / GraphQL subscriptions plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 116 | `workspace-collab-runtime-kernel` | `connector` | `collab-runtime` | `domain` | `STUB-pending-src-inspection` | `collab-runtime-domain` | 2 | est. 5–10 |
+| 117 | `workspace-document-format-kernel` | `connector` | `document-format` | `domain` | `STUB-pending-src-inspection` | `document-format-domain` | 2 | est. 5–10 |
+| 118 | `workspace-dlp-kernel` | `connector` | `dlp` | `domain` | `STUB-pending-src-inspection` | `dlp-domain` | 2 | est. 5–10 |
+| 119 | `workspace-ediscovery-kernel` | `connector` | `ediscovery` | `domain` | `STUB-pending-src-inspection` | `ediscovery-domain` | 2 | est. 5–10 |
+| 120 | `workspace-docs-kernel` | `connector` | `docs` | `domain` | `STUB-pending-src-inspection` | `docs-domain` | 2 | est. 5–10 |
+| 121 | `workspace-drive-kernel` | `connector` | `drive` | `domain` | `STUB-pending-src-inspection` | `drive-domain` | 2 | est. 5–10 |
+| 122 | `workspace-drive-api` | `connector` | `drive` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical; GraphQL possible for UI surface) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 123 | `retention-dsr-kernel` | `connector` | `dsr` | `domain` | `STUB-pending-src-inspection` | `dsr-domain` | 2 | est. 5–10 |
+| 124 | `workspace-forms-kernel` | `connector` | `forms` | `domain` | `STUB-pending-src-inspection` | `forms-domain` | 2 | est. 5–10 |
+| 125 | `workspace-forms-api` | `connector` | `forms` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 126 | `workspace-mail-kernel` | `connector` | `mail` | `domain` | `STUB-pending-src-inspection` | `mail-domain` | 2 | est. 5–10 |
+| 127 | `workspace-meet-kernel` | `connector` | `meet` | `domain` | `STUB-pending-src-inspection` | `meet-domain` | 2 | est. 5–10 |
+| 128 | `workspace-meet-api` | `connector` | `meet` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST signaling + WebRTC data-plane split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 129 | `workspace-notes-kernel` | `connector` | `notes` | `domain` | `STUB-pending-src-inspection` | `notes-domain` | 2 | est. 5–10 |
+| 130 | `workspace-recordings-kernel` | `connector` | `recordings` | `domain` | `STUB-pending-src-inspection` | `recordings-domain` | 2 | est. 5–10 |
+| 131 | `workspace-retention-kernel` | `connector` | `retention` | `domain` | `STUB-pending-src-inspection` | `retention-domain` | 2 | est. 5–10 |
+| 132 | `workspace-sheets-kernel` | `connector` | `sheets` | `domain` | `STUB-pending-src-inspection` | `sheets-domain` | 2 | est. 5–10 |
+| 133 | `workspace-sites-kernel` | `connector` | `sites` | `domain` | `STUB-pending-src-inspection` | `sites-domain` | 2 | est. 5–10 |
+| 134 | `workspace-slides-kernel` | `connector` | `slides` | `domain` | `STUB-pending-src-inspection` | `slides-domain` | 2 | est. 5–10 |
+| 135 | `workspace-tasks-kernel` | `connector` | `tasks` | `domain` | `STUB-pending-src-inspection` | `tasks-domain` | 2 | est. 5–10 |
+| 136 | `workspace-translate-kernel` | `connector` | `translate` | `domain` | `STUB-pending-src-inspection` | `translate-domain` | 2 | est. 5–10 |
+| 137 | `workspace-trust-portal-kernel` | `connector` | `trust-portal` | `domain` | `STUB-pending-src-inspection` | `trust-portal-domain` | 2 | est. 5–10 |
 
-> Note: row 123 (`oya-retention-dsr-kernel`) keeps the `workspace-`
+> Note: row 123 (`retention-dsr-kernel`) keeps the `workspace-`
 > prefix because row 3 already claims `dsr` for the platform-DSR
 > bounded context; the workspace-axis DSR uses compound bounded context
 > `retention-dsr`. 26 product-axis crates (rows 112–137); plus the
 > additional foundation/tooling crates (rows 138–140) total exactly 140.
 
-### 3.5 Foundation + tooling crates (n = 3) — BNF v4.1: drop `oya-foundation-`/`oya-tooling-` prefix
+### 3.5 Foundation + tooling crates (n = 3) — BNF v4.1: drop `foundation-`/`tooling-` prefix
 
-> **v4.1 rule**: `oya-foundation-<bc>-<layer>` → `oya-<bc>-<layer>`;
-> `oya-tooling-<bc>-<layer>` → `oya-<bc>-<layer>`. Old directories
-> DELETED. No alias. `oya-foundation-app` becomes `oya-application-app`
+> **v4.1 rule**: `foundation-<bc>-<layer>` → `oya-<bc>-<layer>`;
+> `tooling-<bc>-<layer>` → `oya-<bc>-<layer>`. Old directories
+> DELETED. No alias. `foundation-app` becomes `application-app`
 > (the B2B Application shell µservice per [[feedback-flat-product-catalog]]).
 
 | # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|:-:|--:|
-| 138 | `oya-foundation-app` | `application` | — | `app` | composition-root binary per decision tree §2.2.4 step 4; wires all other layers | `oya-application-app` | 3 | est. 10–20 |
-| 139 | `oya-tooling-cli-dev-runtime` | `dev` | — | `cli` | hosts `oya` + `repoctl` bins; touches 3 CI workflows + ~30 script sites + test fixtures | `oya-dev-cli` | **5** | est. 30+ |
-| 140 | `oya-tooling-agent-read` | `codeview` | — | `cli` | sanctioned-primitive READ slot per git-workflow.md §2-3; every agent/script invoking `oya-tooling-agent-read` needs update | `oya-codeview-cli` | 3 | est. 10–20 |
+| 138 | `foundation-app` | `application` | — | `app` | composition-root binary per decision tree §2.2.4 step 4; wires all other layers | `application-app` | 3 | est. 10–20 |
+| 139 | `tooling-cli-dev-runtime` | `dev` | — | `cli` | hosts `oya` + `repoctl` bins; touches 3 CI workflows + ~30 script sites + test fixtures | `dev-cli` | **5** | est. 30+ |
+| 140 | `tooling-agent-read` | `codeview` | — | `cli` | sanctioned-primitive READ slot per git-workflow.md §2-3; every agent/script invoking `tooling-agent-read` needs update | `codeview-cli` | 3 | est. 10–20 |
 
-> Note on row 140: v4.1 reads `oya-tooling-agent-read` as: microservice =
+> Note on row 140: v4.1 reads `tooling-agent-read` as: microservice =
 > `codeview` (domain noun for the agent's read-only code view), layer = `cli`.
 > Under v4.1 BNF the BC slot is omitted (single concept at cli layer).
-> Old crate dir `crates/oya-tooling-agent-read/` deleted; replaced by
-> `crates/oya-codeview-cli/`.
+> Old crate dir `crates/tooling-agent-read/` deleted; replaced by
+> `crates/codeview-cli/`.
 
 ### 3.6 Audit summary — BNF v4.1 (amended 2026-05-13)
 
 | Group | Crates | Rename required | Old dir deleted |
 |---|---:|---:|---|
-| Platform µservices (drop `oya-platform-` prefix; BC becomes slot2; Ontology rename) | 28 | 28 | `crates/oya-platform-*/` ALL deleted |
+| Platform µservices (drop `platform-` prefix; BC becomes slot2; Ontology rename) | 28 | 28 | `crates/platform-*/` ALL deleted |
 | Cloud µservice (unchanged; foundry is µservice name) | 31 | 31 | dirs renamed per new name |
 | Foundry non-check µservice (unchanged; foundry is µservice name) | 23 | 23 | dirs renamed per new name |
-| Foundry check crates (move to flat `oya-check-*` namespace) | 29 | 29 | `crates/oya-foundry-*-kernel/` (check subset) deleted |
-| µservice (formerly workspace; ALL `oya-workspace-*` → `oya-connect-*`) | 26 | 26 | `crates/oya-workspace-*/` ALL deleted |
-| Foundation + tooling (drop prefix; `oya-foundation-app` → `oya-application-app`; `oya-tooling-*` → µservice names) | 3 | 3 | `crates/oya-foundation-*/` + `crates/oya-tooling-*/` deleted |
+| Foundry check crates (move to flat `check-*` namespace) | 29 | 29 | `crates/foundry-*-kernel/` (check subset) deleted |
+| µservice (formerly workspace; ALL `workspace-*` → `connect-*`) | 26 | 26 | `crates/workspace-*/` ALL deleted |
+| Foundation + tooling (drop prefix; `foundation-app` → `application-app`; `tooling-*` → µservice names) | 3 | 3 | `crates/foundation-*/` + `crates/tooling-*/` deleted |
 | **Subtotal — existing crates renamed** | **140** | **140** | **140 old dirs gone** |
-| **NEW — 4 LEAN check crates scaffolded fresh** (`oya-check-architecture`, `oya-check-bounded-contexts`, `oya-check-supply-chain`, `oya-check-semver`) | **+4** | n/a (new scaffolds) | n/a |
+| **NEW — 4 LEAN check crates scaffolded fresh** (`check-architecture`, `check-bounded-contexts`, `check-supply-chain`, `check-semver`) | **+4** | n/a (new scaffolds) | n/a |
 | **Total crate-name-affecting ops** | **144** | **140 + 4 new = 144** | — |
 
 > **Atomic rename = old name GONE**: after Shard 1 merges, zero crate
-> directories matching `oya-platform-*`, `oya-workspace-*`, `oya-foundation-*`,
-> `oya-tooling-*`, `oya-shared-*` (the old `shared` prefix from v4 iter-1–5
+> directories matching `platform-*`, `workspace-*`, `foundation-*`,
+> `tooling-*`, `shared-*` (the old `shared` prefix from v4 iter-1–5
 > interim names) may exist. Verified by §8.1 "Zero old-names" and
 > "Cargo.lock zero old-names" gates. No alias crates. No re-export shims.
 
@@ -996,11 +996,11 @@ to the flat `check` namespace.
 > "Estimated renames + new check crates = total crate-name ops"). The
 > canonical decision tree may reclassify some `*-kernel` crates to stay
 > `kernel` under v4 (pure types + ports survivors) instead of relayering
-> to `domain` — `oya-platform-data-boundary-kernel` (row 1) is the
+> to `domain` — `platform-data-boundary-kernel` (row 1) is the
 > strongest candidate for `kernel`-preservation; that reclassification
 > changes the LAYER suffix but NOT the rename-required total (the row
-> still renames because the v3 `oya-platform-*` prefix collapses to
-> `oya-shared-*` under the 3-slot grammar). The canonical-decision-tree
+> still renames because the v3 `platform-*` prefix collapses to
+> `shared-*` under the 3-slot grammar). The canonical-decision-tree
 > audit (kernel-vs-domain reclassification + protocol assignment for
 > `-api` → {rest, grpc, graphql, worker} + shared-vs-vertical slot-2
 > classification per the 3-slot grammar) is the largest pressure-test
@@ -1029,7 +1029,7 @@ Same Hybrid C decision and same option-pricing math hold under v4:
 - **Option B (6 sequential context-shards)**: rejected — 6 lockfile
   events; 5 rebase windows; chicken-and-egg lane bootstrap (now check
   bootstrap under v4); the v3 §4.2 row-37-ordering contradiction
-  reappears in v4 form for row 139 (`oya-dev-cli`'s precondition cone is
+  reappears in v4 form for row 139 (`dev-cli`'s precondition cone is
   the entire workspace).
 - **Option C — Hybrid C (CHOSEN)**: Shard 0 pure-tooling precursor +
   Shard 1 atomic rename/metadata/dep-edges/CI cutover. Single lockfile
@@ -1046,50 +1046,50 @@ The 11-check ruleset from v4-iter-1-fold-A is collapsed into **4 lean
 check crates**. The 7 inner code-shape checks (layer-correctness,
 dependency-direction, naming-collision, metadata-schema, lockfile-parity,
 lib-name-parity, check-namespace) consolidate as **subcommands of a
-single orchestrator** (`oya-check-architecture`). BC validation +
+single orchestrator** (`check-architecture`). BC validation +
 shared/vertical-kind dependency enforcement (the load-bearing new rule
 per supplement #2) gets its own crate. Cargo deny + cargo-semver-checks
 wrappers stay separate to keep the JSON output schemas distinct.
 
-### LEAN-A1 — `oya-check-architecture` (orchestrator + 7 subcommands)
+### LEAN-A1 — `check-architecture` (orchestrator + 7 subcommands)
 
 **Purpose**: single Rust binary that runs all 7 code-shape checks as
 subcommands; collates JSON output; produces one consolidated PR comment.
 **Subcommands** (each invokable independently):
-- `cargo run -p oya-check-architecture -- layer-correctness` — per-layer
+- `cargo run -p check-architecture -- layer-correctness` — per-layer
   heuristic table (kernel = pure types + ports, with A9 allowlist for
   trivial impls per §15a fix 9); see §2.2.1 + A9 allowlist for full
   classification.
-- `cargo run -p oya-check-architecture -- dependency-direction` —
+- `cargo run -p check-architecture -- dependency-direction` —
   enforces 12-value layer matrix per §2.2.5; dev-deps and
   `[target.cfg(test).dependencies]` EXCLUDED per §15a fix 10 (kernel/
   domain crates may have `tokio` in dev-deps for integration tests).
-- `cargo run -p oya-check-architecture -- naming-collision` — no two
+- `cargo run -p check-architecture -- naming-collision` — no two
   crates share `<shared|vertical>-<bc>-<layer>` tuple (3-slot rule per
   supplement #2; collision-equivalence is duplicate full crate name);
   cardinality MUST equal workspace member count.
-- `cargo run -p oya-check-architecture -- metadata-schema` — every
+- `cargo run -p check-architecture -- metadata-schema` — every
   Cargo.toml has `[package.metadata.oya]` block with required keys
   `bounded_context`, `kind`, `layer`, `purpose` (and `vertical` if
   `kind == "vertical"`); `layer` value in 12-value canonical enum.
-- `cargo run -p oya-check-architecture -- lockfile-parity` — wraps
+- `cargo run -p check-architecture -- lockfile-parity` — wraps
   `rg -F -f /tmp/old-crate-names.txt Cargo.lock`; **exit-code
   discipline (§15a fix 12)**: rg exit 1 (no match) = PASS; rg exit ≥ 2
   (rg error) = FAIL with explicit error message; subcommand surface
   remaps to consistent exit 0/1 for CI.
-- `cargo run -p oya-check-architecture -- lib-name-parity` — `[lib]
+- `cargo run -p check-architecture -- lib-name-parity` — `[lib]
   name` (snake) equals snake-case of `[package] name` (kebab); R4
   permanent-control layer.
-- `cargo run -p oya-check-architecture -- check-namespace` — every
-  `oya-check-*` crate name + `[lib] name` matches regex
-  `^oya_check_[a-z][a-z0-9_]*$`.
-- `cargo run -p oya-check-architecture -- report` (or `-- all`) —
+- `cargo run -p check-architecture -- check-namespace` — every
+  `check-*` crate name + `[lib] name` matches regex
+  `^check_[a-z][a-z0-9_]*$`.
+- `cargo run -p check-architecture -- report` (or `-- all`) —
   invokes all 7 subcommands; non-zero exit if any sub-check fails;
   `--format json` for CI consumption; markdown for PR comment.
 
 **Severity**: BLOCKER post-§8.2 flip.
 
-### LEAN-A2 — `oya-check-bounded-contexts` (BC registry + shared/vertical-kind dependency enforcement)
+### LEAN-A2 — `check-bounded-contexts` (BC registry + shared/vertical-kind dependency enforcement)
 
 **Purpose**: enforces three load-bearing rules:
 1. Every crate's `[package.metadata.oya].bounded_context` exists in
@@ -1159,7 +1159,7 @@ deps. Emits structured JSON for the LEAN-A1 orchestrator's report.
 > dep edge where source µservice ≠ target µservice AND neither endpoint
 > is `workflow` or `ontology`. BLOCKER at Shard 1 merge.
 
-### LEAN-A3 — `oya-check-supply-chain` (cargo deny wrapper)
+### LEAN-A3 — `check-supply-chain` (cargo deny wrapper)
 
 **Purpose**: license + advisories + bans + sources policy enforcement.
 **Implementation**: thin wrapper around `cargo deny check`; produces
@@ -1167,7 +1167,7 @@ augmented JSON output `{"violations":[{"crate":"...","severity":"ERROR","kind":"
 for LEAN-A1 orchestrator consumption.
 **Severity**: BLOCKER post-§8.2 flip; pre-existing v3 gate, retained.
 
-### LEAN-A4 — `oya-check-semver` (cargo-semver-checks rename-baseline-reset classifier)
+### LEAN-A4 — `check-semver` (cargo-semver-checks rename-baseline-reset classifier)
 
 **Purpose**: rename-aware semver checking. Pure-name deltas classified
 `BASELINE-RESET`; real breaking changes flagged.
@@ -1190,7 +1190,7 @@ failures BLOCKER throughout.
 
 ### LEAN-summary
 
-4 check crates total at `crates/oya-check-<name>/`. LEAN-A1 is the
+4 check crates total at `crates/check-<name>/`. LEAN-A1 is the
 unified orchestrator binary (7 subcommands cover the iter-1-fold-A
 A2/A3/A5/A6/A7/A8/A9 surface); LEAN-A2 covers A4 + supplement #2's
 cross-vertical refusal rule + §15a fix 5's BC overlap governance;
@@ -1245,20 +1245,20 @@ Dev-deps (`[dev-dependencies]`) and `[target.cfg(test).dependencies]` are
 EXCLUDED from enforcement; kernel/domain crates may carry `tokio` in
 dev-deps for integration tests without triggering a layer violation.
 
-### (DROPPED — iter-1-fold-A §4a A1 separate "oya-check-clean-architecture" meta-check)
+### (DROPPED — iter-1-fold-A §4a A1 separate "check-clean-architecture" meta-check)
 
 **Purpose**: orchestrates A2 + A3 + A4 + A5 + A6 + A7 + A9 into a unified
 report; produces one consolidated PR comment with per-rule pass/fail rows.
 **Implementation**: thin Rust binary that invokes the other checks as
 subcommands and collates JSON output; pretty-prints to markdown for PR
 comment; non-zero exit if any sub-check fails.
-**Invocation**: `cargo run -p oya-check-clean-architecture -- --report`
+**Invocation**: `cargo run -p check-clean-architecture -- --report`
 (human-readable) or `--format json` (CI consumption).
 **Severity**: BLOCKER post-§8.2 flip.
 
 ### (HISTORICAL — sections A2 through A11 + A-summary below describe the v4-iter-1-fold-A 11-check ruleset that was SUPERSEDED by the iter-2 LEAN-A1–LEAN-A4 collapse above. Retained for traceability; the LEAN-A1 orchestrator subcommand list maps 1:1 to A2/A3/A5/A6/A7/A8/A9; LEAN-A2 absorbs A4; LEAN-A3 = A10; LEAN-A4 = A11. CI runs the 4 LEAN crates only.)
 
-### A2 — `oya-check-layer-correctness` (per-layer heuristic table) [SUPERSEDED → LEAN-A1 subcommand `layer-correctness`]
+### A2 — `check-layer-correctness` (per-layer heuristic table) [SUPERSEDED → LEAN-A1 subcommand `layer-correctness`]
 
 **Purpose**: each crate's declared `[package.metadata.oya].layer` MUST
 match its actual code shape per the canonical heuristic table below.
@@ -1283,7 +1283,7 @@ doesn't match its heuristic signature.
 
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A3 — `oya-check-dependency-direction` (12-value layer dep matrix)
+### A3 — `check-dependency-direction` (12-value layer dep matrix)
 
 **Purpose**: enforces canonical 12-value dependency-direction matrix from
 §2.2.5.
@@ -1304,7 +1304,7 @@ allowed-set per consumer layer; exit 1 on any forbidden edge.
 
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A4 — `oya-check-bounded-contexts` (BC validation) [SUPERSEDED → LEAN-A2; renamed iter-2 from singular `oya-check-bounded-context-registry` to plural `oya-check-bounded-contexts` per the 4-LEAN-check collapse]
+### A4 — `check-bounded-contexts` (BC validation) [SUPERSEDED → LEAN-A2; renamed iter-2 from singular `check-bounded-context-registry` to plural `check-bounded-contexts` per the 4-LEAN-check collapse]
 
 **Purpose**: every crate's `[package.metadata.oya].bounded_context` must
 exist in `[workspace.metadata.oya].bounded_contexts`. Each registry entry
@@ -1320,7 +1320,7 @@ timestamp; 90-day soft-deprecate window during which the BC is read-only
 in registry entry.
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A5 — `oya-check-naming-collision`
+### A5 — `check-naming-collision`
 
 **Purpose**: no two crates share the `<vertical>-<bounded-context>-<layer>`
 tuple (3-slot rule per iter-2 supplement #2; collision-equivalence
@@ -1331,18 +1331,18 @@ context with the same layer suffix.
 tuples across all 140 crates; exit 1 if cardinality < 140.
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A6 — `oya-check-check-namespace`
+### A6 — `check-check-namespace`
 
-**Purpose**: check crates follow `oya-check-<rulename>` (1-N kebab
+**Purpose**: check crates follow `check-<rulename>` (1-N kebab
 tokens; no `<bounded-context>` or `<layer>` slots, because checks are
 cross-cutting and not part of the layered architecture they inspect);
-`[lib] name` is `oya_check_*` (snake-case parity per A9).
+`[lib] name` is `check_*` (snake-case parity per A9).
 **Implementation**: xtask `--check-namespace`; validates each
-`oya-check-*` crate's name + `[lib] name` against the regex
-`^oya_check_[a-z][a-z0-9_]*$`; exit 1 on mismatch.
+`check-*` crate's name + `[lib] name` against the regex
+`^check_[a-z][a-z0-9_]*$`; exit 1 on mismatch.
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A7 — `oya-check-metadata-schema`
+### A7 — `check-metadata-schema`
 
 **Purpose**: every Cargo.toml has `[package.metadata.oya]` block with
 required keys: `bounded_context`, `layer`, `purpose` (free-text;
@@ -1355,7 +1355,7 @@ exits 1 if any required key absent or layer value not in 12-value
 canonical enum.
 **Severity**: BLOCKER post-§8.2 flip.
 
-### A8 — `oya-check-lockfile-parity`
+### A8 — `check-lockfile-parity`
 
 **Purpose**: Cargo.lock has zero references to old crate names post-
 Shard-1 cutover.
@@ -1364,7 +1364,7 @@ exit 1 = no match = pass (rg semantics).
 **Severity**: BLOCKER from Shard 1 merge gate (already enforced via §8.1
 "Cargo.lock zero old-names" row).
 
-### A9 — `oya-check-lib-name-parity` (preserved from v3 R7, promoted to A-tier)
+### A9 — `check-lib-name-parity` (preserved from v3 R7, promoted to A-tier)
 
 **Purpose**: `[lib] name` (snake-case) equals snake-case form of
 `[package] name` (kebab-case).
@@ -1373,14 +1373,14 @@ exit 1 on mismatch.
 **Severity**: BLOCKER post-§8.2 flip; part of R4 permanent-control
 ledger.
 
-### A10 — `oya-check-cargo-deny` (wraps `cargo deny check`)
+### A10 — `check-cargo-deny` (wraps `cargo deny check`)
 
 **Purpose**: license + advisories + bans + sources policy enforcement.
 **Implementation**: thin wrapper around `cargo deny check`; produces
 augmented JSON output for the A1 meta-report.
 **Severity**: BLOCKER post-§8.2 flip; pre-existing v3 gate, retained.
 
-### A11 — `oya-check-rename-baseline-reset` (wraps `cargo-semver-checks`)
+### A11 — `check-rename-baseline-reset` (wraps `cargo-semver-checks`)
 
 **Purpose**: rename-aware semver checking. Pure-name deltas are
 classified `BASELINE-RESET`; real breaking changes flagged.
@@ -1393,7 +1393,7 @@ failures BLOCKER throughout.
 
 ### A-summary
 
-11 check crates total. Each lives at `crates/oya-check-<name>/`. All
+11 check crates total. Each lives at `crates/check-<name>/`. All
 ship as `[lib] + [[bin]]` for the A1 meta-check; A8/A10/A11 are thin
 wrappers; A2/A3/A4/A5/A6/A7/A9 carry real implementation. §3 audit's
 `layer_evidence` column (added per B2) feeds into A2's heuristic table
@@ -1402,11 +1402,11 @@ for deterministic per-crate verification.
 ## §5 Per-shard checklist (Hybrid C)
 
 
-Same as v3 §5.0. The renamed `oya-codeview-cli` (row 140) is the new
+Same as v3 §5.0. The renamed `codeview-cli` (row 140) is the new
 triad READ slot per `git-workflow.md §2-3`. Bootstrap-window exception
 "rename-cutover-v4 bootstrap session" -i critical -k "cutover,bootstrap,
-rename-v4"`. The `oya-check-banned-primitives` crate (renamed from
-`oya-governance-banned-primitives`, if it existed in v3; otherwise
+rename-v4"`. The `check-banned-primitives` crate (renamed from
+`governance-banned-primitives`, if it existed in v3; otherwise
 authored fresh in Shard 0) enforces.
 
 ### 5.1 Shard 0 checklist (pure tooling, no renames)
@@ -1425,10 +1425,10 @@ Same shape as v3 §5.1. Differences:
 | 5 | Author **ADR-0056** (BNF spec, bounded-context-registry policy) AND **ADR-0057** (supersedes ADR-0055; drops fitness/freeze/expedite) in **same commit** as ADR-0054 amendment (rename-event scaffold-claim authority) | n/a | Single commit hash contains ADR-0054 amendment + ADR-0056 + ADR-0057 |
 | 5a | Update v3 plan frontmatter (`status: Superseded`, `superseded_by: docs/plans/rename-plan-v4-clean-arch-2026-05-13.md`, prepended banner block) | n/a | v3 plan now points to v4 |
 | 6 | `git log -1 --name-only HEAD \| grep -E "ADR-005[467]"` | 0 (all three files in diff) | All three ADR files present in Shard 0 commit |
-| 7 | Scaffold **4 LEAN check crates** per §4a iter-2-fold-B (collapses iter-1-fold-A's 11 checks per Codex C1): `oya-check-architecture` (LEAN-A1 orchestrator with 7 subcommands), `oya-check-bounded-contexts` (LEAN-A2 BC registry + shared/vertical-kind cross-vertical refusal + BC overlap governance), `oya-check-supply-chain` (LEAN-A3 cargo-deny wrapper), `oya-check-semver` (LEAN-A4 cargo-semver-checks + rename-baseline-reset classifier) | n/a | All 4 `crates/oya-check-*/` directories exist with empty lib + Cargo.toml; `[package.metadata.oya].purpose` populated per LEAN-A1 `metadata-schema` subcommand contract; severity = `--report-only` until §8.2 BLOCKER flip per B6 |
+| 7 | Scaffold **4 LEAN check crates** per §4a iter-2-fold-B (collapses iter-1-fold-A's 11 checks per Codex C1): `check-architecture` (LEAN-A1 orchestrator with 7 subcommands), `check-bounded-contexts` (LEAN-A2 BC registry + shared/vertical-kind cross-vertical refusal + BC overlap governance), `check-supply-chain` (LEAN-A3 cargo-deny wrapper), `check-semver` (LEAN-A4 cargo-semver-checks + rename-baseline-reset classifier) | n/a | All 4 `crates/check-*/` directories exist with empty lib + Cargo.toml; `[package.metadata.oya].purpose` populated per LEAN-A1 `metadata-schema` subcommand contract; severity = `--report-only` until §8.2 BLOCKER flip per B6 |
 | 7a | **Architect B1 closure**: confirm port traits placed in `kernel` layer (not `domain`) per canonical decision tree §2.2.4; audit `docs/standards/clean-architecture.md` §2.1 "domain — Defines ports: Rust traits" wording for ADR-0056-cited amendment (the standard currently places ports in `domain`; v4 places them in `kernel`); add Shard 1 step 9a to update standard wording in same atomic commit. | n/a | Standard amended in Shard 1; ADR-0056 §"Decision" notes port-location move from `domain` → `kernel` |
 | 7b | Author `docs/standards/bounded-contexts.md` (skeleton; initial registry of contexts identified in §3) with required LEAN-A2 fields: `name`, `kind` (closed: `shared` OR `vertical`), `vertical` (open kebab token from `[workspace.metadata.oya.verticals]`; required iff `kind == "vertical"`), `owner` (default `council-architecture`), `rationale` (1 paragraph), `adr_cite` (one-line), `parent: <bc>` (optional, used when BC is prefix-child of a parent BC per §15a fix 5); **B3 arbitrator clause** included: "If two PRs propose conflicting BC names for the same crate cluster, council-architecture reviews both proposals; tie-breaker is the proposal with the more specific `rationale` paragraph + ADR cite linking to upstream design discussion; ultimate timestamp tiebreaker per Codex C5: earlier-PR timestamp wins ties not resolvable by rationale + ADR-cite specificity." | n/a | Living-document file present with B3 arbitrator clause + parent/sibling rule + §15a fix 5 BC overlap governance |
-| 7d | Author `[workspace.metadata.oya.verticals]` registry section in root `Cargo.toml` enumerating initial 3 verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace); each entry carries `rationale` + `adr_cite`. Document the open-set policy (future verticals — `healthcare`, `corporate`, etc. — added via registry append + ADR cite). | n/a | Verticals registry block present; `oya-check-bounded-contexts` (LEAN-A2) reads this to validate slot-2 token of every crate name |
+| 7d | Author `[workspace.metadata.oya.verticals]` registry section in root `Cargo.toml` enumerating initial 3 verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace); each entry carries `rationale` + `adr_cite`. Document the open-set policy (future verticals — `healthcare`, `corporate`, etc. — added via registry append + ADR cite). | n/a | Verticals registry block present; `check-bounded-contexts` (LEAN-A2) reads this to validate slot-2 token of every crate name |
 | 7c | **Architect B7 closure (BNF accommodation)**: author ADR-0056 §"BNF accommodation" enumerating the 4 gap cases (proc-macros, codegen crates, test-fixture crates, library+binary split-the-crate rule) with canonical layer assignment for each. See §11 ADR-0056 outline. | n/a | ADR-0056 §"BNF accommodation" present in Shard 0 commit |
 | 8 | `cargo check --workspace --all-features` | 0 | Workspace still builds with empty new check crates |
 | 9 | Add `[workspace.metadata.oya]` block to root `Cargo.toml` (simplified per §3.0 schema; layer enum + bounded-contexts auto-populated) | n/a | New registry block present |
@@ -1439,8 +1439,8 @@ Same shape as v3 §5.1. Differences:
 | 14 | `cargo doc --workspace --no-deps` | 0 | Doc build green |
 | 15 | `cargo metadata --no-deps --format-version 1 \| jq -r '.workspace_members[]' \| sort > /tmp/shard0-metadata.txt` | 0 | Snapshot stored for Shard 1 path-edge diff |
 | 15a | Generate `/tmp/old-crate-names.txt` (one old-name per line, from §3 rename inventory) AND `/tmp/rename-map.tsv` (old<TAB>new) AND `/tmp/reverse-dep-counts.tsv` (per-crate `cargo metadata` reverse-dep count, used for Scenario B mitigation: every crate gets a consumer-count assertion, not just the predicted-highest one) | 0 | `wc -l /tmp/rename-map.tsv` ≈ 135 (the actual rename count); `/tmp/reverse-dep-counts.tsv` has 140 rows |
-| 15b | **IDE smoke gate** (NEW per Scenario C pre-mortem mitigation): scaffold a single `oya-policy-test-application` crate with empty lib + minimal cargo metadata; load it in rust-analyzer, IntelliJ-Rust, and VS Code rust-extension; assert each resolves the crate and renders symbols without warnings. Remove the test crate before Shard 0 merge. | 0 (per IDE) | If any IDE flags `application` as a reserved layer name, fall back to `app` layer enum (1-ADR edit to ADR-0056). |
-| 15c | **§3 audit table 3-slot column-schema rework** (FINAL per iter-2 supplement #2; supersedes the iter-1-fold-A 2-slot rework): regenerate §3.1–§3.5 audit tables under the 3-slot schema `oya-<shared\|vertical>-<bc>-<layer>`. Each row's `proposed_name` follows the 3-slot pattern. Add columns: `vertical` (value = `shared` OR a vertical name), `bounded_context` (kebab; multi-token allowed), `layer` (12-value enum), `layer_evidence` (file:line cite OR `cargo metadata` query OR `PROTOCOL-UNKNOWN` deferral marker per Codex C1), `bc_registry_status` (REGISTERED / PROPOSED-NEW / DEPRECATED), `kind` (`shared` / `vertical`; matches slot 2). Drop `thing?` column (already dropped pre-supplement-2). **Audit translation from v3**: v3 `oya-platform-*` → slot 2 = `shared`; v3 `oya-foundation-*` → slot 2 = `shared`; v3 `oya-tooling-*` → slot 2 = `shared`; v3 `oya-cloud-*` → slot 2 = `cloud`; v3 `oya-foundry-*` → slot 2 = `foundry`; v3 `oya-workspace-*` → slot 2 = `workspace`. xtask `--audit-rebuild` automates this. | 0 | All §3 tables match the canonical column directive; xtask emits `/tmp/audit-v4-3slot.tsv` for Codex iter-2 consumption |
+| 15b | **IDE smoke gate** (NEW per Scenario C pre-mortem mitigation): scaffold a single `policy-test-application` crate with empty lib + minimal cargo metadata; load it in rust-analyzer, IntelliJ-Rust, and VS Code rust-extension; assert each resolves the crate and renders symbols without warnings. Remove the test crate before Shard 0 merge. | 0 (per IDE) | If any IDE flags `application` as a reserved layer name, fall back to `app` layer enum (1-ADR edit to ADR-0056). |
+| 15c | **§3 audit table 3-slot column-schema rework** (FINAL per iter-2 supplement #2; supersedes the iter-1-fold-A 2-slot rework): regenerate §3.1–§3.5 audit tables under the 3-slot schema `oya-<shared\|vertical>-<bc>-<layer>`. Each row's `proposed_name` follows the 3-slot pattern. Add columns: `vertical` (value = `shared` OR a vertical name), `bounded_context` (kebab; multi-token allowed), `layer` (12-value enum), `layer_evidence` (file:line cite OR `cargo metadata` query OR `PROTOCOL-UNKNOWN` deferral marker per Codex C1), `bc_registry_status` (REGISTERED / PROPOSED-NEW / DEPRECATED), `kind` (`shared` / `vertical`; matches slot 2). Drop `thing?` column (already dropped pre-supplement-2). **Audit translation from v3**: v3 `platform-*` → slot 2 = `shared`; v3 `foundation-*` → slot 2 = `shared`; v3 `tooling-*` → slot 2 = `shared`; v3 `cloud-*` → slot 2 = `cloud`; v3 `foundry-*` → slot 2 = `foundry`; v3 `workspace-*` → slot 2 = `workspace`. xtask `--audit-rebuild` automates this. | 0 | All §3 tables match the canonical column directive; xtask emits `/tmp/audit-v4-3slot.tsv` for Codex iter-2 consumption |
 | 15d | **BC registry multi-token expansion + kind/vertical fields** (FINAL per supplement #2): `docs/standards/bounded-contexts.md` initial population at **~100 entries**. Each entry carries LEAN-A2 required fields: `name`, `kind`, `owner`, `rationale`, `adr_cite`, plus `vertical: <name>` if `kind == "vertical"`, plus `parent: <bc>` if BC is prefix-child of another BC per §15a fix 5. Examples of `kind: shared` BCs: `audit-chain`, `eventing`, `tenant`, `identity`, `policy-cedar`, `composition`, `codeview`, `dev`. Examples of `kind: vertical, vertical: cloud` BCs: `compute-vm`, `compute-k8s`, `compute-functions`, `storage-object`, `storage-block`, `network-vpc`, `network-dns`, `network-lb`, `iam`, `billing`. Examples of `kind: vertical, vertical: foundry` BCs: `foundry-policy`, `foundry-evidence`, `foundry-eval`, `foundry-rag`. Examples of `kind: vertical, vertical: workspace` BCs: `drive`, `chat`, `mail`, `meet`, `calendar`. | n/a | BC registry file present with ~100 entries; each row has B3 arbitrator clause ownership default + §15a fix 5 BC overlap governance + supplement #2 kind/vertical taxonomy |
 
 ### 5.2 Shard 1 checklist (atomic ~139-rename + everything else)
@@ -1454,9 +1454,9 @@ Same shape as v3 §5.2; row counts updated:
 | 4 | `cargo run -p xtask-metadata-augment -- --apply` | 0 | All 140 manifests carry `[package.metadata.oya]` per §3.0 schema |
 | 5 | For each renamed crate: rewrite `[package] name` AND `[lib] name = "..."` (underscored form) | n/a | R7-equivalent permanent control (renamed from v3 §6 R7) |
 | 6 | Rewrite all dep-edge `path = "../oya-<old>"` entries (est. 200–400 sites) | n/a | xtask traversal per v3 §3.3.1 matrix |
-| 7 | Update 3 CI workflow files (same as v3) — `cargo run -p oya-tooling-cli-dev-runtime` → `cargo run -p oya-dev-cli`; other references per §3 | n/a | Per-workflow grep verification |
-| 8 | Update `scripts/check.sh` (~29 sites), `scripts/hooks/pre-push-repoctl.sh` (1 site), `scripts/check-architecture-boundaries.sh` (3 sites). New: rename references to `oya-intelligence-api` and `oya-foundation-app` per §3 rows 138 + 60 | n/a | Verified in §8.1 zero-old-names gate |
-| 9 | Update `docs/standards/clean-architecture.md` §3 row 35 named-by-identity reference: `oya-platform-data-boundary-kernel` → `oya-data-boundary-domain` | n/a | Same row, new name |
+| 7 | Update 3 CI workflow files (same as v3) — `cargo run -p tooling-cli-dev-runtime` → `cargo run -p dev-cli`; other references per §3 | n/a | Per-workflow grep verification |
+| 8 | Update `scripts/check.sh` (~29 sites), `scripts/hooks/pre-push-repoctl.sh` (1 site), `scripts/check-architecture-boundaries.sh` (3 sites). New: rename references to `intelligence-api` and `foundation-app` per §3 rows 138 + 60 | n/a | Verified in §8.1 zero-old-names gate |
+| 9 | Update `docs/standards/clean-architecture.md` §3 row 35 named-by-identity reference: `platform-data-boundary-kernel` → `data-boundary-domain` | n/a | Same row, new name |
 | 10 | **REWRITE** `docs/standards/crate-naming-convention.md` or mark `status: Superseded by ADR-0056` (decision: rewrite, because the doc carries content beyond the BNF — context table, role table, hyperscaler mapping, etc. — that is salvageable under v4) | n/a | Doc rewritten with v4 BNF + bounded-context-registry policy; ADR-0056 cited |
 | 10b | **CO-EDIT** `docs/standards/code-style-rust.md` lines **11-12, 137-147, 162-177** (per Codex iter-2 D6): replace v3 BNF + 9-value role enum (`kernel/domain/app/api/worker/adapter/runtime/cli/sdk`) declarations with v4 3-slot BNF + 12-value layer enum + canonical decision tree references. Add explicit ADR-0056 cross-reference. | n/a | `code-style-rust.md` no longer conflicts with ADR-0056; verified via `rg -n "role.*::=.*kernel" docs/standards/code-style-rust.md` returning no match |
 | 10a | Author `docs/standards/bounded-contexts.md` (full version, populated from `[package.metadata.oya].bounded_context` fields per §2.4) | n/a | Living-document doc materialised |
@@ -1465,7 +1465,7 @@ Same shape as v3 §5.2; row counts updated:
 | 12b | Scripted name-rewrite of `Cargo.lock` via xtask: `cargo run --release -p xtask-metadata-augment -- lockfile-rename --rename-map /tmp/rename-map.tsv --lockfile Cargo.lock --inplace` | 0 | Deterministic rewrite; toml_edit-based |
 | 12c | `cargo check --workspace --locked --offline` | 0 | `--locked` refuses any non-name delta |
 | 13 | All §8.1 deterministic acceptance gates | 0 (all) | Merge-gate |
-| 15 | **B6 closure (3-substep chicken-and-egg avoidance; normalized iter-5 G3 to 4-LEAN design)**: (a) During Shard 1 merge, **the 4 LEAN check crates** (`oya-check-architecture` with 7 subcommands under LEAN-A1, `oya-check-bounded-contexts` LEAN-A2, `oya-check-supply-chain` LEAN-A3, `oya-check-semver` LEAN-A4) run in `--report-only` mode — they CANNOT fail the merge that introduces them; (b) Post-merge §8.2 global gate (a follow-up commit or scheduled CI job) flips severity from `--report-only` to BLOCKER for all 4 check crates atomically; (c) Any violation detected by `--report-only` mode during the Shard 1 merge but not yet blocked is logged to MISTAKES-LEDGER topic `mistakes-rename-v4-shard-1` for follow-up resolution. Chicken-and-egg avoided: the merge that introduces the checks cannot fail by their own enforcement. | n/a | Shard 1 commit ships 4 LEAN check crates at `--report-only`; §8.2 BLOCKER-flip commit follows in a separate PR within 24 h |
+| 15 | **B6 closure (3-substep chicken-and-egg avoidance; normalized iter-5 G3 to 4-LEAN design)**: (a) During Shard 1 merge, **the 4 LEAN check crates** (`check-architecture` with 7 subcommands under LEAN-A1, `check-bounded-contexts` LEAN-A2, `check-supply-chain` LEAN-A3, `check-semver` LEAN-A4) run in `--report-only` mode — they CANNOT fail the merge that introduces them; (b) Post-merge §8.2 global gate (a follow-up commit or scheduled CI job) flips severity from `--report-only` to BLOCKER for all 4 check crates atomically; (c) Any violation detected by `--report-only` mode during the Shard 1 merge but not yet blocked is logged to MISTAKES-LEDGER topic `mistakes-rename-v4-shard-1` for follow-up resolution. Chicken-and-egg avoided: the merge that introduces the checks cannot fail by their own enforcement. | n/a | Shard 1 commit ships 4 LEAN check crates at `--report-only`; §8.2 BLOCKER-flip commit follows in a separate PR within 24 h |
 | 15a | **Architect B1 closure (clean-architecture.md amendment)**: in the SAME atomic Shard 1 commit, update `docs/standards/clean-architecture.md` §2.1 "domain — Defines ports" wording to read "kernel — Defines ports (Rust trait declarations) + pure types" per ADR-0056-cited port-location move. | n/a | Standard wording matches v4 canonical decision tree |
 | 16 | Flip ADR-0056 + ADR-0057 status `Proposed → Accepted` | n/a | ADR header status |
 
@@ -1474,12 +1474,12 @@ Same shape as v3 §5.2; row counts updated:
 | Risk | Likelihood | Impact | Mitigation |
 |---|:---:|:---:|---|
 | **R2 — `cargo-deny` schema mismatch** (NEW name; was v3 R3). | L | L | `deny.toml` audited (`[licenses]` only — no `[bans]` rules referencing crate names). Generator-from-metadata for `[bans]` deferred to post-Shard-1 ADR — out of scope for v4. |
-| **R3 — Row 35-equivalent blast radius** (NEW: per Scenario B mitigation, applies to every renamed crate, not just the predicted highest). | M | H | Shard 0 step 15a emits `/tmp/reverse-dep-counts.tsv` covering ALL 140 crates. §8.1 reverse-dep gate enforces per-rename consumer-count assertion ≡ pre-rename count. If any rename's count drifts, gate fails. Most likely row-35-equivalent under v4: `oya-data-boundary-domain` (v3's 95 consumers; ported forward). If another crate emerges higher (e.g. `oya-tenant-domain`, `oya-identity-domain`, `oya-eventing-domain`, `oya-audit-chain-domain`), that crate also gets the named §3 docs/code co-edit + risk = 5 treatment. |
-| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `oya-check-rename-baseline-reset` (renamed from v3's `oya-governance-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
+| **R3 — Row 35-equivalent blast radius** (NEW: per Scenario B mitigation, applies to every renamed crate, not just the predicted highest). | M | H | Shard 0 step 15a emits `/tmp/reverse-dep-counts.tsv` covering ALL 140 crates. §8.1 reverse-dep gate enforces per-rename consumer-count assertion ≡ pre-rename count. If any rename's count drifts, gate fails. Most likely row-35-equivalent under v4: `data-boundary-domain` (v3's 95 consumers; ported forward). If another crate emerges higher (e.g. `tenant-domain`, `identity-domain`, `eventing-domain`, `audit-chain-domain`), that crate also gets the named §3 docs/code co-edit + risk = 5 treatment. |
+| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `check-rename-baseline-reset` (renamed from v3's `governance-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
 | **R8 — Staging-promotion compounding** (port forward from v3 §7.2 REVERT-STAGING-BLOCK soft-edit). | L | M | If Shard 1 reaches staging before a revert fires, the revert PR title prefixes `REVERT-STAGING-BLOCK:`; staging-promotion lane refuses next promotion until a `STAGING-UNBLOCK:` follow-up; post-revert observability sweep is BLOCKING (vs. non-blocking on normal path). |
-| **R9 — Dependency cycle detection (NEW).** Clean Architecture v4 enforces layer dependency direction at compile/CI time. A rogue commit that introduces a cycle (e.g. `oya-audit-chain-application` depending on `oya-audit-chain-file-infrastructure` directly instead of via port trait) would compile but violate clean-arch principles. | L | H | New `oya-check-architecture` crate (LEAN-A1; `dependency-direction` subcommand per §4a) parses `cargo metadata --no-deps`, classifies each edge by source-layer → target-layer pair, and refuses any edge not in the §2.2 allowed-edge table. New §8.1 gate row "Dependency direction check". Severity = BLOCKER. |
+| **R9 — Dependency cycle detection (NEW).** Clean Architecture v4 enforces layer dependency direction at compile/CI time. A rogue commit that introduces a cycle (e.g. `audit-chain-application` depending on `audit-chain-file-infrastructure` directly instead of via port trait) would compile but violate clean-arch principles. | L | H | New `check-architecture` crate (LEAN-A1; `dependency-direction` subcommand per §4a) parses `cargo metadata --no-deps`, classifies each edge by source-layer → target-layer pair, and refuses any edge not in the §2.2 allowed-edge table. New §8.1 gate row "Dependency direction check". Severity = BLOCKER. |
 | **R11 — Atomic Shard-1 review at 139-rename scale (NEW; B5 reviewability; rebalanced iter-2 per Codex C6 from 3 → 4 streams)**. A single reviewer cannot meaningfully review a 500–700-file diff covering ~140 renames + 140 metadata blocks + ~200–400 dep-edge rewrites + CI/scripts/docs/registry co-edits in any reasonable time budget. | M | M | **4 parallel reviewer streams partitioned by §3 audit cluster + hotspot**: stream 1a = platform/shared (~28 crates per §3.1) — reviewer-platform; 1b = cloud vertical (~31 crates per §3.2) — reviewer-cloud; 1c = foundry vertical (~51 crates per §3.3) — reviewer-foundry; **1d = workspace vertical + tooling-now-shared + 4 hotspots (~30 crates + hotspot artefacts: ADR-0056, clean-architecture.md standard amendment per Codex C2, xtask spec, 4 lean check crates) — reviewer-lead (full-PR scope)**. Each reviewer signs off on their partition only; reviewer-lead also signs off on the cross-partition meta. The atomic squash-merge requires **all 4 partition sign-offs** before merge. New §8.1 gate row "4 partition sign-offs collected" enforces. Reviewer-hours accounting in §9 updates: 8–10 h per primary × 4 reviewers in parallel = **32–40 h calendar reviewer-hours** (HONEST sizing per iter-2 prefold-A item 3 sync; was 24–30 h under 3-stream pre-supplement budget — explicitly accepted when expanding to 4 partitions); each reviewer's load is bounded by their partition's file count (~100–250 files vs. 500–700 full-PR). |
-| **R11a — Transitive cross-vertical dep refusal (NEW; iter-2 prefold-A item 1).** Direct cross-vertical refusal (LEAN-A2) catches `oya-cloud-* → oya-workspace-*` edges. The harder failure mode is TRANSITIVE: a vertical-A crate depends on a `shared` crate X, which itself depends on a vertical-B crate. The transitive chain compiles even though A inadvertently consumes vertical-B logic via the shared intermediary. | M | H | **LEAN-A2 traverses BOTH direct AND transitive deps** via `cargo metadata` + recursive resolution. **Three sub-rules**: (a) **Direct cross-vertical dep** (`vertical-A → vertical-B` where A ≠ B, both ≠ `shared`) → ERROR (exit 1, blocking; existing rule). (b) **Transitive cross-vertical via shared** (`vertical-A → shared-X → vertical-B`) → ERROR (refused — `shared` crates cannot depend on any vertical; this is already covered by the `kind: shared → only shared` direct rule, but the transitive walker SURFACES the offending `shared-X → vertical-B` edge as the proximate cause). (c) **Transitive same-vertical via shared** (`vertical-A → shared-X → shared-Y → vertical-A's-other-BC`) → OK (loops back via shared are allowed; the same-vertical termination satisfies the rule even though the chain transits two `shared` crates). **Violation report format**: xtask emits the FULL dep-chain as `a → x → y → b` (with `kind` annotations per node) — not just the endpoints — so reviewers can pinpoint the boundary-crossing intermediate `shared` crate that needs splitting. Public-layer exception (per cloud dual-role addition) is applied AT each `vertical-* → shared-*` edge, NOT at the chain endpoints — i.e., a chain `workspace-X → cloud-storage-sdk` is allowed because the consumer-side edge terminates at a public-layer crate, even if intermediate transit existed; `oya-shared-bounded-contexts-check-cli` walks the chain and checks `public_layers` allowlist at every cross-vertical hop. |
+| **R11a — Transitive cross-vertical dep refusal (NEW; iter-2 prefold-A item 1).** Direct cross-vertical refusal (LEAN-A2) catches `cloud-* → workspace-*` edges. The harder failure mode is TRANSITIVE: a vertical-A crate depends on a `shared` crate X, which itself depends on a vertical-B crate. The transitive chain compiles even though A inadvertently consumes vertical-B logic via the shared intermediary. | M | H | **LEAN-A2 traverses BOTH direct AND transitive deps** via `cargo metadata` + recursive resolution. **Three sub-rules**: (a) **Direct cross-vertical dep** (`vertical-A → vertical-B` where A ≠ B, both ≠ `shared`) → ERROR (exit 1, blocking; existing rule). (b) **Transitive cross-vertical via shared** (`vertical-A → shared-X → vertical-B`) → ERROR (refused — `shared` crates cannot depend on any vertical; this is already covered by the `kind: shared → only shared` direct rule, but the transitive walker SURFACES the offending `shared-X → vertical-B` edge as the proximate cause). (c) **Transitive same-vertical via shared** (`vertical-A → shared-X → shared-Y → vertical-A's-other-BC`) → OK (loops back via shared are allowed; the same-vertical termination satisfies the rule even though the chain transits two `shared` crates). **Violation report format**: xtask emits the FULL dep-chain as `a → x → y → b` (with `kind` annotations per node) — not just the endpoints — so reviewers can pinpoint the boundary-crossing intermediate `shared` crate that needs splitting. Public-layer exception (per cloud dual-role addition) is applied AT each `vertical-* → shared-*` edge, NOT at the chain endpoints — i.e., a chain `workspace-X → cloud-storage-sdk` is allowed because the consumer-side edge terminates at a public-layer crate, even if intermediate transit existed; `shared-bounded-contexts-check-cli` walks the chain and checks `public_layers` allowlist at every cross-vertical hop. |
 
 ## §7 Rollback plan
 
@@ -1496,8 +1496,8 @@ state. Lockfile inverse-rename via `cargo run --release -p xtask-metadata-augmen
 then `cargo check --workspace --locked --offline`.
 
 > **BNF v4.1 flag**: `--bnf-version v4.1` instructs the xtask to apply
-> the v4.1 translation rule (`oya-platform-<bc>` → `oya-<bc>`,
-> `oya-workspace-<bc>` → `oya-connect-<bc>`, etc.) rather than the
+> the v4.1 translation rule (`platform-<bc>` → `oya-<bc>`,
+> `workspace-<bc>` → `connect-<bc>`, etc.) rather than the
 > v4.0 `shared|vertical` rule. The xtask must be updated in Shard 0
 > to accept this flag before Shard 1 dispatches.
 
@@ -1542,7 +1542,7 @@ Every gate is a runnable command with explicit exit-code expectation.
 | Docs build | `cargo doc --workspace --no-deps` | 0 |
 | Path-edge diff | `cargo metadata --no-deps --format-version 1 \| jq -S '.packages[] \| {name, manifest_path}' > /tmp/post.txt && diff /tmp/shard0-metadata.txt /tmp/post.txt` | exit 1 for Shard 1 (diff present means renames happened) |
 | Tests pass | `cargo nextest run --workspace --all-features --no-fail-fast --message-format libtest-json + junit` | 0 |
-| Semver-checks (R7 reset) | Same as v3 §8.1 row; `cargo-semver-checks 0.46.0` pinned; `oya-check-rename-baseline-reset` classifies BASELINE-RESET failures | 0 (only BASELINE-RESET failures allowed) |
+| Semver-checks (R7 reset) | Same as v3 §8.1 row; `cargo-semver-checks 0.46.0` pinned; `check-rename-baseline-reset` classifies BASELINE-RESET failures | 0 (only BASELINE-RESET failures allowed) |
 | Cargo.lock zero old-names | `rg -F -f /tmp/old-crate-names.txt Cargo.lock` returns no match | exit 1 (no match = pass) |
 | Cargo.lock semver-section parity | Same diff command as v3 §8.1 (preserves external version/source/checksum) | 0 |
 | Registry refs zero old-names | `rg -F -f /tmp/old-crate-names.txt registry/ AGENTS.md docs/CONSTITUTION.md docs/TOOLCHAIN.md docs/RELEASE-MANAGEMENT.md scripts/ .github/workflows/ \| rg -v "docs/CHANGELOG.md\|docs/plans/rename-plan-\|docs/decisions/ADR-005[4567]"` returns no match | exit 1 (no match = pass) |
@@ -1550,10 +1550,10 @@ Every gate is a runnable command with explicit exit-code expectation.
 | xtask lockfile-rename fixture matrix | `cargo nextest -p xtask-metadata-augment --test lockfile_rename_fixtures` (8 rows) | 0 |
 | `[lib]` name parity | `cargo run -p xtask-metadata-augment -- --lib-name-check` | 0 |
 | Reverse-dep count parity (R3 mitigation: all 140 crates, not just row-35-equivalent) | `for old new <- /tmp/rename-map.tsv: test "$(cargo metadata --locked --format-version 1 \| jq -r '[.packages[] \| select(.dependencies[]?.name == "'$new'") \| .name] \| unique \| length')" -eq "$(grep -P "^$old\t" /tmp/reverse-dep-counts.tsv \| cut -f2)"` (one assertion per rename) | 0 for all |
-| **LEAN-A1 — Architecture orchestrator (7 inner code-shape checks)** | `cargo run -p oya-check-architecture -- report --format json` (invokes subcommands `layer-correctness` + `dependency-direction` + `naming-collision` + `metadata-schema` + `lockfile-parity` + `lib-name-parity` + `check-namespace`; classifies dep edges per 12-value §2.2.5 matrix; per-layer heuristic per §4a LEAN-A1 table; dev-deps + `[target.cfg(test).dependencies]` EXCLUDED from direction enforcement per §15a fix 10; tuple uniqueness on `<shared\|vertical>-<bc>-<layer>` per 3-slot grammar). **Lockfile-parity subcommand exit-code discipline** per §15a fix 12: rg exit 1 (no match) = PASS, rg exit ≥ 2 (rg error) = FAIL with explicit error message. | 0 |
-| **LEAN-A2 — Bounded-contexts registry + shared/vertical-kind dep enforcement (D4 explicit transitive walker + public_layers hop check + chain output)** | `cargo run -p oya-check-bounded-contexts -- --check` enforces: (i) every `[package.metadata.oya].bounded_context` registered in `[workspace.metadata.oya.bounded_contexts]` with `name`/`kind`/`owner`/`rationale`/`adr_cite` (+ `vertical` if `kind == "vertical"`); (ii) **CROSS-VERTICAL DEPENDENCY REFUSAL — DIRECT** — parses each crate's `cargo metadata` deps; classifies source slot-2 + target slot-2; refuses direct edges where (source = vertical-X, target = vertical-Y, X ≠ Y, both ≠ `shared`); (iii) **CROSS-VERTICAL DEPENDENCY REFUSAL — TRANSITIVE (D4)** — walks transitive deps via recursive `cargo metadata` traversal; at EACH cross-vertical hop in the chain, checks whether the target crate's layer ∈ target vertical's `public_layers` allowlist (if yes, hop is allowed via the public-layer exemption per §11 ADR-0056 §"Cloud vertical dual-role + public_layers"; if no, hop is refused); `shared → vertical` hops never qualify for public-layer exemption (shared reuse requires complete vertical neutrality); (iv) shared BCs depend only on other shared BCs; (v) BC overlap governance: lexical-prefix + Jaro-Winkler similarity > 0.85 triggers manual review (non-blocking advisory); (vi) **Violation output FORMAT (D4)**: on violation, emit FULL dep-chain `a → x → y → b` with per-node `{kind: shared\|vertical, vertical: <name>, layer: <12-value>}` annotation; reviewers pinpoint the boundary-crossing intermediate (typically a `shared` crate that incorrectly depends on a vertical) for splitting. | 0 |
-| **LEAN-A3 — Supply-chain (cargo-deny wrapper)** | `cargo run -p oya-check-supply-chain -- --check` wraps `cargo deny check`; pinned JSON output schema `{"violations":[...],"schema_version":"1.0"}` | 0 |
-| **LEAN-A4 — Semver (cargo-semver-checks rename-baseline-reset classifier)** | `cargo run -p oya-check-semver -- --check --baseline-rev <pre-shard-1-sha>` wraps `cargo-semver-checks 0.46.0`; pinned JSON output schema `{"violations":[{"crate":"...","severity":"ERROR\|BASELINE-RESET\|WARN\|INFO","kind":"breaking\|name-only\|deprecation\|...","detail":"..."}],"schema_version":"1.0"}` per §15a fix 11; only `BASELINE-RESET` failures allowed during 14-day post-merge grace window | 0 |
+| **LEAN-A1 — Architecture orchestrator (7 inner code-shape checks)** | `cargo run -p check-architecture -- report --format json` (invokes subcommands `layer-correctness` + `dependency-direction` + `naming-collision` + `metadata-schema` + `lockfile-parity` + `lib-name-parity` + `check-namespace`; classifies dep edges per 12-value §2.2.5 matrix; per-layer heuristic per §4a LEAN-A1 table; dev-deps + `[target.cfg(test).dependencies]` EXCLUDED from direction enforcement per §15a fix 10; tuple uniqueness on `<shared\|vertical>-<bc>-<layer>` per 3-slot grammar). **Lockfile-parity subcommand exit-code discipline** per §15a fix 12: rg exit 1 (no match) = PASS, rg exit ≥ 2 (rg error) = FAIL with explicit error message. | 0 |
+| **LEAN-A2 — Bounded-contexts registry + shared/vertical-kind dep enforcement (D4 explicit transitive walker + public_layers hop check + chain output)** | `cargo run -p check-bounded-contexts -- --check` enforces: (i) every `[package.metadata.oya].bounded_context` registered in `[workspace.metadata.oya.bounded_contexts]` with `name`/`kind`/`owner`/`rationale`/`adr_cite` (+ `vertical` if `kind == "vertical"`); (ii) **CROSS-VERTICAL DEPENDENCY REFUSAL — DIRECT** — parses each crate's `cargo metadata` deps; classifies source slot-2 + target slot-2; refuses direct edges where (source = vertical-X, target = vertical-Y, X ≠ Y, both ≠ `shared`); (iii) **CROSS-VERTICAL DEPENDENCY REFUSAL — TRANSITIVE (D4)** — walks transitive deps via recursive `cargo metadata` traversal; at EACH cross-vertical hop in the chain, checks whether the target crate's layer ∈ target vertical's `public_layers` allowlist (if yes, hop is allowed via the public-layer exemption per §11 ADR-0056 §"Cloud vertical dual-role + public_layers"; if no, hop is refused); `shared → vertical` hops never qualify for public-layer exemption (shared reuse requires complete vertical neutrality); (iv) shared BCs depend only on other shared BCs; (v) BC overlap governance: lexical-prefix + Jaro-Winkler similarity > 0.85 triggers manual review (non-blocking advisory); (vi) **Violation output FORMAT (D4)**: on violation, emit FULL dep-chain `a → x → y → b` with per-node `{kind: shared\|vertical, vertical: <name>, layer: <12-value>}` annotation; reviewers pinpoint the boundary-crossing intermediate (typically a `shared` crate that incorrectly depends on a vertical) for splitting. | 0 |
+| **LEAN-A3 — Supply-chain (cargo-deny wrapper)** | `cargo run -p check-supply-chain -- --check` wraps `cargo deny check`; pinned JSON output schema `{"violations":[...],"schema_version":"1.0"}` | 0 |
+| **LEAN-A4 — Semver (cargo-semver-checks rename-baseline-reset classifier)** | `cargo run -p check-semver -- --check --baseline-rev <pre-shard-1-sha>` wraps `cargo-semver-checks 0.46.0`; pinned JSON output schema `{"violations":[{"crate":"...","severity":"ERROR\|BASELINE-RESET\|WARN\|INFO","kind":"breaking\|name-only\|deprecation\|...","detail":"..."}],"schema_version":"1.0"}` per §15a fix 11; only `BASELINE-RESET` failures allowed during 14-day post-merge grace window | 0 |
 | **B5/C6 — 4 partition sign-offs collected** (NEW; R11 reviewability; iter-2 rebalance from 3 → 4) | PR-comment heuristic: `gh pr view <num> --json comments \| jq '[.comments[] \| select(.body \| test("APPROVE-PARTITION:(1a\|1b\|1c\|1d)"))] \| group_by(.body \| capture("APPROVE-PARTITION:(?<p>1[abcd])").p) \| length'` returns `4` | exit 0 iff value = 4 |
 
 ### 8.2 Global gate (after Shard 1 merge)
@@ -1567,7 +1567,7 @@ Shard 1 squash commit. Additionally:
 | ADR-0056 status | `rg "^status: Accepted" docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md` | 0 |
 | ADR-0057 status | `rg "^status: Accepted" docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md` | 0 |
 | Bounded-context registry consistency | `cargo run -p xtask-metadata-augment -- --bounded-context-registry-check` | 0 (every bounded-context field in all 140 crates appears in `docs/standards/bounded-contexts.md`) |
-| **B6 closure — 4-check BLOCKER flip atomicity** (post-Shard-1, separate PR within 24 h; updated iter-2 from 11 → 4 per LEAN-A1–A4 collapse) | All 4 `oya-check-*` crates' CI workflow rows flip from `severity: report-only` to `severity: BLOCKER` in a single commit; verify via `rg "severity: BLOCKER" .github/workflows/checks.yml \| wc -l` returns `4` | 0 (count = 4) |
+| **B6 closure — 4-check BLOCKER flip atomicity** (post-Shard-1, separate PR within 24 h; updated iter-2 from 11 → 4 per LEAN-A1–A4 collapse) | All 4 `check-*` crates' CI workflow rows flip from `severity: report-only` to `severity: BLOCKER` in a single commit; verify via `rg "severity: BLOCKER" .github/workflows/checks.yml \| wc -l` returns `4` | 0 (count = 4) |
 
 ## §9 Estimated effort
 
@@ -1624,7 +1624,7 @@ crate has BOTH `struct` items AND `fn` bodies — does it relayer to
 `domain` (logic present) or stay `kernel` (struct-heavy)? v4 A2
 heuristic table says: `fn` body presence flips to `domain`; Codex may
 probe edge cases (`impl Display` derives; const fn; trivial getters).
-(b) whether the `cargo run -p oya-check-layer-correctness` AST-grep
+(b) whether the `cargo run -p check-layer-correctness` AST-grep
 implementation correctly handles cfg-gated items. (c) whether
 `PROTOCOL-UNKNOWN` deferral markers in §3 block Shard 1 merge or
 ship with explicit splits-in-follow-up commits.
@@ -1654,16 +1654,16 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
    - (a) Which currently-named-`*-kernel` crates are PURE types + ports
      (stay `kernel` under v4) vs. carry business logic (relayer to
      `domain` under v4)? Expected `kernel` survivors: type-only crates
-     like `oya-data-boundary-kernel` (per `clean-architecture.md §3`
+     like `data-boundary-kernel` (per `clean-architecture.md §3`
      it is named-by-identity as the only kernel allowed to receive
      cross-layer deps); possibly several check-rule type-bundle crates.
    - (b) Which `*-api` crates serve gRPC (candidates: OTLP via
-     `oya-cloud-observability-api`; streaming retrieval via
-     `oya-intelligence-rag-api`; k8s watch streams via
-     `oya-compute-k8s-api`)?
+     `cloud-observability-api`; streaming retrieval via
+     `intelligence-rag-api`; k8s watch streams via
+     `compute-k8s-api`)?
    - (c) Which `*-api` crates serve GraphQL (candidates: workspace-axis
-     user-facing surfaces — `oya-chat-api`, `oya-drive-api`,
-     `oya-meet-api` — modern UIs frequently consume GraphQL)?
+     user-facing surfaces — `chat-api`, `drive-api`,
+     `meet-api` — modern UIs frequently consume GraphQL)?
    - (d) Are there multi-protocol crates that should split into
      per-protocol crates OR carry an ADR-0056 §"Bounded context
      registry" exception?
@@ -1684,7 +1684,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
    sites in `scripts/`, `.github/`, and `docs/` referenced the old
    name. Codex may pressure-test: (a) whether the xtask actually
    catches every fitness-crate reference (especially
-   `oya-governance-architecture-conventions-kernel` the
+   `governance-architecture-conventions-kernel` the
    load-bearing lane); (b) whether the BLOCKER-flip strategy for
    check crates (Shard 1 step 15) introduces a chicken-and-egg if a
    check crate's BLOCKER mode would fail the Shard 1 merge itself; (c)
@@ -1694,7 +1694,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
 Secondary surfaces (lower probe priority):
 - **Per-crate layer assignment ambiguity for inner-layer crates.** v4
   audits 140 crates against the 9-layer enum. Some inner-layer crates
-  blur the line: e.g. row 116 `oya-collab-runtime-domain` is named
+  blur the line: e.g. row 116 `collab-runtime-domain` is named
   "runtime" but classified as `domain` (because the original parsed as
   feature=`collab-runtime` + role=`kernel`). Codex may pressure-test
   the classification rule for crates where the original name contains
@@ -1708,7 +1708,7 @@ Shard 1.
 **Decision**: Adopt the canonical Rust Clean Architecture crate naming
 grammar `oya-<shared|vertical>-<bounded-context>-<layer>` (3-slot grammar per iter-2 supplement #2 + Codex iter-4 F4 rewrite; granularity
 expressed via multi-token bounded-context names tracked in the registry,
-NOT via a separate slot) + flat `oya-check-<rule-name>` namespace for
+NOT via a separate slot) + flat `check-<rule-name>` namespace for
 cross-cutting checks. Layer is a closed **12-value enum** with canonical
 meanings (no aliases, no overlaps); each crate occupies exactly ONE
 layer; assignment follows the canonical decision tree (§2.2.4).
@@ -1717,8 +1717,8 @@ layer; assignment follows the canonical decision tree (§2.2.4).
 the registry (`docs/standards/bounded-contexts.md`), NOT by a separate
 BNF slot. A BC may be 1-N kebab-tokens; the registry tracks the full
 kebab string as the canonical BC name. Example: a service might decompose
-into `oya-policy-domain`, `oya-policy-evaluator-domain`,
-`oya-policy-evaluator-cedar-domain` — three distinct BCs (`policy`,
+into `policy-domain`, `policy-evaluator-domain`,
+`policy-evaluator-cedar-domain` — three distinct BCs (`policy`,
 `policy-evaluator`, `policy-evaluator-cedar`) each registered with their
 own `name`/`owner`/`rationale`/`adr_cite` row. The flat-BC model matches
 the established Rust workspace pattern of `tokio-util`, `tonic-build`,
@@ -1742,7 +1742,7 @@ format (`rest` / `grpc` / `graphql` / `worker` / multi-protocol split).
 **Decision Drivers** (top 3):
 1. Clean Architecture correctness self-enforces via Cargo + cargo-metadata
    (compile-time + CI-time dependency-direction gate via
-   `oya-check-architecture` LEAN-A1 orchestrator per §4a). The 12-value canonical enum makes
+   `check-architecture` LEAN-A1 orchestrator per §4a). The 12-value canonical enum makes
    every dependency edge unambiguously classifiable.
 2. Hyperscaler precedent: AWS smithy-rs, Azure SDK for Rust, and Google
    Cloud Rust all encode the layer in the crate name; v4 imports their
@@ -1758,7 +1758,7 @@ format (`rest` / `grpc` / `graphql` / `worker` / multi-protocol split).
 - **Pattern A — v3 verbose BNF** (4–5 segments, fitness/freeze
   primitives). **Why rejected**: 31 compound-feature ADR rows; 6-segment
   AMBER tax; `fitness` jargon mismatch with team vocabulary; cannot
-  cleanly parse load-bearing `oya-tooling-agent-read`.
+  cleanly parse load-bearing `tooling-agent-read`.
 - **Pattern B — thing-domain literal** (always `oya-<bounded-context>
   -<thing>-<layer>`, no optional slot). **Why rejected**: forces a
   `<thing>` token where none semantically exists; pessimises common case;
@@ -1812,7 +1812,7 @@ another BC per BC overlap governance below).
   discussion wins. **Deterministic ultimate tie-breaker** (per Codex
   C5): if rationale+ADR-cite specificity is comparable, earlier-PR
   timestamp wins.
-- **xtask enforcement**: `cargo run -p oya-check-bounded-contexts --
+- **xtask enforcement**: `cargo run -p check-bounded-contexts --
   --check-bc-overlap` runs lexical-prefix + Jaro-Winkler similarity on
   every BC addition; > 0.85 similarity triggers manual review
   (non-blocking advisory).
@@ -1884,8 +1884,8 @@ The `status` field carries one of three closed values:
   Retired registry entries are RETAINED for historical record; new
   crates referencing this vertical are refused.
 
-**xtask enforcement** (`oya-shared-bounded-contexts-check-cli` per the
-3-slot pattern, currently scaffolded as `oya-check-bounded-contexts`):
+**xtask enforcement** (`shared-bounded-contexts-check-cli` per the
+3-slot pattern, currently scaffolded as `check-bounded-contexts`):
 - `--check-bc` refuses BC scaffolding under `status != "active"`.
 - `--check-vertical-retirement` validates the 180-day grace + zero-crate
   precondition before allowing `deprecated → retired` transitions.
@@ -1893,7 +1893,7 @@ The `status` field carries one of three closed values:
   governance gate); xtask validates POST-CONDITIONS, not the
   transition act itself.
 
-**Dependency rules** (planned advisory LEAN-A2 check `oya-check-bounded-contexts`):
+**Dependency rules** (planned advisory LEAN-A2 check `check-bounded-contexts`):
 - `shared` BCs depend only on other `shared` BCs.
 - `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only.
 - **Cross-vertical deps REFUSED** at LEAN-A2 BLOCKER severity.
@@ -1902,12 +1902,12 @@ The `status` field carries one of three closed values:
   target = `<Y>`, X ≠ Y, both ≠ `shared`).
 
 **Audit translation from v3** (per supplement #2):
-- v3 `oya-platform-*` → `oya-shared-*` (everything platform = shared)
-- v3 `oya-foundation-*` → `oya-shared-*` (composition root is shared)
-- v3 `oya-tooling-*` → `oya-shared-*` (dev tools are shared)
-- v3 `oya-cloud-*` → `oya-cloud-*` (vertical preserved)
-- v3 `oya-foundry-*` → `oya-foundry-*` (vertical preserved)
-- v3 `oya-workspace-*` → `oya-workspace-*` (vertical preserved)
+- v3 `platform-*` → `shared-*` (everything platform = shared)
+- v3 `foundation-*` → `shared-*` (composition root is shared)
+- v3 `tooling-*` → `shared-*` (dev tools are shared)
+- v3 `cloud-*` → `cloud-*` (vertical preserved)
+- v3 `foundry-*` → `foundry-*` (vertical preserved)
+- v3 `workspace-*` → `workspace-*` (vertical preserved)
 
 ### Vertical naming policy (Option A: single-token verticals; Codex iter-2 D5)
 
@@ -1928,16 +1928,16 @@ multi-token)**:
   "longest-registered-match" disambiguation pass.
 - Granularity within a vertical is expressed via multi-token bounded
   contexts (slot 3), where granularity-by-name is already the
-  established pattern (e.g., `oya-cloud-storage-object-adapter`,
-  `oya-intelligence-policy-evaluator-domain`).
+  established pattern (e.g., `cloud-storage-object-adapter`,
+  `intelligence-policy-evaluator-domain`).
 
 **Reserved literal**: `shared` is RESERVED as a non-vertical literal
 in slot 2. The verticals registry MUST refuse any entry whose `name ==
 "shared"` (LEAN-A2 `--check-vertical-name` enforces). This guarantees
-the parser can unambiguously distinguish `oya-shared-<bc>-<layer>`
+the parser can unambiguously distinguish `shared-<bc>-<layer>`
 (cross-vertical) from `oya-<vertical>-<bc>-<layer>` (vertical-scoped).
 
-**xtask enforcement** (`oya-check-bounded-contexts`):
+**xtask enforcement** (`check-bounded-contexts`):
 - Reject any verticals-registry entry whose `name` contains a hyphen
   (multi-token vertical names refused).
 - Reject any verticals-registry entry whose `name == "shared"` (reserved
@@ -1946,12 +1946,12 @@ the parser can unambiguously distinguish `oya-shared-<bc>-<layer>`
   registered single-token vertical name.
 
 **Audit translation reminder** (v3 → v4 slot-2 mapping):
-- v3 `oya-platform-*` → slot 2 = `shared`
-- v3 `oya-foundation-*` → slot 2 = `shared`
-- v3 `oya-tooling-*` → slot 2 = `shared`
-- v3 `oya-cloud-*` → slot 2 = `cloud` (single-token vertical preserved)
-- v3 `oya-foundry-*` → slot 2 = `foundry` (single-token vertical preserved)
-- v3 `oya-workspace-*` → slot 2 = `workspace` (single-token vertical preserved)
+- v3 `platform-*` → slot 2 = `shared`
+- v3 `foundation-*` → slot 2 = `shared`
+- v3 `tooling-*` → slot 2 = `shared`
+- v3 `cloud-*` → slot 2 = `cloud` (single-token vertical preserved)
+- v3 `foundry-*` → slot 2 = `foundry` (single-token vertical preserved)
+- v3 `workspace-*` → slot 2 = `workspace` (single-token vertical preserved)
 
 ### Protocol classification (Codex iter-4 F4; authoritative deferral target for `PROTOCOL-UNKNOWN` audit markers)
 
@@ -2081,17 +2081,17 @@ Other verticals can opt-in:
   in the chain.
 
 **Concrete examples**:
-- `oya-workspace-drive-application` depending on `oya-cloud-storage-object-sdk`
+- `workspace-drive-application` depending on `cloud-storage-object-sdk`
   → ALLOWED (cross-vertical edge but target layer `sdk` ∈
   `cloud.public_layers`).
-- `oya-workspace-drive-application` depending on `oya-cloud-storage-object-domain`
+- `workspace-drive-application` depending on `cloud-storage-object-domain`
   → REFUSED (target layer `domain` ∉ `cloud.public_layers`); the
   workspace crate must consume cloud-storage via the SDK or
   via a `shared` mediating crate.
-- `oya-intelligence-eval-application` depending on `oya-cloud-storage-object-sdk`
+- `intelligence-eval-application` depending on `cloud-storage-object-sdk`
   → ALLOWED (same reason; foundry is a separate vertical but cloud's
   SDK is on the public allowlist).
-- `oya-shared-audit-chain-domain` depending on `oya-cloud-storage-object-domain`
+- `shared-audit-chain-domain` depending on `cloud-storage-object-domain`
   → REFUSED (`shared` cannot depend on any vertical, period; the
   public-layers exemption does NOT apply to `shared → vertical` edges
   because `shared` reuse semantics require complete vertical
@@ -2113,7 +2113,7 @@ coordination primitive in the ADR-0053 "three sanctioned coordination
 primitives" sense.
 
 - **Coordination primitives** (per ADR-0053 + ADR-0054) govern
-  (rationale store + scaffold-claim windows), `oya-shared-codeview-cli`
+  (rationale store + scaffold-claim windows), `shared-codeview-cli`
   (READ slot of the sanctioned triad). These primitives gate WHO can
   mutate the repo and WHEN.
 - **Build tooling** (`cargo`+subcommands) executes WITHIN an existing
@@ -2134,7 +2134,7 @@ both docs today and made explicit by this ADR-0056 sub-section).
   only). **Why rejected**: cannot disambiguate domain layer from
   infrastructure layer of the same bounded context.
 - **Pattern D — single `presentation` layer with protocol as second-
-  to-last segment** (e.g., `oya-tenant-grpc-presentation`). **Why
+  to-last segment** (e.g., `tenant-grpc-presentation`). **Why
   rejected**: reads awkwardly — `grpc-presentation` is redundant. Adds
   a segment without semantic value. The 12-value closed enum directly
   names the protocol/wire-format instead, matching hyperscaler
@@ -2160,7 +2160,7 @@ of naming by protocol/product, not generic `api`; canonical decision
 tree (§2.2.4) eliminates ambiguity by giving a deterministic rule for
 each crate; open bounded-context slot accommodates growth without
 ceremony; clean-arch dependency direction self-enforces via Cargo + the
-new `oya-check-architecture` crate (LEAN-A1 orchestrator per §4a).
+new `check-architecture` crate (LEAN-A1 orchestrator per §4a).
 
 **Consequences**:
 - Positive: simpler grammar; ~50 % fewer total grammar tokens vs. v3
@@ -2185,7 +2185,7 @@ new `oya-check-architecture` crate (LEAN-A1 orchestrator per §4a).
 **Follow-ups**:
 - Bounded-context registry as a living document. Format: 1-paragraph
   rationale per entry; 90-day auto-deprecation for zero-crate entries.
-- Promote dependency-direction enforcement from `oya-check-architecture`
+- Promote dependency-direction enforcement from `check-architecture`
   (LEAN-A1 `dependency-direction` subcommand per §4a) into a
   workspace-level Cargo lint (post-Shard-1 ADR, out of scope for v4).
 - WASM / lambda / function presentation layers are NOT added to the
@@ -2223,7 +2223,7 @@ window.
   emit auditable trail; doesn't compose with non-merge agents.
 
 **Consequences**:
-- Positive: drops 1 fitness lane crate from v3 (`oya-governance-
+- Positive: drops 1 fitness lane crate from v3 (`governance-
   rename-cutover protocol must update.
 
 **Follow-ups**:
@@ -2240,11 +2240,11 @@ window.
 
 **CI / scripts** (carried forward from v3 §12):
 - `.github/workflows/release-evidence-pack.yml` (1 site)
-- `.github/workflows/oya-governance-supply-chain.yml` (2 sites)
+- `.github/workflows/governance-supply-chain.yml` (2 sites)
 - `scripts/check.sh` (~29 sites)
 - `scripts/hooks/pre-push-repoctl.sh` (1 site)
 - `scripts/check-architecture-boundaries.sh` (3 sites + 1 new for
-  `oya-codeview-cli`)
+  `codeview-cli`)
 
 **Standards / decisions**:
 - `docs/standards/clean-architecture.md` §3 (row 35 named-by-identity)
@@ -2291,14 +2291,14 @@ window.
 - `registry/docs/pipeline.tsv`
 - OpenAPI bindings under `registry/openapi/`
 - Release supply-chain refs under `registry/release/`
-- `registry/release/supply-chain/oya-tooling-cli-dev-runtime.yaml` →
-  `oya-dev-cli.yaml` (row 139 expansion)
-- `registry/release/0.1.0/oya-tooling-cli-dev-runtime.spdx.json` →
-  `oya-dev-cli.spdx.json`
-- `registry/release/0.1.0/oya-tooling-cli-dev-runtime.cyclonedx.json`
-  → `oya-dev-cli.cyclonedx.json`
-- GHCR image ref `ghcr.io/oyatie/oya-tooling-cli-dev-runtime` →
-  `ghcr.io/oyatie/oya-dev-cli` (Release Engineering confirms in Shard 0)
+- `registry/release/supply-chain/tooling-cli-dev-runtime.yaml` →
+  `dev-cli.yaml` (row 139 expansion)
+- `registry/release/0.1.0/tooling-cli-dev-runtime.spdx.json` →
+  `dev-cli.spdx.json`
+- `registry/release/0.1.0/tooling-cli-dev-runtime.cyclonedx.json`
+  → `dev-cli.cyclonedx.json`
+- GHCR image ref `ghcr.io/oyatie/tooling-cli-dev-runtime` →
+  `ghcr.io/oyatie/dev-cli` (Release Engineering confirms in Shard 0)
 
 **Doc / team / product**:
 - `AGENTS.md`, `docs/CONSTITUTION.md`, `docs/TOOLCHAIN.md`,
@@ -2310,16 +2310,16 @@ window.
   post-Shard-1 follow-up — defer to Codex iter-1 pressure-test)
 
 **Crate tests + source** (row 139 expansion, per v3 EDIT-7):
-- `crates/oya-tooling-cli-dev-runtime/tests/gate_cli.rs` (lines 2830,
+- `crates/tooling-cli-dev-runtime/tests/gate_cli.rs` (lines 2830,
   2868, 2879, 3456, 3465, 3471, 3472) — xtask rewrites string literals
-- `crates/oya-tooling-cli-dev-runtime/tests/repoctl_cli.rs` (149, 159)
-- `crates/oya-tooling-cli-dev-runtime/src/commands/repoctl.rs:43`
+- `crates/tooling-cli-dev-runtime/tests/repoctl_cli.rs` (149, 159)
+- `crates/tooling-cli-dev-runtime/src/commands/repoctl.rs:43`
   (default value of `cli_manifest_path`) — runtime default, MUST update
 
 **Check crate set** (replaces v3 `.omc/governance-lanes/`):
 - 6 new check crates scaffolded fresh in Shard 0; populated in Shard 1
   (see §1, §3.3.2 footer)
-- 29 fitness crates renamed to `oya-check-*` namespace per §3.3.2
+- 29 fitness crates renamed to `check-*` namespace per §3.3.2
 
 ## §14 Cross-references
 
@@ -2354,7 +2354,7 @@ metadata-oya       ::= "[package.metadata.oya]" NL
                        [ "audit_chain      = " bool-str NL ]
                        [ "feature          = " feature-str NL ]
 name-str           ::= "\"oya-" vertical "-" bounded-context "-" layer "\""
-                     | "\"oya-check-" rule-name "\""
+                     | "\"check-" rule-name "\""
 vertical-str       ::= "\"shared\""                                  ; reserved literal (cross-vertical)
                      | "\"" single-kebab-token "\""                  ; single-token vertical name registered in [workspace.metadata.oya.verticals]
 bc-str             ::= "\"" kebab-bc "\""                            ; 1..N kebab tokens
@@ -2476,7 +2476,7 @@ during this iter-2 session.
 | 10 | LEAN-A1 `dependency-direction` excludes dev-deps + `[target.cfg(test).dependencies]` from enforcement (kernel/domain may have tokio in dev-deps for integration tests) | CLOSED | §4a "LEAN-A1 dependency-direction allowed-set" — explicit dev-deps exclusion note; §8.1 LEAN-A1 gate row mentions exclusion |
 | 11 | LEAN-A4 classifier output schema pinned: `{"violations":[{"crate":"...","severity":"ERROR\|BASELINE-RESET\|...","kind":"...","detail":"..."}],"schema_version":"1.0"}` | CLOSED | §4a LEAN-A4 — "Pinned output schema" block; §8.1 LEAN-A4 gate row repeats the schema |
 | 12 | LEAN-A1 `lockfile-parity` subcommand distinguishes rg exit codes: exit 1 (no match) = pass; exit ≥ 2 (rg error) = fail | CLOSED | §4a LEAN-A1 `lockfile-parity` subcommand spec — exit-code discipline note; §8.1 LEAN-A1 gate row references §15a fix 12 |
-| 13 | §1 scope summary line: "~144 crate-name-affecting ops (140 renames + 4 new check crates); 100+ BC registry entries; 4 lean check crates." | CLOSED | §1 "Estimated renames + new check crates = total crate-name ops" row + "Bounded contexts identified" row + "New `oya-check-*` crates" row all reflect the iter-2 arithmetic |
+| 13 | §1 scope summary line: "~144 crate-name-affecting ops (140 renames + 4 new check crates); 100+ BC registry entries; 4 lean check crates." | CLOSED | §1 "Estimated renames + new check crates = total crate-name ops" row + "Bounded contexts identified" row + "New `check-*` crates" row all reflect the iter-2 arithmetic |
 
 ### Iter-2 supplement #1 + #2 supersession trail
 
@@ -2521,13 +2521,13 @@ during this iter-2 postfold-A session.
 | # | Edit | Severity | Status | File:line cite (closure) |
 |---|---|---|---|---|
 | D1 | §3 audit row rewrite — 3-slot column schema; drop `thing?`; add `vertical`+`kind`+`layer_evidence`+`bc_registry_status`; update proposed_names to 3-slot; replace `rest (provisional)` cells with evidence cite OR `PROTOCOL-UNKNOWN` deferral marker | BLOCKING (biggest gap) | CLOSED — schema rewrite landed; per-row body inspection deferred to iter-3 with explicit open-item | §3 audit preamble "Columns (FINAL post-Codex-iter-2 D1)"; §3.1–§3.5 header rows rewritten to 11-column 3-slot schema (verified via `grep -c "current_name | vertical | bounded_context | kind | layer | layer_evidence"` = 5); §3 v3-axis→v4-vertical translation rule documented; iter-3 open-item #1 in `.omc/plans/open-questions.md` records the per-row inspection surface |
-| D2 | Arithmetic consistency — §1 (144) vs §3.6 (139); sync to "140 existing + 4 new = 144" matching §1 | LOW | CLOSED | §3.6 audit summary rewritten — explicit subtotal "139 existing + 4 new check crates = 144 ops"; reconciles 28+31+22+29+26+3 = 139 to Cargo.toml 140-row ground truth via `oya-cloud-data-kernel` bucket note + `oya-foundation-app` accounting |
+| D2 | Arithmetic consistency — §1 (144) vs §3.6 (139); sync to "140 existing + 4 new = 144" matching §1 | LOW | CLOSED | §3.6 audit summary rewritten — explicit subtotal "139 existing + 4 new check crates = 144 ops"; reconciles 28+31+22+29+26+3 = 139 to Cargo.toml 140-row ground truth via `cloud-data-kernel` bucket note + `foundation-app` accounting |
 | D3 | §3.0 metadata schema — purge `thing` references; required keys `vertical`+`bounded_context`+`layer`+`purpose`; optional `audit_chain`+`feature` | LOW | CLOSED | §3.0 metadata-oya BNF rewritten; `name-str` reads `oya-<vertical>-<bc>-<layer>`; `vertical-str` accepts literal `shared` or single-kebab token; "Difference from v3" prose updated to acknowledge `thing` was a transitional draft-only construct PURGED from v4 production prose |
 | D4 | §8.1 LEAN-A2 gate row — explicitly walk transitive deps + per-hop `public_layers` check + FULL-chain violation output | MEDIUM | CLOSED | §8.1 LEAN-A2 gate row extended with explicit (ii) direct cross-vertical refusal + (iii) transitive cross-vertical refusal with per-hop public_layers check + (vi) violation-output format `a → x → y → b` with per-node `{kind, vertical, layer}` annotation; §6 R11a previously codified the rule, §8.1 now codifies the gate-command behaviour |
 | D5 | BNF ambiguity at `:282` — Option A: BAN multi-token verticals; reserve `shared` as non-vertical literal | BLOCKING | CLOSED | §2.1 BNF `vertical ::= kebab-token` (single token); `shared-or-vertical` declared "reserved non-vertical literal"; new §11 ADR-0056 §"Vertical naming policy" enumerates Option A rationale + xtask enforcement (reject hyphenated vertical names + reject `name == "shared"` registrations) |
 | D6 | §13 reference inventory — add `docs/standards/code-style-rust.md` lines 11-12, 137-147, 162-177 as Shard 1 co-edit (still declares v3 BNF + role enum) | MEDIUM | CLOSED | §13 reference inventory adds `docs/standards/code-style-rust.md` bullet with explicit line ranges; §5.2 step 10b added to enforce the co-edit; iter-3 open-item #3 records the surrounding-context-damage pressure test |
 | D7 | `.omc/plans/open-questions.md` — refresh; drop `<thing>` / "2-slot final" references; document iter-2 state + lane name rename | LOW | CLOSED | `.omc/plans/open-questions.md` — new `## rename-plan-v4 iter-2 postfold-A — 2026-05-13` section appended; explicitly REPLACES iter-1 entries for current-state reference; documents D1–D7 closure + iter-3 open items |
-| Stray | `oya-check-bounded-context-registry` → `oya-check-bounded-contexts` at §6 R10 line 1327 | LOW (Codex stray) | CLOSED | §6 R10 lane row updated; "renamed from iter-1-fold-A's singular ... per Codex iter-2 stale-name fix" note added inline |
+| Stray | `check-bounded-context-registry` → `check-bounded-contexts` at §6 R10 line 1327 | LOW (Codex stray) | CLOSED | §6 R10 lane row updated; "renamed from iter-1-fold-A's singular ... per Codex iter-2 stale-name fix" note added inline |
 
 ### Final iter-2 postfold-A state cross-references
 
@@ -2559,7 +2559,7 @@ rows. Iter-3 pairs every directive with concrete execution.
 | E1 | §3.1–§3.5 row-by-row regeneration to 11-column 3-slot schema; replace `rest (provisional)` with evidence cite OR `PROTOCOL-UNKNOWN` deferral | BLOCKING (root cause) | CLOSED | §3.1 rows 1-28 + §3.2 rows 29-59 + §3.3.1 rows 60-82 + §3.4 rows 112-137 + §3.5 rows 138-140 — all 110 rows regenerated to `current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected`. Zero `rest (provisional)` cells; every `-api` row carries `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` in `layer_evidence` + `proposed_name`; every kernel/app/adapter row carries `STUB-pending-iter-4-src-inspection` in `layer_evidence` |
 | E2 | §3.6 arithmetic — display 140+4=144 not 139+4=144 | LOW | CLOSED | §3.6 audit-summary row "Subtotal existing crates renamed: **140**"; total row "**140 + 4 new = 144**"; reconciliation prose rewritten to explain the visible-row-numbering (28+31+22+29+26+3 = 139 visible-row-numbers across the 5 sub-tables = 140 unique crates matching Cargo.toml ground truth) |
 | E3 | Frontmatter `purpose:` rewrite to 3-slot grammar; delete "2-slot" language + "<thing> slot considered in earlier drafts is REMOVED" | LOW | CLOSED | frontmatter lines 19-30 — `purpose:` block declares 3-slot grammar `oya-<shared\|vertical>-<bounded-context>-<layer>`; previous "2-slot" wording deleted; deleted stale "Codex iter-1 should regenerate 2-slot tables" directive at §3 :620-631 (replaced with superseded note pointing to iter-3 E1 regeneration) |
-| E4 | Stale §4a A4 heading rename — singular → plural | LOW | CLOSED | §4a "A4 — `oya-check-bounded-contexts` (BC validation)" heading updated; explicit SUPERSEDED→LEAN-A2 annotation; §15b closure-table entry already documented the rename history, this E4 closes the heading itself |
+| E4 | Stale §4a A4 heading rename — singular → plural | LOW | CLOSED | §4a "A4 — `check-bounded-contexts` (BC validation)" heading updated; explicit SUPERSEDED→LEAN-A2 annotation; §15b closure-table entry already documented the rename history, this E4 closes the heading itself |
 | E5 | `.omc/plans/open-questions.md` honest-claim correction + iter-3 closure section | LOW | CLOSED | `.omc/plans/open-questions.md` — `## rename-plan-v4 iter-3 fold — 2026-05-13` section appended with E1–E5 closure cites; iter-2 postfold-A section's "all references purged" claim corrected via inline HONEST-CLAIM-CORRECTION block listing 4 surfaces NOT actually purged at iter-2 (frontmatter, body rows, §3.0 prose comment, §6 R10 lane row); iter-3 fold corrects all 4 |
 
 ### Iter-3 D7-verification stale-reference sweep
@@ -2573,7 +2573,7 @@ absent except in explicit history/superseded sections:
 - `` `<thing` `` (BNF slot reference) — surviving occurrences are in
   iter-2/iter-3 history blocks (§11 ADR-0056 Pattern G rejection,
   §15b closure tables, prefold-A history; OK).
-- `oya-platform-` (v3 axis prefix) — surviving occurrences are in
+- `platform-` (v3 axis prefix) — surviving occurrences are in
   audit `current_name` column (rename-source documentation; MUST stay)
   + audit-translation-rule prose (explicit history reference; OK).
 - `rest (provisional)` — surviving occurrences in audit BODY ROWS:
@@ -2617,7 +2617,7 @@ consensus pass). All 4 folded; plan is APPROVE-ready.
 
 | # | Edit | Severity | Status | File:line cite (closure) |
 |---|---|---|---|---|
-| F1 | §3.3.2 schema carve-out — Option A regeneration to 11-column 3-slot with check-namespace exemption | BLOCKING (schema inconsistency) | CLOSED | §3.3.2 header updated to `n = 29` + check-namespace-exemption preamble + table header rewritten to 11-column 3-slot + all 29 body rows (83-111) regenerated with `vertical/bounded_context/kind/layer: check-namespace-exempt | layer_evidence: NEW-scaffold-shard-1-from-v3-fitness-crate (rule-name <X>) | proposed_name: oya-check-<X> | bc_registry_status: PROPOSED-NEW`. Grep verification: `grep -cE "^\| (8[3-9]\|9[0-9]\|10[0-9]\|11[01]) \|"` returns 29; `grep -c "check-namespace-exempt"` returns 32 (29 row lines + 3 prose mentions) |
+| F1 | §3.3.2 schema carve-out — Option A regeneration to 11-column 3-slot with check-namespace exemption | BLOCKING (schema inconsistency) | CLOSED | §3.3.2 header updated to `n = 29` + check-namespace-exemption preamble + table header rewritten to 11-column 3-slot + all 29 body rows (83-111) regenerated with `vertical/bounded_context/kind/layer: check-namespace-exempt | layer_evidence: NEW-scaffold-shard-1-from-v3-fitness-crate (rule-name <X>) | proposed_name: check-<X> | bc_registry_status: PROPOSED-NEW`. Grep verification: `grep -cE "^\| (8[3-9]\|9[0-9]\|10[0-9]\|11[01]) \|"` returns 29; `grep -c "check-namespace-exempt"` returns 32 (29 row lines + 3 prose mentions) |
 | F2 | Arithmetic mechanical fixes — §3.3 header n=52, §3.3.1 header n=23, §3.6 reconciliation 28+31+23+29+26+3=140 | LOW | CLOSED | §3.3 header annotated "Codex iter-4 F2 fix — 23 non-check + 29 check = 52, was incorrectly stated as 53"; §3.3.1 header annotated "Codex iter-4 F2 fix — rows 60-82 are 23 rows, not 22"; §3.6 reconciliation prose rewritten to drop iter-3's "missing row" claim + show correct 28+31+23+29+26+3 = 140 arithmetic |
 | F3 | STUB/PROTOCOL count actual sync via grep | LOW | CLOSED | `.omc/plans/open-questions.md` STUB markers block — 110 → 85; 22 → 26; verification commands documented inline (`rg -cE` patterns); iter-3 estimates explicitly marked inaccurate |
 | F4 | ADR-0056 outline 3-slot rewrite + §"Protocol classification" sub-section authored | MEDIUM | CLOSED | §11 ADR-0056 Decision paragraph: `2-slot grammar` → `3-slot grammar `oya-<shared\|vertical>-<bounded-context>-<layer>`` (line 1650); new §"Protocol classification" sub-section authored before §"Cloud vertical dual-role" with: grep heuristic mapping table (axum/tonic/async-graphql/tokio loop), multi-protocol split-vs-exception policy with `[package.metadata.oya].protocols = [...]` declaration requirement, 26-row PROTOCOL-UNKNOWN deferred-crate enumeration (5 platform + 13 cloud + 4 foundry + 4 workspace = 26 matching body-row grep), Option-Hold-vs-Option-Inline sequencing decision criterion (5 working days threshold), Exceptions list (empty at iter-4 close) |
@@ -2661,7 +2661,7 @@ $ grep -cE "^\| (8[3-9]|9[0-9]|10[0-9]|11[01]) \|" \
 - §3.6 audit summary — 28+31+23+29+26+3 = 140 (F2)
 - §4a — 4 LEAN check crates (LEAN-A1 through LEAN-A4)
 - §5.1 — Shard 0 checklist including 4-check scaffold + verticals registry + IDE smoke gate + clean-architecture.md §99-103 amendment + code-style-rust.md co-edit
-- §6 R10 — `oya-check-bounded-contexts` (plural)
+- §6 R10 — `check-bounded-contexts` (plural)
 - §6 R11a — transitive cross-vertical refusal with full-chain output
 - §8.1 LEAN-A1–A4 gate rows
 - §8.2 4-BLOCKER-flip atomicity (count = 4)
@@ -2699,7 +2699,7 @@ plan flipped to `status: approved`.
 |---|---|---|---|---|
 | G1 | §3.6 summary table consistency — Foundry non-check cell 22→23; rows 60/72/73/74 narrative `-api → -rest` → `-api → PROTOCOL-UNKNOWN deferred` matching §3.3.1 body | LOW | CLOSED | §3.6 table row "Foundry non-check (vertical preserved) \| 23 \| 23 (rows 60, 72, 73, 74 rename `-api` → `PROTOCOL-UNKNOWN` deferred to ADR-0056 §"Protocol classification" pending iter-5 `src/`-inspection per body rows in §3.3.1; layer-suffix changes everywhere else) \| 0"; subtotal `28+31+23+29+26+3 = 140` arithmetic confirmed displayed (table row + prose match) |
 | G2 | Active `2-slot` references purge to history-only | LOW | CLOSED | 4 active prose references rewritten: §2.1 BNF "supersedes draft-5 2-slot" → "supersedes draft-5 2-slot per iter-2 supplement #2" (retained as history marker); §1 "new under 2-slot" → "new under 3-slot, populating slot 3"; §4a A5-equivalent collision rule `<bounded-context>-<layer>` → `<vertical>-<bounded-context>-<layer>` with "3-slot rule" language; ADR-0056 Consequences "2-slot BNF easier to parse" → "the 3-slot BNF parses deterministically (split on `-`, last token is layer-enum, slot 2 is shared\|vertical registry-validated, middle tokens are bounded-context)". §11 Pattern E "rejected; superseded by 2-slot final" → "rejected; the `<thing>` slot was removed in v4 iteration sequence and the final v4 BNF settled at 3-slot". Final count: **15 `2-slot` mentions remain**, all in history/closure/superseded sections (verified by line-by-line audit) |
-| G3 | Check-crate name normalization to 4-LEAN design — replace active `oya-check-clean-architecture` with `oya-check-architecture` matching §4a LEAN-A1; rewrite "11 new check crates" prose to "4 LEAN check crates" | LOW | CLOSED | 7 active-prose references normalized: §2.2.3 dep-direction text (lines 495, 516), §3.3.2 prose note about scaffold list (line 864-area), §5.2 step 15 (line 1403), §6 R4 (line 1414), §6 R9 (line 1419), §11 ADR-0056 Decision Drivers (line 1689), §11 ADR-0056 Consequences (line 2110), §11 ADR-0056 Follow-ups (line 2135). All now read `oya-check-architecture` + reference appropriate LEAN-A1 subcommand. Final count: **3 `oya-check-clean-architecture` mentions remain** (lines 872 history note, 1184 DROPPED marker, 1191 within DROPPED section); **1 "11 check crates" mention remains** (line 1332 inside historical `### A-summary` block already labeled SUPERSEDED). All retained references are explicit history. |
+| G3 | Check-crate name normalization to 4-LEAN design — replace active `check-clean-architecture` with `check-architecture` matching §4a LEAN-A1; rewrite "11 new check crates" prose to "4 LEAN check crates" | LOW | CLOSED | 7 active-prose references normalized: §2.2.3 dep-direction text (lines 495, 516), §3.3.2 prose note about scaffold list (line 864-area), §5.2 step 15 (line 1403), §6 R4 (line 1414), §6 R9 (line 1419), §11 ADR-0056 Decision Drivers (line 1689), §11 ADR-0056 Consequences (line 2110), §11 ADR-0056 Follow-ups (line 2135). All now read `check-architecture` + reference appropriate LEAN-A1 subcommand. Final count: **3 `check-clean-architecture` mentions remain** (lines 872 history note, 1184 DROPPED marker, 1191 within DROPPED section); **1 "11 check crates" mention remains** (line 1332 inside historical `### A-summary` block already labeled SUPERSEDED). All retained references are explicit history. |
 
 ### Iter-5 final verification grep output (mechanical confirmation)
 
@@ -2707,7 +2707,7 @@ plan flipped to `status: approved`.
 $ grep -c "2-slot" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md
 15   # all in history/closure/superseded sections
 
-$ grep -c "oya-check-clean-architecture" \
+$ grep -c "check-clean-architecture" \
     docs/plans/rename-plan-v4-clean-arch-2026-05-13.md
 3    # all in history sections (lines 872 normalization-note, 1184
      # DROPPED marker, 1191 within DROPPED section)

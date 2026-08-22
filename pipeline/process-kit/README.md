@@ -14,14 +14,14 @@ Policy-as-data peers (daemon hot-set + advisory perimeter): `ci/facade/harness/*
 | `git_shim::refuse_no_verify` | Real PATH git-shim binary installed in lane shells |
 | `toolguard` worker cargo/buck2 refuse | Runtime hook install per agent surface |
 | `claim_push` receipt shape stub | Full claim-mechanical envelope check |
-| `BUCK` (`//ci/process-kit:oya-process-kit(-check-daemon)`) | Root workspace membership via **integ/build** lock absorb |
-| `oya-process-kit-check-daemon` stub | Real `buck2 build //...[check]` hot-set fan-out |
+| `BUCK` (`//ci/process-kit:process-kit(-check-daemon)`) | Root workspace membership via **integ/build** lock absorb |
+| `process-kit-check-daemon` stub | Real `buck2 build //...[check]` hot-set fan-out |
 
 ## Verify
 
 ```bash
-buck2 test //ci/process-kit:oya-process-kit-unittest
-SWARM_ORCHESTRATOR=1 buck2 run //ci/process-kit:oya-process-kit-check-daemon
+buck2 test //ci/process-kit:process-kit-unittest
+SWARM_ORCHESTRATOR=1 buck2 run //ci/process-kit:process-kit-check-daemon
 ```
 
 Do **not** add this package to root `Cargo.toml` from `integ/ci` — `#planes.root_manifests` sole owner is `integ/build`.

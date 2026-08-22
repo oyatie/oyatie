@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use intelligence_capability_domain::{AutonomyTier, Capability};
 use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 
@@ -784,7 +784,7 @@ fn audit<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
-    use oya_data_boundary_kernel::SubjectClass;
+    use data_boundary_kernel::SubjectClass;
 
     use super::*;
 

@@ -2,7 +2,7 @@
 // oyatie.contract.transport: grpc-http2
 // oyatie.contract.identity: spiffe-mtls-tls13
 
-// oya-observability-slo-engine — gRPC contract
+// observability-slo-engine — gRPC contract
 // Internal sibling-service gRPC contract; public clients use contracts/openapi/slo-engine.yaml.
 // Per ADR-0139 + ADR-0131.
 

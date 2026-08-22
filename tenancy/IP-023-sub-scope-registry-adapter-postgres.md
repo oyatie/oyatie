@@ -15,18 +15,18 @@ related_adrs: [ADR-0244, ADR-0105, ADR-0131]
 
 ## B. Approach
 
-Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel ports against Citus-distributed Postgres. Store `sub_scopes` and `sub_scope_hierarchy_closure`, distribute by `tenant_id`, enforce RLS, and maintain closure rows transactionally whenever a parent-child edge changes.
+Create `tenancy-sub-scope-registry-adapter-postgres` implementing the kernel ports against Citus-distributed Postgres. Store `sub_scopes` and `sub_scope_hierarchy_closure`, distribute by `tenant_id`, enforce RLS, and maintain closure rows transactionally whenever a parent-child edge changes.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-adapter-postgres/Cargo.toml` | create | Adapter crate. |
+| `microservices/tenancy/src/crates/tenancy-sub-scope-registry-adapter-postgres/Cargo.toml` | create | Adapter crate. |
 | `src/repository.rs` | create | Implements `SubScopeRegistryPort`. |
 | `src/closure_table.rs` | create | Transactional closure-table maintenance. |
 | `src/migrations/001_sub_scopes.sql` | create | Tables, indexes, Citus distribution, RLS. |
 | `src/migrations/002_sub_scope_closure.sql` | create | Closure table and constraints. |
-| `microservices/tenancy/catalog/oya-tenancy-sub-scope-registry-adapter-postgres.yaml` | create | Catalog row. |
+| `microservices/tenancy/catalog/tenancy-sub-scope-registry-adapter-postgres.yaml` | create | Catalog row. |
 
 ## D. Implementation
 
@@ -40,9 +40,9 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-sub-scope-registry-adapter-postgres --all-features`.
-- `cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present`.
-- `cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables`.
+- `cargo nextest run -p tenancy-sub-scope-registry-adapter-postgres --all-features`.
+- `cargo run -p dev-cli -- gate validate tenant-context-setlocal-present`.
+- `cargo run -p dev-cli -- gate validate rls-force-on-tenant-tables`.
 - Tests verify tenant A cannot read tenant B closure rows even with matching sub-scope ids.
 - Closure-table reads support ancestor and descendant lookup without recursive runtime SQL.
 
@@ -66,4 +66,4 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-023-sub-scope-registry-adapter-postgres.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-023-sub-scope-registry-adapter-postgres.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

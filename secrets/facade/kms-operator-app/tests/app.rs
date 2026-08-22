@@ -82,13 +82,13 @@ fn state_store_config_requires_explicit_durable_path() {
     assert_eq!(missing, OperatorStartupConfigError::MissingStatePath);
 
     let configured = OperatorStateStoreConfig::from_env_pairs([(
-        "OYA_KMS_OPERATOR_STATE_PATH",
-        "/var/lib/oya-cloud-kms-operator/state.json",
+        "OYATIE_KMS_OPERATOR_STATE_PATH",
+        "/var/lib/cloud-kms-operator/state.json",
     )])
     .expect("explicit state path should be accepted");
     assert_eq!(
         configured.path,
-        "/var/lib/oya-cloud-kms-operator/state.json"
+        "/var/lib/cloud-kms-operator/state.json"
     );
 }
 

@@ -18,7 +18,7 @@ variable "compliance_packs" {
 
 resource "kubernetes_namespace" "finops_portal" {
   metadata {
-    name = "oya-finops-portal"
+    name = "finops-portal"
     labels = {
       "oyatie.io/microservice" = "finops-portal"
       "oyatie.io/cell-tier"    = "tier-1"

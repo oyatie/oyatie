@@ -12,7 +12,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-003: oya-cloud-secrets-secret-reference-resolver-kernel
+# IP-003: cloud-secrets-secret-reference-resolver-kernel
 
 ## Intent
 
@@ -20,24 +20,24 @@ Scaffold the kernel crate: port traits (sealed) + entity types + value objects +
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/cloud-secrets/src/crates/oya-cloud-secrets-secret-reference-resolver-kernel/`. Workspace member.
+One new Rust crate at `microservices/cloud-secrets/src/crates/cloud-secrets-secret-reference-resolver-kernel/`. Workspace member.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-secrets/src/crates/oya-cloud-secrets-secret-reference-resolver-kernel/Cargo.toml` | create |
+| `microservices/cloud-secrets/src/crates/cloud-secrets-secret-reference-resolver-kernel/Cargo.toml` | create |
 | `…/src/lib.rs` | create — module surface + `pub use` |
 | `…/src/entities.rs` | create — `SecretReference`, `ResolvedSecret`, `CacheEntry`, `RevocationEvent`, `DataClass` |
 | `…/src/ports.rs` | create — sealed traits: `OpenBaoClient`, `SecretCache`, `RevocationConsumer` |
 | `…/src/errors.rs` | create — `KernelError`, `ResolveError`, `CacheError`, `RevocationError` |
 | `Cargo.toml` (workspace) | update — add member |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-kernel.yaml` | create |
+| `microservices/cloud-secrets/catalog/cloud-secrets-secret-reference-resolver-kernel.yaml` | create |
 
 ## Crate Naming Justification
 
 ```
-NAME: oya-cloud-secrets-secret-reference-resolver-kernel
+NAME: cloud-secrets-secret-reference-resolver-kernel
 - microservice = cloud-secrets (ADR-0131)
 - bc-tokens = secret-reference-resolver (primary BC; ADR-0056 v4.1)
 - layer = kernel (ADR-0105 13-value enum; inner/pure; port traits + entities only)
@@ -140,13 +140,13 @@ pub trait RevocationConsumer: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-secrets-secret-reference-resolver-kernel --all-features
-cargo clippy -p oya-cloud-secrets-secret-reference-resolver-kernel --all-features -- -D warnings
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-kernel --all-features
+cargo check -p cloud-secrets-secret-reference-resolver-kernel --all-features
+cargo clippy -p cloud-secrets-secret-reference-resolver-kernel --all-features -- -D warnings
+cargo nextest run -p cloud-secrets-secret-reference-resolver-kernel --all-features
 cargo deny check
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-cloud-secrets-secret-reference-resolver-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-cloud-secrets-secret-reference-resolver-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-cloud-secrets-secret-reference-resolver-kernel
+cargo run -p dev-cli -- gate validate port-location --crate cloud-secrets-secret-reference-resolver-kernel
+cargo run -p dev-cli -- gate validate layer-correctness --crate cloud-secrets-secret-reference-resolver-kernel
+cargo run -p dev-cli -- gate validate data-class --crate cloud-secrets-secret-reference-resolver-kernel
 ```
 
 ## Test Plan
@@ -174,7 +174,7 @@ Kernel class: 90% line / 80% branch.
 
 ## Wave 15-IP-substance counterpart anchor
 
-Preserved as substantive: this IP already defines concrete kernel entities, ports, zeroization expectations, and crate targets for `oya-cloud-secrets-secret-reference-resolver-kernel`. Counterpart evidence comes from the parity matrices: AWS Secrets Manager, Google Secret Manager, Azure Key Vault, HashiCorp Vault, and Akeyless all expose SDK retrieval primitives, but Oyatie's differentiator is a kernel-level `Secret<T>` and port boundary that makes raw-value logging, unbounded TTL, and unaudited revocation impossible for downstream adapters to normalize away.
+Preserved as substantive: this IP already defines concrete kernel entities, ports, zeroization expectations, and crate targets for `cloud-secrets-secret-reference-resolver-kernel`. Counterpart evidence comes from the parity matrices: AWS Secrets Manager, Google Secret Manager, Azure Key Vault, HashiCorp Vault, and Akeyless all expose SDK retrieval primitives, but Oyatie's differentiator is a kernel-level `Secret<T>` and port boundary that makes raw-value logging, unbounded TTL, and unaudited revocation impossible for downstream adapters to normalize away.
 
 Grep-recognized counterpart anchor: GitHub Actions Secrets is relevant only at the CI boundary where resolver tests and branch gates consume secret handles. This kernel IP keeps that distribution concern outside the primary comparator truth, which remains Vault/OpenBao/KMS resolver behavior.
 

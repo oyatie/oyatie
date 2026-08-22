@@ -32,7 +32,7 @@ related_adrs:
 > **Status:** Retired — 2026-08-05 (RR-HARNESS-0619 / ADR-0619).
 > **Live authority:** [`docs/AGENTS.md`](../AGENTS.md) operating contract;
 > merge admission per [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md)
-> (`oya-ci-required`); harness-brand retirement per
+> (`presubmit`); harness-brand retirement per
 > [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md)
 > and historical external-tool retirement per
 > [ADR-0116](../decisions/ADR-0116-retire-external-agent-coordination-tooling.md).
@@ -47,8 +47,8 @@ related_adrs:
 | Agent operating contract | [`docs/AGENTS.md`](../AGENTS.md) |
 | Machine-readable entry points | [`/specs/root-hub-pointers.json`](../../specs/root-hub-pointers.json) |
 | Plan / sequencing authority | [`/specs/masterplan.json#masterplan_v2`](../../specs/masterplan.json) (human projection: [`docs/MASTERPLAN.md`](../MASTERPLAN.md)) |
-| Merge / CI admission | [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) — single protected context `oya-ci-required` |
-| Contribution path | Isolated worktree → SSH-signed commit → PR against `dev` → reviewer APPROVE + `oya-ci-required` green (plain `git` / `gh`; no external harness lock) |
+| Merge / CI admission | [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) — single protected context `presubmit` |
+| Contribution path | Isolated worktree → SSH-signed commit → PR against `dev` → reviewer APPROVE + `presubmit` green (plain `git` / `gh`; no external harness lock) |
 | Local multi-model delivery kit (optional, **not** merge authority) | `.grok/` (mm-delivery: `mm-drive`, stage packs, dual-critic) when present on the operator machine |
 | Installed agent runtime skills / roles | Runtime catalogs (Codex: `~/.codex/skills` + `~/.codex/agents`; project `.codex/` / `.claude/` overlays only when intentionally checked in). Do not re-vendor external harness skill trees. |
 | Cross-agent tool-name mapping (reference) | [`multi-agent-tool-map.md`](multi-agent-tool-map.md) — OMC columns are historical / compatibility-only |
@@ -58,7 +58,7 @@ related_adrs:
 
 1. **ADR-0116** retired out-of-repo coordination tooling (grit/rtk/icm/vox) in favour of the in-repo governance pipeline.
 2. **ADR-0363** retired the bespoke Oya VCS claim/verify/done/promote ratchet; plain git + protected PR is the substrate.
-3. **ADR-0515** is the single canonical cloud-ci admission context (`oya-ci-required`).
+3. **ADR-0515** is the single canonical cloud-ci admission context (`presubmit`).
 4. **ADR-0619** forbids re-entry of a retired external agent-harness brand as live authority or source-specific plan ingest.
 5. Local session stores under `.omc/` / `.omx/` / `.gjc/` are gitignored provenance at best; live machine-readable authority is under `/specs`, `/registry`, `/evidence`, and `/templates`.
 

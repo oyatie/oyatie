@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "real-estate",
     "bounded_context": "real-estate-portfolio",
-    "crate_prefix": "oya-real-estate",
-    "primary_crate": "microservices/real-estate/crates/oya-real-estate-portfolio-domain",
+    "crate_prefix": "real-estate",
+    "primary_crate": "microservices/real-estate/crates/real-estate-portfolio-domain",
     "product_id": "real-estate",
     "owning_axis": "axis-enterprise"
   },
@@ -54,42 +54,42 @@
       "given": "a real-estate property/rental object has tenant, legal entity, business entity, building, rental-object, usage, area, capacity, validity, source ref, and audit evidence",
       "when": "the real-estate domain registers the object metadata",
       "then": "property, tenant, legal entity, business entity, building, rental object, type, usage, area, capacity, validity, source, evidence, idempotency key, state, schema version, and false architectural-view/RE-FX/fixed-asset/PM/cloud flags are present",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::property_drives_lease_cash_flow_space_and_facility_linkage"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::property_drives_lease_cash_flow_space_and_facility_linkage"
     },
     {
       "id": "AC-02",
       "given": "a registered property has lease contract metadata with party, direction, classification, term, rent, deposit, source ref, and audit evidence",
       "when": "lease-contract metadata is registered",
       "then": "lease, property, tenant, legal entity, party, direction, classification, dates, term, rent, deposit, total nominal rent, source, evidence, idempotency key, state, schema version, and false lease-accounting/GL/AP-AR/document-archive/cloud flags are present",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
     },
     {
       "id": "AC-03",
       "given": "a registered lease has payment frequency, period count, recurring payment, due dates, source ref, and audit evidence",
       "when": "lease cash-flow projection metadata is prepared",
       "then": "cash flow, lease, tenant, legal entity, frequency, period count, recurring payment, projected total, due dates, source, evidence, idempotency key, state, schema version, and false periodic-posting/payment/subledger/cloud flags are present",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
     },
     {
       "id": "AC-04",
       "given": "a registered property/rental object has rentable-area, committed-area, requested-area, seats, team ref, occupancy dates, source ref, and audit evidence",
       "when": "space occupancy plan metadata is prepared",
       "then": "occupancy plan, property, rental object, tenant, legal entity, total/committed/requested/remaining area, seats, team ref, dates, source, evidence, idempotency key, state, schema version, and false workspace/team-sync/reservation/cloud flags are present",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_records_capacity_shortage_without_reservation_claim}"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_records_capacity_shortage_without_reservation_claim}"
     },
     {
       "id": "AC-05",
       "given": "a registered property/rental object has a maintenance asset ref, service priority, planned maintenance window, source ref, and audit evidence",
       "when": "facility-maintenance linkage metadata is prepared",
       "then": "facility link, property, rental object, tenant, legal entity, maintenance asset ref, priority, window, source, evidence, idempotency key, state, schema version, and false PM-work-order/IoT/service-ticket/Workflow/cloud flags are present",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{property_drives_lease_cash_flow_space_and_facility_linkage,real_estate_refuses_missing_prerequisites}"
     },
     {
       "id": "AC-06",
       "given": "untrusted identifiers, team/asset/source/evidence refs, dates, areas, capacities, terms, amounts, period counts, windows, or overclaim paths enter the real-estate domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid date ranges, invalid areas, capacity shortage, missing property registration, missing lease contract, zero amounts, invalid periods, invalid terms, and invalid maintenance windows are refused",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{real_estate_refuses_missing_prerequisites,real_estate_validates_refs_dates_areas_terms_and_amounts,real_estate_records_capacity_shortage_without_reservation_claim}"
+      "test_ref": "microservices/real-estate/crates/real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{real_estate_refuses_missing_prerequisites,real_estate_validates_refs_dates_areas_terms_and_amounts,real_estate_records_capacity_shortage_without_reservation_claim}"
     }
   ],
   "decision_log": [
@@ -133,7 +133,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain",
+    "primary_crate_ref": "microservices/real-estate/crates/real-estate-portfolio-domain",
     "entities_ref": [
       {
         "entity": "Real",

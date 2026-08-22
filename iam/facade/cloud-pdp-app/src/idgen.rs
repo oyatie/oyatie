@@ -12,7 +12,7 @@
 //! emit a decision that would be unattributable in the audit chain.
 
 use aws_lc_rs::rand::{SecureRandom, SystemRandom};
-use oya_shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
+use shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
 
 /// Crockford-base32 alphabet (ULID spec: no I, L, O, U).
 const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";

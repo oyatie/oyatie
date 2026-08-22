@@ -94,7 +94,7 @@ fn write_template_doc(root: &Path, relative: &str, subject: &str) {
 
 fn fixture_root(name: &str) -> PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "oya-governance-template-{}-{}",
+        "governance-template-{}-{}",
         name,
         std::process::id()
     ));

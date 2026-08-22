@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_delta_commit_under_2s_total[5m]))
+              query: sum(rate(data_warehouse_delta_commit_under_2s_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_delta_commit_total[5m]))
+              query: sum(rate(data_warehouse_delta_commit_total[5m]))
   objectives:
     - displayName: p99 Delta commit under 2s for batches up to 100MiB
       target: 0.99

@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-revenue-share-clawback-accuracy
+  name: marketplace-revenue-share-clawback-accuracy
   displayName: Marketplace Revenue Share Clawback Accuracy
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-revenue-share-clawback-accuracy-sli
+      name: marketplace-revenue-share-clawback-accuracy-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_revenue_share_clawback_nets_to_zero_total[5m]))
+              query: sum(rate(marketplace_revenue_share_clawback_nets_to_zero_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_revenue_share_clawback_total[5m]))
+              query: sum(rate(marketplace_revenue_share_clawback_total[5m]))
   objectives:
     - displayName: Clawback Accuracy
       target: 0.9999

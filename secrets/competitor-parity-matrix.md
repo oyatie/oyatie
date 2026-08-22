@@ -104,7 +104,7 @@ Parity dimensions are derived from competitor product documentation (canonical s
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate competitor-parity-coverage --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate competitor-parity-coverage --microservice cloud-secrets
 ```
 
 Quarterly review:

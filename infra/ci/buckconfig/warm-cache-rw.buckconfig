@@ -3,7 +3,7 @@
 # docs/ideas/nativelink-remote-cache-first.md).
 #
 # NEVER merged into the root .buckconfig. A lane opts in ONLY through the resolver
-# (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin
+# (`buck2 run //cloud/cloud-ci/gates/cloud-ci-cache-wiring-app:cloud-ci-cache-wiring-bin
 # -- resolve --build-class <class>`), which selects this file IFF the class is
 # warm-eligible with cache_write AND /specs/cache-warm-license.json carries
 # warm_reads_licensed=true (the ADR-0556 D2 canary-licensed kill-switch). While the
@@ -29,13 +29,13 @@
   default_allow_cache_upload = true
 
 [buck2_re_client]
-  engine_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  cas_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  action_cache_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
+  engine_address = grpc://nativelink-cas-writer.ci.svc.cluster.local:50051
+  cas_address = grpc://nativelink-cas-writer.ci.svc.cluster.local:50051
+  action_cache_address = grpc://nativelink-cas-writer.ci.svc.cluster.local:50051
   instance_name = main
   tls = true
 
-[oya_cache]
+[cache]
   remote_cache_enabled = true
   allow_cache_uploads = true
 

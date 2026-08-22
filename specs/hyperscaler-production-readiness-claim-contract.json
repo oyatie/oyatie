@@ -12,7 +12,7 @@
     "created_at": "2026-06-02T00:00:00Z",
     "source_request": "Founder refinement: hyperscaler-grade / production-ready / mechanically-enforced claims require specs befitting such claims; multi-year horizon favors doing it correctly over short delivery time.",
     "non_negotiables": [
-      "No new oya CLI surface. All new enforcement is Rust gate crates, cloud-ci/oya-ci required contexts, generated registries, or controllers.",
+      "No new oya CLI surface. All new enforcement is Rust gate crates, cloud-ci/ci required contexts, generated registries, or controllers.",
       "Aspirational language is allowed only when labeled target/non-claim and paired with a path to evidence.",
       "Mechanically enforced means branch-protected cloud-ci required context plus RED/GREEN fixtures, not local checks or operator procedure.",
       "Production-ready and hyperscaler-grade are per-service/per-plane claims, not program-wide adjectives.",
@@ -370,7 +370,7 @@
       ]
     }
   ],
-  "gates_to_build_without_oya_cli": [
+  "gates_to_build_without_cli": [
     {
       "id": "cloud-ci-claim-ceiling",
       "type": "Rust gate crate + cloud-ci required context",
@@ -431,7 +431,7 @@
     {
       "phase": "P1",
       "goal": "Mechanically enforced platform spine",
-      "outcome": "cloud-ci/oya-ci required contexts, Rust gates, Tide minimum, generated registries, and branch-protection mappings block violations. No oya CLI required-context producer remains."
+      "outcome": "cloud-ci/ci required contexts, Rust gates, Tide minimum, generated registries, and branch-protection mappings block violations. No oya CLI required-context producer remains."
     },
     {
       "phase": "P2",

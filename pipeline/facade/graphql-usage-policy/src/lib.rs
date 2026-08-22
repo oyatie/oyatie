@@ -13,7 +13,7 @@
 //!
 //! ## Candidate-tree evaluation, NOT a frozen merge-base
 //! The gate scans the CANDIDATE tree directly — the live workspace `Cargo.toml` manifests resolved
-//! via `oya-workspace-members-kernel` (glob-aware; NO `cargo metadata`/`buck2` shell-out) plus a
+//! via `workspace-members-kernel` (glob-aware; NO `cargo metadata`/`buck2` shell-out) plus a
 //! read-only walk of the candidate tree for GraphQL schema files. It does NOT diff a frozen
 //! merge-base baseline. This is deliberate: a frozen-baseline predicate evaluated at PR-tier against
 //! the merge-base but at push-tier against the integrated tip is the documented PR/push
@@ -97,7 +97,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.

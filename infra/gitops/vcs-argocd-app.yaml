@@ -19,7 +19,7 @@ spec:
       include: 'vcs-substrate.yaml'
   destination:
     server: https://kubernetes.default.svc
-    namespace: oya-forge
+    namespace: forge
   syncPolicy:
     automated:
       prune: true

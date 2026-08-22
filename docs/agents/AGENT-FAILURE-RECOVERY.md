@@ -47,14 +47,14 @@ Session-less mode:
 
 Cause: another agent's merge raced and touched overlapping symbols.
 
-2. `oya-tooling-agent-read log --range <merge-base>..HEAD --paths <your touched paths>` — identify the colliding commit.
+2. `tooling-agent-read log --range <merge-base>..HEAD --paths <your touched paths>` — identify the colliding commit.
 5. Re-run acceptance tests (C2). Re-emit any failed lanes.
 
 ## R5 — CI fitness lane red after C2 passed locally
 
 Cause: lane runs against a fuller surface than your local checks.
 
-1. `oya-tooling-agent-read pr-view <pr-number>` — read the failed lane name.
+1. `tooling-agent-read pr-view <pr-number>` — read the failed lane name.
 2. Cross-reference the lane → standard via [`AGENT-DECISION-TREE.md`](AGENT-DECISION-TREE.md) §D4.
 3. Open the named `docs/standards/<file>.md`. Apply the correction in the worktree.
 4. If the failure is OUT OF CLAIM SCOPE (e.g. `-cohesion` red on a crate you didn't touch), this is a release-and-defer event, not a halt:

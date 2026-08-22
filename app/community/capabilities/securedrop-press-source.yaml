@@ -8,7 +8,7 @@
 #   - community/policy/anonymity-mode-fully-anonymous.cedar
 #   - community/ARCHITECTURE.md §community-as-4-mixture-product
 
-capability_id: oya-community-securedrop-press-source
+capability_id: community-securedrop-press-source
 tier: product-surface
 microservice: community
 status: Accepted

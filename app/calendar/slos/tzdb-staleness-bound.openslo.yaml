@@ -17,9 +17,9 @@ spec:
   description: |
     IANA tzdb staleness-bound SLO. The cluster-default tzdb release MUST
     be no more than 30 days behind the latest IANA release. The metric
-    `oya_calendar_tzdb_cluster_default_staleness_days` is "good" iff it
+    `calendar_tzdb_cluster_default_staleness_days` is "good" iff it
     is ≤ 30 days. Per ADR-CAL-0004 §"30d refresh window". Tenant-pinned
-    tzdb is tracked separately via `oya_calendar_tzdb_release_in_use`
+    tzdb is tracked separately via `calendar_tzdb_release_in_use`
     per-tenant; this SLO governs cluster-default only.
   service: calendar
   indicator:
@@ -30,7 +30,7 @@ spec:
           type: Prometheus
           spec:
             query: |
-              max(oya_calendar_tzdb_cluster_default_staleness_days)
+              max(calendar_tzdb_cluster_default_staleness_days)
   timeWindow:
     - duration: 30d
       isRolling: true

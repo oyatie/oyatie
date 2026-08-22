@@ -116,7 +116,7 @@
         "verifies": "CODEOWNERS mirrors RACI ownership per-path"
       }
     ],
-    "gap": "No lane validates that the *named owner* in a PR body matches the actual decision-class owner declared here. Candidate for future oya-governance-decision-class-owner-cite lane."
+    "gap": "No lane validates that the *named owner* in a PR body matches the actual decision-class owner declared here. Candidate for future governance-decision-class-owner-cite lane."
   },
   "references": [
     "docs/RACI-OWNERSHIP.md — per-team RACI detail (sibling, not duplicate)",

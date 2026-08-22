@@ -22,7 +22,7 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing OpenAPI 3.2.0 invoice contract at `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` (544 lines) and its runtime adapter in `oya-cloud-billing-tax-app` (276 lines). The contract defines:
+Document the existing OpenAPI 3.2.0 invoice contract at `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` (544 lines) and its runtime adapter in `cloud-billing-tax-app` (276 lines). The contract defines:
 
 - `POST /v1/cloud/billing/invoices/{invoice_id}` — generate a tenant-scoped tax invoice.
 - Headers: `X-Request-Id` (required), `X-Tenant-Id` (required), `Idempotency-Key` (required), bearer `Authorization`.
@@ -46,7 +46,7 @@ Out of scope:
 
 - AsyncAPI event surface (IP-007).
 - gRPC service surface (IP-008).
-- The internal `oya-cloud-billing-domain` aggregate (IP-001).
+- The internal `cloud-billing-domain` aggregate (IP-001).
 
 ## §C Architecture
 
@@ -64,7 +64,7 @@ Content-Type: application/json
   "id": "inv_alpha_202605_001",
   "account": {...},
   "tenant_id": "ten_alpha",
-  "regional_pack": "oya-pack-electronic-tax",
+  "regional_pack": "pack-electronic-tax",
   "period": {"start_epoch_seconds": ..., "end_epoch_seconds": ...},
   "line_items": [...],
   "subtotal": {"currency": "OYC", "minor_units": 100000},
@@ -86,7 +86,7 @@ The endpoint serves HTTP/3 + QUIC primarily; HTTPS/2 is the fallback. The OpenAP
 
 ### §C.3 Status code rules
 
-Per `oya-cloud-billing-tax-app::generate_cloud_billing_invoice_from_api`:
+Per `cloud-billing-tax-app::generate_cloud_billing_invoice_from_api`:
 
 | Precondition | Status | code | message |
 |---|---|---|---|
@@ -97,7 +97,7 @@ Per `oya-cloud-billing-tax-app::generate_cloud_billing_invoice_from_api`:
 | `account.state != "active"` | 409 | `billing_account_not_active` | "invoice generation requires an active billing account" |
 | Else | 201 | (no error body) | (success body) |
 
-This mapping is empirically tested in `crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`. The mapping is intentionally a closed switch — there is no catch-all 500 path; any unexpected error from the domain kernel is wrapped as 422 with the kernel error message.
+This mapping is empirically tested in `crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`. The mapping is intentionally a closed switch — there is no catch-all 500 path; any unexpected error from the domain kernel is wrapped as 422 with the kernel error message.
 
 ### §C.4 Idempotency semantics
 
@@ -115,9 +115,9 @@ The OpenAPI spec uses `x-oyatie-data-class` to tag each field. Three values appe
 
 - `INTERNAL_ONLY`: most identifier and money fields.
 - `PUBLIC`: schema_version, region, data_class indicator.
-- `FINANCIAL_REGULATED_CREDIT`: `tax_registration_id` only (per `oya-cloud-billing-tax-app::CloudBillingInvoiceGenerateRequest.tax_registration_id` field comment).
+- `FINANCIAL_REGULATED_CREDIT`: `tax_registration_id` only (per `cloud-billing-tax-app::CloudBillingInvoiceGenerateRequest.tax_registration_id` field comment).
 
-These tags are read by `oya-data-boundary-kernel` at the API gateway layer to enforce field-level redaction policies (per ADR-0244 tenant scoping + data-boundary kernel).
+These tags are read by `data-boundary-kernel` at the API gateway layer to enforce field-level redaction policies (per ADR-0244 tenant scoping + data-boundary kernel).
 
 ### §C.6 Bearer-token / STS authentication
 
@@ -130,7 +130,7 @@ Per `securitySchemes.bearerAuth` (line 90–94): bearer scheme with `bearerForma
 - `principal.cap_breached`
 - `principal.byok_modes`
 
-The Cedar evaluator at `api-gateway` reads these claims and enforces the `cap.cloud.billing.issue_invoice` gate before the request reaches `oya-cloud-billing-tax-app`.
+The Cedar evaluator at `api-gateway` reads these claims and enforces the `cap.cloud.billing.issue_invoice` gate before the request reaches `cloud-billing-tax-app`.
 
 ## §D Lifecycle
 
@@ -140,8 +140,8 @@ The Cedar evaluator at `api-gateway` reads these claims and enforces the `cap.cl
 2. Caller builds idempotency key (typically `ten_xxx_period_yyyymm`).
 3. POST to endpoint.
 4. api-gateway evaluates Cedar (issue_invoice gate).
-5. `oya-cloud-billing-tax-app::generate_cloud_billing_invoice_from_api` validates preconditions.
-6. cloud-billing internally invokes `oya-cloud-billing-domain::CloudBillingLedger::generate_invoice`.
+5. `cloud-billing-tax-app::generate_cloud_billing_invoice_from_api` validates preconditions.
+6. cloud-billing internally invokes `cloud-billing-domain::CloudBillingLedger::generate_invoice`.
 7. audit-chain seal emitted (IP-010).
 8. 201 returned with `CloudBillingInvoiceRecord` + request_id.
 
@@ -178,8 +178,8 @@ Context attributes used:
 
 - `/Users/jasonlee/oyatie/contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` (544 lines).
 - `/Users/jasonlee/oyatie/contracts/openapi/cloud/cloud-billing-invoice-v1.meta.yaml` (governance metadata).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-tax-app/src/lib.rs` (276 lines, runtime adapter).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs` (status-code round-trip tests).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-tax-app/src/lib.rs` (276 lines, runtime adapter).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs` (status-code round-trip tests).
 
 ### §F.2 Schema reference
 

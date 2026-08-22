@@ -1,0 +1,24 @@
+apiVersion: v2
+name: payments-webhook-handler
+description: |
+  Helm chart for the payments inbound PSP webhook handler.
+  Handles Stripe / Adyen / Toss / KakaoPay / LINE Pay / WeChat / Alipay webhooks.
+  HMAC-verified; idempotency-key dedup in CRDB; replay-window 300s per
+  policy/abuse-defence.cedar.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - payments
+  - webhook
+  - psp
+  - stripe
+  - adyen
+maintainers:
+  - name: axis-payments
+    email: axis-payments@oyatie.com
+annotations:
+  oyatie/microservice: payments
+  oyatie/slo-tier: tier-0-revenue-critical
+  oyatie/pci-scope: "true"
+  oyatie/adrs: "ADR-0131,ADR-0254,ADR-0295,ADR-0296"

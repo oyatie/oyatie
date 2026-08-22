@@ -5,7 +5,7 @@ status: Proposed
 date: 2026-05-21
 authority_tier: 2
 length_cap: 2400
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 purpose: |
   Week-one onboarding for a programming-capable intern with zero prior Oyatie knowledge. Every step ends in a verifiable artifact and cites glossary or doctrine.
 related_adrs:

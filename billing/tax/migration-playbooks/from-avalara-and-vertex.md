@@ -51,7 +51,7 @@ verticals or jurisdictions. Goal: migrate to `cloud-billing-tax` without tax-per
 
 ./bin/oya tax catalog attach \
   --tenant oyatie.b2b.midmarket.acme-corp \
-  --catalog oya-tax-codes-global-paid-v1
+  --catalog tax-codes-global-paid-v1
 ```
 
 Translate Avalara tax codes → Oyatie codes:
@@ -101,11 +101,11 @@ is presented to the customer; the Oyatie decision is shadow-stored.
 
 The SDK ships a dual-calculation wrapper:
 ```rust
-use oya_cloud_billing_tax_sdk::DualCalculation;
+use cloud_billing_tax_sdk::DualCalculation;
 
 let tax = DualCalculation::builder()
     .primary(LegacyAvalaraClient::new(&avalara_account))
-    .secondary(oya_cloud_billing_tax_sdk::TaxClient::connect(cfg).await?)
+    .secondary(cloud_billing_tax_sdk::TaxClient::connect(cfg).await?)
     .strategy(DualCalculationStrategy::UseLegacy_ShadowRecordOya)
     .build()?;
 ```
@@ -136,7 +136,7 @@ against the Avalara/Vertex filing for the same period.
 
 ./bin/oya tax migrate filing-compare \
   --avalara-filing avalara-tx-2026-05.xml \
-  --oya-filing filing/US-TX/2026-05/return.xml \
+  --filing filing/US-TX/2026-05/return.xml \
   --tolerance 0.01  # $0.01 line-item tolerance
 ```
 

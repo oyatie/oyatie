@@ -96,7 +96,7 @@ A linear ladder is unsafe: cross-device identity should not imply ad-targeting; 
 | `regulatory_compliance` | Required by an applicable regulator | legal obligation |
 | `tenant_analytics_first_party` | Tenant-scoped analytics on tenant-owned data | contract |
 | `cross_tenant_aggregate_anonymous` | Cross-tenant aggregate analytics, k-anonymous (k≥10) | consent |
-| `personalization_in_oya_saas` | Per-user personalization within Oyatie SaaS surfaces | consent |
+| `personalization_in_saas` | Per-user personalization within Oyatie SaaS surfaces | consent |
 | `ad_targeting_declared` | Ad targeting using DECLARED_PREFERENCE only | consent |
 | `ad_targeting_behavioral` | Ad targeting using BEHAVIORAL_ADS first-party signal | consent |
 | `cross_device_linking` | Linking a user across devices | consent |
@@ -112,7 +112,7 @@ A permission is `(purpose, data_class, tenant_class, geography, subject_class) �
 
 Each permission grant is:
 - **purpose-bound** — consent declares purposes; using data for a different purpose is a breach.
-- **independently grantable** — granting `personalization_in_oya_saas` does NOT grant `ad_targeting_*`.
+- **independently grantable** — granting `personalization_in_saas` does NOT grant `ad_targeting_*`.
 - **independently revocable** — revoking one permission does not affect others; revocation cascades to all derived data within 30 days (PIPA Art 39-7 / GDPR Art 17).
 - **subject-scoped** — minor subjects auto-deny `ad_targeting_*` regardless of guardian consent on `service_operation`.
 - **geography-scoped** — KR subjects honor PIPA defaults; EU subjects honor GDPR; US California subjects honor CCPA/CPRA; per regional pack.
@@ -131,7 +131,7 @@ These tiers are UI presets only. The consent service expands each preset into ex
 | Essential | `service_operation`, `security_fraud_prevention`, `regulatory_compliance` | Minimum classes needed for subscribed service | PHI/PCI/PIPA-Art23/CHILDREN remain purpose-limited; never ads | Service stops or degrades to legal minimum; derived caches purged within 30 days |
 | Tenant analytics | `tenant_analytics_first_party` | Tenant-owned classes excluding HARD_DENY ad floors | PCI and raw HARD_DENY classes remain blocked from non-compliance analytics | Analytics aggregates invalidated; DP budgets closed |
 | Cross-tenant aggregate | `cross_tenant_aggregate_anonymous` | k-anonymous / DP aggregates only (`k≥10`, `k≥25` for PIPA Art 23) | No row-level export, no individual linking | Aggregate cohorts re-keyed or removed within 30 days |
-| Personalization | `personalization_in_oya_saas` | Per-user personalization inside Oyatie SaaS surfaces | Does not grant ads, model training, cross-device, or cross-tenant individual use | Profiles and derived recommendations purged within 30 days |
+| Personalization | `personalization_in_saas` | Per-user personalization inside Oyatie SaaS surfaces | Does not grant ads, model training, cross-device, or cross-tenant individual use | Profiles and derived recommendations purged within 30 days |
 | Declared ads | `ad_targeting_declared` | `DECLARED_PREFERENCE` only | PHI, PII identifying, PCI, FINANCIAL_KR, SEARCH_QUERY, PIPA Art 23, and minors always blocked | Audiences removed and active campaigns re-evaluated immediately |
 | First-party ads attribution | `ad_targeting_behavioral` | `BEHAVIORAL_ADS` first-party signal only | No tenant product behavior, PHI/PII/PCI/financial/sensitive classes | Attribution windows closed; future decisions denied |
 | Cross-device linking | `cross_device_linking` | Identity-link metadata needed for the declared service | Does not grant cross-tenant individual linking or ads | Link graph edge deleted; dependent caches purged |
@@ -173,9 +173,9 @@ Some tenant verticals get tighter defaults that **cannot be raised** even by ten
 The boundary is enforced at six layers, each independently:
 
 1. **Schema annotation.** Every `.proto`, every SQL DDL, every event schema carries `oyatie.data_class = "...";` per field. Missing annotation = CI failure.
-2. **Lint-time check.** `oya-governance-data-class` walks every cross-axis call site and verifies the source class is allowed at the destination.
-3. **Source crate singleton.** The *only* crates allowed to source tenant data into ads/analytics are `oya-platform-ads-gate` and `oya-platform-analytics-router`. All other crates attempting to publish to ads/analytics topics are rejected at the eventing-backbone layer.
-4. **Architecture fitness gate.** `oya-governance-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
+2. **Lint-time check.** `governance-data-class` walks every cross-axis call site and verifies the source class is allowed at the destination.
+3. **Source crate singleton.** The *only* crates allowed to source tenant data into ads/analytics are `platform-ads-gate` and `platform-analytics-router`. All other crates attempting to publish to ads/analytics topics are rejected at the eventing-backbone layer.
+4. **Architecture fitness gate.** `governance-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
 5. **Audit-chain emission per decision.** Every ad-targeting decision emits an evidence record with consenting tenant, consenting user (if applicable), data classes used, audience id, ad id, decision rationale (which rules fired). Missing emission = capability-invocation reject.
 6. **Runtime guard.** Even after ingestion, a final guard at the auction boundary re-validates consent tier vs declared purpose and blocks if any class drifted.
 

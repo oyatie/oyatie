@@ -20,7 +20,7 @@
 //! ## Delivery contract (normative)
 //! - **At-least-once transport.** There is deliberately NO exactly-once
 //!   API surface; effectively-once is composed at the producer edge via
-//!   the transactional outbox (`oya-shared-transactional-outbox-kernel`)
+//!   the transactional outbox (`shared-transactional-outbox-kernel`)
 //!   and consumer-side idempotency (ADR-0536 D-13 rejected: global
 //!   "exactly-once" delivery promises).
 //! - **Per-key ordering only.** Messages sharing a [`MessageKey`] are
@@ -142,7 +142,7 @@ fn valid_slug(value: &str, max_len: usize) -> bool {
 }
 
 /// Canonical topic name: dot-namespaced lowercase slug
-/// (e.g. `oya-metering.usage-events`).
+/// (e.g. `metering.usage-events`).
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct TopicName(String);
 
@@ -460,7 +460,7 @@ mod tests {
 
     #[test]
     fn topic_name_accepts_canonical_slugs() {
-        for ok in ["oya-metering.usage-events", "a", "a.b-c.d0"] {
+        for ok in ["metering.usage-events", "a", "a.b-c.d0"] {
             assert_eq!(TopicName::parse(ok).unwrap().as_str(), ok);
         }
     }

@@ -114,9 +114,9 @@ resource "oci_identity_policy" "identity_iam" {
   name           = "oyatie-identity-iam-${var.tenant_id}"
   description    = "identity µservice OCI policy for tenant ${var.tenant_id} (paid)"
   statements = [
-    "allow dynamic-group oya-identity-${var.tenant_id} to use vaults in compartment id ${var.oci_compartment_id}",
-    "allow dynamic-group oya-identity-${var.tenant_id} to use keys in compartment id ${var.oci_compartment_id}",
-    "allow dynamic-group oya-identity-${var.tenant_id} to read objectstorage-namespaces in compartment id ${var.oci_compartment_id}"
+    "allow dynamic-group identity-${var.tenant_id} to use vaults in compartment id ${var.oci_compartment_id}",
+    "allow dynamic-group identity-${var.tenant_id} to use keys in compartment id ${var.oci_compartment_id}",
+    "allow dynamic-group identity-${var.tenant_id} to read objectstorage-namespaces in compartment id ${var.oci_compartment_id}"
   ]
 }
 

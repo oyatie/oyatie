@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-cloud-iac
+  title: cloud-iac
   version: 1.0.0
   summary: REST API for the cloud-iac meta-IaC pipeline — render + plan-preview + apply + rollback + registry + drift queries
   description: |
@@ -36,28 +36,28 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Historical local-verifier wording is superseded for active work: local oya verifier/gate/check wrappers are retired authority mechanisms, and the cloud-ci/oya-ci pipeline status oya-ci-required is the single required CI authority.
+          Historical local-verifier wording is superseded for active work: local oya verifier/gate/check wrappers are retired authority mechanisms, and the cloud-ci/ci pipeline status presubmit is the single required CI authority.
         enforced_by:
-          - oya-ci-required
+          - presubmit
           - cloud-ci-shared-rust-gate-logic
           - local-authority-enforcer
       ADR-0347:
         purpose: >-
-          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+          Declare that every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
         enforced_by:
           - retired-fitness-residue-detection
-          - oya-governance-lane-prefix-vocabulary
-          - oya-governance-rename-inventory-presence
+          - governance-lane-prefix-vocabulary
+          - governance-rename-inventory-presence
       ADR-0348:
         purpose: >-
           Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
         enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-autosharding-manual-mode-refusal
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
+          - governance-sharding-automation-coverage
+          - governance-autosharding-manual-mode-refusal
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
         event_surface:
           autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
@@ -65,12 +65,12 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Historical bridge-CI parity wording is superseded for active work: GitHub Actions produces the live required oya-ci-required context until the owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
+          Historical bridge-CI parity wording is superseded for active work: GitHub Actions produces the live required presubmit context until the owned ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
         enforced_by:
-          - oya-ci-required
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-deploy-audit-chain-emit
+          - presubmit
+          - governance-argocd-application-cosign-verified
+          - governance-argocd-tenant-namespace-isolation
+          - governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
       governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.

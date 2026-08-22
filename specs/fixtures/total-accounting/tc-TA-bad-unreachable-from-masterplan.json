@@ -4,10 +4,10 @@
   "expected_violations": [
     "unreachable"
   ],
-  "description": "Frozen live exhibit class: an oya-governance-* crate not pointed at by any live registry (empty reachable_from) — the 'unwired governance crate' class. owner + justification + ttl_class present so ONLY unreachable fires.",
+  "description": "Frozen live exhibit class: an governance-* crate not pointed at by any live registry (empty reachable_from) — the 'unwired governance crate' class. owner + justification + ttl_class present so ONLY unreachable fires.",
   "rows": [
     {
-      "path": "libs/oya-governance-adapter-with-no-importer-kernel/src/lib.rs",
+      "path": "libs/governance-adapter-with-no-importer-kernel/src/lib.rs",
       "unit_class": "code",
       "owner": "platform-governance",
       "justification_ref": "ADR-0365",
@@ -16,5 +16,5 @@
       "ttl": {"ttl_class": "code", "budget_days": null, "action": "report", "protected": false}
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-total-accounting-app/tests/total_accounting.rs"
 }

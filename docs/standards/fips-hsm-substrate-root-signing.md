@@ -12,7 +12,7 @@ canonical_authority:
   - docs/decisions/ADR-0708-platform-foundations-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md
   - ADR-NNNN-foundry-meta-trust-root
-planned_enforcement_ref: oya-governance-fips-hsm-substrate-root
+planned_enforcement_ref: governance-fips-hsm-substrate-root
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/standards/cedar-policy-discipline.md
@@ -535,7 +535,7 @@ Chinese standard is GM/T 0051-2016 (CFCA).
 
 ## §7. CI Lane
 
-**Lane name:** `oya-governance-fips-hsm-substrate-root`
+**Lane name:** `governance-fips-hsm-substrate-root`
 
 **Status:** Advisory until 2026-07-15; BLOCKER thereafter (matching the overall doc-rigor
 enforcement timeline per `docs/standards/documentation-rigor.md` §8).
@@ -561,7 +561,7 @@ enforcement timeline per `docs/standards/documentation-rigor.md` §8).
 
 ```yaml
 # iac/ci-lanes/fips-hsm-substrate-root.yaml
-lane: oya-governance-fips-hsm-substrate-root
+lane: governance-fips-hsm-substrate-root
 enforcement_status: advisory  # → BLOCKER 2026-07-15
 checks:
   - id: audit-hsm-tier-tag
@@ -679,7 +679,7 @@ or escalate to `ops-compliance` + `council-security`.
 | Air-gap cell using keyless cosign (Fulcio + Rekor) | Air-gap has no OIDC/Rekor network path; cosign verify fails without Rekor reachability | Use KMS-backed cosign (Tier 1 long-lived key) for air-gap; embed trust-bundle in `.oab` |
 | Tier 2 (tenant KMS) key used for substrate signing | Tier 2 is tenant-scoped; substrate signing requires the global org trust chain | Substrate signing MUST use Tier 1 only; Cedar gate enforces this at policy level |
 | Skipping ceremony drills | First real ceremony with untrained shareholders increases shareholder error risk | ≥2 drills required per §4.6 before first real ceremony |
-| Sovereign cell using non-jurisdictional HSM | KR-CSAP, EU-sovereign, AU-IRAP require jurisdictionally resident HSMs | CI lane `oya-governance-fips-hsm-substrate-root` check `sovereign-cell-hsm-region-match` enforces this |
+| Sovereign cell using non-jurisdictional HSM | KR-CSAP, EU-sovereign, AU-IRAP require jurisdictionally resident HSMs | CI lane `governance-fips-hsm-substrate-root` check `sovereign-cell-hsm-region-match` enforces this |
 
 ---
 

@@ -845,8 +845,8 @@
         ]
       },
       "oyatie_targets": [
-        "oya-billing integration point",
-        "oya-meter integration point",
+        "billing integration point",
+        "meter integration point",
         "quota_cost facet",
         "billing_meters facet"
       ],
@@ -1389,7 +1389,7 @@
         "claim": "Oyatie Cloud now has a source-backed, machine-readable target taxonomy for core backend hyperscaler categories.",
         "evidence": [
           "specs/cloud-hyperscaler-parity-taxonomy.json",
-          "//cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate"
+          "//cloud/cloud-ci/gates/cloud-ci-hyperscaler-parity-taxonomy-app:cloud-ci-hyperscaler-parity-taxonomy-app-gate"
         ],
         "limits": "Target taxonomy only; runtime equivalence and operational launch language remain blocked in cannot_claim_yet and nonclaims."
       },
@@ -1483,7 +1483,7 @@
       {
         "claim_family": "strict_dogfood_ci",
         "requires": [
-          "G007 GitHub/Kubernetes/Buck2/oya-gate lane reconciliation",
+          "G007 GitHub/Kubernetes/Buck2/gate lane reconciliation",
           "no external SaaS fallback",
           "self-hosted evidence requirements",
           "safe local/self-hosted verification evidence"
@@ -1555,8 +1555,8 @@
       "GitHub (interim)",
       "self-hosted Kubernetes",
       "Buck2",
-      "oya-gate",
-      "oya-verify"
+      "gate",
+      "verify"
     ]
   },
   "pure_dogfood_constraints": {

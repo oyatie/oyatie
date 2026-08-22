@@ -3,7 +3,7 @@
     "p0_0_green": false,
     "phase0_complete": false
   },
-  "description": "Current P0.0 evidence remains RED because live GitHub branch protection does not require cloud-ci-required/oya-ci-required from a trusted producer on the candidate SHA.",
+  "description": "Current P0.0 evidence remains RED because live GitHub branch protection does not require cloud-ci-required/presubmit from a trusted producer on the candidate SHA.",
   "expected_verdict": "RED",
   "fixture_id": "TC-0.12-CURRENT-RED-p0-0-live-context-missing",
   "source_test": ".omx/plans/test-spec-phase0.md#T0.12",

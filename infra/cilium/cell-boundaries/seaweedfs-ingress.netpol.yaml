@@ -1,9 +1,9 @@
 # ADR-0381 D3 — first cell-boundary NetworkPolicy. Scope: storage cell ingress only.
 #
-# Restricts ingress to SeaweedFS pods (app=seaweedfs in oya-storage) to the
+# Restricts ingress to SeaweedFS pods (app=seaweedfs in storage) to the
 # legitimate seams:
 #   - same-namespace pod-to-pod (future split master/volume/filer/bucket-api Deployments).
-#   - the CI cell (oya-ci + oya-ci-jenkins) — BuildKit cache + Jenkins agent
+#   - the CI cell (ci + ci-jenkins) — BuildKit cache + Jenkins agent
 #     sccache + image registry overlay consumers.
 #   - argocd — sync + drift detection.
 #
@@ -21,7 +21,7 @@
 # Cilium evaluates per-pod regardless of node placement.
 #
 # Rollout discipline: this is the FIRST cell-boundary policy. We're starting
-# narrow (only the newest, smallest cell — oya-storage) so an authorization
+# narrow (only the newest, smallest cell — storage) so an authorization
 # regression has a minimal blast radius. The pattern proves out here; the
 # remaining cell boundaries (ci, tenant, foundation) follow as additional
 # NetworkPolicy resources in sibling files in this directory.
@@ -30,7 +30,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: seaweedfs-ingress
-  namespace: oya-storage
+  namespace: storage
   labels:
     oya.adr/decided-by: ADR-0381-D3
     oya.cell-boundary/scope: "ingress-only"
@@ -44,14 +44,14 @@ spec:
     # Same-namespace pod-to-pod (future split master/volume/filer/bucket-api sibling Deployments).
     - from:
         - podSelector: {}
-    # CI cell — BuildKit (oya-ci) + Jenkins agents (oya-ci-jenkins).
+    # CI cell — BuildKit (ci) + Jenkins agents (ci-jenkins).
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-ci
+              kubernetes.io/metadata.name: ci
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-ci-jenkins
+              kubernetes.io/metadata.name: ci-jenkins
     # ArgoCD sync + drift detection.
     - from:
         - namespaceSelector:

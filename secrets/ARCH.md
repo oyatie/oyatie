@@ -40,7 +40,7 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
   `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
   `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
 - Merge/gate authority: branch-protected GitHub Actions required context
-  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  `presubmit` is the live blocker until the owned `ci` cutover reuses
   the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
   checks, shell scripts, and legacy build-server mirrors are
   non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
@@ -54,36 +54,36 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
   It no longer makes retired local verifier/gate wrappers, dev-entrypoint
   flows, Cargo-only checks, or shell scripts authoritative for merge readiness.
 - The live required gate is the branch-protected GitHub Actions
-  `oya-ci-required` context until owned `oya-ci` cutover reuses the same shared
+  `presubmit` context until owned `ci` cutover reuses the same shared
   Rust gate logic.
 - Architecture changes that add generated docs, manifests, contracts, runbooks,
   or CI surfaces must preserve full-matrix evidence through cloud-ci / owned
-  `oya-ci` rather than reintroducing local CLI authority.
+  `ci` rather than reintroducing local CLI authority.
 
 ### ADR-0347 Governance Lane Prefix
-- Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- Governance-owned fitness lanes for this microservice use the `governance-*` prefix. The canonical vocabulary is enforced by `governance-retired-vocab-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
 - Any architecture reference to CI lane ownership must point at the governance prefix and preserve lane invariants, lane checks, and lane semantics across the rename surface.
 
 ### ADR-0348 Sharding Automation Context
 - This microservice participates in the manifest-level `sharding_automation` doctrine: autosharding, auto_rebalance, and dynamic_sharding sub-blocks are declared per the D-1 schema unless an explicit cellular exemption applies.
-- AUTOSHARDING is control-plane-driven tenant-to-cell/shard placement using capacity_model, compliance_pack constraints, ResidencyClass, cell_placement_class, and the oya-shuffle-sharding algorithm. No human operator picks placement.
+- AUTOSHARDING is control-plane-driven tenant-to-cell/shard placement using capacity_model, compliance_pack constraints, ResidencyClass, cell_placement_class, and the shuffle-sharding algorithm. No human operator picks placement.
 - AUTO-REBALANCE migrates tenants from hot cells to cooler cells when cell load skews beyond promotion-gate criteria. Migration honors residency and compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit and emits audit-chain evidence per ADR-0263.
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
-- Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
+- Relevant admission lanes are `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, and `governance-audit-chain-emit-on-automation-events`.
 
 ### ADR-0349 self-hostable CI/CD control intent (bounded by live authority)
 - ADR-0349 is retained as self-hostable CI/CD control intent, not as a parallel
   merge authority. Legacy build-server mirrors may support disconnected/self-hosted contexts only
   after cloud-ci re-homes the shared Rust gate logic.
-- GitHub Actions `oya-ci-required` remains the live branch-protected required
-  context until owned `oya-ci` cutover.
+- GitHub Actions `presubmit` remains the live branch-protected required
+  context until owned `ci` cutover.
 - ArgoCD/GitOps remains the declarative CD direction. Application syncs verify
   cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and
   preserve tenant namespace isolation through Cedar per ADR-0243. Manual
   `kubectl apply` and Helm CLI deploys are not canonical procedure.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`,
-  `oya-governance-argocd-tenant-namespace-isolation`, and
-  `oya-governance-deploy-audit-chain-emit` as acceptance context while avoiding
+- CI/CD architecture references must preserve `governance-argocd-application-cosign-verified`,
+  `governance-argocd-tenant-namespace-isolation`, and
+  `governance-deploy-audit-chain-emit` as acceptance context while avoiding
   local CLI or legacy build-server bridge-as-merge-authority language.
 
 ## ADR-0339 integration

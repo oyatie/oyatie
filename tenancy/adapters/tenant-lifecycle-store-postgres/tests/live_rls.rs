@@ -1,13 +1,13 @@
 //! Env-gated LIVE Postgres integration tests for the durable tenant-lifecycle
-//! adapter. They run ONLY when `OYA_BACKBONE_LIVE_POSTGRES` is truthy AND a
+//! adapter. They run ONLY when `OYATIE_BACKBONE_LIVE_POSTGRES` is truthy AND a
 //! disposable database URL is supplied; otherwise every test returns cleanly so
 //! the always-on lane stays database-free (testing-standards-multilayer: the
 //! live tier is opt-in, not skipped silently in CI by accident).
 //!
 //! Required environment when enabled:
-//! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
-//! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
-//! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (a NON-superuser,
+//! - `OYATIE_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
+//! - `OYATIE_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
+//! - `OYATIE_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (a NON-superuser,
 //!   NON-BYPASSRLS role; the adapter's role)
 //!
 //! What they prove against a real database:
@@ -19,10 +19,10 @@
 //!    durable effect (ON CONFLICT DO NOTHING).
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleState,
 };
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
 use tenancy_tenant_lifecycle_store_postgres::{
@@ -30,9 +30,9 @@ use tenancy_tenant_lifecycle_store_postgres::{
     TENANTS_TABLE,
 };
 
-const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
-const SETUP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
-const APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+const ENABLE_ENV: &str = "OYATIE_BACKBONE_LIVE_POSTGRES";
+const SETUP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_URL";
+const APP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_APP_URL";
 const RUNTIME_ROLE: &str = "tenancy_lifecycle_runtime";
 
 fn enabled() -> bool {

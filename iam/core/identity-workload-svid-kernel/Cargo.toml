@@ -5,7 +5,7 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Workload X.509-SVID kernel (PURE, no-IO): cell-rooted SpiffeId + WorkloadPath value types, the issuer/verifier/trust-bundle-source ports, and the fail-closed bind_caller_tenant tenant-binding gate that derives the authorized tenant from a verified SVID path and rejects any caller-body tenant mismatch (G002 slice-1; ADR-0561). Reuses oya-identity-workload-domain::TenantId."
+description = "Workload X.509-SVID kernel (PURE, no-IO): cell-rooted SpiffeId + WorkloadPath value types, the issuer/verifier/trust-bundle-source ports, and the fail-closed bind_caller_tenant tenant-binding gate that derives the authorized tenant from a verified SVID path and rejects any caller-body tenant mismatch (G002 slice-1; ADR-0561). Reuses identity-workload-domain::TenantId."
 
 # INVARIANT: kernel layer — depends ONLY on the workload-identity domain peer
 # (for the canonical TenantId), no external crates, no I/O, no clock. Time is

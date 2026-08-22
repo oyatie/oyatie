@@ -6,7 +6,7 @@
     "owner_team": "ops-security + axis-tenancy",
     "audience": "internal operators (cross-tenant view; behind admin-only RBAC + Cedar)",
     "tenant_scoped": false,
-    "datasource": "Mimir aggregate (oya-self tenant); recording-rules"
+    "datasource": "Mimir aggregate (self tenant); recording-rules"
   },
   "uid": "tenancy-rls-enforcement",
   "title": "RLS Enforcement + Drift Detection",
@@ -35,7 +35,7 @@
   "panels": [
     {"id": 1, "type": "stat", "title": "RLS drift detected (last 24h) — $pack",
      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
-     "targets": [{"expr": "increase(oya_tenancy_rls_drift_total{pack=\"$pack\"}[24h])", "refId": "A"}],
+     "targets": [{"expr": "increase(tenancy_rls_drift_total{pack=\"$pack\"}[24h])", "refId": "A"}],
      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}}},
      "alert": {"name": "rls-drift-page",
        "conditions": [{"evaluator": {"params": [0], "type": "gt"}, "query": {"params": ["A", "5m", "now"]}, "type": "query"}],
@@ -44,33 +44,33 @@
     },
     {"id": 2, "type": "stat", "title": "Tenant-bound tables monitored",
      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
-     "targets": [{"expr": "count(oya_tenancy_rls_table_force_rls{pack=\"$pack\"})", "refId": "A"}]
+     "targets": [{"expr": "count(tenancy_rls_table_force_rls{pack=\"$pack\"})", "refId": "A"}]
     },
     {"id": 3, "type": "timeseries", "title": "RLS state-validator alive ($pack)",
      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 4},
-     "targets": [{"expr": "oya_tenancy_rls_state_validator_alive{pack=\"$pack\"}", "refId": "A"}]
+     "targets": [{"expr": "tenancy_rls_state_validator_alive{pack=\"$pack\"}", "refId": "A"}]
     },
     {"id": 4, "type": "table", "title": "Tables with force_rls=false (should be zero!)",
      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
-     "targets": [{"expr": "oya_tenancy_rls_table_force_rls{value=\"false\",pack=\"$pack\"}", "format": "table", "refId": "A"}]
+     "targets": [{"expr": "tenancy_rls_table_force_rls{value=\"false\",pack=\"$pack\"}", "format": "table", "refId": "A"}]
     },
     {"id": 5, "type": "timeseries", "title": "Cross-tenant query attempts (probe synthetic + adversarial)",
      "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
      "targets": [
-       {"expr": "rate(oya_tenancy_synthetic_cross_tenant_probe_rows_returned[5m])", "legendFormat": "synthetic probe rows (should always be 0!)", "refId": "A"},
-       {"expr": "rate(oya_tenancy_unauthorized_read_attempt_total[5m])", "legendFormat": "Cedar-denied cross-tenant", "refId": "B"}
+       {"expr": "rate(tenancy_synthetic_cross_tenant_probe_rows_returned[5m])", "legendFormat": "synthetic probe rows (should always be 0!)", "refId": "A"},
+       {"expr": "rate(tenancy_unauthorized_read_attempt_total[5m])", "legendFormat": "Cedar-denied cross-tenant", "refId": "B"}
      ]
     },
     {"id": 6, "type": "table", "title": "Postgres roles with bypassrls (should ONLY be JIT-elevated)",
      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 6},
-     "targets": [{"expr": "oya_tenancy_postgres_role_bypassrls{value=\"true\",pack=\"$pack\"}", "format": "table", "refId": "A"}]
+     "targets": [{"expr": "tenancy_postgres_role_bypassrls{value=\"true\",pack=\"$pack\"}", "format": "table", "refId": "A"}]
     },
     {"id": 7, "type": "timeseries", "title": "RLS DDL apply rate (CREATE/ALTER/DROP POLICY)",
      "gridPos": {"x": 0, "y": 30, "w": 12, "h": 6},
      "targets": [
-       {"expr": "rate(oya_tenancy_rls_ddl_total{action=\"create_policy\",pack=\"$pack\"}[5m])", "legendFormat": "CREATE", "refId": "A"},
-       {"expr": "rate(oya_tenancy_rls_ddl_total{action=\"alter_policy\",pack=\"$pack\"}[5m])", "legendFormat": "ALTER", "refId": "B"},
-       {"expr": "rate(oya_tenancy_rls_ddl_total{action=\"drop_policy\",pack=\"$pack\"}[5m])", "legendFormat": "DROP", "refId": "C"}
+       {"expr": "rate(tenancy_rls_ddl_total{action=\"create_policy\",pack=\"$pack\"}[5m])", "legendFormat": "CREATE", "refId": "A"},
+       {"expr": "rate(tenancy_rls_ddl_total{action=\"alter_policy\",pack=\"$pack\"}[5m])", "legendFormat": "ALTER", "refId": "B"},
+       {"expr": "rate(tenancy_rls_ddl_total{action=\"drop_policy\",pack=\"$pack\"}[5m])", "legendFormat": "DROP", "refId": "C"}
      ]
     }
   ]

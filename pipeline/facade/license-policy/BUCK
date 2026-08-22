@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-check-license-policy:oya-check-license-policy",
+        "//libs/check-license-policy:check-license-policy",
         "third-party//:serde_json",
     ],
 )
@@ -17,7 +17,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-check-license-policy:oya-check-license-policy",
+        "//libs/check-license-policy:check-license-policy",
         "third-party//:serde_json",
     ],
 )
@@ -30,7 +30,7 @@ rust_test(
     crate = "ci_license_policy_corpus",
     crate_root = "tests/license_policy.rs",
     env = {
-        "OYA_CI_PRODUCER_BIN": "$(exe //pipeline/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+        "OYATIE_CI_PRODUCER_BIN": "$(exe //pipeline/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin)",
     },
     visibility = ["PUBLIC"],
     deps = [

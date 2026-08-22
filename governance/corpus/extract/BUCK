@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//governance/corpus/core:corpus-core",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
         "third-party//:blake3",
         "third-party//:quote",
         "third-party//:syn",
@@ -21,7 +21,7 @@ rust_binary(
     deps = [
         ":corpus-extract",
         "//governance/corpus/core:corpus-core",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
         "third-party//:blake3",
         "third-party//:quote",
         "third-party//:syn",
@@ -49,7 +49,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//governance/corpus/core:corpus-core",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
         "third-party//:blake3",
         "third-party//:quote",
         "third-party//:syn",

@@ -35,7 +35,7 @@ Per architect r1 execution order (lines 56-63), the 7-step ordered slice:
 
 | Step | Action | Acceptance |
 |---|---|---|
-| 1 | Wire `oya-dev-cli gate validate active-artifact-contract` | subcommand callable; loads `/registry/artifact-capabilities-registry.json`; invokes kernel validator |
+| 1 | Wire `dev-cli gate validate active-artifact-contract` | subcommand callable; loads `/registry/artifact-capabilities-registry.json`; invokes kernel validator |
 | 2 | Add failing fixture for missing-row applicable artifact | fixture: synthetic JSON under applicable_paths_glob without registry row → validator exit ≠ 0 |
 | 3 | Flip `lean-a-active-artifact-contract` to active in registry/quality/lanes.yaml; `scripts/check.sh` or CI invokes the subcommand | lane status=active; CI green run URL recorded |
 | 4 | Add grit pre-done/pre-claim validation (or narrow ICM fallback while grit FK blocks) | hook script in `scripts/hooks/`; explicit "degraded mode with expiry" for ICM fallback |
@@ -59,7 +59,7 @@ At >100 rows per registry, MUST shard by stable resource kind. Generated aggrega
 
 ### Amendment 4 — Graph materialization layer
 
-Generated outputs from canonical registries: `nodes`, `edges`, `reverse_indexes`, `unresolved_refs`, `owners`, `freshness`, `impact_queries`. Output paths under `/registry/graph/materialized/`. Generator crate `crates/oya-gen-graph-materialize` (planned; post-VL slice).
+Generated outputs from canonical registries: `nodes`, `edges`, `reverse_indexes`, `unresolved_refs`, `owners`, `freshness`, `impact_queries`. Output paths under `/registry/graph/materialized/`. Generator crate `crates/gen-graph-materialize` (planned; post-VL slice).
 
 ### Amendment 5 — Kubernetes-like `spec/status` separation
 
@@ -93,7 +93,7 @@ Per architect r1 line 46: every migration MUST update the consuming validator/ge
 
 | Migration unit | Required pair |
 |---|---|
-| docs/decisions/ADR-*.md → registry | Check-crate refactor (oya-check-adr-citation + oya-check-adr-index) + failing fixture (old MD citation → new JSON path) |
+| docs/decisions/ADR-*.md → registry | Check-crate refactor (check-adr-citation + check-adr-index) + failing fixture (old MD citation → new JSON path) |
 | docs/microservices/*.md → registry | doc-coverage check-crate refactor + fixture |
 | docs/runbooks/*.md → registry | runbook-freshness check-crate refactor + fixture |
 | etc. | per-category |

@@ -1,6 +1,6 @@
 # Storage Engineer — First Week on `cloud-storage`
 
-Audience: a storage engineer with AWS S3 + GCS + Azure Blob + MinIO experience joining the `oya-cloud-storage-*` lane.
+Audience: a storage engineer with AWS S3 + GCS + Azure Blob + MinIO experience joining the `cloud-storage-*` lane.
 Goal: by Friday EOD you can create a tenant bucket, upload objects with versioning, configure a lifecycle policy, walk a
 cross-region replication, and use the S3-compat API.
 

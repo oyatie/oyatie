@@ -12,7 +12,7 @@ purpose: |
   Provider-agnostic burn-rate kernel.
 planned_enforcement_ref:
   - cloud-ci-slo-coverage
-  - oya-governance-rollback-evidence
+  - governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]
 doc_status: published
 ---
@@ -42,17 +42,17 @@ Per SRE Workbook, two windows are evaluated jointly to suppress false positives 
 
 **Both windows must breach** = AND-gate to suppress single-spike false positives. This is the workbook's prescription; we adopt as-is.
 
-## 3. The kernel: `oya-platform-slo-burn-rate-kernel` (NEW)
+## 3. The kernel: `platform-slo-burn-rate-kernel` (NEW)
 
 Provider-agnostic burn-rate computation. Inputs: SLO definition (target, window, scope), metric-source adapter (Prometheus / VictoriaMetrics / Datadog / Honeycomb). Outputs: burn-rate per window, severity classification, rollback decision.
 
 Adapter crates:
 
-- `oya-platform-metric-source-adapter-prometheus` (NEW) — Prometheus 3.11+ PromQL.
-- `oya-platform-metric-source-adapter-victoriametrics` (NEW).
-- `oya-platform-metric-source-adapter-datadog` (NEW; for tenants that BYO observability).
-- `oya-platform-metric-source-adapter-honeycomb` (NEW).
-- `oya-platform-metric-source-adapter-otel-collector` (NEW) — for cases where OTel collector aggregates pre-source.
+- `platform-metric-source-adapter-prometheus` (NEW) — Prometheus 3.11+ PromQL.
+- `platform-metric-source-adapter-victoriametrics` (NEW).
+- `platform-metric-source-adapter-datadog` (NEW; for tenants that BYO observability).
+- `platform-metric-source-adapter-honeycomb` (NEW).
+- `platform-metric-source-adapter-otel-collector` (NEW) — for cases where OTel collector aggregates pre-source.
 
 Provider-neutral. Swap adapters without changing the kernel or call sites. [Directive 4](../../plans/MASTERPLAN.md) compliant.
 
@@ -112,7 +112,7 @@ We adopt the Google formulation as the canonical math; provider adapters surface
 ## 10. Compliance gates
 
 - `cloud-ci-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
-- `oya-governance-rollback-evidence` (NEW; BLOCKER).
+- `governance-rollback-evidence` (NEW; BLOCKER).
 
 ## 11. Lift target
 

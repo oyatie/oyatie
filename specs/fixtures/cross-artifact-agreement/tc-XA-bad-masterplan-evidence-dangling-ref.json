@@ -253,7 +253,7 @@
       }
     ]
   },
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
   "plan_evidence_crosscheck": {
     "tracked_paths": [
       "specs/masterplan.json"

@@ -12,7 +12,7 @@ companion_docs:
   - microservices/feature-flags/backfill-replay.md
   - microservices/feature-flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/incident-response.md
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Audit Replay

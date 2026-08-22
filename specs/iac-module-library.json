@@ -21,13 +21,13 @@
       "microservices/cloud-iac/ARCHITECTURE.md"
     ],
     "enforced_by_planned_advisory_until_crates_land": [
-      "oya-check-iac-shared-module-usage",
-      "oya-check-iac-module-path-canonical",
-      "oya-check-iac-module-signature-cosign",
-      "oya-check-iac-module-pin",
-      "oya-check-iac-opentofu-only",
-      "oya-check-iac-thin-wrapper-line-floor",
-      "oya-check-iac-module-catalog-discoverability"
+      "check-iac-shared-module-usage",
+      "check-iac-module-path-canonical",
+      "check-iac-module-signature-cosign",
+      "check-iac-module-pin",
+      "check-iac-opentofu-only",
+      "check-iac-thin-wrapper-line-floor",
+      "check-iac-module-catalog-discoverability"
     ]
   },
   "version": "0.1.0-stub",
@@ -274,7 +274,7 @@
       },
       {
         "name": "shard-cell",
-        "purpose": "Shuffle-sharded cell per ADR-0333 + oya-shuffle-sharding crate",
+        "purpose": "Shuffle-sharded cell per ADR-0333 + shuffle-sharding crate",
         "status": "queued-for-wave-15Q"
       },
       {
@@ -349,7 +349,7 @@
     "step_4": "Add primitive entry to this file's primitives[<context>] array",
     "step_5": "Add primitive entry to microservices/cloud-iac/modules/catalog.json machine-readable mirror per ADR-0339 B2.029",
     "step_6": "Submit cosign attestation per ADR-0181",
-    "step_7": "Lane sweep: oya-check-iac-module-catalog-discoverability + oya-check-iac-module-signature-cosign + oya-check-iac-opentofu-only must all pass before merge"
+    "step_7": "Lane sweep: check-iac-module-catalog-discoverability + check-iac-module-signature-cosign + check-iac-opentofu-only must all pass before merge"
   },
   "wave_15Q_iac_modules_dispatch_note": "The ~50 module bodies enumerated above are queued for Wave 15Q-IaC-modules under ADR-0328 batch discipline per ADR-0339 B2.019. Wave 15Q-IaC-modules dispatch sequencing lives in /specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_waves. Per-µservice migration of existing iac/<context>/main.tf bodies to thin-wrapper invocations follows per-µservice IPs at microservices/<name>/IPs/IP-iac-module-library-migration.md per ADR-0339 B2.017."
 }

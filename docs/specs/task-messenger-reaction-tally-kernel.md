@@ -1,6 +1,6 @@
 # Spec: messenger-reaction-tally-kernel
 
-**Crate**: `oya-messenger-domain`  
+**Crate**: `messenger-domain`  
 **Module**: `reaction_tally`  
 **Kind**: Pure deterministic kernel slice — no I/O, no async, no external dependencies beyond those already in Cargo.toml.
 
@@ -24,7 +24,7 @@ re-derives `count` from the actor roster.
 ## Contracts
 
 No external API contract is introduced by this slice (pure domain kernel). The types become part
-of the `oya_messenger_domain` public surface and may be consumed by usecase/adapter layers in
+of the `messenger_domain` public surface and may be consumed by usecase/adapter layers in
 future slices.
 
 ---
@@ -32,7 +32,7 @@ future slices.
 ## Module Layout (flat-clean-arch per ADR-0509)
 
 ```
-crates/oya-messenger-domain/src/
+crates/messenger-domain/src/
   lib.rs                    ← add: pub mod reaction_tally; pub use reaction_tally::*;
   reaction.rs               ← existing, unchanged
   reaction_tally.rs         ← NEW: TallyEntry, ReactionTally, all unit tests
@@ -122,7 +122,7 @@ not constitute a µservice promotion).
 
 ## Crate Boundary
 
-- ONLY `oya-messenger-domain` is modified.
+- ONLY `messenger-domain` is modified.
 - No new workspace member.
 - No edit to root `Cargo.toml`.
 - No async / I/O / external crate additions.

@@ -23,13 +23,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_regulator_export_completed_total{outcome="success"}[5m]))
+                sum(rate(analytics_regulator_export_completed_total{outcome="success"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_regulator_export_completed_total[5m]))
+                sum(rate(analytics_regulator_export_completed_total[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

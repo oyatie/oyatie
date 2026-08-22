@@ -72,7 +72,7 @@ oya calendar cache warm --tenant <hashed-id> --range "now+0h to now+72h" --audit
 ### Step 3 — Scale Valkey shards if memory > 80%
 
 ```bash
-helm upgrade oya-calendar-valkey ./iac/helm/valkey --set shardCount=5
+helm upgrade calendar-valkey ./iac/helm/valkey --set shardCount=5
 ```
 
 ### Step 4 — If grant-revocation missed invalidation
@@ -94,7 +94,7 @@ oya calendar cache rotate-prefix --pack <pack> --audit-reason "RB-availability-c
 Patroni-managed failover should auto-promote. Verify:
 
 ```bash
-kubectl get pods -n calendar -l app=oya-calendar-valkey
+kubectl get pods -n calendar -l app=calendar-valkey
 ```
 
 Manual promotion (last resort, 2-person rule):

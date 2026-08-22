@@ -10,7 +10,7 @@ purpose: |
   Define the mechanics of cutting a release/X.Y branch from origin/prod: the tag
   protocol, the read-only invariant, the patch flow back through the four-layer
   pipeline, and the cherry-pick rules. Aligns with Kubernetes release-X.Y model.
-planned_enforcement_ref: oya-governance-release-branch-cut, oya-governance-cherry-pick-trail
+planned_enforcement_ref: governance-release-branch-cut, governance-cherry-pick-trail
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -24,12 +24,12 @@ doc_status: published
 ```
 origin/dev      → origin/staging → origin/prod
                                      │
-                                     ├─ tag oya-v3.4.0
+                                     ├─ tag v3.4.0
                                      │
                                      └─ release/3.4 (cut from tag)
                                             │
-                                            ├─ tag oya-v3.4.1 (cherry-pick)
-                                            ├─ tag oya-v3.4.2 (cherry-pick)
+                                            ├─ tag v3.4.1 (cherry-pick)
+                                            ├─ tag v3.4.2 (cherry-pick)
                                             └─ ...
 ```
 
@@ -41,9 +41,9 @@ feature-complete and accumulates only cherry-picked fixes thereafter.
 | Object | Format | Example |
 |---|---|---|
 | Release branch | `release/X.Y` | `release/3.4` |
-| Cut tag | `oya-vX.Y.0` | `oya-v3.4.0` |
-| Patch tag | `oya-vX.Y.Z` (Z ≥ 1) | `oya-v3.4.7` |
-| Pre-release tag | `oya-vX.Y.0-rc.N` | `oya-v3.4.0-rc.2` |
+| Cut tag | `vX.Y.0` | `v3.4.0` |
+| Patch tag | `vX.Y.Z` (Z ≥ 1) | `v3.4.7` |
+| Pre-release tag | `vX.Y.0-rc.N` | `v3.4.0-rc.2` |
 
 Note the `/` separator (Atlassian Git Flow extension default). The `-` form is
 also tolerated but discouraged.
@@ -54,16 +54,16 @@ The cut is invoked ONLY by the `release-cherry-pick` agent (or a human operator
 with Directive 12 documentation). The protocol:
 
 1. **Pre-cut audit**: every fitness lane green on `origin/prod` HEAD.
-2. **Tag prod at HEAD**: `git tag -a oya-vX.Y.0 -m "..." <prod-sha>`.
-3. **Push the tag**: `git push origin oya-vX.Y.0`.
-4. **Create branch**: `git branch release/X.Y oya-vX.Y.0`.
+2. **Tag prod at HEAD**: `git tag -a vX.Y.0 -m "..." <prod-sha>`.
+3. **Push the tag**: `git push origin vX.Y.0`.
+4. **Create branch**: `git branch release/X.Y vX.Y.0`.
 5. **Push the branch**: `git push origin release/X.Y`.
 6. **Protect the branch**: GH branch protection set to "release-cherry-pick agent only".
 7. **Stamp `Cargo.toml`** on the release branch: workspace version → `X.Y.0`.
 8. **Emit evidence**: `EVT-RELEASE-BRANCH-CUT` to D14 with the prod SHA, the
    tag, the branch, the lane states, and the agent signature.
 
-Step 1 is tracked by planned advisory lane `oya-governance-release-branch-cut` — without
+Step 1 is tracked by planned advisory lane `governance-release-branch-cut` — without
 green lanes the cut is refused.
 
 ## 4. Read-only invariant
@@ -89,7 +89,7 @@ A fix that needs to land on a release branch flows like this:
 2. PR merges through the four-layer pipeline (dev → staging → prod).
 3. Once on `origin/prod`, the `release-cherry-pick` agent reads the frontmatter
    and cherry-picks the commit to each named release branch.
-4. CI runs on the release branch; if green, the agent tags `oya-vX.Y.<Z+1>`.
+4. CI runs on the release branch; if green, the agent tags `vX.Y.<Z+1>`.
 5. Per-axis playbook decides whether to roll a binary release.
 
 This guarantees every fix that ships on a release branch ALSO exists on
@@ -121,14 +121,14 @@ Refused cherry-picks emit `EVT-CHERRY-PICK-REFUSED` with the rejection reason.
 On the release branch, the workspace `Cargo.toml` version is `X.Y.Z`. On each
 cherry-pick that ships:
 - Patch increment `Z → Z+1`.
-- New tag `oya-vX.Y.<Z+1>`.
+- New tag `vX.Y.<Z+1>`.
 - `CHANGELOG.md` entry on the release branch (cherry-pick agent appends).
 
 ## 9. EOL of a release branch
 
 When the release branch is 12 months past its `vX.Y.0` tag:
 
-- `oya-governance-version-eol-warning` emits at 9 months (90-day notice).
+- `governance-version-eol-warning` emits at 9 months (90-day notice).
 - At 12 months: branch goes into archive mode (read-only, no further patches).
 - Final `EVT-RELEASE-BRANCH-EOL` evidence emitted.
 

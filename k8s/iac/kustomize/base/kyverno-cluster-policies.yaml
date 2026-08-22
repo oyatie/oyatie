@@ -3,7 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: cloud-k8s-require-restricted-runtime
   labels:
-    app.kubernetes.io/part-of: oya-cloud-k8s
+    app.kubernetes.io/part-of: cloud-k8s
     oyatie/microservice: cloud-k8s
     oyatie.io/admission-adapter: kyverno
 spec:

@@ -10,7 +10,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-affected-set-bin",
+    name = "cloud-ci-affected-set-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
@@ -25,9 +25,9 @@ rust_binary(
 # so the FULL tier is a ratchet, not a flag-day requirement. Reuses the ADR-0551 merge-base
 # frozen-baseline pattern; the merge-base report is materialized out-of-band (never candidate-controlled).
 rust_binary(
-    name = "oya-cloud-ci-build-health-bin",
+    name = "cloud-ci-build-health-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-build-health.rs",
+    crate_root = "src/bin/cloud-ci-build-health.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -44,10 +44,10 @@ rust_binary(
 # baseline consumer (provenance selection, kind scoping, expiry, malformed payloads) so the FULL
 # tier can only skip its cold merge-base rebuild on a fully validated push-to-dev baseline.
 rust_test(
-    name = "oya-cloud-ci-build-health-unittest",
+    name = "cloud-ci-build-health-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_cloud_ci_build_health_unittest",
-    crate_root = "src/bin/oya-cloud-ci-build-health.rs",
+    crate = "cloud_ci_build_health_unittest",
+    crate_root = "src/bin/cloud-ci-build-health.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -60,9 +60,9 @@ rust_test(
 # Adapter-only visibility helper for GH #901: wraps long-running workflow commands and prints
 # phase + elapsed-seconds heartbeats while preserving the wrapped command's exit status.
 rust_binary(
-    name = "oya-cloud-ci-step-telemetry-bin",
+    name = "cloud-ci-step-telemetry-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-step-telemetry.rs",
+    crate_root = "src/bin/cloud-ci-step-telemetry.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -70,10 +70,10 @@ rust_binary(
 )
 
 rust_test(
-    name = "oya-cloud-ci-step-telemetry-unittest",
+    name = "cloud-ci-step-telemetry-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_cloud_ci_step_telemetry_unittest",
-    crate_root = "src/bin/oya-cloud-ci-step-telemetry.rs",
+    crate = "cloud_ci_step_telemetry_unittest",
+    crate_root = "src/bin/cloud-ci-step-telemetry.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -81,12 +81,12 @@ rust_test(
 )
 
 # ADR-0711 hub-exclusivity live producer: loads #hubs.paths + open-PR changed files (fixture or
-# GitHub REST via reqwest) and REFUSEs multi-own. Invoked from the oya-ci-required affected-set
+# GitHub REST via reqwest) and REFUSEs multi-own. Invoked from the presubmit affected-set
 # admission path with --live-open-prs.
 rust_binary(
-    name = "oya-cloud-ci-hub-exclusivity-bin",
+    name = "cloud-ci-hub-exclusivity-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-hub-exclusivity.rs",
+    crate_root = "src/bin/cloud-ci-hub-exclusivity.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -98,10 +98,10 @@ rust_binary(
 )
 
 rust_test(
-    name = "oya-cloud-ci-hub-exclusivity-unittest",
+    name = "cloud-ci-hub-exclusivity-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_cloud_ci_hub_exclusivity_unittest",
-    crate_root = "src/bin/oya-cloud-ci-hub-exclusivity.rs",
+    crate = "cloud_ci_hub_exclusivity_unittest",
+    crate_root = "src/bin/cloud-ci-hub-exclusivity.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
@@ -206,9 +206,9 @@ rust_test(
 # owners-from-envelopes: CODEOWNERS + directory OWNERS faces from integ envelopes
 # (#path_ownership / #roots / #planes). Living SSOT domain_stack_integ_model.
 rust_binary(
-    name = "oya-cloud-ci-owners-from-envelopes-bin",
+    name = "cloud-ci-owners-from-envelopes-bin",
     srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/bin/oya-cloud-ci-owners-from-envelopes.rs",
+    crate_root = "src/bin/cloud-ci-owners-from-envelopes.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",

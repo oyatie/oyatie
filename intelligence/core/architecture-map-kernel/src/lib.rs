@@ -4,7 +4,7 @@
 //! Walks Cargo workspace + OpenAPI contracts + capability-registry + cedar-
 //! fragments + microservices/bounded-contexts registries to produce a
 //! machine-readable architecture map. The map is graphed and visible per the
-//! directive; freshness lane `oya-governance-architecture-map-freshness`
+//! directive; freshness lane `governance-architecture-map-freshness`
 //! enforces that the on-disk map matches the live workspace state.
 //!
 //! This crate is the kernel: pure std-only, takes parsed inputs as data,

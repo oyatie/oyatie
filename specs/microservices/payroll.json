@@ -20,10 +20,10 @@
       "tenant-work"
     ],
     "crate_refs_planned": [
-      "oya-payroll-run-kernel",
+      "payroll-run-kernel",
       "payroll-run-domain",
       "payroll-run-app",
-      "oya-payroll-run-rest"
+      "payroll-run-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
   },
@@ -350,7 +350,7 @@
         "notes": "EU expansion covers GDPR, works-council/local labor overlays, VAT, statutory accounting exports, and data-residency policy."
       }
     ],
-    "validation_lane_ref": "oya-governance-regional-pack-contracts"
+    "validation_lane_ref": "governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -516,11 +516,11 @@
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
+      "verification": "cargo nextest -p security-domain -- cross_tenant"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
+      "verification": "cargo bench -p bench -- enterprise_hot_paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
@@ -597,7 +597,7 @@
     },
     {
       "id": "D-04",
-      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier tenant-rbac crate naming; Payroll implementation crates use oya-payroll-<bounded-context>-<layer> under microservices/payroll/crates/.",
+      "decision": "ADR-0131/ADR-0132 flat microservice layout supersedes earlier tenant-rbac crate naming; Payroll implementation crates use payroll-<bounded-context>-<layer> under microservices/payroll/crates/.",
       "date": "2026-05-23"
     },
     {

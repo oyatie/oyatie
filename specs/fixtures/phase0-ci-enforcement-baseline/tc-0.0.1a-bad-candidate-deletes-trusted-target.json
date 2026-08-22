@@ -1,7 +1,7 @@
 {
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ]
   },
   "candidate_mutation": {
@@ -18,10 +18,10 @@
   "producer_contract": {
     "candidate_bytes_policy": "candidate_controls_target_inventory",
     "command": "candidate checkout runs buck2 //... without trusted target inventory",
-    "context": "oya-ci-required",
-    "controller": "oya-ci-controller",
+    "context": "presubmit",
+    "controller": "ci-controller",
     "gate_definition_source": "candidate_pr_bytes",
-    "kind": "oya-ci-controller",
+    "kind": "ci-controller",
     "status_posts_on": "candidate_sha"
   },
   "source_test": ".omx/plans/test-spec-phase0.md#T0.0.1a"

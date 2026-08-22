@@ -4,7 +4,7 @@ ip_id: IP-004
 microservice: identity
 status: ga
 related_adrs: [ADR-0188, ADR-0507, ADR-0508]
-related_crates: [oya-shared-webauthn-server-kernel]
+related_crates: [shared-webauthn-server-kernel]
 date: 2026-05-18
 owner_team: axis-identity
 ---
@@ -13,15 +13,15 @@ owner_team: axis-identity
 
 ## Goal
 
-Land `oya-shared-webauthn-server-kernel`: vendor-neutral WebAuthn L3 state machine for registration + authentication ceremonies with AAGUID allowlist enforcement, sign-count monotonic-increase replay defense, conditional UI mediation, and per-pack-tier attestation policy. The kernel exposes an adapter contract that wraps `webauthn-rs` v0.5+ today (per ADR-0188 §In-house roadmap) and remains swap-ready.
+Land `shared-webauthn-server-kernel`: vendor-neutral WebAuthn L3 state machine for registration + authentication ceremonies with AAGUID allowlist enforcement, sign-count monotonic-increase replay defense, conditional UI mediation, and per-pack-tier attestation policy. The kernel exposes an adapter contract that wraps `webauthn-rs` v0.5+ today (per ADR-0188 §In-house roadmap) and remains swap-ready.
 
 ## Files to create
 
 | File | Purpose |
 |---|---|
-| `crates/oya-shared-webauthn-server-kernel/Cargo.toml` | manifest |
-| `crates/oya-shared-webauthn-server-kernel/src/lib.rs` | trait + types + state machine + in-memory stores |
-| `crates/oya-shared-webauthn-server-kernel/tests/webauthn_server_kernel.rs` | integration tests |
+| `crates/shared-webauthn-server-kernel/Cargo.toml` | manifest |
+| `crates/shared-webauthn-server-kernel/src/lib.rs` | trait + types + state machine + in-memory stores |
+| `crates/shared-webauthn-server-kernel/tests/webauthn_server_kernel.rs` | integration tests |
 
 LoC: ~530 (lib) + ~330 (tests) = ~860 lines.
 
@@ -106,7 +106,7 @@ The kernel takes `now_unix` as a parameter on every method that needs time. No h
 
 ## Evidence to emit
 
-- `evidence/identity/crate-tests/oya-shared-webauthn-server-kernel-<date>.json`
+- `evidence/identity/crate-tests/shared-webauthn-server-kernel-<date>.json`
 - Test count: 10/10 pass.
 
 ## Acceptance — DONE when

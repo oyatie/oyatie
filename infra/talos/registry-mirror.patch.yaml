@@ -15,10 +15,10 @@
 # infra/registry/registry.k8s.yaml); if that pin changes, change it here too.
 #
 # Applied without a reboot; verified by a pod pulling
-# registry.oya-registry.svc.cluster.local:5000/... successfully after the patch.
+# registry.registry.svc.cluster.local:5000/... successfully after the patch.
 machine:
   registries:
     mirrors:
-      registry.oya-registry.svc.cluster.local:5000:
+      registry.registry.svc.cluster.local:5000:
         endpoints:
           - http://10.107.56.227:5000

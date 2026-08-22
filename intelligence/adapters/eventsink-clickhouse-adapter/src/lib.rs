@@ -4,7 +4,7 @@
 //! Implements [`EventSink`] from `intelligence-kernel` by
 //! INSERTing [`LlmGatewayEvent`] rows into the `cloud_intelligence_receipts`
 //! table in the caller's per-tenant ClickHouse database via the shared
-//! [`oya_shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
+//! [`shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
 //!
 //! ## Insert shape
 //!
@@ -34,8 +34,8 @@ use std::fmt;
 use std::sync::Mutex;
 
 use intelligence_kernel::{EventSink, LlmGatewayEvent};
-use oya_shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
-use oya_shared_olap_client_kernel::{
+use shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
+use shared_olap_client_kernel::{
     InsertBatch, OlapClient, QualifiedTable, TableName, TenantId, Value,
 };
 use tracing::warn;
@@ -233,7 +233,7 @@ mod tests {
         // Force an invalid tenant_id by constructing a kernel TenantId we
         // can't create with an empty string, so we patch via a wrapper:
         // instead build an event with a valid kernel TenantId but inject a
-        // tenant whose oya-shared-olap-client-kernel TenantId::try_new would
+        // tenant whose shared-olap-client-kernel TenantId::try_new would
         // reject (the olap kernel disallows chars beyond alphanumeric/-/_).
         event.tenant_id = KernelTenantId::new("tenant a").unwrap(); // space is invalid for olap kernel
         let result = sink.try_emit(&event);

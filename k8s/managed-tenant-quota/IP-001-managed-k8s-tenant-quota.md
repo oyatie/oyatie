@@ -11,7 +11,7 @@ per ADR-0376. Crates: kernel, api, adapter-cedar, adapter-inmemory, app.
 
 - All 5 crates pass `cargo nextest run`.
 - `evaluate()` is deterministic, total, panic-free (ADR-0083 Tier-3).
-- Cedar RBAC default-deny enforced via `oya-identity-workload-authz-cedar-adapter`.
+- Cedar RBAC default-deny enforced via `identity-workload-authz-cedar-adapter`.
 - REST API acceptance tests pass (35/35).
 - Billing + audit chain emission: typed `Unimplemented` placeholders with
   `registry/placeholder-debt/adr-follow-ups.yaml#adr-0376-billing-emission` entries.

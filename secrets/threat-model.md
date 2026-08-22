@@ -46,12 +46,12 @@ All components introduced by ADR-0131 Cloud split and this PRD, deployed in a **
 
 | Layer-A (adopted OSS / vendor) | Layer-B (oyatie-owned) |
 |---|---|
-| OpenBao 2.x LTS (Vault open-source fork) | `oya-cloud-secrets-secret-reference-resolver-*` (9 crates) |
-| Patroni-HA Postgres (OpenBao storage backend) | `oya-cloud-secrets-openbao-operator-*` (6 crates) |
-| OCI Cloud-HSM (FIPS 140-3 Level 3 HSM partitions) | `oya-cloud-secrets-key-rotation-scheduler-*` (7 crates) |
-| Thales Luna HSM (pack-kr regulated tenants) | `oya-cloud-secrets-hsm-integration-*` (5 crates) |
-| cert-manager (mTLS issuance) | `oya-cloud-secrets-per-tenant-namespace-controller-*` (6 crates) |
-| SPIRE (SPIFFE identity issuance to µservice consumers) | `oya-cloud-secrets-audit-emitter-*` (5 crates) |
+| OpenBao 2.x LTS (Vault open-source fork) | `cloud-secrets-secret-reference-resolver-*` (9 crates) |
+| Patroni-HA Postgres (OpenBao storage backend) | `cloud-secrets-openbao-operator-*` (6 crates) |
+| OCI Cloud-HSM (FIPS 140-3 Level 3 HSM partitions) | `cloud-secrets-key-rotation-scheduler-*` (7 crates) |
+| Thales Luna HSM (pack-kr regulated tenants) | `cloud-secrets-hsm-integration-*` (5 crates) |
+| cert-manager (mTLS issuance) | `cloud-secrets-per-tenant-namespace-controller-*` (6 crates) |
+| SPIRE (SPIFFE identity issuance to µservice consumers) | `cloud-secrets-audit-emitter-*` (5 crates) |
 | | SecretReference URI spec at `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto` |
 | | LEAN-A11 raw-secret-emission lane configuration |
 
@@ -137,7 +137,7 @@ Five trust boundaries:
 
 ## Assets & Data Classification
 
-Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data-class` LEAN lane.
+Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `check-data-class` LEAN lane.
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
@@ -168,7 +168,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Tenant operator (encryption-key BYOK upload, attestation review; ADR-0251 §D-10) | Untrusted external | OIDC + MFA + JIT short-lived token | Upload encryption-key BYOK to own tenant namespace; review own HSM attestation; never read other tenants |
 | ops-security (human) | Trusted internal | OIDC + MFA + JIT elevation + ops-security group | Admin OpenBao; rotate KEK; quarantine namespace; cannot read raw secrets without break-glass |
 | External auditor (SOC 2 / ISO / PCI-DSS QSA) | Read-only external on time-boxed window | OIDC + MFA + JIT token | Read audit-chain events; read policy + IaC; cannot read raw secrets |
-| Reviewer agent (oya-pr-review lane) | Trusted internal | OIDC-bound CI identity | Read OpenBao policy + IaC for PR review; cannot resolve secrets |
+| Reviewer agent (pr-review lane) | Trusted internal | OIDC-bound CI identity | Read OpenBao policy + IaC for PR review; cannot resolve secrets |
 | Attacker — opportunistic | Untrusted | none | Scan + low-skill; assume always present |
 | Attacker — targeted (nation-state, financially motivated) | Untrusted | none | Sophisticated; supply-chain awareness; HSM-extraction attempts; insider-recruitment |
 | Insider — accidental | Trusted internal | OIDC + MFA | Misconfigure policy, rotation cadence, namespace (mitigated by PR-review + LEAN gates + 4-eye admin operations) |
@@ -224,7 +224,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Rotation policies stored in OpenBao under `secret/policy/rotation/*` with write requiring 4-eye approval (OpenBao Sentinel policy).
   - Policy versions append-only; git history mirrors in repo (LEAN-A11 forbids raw secrets but rotation policy is INTERNAL_ONLY).
-  - `oya-cloud-secrets-key-rotation-scheduler-worker` emits `RotationOverdue` event after T+1 day past SLA.
+  - `cloud-secrets-key-rotation-scheduler-worker` emits `RotationOverdue` event after T+1 day past SLA.
   - Audit-emit on every policy mutation.
 - Owner: axis-cloud-secrets
 - Residual: L
@@ -283,9 +283,9 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: repo + commit history
 - Likelihood: H (without controls) → L (with LEAN-A11 BLOCKER) / Impact: Critical / Risk: **Critical → L**
 - Mitigations:
-  - LEAN-A11 `oya-check-raw-secret-emission` lane BLOCKER: gitleaks + tartufo + oyatie custom patterns (Stripe sk_, AWS AKIA, GCP private key, GitHub PAT ghp_, OpenBao token hvb., HSM PKCS#11 PIN, etc.) refuse any PR introducing a credential-shaped string.
+  - LEAN-A11 `check-raw-secret-emission` lane BLOCKER: gitleaks + tartufo + oyatie custom patterns (Stripe sk_, AWS AKIA, GCP private key, GitHub PAT ghp_, OpenBao token hvb., HSM PKCS#11 PIN, etc.) refuse any PR introducing a credential-shaped string.
   - PreReceive Git hook (defence-in-depth) on `oya-vcs`-managed branches.
-  - Quarterly retroactive scan via `oya-cloud-secrets-secret-leak-scanner` (cron); any hit triggers Sev-1 incident.
+  - Quarterly retroactive scan via `cloud-secrets-secret-leak-scanner` (cron); any hit triggers Sev-1 incident.
   - Tenant DPA forbids tenant-supplied secret material in PR comments/chat.
 - Owner: axis-cloud-secrets + axis-governance
 - Residual: L (false-negative on novel patterns; mitigated by quarterly pattern update + reviewer-agent vigilance)
@@ -298,7 +298,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Agent-side redaction: every transcript pass through a redaction filter that masks credential-shaped strings before writing to disk.
   - `.omc/state/` filesystem confinement: writeable only by agent process; no public exposure.
   - Per-session OIDC: tenant-touching agents authenticate; raw secrets never returned to agent context (SDK returns opaque `Secret<T>` wrapper; agent prompts shown only the SecretReference URI).
-  - Periodic scan: `oya-omc-state-leak-scanner` against `.omc/state/sessions/*` (cron + on-commit if state files are tracked, which they should not be — `.gitignore`).
+  - Periodic scan: `omc-state-leak-scanner` against `.omc/state/sessions/*` (cron + on-commit if state files are tracked, which they should not be — `.gitignore`).
 - Owner: axis-cloud-secrets + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.6; ISO 27001 A.5.15, A.5.34, A.8.12; GDPR Art. 32; HIPAA §164.312(a)(2)(iv); PCI-DSS §3.5.1
@@ -344,7 +344,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - SDK returns `Secret<T>` newtype with `Debug` returning `"[REDACTED]"`; `Display` not implemented.
   - SDK refuses to return raw `String`; consumer must use scoped `with_secret(|s| ...)` callback that zeroises after use.
-  - `oya-check-secret-newtype-leak` LEAN lane scans for `format!("{:?}", secret)` and `.to_string()` on `Secret<T>` types.
+  - `check-secret-newtype-leak` LEAN lane scans for `format!("{:?}", secret)` and `.to_string()` on `Secret<T>` types.
   - Loki ingest scans for credential-shaped strings; matched lines redacted + Sev-2 incident.
 - Owner: axis-cloud-secrets + axis-observability
 - Residual: L
@@ -440,7 +440,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Policies authored as code in `microservices/cloud-secrets/policy/openbao/*.hcl`; PR-reviewed.
   - Policy tests under `tests/policy/` validate scope per-policy.
-  - LEAN-A12 `oya-check-openbao-policy-scope` lane refuses policies granting >intended scope.
+  - LEAN-A12 `check-openbao-policy-scope` lane refuses policies granting >intended scope.
 - Owner: axis-cloud-secrets + axis-governance
 - Residual: L
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.5.15; PCI-DSS §7.2
@@ -461,12 +461,12 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 | Mitigation | Threats addressed | CI lane / control |
 |---|---|---|
-| LEAN-A11 `oya-check-raw-secret-emission` | T-I-01, T-I-02 | `cargo run -p oya-dev-cli -- gate validate lean-a11` |
+| LEAN-A11 `check-raw-secret-emission` | T-I-01, T-I-02 | `cargo run -p dev-cli -- gate validate lean-a11` |
 | SPIFFE workload identity | T-S-01 | SPIRE node-attestor + Kubernetes auth |
 | Per-tenant OpenBao namespace | T-S-03, T-E-01 | OpenBao policy + Cedar |
 | Per-µservice scope policy | T-S-01, T-E-01, T-E-03 | LEAN-A12 + OpenBao policy tests |
 | HSM partition (FIPS 140-3 Level 3) | T-I-04 | HSM attestation cron + audit-chain seal |
-| `Secret<T>` newtype + zeroize | T-I-06 | `oya-check-secret-newtype-leak` lane |
+| `Secret<T>` newtype + zeroize | T-I-06 | `check-secret-newtype-leak` lane |
 | In-process LRU + TTL ≤60s | T-D-01 | SDK design |
 | audit-chain Merkle + Ed25519 | T-R-01, T-R-02, T-S-02 | per Bominal ADR-0028 |
 | 4-eye break-glass | T-E-02 | OpenBao Sentinel policy `4_eye_approval` |

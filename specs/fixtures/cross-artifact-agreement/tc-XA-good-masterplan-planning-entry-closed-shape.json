@@ -263,5 +263,5 @@
       "policy_ref": "Seed Sub-AC 3"
     }
   },
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs"
 }

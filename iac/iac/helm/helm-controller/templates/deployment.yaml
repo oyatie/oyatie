@@ -12,28 +12,28 @@ Per ADR-0131 per-µservice flat layout + ADR-0123 secret-reference URI policy.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oya-cloud-iac-helm-controller
+  name: cloud-iac-helm-controller
   namespace: cloud-iac
   labels:
     microservice: cloud-iac
-    app.kubernetes.io/name: oya-cloud-iac-helm-controller
+    app.kubernetes.io/name: cloud-iac-helm-controller
     app.kubernetes.io/version: {{ $.Chart.AppVersion | default "0.1.0" }}
 spec:
   replicas: {{ $cfg.replicaCount | default 2 }}
   selector:
     matchLabels:
       microservice: cloud-iac
-      app.kubernetes.io/name: oya-cloud-iac-helm-controller
+      app.kubernetes.io/name: cloud-iac-helm-controller
   template:
     metadata:
       labels:
         microservice: cloud-iac
-        app.kubernetes.io/name: oya-cloud-iac-helm-controller
+        app.kubernetes.io/name: cloud-iac-helm-controller
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9090"
     spec:
-      serviceAccountName: oya-cloud-iac
+      serviceAccountName: cloud-iac
       automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
@@ -44,14 +44,14 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/oya-cloud-iac-helm-controller" }}:{{ $cfg.image.tag | default "0.1.0" }}"
+          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/cloud-iac-helm-controller" }}:{{ $cfg.image.tag | default "0.1.0" }}"
           imagePullPolicy: IfNotPresent
           ports:
             - {name: app,     containerPort: 9000, protocol: TCP}
             - {name: metrics, containerPort: 9090, protocol: TCP}
           env:
-            - {name: OYA_MICROSERVICE, value: cloud-iac}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://oya-observability-alloy.observability.svc.cluster.local:4317"}
+            - {name: OYATIE_MICROSERVICE, value: cloud-iac}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://observability-alloy.observability.svc.cluster.local:4317"}
             - {name: RUST_LOG, value: info}
           resources:
             requests:

@@ -20,11 +20,11 @@ deliverables:
   - id: ADR-0713-A
     description: "Severable Accept (a) — owned runtime shape: minimal PID1 reaper/launcher stub; projected kubelet + runtime-controller in restartable NON-PID1 supervisor child (one process); in-process CRI-shaped transport with CRI semantics canonical; external Unix socket behind versioned compatibility profile v1 (bootstrap-minimal vs promotion-complete); no long-lived container-manager daemon; OWN token + Go containerd bootstrap CONSUME proposals; overrule containerd product PORT. Round-5 Node Substrate DoD package (stub respawn constant-work; exclusive supervisor lease + dual-supervisor race; telemetry-first + NodeReady flap SLO/OpenSLO-or-EV0-owner; zero-trust checklist; FinOps K-stage exits; CAS crash semantics; stub LOC ratchet) + Round-4 recovery tests required before Accept of (a). Process-law exits recorded in body: K1-owned gated on owned-executor security-response; flake/rerun policy before first promotion-gate claim."
     exit_criteria: "Founder checks Accept (a) independently of (b). Accept (a) forbidden until state-machine/recovery DoD (incl. Round-5 package D-A3..D-A4 / D-A7..D-A9) is recorded and required tests (kill-9 continuity + upgrade reconnect + dual-supervisor race + stub respawn budget escalate) asserting kubelet-level reconvergence are named as mandatory encode evidence. Reject (a) restores CONSUME-external-runtimes posture without owned-runtime encode."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0713-B
     description: "Severable Accept (b) — os/-layer retirement encode: apex noun amend proposal (k8s projected → node supervisor → guest kernel); os/ harvest-then-retire; D-3 preconditions (machine-config harvest receipt before config-v1alpha1 delete; fleet-basis pin replacement; boot-marker contract; os/ charter amendment)."
     exit_criteria: "Founder checks Accept (b) independently of (a) for harvest/charter work. Accept (b) forbidden until D-3/D-B3 preconditions land or carry dated founder waiver. Retire/delete of destination-assumed os/ halves forbidden until Accept (a) or dated waiver. Encode PRs may not mass-delete os/ before harvest receipts."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0713: Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept
 
@@ -388,7 +388,7 @@ cluster control plane after Accept encode; Object/Link types land in the owning 
 
 - Boot receipts become checked edges; crash-loops escalate to NotReady; stub restart storms
   escalate via budgeted Node condition / break-glass.
-- CI: Accept evidence rides `oya-ci-required`; no authority-surface citation while Proposed.
+- CI: Accept evidence rides `presubmit`; no authority-surface citation while Proposed.
 
 ## Clean Architecture Impact
 

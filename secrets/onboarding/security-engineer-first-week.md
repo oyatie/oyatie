@@ -1,7 +1,7 @@
 # Security Engineer — First Week on `cloud-secrets`
 
 Audience: a security/cryptography engineer with KMS + HSM experience (Vault / AWS KMS / Azure Key Vault / Akeyless) joining the
-`oya-cloud-secrets-*` lane.
+`cloud-secrets-*` lane.
 
 ## Day 1 — required reading
 
@@ -39,7 +39,7 @@ Walk the audit chain:
 
 ## Day 3 — first-party types
 
-Read `crates/oya-cloud-secrets-domain/src/secret_kind.rs`. The first-party types are:
+Read `crates/cloud-secrets-domain/src/secret_kind.rs`. The first-party types are:
 1. `DbPassword` (Postgres, MySQL, MariaDB, CockroachDB, Spanner)
 2. `OauthRefreshToken` (Google, GitHub, GitLab, Microsoft Entra, Okta, Auth0)
 3. `X509Certificate` (chain + private key)
@@ -58,15 +58,15 @@ Read `crates/oya-cloud-secrets-domain/src/secret_kind.rs`. The first-party types
 16. `ValkeyAuthString`
 17. Custom-typed extension via `secret_kind = "custom:<name>"` (no first-party rotation logic)
 
-Each first-party type has a dedicated rotation handler under `crates/oya-cloud-secrets-rotators-*`.
+Each first-party type has a dedicated rotation handler under `crates/cloud-secrets-rotators-*`.
 
 ## Day 4 — author a rotator
 
 Pick a starter type from `microservices/cloud-secrets/backlog/starter-rotators.md`. Implement under
-`crates/oya-cloud-secrets-rotator-<name>/`:
+`crates/cloud-secrets-rotator-<name>/`:
 
 ```rust
-use oya_cloud_secrets_rotator::prelude::*;
+use cloud_secrets_rotator::prelude::*;
 
 #[derive(Rotator)]
 #[rotator(

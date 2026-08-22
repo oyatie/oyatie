@@ -96,7 +96,7 @@ opentelemetry-collector:
     exporters:
       # Tempo gateway (per ADR-0186 Stage 2 trace storage).
       otlp/tempo:
-        endpoint: oya-observability-tempo-distributor.observability.svc:4317
+        endpoint: observability-tempo-distributor.observability.svc:4317
         tls: { insecure: true }   # in-cluster; mTLS handled by service mesh (per ADR-0148)
 
     service:

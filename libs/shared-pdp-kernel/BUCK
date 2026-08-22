@@ -1,0 +1,25 @@
+rust_library(
+    name = "shared-pdp-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_pdp_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "shared-pdp-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_pdp_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

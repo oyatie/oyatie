@@ -17,7 +17,7 @@
       "name": "cloud-billing-tax",
       "description": "Code-backed Cloud Billing Tax local foundation for invoice API request validation and regional-pack-to-tax-invoice-format policy metadata. No live tax calculation engine, rate catalog, exemption certificate check, filing artifact generation, tax authority adapter, database, measured SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by CS-CLOUD-BILLING-TAX-001.",
       "crates": [
-        "oya-cloud-billing-tax-app"
+        "cloud-billing-tax-app"
       ]
     }
   ],
@@ -45,19 +45,19 @@
     {
       "tier": "T2",
       "name": "invoice-api-request-response-validation-and-status-mapping",
-      "file": "crates/oya-cloud-billing-tax-app/src/lib.rs",
+      "file": "crates/cloud-billing-tax-app/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "regional-pack-tax-invoice-format-policy",
-      "file": "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+      "file": "crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "shared-billing-tenant-class-tax-evidence-guardrail-metadata",
-      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+      "file": "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs",
       "risk_class": "high"
     }
   ],
@@ -74,7 +74,7 @@
       "id": "CS-CLOUD-BILLING-TAX-001",
       "title": "Regional tax invoice format policy plus Cloud Billing/Tax manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
+      "file": "crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
     }
   ],
   "regulatory_packs": [
@@ -185,25 +185,25 @@
   "tax_foundation": {
     "regional_pack_tax_invoice_format_policy": true,
     "supported_regional_pack_labels": [
-      "oya-pack-kr",
-      "oya-pack-jp",
-      "oya-pack-eu",
-      "oya-pack-in",
-      "oya-pack-br",
-      "oya-pack-ksa",
-      "oya-pack-uae"
+      "pack-kr",
+      "pack-jp",
+      "pack-eu",
+      "pack-in",
+      "pack-br",
+      "pack-ksa",
+      "pack-uae"
     ],
     "domain_tax_format_pack_labels": [
-      "oya-pack-electronic-tax",
-      "oya-pack-qualified-tax",
-      "oya-pack-country-tax",
-      "oya-pack-market-tax",
-      "oya-pack-trade-tax",
-      "oya-pack-vat-tax",
-      "oya-pack-gst-tax",
-      "oya-pack-fiscal-tax",
-      "oya-pack-clearance-tax",
-      "oya-pack-registration-tax"
+      "pack-electronic-tax",
+      "pack-qualified-tax",
+      "pack-country-tax",
+      "pack-market-tax",
+      "pack-trade-tax",
+      "pack-vat-tax",
+      "pack-gst-tax",
+      "pack-fiscal-tax",
+      "pack-clearance-tax",
+      "pack-registration-tax"
     ],
     "external_tax_authority_adapter": false,
     "runtime_tax_calculation_engine": false,
@@ -285,10 +285,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Cloud Billing Tax is intended Tier-2 first-party financial/compliance application workload. CS-CLOUD-BILLING-TAX-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-cloud-billing-tax-app/src/lib.rs",
-    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
-    "crates/oya-cloud-billing-domain/src/lib.rs",
-    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
+    "crates/cloud-billing-tax-app/src/lib.rs",
+    "crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+    "crates/cloud-billing-domain/src/lib.rs",
+    "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -309,10 +309,10 @@
   "iac_module_invocations": [],
   "data_classes_processed": [],
   "implemented_source_files": [
-    "crates/oya-cloud-billing-tax-app/src/lib.rs",
-    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
-    "crates/oya-cloud-billing-domain/src/lib.rs",
-    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
+    "crates/cloud-billing-tax-app/src/lib.rs",
+    "crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs",
+    "crates/cloud-billing-domain/src/lib.rs",
+    "crates/cloud-billing-domain/tests/cloud_billing_foundation.rs"
   ],
   "explicit_non_claims": [
     "No live tax calculation engine, statutory rate catalog, tax authority integration, e-invoice clearance, exemption certificate validation, filing artifact generation, database, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",

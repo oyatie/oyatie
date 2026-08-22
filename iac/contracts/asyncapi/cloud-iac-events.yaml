@@ -1,10 +1,10 @@
 asyncapi: 3.1.0
 info:
-  title: oya-cloud-iac — IaC pipeline events
+  title: cloud-iac — IaC pipeline events
   version: 1.0.0
   summary: Render / Apply / Rollback / Drift events emitted by the cloud-iac µservice
   description: |
-    Cross-µservice Workflow events emitted by `oya-cloud-iac-iac-*-worker` crates.
+    Cross-µservice Workflow events emitted by `cloud-iac-iac-*-worker` crates.
     Per PRD §"Workflow events produced" and the observability SLO gate integration
     (ADR-0139).
 

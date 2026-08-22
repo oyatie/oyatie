@@ -1,9 +1,9 @@
-// Cedar policy fragments for oya-managed-k8s-control-plane-host (ADR-0376).
+// Cedar policy fragments for managed-k8s-control-plane-host (ADR-0376).
 //
 // Authorization doctrine: ONLY platform / control-plane-operator principals may
 // provision or tear down a tenant control plane. Tenants are DEFAULT-DENY on the
 // control-plane-host concern — a tenant manages its cluster as a resource via the
-// oya-managed-k8s-cluster-lifecycle API, never the control-plane host directly.
+// managed-k8s-cluster-lifecycle API, never the control-plane host directly.
 // This is the core mitigation for the threat model's central risk: a tenant
 // reaching the management cluster or a peer tenant's control plane.
 //

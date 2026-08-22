@@ -38,8 +38,8 @@
     "destructive graph edits require undo snapshot and audit-safe diff summary"
   ],
   "test_refs": [
-    "crates/oya-saas-workflow-studio-app/tests/a11y.rs::test_canvas_keyboard_tour",
-    "crates/oya-saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
+    "crates/saas-workflow-studio-app/tests/a11y.rs::test_canvas_keyboard_tour",
+    "crates/saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
   ],
   "consumers": [
     "$ref:specs/microservices/workflow-studio.json#frontend_components"

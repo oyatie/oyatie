@@ -23,7 +23,7 @@ doctest = false
 
 [dependencies]
 data-analytics-domain = { path = "../analytics-domain" }
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
+shared-olap-client-kernel = { path = "../../../libs/shared-olap-client-kernel" }
 serde = { workspace = true }
 
 [lints]

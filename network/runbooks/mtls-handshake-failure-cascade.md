@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-network-mtls-handshake-failure-cascade.
 - Primary namespace: `cloud-network`.
-- Owning rotation: PagerDuty `oya-cloud-network-primary`.
-- Security secondary: PagerDuty `oya-security-policy-primary`.
+- Owning rotation: PagerDuty `cloud-network-primary`.
+- Security secondary: PagerDuty `security-policy-primary`.
 - Incident channel: `#inc-cloud-network`.
 - Customer channel: `#support-mtls-connectivity`.
 - Protected surface: SPIFFE SVIDs, Cilium mTLS, Envoy ingress, tenant CA, certificate rotation, east-west L7 policy.
@@ -41,13 +41,13 @@ doc_status: published
 - Alert `CloudNetworkTenantCaSigningFailure` fires.
 - Alert `CloudNetworkEnvoyTlsErrorRatioHigh` fires.
 - Alert `CloudNetworkCiliumMtlsPolicyDrift` fires.
-- Metric `oya_cloud_network_mtls_handshake_failure_ratio` exceeds 0.01.
-- Metric `oya_cloud_network_svid_rotation_lag_seconds` exceeds 600.
-- Metric `oya_cloud_network_tenant_ca_sign_error_total` increases.
-- Metric `oya_cloud_network_envoy_tls_handshake_error_total` spikes.
-- Metric `oya_cloud_network_spiffe_identity_missing_total` is non-zero.
-- Metric `oya_cloud_network_cert_expiry_seconds_min` is below 900.
-- Metric `oya_cloud_network_cilium_mtls_policy_drift_total` is non-zero.
+- Metric `cloud_network_mtls_handshake_failure_ratio` exceeds 0.01.
+- Metric `cloud_network_svid_rotation_lag_seconds` exceeds 600.
+- Metric `cloud_network_tenant_ca_sign_error_total` increases.
+- Metric `cloud_network_envoy_tls_handshake_error_total` spikes.
+- Metric `cloud_network_spiffe_identity_missing_total` is non-zero.
+- Metric `cloud_network_cert_expiry_seconds_min` is below 900.
+- Metric `cloud_network_cilium_mtls_policy_drift_total` is non-zero.
 - Tenant reports service-to-service calls failing with TLS errors.
 - Cloud-compute reports pods healthy but readiness probes fail through service mesh.
 - Cloud-iam reports workload principal attestation drift.
@@ -85,11 +85,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-network --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-network --severity sev1`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="mtls")'`.
-6. Query handshake ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_mtls_handshake_failure_ratio{cell="'$CELL'"}'`.
-7. Query SVID lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_svid_rotation_lag_seconds{tenant_id="'$TENANT'"}'`.
-8. Query CA sign errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_network_tenant_ca_sign_error_total[5m])'`.
-9. Query TLS errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_network_envoy_tls_handshake_error_total[5m])'`.
-10. Query expiry: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_cert_expiry_seconds_min{tenant_id="'$TENANT'"}'`.
+6. Query handshake ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_mtls_handshake_failure_ratio{cell="'$CELL'"}'`.
+7. Query SVID lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_svid_rotation_lag_seconds{tenant_id="'$TENANT'"}'`.
+8. Query CA sign errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_network_tenant_ca_sign_error_total[5m])'`.
+9. Query TLS errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_network_envoy_tls_handshake_error_total[5m])'`.
+10. Query expiry: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_cert_expiry_seconds_min{tenant_id="'$TENANT'"}'`.
 11. Open mTLS dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/mtls?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 12. Open certificate dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/certificates?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 13. Read Envoy logs: `kubectl -n cloud-network logs deploy/envoy-gateway --since=30m | rg "TLS|certificate|handshake|UNKNOWN_CA|expired"`.
@@ -166,9 +166,9 @@ doc_status: published
 6. Patch Cilium policy projection if mTLS policy drifted.
 7. Add regression fixture for expired SVID fail-closed.
 8. Add regression fixture for stale trust bundle.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain mtls -- --nocapture`.
-10. Run LB API tests: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-mtls --production-snapshot --cell $CELL`.
+9. Run domain tests: `cargo test -p cloud-network-domain mtls -- --nocapture`.
+10. Run LB API tests: `cargo test -p cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-network-mtls --production-snapshot --cell $CELL`.
 12. Verify mTLS canary: `oya ops probe cloud-network mtls --tenant $TENANT --service $SERVICE --cell $CELL --expect healthy`.
 13. Re-enable cert automation: `oya flags set oya.cloud_network.cert_rollout.auto=true --tenant $TENANT --cell $CELL --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -176,9 +176,9 @@ doc_status: published
 
 ## Verification Checklist
 - `CloudNetworkMtlsHandshakeFailureCritical` is green.
-- `oya_cloud_network_mtls_handshake_failure_ratio` is below 0.001.
-- `oya_cloud_network_svid_rotation_lag_seconds` is below 120.
-- `oya_cloud_network_cert_expiry_seconds_min` is above tier floor.
+- `cloud_network_mtls_handshake_failure_ratio` is below 0.001.
+- `cloud_network_svid_rotation_lag_seconds` is below 120.
+- `cloud_network_cert_expiry_seconds_min` is above tier floor.
 - Tenant CA signing succeeds.
 - SPIFFE SVID inspection returns valid identity.
 - mTLS canary passes from all node pools.
@@ -238,11 +238,11 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-network-primary` for mTLS handshake failures.
-- Page `oya-security-policy-primary` if plaintext bypass is requested or enabled.
-- Page `oya-cloud-kms-primary` if tenant CA signing fails.
-- Page `oya-cloud-iam-primary` if workload identity is missing.
-- Page `oya-cloud-compute-primary` if node-pool SPIRE agent health is bad.
+- Page `cloud-network-primary` for mTLS handshake failures.
+- Page `security-policy-primary` if plaintext bypass is requested or enabled.
+- Page `cloud-kms-primary` if tenant CA signing fails.
+- Page `cloud-iam-primary` if workload identity is missing.
+- Page `cloud-compute-primary` if node-pool SPIRE agent health is bad.
 - Notify `#inc-cloud-network` with tenant, service, and cell.
 - Notify `#support-mtls-connectivity` before tenant-facing copy.
 - Notify `#compliance-review` if plaintext bypass occurred.

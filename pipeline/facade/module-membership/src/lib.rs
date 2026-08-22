@@ -27,7 +27,7 @@
 //!
 //! ## Ratchet semantics — BORN-ADVISORY with a FROZEN BASELINE
 //! After extending the registry, some current crates remain genuinely ambiguous (the
-//! `libs/oya-shared-*` cross-capability junk-drawer + `libs/oya-http-*` middleware + base/
+//! `libs/shared-*` cross-capability junk-drawer + `libs/http-*` middleware + base/
 //! candidates). They are captured as the registry's `frozen_unmapped_baseline` and are NOT
 //! force-mapped to a wrong capability. The gate is ADVISORY for those crates but enforces NO
 //! REGRESSION: a crate unmapped AND not in the frozen baseline is a NEW unmapped crate and FAILS
@@ -308,7 +308,7 @@ fn string_array(value: &Value, key: &str) -> Vec<String> {
 /// evaluator emits `MEM-POLICY-MALFORMED` and fails CLOSED rather than silently dropping a check.
 ///
 /// `pub` (additive, same pattern as slice 2.5): the born-accounting register_crate ORCHESTRATOR
-/// (`oya-cloud-ci-register-crate-app`) reuses [`parse_mapping`] + [`homes_for`] verbatim so its
+/// (`cloud-ci-register-crate-app`) reuses [`parse_mapping`] + [`homes_for`] verbatim so its
 /// "is this crate already capability-mapped?" check is DRIFT-PROOF — it never reimplements the home
 /// resolution this gate enforces. Fields stay private (the orchestrator treats `Mapping` as opaque,
 /// only passing it to [`homes_for`]).

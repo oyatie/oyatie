@@ -83,7 +83,7 @@
       "coverage_noncanonical_surface": "Tarpaulin is not the canonical coverage surface",
       "coverage_instrumentation": "rustc -C instrument-coverage with LLVM_PROFILE_FILE, llvm-profdata merge, and llvm-cov report/export under Buck2 target evidence",
       "mutation_local_ergonomics": "Dual Cargo.toml + Buck2/Reindeer setup keeps local Cargo mutation testing advisory for developer feedback while Buck2/cloud-ci captured evidence remains merge authority.",
-      "hyperscaler_orientation": "Language gates are deterministic, target-addressable, allowlist-driven, non-claiming, and suitable for trusted cloud-ci/oya-ci promotion."
+      "hyperscaler_orientation": "Language gates are deterministic, target-addressable, allowlist-driven, non-claiming, and suitable for trusted cloud-ci/ci promotion."
     }
   },
   "offender_inventory": {
@@ -94,7 +94,7 @@
         "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
-        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_dogfood_ci_toolchain_lane_reconciliation_check.py",
@@ -106,13 +106,13 @@
         "path": "scripts/tests/cloud_enforceability_facets_check.py",
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
-        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
-        "retirement_action": "Ported to //cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate and retired from scripts/tests."
+        "retirement_action": "Ported to //cloud/cloud-ci/gates/cloud-ci-hyperscaler-parity-taxonomy-app:cloud-ci-hyperscaler-parity-taxonomy-app-gate and retired from scripts/tests."
       },
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
@@ -134,7 +134,7 @@
         "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
         "kind": "python_test_sprawl_backlog",
         "present_in_current_head": false,
-        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
       }
     ]
   },

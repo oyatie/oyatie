@@ -1,4 +1,4 @@
 {
-  "schema": "oya-merge-queue-admission-log/v1",
+  "schema": "merge-queue-admission-log/v1",
   "events": []
 }

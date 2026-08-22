@@ -1,12 +1,12 @@
 //! Env-gated LIVE Postgres integration tests for the durable SCIM adapters.
-//! They run ONLY when `OYA_BACKBONE_LIVE_POSTGRES` is truthy AND disposable
+//! They run ONLY when `OYATIE_BACKBONE_LIVE_POSTGRES` is truthy AND disposable
 //! database URLs are supplied; otherwise every test returns cleanly so the
 //! always-on lane stays database-free.
 //!
 //! Required environment when enabled:
-//! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
-//! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
-//! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
+//! - `OYATIE_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
+//! - `OYATIE_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
+//! - `OYATIE_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
 //!   NON-BYPASSRLS role; the adapter's role)
 //!
 //! What they prove against a real database:
@@ -18,13 +18,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use identity_scim_store_postgres::{PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE};
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
-use oya_shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
+use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 
-const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
-const SETUP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
-const APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+const ENABLE_ENV: &str = "OYATIE_BACKBONE_LIVE_POSTGRES";
+const SETUP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_URL";
+const APP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_APP_URL";
 const RUNTIME_ROLE: &str = "identity_scim_runtime";
 const GROUPS_TABLE: &str = "identity_scim.identity_scim_groups";
 

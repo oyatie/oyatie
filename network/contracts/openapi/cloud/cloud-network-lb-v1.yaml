@@ -28,28 +28,28 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Record the retired ./bin/oya verify --ci-required mirror as provenance only; network contract review now treats targeted Buck2 evidence plus the cloud-ci/oya-ci required context as merge authority and MUST NOT add new oya CLI verification authority.
+          Record the retired ./bin/oya verify --ci-required mirror as provenance only; network contract review now treats targeted Buck2 evidence plus the cloud-ci/ci required context as merge authority and MUST NOT add new oya CLI verification authority.
         enforced_by:
-          - oya-ci-required
+          - presubmit
           - cloud-ci-required-status
           - targeted-buck2-contract-evidence
       ADR-0347:
         purpose: >-
-          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+          Declare that every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
         enforced_by:
-          - oya-governance-no-foundry-fitness-residue
-          - oya-governance-lane-prefix-vocabulary
-          - oya-governance-rename-inventory-presence
+          - governance-no-foundry-fitness-residue
+          - governance-lane-prefix-vocabulary
+          - governance-rename-inventory-presence
       ADR-0348:
         purpose: >-
           Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
         enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-autosharding-manual-mode-refusal
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
+          - governance-sharding-automation-coverage
+          - governance-autosharding-manual-mode-refusal
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
         event_surface:
           autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
@@ -57,9 +57,9 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Record Jenkins and ArgoCD as bridge/reference CI/CD substrates only; network contract review must not claim canonical destination CI/CD authority outside cloud-ci/oya-ci required contexts and separately authorized CD adapters.
+          Record Jenkins and ArgoCD as bridge/reference CI/CD substrates only; network contract review must not claim canonical destination CI/CD authority outside cloud-ci/ci required contexts and separately authorized CD adapters.
         enforced_by:
-          - oya-ci-required
+          - presubmit
           - cloud-ci-required-status
           - bridge-adapter-nonclaim-review
     consumer_guidance:

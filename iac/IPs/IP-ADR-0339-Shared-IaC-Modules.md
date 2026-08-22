@@ -41,26 +41,26 @@ DOSSIER-010: DR replication shape is `active-active-multi-az-cross-region-warm` 
 DOSSIER-011: Regulatory packs declared: kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa.
 DOSSIER-012: Data classes processed: manifest-not-populated.
 DOSSIER-BC-001: Bounded context `cloud-iac` states: Bounded context 'cloud-iac' within cloud-iac (control plane); crate count=47.
-DOSSIER-CRATE-001: Existing crate `oya-cloud-iac-iac-applier-adapter` remains untouched by this document-stage IP.
-DOSSIER-CRATE-002: Existing crate `oya-cloud-iac-iac-applier-adapter-argocd` remains untouched by this document-stage IP.
-DOSSIER-CRATE-003: Existing crate `oya-cloud-iac-iac-applier-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-004: Existing crate `oya-cloud-iac-iac-applier-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-005: Existing crate `oya-cloud-iac-iac-applier-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-006: Existing crate `oya-cloud-iac-iac-applier-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-007: Existing crate `oya-cloud-iac-iac-applier-rest` remains untouched by this document-stage IP.
-DOSSIER-CRATE-008: Existing crate `oya-cloud-iac-iac-applier-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-009: Existing crate `oya-cloud-iac-iac-applier-worker` remains untouched by this document-stage IP.
-DOSSIER-CRATE-010: Existing crate `oya-cloud-iac-iac-registry-adapter` remains untouched by this document-stage IP.
-DOSSIER-CRATE-011: Existing crate `oya-cloud-iac-iac-registry-adapter-postgres` remains untouched by this document-stage IP.
-DOSSIER-CRATE-012: Existing crate `oya-cloud-iac-iac-registry-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-013: Existing crate `oya-cloud-iac-iac-registry-app` remains untouched by this document-stage IP.
-DOSSIER-CRATE-014: Existing crate `oya-cloud-iac-iac-registry-domain` remains untouched by this document-stage IP.
-DOSSIER-CRATE-015: Existing crate `oya-cloud-iac-iac-registry-kernel` remains untouched by this document-stage IP.
-DOSSIER-CRATE-016: Existing crate `oya-cloud-iac-iac-registry-rest` remains untouched by this document-stage IP.
-DOSSIER-CRATE-017: Existing crate `oya-cloud-iac-iac-registry-sdk` remains untouched by this document-stage IP.
-DOSSIER-CRATE-018: Existing crate `oya-cloud-iac-iac-registry-usecase` remains untouched by this document-stage IP.
-DOSSIER-CRATE-019: Existing crate `oya-cloud-iac-iac-registry-worker` remains untouched by this document-stage IP.
-DOSSIER-CRATE-020: Existing crate `oya-cloud-iac-iac-renderer-adapter` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `cloud-iac-iac-applier-adapter` remains untouched by this document-stage IP.
+DOSSIER-CRATE-002: Existing crate `cloud-iac-iac-applier-adapter-argocd` remains untouched by this document-stage IP.
+DOSSIER-CRATE-003: Existing crate `cloud-iac-iac-applier-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-004: Existing crate `cloud-iac-iac-applier-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-005: Existing crate `cloud-iac-iac-applier-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-006: Existing crate `cloud-iac-iac-applier-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-007: Existing crate `cloud-iac-iac-applier-rest` remains untouched by this document-stage IP.
+DOSSIER-CRATE-008: Existing crate `cloud-iac-iac-applier-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-009: Existing crate `cloud-iac-iac-applier-worker` remains untouched by this document-stage IP.
+DOSSIER-CRATE-010: Existing crate `cloud-iac-iac-registry-adapter` remains untouched by this document-stage IP.
+DOSSIER-CRATE-011: Existing crate `cloud-iac-iac-registry-adapter-postgres` remains untouched by this document-stage IP.
+DOSSIER-CRATE-012: Existing crate `cloud-iac-iac-registry-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-013: Existing crate `cloud-iac-iac-registry-app` remains untouched by this document-stage IP.
+DOSSIER-CRATE-014: Existing crate `cloud-iac-iac-registry-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-015: Existing crate `cloud-iac-iac-registry-kernel` remains untouched by this document-stage IP.
+DOSSIER-CRATE-016: Existing crate `cloud-iac-iac-registry-rest` remains untouched by this document-stage IP.
+DOSSIER-CRATE-017: Existing crate `cloud-iac-iac-registry-sdk` remains untouched by this document-stage IP.
+DOSSIER-CRATE-018: Existing crate `cloud-iac-iac-registry-usecase` remains untouched by this document-stage IP.
+DOSSIER-CRATE-019: Existing crate `cloud-iac-iac-registry-worker` remains untouched by this document-stage IP.
+DOSSIER-CRATE-020: Existing crate `cloud-iac-iac-renderer-adapter` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/cloud-iac/contracts/openapi/cloud-iac.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml.
 DOSSIER-CONTRACT-003: proto3: microservices/cloud-iac/contracts/proto/cloud-iac.proto.
@@ -76,13 +76,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `cloud-iac` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `cloud-iac` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `cloud-iac` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -211,7 +211,7 @@ MAINT-24M-024: Month 24: `cloud-iac` should have wrapper drift near zero; primit
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `cloud-iac` is `per_workflow_run`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `cloud-iac` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `cloud-iac` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `cloud-iac` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `cloud-iac` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.18` vCPU per tenant becomes 1.80 at 10 tenants, 18.00 at 100, and 180.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `384` MiB per tenant becomes 3840 MiB at 10 tenants, 38400 MiB at 100, and 384000 MiB at 1000.
@@ -326,9 +326,9 @@ VERIFY-009: Static read confirms `cloud-iac` ARCH has an `ADR-0339 integration` 
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: cloud-ci/oya-ci governance gate `adr-citation` for --docs-dir docs --decisions-dir docs/decisions is green in the branch-protected `oya-ci-required` context must pass before commit.
-VERIFY-014: cloud-ci/oya-ci governance gate `cohesion` is green in the branch-protected `oya-ci-required` context must pass before commit.
-VERIFY-015: `cargo run -q -p cloud-ci/oya-ci controller path -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: cloud-ci/ci governance gate `adr-citation` for --docs-dir docs --decisions-dir docs/decisions is green in the branch-protected `presubmit` context must pass before commit.
+VERIFY-014: cloud-ci/ci governance gate `cohesion` is green in the branch-protected `presubmit` context must pass before commit.
+VERIFY-015: `cargo run -q -p cloud-ci/ci controller path -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `cloud-iac` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-iac` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-iac` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.
@@ -693,7 +693,7 @@ LIB-039-TENANT: Tenant-class posture is both tenant classes unless the module co
 LIB-039-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-039-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-040-NAME: `oyatie-as-cloud-provider/shard-cell` is a canonical shared primitive for ADR-0339 Wave 15Q.
-LIB-040-PURPOSE: Shuffle-sharded cell per ADR-0333 + oya-shuffle-sharding crate.
+LIB-040-PURPOSE: Shuffle-sharded cell per ADR-0333 + shuffle-sharding crate.
 LIB-040-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance_pack_set, workload_class, tags, and provider-specific sizing variables declared in the catalog.
 LIB-040-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-040-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.

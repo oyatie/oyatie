@@ -113,7 +113,7 @@ authority_chain_declaration: |
 <Customer-facing answer. Pricing tier, included quota, overage rate. Reference `docs/GTM-PLAN.md`.>
 
 ### EF5. What about my data — regulatory, residency, audit?
-<Customer-facing answer. Tenancy boundary, residency region, audit-chain emission, regulatory packs supported (`oya-pack-kr.PIPA`, `global.GDPR`, etc.). Reference `docs/PRIVACY-PROGRAM.md` and `docs/COMPLIANCE-MATRIX.md`.>
+<Customer-facing answer. Tenancy boundary, residency region, audit-chain emission, regulatory packs supported (`pack-kr.PIPA`, `global.GDPR`, etc.). Reference `docs/PRIVACY-PROGRAM.md` and `docs/COMPLIANCE-MATRIX.md`.>
 
 ---
 

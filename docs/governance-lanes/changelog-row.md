@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every PR that touches a canonical doc/standard/template/checklist has a corresponding CHANGELOG row.
 - enforces: STANDARD/changelog-discipline.
-- kernel_crate: `oya-governance-changelog-row-kernel` — `ChangelogRow { pr_id, touches_canonical, row_present, row_classification }`, verdict `ChangelogRowFitnessReport { prs_checked }`.
-- runner_path: `tools/oya-governance-changelog-row`
+- kernel_crate: `governance-changelog-row-kernel` — `ChangelogRow { pr_id, touches_canonical, row_present, row_classification }`, verdict `ChangelogRowFitnessReport { prs_checked }`.
+- runner_path: `tools/governance-changelog-row`
 - inputs: PR diff list, `docs/CHANGELOG.md`, canonical-path list.
 - failure_modes:
   - canonical doc touched, no CHANGELOG row
   - row exists but missing classification (added/changed/removed/deprecated)
   - row classification not in canonical set
-- ci_invocation: `cargo run -p oya-governance-changelog-row`
+- ci_invocation: `cargo run -p governance-changelog-row`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

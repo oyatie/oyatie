@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Phase -1 corpus extractor (ADR-0580): a deterministic, hermetic binary that resolves a
-# capability's crates via libs/oya-workspace-members-kernel, walks each crate's git-tracked sources
+# capability's crates via libs/workspace-members-kernel, walks each crate's git-tracked sources
 # (via `git ls-files` — no ambient filesystem walk), parses them with `syn`, and emits one
 # content-addressed `Function` fact per item plus the OPAQUE-RATE. NO hand-listed function set — the
 # facts ARE the syn output. No clock/rand/net; output is sorted/canonical.
@@ -16,7 +16,7 @@ license = "Apache-2.0"
 blake3 = "1.8.5"
 corpus-core = { path = "../core" }
 corpus-yaml-kernel = { path = "../yaml-kernel" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+workspace-members-kernel = { path = "../../../libs/workspace-members-kernel" }
 syn = { workspace = true }
 quote = { workspace = true }
 

@@ -154,10 +154,10 @@
       "write_scope": [
         "Cargo.toml",
         "Cargo.lock",
-        "crates/oya-ontology-kernel",
+        "crates/ontology-kernel",
         "use statements"
       ],
-      "reason": "ADR-0122 kernel naming is reconciled: oya-ontology-kernel is a workspace crate, current product refs point at the ontology catalog row, and use-statement sweep found no stale kernel import."
+      "reason": "ADR-0122 kernel naming is reconciled: ontology-kernel is a workspace crate, current product refs point at the ontology catalog row, and use-statement sweep found no stale kernel import."
     },
     {
       "id": "F-KG-01",
@@ -319,8 +319,8 @@
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
-              "id": "IP-003-oya-tooling-agent-read",
-              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+              "id": "IP-003-tooling-agent-read",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-tooling-agent-read.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },

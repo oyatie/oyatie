@@ -29,7 +29,7 @@
     {
       "adr": 223,
       "folded_into": 363,
-      "title": "ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs"
+      "title": "ADR-0223-git-drop-in-surface-with-explicit-policy-verbs"
     },
     {
       "adr": 361,
@@ -68,7 +68,7 @@
     {
       "adr": 513,
       "folded_into": 515,
-      "title": "ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform"
+      "title": "ADR-0513-ci-bespoke-rust-prow-cicd-platform"
     },
     {
       "adr": 359,
@@ -112,7 +112,7 @@
     {
       "adr": 358,
       "folded_into": 392,
-      "title": "ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay"
+      "title": "ADR-0358-ideal-production-roadmap-strangler-bazel-overlay"
     },
     {
       "adr": 112,

@@ -65,7 +65,7 @@ If new ECH config breaks clients:
 
 1. Document new ECH key in `iac/ech-config-history.yaml`.
 2. Postmortem if emergency.
-3. CI lane: `oya-governance-ech-readiness` should remain green.
+3. CI lane: `governance-ech-readiness` should remain green.
 
 ## H — References
 

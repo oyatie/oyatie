@@ -9,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_projection};
 use ci_planning_projection::render_board_sync_projection;
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 
 mod masterplan_source;
 mod rust_toolchain_drift;
@@ -19,12 +19,12 @@ pub use masterplan_source::{
 pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_toolchain};
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
-pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .";
+pub const FACE_REMEDIATION_COMMAND: &str = "buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root .";
 const RETIREMENT_CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
 const RETIREMENT_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
-pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
-pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
+pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; commit only PR-owned generated face diffs; controller-owned generated faces are materialized by cloud-ci/integration controllers, not contributor PRs; then run cloud-ci-face-settle --verify as the LAST step before EVERY push";
+pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
     "git commit -S -m \"chore: settle generated cloud-ci faces\"";
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
@@ -72,7 +72,7 @@ const GENERATED_FACE_PATHS: [&str; 7] = [
     "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
-/// but whose byte diffs are not staged by `oya-cloud-ci-face-settle` in contributor PRs.
+/// but whose byte diffs are not staged by `cloud-ci-face-settle` in contributor PRs.
 const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
     "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
     MASTERPLAN_PROJECTION_PATH,
@@ -82,10 +82,10 @@ const CONTROLLER_MATERIALIZED_ARTIFACT_PATHS: [&str; 5] = [
 ];
 const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
 const PRODUCER_TARGET: &str =
-    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
-const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
+    "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin";
+const CODEMOD_TARGET: &str = "//tools/reorg-codemod-app:reorg-codemod";
 const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
-    "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
+    "//tools/architecture-graph-generator-app:architecture-graph-generator";
 const MASTERPLAN_GENERATOR_TARGET: &str = "//marketplace/facade/dev-cli:oya";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str =
     "//tools/hooks/registration:claude-settings-json";
@@ -679,7 +679,7 @@ pub fn parse_freshness_check_args(args: Vec<String>) -> Result<FreshnessCheckArg
 }
 
 pub fn freshness_check_usage() -> &'static str {
-    "usage: oya-cloud-ci-freshness-app [--repo-root <path>] [--github-event]"
+    "usage: cloud-ci-freshness-app [--repo-root <path>] [--github-event]"
 }
 
 pub fn parse_materialize_generated_faces_args(
@@ -866,7 +866,7 @@ pub fn parse_materialize_generated_faces_args(
 }
 
 pub fn materialize_generated_faces_usage() -> &'static str {
-    "usage: oya-cloud-ci-materialize-generated-faces [--repo-root <path>] \
+    "usage: cloud-ci-materialize-generated-faces [--repo-root <path>] \
      [--github-event | --historical-merge-base <oid> | \
      [--retirement-control-plane <repo-relative-path> --retirement-facts-out <path> \
      --protected-base-commit <oid> --evaluated-commit <oid> --scm-event-name <name> \
@@ -933,7 +933,7 @@ pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, Fresh
 }
 
 pub fn face_settle_usage() -> &'static str {
-    "usage: oya-cloud-ci-face-settle [--repo-root <path>] [--settle [--commit] | --verify]"
+    "usage: cloud-ci-face-settle [--repo-root <path>] [--settle [--commit] | --verify]"
 }
 
 pub fn check_regenerated_faces(
@@ -2464,7 +2464,7 @@ fn write_regen_baseline(path: &Path, bytes: &str) -> Result<(), FreshnessError> 
 /// fallback (a de-committed frozen with a fallback would empty-frozen-deadlock — the #828 defect).
 ///
 /// Blob-INDEPENDENT: it runs the producer's `--face baseline`, which PRODUCES the baseline from
-/// source (merge-base scm-facts + `oya-ci.toml` + the tracked tree + the enforcement-liveness
+/// source (merge-base scm-facts + `ci.toml` + the tracked tree + the enforcement-liveness
 /// corpus) and never reads the (de-committed) `gate-baseline.generated.json`. Called TWICE by the
 /// materializer over the same worktree for the determinism canary; the producer is deterministic,
 /// so both runs agree on the ratchet projection.
@@ -2777,28 +2777,28 @@ fn exclusive_temporary_directory(label: &str) -> Result<PathBuf, FreshnessError>
 }
 
 fn temporary_scm_facts_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-scm-facts", ".json")
+    exclusive_temporary_file("ci-freshness-scm-facts", ".json")
 }
 
 fn temporary_active_artifact_contract_graph_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-active-artifact-contract-edges", ".json")
+    exclusive_temporary_file("ci-freshness-active-artifact-contract-edges", ".json")
 }
 
 fn temporary_volatile_facts_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-scm-volatile-facts", ".json")
+    exclusive_temporary_file("ci-freshness-scm-volatile-facts", ".json")
 }
 
 fn temporary_masterplan_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-masterplan", ".generated.json")
+    exclusive_temporary_file("ci-freshness-masterplan", ".generated.json")
 }
 
 fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
+    exclusive_temporary_file("ci-freshness-product-graph", ".html")
 }
 
 fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file(
-        "oya-ci-freshness-adr-census-epoch-receipt",
+        "ci-freshness-adr-census-epoch-receipt",
         ".generated.json",
     )
 }
@@ -2806,19 +2806,19 @@ fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> 
 /// ADR-0616: the file the emitter publishes the computed merge-base sha to, so the regeneration
 /// materializes exactly that source tree without recomputing the merge-base.
 fn temporary_merge_base_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-merge-base", ".txt")
+    exclusive_temporary_file("ci-freshness-merge-base", ".txt")
 }
 
 /// ADR-0616: the throwaway file the regenerated frozen baseline (from the merge-base source) is
 /// written to before the emitter turns it into the authoritative frozen snapshot.
 fn temporary_regen_baseline_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-regen-baseline", ".generated.json")
+    exclusive_temporary_file("ci-freshness-regen-baseline", ".generated.json")
 }
 
 /// ADR-0616: the throwaway file the SECOND (determinism-twin) regeneration is written to, so the
 /// emitter can assert the two regenerations project identically (the determinism canary).
 fn temporary_regen_baseline_verify_path() -> Result<PathBuf, FreshnessError> {
-    exclusive_temporary_file("oya-ci-freshness-regen-baseline-verify", ".generated.json")
+    exclusive_temporary_file("ci-freshness-regen-baseline-verify", ".generated.json")
 }
 
 struct TemporaryWorktree {
@@ -2828,7 +2828,7 @@ struct TemporaryWorktree {
 
 /// ADR-0616: the isolated linked worktree the merge-base SOURCE tree is checked out into.
 fn temporary_worktree_path() -> Result<TemporaryWorktree, FreshnessError> {
-    let reservation = exclusive_temporary_directory("oya-ci-freshness-mb-worktree")?;
+    let reservation = exclusive_temporary_directory("ci-freshness-mb-worktree")?;
     Ok(TemporaryWorktree {
         path: reservation.join("checkout"),
         reservation,
@@ -2957,7 +2957,7 @@ mod materialize_generated_faces_tests {
 
     #[test]
     fn cargo_inventory_materializer_rejects_unresolved_relative_tools_before_mutation() {
-        let root = temp_root("oya-cargo-inventory-relative-tool");
+        let root = temp_root("cargo-inventory-relative-tool");
         let error = materialize_cargo_test_inventory_inputs(
             &root,
             Path::new("target/debug/emitter"),
@@ -3029,8 +3029,8 @@ mod materialize_generated_faces_tests {
     fn active_artifact_graph_materialization_rejects_symlinked_parent_before_generator_mutation() {
         use std::os::unix::fs::symlink;
 
-        let root = temp_root("oya-active-graph-parent-symlink");
-        let outside = temp_root("oya-active-graph-parent-symlink-outside");
+        let root = temp_root("active-graph-parent-symlink");
+        let outside = temp_root("active-graph-parent-symlink-outside");
         std::fs::create_dir_all(root.join("registry")).expect("create registry parent");
         std::fs::create_dir_all(&outside).expect("create outside directory");
         let outside_target = outside.join("active-artifact-contract-edges.json");
@@ -3058,8 +3058,8 @@ mod materialize_generated_faces_tests {
     fn active_artifact_graph_materialization_rejects_symlinked_leaf_before_generator_mutation() {
         use std::os::unix::fs::symlink;
 
-        let root = temp_root("oya-active-graph-leaf-symlink");
-        let outside = temp_root("oya-active-graph-leaf-symlink-outside");
+        let root = temp_root("active-graph-leaf-symlink");
+        let outside = temp_root("active-graph-leaf-symlink-outside");
         std::fs::create_dir_all(root.join("registry/graph")).expect("create graph parent");
         std::fs::create_dir_all(&outside).expect("create outside directory");
         let outside_target = outside.join("active-artifact-contract-edges.json");
@@ -3089,7 +3089,7 @@ mod materialize_generated_faces_tests {
     #[cfg(unix)]
     #[test]
     fn active_artifact_graph_materialization_atomically_replaces_the_destination() {
-        let root = temp_root("oya-active-graph-atomic-replace");
+        let root = temp_root("active-graph-atomic-replace");
         let destination = root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
         std::fs::create_dir_all(destination.parent().expect("graph parent"))
             .expect("create graph parent");
@@ -3127,7 +3127,7 @@ mod materialize_generated_faces_tests {
     #[cfg(unix)]
     #[test]
     fn active_artifact_graph_materialization_preserves_the_destination_on_generator_failure() {
-        let root = temp_root("oya-active-graph-atomic-failure");
+        let root = temp_root("active-graph-atomic-failure");
         let destination = root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH);
         std::fs::create_dir_all(destination.parent().expect("graph parent"))
             .expect("create graph parent");
@@ -3167,7 +3167,7 @@ mod materialize_generated_faces_tests {
     #[cfg(unix)]
     #[test]
     fn active_artifact_graph_regeneration_is_bound_to_the_determinism_canary() {
-        let root = temp_root("oya-active-graph-determinism");
+        let root = temp_root("active-graph-determinism");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         let counter = root.join("counter");
         let generator = root.join("bin/oya");
@@ -3838,7 +3838,7 @@ mod materialize_generated_faces_tests {
         assert!(
             error
                 .to_string()
-                .contains("oya-cloud-ci-materialize-generated-faces")
+                .contains("cloud-ci-materialize-generated-faces")
         );
     }
 
@@ -3912,7 +3912,7 @@ mod materialize_generated_faces_tests {
 
     #[test]
     fn merge_base_corpus_prefers_tracked_registration_over_pre_move_agent_files() {
-        let root = temp_root("oya-mb-corpus-prefer-registration");
+        let root = temp_root("mb-corpus-prefer-registration");
         seed_current_enforcement_liveness_corpus(&root);
         seed_pre_move_enforcement_liveness_corpus(&root);
 
@@ -3930,7 +3930,7 @@ mod materialize_generated_faces_tests {
 
     #[test]
     fn merge_base_corpus_reads_pre_move_agent_files_when_registration_is_absent() {
-        let root = temp_root("oya-mb-corpus-pre-move");
+        let root = temp_root("mb-corpus-pre-move");
         seed_pre_move_enforcement_liveness_corpus(&root);
 
         let corpus = resolve_tree_enforcement_liveness_corpus(&root).expect("resolve corpus");
@@ -3948,7 +3948,7 @@ mod materialize_generated_faces_tests {
 
     #[test]
     fn merge_base_corpus_fails_closed_when_no_candidate_file_exists() {
-        let root = temp_root("oya-mb-corpus-missing");
+        let root = temp_root("mb-corpus-missing");
         std::fs::create_dir_all(root.join("tools/hooks")).expect("create hooks dir");
 
         let error = resolve_tree_enforcement_liveness_corpus(&root)
@@ -3977,10 +3977,10 @@ mod materialize_generated_faces_tests {
     fn parse_show_output_path_resolves_materializer_targets() {
         let output = "\
 root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot buck-out/v2/gen/emitter\n\
-root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin /tmp/producer\n\
-root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
+root//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin /tmp/producer\n\
+root//tools/reorg-codemod-app:reorg-codemod buck-out/v2/gen/codemod\n\
 root//marketplace/facade/dev-cli:oya /tmp/oya\n\
-root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
+root//tools/architecture-graph-generator-app:architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
 root//tools/hooks/registration:claude-settings-json buck-out/v2/gen/tools/hooks/registration/__claude-settings-json__/claude-settings-json\n\
 root//tools/hooks/registration:codex-hooks-json buck-out/v2/gen/tools/hooks/registration/__codex-hooks-json__/codex-hooks-json\n\
 root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
@@ -4034,7 +4034,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
 
     #[test]
     fn architecture_projection_faces_are_controller_owned_not_pr_owned_face_paths() {
-        let root = temp_root("oya-product-graph-controller-owned");
+        let root = temp_root("product-graph-controller-owned");
         std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
         std::fs::write(
             root.join(CONTROL_PLANE_MANIFEST),
@@ -4083,7 +4083,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
 
     #[test]
     fn read_committed_generated_faces_includes_architecture_projection_faces() {
-        let root = temp_root("oya-committed-faces");
+        let root = temp_root("committed-faces");
         std::fs::create_dir_all(root.join(FACES_DIR)).expect("create faces dir");
         std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
         std::fs::create_dir_all(root.join("docs/machine-readable"))
@@ -4113,7 +4113,7 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     #[cfg(unix)]
     #[test]
     fn regenerated_architecture_product_graph_uses_temporary_output() {
-        let root = temp_root("oya-regenerate-product-graph");
+        let root = temp_root("regenerate-product-graph");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         std::fs::create_dir_all(root.join("docs/architecture")).expect("create docs dir");
         std::fs::create_dir_all(root.join("docs/machine-readable")).expect("create docs data dir");
@@ -4189,7 +4189,7 @@ printf 'fresh graph\n' > "$out"
                 ),
                 (
                     BOARD_SYNC_PROJECTION_FACE.to_owned(),
-                    "{\n  \"_generated\": \"GENERATED by `oya gen board-sync` from masterplan deliverables. Do not hand-edit.\",\n  \"github_projection\": {\n    \"exclusive_label_scopes\": [\n      \"state\",\n      \"owner\",\n      \"deliverable\",\n      \"milestone\"\n    ],\n    \"issue_identity\": \"deliverable_id\"\n  },\n  \"issues\": [\n    {\n      \"body\": \"Generated from masterplan deliverable `D-1`.\\n\\ntest\\n\\n<!-- oya-board-sync:D-1 -->\\n\",\n      \"deliverable_id\": \"D-1\",\n      \"labels\": [\n        \"state/declared\",\n        \"owner/unassigned\",\n        \"deliverable/d-1\",\n        \"milestone/m-test\"\n      ],\n      \"title\": \"D-1: test\"\n    }\n  ]\n}\n".to_owned(),
+                    "{\n  \"_generated\": \"GENERATED by `oya gen board-sync` from masterplan deliverables. Do not hand-edit.\",\n  \"github_projection\": {\n    \"exclusive_label_scopes\": [\n      \"state\",\n      \"owner\",\n      \"deliverable\",\n      \"milestone\"\n    ],\n    \"issue_identity\": \"deliverable_id\"\n  },\n  \"issues\": [\n    {\n      \"body\": \"Generated from masterplan deliverable `D-1`.\\n\\ntest\\n\\n<!-- board-sync:D-1 -->\\n\",\n      \"deliverable_id\": \"D-1\",\n      \"labels\": [\n        \"state/declared\",\n        \"owner/unassigned\",\n        \"deliverable/d-1\",\n        \"milestone/m-test\"\n      ],\n      \"title\": \"D-1: test\"\n    }\n  ]\n}\n".to_owned(),
                 ),
                 (
                 ARCHITECTURE_PRODUCT_GRAPH_FACE.to_owned(),
@@ -4212,7 +4212,7 @@ printf 'fresh graph\n' > "$out"
     #[cfg(unix)]
     #[test]
     fn materializer_invokes_architecture_product_graph_generator() {
-        let root = temp_root("oya-materialize-faces");
+        let root = temp_root("materialize-faces");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         seed_current_enforcement_liveness_corpus(&root);
         let masterplan = derivable_masterplan();
@@ -4457,7 +4457,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
     #[cfg(unix)]
     #[test]
     fn frozen_baseline_regen_is_fail_closed_on_producer_failure() {
-        let root = temp_root("oya-regen-fail-closed");
+        let root = temp_root("regen-fail-closed");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         seed_current_enforcement_liveness_corpus(&root);
         let emitter = root.join("bin/emitter");
@@ -4468,7 +4468,7 @@ set -eu
 out=""
 while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
 test -n "$out"; mkdir -p "$(dirname "$out")"
-printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
+printf '{"schema":"ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
 "#,
         );
         // The producer FAILS the baseline regeneration.
@@ -4498,7 +4498,7 @@ exit 1
     #[cfg(unix)]
     #[test]
     fn frozen_baseline_regen_is_blob_independent() {
-        let root = temp_root("oya-regen-blob-independent");
+        let root = temp_root("regen-blob-independent");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         seed_current_enforcement_liveness_corpus(&root);
         let log = root.join("producer.log");
@@ -4511,7 +4511,7 @@ set -eu
 out=""
 while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
 test -n "$out"; mkdir -p "$(dirname "$out")"
-printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
+printf '{"schema":"ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
 "#,
         );
         // The producer asserts the committed blob is ABSENT from its source tree, yet still
@@ -4562,7 +4562,7 @@ printf '{{"gates":{{}}}}\n'
     #[cfg(unix)]
     #[test]
     fn frozen_baseline_regen_uses_pre_move_agent_files_when_registration_is_absent() {
-        let root = temp_root("oya-regen-pre-move-corpus");
+        let root = temp_root("regen-pre-move-corpus");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
         seed_pre_move_enforcement_liveness_corpus(&root);
         let log = root.join("producer.log");
@@ -4575,7 +4575,7 @@ set -eu
 out=""
 while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
 test -n "$out"; mkdir -p "$(dirname "$out")"
-printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
+printf '{"schema":"ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
 "#,
         );
         let producer = root.join("bin/producer");

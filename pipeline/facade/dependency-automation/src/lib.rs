@@ -31,7 +31,7 @@ pub use third_party_overlay::{
 
 pub const GATE_ID: &str = "cloud-ci-dependency-automation";
 pub const CONFIG_PATH: &str = "deps.toml";
-pub const CONFIG_PATH_LEGACY: &str = "oya-deps.toml";
+pub const CONFIG_PATH_LEGACY: &str = "deps.toml";
 
 pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
     let mut findings = BTreeSet::new();

@@ -1,12 +1,12 @@
 # Runbook — control-plane provision / teardown
 
-**Service:** `oya-managed-k8s-control-plane-host` (ADR-0376). non_claim: this
+**Service:** `managed-k8s-control-plane-host` (ADR-0376). non_claim: this
 runbook describes the operator flow for the design-spec surface; the live
 reconcile steps activate with `kamaji-provider-live-integration`.
 
 ## Preconditions
 
-- The service is running in the MANAGEMENT cluster with `$OYA_MGMT_KUBECONFIG`
+- The service is running in the MANAGEMENT cluster with `$OYATIE_MGMT_KUBECONFIG`
   set to the management-cluster kubeconfig (the `[[bin]]` fails closed otherwise).
 - The caller is a platform / control-plane-operator principal (Cedar default-deny
   for tenants).
@@ -48,6 +48,6 @@ reconcile steps activate with `kamaji-provider-live-integration`.
   cluster (operational boundary).
 - **501 on every call:** expected until `kamaji-provider-live-integration` lands.
   Track the follow-on ADR; do not attempt to force a provision.
-- **Boot crash with `MissingMgmtKubeconfig`:** set `$OYA_MGMT_KUBECONFIG` to the
+- **Boot crash with `MissingMgmtKubeconfig`:** set `$OYATIE_MGMT_KUBECONFIG` to the
   management kubeconfig path and restart. Never work around the guard by switching
   to the in-memory build in production.

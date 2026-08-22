@@ -1,5 +1,5 @@
 {
-  "_comment": "PARKED — not executable (ADR-0614 singleton; filename contains .PARKED.). Remainder of the governance/check fleet after #1498 (56 leaf oya-check-* kernels already homed). Measured on origin/dev: 13 remaining libs/oya-check-* + 17 remaining libs/oya-governance-* = 30 crates. Destination and cargo naming mirror #1498 / ADR-0532/0533: oya-check-<role> -> governance/check/<role> cargo check-<role>; oya-governance-<role> -> governance/check/<role> cargo check-<role>. The -kernel / -domain suffixes on the governance-* crates are kept as <role> so destinations do not collide with already-homed check-cohesion, check-quality-lane, or this wave's check-claim-ceiling. Catalog rows re-key with the crates (registry/catalog/oya-check-*.yaml and oya-governance-*.yaml -> check-*.yaml), same content-preserving artifact class as #1498. NOT APPLIED in this PR: executing the bijection would require path-keyed hand-curated ratchet substitutions (at least governance/check/data-class/data-class-policy.json, governance/check/layered-architecture-discipline/layered-architecture-discipline-policy.json, plus membership/affected-set path keys). PARKED plans do not authenticate ADR-0563 relabels, so the crates stay in libs/ until a live *-move-plan.json occupies the singleton. HR #2192 needs that singleton. Several remaining oya-check-* crates still depend on libs/ companions (#1498 dep-boundary: backup/i18n/compliance/realtime/workspace-members/data-boundary); unparking should either move those companions first or accept a temporary governance/ -> libs/ edge. Unpark by renaming this file to governance-check-remainder-move-plan.json once the singleton is free and the ratchet relabels land in the same PR.",
+  "_comment": "PARKED — not executable (ADR-0614 singleton; filename contains .PARKED.). Remainder of the governance/check fleet after #1498 (56 leaf check-* kernels already homed). Measured on origin/dev: 13 remaining libs/check-* + 17 remaining libs/governance-* = 30 crates. Destination and cargo naming mirror #1498 / ADR-0532/0533: check-<role> -> governance/check/<role> cargo check-<role>; governance-<role> -> governance/check/<role> cargo check-<role>. The -kernel / -domain suffixes on the governance-* crates are kept as <role> so destinations do not collide with already-homed check-cohesion, check-quality-lane, or this wave's check-claim-ceiling. Catalog rows re-key with the crates (registry/catalog/check-*.yaml and governance-*.yaml -> check-*.yaml), same content-preserving artifact class as #1498. NOT APPLIED in this PR: executing the bijection would require path-keyed hand-curated ratchet substitutions (at least governance/check/data-class/data-class-policy.json, governance/check/layered-architecture-discipline/layered-architecture-discipline-policy.json, plus membership/affected-set path keys). PARKED plans do not authenticate ADR-0563 relabels, so the crates stay in libs/ until a live *-move-plan.json occupies the singleton. HR #2192 needs that singleton. Several remaining check-* crates still depend on libs/ companions (#1498 dep-boundary: backup/i18n/compliance/realtime/workspace-members/data-boundary); unparking should either move those companions first or accept a temporary governance/ -> libs/ edge. Unpark by renaming this file to governance-check-remainder-move-plan.json once the singleton is free and the ratchet relabels land in the same PR.",
   "_parked": {
     "status": "PARKED",
     "not_executable": true,
@@ -13,305 +13,305 @@
   "capability": "governance",
   "moves": [
     {
-      "old_path": "libs/oya-check-adr-index",
+      "old_path": "libs/check-adr-index",
       "new_path": "governance/check/adr-index",
-      "old_cargo_name": "oya-check-adr-index",
+      "old_cargo_name": "check-adr-index",
       "new_cargo_name": "check-adr-index"
     },
     {
-      "old_path": "libs/oya-check-backup-retention-discipline",
+      "old_path": "libs/check-backup-retention-discipline",
       "new_path": "governance/check/backup-retention-discipline",
-      "old_cargo_name": "oya-check-backup-retention-discipline",
+      "old_cargo_name": "check-backup-retention-discipline",
       "new_cargo_name": "check-backup-retention-discipline"
     },
     {
-      "old_path": "libs/oya-check-brand-residue",
+      "old_path": "libs/check-brand-residue",
       "new_path": "governance/check/brand-residue",
-      "old_cargo_name": "oya-check-brand-residue",
+      "old_cargo_name": "check-brand-residue",
       "new_cargo_name": "check-brand-residue"
     },
     {
-      "old_path": "libs/oya-check-claim-ceiling",
+      "old_path": "libs/check-claim-ceiling",
       "new_path": "governance/check/claim-ceiling",
-      "old_cargo_name": "oya-check-claim-ceiling",
+      "old_cargo_name": "check-claim-ceiling",
       "new_cargo_name": "check-claim-ceiling"
     },
     {
-      "old_path": "libs/oya-check-compliance-evidence-coverage",
+      "old_path": "libs/check-compliance-evidence-coverage",
       "new_path": "governance/check/compliance-evidence-coverage",
-      "old_cargo_name": "oya-check-compliance-evidence-coverage",
+      "old_cargo_name": "check-compliance-evidence-coverage",
       "new_cargo_name": "check-compliance-evidence-coverage"
     },
     {
-      "old_path": "libs/oya-check-cost-budget",
+      "old_path": "libs/check-cost-budget",
       "new_path": "governance/check/cost-budget",
-      "old_cargo_name": "oya-check-cost-budget",
+      "old_cargo_name": "check-cost-budget",
       "new_cargo_name": "check-cost-budget"
     },
     {
-      "old_path": "libs/oya-check-dependency-seam",
+      "old_path": "libs/check-dependency-seam",
       "new_path": "governance/check/dependency-seam",
-      "old_cargo_name": "oya-check-dependency-seam",
+      "old_cargo_name": "check-dependency-seam",
       "new_cargo_name": "check-dependency-seam"
     },
     {
-      "old_path": "libs/oya-check-doc-axis",
+      "old_path": "libs/check-doc-axis",
       "new_path": "governance/check/doc-axis",
-      "old_cargo_name": "oya-check-doc-axis",
+      "old_cargo_name": "check-doc-axis",
       "new_cargo_name": "check-doc-axis"
     },
     {
-      "old_path": "libs/oya-check-i18n-coverage",
+      "old_path": "libs/check-i18n-coverage",
       "new_path": "governance/check/i18n-coverage",
-      "old_cargo_name": "oya-check-i18n-coverage",
+      "old_cargo_name": "check-i18n-coverage",
       "new_cargo_name": "check-i18n-coverage"
     },
     {
-      "old_path": "libs/oya-check-license-policy",
+      "old_path": "libs/check-license-policy",
       "new_path": "governance/check/license-policy",
-      "old_cargo_name": "oya-check-license-policy",
+      "old_cargo_name": "check-license-policy",
       "new_cargo_name": "check-license-policy"
     },
     {
-      "old_path": "libs/oya-check-realtime-transport-tier",
+      "old_path": "libs/check-realtime-transport-tier",
       "new_path": "governance/check/realtime-transport-tier",
-      "old_cargo_name": "oya-check-realtime-transport-tier",
+      "old_cargo_name": "check-realtime-transport-tier",
       "new_cargo_name": "check-realtime-transport-tier"
     },
     {
-      "old_path": "libs/oya-check-saga-shape",
+      "old_path": "libs/check-saga-shape",
       "new_path": "governance/check/saga-shape",
-      "old_cargo_name": "oya-check-saga-shape",
+      "old_cargo_name": "check-saga-shape",
       "new_cargo_name": "check-saga-shape"
     },
     {
-      "old_path": "libs/oya-check-slo-coverage",
+      "old_path": "libs/check-slo-coverage",
       "new_path": "governance/check/slo-coverage",
-      "old_cargo_name": "oya-check-slo-coverage",
+      "old_cargo_name": "check-slo-coverage",
       "new_cargo_name": "check-slo-coverage"
     },
     {
-      "old_path": "libs/oya-governance-adapter-with-no-importer-kernel",
+      "old_path": "libs/governance-adapter-with-no-importer-kernel",
       "new_path": "governance/check/adapter-with-no-importer-kernel",
-      "old_cargo_name": "oya-governance-adapter-with-no-importer-kernel",
+      "old_cargo_name": "governance-adapter-with-no-importer-kernel",
       "new_cargo_name": "check-adapter-with-no-importer-kernel"
     },
     {
-      "old_path": "libs/oya-governance-adr-shape-kernel",
+      "old_path": "libs/governance-adr-shape-kernel",
       "new_path": "governance/check/adr-shape-kernel",
-      "old_cargo_name": "oya-governance-adr-shape-kernel",
+      "old_cargo_name": "governance-adr-shape-kernel",
       "new_cargo_name": "check-adr-shape-kernel"
     },
     {
-      "old_path": "libs/oya-governance-authoritative-tracked-kernel",
+      "old_path": "libs/governance-authoritative-tracked-kernel",
       "new_path": "governance/check/authoritative-tracked-kernel",
-      "old_cargo_name": "oya-governance-authoritative-tracked-kernel",
+      "old_cargo_name": "governance-authoritative-tracked-kernel",
       "new_cargo_name": "check-authoritative-tracked-kernel"
     },
     {
-      "old_path": "libs/oya-governance-banned-primitives-kernel",
+      "old_path": "libs/governance-banned-primitives-kernel",
       "new_path": "governance/check/banned-primitives-kernel",
-      "old_cargo_name": "oya-governance-banned-primitives-kernel",
+      "old_cargo_name": "governance-banned-primitives-kernel",
       "new_cargo_name": "check-banned-primitives-kernel"
     },
     {
-      "old_path": "libs/oya-governance-bypass-kernel",
+      "old_path": "libs/governance-bypass-kernel",
       "new_path": "governance/check/bypass-kernel",
-      "old_cargo_name": "oya-governance-bypass-kernel",
+      "old_cargo_name": "governance-bypass-kernel",
       "new_cargo_name": "check-bypass-kernel"
     },
     {
-      "old_path": "libs/oya-governance-claim-ceiling-kernel",
+      "old_path": "libs/governance-claim-ceiling-kernel",
       "new_path": "governance/check/claim-ceiling-kernel",
-      "old_cargo_name": "oya-governance-claim-ceiling-kernel",
+      "old_cargo_name": "governance-claim-ceiling-kernel",
       "new_cargo_name": "check-claim-ceiling-kernel"
     },
     {
-      "old_path": "libs/oya-governance-cohesion-kernel",
+      "old_path": "libs/governance-cohesion-kernel",
       "new_path": "governance/check/cohesion-kernel",
-      "old_cargo_name": "oya-governance-cohesion-kernel",
+      "old_cargo_name": "governance-cohesion-kernel",
       "new_cargo_name": "check-cohesion-kernel"
     },
     {
-      "old_path": "libs/oya-governance-eval-domain",
+      "old_path": "libs/governance-eval-domain",
       "new_path": "governance/check/eval-domain",
-      "old_cargo_name": "oya-governance-eval-domain",
+      "old_cargo_name": "governance-eval-domain",
       "new_cargo_name": "check-eval-domain"
     },
     {
-      "old_path": "libs/oya-governance-gate-catalog-domain",
+      "old_path": "libs/governance-gate-catalog-domain",
       "new_path": "governance/check/gate-catalog-domain",
-      "old_cargo_name": "oya-governance-gate-catalog-domain",
+      "old_cargo_name": "governance-gate-catalog-domain",
       "new_cargo_name": "check-gate-catalog-domain"
     },
     {
-      "old_path": "libs/oya-governance-lifecycle-kernel",
+      "old_path": "libs/governance-lifecycle-kernel",
       "new_path": "governance/check/lifecycle-kernel",
-      "old_cargo_name": "oya-governance-lifecycle-kernel",
+      "old_cargo_name": "governance-lifecycle-kernel",
       "new_cargo_name": "check-lifecycle-kernel"
     },
     {
-      "old_path": "libs/oya-governance-portfolio-citation-kernel",
+      "old_path": "libs/governance-portfolio-citation-kernel",
       "new_path": "governance/check/portfolio-citation-kernel",
-      "old_cargo_name": "oya-governance-portfolio-citation-kernel",
+      "old_cargo_name": "governance-portfolio-citation-kernel",
       "new_cargo_name": "check-portfolio-citation-kernel"
     },
     {
-      "old_path": "libs/oya-governance-pr-traceability-kernel",
+      "old_path": "libs/governance-pr-traceability-kernel",
       "new_path": "governance/check/pr-traceability-kernel",
-      "old_cargo_name": "oya-governance-pr-traceability-kernel",
+      "old_cargo_name": "governance-pr-traceability-kernel",
       "new_cargo_name": "check-pr-traceability-kernel"
     },
     {
-      "old_path": "libs/oya-governance-pre-push-kernel",
+      "old_path": "libs/governance-pre-push-kernel",
       "new_path": "governance/check/pre-push-kernel",
-      "old_cargo_name": "oya-governance-pre-push-kernel",
+      "old_cargo_name": "governance-pre-push-kernel",
       "new_cargo_name": "check-pre-push-kernel"
     },
     {
-      "old_path": "libs/oya-governance-predictable-naming-kernel",
+      "old_path": "libs/governance-predictable-naming-kernel",
       "new_path": "governance/check/predictable-naming-kernel",
-      "old_cargo_name": "oya-governance-predictable-naming-kernel",
+      "old_cargo_name": "governance-predictable-naming-kernel",
       "new_cargo_name": "check-predictable-naming-kernel"
     },
     {
-      "old_path": "libs/oya-governance-purpose-kernel",
+      "old_path": "libs/governance-purpose-kernel",
       "new_path": "governance/check/purpose-kernel",
-      "old_cargo_name": "oya-governance-purpose-kernel",
+      "old_cargo_name": "governance-purpose-kernel",
       "new_cargo_name": "check-purpose-kernel"
     },
     {
-      "old_path": "libs/oya-governance-quality-lane-kernel",
+      "old_path": "libs/governance-quality-lane-kernel",
       "new_path": "governance/check/quality-lane-kernel",
-      "old_cargo_name": "oya-governance-quality-lane-kernel",
+      "old_cargo_name": "governance-quality-lane-kernel",
       "new_cargo_name": "check-quality-lane-kernel"
     },
     {
-      "old_path": "libs/oya-governance-sunset-lifecycle-kernel",
+      "old_path": "libs/governance-sunset-lifecycle-kernel",
       "new_path": "governance/check/sunset-lifecycle-kernel",
-      "old_cargo_name": "oya-governance-sunset-lifecycle-kernel",
+      "old_cargo_name": "governance-sunset-lifecycle-kernel",
       "new_cargo_name": "check-sunset-lifecycle-kernel"
     }
   ],
   "artifacts": [
     {
-      "old_path": "registry/catalog/oya-check-adr-index.yaml",
+      "old_path": "registry/catalog/check-adr-index.yaml",
       "new_path": "registry/catalog/check-adr-index.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-backup-retention-discipline.yaml",
+      "old_path": "registry/catalog/check-backup-retention-discipline.yaml",
       "new_path": "registry/catalog/check-backup-retention-discipline.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-brand-residue.yaml",
+      "old_path": "registry/catalog/check-brand-residue.yaml",
       "new_path": "registry/catalog/check-brand-residue.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-claim-ceiling.yaml",
+      "old_path": "registry/catalog/check-claim-ceiling.yaml",
       "new_path": "registry/catalog/check-claim-ceiling.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-compliance-evidence-coverage.yaml",
+      "old_path": "registry/catalog/check-compliance-evidence-coverage.yaml",
       "new_path": "registry/catalog/check-compliance-evidence-coverage.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-cost-budget.yaml",
+      "old_path": "registry/catalog/check-cost-budget.yaml",
       "new_path": "registry/catalog/check-cost-budget.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-dependency-seam.yaml",
+      "old_path": "registry/catalog/check-dependency-seam.yaml",
       "new_path": "registry/catalog/check-dependency-seam.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-doc-axis.yaml",
+      "old_path": "registry/catalog/check-doc-axis.yaml",
       "new_path": "registry/catalog/check-doc-axis.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-i18n-coverage.yaml",
+      "old_path": "registry/catalog/check-i18n-coverage.yaml",
       "new_path": "registry/catalog/check-i18n-coverage.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-license-policy.yaml",
+      "old_path": "registry/catalog/check-license-policy.yaml",
       "new_path": "registry/catalog/check-license-policy.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-realtime-transport-tier.yaml",
+      "old_path": "registry/catalog/check-realtime-transport-tier.yaml",
       "new_path": "registry/catalog/check-realtime-transport-tier.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-saga-shape.yaml",
+      "old_path": "registry/catalog/check-saga-shape.yaml",
       "new_path": "registry/catalog/check-saga-shape.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-check-slo-coverage.yaml",
+      "old_path": "registry/catalog/check-slo-coverage.yaml",
       "new_path": "registry/catalog/check-slo-coverage.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-adapter-with-no-importer-kernel.yaml",
+      "old_path": "registry/catalog/governance-adapter-with-no-importer-kernel.yaml",
       "new_path": "registry/catalog/check-adapter-with-no-importer-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-adr-shape-kernel.yaml",
+      "old_path": "registry/catalog/governance-adr-shape-kernel.yaml",
       "new_path": "registry/catalog/check-adr-shape-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-authoritative-tracked-kernel.yaml",
+      "old_path": "registry/catalog/governance-authoritative-tracked-kernel.yaml",
       "new_path": "registry/catalog/check-authoritative-tracked-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-banned-primitives-kernel.yaml",
+      "old_path": "registry/catalog/governance-banned-primitives-kernel.yaml",
       "new_path": "registry/catalog/check-banned-primitives-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-bypass-kernel.yaml",
+      "old_path": "registry/catalog/governance-bypass-kernel.yaml",
       "new_path": "registry/catalog/check-bypass-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-claim-ceiling-kernel.yaml",
+      "old_path": "registry/catalog/governance-claim-ceiling-kernel.yaml",
       "new_path": "registry/catalog/check-claim-ceiling-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-cohesion-kernel.yaml",
+      "old_path": "registry/catalog/governance-cohesion-kernel.yaml",
       "new_path": "registry/catalog/check-cohesion-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-eval-domain.yaml",
+      "old_path": "registry/catalog/governance-eval-domain.yaml",
       "new_path": "registry/catalog/check-eval-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-gate-catalog-domain.yaml",
+      "old_path": "registry/catalog/governance-gate-catalog-domain.yaml",
       "new_path": "registry/catalog/check-gate-catalog-domain.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-lifecycle-kernel.yaml",
+      "old_path": "registry/catalog/governance-lifecycle-kernel.yaml",
       "new_path": "registry/catalog/check-lifecycle-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-portfolio-citation-kernel.yaml",
+      "old_path": "registry/catalog/governance-portfolio-citation-kernel.yaml",
       "new_path": "registry/catalog/check-portfolio-citation-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-pr-traceability-kernel.yaml",
+      "old_path": "registry/catalog/governance-pr-traceability-kernel.yaml",
       "new_path": "registry/catalog/check-pr-traceability-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-pre-push-kernel.yaml",
+      "old_path": "registry/catalog/governance-pre-push-kernel.yaml",
       "new_path": "registry/catalog/check-pre-push-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-predictable-naming-kernel.yaml",
+      "old_path": "registry/catalog/governance-predictable-naming-kernel.yaml",
       "new_path": "registry/catalog/check-predictable-naming-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-purpose-kernel.yaml",
+      "old_path": "registry/catalog/governance-purpose-kernel.yaml",
       "new_path": "registry/catalog/check-purpose-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-quality-lane-kernel.yaml",
+      "old_path": "registry/catalog/governance-quality-lane-kernel.yaml",
       "new_path": "registry/catalog/check-quality-lane-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-governance-sunset-lifecycle-kernel.yaml",
+      "old_path": "registry/catalog/governance-sunset-lifecycle-kernel.yaml",
       "new_path": "registry/catalog/check-sunset-lifecycle-kernel.yaml"
     }
   ]

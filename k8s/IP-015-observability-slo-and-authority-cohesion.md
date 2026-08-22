@@ -6,7 +6,7 @@ impl_plan_id: IP-015-observability-slo-and-authority-cohesion
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud + axis-observability
-acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-governance-promotion-readiness]
+acceptance_lanes: [openslo-schema, governance-authority-cohesion, governance-promotion-readiness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -56,12 +56,12 @@ spec:
           metricSource:
             metricSourceType: Prometheus
             spec:
-              query: 'rate(oya_cloud_k8s_cluster_bootstrap_total{outcome="success"}[60m])'
+              query: 'rate(cloud_k8s_cluster_bootstrap_total{outcome="success"}[60m])'
         total:
           metricSource:
             metricSourceType: Prometheus
             spec:
-              query: 'rate(oya_cloud_k8s_cluster_bootstrap_total[60m])'
+              query: 'rate(cloud_k8s_cluster_bootstrap_total[60m])'
   budgetingMethod: Occurrences
   timeWindow:
     - duration: 30d
@@ -88,7 +88,7 @@ spec:
         metricSource:
           metricSourceType: Prometheus
           spec:
-            query: 'histogram_quantile(0.99, rate(oya_kubernetes_api_proxy_request_duration_seconds_bucket[5m]))'
+            query: 'histogram_quantile(0.99, rate(kubernetes_api_proxy_request_duration_seconds_bucket[5m]))'
   budgetingMethod: Timeslices
   timeWindow:
     - duration: 30d
@@ -124,17 +124,17 @@ spec:
 
 ```bash
 for slo in microservices/cloud-k8s/slos/*.openslo.yaml; do
-  cargo run -p oya-observability-slo-engine-rest -- validate "$slo"
+  cargo run -p observability-slo-engine-rest -- validate "$slo"
 done
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice cloud-k8s --sha <head-sha> --env staging
+cargo run -p dev-cli -- gate validate authority-cohesion
+cargo run -p dev-cli -- gate validate governance-promotion-readiness --microservice cloud-k8s --sha <head-sha> --env staging
 ```
 
 ## Test Plan
 
 - All 4 OpenSLO manifests validate per OpenSLO v1.0 schema (AC-01 of observability PRD)
 - HG-CLOUD-K8S registered in authority-cohesion: `gate list --id HG-CLOUD-K8S` returns it
-- oya-governance-promotion-readiness lane: green for cloud-k8s at head SHA (cluster up, all 4 SLIs green)
+- governance-promotion-readiness lane: green for cloud-k8s at head SHA (cluster up, all 4 SLIs green)
 - Burn-rate alarms wired to grafana-oncall
 
 ## Halt Conditions

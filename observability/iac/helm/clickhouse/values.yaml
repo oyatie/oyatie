@@ -6,11 +6,11 @@ clickhouse-operator:
 
 clickhouseInstallation:
   metadata:
-    name: oya-observability-clickhouse
+    name: observability-clickhouse
   spec:
     configuration:
       clusters:
-        - name: oya-cell
+        - name: cell
           layout:
             shardsCount: 3
             replicasCount: 2

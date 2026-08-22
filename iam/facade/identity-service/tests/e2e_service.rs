@@ -21,7 +21,7 @@ use iam_identity_service::server;
 use iam_identity_workload_rest::grpc::proto;
 
 const ISSUER: &str = "https://idp.oyatie.com";
-const AUDIENCE: &str = "oya-cloud-kms";
+const AUDIENCE: &str = "cloud-kms";
 const KID: &str = "kid-e2e-1";
 /// AUTH-005: the decision surfaces (`/authorize-with-token`, `/tokens/validate`,
 /// gRPC `Authorize`/`ValidateToken`) require a verified caller. The boot config
@@ -127,7 +127,7 @@ impl SigningFixture {
 /// Materialize the config fixture files in a unique temp dir and boot the
 /// service on ephemeral loopback ports.
 async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
-    let dir = std::env::temp_dir().join(format!("oya-identity-e2e-{}", uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("identity-e2e-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&dir).expect("temp dir");
     let jwks_path = dir.join("jwks.json");
     let cedar_path = dir.join("policies.cedar");
@@ -153,7 +153,7 @@ async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
         cedar_policy_path: cedar_path.to_string_lossy().into_owned(),
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
-        signing_kid: "oya-identity-e2e-k1".into(),
+        signing_kid: "identity-e2e-k1".into(),
         lifecycle_bearer: LIFECYCLE_BEARER.into(),
         lifecycle_caller_tenant: "ten_acme".into(),
         lifecycle_caller_id: "e2e-control-plane".into(),
@@ -277,7 +277,7 @@ async fn issuer_discovery_is_unmounted_while_jwks_serves_on_the_live_socket() {
     let document: serde_json::Value = response.json().await.expect("jwks json");
     let keys = document["keys"].as_array().expect("keys array");
     assert_eq!(keys.len(), 1);
-    assert_eq!(keys[0]["kid"], "oya-identity-e2e-k1");
+    assert_eq!(keys[0]["kid"], "identity-e2e-k1");
     assert_eq!(keys[0]["alg"], "ES256");
     assert_eq!(keys[0]["use"], "sig");
 
@@ -468,20 +468,20 @@ async fn grpc_surface_returns_identical_decisions() {
 /// `tests/live_rls.rs` gate and the tenancy facade acceptance test). Default
 /// `buck2 test` leaves it unset, so the live test below skips cleanly (the
 /// DB-free lane stays the default).
-const LIVE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
+const LIVE_ENV: &str = "OYATIE_BACKBONE_LIVE_POSTGRES";
 
 /// The NON-SUPERUSER app-role Postgres URL for the live durability test.
 ///
 /// Convention (mirrors `iam/adapters/identity-scim-store-postgres/tests/live_rls.rs`):
-///   - `OYA_BACKBONE_POSTGRES_URL`     = superuser / setup URL (CREATE ROLE, migrations)
-///   - `OYA_BACKBONE_POSTGRES_APP_URL` = non-superuser `identity_scim_runtime` role URL
+///   - `OYATIE_BACKBONE_POSTGRES_URL`     = superuser / setup URL (CREATE ROLE, migrations)
+///   - `OYATIE_BACKBONE_POSTGRES_APP_URL` = non-superuser `identity_scim_runtime` role URL
 ///
 /// The RLS-enforceability guard (`assert_rls_enforceable`) rejects superusers
 /// (`rolsuper = true`), so the live durability test MUST boot the service with
 /// the APP URL, not the setup URL. Using `start_with_scim_url` also avoids
 /// writing to the process-global env (`std::env::set_var`), which races with
 /// other parallel tokio tests.
-const LIVE_APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+const LIVE_APP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_APP_URL";
 
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
@@ -502,7 +502,7 @@ async fn boot_with_url(
     fixture: &SigningFixture,
     scim_url: Option<String>,
 ) -> server::ServiceHandle {
-    let dir = std::env::temp_dir().join(format!("oya-identity-e2e-{}", uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("identity-e2e-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&dir).expect("temp dir");
     let jwks_path = dir.join("jwks.json");
     let cedar_path = dir.join("policies.cedar");
@@ -526,7 +526,7 @@ async fn boot_with_url(
         cedar_policy_path: cedar_path.to_string_lossy().into_owned(),
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
-        signing_kid: "oya-identity-e2e-k1".into(),
+        signing_kid: "identity-e2e-k1".into(),
         lifecycle_bearer: LIFECYCLE_BEARER.into(),
         lifecycle_caller_tenant: "ten_acme".into(),
         lifecycle_caller_id: "e2e-control-plane".into(),
@@ -538,7 +538,7 @@ async fn boot_with_url(
 
 /// LIVE durability proof (env-gated): boot the REAL service via
 /// `server::start_with_scim_url` (the same composition path `start` delegates
-/// to) with the APP-ROLE Postgres URL (`OYA_BACKBONE_POSTGRES_APP_URL`) so the
+/// to) with the APP-ROLE Postgres URL (`OYATIE_BACKBONE_POSTGRES_APP_URL`) so the
 /// DURABLE Postgres SCIM stores are composed; POST a SCIM user; then boot a
 /// FRESH service over the SAME url and GET the user back — proving the write
 /// survived a full service rebuild (the property the in-memory store CANNOT
@@ -549,12 +549,12 @@ async fn boot_with_url(
 /// INSERT/SELECT) is proven separately in the adapter's `tests/live_rls.rs` —
 /// not duplicated here.
 ///
-/// The test uses `OYA_BACKBONE_POSTGRES_APP_URL` (non-superuser role) rather
-/// than `OYA_BACKBONE_POSTGRES_URL` (superuser / setup URL) because the
+/// The test uses `OYATIE_BACKBONE_POSTGRES_APP_URL` (non-superuser role) rather
+/// than `OYATIE_BACKBONE_POSTGRES_URL` (superuser / setup URL) because the
 /// RLS-enforceability guard rejects superusers — booting with a superuser URL
 /// would cause `start_with_scim_url` to return `Err(StartError::Store(...))`.
 ///
-/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is
+/// Skips cleanly with a stderr notice when `OYATIE_BACKBONE_LIVE_POSTGRES` is
 /// unset so the default `buck2 test` stays DB-free. No `env!` macro is used,
 /// so the target always compiles regardless of whether the env is present.
 #[tokio::test(flavor = "multi_thread")]

@@ -60,13 +60,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `api-gateway` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `api-gateway` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `api-gateway` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -195,7 +195,7 @@ MAINT-24M-024: Month 24: `api-gateway` should have wrapper drift near zero; prim
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `api-gateway` is `per_request`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `api-gateway` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `api-gateway` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `api-gateway` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `api-gateway` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.1` vCPU per tenant becomes 1.00 at 10 tenants, 10.00 at 100, and 100.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `128` MiB per tenant becomes 1280 MiB at 10 tenants, 12800 MiB at 100, and 128000 MiB at 1000.
@@ -310,9 +310,9 @@ VERIFY-009: Static read confirms `api-gateway` ARCH has an `ADR-0339 integration
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `cargo run -q -p dev-cli -- gate validate cohesion` must pass before commit.
+VERIFY-015: `cargo run -q -p dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `api-gateway` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `api-gateway` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `api-gateway` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

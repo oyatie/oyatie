@@ -244,13 +244,13 @@ decision_owner: axis-edge + council-architecture
 - Chaos test `stale_tenant_projection_applies_most_restrictive_policy`.
 - Chaos test `cedar_fragment_mismatch_rolls_back_to_prior_fragment`.
 - Chaos test `regional_outage_preserves_residency_boundary`.
-- Metric `oya_api_gateway_latency_seconds_bucket`.
-- Metric `oya_api_gateway_request_admission_total`.
-- Metric `oya_api_gateway_request_denied_total`.
-- Metric `oya_api_gateway_tls_handshake_success_ratio`.
-- Metric `oya_api_gateway_h3_negotiation_ratio`.
-- Metric `oya_api_gateway_pqc_negotiation_ratio`.
-- Metric `oya_api_gateway_degraded_mode_total`.
+- Metric `api_gateway_latency_seconds_bucket`.
+- Metric `api_gateway_request_admission_total`.
+- Metric `api_gateway_request_denied_total`.
+- Metric `api_gateway_tls_handshake_success_ratio`.
+- Metric `api_gateway_h3_negotiation_ratio`.
+- Metric `api_gateway_pqc_negotiation_ratio`.
+- Metric `api_gateway_degraded_mode_total`.
 - Dashboard `dashboards/edge-overview.json`.
 - Dashboard `dashboards/rate-limit-hits.json`.
 - Dashboard `dashboards/tls-health.json`.

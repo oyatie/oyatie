@@ -1,4 +1,4 @@
-//! GitHub commit-status poster adapter tests (the `oya-ci-required` producer).
+//! GitHub commit-status poster adapter tests (the `presubmit` producer).
 //!
 //! Asserts the success path (201 -> Ok), non-2xx -> `KernelError::DownstreamTransport`,
 //! and the exact request body (`{state,context,description,target_url}`) + GitHub headers
@@ -35,7 +35,7 @@ fn success_path_posts_correct_body_and_headers() {
     let result = poster.post(
         TEST_SHA,
         CommitState::Success,
-        "oya-ci-required",
+        "presubmit",
         "gate passed",
         Some("https://ci.example.com/run/42"),
     );
@@ -59,12 +59,12 @@ fn success_path_posts_correct_body_and_headers() {
         request.header("accept"),
         Some("application/vnd.github+json")
     );
-    assert_eq!(request.header("user-agent"), Some("oya-ci-controller"));
+    assert_eq!(request.header("user-agent"), Some("ci-controller"));
     assert_eq!(
         request.json(),
         json!({
             "state": "success",
-            "context": "oya-ci-required",
+            "context": "presubmit",
             "description": "gate passed",
             "target_url": "https://ci.example.com/run/42"
         })
@@ -81,7 +81,7 @@ fn pending_without_target_url_omits_field() {
         .post(
             TEST_SHA,
             CommitState::Pending,
-            "oya-ci-required",
+            "presubmit",
             "running trusted required gate",
             None,
         )
@@ -100,7 +100,7 @@ fn pending_without_target_url_omits_field() {
         body,
         json!({
             "state": "pending",
-            "context": "oya-ci-required",
+            "context": "presubmit",
             "description": "running trusted required gate"
         })
     );
@@ -120,7 +120,7 @@ fn non_2xx_maps_to_downstream_transport() {
         let result = poster.post(
             TEST_SHA,
             CommitState::Failure,
-            "oya-ci-required",
+            "presubmit",
             "gate failed",
             None,
         );

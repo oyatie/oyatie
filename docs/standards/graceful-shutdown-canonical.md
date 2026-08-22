@@ -78,7 +78,7 @@ whichever applies.
 ### 5. Validation
 
 The canonical helper `oya.gracefulShutdown` is enforced by
-`oya-check-statelessness` (existing) — non-stateless components are
+`check-statelessness` (existing) — non-stateless components are
 flagged. New µservices MUST use the helper.
 
 ## References

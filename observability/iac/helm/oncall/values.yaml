@@ -8,7 +8,7 @@ oncall:
     auth:
       existingSecret: "openbao://secret/observability/oncall/postgres"
   externalGrafana:
-    url: http://oya-observability-grafana.observability.svc/
+    url: http://observability-grafana.observability.svc/
   base_url: "https://oncall-${PACK}.oyatie.dev"
   secrets:
     secretKey: "openbao://secret/observability/oncall/secret-key"

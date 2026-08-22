@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every Layer-A component (ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller + Postgres iac-state-index) and Layer-B component (`oya-cloud-iac-iac-{renderer,validator,applier,rollback,registry}-*`). Drives `cost-budget.md` and `multi-region.md`. Numbers cite ArgoCD + Flux + OpenTofu published references; verify-against-current-docs markers called out.
+Sizing formulas + reference-architecture baselines for every Layer-A component (ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller + Postgres iac-state-index) and Layer-B component (`cloud-iac-iac-{renderer,validator,applier,rollback,registry}-*`). Drives `cost-budget.md` and `multi-region.md`. Numbers cite ArgoCD + Flux + OpenTofu published references; verify-against-current-docs markers called out.
 
 ## Inputs
 
@@ -119,7 +119,7 @@ postgres_pgbouncer        = optional; scheduled-for-distinct-tracked-work until 
 
 References: `postgresql.org/docs/current/high-availability.html`.
 
-## Layer-B Sizing (`oya-cloud-iac-iac-*-worker`)
+## Layer-B Sizing (`cloud-iac-iac-*-worker`)
 
 ```
 renderer_worker_replicas = max(2, ceil(N_microservices / 200))
@@ -198,7 +198,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `capacity-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; deployed replica counts ≥ formula minimums.
+- cloud-ci/ci governance gate `capacity-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `C_concurrent_applies` averages.
 - Annual reference-architecture refresh: re-verify against current ArgoCD / Flux / OpenTofu published sizing guides.
 

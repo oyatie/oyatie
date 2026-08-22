@@ -7,7 +7,7 @@
   "description": "Frozen live exhibit class: a path with no OWNERS-resolvable owner (live `find -name OWNERS` = 0 tree-wide). justification + reachability + ttl_class present so ONLY unowned fires.",
   "rows": [
     {
-      "path": "libs/oya-check-doc-axis/src/lib.rs",
+      "path": "libs/check-doc-axis/src/lib.rs",
       "unit_class": "code",
       "owner": null,
       "justification_ref": "ADR-0365",
@@ -16,5 +16,5 @@
       "ttl": {"ttl_class": "code", "budget_days": null, "action": "report", "protected": false}
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-total-accounting-app/tests/total_accounting.rs"
 }

@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track cloud-iac's monthly cloud cost across infrastructure (compute + storage + network), per Layer-A + Layer-B component, per pack region; surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers where vendor pricing may have moved.
+Track cloud-iac's monthly cloud cost across infrastructure (compute + storage + network), per Layer-A + Layer-B component, per pack region; surface budget breach via the `check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers where vendor pricing may have moved.
 
 ## Cost Categories
 
@@ -47,13 +47,13 @@ Per `capacity-model.md` §"Worked example: oyatie XS tier (M01 launch; ~36 micro
 | Flux helm-controller | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | OpenTofu runner (Helm-deployed) | 3 × VM.Standard.E4 4-core | $216 | $50 PV (plan cache) | $266 |
 | Postgres iac-state-index (HA primary + replica) | 2 × VM.Standard.E4 4-core | $145 | $200 PV + $50 WAL archive | $395 |
-| `oya-cloud-iac-iac-renderer-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| `oya-cloud-iac-iac-validator-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| `oya-cloud-iac-iac-applier-worker` | 2 × VM.Standard.E4 4-core | $145 | – | $145 |
-| `oya-cloud-iac-iac-rollback-worker` | 2 × VM.Standard.E4 1-core | $36 | – | $36 |
-| `oya-cloud-iac-iac-registry-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| `oya-cloud-iac-iac-renderer-rest` / `-iac-registry-rest` (combined deployment) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| `oya-cloud-iac-iac-applier-app` (composition root) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| `cloud-iac-iac-renderer-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| `cloud-iac-iac-validator-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| `cloud-iac-iac-applier-worker` | 2 × VM.Standard.E4 4-core | $145 | – | $145 |
+| `cloud-iac-iac-rollback-worker` | 2 × VM.Standard.E4 1-core | $36 | – | $36 |
+| `cloud-iac-iac-registry-worker` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| `cloud-iac-iac-renderer-rest` / `-iac-registry-rest` (combined deployment) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| `cloud-iac-iac-applier-app` (composition root) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | OpenTofu state-buckets (per pack) | – | – | $30 hot (~1 TB) + $5 archive | $35 |
 | iac-state-index backup buckets | – | – | $15 hot + $5 archive | $20 |
 | Sigstore Rekor cache (read-only mirror of public log; minimal storage) | 1 × VM.Standard.E4 1-core | $18 | $10 PV | $28 |
@@ -113,7 +113,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm at deploy time. Buffer 15% for 
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `cost-budget` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; current spend within 110%.
+- cloud-ci/ci governance gate `cost-budget` for --microservice cloud-iac is green in the branch-protected `presubmit` context — exit 0; current spend within 110%.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh; re-run formulas with current data.
 

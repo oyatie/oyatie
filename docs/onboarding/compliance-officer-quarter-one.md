@@ -23,8 +23,8 @@ inbound_citations:
   - docs/onboarding/intern-day-one.md
   - docs/onboarding/intern-week-one.md
 enforced_by:
-  - oya-governance-doc-rigor
-  - oya-governance-doc-graph-6hops
+  - governance-doc-rigor
+  - governance-doc-graph-6hops
 ---
 
 # Compliance Officer Quarter-One Onboarding

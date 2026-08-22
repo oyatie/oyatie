@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-iam-cross-cloud-permission-translation-failure.
 - Primary namespace: `cloud-iam`.
-- Owning rotation: PagerDuty `oya-cloud-iam-primary`.
-- Security secondary: PagerDuty `oya-security-policy-primary`.
+- Owning rotation: PagerDuty `cloud-iam-primary`.
+- Security secondary: PagerDuty `security-policy-primary`.
 - Incident channel: `#inc-cloud-iam`.
 - Customer channel: `#support-cloud-iam-tenant-impact`.
 - Source of truth: Cedar policy remains authoritative.
@@ -30,22 +30,22 @@ doc_status: published
 - Audit dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/audit-chain?orgId=1&var-surface=translation`.
 - Loki query: `{namespace="cloud-iam",runbook="cross-cloud-permission-translation-failure"}`.
 - Canonical docs: `microservices/cloud-iam/faqs/iam-engineer-faq.md`.
-- Related policy path: `crates/oya-cloud-iam-domain`.
-- Related API tests: `crates/oya-cloud-iam-api/tests/cloud_iam_api.rs`.
+- Related policy path: `crates/cloud-iam-domain`.
+- Related API tests: `crates/cloud-iam-api/tests/cloud_iam_api.rs`.
 
 ## Trigger Conditions
 - Alert `CloudIamTranslationFailureCritical` fires for any production cell.
 - Alert `CloudIamTargetDigestMismatch` fires for a provider target.
 - Alert `CloudIamTranslationBacklogSloBurn` fires for 10 minutes.
-- Metric `oya_cloud_iam_translation_failure_total` increases by more than 10 in 5 minutes.
-- Metric `oya_cloud_iam_translation_backlog_depth` is above 1000 for 15 minutes.
-- Metric `oya_cloud_iam_target_digest_mismatch_total` is non-zero.
-- Metric `oya_cloud_iam_unrepresentable_cedar_policy_total` spikes for a single tenant.
-- Metric `oya_cloud_iam_provider_write_error_ratio{target="aws"}` exceeds 0.02.
-- Metric `oya_cloud_iam_provider_write_error_ratio{target="gcp"}` exceeds 0.02.
-- Metric `oya_cloud_iam_provider_write_error_ratio{target="azure"}` exceeds 0.02.
-- Metric `oya_cloud_iam_provider_write_error_ratio{target="okta"}` exceeds 0.02.
-- Branch-protected `oya-ci-required` / cloud-ci production-snapshot gate for `cloud-iam-translation` fails.
+- Metric `cloud_iam_translation_failure_total` increases by more than 10 in 5 minutes.
+- Metric `cloud_iam_translation_backlog_depth` is above 1000 for 15 minutes.
+- Metric `cloud_iam_target_digest_mismatch_total` is non-zero.
+- Metric `cloud_iam_unrepresentable_cedar_policy_total` spikes for a single tenant.
+- Metric `cloud_iam_provider_write_error_ratio{target="aws"}` exceeds 0.02.
+- Metric `cloud_iam_provider_write_error_ratio{target="gcp"}` exceeds 0.02.
+- Metric `cloud_iam_provider_write_error_ratio{target="azure"}` exceeds 0.02.
+- Metric `cloud_iam_provider_write_error_ratio{target="okta"}` exceeds 0.02.
+- Branch-protected `presubmit` / cloud-ci production-snapshot gate for `cloud-iam-translation` fails.
 - Support case is tagged `cloud-iam.translation.customer-visible`.
 - A tenant reports denied access after a Cedar policy publish that should have permitted access.
 - A tenant reports permitted access after a Cedar policy rollback that should have denied access.
@@ -83,10 +83,10 @@ doc_status: published
 3. Acknowledge the page: `pd incident ack --service cloud-iam --incident $INCIDENT_ID`.
 4. Open the incident bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-iam --severity sev1`.
 5. Query Alertmanager: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.service=="cloud-iam")'`.
-6. Query failure metric: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_iam_translation_failure_total[5m])'`.
-7. Query backlog: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_translation_backlog_depth{cell="'$CELL'"}'`.
-8. Query digest mismatch: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_target_digest_mismatch_total{cell="'$CELL'"}'`.
-9. Query provider write error: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_provider_write_error_ratio{cell="'$CELL'"}'`.
+6. Query failure metric: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_iam_translation_failure_total[5m])'`.
+7. Query backlog: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_translation_backlog_depth{cell="'$CELL'"}'`.
+8. Query digest mismatch: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_target_digest_mismatch_total{cell="'$CELL'"}'`.
+9. Query provider write error: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_provider_write_error_ratio{cell="'$CELL'"}'`.
 10. Open translation dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/translation?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 11. Open provider panel: `open "https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/provider-writes?orgId=1&var-cell=$CELL"`.
 12. Read logs: `kubectl -n cloud-iam logs deploy/cloud-iam-translation-worker --since=30m | rg "TranslationError|target_digest_mismatch|cloud_iam.translation"`.
@@ -134,7 +134,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Freeze policy promotion: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
+1. Freeze policy promotion: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `presubmit` required; local/Jenkins rehearsals are non-authoritative).
 2. Disable automated provider writes: `oya flags set oya.cloud_iam.translation.auto_apply=false --cell $CELL --reason $INCIDENT_ID`.
 3. Keep Cedar evaluation online: `oya flags set oya.cloud_iam.cedar_authority_only=true --cell $CELL --reason $INCIDENT_ID`.
 4. Open translation breaker: `oya ops breaker open cloud-iam-translation --cell $CELL --ttl 30m --reason $INCIDENT_ID`.
@@ -163,20 +163,20 @@ doc_status: published
 5. If provider credentials failed, patch lease renewal and add credential-expiry alerting.
 6. If provider quota failed, patch retry jitter and per-provider queue partitioning.
 7. Add regression fixture: `fixtures/cloud-iam/translation/$INCIDENT_ID.json`.
-8. Run translator test: `cargo test -p oya-cloud-iam-domain translation -- --nocapture`.
-9. Run API test: `cargo test -p oya-cloud-iam-api cloud_iam_policy_translation -- --nocapture`.
-10. Verify the branch-protected production-snapshot gate for `cloud-iam-translation` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
+8. Run translator test: `cargo test -p cloud-iam-domain translation -- --nocapture`.
+9. Run API test: `cargo test -p cloud-iam-api cloud_iam_policy_translation -- --nocapture`.
+10. Verify the branch-protected production-snapshot gate for `cloud-iam-translation` in `presubmit` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 11. Re-enable auto apply for one tenant: `oya flags set oya.cloud_iam.translation.auto_apply=true --tenant $TENANT --cell $CELL`.
 12. Re-run digest comparison: `oya iam target digest --tenant $TENANT --provider all --cell $CELL --expect cedar-current`.
 13. Close breaker: `oya ops breaker close cloud-iam-translation --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold promotion: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
+14. Unhold promotion: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `presubmit` required; local/Jenkins rehearsals are non-authoritative).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_TRANSLATION_FAILURE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist
 - `CloudIamTranslationFailureCritical` is green for 30 minutes.
 - `CloudIamTargetDigestMismatch` is green for 30 minutes.
-- `oya_cloud_iam_translation_backlog_depth` is zero for the affected tenant.
-- `oya_cloud_iam_target_digest_mismatch_total` does not increase.
+- `cloud_iam_translation_backlog_depth` is zero for the affected tenant.
+- `cloud_iam_target_digest_mismatch_total` does not increase.
 - Provider targets report the current Cedar digest.
 - Cedar `authorize` and target provider access produce the same decision on the canary matrix.
 - `cloud_iam.translation.applied` events are sealed in audit-chain.
@@ -233,10 +233,10 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-iam-primary` immediately for all Sev1 incidents.
-- Page `oya-security-policy-primary` if provider target may permit more than Cedar.
-- Page `oya-cloud-provider-ops` when provider API write errors exceed 0.02 for 10 minutes.
-- Page `oya-audit-chain-primary` if apply events are missing or replay fails.
+- Page `cloud-iam-primary` immediately for all Sev1 incidents.
+- Page `security-policy-primary` if provider target may permit more than Cedar.
+- Page `cloud-provider-ops` when provider API write errors exceed 0.02 for 10 minutes.
+- Page `audit-chain-primary` if apply events are missing or replay fails.
 - Notify `#inc-cloud-iam` for all operators.
 - Notify `#security-policy-review` for over-permit risk.
 - Notify `#support-cloud-iam-tenant-impact` for customer-visible deny risk.

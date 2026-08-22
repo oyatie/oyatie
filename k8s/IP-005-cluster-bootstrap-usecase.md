@@ -6,12 +6,12 @@ impl_plan_id: IP-005-cluster-bootstrap-usecase
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, layer-correctness, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: oya-cloud-k8s-cluster-bootstrap-usecase
+# IP-005: cloud-k8s-cluster-bootstrap-usecase
 
 ## Intent
 
@@ -19,7 +19,7 @@ Orchestrator crate (per ADR-0106; replaces legacy `application`). Reads ports + 
 
 ## ChangeSet boundary
 
-One new crate `oya-cloud-k8s-cluster-bootstrap-usecase`. Catalog row.
+One new crate `cloud-k8s-cluster-bootstrap-usecase`. Catalog row.
 
 ## Concrete File Targets
 
@@ -32,12 +32,12 @@ One new crate `oya-cloud-k8s-cluster-bootstrap-usecase`. Catalog row.
 | `.../src/etcd_backup.rs` | create — orchestrate snapshot create + signature + upload |
 | `.../src/etcd_restore.rs` | create — orchestrate snapshot download + verify + restore |
 | `.../src/evidence_emission.rs` | create — emit BootstrapEvidence via ports |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-usecase.yaml` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-cluster-bootstrap-usecase.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAME: oya-cloud-k8s-cluster-bootstrap-usecase
+NAME: cloud-k8s-cluster-bootstrap-usecase
 JUSTIFICATION:
 - microservice = cloud-k8s; bc-tokens = cluster-bootstrap; layer = usecase (per ADR-0106)
 - exemptions: none
@@ -46,9 +46,9 @@ JUSTIFICATION:
 ## Code Shape
 
 ```rust
-use oya_cloud_k8s_cluster_bootstrap_kernel::ports::*;
-use oya_cloud_k8s_cluster_bootstrap_kernel::entities::*;
-use oya_cloud_k8s_cluster_bootstrap_domain::version_compat;
+use cloud_k8s_cluster_bootstrap_kernel::ports::*;
+use cloud_k8s_cluster_bootstrap_kernel::entities::*;
+use cloud_k8s_cluster_bootstrap_domain::version_compat;
 
 pub struct BootstrapUseCase<K, E, I>
 where
@@ -81,13 +81,13 @@ impl<K, E, I> BootstrapUseCase<K, E, I> where K: KubeadmCommander, E: EtcdSnapsh
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-k8s-cluster-bootstrap-usecase
-cargo build -p oya-cloud-k8s-cluster-bootstrap-usecase
-cargo clippy -p oya-cloud-k8s-cluster-bootstrap-usecase -- -D warnings
-cargo nextest run -p oya-cloud-k8s-cluster-bootstrap-usecase
+cargo check -p cloud-k8s-cluster-bootstrap-usecase
+cargo build -p cloud-k8s-cluster-bootstrap-usecase
+cargo clippy -p cloud-k8s-cluster-bootstrap-usecase -- -D warnings
+cargo nextest run -p cloud-k8s-cluster-bootstrap-usecase
 cargo deny check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-k8s-cluster-bootstrap-usecase
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-cloud-k8s-cluster-bootstrap-usecase
+cargo run -p dev-cli -- gate validate lean-a1 --crate cloud-k8s-cluster-bootstrap-usecase
+cargo run -p dev-cli -- gate validate layer-correctness --crate cloud-k8s-cluster-bootstrap-usecase
 ```
 
 ## Test Plan

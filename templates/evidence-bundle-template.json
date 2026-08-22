@@ -10,7 +10,7 @@
     "status": "pending approval",
     "purpose": "Schema-valid evidence bundle for capability invocations, runbook executions, IP merges, and audit-chain replay.",
     "lift_target": "oyatie/docs/templates/evidence-bundle-template.json",
-    "enforcing_fitness_lane": "oya-governance-audit-emission",
+    "enforcing_fitness_lane": "governance-audit-emission",
     "owner_team": "ops-compliance + axis-foundry",
     "related": [
       "docs/decisions/ADR-0709-general-live-apex.md",

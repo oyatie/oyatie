@@ -6,12 +6,12 @@ impl_plan_id: IP-013-cluster-bootstrap-rest-worker-sdk-app
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-013: oya-cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app} + remaining per-BC -rest/-worker/-app wiring
+# IP-013: cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app} + remaining per-BC -rest/-worker/-app wiring
 
 ## Intent
 
@@ -43,7 +43,7 @@ Plus catalog rows per crate; per ADR-0131 catalog naming.
 ## Crate Naming
 
 ```
-NAMES per BC: oya-cloud-k8s-<bc>-{rest,worker,app}; cluster-bootstrap adds -sdk
+NAMES per BC: cloud-k8s-<bc>-{rest,worker,app}; cluster-bootstrap adds -sdk
 JUSTIFICATION: layers per ADR-0105; no exemptions.
 ```
 
@@ -88,7 +88,7 @@ cargo clippy --workspace --all-features -- -D warnings
 cargo nextest run --workspace --all-features
 cargo deny check
 cargo doc --workspace --no-deps
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s
 ```
 
 ## Test Plan

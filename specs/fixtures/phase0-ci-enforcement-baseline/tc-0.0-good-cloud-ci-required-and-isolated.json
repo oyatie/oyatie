@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "strict": false
   },
@@ -25,14 +25,14 @@
     "audit_chain_event": "EVT-P0-OVERRIDE-EXAMPLE",
     "blast_radius_statement": "dev protected branch only; no tenant release promotion",
     "owner": "platform-toolchain",
-    "revert_or_fix_follow_up": "protected-flow revert/fix PR restores oya-ci-required before TTL",
+    "revert_or_fix_follow_up": "protected-flow revert/fix PR restores presubmit before TTL",
     "reviewer_acknowledgment": "reviewer-agent-approved-or-human-breakglass-ack",
     "ttl_expires_at": "2026-06-09T00:00:00Z"
   },
   "producer_contract": {
     "candidate_bytes_policy": "untrusted_input_only",
-    "context": "oya-ci-required",
-    "controller": "oya-ci-controller",
+    "context": "presubmit",
+    "controller": "ci-controller",
     "forbidden_authority": [
       "./bin/oya verify --ci-required",
       "oya gate run-all --ci-required",
@@ -43,7 +43,7 @@
     "kind": "minimal_rust_bridge_adapter",
     "status_posts_on": "candidate_sha"
   },
-  "purpose": "Specifies the P0.0 destination shape: required oya-ci-required context from trusted cloud-ci/oya-ci control state, candidate bytes as untrusted input, audited override, and tenant-separated pipeline surfaces.",
+  "purpose": "Specifies the P0.0 destination shape: required presubmit context from trusted cloud-ci/ci control state, candidate bytes as untrusted input, audited override, and tenant-separated pipeline surfaces.",
   "tc_ids": [
     "TC-0.0.1",
     "TC-0.0.1a",

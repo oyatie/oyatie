@@ -25,26 +25,26 @@ path = "src/lib.rs"
 doctest = false
 
 [[bin]]
-name = "oya-cloud-ci-affected-set"
+name = "cloud-ci-affected-set"
 path = "src/main.rs"
 
 # ADR-0554 round-3: build-health ratchet — blocks FULL-tier build REGRESSIONS vs the merge-base
 # while grandfathering pre-existing build debt (no flag-day requirement).
 [[bin]]
-name = "oya-cloud-ci-build-health"
-path = "src/bin/oya-cloud-ci-build-health.rs"
+name = "cloud-ci-build-health"
+path = "src/bin/cloud-ci-build-health.rs"
 
 [[bin]]
-name = "oya-cloud-ci-step-telemetry"
-path = "src/bin/oya-cloud-ci-step-telemetry.rs"
+name = "cloud-ci-step-telemetry"
+path = "src/bin/cloud-ci-step-telemetry.rs"
 
 [[bin]]
-name = "oya-cloud-ci-hub-exclusivity"
-path = "src/bin/oya-cloud-ci-hub-exclusivity.rs"
+name = "cloud-ci-hub-exclusivity"
+path = "src/bin/cloud-ci-hub-exclusivity.rs"
 
 [[bin]]
-name = "oya-cloud-ci-owners-from-envelopes"
-path = "src/bin/oya-cloud-ci-owners-from-envelopes.rs"
+name = "cloud-ci-owners-from-envelopes"
+path = "src/bin/cloud-ci-owners-from-envelopes.rs"
 
 [[test]]
 name = "hub_exclusivity"

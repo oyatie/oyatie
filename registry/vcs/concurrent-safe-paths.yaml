@@ -18,7 +18,7 @@
 #         projected_merge_state.rs (concurrent_safe_paths_for_product).
 #
 # Schema version pinned for lane parity with
-# `oya-governance-merge-queue-ref-hygiene`.
+# `governance-merge-queue-ref-hygiene`.
 schema_version: 1
 
 # Swarm Delivery Law (ADR-0711): append-only / per-lane surfaces that must not

@@ -1,7 +1,7 @@
 # PURPOSE: OpenAPI 3.2 contract for the ops workspace shell BC per
 # ralplan-ops-portal v7 §6(a). Surfaces from every ops µservice mount into
 # this shell as SURFACE_CATALOG entries (Live | ReservedComingSoon | Retired).
-# Consumer of oya-ops-workspace-shell-kernel types (SurfaceCatalogPort).
+# Consumer of ops-workspace-shell-kernel types (SurfaceCatalogPort).
 # Cedar-gated by ops-internal-public.cedar (M02-P20) initially; tenant-tier
 # overlays add ops-tenant-private.cedar + ops-internal-sre.cedar at Wave 5.
 # Per ADR-0067 §5 perf authority: SSR p99 ≤500ms / SSE p99 ≤2s.
@@ -101,7 +101,7 @@ components:
     SurfaceState:
       type: string
       enum: [reserved-coming-soon, live, retired]
-      description: Surface lifecycle state per oya-ops-workspace-shell-kernel
+      description: Surface lifecycle state per ops-workspace-shell-kernel
     VisibilityTier:
       type: string
       enum: [public, tenant-public, tenant-private, internal-public, internal-private, system-only]

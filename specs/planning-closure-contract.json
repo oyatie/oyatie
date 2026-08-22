@@ -14,8 +14,8 @@
   },
   "implementation_start_rule": {
     "claim_status": "blocked_until_planning_closure_gate_green",
-    "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
-    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
+    "gate_command": "presubmit cloud-ci planning-closure Rust gate packet",
+    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "allowed_claim_after_green": "The planning phase is closed enough to begin implementation without implementation-time product, architecture, sequencing, or acceptance-criteria invention.",
     "forbidden_claims_before_green": [
       "implementation-ready",
@@ -282,7 +282,7 @@
     "anti_regret_controls": [
       "flat_microservice_catalog_not_grouping_forks",
       "workflow_and_ontology_as_only_cross_product_adapter_layer",
-      "oya_vcs_changeset_promotion_path",
+      "vcs_changeset_promotion_path",
       "kernel_domain_adapter_boundary_discipline",
       "clean_architecture_inward_dependency_direction",
       "api_contract_first_before_handlers",
@@ -577,7 +577,7 @@
       "openfeature_for_cloud_rollout_release_semantics": true,
       "focus_for_billing_dataset_shape": true,
       "opencost_for_kubernetes_cost_attribution": true,
-      "argo_rollouts_or_oya_native_equivalent_for_progressive_delivery": true
+      "argo_rollouts_or_native_equivalent_for_progressive_delivery": true
     },
     "non_claims": [
       "Planning capture only; no runtime Cloud Control Plane, registry, ledger, quota, metering, billing, developer portal, Cluster API, Gateway API, OpenFeature, FOCUS/OpenCost, or progressive delivery implementation is claimed.",

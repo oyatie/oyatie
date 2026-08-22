@@ -28,7 +28,7 @@ provider:
     - claude-subscription
     - openai-subscription
     - gemini-subscription
-    - oya-internal-<model-id>    # post W-AI-Model-Substrate
+    - internal-<model-id>    # post W-AI-Model-Substrate
 
 autonomy_tier_required: T2       # T1 (recommend) | T2 (flag+freeze) | T3 (execute-with-approval) | T4 (auto-execute)
 
@@ -37,7 +37,7 @@ data_classes_touched:            # per PRIVACY-PROGRAM §2.2.1
   - BEHAVIORAL_TENANT_PRODUCT
 
 regulatory_packs_consumed:       # per COMPLIANCE-MATRIX
-  - oya-pack-kr.PIPA
+  - pack-kr.PIPA
   - global.GDPR
 
 evidence_emission_topic: oya.foundry.capability.invoked  # ADR-0003 audit-chain

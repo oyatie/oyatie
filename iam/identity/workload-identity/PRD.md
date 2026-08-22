@@ -18,9 +18,9 @@ related_adrs:
   - ADR-0182
   - ADR-0183
 related_crates:
-  - oya-identity-workload-domain
-  - oya-identity-workload-oidc-adapter
-  - oya-identity-workload-authz-cedar-adapter
+  - identity-workload-domain
+  - identity-workload-oidc-adapter
+  - identity-workload-authz-cedar-adapter
 research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 ---
 
@@ -28,7 +28,7 @@ research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 
 > Scope note. This PRD covers the **workload-identity** bounded context only —
 > machine-to-machine (non-human) identity and authorization, per ADR-0002 and
-> the `oya-identity-workload-*` crates. It is deliberately distinct from the
+> the `identity-workload-*` crates. It is deliberately distinct from the
 > human-identity PRD at `microservices/identity/PRD.md` (OIDC issuer, WebAuthn,
 > SCIM, step-up), which it does not modify. Every recommendation here is grounded
 > in the cited hyperscaler research brief
@@ -100,12 +100,12 @@ of the human-login dependency surface.
 
 The MVP is the union of the three crates already declared in the manifest:
 
-1. `oya-identity-workload-domain` — pure domain kernel (zero deps): the
+1. `identity-workload-domain` — pure domain kernel (zero deps): the
    WorkloadPrincipal model, the lifecycle state machine, and the PARC decision
    types.
-2. `oya-identity-workload-oidc-adapter` — `ring`-backed JWS validation
+2. `identity-workload-oidc-adapter` — `ring`-backed JWS validation
    implementing the 8-step pipeline; projects verified claims into a principal.
-3. `oya-identity-workload-authz-cedar-adapter` — the in-crate faithful Cedar
+3. `identity-workload-authz-cedar-adapter` — the in-crate faithful Cedar
    evaluator behind `WorkloadAuthorizer` (default-deny, forbid-wins, lifecycle
    precondition), with the upstream `cedar-policy` crate as the documented swap
    target.
@@ -158,7 +158,7 @@ returns the typed reason (brief §1):
 8. **Explicit `typ`.** Require the access-token `typ` (cross-JWT-confusion
    defense, RFC 8725 §3.11–12).
 
-This pipeline is implemented in `oya-identity-workload-oidc-adapter` and exposed
+This pipeline is implemented in `identity-workload-oidc-adapter` and exposed
 as `/tokens/validate` and the `ValidateToken` RPC. Each numbered step maps to a
 mandatory verifier test case (see §6 and the canonical `../threat-model.md#workload-identity-threat-model`).
 
@@ -257,7 +257,7 @@ and a test surface.
 | AC-W-13 | Every authorize call AND every validation outcome emits exactly one immutable event with a stable, never-reused subject id. | nextest + AsyncAPI contract |
 | AC-W-14 | A retired principal id is tombstoned and cannot be reused for a new provision. | nextest |
 | AC-W-15 | The `WorkloadAuthorizer` trait can be swapped from the in-crate evaluator to upstream `cedar-policy` without changing callers. | architecture-boundaries gate |
-| AC-W-16 | `oya-identity-workload-domain` imports zero peer crates (pure kernel). | architecture-boundaries gate |
+| AC-W-16 | `identity-workload-domain` imports zero peer crates (pure kernel). | architecture-boundaries gate |
 | AC-W-17 | Token bodies are never logged; only `sub` + `jti` appear in forensic logs. | code review + log-sieve gate |
 | AC-W-18 | The golden policy-decision corpus covers explicit-permit, explicit-forbid, implicit-deny, suspended, cross-trust-domain, and sensitive-write cases, and is replayed by the correctness prober. | test corpus review |
 

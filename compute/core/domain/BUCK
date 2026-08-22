@@ -10,7 +10,7 @@ rust_library(
         "//iam/core/cloud-domain:iam-cloud-domain",
         "//network/core/domain:network-domain",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -26,7 +26,7 @@ rust_test(
         "//iam/core/cloud-domain:iam-cloud-domain",
         "//network/core/domain:network-domain",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -43,6 +43,6 @@ rust_test(
         "//iam/core/cloud-domain:iam-cloud-domain",
         "//network/core/domain:network-domain",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )

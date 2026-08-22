@@ -31,7 +31,7 @@ fn legacy_diff_args<'a>(merge_base: &'a str, head: &'a str) -> Vec<&'a str> {
 
 fn fixture_root() -> PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "oya-affected-rename-{}-{}",
+        "affected-rename-{}-{}",
         std::process::id(),
         COUNTER.fetch_add(1, Ordering::Relaxed)
     ));

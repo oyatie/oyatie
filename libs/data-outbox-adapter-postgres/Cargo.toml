@@ -1,0 +1,40 @@
+# Postgres CDC change-stream adapter for the owned data outbox port
+# (ADR-0536 D-10 change streams / D-13 messaging; story G003). The ADR-0510
+# transitional Postgres (via sqlx) implementation of data-outbox-kernel's
+# ChangeStreamSource port: tenant-scoped, strictly-after-checkpoint,
+# HLC-commit-ordered polling SELECTs over data_outbox.outbox_events behind
+# the W5 changefeed-shaped trait. Applies the parameterized RLS set_config
+# (reusing the shared postgres-command kernel's SET_LOCAL_TENANT_SQL) in the
+# same transaction as the poll, maps rows to the kernel ChangeRecord shape, and
+# validates the resulting ChangeBatch via the kernel's ordering/monotonicity
+# invariants. Ships the production migration (PERMISSIVE tenant-isolation +
+# RESTRICTIVE empty-GUC-deny + FORCE RLS) and the env-gated live cross-tenant
+# CDC harness for integration runs against a containerized Postgres.
+# Backend qualifier is `postgres` (ADR-0105 §Adopted Patterns: the backend is
+# the external SYSTEM, postgres; sqlx is the in-process driver/toolkit).
+# authoring_adrs: ADR-0510, ADR-0536, ADR-0537
+
+[package]
+name = "data-outbox-adapter-postgres"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "data_outbox_adapter_postgres"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+data-outbox-kernel = { path = "../data-outbox-kernel" }
+data-sql-kernel = { path = "../data-sql-kernel" }
+shared-postgres-command-kernel = { path = "../shared-postgres-command-kernel" }
+sqlx.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lints]
+workspace = true

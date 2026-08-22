@@ -1,0 +1,17 @@
+[package]
+name = "governance-banned-primitives-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "governance-banned-primitives-app"
+path = "src/main.rs"
+
+[dependencies]
+governance-banned-primitives-kernel = { path = "../../libs/governance-banned-primitives-kernel" }
+
+[lints]
+workspace = true

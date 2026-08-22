@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-003: oya-cloud-k8s-cluster-bootstrap-kernel
+# IP-003: cloud-k8s-cluster-bootstrap-kernel
 
 ## Intent
 
@@ -21,24 +21,24 @@ Scaffold the `kernel` layer crate per ADR-0105: port traits (sealed) + entity ty
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml`.
+One new Rust crate at `microservices/cloud-k8s/src/crates/cloud-k8s-cluster-bootstrap-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/cloud-k8s/catalog/cloud-k8s-cluster-bootstrap-kernel.yaml`.
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-kernel/Cargo.toml` | create | `[package]` + minimal deps |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-cluster-bootstrap-kernel/Cargo.toml` | create | `[package]` + minimal deps |
 | `.../src/lib.rs` | create | module declarations + `pub use` surface |
 | `.../src/entities.rs` | create | `Cluster`, `ControlPlaneNode`, `KubeadmConfig`, `EtcdSnapshot`, `BootstrapEvidence` with `data_class` annotations |
 | `.../src/ports.rs` | create | sealed port traits (KubeadmCommander, EtcdSnapshotter, ControlPlaneInspector) |
 | `.../src/errors.rs` | create | error variants per port + entity |
 | `Cargo.toml` (workspace) | update | add workspace member |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml` | create | catalog row |
+| `microservices/cloud-k8s/catalog/cloud-k8s-cluster-bootstrap-kernel.yaml` | create | catalog row |
 
 ## Crate Naming
 
 ```
-NAME: oya-cloud-k8s-cluster-bootstrap-kernel
+NAME: cloud-k8s-cluster-bootstrap-kernel
 JUSTIFICATION:
 - microservice = cloud-k8s
 - bc-tokens = cluster-bootstrap
@@ -126,16 +126,16 @@ pub trait ControlPlaneInspector: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-k8s-cluster-bootstrap-kernel --all-features
-cargo build -p oya-cloud-k8s-cluster-bootstrap-kernel --all-features
-cargo clippy -p oya-cloud-k8s-cluster-bootstrap-kernel --all-features -- -D warnings
-cargo nextest run -p oya-cloud-k8s-cluster-bootstrap-kernel --all-features
+cargo check -p cloud-k8s-cluster-bootstrap-kernel --all-features
+cargo build -p cloud-k8s-cluster-bootstrap-kernel --all-features
+cargo clippy -p cloud-k8s-cluster-bootstrap-kernel --all-features -- -D warnings
+cargo nextest run -p cloud-k8s-cluster-bootstrap-kernel --all-features
 cargo deny check
-cargo doc -p oya-cloud-k8s-cluster-bootstrap-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-k8s-cluster-bootstrap-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-cloud-k8s-cluster-bootstrap-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-cloud-k8s-cluster-bootstrap-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-cloud-k8s-cluster-bootstrap-kernel
+cargo doc -p cloud-k8s-cluster-bootstrap-kernel --no-deps
+cargo run -p dev-cli -- gate validate lean-a1 --crate cloud-k8s-cluster-bootstrap-kernel
+cargo run -p dev-cli -- gate validate port-location --crate cloud-k8s-cluster-bootstrap-kernel
+cargo run -p dev-cli -- gate validate layer-correctness --crate cloud-k8s-cluster-bootstrap-kernel
+cargo run -p dev-cli -- gate validate data-class --crate cloud-k8s-cluster-bootstrap-kernel
 ```
 
 ## Test Plan

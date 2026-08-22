@@ -59,14 +59,14 @@ them blinds operations:
 ### 1. Key-pool state machine (kernel)
 
 #### 1.1 All keys blacklisted simultaneously
-- **Detection:** `KeyPool::select` → `Exhausted`; `oya_cloud_intelligence_active_keys == 0`.
+- **Detection:** `KeyPool::select` → `Exhausted`; `cloud_intelligence_active_keys == 0`.
 - **Immediate:** 503 `gateway_key_exhausted` + `Retry-After` = soonest restore; lazy restore heals
   the pool automatically as cooldowns expire.
 - **Long-term:** Right-size pool depth + per-tenant budgets/headroom (brief §6).
 - **Residual:** Low (self-healing; jitter prevents synchronized re-trip).
 
 #### 1.2 Cooldown too short → thrash (re-trip immediately)
-- **Detection:** High `oya_cloud_intelligence_key_blacklist_total` churn.
+- **Detection:** High `cloud_intelligence_key_blacklist_total` churn.
 - **Immediate:** Increase `cooldown_base_millis`.
 - **Long-term:** Tune via measured restore success; keep jitter non-zero.
 - **Residual:** Low.
@@ -107,7 +107,7 @@ them blinds operations:
 ### 3. Secret-provider key store (rest)
 
 #### 3.1 Secret-provider adapter unreachable on refresh
-- **Detection:** `oya_cloud_intelligence_key_refresh_failures_total` > 0.
+- **Detection:** `cloud_intelligence_key_refresh_failures_total` > 0.
 - **Immediate:** Serve last-good in-memory keys (refresh is best-effort); alert. **Never** fail-open
   to a plaintext key source (brief §5).
 - **Long-term:** cloud-secrets/cloud-kms adapter HA per cell.
@@ -148,7 +148,7 @@ them blinds operations:
 ### 6. Audit / metering emission (rest)
 
 #### 6.1 Broker unavailable → audit cannot emit
-- **Detection:** `oya_cloud_intelligence_audit_emit_failures_total` > 0; alert-if-disabled.
+- **Detection:** `cloud_intelligence_audit_emit_failures_total` > 0; alert-if-disabled.
 - **Immediate:** Buffer + retry; if the audit cannot be guaranteed, treat as Sev 1 (the immutable
   record is a hard requirement, brief §9). Metering (usage) may sample/drop; audit may not.
 - **Long-term:** Local durable spool with backpressure into the request path if the chain would gap.
@@ -177,6 +177,6 @@ them blinds operations:
 ## References
 
 - `design/hyperscaler-best-practice-brief.md` §1, §10.
-- `crates/oya-cloud-intelligence-kernel/src/lib.rs` (state machine; unit tests cover 1.1–1.4 transitions).
+- `crates/cloud-intelligence-kernel/src/lib.rs` (state machine; unit tests cover 1.1–1.4 transitions).
 - `runbooks/key-exhaustion.md`, `runbooks/provider-outage.md`.
 - `design/operational-boundaries.md` (the audit-vs-availability tension), `design/tenant-isolation.md`.

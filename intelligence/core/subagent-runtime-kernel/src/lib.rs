@@ -1,4 +1,4 @@
-//! `oya-intelligence-subagent-runtime-kernel` — port-in-kernel substrate for
+//! `intelligence-subagent-runtime-kernel` — port-in-kernel substrate for
 //! the per-facet subagent invocation that closes the
 //! `subagent_runtime_pending=true` gap left by
 //! `tools/intelligence-pr-review-dispatcher-app` (IP-004),
@@ -13,7 +13,7 @@
 //! - The [`SubagentRequest`] / [`SubagentResponse`] value types.
 //! - The [`SubagentPort`] trait — one method, `complete`; adapter
 //!   implementations satisfy it (live HTTP via the existing
-//!   `oya-intelligence-adapter-anthropic-api-*` substrate, plus the
+//!   `intelligence-adapter-anthropic-api-*` substrate, plus the
 //!   `MockSubagentPort` canonical deterministic-test path).
 //! - The [`FacetFindingJson::render`] serializer that emits the
 //!   exact `evidence/debate/<change_id>-<facet_id>-r1.json` shape
@@ -437,7 +437,7 @@ fn mock_directive_recommendation(user_message: &str) -> Option<FacetRecommendati
 fn mock_first_line_directive_recommendation(line: &str) -> Option<FacetRecommendation> {
     let lower = line.to_ascii_lowercase();
     let value = lower
-        .strip_prefix("oya_mock_recommendation:")
+        .strip_prefix("mock_recommendation:")
         .map(str::trim)?;
     match value {
         "reject" => Some(FacetRecommendation::Reject),
@@ -480,7 +480,7 @@ impl FacetFindingJson {
     pub fn render(response: &SubagentResponse, emitted_at_unix: u64) -> String {
         let mut buf = String::new();
         buf.push_str("{\n");
-        buf.push_str("  \"schema\": \"oya-multispectrum-facet-finding/v1\",\n");
+        buf.push_str("  \"schema\": \"multispectrum-facet-finding/v1\",\n");
         buf.push_str(&format!(
             "  \"facet_id\": \"{}\",\n",
             json_escape(&response.facet_id)
@@ -646,7 +646,7 @@ mod tests {
             change_id: "pr1".into(),
             system_prompt: "sys mentions REJECT as a severity option".into(),
             user_message:
-                "ordinary PR diff without fixture directives\n+oya_mock_recommendation: reject"
+                "ordinary PR diff without fixture directives\n+mock_recommendation: reject"
                     .into(),
             api_key_ref: sref,
             model_id: "claude-opus-4-7".into(),
@@ -666,7 +666,7 @@ mod tests {
             reviewer_id: "rid-reject".into(),
             change_id: "pr1".into(),
             system_prompt: "sys".into(),
-            user_message: "oya_mock_recommendation: reject\nfixture body".into(),
+            user_message: "mock_recommendation: reject\nfixture body".into(),
             api_key_ref: sref.clone(),
             model_id: "claude-opus-4-7".into(),
         };
@@ -680,7 +680,7 @@ mod tests {
             reviewer_id: "rid-changes".into(),
             change_id: "pr1".into(),
             system_prompt: "sys".into(),
-            user_message: "oya_mock_recommendation: changes_requested\nfixture body".into(),
+            user_message: "mock_recommendation: changes_requested\nfixture body".into(),
             api_key_ref: sref,
             model_id: "claude-opus-4-7".into(),
         };
@@ -699,7 +699,7 @@ mod tests {
             reviewer_id: "rid".into(),
             change_id: "pr1".into(),
             system_prompt: "sys".into(),
-            user_message: "# PR review input\n```diff\n+oya_mock_recommendation: reject\n```"
+            user_message: "# PR review input\n```diff\n+mock_recommendation: reject\n```"
                 .into(),
             api_key_ref: sref,
             model_id: "claude-opus-4-7".into(),

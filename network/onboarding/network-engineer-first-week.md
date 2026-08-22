@@ -1,6 +1,6 @@
 # Network Engineer — First Week on `cloud-network`
 
-Audience: a network/SRE engineer with AWS VPC + Cilium + Envoy + BGP experience joining the `oya-cloud-network-*` lane.
+Audience: a network/SRE engineer with AWS VPC + Cilium + Envoy + BGP experience joining the `cloud-network-*` lane.
 Goal: by Friday EOD you can provision a tenant VPC, configure mTLS termination, establish a hybrid BGP peer, and walk a flow-log
 investigation.
 
@@ -57,7 +57,7 @@ Deploy a tiny test service (in the cell's K8s):
 ./bin/oya network service deploy \
   --tenant oyatie.b2b.smb.acme-software \
   --service-name webapp \
-  --image ghcr.io/oya-samples/echo:0.4.1 \
+  --image ghcr.io/samples/echo:0.4.1 \
   --replicas 2 \
   --port 8080
 ```

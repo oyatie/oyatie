@@ -1,4 +1,4 @@
-//! oya-identity — identity service for oyatie.
+//! identity — identity service for oyatie.
 //!
 //! Single-crate-per-service pattern per ADR-0509.
 //! Subsystems: auth, oidc, oauth2, realms, users, storage, rest, grpc, observability.

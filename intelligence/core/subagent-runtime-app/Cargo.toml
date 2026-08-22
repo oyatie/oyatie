@@ -12,7 +12,7 @@
 #                      usecase, app, adapter, infrastructure, cli, rest,
 #                      grpc, worker, sdk, api} per ADR-0056 amended by
 #                      ADR-0105+ADR-0106+ADR-0565. ✓
-#   - Sibling pattern: every other `tools/oya-foundry-*-app` crate
+#   - Sibling pattern: every other `tools/foundry-*-app` crate
 #                      (banned-primitives, pr-review-dispatcher, etc.).
 #   - Introducing IP:  M01-P17-IP-009 (subagent runtime).
 name = "intelligence-subagent-runtime-app"

@@ -214,7 +214,7 @@ decision_owner: axis-cloud-secrets + ops-security
 - `policy/ci-scope.cedar` forbids CI from resolving tenant secret references.
 - `policy/public-read.cedar` permits health, ready, metrics, public contracts, and public docs only under safe data class.
 - `policy/secret-isolation.md` remains the readable control map for tenant and microservice isolation.
-- Deny decisions must emit `oya_cloud_secrets_tenant_unauthorized_read_attempt_total`.
+- Deny decisions must emit `cloud_secrets_tenant_unauthorized_read_attempt_total`.
 
 ### SLO Targets
 
@@ -253,9 +253,9 @@ decision_owner: axis-cloud-secrets + ops-security
 - Metric `cloud-secrets-resolve-latency-p99`.
 - Metric `cloud-secrets-write-latency-p95`.
 - Metric `cloud-secrets-audit-completeness-ratio`.
-- Metric `oya_cloud_secrets_rotation_overdue_total`.
-- Metric `oya_cloud_secrets_tenant_unauthorized_read_attempt_total`.
-- Metric `oya_cloud_secrets_hsm_availability_ratio`.
+- Metric `cloud_secrets_rotation_overdue_total`.
+- Metric `cloud_secrets_tenant_unauthorized_read_attempt_total`.
+- Metric `cloud_secrets_hsm_availability_ratio`.
 - Dashboard `dashboards/secret-resolution-rate.json`.
 - Dashboard `dashboards/rotation-compliance.json`.
 - Dashboard `dashboards/audit-emission-completeness.json`.

@@ -7,7 +7,7 @@ Per-BC Service template — one Service per BC. Per ADR-0131.
 apiVersion: v1
 kind: Service
 metadata:
-  name: oya-calendar-{{ $bc }}-app
+  name: calendar-{{ $bc }}-app
   namespace: calendar
   labels:
     microservice: calendar

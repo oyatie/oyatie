@@ -63,7 +63,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: A scheduled rotation does not complete within its SLA window (60s for most rotations); subsequent rotations queue.
 - **Trigger**: HSM unavailable, OpenBao policy mis-author, cascade-dependency deadlock, scheduler bug.
-- **Detection**: `oya_cloud_secrets_rotation_overdue_total > 0` over 5min; `RotationOverdue` event.
+- **Detection**: `cloud_secrets_rotation_overdue_total > 0` over 5min; `RotationOverdue` event.
 - **Blast radius**: affected secret approaches expiry; if expiry passes, downstream µservices fail (Sev-2).
 - **Mitigation**:
   - Scheduler retry with exponential backoff (3 attempts, then page).
@@ -79,7 +79,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: `audit-emitter → audit-chain` bridge throughput drops; events queue locally; local disk fills.
 - **Trigger**: audit-chain µservice degradation; network path failure; bridge crash loop.
-- **Detection**: `oya_cloud_secrets_audit_emission_backlog_seconds > 60`; local audit-device file growth rate.
+- **Detection**: `cloud_secrets_audit_emission_backlog_seconds > 60`; local audit-device file growth rate.
 - **Blast radius**: secret-resolution continues; audit lag breaches compliance SLA (PIPA Art. 29 + SOC 2 CC7.1); regulatory Sev-2.
 - **Mitigation**:
   - Local audit-device file is durable + capped (rotate at 10 GiB).
@@ -96,7 +96,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: Controller pods crash-loop or fall behind; new `TenantRegistered` events accumulate in queue; tenant onboarding stalls.
 - **Trigger**: bad config push, RBAC mis-author, OpenBao API error cascade, Kubernetes lease contention.
-- **Detection**: `oya_cloud_secrets_namespace_provisioning_lag_seconds > 600`; pod restart counter; `NamespaceProvisioningStuck` event.
+- **Detection**: `cloud_secrets_namespace_provisioning_lag_seconds > 600`; pod restart counter; `NamespaceProvisioningStuck` event.
 - **Blast radius**: tenant onboarding blocked (Sev-2); existing tenants unaffected.
 - **Mitigation**:
   - 2+ replicas with Kubernetes lease leader-election.
@@ -144,7 +144,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: `SecretRevoked` event emitted; one or more consumer SDKs do not flush cache; consumers continue serving stale (revoked) value.
 - **Trigger**: SSE/WebSocket connection dropped + reconnect failure, consumer SDK bug, network partition.
-- **Detection**: `oya_cloud_secrets_revocation_propagation_lag_seconds > 5`; consumer-side cache-hit on revoked path.
+- **Detection**: `cloud_secrets_revocation_propagation_lag_seconds > 5`; consumer-side cache-hit on revoked path.
 - **Blast radius**: leaked credential remains usable longer than SLA; security Sev-1 if revocation was triggered by suspected compromise.
 - **Mitigation**:
   - SDK opens persistent SSE; auto-reconnect with backoff.
@@ -188,7 +188,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: A PR merges an OpenBao policy that grants a consumer µservice access broader than its intended scope.
 - **Trigger**: reviewer miss + LEAN-A12 gap.
-- **Detection**: LEAN-A12 `oya-check-openbao-policy-scope` lane (pre-merge); periodic policy-diff audit (post-merge).
+- **Detection**: LEAN-A12 `check-openbao-policy-scope` lane (pre-merge); periodic policy-diff audit (post-merge).
 - **Blast radius**: depending on scope, could allow cross-µservice or cross-tenant read; Sev-2.
 - **Mitigation**:
   - LEAN-A12 lane.
@@ -219,7 +219,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 - **Description**: Consumer µservice uses an SDK version that does not honour current revocation push protocol or cache TTL.
 - **Trigger**: scheduled-for-distinct-tracked-work upgrade, deprecated SDK still imported, third-party µservice not yet updated.
-- **Detection**: `oya_cloud_secrets_sdk_version_count{version}` distribution; deprecation lane in CI.
+- **Detection**: `cloud_secrets_sdk_version_count{version}` distribution; deprecation lane in CI.
 - **Blast radius**: per-consumer; can break revocation SLA for that consumer's secret reads.
 - **Mitigation**:
   - SDK semver + deprecation policy; sunset window ≥6 months.

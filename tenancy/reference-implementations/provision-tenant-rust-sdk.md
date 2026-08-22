@@ -20,9 +20,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-oya-tenancy-sdk = { path = "../../crates/oya-tenancy-sdk" }
-oya-iam-sdk = { path = "../../crates/oya-iam-sdk" }
-oya-observability-sdk = { path = "../../crates/oya-observability-sdk" }
+tenancy-sdk = { path = "../../crates/tenancy-sdk" }
+iam-sdk = { path = "../../crates/iam-sdk" }
+observability-sdk = { path = "../../crates/observability-sdk" }
 tokio = { version = "1.42", features = ["full"] }
 anyhow = "1.0"
 tracing = "0.1"
@@ -34,12 +34,12 @@ serde_json = "1.0"
 
 ```rust
 use anyhow::{anyhow, Context};
-use oya_tenancy_sdk::{
+use tenancy_sdk::{
     TenancyClient, TenantProvisionRequest, AudienceType, TenantProvisionStatus,
     DrPairingConfig, SubScopeCreateRequest, TenantInitialAdminInviteRequest,
 };
-use oya_iam_sdk::{IamClient, Principal};
-use oya_observability_sdk::ObservabilityGuard;
+use iam_sdk::{IamClient, Principal};
+use observability_sdk::ObservabilityGuard;
 use tracing::{info, warn};
 
 struct TenantProvisioningWorker {
@@ -245,8 +245,8 @@ This is the chain-of-custody for the tenant lifecycle.
 ## Run + verify
 
 ```sh
-OYA_TENANCY_API=https://tenancy-api.dev.<platform>.oyatie.io \
-OYA_IAM_API=https://iam-api.dev.<platform>.oyatie.io \
+OYATIE_TENANCY_API=https://tenancy-api.dev.<platform>.oyatie.io \
+OYATIE_IAM_API=https://iam-api.dev.<platform>.oyatie.io \
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
     cargo run --release
 ```

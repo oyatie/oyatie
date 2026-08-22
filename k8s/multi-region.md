@@ -163,7 +163,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-k8s-multi-region-overlay
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice cloud-k8s` — exit 0.
+- `cargo run -p dev-cli -- gate validate multi-region-conformance --microservice cloud-k8s` — exit 0.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA / APRA-CPS 232.
 
@@ -243,6 +243,6 @@ See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declara
 
 Per ADR-0161, this pack ships canonical StorageClass manifests at `iac/kustomize/components/storage-classes/` (catalog) and per-pack overlays at `iac/kustomize/components/pack-{name}/` (CSI driver binding).
 
-Canonical names declared at workload µservice level: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-valkey-hot`, `oya-s3-warm`, `oya-s3-cold`.
+Canonical names declared at workload µservice level: `pg-hot`, `pg-warm`, `pg-cold`, `valkey-hot`, `s3-warm`, `s3-cold`.
 
 Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`. CI lane `oya gate validate storage-class-canonical` enforces.

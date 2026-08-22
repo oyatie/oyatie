@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-audit-chain-hsm-operator
+name: audit-chain-hsm-operator
 description: OCI Cloud-HSM operator + per-pack partition handle + PKCS#11 + KMIP client config for sealing-worker. Per Bominal ADR-0028 + policy/seal-integrity.md SI-06..SI-12.
 type: application
 version: 0.1.0

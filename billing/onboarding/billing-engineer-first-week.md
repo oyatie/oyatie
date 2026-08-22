@@ -1,7 +1,7 @@
 # Billing Engineer — First Week on `cloud-billing`
 
 Audience: a finance/FinOps engineer with AWS Cost & Usage Reports + Stripe + ERP integration experience joining the
-`oya-cloud-billing-*` lane. Goal: by Friday EOD you can emit a usage event, generate an invoice, walk a chargeback,
+`cloud-billing-*` lane. Goal: by Friday EOD you can emit a usage event, generate an invoice, walk a chargeback,
 and produce a FOCUS 1.1 export.
 
 ## Day 1 — read before touching
@@ -23,7 +23,7 @@ cd .worktrees/$USER-billing-week1
 ```bash
 make dev-cell.up CELL=billing-loopback-1 PROFILE=cloud-billing-dev
 make dev-tenant.create T=oyatie.b2b.smb.acme-software TENANT_CLASS=paid
-make dev-rate-card.attach T=oyatie.b2b.smb.acme-software CARD=oya-rate-card-smb-paid-v1
+make dev-rate-card.attach T=oyatie.b2b.smb.acme-software CARD=rate-card-smb-paid-v1
 ```
 
 Emit a usage event (synthetic — pretends `cloud-compute-k8s` is reporting):

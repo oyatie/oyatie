@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-observability-opencost
+name: observability-opencost
 description: |
   OpenCost (CNCF incubating; OSS preference over Kubecost commercial) per
   ADR-0199 FinOps cost-attribution. Aggregates per-tenant cost via mandatory

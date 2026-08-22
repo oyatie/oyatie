@@ -5,7 +5,7 @@ status: Proposed
 date: 2026-05-21
 authority_tier: 2
 length_cap: 1800
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 purpose: |
   Doctrine bootcamp summarizing the 30 most important keystone ADRs for veterans and newcomers in one-page-per-ADR shape.
 related_adrs:
@@ -883,7 +883,7 @@ Exit artifact: `bootcamp-page-29-adr-0316`.
 ## Page 30. ADR-0317 - ADR-0317: Role-Based Projection + Unified UX Shell Doctrine
 
 ADR source: [decisions/ADR-0317-role-based-projection-unified-ux-shell.md](../decisions/ADR-0317-role-based-projection-unified-ux-shell.md).
-Doctrine summary: enforcement_status: advisory-until-role-projection-registry-lands enforced_by: - oya-governance-role-projection-registry - oya-governance-role-context-indicator - oya-governance-role-switch-latency - oya-governance-role-shell-a11y - oya-governance-role-shell-same-training - oya-governance-per-micros
+Doctrine summary: enforcement_status: advisory-until-role-projection-registry-lands enforced_by: - governance-role-projection-registry - governance-role-context-indicator - governance-role-switch-latency - governance-role-shell-a11y - governance-role-shell-same-training - governance-per-micros
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
 Intern build rule: The intern MUST name the primitive, the owning ADR, and the verification artifact before editing any dependent surface.

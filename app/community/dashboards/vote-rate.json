@@ -1,6 +1,6 @@
 {
   "title": "Community — Vote Rate",
-  "uid": "oya-community-vote-rate",
+  "uid": "community-vote-rate",
   "tags": ["community", "voting-engine"],
   "schemaVersion": 38,
   "version": 1,
@@ -8,7 +8,7 @@
   "time": { "from": "now-6h", "to": "now" },
   "templating": {
     "list": [
-      { "name": "tenant_id", "type": "query", "datasource": "prometheus", "query": "label_values(oya_community_vote_cast_total, tenant_id)", "includeAll": true }
+      { "name": "tenant_id", "type": "query", "datasource": "prometheus", "query": "label_values(community_vote_cast_total, tenant_id)", "includeAll": true }
     ]
   },
   "panels": [
@@ -17,7 +17,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "sum by (tenant_id, direction) (rate(oya_community_vote_cast_total{tenant_id=~\"$tenant_id\"}[5m]))", "legendFormat": "{{tenant_id}} / {{direction}}" }
+        { "expr": "sum by (tenant_id, direction) (rate(community_vote_cast_total{tenant_id=~\"$tenant_id\"}[5m]))", "legendFormat": "{{tenant_id}} / {{direction}}" }
       ]
     },
     {
@@ -25,7 +25,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(oya_community_vote_cast_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))" }
+        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(community_vote_cast_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))" }
       ]
     },
     {
@@ -33,7 +33,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_vote_tally_divergence_ratio{tenant_id=~\"$tenant_id\"} * 100" }
+        { "expr": "community_vote_tally_divergence_ratio{tenant_id=~\"$tenant_id\"} * 100" }
       ],
       "alert": {
         "name": "community-vote-tally-divergence",
@@ -47,7 +47,7 @@
       "type": "table",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "topk(25, sum by (tenant_id, post_id) (rate(oya_community_vote_cast_total{tenant_id=~\"$tenant_id\"}[1h])))" }
+        { "expr": "topk(25, sum by (tenant_id, post_id) (rate(community_vote_cast_total{tenant_id=~\"$tenant_id\"}[1h])))" }
       ]
     },
     {
@@ -55,7 +55,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_vote_velocity_zscore{tenant_id=~\"$tenant_id\"}" }
+        { "expr": "community_vote_velocity_zscore{tenant_id=~\"$tenant_id\"}" }
       ],
       "alert": {
         "name": "community-vote-velocity-anomaly",

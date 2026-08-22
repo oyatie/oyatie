@@ -194,7 +194,7 @@ microservice landing).
 | 8.3 | Rancher Fleet equivalent | n/a | n/a | n/a | n/a | yes (deployment-control-plane) | covered | ADR-0254 §D-4 deployment-control-plane microservice (Palantir Apollo equivalent) |
 | 8.4 | Multi-cluster app deployment | manual | yes (Anthos Config Mgmt) | manual | manual | yes | covered | ADR-0254 §D-4 deployment-control-plane orchestrates per-cell upgrades |
 | 8.5 | GitOps-native upgrades | manual | manual | manual | manual | yes | covered | PRD Key parity gap #4 closed; iac/helm + iac/kustomize git-versioned |
-| 8.6 | Drift detection | manual | manual | manual | manual | yes | covered | observability microservice + governance lane oya-gate-config-drift |
+| 8.6 | Drift detection | manual | manual | manual | manual | yes | covered | observability microservice + governance lane gate-config-drift |
 | 8.7 | Auto-rollback on SLO breach | manual | manual | manual | manual | yes | covered | ADR-0040 + ADR-0254 §D-4 canary controller |
 | 8.8 | Tenant-scoped GitOps workspace | n/a | n/a | n/a | n/a | yes | covered | workflow-studio microservice + tenant Cedar fragments |
 
@@ -250,7 +250,7 @@ and NSA hardening BLOCKER lane (10.5).
 | 11.3 | File storage CSI | yes (EFS) | yes (Filestore) | yes | yes (Files) | yes | covered | csi-storage-driver-adapter-file |
 | 11.4 | VolumeSnapshot integration | yes | yes | yes | yes | yes | covered | csi-storage-driver BC entities; VolumeSnapshot CR |
 | 11.5 | Per-PV encryption (KMS-managed) | yes | yes | yes | yes | yes | covered | ADR-0161 + cloud-kms microservice |
-| 11.6 | Canonical StorageClass catalog | n/a | n/a | n/a | n/a | yes | covered | iac/kustomize/components/storage-classes/ — oya-pg-hot, oya-pg-warm, oya-pg-cold, oya-valkey-hot, oya-s3-warm, oya-s3-cold |
+| 11.6 | Canonical StorageClass catalog | n/a | n/a | n/a | n/a | yes | covered | iac/kustomize/components/storage-classes/ — pg-hot, pg-warm, pg-cold, valkey-hot, s3-warm, s3-cold |
 | 11.7 | Per-backend CSI separation (cleaner ops) | n/a | n/a | n/a | n/a | yes | covered | PRD Naming justification §csi-storage-driver — three -adapter-<backend> crates per ADR-0105 Amendment 3 |
 | 11.8 | Cross-region volume replication | partial | partial | partial | partial | yes (DR pair) | covered | multi-region.md §Replication; backend-native CRR |
 | 11.9 | Ceph RBD support (on-prem) | n/a | n/a | n/a | partial | yes (paid tenant_class with required billing_components or compliance_pack) | covered | tier-matrix.md paid on-prem-connected cell_topology (post-retirement: paid on-prem-connected deployment-context) |

@@ -1195,18 +1195,18 @@ Per ADR-0105 13-value layer enum + ADR-0106 usecase rename:
 
 | BC | Crate family | Purpose |
 |---|---|---|
-| `oidc-issuer` | `oya-identity-oidc-issuer-{kernel,domain,usecase,api,adapter,adapter-zitadel,rest,sdk,app}` | OIDC token issuance + JWKS + revocation |
-| `webauthn-relying-party` | `oya-identity-webauthn-relying-party-{kernel,domain,usecase,api,adapter,adapter-webauthn-rs,rest,worker,sdk,app}` | WebAuthn L3 register + authenticate |
-| `scim-server` | `oya-identity-scim-server-{kernel,domain,usecase,api,adapter,adapter-zitadel,rest,sdk,app}` | SCIM 2.0 inbound endpoint |
-| `hris-adapter` | `oya-identity-hris-adapter-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Non-SCIM HRIS adapter contract |
-| `step-up-orchestrator` | `oya-identity-step-up-orchestrator-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Step-up ACR grant flow |
-| `external-idp-federation` | `oya-identity-external-idp-federation-{kernel,domain,usecase,api,adapter,adapter-saml,adapter-oidc,adapter-apple,adapter-google,adapter-kakao,adapter-line,adapter-wechat,adapter-naver,rest,sdk,app}` | Upstream IdP federation |
-| `audit-emitter` | `oya-identity-audit-emitter-{kernel,domain,usecase,api,adapter,worker,sdk}` | Bridge to audit-chain |
-| `zitadel-instance-controller` | `oya-identity-zitadel-instance-controller-{kernel,domain,usecase,api,adapter,worker,app}` | Per-pack Zitadel lifecycle |
-| `risk-engine` | `oya-identity-risk-engine-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Impossible-travel + password-spray + MFA-fatigue detection |
-| `recovery-flow` | `oya-identity-recovery-flow-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Account recovery + 24h cooldown |
-| `age-assurance` | `oya-identity-age-assurance-{kernel,domain,usecase,api,adapter,sdk}` | COPPA / KOSA / EU age-verification |
-| `principal-resolver` | `oya-identity-principal-resolver-{kernel,domain,usecase,api,adapter,sdk}` | Multi-context principal resolution |
+| `oidc-issuer` | `identity-oidc-issuer-{kernel,domain,usecase,api,adapter,adapter-zitadel,rest,sdk,app}` | OIDC token issuance + JWKS + revocation |
+| `webauthn-relying-party` | `identity-webauthn-relying-party-{kernel,domain,usecase,api,adapter,adapter-webauthn-rs,rest,worker,sdk,app}` | WebAuthn L3 register + authenticate |
+| `scim-server` | `identity-scim-server-{kernel,domain,usecase,api,adapter,adapter-zitadel,rest,sdk,app}` | SCIM 2.0 inbound endpoint |
+| `hris-adapter` | `identity-hris-adapter-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Non-SCIM HRIS adapter contract |
+| `step-up-orchestrator` | `identity-step-up-orchestrator-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Step-up ACR grant flow |
+| `external-idp-federation` | `identity-external-idp-federation-{kernel,domain,usecase,api,adapter,adapter-saml,adapter-oidc,adapter-apple,adapter-google,adapter-kakao,adapter-line,adapter-wechat,adapter-naver,rest,sdk,app}` | Upstream IdP federation |
+| `audit-emitter` | `identity-audit-emitter-{kernel,domain,usecase,api,adapter,worker,sdk}` | Bridge to audit-chain |
+| `zitadel-instance-controller` | `identity-zitadel-instance-controller-{kernel,domain,usecase,api,adapter,worker,app}` | Per-pack Zitadel lifecycle |
+| `risk-engine` | `identity-risk-engine-{kernel,domain,usecase,api,adapter,worker,sdk,app}` | Impossible-travel + password-spray + MFA-fatigue detection |
+| `recovery-flow` | `identity-recovery-flow-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Account recovery + 24h cooldown |
+| `age-assurance` | `identity-age-assurance-{kernel,domain,usecase,api,adapter,sdk}` | COPPA / KOSA / EU age-verification |
+| `principal-resolver` | `identity-principal-resolver-{kernel,domain,usecase,api,adapter,sdk}` | Multi-context principal resolution |
 
 Total crates: ~85 across 12 BCs.
 
@@ -1504,7 +1504,7 @@ The OIDC issuer is the hottest BC by request volume (every API request to every 
 - Audit-chain emission on every grant.
 - Token claim enrichment: tenant_id, acr, purpose, data_class, age_class, jurisdiction_code, compliance_packs.
 
-Adapter `oya-identity-oidc-issuer-adapter-zitadel` translates between Zitadel's native token shape and oyatie's claim schema.
+Adapter `identity-oidc-issuer-adapter-zitadel` translates between Zitadel's native token shape and oyatie's claim schema.
 
 ### U.2 `webauthn-relying-party` BC
 
@@ -1694,10 +1694,10 @@ Location: https://identity-us.oyatie.com/scim/v2/Users/u-01HZX...
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `identity` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

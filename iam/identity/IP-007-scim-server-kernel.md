@@ -4,7 +4,7 @@ ip_id: IP-007
 microservice: identity
 status: ga
 related_adrs: [ADR-0190]
-related_crates: [oya-shared-scim-server-kernel]
+related_crates: [shared-scim-server-kernel]
 date: 2026-05-18
 owner_team: axis-identity
 ---
@@ -13,15 +13,15 @@ owner_team: axis-identity
 
 ## Goal
 
-Land `oya-shared-scim-server-kernel`: RFC 7643 / 7644 conformant SCIM 2.0 server kernel with User + Group + EnterpriseExtension + OyatieExtension schemas, filter parser handling the in-the-wild dialect subset used by Okta / Entra / Workspace, PATCH semantics (RFC 7644 §3.5.2), ETag-based concurrency, in-memory stores for tests + reference, and pluggable `UserStore` / `GroupStore` / `IdGen` traits for production.
+Land `shared-scim-server-kernel`: RFC 7643 / 7644 conformant SCIM 2.0 server kernel with User + Group + EnterpriseExtension + OyatieExtension schemas, filter parser handling the in-the-wild dialect subset used by Okta / Entra / Workspace, PATCH semantics (RFC 7644 §3.5.2), ETag-based concurrency, in-memory stores for tests + reference, and pluggable `UserStore` / `GroupStore` / `IdGen` traits for production.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `crates/oya-shared-scim-server-kernel/Cargo.toml` | manifest |
-| `crates/oya-shared-scim-server-kernel/src/lib.rs` | trait + types + parser + reference impl |
-| `crates/oya-shared-scim-server-kernel/tests/scim_server_kernel.rs` | integration tests |
+| `crates/shared-scim-server-kernel/Cargo.toml` | manifest |
+| `crates/shared-scim-server-kernel/src/lib.rs` | trait + types + parser + reference impl |
+| `crates/shared-scim-server-kernel/tests/scim_server_kernel.rs` | integration tests |
 
 LoC: ~720 (lib) + ~250 (tests) = ~970 lines.
 

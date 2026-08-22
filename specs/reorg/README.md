@@ -38,7 +38,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
 | `ci-webhook-gateway-move-plan.PARKED.json` | **PARKED** — crates already absorbed into `ci/` faces; unpark + singleton swap after #2192/#2194/community so the live slot can authenticate baseline key substitution |
 | `libs-disposition-plan.md` | **NON-EXECUTABLE** inventory — 130-crate six-way split (G025); no moves |
-| `governance-check-remainder-move-plan.PARKED.json` | **PARKED** — remaining 30 `libs/oya-check-*` + `libs/oya-governance-*` kernels → `governance/check/*` (13 + 17); not executable until unparked. Holds for HR #2192 singleton + hand-curated ratchet key substitution (PARKED does not authenticate ADR-0563 relabels). |
+| `governance-check-remainder-move-plan.PARKED.json` | **PARKED** — remaining 30 `libs/check-*` + `libs/governance-*` kernels → `governance/check/*` (13 + 17); not executable until unparked. Holds for HR #2192 singleton + hand-curated ratchet key substitution (PARKED does not authenticate ADR-0563 relabels). |
 
 > **Spent leaf (no live plan file):** R-CAS-3A NativeLink storage rehome (`infra/nativelink` → `storage/adapters/nativelink/`) is **executed and promoted** — #1563 merged 2026-08-05, promoted `010c132ec`; completion evidence `evidence/completion/oyatie-oso.5-packet.md` (criteria_met=false only because the promoted-SHA CI run was cancelled; re-verify is post-merge hygiene, not a move lane). Plan file deleted as spent in PR #1954.
 

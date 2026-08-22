@@ -42,7 +42,7 @@ showback layer. Goal: migrate to `cloud-billing` with zero invoice-issuance gap 
 Create a rate card mirroring your AWS effective rates (use the historical CUR to back-solve):
 ```bash
 ./bin/oya billing rate-card create \
-  --rate-card-id oya-rate-card-acme-corp-v1 \
+  --rate-card-id rate-card-acme-corp-v1 \
   --effective-from 2026-01-01 \
   --currency USD \
   --items-file acme-effective-rates.yaml

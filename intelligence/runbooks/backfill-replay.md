@@ -28,7 +28,7 @@ The cloud-intelligence is a **stateless** reverse proxy. It holds no durable ten
 A gateway pod failure or restart recovers automatically:
 
 1. Kubernetes restarts the pod (liveness probe triggers within configured `failureThreshold × periodSeconds`).
-2. On startup the process resolves pooled keys through the owned secret-provider port (`OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` projected from a k8s Secret).
+2. On startup the process resolves pooled keys through the owned secret-provider port (`OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` projected from a k8s Secret).
 3. The key pool initializes with all slots active (cold-start; failure history is not persisted).
 4. The readiness probe at `/healthz` returns `200 OK` once the pool is loaded; traffic resumes.
 

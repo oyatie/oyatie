@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "microservice": "feature-flags",
   "last_updated": "2026-05-20",
-  "updated_by": "oya-governance-pipeline://audit-agent-2026-05-20",
+  "updated_by": "governance-pipeline://audit-agent-2026-05-20",
   "purpose": "Scorecard gate overrides for feature-flags. Each override requires a justification and an expiry date. Overrides without expiry are permanent policy exceptions requiring DPO or platform-safety-officer sign-off.",
   "overrides": [
     {

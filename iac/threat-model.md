@@ -44,11 +44,11 @@ All components introduced by PRD-cloud-iac + ADR-0131 for the cloud-iac µservic
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
-| ArgoCD (GitOps reconciler) | `oya-cloud-iac-iac-renderer-*` (12 crates) |
-| Flux (alt GitOps; supported for tenant choice via adapter) | `oya-cloud-iac-iac-validator-*` (8 crates) |
-| OpenTofu (self-hosted Terraform-compatible) | `oya-cloud-iac-iac-applier-*` (9 crates) |
-| Helm-controller (k8s-native helm releases) | `oya-cloud-iac-iac-rollback-*` (8 crates) |
-| Kustomize-controller (k8s-native kustomize) | `oya-cloud-iac-iac-registry-*` (10 crates) |
+| ArgoCD (GitOps reconciler) | `cloud-iac-iac-renderer-*` (12 crates) |
+| Flux (alt GitOps; supported for tenant choice via adapter) | `cloud-iac-iac-validator-*` (8 crates) |
+| OpenTofu (self-hosted Terraform-compatible) | `cloud-iac-iac-applier-*` (9 crates) |
+| Helm-controller (k8s-native helm releases) | `cloud-iac-iac-rollback-*` (8 crates) |
+| Kustomize-controller (k8s-native kustomize) | `cloud-iac-iac-registry-*` (10 crates) |
 | Postgres (iac-state-index store; per-pack) | iac manifests at `microservices/<ms>/iac/{helm,terraform,kustomize}/` |
 | Sigstore Cosign / Fulcio (chart-signing) | iac-state-index schema (apply ledger) |
 | SLSA L3 attestation verifier | Cedar policies under `microservices/cloud-iac/policy/` |
@@ -138,7 +138,7 @@ Six trust boundaries:
 
 ## Assets & Data Classification
 
-Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data-class` LEAN lane.
+Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `check-data-class` LEAN lane.
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
@@ -248,7 +248,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: upstream Helm dependencies declared in `microservices/<ms>/iac/helm/<chart>/Chart.yaml`
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
-  - LEAN check `oya-check-helm-chart-allowlist` (NEW) — per-µservice declared dependencies must appear in `/specs/iac-chart-allowlist.json`; non-allowlisted dependencies refused at PR.
+  - LEAN check `check-helm-chart-allowlist` (NEW) — per-µservice declared dependencies must appear in `/specs/iac-chart-allowlist.json`; non-allowlisted dependencies refused at PR.
   - Cosign verify against publisher's known key for every upstream dep.
   - SLSA L3 attestation required for every chart in the chain; full chain verified pre-apply.
   - Quarterly review of allowlist; expired entries removed.
@@ -263,7 +263,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Drift-detector worker runs ≤1h cycle per cluster; emits `DriftDetected` event on any mismatch.
   - Drift-coverage SLO ≥99.5% per cluster per cycle; SLO breach pages on-call.
   - Two-channel drift reporting: Postgres iac-state-index records drift; observability dashboard surfaces; audit-chain seals the event.
-  - LEAN check `oya-check-cluster-drift-baseline` (NEW) — periodically asserts every µservice's cluster footprint matches its declared IaC.
+  - LEAN check `check-cluster-drift-baseline` (NEW) — periodically asserts every µservice's cluster footprint matches its declared IaC.
 - Owner: axis-cloud-iac + ops-sre-reliability
 - Residual: M (engineering discipline floor; some drift is legitimate operator action)
 - Frameworks: SOC 2 CC4.1, CC7.1, CC7.2; ISO 27001 A.5.7, A.8.15, A.8.16, A.8.32; GDPR Art. 32(1)(b)
@@ -273,7 +273,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M / Impact: H (cross-µservice mutation breaks tenant isolation; can leak data) / Risk: **H**
 - Mitigations:
   - Cedar policy `policy/iac-isolation.md` enforces per-µservice apply scope; cross-µservice mutation refused at apply time.
-  - LEAN check `oya-check-iac-apply-scope` (NEW) at PR time — validates declared scope vs manifest body.
+  - LEAN check `check-iac-apply-scope` (NEW) at PR time — validates declared scope vs manifest body.
   - Applier ServiceAccount RBAC namespace-scoped to declared µservice namespaces only.
   - Penetration test: craft an IaC manifest that mutates outside scope; verify refusal at validator + applier + cluster RBAC layers.
 - Owner: axis-cloud-iac + ops-security
@@ -374,7 +374,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Apply event log emission redacts known-secret patterns at source.
   - `Secret<T>` Rust type with stripped Debug impl used for any sensitive value flowing through the applier.
   - Loki log ingest applies tenant-scope label; per-tenant logs visible only to that tenant + auditors.
-  - LEAN check `oya-check-iac-event-log-redaction` (NEW) at PR time.
+  - LEAN check `check-iac-event-log-redaction` (NEW) at PR time.
 - Owner: axis-cloud-iac
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.7; ISO 27001 A.8.11, A.8.12; GDPR Art. 32(1)(a)(b)
@@ -395,7 +395,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M (engineering discipline gap) / Impact: M (could expose internal architecture details) / Risk: **M**
 - Mitigations:
   - Repo is private by default; per-tenant overlay files marked `INTERNAL_ONLY` data-class.
-  - LEAN check `oya-check-tenant-config-not-in-public-overlay` (NEW) — refuses tenant-bound config in `regional-packs/*` global overlays.
+  - LEAN check `check-tenant-config-not-in-public-overlay` (NEW) — refuses tenant-bound config in `regional-packs/*` global overlays.
   - Sensitive values referenced via OpenBao; not embedded in manifest text.
   - Open-source-of-charts decision scheduled-for-distinct-tracked-work (per PRD §"SDK Plan" parallel pattern); default closed-source.
 - Owner: ops-security
@@ -406,7 +406,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: cloud-iac apply event logs
 - Likelihood: M (human-error baseline) / Impact: H (cascades to broad compromise) / Risk: **H**
 - Mitigations:
-  - Secret-scanner CI lane (`oya-governance-evidence-secret-scan`) scans every commit + log emission for known secret patterns.
+  - Secret-scanner CI lane (`governance-evidence-secret-scan`) scans every commit + log emission for known secret patterns.
   - OTel SDK redactor strips known-secret patterns at emission time.
   - OpenBao SecretReference materialisation never logs the raw secret; `Secret<T>` wrapper.
   - Rotation policy: 24h cluster kubeconfigs; 90d signing keys; rotate-out before leaked secret expires.
@@ -436,7 +436,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Drift events grouped by µservice + resource-kind; one event per group per cycle.
   - Backpressure: drift queue depth > threshold pauses new drift-detection cycles + alerts on-call.
-  - LEAN check `oya-check-drift-cascade-throttle` (NEW) verifies throttle is in place.
+  - LEAN check `check-drift-cascade-throttle` (NEW) verifies throttle is in place.
 - Owner: axis-cloud-iac + ops-sre-reliability
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30
@@ -459,7 +459,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M / Impact: M / Risk: **M**
 - Mitigations:
   - State-lock held per (microservice, pack, environment); concurrent applies serialise per tuple.
-  - Lock timeout = 10min; held longer aborts apply + emits `oya_iac_state_lock_timeout_total` metric.
+  - Lock timeout = 10min; held longer aborts apply + emits `iac_state_lock_timeout_total` metric.
   - LEAN check verifies state-lock release path on every applier exit.
   - Recovery runbook (`runbooks/state-lock-break.md`).
 - Owner: axis-cloud-iac
@@ -488,7 +488,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Token rotation 24h.
   - Workload-cluster RBAC: applier SA has namespace-scoped admin within declared µservice namespaces ONLY.
   - Network policy: only iac-applier-worker pods may reach workload-cluster apiservers.
-  - LEAN check `oya-check-applier-rbac-scope` validates RBAC bindings stay namespace-scoped.
+  - LEAN check `check-applier-rbac-scope` validates RBAC bindings stay namespace-scoped.
 - Owner: ops-security + axis-cloud-iac
 - Residual: L
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.5.15, A.5.17, A.8.5, A.8.7
@@ -498,7 +498,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
   - Cedar v4+ used (no template-based escape vectors known in v3+).
-  - Cedar fragments fuzzed at CI time (`oya-check-cedar-fragment-coverage` lane).
+  - Cedar fragments fuzzed at CI time (`check-cedar-fragment-coverage` lane).
   - Field input lengths bounded at REST API; oversized inputs rejected before policy evaluation.
 - Owner: axis-cloud-iac + ops-security
 - Residual: L
@@ -522,7 +522,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Cedar policy `iac-isolation.md` enforces per-µservice apply scope; cross-µservice mutation refused.
   - Cluster RBAC enforces namespace-scoped admin; cross-namespace mutation blocked at apiserver.
-  - LEAN check `oya-check-iac-apply-scope` validates at PR time.
+  - LEAN check `check-iac-apply-scope` validates at PR time.
   - Penetration test quarterly.
 - Owner: axis-cloud-iac + ops-security
 - Residual: L
@@ -560,21 +560,21 @@ Cross-cuts STRIDE + LINDDUN. Each mitigation appears in at least one threat row 
 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
-| Cosign verify + SLSA L3 attestation chain | Preventive | ops-security + axis-cloud-iac | `oya-cloud-iac-provenance-slsa-l3` lane |
-| Helm chart allowlist per /specs/iac-chart-allowlist.json | Preventive | ops-security | `oya-check-helm-chart-allowlist` lane |
-| Cedar policy enforcement of apply-scope | Preventive | axis-cloud-iac | `oya-check-iac-apply-scope` lane + Cedar fuzz |
-| Drift detector ≤1h cycle per cluster | Detective | axis-cloud-iac | `oya-cloud-iac-drift-detection-coverage` lane |
-| State file secret-pattern scanning | Detective + Preventive | ops-security + cloud-secrets | `oya-check-iac-state-secret-scan` lane |
+| Cosign verify + SLSA L3 attestation chain | Preventive | ops-security + axis-cloud-iac | `cloud-iac-provenance-slsa-l3` lane |
+| Helm chart allowlist per /specs/iac-chart-allowlist.json | Preventive | ops-security | `check-helm-chart-allowlist` lane |
+| Cedar policy enforcement of apply-scope | Preventive | axis-cloud-iac | `check-iac-apply-scope` lane + Cedar fuzz |
+| Drift detector ≤1h cycle per cluster | Detective | axis-cloud-iac | `cloud-iac-drift-detection-coverage` lane |
+| State file secret-pattern scanning | Detective + Preventive | ops-security + cloud-secrets | `check-iac-state-secret-scan` lane |
 | Per-pack SSE-KMS for state-storage | Preventive | cloud-secrets | KMS access audit |
 | Ed25519 audit-chain seal on every Apply/Render/Rollback/Drift event | Detective + Non-repudiation | audit-chain | Audit-chain regression tests |
-| Per-µservice apply rate-limit | Preventive (DoS) | axis-cloud-iac | Mimir metric `oya_iac_apply_rate_total` |
+| Per-µservice apply rate-limit | Preventive (DoS) | axis-cloud-iac | Mimir metric `iac_apply_rate_total` |
 | 2-person rule on state-bucket admin + manual rollback | Preventive (insider) | ops-security | OpenBao JIT elevation logs |
 | Network policy: applier → workload-cluster apiservers only | Preventive | ops-sre-reliability | Kubernetes NetworkPolicy review |
 | Stuck-apply timeout (15min p999) + bounded retry budget | Preventive (DoS) | axis-cloud-iac | apply-timeout integration test |
 | HA Postgres iac-state-index + WAL-archive + PITR | Recovery | cloud-secrets + axis-cloud-iac | DR drill quarterly |
 | Soft-deletion (30d grace) on tofu destroy | Recovery | axis-cloud-iac | terraform-destroy anomaly alert |
 | Cosign keyless signing (Fulcio + Rekor) | Preventive | ops-security | Sigstore docs |
-| LEAN check oya-check-cluster-drift-baseline | Detective | axis-cloud-iac | per-PR lane |
+| LEAN check check-cluster-drift-baseline | Detective | axis-cloud-iac | per-PR lane |
 
 ## Residual Risk Acceptance
 

@@ -1,6 +1,6 @@
 # Spec: obs-cloud-domain-audit-topic-rollup
 
-**Crate**: `oya-cloud-observability-domain`
+**Crate**: `cloud-observability-domain`
 **Slice kind**: Pure deterministic domain extension — no I/O, no new external deps.
 
 ## Context

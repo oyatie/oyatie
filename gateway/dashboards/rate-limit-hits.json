@@ -3,12 +3,12 @@
   "schemaVersion": 39,
   "tags": ["api-gateway", "rate-limit"],
   "panels": [
-    {"id": 1, "type": "graph", "title": "429s/sec global", "targets": [{"expr": "sum(rate(oya_api_gateway_requests_total{code=\"429\"}[1m]))"}]},
-    {"id": 2, "type": "graph", "title": "429 ratio by tenant_class", "targets": [{"expr": "sum(rate(oya_api_gateway_requests_total{code=\"429\"}[5m])) by (tenant_class) / sum(rate(oya_api_gateway_requests_total[5m])) by (tenant_class)"}]},
-    {"id": 3, "type": "table", "title": "Top 10 tenants by 429", "targets": [{"expr": "topk(10, sum(rate(oya_api_gateway_requests_total{code=\"429\"}[15m])) by (tenant_id))"}]},
-    {"id": 4, "type": "graph", "title": "Bucket utilization by route class", "targets": [{"expr": "avg(oya_api_gateway_rate_limit_bucket_utilization) by (route_class)"}]},
-    {"id": 5, "type": "graph", "title": "Per-IP rate-limit hits", "targets": [{"expr": "sum(rate(oya_api_gateway_rate_limit_per_ip_hit_total[5m]))"}]},
-    {"id": 6, "type": "graph", "title": "Per-fingerprint rate-limit hits", "targets": [{"expr": "sum(rate(oya_api_gateway_rate_limit_per_fingerprint_hit_total[5m]))"}]},
-    {"id": 7, "type": "graph", "title": "Per-cell Valkey hot key count", "targets": [{"expr": "sum(oya_api_gateway_valkey_hotkey_count) by (cell)"}]}
+    {"id": 1, "type": "graph", "title": "429s/sec global", "targets": [{"expr": "sum(rate(api_gateway_requests_total{code=\"429\"}[1m]))"}]},
+    {"id": 2, "type": "graph", "title": "429 ratio by tenant_class", "targets": [{"expr": "sum(rate(api_gateway_requests_total{code=\"429\"}[5m])) by (tenant_class) / sum(rate(api_gateway_requests_total[5m])) by (tenant_class)"}]},
+    {"id": 3, "type": "table", "title": "Top 10 tenants by 429", "targets": [{"expr": "topk(10, sum(rate(api_gateway_requests_total{code=\"429\"}[15m])) by (tenant_id))"}]},
+    {"id": 4, "type": "graph", "title": "Bucket utilization by route class", "targets": [{"expr": "avg(api_gateway_rate_limit_bucket_utilization) by (route_class)"}]},
+    {"id": 5, "type": "graph", "title": "Per-IP rate-limit hits", "targets": [{"expr": "sum(rate(api_gateway_rate_limit_per_ip_hit_total[5m]))"}]},
+    {"id": 6, "type": "graph", "title": "Per-fingerprint rate-limit hits", "targets": [{"expr": "sum(rate(api_gateway_rate_limit_per_fingerprint_hit_total[5m]))"}]},
+    {"id": 7, "type": "graph", "title": "Per-cell Valkey hot key count", "targets": [{"expr": "sum(api_gateway_valkey_hotkey_count) by (cell)"}]}
   ]
 }

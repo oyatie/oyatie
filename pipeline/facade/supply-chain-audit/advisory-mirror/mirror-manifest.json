@@ -1,5 +1,5 @@
 {
-  "schema": "oya-advisory-mirror/v1",
+  "schema": "advisory-mirror/v1",
   "source": {
     "repo": "https://github.com/rustsec/advisory-db",
     "commit": "e69927bf37afb7707575bc95aff6a9ef3f2534fb",

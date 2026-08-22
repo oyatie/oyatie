@@ -21,5 +21,5 @@
     "ADR-0397@specs/master-plan-sequencing.json"
   ],
   "generated_face_axes": {"catalog.json": 7, "contracts.json": 7},
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs"
 }

@@ -571,7 +571,7 @@
       "envelope_globs": [
         "app/procurement/**"
       ],
-      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/procurement/**; source-to-pay reclaim from CRM-misplaced oya-procurement-source-to-pay-domain (NOT marketplace). Holding absorb #1672 tip f810bd811 DONE.",
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/procurement/**; source-to-pay reclaim from CRM-misplaced procurement-source-to-pay-domain (NOT marketplace). Holding absorb #1672 tip f810bd811 DONE.",
       "forward_declared": true
     },
     "production-planning": {
@@ -821,7 +821,7 @@
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       },
       {
-        "path_glob": "libs/oya-governance-lifecycle-kernel/src/lib.rs",
+        "path_glob": "libs/governance-lifecycle-kernel/src/lib.rs",
         "claiming_branch": "integ/specs",
         "reason": "Bootstrap residual: lifecycle-kernel consumer update coupled to specs/lifecycle-configs absorption on integ/specs.",
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
@@ -908,7 +908,7 @@
     "cites": [
       "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
       "ADR-0131 (service colocation + product-owned specs; superseded as live apex by ADR-0701)",
-      "ADR-0515 (single merge-admission-required (retired brand oya-ci-required); live restatement ADR-0700)",
+      "ADR-0515 (single presubmit (retired brand presubmit); live restatement ADR-0700)",
       "ADR-0541 (g3doc-style owner-colocated docs / corpus liveness)",
       "ADR-0554 (binding affected-set / selective testing)",
       "ADR-0562 (capability-first faces; live apex ADR-0701)",
@@ -936,7 +936,7 @@
       "agents_running_cargo_buck2_slow_commands_in_worker_lanes",
       "inventing_work_or_lanes_for_empty_verified_space",
       "birthing_new_paths_under_reorg_now_or_delete_prefixes",
-      "treating_libs_cloud_oya_infra_toolchains_tools_as_keep_forever",
+      "treating_libs_cloud_infra_toolchains_tools_as_keep_forever",
       "gradual_or_eventual_reorg_language"
     ],
     "docs_specs_planes": {
@@ -948,7 +948,7 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "patterns_ref": "specs/agentic-operating-patterns.json",
     "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
-    "note": "Clustered KEEP/BAN from 137 Amendment C archive entries; Amendment E requires achieves/origin/rule/ensure/overturn_when on each load-bearing entry. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED. adr-rename-overturn: ADR paths stay ADR-NNNN-<topic>.",
+    "note": "Clustered KEEP/BAN from 137 Amendment C archive entries; Amendment E requires achieves/origin/rule/ensure/overturn_when on each load-bearing entry. Forever merge-gate name is presubmit — distill notes that said keep presubmit are OVERRULED. adr-rename-overturn: ADR paths stay ADR-NNNN-<topic>.",
     "patterns_version": "1.1.0",
     "rule_shape_ref": "specs/agentic-operating-patterns.json#rule_shape"
   },
@@ -1061,7 +1061,7 @@
     ],
     "forbidden": [
       "new_path_birth_under_frozen_prefixes",
-      "keep_forever_on_libs_cloud_oya_infra_toolchains_tools"
+      "keep_forever_on_libs_cloud_infra_toolchains_tools"
     ],
     "claim_exemption_marker": "reorg-move-out",
     "one_shot_exceptions": [],
@@ -1868,7 +1868,7 @@
         "grammar_compliant": true,
         "lenses_applied": "all-16",
         "challenges": [
-          "cartesian_doubt: without taxonomy, renames invent one-offs — observed in oya-ci-required / firewall / ADR-in-titles debt",
+          "cartesian_doubt: without taxonomy, renames invent one-offs — observed in presubmit / firewall / ADR-in-titles debt",
           "essentialism_yagni: one machine-readable pattern file; renames are instances",
           "chestertons_fence: prior brand/ADR naming existed for cohesion and citation — taxonomy keeps mechanisms, replaces indefensible names",
           "contrarian: do not encode oya-/cloud- or ADR-in-path as forever grammar",
@@ -1896,9 +1896,9 @@
         "lenses_applied": "all-16",
         "challenges": [
           "essentialism_yagni: clusters not 137 paraphrases",
-          "chestertons_fence: archive is operating evidence, not naming authority — OVERRULE keep-oya-ci-required",
+          "chestertons_fence: archive is operating evidence, not naming authority — OVERRULE keep-presubmit",
           "pragmatism: thin machine copy for Claim/review checklists",
-          "contrarian: forever merge-gate name is merge-admission-required"
+          "contrarian: forever merge-gate name is presubmit"
         ],
         "rationale": "1) Encodes Amendment C KEEP/BAN. 2) Plane hub policy-as-data. 3) Pattern-first role name. 4) Must exist beside ADR. 5) Fit. 6) keep-as-is. 7) specs/ hub.",
         "destination": "specs/agentic-operating-patterns.json"
@@ -2212,7 +2212,7 @@
           "red_team: leaving tomls re-teaches agents Bash(grit *) and retired oya git",
           "opportunity_cost: audit_rewrite of living templates matter more once this trap is gone"
         ],
-        "rationale": "1) claude/codex/gemini.toml agent supervisor stubs. 2) Brand/Foundry-era kit with missing tools/foundry-supervisor-* hooks. 3) Intended session hooks — dead. 4) Must not exist. 5) Antipattern: resurrected grit/oya-git permissions. 6) delete-permanently. 7) Greenfield: no templates/foundry-supervisor/; templates/ plane remains.",
+        "rationale": "1) claude/codex/gemini.toml agent supervisor stubs. 2) Brand/Foundry-era kit with missing tools/foundry-supervisor-* hooks. 3) Intended session hooks — dead. 4) Must not exist. 5) Antipattern: resurrected grit/git permissions. 6) delete-permanently. 7) Greenfield: no templates/foundry-supervisor/; templates/ plane remains.",
         "evidence": [
           "scout 0b9a2531: hooks → missing tools/foundry-supervisor-{stop-hook,session-start}",
           "templates/foundry-supervisor/{claude,codex,gemini}.toml present on tip"
@@ -2363,7 +2363,7 @@
           "essentialism_yagni: one META os/ home; cloud/cloud-os path must not survive",
           "contrarian: do not land #1607 agent/* trunk PR; harvest intent (manifest→os/, delete dual-home) onto integ/os + integ/cloud rails only",
           "pragmatism: absorb missing forever pieces (os/manifest.json + any crate delta) on integ/os; delete drained cloud/cloud-os/** on integ/cloud — no hub retarget on this judgment tip",
-          "systems_thinking: dual crate trees (cloud oya-cloud-os-* vs os/core/*) already both_exist for cluster-mgmt/kubernetes/secrets/trustd — rewrite/merge, not git-mv-only",
+          "systems_thinking: dual crate trees (cloud cloud-os-* vs os/core/*) already both_exist for cluster-mgmt/kubernetes/secrets/trustd — rewrite/merge, not git-mv-only",
           "blast_radius_cell: path drain envelope-bounded to cloud/** + os/**; hubs (capability-registry/masterplan/reachability/Cargo.lock) wait tip-free integ/specs window",
           "opportunity_cost: leaving dual-home guarantees further #1607-style wrong zero-crate claims and registry floor drift",
           "zero_trust: fail closed on any Claim that treats agent/reorg-cloud-os-residual as admission-legal trunk head",
@@ -2378,7 +2378,7 @@
         "rationale": "1) Hosts residual Talos-style OS domain crates + microservice manifest still under cloud/cloud-os (4 crates / 56 crate paths on origin/dev) while MOVE-3 forever copies live under os/core. 2) Dual-home strangler leftover written as brand-prefixed cloud nest — accidental vs ADR-0701 META os/. 3) Provide node-OS domain assets for owned stack. 4) OS capability must exist at os/; cloud/cloud-os must not. 5) Fit: META os/{core,harness}/ is the registered forever home; cloud/ is reorg_now strangler source. 6) rewrite-into-durable-shape: content-merge/absorb residual (manifest + crate deltas) into os/, then delete cloud/cloud-os/** — redesign=rewrite (not git-mv-only). 7) Forever: os/ (integ/os absorb + integ/cloud delete).",
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- cloud/cloud-os/crates/ | wc -l → 56 (not zero-crate)",
-          "cloud/cloud-os/crates/{oya-cloud-os-cluster-mgmt-domain,oya-cloud-os-kubernetes-domain,oya-cloud-os-secrets-domain,oya-cloud-os-trustd-domain} dual-exist with os/core/{cluster-mgmt-domain,kubernetes-domain,secrets-domain,trustd-domain}",
+          "cloud/cloud-os/crates/{cloud-os-cluster-mgmt-domain,cloud-os-kubernetes-domain,cloud-os-secrets-domain,cloud-os-trustd-domain} dual-exist with os/core/{cluster-mgmt-domain,kubernetes-domain,secrets-domain,trustd-domain}",
           "os/manifest.json absent on origin/dev; cloud/cloud-os/manifest.json still present (harvest target)",
           "PR #1607 intent: burn residual into os/; head agent/* admission-forbidden — do not merge as land vehicle"
         ],
@@ -2421,7 +2421,7 @@
         ],
         "rationale": "1) Nested no_std kuberos framekernel (HAL/frame/arch adapters/ksync/user-layout) under cloud/cloud-kernel. 2) Brand-prefixed strangler dual-home vs incomplete kernel/ META (asterinas only today). 3) Provide rung-0 owned microkernel. 4) Framekernel must exist at kernel/; cloud/cloud-kernel must not; must not fold into os/ (os/core/kernel is different crate). 5) Fit: META kernel/{core,harness}/ per envelopes keep_forever shape + ADR-0701. 6) rewrite-into-durable-shape absorb into kernel/, delete cloud/cloud-kernel/** — redesign=rewrite. 7) Forever: kernel/ (integ/kernel absorb + integ/cloud delete).",
         "evidence": [
-          "cloud/cloud-kernel/Cargo.toml: nested workspace members oya-cloud-kernel-{app,hal,frame,arch-*,ksync,user-layout}",
+          "cloud/cloud-kernel/Cargo.toml: nested workspace members cloud-kernel-{app,hal,frame,arch-*,ksync,user-layout}",
           "kernel/ on origin/dev: only core/asterinas-boundary + harness/asterinas-real-boot (15 paths)",
           "os/core/kernel Cargo.toml package name=os-kernel — Talos migration primitives, not framekernel",
           "envelopes roots.kernel forward_declared integ/kernel → kernel/**; roots.os → os/**"
@@ -2512,7 +2512,7 @@
         "rationale": "1) 19-crate flat forest under oya/office (zero product-root docs). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home; substrate port duplicates vs landed capabilities. 3) Provide office suite product (drive/docs/sheets/slides/collab/format). 4) Must exist at app/office/; substrate ports must rewrite into capability homes. 5) Fit: envelopes roots.office forward_declared integ/office → app/office/**. 6) rewrite-into-durable-shape (not git-mv-only for substrate). 7) Forever: app/office/ (land_status ready_for_integ_office).",
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/office | grep 'Cargo.toml$' | wc -l → 19",
-          "flat layout oya/office/oya-office-{kernel,tenant-domain,authz-domain,storage-kernel,search-kernel,drive-*,format-*,doc/sheet/slide-domain,sheets-api,collab-*,web-app}",
+          "flat layout oya/office/office-{kernel,tenant-domain,authz-domain,storage-kernel,search-kernel,drive-*,format-*,doc/sheet/slide-domain,sheets-api,collab-*,web-app}",
           "governance/capability-registry.json app_products.current_dirs includes oya/office → forever app/office/",
           "envelopes roots.office forward_declared integ/office → app/office/** (1.14.0)",
           "scout seat-B packet 85736b89"
@@ -2527,7 +2527,7 @@
         "action": "reorg_now",
         "greenfield_destination": "app/crm/",
         "destination": "app/crm/",
-        "shape": "product dump+crates rewrite into app/crm/; evict oya-procurement-source-to-pay-domain to procurement",
+        "shape": "product dump+crates rewrite into app/crm/; evict procurement-source-to-pay-domain to procurement",
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
@@ -2537,7 +2537,7 @@
         "grammar_compliant": true,
         "lenses_applied": "all-16",
         "challenges": [
-          "chestertons_fence: oya-procurement-source-to-pay-domain lives under oya/crm/crates by accident — specs/microservices/procurement.json owns it; do not treat CRM as forever home for procurement",
+          "chestertons_fence: procurement-source-to-pay-domain lives under oya/crm/crates by accident — specs/microservices/procurement.json owns it; do not treat CRM as forever home for procurement",
           "cartesian_doubt: 3 crates (customer-engagement-domain, revenue-app, misplaced procurement) + 54 catalog stubs referencing missing microservices/crm — rewrite required",
           "essentialism_yagni: one forever CRM product home app/crm/; procurement crate must evacuate",
           "contrarian: reject keep under oya/crm or promote CRM to a top-level capability root — registry lists app product",
@@ -2554,31 +2554,31 @@
           "socratic: is source-to-pay a CRM bounded context? No — procurement microservice owns it",
           "outside_the_box: scout 72c00210 — product reorg_now to app/crm/ + procurement eviction packet"
         ],
-        "rationale": "1) 136-file CRM product (2 CRM crates + misplaced procurement crate + catalog/docs/ops). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home; procurement orphan under CRM. 3) Provide CRM customer-engagement/revenue product. 4) Must exist at app/crm/; oya-procurement-source-to-pay-domain must leave. 5) Fit: envelopes roots.crm forward_declared integ/crm → app/crm/**. 6) rewrite-into-durable-shape + eviction (not git-mv-only of whole tree). 7) Forever: app/crm/ (land_status ready_for_integ_crm).",
+        "rationale": "1) 136-file CRM product (2 CRM crates + misplaced procurement crate + catalog/docs/ops). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home; procurement orphan under CRM. 3) Provide CRM customer-engagement/revenue product. 4) Must exist at app/crm/; procurement-source-to-pay-domain must leave. 5) Fit: envelopes roots.crm forward_declared integ/crm → app/crm/**. 6) rewrite-into-durable-shape + eviction (not git-mv-only of whole tree). 7) Forever: app/crm/ (land_status ready_for_integ_crm).",
         "evidence": [
-          "git ls-tree -r --name-only origin/dev -- oya/crm | wc -l → 136; crates: oya-crm-customer-engagement-domain, oya-crm-revenue-app, oya-procurement-source-to-pay-domain",
+          "git ls-tree -r --name-only origin/dev -- oya/crm | wc -l → 136; crates: crm-customer-engagement-domain, crm-revenue-app, procurement-source-to-pay-domain",
           "specs/microservices/procurement.json owns source-to-pay; crate misplaced under oya/crm/crates/",
           "governance/capability-registry.json app_products.current_dirs includes oya/crm → forever app/crm/",
           "envelopes roots.crm forward_declared integ/crm → app/crm/** (1.14.0)",
           "scout seat-B packet 72c00210"
         ],
         "destination_integ": "integ/crm",
-        "land_when": "After this judgment: integ/crm rewrites CRM product to app/crm/**; evict oya-procurement-source-to-pay-domain to procurement forever home (coordinate owning integ); rewrite stale microservices/crm refs; hub retargets only on tip-free integ/specs — not this judgment commit",
+        "land_when": "After this judgment: integ/crm rewrites CRM product to app/crm/**; evict procurement-source-to-pay-domain to procurement forever home (coordinate owning integ); rewrite stale microservices/crm refs; hub retargets only on tip-free integ/specs — not this judgment commit",
         "land_status": "ready_for_integ_crm",
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/crm/crates/oya-procurement-source-to-pay-domain/",
+        "path": "oya/crm/crates/procurement-source-to-pay-domain/",
         "action": "reorg_now",
-        "greenfield_destination": "app/procurement/crates/oya-procurement-source-to-pay-domain/",
+        "greenfield_destination": "app/procurement/crates/procurement-source-to-pay-domain/",
         "destination": "app/procurement/",
         "destination_integ": "integ/procurement",
         "shape": "misplaced CRM domain crate rewrite into app/procurement/; source-to-pay ≠ marketplace; PARKED #1672 holding absorb DONE",
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "oya/crm/crates/oya-procurement-source-to-pay-domain/",
-        "name_forever": "app/procurement/crates/oya-procurement-source-to-pay-domain/",
+        "name_now": "oya/crm/crates/procurement-source-to-pay-domain/",
+        "name_forever": "app/procurement/crates/procurement-source-to-pay-domain/",
         "kind": "app-product",
         "grammar_compliant": true,
         "lenses_applied": "all-16",
@@ -2587,7 +2587,7 @@
           "cartesian_doubt: marketplace was proposed and rejected — source-to-pay ≠ marketplace product boundary",
           "essentialism_yagni: forever home is app/procurement/** via integ/procurement; greenfield is not 'keep under CRM' or 'fold into marketplace'",
           "contrarian: reject marketplace absorb and CRM dual-home — OVERRULE any marketplace destination for this crate",
-          "pragmatism: #1672 tip f810bd811 already holds app/procurement/crates/oya-procurement-source-to-pay-domain; hub retarget on integ/specs only",
+          "pragmatism: #1672 tip f810bd811 already holds app/procurement/crates/procurement-source-to-pay-domain; hub retarget on integ/specs only",
           "systems_thinking: integ/procurement owns app/procurement/**; integ/crm shrinks leftover procurement crate after verify; integ/marketplace must not claim it",
           "blast_radius_cell: PARKED #1672 reclaim only — no merge to dev from this hub commit",
           "opportunity_cost: leaving crate under CRM guarantees wrong ms:crm classification forever",
@@ -2600,10 +2600,10 @@
           "shared_nothing: procurement product cell is app/procurement; distinct from CRM and marketplace",
           "constant_work: register root+judgment+hub retarget now; path absorb already on #1672"
         ],
-        "rationale": "1) Domain crate oya-procurement-source-to-pay-domain was misplaced under oya/crm/crates (CRM judgment eviction). 2) Brand/CRM nest vs ADR-0562 app product forever home. 3) specs/microservices/procurement.json owns source-to-pay; marketplace rejected. 4) Must exist at app/procurement/** via integ/procurement. 5) Fit: roots.procurement forward_declared integ/procurement → app/procurement/**. 6) rewrite/reclaim (#1672 f810bd811 DONE). 7) Forever: app/procurement/.",
+        "rationale": "1) Domain crate procurement-source-to-pay-domain was misplaced under oya/crm/crates (CRM judgment eviction). 2) Brand/CRM nest vs ADR-0562 app product forever home. 3) specs/microservices/procurement.json owns source-to-pay; marketplace rejected. 4) Must exist at app/procurement/** via integ/procurement. 5) Fit: roots.procurement forward_declared integ/procurement → app/procurement/**. 6) rewrite/reclaim (#1672 f810bd811 DONE). 7) Forever: app/procurement/.",
         "evidence": [
-          "#1672 tip f810bd81113a1c2af01a5c965ea2c2510394530d holds app/procurement/crates/oya-procurement-source-to-pay-domain",
-          "CRM judgment on oya/crm/ requires eviction of oya-procurement-source-to-pay-domain to procurement forever home",
+          "#1672 tip f810bd81113a1c2af01a5c965ea2c2510394530d holds app/procurement/crates/procurement-source-to-pay-domain",
+          "CRM judgment on oya/crm/ requires eviction of procurement-source-to-pay-domain to procurement forever home",
           "marketplace destination rejected (source-to-pay ≠ marketplace)"
         ],
         "land_when": "integ/procurement holds app/procurement/** (#1672 DONE); integ/specs retargets specs/microservices/procurement.json primary_crate+test_ref; integ/crm shrink-only removes leftover crate after verify; do not absorb into marketplace",
@@ -2626,7 +2626,7 @@
         "lenses_applied": "all-16",
         "challenges": [
           "chestertons_fence: README brands ITSM as µservice/service-management capability — closed registry already classifies oya/itsm as app_products → forever app/itsm/; do not birth service-management/ capability root",
-          "cartesian_doubt: 162 files / 6 Cargo.toml (~1k LOC) are real product surface, but 13 catalog stubs name oya-itsm-service-management-* while only one umbrella service-management-service crate exists — phantom catalog fiction",
+          "cartesian_doubt: 162 files / 6 Cargo.toml (~1k LOC) are real product surface, but 13 catalog stubs name itsm-service-management-* while only one umbrella service-management-service crate exists — phantom catalog fiction",
           "essentialism_yagni: one forever product home app/itsm/; brand nest oya/itsm and phantom service-management slug must not survive as forever grammar",
           "contrarian: reject land via integ/oya mega-drain — product subtree claims integ/itsm → app/itsm/** (forward-declared); integ/app is composition glue only",
           "pragmatism: rewrite crates/contracts/slos/runbooks/iac into app/itsm/{core,ports,adapters,facade,apps}/; delete closed AUDIT receipt on land; rewrite stale microservices/itsm cites",
@@ -2645,9 +2645,9 @@
         "rationale": "1) 162-file ITSM product (6 crates: on-call/escalation/incident-room/status/postmortem/service-management-service + contracts/slos/runbooks/iac/catalog). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home; README phantom service-management capability slug. 3) Provide ITSM service desk/CMDB/change/incident product surface. 4) Must exist at app/itsm/; must not land via integ/oya; must not birth service-management/ capability. 5) Fit: envelopes roots.itsm forward_declared integ/itsm → app/itsm/**. 6) rewrite-into-durable-shape (not git-mv-only); crate split vs oya/incident-management deferred to paired judgment. 7) Forever: app/itsm/ (land_status ready_for_integ_itsm).",
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/itsm | wc -l → 162; Cargo.toml count → 6",
-          "crates: oya-itsm-{on-call-schedule,escalation-policy,incident-room,status-update,postmortem,service-management-service}",
-          "catalog/: 13 oya-itsm-service-management-*.yaml stubs vs single umbrella crate — phantom service-management surface",
-          "oya/incident-management: 134 files + oya-incident-management-sre-incident-command-app — PagerDuty-class overlap with ITSM incident crates",
+          "crates: itsm-{on-call-schedule,escalation-policy,incident-room,status-update,postmortem,service-management-service}",
+          "catalog/: 13 itsm-service-management-*.yaml stubs vs single umbrella crate — phantom service-management surface",
+          "oya/incident-management: 134 files + incident-management-sre-incident-command-app — PagerDuty-class overlap with ITSM incident crates",
           "governance/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
           "envelopes roots.itsm forward_declared integ/itsm → app/itsm/** (1.14.0); NOT integ/oya",
           "scout seat-B packet 160229d2"
@@ -2704,7 +2704,7 @@
         "evidence": [
           "git ls-tree -r 4bebc4766^ -- oya/calendar → 86 files; Cargo.toml count 0; manifest+contracts+slos+runbooks+iac present",
           "governance/capability-registry.json app_products.current_dirs includes oya/calendar",
-          "evidence/reorg/rr-oya-orphan-scaffold-batch1-20260806.json disposition=defer forever app/calendar",
+          "evidence/reorg/rr-orphan-scaffold-batch1-20260806.json disposition=defer forever app/calendar",
           "peer payments row: identical zero-crate scaffold → reorg_now app/payments/",
           "scout 6544bb51 scaffold-vs-dump: calendar OVERRULE; governance KEEP delete"
         ],
@@ -3221,7 +3221,7 @@
         "shape": "product docs dump → app/docs/ (NOT docs/ plane)",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 87 files; stub oya-docs-domain. 2) Collision risk with docs/ plane. 3) Product docs surface. 4) Dest app/docs/ not docs/. 5) Fit. 6) rewrite. 7) Forever: app/docs/.",
+        "rationale": "1) 87 files; stub docs-domain. 2) Collision risk with docs/ plane. 3) Product docs surface. 4) Dest app/docs/ not docs/. 5) Fit. 6) rewrite. 7) Forever: app/docs/.",
         "evidence": [
           "origin/dev oya/docs: rust=2 stub",
           "planes.docs must not annex product"
@@ -3253,7 +3253,7 @@
         "shape": "stub dump → product rail app/sheets/ (integ/sheets)",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 90 files; stub oya-sheets-domain. 2) oya/ dump vs real oya/office sheet crates. 3) Sheets product. 4) Dest app/sheets/ per product rail. 5) Fit. 6) rewrite. 7) Forever: app/sheets/.",
+        "rationale": "1) 90 files; stub sheets-domain. 2) oya/ dump vs real oya/office sheet crates. 3) Sheets product. 4) Dest app/sheets/ per product rail. 5) Fit. 6) rewrite. 7) Forever: app/sheets/.",
         "evidence": [
           "origin/dev oya/sheets: rust=2 stub",
           "roots.sheets → integ/sheets app/sheets/**"
@@ -3377,7 +3377,7 @@
         "shape": "stub-crate dump → app/workplace-integration/ via integ/workplace-integration",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 89 files; stub oya-workplace-integration-domain only. 2) oya/ catch-all surface per registry app_products_note. 3) Workplace integration product (DLP/clock/roster). 4) Dest app/workplace-integration/. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/workplace-integration/.",
+        "rationale": "1) 89 files; stub workplace-integration-domain only. 2) oya/ catch-all surface per registry app_products_note. 3) Workplace integration product (DLP/clock/roster). 4) Dest app/workplace-integration/. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/workplace-integration/.",
         "evidence": [
           "origin/dev oya/workplace-integration: 89 paths, rust=1 stub",
           "capability-registry app_products.current_dirs includes oya/workplace-integration"
@@ -3411,7 +3411,7 @@
         "rationale": "1) 38 files; 5-crate employment stack (api/app/domain/infrastructure/inmemory-adapter). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide HR employment product. 4) Must exist at app/hr/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/hr/.",
         "evidence": [
           "origin/dev oya/hr: 38 paths, Cargo.toml=5, rust=21",
-          "crates: oya-hr-employment-{api,app,domain,infrastructure,storage-adapter-inmemory}",
+          "crates: hr-employment-{api,app,domain,infrastructure,storage-adapter-inmemory}",
           "capability-registry app_products.current_dirs includes oya/hr → forever app/hr/"
         ],
         "destination_integ": "integ/hr",
@@ -3443,7 +3443,7 @@
         "rationale": "1) 39 files; 5-crate payroll-run stack (api/app/domain/infrastructure/inmemory-adapter). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide payroll-run product. 4) Must exist at app/payroll/; must not fold into billing/ (metering/tax). 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/payroll/.",
         "evidence": [
           "origin/dev oya/payroll: 39 paths, Cargo.toml=5, rust=22",
-          "crates: oya-payroll-run-{api,app,domain,infrastructure,storage-adapter-inmemory}",
+          "crates: payroll-run-{api,app,domain,infrastructure,storage-adapter-inmemory}",
           "capability-registry app_products.current_dirs includes oya/payroll → forever app/payroll/"
         ],
         "destination_integ": "integ/payroll",
@@ -3504,10 +3504,10 @@
         "shape": "SRE incident-command product rewrite into app/incident-management/; challenge ITSM overlap",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 134 files; oya-incident-management-sre-incident-command-app + catalog/dpia dump. 2) Brand-prefixed oya/ nest vs ADR-0562 app product. 3) Provide PagerDuty-class SRE incident command product. 4) Must exist at app/incident-management/; crate split vs oya/itsm incident crates deferred. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/incident-management/.",
+        "rationale": "1) 134 files; incident-management-sre-incident-command-app + catalog/dpia dump. 2) Brand-prefixed oya/ nest vs ADR-0562 app product. 3) Provide PagerDuty-class SRE incident command product. 4) Must exist at app/incident-management/; crate split vs oya/itsm incident crates deferred. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/incident-management/.",
         "evidence": [
           "origin/dev oya/incident-management: 134 paths, Cargo.toml=1, rust=11",
-          "crate: oya-incident-management-sre-incident-command-app",
+          "crate: incident-management-sre-incident-command-app",
           "oya/itsm judgment (1.14.0) challenges PagerDuty-class overlap — paired product-level dest still app/incident-management/",
           "capability-registry app_products.current_dirs includes oya/incident-management"
         ],
@@ -3538,10 +3538,10 @@
         "shape": "thin 1-crate CLM obligation app + catalog/dpia dump → app/contract-lifecycle-management/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 110 files; crates: oya-contract-lifecycle-management-contract-obligation-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide contract-lifecycle / obligation management product. 4) Must exist at app/contract-lifecycle-management/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/contract-lifecycle-management/.",
+        "rationale": "1) 110 files; crates: contract-lifecycle-management-contract-obligation-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide contract-lifecycle / obligation management product. 4) Must exist at app/contract-lifecycle-management/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/contract-lifecycle-management/.",
         "evidence": [
           "origin/dev oya/contract-lifecycle-management: 110 paths, Cargo.toml=1, rust=11",
-          "crates: oya-contract-lifecycle-management-contract-obligation-app",
+          "crates: contract-lifecycle-management-contract-obligation-app",
           "capability-registry app_products.current_dirs includes oya/contract-lifecycle-management → forever app/contract-lifecycle-management/"
         ],
         "destination_integ": "integ/contract-lifecycle-management",
@@ -3571,10 +3571,10 @@
         "shape": "stub-domain dump → app/global-trade/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 115 files; crates: oya-global-trade-compliance-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide global-trade compliance product. 4) Must exist at app/global-trade/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/global-trade/.",
+        "rationale": "1) 115 files; crates: global-trade-compliance-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide global-trade compliance product. 4) Must exist at app/global-trade/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/global-trade/.",
         "evidence": [
           "origin/dev oya/global-trade: 115 paths, Cargo.toml=1, rust=2",
-          "crates: oya-global-trade-compliance-domain",
+          "crates: global-trade-compliance-domain",
           "capability-registry app_products.current_dirs includes oya/global-trade → forever app/global-trade/"
         ],
         "destination_integ": "integ/global-trade",
@@ -3604,10 +3604,10 @@
         "shape": "thin domain+work-order stack rewrite into app/plant-maintenance/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-plant-maintenance-domain, oya-plant-maintenance-work-order-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide plant-maintenance / work-order product. 4) Must exist at app/plant-maintenance/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/plant-maintenance/.",
+        "rationale": "1) 127 files; crates: plant-maintenance-domain, plant-maintenance-work-order-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide plant-maintenance / work-order product. 4) Must exist at app/plant-maintenance/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/plant-maintenance/.",
         "evidence": [
           "origin/dev oya/plant-maintenance: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-plant-maintenance-domain, oya-plant-maintenance-work-order-app",
+          "crates: plant-maintenance-domain, plant-maintenance-work-order-app",
           "capability-registry app_products.current_dirs includes oya/plant-maintenance → forever app/plant-maintenance/"
         ],
         "destination_integ": "integ/plant-maintenance",
@@ -3637,10 +3637,10 @@
         "shape": "thin inspection+domain stack rewrite into app/quality-management/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-quality-management-inspection-app, oya-quality-management-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide quality-management / inspection product. 4) Must exist at app/quality-management/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/quality-management/.",
+        "rationale": "1) 127 files; crates: quality-management-inspection-app, quality-management-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide quality-management / inspection product. 4) Must exist at app/quality-management/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/quality-management/.",
         "evidence": [
           "origin/dev oya/quality-management: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-quality-management-inspection-app, oya-quality-management-domain",
+          "crates: quality-management-inspection-app, quality-management-domain",
           "capability-registry app_products.current_dirs includes oya/quality-management → forever app/quality-management/"
         ],
         "destination_integ": "integ/quality-management",
@@ -3670,10 +3670,10 @@
         "shape": "thin portfolio+lease stack rewrite into app/real-estate/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-real-estate-portfolio-domain, oya-real-estate-lease-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide real-estate portfolio/lease product. 4) Must exist at app/real-estate/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/real-estate/.",
+        "rationale": "1) 127 files; crates: real-estate-portfolio-domain, real-estate-lease-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide real-estate portfolio/lease product. 4) Must exist at app/real-estate/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/real-estate/.",
         "evidence": [
           "origin/dev oya/real-estate: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-real-estate-portfolio-domain, oya-real-estate-lease-app",
+          "crates: real-estate-portfolio-domain, real-estate-lease-app",
           "capability-registry app_products.current_dirs includes oya/real-estate → forever app/real-estate/"
         ],
         "destination_integ": "integ/real-estate",
@@ -3703,10 +3703,10 @@
         "shape": "thin network+domain stack rewrite into app/supply-chain-planning/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-supply-chain-planning-network-app, oya-supply-chain-planning-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide supply-chain planning product. 4) Must exist at app/supply-chain-planning/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/supply-chain-planning/.",
+        "rationale": "1) 127 files; crates: supply-chain-planning-network-app, supply-chain-planning-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide supply-chain planning product. 4) Must exist at app/supply-chain-planning/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/supply-chain-planning/.",
         "evidence": [
           "origin/dev oya/supply-chain-planning: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-supply-chain-planning-network-app, oya-supply-chain-planning-domain",
+          "crates: supply-chain-planning-network-app, supply-chain-planning-domain",
           "capability-registry app_products.current_dirs includes oya/supply-chain-planning → forever app/supply-chain-planning/"
         ],
         "destination_integ": "integ/supply-chain-planning",
@@ -3737,10 +3737,10 @@
         "shape": "thin cash domain+app stack rewrite into app/treasury/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-treasury-cash-domain, oya-treasury-cash-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide treasury cash-position product. 4) Must exist at app/treasury/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/treasury/.",
+        "rationale": "1) 127 files; crates: treasury-cash-domain, treasury-cash-app. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide treasury cash-position product. 4) Must exist at app/treasury/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/treasury/.",
         "evidence": [
           "origin/dev oya/treasury: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-treasury-cash-domain, oya-treasury-cash-app",
+          "crates: treasury-cash-domain, treasury-cash-app",
           "capability-registry app_products.current_dirs includes oya/treasury → forever app/treasury/"
         ],
         "destination_integ": "integ/treasury",
@@ -3770,10 +3770,10 @@
         "shape": "thin fulfillment+inventory stack rewrite into app/warehouse/",
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 127 files; crates: oya-warehouse-fulfillment-app, oya-warehouse-inventory-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide warehouse fulfillment/inventory product. 4) Must exist at app/warehouse/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/warehouse/.",
+        "rationale": "1) 127 files; crates: warehouse-fulfillment-app, warehouse-inventory-domain. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide warehouse fulfillment/inventory product. 4) Must exist at app/warehouse/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/warehouse/.",
         "evidence": [
           "origin/dev oya/warehouse: 127 paths, Cargo.toml=2, rust=13",
-          "crates: oya-warehouse-fulfillment-app, oya-warehouse-inventory-domain",
+          "crates: warehouse-fulfillment-app, warehouse-inventory-domain",
           "capability-registry app_products.current_dirs includes oya/warehouse → forever app/warehouse/"
         ],
         "destination_integ": "integ/warehouse",
@@ -3940,7 +3940,7 @@
         "forever_name": "(never; ci/process-kit instead)"
       },
       {
-        "path": "tools/oya-governance-adapter-with-no-importer-app/",
+        "path": "tools/governance-adapter-with-no-importer-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -3948,13 +3948,13 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-adapter-with-no-importer-app/",
+        "name_now": "tools/governance-adapter-with-no-importer-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
         "lenses_applied": "scoped",
         "challenges": [
-          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "chestertons_fence: tools/governance-* apps were interim gate CLIs before ci/facade ownership",
           "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
           "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
           "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
@@ -3962,7 +3962,7 @@
         ],
         "rationale": "1) adapter-with-no-importer gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
         "evidence": [
-          "origin/dev tools/oya-governance-adapter-with-no-importer-app = BUCK+Cargo.toml+src/main.rs",
+          "origin/dev tools/governance-adapter-with-no-importer-app = BUCK+Cargo.toml+src/main.rs",
           "tools/DISPOSITION.md refactor gates → ci/facade"
         ],
         "destination_integ": "integ/ci",
@@ -3971,7 +3971,7 @@
         "shrink_source_integ": "integ/tools"
       },
       {
-        "path": "tools/oya-governance-adr-shape-app/",
+        "path": "tools/governance-adr-shape-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -3979,13 +3979,13 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-adr-shape-app/",
+        "name_now": "tools/governance-adr-shape-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
         "lenses_applied": "scoped",
         "challenges": [
-          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "chestertons_fence: tools/governance-* apps were interim gate CLIs before ci/facade ownership",
           "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
           "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
           "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
@@ -3993,7 +3993,7 @@
         ],
         "rationale": "1) adr-shape gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
         "evidence": [
-          "origin/dev tools/oya-governance-adr-shape-app = BUCK+Cargo.toml+src/main.rs",
+          "origin/dev tools/governance-adr-shape-app = BUCK+Cargo.toml+src/main.rs",
           "tools/DISPOSITION.md refactor gates → ci/facade"
         ],
         "destination_integ": "integ/ci",
@@ -4002,7 +4002,7 @@
         "shrink_source_integ": "integ/tools"
       },
       {
-        "path": "tools/oya-governance-banned-primitives-app/",
+        "path": "tools/governance-banned-primitives-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -4010,13 +4010,13 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-banned-primitives-app/",
+        "name_now": "tools/governance-banned-primitives-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
         "lenses_applied": "scoped",
         "challenges": [
-          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "chestertons_fence: tools/governance-* apps were interim gate CLIs before ci/facade ownership",
           "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
           "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
           "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
@@ -4024,7 +4024,7 @@
         ],
         "rationale": "1) banned-primitives gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
         "evidence": [
-          "origin/dev tools/oya-governance-banned-primitives-app = BUCK+Cargo.toml+src/main.rs",
+          "origin/dev tools/governance-banned-primitives-app = BUCK+Cargo.toml+src/main.rs",
           "tools/DISPOSITION.md refactor gates → ci/facade"
         ],
         "destination_integ": "integ/ci",
@@ -4363,7 +4363,7 @@
         "shape": "no top-level scripts in greenfield; leaf rewrite→Rust then delete",
         "redesign": "rewrite",
         "judgment_status": "done",
-        "rationale": "1) scripts/ci/regen-third-party.sh + scripts/tests/*.py legacy bridges. 2) Shell/Python temporary_legacy_bridge per rust-first policy. 3) Local feedback only — never oya-ci-required. 4) Must not exist as top-level forever. 5) Antipattern: dual automation languages. 6) rewrite-into-durable-shape per leaf into ci/facade Rust then delete. 7) Forever: ci/facade/.",
+        "rationale": "1) scripts/ci/regen-third-party.sh + scripts/tests/*.py legacy bridges. 2) Shell/Python temporary_legacy_bridge per rust-first policy. 3) Local feedback only — never presubmit. 4) Must not exist as top-level forever. 5) Antipattern: dual automation languages. 6) rewrite-into-durable-shape per leaf into ci/facade Rust then delete. 7) Forever: ci/facade/.",
         "destination": "ci/facade/ (+ delete obsolete py/shell bridges)",
         "disposition": "rewrite-into-durable-shape",
         "name_now": "scripts/",
@@ -4446,7 +4446,7 @@
           "chestertons_fence: python evidence checks predate hermetic ci/facade gates",
           "essentialism_yagni: no scripts/tests/ forever",
           "pragmatism: three py children + OWNERS already judged done — dir leaf closes parent",
-          "red_team: agents treating scripts/tests as merge evidence bypass oya-ci-required",
+          "red_team: agents treating scripts/tests as merge evidence bypass presubmit",
           "systems_thinking: pairs with scripts/ prefix drain"
         ],
         "rationale": "1) OWNERS + 3 python evidence checks. 2) Legacy dump. 3) Historical evidence backstops. 4) Must vacate. 5) Fit. 6) rewrite/delete per child rows already done. 7) Forever: no scripts/tests/.",
@@ -5235,7 +5235,7 @@
         "status": "judgment_closed_on_integ_specs_wave1"
       },
       {
-        "id": "W-oya-leaf-payments",
+        "id": "W-leaf-payments",
         "path": "oya/payments/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5247,7 +5247,7 @@
         "two_phase_note": "Phase 1: integ/payments absorb oya/payments/** → app/payments/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-calendar",
+        "id": "W-leaf-calendar",
         "path": "oya/calendar/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5259,7 +5259,7 @@
         "two_phase_note": "Phase 1: integ/calendar absorb oya/calendar/** → app/calendar/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-governance",
+        "id": "W-leaf-governance",
         "path": "oya/governance/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5271,7 +5271,7 @@
         "two_phase_note": "Phase 1: destination tips absorb per decompose_plan (authority→integ/governance first; iac→integ/iac; SLOs→integ/ci|gateway|cell); Phase 2: integ/oya shrink-only delete. Forbid wholesale META dump."
       },
       {
-        "id": "W-oya-leaf-office",
+        "id": "W-leaf-office",
         "path": "oya/office/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5283,7 +5283,7 @@
         "two_phase_note": "Phase 1: integ/office absorb oya/office/** → app/office/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-crm",
+        "id": "W-leaf-crm",
         "path": "oya/crm/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5295,7 +5295,7 @@
         "two_phase_note": "Phase 1: integ/crm absorb oya/crm/** → app/crm/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-itsm",
+        "id": "W-leaf-itsm",
         "path": "oya/itsm/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5308,7 +5308,7 @@
         "two_phase_note": "Phase 1: integ/itsm absorb oya/itsm/** → app/itsm/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-sheets",
+        "id": "W-leaf-sheets",
         "path": "oya/sheets/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5320,7 +5320,7 @@
         "two_phase_note": "Phase 1: integ/sheets absorb oya/sheets/** → app/sheets/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-translate",
+        "id": "W-leaf-translate",
         "path": "oya/translate/",
         "judgment_status": "done",
         "action": "delete_permanently",
@@ -5328,12 +5328,12 @@
         "destination_integ": "",
         "land_status": "retired_closed_d41_d42",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "status": "judgment_closed_on_integ_specs_batch1b",
         "note": "D41/D42 OVERRULE: translate is platform AI, not an app/translate rail; tree deleted",
         "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
-        "id": "W-oya-leaf-sites",
+        "id": "W-leaf-sites",
         "path": "oya/sites/",
         "judgment_status": "done",
         "action": "delete_permanently",
@@ -5341,12 +5341,12 @@
         "destination_integ": "",
         "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "status": "judgment_closed_on_integ_specs_batch1b",
         "note": "D41 OVERRULE: retire sites; do not absorb into app/sites; tree deleted",
         "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
-        "id": "W-oya-leaf-docs-product",
+        "id": "W-leaf-docs-product",
         "path": "oya/docs/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5354,7 +5354,7 @@
         "destination_integ": "integ/app-docs",
         "land_status": "ready_for_integ_app-docs",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "status": "judgment_closed_on_integ_specs_batch1b",
         "note": "rule 3d OVERRULE: multi-month product rail integ/app-docs owns app/docs/**; integ/app composition glue only; NOT docs/ plane",
         "two_phase_note": "Phase 1: integ/app-docs absorb oya/docs/ → app/docs/**; Phase 2: integ/oya shrink-only delete"
       },
@@ -5424,14 +5424,14 @@
         "status": "judgment_closed_reject_keep_forever_absorb_draft"
       },
       {
-        "id": "W-oya-batch1b-thin-dumps",
+        "id": "W-batch1b-thin-dumps",
         "path": "oya/{calendar,governance,translate,sites,docs,sheets,ci-controller}/",
         "judgment_status": "done",
         "action": "batch",
         "redesign": "rewrite|delete",
         "destination_integ": "integ/oya+dest",
         "land_status": "ready_for_batch_path_drain",
-        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "status": "judgment_closed_on_integ_specs_batch1b",
         "products": [
           "oya/calendar/",
           "oya/governance/",
@@ -5489,7 +5489,7 @@
         "two_phase_note": "Per-leaf rows in first_wave + reorg_debt_freeze.rows carry shrink_source_integ; see land_status_two_phase"
       },
       {
-        "id": "W-oya-leaf-notes",
+        "id": "W-leaf-notes",
         "path": "oya/notes/",
         "judgment_status": "done",
         "action": "delete_permanently",
@@ -5497,11 +5497,11 @@
         "destination_integ": "",
         "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
-        "id": "W-oya-leaf-slides",
+        "id": "W-leaf-slides",
         "path": "oya/slides/",
         "judgment_status": "done",
         "action": "delete_permanently",
@@ -5509,11 +5509,11 @@
         "destination_integ": "",
         "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
-        "id": "W-oya-leaf-workplace-integration",
+        "id": "W-leaf-workplace-integration",
         "path": "oya/workplace-integration/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5521,12 +5521,12 @@
         "destination_integ": "integ/workplace-integration",
         "land_status": "ready_for_integ_workplace-integration",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "note": "rule 3d OVERRULE: multi-month product rail integ/workplace-integration owns app/workplace-integration/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/workplace-integration absorb oya/workplace-integration/ → app/workplace-integration/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-hr",
+        "id": "W-leaf-hr",
         "path": "oya/hr/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5534,12 +5534,12 @@
         "destination_integ": "integ/hr",
         "land_status": "ready_for_integ_hr",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "note": "rule 3d OVERRULE: multi-month product rail integ/hr owns app/hr/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/hr absorb oya/hr/ → app/hr/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-payroll",
+        "id": "W-leaf-payroll",
         "path": "oya/payroll/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5547,12 +5547,12 @@
         "destination_integ": "integ/payroll",
         "land_status": "ready_for_integ_payroll",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "note": "rule 3d OVERRULE: multi-month product rail integ/payroll owns app/payroll/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/payroll absorb oya/payroll/ → app/payroll/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-ci-webhook-gateway",
+        "id": "W-leaf-ci-webhook-gateway",
         "path": "oya/ci-webhook-gateway/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5560,12 +5560,12 @@
         "destination_integ": "integ/ci",
         "land_status": "ready_for_integ_ci",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "note": "ci capability absorb sibling to oya/ci-controller/",
         "two_phase_note": "Phase 1: integ/ci absorb oya/ci-webhook-gateway/** → ci/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-incident-management",
+        "id": "W-leaf-incident-management",
         "path": "oya/incident-management/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5573,19 +5573,19 @@
         "destination_integ": "integ/incident-management",
         "land_status": "ready_for_integ_incident-management",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "note": "rule 3d OVERRULE: multi-month product rail integ/incident-management owns app/incident-management/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/incident-management absorb oya/incident-management/ → app/incident-management/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-batch1c-product-leaves",
+        "id": "W-batch1c-product-leaves",
         "path": "oya/{notes,slides,workplace-integration,hr,payroll,ci-webhook-gateway,incident-management}/",
         "judgment_status": "done",
         "action": "batch",
         "redesign": "rewrite",
         "destination_integ": "integ/oya+dest",
         "land_status": "ready_for_batch_path_drain",
-        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "status": "judgment_closed_on_integ_specs_batch1c",
         "products": [
           "oya/notes/",
           "oya/slides/",
@@ -5642,7 +5642,7 @@
         "two_phase_note": "Per-leaf rows in first_wave + reorg_debt_freeze.rows carry shrink_source_integ; see land_status_two_phase"
       },
       {
-        "id": "W-oya-leaf-contract-lifecycle-management",
+        "id": "W-leaf-contract-lifecycle-management",
         "path": "oya/contract-lifecycle-management/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5650,12 +5650,12 @@
         "destination_integ": "integ/contract-lifecycle-management",
         "land_status": "ready_for_integ_contract-lifecycle-management",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/contract-lifecycle-management owns app/contract-lifecycle-management/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/contract-lifecycle-management absorb oya/contract-lifecycle-management/ → app/contract-lifecycle-management/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-global-trade",
+        "id": "W-leaf-global-trade",
         "path": "oya/global-trade/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5663,12 +5663,12 @@
         "destination_integ": "integ/global-trade",
         "land_status": "ready_for_integ_global-trade",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/global-trade owns app/global-trade/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/global-trade absorb oya/global-trade/ → app/global-trade/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-plant-maintenance",
+        "id": "W-leaf-plant-maintenance",
         "path": "oya/plant-maintenance/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5676,12 +5676,12 @@
         "destination_integ": "integ/plant-maintenance",
         "land_status": "ready_for_integ_plant-maintenance",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/plant-maintenance owns app/plant-maintenance/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/plant-maintenance absorb oya/plant-maintenance/ → app/plant-maintenance/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-quality-management",
+        "id": "W-leaf-quality-management",
         "path": "oya/quality-management/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5689,12 +5689,12 @@
         "destination_integ": "integ/quality-management",
         "land_status": "ready_for_integ_quality-management",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/quality-management owns app/quality-management/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/quality-management absorb oya/quality-management/ → app/quality-management/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-real-estate",
+        "id": "W-leaf-real-estate",
         "path": "oya/real-estate/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5702,12 +5702,12 @@
         "destination_integ": "integ/real-estate",
         "land_status": "ready_for_integ_real-estate",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/real-estate owns app/real-estate/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/real-estate absorb oya/real-estate/ → app/real-estate/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-supply-chain-planning",
+        "id": "W-leaf-supply-chain-planning",
         "path": "oya/supply-chain-planning/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5715,12 +5715,12 @@
         "destination_integ": "integ/supply-chain-planning",
         "land_status": "ready_for_integ_supply-chain-planning",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/supply-chain-planning owns app/supply-chain-planning/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/supply-chain-planning absorb oya/supply-chain-planning/ → app/supply-chain-planning/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-treasury",
+        "id": "W-leaf-treasury",
         "path": "oya/treasury/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5728,12 +5728,12 @@
         "destination_integ": "integ/treasury",
         "land_status": "ready_for_integ_treasury",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/treasury owns app/treasury/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/treasury absorb oya/treasury/ → app/treasury/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-leaf-warehouse",
+        "id": "W-leaf-warehouse",
         "path": "oya/warehouse/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5741,19 +5741,19 @@
         "destination_integ": "integ/warehouse",
         "land_status": "ready_for_integ_warehouse",
         "shrink_source_integ": "integ/oya",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "note": "rule 3d OVERRULE: multi-month product rail integ/warehouse owns app/warehouse/**; integ/app composition glue only",
         "two_phase_note": "Phase 1: integ/warehouse absorb oya/warehouse/ → app/warehouse/**; Phase 2: integ/oya shrink-only delete"
       },
       {
-        "id": "W-oya-batch1d-product-leaves",
+        "id": "W-batch1d-product-leaves",
         "path": "oya/{contract-lifecycle-management,global-trade,plant-maintenance,quality-management,real-estate,supply-chain-planning,treasury,warehouse}/",
         "judgment_status": "done",
         "action": "batch",
         "redesign": "rewrite",
         "destination_integ": "integ/oya+dest",
         "land_status": "ready_for_batch_path_drain",
-        "status": "judgment_closed_on_integ_specs_oya_batch1d",
+        "status": "judgment_closed_on_integ_specs_batch1d",
         "products": [
           "oya/contract-lifecycle-management/",
           "oya/global-trade/",
@@ -5818,7 +5818,7 @@
       },
       {
         "id": "W-drain-gov-gate-apps",
-        "path": "tools/oya-governance-{adapter-with-no-importer,adr-shape,banned-primitives}-app/",
+        "path": "tools/governance-{adapter-with-no-importer,adr-shape,banned-primitives}-app/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -6025,7 +6025,7 @@
           "shrink_source_integ": "integ/oya",
           "note": "OVERRULE 1.16.10: was delete_permanently; multi-destination decompose — authority reclaim on integ/governance before source shrink; NOT wholesale META dump"
         },
-        "oya/crm/crates/oya-procurement-source-to-pay-domain/": {
+        "oya/crm/crates/procurement-source-to-pay-domain/": {
           "destination_integ": "integ/procurement",
           "forever": "app/procurement/**",
           "shrink_source_integ": "integ/crm",
@@ -6131,7 +6131,7 @@
         "subset_of_16_lenses",
         "silent_follow_of_indefensible_existing_pattern",
         "adr_number_in_ci_job_name",
-        "leading_brand_prefix_oya_or_cloud"
+        "leading_brand_prefix_or_cloud"
       ],
       "checklist": [
         "what_does_it_do",
@@ -6240,9 +6240,9 @@
       "oya/supply-chain-planning/",
       "oya/treasury/",
       "oya/warehouse/",
-      "tools/oya-governance-adapter-with-no-importer-app/",
-      "tools/oya-governance-adr-shape-app/",
-      "tools/oya-governance-banned-primitives-app/",
+      "tools/governance-adapter-with-no-importer-app/",
+      "tools/governance-adr-shape-app/",
+      "tools/governance-banned-primitives-app/",
       "scripts/ci/",
       "scripts/tests/",
       "templates-audit-rewrite",
@@ -6405,7 +6405,7 @@
         "absorbed_at_version": "1.16.13",
         "accepted": [
           "roots.procurement → integ/procurement / app/procurement/**",
-          "reorg_now judgment for CRM-misplaced oya-procurement-source-to-pay-domain → app/procurement/",
+          "reorg_now judgment for CRM-misplaced procurement-source-to-pay-domain → app/procurement/",
           "retarget specs/microservices/procurement.json off microservices/procurement/… toward app/procurement/crates/…",
           "marketplace rejected for source-to-pay"
         ],
@@ -6553,7 +6553,7 @@
       "forbidden": [
         "treating LSP diagnostics as merge authority",
         "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
-        "equating rust-analyzer with check-daemon or oya-ci-required"
+        "equating rust-analyzer with check-daemon or presubmit"
       ],
       "note": "LSP read-only ≠ build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
     },
@@ -6561,7 +6561,7 @@
       "specs/integ-branch-envelopes.json#daemon_hotset is SSOT for doctrine",
       "cite merge_windows.hot_set_max (do not re-state a second max)",
       "process-kit harness mirror lives under ci/facade/harness/ on integ/ci",
-      "LSP read-only ≠ buck2 [check] ≠ oya-ci-required"
+      "LSP read-only ≠ buck2 [check] ≠ presubmit"
     ],
     "overturn_when": [
       "envelopes#merge_windows.hot_set_max changes (update this file same-wave)",
@@ -6626,12 +6626,12 @@
   },
   "path_ownership": {
     "law": "envelope_prefix_ownership",
-    "live_public_merge_status": "oya-ci-required",
-    "forever_public_merge_status": "merge-admission-required",
-    "public_merge_status": "oya-ci-required",
+    "live_public_merge_status": "presubmit",
+    "forever_public_merge_status": "presubmit",
+    "public_merge_status": "presubmit",
     "status_ladder": {
       "LOCAL_GREEN": "domain.<envelope>.stabilize green — fence + graph-affected tests for touched scope under owned prefixes. MUST NOT require hub edits (specs/**, ci/**) or premature product-protocol expected_total bumps.",
-      "ADMIT_READY": "LOCAL_GREEN + hub contracts current on trunk (or co-shipped hub PR in same ship window). Sole protected check today: oya-ci-required (forever name merge-admission-required after protection cutover).",
+      "ADMIT_READY": "LOCAL_GREEN + hub contracts current on trunk (or co-shipped hub PR in same ship window). Sole protected check today: presubmit (forever name presubmit after protection cutover).",
       "SHIP": "scope-aware merge to trunk; trunk.postsubmit feeds trunk.health. Shared trunk green preserved."
     },
     "team_equals_integ_envelope_root": true,
@@ -6653,20 +6653,20 @@
     "ban_tip_encode_f1_accept": true,
     "ban_plan_sprawl": true,
     "ci_status_names": {
-      "merge_authority_live": "oya-ci-required",
-      "merge_authority": "merge-admission-required",
+      "merge_authority_live": "presubmit",
+      "merge_authority": "presubmit",
       "domain_stabilize": "domain.<envelope>.stabilize",
       "trunk_postsubmit": "trunk.postsubmit",
       "trunk_health": "trunk.health",
       "admission_subjobs": "admission.* (English roles only; e.g. admission.policy, admission.graph-affected, admission.manifest-inventory)",
       "retired_brands": [
-        "oya-ci-required",
+        "presubmit",
         "firewall",
         "cloud-ci-firewall",
         "product-protocol-policy-gate"
       ],
       "identifier_law": "ADR numbers, F-PR/ticket refs MUST NOT appear in workflow/job/gate/env/Rust/JSON-API identifiers — comments/docs/evidence only."
     },
-    "phase1_note": "Live protected context remains oya-ci-required until PAUSE-AND-PAIR. integ/ci carries forever filename merge-admission-required.yml + domain-stabilize.yml (workflow_call) + dual-emit title; event triggers stay on oya-ci-required.yml until quiet cutover (BAN double CI). admission.policy envelope_globs wiring ships on integ/ci (#1646)."
+    "phase1_note": "Live protected context remains presubmit until PAUSE-AND-PAIR. integ/ci carries forever filename presubmit.yml + domain-stabilize.yml (workflow_call) + dual-emit title; event triggers stay on presubmit.yml until quiet cutover (BAN double CI). admission.policy envelope_globs wiring ships on integ/ci (#1646)."
   }
 }

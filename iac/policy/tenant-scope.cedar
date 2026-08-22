@@ -5,7 +5,7 @@
 //          drift reports, and provenance records served via iac-registry-rest, ArgoCD UI,
 //          and SDK clients.
 // Owner:   ops-security + axis-cloud-iac
-// Audit:   every deny emits oya_cloud_iac_unauthorized_read_attempt_total
+// Audit:   every deny emits cloud_iac_unauthorized_read_attempt_total
 // References: iac-isolation.md §"Invariant ISO-07"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

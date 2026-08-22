@@ -1,0 +1,31 @@
+# Owned data SQL interface (ADR-0536 D-10; story G003): the only
+# persistence API services may link. TrueTime-shaped ClockSource trait +
+# HLC state machine (Spanner/CockroachDB/TiKV precedent), tenant-mandatory
+# session descriptors with the bootstrap-metastore structural invariant
+# (ADR-0537 step 6), engine-neutral parameterized statements, HLC-stamped
+# commit receipts. Ports model the OWNED W5 multi-Raft destination; the
+# CRDB-class engine and Postgres-RLS sqlx adapters are ADR-0510 transitional
+# implementations behind this contract. NO handlers, NO IO.
+# authoring_adrs: ADR-0510, ADR-0536, ADR-0537
+
+[package]
+name = "data-sql-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "data_sql_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

@@ -14,9 +14,9 @@ spec:
       interval: 30s
       path: /metrics
       relabelings:
-        - sourceLabels: [__meta_kubernetes_pod_label_oya_io_cost_center]
+        - sourceLabels: [__meta_kubernetes_pod_label_io_cost_center]
           targetLabel: cost_center
-        - sourceLabels: [__meta_kubernetes_pod_label_oya_io_workload_class]
+        - sourceLabels: [__meta_kubernetes_pod_label_io_workload_class]
           targetLabel: workload_class
-        - sourceLabels: [__meta_kubernetes_pod_label_oya_io_regulatory_pack]
+        - sourceLabels: [__meta_kubernetes_pod_label_io_regulatory_pack]
           targetLabel: regulatory_pack

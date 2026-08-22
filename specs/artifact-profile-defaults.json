@@ -244,7 +244,7 @@
           "observability_standard": "opentelemetry",
           "metrics": [
             {
-              "id": "oya_registry_row_count",
+              "id": "registry_row_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -425,7 +425,7 @@
         },
         "autogen": {
           "status": "planned",
-          "generator": "crates/oya-gen-plan-acceptance-attestation (planned)",
+          "generator": "crates/gen-plan-acceptance-attestation (planned)",
           "inputs": [
             "consensus loop outputs",
             "git commit SHA",
@@ -483,7 +483,7 @@
           "observability_standard": "opentelemetry",
           "metrics": [
             {
-              "id": "oya_plan_attestation_emission_total",
+              "id": "plan_attestation_emission_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -614,7 +614,7 @@
           "observability_standard": "opentelemetry",
           "metrics": [
             {
-              "id": "oya_ledger_row_status_count",
+              "id": "ledger_row_status_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -744,7 +744,7 @@
           "observability_standard": "opentelemetry",
           "metrics": [
             {
-              "id": "oya_claim_matrix_count",
+              "id": "claim_matrix_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -868,7 +868,7 @@
           "observability_standard": "opentelemetry",
           "metrics": [
             {
-              "id": "oya_evidence_bundle_emission_total",
+              "id": "evidence_bundle_emission_total",
               "kind": "counter",
               "unit": "1",
               "labels": [

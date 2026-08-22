@@ -14,7 +14,7 @@ doc_status: published
 audit-chain hash-link mismatch detected on a per-tenant or global shard
 
 ## Detection
-- Source signal: ADR-0003 chain-integrity check exit code; `oya gate validate audit-chain-replay`; `oya-governance-audit-emit` block; chain-replay drill anomaly
+- Source signal: ADR-0003 chain-integrity check exit code; `oya gate validate audit-chain-replay`; `governance-audit-emit` block; chain-replay drill anomaly
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev-1 ladder
 
 ## First-response checklist
@@ -37,8 +37,8 @@ Restore from the last-known-good Merkle root; replay events from outbox; compare
 Run these checks from the repository root and attach output to the incident:
 
 ```bash
-cargo test -p oya-audit-chain-domain --test merkle_chain merkle_root_advances_with_each_append_and_detects_payload_tamper -- --exact
-cargo test -p oya-audit-chain-file-adapter --test file_ledger file_audit_ledger_rejects_divergent_history_and_tampered_records -- --exact
+cargo test -p audit-chain-domain --test merkle_chain merkle_root_advances_with_each_append_and_detects_payload_tamper -- --exact
+cargo test -p audit-chain-file-adapter --test file_ledger file_audit_ledger_rejects_divergent_history_and_tampered_records -- --exact
 ```
 
 Expected proof:

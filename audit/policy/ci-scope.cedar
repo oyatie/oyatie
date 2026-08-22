@@ -1,7 +1,7 @@
 // audit-chain µservice — CI-scope policy fragment
 // Cedar v4
 //
-// Purpose: scope the oya-ci reserved tenant + sealing-worker + retention-cascade-worker
+// Purpose: scope the ci reserved tenant + sealing-worker + retention-cascade-worker
 //          to their authorised operations; forbid reads of customer tenant payloads.
 // Owner:   axis-foundry + axis-audit-chain + ops-security
 // References: threat-model.md T-E-01, T-E-02, T-E-03
@@ -119,7 +119,7 @@ when {
 };
 
 // =============================================================================
-// PERMIT 6 — slo-engine-worker reads audit-chain self-SLI from oya-self tenant
+// PERMIT 6 — slo-engine-worker reads audit-chain self-SLI from self tenant
 // =============================================================================
 
 permit (
@@ -129,9 +129,9 @@ permit (
 )
 when {
   resource has metric_name &&
-  resource.metric_name like "oya_audit_chain_*" &&
+  resource.metric_name like "audit_chain_*" &&
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-self"
+  resource.tenant_id == "tenant:self"
 };
 
 // =============================================================================

@@ -7,7 +7,7 @@ syntax = "proto3";
 // Managed-Kubernetes control-plane-host gRPC contract (ADR-0376).
 //
 // The inter-service projection of the ControlPlaneProvisioning port the sibling
-// oya-managed-k8s-cluster-lifecycle + oya-managed-k8s-sla-observability
+// managed-k8s-cluster-lifecycle + managed-k8s-sla-observability
 // microservices consume. design-spec maturity: the gRPC server lands with the
 // live-integration follow-on; the message/service shape is contracted here so
 // consumers can generate clients against a stable surface.

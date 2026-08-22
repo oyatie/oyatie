@@ -7,13 +7,13 @@ doc_status: published
 - status: Retired from live admission until maintained inputs exist
 - date: 2026-06-29
 - purpose: Historical dependency-review lane. Do not count raw `cargo vet` output as Product-ready or Hyperscaler-ready evidence while `supply-chain/audits.toml` and `supply-chain/imports.lock` are absent.
-- current_authority: `cloud-ci-supply-chain-audit` — owned RustSec advisory scan over vendored mirror, wired into `oya-ci-required`.
+- current_authority: `cloud-ci-supply-chain-audit` — owned RustSec advisory scan over vendored mirror, wired into `presubmit`.
 - retired_inputs: `supply-chain/audits.toml`, `supply-chain/imports.lock`, `cargo vet check` JSON.
 - failure_modes_when_reintroduced:
   - new dep with no audit row
   - exemption used without expiry date
   - cargo-vet reports `unaudited`
-- ci_invocation: none while retired; reintroduction requires maintained input files plus a cloud-ci gate wired into `oya-ci-required`.
+- ci_invocation: none while retired; reintroduction requires maintained input files plus a cloud-ci gate wired into `presubmit`.
 - runtime_budget: 1500 ms
 - severity: HIGH
 - reintroduction_kernel_sketch:

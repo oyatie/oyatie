@@ -23,10 +23,10 @@
       "work"
     ],
     "crate_refs_planned": [
-      "oya-mail-kernel",
-      "oya-mail-domain",
-      "oya-mail-app",
-      "oya-mail-rest"
+      "mail-kernel",
+      "mail-domain",
+      "mail-app",
+      "mail-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
   },
@@ -93,70 +93,70 @@
       "given": "a work mailbox receives a message",
       "when": "the message is persisted",
       "then": "it is encrypted under tenant DEK, tagged Org pillar, indexed without plaintext, and covered by retention policy",
-      "test_ref": "crates/oya-mail-domain/tests/storage.rs::test_work_mail_tenant_dek_and_retention"
+      "test_ref": "crates/mail-domain/tests/storage.rs::test_work_mail_tenant_dek_and_retention"
     },
     {
       "id": "AC-02",
       "given": "a personal mailbox receives a message",
       "when": "the message is persisted",
       "then": "it is Person pillar and unavailable to org-admin search/export APIs",
-      "test_ref": "crates/oya-mail-domain/tests/personal.rs::test_org_admin_cannot_export_personal_mail"
+      "test_ref": "crates/mail-domain/tests/personal.rs::test_org_admin_cannot_export_personal_mail"
     },
     {
       "id": "AC-03",
       "given": "a compliance officer opens a scoped legal hold",
       "when": "held messages match mailbox/date/query criteria",
       "then": "deletion and retention expiry are blocked until release and all actions are audit chained",
-      "test_ref": "crates/oya-mail-domain/tests/legal_hold.rs::test_hold_blocks_mail_deletion"
+      "test_ref": "crates/mail-domain/tests/legal_hold.rs::test_hold_blocks_mail_deletion"
     },
     {
       "id": "AC-04",
       "given": "a tenant migrates from Google/Microsoft",
       "when": "coexistence adapter imports mail",
       "then": "source hashes, folder labels, message IDs, and retention class survive import",
-      "test_ref": "crates/oya-mail-app/tests/migration.rs::test_import_preserves_chain_of_custody"
+      "test_ref": "crates/mail-app/tests/migration.rs::test_import_preserves_chain_of_custody"
     },
     {
       "id": "AC-05",
       "given": "a user turns a work mail into a Workflow item",
       "when": "handoff is explicitly invoked",
       "then": "WorkflowHandoffAuditLog links original message, extracted payload, consent/policy basis, and workflow item id",
-      "test_ref": "crates/oya-mail-domain/tests/workflow_handoff.rs::test_mail_to_workflow_requires_policy_basis"
+      "test_ref": "crates/mail-domain/tests/workflow_handoff.rs::test_mail_to_workflow_requires_policy_basis"
     },
     {
       "id": "AC-06",
       "given": "an inbound SMTP message arrives for a work domain",
       "when": "SPF, DKIM, and DMARC checks complete",
       "then": "authentication result is stamped on MailMessage.perimeter_auth_result; messages failing DMARC policy are quarantined or rejected per tenant policy and the action is logged",
-      "test_ref": "crates/oya-mail-domain/tests/deliverability.rs::test_dmarc_fail_quarantine_and_logged"
+      "test_ref": "crates/mail-domain/tests/deliverability.rs::test_dmarc_fail_quarantine_and_logged"
     },
     {
       "id": "AC-07",
       "given": "a user composes a new work mail",
       "when": "they request AI-assisted compose or thread summarization",
       "then": "the assistant operates within the tenant DEK boundary and the composed draft is not transmitted to any model training pipeline; user opt-in is required per tenant policy",
-      "test_ref": "crates/oya-mail-app/tests/ai_assist.rs::test_ai_compose_no_plaintext_exfil"
+      "test_ref": "crates/mail-app/tests/ai_assist.rs::test_ai_compose_no_plaintext_exfil"
     },
     {
       "id": "AC-08",
       "given": "an outbound mail contains tracking pixels or invisible trackers",
       "when": "the MIME pipeline processes the outbound message",
       "then": "tracker injection is detected and blocked; a policy event is emitted",
-      "test_ref": "crates/oya-mail-domain/tests/perimeter.rs::test_tracker_pixel_injection_blocked"
+      "test_ref": "crates/mail-domain/tests/perimeter.rs::test_tracker_pixel_injection_blocked"
     },
     {
       "id": "AC-09",
       "given": "a user enables confidential mail for a work message",
       "when": "the message is sent",
       "then": "the message carries an expiry timestamp and a recipient-access policy; expiry is enforced server-side under legal-hold rules",
-      "test_ref": "crates/oya-mail-domain/tests/confidential.rs::test_confidential_mail_expiry_legal_hold_wins"
+      "test_ref": "crates/mail-domain/tests/confidential.rs::test_confidential_mail_expiry_legal_hold_wins"
     },
     {
       "id": "AC-10",
       "given": "a personal-context mailbox user enables Hide-My-Email aliases",
       "when": "they generate an alias for an external service",
       "then": "the alias is provisioned in the Person pillar and forwards to the personal mailbox without exposing the real address; alias cannot be queried by org admin",
-      "test_ref": "crates/oya-mail-domain/tests/alias.rs::test_hide_my_email_alias_person_pillar"
+      "test_ref": "crates/mail-domain/tests/alias.rs::test_hide_my_email_alias_person_pillar"
     }
   ],
   "scope": {
@@ -457,7 +457,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-governance-regional-pack-contracts"
+    "validation_lane_ref": "governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -499,7 +499,7 @@
         "stable": 300,
         "GA": 150
       },
-      "verification_ref": "cargo bench -p oya-mail-domain -- send_p99",
+      "verification_ref": "cargo bench -p mail-domain -- send_p99",
       "lane_ref": "perf-budget"
     },
     {
@@ -529,7 +529,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "cargo nextest -p oya-mail-domain -- personal_export_denied",
+      "verification_ref": "cargo nextest -p mail-domain -- personal_export_denied",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -541,7 +541,7 @@
       },
       "notes": "Official source-backed bar: Gmail states it blocks 99.9% of spam, malware, and dangerous links; Proton PhishGuard remains an additional qualitative benchmark.",
       "verification_ref": "oya gate validate mail-spam-phishing",
-      "lane_ref": "oya-governance-mail-perimeter"
+      "lane_ref": "governance-mail-perimeter"
     },
     {
       "name": "dmarc_dkim_spf_coverage_pct",
@@ -552,7 +552,7 @@
       },
       "notes": "Every active sending domain must have DMARC policy set; industry standard from Microsoft 365 and Google Workspace",
       "verification_ref": "oya gate validate mail-domain-auth",
-      "lane_ref": "oya-governance-mail-perimeter"
+      "lane_ref": "governance-mail-perimeter"
     },
     {
       "name": "deliverability_inbox_rate_pct",
@@ -563,7 +563,7 @@
       },
       "notes": "Industry baseline: new domains require warmup; reputation monitoring via postmaster APIs",
       "verification_ref": "oya gate validate mail-deliverability",
-      "lane_ref": "oya-governance-mail-deliverability"
+      "lane_ref": "governance-mail-deliverability"
     }
   ],
   "risks": [
@@ -869,27 +869,27 @@
     {
       "anti_pattern": "plaintext_search_index",
       "why": "creates surveillance surface outside audit flow; Google/Microsoft encrypt-at-rest but goes further with encrypted search tokens",
-      "mitigation": "encrypted/tokenized search index; detection_lane: oya-governance-mail-encryption"
+      "mitigation": "encrypted/tokenized search index; detection_lane: governance-mail-encryption"
     },
     {
       "anti_pattern": "org_export_personal_mail",
       "why": "violates person-pillar boundary; ADR-0215",
-      "mitigation": "detection_lane: oya-governance-tenant-rbac-context-isolation"
+      "mitigation": "detection_lane: governance-tenant-rbac-context-isolation"
     },
     {
       "anti_pattern": "silent_mail_to_workflow_mining",
       "why": "turns communications into surveillance/profiling",
-      "mitigation": "detection_lane: oya-governance-mail-workflow-consent"
+      "mitigation": "detection_lane: governance-mail-workflow-consent"
     },
     {
       "anti_pattern": "plaintext_training_signal",
       "why": "mail content must not escape tenant DEK boundary for AI model training; violates GDPR and pillar model",
-      "mitigation": "AC-07 + R-04; detection_lane: oya-governance-mail-ai-privacy"
+      "mitigation": "AC-07 + R-04; detection_lane: governance-mail-ai-privacy"
     },
     {
       "anti_pattern": "tracker_pixel_injection_on_outbound",
       "why": "violates recipient privacy; blocked by Apple Mail Privacy Protection and Proton on inbound; prevents injection on outbound",
-      "mitigation": "AC-08; detection_lane: oya-governance-mail-perimeter"
+      "mitigation": "AC-08; detection_lane: governance-mail-perimeter"
     },
     {
       "anti_pattern": "no_dmarc_on_sending_domain",
@@ -992,47 +992,47 @@
     {
       "id": "BP-01",
       "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
-      "planned_enforcement_ref": "oya-governance-mail-encryption"
+      "planned_enforcement_ref": "governance-mail-encryption"
     },
     {
       "id": "BP-02",
       "rule": "retention expiry checks legal hold before delete",
-      "planned_enforcement_ref": "oya-governance-mail-retention"
+      "planned_enforcement_ref": "governance-mail-retention"
     },
     {
       "id": "BP-03",
       "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
-      "planned_enforcement_ref": "oya-governance-mail-workflow-handoff"
+      "planned_enforcement_ref": "governance-mail-workflow-handoff"
     },
     {
       "id": "BP-04",
       "rule": "every active sending domain must have DMARC policy set before production activation",
-      "planned_enforcement_ref": "oya-governance-mail-perimeter"
+      "planned_enforcement_ref": "governance-mail-perimeter"
     },
     {
       "id": "BP-05",
       "rule": "AI-assisted features require explicit tenant opt-in; no plaintext exits tenant DEK boundary for training",
-      "planned_enforcement_ref": "oya-governance-mail-ai-privacy"
+      "planned_enforcement_ref": "governance-mail-ai-privacy"
     },
     {
       "id": "BP-06",
       "rule": "DKIM keys are rotated at minimum every 365 days; ARC seals preserve authentication across forwarding hops",
-      "planned_enforcement_ref": "oya-governance-mail-perimeter"
+      "planned_enforcement_ref": "governance-mail-perimeter"
     },
     {
       "id": "BP-01",
       "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
-      "enforced_by_lane_ref": "oya-governance-mail-encryption"
+      "enforced_by_lane_ref": "governance-mail-encryption"
     },
     {
       "id": "BP-02",
       "rule": "retention expiry checks legal hold before delete",
-      "enforced_by_lane_ref": "oya-governance-mail-retention"
+      "enforced_by_lane_ref": "governance-mail-retention"
     },
     {
       "id": "BP-03",
       "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
-      "enforced_by_lane_ref": "oya-governance-mail-workflow-handoff"
+      "enforced_by_lane_ref": "governance-mail-workflow-handoff"
     }
   ],
   "patterns": [
@@ -1066,32 +1066,32 @@
     {
       "anti_pattern": "org_export_personal_mail",
       "why_forbidden": "violates person-pillar boundary",
-      "detection_lane": "oya-governance-tenant-rbac-context-isolation"
+      "detection_lane": "governance-tenant-rbac-context-isolation"
     },
     {
       "anti_pattern": "plaintext_mail_index",
       "why_forbidden": "creates disclosure surface outside audit flow",
-      "detection_lane": "oya-governance-mail-encryption"
+      "detection_lane": "governance-mail-encryption"
     },
     {
       "anti_pattern": "silent_mail_to_workflow_mining",
       "why_forbidden": "turns communications into surveillance/profiling",
-      "detection_lane": "oya-governance-mail-workflow-consent"
+      "detection_lane": "governance-mail-workflow-consent"
     },
     {
       "anti_pattern": "plaintext_training_signal",
       "why_forbidden": "mail content must not escape tenant DEK boundary for model training",
-      "detection_lane": "oya-governance-mail-ai-privacy"
+      "detection_lane": "governance-mail-ai-privacy"
     },
     {
       "anti_pattern": "no_dmarc_on_sending_domain",
       "why_forbidden": "enables domain spoofing; industry-standard requirement before production activation",
-      "detection_lane": "oya-governance-mail-perimeter"
+      "detection_lane": "governance-mail-perimeter"
     },
     {
       "anti_pattern": "tracker_pixel_injection",
       "why_forbidden": "violates recipient privacy; blocked by Proton and Apple; blocks on outbound",
-      "detection_lane": "oya-governance-mail-perimeter"
+      "detection_lane": "governance-mail-perimeter"
     }
   ],
   "goals": {
@@ -1101,11 +1101,11 @@
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-tenant-rbac-domain -- cross_pillar"
+      "verification": "cargo nextest -p tenant-rbac-domain -- cross_pillar"
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-mail-bench -- mail_hot_paths"
+      "verification": "cargo bench -p mail-bench -- mail_hot_paths"
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
@@ -1282,8 +1282,8 @@
       "machine-learning or ranking features training across personal/professional scopes without a policy-specific opt-in and data-use record"
     ],
     "required_gates": [
-      "oya-governance-dual-context-isolation",
-      "oya-governance-mail-personal-professional-separation",
+      "governance-dual-context-isolation",
+      "governance-mail-personal-professional-separation",
       "tenant-rbac-packaging-gate",
       "per-tenant-audit-log-slicing"
     ],

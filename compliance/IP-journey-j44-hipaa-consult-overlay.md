@@ -115,66 +115,66 @@ Deliverable 38: compliance/hipaa-consult-overlay adds observability evidence for
 Deliverable 39: compliance/hipaa-consult-overlay adds scalability evidence for BNF v4.1, with unit, contract, and integration tests.
 Deliverable 40: compliance/hipaa-consult-overlay adds performance evidence for ADR-0105 13-layer, with unit, contract, and integration tests.
 ## 5. Observability
-Observation 1: emit oya_journey_44_compliance_1_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 2: emit oya_journey_44_compliance_2_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 3: emit oya_journey_44_compliance_3_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 4: emit oya_journey_44_compliance_4_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 5: emit oya_journey_44_compliance_5_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 6: emit oya_journey_44_compliance_6_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 7: emit oya_journey_44_compliance_7_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 8: emit oya_journey_44_compliance_8_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 9: emit oya_journey_44_compliance_9_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 10: emit oya_journey_44_compliance_10_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 11: emit oya_journey_44_compliance_11_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 12: emit oya_journey_44_compliance_12_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 13: emit oya_journey_44_compliance_13_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 14: emit oya_journey_44_compliance_14_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 15: emit oya_journey_44_compliance_15_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 16: emit oya_journey_44_compliance_16_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 17: emit oya_journey_44_compliance_17_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 18: emit oya_journey_44_compliance_18_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 19: emit oya_journey_44_compliance_19_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 20: emit oya_journey_44_compliance_20_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 21: emit oya_journey_44_compliance_21_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 22: emit oya_journey_44_compliance_22_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 23: emit oya_journey_44_compliance_23_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 24: emit oya_journey_44_compliance_24_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 25: emit oya_journey_44_compliance_25_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 26: emit oya_journey_44_compliance_26_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 27: emit oya_journey_44_compliance_27_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 28: emit oya_journey_44_compliance_28_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 29: emit oya_journey_44_compliance_29_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 30: emit oya_journey_44_compliance_30_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 31: emit oya_journey_44_compliance_31_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 32: emit oya_journey_44_compliance_32_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 33: emit oya_journey_44_compliance_33_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 34: emit oya_journey_44_compliance_34_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 35: emit oya_journey_44_compliance_35_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 36: emit oya_journey_44_compliance_36_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 37: emit oya_journey_44_compliance_37_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 38: emit oya_journey_44_compliance_38_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 39: emit oya_journey_44_compliance_39_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 40: emit oya_journey_44_compliance_40_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 41: emit oya_journey_44_compliance_41_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 42: emit oya_journey_44_compliance_42_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 43: emit oya_journey_44_compliance_43_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 44: emit oya_journey_44_compliance_44_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 45: emit oya_journey_44_compliance_45_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 46: emit oya_journey_44_compliance_46_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 47: emit oya_journey_44_compliance_47_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 48: emit oya_journey_44_compliance_48_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 49: emit oya_journey_44_compliance_49_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 50: emit oya_journey_44_compliance_50_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 51: emit oya_journey_44_compliance_51_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 52: emit oya_journey_44_compliance_52_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 53: emit oya_journey_44_compliance_53_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 54: emit oya_journey_44_compliance_54_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 55: emit oya_journey_44_compliance_55_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 56: emit oya_journey_44_compliance_56_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 57: emit oya_journey_44_compliance_57_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 58: emit oya_journey_44_compliance_58_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 59: emit oya_journey_44_compliance_59_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 60: emit oya_journey_44_compliance_60_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 1: emit journey_44_compliance_1_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 2: emit journey_44_compliance_2_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 3: emit journey_44_compliance_3_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 4: emit journey_44_compliance_4_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 5: emit journey_44_compliance_5_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 6: emit journey_44_compliance_6_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 7: emit journey_44_compliance_7_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 8: emit journey_44_compliance_8_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 9: emit journey_44_compliance_9_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 10: emit journey_44_compliance_10_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 11: emit journey_44_compliance_11_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 12: emit journey_44_compliance_12_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 13: emit journey_44_compliance_13_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 14: emit journey_44_compliance_14_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 15: emit journey_44_compliance_15_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 16: emit journey_44_compliance_16_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 17: emit journey_44_compliance_17_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 18: emit journey_44_compliance_18_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 19: emit journey_44_compliance_19_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 20: emit journey_44_compliance_20_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 21: emit journey_44_compliance_21_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 22: emit journey_44_compliance_22_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 23: emit journey_44_compliance_23_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 24: emit journey_44_compliance_24_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 25: emit journey_44_compliance_25_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 26: emit journey_44_compliance_26_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 27: emit journey_44_compliance_27_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 28: emit journey_44_compliance_28_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 29: emit journey_44_compliance_29_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 30: emit journey_44_compliance_30_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 31: emit journey_44_compliance_31_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 32: emit journey_44_compliance_32_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 33: emit journey_44_compliance_33_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 34: emit journey_44_compliance_34_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 35: emit journey_44_compliance_35_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 36: emit journey_44_compliance_36_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 37: emit journey_44_compliance_37_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 38: emit journey_44_compliance_38_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 39: emit journey_44_compliance_39_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 40: emit journey_44_compliance_40_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 41: emit journey_44_compliance_41_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 42: emit journey_44_compliance_42_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 43: emit journey_44_compliance_43_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 44: emit journey_44_compliance_44_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 45: emit journey_44_compliance_45_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 46: emit journey_44_compliance_46_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 47: emit journey_44_compliance_47_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 48: emit journey_44_compliance_48_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 49: emit journey_44_compliance_49_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 50: emit journey_44_compliance_50_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 51: emit journey_44_compliance_51_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 52: emit journey_44_compliance_52_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 53: emit journey_44_compliance_53_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 54: emit journey_44_compliance_54_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 55: emit journey_44_compliance_55_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 56: emit journey_44_compliance_56_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 57: emit journey_44_compliance_57_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 58: emit journey_44_compliance_58_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 59: emit journey_44_compliance_59_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 60: emit journey_44_compliance_60_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
 ## 6. Failure modes and rollback
 Failure 1: dependency timeout; compliance must return a typed failure, keep durable state, and publish Journey44HipaaConsultOverlayFailure1.
 Failure 2: Cedar deny; compliance must return a typed failure, keep durable state, and publish Journey44HipaaConsultOverlayFailure2.
@@ -424,4 +424,4 @@ IP check 150: compliance/hipaa-consult-overlay satisfies code quality for j44-he
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false), KR-PIPA-2023-amendment(rto=14400,rpo=900,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/compliance/IP-journey-j44-hipaa-consult-overlay.md` matched `financial, payment`; anchors `microservices/compliance/runbooks/phi-access-anomaly.md, crates/oya-shared-compliance-evidence-kernel/src/lib.rs`; type anchor `crates/oya-shared-compliance-evidence-kernel/src/lib.rs::EvidenceArtifact`.
+- Surface evidence: `microservices/compliance/IP-journey-j44-hipaa-consult-overlay.md` matched `financial, payment`; anchors `microservices/compliance/runbooks/phi-access-anomaly.md, crates/shared-compliance-evidence-kernel/src/lib.rs`; type anchor `crates/shared-compliance-evidence-kernel/src/lib.rs::EvidenceArtifact`.

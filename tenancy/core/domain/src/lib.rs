@@ -7,7 +7,7 @@ pub mod design_partner_status;
 pub use design_partner_status::{DesignPartnerStatus, DesignPartnerStatusError};
 
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {
@@ -96,7 +96,7 @@ mod tests {
             "Alpha Tenant".to_string(),
             "region-home".to_string(),
             ResidencyClass::StrictHomeRegion,
-            vec!["oya-pack-alpha".to_string()],
+            vec!["pack-alpha".to_string()],
         )
         .expect("home-region tenant residency is valid");
 
@@ -113,7 +113,7 @@ mod tests {
             "Beta Tenant".to_string(),
             "region-recovery".to_string(),
             ResidencyClass::StrictHomeRegion,
-            vec!["oya-pack-alpha".to_string()],
+            vec!["pack-alpha".to_string()],
         )
         .expect_err("strict home-region tenants require home-region primary");
 

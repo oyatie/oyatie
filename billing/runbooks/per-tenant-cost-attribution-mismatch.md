@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-billing-per-tenant-cost-attribution-mismatch.
 - Primary namespace: `cloud-billing`.
-- Owning rotation: PagerDuty `oya-cloud-billing-primary`.
-- Finance secondary: PagerDuty `oya-finance-operations-primary`.
+- Owning rotation: PagerDuty `cloud-billing-primary`.
+- Finance secondary: PagerDuty `finance-operations-primary`.
 - Incident channel: `#inc-cloud-billing`.
 - Customer channel: `#support-billing-attribution`.
 - Protected surface: metering bus, FOCUS 1.1 normalization, tenant tags, cost centers, rate cards, invoice line items.
@@ -39,14 +39,14 @@ doc_status: published
 - Alert `CloudBillingUntaggedVendorCostSpike` fires.
 - Alert `CloudBillingFocusExportReconciliationFailed` fires.
 - Alert `CloudBillingLedgerReplayDedupeFailure` fires.
-- Metric `oya_cloud_billing_unattributed_cost_ratio` exceeds 0.005.
-- Metric `oya_cloud_billing_tenant_cost_delta_usd` exceeds tenant threshold.
-- Metric `oya_cloud_billing_vendor_line_unmapped_total` increases by more than 1000 in 15 minutes.
-- Metric `oya_cloud_billing_metering_event_signature_invalid_total` is non-zero.
-- Metric `oya_cloud_billing_focus_reconciliation_error_total` increases.
-- Metric `oya_cloud_billing_cost_center_missing_total` spikes.
-- Metric `oya_cloud_billing_shared_overhead_amortization_delta_usd` exceeds baseline.
-- Metric `oya_cloud_billing_ledger_replay_duplicate_total` is non-zero.
+- Metric `cloud_billing_unattributed_cost_ratio` exceeds 0.005.
+- Metric `cloud_billing_tenant_cost_delta_usd` exceeds tenant threshold.
+- Metric `cloud_billing_vendor_line_unmapped_total` increases by more than 1000 in 15 minutes.
+- Metric `cloud_billing_metering_event_signature_invalid_total` is non-zero.
+- Metric `cloud_billing_focus_reconciliation_error_total` increases.
+- Metric `cloud_billing_cost_center_missing_total` spikes.
+- Metric `cloud_billing_shared_overhead_amortization_delta_usd` exceeds baseline.
+- Metric `cloud_billing_ledger_replay_duplicate_total` is non-zero.
 - Tenant reports showback/chargeback value differs from expected cloud spend.
 - Finance reports FOCUS export mismatch with ERP import.
 - AWS CUR ingest completes but tenant tag coverage drops.
@@ -84,11 +84,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-billing --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-billing --severity sev1`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.service=="cloud-billing")'`.
-6. Query unattributed cost: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_unattributed_cost_ratio{period="'$PERIOD'"}'`.
-7. Query tenant delta: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_tenant_cost_delta_usd{tenant_id="'$TENANT'",period="'$PERIOD'"}'`.
-8. Query unmapped vendor lines: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_billing_vendor_line_unmapped_total[15m])'`.
-9. Query invalid signatures: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_billing_metering_event_signature_invalid_total[5m])'`.
-10. Query FOCUS errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_billing_focus_reconciliation_error_total[5m])'`.
+6. Query unattributed cost: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_unattributed_cost_ratio{period="'$PERIOD'"}'`.
+7. Query tenant delta: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_tenant_cost_delta_usd{tenant_id="'$TENANT'",period="'$PERIOD'"}'`.
+8. Query unmapped vendor lines: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_billing_vendor_line_unmapped_total[15m])'`.
+9. Query invalid signatures: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_billing_metering_event_signature_invalid_total[5m])'`.
+10. Query FOCUS errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_billing_focus_reconciliation_error_total[5m])'`.
 11. Open attribution dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/attribution?orgId=1&var-period=$PERIOD&var-tenant=$TENANT"`.
 12. Open FOCUS dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/focus-export?orgId=1&var-period=$PERIOD&var-tenant=$TENANT"`.
 13. Read attribution logs: `kubectl -n cloud-billing logs deploy/cloud-billing-attribution-worker --since=60m | rg "attribution|focus|tenant_id|cost_center|replay"`.
@@ -165,9 +165,9 @@ doc_status: published
 6. Patch ERP adapter if downstream import rejected valid fields.
 7. Add regression fixture for affected vendor source.
 8. Add regression fixture for tenant tree change inside period.
-9. Run domain tests: `cargo test -p oya-cloud-billing-domain attribution -- --nocapture`.
-10. Run tax app tests if invoice lines changed: `cargo test -p oya-cloud-billing-tax-app cloud_billing_invoice_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-attribution --production-snapshot --period $PERIOD`.
+9. Run domain tests: `cargo test -p cloud-billing-domain attribution -- --nocapture`.
+10. Run tax app tests if invoice lines changed: `cargo test -p cloud-billing-tax-app cloud_billing_invoice_api -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-billing-attribution --production-snapshot --period $PERIOD`.
 12. Reconcile corrected FOCUS export: `oya billing focus reconcile --tenant $TENANT --period $PERIOD --expect clean`.
 13. Release invoice hold: `oya billing invoice unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
 14. Release export hold: `oya billing focus export unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
@@ -175,8 +175,8 @@ doc_status: published
 
 ## Verification Checklist
 - `CloudBillingTenantAttributionMismatchCritical` is green.
-- `oya_cloud_billing_unattributed_cost_ratio` is below 0.001.
-- `oya_cloud_billing_tenant_cost_delta_usd` is inside tenant threshold.
+- `cloud_billing_unattributed_cost_ratio` is below 0.001.
+- `cloud_billing_tenant_cost_delta_usd` is inside tenant threshold.
 - FOCUS reconcile returns clean.
 - Invoice preview matches corrected ledger.
 - ERP validation passes.
@@ -237,10 +237,10 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-billing-primary` for all attribution mismatches.
-- Page `oya-finance-operations-primary` when invoice or ERP output is affected.
-- Page `oya-security-policy-primary` when another tenant's cost appears.
-- Page `oya-audit-chain-primary` when correction events fail to seal.
+- Page `cloud-billing-primary` for all attribution mismatches.
+- Page `finance-operations-primary` when invoice or ERP output is affected.
+- Page `security-policy-primary` when another tenant's cost appears.
+- Page `audit-chain-primary` when correction events fail to seal.
 - Notify `#inc-cloud-billing` with tenant, period, and source.
 - Notify `#support-billing-attribution` before customer communication.
 - Notify `#sox-controls` when a closed invoice period changes.

@@ -10,7 +10,7 @@
     "owner_team": "council-architecture",
     "adr": "ADR-0131",
     "supersedes": [],
-    "purpose": "Machine-readable contract for the universal per-microservice flat layout mandated by ADR-0131. Read by the oya-governance-per-microservice-layout CI lane to refuse out-of-layout artifacts and by the oya-governance-aggregation-index-generation lane to regenerate central indices from per-microservice sources of truth.",
+    "purpose": "Machine-readable contract for the universal per-microservice flat layout mandated by ADR-0131. Read by the governance-per-microservice-layout CI lane to refuse out-of-layout artifacts and by the governance-aggregation-index-generation lane to regenerate central indices from per-microservice sources of truth.",
     "industry_citations": [
       {
         "vendor": "AWS",
@@ -307,7 +307,7 @@
     }
   ],
   "validator_rules": {
-    "lane": "oya-governance-per-microservice-layout",
+    "lane": "governance-per-microservice-layout",
     "severity": "BLOCKER",
     "rules": [
       {
@@ -358,7 +358,7 @@
       {
         "id": "RULE-010",
         "description": "aggregation index (registry/catalog/, docs/prds/INDEX.md, etc.) must be generated, never hand-edited",
-        "violation_message": "Aggregation index hand-edited; regenerate via oya-governance-aggregation-index-generation"
+        "violation_message": "Aggregation index hand-edited; regenerate via governance-aggregation-index-generation"
       },
       {
         "id": "RULE-011",
@@ -368,7 +368,7 @@
     ]
   },
   "aggregation_lane": {
-    "lane": "oya-governance-aggregation-index-generation",
+    "lane": "governance-aggregation-index-generation",
     "severity": "BLOCKER",
     "regenerates": [
       "docs/prds/INDEX.md (from microservices/*/PRD.md frontmatter)",
@@ -437,7 +437,7 @@
       {
         "ip_id": "IP-M01-MIGR-014..NNN",
         "microservice": "check-<topic>",
-        "note": "one IP per oya-check-<topic> crate (~50). Default: one folder each under microservices/check-<topic>/. Alternative bundling explicitly rejected."
+        "note": "one IP per check-<topic> crate (~50). Default: one folder each under microservices/check-<topic>/. Alternative bundling explicitly rejected."
       },
       {
         "ip_id": "IP-M01-MIGR-NNN+1",
@@ -450,7 +450,7 @@
   "open_questions": [
     {
       "id": "Q-001",
-      "question": "Each oya-check-<topic> crate as its own microservices/check-<topic>/ folder, or bundled under microservices/intelligence/checks/?",
+      "question": "Each check-<topic> crate as its own microservices/check-<topic>/ folder, or bundled under microservices/intelligence/checks/?",
       "default": "one folder each; flat-catalog discipline holds",
       "resolution": "IP-M01-MIGR-014 ChangeSet"
     },

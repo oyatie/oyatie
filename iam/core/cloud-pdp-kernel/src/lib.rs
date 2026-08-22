@@ -1,4 +1,4 @@
-//! # oya-cloud-iam-pdp-kernel
+//! # cloud-iam-pdp-kernel
 //!
 //! Pure ports of the cloud-iam policy-decision-point SERVICE (ADR-0559,
 //! G004 slice 1).
@@ -6,13 +6,13 @@
 //! ## Posture
 //! ADR-0536 D-2 makes Cedar the single policy language: every service embeds
 //! the formally-verified `cedar-policy` engine behind the shared
-//! [`oya_shared_pdp_kernel::PolicyDecisionPoint`] port, and a central policy
+//! [`shared_pdp_kernel::PolicyDecisionPoint`] port, and a central policy
 //! store (cloud-iam, the three-plane IdP substrate) compiles, signs, and
 //! pushes content-addressed policy bundles. This crate is the SERVICE-side
 //! kernel for that central decision point: the seams the runnable
 //! cloud-iam PDP composes — it deliberately does NOT re-model decision
 //! evaluation (that port and its Cedar adapter live in
-//! `libs/oya-shared-pdp-kernel` / `iam/adapters/pdp-cedar`;
+//! `libs/shared-pdp-kernel` / `iam/adapters/pdp-cedar`;
 //! reuse, never fork — ADR-0243 two-decision-algorithms prohibition).
 //!
 //! Ports here (cutover litmus per the ports-for-owned-stack doctrine —
@@ -25,11 +25,11 @@
 //!   [`PolicyBundle`]); distribution transports change behind it, the trait
 //!   does not.
 //! - [`DecisionAuditSink`]: one attributable record per decision (G004
-//!   acceptance), the same emission seam shape as oya-identity's `AuditSink`
+//!   acceptance), the same emission seam shape as identity's `AuditSink`
 //!   — emission never fails the decision path, and the audit-chain bridge
 //!   lands behind this same port.
 //! - [`PdpConfig`]: twelve-factor configuration as a pure function of a
-//!   key->value map (the oya-identity `from_lookup` precedent), so the
+//!   key->value map (the identity `from_lookup` precedent), so the
 //!   Deployment manifest stays the single configuration surface and tests
 //!   never mutate process environment.
 //!
@@ -41,14 +41,14 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Mutex;
 
-use oya_shared_pdp_kernel::{DecisionAuditRecord, PolicyBundle};
+use shared_pdp_kernel::{DecisionAuditRecord, PolicyBundle};
 
 // =====================================================================
 // Policy-bundle store port
 // =====================================================================
 
 /// Why a policy bundle could not be produced. Every variant is fail-closed:
-/// the service REFUSES TO BOOT on any load error (the oya-identity boot
+/// the service REFUSES TO BOOT on any load error (the identity boot
 /// precedent — a serving process is a correctly-configured process), and a
 /// failed reload never replaces a serving bundle.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -115,7 +115,7 @@ pub trait DecisionAuditSink: Send + Sync {
 
 /// In-memory [`DecisionAuditSink`] backed by a mutex-guarded append-only
 /// vector — the reference sink for tests and single-node bring-up (the
-/// oya-identity `InMemoryAuditSink` shape).
+/// identity `InMemoryAuditSink` shape).
 #[derive(Debug, Default)]
 pub struct InMemoryDecisionAuditSink {
     records: Mutex<Vec<DecisionAuditRecord>>, // data_class: AUDIT
@@ -168,24 +168,24 @@ impl DecisionAuditSink for InMemoryDecisionAuditSink {
 // Service configuration
 // =====================================================================
 
-/// `OYA_CLOUD_IAM_PDP_BUNDLE_PATH` — path to the policy-bundle JSON document
+/// `OYATIE_CLOUD_IAM_PDP_BUNDLE_PATH` — path to the policy-bundle JSON document
 /// (required; ConfigMap-mounted in K8s for slice 1).
-pub const ENV_BUNDLE_PATH: &str = "OYA_CLOUD_IAM_PDP_BUNDLE_PATH";
-/// `OYA_CLOUD_IAM_PDP_REST_ADDR` — REST bind address (default `0.0.0.0:8080`).
-pub const ENV_REST_ADDR: &str = "OYA_CLOUD_IAM_PDP_REST_ADDR";
-/// `OYA_CLOUD_IAM_PDP_GRPC_ADDR` — gRPC bind address (default `0.0.0.0:8081`).
-pub const ENV_GRPC_ADDR: &str = "OYA_CLOUD_IAM_PDP_GRPC_ADDR";
-/// `OYA_CLOUD_IAM_PDP_DECISION_CACHE_CAPACITY` — bounded decision-cache size
+pub const ENV_BUNDLE_PATH: &str = "OYATIE_CLOUD_IAM_PDP_BUNDLE_PATH";
+/// `OYATIE_CLOUD_IAM_PDP_REST_ADDR` — REST bind address (default `0.0.0.0:8080`).
+pub const ENV_REST_ADDR: &str = "OYATIE_CLOUD_IAM_PDP_REST_ADDR";
+/// `OYATIE_CLOUD_IAM_PDP_GRPC_ADDR` — gRPC bind address (default `0.0.0.0:8081`).
+pub const ENV_GRPC_ADDR: &str = "OYATIE_CLOUD_IAM_PDP_GRPC_ADDR";
+/// `OYATIE_CLOUD_IAM_PDP_DECISION_CACHE_CAPACITY` — bounded decision-cache size
 /// (default `65536`; `0` disables caching). Cache keys carry the bundle
 /// version, so revocation stays structural regardless of this knob.
-pub const ENV_DECISION_CACHE_CAPACITY: &str = "OYA_CLOUD_IAM_PDP_DECISION_CACHE_CAPACITY";
-/// `OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR` — directory of the delivered mTLS cert mount
+pub const ENV_DECISION_CACHE_CAPACITY: &str = "OYATIE_CLOUD_IAM_PDP_DECISION_CACHE_CAPACITY";
+/// `OYATIE_CLOUD_IAM_PDP_MTLS_CERT_DIR` — directory of the delivered mTLS cert mount
 /// (the kubernetes.io/tls Secret projection: `tls.crt`/`tls.key`/`ca.crt`; default
-/// `/etc/oya-cloud-iam-pdp/tls`). The production boot builds an `MtlsContext` from
+/// `/etc/cloud-iam-pdp/tls`). The production boot builds an `MtlsContext` from
 /// this mount and refuses to boot (never plain TCP) if the material is
 /// absent/empty/malformed (G002 slice-1b-iii; ADR-0561).
-pub const ENV_MTLS_CERT_DIR: &str = "OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR";
-/// `OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` — directory of trusted policy-bundle
+pub const ENV_MTLS_CERT_DIR: &str = "OYATIE_CLOUD_IAM_PDP_MTLS_CERT_DIR";
+/// `OYATIE_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` — directory of trusted policy-bundle
 /// SIGNING public keys (Ed25519, hex per file; ConfigMap projection). The
 /// file-store adapter loads every key in this directory into the trusted set
 /// and verifies the signed-bundle envelope against it BEFORE parsing the inner
@@ -194,12 +194,12 @@ pub const ENV_MTLS_CERT_DIR: &str = "OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR";
 /// A PDP that cannot prove which keys to trust must not serve a policy decision
 /// (mirrors the mTLS trust-root fail-closed precedent). The directory itself
 /// being absent/empty-of-keys is a load-time boot refusal in the adapter.
-pub const ENV_BUNDLE_TRUST_DIR: &str = "OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR";
+pub const ENV_BUNDLE_TRUST_DIR: &str = "OYATIE_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
 const DEFAULT_DECISION_CACHE_CAPACITY: usize = 65_536;
-const DEFAULT_MTLS_CERT_DIR: &str = "/etc/oya-cloud-iam-pdp/tls";
+const DEFAULT_MTLS_CERT_DIR: &str = "/etc/cloud-iam-pdp/tls";
 
 /// A configuration defect found while resolving [`PdpConfig`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -254,7 +254,7 @@ pub struct PdpConfig {
 
 impl PdpConfig {
     /// Resolve the configuration from a key->value map (pure; the
-    /// oya-identity `from_lookup` precedent). Empty values count as unset.
+    /// identity `from_lookup` precedent). Empty values count as unset.
     ///
     /// # Errors
     /// [`ConfigError`] when a required variable is unset or unparseable.
@@ -313,7 +313,7 @@ impl PdpConfig {
 mod tests {
     use super::*;
 
-    use oya_shared_platform_contracts_kernel::pdp::{Decision, EntityRef, PolicyVersion};
+    use shared_platform_contracts_kernel::pdp::{Decision, EntityRef, PolicyVersion};
 
     fn full_vars() -> BTreeMap<String, String> {
         BTreeMap::from([
@@ -412,7 +412,7 @@ mod tests {
         // Absent: the twelve-factor default is the canonical mount path.
         let defaulted = PdpConfig::from_lookup(&required_vars()).unwrap();
         assert_eq!(defaulted.mtls_cert_dir, DEFAULT_MTLS_CERT_DIR);
-        assert_eq!(defaulted.mtls_cert_dir, "/etc/oya-cloud-iam-pdp/tls");
+        assert_eq!(defaulted.mtls_cert_dir, "/etc/cloud-iam-pdp/tls");
     }
 
     #[test]

@@ -1,0 +1,12 @@
+context: tooling
+role: app
+capability: lane-supervisor
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+notes:
+  - local-bridge CLI only; merge authority stays in cloud-ci/ci required contexts
+  - detects codex lane liveness from append-only dispatch ledger, worker PID, logs, wait files, and PR state

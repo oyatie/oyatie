@@ -2,13 +2,13 @@
 
 ## Summary
 
-Extend the pure SLA value-object surface in `oya-workflow-engine-execution-engine-domain`
+Extend the pure SLA value-object surface in `workflow-engine-execution-engine-domain`
 with a deterministic escalation-bucket projection: `SlaEscalationLevel` enum and
 `project_sla_escalation` pure function.
 
 ## Crate
 
-`oya-workflow-engine-execution-engine-domain` — no new workspace member, no new dependency.
+`workflow-engine-execution-engine-domain` — no new workspace member, no new dependency.
 
 ## Types
 

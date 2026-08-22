@@ -37,7 +37,7 @@ The strongest case is that Oyatie is designing its own internal cloud asset inve
 
 ## Specific architectural amendments to reach hyperscaler bar
 1. Define one resource-controller pattern before adding new meta-layer classes: `desired registry row -> admission validation -> reconcile -> status/evidence`.
-2. Make the vertical enforcement loop the first controller: `oya-dev-cli gate validate active-artifact-contract`, failing fixture, active lane, grit pre-done/pre-claim hook, and evidence bundle.
+2. Make the vertical enforcement loop the first controller: `dev-cli gate validate active-artifact-contract`, failing fixture, active lane, grit pre-done/pre-claim hook, and evidence bundle.
 3. Split large registries by stable resource kind or shard key, with generated aggregate indexes. Do not hand-edit monoliths at 10k scale.
 4. Add graph materialization: generate `nodes`, `edges`, reverse indexes, unresolved refs, owners, freshness, and impact queries from canonical registries.
 5. Promote capability state to Kubernetes-like `spec/status`: declared desired capability is spec; observed validator/lane/evidence result is status.
@@ -54,7 +54,7 @@ Sound. The freeze is exactly the hyperscaler move. AWS Config, GCP Asset Invento
 APPROVE current direction only with this amendment: no net-new meta-layer class until the vertical enforcement loop is operational end-to-end.
 
 Execution order:
-1. Wire `oya-dev-cli gate validate active-artifact-contract`.
+1. Wire `dev-cli gate validate active-artifact-contract`.
 2. Add failing fixture for an applicable machine-readable artifact missing a registry row.
 3. Flip `lean-a-active-artifact-contract` to active and make `scripts/check.sh` or equivalent CI invoke it.
 4. Add grit pre-done/pre-claim validation or a narrow fallback if grit FK remains blocked.

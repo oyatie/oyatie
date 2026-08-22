@@ -2,7 +2,7 @@
   "schema_version": "oyatie.design-spec-maturity-claims.v1",
   "_schema": {
     "validation_check": "json-valid + oya gate validate design-spec-maturity-claims",
-    "primary_evidence_command": "cargo run -q -p oya-dev-cli -- gate validate design-spec-maturity-claims --emit-evidence evidence/design-spec-maturity/after-2026-05-18.json"
+    "primary_evidence_command": "cargo run -q -p dev-cli -- gate validate design-spec-maturity-claims --emit-evidence evidence/design-spec-maturity/after-2026-05-18.json"
   },
   "_metadata": {
     "purpose": "Define the machine-enforced evidence bar for a bounded architecture/platform/system design maturity claim.",

@@ -17,7 +17,7 @@ research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 ## Operator Contract
 - Runbook id: `identity-workload-policy-store-unavailable`.
 - Service namespace: `identity`; bounded context `workload-identity`.
-- Owning rotation: PagerDuty `oya-identity-primary`; `ops-security` secondary.
+- Owning rotation: PagerDuty `identity-primary`; `ops-security` secondary.
 - Incident channel: `#inc-identity-security`.
 - Audit event class: `EVT-IDENTITY-WORKLOAD-POLICY_STORE-INCIDENT` (ADR-0162
   fields `incident_id`, `tenant_id`, `trust_domain`, `cell_id`, `runbook_id`,
@@ -41,10 +41,10 @@ denied," never "everything is allowed."
 
 ## Trigger Conditions
 - Page on `IdentityWorkloadPolicyStoreUnavailable` when
-  `sum(rate(oya_identity_workload_authorize_request_total{failure="policy-store-unavailable"}[5m])) > 0`
+  `sum(rate(identity_workload_authorize_request_total{failure="policy-store-unavailable"}[5m])) > 0`
   for 5 minutes.
 - Page on `IdentityWorkloadDecisionCorrectnessBurn` when the
-  `oya-identity-workload-decision-correctness` golden-set match drops below
+  `identity-workload-decision-correctness` golden-set match drops below
   target (a correctness regression is treated as sev0 — a wrong decision is a
   security event).
 - Sev0 if the golden corpus replay shows ANY decision flip (e.g. a previously-DENY
@@ -54,8 +54,8 @@ denied," never "everything is allowed."
 ## Symptoms
 - PEPs see `503` from `/authorize` (and embedded-Cedar callers see local
   default-deny); dependent workloads report authorization denials.
-- Metric `oya_identity_workload_policy_store_reachable` reads 0 for the affected
-  partition; `oya_identity_workload_embedded_cedar_fallback_total` climbs.
+- Metric `identity_workload_policy_store_reachable` reads 0 for the affected
+  partition; `identity_workload_embedded_cedar_fallback_total` climbs.
 - Log signature `decision=deny reason=policy-store-unavailable` is the correct
   fail-closed path; a `decision=allow` during an outage is an INCIDENT-WORSENING
   bug and must be escalated immediately.
@@ -63,9 +63,9 @@ denied," never "everything is allowed."
 ## Diagnostic Steps
 1. Set vars: `export INCIDENT_ID=INC-identity-workload-policystore-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-eu-frankfurt-1; export TD=acme.oyatie.dev`.
 2. Identify affected partitions: query
-   `oya_identity_workload_authorize_request_total{failure="policy-store-unavailable"}` by `trust_domain`.
-3. Check store reachability: `oya_identity_workload_policy_store_reachable{trust_domain="$TD"}`.
-4. Check embedded-Cedar fallback usage: `oya_identity_workload_embedded_cedar_fallback_total{trust_domain="$TD"}`.
+   `identity_workload_authorize_request_total{failure="policy-store-unavailable"}` by `trust_domain`.
+3. Check store reachability: `identity_workload_policy_store_reachable{trust_domain="$TD"}`.
+4. Check embedded-Cedar fallback usage: `identity_workload_embedded_cedar_fallback_total{trust_domain="$TD"}`.
 5. Run the golden corpus replay for the affected partition and compare against
    expected decisions — confirm NO decision flipped (especially no DENY→ALLOW).
 6. Determine whether the embedded last-loaded policy set is current or stale
@@ -98,8 +98,8 @@ denied," never "everything is allowed."
 6. Emit mitigation audit: `oya audit-chain emit --event-class EVT-IDENTITY-WORKLOAD-POLICY_STORE-INCIDENT --incident $INCIDENT_ID --field mitigation=active`.
 
 ## Resolution Steps
-1. Confirm `oya_identity_workload_policy_store_reachable` is 1 for all partitions.
-2. Confirm `oya_identity_workload_authorize_request_total{failure="policy-store-unavailable"}`
+1. Confirm `identity_workload_policy_store_reachable` is 1 for all partitions.
+2. Confirm `identity_workload_authorize_request_total{failure="policy-store-unavailable"}`
    returns to zero for 3 consecutive 10-minute windows.
 3. Re-run the golden corpus; confirm 100% match and the decision-correctness SLO
    is back at target.
@@ -114,7 +114,7 @@ denied," never "everything is allowed."
 - `EVT-IDENTITY-WORKLOAD-POLICY_STORE-INCIDENT` has sealed mitigation + resolution rows.
 
 ## Escalation Path
-- Primary `oya-identity-primary`; security secondary `ops-security-primary`.
+- Primary `identity-primary`; security secondary `ops-security-primary`.
 - Policy store / control-plane owner: engage for the store outage root cause.
 - Architecture: page `council-architecture-reviewer` for any DENY→ALLOW flip or
   any fail-open proposal (which must be refused).

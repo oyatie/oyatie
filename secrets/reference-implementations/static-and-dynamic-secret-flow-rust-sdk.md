@@ -1,4 +1,4 @@
-# Reference implementation — Static + dynamic secret flow with `oya-cloud-secrets-sdk`
+# Reference implementation — Static + dynamic secret flow with `cloud-secrets-sdk`
 
 Runnable Rust program that authenticates a workload, reads a static secret, issues a 15-minute dynamic Postgres credential,
 runs a query, and revokes the lease.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-secrets-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-secrets-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
 tokio-postgres = { version = "0.7", features = ["with-tls-rustls", "with-uuid-1"] }
@@ -26,10 +26,10 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::{Context, Result};
-use oya_cloud_secrets_sdk::{
+use cloud_secrets_sdk::{
     DynamicLease, SecretsClient, SecretsConfig, StaticReadOptions, Tenant, WorkloadIdentity,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tokio_postgres::NoTls;
 use tracing::{info, warn};
@@ -121,7 +121,7 @@ Expected stdout:
 ```
 INFO  connected to cloud-secrets
 INFO  static secret read version=3 lease_expires=2026-05-20T08:46:00Z bytes=51
-INFO  dynamic credential issued lease_id=le-… user=oya_dyn_4f8c2b7a9e1d expires=2026-05-20T08:46:00Z
+INFO  dynamic credential issued lease_id=le-… user=dyn_4f8c2b7a9e1d expires=2026-05-20T08:46:00Z
 INFO  query result orders_last_24h=4218
 INFO  lease revoked lease_id=le-…
 ```

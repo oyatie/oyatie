@@ -7,7 +7,7 @@
 //! This type is the merge-variant landing of the `employment_classification`
 //! contract from `.omc/plans/milestones/M02b-substrate/phases/P03-identity/
 //! impl-plan.md` (Concrete File Targets: `identity.employments` DDL +
-//! `Employment` entity) into the existing `oya-identity-domain` crate (kept
+//! `Employment` entity) into the existing `identity-domain` crate (kept
 //! per `F-M02B-PLAN-LIVE-CRATE-RECONCILIATION`). It is additive — existing
 //! types (`UserId`, `User`, `Principal`, `Token`, `StsCredential`) are
 //! unchanged.

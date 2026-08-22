@@ -90,9 +90,9 @@ TaxJar (the prompt-specified top-3 counterparts). It is a sibling of
 emits taxable transactions; `cloud-billing-tax` returns tax lines that
 `cloud-billing` aggregates onto invoices and feeds into FinOps reports.
 
-The µservice's Cargo workspace presence is `crates/oya-cloud-billing-tax-app`
+The µservice's Cargo workspace presence is `crates/cloud-billing-tax-app`
 (confirmed by `find` against `crates/` at audit time). Source files under
-`crates/oya-cloud-billing-tax-app/src/` were not enumerated because this
+`crates/cloud-billing-tax-app/src/` were not enumerated because this
 audit is read-only against the µservice's documentation surface and the
 agent class focuses on coherence of the doc tree, not crate internals.
 The presence of the crate without an accompanying PRD or ARCHITECTURE in
@@ -142,7 +142,7 @@ that existed at audit time. The complete file list at audit time:
 6. `microservices/cloud-billing-tax/reference-implementations/calculate-tax-batch-rust-sdk.md` (215 lines)
 7. `microservices/cloud-billing-tax/tutorials/calculate-multijurisdiction-tax-and-file-return.md` (242 lines)
 
-The agent also confirmed crate presence (`crates/oya-cloud-billing-tax-app`)
+The agent also confirmed crate presence (`crates/cloud-billing-tax-app`)
 and absence of PRD, ARCHITECTURE, contracts, SLOs, runbooks, IPs, decisions,
 Cedar policies, journeys, supported-oses manifest, iac/, and handoff matrices
 within the µservice directory.
@@ -174,14 +174,14 @@ the Avalara migration playbook). They share a consistent surface for
 tax-code naming (e.g., `SW054001` for SaaS-general appears in
 onboarding, tutorial, FAQ, and reference implementation), consistent
 identifier shapes (`calculation_id` UUID v7; `audit_chain_event` event
-ids; `rate_card_version` strings of the form `oya-tax-codes-*-v1@YYYY-MM-DD`),
+ids; `rate_card_version` strings of the form `tax-codes-*-v1@YYYY-MM-DD`),
 and consistent jurisdiction labels (`US-CA`, `US-TX`, `EU-OSS-Union`,
 `DE`, `FR`, `KR`).
 
 The reference Rust SDK uses Rust 2024 edition (per `Cargo.toml`) and the
-`oya-cloud-billing-tax-sdk` crate at version 0.42.0. This crate is not
+`cloud-billing-tax-sdk` crate at version 0.42.0. This crate is not
 present in `crates/` at audit time — the audit confirmed only
-`oya-cloud-billing-tax-app`. A versioned-but-absent crate dependency
+`cloud-billing-tax-app`. A versioned-but-absent crate dependency
 in a "reference implementation" is a substance-bar concern (downstream
 readers cannot `cargo build` the example) and is recorded as a Dim 3
 finding rather than Dim 1 contradiction. Internal coherence is preserved
@@ -231,7 +231,7 @@ the retirement queue.
 
 F-DIM1-04 (severity P2): The Rust SDK reference declares a feature
 named `hermetic` (`cargo test --features hermetic`). No other artifact
-documents what features the `oya-cloud-billing-tax-sdk` crate ships,
+documents what features the `cloud-billing-tax-sdk` crate ships,
 which features are recommended for which tenant_class, or which features
 are gated by Cedar policy. A future per-µservice ADR
 (`microservices/cloud-billing-tax/decisions/ADR-MS-NNN-sdk-feature-flags.md`)
@@ -278,8 +278,8 @@ OECD VAT/GST International Guidelines, the EU ViDA Directive, and the
 US Wayfair v. South Dakota (2018) ruling, all of which are correct
 canonical regulatory anchors for tax computation.
 
-The reference Rust SDK cites `oya_cloud_billing_tax_sdk` (the planned
-SDK crate) and `oya_trace` (the canonical tracing crate). These are
+The reference Rust SDK cites `cloud_billing_tax_sdk` (the planned
+SDK crate) and `trace` (the canonical tracing crate). These are
 the right Rust workspace primitives. The example's audit-chain event
 naming (`cloud_billing_tax.calculation.completed`,
 `cloud_billing_tax.oss_aggregate.computed`,
@@ -461,8 +461,8 @@ What is MISSING at the substance bar:
   enumerated but no .cedar files exist under
   `microservices/cloud-billing-tax/policies/`. Absent.
 - **No tax-code catalog manifest.** The catalog names
-  (`oya-tax-codes-us-demo_trial-v1`, `oya-tax-codes-multiregion-paid-v1`,
-  `oya-tax-codes-global-paid-v1`, `oya-tax-codes-sovereign-paid-v1`)
+  (`tax-codes-us-demo_trial-v1`, `tax-codes-multiregion-paid-v1`,
+  `tax-codes-global-paid-v1`, `tax-codes-sovereign-paid-v1`)
   are referenced but no catalog-schema doc exists. The catalog row
   shape, versioning rules, supersession rules, and `oya tax codes
   propose` workflow are not documented.
@@ -572,9 +572,9 @@ F-DIM3-12 (severity P2): Author `microservices/cloud-billing-tax/journeys/`
 with bespoke journeys per tenant_class + persona.
 
 F-DIM3-13 (severity P2): Migrate the reference Rust SDK file's
-`oya-cloud-billing-tax-sdk` to an actual crate under
-`crates/oya-cloud-billing-tax-sdk/`. Currently only
-`crates/oya-cloud-billing-tax-app` exists.
+`cloud-billing-tax-sdk` to an actual crate under
+`crates/cloud-billing-tax-sdk/`. Currently only
+`crates/cloud-billing-tax-app` exists.
 
 F-DIM3-14 (severity P3): Tighten the tutorial vs onboarding line
 decomposition for Austin TX (per F-DIM1-02) to choose one
@@ -646,7 +646,7 @@ in cost analysis. Tier vocabulary is therefore pervasive across the
 `tutorials/calculate-multijurisdiction-tax-and-file-return.md`.
 
 - Pre-req: `make dev-tenant.create T=<…> TENANT_CLASS=paid`.
-- Catalog attach references `oya-tax-codes-multiregion-paid-v1`.
+- Catalog attach references `tax-codes-multiregion-paid-v1`.
 
 `reference-implementations/calculate-tax-batch-rust-sdk.md`.
 
@@ -707,9 +707,9 @@ TENANT_CLASS=paid` with `make dev-tenant.create T=<…> CLASS=paid
 COMPONENTS=per_seat,per_usage`.
 
 R-T-08 (P1): Replace tax-code catalog naming
-(`oya-tax-codes-*-demo_trial-v1`, `*-paid-v1`, `*-paid-v1`,
+(`tax-codes-*-demo_trial-v1`, `*-paid-v1`, `*-paid-v1`,
 `*-paid-v1`) with a single canonical catalog
-`oya-tax-codes-global-v1` versioned by date stamp. All tenants see
+`tax-codes-global-v1` versioned by date stamp. All tenants see
 the same catalog; demo_trial sees the same row set as paid but
 capped at a daily calculation count.
 
@@ -918,8 +918,8 @@ What is WEAK on alignment:
   Sovos cited as supplementary.
 - The Foundry reference in FAQ Q19 correctly uses
   `oyatie.foundry.*` principals — good.
-- The reference SDK uses `oya_cloud_billing_tax_sdk` (correct
-  microservice naming per BNF v4) and `oya_trace` (canonical
+- The reference SDK uses `cloud_billing_tax_sdk` (correct
+  microservice naming per BNF v4) and `trace` (canonical
   observability primitive) — good.
 - The audit-chain event family `cloud_billing_tax.*` is
   underscore-dotted form, which is consistent with other µservice
@@ -1117,7 +1117,7 @@ The Rust SDK reference is Rust 2024 edition. Good.
 RUST-STRICT VERDICT: PASS. Dim 9 finding F-DIM9-01 (P3, soft):
 the existing Makefile target referenced in onboarding (`make
 dev-cell.up CELL=tax-loopback-1 PROFILE=cloud-billing-tax-dev`)
-should bind to `cargo run --bin oya-dev-cli -- dev-cell up`
+should bind to `cargo run --bin dev-cli -- dev-cell up`
 per the Rust-strict canonical build invocation, with the Makefile
 serving as a thin convenience alias rather than logic.
 
@@ -1135,7 +1135,7 @@ module that:
 - Provisions the rate-card cache on a second 1×1-OCPU/6GB Ampere A1
   instance (so calculation latency isn't dominated by rate-card
   fetch).
-- Uses one Autonomous DB (ATP) for `oya-tax-codes-global-v1`
+- Uses one Autonomous DB (ATP) for `tax-codes-global-v1`
   catalog cache and exemption-cert metadata index.
 - Uses OCI Object Storage (10 GB) for rate-card-version snapshots.
 - Uses OCI Vault (3 vaults + 20 keys budget) for exemption-cert
@@ -1269,7 +1269,7 @@ verdict REVISE.
 | F-DIM3-10 | Substance | P2 | substance-bar | absent — handoffs/ | author handoff matrix |
 | F-DIM3-11 | Substance | P2 | substance-bar | absent — threat-model.md | author STRIDE-Plus |
 | F-DIM3-12 | Substance | P2 | substance-bar | absent — journeys/ | author bespoke journeys |
-| F-DIM3-13 | Substance | P1 | substance-bar | crates/oya-cloud-billing-tax-sdk (absent) | author crate |
+| F-DIM3-13 | Substance | P1 | substance-bar | crates/cloud-billing-tax-sdk (absent) | author crate |
 | F-DIM3-14 | Substance | P3 | substance-bar | tutorials + onboarding | unify zero-rate-line convention |
 | F-DIM3-15 | Substance | P3 | substance-bar | absent — plans/ | author milestone-phase-IP tree |
 | R-T-01..12 | §3.4.T | P1 | tenant_class-migration | tenant_class adoption record + 6 sibling files | per §3.4.T.3 |

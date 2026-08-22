@@ -1,0 +1,17 @@
+[package]
+name = "governance-authoritative-tracked-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "governance-authoritative-tracked-app"
+path = "src/main.rs"
+
+[dependencies]
+governance-authoritative-tracked-kernel = { path = "../../libs/governance-authoritative-tracked-kernel" }
+
+[lints]
+workspace = true

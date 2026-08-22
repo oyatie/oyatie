@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0250
   - ADR-0254
 enforced_by:
-  - oya-governance-twelve-factor-adoption
-  - oya-governance-deployment-model-spectrum
-  - oya-governance-provider-agnostic
+  - governance-twelve-factor-adoption
+  - governance-deployment-model-spectrum
+  - governance-provider-agnostic
 canonical_paths:
   - specs/deployment-ops-contract.json
   - docs/standards/gitops-iac-cluster-tier-boundaries.md
@@ -211,10 +211,10 @@ manifest.
 ### Example 3: On-prem artifact bundle
 
 ```yaml
-bundle: oya-workflow-engine-1.4.0.oab
+bundle: workflow-engine-1.4.0.oab
 includes:
   images:
-    - oya-workflow-engine-rest@sha256:...
+    - workflow-engine-rest@sha256:...
   helm:
     - microservices/workflow-engine/iac/helm
   policies:
@@ -520,11 +520,11 @@ verbatim, but that each factor is translated into a verifiable local contract.
 service: workflow-engine
 microservice_path: microservices/workflow-engine
 crate_roots:
-  - crates/oya-workflow-engine-kernel
-  - crates/oya-workflow-engine-domain
-  - crates/oya-workflow-engine-usecase
-  - crates/oya-workflow-engine-adapter-postgres
-  - crates/oya-workflow-engine-runtime
+  - crates/workflow-engine-kernel
+  - crates/workflow-engine-domain
+  - crates/workflow-engine-usecase
+  - crates/workflow-engine-adapter-postgres
+  - crates/workflow-engine-runtime
 related_adrs:
   - docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
@@ -533,40 +533,40 @@ related_adrs:
 factors:
   codebase:
     authority: one service ownership row in docs/SERVICE-CATALOG.md
-    check: oya-check-service-codebase-map
+    check: check-service-codebase-map
   dependencies:
     authority: Cargo.lock plus cargo-deny policy
-    check: oya-check-dependency-policy
+    check: check-dependency-policy
   config:
     authority: RuntimeConfig::from_env plus OpenBao secret refs
-    check: oya-check-runtime-config
+    check: check-runtime-config
   backing_services:
     authority: explicit adapter crates and service manifest bindings
-    check: oya-check-backing-service-bindings
+    check: check-backing-service-bindings
   build_release_run:
     authority: immutable image digest and release bundle id
-    check: oya-check-release-immutability
+    check: check-release-immutability
   processes:
     authority: stateless runtime process except declared durable stores
-    check: oya-check-process-statelessness
+    check: check-process-statelessness
   port_binding:
     authority: bind address env var and service mesh registration
-    check: oya-check-port-binding
+    check: check-port-binding
   concurrency:
     authority: worker pool and replica declarations
-    check: oya-check-concurrency-shape
+    check: check-concurrency-shape
   disposability:
     authority: graceful shutdown and drain deadlines
-    check: oya-check-disposability
+    check: check-disposability
   dev_prod_parity:
     authority: same container entrypoint across environments
-    check: oya-check-dev-prod-parity
+    check: check-dev-prod-parity
   logs:
     authority: structured stdout events and trace ids
-    check: oya-check-structured-logs
+    check: check-structured-logs
   admin_processes:
     authority: one-shot admin jobs with audit events
-    check: oya-check-admin-processes
+    check: check-admin-processes
 ```
 
 ## Extended Worked Example: Runtime Configuration Schema
@@ -587,14 +587,14 @@ pub struct RuntimeConfig {
 impl RuntimeConfig {
     pub fn from_env(env: &dyn EnvProvider) -> Result<Self, RuntimeConfigError> {
         Ok(Self {
-            bind_addr: env.parse("OYA_WORKFLOW_ENGINE_BIND_ADDR")?,
-            public_base_url: env.parse("OYA_WORKFLOW_ENGINE_PUBLIC_BASE_URL")?,
-            database_url_ref: env.secret_ref("OYA_WORKFLOW_ENGINE_DATABASE_URL_REF")?,
-            cedar_bundle_ref: env.secret_ref("OYA_WORKFLOW_ENGINE_CEDAR_BUNDLE_REF")?,
-            otel_endpoint: env.parse("OYA_OTEL_EXPORTER_OTLP_ENDPOINT")?,
-            max_worker_count: env.parse("OYA_WORKFLOW_ENGINE_MAX_WORKERS")?,
-            shutdown_grace: env.parse_duration("OYA_WORKFLOW_ENGINE_SHUTDOWN_GRACE")?,
-            environment: env.parse("OYA_ENVIRONMENT")?,
+            bind_addr: env.parse("OYATIE_WORKFLOW_ENGINE_BIND_ADDR")?,
+            public_base_url: env.parse("OYATIE_WORKFLOW_ENGINE_PUBLIC_BASE_URL")?,
+            database_url_ref: env.secret_ref("OYATIE_WORKFLOW_ENGINE_DATABASE_URL_REF")?,
+            cedar_bundle_ref: env.secret_ref("OYATIE_WORKFLOW_ENGINE_CEDAR_BUNDLE_REF")?,
+            otel_endpoint: env.parse("OYATIE_OTEL_EXPORTER_OTLP_ENDPOINT")?,
+            max_worker_count: env.parse("OYATIE_WORKFLOW_ENGINE_MAX_WORKERS")?,
+            shutdown_grace: env.parse_duration("OYATIE_WORKFLOW_ENGINE_SHUTDOWN_GRACE")?,
+            environment: env.parse("OYATIE_ENVIRONMENT")?,
         })
     }
 }
@@ -608,35 +608,35 @@ environment variables or OpenBao references before the process starts.
 
 | ID | Factor | Oyatie requirement | Example path | Blocking checker |
 |---|---|---|---|---|
-| TFA-MAT-001 | Codebase | One codebase maps to one service catalog owner | `docs/SERVICE-CATALOG.md` | `oya-check-service-codebase-map` |
-| TFA-MAT-002 | Codebase | Shared logic lives in explicit library crates | `crates/oya-common-time` | `oya-check-shared-crate-ownership` |
+| TFA-MAT-001 | Codebase | One codebase maps to one service catalog owner | `docs/SERVICE-CATALOG.md` | `check-service-codebase-map` |
+| TFA-MAT-002 | Codebase | Shared logic lives in explicit library crates | `crates/common-time` | `check-shared-crate-ownership` |
 | TFA-MAT-003 | Dependencies | Rust deps are pinned through workspace lockfile | `Cargo.lock` | `cargo-deny` |
-| TFA-MAT-004 | Dependencies | OS deps are pinned through image digest | `iac/images/workflow-engine.lock` | `oya-check-image-digest` |
-| TFA-MAT-005 | Dependencies | Provider SDKs live only in adapter crates | `crates/oya-mail-smtp-adapter-aws-ses` | `oya-check-layer-enum` |
-| TFA-MAT-006 | Config | Secrets are references, not literal values | `OYA_*_SECRET_REF` | `oya-check-secret-literals` |
-| TFA-MAT-007 | Config | Runtime config is loaded once at process start | `runtime/config.rs` | `oya-check-runtime-config` |
-| TFA-MAT-008 | Config | Tenant config is loaded through policy-governed ports | `tenancy/config-port.rs` | `oya-check-tenant-config-port` |
-| TFA-MAT-009 | Backing services | Databases are attached resources | `adapter-postgres` | `oya-check-backing-service-bindings` |
-| TFA-MAT-010 | Backing services | Brokers are attached resources | `adapter-nats` | `oya-check-backing-service-bindings` |
-| TFA-MAT-011 | Backing services | Cedar bundles are attached resources | `policy/*.cedar` | `oya-check-cedar-policy-authoring` |
-| TFA-MAT-012 | Build release run | Build artifacts are immutable | `.oab` bundle | `oya-check-release-immutability` |
-| TFA-MAT-013 | Build release run | Release config is bound by digest | `release.json` | `oya-check-release-config-digest` |
-| TFA-MAT-014 | Build release run | Runtime never compiles code | container entrypoint | `oya-check-runtime-build-separation` |
-| TFA-MAT-015 | Processes | Service process is stateless | `runtime/main.rs` | `oya-check-process-statelessness` |
-| TFA-MAT-016 | Processes | Durable state is only in declared stores | `manifest.json` | `oya-check-durable-store-declarations` |
-| TFA-MAT-017 | Port binding | Service binds an explicit address | `OYA_*_BIND_ADDR` | `oya-check-port-binding` |
-| TFA-MAT-018 | Port binding | Mesh registration is generated from manifest | `iac/helm/*` | `oya-check-mesh-registration` |
-| TFA-MAT-019 | Concurrency | Worker count is configurable | `OYA_*_MAX_WORKERS` | `oya-check-concurrency-shape` |
-| TFA-MAT-020 | Concurrency | Queue consumers are horizontally scalable | `consumer.rs` | `oya-check-consumer-rebalance` |
-| TFA-MAT-021 | Disposability | SIGTERM drains in declared grace window | `shutdown.rs` | `oya-check-disposability` |
-| TFA-MAT-022 | Disposability | In-flight workflows checkpoint before exit | `checkpoint.rs` | `oya-check-workflow-checkpoint` |
-| TFA-MAT-023 | Dev/prod parity | Same image entrypoint across envs | `Dockerfile` | `oya-check-entrypoint-parity` |
-| TFA-MAT-024 | Dev/prod parity | Local dependencies use same adapter contracts | `docker-compose.yaml` | `oya-check-adapter-parity` |
-| TFA-MAT-025 | Logs | Logs emit to stdout as structured events | `telemetry.rs` | `oya-check-structured-logs` |
-| TFA-MAT-026 | Logs | Trace ids appear on boundary logs | `tracing` fields | `oya-check-trace-context` |
-| TFA-MAT-027 | Admin processes | One-shot jobs are audited | `jobs/*.rs` | `oya-check-admin-processes` |
-| TFA-MAT-028 | Admin processes | Migrations run as release-bound jobs | `migrations/*.sql` | `oya-check-migration-job-binding` |
-| TFA-MAT-029 | Admin processes | Backfills have resumable checkpoints | `backfills/*.rs` | `oya-check-backfill-checkpoint` |
+| TFA-MAT-004 | Dependencies | OS deps are pinned through image digest | `iac/images/workflow-engine.lock` | `check-image-digest` |
+| TFA-MAT-005 | Dependencies | Provider SDKs live only in adapter crates | `crates/mail-smtp-adapter-aws-ses` | `check-layer-enum` |
+| TFA-MAT-006 | Config | Secrets are references, not literal values | `OYATIE_*_SECRET_REF` | `check-secret-literals` |
+| TFA-MAT-007 | Config | Runtime config is loaded once at process start | `runtime/config.rs` | `check-runtime-config` |
+| TFA-MAT-008 | Config | Tenant config is loaded through policy-governed ports | `tenancy/config-port.rs` | `check-tenant-config-port` |
+| TFA-MAT-009 | Backing services | Databases are attached resources | `adapter-postgres` | `check-backing-service-bindings` |
+| TFA-MAT-010 | Backing services | Brokers are attached resources | `adapter-nats` | `check-backing-service-bindings` |
+| TFA-MAT-011 | Backing services | Cedar bundles are attached resources | `policy/*.cedar` | `check-cedar-policy-authoring` |
+| TFA-MAT-012 | Build release run | Build artifacts are immutable | `.oab` bundle | `check-release-immutability` |
+| TFA-MAT-013 | Build release run | Release config is bound by digest | `release.json` | `check-release-config-digest` |
+| TFA-MAT-014 | Build release run | Runtime never compiles code | container entrypoint | `check-runtime-build-separation` |
+| TFA-MAT-015 | Processes | Service process is stateless | `runtime/main.rs` | `check-process-statelessness` |
+| TFA-MAT-016 | Processes | Durable state is only in declared stores | `manifest.json` | `check-durable-store-declarations` |
+| TFA-MAT-017 | Port binding | Service binds an explicit address | `OYATIE_*_BIND_ADDR` | `check-port-binding` |
+| TFA-MAT-018 | Port binding | Mesh registration is generated from manifest | `iac/helm/*` | `check-mesh-registration` |
+| TFA-MAT-019 | Concurrency | Worker count is configurable | `OYATIE_*_MAX_WORKERS` | `check-concurrency-shape` |
+| TFA-MAT-020 | Concurrency | Queue consumers are horizontally scalable | `consumer.rs` | `check-consumer-rebalance` |
+| TFA-MAT-021 | Disposability | SIGTERM drains in declared grace window | `shutdown.rs` | `check-disposability` |
+| TFA-MAT-022 | Disposability | In-flight workflows checkpoint before exit | `checkpoint.rs` | `check-workflow-checkpoint` |
+| TFA-MAT-023 | Dev/prod parity | Same image entrypoint across envs | `Dockerfile` | `check-entrypoint-parity` |
+| TFA-MAT-024 | Dev/prod parity | Local dependencies use same adapter contracts | `docker-compose.yaml` | `check-adapter-parity` |
+| TFA-MAT-025 | Logs | Logs emit to stdout as structured events | `telemetry.rs` | `check-structured-logs` |
+| TFA-MAT-026 | Logs | Trace ids appear on boundary logs | `tracing` fields | `check-trace-context` |
+| TFA-MAT-027 | Admin processes | One-shot jobs are audited | `jobs/*.rs` | `check-admin-processes` |
+| TFA-MAT-028 | Admin processes | Migrations run as release-bound jobs | `migrations/*.sql` | `check-migration-job-binding` |
+| TFA-MAT-029 | Admin processes | Backfills have resumable checkpoints | `backfills/*.rs` | `check-backfill-checkpoint` |
 | TFA-MAT-030 | All factors | Promotion evidence records checker output | `.omx/evidence/*` | `oya-vcs-admission` |
 
 ## Extended Review Questions
@@ -699,7 +699,7 @@ TFA-REV-028. Does every scheduled job have single-flight protection?
 
 TFA-REV-029. Does every batch process have progress telemetry?
 
-TFA-REV-030. Does the promote evidence cite `oya-check-twelve-factor-adoption`?
+TFA-REV-030. Does the promote evidence cite `check-twelve-factor-adoption`?
 
 ## Extended Environment Variable Register
 
@@ -709,56 +709,56 @@ shape: owner, parser, secret status, default authority, and verification rule.
 
 | ID | Variable | Owner | Parser | Secret | Verification |
 |---|---|---|---|---|---|
-| TFA-ENV-001 | `OYA_ENVIRONMENT` | platform-runtime | enum | no | rejects unknown env names |
-| TFA-ENV-002 | `OYA_REGION` | platform-runtime | region id | no | matches deployment cell |
-| TFA-ENV-003 | `OYA_CELL_ID` | cell-runtime | cell id | no | matches cell registry |
-| TFA-ENV-004 | `OYA_TENANT_PACKS` | tenancy | csv pack ids | no | matches pack registry |
-| TFA-ENV-005 | `OYA_WORKFLOW_ENGINE_BIND_ADDR` | workflow-engine | socket addr | no | bind smoke test |
-| TFA-ENV-006 | `OYA_WORKFLOW_ENGINE_PUBLIC_BASE_URL` | workflow-engine | url | no | OpenAPI server parity |
-| TFA-ENV-007 | `OYA_WORKFLOW_ENGINE_DATABASE_URL_REF` | workflow-engine | secret ref | yes-ref | OpenBao path exists |
-| TFA-ENV-008 | `OYA_WORKFLOW_ENGINE_CEDAR_BUNDLE_REF` | policy-engine | secret ref | yes-ref | bundle signature verifies |
-| TFA-ENV-009 | `OYA_WORKFLOW_ENGINE_MAX_WORKERS` | workflow-engine | nonzero usize | no | capacity limit check |
-| TFA-ENV-010 | `OYA_WORKFLOW_ENGINE_SHUTDOWN_GRACE` | workflow-engine | duration | no | drain test under limit |
-| TFA-ENV-011 | `OYA_OTEL_EXPORTER_OTLP_ENDPOINT` | observability | url | no | collector reachable |
-| TFA-ENV-012 | `OYA_TRACE_SAMPLING_TIER` | observability | tier id | no | sampling standard parity |
-| TFA-ENV-013 | `OYA_AUDIT_CHAIN_ENDPOINT` | audit | url | no | audit write smoke |
-| TFA-ENV-014 | `OYA_IDEMPOTENCY_STORE_REF` | platform-runtime | secret ref | yes-ref | store migration current |
-| TFA-ENV-015 | `OYA_OUTBOX_BROKER_REF` | platform-runtime | secret ref | yes-ref | broker topic exists |
-| TFA-ENV-016 | `OYA_MESH_SPIFFE_TRUST_DOMAIN` | mesh | dns label | no | SPIFFE issuer parity |
-| TFA-ENV-017 | `OYA_CEDAR_SCHEMA_PATH` | policy-engine | path | no | schema hash pinned |
-| TFA-ENV-018 | `OYA_RELEASE_BUNDLE_ID` | release | bundle id | no | release manifest match |
-| TFA-ENV-019 | `OYA_IMAGE_DIGEST` | supply-chain | digest | no | image digest match |
-| TFA-ENV-020 | `OYA_ADMIN_JOB_ID` | admin-process | job id | no | audit event carries id |
+| TFA-ENV-001 | `OYATIE_ENVIRONMENT` | platform-runtime | enum | no | rejects unknown env names |
+| TFA-ENV-002 | `OYATIE_REGION` | platform-runtime | region id | no | matches deployment cell |
+| TFA-ENV-003 | `OYATIE_CELL_ID` | cell-runtime | cell id | no | matches cell registry |
+| TFA-ENV-004 | `OYATIE_TENANT_PACKS` | tenancy | csv pack ids | no | matches pack registry |
+| TFA-ENV-005 | `OYATIE_WORKFLOW_ENGINE_BIND_ADDR` | workflow-engine | socket addr | no | bind smoke test |
+| TFA-ENV-006 | `OYATIE_WORKFLOW_ENGINE_PUBLIC_BASE_URL` | workflow-engine | url | no | OpenAPI server parity |
+| TFA-ENV-007 | `OYATIE_WORKFLOW_ENGINE_DATABASE_URL_REF` | workflow-engine | secret ref | yes-ref | OpenBao path exists |
+| TFA-ENV-008 | `OYATIE_WORKFLOW_ENGINE_CEDAR_BUNDLE_REF` | policy-engine | secret ref | yes-ref | bundle signature verifies |
+| TFA-ENV-009 | `OYATIE_WORKFLOW_ENGINE_MAX_WORKERS` | workflow-engine | nonzero usize | no | capacity limit check |
+| TFA-ENV-010 | `OYATIE_WORKFLOW_ENGINE_SHUTDOWN_GRACE` | workflow-engine | duration | no | drain test under limit |
+| TFA-ENV-011 | `OYATIE_OTEL_EXPORTER_OTLP_ENDPOINT` | observability | url | no | collector reachable |
+| TFA-ENV-012 | `OYATIE_TRACE_SAMPLING_TIER` | observability | tier id | no | sampling standard parity |
+| TFA-ENV-013 | `OYATIE_AUDIT_CHAIN_ENDPOINT` | audit | url | no | audit write smoke |
+| TFA-ENV-014 | `OYATIE_IDEMPOTENCY_STORE_REF` | platform-runtime | secret ref | yes-ref | store migration current |
+| TFA-ENV-015 | `OYATIE_OUTBOX_BROKER_REF` | platform-runtime | secret ref | yes-ref | broker topic exists |
+| TFA-ENV-016 | `OYATIE_MESH_SPIFFE_TRUST_DOMAIN` | mesh | dns label | no | SPIFFE issuer parity |
+| TFA-ENV-017 | `OYATIE_CEDAR_SCHEMA_PATH` | policy-engine | path | no | schema hash pinned |
+| TFA-ENV-018 | `OYATIE_RELEASE_BUNDLE_ID` | release | bundle id | no | release manifest match |
+| TFA-ENV-019 | `OYATIE_IMAGE_DIGEST` | supply-chain | digest | no | image digest match |
+| TFA-ENV-020 | `OYATIE_ADMIN_JOB_ID` | admin-process | job id | no | audit event carries id |
 
 ## Extended CI Evidence Contract
 
-TFA-CI-001. `oya-check-service-codebase-map` MUST emit the service id.
+TFA-CI-001. `check-service-codebase-map` MUST emit the service id.
 
-TFA-CI-002. `oya-check-service-codebase-map` MUST emit the owning docs path.
+TFA-CI-002. `check-service-codebase-map` MUST emit the owning docs path.
 
-TFA-CI-003. `oya-check-dependency-policy` MUST emit denied dependencies.
+TFA-CI-003. `check-dependency-policy` MUST emit denied dependencies.
 
-TFA-CI-004. `oya-check-runtime-config` MUST emit parsed variable count.
+TFA-CI-004. `check-runtime-config` MUST emit parsed variable count.
 
-TFA-CI-005. `oya-check-secret-literals` MUST emit literal-secret findings.
+TFA-CI-005. `check-secret-literals` MUST emit literal-secret findings.
 
-TFA-CI-006. `oya-check-backing-service-bindings` MUST emit resource count.
+TFA-CI-006. `check-backing-service-bindings` MUST emit resource count.
 
-TFA-CI-007. `oya-check-release-immutability` MUST emit image digest.
+TFA-CI-007. `check-release-immutability` MUST emit image digest.
 
-TFA-CI-008. `oya-check-process-statelessness` MUST emit durable-store list.
+TFA-CI-008. `check-process-statelessness` MUST emit durable-store list.
 
-TFA-CI-009. `oya-check-port-binding` MUST emit bind address contract.
+TFA-CI-009. `check-port-binding` MUST emit bind address contract.
 
-TFA-CI-010. `oya-check-concurrency-shape` MUST emit worker bounds.
+TFA-CI-010. `check-concurrency-shape` MUST emit worker bounds.
 
-TFA-CI-011. `oya-check-disposability` MUST emit drain evidence.
+TFA-CI-011. `check-disposability` MUST emit drain evidence.
 
-TFA-CI-012. `oya-check-entrypoint-parity` MUST emit env comparison.
+TFA-CI-012. `check-entrypoint-parity` MUST emit env comparison.
 
-TFA-CI-013. `oya-check-structured-logs` MUST emit sample log event.
+TFA-CI-013. `check-structured-logs` MUST emit sample log event.
 
-TFA-CI-014. `oya-check-admin-processes` MUST emit audited job ids.
+TFA-CI-014. `check-admin-processes` MUST emit audited job ids.
 
 TFA-CI-015. `oya-vcs-admission` MUST include all checker names in promote evidence.
 

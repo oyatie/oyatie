@@ -21,16 +21,16 @@ doc_status: published
 
 | Lane ID | Status | Severity | Scope | What it verifies |
 |---|---|---|---|---|
-| `oya-governance-feature-flag-debt` | **NEW** | HIGH at 90 d / BLOCKER at 180 d | flag registry + repo grep | Release-class flags have a declared retire date; stable flags age out per [`feature-flag-architecture.md`](feature-flag-architecture.md) §5 |
-| `oya-governance-canary-required` | **NEW** | BLOCKER | PR | Kernel/domain/app/api/adapter changes carry a Flagger Canary or Argo Rollout manifest with the canonical 1→5→25→50→100 progression |
+| `governance-feature-flag-debt` | **NEW** | HIGH at 90 d / BLOCKER at 180 d | flag registry + repo grep | Release-class flags have a declared retire date; stable flags age out per [`feature-flag-architecture.md`](feature-flag-architecture.md) §5 |
+| `governance-canary-required` | **NEW** | BLOCKER | PR | Kernel/domain/app/api/adapter changes carry a Flagger Canary or Argo Rollout manifest with the canonical 1→5→25→50→100 progression |
 | `cloud-ci-slo-coverage` | **EXTENDED** | HIGH | service catalog + Prometheus | Every GA+ service has burn-rate alerts wired (fast 5min×1h@14.4×, slow 30min×6h@6.0×); per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md) |
-| `oya-governance-rollback-evidence` | **NEW** | BLOCKER | release artefact | Signed D14 rollback artefact present, covering up / down / dry-run / per-tenant / per-cell paths; Cosign signature valid |
-| `oya-governance-cohort-honor` | **NEW** | HIGH | mesh manifests + cohort kernel | Stable-regulated and connect-no-ads cohorts are intersected at flag-evaluation, canary traffic split, and blue/green cutover |
-| `oya-governance-shadow-diff` | **NEW** | HIGH for high-risk surfaces | shadow-diff kernel + manifests | High-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2) carry a shadow-diff manifest with sample rate + threshold + side-effect stub list |
+| `governance-rollback-evidence` | **NEW** | BLOCKER | release artefact | Signed D14 rollback artefact present, covering up / down / dry-run / per-tenant / per-cell paths; Cosign signature valid |
+| `governance-cohort-honor` | **NEW** | HIGH | mesh manifests + cohort kernel | Stable-regulated and connect-no-ads cohorts are intersected at flag-evaluation, canary traffic split, and blue/green cutover |
+| `governance-shadow-diff` | **NEW** | HIGH for high-risk surfaces | shadow-diff kernel + manifests | High-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2) carry a shadow-diff manifest with sample rate + threshold + side-effect stub list |
 
 ## 2. Lane wiring
 
-Lanes run in the `pre-merge` and `pre-release` phases of `oya-governance-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0709-general-live-apex.md), lane runs are evidence-emitting and signed.
+Lanes run in the `pre-merge` and `pre-release` phases of `governance-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0709-general-live-apex.md), lane runs are evidence-emitting and signed.
 
 ```
 pre-merge:
@@ -45,9 +45,9 @@ pre-release:
   - (re-run) cohort-honor (BLOCKER if regression detected)
 ```
 
-## 3. `oya-governance-feature-flag-debt` (NEW)
+## 3. `governance-feature-flag-debt` (NEW)
 
-Inputs: flag registry (`crates/oya-platform-feature-flag-api/`), repo grep for flag references, per-flag metadata.
+Inputs: flag registry (`crates/platform-feature-flag-api/`), repo grep for flag references, per-flag metadata.
 
 Checks:
 1. Every flag has `type:` (release / experiment / kill-switch / permission / operational).
@@ -57,7 +57,7 @@ Checks:
 
 Outputs: PR comment + auto-PR + D14 evidence row.
 
-## 4. `oya-governance-canary-required` (NEW)
+## 4. `governance-canary-required` (NEW)
 
 Inputs: PR diff, change-class detection (kernel / domain / app / api / adapter / runtime / migration / capability).
 
@@ -78,7 +78,7 @@ Existing scope: every GA+ service declares an SLO with target + window. Extensio
 
 Failure surfaces in `oyatie/docs/SLO-CATALOG.md` freshness report.
 
-## 6. `oya-governance-rollback-evidence` (NEW)
+## 6. `governance-rollback-evidence` (NEW)
 
 Inputs: release artefact bundle.
 
@@ -90,33 +90,33 @@ Checks:
 
 BLOCKER if any check fails.
 
-## 7. `oya-governance-cohort-honor` (NEW)
+## 7. `governance-cohort-honor` (NEW)
 
 Inputs: mesh manifests (Flagger Canary / Argo Rollout / Istio VirtualService), cohort kernel state, flag-evaluation traces.
 
 Checks:
-1. Webhook to `oya-platform-tenant-cohort-kernel` present in every canary manifest.
+1. Webhook to `platform-tenant-cohort-kernel` present in every canary manifest.
 2. Stable-regulated cohort excluded from canary stages 1-3 (1%, 5%, 25%).
 3. Connect-no-ads cohort excluded from Ads-axis canary at all stages.
 4. Cohort intersection traces (last 24 h) show ≥ 99.9% honour rate.
 
 HIGH severity; escalates to BLOCKER on regression.
 
-## 8. `oya-governance-shadow-diff` (NEW)
+## 8. `governance-shadow-diff` (NEW)
 
 Inputs: shadow-diff manifests, surface high-risk tag, side-effect stub list.
 
 Checks for high-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2):
 1. Shadow-diff manifest present with sample rate ≥ surface-required minimum.
 2. Side-effect stub list covers all external calls (emails, payment, webhooks).
-3. `x-oya-shadow` header propagation verified in receiving services.
+3. `x-shadow` header propagation verified in receiving services.
 4. Diff threshold ≤ 0.01% configured.
 
 HIGH severity for high-risk surfaces; advisory elsewhere.
 
 ## 9. Lane evolution
 
-New lanes are pre-registered in `oya-governance-quality-lane-kernel` and turned on in two phases:
+New lanes are pre-registered in `governance-quality-lane-kernel` and turned on in two phases:
 1. **Phase A (audit-only).** Lane runs and emits findings, but does not block PRs/releases. 30-d soak.
 2. **Phase B (enforcement).** Lane blocks per its declared severity.
 

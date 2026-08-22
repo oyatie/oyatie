@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-network-ddos-mitigation-engagement.
 - Primary namespace: `cloud-network`.
-- Owning rotation: PagerDuty `oya-cloud-network-primary`.
-- Security secondary: PagerDuty `oya-security-policy-primary`.
+- Owning rotation: PagerDuty `cloud-network-primary`.
+- Security secondary: PagerDuty `security-policy-primary`.
 - Incident channel: `#inc-ddos`.
 - Customer channel: `#support-edge-availability`.
 - Protected surface: L3/L4 volumetric protection, L7 Envoy rate limits, Cilium policy, provider Shield/Cloud Armor, emergency blackhole.
@@ -39,14 +39,14 @@ doc_status: published
 - Alert `CloudNetworkEdgeSloBurn` fires for public ingress.
 - Alert `CloudNetworkProviderShieldEngagementRequired` fires.
 - Alert `CloudNetworkEmergencyBlackholeSuggested` fires.
-- Metric `oya_cloud_network_edge_packets_per_second` exceeds baseline by 10x.
-- Metric `oya_cloud_network_edge_bits_per_second` exceeds provider threshold.
-- Metric `oya_cloud_network_l7_request_rate` exceeds tenant baseline by 20x.
-- Metric `oya_cloud_network_envoy_429_ratio` exceeds 0.2.
-- Metric `oya_cloud_network_edge_5xx_ratio` exceeds 0.02.
-- Metric `oya_cloud_network_syn_flood_score` exceeds threshold.
-- Metric `oya_cloud_network_http_fingerprint_cardinality` spikes.
-- Metric `oya_cloud_network_provider_scrubbed_traffic_bps` increases.
+- Metric `cloud_network_edge_packets_per_second` exceeds baseline by 10x.
+- Metric `cloud_network_edge_bits_per_second` exceeds provider threshold.
+- Metric `cloud_network_l7_request_rate` exceeds tenant baseline by 20x.
+- Metric `cloud_network_envoy_429_ratio` exceeds 0.2.
+- Metric `cloud_network_edge_5xx_ratio` exceeds 0.02.
+- Metric `cloud_network_syn_flood_score` exceeds threshold.
+- Metric `cloud_network_http_fingerprint_cardinality` spikes.
+- Metric `cloud_network_provider_scrubbed_traffic_bps` increases.
 - Tenant reports public endpoint unavailable.
 - Provider notifies volumetric attack.
 - WAF sees high-cardinality hostile paths.
@@ -83,11 +83,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-network --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-ddos --severity sev0`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="ddos")'`.
-6. Query packet rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_edge_packets_per_second{cell="'$CELL'"}'`.
-7. Query bit rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_edge_bits_per_second{cell="'$CELL'"}'`.
-8. Query L7 rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_l7_request_rate{tenant_id="'$TENANT'"}'`.
-9. Query 429 ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_envoy_429_ratio{tenant_id="'$TENANT'"}'`.
-10. Query 5xx ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_edge_5xx_ratio{tenant_id="'$TENANT'"}'`.
+6. Query packet rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_edge_packets_per_second{cell="'$CELL'"}'`.
+7. Query bit rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_edge_bits_per_second{cell="'$CELL'"}'`.
+8. Query L7 rate: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_l7_request_rate{tenant_id="'$TENANT'"}'`.
+9. Query 429 ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_envoy_429_ratio{tenant_id="'$TENANT'"}'`.
+10. Query 5xx ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_edge_5xx_ratio{tenant_id="'$TENANT'"}'`.
 11. Open DDoS dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/ddos?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 12. Open edge dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/edge-l7?orgId=1&var-cell=$CELL&var-host=$HOST"`.
 13. Read edge logs: `kubectl -n cloud-network logs deploy/envoy-gateway --since=30m | rg "ddos|rate_limit|429|fingerprint|http_flood"`.
@@ -164,10 +164,10 @@ doc_status: published
 6. Patch detection if attack was not classified quickly.
 7. Patch rate-limit templates if legitimate traffic was over-throttled.
 8. Patch edge pool isolation if neighboring tenants were impacted.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain ddos -- --nocapture`.
-10. Run LB API tests: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-ddos --production-snapshot --cell $CELL`.
-12. Verify edge SLO: `oya ops watch --metric oya_cloud_network_edge_5xx_ratio --threshold 0.005 --window 30m --tenant $TENANT`.
+9. Run domain tests: `cargo test -p cloud-network-domain ddos -- --nocapture`.
+10. Run LB API tests: `cargo test -p cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-network-ddos --production-snapshot --cell $CELL`.
+12. Verify edge SLO: `oya ops watch --metric cloud_network_edge_5xx_ratio --threshold 0.005 --window 30m --tenant $TENANT`.
 13. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 14. Update status page all-clear: `oya statuspage incident update --service cloud-network --tenant $TENANT --message "DDoS mitigation resolved"`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_DDOS_MITIGATION_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
@@ -175,8 +175,8 @@ doc_status: published
 ## Verification Checklist
 - `CloudNetworkDdosVolumetricCritical` is green.
 - `CloudNetworkL7DdosCritical` is green.
-- `oya_cloud_network_edge_5xx_ratio` is below 0.005.
-- `oya_cloud_network_envoy_429_ratio` returns to normal.
+- `cloud_network_edge_5xx_ratio` is below 0.005.
+- `cloud_network_envoy_429_ratio` returns to normal.
 - Provider mitigation status is clean or handed off.
 - Legitimate traffic canary passes.
 - Neighboring tenant edge metrics are normal.
@@ -235,9 +235,9 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-network-primary` for every active DDoS alert.
-- Page `oya-security-policy-primary` for L7 or abusive principal analysis.
-- Page `oya-cell-operations-primary` if edge pool or cell fabric is saturated.
+- Page `cloud-network-primary` for every active DDoS alert.
+- Page `security-policy-primary` for L7 or abusive principal analysis.
+- Page `cell-operations-primary` if edge pool or cell fabric is saturated.
 - Page provider support when scrubbing or Shield/Cloud Armor engagement is required.
 - Notify `#inc-ddos` with tenant, host, vector, and mitigation.
 - Notify `#support-edge-availability` before tenant messages.

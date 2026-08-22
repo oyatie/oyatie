@@ -1,7 +1,7 @@
 //! gRPC delivery surface for workload-identity.
 //!
 //! Implements both `WorkloadAuthorizer` and `WorkloadTokenValidator` tonic
-//! service traits, delegating to the SAME `oya-identity-workload-app`
+//! service traits, delegating to the SAME `identity-workload-app`
 //! use-cases and OIDC adapter primitives that the REST surface uses — no
 //! duplicated decision logic.
 //!

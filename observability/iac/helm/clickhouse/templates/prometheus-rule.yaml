@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: oya-observability-clickhouse-slo
+  name: observability-clickhouse-slo
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability

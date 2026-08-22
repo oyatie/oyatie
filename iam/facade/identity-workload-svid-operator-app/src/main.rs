@@ -10,7 +10,7 @@ use iam_identity_workload_svid_operator_k8s::{
 use tracing::error;
 
 /// Env var: the cluster join token gating SVID issuance (operator-internal).
-const ENV_JOIN_TOKEN: &str = "OYA_SVID_OPERATOR_JOIN_TOKEN";
+const ENV_JOIN_TOKEN: &str = "OYATIE_SVID_OPERATOR_JOIN_TOKEN";
 /// The issuing CA's certificate lifetime (10 years; rooted on the trustd CA via
 /// the unchanged SigningBackend seam — the cloud-kms per-cell sealing-root swap
 /// stays deferred behind that seam, ADR-0561 D4/D5).

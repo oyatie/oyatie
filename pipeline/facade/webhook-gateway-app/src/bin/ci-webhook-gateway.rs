@@ -4,12 +4,12 @@
 //!
 //! | Variable                        | Default        | Description                       |
 //! |---------------------------------|----------------|-----------------------------------|
-//! | `OYA_CI_WEBHOOK_LISTEN_ADDR`    | `0.0.0.0:8080` | Bind address                      |
-//! | `OYA_CI_WEBHOOK_GITHUB_OWNER`   | (required)     | GitHub repo owner                 |
-//! | `OYA_CI_WEBHOOK_GITHUB_REPO`    | (required)     | GitHub repo name                  |
-//! | `OYA_CI_WEBHOOK_GITHUB_TOKEN`   | (required)     | GitHub token for status posting   |
-//! | `OYA_CI_WEBHOOK_ED25519_PUBKEY` | (required)     | Hex-encoded 32-byte ed25519 pubkey|
-//! | `OYA_CI_WEBHOOK_TARGET_BRANCH`  | `dev`          | Gated base branch                 |
+//! | `OYATIE_CI_WEBHOOK_LISTEN_ADDR`    | `0.0.0.0:8080` | Bind address                      |
+//! | `OYATIE_CI_WEBHOOK_GITHUB_OWNER`   | (required)     | GitHub repo owner                 |
+//! | `OYATIE_CI_WEBHOOK_GITHUB_REPO`    | (required)     | GitHub repo name                  |
+//! | `OYATIE_CI_WEBHOOK_GITHUB_TOKEN`   | (required)     | GitHub token for status posting   |
+//! | `OYATIE_CI_WEBHOOK_ED25519_PUBKEY` | (required)     | Hex-encoded 32-byte ed25519 pubkey|
+//! | `OYATIE_CI_WEBHOOK_TARGET_BRANCH`  | `dev`          | Gated base branch                 |
 
 use ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
 use ci_webhook_gateway_authz_cedar::CedarWebhookGate;
@@ -26,17 +26,17 @@ async fn main() {
         .with_env_filter(std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_owned()))
         .init();
 
-    let listen_addr = env_or("OYA_CI_WEBHOOK_LISTEN_ADDR", "0.0.0.0:8080");
-    let github_owner = env_required("OYA_CI_WEBHOOK_GITHUB_OWNER");
-    let github_repo = env_required("OYA_CI_WEBHOOK_GITHUB_REPO");
-    let github_token = env_required("OYA_CI_WEBHOOK_GITHUB_TOKEN");
-    let pubkey_hex = env_required("OYA_CI_WEBHOOK_ED25519_PUBKEY");
-    let target_branch = env_or("OYA_CI_WEBHOOK_TARGET_BRANCH", "dev");
+    let listen_addr = env_or("OYATIE_CI_WEBHOOK_LISTEN_ADDR", "0.0.0.0:8080");
+    let github_owner = env_required("OYATIE_CI_WEBHOOK_GITHUB_OWNER");
+    let github_repo = env_required("OYATIE_CI_WEBHOOK_GITHUB_REPO");
+    let github_token = env_required("OYATIE_CI_WEBHOOK_GITHUB_TOKEN");
+    let pubkey_hex = env_required("OYATIE_CI_WEBHOOK_ED25519_PUBKEY");
+    let target_branch = env_or("OYATIE_CI_WEBHOOK_TARGET_BRANCH", "dev");
 
     // Decode the ed25519 public key from hex.
     let pubkey_bytes = hex_decode_32(&pubkey_hex);
     let verifying_key = VerifyingKey::from_bytes(&pubkey_bytes).unwrap_or_else(|e| {
-        eprintln!("invalid OYA_CI_WEBHOOK_ED25519_PUBKEY: {e}");
+        eprintln!("invalid OYATIE_CI_WEBHOOK_ED25519_PUBKEY: {e}");
         std::process::exit(1);
     });
 
@@ -93,7 +93,7 @@ fn hex_decode_32(hex: &str) -> [u8; 32] {
     let hex = hex.trim();
     if hex.len() != 64 {
         eprintln!(
-            "OYA_CI_WEBHOOK_ED25519_PUBKEY must be 64 hex chars (32 bytes), got {}",
+            "OYATIE_CI_WEBHOOK_ED25519_PUBKEY must be 64 hex chars (32 bytes), got {}",
             hex.len()
         );
         std::process::exit(1);
@@ -113,7 +113,7 @@ fn from_hex_nibble(b: u8) -> u8 {
         b'a'..=b'f' => b - b'a' + 10,
         b'A'..=b'F' => b - b'A' + 10,
         _ => {
-            eprintln!("invalid hex character in OYA_CI_WEBHOOK_ED25519_PUBKEY");
+            eprintln!("invalid hex character in OYATIE_CI_WEBHOOK_ED25519_PUBKEY");
             std::process::exit(1);
         }
     }

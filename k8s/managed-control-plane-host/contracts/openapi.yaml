@@ -6,7 +6,7 @@ info:
     Admin/status surface for the managed-Kubernetes control-plane-host concern
     (ADR-0376). Provision/observe/teardown tenant control planes across the
     hosted (Kamaji TenantControlPlane) and dedicated (Talos spoke) tiers. This is
-    a CONTROL-PLANE admin API consumed by oya-managed-k8s-cluster-lifecycle and
+    a CONTROL-PLANE admin API consumed by managed-k8s-cluster-lifecycle and
     operators — never a tenant-workload data path. design-spec maturity: the live
     Kamaji/Talos reconcile is honest-deferred and returns 501 Not Implemented
     (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration).

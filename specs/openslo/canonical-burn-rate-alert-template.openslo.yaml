@@ -12,7 +12,7 @@
 apiVersion: openslo/v1
 kind: AlertPolicy
 metadata:
-  name: oya-canonical-burn-rate-multi-window
+  name: canonical-burn-rate-multi-window
   displayName: Canonical multi-window burn-rate alert template
   labels:
     canonical_base: "true"

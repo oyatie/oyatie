@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-cedar-fragment-coverage]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, check-cedar-fragment-coverage]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: oya-cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter}
+# IP-006: cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter}
 
 ## Intent
 
@@ -27,12 +27,12 @@ Five new crates per ADR-0105: `-kernel`, `-domain`, `-usecase`, `-api`, `-adapte
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs,src/errors.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-domain/{Cargo.toml,src/lib.rs,src/plan_diff.rs,src/drift_compare.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-usecase/{Cargo.toml,src/lib.rs,src/plan_preview.rs,src/cedar_evaluator.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-api/{Cargo.toml,src/lib.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-adapter/{Cargo.toml,src/lib.rs,src/k8s_client.rs,src/cedar_engine.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-validator-*.yaml` | create (5 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs,src/errors.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-domain/{Cargo.toml,src/lib.rs,src/plan_diff.rs,src/drift_compare.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-usecase/{Cargo.toml,src/lib.rs,src/plan_preview.rs,src/cedar_evaluator.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-api/{Cargo.toml,src/lib.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-adapter/{Cargo.toml,src/lib.rs,src/k8s_client.rs,src/cedar_engine.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-validator-*.yaml` | create (5 rows) |
 
 ## Code Shape
 
@@ -75,10 +75,10 @@ where P: PlanComputer, D: DriftDiffer, C: PolicyEvaluator {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
-cargo nextest run -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check -p cloud-iac-iac-validator-kernel -p cloud-iac-iac-validator-domain -p cloud-iac-iac-validator-usecase -p cloud-iac-iac-validator-api -p cloud-iac-iac-validator-adapter --all-features
+cargo nextest run -p cloud-iac-iac-validator-kernel -p cloud-iac-iac-validator-domain -p cloud-iac-iac-validator-usecase -p cloud-iac-iac-validator-api -p cloud-iac-iac-validator-adapter --all-features
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

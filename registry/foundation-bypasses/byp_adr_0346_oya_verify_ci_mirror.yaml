@@ -1,6 +1,6 @@
-id: byp_adr_0346_oya_verify_ci_mirror
+id: byp_adr_0346_verify_ci_mirror
 pr_ref: gh:jason931225/oyatie#177
-crate_ref: oya-dev-cli
+crate_ref: dev-cli
 gate_bypassed: migration
 bypassing_actor: svc_wave15_zf21
 rationale: ADR-0346 doctrine-only propagation opens a time-boxed migration bypass until oya verify --ci-required mirrors cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all and blocks on exit-0 of each mandatory step.

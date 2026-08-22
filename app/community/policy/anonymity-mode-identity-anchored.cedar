@@ -12,7 +12,7 @@
 //                  + connection graph + job board + posts + articles + recruiting)
 //
 // Owner:   axis-community + council-privacy
-// Audit:   every permit/deny emits oya_community_identity_anchored_policy_eval_total
+// Audit:   every permit/deny emits community_identity_anchored_policy_eval_total
 // References:
 //   - ADR-0243 (Cedar universal gate)
 //   - ADR-0244 (tenant scoping primitive)

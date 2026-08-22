@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-009: oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter}
+# IP-009: cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter}
 
 ## Intent
 
@@ -27,12 +27,12 @@ Five new crates per ADR-0105. Catalog rows.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-domain/{Cargo.toml,src/lib.rs,src/revert_plan.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-usecase/{Cargo.toml,src/lib.rs,src/rollback_orchestrator.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-api/{Cargo.toml,src/lib.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-adapter/{Cargo.toml,src/lib.rs,src/event_emitter.rs,src/state_revert.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-rollback-*.yaml` | create (5 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-kernel/{Cargo.toml,src/lib.rs,src/entities.rs,src/ports.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-domain/{Cargo.toml,src/lib.rs,src/revert_plan.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-usecase/{Cargo.toml,src/lib.rs,src/rollback_orchestrator.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-api/{Cargo.toml,src/lib.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-adapter/{Cargo.toml,src/lib.rs,src/event_emitter.rs,src/state_revert.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-rollback-*.yaml` | create (5 rows) |
 
 ## Code Shape
 
@@ -79,9 +79,9 @@ where R: StateRevertPlanComputer, E: RollbackEventEmitter, A: ApplierClient {
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-rollback-* --all-features
-cargo nextest run --workspace -p oya-cloud-iac-iac-rollback-* --all-features
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check --workspace -p cloud-iac-iac-rollback-* --all-features
+cargo nextest run --workspace -p cloud-iac-iac-rollback-* --all-features
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

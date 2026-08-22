@@ -1,0 +1,36 @@
+rust_library(
+    name = "shared-audit-digest-adapter-awslc",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_audit_digest_adapter_awslc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-audit-event-kernel:shared-audit-event-kernel",
+        "third-party//:aws-lc-rs",
+    ],
+)
+
+rust_test(
+    name = "shared-audit-digest-adapter-awslc-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "shared_audit_digest_adapter_awslc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/shared-audit-event-kernel:shared-audit-event-kernel",
+        "third-party//:aws-lc-rs",
+    ],
+)
+
+rust_test(
+    name = "shared-audit-digest-adapter-awslc-integration",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "shared_audit_digest_adapter_awslc_integration",
+    crate_root = "tests/digest_chain_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":shared-audit-digest-adapter-awslc",
+        "//libs/shared-audit-event-kernel:shared-audit-event-kernel",
+        "third-party//:aws-lc-rs",
+    ],
+)

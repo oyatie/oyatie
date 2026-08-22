@@ -18,7 +18,7 @@
   "title": "CSI Driver + StorageClass Canonical Spec",
   "purpose": "Declares the canonical StorageClass naming scheme (oya-<kind>-<tier>), the per-pack CSI driver matrix, the CSI driver requirements, and the workload µservice contract.",
   "canonical_storage_class_names": {
-    "oya-pg-hot": {
+    "pg-hot": {
       "kind": "pg",
       "tier": "hot",
       "iops_class": "sub-millisecond",
@@ -29,7 +29,7 @@
       ],
       "reclaim_policy_default": "Retain"
     },
-    "oya-pg-warm": {
+    "pg-warm": {
       "kind": "pg",
       "tier": "warm",
       "iops_class": "single-digit-ms",
@@ -39,7 +39,7 @@
       ],
       "reclaim_policy_default": "Retain"
     },
-    "oya-pg-cold": {
+    "pg-cold": {
       "kind": "pg",
       "tier": "cold",
       "iops_class": "tens-of-ms",
@@ -50,7 +50,7 @@
       ],
       "reclaim_policy_default": "Delete"
     },
-    "oya-redis-hot": {
+    "redis-hot": {
       "kind": "redis",
       "tier": "hot",
       "iops_class": "sub-millisecond",
@@ -59,7 +59,7 @@
       ],
       "reclaim_policy_default": "Retain"
     },
-    "oya-s3-warm": {
+    "s3-warm": {
       "kind": "s3",
       "tier": "warm",
       "access_pattern": "S3-API (boto / aws-sdk-rust)",
@@ -67,7 +67,7 @@
         "object storage standard tier"
       ]
     },
-    "oya-s3-cold": {
+    "s3-cold": {
       "kind": "s3",
       "tier": "cold",
       "access_pattern": "S3-API archive tier",
@@ -80,84 +80,84 @@
   },
   "per_pack_csi_driver_matrix": {
     "pack-aws-us": {
-      "oya-pg-hot": "ebs.csi.aws.com/io2",
-      "oya-pg-warm": "ebs.csi.aws.com/gp3",
-      "oya-pg-cold": "ebs.csi.aws.com/st1",
-      "oya-redis-hot": "ebs.csi.aws.com/io2",
-      "oya-s3-warm": "S3 (direct API)",
-      "oya-s3-cold": "S3 Glacier Instant Retrieval"
+      "pg-hot": "ebs.csi.aws.com/io2",
+      "pg-warm": "ebs.csi.aws.com/gp3",
+      "pg-cold": "ebs.csi.aws.com/st1",
+      "redis-hot": "ebs.csi.aws.com/io2",
+      "s3-warm": "S3 (direct API)",
+      "s3-cold": "S3 Glacier Instant Retrieval"
     },
     "pack-gcp-us": {
-      "oya-pg-hot": "pd.csi.storage.gke.io/pd-extreme",
-      "oya-pg-warm": "pd.csi.storage.gke.io/pd-ssd",
-      "oya-pg-cold": "pd.csi.storage.gke.io/pd-standard",
-      "oya-redis-hot": "pd.csi.storage.gke.io/pd-extreme",
-      "oya-s3-warm": "GCS (direct API)",
-      "oya-s3-cold": "GCS Coldline"
+      "pg-hot": "pd.csi.storage.gke.io/pd-extreme",
+      "pg-warm": "pd.csi.storage.gke.io/pd-ssd",
+      "pg-cold": "pd.csi.storage.gke.io/pd-standard",
+      "redis-hot": "pd.csi.storage.gke.io/pd-extreme",
+      "s3-warm": "GCS (direct API)",
+      "s3-cold": "GCS Coldline"
     },
     "pack-azure-us": {
-      "oya-pg-hot": "disk.csi.azure.com/Premium_LRS-NVMe-v2",
-      "oya-pg-warm": "disk.csi.azure.com/Premium_LRS-P30",
-      "oya-pg-cold": "disk.csi.azure.com/StandardSSD_LRS",
-      "oya-redis-hot": "disk.csi.azure.com/Premium_LRS-NVMe-v2",
-      "oya-s3-warm": "Azure Blob (direct API)",
-      "oya-s3-cold": "Azure Archive"
+      "pg-hot": "disk.csi.azure.com/Premium_LRS-NVMe-v2",
+      "pg-warm": "disk.csi.azure.com/Premium_LRS-P30",
+      "pg-cold": "disk.csi.azure.com/StandardSSD_LRS",
+      "redis-hot": "disk.csi.azure.com/Premium_LRS-NVMe-v2",
+      "s3-warm": "Azure Blob (direct API)",
+      "s3-cold": "Azure Archive"
     },
     "pack-kr-nhn": {
-      "oya-pg-hot": "block.csi.nhncloud.com/NVMe",
-      "oya-pg-warm": "block.csi.nhncloud.com/SSD",
-      "oya-pg-cold": "block.csi.nhncloud.com/HDD",
-      "oya-redis-hot": "block.csi.nhncloud.com/NVMe",
-      "oya-s3-warm": "NHN Object Storage (S3-compat)",
-      "oya-s3-cold": "NHN Object Storage Cold"
+      "pg-hot": "block.csi.nhncloud.com/NVMe",
+      "pg-warm": "block.csi.nhncloud.com/SSD",
+      "pg-cold": "block.csi.nhncloud.com/HDD",
+      "redis-hot": "block.csi.nhncloud.com/NVMe",
+      "s3-warm": "NHN Object Storage (S3-compat)",
+      "s3-cold": "NHN Object Storage Cold"
     },
     "pack-kr-naver": {
-      "oya-pg-hot": "block.csi.ncloud.com/NVMe",
-      "oya-pg-warm": "block.csi.ncloud.com/SSD",
-      "oya-pg-cold": "block.csi.ncloud.com/HDD",
-      "oya-redis-hot": "block.csi.ncloud.com/NVMe",
-      "oya-s3-warm": "NCP Object Storage (S3-compat)",
-      "oya-s3-cold": "NCP Object Storage Cold"
+      "pg-hot": "block.csi.ncloud.com/NVMe",
+      "pg-warm": "block.csi.ncloud.com/SSD",
+      "pg-cold": "block.csi.ncloud.com/HDD",
+      "redis-hot": "block.csi.ncloud.com/NVMe",
+      "s3-warm": "NCP Object Storage (S3-compat)",
+      "s3-cold": "NCP Object Storage Cold"
     },
     "pack-eu-hetzner": {
-      "oya-pg-hot": "csi.hetzner.cloud/NVMe-local",
-      "oya-pg-warm": "csi.hetzner.cloud/SSD",
-      "oya-pg-cold": "csi.hetzner.cloud/StorageBox",
-      "oya-redis-hot": "csi.hetzner.cloud/NVMe-local",
-      "oya-s3-warm": "Hetzner Object Storage",
-      "oya-s3-cold": "Hetzner Storage Box"
+      "pg-hot": "csi.hetzner.cloud/NVMe-local",
+      "pg-warm": "csi.hetzner.cloud/SSD",
+      "pg-cold": "csi.hetzner.cloud/StorageBox",
+      "redis-hot": "csi.hetzner.cloud/NVMe-local",
+      "s3-warm": "Hetzner Object Storage",
+      "s3-cold": "Hetzner Storage Box"
     },
     "pack-onprem-ceph": {
-      "oya-pg-hot": "rook-ceph.rbd.csi.ceph.com/NVMe-pool",
-      "oya-pg-warm": "rook-ceph.rbd.csi.ceph.com/SSD-pool",
-      "oya-pg-cold": "rook-ceph.rbd.csi.ceph.com/HDD-pool",
-      "oya-redis-hot": "rook-ceph.rbd.csi.ceph.com/NVMe-pool",
-      "oya-s3-warm": "rook-ceph.rgw (S3-compat)",
-      "oya-s3-cold": "rook-ceph.rgw cold-pool"
+      "pg-hot": "rook-ceph.rbd.csi.ceph.com/NVMe-pool",
+      "pg-warm": "rook-ceph.rbd.csi.ceph.com/SSD-pool",
+      "pg-cold": "rook-ceph.rbd.csi.ceph.com/HDD-pool",
+      "redis-hot": "rook-ceph.rbd.csi.ceph.com/NVMe-pool",
+      "s3-warm": "rook-ceph.rgw (S3-compat)",
+      "s3-cold": "rook-ceph.rgw cold-pool"
     },
     "pack-ksa-stc": {
-      "oya-pg-hot": "block.csi.stccloud.sa/NVMe",
-      "oya-pg-warm": "block.csi.stccloud.sa/SSD",
-      "oya-pg-cold": "block.csi.stccloud.sa/HDD",
-      "oya-redis-hot": "block.csi.stccloud.sa/NVMe",
-      "oya-s3-warm": "STC Object Storage (S3-compat)",
-      "oya-s3-cold": "STC Object Storage Cold"
+      "pg-hot": "block.csi.stccloud.sa/NVMe",
+      "pg-warm": "block.csi.stccloud.sa/SSD",
+      "pg-cold": "block.csi.stccloud.sa/HDD",
+      "redis-hot": "block.csi.stccloud.sa/NVMe",
+      "s3-warm": "STC Object Storage (S3-compat)",
+      "s3-cold": "STC Object Storage Cold"
     },
     "pack-uae-g42": {
-      "oya-pg-hot": "block.csi.g42.ae/NVMe",
-      "oya-pg-warm": "block.csi.g42.ae/SSD",
-      "oya-pg-cold": "block.csi.g42.ae/HDD",
-      "oya-redis-hot": "block.csi.g42.ae/NVMe",
-      "oya-s3-warm": "G42 Object Storage (S3-compat)",
-      "oya-s3-cold": "G42 Object Storage Cold"
+      "pg-hot": "block.csi.g42.ae/NVMe",
+      "pg-warm": "block.csi.g42.ae/SSD",
+      "pg-cold": "block.csi.g42.ae/HDD",
+      "redis-hot": "block.csi.g42.ae/NVMe",
+      "s3-warm": "G42 Object Storage (S3-compat)",
+      "s3-cold": "G42 Object Storage Cold"
     },
     "pack-jp-sakura": {
-      "oya-pg-hot": "block.csi.sakura.ad.jp/NVMe",
-      "oya-pg-warm": "block.csi.sakura.ad.jp/SSD",
-      "oya-pg-cold": "block.csi.sakura.ad.jp/HDD",
-      "oya-redis-hot": "block.csi.sakura.ad.jp/NVMe",
-      "oya-s3-warm": "Sakura Object Storage (S3-compat)",
-      "oya-s3-cold": "Sakura Object Storage Cold"
+      "pg-hot": "block.csi.sakura.ad.jp/NVMe",
+      "pg-warm": "block.csi.sakura.ad.jp/SSD",
+      "pg-cold": "block.csi.sakura.ad.jp/HDD",
+      "redis-hot": "block.csi.sakura.ad.jp/NVMe",
+      "s3-warm": "Sakura Object Storage (S3-compat)",
+      "s3-cold": "Sakura Object Storage Cold"
     }
   },
   "csi_driver_requirements": {

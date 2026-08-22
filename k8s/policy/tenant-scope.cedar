@@ -5,7 +5,7 @@
 //          `kubernetes-api-proxy`. Tenant operators may only operate on resources
 //          in their own namespace; cross-tenant reads / writes / watches are refused.
 // Owner:   ops-security + axis-cloud
-// Audit:   every deny emits oya_cloud_k8s_tenant_unauthorized_call_total
+// Audit:   every deny emits cloud_k8s_tenant_unauthorized_call_total
 // References: policy/cluster-isolation.md §"Namespace Tenancy Model" + §"Invariant CI-08"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

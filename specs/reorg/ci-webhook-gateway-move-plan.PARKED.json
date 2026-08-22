@@ -11,55 +11,55 @@
   ],
   "moves": [
     {
-      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel",
+      "old_path": "oya/ci-webhook-gateway/crates/ci-webhook-gateway-kernel",
       "new_path": "ci/core/webhook-gateway-kernel",
-      "old_cargo_name": "oya-ci-webhook-gateway-kernel",
+      "old_cargo_name": "ci-webhook-gateway-kernel",
       "new_cargo_name": "ci-webhook-gateway-kernel"
     },
     {
-      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app",
+      "old_path": "oya/ci-webhook-gateway/crates/ci-webhook-gateway-app",
       "new_path": "ci/facade/webhook-gateway-app",
-      "old_cargo_name": "oya-ci-webhook-gateway-app",
+      "old_cargo_name": "ci-webhook-gateway-app",
       "new_cargo_name": "ci-webhook-gateway-app"
     },
     {
-      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter",
+      "old_path": "oya/ci-webhook-gateway/crates/ci-webhook-gateway-authz-cedar-adapter",
       "new_path": "ci/adapters/webhook-gateway-authz-cedar",
-      "old_cargo_name": "oya-ci-webhook-gateway-authz-cedar-adapter",
+      "old_cargo_name": "ci-webhook-gateway-authz-cedar-adapter",
       "new_cargo_name": "ci-webhook-gateway-authz-cedar"
     },
     {
-      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-ed25519-adapter",
+      "old_path": "oya/ci-webhook-gateway/crates/ci-webhook-gateway-ed25519-adapter",
       "new_path": "ci/adapters/webhook-gateway-ed25519",
-      "old_cargo_name": "oya-ci-webhook-gateway-ed25519-adapter",
+      "old_cargo_name": "ci-webhook-gateway-ed25519-adapter",
       "new_cargo_name": "ci-webhook-gateway-ed25519"
     },
     {
-      "old_path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter",
+      "old_path": "oya/ci-webhook-gateway/crates/ci-webhook-gateway-github-adapter",
       "new_path": "ci/adapters/webhook-gateway-github",
-      "old_cargo_name": "oya-ci-webhook-gateway-github-adapter",
+      "old_cargo_name": "ci-webhook-gateway-github-adapter",
       "new_cargo_name": "ci-webhook-gateway-github"
     }
   ],
   "artifacts": [
     {
-      "old_path": "registry/catalog/oya-ci-webhook-gateway-kernel.yaml",
+      "old_path": "registry/catalog/ci-webhook-gateway-kernel.yaml",
       "new_path": "registry/catalog/ci-webhook-gateway-kernel.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-ci-webhook-gateway-app.yaml",
+      "old_path": "registry/catalog/ci-webhook-gateway-app.yaml",
       "new_path": "registry/catalog/ci-webhook-gateway-app.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-ci-webhook-gateway-authz-cedar-adapter.yaml",
+      "old_path": "registry/catalog/ci-webhook-gateway-authz-cedar-adapter.yaml",
       "new_path": "registry/catalog/ci-webhook-gateway-authz-cedar.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-ci-webhook-gateway-ed25519-adapter.yaml",
+      "old_path": "registry/catalog/ci-webhook-gateway-ed25519-adapter.yaml",
       "new_path": "registry/catalog/ci-webhook-gateway-ed25519.yaml"
     },
     {
-      "old_path": "registry/catalog/oya-ci-webhook-gateway-github-adapter.yaml",
+      "old_path": "registry/catalog/ci-webhook-gateway-github-adapter.yaml",
       "new_path": "registry/catalog/ci-webhook-gateway-github.yaml"
     }
   ]

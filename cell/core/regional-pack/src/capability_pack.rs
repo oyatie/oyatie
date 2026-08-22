@@ -4,7 +4,7 @@
 //! that binds to a regional pack.  The elected vertical for M04 is
 //! `vertical-corporate` (council-resolution 2026-05-17).
 
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 /// Semantic version variant for a capability pack.
 ///
@@ -52,7 +52,7 @@ impl PackVersion {
 /// A versioned bundle of per-vertical capabilities bound to a regional pack.
 ///
 /// The `vertical_id` must match the elected vertical slug (`"vertical-corporate"`).
-/// `pack_ref` must start with `"oya-pack-"` to align with the `RegionalPack` id
+/// `pack_ref` must start with `"pack-"` to align with the `RegionalPack` id
 /// invariant.
 ///
 /// All fields are private to enforce invariants through [`CapabilityPack::new`].
@@ -87,7 +87,7 @@ impl CapabilityPack {
         &self.vertical_id.value
     }
 
-    /// Returns the pack reference (e.g. `"oya-pack-alpha"`).
+    /// Returns the pack reference (e.g. `"pack-alpha"`).
     pub fn pack_ref(&self) -> &str {
         &self.pack_ref
     }
@@ -118,7 +118,7 @@ impl CapabilityPack {
         if vertical_id != ELECTED_VERTICAL_SLUG {
             return Err(CapabilityPackError::NonElectedVerticalId);
         }
-        if !pack_ref.starts_with("oya-pack-") {
+        if !pack_ref.starts_with("pack-") {
             return Err(CapabilityPackError::InvalidPackRef);
         }
         if capabilities.is_empty() {
@@ -140,7 +140,7 @@ mod tests {
     fn corporate_pack() -> CapabilityPack {
         CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn accepts_canonical_corporate_pack() {
         let pack = corporate_pack();
-        assert_eq!(pack.pack_ref(), "oya-pack-alpha");
+        assert_eq!(pack.pack_ref(), "pack-alpha");
         assert_eq!(pack.version().triplet(), (1, 0, 0));
         assert_eq!(pack.version().display(), "1.0.0");
     }
@@ -165,7 +165,7 @@ mod tests {
         // rejected at construction time (M04 election invariant).
         let err = CapabilityPack::new(
             "vertical-healthcare".to_string(),
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,
@@ -181,7 +181,7 @@ mod tests {
     fn rejects_empty_vertical_id() {
         let err = CapabilityPack::new(
             "".to_string(),
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PackVersion::Patch {
                 major: 1,
                 minor: 0,
@@ -197,7 +197,7 @@ mod tests {
     fn rejects_invalid_pack_ref() {
         let err = CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "pack-kr".to_string(), // missing "oya-pack-" prefix
+            "pack-kr".to_string(), // missing "pack-" prefix
             PackVersion::Patch {
                 major: 1,
                 minor: 0,
@@ -205,7 +205,7 @@ mod tests {
             },
             vec!["payroll.close".to_string()],
         )
-        .expect_err("pack_ref without oya-pack- prefix must be rejected");
+        .expect_err("pack_ref without pack- prefix must be rejected");
         assert_eq!(err, CapabilityPackError::InvalidPackRef);
     }
 
@@ -213,7 +213,7 @@ mod tests {
     fn rejects_empty_capabilities() {
         let err = CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,

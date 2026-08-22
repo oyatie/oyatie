@@ -1,4 +1,4 @@
-# Failure modes — `oya-managed-k8s-control-plane-host`
+# Failure modes — `managed-k8s-control-plane-host`
 
 ADR-0083 Tier-3: every fallible path returns a typed error; the request path
 never panics. The `ProvisioningError` enum is the single typed failure surface.
@@ -11,7 +11,7 @@ never panics. The `ProvisioningError` enum is the single typed failure surface.
 | Illegal lifecycle transition | adapter attempts an out-of-graph status move | `ProvisioningError::IllegalTransition` | 409 | Kernel `transition` rejects; the in-memory adapter can never persist an illegal status. |
 | Management cluster unreachable | CAPI adapter cannot reach the mgmt API server | `ProvisioningError::Backend` | 502 | Fail-closed; no unbounded retry on the provision path (circuit-breaker posture). |
 | Live reconcile not built | CAPI adapter `provision`/`status`/`teardown` | `ProvisioningError::Unimplemented(KamajiProviderLiveIntegration)` | 501 | HONEST-DEFERRED; never a fake success. |
-| Boot without mgmt kubeconfig | `$OYA_MGMT_KUBECONFIG` absent/empty | `BootError::MissingMgmtKubeconfig` | (process exits non-zero) | Fail-closed; never falls back to in-memory in production. |
+| Boot without mgmt kubeconfig | `$OYATIE_MGMT_KUBECONFIG` absent/empty | `BootError::MissingMgmtKubeconfig` | (process exits non-zero) | Fail-closed; never falls back to in-memory in production. |
 | Mutex poisoned (in-memory adapter) | a panic while holding the records lock (test only) | `ProvisioningError::Backend` | 502 | Defensive; the in-memory adapter does no panicking work under the lock. |
 
 ## Degradation

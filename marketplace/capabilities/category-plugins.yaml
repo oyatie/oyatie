@@ -83,7 +83,7 @@ tenant_class_caps:
     max_listings: unbounded
     payouts_enabled: true
 observability:
-  metric: oya_marketplace_category_plugins_listing_total
+  metric: marketplace_category_plugins_listing_total
   trace: marketplace.category-plugins.listing
   audit_event: MarketplaceCategoryPluginsListingPublished
 inputs:

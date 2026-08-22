@@ -57,8 +57,8 @@ outputs:
     type: integer
 
 slo_targets:
-  - oya-identity-oidc-token-issue-latency
-  - oya-identity-jwks-availability
+  - identity-oidc-token-issue-latency
+  - identity-jwks-availability
 
 audit_events_emitted:
   - IdentityOidcTokenIssued

@@ -38,7 +38,7 @@ flowchart TB
     Tenants -->|OIDC/SAML SSO| App
     Personal -->|Direct B2C path; PKCE| ConnectPersonal
 
-    subgraph App["Application B2B Shell (oya-application-*)"]
+    subgraph App["Application B2B Shell (application-*)"]
       direction TB
       A1["Product enablement console (à-la-carte)"]
       A2["Tenant onboarding ≤5min"]
@@ -47,8 +47,8 @@ flowchart TB
 
     subgraph AdapterLayer["Workflow + Ontology — sole inter-µservice adapter layer (ADR-0059)"]
       direction LR
-      W["Workflow µservice<br/>(action / orchestration)<br/>oya-workflow-*"]:::adapter
-      O["Ontology µservice<br/>(information / data)<br/>oya-ontology-*"]:::adapter
+      W["Workflow µservice<br/>(action / orchestration)<br/>workflow-*"]:::adapter
+      O["Ontology µservice<br/>(information / data)<br/>ontology-*"]:::adapter
     end
 
     subgraph Healthcare["Healthcare cluster"]
@@ -143,7 +143,7 @@ flowchart TB
 
     subgraph Foundry["Foundry (internal-only engine)"]
       direction LR
-      F2["LEAN check binaries:<br/>oya-check-architecture (9 sub-cmds)<br/>oya-check-statelessness<br/>oya-check-shardability<br/>oya-check-perf-budget<br/>oya-check-benchmark<br/>oya-check-documentation (LEAN-A5)<br/>+ Proof Ladder + 9 planes + Wave integration"]
+      F2["LEAN check binaries:<br/>check-architecture (9 sub-cmds)<br/>check-statelessness<br/>check-shardability<br/>check-perf-budget<br/>check-benchmark<br/>check-documentation (LEAN-A5)<br/>+ Proof Ladder + 9 planes + Wave integration"]
     end
 
     App -.->|enables product subset| AdapterLayer
@@ -187,10 +187,10 @@ flowchart LR
 
     subgraph KRPack["KR Pack (#1 — foundational)"]
       direction TB
-      K1["oya-payroll-kr-*<br/>4대보험 EDI + 연말정산 + 간이세액표"]
-      K2["oya-medical-kr-*<br/>HIRA DUR + KFDA + NHIS"]
-      K3["oya-accounting-kr-*<br/>K-GAAP COA + 재무상태표 Typst"]
-      K4["oya-pack-kr-*<br/>Cedar PIPA policies + Workflow templates"]
+      K1["payroll-kr-*<br/>4대보험 EDI + 연말정산 + 간이세액표"]
+      K2["medical-kr-*<br/>HIRA DUR + KFDA + NHIS"]
+      K3["accounting-kr-*<br/>K-GAAP COA + 재무상태표 Typst"]
+      K4["pack-kr-*<br/>Cedar PIPA policies + Workflow templates"]
       K5["docs/localization-packs/kr/<br/>pack.yaml + corpus.lock + evidence/"]
     end
 
@@ -223,7 +223,7 @@ flowchart LR
 | Form | When to use | Example |
 |---|---|---|
 | **Seam** | Variation is a value / small trait impl | `StatutoryRateProvider` port + KR rate impl |
-| **Adapter** | Discrete I/O surface | `oya-payroll-kr-edi-adapter` ↔ NPS EDI v5.0 |
+| **Adapter** | Discrete I/O surface | `payroll-kr-edi-adapter` ↔ NPS EDI v5.0 |
 | **Pack** | Coherent deployable bundle | `kr` pack composes all seams+adapters+policies+templates |
 
 CI lanes: `canonical-base-neutrality` + `cross-pack-refusal` (M02-P20).
@@ -380,7 +380,7 @@ SELECT create_distributed_table('example_table', 'tenant_id');
 CREATE INDEX idx_example_tenant ON example_table (tenant_id, created_at DESC);
 ```
 
-CI lane `oya-check-shardability` verifies every tenant-bound table has the distribution-column COMMENT + RLS policy + index.
+CI lane `check-shardability` verifies every tenant-bound table has the distribution-column COMMENT + RLS policy + index.
 
 ### 6.2 Outbox event pattern (every state-changing µservice)
 
@@ -407,7 +407,7 @@ Outbox worker polls + publishes to Kafka KRaft topic `oya.<microservice>.<event-
 ### 6.3 Ontology Object Type schema (information-plane adapter; ADR-0059)
 
 ```rust
-// oya-ontology-entity-kernel/src/types.rs
+// ontology-entity-kernel/src/types.rs
 pub struct ObjectType {
     pub object_type: String,           // e.g. "hr.Employee"
     pub tenant_id: TenantId,
@@ -454,7 +454,7 @@ pub struct FunctionType {
 ### 6.4 Audit chain (every state-changing event; Bominal ADR-0028 inheritance)
 
 ```rust
-// oya-audit-chain-kernel/src/types.rs
+// audit-chain-kernel/src/types.rs
 pub struct AuditSegment {
     pub segment_id: AuditSegmentId,
     pub tenant_id: TenantId,
@@ -500,7 +500,7 @@ KR pack supplies `pipa-data-subject-consent.cedar`, `pipa-legitimate-interest.ce
 ### 6.6 Workflow durable-execution state machine
 
 ```rust
-// oya-workflow-engine-kernel/src/state_machine.rs
+// workflow-engine-kernel/src/state_machine.rs
 pub struct WorkflowDefinition {
     pub definition_id: WorkflowDefinitionId,
     pub tenant_id: TenantId,
@@ -602,8 +602,8 @@ sequenceDiagram
     participant Tenant
     participant Application
     participant Workflow
-    participant Payroll as oya-payroll-application
-    participant PayrollKR as oya-payroll-kr-statutory-adapter
+    participant Payroll as payroll-application
+    participant PayrollKR as payroll-kr-statutory-adapter
     participant CorpusLock as kr/corpus.lock
 
     Tenant->>Application: Start payroll run (KR tenant)
@@ -618,14 +618,14 @@ sequenceDiagram
     Workflow->>Application: notify tenant; auto-journal to accounting
 ```
 
-The canonical algorithm in `oya-payroll-run-domain` is jurisdiction-agnostic. The pack supplies the rates. Adding US/EU = author US/EU pack; canonical base unchanged.
+The canonical algorithm in `payroll-run-domain` is jurisdiction-agnostic. The pack supplies the rates. Adding US/EU = author US/EU pack; canonical base unchanged.
 
 ### 7.3 Doc-coverage enforcement (LEAN-A5)
 
 ```mermaid
 flowchart LR
     PR[PR opened] --> CI[GitHub Actions ci-governance-lanes]
-    CI --> CheckCov[oya-check-documentation --workspace --report-only<br/>post-M02-P22: --blocker]
+    CI --> CheckCov[check-documentation --workspace --report-only<br/>post-M02-P22: --blocker]
     CheckCov --> ReadWS[Read workspace.metadata.oya.microservices]
     CheckCov --> ReadMP[Read MASTERPLAN §2.1 catalog]
     CheckCov --> ReadPack[Read docs/localization-packs/&lt;pack&gt;/pack.yaml]
@@ -650,8 +650,8 @@ To re-verify this map's accuracy at any future commit:
 
 ```bash
 git rev-parse HEAD                                                     # confirm commit
-cargo run -p oya-check-documentation -- --workspace --report-only      # exit 0; markdown report
-cargo test -p oya-check-documentation                                  # 2/2 pass
+cargo run -p check-documentation -- --workspace --report-only      # exit 0; markdown report
+cargo test -p check-documentation                                  # 2/2 pass
 grep -c "^name = \"oya-" Cargo.toml                                    # workspace member count
 rg -nP '^- \{ microservice:' docs/localization-packs/kr/pack.yaml | wc -l  # 27 KR pack µservices
 rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0709-general-live-apex.md | head -5

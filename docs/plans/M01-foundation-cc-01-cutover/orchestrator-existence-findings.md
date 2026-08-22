@@ -22,7 +22,7 @@ Captured 2026-05-12 between Architect ITERATE verdict and Critic dispatch. The C
 | `bominal/agents/settings/claude.settings.json` | **NO** | `ls -la /Users/jasonlee/bominal/agents/settings/` → "does NOT exist" |
 | `oyatie/.codex/worktree_init.sh` | **NO** | `ls -la .codex/` → empty |
 | `oyatie/.claude/skills/` | **NO** | `ls .claude/skills/` → empty |
-| `oyatie/Cargo.toml` contains `oya-tooling-*` prefix | **YES** | `oya-tooling-cli-dev-runtime` exists as sibling crate |
+| `oyatie/Cargo.toml` contains `tooling-*` prefix | **YES** | `tooling-cli-dev-runtime` exists as sibling crate |
 | `oyatie/docs/runbooks/foundry/` | **YES** | listed |
 | `oyatie/docs/RACI-OWNERSHIP.md` (70 table rows) | **YES** | wc -l on `^|` lines = 70 |
 | `oyatie/docs/products/foundry/PRD.md` (75.5KB) | **YES** | landing location for salvaged Phase 00 SPEC content |
@@ -44,7 +44,7 @@ iter-2 Planner: pick one; document the choice in the plan; do not leave the path
 
 ### For naming the new helper crate
 
-`oya-tooling-agent-read` is consistent with the existing `oya-tooling-cli-dev-runtime` sibling. Confirmed safe.
+`tooling-agent-read` is consistent with the existing `tooling-cli-dev-runtime` sibling. Confirmed safe.
 
 ### For the demo runbook (A7 / P8)
 
@@ -70,6 +70,6 @@ iter-2 Planner: P3.5 should pin this landing location.
 iter-2 Planner must, in addition to Architect revisions 1-8 and the new P3.5:
 - Rephrase A6 (hook path reconciliation) per above.
 - Drop `.codex/worktree_init.sh` from deletion list (it doesn't exist).
-- Use `oya-tooling-agent-read` as the helper crate name.
+- Use `tooling-agent-read` as the helper crate name.
 - Pin foundry salvage landing to `docs/products/foundry/PHASE-00-SPEC.md`.
 - Add `human orchestrator` row to `docs/RACI-OWNERSHIP.md` as part of P0.5 or P1 deliverables.

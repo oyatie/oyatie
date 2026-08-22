@@ -1,5 +1,5 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
-//! Integration tests for `oya-identity-oidc-issuer-kernel`.
+//! Integration tests for `identity-oidc-issuer-kernel`.
 //!
 //! These tests exercise the pure-domain surface of IP-002: issuer metadata,
 //! JWKS publication filtering, signing-key lifecycle monotonicity, ID-token /
@@ -207,7 +207,7 @@ fn current_signing_key_returns_active_only() {
 fn id_token_claims_include_iss_aud_sub_iat_exp_nonce() {
     let claims = build_id_token_claims(IdTokenSpec {
         issuer: issuer(),
-        audience: Audience::single("oya-application").expect("ok"),
+        audience: Audience::single("application").expect("ok"),
         subject: Subject::new("usr_abc").expect("ok"),
         tenant_id: "ten_acme".to_owned(),
         issued_at_epoch_seconds: 1_700_000_000,
@@ -220,7 +220,7 @@ fn id_token_claims_include_iss_aud_sub_iat_exp_nonce() {
     .expect("ok");
     // Required OIDC claims:
     assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
-    assert_eq!(claims.aud, vec!["oya-application".to_owned()]);
+    assert_eq!(claims.aud, vec!["application".to_owned()]);
     assert_eq!(claims.sub, "usr_abc");
     assert_eq!(claims.iat, 1_700_000_000);
     assert_eq!(claims.exp, 1_700_003_600);
@@ -300,7 +300,7 @@ fn id_token_rejects_malformed_inputs() {
 fn access_token_claims_carry_scopes_and_token_type() {
     let claims = build_access_token_claims(AccessTokenSpec {
         issuer: issuer(),
-        audience: Audience::many(vec!["oya-foundry".to_owned(), "oya-ops".to_owned()]).expect("ok"),
+        audience: Audience::many(vec!["foundry".to_owned(), "ops".to_owned()]).expect("ok"),
         subject: Subject::new("usr_abc").expect("ok"),
         tenant_id: "ten_acme".to_owned(),
         scopes: vec!["openid".to_owned(), "email".to_owned()],
@@ -311,7 +311,7 @@ fn access_token_claims_carry_scopes_and_token_type() {
     })
     .expect("ok");
     assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
-    assert_eq!(claims.aud, vec!["oya-foundry", "oya-ops"]);
+    assert_eq!(claims.aud, vec!["foundry", "ops"]);
     assert_eq!(claims.scope, "openid email");
     assert_eq!(claims.token_type, "at+jwt");
     assert_eq!(claims.tenant_id, "ten_acme");
@@ -321,7 +321,7 @@ fn access_token_claims_carry_scopes_and_token_type() {
 fn access_token_lifetime_ceiling_enforced() {
     let result = build_access_token_claims(AccessTokenSpec {
         issuer: issuer(),
-        audience: Audience::single("oya-foundry").expect("ok"),
+        audience: Audience::single("foundry").expect("ok"),
         subject: Subject::new("usr_x").expect("ok"),
         tenant_id: "ten_acme".to_owned(),
         scopes: vec!["openid".to_owned()],
@@ -510,7 +510,7 @@ fn audience_single_and_many_reject_empty() {
 fn access_token_claims_for_introspection() -> iam_identity_oidc_issuer_kernel::AccessTokenClaims {
     build_access_token_claims(AccessTokenSpec {
         issuer: issuer(),
-        audience: Audience::single("oya-api").expect("ok"),
+        audience: Audience::single("api").expect("ok"),
         subject: Subject::new("usr_abc").expect("ok"),
         tenant_id: "ten_acme".to_owned(),
         scopes: vec!["openid".to_owned(), "email".to_owned()],
@@ -569,7 +569,7 @@ fn build_introspection_response_active_token_discloses_claims() {
     let resp = build_introspection_response(&claims, now, skew).expect("ok");
     assert!(resp.active);
     assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
-    assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+    assert_eq!(resp.aud.as_deref(), Some(["api".to_owned()].as_slice()));
     assert_eq!(resp.exp, Some(1_700_003_600));
     assert_eq!(resp.iat, Some(1_700_000_000));
     assert_eq!(resp.scope.as_deref(), Some("openid email"));

@@ -22,9 +22,9 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-ci-controller",
+    name = "ci-controller",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate_root = "src/bin/oya-ci-controller.rs",
+    crate_root = "src/bin/ci-controller.rs",
     visibility = ["PUBLIC"],
     deps = [
         "//pipeline/controller/app:ci-controller-app",

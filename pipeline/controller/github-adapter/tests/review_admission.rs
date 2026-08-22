@@ -81,7 +81,7 @@ fn review_policy(reviewers: &[&str]) -> ReviewAdmissionPolicy {
 fn producer() -> ReviewAdmissionProducer {
     ReviewAdmissionProducer {
         github_app_id: 1,
-        workload_identity: "test://oya-ci-controller/review-admission".to_owned(),
+        workload_identity: "test://ci-controller/review-admission".to_owned(),
     }
 }
 
@@ -273,11 +273,11 @@ fn assert_github_headers(server: &ScriptedServer) {
             request.header("accept"),
             Some("application/vnd.github+json")
         );
-        assert_eq!(request.header("user-agent"), Some("oya-ci-controller"));
+        assert_eq!(request.header("user-agent"), Some("ci-controller"));
     }
 }
 
-/// The port of `json_body_partial(r#"{"state":"...","context":"oya-pr-review"}"#)`.
+/// The port of `json_body_partial(r#"{"state":"...","context":"pr-review"}"#)`.
 fn assert_status_state(request: &RecordedRequest, state: &str) {
     let body = request.json();
     assert_eq!(
@@ -286,7 +286,7 @@ fn assert_status_state(request: &RecordedRequest, state: &str) {
         "posted status body: {}",
         request.body_string()
     );
-    assert_eq!(body["context"], json!("oya-pr-review"));
+    assert_eq!(body["context"], json!("pr-review"));
 }
 
 /// Every status this run posted, in order.
@@ -399,8 +399,8 @@ fn approved_distinct_reviewer_rechecks_head_before_posting_status() {
         statuses[0].json(),
         json!({
             "state": "success",
-            "context": "oya-pr-review",
-            "description": "oya-pr-review approved by independent-reviewer",
+            "context": "pr-review",
+            "description": "pr-review approved by independent-reviewer",
             "target_url": REVIEW_URL
         })
     );
@@ -544,8 +544,8 @@ fn malformed_eligible_approval_does_not_veto_another_valid_eligible_approval() {
         statuses[0].json(),
         json!({
             "state": "success",
-            "context": "oya-pr-review",
-            "description": "oya-pr-review approved by designated-reviewer",
+            "context": "pr-review",
+            "description": "pr-review approved by designated-reviewer",
             "target_url": REVIEW_URL
         })
     );
@@ -1155,7 +1155,7 @@ fn configured_request_timeout_stops_a_stalled_blocking_github_call() {
     let result = poster.post(
         HEAD_SHA,
         CommitState::Failure,
-        "oya-pr-review",
+        "pr-review",
         "timeout regression",
         None,
     );

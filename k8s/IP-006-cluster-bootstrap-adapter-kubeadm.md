@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
+# IP-006: cloud-k8s-cluster-bootstrap-adapter-kubeadm
 
 ## Intent
 
@@ -19,26 +19,26 @@ Backend-qualified adapter (per ADR-0105 Amendment 3 `*-adapter-<backend>` patter
 
 ## ChangeSet boundary
 
-One new Rust crate `oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm`. Catalog row. Also: `oya-cloud-k8s-cluster-bootstrap-adapter` (protocol-neutral fallback / mock for tests).
+One new Rust crate `cloud-k8s-cluster-bootstrap-adapter-kubeadm`. Catalog row. Also: `cloud-k8s-cluster-bootstrap-adapter` (protocol-neutral fallback / mock for tests).
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-adapter/{Cargo.toml,src/lib.rs}` | create — mock adapter for tests |
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm/Cargo.toml` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-cluster-bootstrap-adapter/{Cargo.toml,src/lib.rs}` | create — mock adapter for tests |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-cluster-bootstrap-adapter-kubeadm/Cargo.toml` | create |
 | `.../src/lib.rs` | create |
 | `.../src/kubeadm_cli.rs` | create — shell-out wrapper around `kubeadm init|join|upgrade|reset` |
 | `.../src/etcd_cli.rs` | create — etcdctl wrapper for snapshot save/restore |
 | `.../src/kube_api_client.rs` | create — kube-apiserver client (read-only; via kubernetes-api-proxy) |
 | `.../src/auth.rs` | create — SPIFFE SVID + Ed25519 sign helpers |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter.yaml` | create |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-cluster-bootstrap-adapter.yaml` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAME: oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
+NAME: cloud-k8s-cluster-bootstrap-adapter-kubeadm
 JUSTIFICATION:
 - microservice = cloud-k8s; bc-tokens = cluster-bootstrap
 - layer = adapter; backend-qualified suffix `-kubeadm` per ADR-0105 Amendment 3
@@ -49,7 +49,7 @@ JUSTIFICATION:
 
 ```rust
 use async_trait::async_trait;
-use oya_cloud_k8s_cluster_bootstrap_kernel::{ports::*, entities::*, errors::*};
+use cloud_k8s_cluster_bootstrap_kernel::{ports::*, entities::*, errors::*};
 use tokio::process::Command;
 
 pub struct KubeadmCliAdapter { /* config */ }
@@ -74,13 +74,13 @@ impl KubeadmCommander for KubeadmCliAdapter {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
-cargo build -p oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
-cargo clippy -p oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm -- -D warnings
-cargo nextest run -p oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
+cargo check -p cloud-k8s-cluster-bootstrap-adapter-kubeadm
+cargo build -p cloud-k8s-cluster-bootstrap-adapter-kubeadm
+cargo clippy -p cloud-k8s-cluster-bootstrap-adapter-kubeadm -- -D warnings
+cargo nextest run -p cloud-k8s-cluster-bootstrap-adapter-kubeadm
 cargo deny check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm
-cargo run -p oya-dev-cli -- gate validate lean-a3 --crate oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm  # adapter naming
+cargo run -p dev-cli -- gate validate lean-a1 --crate cloud-k8s-cluster-bootstrap-adapter-kubeadm
+cargo run -p dev-cli -- gate validate lean-a3 --crate cloud-k8s-cluster-bootstrap-adapter-kubeadm  # adapter naming
 ```
 
 ## Test Plan

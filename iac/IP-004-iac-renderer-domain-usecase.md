@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-004: oya-cloud-iac-iac-renderer-{domain,usecase,api}
+# IP-004: cloud-iac-iac-renderer-{domain,usecase,api}
 
 ## Intent
 
@@ -27,10 +27,10 @@ Three new crates: `-domain`, `-usecase`, `-api`. Catalog rows added.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-domain/{Cargo.toml,src/lib.rs,src/dependency_ordering.rs,src/digest.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-usecase/{Cargo.toml,src/lib.rs,src/orchestrator.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-api/{Cargo.toml,src/lib.rs,src/requests.rs,src/responses.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-renderer-{domain,usecase,api}.yaml` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-domain/{Cargo.toml,src/lib.rs,src/dependency_ordering.rs,src/digest.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-usecase/{Cargo.toml,src/lib.rs,src/orchestrator.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-api/{Cargo.toml,src/lib.rs,src/requests.rs,src/responses.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-renderer-{domain,usecase,api}.yaml` | create |
 
 ## Code Shape
 
@@ -84,12 +84,12 @@ where
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features
-cargo build --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features
-cargo clippy --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features -- -D warnings
-cargo nextest run --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features
-cloud-ci/oya-ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check --workspace -p cloud-iac-iac-renderer-domain -p cloud-iac-iac-renderer-usecase -p cloud-iac-iac-renderer-api --all-features
+cargo build --workspace -p cloud-iac-iac-renderer-domain -p cloud-iac-iac-renderer-usecase -p cloud-iac-iac-renderer-api --all-features
+cargo clippy --workspace -p cloud-iac-iac-renderer-domain -p cloud-iac-iac-renderer-usecase -p cloud-iac-iac-renderer-api --all-features -- -D warnings
+cargo nextest run --workspace -p cloud-iac-iac-renderer-domain -p cloud-iac-iac-renderer-usecase -p cloud-iac-iac-renderer-api --all-features
+cloud-ci/ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

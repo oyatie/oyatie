@@ -30,13 +30,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_community_kb_article_publish_duration_seconds_bucket{le="0.5"}[5m]))
+                sum(rate(community_kb_article_publish_duration_seconds_bucket{le="0.5"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_community_kb_article_publish_duration_seconds_count[5m]))
+                sum(rate(community_kb_article_publish_duration_seconds_count[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

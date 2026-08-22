@@ -7,7 +7,7 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+shared-postgres-command-kernel = { path = "../../../../libs/shared-postgres-command-kernel" }
 
 [lib]
 name = "community_social_post_composition_postgres"

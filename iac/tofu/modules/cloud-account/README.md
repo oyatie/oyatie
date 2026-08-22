@@ -24,5 +24,5 @@ Root-of-trust cloud account + organization. Consumed by `vpc`,
 ## Discipline
 
 This module is Tier B (OpenTofu / cloud-side). It MUST NOT
-declare per-pod manifests; `oya-check-iac-tier-discipline`
+declare per-pod manifests; `check-iac-tier-discipline`
 enforces.

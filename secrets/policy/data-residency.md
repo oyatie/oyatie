@@ -119,7 +119,7 @@ Retention is MAX of (asset class default, pack legal minimum, tenant-contracted 
 | pack-au | `AUDIT` (APRA-CPS 234 overlay) | APRA-CPS 234: 7y on incident-related records | 7y |
 | pack-ksa | `AUDIT` (SAMA Cybersecurity overlay) | SAMA: ≥ 5y | 7y |
 
-The CI lane `oya-governance-retention-conformance` validates OpenBao + Postgres + audit-chain retention against this table.
+The CI lane `governance-retention-conformance` validates OpenBao + Postgres + audit-chain retention against this table.
 
 ## KEK Lifecycle by Pack
 
@@ -141,7 +141,7 @@ KEK rotation cascades through DEKs without secret-value access (KEK rotation re-
 
 ## DSR + Tenant Offboard Cascade
 
-Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18(VI)) honoured via the `oya-dsr-cascade-runner` skill applied to cloud-secrets:
+Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18(VI)) honoured via the `dsr-cascade-runner` skill applied to cloud-secrets:
 
 1. Tenant raises offboarding request.
 2. `per-tenant-namespace-controller` seals the namespace (no further reads).
@@ -204,9 +204,9 @@ Each pack's overlay at `regional-packs/<pack>/cloud-secrets-residency-overlay.md
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate retention-conformance --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate pack-routing-conformance --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate cross-pack-replication-forbidden --microservice cloud-secrets
 ```
 
 - Annual residency audit: confirm each tenant's secrets reside in the assigned pack.

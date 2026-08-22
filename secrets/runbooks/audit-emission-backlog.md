@@ -11,7 +11,7 @@ severity_default: Sev-2 (Sev-1 if backlog >300s)
 
 ## When to use
 
-- `oya_cloud_secrets_audit_emission_backlog_seconds > 60` (Sev-2 page).
+- `cloud_secrets_audit_emission_backlog_seconds > 60` (Sev-2 page).
 - Backlog > 300s (Sev-1 escalation; regulatory compliance risk).
 - Bridge worker crash-looping.
 - audit-chain µservice reporting degraded.
@@ -22,10 +22,10 @@ severity_default: Sev-2 (Sev-1 if backlog >300s)
 
 ```bash
 # Backlog metric
-cargo run -p oya-cloud-secrets-audit-emitter-app -- backlog --pack <pack>
+cargo run -p cloud-secrets-audit-emitter-app -- backlog --pack <pack>
 
 # audit-chain health
-cargo run -p oya-audit-chain-app -- health --pack <pack>
+cargo run -p audit-chain-app -- health --pack <pack>
 
 # Local audit-device file growth
 kubectl -n cloud-secrets-<pack> exec openbao-0 -- du -sh /var/log/openbao/audit
@@ -87,7 +87,7 @@ If audit emission lag correlates with resolve qps spike:
 
 ```bash
 # Resolve qps over last 1h
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- qps --pack <pack> --window 1h
+cargo run -p cloud-secrets-secret-reference-resolver-app -- qps --pack <pack> --window 1h
 ```
 
 Possible causes:
@@ -128,13 +128,13 @@ After audit-chain recovers:
 
 ```bash
 # Verify bridge throughput exceeds backlog drain rate
-cargo run -p oya-cloud-secrets-audit-emitter-app -- bridge-throughput --pack <pack>
+cargo run -p cloud-secrets-audit-emitter-app -- bridge-throughput --pack <pack>
 
 # Monitor backlog drain
-watch 'cargo run -p oya-cloud-secrets-audit-emitter-app -- backlog --pack <pack>'
+watch 'cargo run -p cloud-secrets-audit-emitter-app -- backlog --pack <pack>'
 
 # Confirm audit-chain has caught up
-cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window "last 24h"
+cargo run -p audit-chain-app -- verify-seal --pack <pack> --window "last 24h"
 ```
 
 ## §F — Post-mortem inputs
@@ -143,20 +143,20 @@ For Sev-1 (backlog > 300s): post-mortem must include:
 - Total audit events in lag window.
 - Whether any events were lost (should be zero given durable local file).
 - Tenant notification analysis (rarely needed; audit lag is internal control matter, not breach).
-- LEAN gate proposed: `oya-check-audit-emission-throughput-sla` adds backlog metric to SLO authoring.
+- LEAN gate proposed: `check-audit-emission-throughput-sla` adds backlog metric to SLO authoring.
 
 ## Verification
 
 ```bash
 # Backlog clears
-cargo run -p oya-cloud-secrets-audit-emitter-app -- backlog --pack <pack>
+cargo run -p cloud-secrets-audit-emitter-app -- backlog --pack <pack>
 # Expect: < 5s
 
 # Bridge throughput steady
-cargo run -p oya-cloud-secrets-audit-emitter-app -- bridge-throughput --pack <pack>
+cargo run -p cloud-secrets-audit-emitter-app -- bridge-throughput --pack <pack>
 
 # Audit-chain integrity
-cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
+cargo run -p audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
 # Expect: exit 0
 ```
 

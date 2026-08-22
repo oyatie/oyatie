@@ -30,7 +30,7 @@ fn catalog() -> CloudRegionCatalog {
         .register_region(CloudRegionCreate {
             code: "region-home".to_string(),
             display_name: "Home Region".to_string(),
-            regulatory_packs: vec!["oya-pack-alpha".to_string()],
+            regulatory_packs: vec!["pack-alpha".to_string()],
             state: RegionState::Preview,
             provider_facing: true,
             residency_strictness: ResidencyClass::StrictHomeRegion,
@@ -51,7 +51,7 @@ fn catalog() -> CloudRegionCatalog {
         .register_region(CloudRegionCreate {
             code: "region-recovery".to_string(),
             display_name: "Recovery Region".to_string(),
-            regulatory_packs: vec!["oya-pack-global".to_string()],
+            regulatory_packs: vec!["pack-global".to_string()],
             state: RegionState::Ga,
             provider_facing: true,
             residency_strictness: ResidencyClass::Global,
@@ -72,7 +72,7 @@ fn catalog() -> CloudRegionCatalog {
         .register_region(CloudRegionCreate {
             code: "internal-ops".to_string(),
             display_name: "Internal Operations".to_string(),
-            regulatory_packs: vec!["oya-pack-internal".to_string()],
+            regulatory_packs: vec!["pack-internal".to_string()],
             state: RegionState::Planned,
             provider_facing: false,
             residency_strictness: ResidencyClass::Global,

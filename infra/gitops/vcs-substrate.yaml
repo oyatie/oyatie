@@ -8,16 +8,16 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-forge
+  name: forge
   labels:
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0363
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: github-data
-  namespace: oya-forge
+  namespace: forge
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
@@ -28,7 +28,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: github
-  namespace: oya-forge
+  namespace: forge
   labels:
     app.kubernetes.io/name: github
 spec:
@@ -66,7 +66,7 @@ spec:
             - name: GITHUB__service__DISABLE_REGISTRATION
               value: "true"
             - name: GITHUB__webhook__ALLOWED_HOST_LIST
-              value: "*.cluster.local,oya-ci"
+              value: "*.cluster.local,ci"
           ports:
             - { name: http, containerPort: 3000 }
           securityContext:
@@ -93,7 +93,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: github
-  namespace: oya-forge
+  namespace: forge
 spec:
   selector:
     app.kubernetes.io/name: github

@@ -18,7 +18,7 @@ terraform {
 
 variable "account_name" {
   type        = string
-  description = "Logical account name (e.g. 'oya-prod-us-east-1')."
+  description = "Logical account name (e.g. 'prod-us-east-1')."
 }
 
 variable "billing_email" {

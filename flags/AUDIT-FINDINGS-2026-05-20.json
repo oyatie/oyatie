@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "audit_date": "2026-05-20",
-  "auditor": "oya-governance-pipeline://audit-agent-2026-05-20",
+  "auditor": "governance-pipeline://audit-agent-2026-05-20",
   "microservice": "feature-flags",
   "prior_audit": "AUDIT-FINDINGS-2026-05-18.json",
   "artifact_count": {
@@ -131,7 +131,7 @@
     "dashboards": ["dashboards/flag-state-overview.json", "dashboards/experiment-results.json", "dashboards/killswitch-history.json", "dashboards/pack-override-coverage.md"],
     "slos": ["slos/feature-flags.openslo.yaml", "slos/flag-eval-latency.openslo.yaml", "slos/flag-state-propagation.openslo.yaml", "slos/experiment-result-freshness.openslo.yaml", "slos/killswitch-fire-latency.openslo.yaml"],
     "ips": ["IP-001-feature-flags-design-readiness.md", "IP-002-flag-kernel.md", "IP-003-flag-domain.md", "IP-004-flag-usecase.md", "IP-005-flag-adapter-postgres.md", "IP-006-targeting-kernel.md", "IP-007-targeting-domain.md", "IP-008-experiment-kernel.md", "IP-009-experiment-domain.md", "IP-010-killswitch-kernel.md", "IP-011-rollout-kernel.md", "IP-012-metric-attribution.md", "IP-013-openfeature-sdk.md", "IP-014-rust-sdk.md", "IP-015-typescript-sdk.md", "IP-016-python-sdk.md", "IP-017-iac-terraform.md", "IP-018-cedar-fragments.md", "IP-019-slo-wiring.md", "IP-020-experiment-stats-engine.md"],
-    "catalog_records": ["catalog/oya-feature-flags-flag-kernel.yaml", "catalog/oya-feature-flags-flag-domain.yaml", "catalog/oya-feature-flags-flag-usecase.yaml", "catalog/oya-feature-flags-flag-adapter-postgres.yaml", "catalog/oya-feature-flags-flag-app.yaml", "catalog/oya-feature-flags-flag-rest.yaml", "catalog/oya-feature-flags-targeting-kernel.yaml", "catalog/oya-feature-flags-experiment-kernel.yaml", "catalog/oya-feature-flags-killswitch-kernel.yaml", "catalog/oya-feature-flags-rollout-kernel.yaml", "catalog/oya-feature-flags-metric-kernel.yaml"],
+    "catalog_records": ["catalog/feature-flags-flag-kernel.yaml", "catalog/feature-flags-flag-domain.yaml", "catalog/feature-flags-flag-usecase.yaml", "catalog/feature-flags-flag-adapter-postgres.yaml", "catalog/feature-flags-flag-app.yaml", "catalog/feature-flags-flag-rest.yaml", "catalog/feature-flags-targeting-kernel.yaml", "catalog/feature-flags-experiment-kernel.yaml", "catalog/feature-flags-killswitch-kernel.yaml", "catalog/feature-flags-rollout-kernel.yaml", "catalog/feature-flags-metric-kernel.yaml"],
     "iac": ["iac/k8s-deployment.yaml", "iac/network-policy.yaml", "iac/openbao-policy.hcl", "iac/secret-bindings.yaml", "iac/helm-values.yaml", "iac/ech-config.yaml", "iac/pqc-cert.yaml", "iac/edge-waf.yaml", "iac/terraform/main.tf"],
     "root": ["manifest.json", "AUDIT-FINDINGS-2026-05-18.json", "AUDIT-FINDINGS-2026-05-20.json", "scorecards/overrides.json"]
   },

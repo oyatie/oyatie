@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // SAFETY: Cargo build scripts execute single-threaded for this process
     // before invoking prost/tonic code generation. The PROTOC variable is
     // scoped to this build process and avoids dependence on mutable host CI
-    // installations (the oya-identity-workload-rest precedent).
+    // installations (the identity-workload-rest precedent).
     unsafe {
         std::env::set_var("PROTOC", protoc);
     }

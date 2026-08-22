@@ -433,8 +433,8 @@ PRD §Performance: ≤ 5 s p50 / ≤ 30 s p99 / ≤ 60 s p999.
 
 oyatie's 30 s p99 is more conservative than EKS / GKE / AKS public
 numbers. This reflects the canonical-StorageClass abstraction layer
-overhead (oya-pg-hot / oya-pg-warm / oya-pg-cold / oya-valkey-hot /
-oya-s3-warm / oya-s3-cold all flow through one provisioning code
+overhead (pg-hot / pg-warm / pg-cold / valkey-hot /
+s3-warm / s3-cold all flow through one provisioning code
 path before backend-specific CSI runs).
 
 ## 10. Istio xDS push (mesh policy propagation)

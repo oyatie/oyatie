@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Google-style design doc. Authored **before** implementation for every non-trivial change. Lives alongside the phase index for phase-level designs; alongside the capability for capability-level designs. Reviewed before any IP claims a symbol.
-enforcing_fitness_lane: oya-governance-design-doc-shape  # advisory at draft; lane on lift
+enforcing_fitness_lane: governance-design-doc-shape  # advisory at draft; lane on lift
 owner_team: council-architecture
 related:
   - .omc/scratch/hyperscaler-best-practices-2026-05-12.md  # §Domain 1 Google design docs

@@ -6,8 +6,8 @@
 //! sequence emitter (`data: {…}\n\ndata: [DONE]\n\n` per OpenAI convention).
 //!
 //! Per workspace directive 2026-05-14 (hyper backbone): NO axum, NO async-
-//! openai HTTP client. The adapter consumes the shared `oya-http-router-kernel`
-//! and emits SSE through `oya-http-sse-kernel`. Hand-rolled types (no
+//! openai HTTP client. The adapter consumes the shared `http-router-kernel`
+//! and emits SSE through `http-sse-kernel`. Hand-rolled types (no
 //! `async-openai`) per `support everything ourselves with 0 to minimal
 //! dependency` directive — drift caught by IP-005.
 //!
@@ -24,8 +24,8 @@ use intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,
 };
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_sse_kernel::SseEvent;
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_sse_kernel::SseEvent;
 use std::fmt;
 
 /// data_class: INTERNAL_ONLY — OpenAI ChatCompletion request shape.
@@ -397,7 +397,7 @@ pub fn from_internal_invoke(
 }
 
 /// SSE relay — OpenAI streaming uses `data: {json}\n\n` framing terminated by
-/// `data: [DONE]\n\n`. The `oya-http-sse-domain` already prints `data: …\n\n`
+/// `data: [DONE]\n\n`. The `http-sse-domain` already prints `data: …\n\n`
 /// for each event, so we emit one event per chunk plus a terminal event
 /// containing the literal `[DONE]` string.
 pub fn sse_relay(

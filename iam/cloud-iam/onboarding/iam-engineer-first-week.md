@@ -1,6 +1,6 @@
 # IAM Engineer — First Week on `cloud-iam`
 
-Audience: an IAM/identity engineer with AWS IAM + Okta + SAML/OIDC experience joining the `oya-cloud-iam-*` lane.
+Audience: an IAM/identity engineer with AWS IAM + Okta + SAML/OIDC experience joining the `cloud-iam-*` lane.
 Goal: by Friday EOD you can issue a federated principal, write a Cedar policy, translate it to AWS IAM JSON, and walk
 an Okta SAML inbound federation cycle end-to-end.
 
@@ -112,8 +112,8 @@ Output:
     "Condition": {"Bool": {"oyatie:MfaVerified": "true"}}
   }],
   "Annotation": {
-    "_oya_cedar_digest": "blake3-256:7f2c…",
-    "_oya_cedar_source": "policies/acme-software/tasks-read-allow.cedar"
+    "_cedar_digest": "blake3-256:7f2c…",
+    "_cedar_source": "policies/acme-software/tasks-read-allow.cedar"
   }
 }
 ```

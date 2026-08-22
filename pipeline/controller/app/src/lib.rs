@@ -1,6 +1,6 @@
-//! # oya-ci-controller-app
+//! # ci-controller-app
 //!
-//! kube-rs Controller application library for the oya-ci controller.
+//! kube-rs Controller application library for the ci controller.
 //!
 //! Exposes:
 //! - [`ControllerState`] — shared state with Arc<dyn Trait> adapter seams
@@ -22,7 +22,7 @@
 //! calls `K8sJobSpawner::spawn(build_gate_job(spec))` to create the labeled
 //! gate Job. The reconcile loop then picks it up and posts GitHub statuses.
 //!
-//! Idempotent: the Job name is deterministic (`oya-ci-gate-pr<N>-<sha8>`),
+//! Idempotent: the Job name is deterministic (`ci-gate-pr<N>-<sha8>`),
 //! so a duplicate POST results in a 409 create-conflict no-op (returns 200).
 //!
 //! ## Idempotency / restart-safety
@@ -131,7 +131,7 @@ impl std::error::Error for ReconcileError {}
 
 /// Reconcile a single `batch/v1 Job`.
 ///
-/// Called by the kube-rs Controller for every watch event on oya-ci-gate Jobs.
+/// Called by the kube-rs Controller for every watch event on ci-gate Jobs.
 pub async fn reconcile(
     job: Arc<Job>,
     ctx: Arc<ControllerState>,
@@ -329,7 +329,7 @@ async fn patch_status_annotation(
     if let Err(e) = api
         .patch(
             job_name,
-            &PatchParams::apply("oya-ci-controller"),
+            &PatchParams::apply("ci-controller"),
             &Patch::Merge(patch),
         )
         .await
@@ -357,7 +357,7 @@ async fn patch_waiting_cycles(client: &Client, namespace: &str, job_name: &str, 
     if let Err(e) = api
         .patch(
             job_name,
-            &PatchParams::apply("oya-ci-controller"),
+            &PatchParams::apply("ci-controller"),
             &Patch::Merge(patch),
         )
         .await
@@ -388,7 +388,7 @@ pub fn error_policy(job: Arc<Job>, err: &ReconcileError, _ctx: Arc<ControllerSta
 
 /// Build and run the kube-rs Controller over `batch/v1 Job` in the given namespace.
 ///
-/// Watches only Jobs labeled `oya.io/ci-controller=oya-ci-gate`.
+/// Watches only Jobs labeled `oya.io/ci-controller=ci-gate`.
 pub async fn run_controller(state: ControllerState) {
     let client = state.client.clone();
     let namespace = state.namespace.clone();
@@ -398,7 +398,7 @@ pub async fn run_controller(state: ControllerState) {
     let watcher_config =
         watcher::Config::default().labels(ci_controller_k8s_adapter::WATCHER_LABEL_SELECTOR);
 
-    info!(namespace = %namespace, "starting oya-ci controller");
+    info!(namespace = %namespace, "starting ci controller");
 
     Controller::new(job_api, watcher_config)
         .shutdown_on_signal()
@@ -649,26 +649,26 @@ async fn handle_metrics(_state: State<ServerState>) -> impl IntoResponse {
         "# HELP ci_controller_up Controller liveness\n\
          # TYPE ci_controller_up gauge\n\
          ci_controller_up 1\n\
-         # HELP oya_ci_gate_run_requests_total Authenticated gate-run trigger requests\n\
-         # TYPE oya_ci_gate_run_requests_total counter\n\
-         oya_ci_gate_run_requests_total {}\n\
-         # HELP oya_ci_gate_status_api_requests_total Authenticated gate-run status API requests\n\
-         # TYPE oya_ci_gate_status_api_requests_total counter\n\
-         oya_ci_gate_status_api_requests_total {}\n\
-         # HELP oya_ci_gate_job_spawn_total Gate jobs newly created by the controller API\n\
-         # TYPE oya_ci_gate_job_spawn_total counter\n\
-         oya_ci_gate_job_spawn_total {}\n\
-         # HELP oya_ci_gate_reconcile_total Gate job reconcile attempts\n\
-         # TYPE oya_ci_gate_reconcile_total counter\n\
-         oya_ci_gate_reconcile_total {}\n\
-         # HELP oya_ci_gate_status_post_total Commit-status posts completed by the controller\n\
-         # TYPE oya_ci_gate_status_post_total counter\n\
-         oya_ci_gate_status_post_total {}\n\
-         # HELP oya_ci_gate_observability_surface_info Productized oya-ci debugging surface availability\n\
-         # TYPE oya_ci_gate_observability_surface_info gauge\n\
-         oya_ci_gate_observability_surface_info{{surface=\"metrics\"}} 1\n\
-         oya_ci_gate_observability_surface_info{{surface=\"logs\"}} 1\n\
-         oya_ci_gate_observability_surface_info{{surface=\"status_api\"}} 1\n",
+         # HELP ci_gate_run_requests_total Authenticated gate-run trigger requests\n\
+         # TYPE ci_gate_run_requests_total counter\n\
+         ci_gate_run_requests_total {}\n\
+         # HELP ci_gate_status_api_requests_total Authenticated gate-run status API requests\n\
+         # TYPE ci_gate_status_api_requests_total counter\n\
+         ci_gate_status_api_requests_total {}\n\
+         # HELP ci_gate_job_spawn_total Gate jobs newly created by the controller API\n\
+         # TYPE ci_gate_job_spawn_total counter\n\
+         ci_gate_job_spawn_total {}\n\
+         # HELP ci_gate_reconcile_total Gate job reconcile attempts\n\
+         # TYPE ci_gate_reconcile_total counter\n\
+         ci_gate_reconcile_total {}\n\
+         # HELP ci_gate_status_post_total Commit-status posts completed by the controller\n\
+         # TYPE ci_gate_status_post_total counter\n\
+         ci_gate_status_post_total {}\n\
+         # HELP ci_gate_observability_surface_info Productized ci debugging surface availability\n\
+         # TYPE ci_gate_observability_surface_info gauge\n\
+         ci_gate_observability_surface_info{{surface=\"metrics\"}} 1\n\
+         ci_gate_observability_surface_info{{surface=\"logs\"}} 1\n\
+         ci_gate_observability_surface_info{{surface=\"status_api\"}} 1\n",
         GATE_RUN_REQUESTS_TOTAL.load(Ordering::Relaxed),
         GATE_RUN_STATUS_API_REQUESTS_TOTAL.load(Ordering::Relaxed),
         GATE_JOB_SPAWN_TOTAL.load(Ordering::Relaxed),
@@ -692,7 +692,7 @@ fn is_full_hex_commit_sha(value: &str) -> bool {
 }
 
 fn is_gate_run_id(value: &str) -> bool {
-    let Some(rest) = value.strip_prefix("oya-ci-gate-pr") else {
+    let Some(rest) = value.strip_prefix("ci-gate-pr") else {
         return false;
     };
     let Some((pr_number, sha_short)) = rest.split_once('-') else {
@@ -773,7 +773,7 @@ async fn handle_gate_run_status(
     if !is_gate_run_id(&run_id) {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "run_id must be a deterministic oya-ci gate run id"})),
+            Json(json!({"error": "run_id must be a deterministic ci gate run id"})),
         )
             .into_response();
     }
@@ -983,7 +983,7 @@ async fn handle_gate_run(
         warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: unsupported base_ref");
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"error": "base_ref must be dev for oya-ci gate runs"})),
+            Json(json!({"error": "base_ref must be dev for ci gate runs"})),
         )
             .into_response();
     }
@@ -1121,16 +1121,16 @@ mod tests {
 
     fn test_state(spawner: Arc<RecordingSpawner>) -> ServerState {
         ServerState {
-            controller_namespace: "oya-ci".to_owned(),
+            controller_namespace: "ci".to_owned(),
             job_spawner: spawner,
             gate_spec_config: GateSpecConfig {
                 image: "registry.local/rust-ci:dev".to_owned(),
                 forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
                 active_deadline_seconds: 3600,
                 ttl_seconds_after_finished: 600,
-                namespace: "oya-ci".to_owned(),
-                runner_service_account: "oya-ci-gate-runner".to_owned(),
-                repo: "oya-admin/oyatie".to_owned(),
+                namespace: "ci".to_owned(),
+                runner_service_account: "ci-gate-runner".to_owned(),
+                repo: "admin/oyatie".to_owned(),
                 status_api_base_url: Some("https://ci.example.test/".to_owned()),
             },
             authenticator: Arc::new(ConfiguredBearerCiTriggerAuthenticator::new(TEST_BEARER)),
@@ -1263,31 +1263,31 @@ mod tests {
         let body = json_body(response).await;
 
         assert_eq!(status, StatusCode::CREATED);
-        assert_eq!(body["run_id"], "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(body["run_id"], "ci-gate-pr42-abcdef12");
         assert_eq!(
             body["status_api_path"],
-            "/gate-runs/oya-ci-gate-pr42-abcdef12"
+            "/gate-runs/ci-gate-pr42-abcdef12"
         );
         assert_eq!(
             body["status_url"],
-            "https://ci.example.test/gate-runs/oya-ci-gate-pr42-abcdef12"
+            "https://ci.example.test/gate-runs/ci-gate-pr42-abcdef12"
         );
         assert_eq!(
             body["observability"]["schema"],
-            "oya-ci/run-observability-packet/v1"
+            "ci/run-observability-packet/v1"
         );
         assert_eq!(body["observability"]["phase"], "accepted");
         assert!(body["observability"]["traces"].is_null());
         assert!(body["observability"]["events"].is_null());
         assert_eq!(
             body["observability"]["metrics"][0],
-            "oya_ci_gate_run_requests_total"
+            "ci_gate_run_requests_total"
         );
         let calls = spawner.calls.lock().expect("calls lock");
         assert_eq!(calls.len(), 1);
         assert_eq!(calls[0].run.base_ref, "dev");
         assert_eq!(calls[0].run.delivery_id, "gate-run-pr42-abcdef12");
-        assert_eq!(calls[0].run.job_name(), "oya-ci-gate-pr42-abcdef12");
+        assert_eq!(calls[0].run.job_name(), "ci-gate-pr42-abcdef12");
     }
 
     #[tokio::test]
@@ -1403,7 +1403,7 @@ mod tests {
         let mut router = build_router(test_state(Arc::clone(&spawner)));
 
         let response =
-            route_status_request_with_bearer(&mut router, "oya-ci-gate-pr42-abcdef12", None).await;
+            route_status_request_with_bearer(&mut router, "ci-gate-pr42-abcdef12", None).await;
 
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
@@ -1415,7 +1415,7 @@ mod tests {
 
         let response = route_status_request_with_bearer(
             &mut router,
-            "oya-ci-gate-pr42-abcdef12",
+            "ci-gate-pr42-abcdef12",
             Some(TEST_BEARER),
         )
         .await;
@@ -1441,7 +1441,7 @@ mod tests {
         let body = json_body(response).await;
         assert_eq!(
             body["error"],
-            "run_id must be a deterministic oya-ci gate run id"
+            "run_id must be a deterministic ci gate run id"
         );
     }
 
@@ -1454,11 +1454,11 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = text_body(response).await;
-        assert!(body.contains("oya_ci_gate_run_requests_total"));
-        assert!(body.contains("oya_ci_gate_status_api_requests_total"));
-        assert!(body.contains("oya_ci_gate_job_spawn_total"));
-        assert!(body.contains("oya_ci_gate_reconcile_total"));
-        assert!(body.contains("oya_ci_gate_status_post_total"));
+        assert!(body.contains("ci_gate_run_requests_total"));
+        assert!(body.contains("ci_gate_status_api_requests_total"));
+        assert!(body.contains("ci_gate_job_spawn_total"));
+        assert!(body.contains("ci_gate_reconcile_total"));
+        assert!(body.contains("ci_gate_status_post_total"));
         assert!(body.contains("surface=\"status_api\""));
         assert!(
             !body.contains("surface=\"events\""),

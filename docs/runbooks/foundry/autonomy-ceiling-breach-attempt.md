@@ -14,7 +14,7 @@ doc_status: published
 a capability invocation attempted to exceed the tenant's autonomy ceiling tier
 
 ## Detection
-- Source signal: Cedar policy denial event; `oya-intelligence-policy` runtime block log; per-tenant autonomy-tier breach alert
+- Source signal: Cedar policy denial event; `intelligence-policy` runtime block log; per-tenant autonomy-tier breach alert
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 1 ladder
 
 ## First-response checklist

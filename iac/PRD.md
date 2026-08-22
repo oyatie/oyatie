@@ -144,16 +144,16 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `iac-renderer` | `oya-cloud-iac-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/OpenTofu-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
-| `iac-validator` | `oya-cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Schema + policy + plan-preview + drift-diff; refuses applies that would mutate out-of-scope resources or violate Cedar policy | `PlanPreview`, `DriftReport`, `ValidationVerdict`, `PolicyViolation` |
-| `iac-applier` | `oya-cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd,rest,worker,app}` | Apply orchestration: dependency-correct apply, retry, idempotency, per-µservice scope enforcement; mediates ArgoCD/Flux reconciler | `ApplyJob`, `ApplyResult`, `ApplyOrder`, `RetryBudget` |
-| `iac-rollback` | `oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter,rest,worker,app}` | State-revert engine: revert to last-green apply; coordinate with observability SLO gate rollback primitive | `RollbackTarget`, `StateRevertPlan`, `RollbackVerdict` |
-| `iac-registry` | `oya-cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Versioned chart + module + overlay catalog; per-pack apply-state index; provenance store | `ChartRecord`, `ModuleRecord`, `OverlayRecord`, `ApplyStateIndex`, `Provenance` |
+| `iac-renderer` | `cloud-iac-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/OpenTofu-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
+| `iac-validator` | `cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Schema + policy + plan-preview + drift-diff; refuses applies that would mutate out-of-scope resources or violate Cedar policy | `PlanPreview`, `DriftReport`, `ValidationVerdict`, `PolicyViolation` |
+| `iac-applier` | `cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd,rest,worker,app}` | Apply orchestration: dependency-correct apply, retry, idempotency, per-µservice scope enforcement; mediates ArgoCD/Flux reconciler | `ApplyJob`, `ApplyResult`, `ApplyOrder`, `RetryBudget` |
+| `iac-rollback` | `cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter,rest,worker,app}` | State-revert engine: revert to last-green apply; coordinate with observability SLO gate rollback primitive | `RollbackTarget`, `StateRevertPlan`, `RollbackVerdict` |
+| `iac-registry` | `cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Versioned chart + module + overlay catalog; per-pack apply-state index; provenance store | `ChartRecord`, `ModuleRecord`, `OverlayRecord`, `ApplyStateIndex`, `Provenance` |
 
 Naming justification — `iac-renderer`:
 
 ```
-NAME: oya-cloud-iac-iac-renderer-<layer>
+NAME: cloud-iac-iac-renderer-<layer>
 JUSTIFICATION:
 - microservice = cloud-iac: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice
   folder. No shared|vertical bisection.
@@ -164,7 +164,7 @@ JUSTIFICATION:
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port-trait + sealed-trait + entity types (ChartSource, ModuleSource,
     OverlaySource, RenderedManifest, ContentDigest). Zero I/O. Carries data_class
-    annotations on every field per Bominal ADR-0028 + oya-check-data-class lane.
+    annotations on every field per Bominal ADR-0028 + check-data-class lane.
   - domain: pure render math, dependency ordering, content-digest computation.
   - usecase (ADR-0106; replaces 'application'): orchestrators reading IaC sources
     + invoking adapter renderers + writing RenderCompleted events via ports.
@@ -185,7 +185,7 @@ JUSTIFICATION:
 Naming justification — `iac-validator`:
 
 ```
-NAME: oya-cloud-iac-iac-validator-<layer>
+NAME: cloud-iac-iac-validator-<layer>
 JUSTIFICATION:
 - microservice = cloud-iac.
 - bc-tokens = iac-validator: sibling BC for plan-preview + drift-diff + policy
@@ -206,7 +206,7 @@ JUSTIFICATION:
 Naming justification — `iac-applier`:
 
 ```
-NAME: oya-cloud-iac-iac-applier-<layer>
+NAME: cloud-iac-iac-applier-<layer>
 JUSTIFICATION:
 - microservice = cloud-iac.
 - bc-tokens = iac-applier: sibling BC for apply orchestration.
@@ -228,7 +228,7 @@ JUSTIFICATION:
 Naming justification — `iac-rollback`:
 
 ```
-NAME: oya-cloud-iac-iac-rollback-<layer>
+NAME: cloud-iac-iac-rollback-<layer>
 JUSTIFICATION:
 - microservice = cloud-iac.
 - bc-tokens = iac-rollback: sibling BC for state-revert engine.
@@ -243,7 +243,7 @@ JUSTIFICATION:
 Naming justification — `iac-registry`:
 
 ```
-NAME: oya-cloud-iac-iac-registry-<layer>
+NAME: cloud-iac-iac-registry-<layer>
 JUSTIFICATION:
 - microservice = cloud-iac.
 - bc-tokens = iac-registry: sibling BC for versioned chart/module/overlay catalog +
@@ -276,35 +276,35 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `ChartSourceReader` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-helm` (Helm CLI / SDK) | `INTERNAL_ONLY` (chart text) |
-| `KustomizeOverlayReader` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-kustomize` | `INTERNAL_ONLY` |
-| `TerraformPlanComputer` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-opentofu` (OpenTofu CLI) | `INTERNAL_ONLY` + `AUDIT` (plan output is an audit artifact) |
-| `RenderEventEmitter` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter` (event bus) | `AUDIT` |
-| `PolicyEvaluator` | `oya-cloud-iac-iac-validator-kernel` | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
-| `PlanComputer` | `oya-cloud-iac-iac-validator-kernel` | `-adapter` | `INTERNAL_ONLY` + `AUDIT` |
-| `DriftDiffer` | `oya-cloud-iac-iac-validator-kernel` | `-adapter` (live-cluster API client) | `BEHAVIORAL_TENANT_PRODUCT` (cluster state per tenant) |
-| `ClusterMutator` | `oya-cloud-iac-iac-applier-kernel` | `-adapter` (Kubernetes API client) | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` |
-| `ReconcilerClient` | `oya-cloud-iac-iac-applier-kernel` | `-adapter-argocd` (ArgoCD REST/gRPC client) | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ApplyEventEmitter` | `oya-cloud-iac-iac-applier-kernel` | `-adapter` | `AUDIT` |
-| `RollbackEventEmitter` | `oya-cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
-| `StateRevertPlanComputer` | `oya-cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
-| `ChartCatalogStore` | `oya-cloud-iac-iac-registry-kernel` | `-adapter-postgres` (Postgres) | `INTERNAL_ONLY` |
-| `ApplyStateIndexStore` | `oya-cloud-iac-iac-registry-kernel` | `-adapter-postgres` | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` |
-| `ProvenanceVerifier` | `oya-cloud-iac-iac-registry-kernel` | `-adapter` (Sigstore Cosign + SLSA verifier) | `AUDIT` |
+| `ChartSourceReader` | `cloud-iac-iac-renderer-kernel` | `-adapter-helm` (Helm CLI / SDK) | `INTERNAL_ONLY` (chart text) |
+| `KustomizeOverlayReader` | `cloud-iac-iac-renderer-kernel` | `-adapter-kustomize` | `INTERNAL_ONLY` |
+| `TerraformPlanComputer` | `cloud-iac-iac-renderer-kernel` | `-adapter-opentofu` (OpenTofu CLI) | `INTERNAL_ONLY` + `AUDIT` (plan output is an audit artifact) |
+| `RenderEventEmitter` | `cloud-iac-iac-renderer-kernel` | `-adapter` (event bus) | `AUDIT` |
+| `PolicyEvaluator` | `cloud-iac-iac-validator-kernel` | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
+| `PlanComputer` | `cloud-iac-iac-validator-kernel` | `-adapter` | `INTERNAL_ONLY` + `AUDIT` |
+| `DriftDiffer` | `cloud-iac-iac-validator-kernel` | `-adapter` (live-cluster API client) | `BEHAVIORAL_TENANT_PRODUCT` (cluster state per tenant) |
+| `ClusterMutator` | `cloud-iac-iac-applier-kernel` | `-adapter` (Kubernetes API client) | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` |
+| `ReconcilerClient` | `cloud-iac-iac-applier-kernel` | `-adapter-argocd` (ArgoCD REST/gRPC client) | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ApplyEventEmitter` | `cloud-iac-iac-applier-kernel` | `-adapter` | `AUDIT` |
+| `RollbackEventEmitter` | `cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
+| `StateRevertPlanComputer` | `cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
+| `ChartCatalogStore` | `cloud-iac-iac-registry-kernel` | `-adapter-postgres` (Postgres) | `INTERNAL_ONLY` |
+| `ApplyStateIndexStore` | `cloud-iac-iac-registry-kernel` | `-adapter-postgres` | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` |
+| `ProvenanceVerifier` | `cloud-iac-iac-registry-kernel` | `-adapter` (Sigstore Cosign + SLSA verifier) | `AUDIT` |
 
-Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
+Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
 
 Cross-product rule: `cloud-iac` MUST NOT import any other product µservice crate at any layer. All cross-product flows go through Workflow events (`ApplyStarted/Completed/RolledBack`, `RenderRequested/Completed`, `DriftDetected`) or Ontology reads/writes (`ChartRecord`, `ApplyStateIndex`, `Provenance`). LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
 
-- cloud-ci/oya-ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — dependency-direction
-- cloud-ci/oya-ci governance gate `lean-a2` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — cross-product-refusal
-- cloud-ci/oya-ci governance gate `port-location` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — ports in kernel
-- cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — layer enum match
-- cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — ADR-0131 conformance
-- cloud-ci/oya-ci governance gate `statelessness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
-- cloud-ci/oya-ci governance gate `shardability` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+- cloud-ci/ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `presubmit` context — dependency-direction
+- cloud-ci/ci governance gate `lean-a2` for --microservice cloud-iac is green in the branch-protected `presubmit` context — cross-product-refusal
+- cloud-ci/ci governance gate `port-location` for --microservice cloud-iac is green in the branch-protected `presubmit` context — ports in kernel
+- cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context — layer enum match
+- cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context — ADR-0131 conformance
+- cloud-ci/ci governance gate `statelessness` for --microservice cloud-iac is green in the branch-protected `presubmit` context — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
+- cloud-ci/ci governance gate `shardability` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 
 ## Integration via Workflow + Ontology
 
@@ -409,7 +409,7 @@ Cross-region story:
 
 Sharding:
 - Apply jobs partition by `microservice`; applier shards by µservice without coordination.
-- `oya-check-shardability-cli` CI lane verifies partition key presence.
+- `check-shardability-cli` CI lane verifies partition key presence.
 
 ## Acceptance Criteria
 
@@ -422,9 +422,9 @@ Sharding:
 | AC-05 | Rollback reverts an apply within ≤2min when invoked | timed e2e drill |
 | AC-06 | Drift detector finds a manually-mutated cluster resource within 1h | e2e injection drill |
 | AC-07 | SLSA L3 attestation verified pre-apply | integration test against signed + unsigned chart |
-| AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `oya-cloud-iac-iac-smoke` |
-| AC-09 | cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context | ADR-0131 lane |
-| AC-10 | cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context | ADR-0123 lane; HG-CLOUD-IAC registered |
+| AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `cloud-iac-iac-smoke` |
+| AC-09 | cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context | ADR-0131 lane |
+| AC-10 | cloud-ci/ci governance gate `authority-cohesion` is green in the branch-protected `presubmit` context | ADR-0123 lane; HG-CLOUD-IAC registered |
 | AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/cloud-iac/tests/load/apply-latency.rs` |
 | AC-12 | Drift-detection cycle per cluster ≤ 1h validated under nominal load | observability self-SLO |
 
@@ -494,10 +494,10 @@ This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundat
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 is superseded for this surface: branch-protected `oya-ci-required` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-cloud-governance-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — GitHub Actions `oya-ci-required` is the live CI authority until owned oya-ci runner cutover; ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-github-actions-oya-ci-required-continuity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-github-actions-oya-ci-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 is superseded for this surface: branch-protected `presubmit` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-cloud-governance-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — GitHub Actions `presubmit` is the live CI authority until owned ci runner cutover; ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-github-actions-presubmit-continuity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-github-actions-ci-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-iac` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

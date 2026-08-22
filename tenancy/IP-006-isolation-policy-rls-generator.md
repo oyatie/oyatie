@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-006-isolation-policy-rls-generator
 status: pending
 owner: axis-tenancy + ops-security
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-bypass, oya-governance-rls-force-on-tenant-tables]
+acceptance_lanes: [cargo-check, cargo-nextest, governance-rls-no-superuser-bypass, governance-rls-force-on-tenant-tables]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -15,16 +15,16 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-b
 
 ## Intent
 
-Build the `oya-tenancy-isolation-policy-{kernel,domain,usecase,adapter-postgres}` crates: RLS YAML manifest → Postgres DDL emission; FORCE ROW LEVEL SECURITY enforcement; tenant-bound-table registry; LEAN-check integration.
+Build the `tenancy-isolation-policy-{kernel,domain,usecase,adapter-postgres}` crates: RLS YAML manifest → Postgres DDL emission; FORCE ROW LEVEL SECURITY enforcement; tenant-bound-table registry; LEAN-check integration.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-isolation-policy-kernel/` | create — port traits + RlsPolicy entity + TenantBoundTable registry |
-| `oya-tenancy-isolation-policy-domain/` | create — RlsPolicy → DDL string rendering (pure) |
-| `oya-tenancy-isolation-policy-usecase/` | create — install / verify / audit orchestrators |
-| `oya-tenancy-isolation-policy-adapter-postgres/` | create — emits DDL via sqlx; reads `pg_policies` |
+| `tenancy-isolation-policy-kernel/` | create — port traits + RlsPolicy entity + TenantBoundTable registry |
+| `tenancy-isolation-policy-domain/` | create — RlsPolicy → DDL string rendering (pure) |
+| `tenancy-isolation-policy-usecase/` | create — install / verify / audit orchestrators |
+| `tenancy-isolation-policy-adapter-postgres/` | create — emits DDL via sqlx; reads `pg_policies` |
 | `microservices/tenancy/policy/rls/<table>.yaml` | create — declarative RLS manifests for tenancy-owned tables (tenants, dsr_requests, audit_log) |
 | `microservices/tenancy/policy/rls/waivers.yaml` | create — empty initial waiver register |
 | Catalog rows | create — 4 catalog entries |
@@ -63,10 +63,10 @@ pub async fn install_rls(deps: &Deps, manifest: &RlsManifest, change_id: ChangeI
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-isolation-policy-usecase
-cargo nextest run -p oya-tenancy-isolation-policy-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass
-cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables
+cargo nextest run -p tenancy-isolation-policy-usecase
+cargo nextest run -p tenancy-isolation-policy-adapter-postgres
+cargo run -p dev-cli -- gate validate rls-no-superuser-bypass
+cargo run -p dev-cli -- gate validate rls-force-on-tenant-tables
 ```
 
 ## Test Plan
@@ -85,7 +85,7 @@ cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables
 - Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
 - Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
-- Surface evidence: `microservices/tenancy/IP-006-isolation-policy-rls-generator.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-006-isolation-policy-rls-generator.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Next IP
 

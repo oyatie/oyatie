@@ -1,0 +1,16 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-cell-grid-rest
+  namespace: sheets
+  labels:
+    app.kubernetes.io/name: sheets-cell-grid-rest
+    oyatie/microservice: sheets
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sheets-cell-grid-rest
+{{- end }}

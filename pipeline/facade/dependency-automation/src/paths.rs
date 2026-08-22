@@ -10,7 +10,7 @@ use crate::report::Finding;
 ///
 /// `managed_file` entries were already existence-checked; single-valued path keys were not, and
 /// that gap let `[rust].drift_guard` sit for months naming
-/// `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs` — a file deleted
+/// `cloud/cloud-ci/gates/cloud-ci-freshness-app/src/rust_toolchain_drift.rs` — a file deleted
 /// with the whole `cloud/` tree. A config that names a nonexistent guard reads exactly like a
 /// config that names a working one, which is the failure mode worth closing: the declaration is
 /// the only evidence the guard exists, so an unchecked declaration is no evidence at all.

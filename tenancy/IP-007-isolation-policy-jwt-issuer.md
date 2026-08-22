@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-007-isolation-policy-jwt-issuer
 status: pending
 owner: axis-tenancy + ops-security
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-jwt-key-fingerprint-advertised]
+acceptance_lanes: [cargo-check, cargo-nextest, governance-jwt-key-fingerprint-advertised]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -15,18 +15,18 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-jwt-key-fingerprin
 
 ## Intent
 
-JWT issuance + verification subsystem within `oya-tenancy-isolation-policy-*`. Ed25519 signing key from OpenBao; 30d rotation cadence; old pubkey 30d grace; fingerprint advertised via Workflow. Algorithm-confusion-attack hardening (Invariant JWT-01).
+JWT issuance + verification subsystem within `tenancy-isolation-policy-*`. Ed25519 signing key from OpenBao; 30d rotation cadence; old pubkey 30d grace; fingerprint advertised via Workflow. Algorithm-confusion-attack hardening (Invariant JWT-01).
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-isolation-policy-kernel/src/jwt_ports.rs` | update — `JwtIssuer`, `JwtVerifier`, `SigningKeyStore` traits |
-| `oya-tenancy-isolation-policy-adapter/src/jwt_issuer.rs` | create — OpenBao-backed Ed25519 sign |
-| `oya-tenancy-isolation-policy-adapter/src/jwt_verifier.rs` | create — local pubkey cache; refresh on JwtSigningKeyRotated event |
-| `oya-tenancy-isolation-policy-adapter/src/openbao_signing_key_store.rs` | create — Ed25519 keypair fetch + rotation cron |
-| `oya-tenancy-isolation-policy-worker/src/rotation_worker.rs` | create — 30d rotation + fingerprint Workflow emit |
-| `oya-tenancy-isolation-policy-rest/src/jwt_routes.rs` | create — `POST /jwts`, `POST /jwts/verify`, `GET /jwt-fingerprints` |
+| `tenancy-isolation-policy-kernel/src/jwt_ports.rs` | update — `JwtIssuer`, `JwtVerifier`, `SigningKeyStore` traits |
+| `tenancy-isolation-policy-adapter/src/jwt_issuer.rs` | create — OpenBao-backed Ed25519 sign |
+| `tenancy-isolation-policy-adapter/src/jwt_verifier.rs` | create — local pubkey cache; refresh on JwtSigningKeyRotated event |
+| `tenancy-isolation-policy-adapter/src/openbao_signing_key_store.rs` | create — Ed25519 keypair fetch + rotation cron |
+| `tenancy-isolation-policy-worker/src/rotation_worker.rs` | create — 30d rotation + fingerprint Workflow emit |
+| `tenancy-isolation-policy-rest/src/jwt_routes.rs` | create — `POST /jwts`, `POST /jwts/verify`, `GET /jwt-fingerprints` |
 
 ## Code Shape
 
@@ -42,7 +42,7 @@ pub fn verify_jwt(jwt: &str, pubkeys: &PubKeyCache) -> Result<JwtClaims, JwtErro
     let kid = header.kid.ok_or(JwtError::MissingKid)?;
     let pubkey = pubkeys.lookup(&kid).ok_or(JwtError::UnknownKey)?;
     let mut validation = Validation::new(Algorithm::EdDSA);
-    validation.set_issuer(&[format!("oya-tenancy-{pack}-{env}")]);
+    validation.set_issuer(&[format!("tenancy-{pack}-{env}")]);
     validation.set_audience(&["oyatie-internal"]);
     let token = decode::<JwtClaims>(jwt, &DecodingKey::from_ed_der(pubkey), &validation)?;
     Ok(token.claims)
@@ -68,9 +68,9 @@ pub async fn rotation_cycle(deps: &Deps) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-isolation-policy-adapter --test jwt_verifier
-cargo nextest run -p oya-tenancy-isolation-policy-worker --test jwt_rotation
-cargo run -p oya-dev-cli -- gate validate jwt-key-fingerprint-advertised
+cargo nextest run -p tenancy-isolation-policy-adapter --test jwt_verifier
+cargo nextest run -p tenancy-isolation-policy-worker --test jwt_rotation
+cargo run -p dev-cli -- gate validate jwt-key-fingerprint-advertised
 ```
 
 ## Test Plan

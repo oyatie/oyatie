@@ -1,7 +1,7 @@
 // tenancy µservice — CI-scope policy fragment
 // Cedar v4
 //
-// Purpose: scope the oya-ci reserved tenant's access to governance lanes only;
+// Purpose: scope the ci reserved tenant's access to governance lanes only;
 //          forbid reads or writes against customer-tenant data.
 // Owner:   axis-platform + axis-tenancy + ops-security
 // References: rls-isolation.md §"Reserved tenant IDs"; threat-model.md T-S-03, T-I-03
@@ -11,11 +11,11 @@
 // PERMIT 1 — CI lane reads governance-state for promotion-readiness verdicts
 // =============================================================================
 //
-// The oya-governance-promotion-readiness CI lane (running as principal Service::"oya-ci")
+// The governance-promotion-readiness CI lane (running as principal Service::"ci")
 // may read the governance state that gates tenancy promotion.
 
 permit (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [
     Action::"read_governance_state",
     Action::"read_rls_policy_state",
@@ -26,14 +26,14 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id in ["tenant:oya-ci", "tenant:oya-self", "tenant:oya-aggregate", "tenant:oya-system"]
+  resource.tenant_id in ["tenant:ci", "tenant:self", "tenant:aggregate", "tenant:system"]
 };
 
 // =============================================================================
-// PERMIT 2 — slo-engine-worker writes oya-self self-observability metrics
+// PERMIT 2 — slo-engine-worker writes self self-observability metrics
 // =============================================================================
 //
-// tenancy self-SLOs run as tenant:oya-self; the slo-engine-worker emits
+// tenancy self-SLOs run as tenant:self; the slo-engine-worker emits
 // verdict metrics with that tenant scope.
 
 permit (
@@ -43,15 +43,15 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-self"
+  resource.tenant_id == "tenant:self"
 };
 
 // =============================================================================
 // PERMIT 3 — tenancy-isolation-policy-worker emits CI-tenant metrics
 // =============================================================================
 //
-// The tenancy isolation-policy-worker emits oya_tenancy_* metrics into
-// tenant:oya-ci for CI lane consumption (e.g., rls-drift metrics).
+// The tenancy isolation-policy-worker emits tenancy_* metrics into
+// tenant:ci for CI lane consumption (e.g., rls-drift metrics).
 
 permit (
   principal == Service::"tenancy-isolation-policy-worker",
@@ -60,9 +60,9 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-ci" &&
+  resource.tenant_id == "tenant:ci" &&
   resource has metric_name &&
-  resource.metric_name like "oya_tenancy_*"
+  resource.metric_name like "tenancy_*"
 };
 
 // =============================================================================
@@ -73,13 +73,13 @@ when {
 // records + DSR records + cell-assignment per-tenant rows are out of scope.
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action,
   resource
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-self", "tenant:oya-aggregate", "tenant:oya-system"])
+  !(resource.tenant_id in ["tenant:ci", "tenant:self", "tenant:aggregate", "tenant:system"])
 };
 
 // =============================================================================
@@ -87,7 +87,7 @@ when {
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [
     Action::"create_tenant",
     Action::"suspend_tenant",
@@ -106,7 +106,7 @@ forbid (
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action,
   resource
 )
@@ -131,14 +131,14 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-self", "tenant:oya-aggregate", "tenant:oya-system"])
+  !(resource.tenant_id in ["tenant:ci", "tenant:self", "tenant:aggregate", "tenant:system"])
 };
 
 // =============================================================================
 // FORBID — reserved-tenant write by non-authorised principals
 // =============================================================================
 //
-// tenant:oya-ci / oya-self / oya-aggregate / oya-system are reserved.
+// tenant:ci / self / aggregate / system are reserved.
 // Only specific SPIFFE identities may write to them.
 
 forbid (
@@ -148,11 +148,11 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id in ["tenant:oya-ci", "tenant:oya-self", "tenant:oya-aggregate", "tenant:oya-system"]
+  resource.tenant_id in ["tenant:ci", "tenant:self", "tenant:aggregate", "tenant:system"]
 }
 unless {
   principal in [
-    Service::"oya-ci",
+    Service::"ci",
     Service::"slo-engine-worker",
     Service::"tenancy-isolation-policy-worker",
     Service::"tenancy-cell-assignment-worker",

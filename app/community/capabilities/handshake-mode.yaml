@@ -7,7 +7,7 @@
 #   - community/policy/anonymity-mode-identity-anchored.cedar
 #   - community/ARCHITECTURE.md §community-as-4-mixture-product
 
-capability_id: oya-community-handshake-mode
+capability_id: community-handshake-mode
 tier: product-surface
 microservice: community
 status: Accepted

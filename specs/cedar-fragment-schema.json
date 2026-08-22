@@ -33,7 +33,7 @@
       "ADR-0248",
       "ADR-0251"
     ],
-    "purpose": "Canonical machine-readable schema for the YAML/JSON envelope (frontmatter) wrapping every Cedar policy fragment in the oyatie policy engine. Defines fragment identity, scope, signing/cosign chain of trust, multispectrum review verdict capture, coverage role declaration, and lifecycle status. Consumed by the fragment registry's admission validator, the hot-reload subscriber's signature verifier, and the oya-check-cedar-fragment-signature + oya-check-cedar-coverage CI lanes.",
+    "purpose": "Canonical machine-readable schema for the YAML/JSON envelope (frontmatter) wrapping every Cedar policy fragment in the oyatie policy engine. Defines fragment identity, scope, signing/cosign chain of trust, multispectrum review verdict capture, coverage role declaration, and lifecycle status. Consumed by the fragment registry's admission validator, the hot-reload subscriber's signature verifier, and the check-cedar-fragment-signature + check-cedar-coverage CI lanes.",
     "industry_citations": [
       {
         "vendor": "AWS",
@@ -325,7 +325,7 @@
     },
     "coverage_role": {
       "type": "string",
-      "description": "Coverage classification consumed by oya-check-cedar-coverage and oya-check-cedar-default-deny-coverage CI lanes. Each permit must have a complementary default-deny in coverage analysis. Overlays compose with permits + default-denies.",
+      "description": "Coverage classification consumed by check-cedar-coverage and check-cedar-default-deny-coverage CI lanes. Each permit must have a complementary default-deny in coverage analysis. Overlays compose with permits + default-denies.",
       "enum": [
         "permit",
         "default-deny",

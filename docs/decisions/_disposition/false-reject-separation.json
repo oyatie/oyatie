@@ -344,7 +344,7 @@
     {
       "num": 346,
       "title": "oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + carg",
-      "file": "ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+      "file": "ADR-0346-verify-must-run-full-ci-mirror.md",
       "reason": "Admission/build hygiene gates aligned with 0515/capability-first monorepo",
       "action": "Accept now (no body edit required for admission)"
     },
@@ -392,15 +392,15 @@
     },
     {
       "num": 549,
-      "title": "oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness",
+      "title": "buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness",
       "file": "ADR-0549-buck-syntax-kernel.md",
       "reason": "Admission/build hygiene gates aligned with 0515/capability-first monorepo",
       "action": "Accept now (no body edit required for admission)"
     },
     {
       "num": 553,
-      "title": "Commission the oya-identity runnable workload-identity service (G005 slice 1)",
-      "file": "ADR-0553-oya-identity-workload-service-commissioning.md",
+      "title": "Commission the identity runnable workload-identity service (G005 slice 1)",
+      "file": "ADR-0553-identity-workload-service-commissioning.md",
       "reason": "False freeze Reject; aligns with live stack / hyperscaler design",
       "action": "Accept now (no body edit required for admission)"
     },
@@ -739,7 +739,7 @@
     },
     {
       "num": 347,
-      "title": "Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + cat",
+      "title": "Foundry-fitness to governance bulk rename (doctrine-only; all governance-fitness-* CI lanes + crates + cat",
       "file": "ADR-0347-governance-fitness-bulk-rename.md",
       "reason": "Stale tooling path, superseded admission model, or conflicts live law",
       "action": "Keep Rejected"
@@ -1035,8 +1035,8 @@
     },
     {
       "num": 569,
-      "title": "Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres) behind th",
-      "file": "ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+      "title": "Commission the data outbox CDC change-stream Postgres adapter (data-outbox-adapter-postgres) behind th",
+      "file": "ADR-0569-commission-data-outbox-cdc-adapter-postgres.md",
       "reason": "No automatic disposition; needs human skim of body vs live Accepted set",
       "action": "Review queue"
     },

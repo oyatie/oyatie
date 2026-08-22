@@ -12,7 +12,7 @@ doc_status: published
 
 ## A. Trigger conditions
 
-- `oya_connector_webhook_replay_blocked_total > N` (configurable; default N=10 in 5min)
+- `connector_webhook_replay_blocked_total > N` (configurable; default N=10 in 5min)
 - Anomaly detection: same idempotency-key seen ≥3× within 1min
 - Manual report from tenant: "I see duplicate workflow runs"
 
@@ -32,7 +32,7 @@ doc_status: published
 
    # Source IPs
    curl 'http://connector-webhook-receiver-edge.connector:9090/metrics' | \
-     grep 'oya_connector_webhook_replay_blocked_total'
+     grep 'connector_webhook_replay_blocked_total'
    ```
 
 2. **Adaptive challenge engaged** (already active per `abuse-defence.cedar`)
@@ -66,10 +66,10 @@ doc_status: published
 
 ```bash
 # Replay-block rate trending down
-curl http://connector-webhook-receiver-edge.connector:9090/metrics | grep oya_connector_webhook_replay_blocked_total
+curl http://connector-webhook-receiver-edge.connector:9090/metrics | grep connector_webhook_replay_blocked_total
 
 # Tenant traffic unaffected (UX-floor)
-curl http://connector-webhook-receiver-edge.connector:9090/metrics | grep 'oya_connector_webhook_receive_p99_seconds{outcome="2xx"}'
+curl http://connector-webhook-receiver-edge.connector:9090/metrics | grep 'connector_webhook_receive_p99_seconds{outcome="2xx"}'
 # Expected: p99 ≤ 0.1s
 ```
 

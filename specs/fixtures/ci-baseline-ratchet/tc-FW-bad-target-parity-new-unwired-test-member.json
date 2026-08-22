@@ -7,22 +7,22 @@
   "merge_base_baseline": {
     "gates": {
       "cloud-ci-target-parity": {
-        "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new", "keys": ["libs/oya-existing-domain"]}
+        "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new", "keys": ["libs/existing-domain"]}
       }
     }
   },
   "current": {
     "cloud-ci-target-parity": {
-      "member_test_code_without_rust_test_target": ["libs/oya-existing-domain", "libs/oya-new-tests-domain"]
+      "member_test_code_without_rust_test_target": ["libs/existing-domain", "libs/new-tests-domain"]
     }
   },
   "proposed_baseline": {
     "gates": {
       "cloud-ci-target-parity": {
-        "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new", "keys": ["libs/oya-existing-domain"]}
+        "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new", "keys": ["libs/existing-domain"]}
       }
     }
   },
   "signoff": {"_sign_off_additions": {}},
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-firewall-app/tests/firewall.rs"
 }

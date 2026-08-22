@@ -12,7 +12,7 @@ doc_status: published
 
 ## A. Trigger conditions
 
-- `oya_connector_webhook_signature_verify_fail_total > threshold` (default 100/min)
+- `connector_webhook_signature_verify_fail_total > threshold` (default 100/min)
 - Suspected: signing secret leaked, vendor rotated keys, or attack
 - Tenant reports vendor webhooks all returning 401
 
@@ -26,7 +26,7 @@ doc_status: published
 
 1. **Identify scope** (≤2min)
    ```promql
-   topk(10, sum by (tenant_id, connector) (rate(oya_connector_webhook_signature_verify_fail_total[5m])))
+   topk(10, sum by (tenant_id, connector) (rate(connector_webhook_signature_verify_fail_total[5m])))
    ```
 
 2. **Verify vendor signing-key version** (≤5min)
@@ -54,10 +54,10 @@ doc_status: published
 
 ```promql
 # Verify-fail rate dropping
-rate(oya_connector_webhook_signature_verify_fail_total[5m])
+rate(connector_webhook_signature_verify_fail_total[5m])
 
 # Verify-success rate restored
-rate(oya_connector_webhook_signature_verify_success_total[5m])
+rate(connector_webhook_signature_verify_success_total[5m])
 ```
 
 ## E. Rollback

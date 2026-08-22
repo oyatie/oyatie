@@ -53,7 +53,7 @@ If a pre-check fails, do not start the phase; open [workspace-members-merge-queu
    If differs: split the move PR.
 
 4. ☐ Run phase-level dependency and catalog checks after each PR lands.
-   Command: `oya gate validate architecture-boundaries && cargo run -p oya-tooling-cli-dev-runtime -- catalog validate`
+   Command: `oya gate validate architecture-boundaries && cargo run -p tooling-cli-dev-runtime -- catalog validate`
    Expected: no forbidden role edge and every workspace package has a catalog record.
    If differs: halt the phase until fixed.
 
@@ -76,9 +76,9 @@ If a pre-check fails, do not start the phase; open [workspace-members-merge-queu
 - [ ] Phase move PRs all have passing targeted tests.
 - [ ] `oya gate validate architecture-boundaries --self-test` passes.
 - [ ] `oya gate validate architecture-boundaries` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- gate validate quality-lanes` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push` passes at phase close or the phase records an explicit local-resource blocker plus targeted substitutes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- catalog validate` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- gate validate quality-lanes` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime --bin repoctl -- pre-push` passes at phase close or the phase records an explicit local-resource blocker plus targeted substitutes.
 
 ---
 

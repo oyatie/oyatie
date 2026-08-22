@@ -1,6 +1,6 @@
 # PURPOSE: OpenAPI 3.2 contract for the ops docs-portal BC per
 # ralplan-docs-portal v7 + ADR-0066 (live code-introspection docs portal).
-# Consumer of oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort +
+# Consumer of ops-docs-portal-kernel types (ManifestPort + LiveFeedPort +
 # ExtractorClass hot/warm/cold).
 # Cedar-gated initially by ops-internal-public.cedar (M02-P20); tenant-tier
 # overlay adds ops-tenant-public.cedar + ops-manifest-tenant-filter.cedar +

@@ -1047,7 +1047,7 @@ fn adr_ir_carries_complete_lifecycle_surface_and_deliverable_fields() {
         "  - ADR-0700\n",
         "related: [ADR-0300, ADR-0400]\n",
         "affected_surfaces:\n",
-        "  crates: [corpus-doc-parser, oya-check-adr-index]\n",
+        "  crates: [corpus-doc-parser, check-adr-index]\n",
         "  specs:\n",
         "    - /specs/root-hub-pointers.json\n",
         "deliverables:\n",
@@ -1071,7 +1071,7 @@ fn adr_ir_carries_complete_lifecycle_surface_and_deliverable_fields() {
     assert_eq!(decision.affected_surfaces()[0].category(), "crates");
     assert_eq!(
         decision.affected_surfaces()[0].values(),
-        ["corpus-doc-parser", "oya-check-adr-index"]
+        ["corpus-doc-parser", "check-adr-index"]
     );
     assert_eq!(decision.deliverables().len(), 1);
     assert_eq!(decision.deliverables()[0].id(), "ADR-0517-D1");

@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0115
   - ADR-0131
 enforced_by:
-  - oya-governance-naming-convention
-  - oya-governance-layered-architecture
-  - oya-governance-flat-crates
+  - governance-naming-convention
+  - governance-layered-architecture
+  - governance-flat-crates
 canonical_paths:
   - docs/standards/crate-naming-convention.md
   - docs/standards/layer-enum-adr-0105.md
@@ -76,7 +76,7 @@ N-001. Every durable identifier MUST be lowercase kebab-case unless the host for
 
 N-002. Every repository-owned crate MUST start with `oya-`.
 
-N-003. Every repository-owned checker crate MUST start with `oya-check-`.
+N-003. Every repository-owned checker crate MUST start with `check-`.
 
 N-004. Every non-checker crate MUST include a registered microservice token immediately after `oya-`.
 
@@ -168,7 +168,7 @@ N-047. A compatibility alias MAY exist only with an expiration date.
 
 N-048. A compatibility alias MUST name the successor id.
 
-N-049. A compatibility alias MUST be validated by `oya-governance-retired-paths`.
+N-049. A compatibility alias MUST be validated by `governance-retired-paths`.
 
 N-050. A compatibility alias MUST NOT be used by new artifacts.
 
@@ -240,10 +240,10 @@ Input:
 
 ```toml
 [package]
-name = "oya-workflow-engine-state-machine-domain"
+name = "workflow-engine-state-machine-domain"
 
 [lib]
-name = "oya_workflow_engine_state_machine_domain"
+name = "workflow_engine_state_machine_domain"
 
 [package.metadata.oya]
 microservice = "workflow-engine"
@@ -263,7 +263,7 @@ The layer token is `domain`.
 
 The lib target maps hyphen to underscore.
 
-The dependency graph is checked by `oya-governance-layered-architecture`.
+The dependency graph is checked by `governance-layered-architecture`.
 
 ### Example 2: Invalid provider leak
 
@@ -271,7 +271,7 @@ Input:
 
 ```toml
 [package]
-name = "oya-cloud-aws-kms-kernel"
+name = "cloud-aws-kms-kernel"
 ```
 
 Why it fails:
@@ -280,11 +280,11 @@ Why it fails:
 
 Provider tokens do not belong in kernel crates.
 
-The valid kernel is `oya-cloud-kms-kernel`.
+The valid kernel is `cloud-kms-kernel`.
 
-The AWS provider implementation belongs in `oya-cloud-kms-adapter-aws`.
+The AWS provider implementation belongs in `cloud-kms-adapter-aws`.
 
-The catalog record belongs at `registry/catalog/oya-cloud-kms-adapter-aws.yaml`.
+The catalog record belongs at `registry/catalog/cloud-kms-adapter-aws.yaml`.
 
 ### Example 3: Contract file naming
 
@@ -344,21 +344,21 @@ The id states service, capability, and tier without creating a product silo.
 
 ## Verification
 
-The primary checker is `oya-governance-naming-convention`.
+The primary checker is `governance-naming-convention`.
 
-The crate layer checker is `oya-governance-layered-architecture`.
+The crate layer checker is `governance-layered-architecture`.
 
-The catalog checker is `oya-governance-catalog-id-discipline`.
+The catalog checker is `governance-catalog-id-discipline`.
 
-The contract checker is `oya-governance-contract-name-shape`.
+The contract checker is `governance-contract-name-shape`.
 
-The Cedar checker is `oya-governance-cedar-file-shape`.
+The Cedar checker is `governance-cedar-file-shape`.
 
-The SLO checker is `oya-governance-openslo-conformance`.
+The SLO checker is `governance-openslo-conformance`.
 
-The ADR checker is `oya-governance-adr-shape`.
+The ADR checker is `governance-adr-shape`.
 
-The retired path checker is `oya-governance-retired-paths`.
+The retired path checker is `governance-retired-paths`.
 
 The naming checker MUST scan `Cargo.toml`.
 
@@ -480,7 +480,7 @@ Using a checker exception without an ADR is an anti-pattern.
 
 BNF-SB-001. Verify `oya-` prefix on every non-checker crate.
 
-BNF-SB-002. Verify `oya-check-` prefix on every checker crate.
+BNF-SB-002. Verify `check-` prefix on every checker crate.
 
 BNF-SB-003. Verify microservice token against workspace metadata.
 
@@ -578,15 +578,15 @@ BNF-SB-049. Require `docs/GLOSSARY.md` entry for repeated new term.
 
 BNF-SB-050. Require tenant-visible label indirection for display text.
 
-BNF-SB-051. Check `crates/oya-workflow-engine-state-machine-domain`.
+BNF-SB-051. Check `crates/workflow-engine-state-machine-domain`.
 
-BNF-SB-052. Check `crates/oya-tenancy-sub-scope-registry-kernel`.
+BNF-SB-052. Check `crates/tenancy-sub-scope-registry-kernel`.
 
-BNF-SB-053. Check `crates/oya-policy-cedar-domain`.
+BNF-SB-053. Check `crates/policy-cedar-domain`.
 
-BNF-SB-054. Check `crates/oya-cloud-compute-vm-api`.
+BNF-SB-054. Check `crates/cloud-compute-vm-api`.
 
-BNF-SB-055. Check `crates/oya-intelligence-evidence-domain`.
+BNF-SB-055. Check `crates/intelligence-evidence-domain`.
 
 BNF-SB-056. Check `microservices/workflow-engine/contracts/state-machine-v1.openapi.yaml`.
 
@@ -659,7 +659,7 @@ old_names:
   proto_rpc: Cancel
   cedar_action: Cancel
 new_names:
-  crate: oya-workflow-template-cancel-usecase
+  crate: workflow-template-cancel-usecase
   openapi_operation: workflowTemplateCancelV1
   asyncapi_message: WorkflowTemplateCancelRequestedV1
   proto_rpc: WorkflowTemplateCancelV1
@@ -667,14 +667,14 @@ new_names:
 required_alias_rows:
   - registry: registry/naming/renames.jsonl
     from: workflow_cancel
-    to: oya-workflow-template-cancel-usecase
+    to: workflow-template-cancel-usecase
     sunset_after: 2026-08-20
   - registry: registry/naming/renames.jsonl
     from: cancelTask
     to: WorkflowTemplateCancelRequestedV1
     sunset_after: 2026-08-20
 required_paths:
-  - crates/oya-workflow-template-cancel-usecase/Cargo.toml
+  - crates/workflow-template-cancel-usecase/Cargo.toml
   - microservices/workflow-engine/contracts/state-machine-v1.openapi.yaml
   - microservices/workflow-engine/contracts/state-machine-v1.asyncapi.yaml
   - microservices/workflow-engine/contracts/state-machine-v1.proto
@@ -683,9 +683,9 @@ required_paths:
   - docs/standards/capability-tier-matrix.md
 verification:
   commands:
-    - cargo run -p oya-check-naming-bnf-v4 --quiet
-    - cargo run -p oya-check-contract-name-parity --quiet
-    - cargo run -p oya-check-cedar-action-names --quiet
+    - cargo run -p check-naming-bnf-v4 --quiet
+    - cargo run -p check-contract-name-parity --quiet
+    - cargo run -p check-cedar-action-names --quiet
   expected:
     invalid_identifiers: 0
     unresolved_aliases: 0
@@ -701,46 +701,46 @@ new artifacts with the retired name.
 
 | ID | Surface | Valid example | Invalid example | Enforced by |
 |---|---|---|---|---|
-| BNF-SURF-001 | Rust kernel crate | `oya-tenancy-tenant-registry-kernel` | `tenant_registry` | `oya-check-naming-bnf-v4` |
-| BNF-SURF-002 | Rust domain crate | `oya-policy-cedar-domain` | `cedarDomain` | `oya-check-crate-name-parity` |
-| BNF-SURF-003 | Rust usecase crate | `oya-workflow-template-start-usecase` | `start_workflow` | `oya-check-layer-token` |
-| BNF-SURF-004 | Rust adapter crate | `oya-mail-smtp-adapter-aws-ses` | `ses-mailer` | `oya-check-provider-suffix` |
-| BNF-SURF-005 | Rust runtime crate | `oya-intelligence-provider-runtime` | `foundry_service` | `oya-check-runtime-token` |
-| BNF-SURF-006 | API contract file | `tenant-registry-v1.openapi.yaml` | `api.yaml` | `oya-check-openapi-names` |
-| BNF-SURF-007 | Event contract file | `workflow-state-v1.asyncapi.yaml` | `events.yaml` | `oya-check-asyncapi-names` |
-| BNF-SURF-008 | Proto contract file | `workflow_state_v1.proto` | `workflow.proto` | `oya-check-proto-names` |
-| BNF-SURF-009 | Cedar policy file | `tenant-scope.cedar` | `authz.cedar` | `oya-check-cedar-policy-names` |
-| BNF-SURF-010 | OpenSLO file | `workflow-engine-availability.openslo.yaml` | `slo.yaml` | `oya-check-openslo-names` |
-| BNF-SURF-011 | ADR file | `ADR-0105-layer-enum-ratchet.md` | `layers.md` | `oya-check-adr-name-shape` |
-| BNF-SURF-012 | Standard file | `proto3-authoring.md` | `protobuf.md` | `oya-check-standard-name-shape` |
-| BNF-SURF-013 | Evidence file | `standards-completeness-w1-2026-05-20.json` | `evidence.json` | `oya-check-evidence-names` |
-| BNF-SURF-014 | Runbook file | `workflow-engine-stuck-execution.md` | `how-to-fix-workflows.md` | `oya-check-runbook-names` |
-| BNF-SURF-015 | Dashboard id | `workflow-engine-latency-p99` | `Latency Dashboard` | `oya-check-dashboard-ids` |
-| BNF-SURF-016 | Metric name | `oyatie_workflow_execution_duration_seconds` | `workflowTime` | `oya-check-metric-names` |
-| BNF-SURF-017 | Trace span | `workflow.engine.transition.apply` | `do transition` | `oya-check-trace-span-names` |
-| BNF-SURF-018 | Audit event | `EVT-WORKFLOW-TRANSITION-APPLIED` | `workflow changed` | `oya-check-audit-event-names` |
-| BNF-SURF-019 | Capability id | `cap.workflow.template.start.t2` | `starter` | `oya-check-capability-tier-matrix` |
-| BNF-SURF-020 | Tenant pack id | `pack-kr-fintech` | `Korea Finance` | `oya-check-pack-id-names` |
-| BNF-SURF-021 | Cell id | `cell-kr-csap-seoul-1` | `seoul-prod` | `oya-check-cell-names` |
-| BNF-SURF-022 | RuntimeClass id | `kata-clh-sev-snp` | `secure runtime` | `oya-check-runtimeclass-names` |
-| BNF-SURF-023 | Helm chart id | `oya-workflow-engine` | `workflowEngine` | `oya-check-helm-chart-names` |
-| BNF-SURF-024 | Kustomize component | `istio-waypoint-policies` | `waypointStuff` | `oya-check-kustomize-names` |
-| BNF-SURF-025 | Secret reference | `workflow-engine/provider/aws-ses/api-key` | `sesKey` | `oya-check-secret-ref-names` |
-| BNF-SURF-026 | Config key | `workflow.execution.max_attempts` | `maxAttempts` | `oya-check-config-key-names` |
-| BNF-SURF-027 | Env var | `OYA_WORKFLOW_ENGINE_BIND_ADDR` | `PORT` | `oya-check-env-var-names` |
-| BNF-SURF-028 | Queue name | `workflow-engine.execution.requested.v1` | `jobs` | `oya-check-queue-names` |
-| BNF-SURF-029 | Topic name | `tenant.scope.updated.v1` | `tenantUpdates` | `oya-check-topic-names` |
-| BNF-SURF-030 | Table name | `workflow_execution` | `WorkflowExecution` | `oya-check-schema-names` |
-| BNF-SURF-031 | Column name | `tenant_id` | `tenantId` | `oya-check-schema-names` |
-| BNF-SURF-032 | Index name | `idx_workflow_execution_tenant_state` | `tenantStateIdx` | `oya-check-schema-names` |
-| BNF-SURF-033 | Migration file | `20260520_workflow_execution_state.sql` | `fix.sql` | `oya-check-migration-names` |
-| BNF-SURF-034 | Fixture file | `workflow-execution-requested-v1.json` | `sample.json` | `oya-check-fixture-names` |
-| BNF-SURF-035 | SDK package | `@oyatie/workflow-engine-v1` | `workflow-sdk` | `oya-check-sdk-package-names` |
-| BNF-SURF-036 | Generated module | `workflow_engine_v1` | `WorkflowEngine` | `oya-check-generated-module-names` |
-| BNF-SURF-037 | Feature flag | `workflow_template_cancel_v1_enabled` | `cancelFlow` | `oya-check-feature-flag-names` |
-| BNF-SURF-038 | Experiment id | `exp-workflow-cancel-copy-2026q2` | `buttonTest` | `oya-check-experiment-names` |
-| BNF-SURF-039 | Rollout id | `rollout-workflow-cancel-v1-dev` | `newCancel` | `oya-check-rollout-names` |
-| BNF-SURF-040 | Alert id | `alert-workflow-engine-error-budget-fast-burn` | `workflowBad` | `oya-check-alert-names` |
+| BNF-SURF-001 | Rust kernel crate | `tenancy-tenant-registry-kernel` | `tenant_registry` | `check-naming-bnf-v4` |
+| BNF-SURF-002 | Rust domain crate | `policy-cedar-domain` | `cedarDomain` | `check-crate-name-parity` |
+| BNF-SURF-003 | Rust usecase crate | `workflow-template-start-usecase` | `start_workflow` | `check-layer-token` |
+| BNF-SURF-004 | Rust adapter crate | `mail-smtp-adapter-aws-ses` | `ses-mailer` | `check-provider-suffix` |
+| BNF-SURF-005 | Rust runtime crate | `intelligence-provider-runtime` | `foundry_service` | `check-runtime-token` |
+| BNF-SURF-006 | API contract file | `tenant-registry-v1.openapi.yaml` | `api.yaml` | `check-openapi-names` |
+| BNF-SURF-007 | Event contract file | `workflow-state-v1.asyncapi.yaml` | `events.yaml` | `check-asyncapi-names` |
+| BNF-SURF-008 | Proto contract file | `workflow_state_v1.proto` | `workflow.proto` | `check-proto-names` |
+| BNF-SURF-009 | Cedar policy file | `tenant-scope.cedar` | `authz.cedar` | `check-cedar-policy-names` |
+| BNF-SURF-010 | OpenSLO file | `workflow-engine-availability.openslo.yaml` | `slo.yaml` | `check-openslo-names` |
+| BNF-SURF-011 | ADR file | `ADR-0105-layer-enum-ratchet.md` | `layers.md` | `check-adr-name-shape` |
+| BNF-SURF-012 | Standard file | `proto3-authoring.md` | `protobuf.md` | `check-standard-name-shape` |
+| BNF-SURF-013 | Evidence file | `standards-completeness-w1-2026-05-20.json` | `evidence.json` | `check-evidence-names` |
+| BNF-SURF-014 | Runbook file | `workflow-engine-stuck-execution.md` | `how-to-fix-workflows.md` | `check-runbook-names` |
+| BNF-SURF-015 | Dashboard id | `workflow-engine-latency-p99` | `Latency Dashboard` | `check-dashboard-ids` |
+| BNF-SURF-016 | Metric name | `oyatie_workflow_execution_duration_seconds` | `workflowTime` | `check-metric-names` |
+| BNF-SURF-017 | Trace span | `workflow.engine.transition.apply` | `do transition` | `check-trace-span-names` |
+| BNF-SURF-018 | Audit event | `EVT-WORKFLOW-TRANSITION-APPLIED` | `workflow changed` | `check-audit-event-names` |
+| BNF-SURF-019 | Capability id | `cap.workflow.template.start.t2` | `starter` | `check-capability-tier-matrix` |
+| BNF-SURF-020 | Tenant pack id | `pack-kr-fintech` | `Korea Finance` | `check-pack-id-names` |
+| BNF-SURF-021 | Cell id | `cell-kr-csap-seoul-1` | `seoul-prod` | `check-cell-names` |
+| BNF-SURF-022 | RuntimeClass id | `kata-clh-sev-snp` | `secure runtime` | `check-runtimeclass-names` |
+| BNF-SURF-023 | Helm chart id | `workflow-engine` | `workflowEngine` | `check-helm-chart-names` |
+| BNF-SURF-024 | Kustomize component | `istio-waypoint-policies` | `waypointStuff` | `check-kustomize-names` |
+| BNF-SURF-025 | Secret reference | `workflow-engine/provider/aws-ses/api-key` | `sesKey` | `check-secret-ref-names` |
+| BNF-SURF-026 | Config key | `workflow.execution.max_attempts` | `maxAttempts` | `check-config-key-names` |
+| BNF-SURF-027 | Env var | `OYATIE_WORKFLOW_ENGINE_BIND_ADDR` | `PORT` | `check-env-var-names` |
+| BNF-SURF-028 | Queue name | `workflow-engine.execution.requested.v1` | `jobs` | `check-queue-names` |
+| BNF-SURF-029 | Topic name | `tenant.scope.updated.v1` | `tenantUpdates` | `check-topic-names` |
+| BNF-SURF-030 | Table name | `workflow_execution` | `WorkflowExecution` | `check-schema-names` |
+| BNF-SURF-031 | Column name | `tenant_id` | `tenantId` | `check-schema-names` |
+| BNF-SURF-032 | Index name | `idx_workflow_execution_tenant_state` | `tenantStateIdx` | `check-schema-names` |
+| BNF-SURF-033 | Migration file | `20260520_workflow_execution_state.sql` | `fix.sql` | `check-migration-names` |
+| BNF-SURF-034 | Fixture file | `workflow-execution-requested-v1.json` | `sample.json` | `check-fixture-names` |
+| BNF-SURF-035 | SDK package | `@oyatie/workflow-engine-v1` | `workflow-sdk` | `check-sdk-package-names` |
+| BNF-SURF-036 | Generated module | `workflow_engine_v1` | `WorkflowEngine` | `check-generated-module-names` |
+| BNF-SURF-037 | Feature flag | `workflow_template_cancel_v1_enabled` | `cancelFlow` | `check-feature-flag-names` |
+| BNF-SURF-038 | Experiment id | `exp-workflow-cancel-copy-2026q2` | `buttonTest` | `check-experiment-names` |
+| BNF-SURF-039 | Rollout id | `rollout-workflow-cancel-v1-dev` | `newCancel` | `check-rollout-names` |
+| BNF-SURF-040 | Alert id | `alert-workflow-engine-error-budget-fast-burn` | `workflowBad` | `check-alert-names` |
 
 ## Extended Compliance Checklist for Naming Reviews
 
@@ -782,7 +782,7 @@ BNF-REV-018. Confirm queue names do not expose tenant names.
 
 BNF-REV-019. Confirm table names do not expose product marketing language.
 
-BNF-REV-020. Confirm environment variables use the `OYA_` prefix.
+BNF-REV-020. Confirm environment variables use the `OYATIE_` prefix.
 
 BNF-REV-021. Confirm root-hub pointers reference the canonical file name.
 

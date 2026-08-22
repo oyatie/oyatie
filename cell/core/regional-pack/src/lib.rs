@@ -37,7 +37,7 @@ pub use sovereign_deployment::{
 };
 
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {
@@ -63,7 +63,7 @@ impl RegionalPack {
         residency_class: String,
         controls: Vec<String>,
     ) -> Result<Self, RegionalPackError> {
-        if !id.starts_with("oya-pack-") {
+        if !id.starts_with("pack-") {
             return Err(RegionalPackError::InvalidPackId);
         }
         if region.trim().is_empty() {
@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn accepts_canonical_residency_labels() {
         let pack = RegionalPack::new(
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             "region-home".to_string(),
             "strict_home_region".to_string(),
             vec!["PIPA".to_string()],
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn rejects_non_canonical_residency_labels() {
         let error = RegionalPack::new(
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             "region-home".to_string(),
             "KR_RESIDENT".to_string(),
             vec!["PIPA".to_string()],
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn rejects_branded_pack_id() {
-        let branded = KR_MANIFEST_JSON.replace("\"kr-seoul\"", "\"oya-pack-kr\"");
+        let branded = KR_MANIFEST_JSON.replace("\"kr-seoul\"", "\"pack-kr\"");
 
         let error = parse_regional_pack_manifest(&branded)
             .expect_err("branded pack ids are de-branded out");

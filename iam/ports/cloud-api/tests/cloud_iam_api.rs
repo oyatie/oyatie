@@ -27,7 +27,7 @@ use iam_cloud_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
     IdentityProviderCreate, IdentityProviderKind, MfaState,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {
@@ -89,7 +89,7 @@ fn service_principal_create() -> IamPrincipalCreate {
         display_name: "cloud provisioner".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-alpha".to_string(),
+        region_pack: "pack-alpha".to_string(),
         mfa_state: MfaState::NotRequired,
         last_authenticated_at_epoch_seconds: None,
         created_at_epoch_seconds: 1_700_000_001,
@@ -104,7 +104,7 @@ fn user_principal_create() -> IamPrincipalCreate {
         display_name: "Alice".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-alpha".to_string(),
+        region_pack: "pack-alpha".to_string(),
         mfa_state: MfaState::Verified,
         last_authenticated_at_epoch_seconds: Some(1_700_000_002),
         created_at_epoch_seconds: 1_700_000_001,
@@ -124,7 +124,7 @@ fn external_oidc_provider_create() -> IdentityProviderCreate {
     IdentityProviderCreate {
         id: "idp_partner_oidc".to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region_pack: "oya-pack-alpha".to_string(),
+        region_pack: "pack-alpha".to_string(),
         kind: IdentityProviderKind::Oidc,
         issuer_uri: "https://partner.example/oidc".to_string(),
         audience: "urn:oyatie:cloud".to_string(),
@@ -137,7 +137,7 @@ fn external_saml_provider_create() -> IdentityProviderCreate {
     IdentityProviderCreate {
         id: "idp_alpha_saml".to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region_pack: "oya-pack-alpha".to_string(),
+        region_pack: "pack-alpha".to_string(),
         kind: IdentityProviderKind::Saml,
         issuer_uri: "https://partner.example/saml".to_string(),
         audience: "urn:oyatie:cloud:saml".to_string(),
@@ -150,7 +150,7 @@ fn beta_oidc_provider_create() -> IdentityProviderCreate {
     IdentityProviderCreate {
         id: "idp_beta_oidc".to_string(),
         tenant_id: "ten_beta".to_string(),
-        region_pack: "oya-pack-beta".to_string(),
+        region_pack: "pack-beta".to_string(),
         kind: IdentityProviderKind::Oidc,
         issuer_uri: "https://beta.example/oidc".to_string(),
         audience: "urn:oyatie:cloud:beta".to_string(),
@@ -167,7 +167,7 @@ fn external_principal_create() -> IamPrincipalCreate {
         display_name: "Partner".to_string(),
         external_subject: Some("oidc://partner.example/sub-1".to_string()),
         identity_provider_id: Some("idp_partner_oidc".to_string()),
-        region_pack: "oya-pack-alpha".to_string(),
+        region_pack: "pack-alpha".to_string(),
         mfa_state: MfaState::Verified,
         last_authenticated_at_epoch_seconds: Some(1_700_000_050),
         created_at_epoch_seconds: 1_700_000_040,
@@ -313,7 +313,7 @@ fn identity_provider_api_request(
         body: CloudIamIdentityProviderCreateRequest {
             tenant_id: "ten_alpha".to_string(),
             identity_provider_id: "idp_partner_oidc".to_string(),
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             kind: CloudIamIdentityProviderKind::Oidc,
             issuer_uri: "https://partner.example/oidc".to_string(),
             audience: "urn:oyatie:cloud".to_string(),
@@ -349,7 +349,7 @@ fn identity_provider_update_api_request(
         body: CloudIamIdentityProviderUpdateRequest {
             tenant_id: "ten_alpha".to_string(),
             identity_provider_id: "idp_partner_oidc".to_string(),
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             kind: CloudIamIdentityProviderKind::Saml,
             issuer_uri: "https://partner.example/saml/v2".to_string(),
             audience: "urn:oyatie:cloud:saml:v2".to_string(),

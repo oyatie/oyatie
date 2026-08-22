@@ -1,7 +1,7 @@
-# Spec: W3C Traceparent Parser for oya-shared-tracing-client-kernel
+# Spec: W3C Traceparent Parser for shared-tracing-client-kernel
 
 **Slug**: obs-tracing-client-w3c-traceparent-parser
-**Crate**: `oya-shared-tracing-client-kernel`
+**Crate**: `shared-tracing-client-kernel`
 **Lane**: observability
 **Priority**: high
 **Effort**: S
@@ -9,7 +9,7 @@
 ## Summary
 
 Add a pure, zero-dependency, deterministic W3C Trace Context `traceparent` parser to the
-`oya-shared-tracing-client-kernel` crate. The parser enforces the W3C canonical form, rejects
+`shared-tracing-client-kernel` crate. The parser enforces the W3C canonical form, rejects
 invalid inputs with typed errors, and exposes a `ParsedTraceparent` value type with a round-trip
 renderer.
 

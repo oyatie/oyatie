@@ -1,0 +1,38 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# CDN controller — purge-job consumer + origin-shield health checker
+# Per-pack values overlay supplies the actual CDN endpoint / admin-token reference
+
+cdnProvider:
+  primary: oci-cdn  # OCI CDN per-pack
+  overlay: cloudflare  # disabled for pack-kr and pack-us-healthcare
+
+oci:
+  endpoint: "https://cdn.{pack}.oci.oraclecloud.com"
+  distributionId: "${openbao:secret/application/<pack>/cdn/distribution-id}"
+  adminToken: "${openbao:secret/application/<pack>/cdn/admin-token}"
+
+cloudflare:
+  enabled: false  # overridden per-pack overlay where applicable
+  zoneId: "${openbao:secret/application/<pack>/cloudflare/zone-id}"
+  apiToken: "${openbao:secret/application/<pack>/cloudflare/api-token}"
+
+purge:
+  workerReplicas: 2
+  batchSize: 10
+  pollIntervalSeconds: 5
+  globalPurgeBudgetSeconds: 60  # per PRD AC-09
+  retryBackoff:
+    initialMs: 1000
+    maxMs: 30000
+
+originShield:
+  enabled: true
+  mtlsClientCertSecret: "${openbao:secret/application/<pack>/cdn/origin-shield-mtls}"
+  healthCheckIntervalSeconds: 30
+
+resources:
+  requests: { cpu: 0.5, memory: 256Mi }
+  limits:   { cpu: 1, memory: 512Mi }
+
+otel:
+  endpoint: http://observability-alloy.observability.svc.cluster.local:4317

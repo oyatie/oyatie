@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-pack-routing-conformance]
+acceptance_lanes: [helm-lint, kubectl-apply-dry-run, governance-per-microservice-layout, governance-pack-routing-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -96,8 +96,8 @@ configMapGenerator:
 for pack in pack-kr pack-eu pack-us pack-us-healthcare pack-jp pack-sg pack-au pack-in pack-br pack-ae pack-ksa; do
   kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/$pack
 done
-cloud-ci/oya-ci governance gate `pack-routing-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `retention-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `pack-routing-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `retention-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

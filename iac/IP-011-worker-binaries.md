@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-cloud-iac-drift-detection-coverage]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, cloud-iac-drift-detection-coverage]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-011: oya-cloud-iac-iac-*-worker crates (all 5 BCs)
+# IP-011: cloud-iac-iac-*-worker crates (all 5 BCs)
 
 ## Intent
 
@@ -27,12 +27,12 @@ Five new crates per ADR-0105: one `-worker` per BC. Catalog rows.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-worker/{Cargo.toml,src/lib.rs,src/main_loop.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-validator-worker/{Cargo.toml,src/lib.rs,src/drift_loop.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-worker/{Cargo.toml,src/lib.rs,src/apply_loop.rs,src/eligibility_consumer.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-rollback-worker/{Cargo.toml,src/lib.rs,src/rollback_consumer.rs}` | create |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-worker/{Cargo.toml,src/lib.rs,src/registry_loop.rs}` | create |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-*-worker.yaml` | create (5 rows) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-worker/{Cargo.toml,src/lib.rs,src/main_loop.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-validator-worker/{Cargo.toml,src/lib.rs,src/drift_loop.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-applier-worker/{Cargo.toml,src/lib.rs,src/apply_loop.rs,src/eligibility_consumer.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-rollback-worker/{Cargo.toml,src/lib.rs,src/rollback_consumer.rs}` | create |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-worker/{Cargo.toml,src/lib.rs,src/registry_loop.rs}` | create |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-*-worker.yaml` | create (5 rows) |
 
 ## Code Shape
 
@@ -80,9 +80,9 @@ pub async fn consume(deps: ConsumerDeps) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo check --workspace -p oya-cloud-iac-iac-*-worker --all-features
-cargo nextest run --workspace -p oya-cloud-iac-iac-*-worker --all-features
-cloud-ci/oya-ci governance gate `drift-detection-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cargo check --workspace -p cloud-iac-iac-*-worker --all-features
+cargo nextest run --workspace -p cloud-iac-iac-*-worker --all-features
+cloud-ci/ci governance gate `drift-detection-coverage` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

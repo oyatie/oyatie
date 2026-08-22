@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-plugin-app-store-per-plugin-rate-limit-correctness
-  displayName: "oya-plugin-app-store-per-plugin-rate-limit-correctness"
+  name: plugin-app-store-per-plugin-rate-limit-correctness
+  displayName: "plugin-app-store-per-plugin-rate-limit-correctness"
   labels:
     microservice: plugin-app-store
     bounded_context: per-plugin-rate-limit
     tier: external-facing
     plane: data
 spec:
-  service: oya-plugin-app-store-per-plugin-rate-limit-correctness
+  service: plugin-app-store-per-plugin-rate-limit-correctness
   description: |
     100% rate-limit correctness (no bypasses)
   indicator:
     metadata:
-      name: oya-plugin-app-store-per-plugin-rate-limit-correctness-sli
+      name: plugin-app-store-per-plugin-rate-limit-correctness-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(oya_plugin_app_store_plugin_request_total[5m])))'
+              query: '1 - (sum(rate(plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(plugin_app_store_plugin_request_total[5m])))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(oya_plugin_app_store_plugin_request_total[5m])))'
+              query: '1 - (sum(rate(plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(plugin_app_store_plugin_request_total[5m])))'
   objectives:
     - target: 1.0
       displayName: "1.0 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-plugin-app-store-per-plugin-rate-limit-correctness-fast-burn-1h
+        name: plugin-app-store-per-plugin-rate-limit-correctness-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-plugin-app-store-per-plugin-rate-limit-correctness-slow-burn-6h
+        name: plugin-app-store-per-plugin-rate-limit-correctness-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

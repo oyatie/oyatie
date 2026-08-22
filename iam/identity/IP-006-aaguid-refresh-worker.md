@@ -18,11 +18,11 @@ Worker that fetches the FIDO Alliance Metadata Service v3 (MDS3) blob every 24h,
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-webauthn-aaguid-refresher-worker/Cargo.toml` | manifest |
-| `crates/oya-identity-webauthn-aaguid-refresher-worker/src/lib.rs` | trait `AaguidRefresher` + tokio worker |
-| `crates/oya-identity-webauthn-aaguid-refresher-worker/src/mds3_parser.rs` | FIDO-MDS3 JWT parse + root-CA verify |
-| `crates/oya-identity-webauthn-aaguid-refresher-worker/src/postgres_allowlist_store.rs` | per-pack allowlist persistence |
-| `crates/oya-identity-webauthn-aaguid-refresher-worker/tests/refresher.rs` | tests |
+| `crates/identity-webauthn-aaguid-refresher-worker/Cargo.toml` | manifest |
+| `crates/identity-webauthn-aaguid-refresher-worker/src/lib.rs` | trait `AaguidRefresher` + tokio worker |
+| `crates/identity-webauthn-aaguid-refresher-worker/src/mds3_parser.rs` | FIDO-MDS3 JWT parse + root-CA verify |
+| `crates/identity-webauthn-aaguid-refresher-worker/src/postgres_allowlist_store.rs` | per-pack allowlist persistence |
+| `crates/identity-webauthn-aaguid-refresher-worker/tests/refresher.rs` | tests |
 | `microservices/identity/specs/fido-mds3-allowlist-schema.json` | schema for stored allowlist |
 
 ## Algorithm

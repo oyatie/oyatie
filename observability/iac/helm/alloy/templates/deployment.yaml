@@ -12,28 +12,28 @@ Per ADR-0131 per-µservice flat layout + ADR-0123 secret-reference URI policy.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oya-observability-alloy
+  name: observability-alloy
   namespace: observability
   labels:
     microservice: observability
-    app.kubernetes.io/name: oya-observability-alloy
+    app.kubernetes.io/name: observability-alloy
     app.kubernetes.io/version: {{ $.Chart.AppVersion | default "0.1.0" }}
 spec:
   replicas: {{ $cfg.replicaCount | default 2 }}
   selector:
     matchLabels:
       microservice: observability
-      app.kubernetes.io/name: oya-observability-alloy
+      app.kubernetes.io/name: observability-alloy
   template:
     metadata:
       labels:
         microservice: observability
-        app.kubernetes.io/name: oya-observability-alloy
+        app.kubernetes.io/name: observability-alloy
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9090"
     spec:
-      serviceAccountName: oya-observability
+      serviceAccountName: observability
       automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
@@ -44,14 +44,14 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/oya-observability-alloy" }}:{{ $cfg.image.tag | default "0.1.0" }}"
+          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/observability-alloy" }}:{{ $cfg.image.tag | default "0.1.0" }}"
           imagePullPolicy: IfNotPresent
           ports:
             - {name: app,     containerPort: 9000, protocol: TCP}
             - {name: metrics, containerPort: 9090, protocol: TCP}
           env:
-            - {name: OYA_MICROSERVICE, value: observability}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://oya-observability-alloy.observability.svc.cluster.local:4317"}
+            - {name: OYATIE_MICROSERVICE, value: observability}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://observability-alloy.observability.svc.cluster.local:4317"}
             - {name: RUST_LOG, value: info}
           resources:
             requests:

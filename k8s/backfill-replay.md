@@ -68,7 +68,7 @@ Replay re-emits cluster events for a specific (cluster_id, window) without state
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- cloud-k8s replay-events --cluster <id> --from <ts> --to <ts> --reason "<rfc>"`.
+1. Operator invokes: `cargo run -p dev-cli -- cloud-k8s replay-events --cluster <id> --from <ts> --to <ts> --reason "<rfc>"`.
 2. CLI requires 2-person rule + ops-security approval (replay can shift historical "perceived truth" for downstream consumers).
 3. Engine reads audit-chain records for the window; emits as Workflow events with `replayed=true` label.
 4. Audit-chain seal: the replay is itself sealed, distinguishing it from the original event.

@@ -65,7 +65,7 @@ Expected: count matches expected scope. Plus:
 
 ```bash
 # Audit chain emitted N events
-curl http://connector-oauth-broker.connector:9090/metrics | grep oya_connector_oauth_grant_revoke_total
+curl http://connector-oauth-broker.connector:9090/metrics | grep connector_oauth_grant_revoke_total
 ```
 
 ## E. Rollback

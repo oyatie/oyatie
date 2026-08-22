@@ -3,7 +3,7 @@
 ## Completed (this rail)
 
 - Slice: absorb `oya/ci-controller/**` → `ci/controller/**` (kernel, adapters, app, iac).
-  Crate rename: `oya_ci_controller_*` → `ci_controller_*`; workspace members added under `ci/controller/*`.
+  Crate rename: `ci_controller_*` → `ci_controller_*`; workspace members added under `ci/controller/*`.
 - **Hyperscaler encode (process-kit forever home):** `.grok/process-kit/**` → `ci/process-kit/**` (`//ci/process-kit:…`);
   daemon-hotset + perimeter → `ci/facade/harness/**`. BAN agent-dotdirs as forever homes.
   Ephemeral `.grok/mm-runs` / `.grok/memory` left in place (not forever policy).
@@ -11,7 +11,7 @@
 ## Next gaps (ordered)
 
 1. **Profile A tip-entitlement encode (next commit):** in `domain-stabilize.yml` /
-   `oya-ci-required` dual-emit path — when `tip_class` is `idle` **OR** preflight
+   `presubmit` dual-emit path — when `tip_class` is `idle` **OR** preflight
    receipt is missing, **skip** Profile A expensive jobs (absence = skip, not CODE
    fail). Documented in workflow headers; wire job `if:` in a follow-on commit.
 2. **Facade wiring** — register `ci/controller` in Buck graph + generated faces.

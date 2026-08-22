@@ -81,7 +81,7 @@ ONE of:
 | 3 | If pool exhausted: increase `max_connections` (with memory bump); restart workers |
 | 4 | If OOM: vertical-scale worker pods |
 | 5 | If OpenBao: rotate worker service-account token; restart |
-| 6 | Verify writes resume: `oya_cloud_iac_registry_writes_total` rate > 0 |
+| 6 | Verify writes resume: `cloud_iac_registry_writes_total` rate > 0 |
 
 ## Verification
 

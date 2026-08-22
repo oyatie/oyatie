@@ -14,7 +14,7 @@ type: application
 version: 0.1.0
 appVersion: "1.0.0"
 dependencies:
-  - name: oya-helpers
+  - name: helpers
     version: 0.1.0
     repository: "file://../../../../governance/iac/helm/_oya-helpers"
 ```
@@ -80,7 +80,7 @@ Other deviations require an ADR.
 
 `oya gate helm-structural-validator` validates every per-µservice template:
 
-1. Chart.yaml depends on `oya-helpers` library
+1. Chart.yaml depends on `helpers` library
 2. `metadata.labels` uses `{{ include "oya.labels" $ }}` (or documented exception)
 3. `securityContext` uses `{{ include "oya.securityContext.restricted" $ }}`
 4. Probes use canonical helpers

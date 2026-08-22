@@ -1,0 +1,19 @@
+context: compatibility
+role: application
+capability: cloud-billing-application
+plane: control
+slo: no-runtime-slo
+status: retired-compatibility-row-no-crate
+successor_catalogs:
+  - registry/catalog/cloud-billing-domain.yaml
+  - registry/catalog/cloud-billing-kernel.yaml
+  - registry/catalog/cloud-billing-tax-app.yaml
+  - registry/catalog/metering-domain.yaml
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+non_claims:
+  - no matching crate exists in this checkout
+  - retained only for catalog compatibility during markdown retirement and foundation truth-down

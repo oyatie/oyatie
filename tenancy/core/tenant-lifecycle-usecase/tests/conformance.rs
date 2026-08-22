@@ -12,14 +12,14 @@ use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
-use oya_shared_resource_provider_contract_kernel::conformance::{
+use shared_resource_provider_contract_kernel::conformance::{
     ConformanceFixture, check_async_delete_operation, check_create_idempotency,
     check_idempotent_put, check_read_after_write, check_stable_pagination, run_all_checks,
 };
-use oya_shared_resource_provider_contract_kernel::{
+use shared_resource_provider_contract_kernel::{
     IdempotencyKey, OperationResult, ProviderError, ResourceName, ResourceProvider,
 };
 use tenancy_tenant_lifecycle_kernel::{
@@ -27,7 +27,7 @@ use tenancy_tenant_lifecycle_kernel::{
 };
 use tenancy_tenant_lifecycle_usecase::{TENANT_COLLECTION, TenantLifecycleProvider};
 
-/// In-memory `TenantLifecycleStore`: ordered maps mirror the owned oya-data
+/// In-memory `TenantLifecycleStore`: ordered maps mirror the owned data
 /// shape (point get/put + ordered range scan).
 #[derive(Debug, Default)]
 struct MemoryStore {
@@ -232,7 +232,7 @@ async fn drive_to_done(
     name: &ResourceName,
     operation: TenantLifecycleOperation,
     key_ordinal: u32,
-) -> oya_shared_resource_provider_contract_kernel::Operation {
+) -> shared_resource_provider_contract_kernel::Operation {
     let key = TenantFixture.idempotency_key(key_ordinal).unwrap();
     let mut op = provider
         .apply_lifecycle(name, operation, &key)

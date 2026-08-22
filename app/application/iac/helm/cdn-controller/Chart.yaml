@@ -1,0 +1,9 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: application-cdn-controller
+description: CDN purge worker + origin shield controller for Application Shell bundles per ADR-0131
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: axis-application

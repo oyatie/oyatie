@@ -16,7 +16,7 @@ async fn main() -> ExitCode {
         .with_env_filter(env_or("RUST_LOG", "info"))
         .init();
 
-    let namespace = env_or("OYA_KMS_OPERATOR_NAMESPACE", "cloud-kms");
+    let namespace = env_or("OYATIE_KMS_OPERATOR_NAMESPACE", "cloud-kms");
     let mtls = OperatorMtlsFiles::from_env();
     if let Err(message) = mtls.validate() {
         error!(error = %message, "cloud-kms operator mTLS startup validation failed");
@@ -66,16 +66,16 @@ struct OperatorMtlsFiles {
 impl OperatorMtlsFiles {
     fn from_env() -> Self {
         let cert_dir = env_or(
-            "OYA_KMS_OPERATOR_MTLS_CERT_DIR",
-            "/etc/oya-cloud-kms-operator/tls",
+            "OYATIE_KMS_OPERATOR_MTLS_CERT_DIR",
+            "/etc/cloud-kms-operator/tls",
         );
         let ca_default = format!("{cert_dir}/ca.crt");
         let cert_default = format!("{cert_dir}/tls.crt");
         let key_default = format!("{cert_dir}/tls.key");
         Self {
-            ca_path: env_or("OYA_KMS_OPERATOR_MTLS_CA_PATH", &ca_default),
-            cert_path: env_or("OYA_KMS_OPERATOR_MTLS_CERT_PATH", &cert_default),
-            key_path: env_or("OYA_KMS_OPERATOR_MTLS_KEY_PATH", &key_default),
+            ca_path: env_or("OYATIE_KMS_OPERATOR_MTLS_CA_PATH", &ca_default),
+            cert_path: env_or("OYATIE_KMS_OPERATOR_MTLS_CERT_PATH", &cert_default),
+            key_path: env_or("OYATIE_KMS_OPERATOR_MTLS_KEY_PATH", &key_default),
         }
     }
 

@@ -17,7 +17,7 @@
 //!
 //! Independent of the PRODUCER, deliberately, on three axes:
 //!
-//! * member resolution goes through the canonical `oya_workspace_members_kernel`, not the
+//! * member resolution goes through the canonical `workspace_members_kernel`, not the
 //!   producer's own tracked-`Cargo.toml` scan;
 //! * `[package] name` is re-parsed from scratch by [`independent_parse_package_name`], not by
 //!   calling the producer's parser — a bug in a shared parser must not be able to hide behind
@@ -42,7 +42,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oya_ci_config_kernel::NamingConfig;
+use ci_config_kernel::NamingConfig;
 
 /// INDEPENDENT dynamic census of today's workspace member crates: repo-relative member directory
 /// -> the `[package] name` declared in that directory's `Cargo.toml`.
@@ -50,7 +50,7 @@ use oya_ci_config_kernel::NamingConfig;
 /// This is the primitive the two named-set censuses are built on; take it directly when a gate's
 /// own corpus is keyed by PATH rather than by crate name.
 ///
-/// Resolved via the canonical `oya_workspace_members_kernel::resolve_member_dirs` (NOT the
+/// Resolved via the canonical `workspace_members_kernel::resolve_member_dirs` (NOT the
 /// producer's own `collect_bnf_layer_suffix`/`collect_manifest_hygiene` path, and NOT applying
 /// `is_path_excluded` — that config-driven exclusion is itself a SECOND silent-drop vector the
 /// producer applies; a census that doesn't re-apply it will correctly MISMATCH if an exclusion
@@ -61,7 +61,7 @@ use oya_ci_config_kernel::NamingConfig;
 /// regression, silently dropping an eligible crate) a magic-number floor, or a bare non-empty
 /// check, could never catch.
 pub fn independent_member_manifests(root: &Path) -> BTreeMap<String, String> {
-    let mut member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
+    let mut member_dirs = workspace_members_kernel::resolve_member_dirs(root)
         .expect("resolve_member_dirs must resolve the live workspace Cargo.toml");
     member_dirs.extend(resolve_nested_workspace_member_dirs(root));
     let mut manifests = BTreeMap::new();
@@ -98,7 +98,7 @@ pub fn independent_member_dirs(root: &Path) -> BTreeSet<String> {
 /// Self-adjusts through future de-brands: the census shrinks in lockstep with the face as crates
 /// lose the `oya-` prefix, so this stays valid without ever needing a bump. The prefix is read
 /// from `NamingConfig`, not hardcoded here.
-pub fn independent_oya_prefix_census(root: &Path) -> BTreeSet<String> {
+pub fn independent_prefix_census(root: &Path) -> BTreeSet<String> {
     let prefix = NamingConfig::default().required_prefix;
     independent_member_manifests(root)
         .into_values()
@@ -128,7 +128,7 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
             continue; // excluded for a different reason (no Cargo.toml / not a workspace root).
         }
         let members =
-            oya_workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
+            workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
                 .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
     }
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "SET MISMATCH")]
     fn census_mismatch_is_caught_when_face_is_empty_but_census_is_not() {
-        assert_census_matches(&BTreeSet::new(), &set(&["oya-a-domain"]));
+        assert_census_matches(&BTreeSet::new(), &set(&["a-domain"]));
     }
 
     #[test]
@@ -267,8 +267,8 @@ mod tests {
         // surviving row ("some debt survived") is not the same fact as "the corpus was
         // enumerated."
         assert_census_matches(
-            &set(&["oya-a-domain"]),
-            &set(&["oya-a-domain", "oya-b-domain", "oya-c-domain"]),
+            &set(&["a-domain"]),
+            &set(&["a-domain", "b-domain", "c-domain"]),
         );
     }
 
@@ -276,8 +276,8 @@ mod tests {
     #[should_panic(expected = "SET MISMATCH")]
     fn census_mismatch_is_caught_when_exactly_one_crate_is_missing() {
         assert_census_matches(
-            &set(&["oya-a-domain", "oya-b-domain"]),
-            &set(&["oya-a-domain", "oya-b-domain", "oya-c-domain"]),
+            &set(&["a-domain", "b-domain"]),
+            &set(&["a-domain", "b-domain", "c-domain"]),
         );
     }
 
@@ -285,14 +285,14 @@ mod tests {
     #[should_panic(expected = "SET MISMATCH")]
     fn census_mismatch_is_caught_when_the_face_carries_a_key_the_census_does_not() {
         assert_census_matches(
-            &set(&["oya-a-domain", "oya-ghost-domain"]),
-            &set(&["oya-a-domain"]),
+            &set(&["a-domain", "ghost-domain"]),
+            &set(&["a-domain"]),
         );
     }
 
     #[test]
     fn census_match_is_green_when_sets_are_equal() {
-        let names = set(&["oya-a-domain", "oya-b-domain"]);
+        let names = set(&["a-domain", "b-domain"]);
         assert_census_matches(&names, &names.clone());
     }
 
@@ -349,9 +349,9 @@ mod tests {
         // unreadable when the census parses it. A deliberately unreadable oya-* manifest must RED
         // the census.
         let root = census_tmp_root("unreadable");
-        let manifest_path = root.join("crates/oya-ghost-domain/Cargo.toml");
+        let manifest_path = root.join("crates/ghost-domain/Cargo.toml");
         std::fs::create_dir_all(manifest_path.parent().unwrap()).expect("mkdir");
-        std::fs::write(&manifest_path, "[package]\nname = \"oya-ghost-domain\"\n")
+        std::fs::write(&manifest_path, "[package]\nname = \"ghost-domain\"\n")
             .expect("write member manifest");
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(&manifest_path, std::fs::Permissions::from_mode(0o000))
@@ -361,31 +361,31 @@ mod tests {
             "[workspace]\nmembers = [\"crates/*\"]\n",
         )
         .expect("write root manifest");
-        let _ = independent_oya_prefix_census(&root);
+        let _ = independent_prefix_census(&root);
     }
 
     #[test]
     #[should_panic(expected = "no [package] name")]
     fn independent_census_fails_closed_on_unparseable_member_manifest() {
         let root = census_tmp_root("unparseable");
-        std::fs::create_dir_all(root.join("crates/oya-broken-domain")).expect("mkdir");
+        std::fs::create_dir_all(root.join("crates/broken-domain")).expect("mkdir");
         std::fs::write(
             root.join("Cargo.toml"),
             "[workspace]\nmembers = [\"crates/*\"]\n",
         )
         .expect("write root manifest");
         std::fs::write(
-            root.join("crates/oya-broken-domain/Cargo.toml"),
+            root.join("crates/broken-domain/Cargo.toml"),
             "[dependencies]\n",
         )
         .expect("write member manifest");
-        let _ = independent_oya_prefix_census(&root);
+        let _ = independent_prefix_census(&root);
     }
 
     #[test]
     fn independent_census_resolves_and_filters_a_small_fixture() {
         let root = census_tmp_root("happy");
-        std::fs::create_dir_all(root.join("crates/oya-a-domain")).expect("mkdir");
+        std::fs::create_dir_all(root.join("crates/a-domain")).expect("mkdir");
         std::fs::create_dir_all(root.join("crates/other-b-domain")).expect("mkdir");
         std::fs::write(
             root.join("Cargo.toml"),
@@ -393,8 +393,8 @@ mod tests {
         )
         .expect("write root manifest");
         std::fs::write(
-            root.join("crates/oya-a-domain/Cargo.toml"),
-            "[package]\nname = \"oya-a-domain\"\n",
+            root.join("crates/a-domain/Cargo.toml"),
+            "[package]\nname = \"a-domain\"\n",
         )
         .expect("write member manifest");
         std::fs::write(
@@ -403,15 +403,15 @@ mod tests {
         )
         .expect("write member manifest");
         assert_eq!(
-            independent_oya_prefix_census(&root),
-            set(&["oya-a-domain"]),
+            independent_prefix_census(&root),
+            set(&["a-domain"]),
             "the prefix filter must drop the non-oya member"
         );
         // The dir-keyed primitive keeps BOTH members: the prefix filter belongs to the name
         // census, not to the enumeration, so a path-keyed gate sees the whole member set.
         assert_eq!(
             independent_member_dirs(&root),
-            set(&["crates/oya-a-domain", "crates/other-b-domain"])
+            set(&["crates/a-domain", "crates/other-b-domain"])
         );
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -438,8 +438,8 @@ mod tests {
             "a `name` key outside [package] must not be mistaken for the package name"
         );
         assert_eq!(
-            independent_parse_package_name("[package]\nname = \"oya-a-domain\"\n").as_deref(),
-            Some("oya-a-domain")
+            independent_parse_package_name("[package]\nname = \"a-domain\"\n").as_deref(),
+            Some("a-domain")
         );
     }
 }

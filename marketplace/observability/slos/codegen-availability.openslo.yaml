@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-developer-sdk-codegen-availability
-  displayName: "oya-developer-sdk-codegen-availability"
+  name: developer-sdk-codegen-availability
+  displayName: "developer-sdk-codegen-availability"
   labels:
     microservice: developer-sdk
     bounded_context: sdk-codegen
     tier: external-facing
     plane: data
 spec:
-  service: oya-developer-sdk-codegen-availability
+  service: developer-sdk-codegen-availability
   description: |
     99.9% codegen runs succeed
   indicator:
     metadata:
-      name: oya-developer-sdk-codegen-availability-sli
+      name: developer-sdk-codegen-availability-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_codegen_outcome_total{outcome="emitted"}[1h])) / sum(rate(oya_developer_sdk_codegen_outcome_total[1h]))'
+              query: 'sum(rate(developer_sdk_codegen_outcome_total{outcome="emitted"}[1h])) / sum(rate(developer_sdk_codegen_outcome_total[1h]))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_codegen_outcome_total{outcome="emitted"}[1h])) / sum(rate(oya_developer_sdk_codegen_outcome_total[1h]))'
+              query: 'sum(rate(developer_sdk_codegen_outcome_total{outcome="emitted"}[1h])) / sum(rate(developer_sdk_codegen_outcome_total[1h]))'
   objectives:
     - target: 0.999
       displayName: "0.999 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-codegen-availability-fast-burn-1h
+        name: developer-sdk-codegen-availability-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-codegen-availability-slow-burn-6h
+        name: developer-sdk-codegen-availability-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

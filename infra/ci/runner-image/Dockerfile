@@ -1,7 +1,7 @@
 # Owned CI runner image — buck2, the pinned Rust toolchain, clang/lld and pwsh baked in.
 #
 # WHY THIS FILE IS COMMITTED: the live arm64 fleet
-# (registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64) was built from a copy of
+# (registry.registry.svc.cluster.local:5000/oya/runner:arm64) was built from a copy of
 # this recipe that existed ONLY in a scratchpad directory, which made the image that holds
 # merge authority unreproducible. A digest-pinned image whose Dockerfile is not in the repo
 # is a declaration wired to nothing.
@@ -45,7 +45,7 @@ RUN apt-get update \
  && test -x /usr/bin/clang && test -x /usr/bin/ld.lld
 
 # PowerShell is a HARD requirement of the merge-authority lane, not a convenience:
-# .github/workflows/oya-ci-required.yml runs the gate matrix's main step under
+# .github/workflows/presubmit.yml runs the gate matrix's main step under
 # `shell: pwsh` for its self-hosted Linux gate leg. The stock actions-runner image has no pwsh — probed
 # in a pod from the pulled image, all of pwsh/powershell/pwsh-preview absent and no
 # /opt/microsoft install dir — so without this layer the gate job fails on this fleet

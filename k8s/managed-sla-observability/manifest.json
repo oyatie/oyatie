@@ -17,10 +17,10 @@
       "name": "managed-k8s-sla-observability",
       "description": "Tenant-scoped managed-Kubernetes SLA observability. Consumes the ControlPlaneProvisioning/status seam from managed-k8s-control-plane-host, computes deterministic availability/provisioning-latency/error-budget summaries, and defers live Prometheus/Kubernetes integration behind the port.",
       "crates": [
-        "oya-managed-k8s-sla-observability-kernel",
-        "oya-managed-k8s-sla-observability-api",
-        "oya-managed-k8s-sla-observability-adapter-inmemory",
-        "oya-managed-k8s-sla-observability-app"
+        "managed-k8s-sla-observability-kernel",
+        "managed-k8s-sla-observability-api",
+        "managed-k8s-sla-observability-adapter-inmemory",
+        "managed-k8s-sla-observability-app"
       ]
     }
   ],
@@ -174,7 +174,7 @@
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Deterministic SLA summarization kernel + in-memory adapter; live Prometheus/Kubernetes integration honest-deferred behind the port. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/src/lib.rs"
+    "microservices/managed-k8s-sla-observability/crates/managed-k8s-sla-observability-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],

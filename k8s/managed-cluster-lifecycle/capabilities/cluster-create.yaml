@@ -5,8 +5,8 @@ bounded_context: managed-k8s-cluster-lifecycle
 summary: "Validate tenant cluster create requests, check quota, then call ControlPlaneProvisioning."
 autonomy_ceiling: T3
 ports_consumed:
-  - oya-managed-k8s-tenant-quota-api::QuotaDecisionPort
-  - oya-managed-k8s-control-plane-host-api::ControlPlaneProvisioning
+  - managed-k8s-tenant-quota-api::QuotaDecisionPort
+  - managed-k8s-control-plane-host-api::ControlPlaneProvisioning
 fail_closed:
   - malformed_request
   - quota_denied

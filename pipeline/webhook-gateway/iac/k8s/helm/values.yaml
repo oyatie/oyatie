@@ -1,6 +1,6 @@
 microservice:
   id: ci-webhook-gateway
-  cargoPackage: oya-ci-webhook-gateway
+  cargoPackage: ci-webhook-gateway
   tenantClass: contributor
 
 workloadLabels:
@@ -17,7 +17,7 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-ci-webhook-gateway
+  name: ci-webhook-gateway
   automountToken: false
   nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-tokenreview-or-bound-token-issuance
 
@@ -27,13 +27,13 @@ networkPolicy:
   enabled: true
   nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
   ingress:
-    githubNamespaceName: oya-forge
-    gatewayNamespaceName: oya-gateway
+    githubNamespaceName: forge
+    gatewayNamespaceName: gateway
   egress:
     dnsNamespaceName: kube-system
-    jenkinsNamespaceName: oya-ci-jenkins
+    jenkinsNamespaceName: ci-jenkins
     jenkinsPort: 8080
-    openbaoNamespaceName: oya-secrets
+    openbaoNamespaceName: secrets
     openbaoPort: 8200
     githubApiPort: 443
     otelNamespaceName: observability
@@ -41,7 +41,7 @@ networkPolicy:
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-ci-webhook-gateway
+  repository: ci-webhook-gateway
   tag: "0.1.0"
   digest: ""
   pullPolicy: IfNotPresent
@@ -63,7 +63,7 @@ gateway:
   routeNameSuffix: http
   parentRef:
     name: oyatie-public-edge
-    namespace: oya-gateway
+    namespace: gateway
     sectionName: https
   hostnames:
     - ci-webhook-gateway.oyatie.com
@@ -81,7 +81,7 @@ config:
   imagePromotionPolicy: cosign-required
 
 externalSecret:
-  # ExternalSecret pulls OYA_GITHUB_WEBHOOK_SECRET from OpenBao via ESO.
+  # ExternalSecret pulls OYATIE_GITHUB_WEBHOOK_SECRET from OpenBao via ESO.
   # Canonical sref: sref://openbao/oya/ci/github-webhook-secret (ADR-0043).
   # FOUNDER-GATED: OpenBao must be initialized and the secret written at
   # secret/oya/ci/github-webhook-secret before this ExternalSecret resolves.
@@ -94,13 +94,13 @@ externalSecret:
 jenkins:
   # Full HTTP URL the gateway POSTs to kick the oyaCiLane pipeline.
   # Must be a plain http:// URL (TLS terminates at ingress; in-cluster is plain HTTP).
-  # Maps to OYA_JENKINS_DISPATCH_URL in src/config.rs.
+  # Maps to OYATIE_JENKINS_DISPATCH_URL in src/config.rs.
   # TODO(founder): replace with the live generic-webhook-trigger or build-token endpoint.
-  dispatchUrl: "http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080/generic-webhook-trigger/invoke"
+  dispatchUrl: "http://jenkins.ci-jenkins.svc.cluster.local:8080/generic-webhook-trigger/invoke"
 
 cedar:
   enabled: false
-  policyConfigMapName: oya-ci-webhook-gateway-cedar
+  policyConfigMapName: ci-webhook-gateway-cedar
 
 otel:
   enabled: true

@@ -5,7 +5,7 @@
     "created_at": "2026-06-29T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
     "owner_team": "platform-toolchain + platform-governance",
-    "purpose": "Canonical machine-readable cloud-ci run observability packet/status contract for the single required cloud-ci/oya-ci admission context. The legacy cloud/cloud-ci gate path consumes this spec while the stable contract lives under specs/.",
+    "purpose": "Canonical machine-readable cloud-ci run observability packet/status contract for the single required cloud-ci/ci admission context. The legacy cloud/cloud-ci gate path consumes this spec while the stable contract lives under specs/.",
     "related_issue": "GH-1003",
     "status": "Accepted",
     "version": "1.0.0"
@@ -84,13 +84,13 @@
         "merge_authority_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         },
         "required_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         },
         "retired_evidence_authority": {
@@ -189,7 +189,7 @@
         "status_context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required"
+            "presubmit"
           ]
         }
       },
@@ -531,17 +531,17 @@
             "producer": {
               "properties": {
                 "required_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 },
                 "merge_authority_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 }
               }
             },
             "run": {
               "properties": {
                 "status_context": {
-                  "const": "oya-ci-required"
+                  "const": "presubmit"
                 }
               }
             }

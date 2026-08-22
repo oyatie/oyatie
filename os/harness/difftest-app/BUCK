@@ -28,7 +28,7 @@ rust_test(
     crate_root = "tests/differential.rs",
     visibility = ["PUBLIC"],
     env = {
-        "OYA_TESTDATA_DIR": "$(location :testdata)",
+        "OYATIE_TESTDATA_DIR": "$(location :testdata)",
     },
     deps = [
         ":os-difftest-app",

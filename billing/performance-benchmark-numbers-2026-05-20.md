@@ -161,7 +161,7 @@ This section publishes the cloud-billing target for each metric, with overlays p
 | FOCUS daily Parquet export latency (mid-market, 1.3M rows) | < 90 s | AWS daily; GCP 5-15 min; Azure 24 h | oyatie-public-cloud + oyatie-as-cloud-provider: 90 s; guest-on-aws: 120 s (S3 PUT throughput); guest-on-oci: 100 s; on-prem + colo: 180 s (local storage tier). | uniform. |
 | FOCUS Kafka streaming end-to-end | < 5 s | not published | uniform | uniform. |
 | Schema validation latency | < 200 ms per file | not published | uniform | uniform. |
-| Extension column emission (`oya_tenant_id`, `oya_cost_center`, `oya_pack_id`) | always-on | not published; Vantage/CloudZero/Apptio add per-vendor tags | uniform | uniform. |
+| Extension column emission (`tenant_id`, `cost_center`, `pack_id`) | always-on | not published; Vantage/CloudZero/Apptio add per-vendor tags | uniform | uniform. |
 
 ### §3.5 Reservation recommender
 

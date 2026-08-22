@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-cloud-k8s-cis-benchmark-conformance
+  name: cloud-k8s-cis-benchmark-conformance
   displayName: "cloud-k8s: CIS Kubernetes v1.10 restricted conformance (100%)"
   labels:
     microservice: cloud-k8s
@@ -31,13 +31,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_k8s_cis_check_total{result="pass"}[5m]))
+                sum(rate(cloud_k8s_cis_check_total{result="pass"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_k8s_cis_check_total[5m]))
+                sum(rate(cloud_k8s_cis_check_total[5m]))
   objectives:
     - target: 1.0
       displayName: "100% CIS Restricted conformance (any miss = Sev-2)"
@@ -46,4 +46,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

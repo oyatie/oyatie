@@ -230,17 +230,17 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
+- SLO target: `audit-chain-chain-of-custody-integrity-correctness` target `1.0`.
 - Regression-detection criterion: synthetic tamper drill always emits `audit.verification.failed`.
-- SLO target: `oya-audit-chain-evidence-export-freshness` target `0.95`.
+- SLO target: `audit-chain-evidence-export-freshness` target `0.95`.
 - Regression-detection criterion: export bundle reaches fake drive handle within five-minute simulated budget.
-- SLO target: `oya-audit-chain-merkle-chain-verification-latency` target `0.95`.
+- SLO target: `audit-chain-merkle-chain-verification-latency` target `0.95`.
 - Regression-detection criterion: verifier integration path stays below declared p95 for 100-event period.
-- SLO target: `oya-audit-chain-seal-storage-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-storage-availability` target `0.9999`.
 - Regression-detection criterion: fake WORM outage returns retryable failure and no false receipt.
-- SLO target: `oya-audit-chain-seal-write-availability` target `0.9999`.
+- SLO target: `audit-chain-seal-write-availability` target `0.9999`.
 - Regression-detection criterion: HSM transient timeout retries without duplicate root.
-- SLO target: `oya-audit-chain-seal-write-latency` target `0.99`.
+- SLO target: `audit-chain-seal-write-latency` target `0.99`.
 - Regression-detection criterion: period sealing worker emits `seal_latency` metric for every period.
 - Meta-SLO target: verification-failed spike detection p99 under 60 seconds.
 - Regression-detection criterion: divergence test asserts observability alert handoff.
@@ -254,18 +254,18 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 - Service container: fake audit event broker.
 - Service container: fake observability receiver.
 - Service container: fake drive export handle service.
-- Command: `cargo nextest run -p oya-audit-chain-integration-tests --all-features`.
-- Command: `cargo test -p oya-audit-chain-sealing-worker --test fake_hsm_integration`.
-- Command: `cargo test -p oya-audit-chain-query-rest --test export_bundle_integration`.
-- Command: `cargo test -p oya-audit-chain-retention-cascade-worker --test retention_cascade_integration`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-audit-chain-seal-coverage`.
-- Check crate enforcement: `oya-check-slo-coverage`.
-- Check crate enforcement: `oya-check-event-schema-versioning`.
-- Check crate enforcement: `oya-check-otel-trace-propagation`.
+- Command: `cargo nextest run -p audit-chain-integration-tests --all-features`.
+- Command: `cargo test -p audit-chain-sealing-worker --test fake_hsm_integration`.
+- Command: `cargo test -p audit-chain-query-rest --test export_bundle_integration`.
+- Command: `cargo test -p audit-chain-retention-cascade-worker --test retention_cascade_integration`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-audit-chain-seal-coverage`.
+- Check crate enforcement: `check-slo-coverage`.
+- Check crate enforcement: `check-event-schema-versioning`.
+- Check crate enforcement: `check-otel-trace-propagation`.
 - Artifact: `audit-chain-integration-junit.xml`.
 - Artifact: `audit-chain-integration-roots.json`.
 - Artifact: `audit-chain-cedar-fuzz-corpus.tar.zst`.

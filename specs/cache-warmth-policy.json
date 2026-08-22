@@ -80,13 +80,13 @@
       "warmth": "warm",
       "cache_read": true,
       "cache_write": true,
-      "reason": "the gate fleet's shared dependency hub — the accounting-registry producer and the common workspace graph rebuilt ~13x per oya-ci-required run across legs (faces re-materialized in every matrix leg). One build, many consumers. Same-run artifact reuse (QW-1) is this class without a CAS; deliberate exception: registry-drift keeps its own in-job rematerialization — detectors never consume the thing they attest."
+      "reason": "the gate fleet's shared dependency hub — the accounting-registry producer and the common workspace graph rebuilt ~13x per presubmit run across legs (faces re-materialized in every matrix leg). One build, many consumers. Same-run artifact reuse (QW-1) is this class without a CAS; deliberate exception: registry-drift keeps its own in-job rematerialization — detectors never consume the thing they attest."
     },
     "postmerge-dev-trunk": {
       "warmth": "warm",
       "cache_read": true,
       "cache_write": true,
-      "reason": "the canonical trusted populator (Bazel/Google pattern: post-merge CI fills the cache, presubmits hit it); trunk content passed oya-ci-required and is by definition admitted content."
+      "reason": "the canonical trusted populator (Bazel/Google pattern: post-merge CI fills the cache, presubmits hit it); trunk content passed presubmit and is by definition admitted content."
     }
   },
   "consumers": [

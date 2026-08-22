@@ -158,7 +158,7 @@
         "id": "MPV2-0001",
         "status": "done-verified",
         "evidence_refs": [
-          "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_authority"
+          "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_authority"
         ]
       }
     ],
@@ -253,10 +253,10 @@
       }
     ]
   },
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
   "plan_evidence_crosscheck": {
     "tracked_paths": [
-      "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
+      "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs",
       "specs/masterplan.json"
     ]
   }

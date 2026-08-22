@@ -418,7 +418,7 @@ fn requirement(
         workload_scope,
         official_doc_url,
         expected_evidence_ref,
-        source_plan_ref: "crates/oya-tenant-rbac-listener-gateway/src/lib.rs::tenant_rbac_listener_gateway_plan",
+        source_plan_ref: "crates/tenant-rbac-listener-gateway/src/lib.rs::tenant_rbac_listener_gateway_plan",
         tenant_namespace: TENANT_NAMESPACE,
         required_route_count: EXPECTED_ROUTE_COUNT,
         requires_cluster_observation: !matches!(
@@ -450,7 +450,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_plan_ref,
-        "crates/oya-tenant-rbac-listener-gateway/",
+        "crates/tenant-rbac-listener-gateway/",
         TenantRbacListenerRuntimeEvidenceError::InvalidSourcePlanRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

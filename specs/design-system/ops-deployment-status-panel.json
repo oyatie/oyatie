@@ -40,8 +40,8 @@
     "secret-blocked state names missing secret class without revealing value"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/deployment_ops_contract.rs::deployment_ops_contract_forbids_manual_ssh",
-    "crates/oya-dev-cli/tests/ops.rs::ops_commands_render_plan_and_rollback_paths"
+    "crates/dev-cli/tests/deployment_ops_contract.rs::deployment_ops_contract_forbids_manual_ssh",
+    "crates/dev-cli/tests/ops.rs::ops_commands_render_plan_and_rollback_paths"
   ],
   "consumers": [
     "$ref:docs/products/cloud/PRD.md#11g-frontend-components",

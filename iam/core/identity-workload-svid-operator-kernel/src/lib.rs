@@ -2,7 +2,7 @@
 //!
 //! This crate owns the desired/observed state shapes and the pure reconcile
 //! decision function for the in-cluster operator that PRODUCES the PDP's
-//! `oya-cloud-iam-pdp-svid` Secret (the single missing producer that closes
+//! `cloud-iam-pdp-svid` Secret (the single missing producer that closes
 //! FRIC-1781490000 and unblocks G004). It intentionally has NO kube-rs,
 //! k8s-openapi, async runtime, system-clock, or crypto dependency — issuance and
 //! Secret projection live in the transient adapter, the reconcile loop lives in
@@ -54,7 +54,7 @@ pub struct DesiredState {
     /// never race the PDP's fail-closed boot against an expired SVID.
     pub rotation_window_secs: u64, // data_class: PUBLIC
     /// The Kubernetes Secret name the projected `kubernetes.io/tls` material is
-    /// written to. The consumer contract fixes this to `oya-cloud-iam-pdp-svid`.
+    /// written to. The consumer contract fixes this to `cloud-iam-pdp-svid`.
     pub secret_name: String, // data_class: PUBLIC
     /// The namespace the Secret is projected into (the cloud-iam namespace).
     pub secret_namespace: String, // data_class: PUBLIC

@@ -406,29 +406,29 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Record legacy ./bin/oya verify --ci-required / oya verify as optional local-feedback provenance only; protected merge authority lives in ADR-0515 cloud-ci Rust gate packets aggregated into oya-ci-required.
+          Record legacy ./bin/oya verify --ci-required / oya verify as optional local-feedback provenance only; protected merge authority lives in ADR-0515 cloud-ci Rust gate packets aggregated into presubmit.
         enforced_by:
-          - oya-governance-oya-verify-ci-mirror-coverage
-          - oya-governance-oya-verify-ci-step-exit-semantics
-          - oya-governance-oya-verify-skip-flag-allowlist
-          - oya-governance-oya-submit-calls-verify
-          - oya-governance-oya-verify-exit-code-contract
+          - governance-verify-ci-mirror-coverage
+          - governance-verify-ci-step-exit-semantics
+          - governance-verify-skip-flag-allowlist
+          - governance-submit-calls-verify
+          - governance-verify-exit-code-contract
       ADR-0347:
         purpose: >-
-          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+          Declare that every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
         enforced_by:
-          - oya-governance-lane-prefix-vocabulary
-          - oya-governance-rename-inventory-presence
+          - governance-lane-prefix-vocabulary
+          - governance-rename-inventory-presence
       ADR-0348:
         purpose: >-
           Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
         enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-autosharding-manual-mode-refusal
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
+          - governance-sharding-automation-coverage
+          - governance-autosharding-manual-mode-refusal
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
         event_surface:
           autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
@@ -438,11 +438,11 @@ components:
         purpose: >-
           Preserve legacy-CI-shaped wording as historical provenance while ADR-0515 makes GitHub Actions the live runner until explicit owned-runner cutover; ArgoCD remains a bridge/reference CD adapter where separately authorized.
         enforced_by:
-          - oya-governance-github-actions-parity
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-owned-ci-declarative-only
-          - oya-governance-deploy-audit-chain-emit
+          - governance-github-actions-parity
+          - governance-argocd-application-cosign-verified
+          - governance-argocd-tenant-namespace-isolation
+          - governance-owned-ci-declarative-only
+          - governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
       governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.

@@ -32,7 +32,7 @@ ONE of:
 ## Pre-checks
 
 1. Identify the rollback target apply: cloud-native IaC controller/API `history --microservice` workflow.
-2. Verify the prior apply was eligible at promote-time: cross-reference observability's `oya_promotion_eligibility_verdict{verdict="eligible"}` historical record.
+2. Verify the prior apply was eligible at promote-time: cross-reference observability's `promotion_eligibility_verdict{verdict="eligible"}` historical record.
 3. Verify the prior apply's content digest is still verifiable via Sigstore / SLSA L3.
 4. If manual: capture rollback reason as structured enum (`fast_burn_breach | drift_remediation | supply_chain_response | manual_override | post_mortem_remediation`).
 
@@ -68,7 +68,7 @@ Rare but documented. If reverting to the prior apply introduces a new regression
 After completion:
 - cloud-native IaC controller/API `status --microservice` workflow returns the rollback target apply-id.
 - ArgoCD app shows `Synced` at expected content digest.
-- `oya_cloud_iac_rollback_executed_total{microservice="<ms>"}` incremented.
+- `cloud_iac_rollback_executed_total{microservice="<ms>"}` incremented.
 - `ApplyRolledBack` event in audit-chain seal log.
 - Per-changeset evidence at `microservices/<ms>/evidence/multispectrum/<change_id>-<unix_ts>.json` updated with rollback record.
 - Grafana OnCall incident closed.

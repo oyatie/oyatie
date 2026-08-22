@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every PR body has the 5 required H2 sections in canonical order (Summary, Evidence, Cross-Axis-Notify, Risk, Rollback).
 - enforces: STANDARD/pr-shape; supersedes "D15-lite" laxity.
-- kernel_crate: `oya-governance-pr-shape-strict-kernel` — `PrBody { pr_id, h2_sections }`, verdict `PrShapeStrictFitnessReport { prs_checked }`.
-- runner_path: `tools/oya-governance-pr-shape-strict`
+- kernel_crate: `governance-pr-shape-strict-kernel` — `PrBody { pr_id, h2_sections }`, verdict `PrShapeStrictFitnessReport { prs_checked }`.
+- runner_path: `tools/governance-pr-shape-strict`
 - inputs: PR body, canonical-section list.
 - failure_modes:
   - "Rollback" section absent
   - sections present but order wrong
   - extra unknown H2 between required sections
-- ci_invocation: `cargo run -p oya-governance-pr-shape-strict`
+- ci_invocation: `cargo run -p governance-pr-shape-strict`
 - runtime_budget: 150 ms
 - severity: BLOCKER
 - kernel_sketch:

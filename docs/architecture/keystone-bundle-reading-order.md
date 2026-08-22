@@ -244,7 +244,7 @@ lets a sandbox tenant `oyatie.dev.alice` automatically inherit the
 oyatie compliance posture without per-tenant configuration.
 
 **Read the Reserved Namespaces section.** This is what prevents
-a customer from registering `oya-corp` as their org tenant.
+a customer from registering `corp` as their org tenant.
 
 **Read the Audience Types section.** The eight audience types
 (PLATFORM_OWNER, B2B_TENANT, B2C_CONSUMER, DEVELOPER, SANDBOX,

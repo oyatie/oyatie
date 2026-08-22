@@ -13,7 +13,7 @@
 //! regenerated baseline; review the diff before committing.
 //!
 //! Usage:
-//!   oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write [--allow-new]]
+//!   cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write [--allow-new]]
 //!
 //! Exit codes: 0 = green (no new unauthenticated control plane, or baseline regenerated); 1 = red
 //! findings remain; 2 = argument/collection error, or a `--write` blocked by new keys (fail-closed).
@@ -207,6 +207,6 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write [--allow-new]]"
+    "usage: cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write [--allow-new]]"
         .to_owned()
 }

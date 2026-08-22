@@ -39,7 +39,7 @@ fn a_declared_path_that_names_a_deleted_file_is_red() {
     set_declared_path(
         &root,
         "drift_guard",
-        "drift_guard = \"cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs\"",
+        "drift_guard = \"cloud/cloud-ci/gates/cloud-ci-freshness-app/src/rust_toolchain_drift.rs\"",
     );
     let report = evaluate_repo(&root).expect("evaluate fixture");
     assert_eq!(report.verdict, Verdict::Red);

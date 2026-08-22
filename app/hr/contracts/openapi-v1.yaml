@@ -29,7 +29,7 @@
       "post": {
         "operationId": "onboardHrEmployee",
         "summary": "Create an employee onboarding command envelope.",
-        "x-oyatie-app-function": "oya_hr_employment_app::onboard_employee",
+        "x-oyatie-app-function": "hr_employment_app::onboard_employee",
         "requestBody": {
           "required": true,
           "content": {
@@ -67,7 +67,7 @@
       "post": {
         "operationId": "planHrLaborComplianceWorkflows",
         "summary": "Plan labor-compliance Workflow dispatch envelopes.",
-        "x-oyatie-app-function": "oya_hr_employment_app::plan_labor_compliance_workflows",
+        "x-oyatie-app-function": "hr_employment_app::plan_labor_compliance_workflows",
         "requestBody": {
           "required": true,
           "content": {
@@ -105,7 +105,7 @@
       "post": {
         "operationId": "evaluateHrSensitiveReadPolicy",
         "summary": "Evaluate a purpose-bound sensitive HR read policy decision envelope.",
-        "x-oyatie-app-function": "oya_hr_employment_app::prepare_sensitive_hr_read_envelope",
+        "x-oyatie-app-function": "hr_employment_app::prepare_sensitive_hr_read_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -143,7 +143,7 @@
       "post": {
         "operationId": "planHrLeavePayrollImpact",
         "summary": "Plan a metadata-only HR leave/attendance payroll-impact handoff.",
-        "x-oyatie-app-function": "oya_hr_employment_app::plan_leave_payroll_impact_envelope",
+        "x-oyatie-app-function": "hr_employment_app::plan_leave_payroll_impact_envelope",
         "requestBody": {
           "required": true,
           "content": {

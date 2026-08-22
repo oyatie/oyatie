@@ -2,7 +2,7 @@
 
 ## Summary
 
-Purely additive introspection surface for `ResourceState` in `oya-cloud-resource-domain`.
+Purely additive introspection surface for `ResourceState` in `cloud-resource-domain`.
 Exposes the implicit transition graph as a queryable, const-fn API — no mutation, no new
 dependencies, no async.
 

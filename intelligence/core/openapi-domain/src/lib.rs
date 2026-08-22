@@ -12,7 +12,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 const OPENAPI_PREFIX: &str = "contracts/openapi/";
 const SUPPORTED_OPENAPI_MAJOR_MINOR: &str = "3.2.";
@@ -4292,11 +4292,11 @@ components:
                 )],
                 [copy_runtime_binding("CopyResponse")],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     COPY_RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/copy_api.rs",
+                    "crates/intelligence-api/tests/copy_api.rs",
                     COPY_RUNTIME_API_TEST,
                 )],
             ),
@@ -4319,11 +4319,11 @@ components:
                 )],
                 [copy_runtime_binding("CopyResponse")],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     COPY_RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/copy_api.rs",
+                    "crates/intelligence-api/tests/copy_api.rs",
                     COPY_RUNTIME_API_TEST,
                 )],
             ),
@@ -4340,11 +4340,11 @@ components:
                 [document("contracts/openapi/foundry/copy-v1.yaml", &copy)],
                 [copy_runtime_binding("OtherResponse")],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     COPY_RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/copy_api.rs",
+                    "crates/intelligence-api/tests/copy_api.rs",
                     COPY_RUNTIME_API_TEST,
                 )],
             ),
@@ -4632,7 +4632,7 @@ components:
                 "Reference: contracts/openapi/foundry/capability-v1.yaml",
                 [mirror_location(
                     "CAPABILITY_INVOCATION",
-                    "crates/oya-foundation-app + contracts/openapi/foundry/capability-v1.yaml",
+                    "crates/foundation-app + contracts/openapi/foundry/capability-v1.yaml",
                 )],
             ),
             Ok(OpenApiContractMirrorReport {
@@ -4665,7 +4665,7 @@ components:
                 "contracts/openapi/foundry/capability-v1.yaml",
                 [mirror_location(
                     "CAPABILITY_INVOCATION",
-                    "crates/oya-foundation-app"
+                    "crates/foundation-app"
                 )],
             ),
             Err(OpenApiSourceError::MissingMachineMirror {
@@ -4719,11 +4719,11 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
@@ -4788,11 +4788,11 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
@@ -4812,11 +4812,11 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
@@ -4843,11 +4843,11 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
@@ -4873,11 +4873,11 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
@@ -4920,17 +4920,17 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "pub fn other_symbol() { let _surface = \"foundry.capability.invoke\"; let _status = 202 + 400 + 403; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeSymbol {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 symbol: "invoke_capability_from_api".into(),
             })
         );
@@ -4946,20 +4946,20 @@ components:
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeEvidenceSurface {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 evidence_surface: "foundry.capability.invoke".into(),
             })
         );
@@ -4980,17 +4980,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     shadow_source,
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeSymbol {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 symbol: "invoke_capability_from_api".into(),
             })
         );
@@ -5009,17 +5009,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     shadow_test,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeTestCoverage {
                 operation_id: "invokeCapability".into(),
-                test_path: "crates/oya-intelligence-api/tests/capability_invoke_api.rs".into(),
+                test_path: "crates/intelligence-api/tests/capability_invoke_api.rs".into(),
                 symbol: "invoke_capability_from_api".into(),
                 evidence_surface: "foundry.capability.invoke".into(),
             })
@@ -5041,17 +5041,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     private_source,
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeSymbol {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 symbol: "invoke_capability_from_api".into(),
             })
         );
@@ -5069,17 +5069,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     restricted_source,
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeSymbol {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 symbol: "invoke_capability_from_api".into(),
             })
         );
@@ -5103,17 +5103,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     weak_status_test,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeTestResponseStatus {
                 operation_id: "invokeCapability".into(),
-                test_path: "crates/oya-intelligence-api/tests/capability_invoke_api.rs".into(),
+                test_path: "crates/intelligence-api/tests/capability_invoke_api.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
                 status: "202".into(),
             })
@@ -5138,17 +5138,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     symbolic_status_test,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeTestResponseStatus {
                 operation_id: "invokeCapability".into(),
-                test_path: "crates/oya-intelligence-api/tests/capability_invoke_api.rs".into(),
+                test_path: "crates/intelligence-api/tests/capability_invoke_api.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
                 status: "202".into(),
             })
@@ -5165,20 +5165,20 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeResponseStatus {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
                 status: "403".into(),
             })
@@ -5192,17 +5192,17 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     RUNTIME_API
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     "invoke_capability_from_api(foundation, request); assert_eq!(surface, \"foundry.capability.invoke\"); assert_eq!(CapabilityInvokeApiStatus::Accepted.code(), 202); assert_eq!(CapabilityInvokeApiStatus::BadRequest.code(), 400);",
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeTestResponseStatus {
                 operation_id: "invokeCapability".into(),
-                test_path: "crates/oya-intelligence-api/tests/capability_invoke_api.rs".into(),
+                test_path: "crates/intelligence-api/tests/capability_invoke_api.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
                 status: "403".into(),
             })
@@ -5219,18 +5219,18 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub fn invoke_capability_from_api() { let _accepted = 202; let _bad_request = 400; let _forbidden = 403; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeStatusType {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
             })
         );
@@ -5246,20 +5246,20 @@ pub fn invoke_capability_from_api() { let _accepted = 202; let _bad_request = 40
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::MissingRuntimeStatusType {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
             })
         );
@@ -5275,20 +5275,20 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                 )],
                 [runtime_binding()],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 	pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden, NotFound }\n\
 	impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403, Self::NotFound => 404 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }",
                 )],
                 [runtime_source(
-                    "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    "crates/intelligence-api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),
             Err(OpenApiSourceError::UndocumentedRuntimeResponseStatus {
                 operation_id: "invokeCapability".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 status_type: "CapabilityInvokeApiStatus".into(),
                 status: "404".into(),
             })
@@ -5404,12 +5404,12 @@ pub struct TagResponse {
                 [OpenApiSchemaBinding {
                     schema_name: "TagResponse".into(),
                     contract_path: "contracts/openapi/foundry/tags-v1.yaml".into(),
-                    runtime_crate: "oya-intelligence-api".into(),
-                    source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                    runtime_crate: "intelligence-api".into(),
+                    source_path: "crates/intelligence-api/src/lib.rs".into(),
                     rust_struct: "TagResponse".into(),
                 }],
                 [runtime_source(
-                    "crates/oya-intelligence-api/src/lib.rs",
+                    "crates/intelligence-api/src/lib.rs",
                     runtime
                 )],
             ),
@@ -5482,16 +5482,16 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
                     runtime_source(
-                        "crates/oya-intelligence-api/src/lib.rs",
+                        "crates/intelligence-api/src/lib.rs",
                         &private_success_response,
                     ),
                 ],
             ),
             Err(OpenApiSourceError::MissingRuntimeStruct {
                 schema_name: "CapabilityInvokeApiSuccessResponse".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiSuccessResponse".into(),
             })
         );
@@ -5689,8 +5689,8 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &renamed_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &renamed_runtime),
                 ],
             ),
             Err(OpenApiSourceError::SchemaFieldMismatch {
@@ -5718,8 +5718,8 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &renamed_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &renamed_runtime),
                 ],
             ),
             Err(OpenApiSourceError::SchemaFieldMismatch {
@@ -5747,13 +5747,13 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &renamed_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &renamed_runtime),
                 ],
             ),
             Err(OpenApiSourceError::InvalidRuntimeStruct {
                 schema_name: "CapabilityInvokeApiResponseMetadata".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiResponseMetadata".into(),
                 reason: "unsupported serde rename_all rule Train-Case".into(),
             })
@@ -5786,13 +5786,13 @@ pub struct TagResponse {
                     )],
                     schema_bindings(),
                     [
-                        runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                        runtime_source("crates/oya-intelligence-api/src/lib.rs", &runtime),
+                        runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                        runtime_source("crates/intelligence-api/src/lib.rs", &runtime),
                     ],
                 ),
                 Err(OpenApiSourceError::InvalidRuntimeStruct {
                     schema_name: "CapabilityInvokeApiResponseMetadata".into(),
-                    path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                    path: "crates/intelligence-api/src/lib.rs".into(),
                     rust_struct: "CapabilityInvokeApiResponseMetadata".into(),
                     reason: format!(
                         "unsupported serde {unsupported} on struct CapabilityInvokeApiResponseMetadata"
@@ -5819,8 +5819,8 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &skipped_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &skipped_runtime),
                 ],
             ),
             Err(OpenApiSourceError::SchemaFieldMismatch {
@@ -5848,13 +5848,13 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &flattened_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &flattened_runtime),
                 ],
             ),
             Err(OpenApiSourceError::InvalidRuntimeStruct {
                 schema_name: "CapabilityInvokeApiSuccessResponse".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiSuccessResponse".into(),
                 reason: "unsupported serde flatten on field metadata".into(),
             })
@@ -5877,9 +5877,9 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
                     runtime_source(
-                        "crates/oya-intelligence-api/src/lib.rs",
+                        "crates/intelligence-api/src/lib.rs",
                         &conditional_runtime
                     ),
                 ],
@@ -5909,8 +5909,8 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &defaulted_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &defaulted_runtime),
                 ],
             ),
             Err(OpenApiSourceError::SchemaRequiredMismatch {
@@ -5938,13 +5938,13 @@ pub struct TagResponse {
                 )],
                 schema_bindings(),
                 [
-                    runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source("crates/oya-intelligence-api/src/lib.rs", &aliased_runtime),
+                    runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &aliased_runtime),
                 ],
             ),
             Err(OpenApiSourceError::InvalidRuntimeStruct {
                 schema_name: "CapabilityInvokeApiResponseMetadata".into(),
-                path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiResponseMetadata".into(),
                 reason: "unsupported serde alias requestId on field request_id".into(),
             })
@@ -5982,16 +5982,16 @@ pub struct TagResponse {
                     )],
                     schema_bindings(),
                     [
-                        runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+                        runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
                         runtime_source(
-                            "crates/oya-intelligence-api/src/lib.rs",
+                            "crates/intelligence-api/src/lib.rs",
                             &serialized_runtime
                         ),
                     ],
                 ),
                 Err(OpenApiSourceError::InvalidRuntimeStruct {
                     schema_name: "CapabilityInvokeApiResponseMetadata".into(),
-                    path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                    path: "crates/intelligence-api/src/lib.rs".into(),
                     rust_struct: "CapabilityInvokeApiResponseMetadata".into(),
                     reason: format!("unsupported serde {unsupported} on field request_id"),
                 }),
@@ -6062,12 +6062,12 @@ pub struct TagResponse {
         OpenApiRuntimeBinding {
             operation_id: "invokeCapability".into(),
             contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-            runtime_crate: "oya-intelligence-api".into(),
-            source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+            runtime_crate: "intelligence-api".into(),
+            source_path: "crates/intelligence-api/src/lib.rs".into(),
             symbol: "invoke_capability_from_api".into(),
             status_type: "CapabilityInvokeApiStatus".into(),
             evidence_surface: "foundry.capability.invoke".into(),
-            test_path: "crates/oya-intelligence-api/tests/capability_invoke_api.rs".into(),
+            test_path: "crates/intelligence-api/tests/capability_invoke_api.rs".into(),
             response_schemas: response_schemas(),
         }
     }
@@ -6084,12 +6084,12 @@ pub struct TagResponse {
         OpenApiRuntimeBinding {
             operation_id: "copyResource".into(),
             contract_path: "contracts/openapi/foundry/copy-v1.yaml".into(),
-            runtime_crate: "oya-intelligence-api".into(),
-            source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+            runtime_crate: "intelligence-api".into(),
+            source_path: "crates/intelligence-api/src/lib.rs".into(),
             symbol: "copy_resource_from_api".into(),
             status_type: "CopyApiStatus".into(),
             evidence_surface: "foundry.copy".into(),
-            test_path: "crates/oya-intelligence-api/tests/copy_api.rs".into(),
+            test_path: "crates/intelligence-api/tests/copy_api.rs".into(),
             response_schemas: BTreeMap::from([("200".into(), response_schema.into())]),
         }
     }
@@ -6099,50 +6099,50 @@ pub struct TagResponse {
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvocationRequest".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-foundation-app".into(),
-                source_path: "crates/oya-foundation-app/src/lib.rs".into(),
+                runtime_crate: "foundation-app".into(),
+                source_path: "crates/foundation-app/src/lib.rs".into(),
                 rust_struct: "CapabilityInvocationRequest".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvocationReceipt".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-foundation-app".into(),
-                source_path: "crates/oya-foundation-app/src/lib.rs".into(),
+                runtime_crate: "foundation-app".into(),
+                source_path: "crates/foundation-app/src/lib.rs".into(),
                 rust_struct: "InvocationReceipt".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvokeApiSuccessResponse".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-intelligence-api".into(),
-                source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                runtime_crate: "intelligence-api".into(),
+                source_path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiSuccessResponse".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvokeApiResponseMetadata".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-intelligence-api".into(),
-                source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                runtime_crate: "intelligence-api".into(),
+                source_path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiResponseMetadata".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvokeApiErrorResponse".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-intelligence-api".into(),
-                source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                runtime_crate: "intelligence-api".into(),
+                source_path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiErrorResponse".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvokeApiErrorBody".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-intelligence-api".into(),
-                source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                runtime_crate: "intelligence-api".into(),
+                source_path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiErrorBody".into(),
             },
             OpenApiSchemaBinding {
                 schema_name: "CapabilityInvokeApiErrorDetail".into(),
                 contract_path: "contracts/openapi/foundry/capability-v1.yaml".into(),
-                runtime_crate: "oya-intelligence-api".into(),
-                source_path: "crates/oya-intelligence-api/src/lib.rs".into(),
+                runtime_crate: "intelligence-api".into(),
+                source_path: "crates/intelligence-api/src/lib.rs".into(),
                 rust_struct: "CapabilityInvokeApiErrorDetail".into(),
             },
         ]
@@ -6157,8 +6157,8 @@ pub struct TagResponse {
 
     fn schema_runtime_sources() -> Vec<OpenApiRuntimeSource> {
         vec![
-            runtime_source("crates/oya-foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-            runtime_source("crates/oya-intelligence-api/src/lib.rs", RUNTIME_API),
+            runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
+            runtime_source("crates/intelligence-api/src/lib.rs", RUNTIME_API),
         ]
     }
 
@@ -6170,11 +6170,11 @@ pub struct TagResponse {
             )],
             [runtime_binding()],
             [runtime_source(
-                "crates/oya-intelligence-api/src/lib.rs",
+                "crates/intelligence-api/src/lib.rs",
                 source,
             )],
             [runtime_source(
-                "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                "crates/intelligence-api/tests/capability_invoke_api.rs",
                 RUNTIME_API_TEST,
             )],
         ) {

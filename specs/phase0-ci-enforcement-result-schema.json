@@ -19,7 +19,7 @@
     "version": "0.1.0"
   },
   "additionalProperties": false,
-  "description": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs. A conforming bundle is evidence input only; live enforcement still requires the protected required context on the candidate SHA.",
+  "description": "Structured result bundle schema for P0.0 cloud-ci/ci fixture runs. A conforming bundle is evidence input only; live enforcement still requires the protected required context on the candidate SHA.",
   "properties": {
     "candidate_sha": {
       "description": "Full candidate commit object id that the required context is posted to; synthetic fixtures must still use a valid 40-hex placeholder and carry claim_boundary metadata.",
@@ -97,7 +97,7 @@
         "context": {
           "enum": [
             "cloud-ci-required",
-            "oya-ci-required",
+            "presubmit",
             "missing"
           ]
         },
@@ -142,7 +142,7 @@
     "required_context": {
       "enum": [
         "cloud-ci-required",
-        "oya-ci-required",
+        "presubmit",
         "missing"
       ]
     }

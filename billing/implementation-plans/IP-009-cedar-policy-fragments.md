@@ -39,7 +39,7 @@ In scope:
 
 Out of scope:
 
-- Cedar evaluator runtime (lives in `oya-cedar-eval-kernel`).
+- Cedar evaluator runtime (lives in `cedar-eval-kernel`).
 - Per-gate test fixtures (covered in IP-009-test-fixtures, future).
 - cloud-iam principal claim binding (covered by cloud-iam µservice).
 

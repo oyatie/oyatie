@@ -8,8 +8,8 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-capability-domain = { path = "../capability-domain" }
-oya-governance-eval-domain = { path = "../../../libs/oya-governance-eval-domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+governance-eval-domain = { path = "../../../libs/governance-eval-domain" }
+data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
 
 [lib]
 name = "intelligence_registry_api"

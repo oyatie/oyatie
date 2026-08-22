@@ -113,7 +113,7 @@ fn tenant_workload_runtime_evidence_plan_preserves_ref_boundaries_and_source_con
             .starts_with("evidence/tenant-workload-runtime/fd001-tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && requirement.workload_scope == "all-fd001-workloads"
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.tenant_cell_id == "cell-us-east-001"

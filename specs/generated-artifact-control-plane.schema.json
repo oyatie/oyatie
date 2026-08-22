@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/generated-artifact-control-plane.schema.json",
   "title": "GeneratedArtifactControlPlane",
-  "description": "Portable oya-ci manifest for generated artifacts. A hermetic Rust gate consumes this manifest plus an SCM-facts snapshot to prove generated artifacts are declared, owned, and materialized by explicit policy rather than ad-hoc gitignore or merge-driver behavior. Tracked generated outputs are matched by repo-declared generated_path_rules, so public adopters can encode conventions such as generated/, __generated__/, generated-sources/, .generated.ts, or .pb.go without changing the gate.",
+  "description": "Portable ci manifest for generated artifacts. A hermetic Rust gate consumes this manifest plus an SCM-facts snapshot to prove generated artifacts are declared, owned, and materialized by explicit policy rather than ad-hoc gitignore or merge-driver behavior. Tracked generated outputs are matched by repo-declared generated_path_rules, so public adopters can encode conventions such as generated/, __generated__/, generated-sources/, .generated.ts, or .pb.go without changing the gate.",
   "type": "object",
   "required": [
     "schema_version",
@@ -25,7 +25,7 @@
       "const": "generated-artifact-control-plane"
     },
     "ci_product_surface": {
-      "const": "oya-ci"
+      "const": "ci"
     },
     "purpose": {
       "type": "string",
@@ -202,7 +202,7 @@
       ],
       "properties": {
         "controller_id": {
-          "const": "oya-ci-generated-artifact-controller"
+          "const": "ci-generated-artifact-controller"
         },
         "presubmit_authority": {
           "enum": [
@@ -365,7 +365,7 @@
         "runner": {
           "enum": [
             "buck2",
-            "oya-ci-native-controller"
+            "ci-native-controller"
           ]
         },
         "generator_target": {
@@ -429,7 +429,7 @@
           "if": {
             "properties": {
               "runner": {
-                "const": "oya-ci-native-controller"
+                "const": "ci-native-controller"
               }
             },
             "required": [
@@ -439,7 +439,7 @@
           "then": {
             "properties": {
               "generator_target": {
-                "pattern": "^oya-ci://generated-artifact-controller/"
+                "pattern": "^ci://generated-artifact-controller/"
               },
               "output_mode": {
                 "const": "controller-materialized"

@@ -39,8 +39,8 @@
     "export preserves redactions and chain-of-custody metadata"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::changeset_pr_audit_row_provenance_chain_is_graph_traversable",
-    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable"
+    "crates/dev-cli/tests/knowledge_graph_semantic.rs::changeset_pr_audit_row_provenance_chain_is_graph_traversable",
+    "crates/dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable"
   ],
   "consumers": [
     "$ref:specs/microservices/ontology.json#frontend_components",

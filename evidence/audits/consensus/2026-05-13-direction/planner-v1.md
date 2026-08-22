@@ -23,7 +23,7 @@
 **Option α (adopted; current direction) — Continue the meta-layer build-out**
 
 - Strengths: 6 commits today establish active-artifact-contract + knowledge-graph (semantic/kinetic/dynamic) + markdown retirement substrate. Foundation for all subsequent automation. Codex Torvalds-lens (r17 → r18 → r19) consistently ITERATEd then APPROVEd. ADR-0069 Accepted.
-- Costs: 9 directive-driven follow-on slices queued (Wave 7 conversion, workflow-task-traceability, Constitution redistribution, CLAUDE.md thinning, Wave 1-5 plan conversion, ADR migration, dogfooding ADR, oya-dev-cli validator wiring). Each is non-trivial.
+- Costs: 9 directive-driven follow-on slices queued (Wave 7 conversion, workflow-task-traceability, Constitution redistribution, CLAUDE.md thinning, Wave 1-5 plan conversion, ADR migration, dogfooding ADR, dev-cli validator wiring). Each is non-trivial.
 - Risks: (a) breadth-over-depth — meta-layer expanding without yet operationalizing (validator unwired; lane status=planned); (b) markdown-retirement migration breaks ~12 check crates that grep markdown; (c) parallel-session foundation gap delays operational-stage close.
 - Principles satisfied: 1-5 all.
 

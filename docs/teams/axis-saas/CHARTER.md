@@ -5,28 +5,28 @@ doc_status: published
 # Team: Axis — SaaS Multi-Tenant Platform
 
 ## Mission
-This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), model/provider execution (→ `cloud-intelligence`), tenant intelligence servicing (→ `oya-intelligence`), or per-vertical domain logic beyond what is shared across all verticals.
+This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), model/provider execution (→ `cloud-intelligence`), tenant intelligence servicing (→ `intelligence`), or per-vertical domain logic beyond what is shared across all verticals.
 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** SaaS multi-tenant (Axis 1)
 - **Surfaces:**
-  - `oya-saas-workflow-sdk-kernel` / `oya-saas-workflow-sdk-app` — workflow definition, step types, saga orchestration
-  - `oya-saas-workflow-engine-*` — execution runtime (ADR-0035)
-  - `oya-saas-plugin-kernel` / `oya-saas-plugin-app` — plugin signing, sandbox, lifecycle
-  - `oya-saas-marketplace-kernel` — marketplace listing, ISV onboarding, revenue share
-  - `oya-platform-forms-kernel` / `oya-platform-forms-app` — form builder (split from `forms` crate)
-  - `oya-platform-metering-kernel` — billing event emission for SaaS surfaces
-  - `oya-platform-web-kernel` / `oya-platform-web-app` — SaaS web layer
+  - `saas-workflow-sdk-kernel` / `saas-workflow-sdk-app` — workflow definition, step types, saga orchestration
+  - `saas-workflow-engine-*` — execution runtime (ADR-0035)
+  - `saas-plugin-kernel` / `saas-plugin-app` — plugin signing, sandbox, lifecycle
+  - `saas-marketplace-kernel` — marketplace listing, ISV onboarding, revenue share
+  - `platform-forms-kernel` / `platform-forms-app` — form builder (split from `forms` crate)
+  - `platform-metering-kernel` — billing event emission for SaaS surfaces
+  - `platform-web-kernel` / `platform-web-app` — SaaS web layer
   - Bench: collaborative workspace surface (uses OG + workflow + identity)
   - Connect: partner integration surface
   - Product PRD: `docs/products/saas-platform/PRD.md` (planning-closed contract authored; live readiness requires changeset gate evidence)
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (co-owner with `platform-eventing-og`, `platform-privacy-dub`) — OG shape changes are cross-axis
-  - `Marketplace listing` (co-owner with `cloud-intelligence`, `oya-intelligence`, and central governance) — plugin signing + sandbox gate
+  - `Marketplace listing` (co-owner with `cloud-intelligence`, `intelligence`, and central governance) — plugin signing + sandbox gate
   - `Billing event` (co-owner with `axis-cloud`) — SaaS metering side
   - `Webhook delivery + signing` (consumer of `platform-api-sdk` — SaaS-authored webhooks)
   - `Public REST stability tier` (consumer — SaaS surface slice)
-- **Catalog records:** current registry-store package records for `oya-saas-workflow-kernel`, `oya-saas-workflow-domain`, `oya-saas-workflow-app`, `oya-saas-plugin-app`, `oya-saas-plugin-runtime`, `oya-saas-plugin-marketplace`, `oya-saas-plugin-marketplace-kernel`, `oya-platform-forms-*`, `oya-platform-metering-*`, and `oya-platform-web-*`.
+- **Catalog records:** current registry-store package records for `saas-workflow-kernel`, `saas-workflow-domain`, `saas-workflow-app`, `saas-plugin-app`, `saas-plugin-runtime`, `saas-plugin-marketplace`, `saas-plugin-marketplace-kernel`, `platform-forms-*`, `platform-metering-*`, and `platform-web-*`.
 - **Runbooks:** `docs/runbooks/saas/workflow-engine-deadlock.md`, `docs/runbooks/saas/plugin-runtime-sandbox-escape.md`, `docs/runbooks/saas/marketplace-listing-takedown.md`
 - **ADRs:** ADR-0035 (workflow engine), ADR-0006..0112 (OG — co-author with `platform-eventing-og`)
 
@@ -38,13 +38,13 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 - Plugin marketplace: ISV listing, review pipeline, revenue share, tenant installation
 - Bench: collaborative workspace (real-time co-editing, presence, notifications)
 - Connect: partner API surface for external integrators (uses `platform-api-sdk` for delivery)
-- SaaS metering: usage events (per-seat, per-workflow-run, per-plugin-invocation) → `oya-platform-metering-kernel`
+- SaaS metering: usage events (per-seat, per-workflow-run, per-plugin-invocation) → `platform-metering-kernel`
 - Tenant onboarding UX (control-plane — onboarding logic is `platform-tenancy-identity`)
 - Per-vertical workflow template library (templates authored here; domain logic in vertical teams)
 
 ## Out-of-scope (anti-scope)
 - Cloud infrastructure hosting SaaS (→ `axis-cloud`)
-- Model/provider execution and tenant intelligence servicing (→ `cloud-intelligence` / `oya-intelligence`)
+- Model/provider execution and tenant intelligence servicing (→ `cloud-intelligence` / `intelligence`)
 - Per-vertical FHIR/EDI/ISA-95 domain logic (→ per-vertical teams; SaaS provides the workflow substrate)
 - Public API gateway infrastructure (→ `platform-api-sdk`)
 - Audit chain infrastructure (→ `platform-audit-evidence` — SaaS emits but doesn't own the chain)
@@ -57,7 +57,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | `platform-tenancy-identity` | Tenant/identity kernel, RBAC enforcement | Per-release |
 | `platform-eventing-og` | OG property-tier schema, outbox relay | Per-release |
 | `platform-privacy-dub` | Data Use Boundary check on OG tier changes | Per OG schema change |
-| `cloud-intelligence` / `oya-intelligence` | Capability invocation API for agent-authored workflows | Wave gate |
+| `cloud-intelligence` / `intelligence` | Capability invocation API for agent-authored workflows | Wave gate |
 | `axis-cloud` | Compute cells for workflow execution, storage for OG | Wave gate |
 | `platform-api-sdk` | Webhook delivery, public REST stability tier | Per-release |
 | central governance | Catalog gate for plugin signing and contract fitness functions | Per-release |
@@ -72,7 +72,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | `gtm-customer-success` | Tenant health dashboards, workflow analytics | Monthly |
 
 ## Success metrics
-- **Tenant onboarding + plugin install + marketplace listing all functional:** M03-P04/M03-P08 changeset evidence plus branch-protected `oya-ci-required` gate; readiness remains `target_non_claim` until that evidence is green.
+- **Tenant onboarding + plugin install + marketplace listing all functional:** M03-P04/M03-P08 changeset evidence plus branch-protected `presubmit` gate; readiness remains `target_non_claim` until that evidence is green.
 - **Workflow execution p99 latency:** < 500 ms for synchronous steps
 - **Plugin sandbox escape incidents:** 0
 - **Marketplace plugin listing review turnaround:** ≤ 5 business days
@@ -91,12 +91,12 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 - Cross-team review: monthly cross-axis contract audit for OG and marketplace contract changes
 
 ## Bandwidth + hiring
-Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. SaaS readiness is gated by M03-P04/M03-P08 functional, security, SLO, runbook, and `oya-ci-required` evidence rather than staffing-count assertions.
+Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. SaaS readiness is gated by M03-P04/M03-P08 functional, security, SLO, runbook, and `presubmit` evidence rather than staffing-count assertions.
 
 ## Operating norms
 - Code review: per CLAUDE.md `## Code Review` rules; OG contract PRs require cross-axis label
 - PR shape: 5-section H2 template
-- Readiness authority: branch-protected `oya-ci-required`; workstation diagnostics may help authors but are never merge, production, or hyperscaler authority.
+- Readiness authority: branch-protected `presubmit`; workstation diagnostics may help authors but are never merge, production, or hyperscaler authority.
 - ADR proposal cadence: monthly batch
 
 ## Slice of risk register

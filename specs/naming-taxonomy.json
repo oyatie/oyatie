@@ -28,7 +28,7 @@
     ],
     "supersedes_for_greenfield": [
       "ADR-0017 / crate-naming-convention required_prefix=oya- as durable greenfield law",
-      "brand-first cloud-ci-* / oya-cloud-ci-* gate and binary names"
+      "brand-first cloud-ci-* / cloud-ci-* gate and binary names"
     ],
     "prior_version": "1.2.0",
     "updated_at": "2026-08-11T00:00:00Z",
@@ -99,8 +99,8 @@
         "governance/check/integ-envelope/"
       ],
       "examples_bad": [
-        "libs/oya-check-*",
-        "libs/oya-governance-*-kernel as forever home"
+        "libs/check-*",
+        "libs/governance-*-kernel as forever home"
       ]
     },
     "ci-facade": {
@@ -114,7 +114,7 @@
         "ci/facade/affected-target-set/"
       ],
       "examples_bad": [
-        "oya-cloud-ci-*-app",
+        "cloud-ci-*-app",
         "cloud/cloud-ci/gates/*"
       ]
     },
@@ -140,17 +140,17 @@
       "name_shape": "<role>-required — describes admission role, not product brand",
       "integ": "integ/ci (in-repo) + founder-paired branch protection flip",
       "examples_good": [
-        "merge-admission-required"
+        "presubmit"
       ],
       "examples_bad": [
-        "oya-ci-required",
+        "presubmit",
         "cloud-ci-required"
       ],
       "dual_emit_rule": "While protection still keys the legacy context, emit BOTH legacy and forever names as sibling fan-in jobs with identical needs/verdict. Founder flips protection in one line; then delete legacy job."
     },
     "policy-face": {
       "description": "Machine-readable gate/policy/disposition DATA face",
-      "path_shape": "<owner>/<role>.{json,toml,yaml} or oya-ci.toml [[gates.enabled]] id",
+      "path_shape": "<owner>/<role>.{json,toml,yaml} or ci.toml [[gates.enabled]] id",
       "name_shape": "<role> matching ci-facade / check-crate role",
       "integ": "owning integ (usually integ/ci or integ/governance)",
       "examples_good": [
@@ -229,9 +229,9 @@
         "libs/data-outbox-kernel/ → data/core/… or base/"
       ],
       "examples_bad": [
-        "libs/oya-shared-*",
-        "libs/oya-governance-*",
-        "libs/oya-check-*"
+        "libs/shared-*",
+        "libs/governance-*",
+        "libs/check-*"
       ]
     }
   },
@@ -242,7 +242,7 @@
     "self_explanatory_path_test": "A new engineer reading only the path+filename can state the unit's job without opening an ADR or brand glossary",
     "forbidden_leading_brand_prefixes": [
       "oya-",
-      "oya_",
+      "",
       "cloud-",
       "cloud_"
     ],
@@ -288,15 +288,15 @@
     },
     {
       "id": "CR-check-crate",
-      "when": "path under governance/check/<name>/ OR libs/oya-check-* OR libs/oya-governance-*",
+      "when": "path under governance/check/<name>/ OR libs/check-* OR libs/governance-*",
       "kind": "check-crate",
       "integ": "integ/governance",
       "name_shape": "kinds.check-crate.name_shape",
-      "debt_signal": "libs/oya-check-* and libs/oya-governance-* are branded shared-lib-debt pending move/rename into governance/check/<role>"
+      "debt_signal": "libs/check-* and libs/governance-* are branded shared-lib-debt pending move/rename into governance/check/<role>"
     },
     {
       "id": "CR-ci-facade",
-      "when": "path under ci/facade/<name>/ OR historical cloud/cloud-ci/gates/* OR buck/cargo name oya-cloud-ci-*",
+      "when": "path under ci/facade/<name>/ OR historical cloud/cloud-ci/gates/* OR buck/cargo name cloud-ci-*",
       "kind": "ci-facade",
       "integ": "integ/ci",
       "name_shape": "kinds.ci-facade.name_shape"
@@ -317,7 +317,7 @@
     },
     {
       "id": "CR-policy-face",
-      "when": "oya-ci.toml [[gates.enabled]].id OR gate-disposition / baseline / policy JSON faces",
+      "when": "ci.toml [[gates.enabled]].id OR gate-disposition / baseline / policy JSON faces",
       "kind": "policy-face",
       "integ": "owning integ",
       "name_shape": "kinds.policy-face.name_shape"
@@ -346,9 +346,9 @@
   ],
   "canonical_instances": [
     {
-      "name_now": "oya-ci-required",
+      "name_now": "presubmit",
       "kind": "merge-gate-context",
-      "name_forever": "merge-admission-required",
+      "name_forever": "presubmit",
       "grammar_compliant": false,
       "violations": [
         "leading_brand_prefix:oya-"
@@ -425,9 +425,9 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": ".github/workflows/oya-ci-required.yml",
+      "name_now": ".github/workflows/presubmit.yml",
       "kind": "ci-job",
-      "name_forever": ".github/workflows/merge-admission-required.yml",
+      "name_forever": ".github/workflows/presubmit.yml",
       "grammar_compliant": false,
       "violations": [
         "leading_brand_prefix:oya-"
@@ -441,7 +441,7 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": "cloud-ci-* (oya-ci.toml [[gates.enabled]] ids)",
+      "name_now": "cloud-ci-* (ci.toml [[gates.enabled]] ids)",
       "kind": "policy-face",
       "name_forever": "<ci-facade-role> (e.g. total-accounting, cross-artifact-agreement, brand-residue)",
       "grammar_compliant": false,
@@ -456,7 +456,7 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": "oya-cloud-ci-*-bin / oya-cloud-ci-firewall-signoff-fixer",
+      "name_now": "cloud-ci-*-bin / cloud-ci-firewall-signoff-fixer",
       "kind": "ci-facade",
       "name_forever": "ci-<role>-bin (e.g. ci-baseline-ratchet-signoff-fixer, ci-materialize-generated-faces-bin)",
       "grammar_compliant": false,
@@ -472,7 +472,7 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": "libs/oya-* / libs/oya_*",
+      "name_now": "libs/oya-* / libs/*",
       "kind": "shared-lib-debt",
       "name_forever": "<domain>-<role> under base/ or owning capability core/ (strip leading oya-)",
       "grammar_compliant": false,
@@ -540,25 +540,25 @@
       {
         "id": "cohort-policy-face-cloud-ci",
         "kind": "policy-face",
-        "match": "oya-ci.toml id = cloud-ci-*",
+        "match": "ci.toml id = cloud-ci-*",
         "owning_integ": "integ/ci"
       },
       {
-        "id": "cohort-ci-buck-oya-cloud",
+        "id": "cohort-ci-buck-cloud",
         "kind": "ci-facade",
-        "match": "ci/**/BUCK name = oya-cloud-ci-* OR oya-ci-*",
+        "match": "ci/**/BUCK name = cloud-ci-* OR ci-*",
         "owning_integ": "integ/ci"
       },
       {
-        "id": "cohort-libs-oya-prefix",
+        "id": "cohort-libs-prefix",
         "kind": "shared-lib-debt",
         "match": "libs/oya-* directories and Cargo package names",
         "owning_integ": "integ/libs"
       },
       {
-        "id": "cohort-check-oya-governance",
+        "id": "cohort-check-governance",
         "kind": "check-crate",
-        "match": "libs/oya-check-* | libs/oya-governance-* | governance/check/* (check dirs often already role-first)",
+        "match": "libs/check-* | libs/governance-* | governance/check/* (check dirs often already role-first)",
         "owning_integ": "integ/governance"
       },
       {
@@ -617,9 +617,9 @@
   "overturned_patterns": [
     {
       "id": "OP-merge-gate-brand",
-      "name_now": "oya-ci-required",
+      "name_now": "presubmit",
       "kind": "merge-gate-context",
-      "name_forever": "merge-admission-required",
+      "name_forever": "presubmit",
       "lenses_applied": "all-16",
       "chestertons_fence": "Single required merge context (ADR-0515/0700) plus product-brand cohesion for the fan-in job name and branch-protection string.",
       "challenges": [
@@ -668,7 +668,7 @@
       "challenges": [
         "contrarian: hyperscaler prefixes name the *vendor SDK surface*; inside an owned monorepo the capability/role IS the namespace",
         "essentialism_yagni: directory + capability-registry already disambiguate",
-        "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs oya-cloud-ci-firewall-*)",
+        "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs cloud-ci-firewall-*)",
         "red_team: brand residue gates already fight retired brand stems — encoding oya- as required greenfield law fights the de-brand north star",
         "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag — taxonomy makes lag debt, not law"
       ],

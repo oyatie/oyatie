@@ -64,7 +64,7 @@
 2. **Mobile SDK breadth.** Auth0's mobile SDKs (Swift/Kotlin/React-Native/Flutter) are more mature; `cloud-iam` ships Swift/Kotlin
    only at v1.
 3. **Public sign-up.** Okta + Entra both offer self-service B2C; `cloud-iam` requires tenant provisioning.
-4. **Marketplace IdP catalogue.** Okta has 7,000+ pre-integrated SaaS apps; `cloud-iam` has ~600 via `oya-iam-saml-catalog-v1`.
+4. **Marketplace IdP catalogue.** Okta has 7,000+ pre-integrated SaaS apps; `cloud-iam` has ~600 via `iam-saml-catalog-v1`.
 
 ## Where `cloud-iam` wins
 

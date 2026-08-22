@@ -10,7 +10,7 @@
 #                      usecase, app, adapter, infrastructure, cli, rest,
 #                      grpc, worker, sdk, api} per ADR-0056 amended by
 #                      ADR-0105+ADR-0106+ADR-0565. ✓
-#   - Sibling pattern: every other `oya-foundry-*-kernel` crate (the
+#   - Sibling pattern: every other `foundry-*-kernel` crate (the
 #                      port-in-kernel substrate; adapter impls live
 #                      one ring out, binary entrypoints two rings out).
 #   - Introducing IP:  M01-P17-IP-009 (subagent runtime).

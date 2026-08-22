@@ -21,7 +21,7 @@
 
 ## Chesterton (do not clobber #1643)
 
-Forever crate bodies under `os/core/{cluster-mgmt,kubernetes,secrets,trustd}-domain/**` already advanced by `#1643` land. Dual-home bytes under `cloud/cloud-os/crates/oya-cloud-os-*` still drift (BUCK/Cargo.toml/src) — **not** copied onto forever homes. Delete of dual-home owned by `integ/cloud` after this receipt.
+Forever crate bodies under `os/core/{cluster-mgmt,kubernetes,secrets,trustd}-domain/**` already advanced by `#1643` land. Dual-home bytes under `cloud/cloud-os/crates/cloud-os-*` still drift (BUCK/Cargo.toml/src) — **not** copied onto forever homes. Delete of dual-home owned by `integ/cloud` after this receipt.
 
 ## Findings still open
 

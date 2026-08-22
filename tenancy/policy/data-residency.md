@@ -156,7 +156,7 @@ Retention windows are the MAX of:
 | pack-ksa | `PII_IDENTIFYING` | KSA PDPL Art. 6 | bounded; SAMA may extend for financial-services |
 | (all packs) | `SECRET` | rotate per ISO 27001 A.5.17 cadence | 30d JWT signing keys; 90d Postgres replication password; 30d API tokens |
 
-The CI lane `oya-governance-tenancy-retention-conformance` (NEW) validates Postgres + Citus retention configs against this table.
+The CI lane `governance-tenancy-retention-conformance` (NEW) validates Postgres + Citus retention configs against this table.
 
 ## DSR (Data Subject Request) Cascade
 
@@ -176,7 +176,7 @@ Tenancy is the **load-bearing authority** for DSR cascade. Per `dsr-cascade` BC:
 
 Limitations (documented in DPIA R-05 + R-12):
 - Data older than statutory retention may already be deleted before DSR processed.
-- A µservice without a registered DSR handler causes halt-and-escalate (per LEAN check `oya-governance-dsr-handler-conformance`).
+- A µservice without a registered DSR handler causes halt-and-escalate (per LEAN check `governance-dsr-handler-conformance`).
 
 ## Per-Pack Overlay Sections
 
@@ -214,9 +214,9 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-residency-overlay.md` carr
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate tenancy-retention-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate tenancy-pack-routing-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-transfer-allowed-only-with-scc` — exit 0.
+- `cargo run -p dev-cli -- gate validate tenancy-retention-conformance` — exit 0.
+- `cargo run -p dev-cli -- gate validate tenancy-pack-routing-conformance` — exit 0.
+- `cargo run -p dev-cli -- gate validate cross-pack-transfer-allowed-only-with-scc` — exit 0.
 - Annual residency audit: confirm each tenant's data location matches its assigned pack.
 - Quarterly chaos drill: induce a cross-pack write attempt; verify rejection + alerting.
 

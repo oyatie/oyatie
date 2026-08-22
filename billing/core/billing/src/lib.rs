@@ -14,7 +14,7 @@ use billing_metering::{
 };
 use cell_region::RegionCode;
 use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const BILLING_ACCOUNT_SCHEMA_VERSION: u32 = 1;
 const CLOUD_BILLING_EVENT_SCHEMA_VERSION: u32 = 1;
@@ -27,7 +27,7 @@ const INVOICE_LINE_ITEM_ID_PREFIX: &str = "ili_";
 const TENANT_ID_PREFIX: &str = "ten_";
 const PAYMENT_METHOD_PREFIX: &str = "pm_";
 const RATE_CARD_PREFIX: &str = "rate/";
-const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_PREFIX: &str = "pack-";
 const TAX_INVOICE_FORMAT_PREFIX: &str = "tax-format/";
 const TAX_REGISTRATION_ID_PREFIX: &str = "tax-registration/";
 pub const BILLING_METERING_EVIDENCE_PREFIX: &str = "evidence/billing/metering/";
@@ -526,16 +526,16 @@ pub const fn billing_component_label(value: BillingComponent) -> &'static str {
 impl TaxInvoiceFormat {
     pub fn for_regional_pack(value: &str) -> Result<Self, CloudBillingError> {
         match value {
-            "oya-pack-electronic-tax" => Ok(Self::ElectronicTaxInvoice),
-            "oya-pack-qualified-tax" => Ok(Self::QualifiedTaxInvoice),
-            "oya-pack-country-tax"
-            | "oya-pack-market-tax"
-            | "oya-pack-trade-tax"
-            | "oya-pack-vat-tax" => Ok(Self::CountryEInvoice),
-            "oya-pack-gst-tax" => Ok(Self::GstTaxInvoice),
-            "oya-pack-fiscal-tax" => Ok(Self::FiscalDocumentInvoice),
-            "oya-pack-clearance-tax" => Ok(Self::ClearanceQrInvoice),
-            "oya-pack-registration-tax" => Ok(Self::VatRegistrationInvoice),
+            "pack-electronic-tax" => Ok(Self::ElectronicTaxInvoice),
+            "pack-qualified-tax" => Ok(Self::QualifiedTaxInvoice),
+            "pack-country-tax"
+            | "pack-market-tax"
+            | "pack-trade-tax"
+            | "pack-vat-tax" => Ok(Self::CountryEInvoice),
+            "pack-gst-tax" => Ok(Self::GstTaxInvoice),
+            "pack-fiscal-tax" => Ok(Self::FiscalDocumentInvoice),
+            "pack-clearance-tax" => Ok(Self::ClearanceQrInvoice),
+            "pack-registration-tax" => Ok(Self::VatRegistrationInvoice),
             _ => Err(CloudBillingError::InvalidRegionalPack),
         }
     }
@@ -1227,7 +1227,7 @@ mod tests {
             id: "ba_ten_alpha".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha".to_string(),
-            regional_pack: "oya-pack-electronic-tax".to_string(),
+            regional_pack: "pack-electronic-tax".to_string(),
             payment_method: "pm_card_001".to_string(),
             credit_balance: Money::new("OYC", 10_000).expect("money fixture valid"),
             state: BillingAccountState::Active,
@@ -1268,7 +1268,7 @@ mod tests {
             id: "inv_alpha_202605_001".to_string(),
             billing_account_id: "ba_ten_alpha".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            regional_pack: "oya-pack-electronic-tax".to_string(),
+            regional_pack: "pack-electronic-tax".to_string(),
             period: BillingPeriod::new(1_700_000_000, 1_700_086_400).expect("period fixture valid"),
             line_items: vec![invoice_line_item()],
             subtotal: Money::new("OYC", 100_000).expect("money fixture valid"),
@@ -1287,7 +1287,7 @@ mod tests {
         let account = BillingAccount::new(account_create()).expect("account fixture valid");
 
         assert_eq!(account.region.value.value, "region-alpha");
-        assert_eq!(account.regional_pack.value, "oya-pack-electronic-tax");
+        assert_eq!(account.regional_pack.value, "pack-electronic-tax");
         assert_eq!(account.credit_balance.value.currency.value, "OYC");
     }
 

@@ -12,10 +12,10 @@ purpose: |
   provenance requirement. Git-server-agnostic; same shape on GitHub / GitLab /
   Gitea / Bitbucket. Encoded in branch-protection.yaml schema.
 planned_enforcement_ref:
-  - oya-governance-branch-protection-drift
-  - oya-governance-no-direct-origin-dev-commit
-  - oya-governance-no-direct-staging-commit
-  - oya-governance-no-direct-prod-commit
+  - governance-branch-protection-drift
+  - governance-no-direct-origin-dev-commit
+  - governance-no-direct-staging-commit
+  - governance-no-direct-prod-commit
 related_adrs: [ADR-0039, ADR-0041]
 doc_status: published
 ---
@@ -28,7 +28,7 @@ doc_status: published
 
 Branch protection is encoded in `.github/branch-protection.yaml` (the GitHub-native filename retained for backward compatibility; the schema is the source of truth). The schema is applied through the GitHub branch-protection API.
 
-A nightly drift-check (`oya-governance-branch-protection-drift`, BLOCKER) compares the live branch-protection state to the schema and refuses divergence.
+A nightly drift-check (`governance-branch-protection-drift`, BLOCKER) compares the live branch-protection state to the schema and refuses divergence.
 
 ## 2. `dev` branch (origin/dev) protection
 
@@ -45,7 +45,7 @@ branches:
         users: []                           # no human users
         teams: []                           # no human teams
         apps:
-          - oya-intelligence-dev-promoter        # the ONLY mutator
+          - intelligence-dev-promoter        # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0  # human-button-free
         require_code_owner_reviews: false   # CODEOWNERS not honoured here
@@ -53,16 +53,16 @@ branches:
           users: []
           teams: []
           apps:
-            - oya-intelligence-dev-promoter
+            - intelligence-dev-promoter
       required_status_checks:
         contexts:
-        - oya-governance-cohesion
-        - oya-governance-supply-chain
-        - oya-governance-api-semver
-        - oya-governance-pr-shape
-        - oya-governance-pr-review-verdict-present
-        - oya-governance-promotion-gate-local-dev-to-origin-dev
-        - oya-governance-image-discipline
+        - governance-cohesion
+        - governance-supply-chain
+        - governance-api-semver
+        - governance-pr-shape
+        - governance-pr-review-verdict-present
+        - governance-promotion-gate-local-dev-to-origin-dev
+        - governance-image-discipline
       merge_methods:
         squash: true
         rebase: false
@@ -86,14 +86,14 @@ branches:
         users: []
         teams: []
         apps:
-          - oya-intelligence-staging-promoter    # the ONLY mutator
+          - intelligence-staging-promoter    # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0  # no PR mechanism here; ff-only
       required_status_checks:
         contexts:
         # observational lanes (re-run on push); not strictly gated
-        - oya-governance-cohesion
-        - oya-governance-supply-chain
+        - governance-cohesion
+        - governance-supply-chain
       merge_methods:
         squash: false
         rebase: false
@@ -121,19 +121,19 @@ branches:
         users: []
         teams: []
         apps:
-          - oya-intelligence-prod-promoter       # the ONLY mutator
+          - intelligence-prod-promoter       # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0
       required_status_checks:
         contexts:
-        - oya-governance-cohesion
-        - oya-governance-supply-chain
-        - oya-governance-api-semver
-        - oya-governance-promotion-gate-staging-to-prod
-        - oya-governance-canary-required
-        - oya-governance-rollback-evidence
-        - oya-governance-cohort-honor
-        - oya-governance-slo-burn-rate-fast
+        - governance-cohesion
+        - governance-supply-chain
+        - governance-api-semver
+        - governance-promotion-gate-staging-to-prod
+        - governance-canary-required
+        - governance-rollback-evidence
+        - governance-cohort-honor
+        - governance-slo-burn-rate-fast
       merge_methods:
         squash: false
         rebase: false
@@ -169,7 +169,7 @@ Human reviewers are involved only for **CODEOWNERS-pathed** changes (ADR text, c
 
 ## 8. Drift detection
 
-`oya-governance-branch-protection-drift` (BLOCKER) runs nightly. Reconciles live state to schema. Drift → PR auto-opened by `dev-promoter` to restore the schema (with a synthetic reviewer-agent verdict from `branch-protection-reviewer` agent; an exception to the change-class table for this specific file).
+`governance-branch-protection-drift` (BLOCKER) runs nightly. Reconciles live state to schema. Drift → PR auto-opened by `dev-promoter` to restore the schema (with a synthetic reviewer-agent verdict from `branch-protection-reviewer` agent; an exception to the change-class table for this specific file).
 
 ## 9. Hot-fix path (carve-out)
 

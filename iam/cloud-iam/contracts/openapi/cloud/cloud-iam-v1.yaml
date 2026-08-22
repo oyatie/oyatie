@@ -327,7 +327,7 @@ components:
       properties:
         tenant_id: {$ref: '#/components/schemas/TenantId'}
         identity_provider_id: {$ref: '#/components/schemas/IdentityProviderId'}
-        region_pack: {type: string, pattern: '^oya-pack-.+$'}
+        region_pack: {type: string, pattern: '^pack-.+$'}
         kind: {$ref: '#/components/schemas/IdentityProviderKind'}
         issuer_uri: {type: string, format: uri}
         audience: {type: string, minLength: 1}
@@ -347,7 +347,7 @@ components:
       properties:
         tenant_id: {$ref: '#/components/schemas/TenantId'}
         identity_provider_id: {$ref: '#/components/schemas/IdentityProviderId'}
-        region_pack: {type: string, pattern: '^oya-pack-.+$'}
+        region_pack: {type: string, pattern: '^pack-.+$'}
         kind: {$ref: '#/components/schemas/IdentityProviderKind'}
         issuer_uri: {type: string, format: uri}
         audience: {type: string, minLength: 1}
@@ -494,21 +494,21 @@ components:
       ADR-0346:
         purpose: >-
           Historical local-mirror verifier semantics are migration input only;
-          protected-branch authority lives in cloud-ci/oya-ci required contexts.
+          protected-branch authority lives in cloud-ci/ci required contexts.
       ADR-0347:
         purpose: Preserve governance lane vocabulary cohesion during migration.
       ADR-0348:
         purpose: Require autosharding, auto-rebalance, and dynamic sharding to
           honor residency, reversibility, and audit-chain emission.
         enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
+          - governance-sharding-automation-coverage
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
       ADR-0349:
         purpose: >-
-          Jenkins is bridge history; cloud-ci/oya-ci owns destination merge
+          Jenkins is bridge history; cloud-ci/ci owns destination merge
           admission and ArgoCD remains a CD bridge/reference adapter where
           separately authorized.
     consumer_guidance:

@@ -16,7 +16,7 @@ loads the gitignored `.claude/settings.json` locally; Codex still loads
 `.codex/hooks.json`. Those local copies can drift — they are not CI corpus.
 There is no `hook_registration_copies_agree` test.
 
-`.cargo/config.toml` sets `OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS` and
+`.cargo/config.toml` sets `OYATIE_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS` and
 `..._CODEX_HOOKS` to these paths. That env var **overrides** the constants in
 the enforcement-liveness consumers.
 

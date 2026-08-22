@@ -41,7 +41,7 @@ This phase advances master-plan principles:
 | `cloud-k8s` | `cluster-bootstrap`, `node-lifecycle`, `network-policy`, `service-mesh-control-plane`, `ingress-controller`, `csi-storage-driver`, `kubernetes-api-proxy` | All under `microservices/cloud-k8s/` per ADR-0131 | 62 crates per PRD §"Bounded Contexts" layer mapping |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
-- `.github/branch-protection.yaml` — add `oya-cloud-k8s-iac-smoke`, `oya-check-cis-k8s-benchmark` to required_status_checks on `dev` and `staging`.
+- `.github/branch-protection.yaml` — add `cloud-k8s-iac-smoke`, `check-cis-k8s-benchmark` to required_status_checks on `dev` and `staging`.
 - `docs/standards/cloud-k8s-stack.md` (NEW) — cross-cutting on-prem Kubernetes stack standard; LTS version pins; admission-controller configuration; etcd encryption posture.
 - `Cargo.toml` (workspace) — register the 62 new crates under `microservices/cloud-k8s/src/crates/`.
 - `/specs/hyperscaler-gates.json` — register HG-CLOUD-K8S gate per ADR-0123.
@@ -65,18 +65,18 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 |---|---|---|---|---|
 | [`IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md`](IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md) | Layer-A IaC: Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + OpenTofu modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay; CSI drivers per backend (block-volume, object, file) deployed via Helm | pending | axis-cloud | — |
 | [`IP-002-onprem-k8s-stack-standard.md`](IP-002-onprem-k8s-stack-standard.md) | `docs/standards/cloud-k8s-stack.md` cross-cutting standard: LTS version pins (containerd 2.3.0, runc 1.4.0, CNI plugins 1.6.0, k8s 1.35, Istio 1.29.2); admission-controller config; etcd encryption posture | pending | axis-cloud + ops-security | — |
-| [`IP-003-cluster-bootstrap-kernel.md`](IP-003-cluster-bootstrap-kernel.md) | `oya-cloud-k8s-cluster-bootstrap-kernel`: port traits (KubeadmCommander, EtcdSnapshotter, ControlPlaneInspector), entities (Cluster, ControlPlaneNode, KubeadmConfig, EtcdSnapshot, BootstrapEvidence) | pending | axis-cloud | IP-002 |
-| [`IP-004-cluster-bootstrap-domain.md`](IP-004-cluster-bootstrap-domain.md) | `oya-cloud-k8s-cluster-bootstrap-domain`: kubeadm-version compatibility arithmetic; etcd-snapshot integrity computation; upgrade-window math | pending | axis-cloud | IP-003 |
-| [`IP-005-cluster-bootstrap-usecase.md`](IP-005-cluster-bootstrap-usecase.md) | `oya-cloud-k8s-cluster-bootstrap-usecase` (per ADR-0106): orchestrators for cluster.create / control-plane.upgrade / etcd.backup / etcd.restore via ports | pending | axis-cloud | IP-004 |
-| [`IP-006-cluster-bootstrap-adapter-kubeadm.md`](IP-006-cluster-bootstrap-adapter-kubeadm.md) | `oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm` (backend-qualified per ADR-0105 Amendment 3): shells out to kubeadm CLI; reads /etc/kubernetes/; etcd snapshot integration | pending | axis-cloud | IP-003 |
-| [`IP-007-node-lifecycle-kernel-usecase.md`](IP-007-node-lifecycle-kernel-usecase.md) | `oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase}`: NodeRegistry + NodeDrainer ports; cordon/drain math; PDB-aware eviction planning | pending | axis-cloud | IP-003 |
-| [`IP-008-network-policy-kernel-usecase.md`](IP-008-network-policy-kernel-usecase.md) | `oya-cloud-k8s-network-policy-{kernel,domain,usecase}`: Cedar → NetworkPolicy + Istio AuthorizationPolicy emission | pending | axis-cloud + ops-security | IP-003 |
-| [`IP-009-service-mesh-control-plane-istio.md`](IP-009-service-mesh-control-plane-istio.md) | `oya-cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}`: IstioCommander port; istioctl wrap; IstioOperator CR; canary control-plane upgrade primitive | pending | axis-cloud | IP-001 |
-| [`IP-010-ingress-controller-envoy.md`](IP-010-ingress-controller-envoy.md) | `oya-cloud-k8s-ingress-controller-{kernel,usecase,adapter-envoy}`: Gateway / VirtualService / DestinationRule emission; TLS termination; SNI route | pending | axis-cloud | IP-009 |
-| [`IP-011-csi-storage-driver-per-backend.md`](IP-011-csi-storage-driver-per-backend.md) | `oya-cloud-k8s-csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}`: CSI provisioner per-backend; QoS class enforcement; VolumeSnapshot integration | pending | axis-cloud | IP-003 |
-| [`IP-012-kubernetes-api-proxy.md`](IP-012-kubernetes-api-proxy.md) | `oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}`: HTTP reverse-proxy mediating kube-apiserver; Cedar policy decision; audit-chain emit per call | pending | axis-cloud + ops-security | IP-003 |
-| [`IP-013-cluster-bootstrap-rest-worker-sdk-app.md`](IP-013-cluster-bootstrap-rest-worker-sdk-app.md) | `oya-cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app}`: REST surface, bootstrap-watcher worker, Rust SDK, composition root | pending | axis-cloud | IP-005, IP-006 |
-| [`IP-014-branch-protection-and-hyperscaler-gate.md`](IP-014-branch-protection-and-hyperscaler-gate.md) | Add `oya-cloud-k8s-iac-smoke`, `oya-check-cis-k8s-benchmark` to `.github/branch-protection.yaml`; register HG-CLOUD-K8S in `/specs/hyperscaler-gates.json` | pending | axis-foundry + axis-cloud | IP-001 .. IP-013 |
+| [`IP-003-cluster-bootstrap-kernel.md`](IP-003-cluster-bootstrap-kernel.md) | `cloud-k8s-cluster-bootstrap-kernel`: port traits (KubeadmCommander, EtcdSnapshotter, ControlPlaneInspector), entities (Cluster, ControlPlaneNode, KubeadmConfig, EtcdSnapshot, BootstrapEvidence) | pending | axis-cloud | IP-002 |
+| [`IP-004-cluster-bootstrap-domain.md`](IP-004-cluster-bootstrap-domain.md) | `cloud-k8s-cluster-bootstrap-domain`: kubeadm-version compatibility arithmetic; etcd-snapshot integrity computation; upgrade-window math | pending | axis-cloud | IP-003 |
+| [`IP-005-cluster-bootstrap-usecase.md`](IP-005-cluster-bootstrap-usecase.md) | `cloud-k8s-cluster-bootstrap-usecase` (per ADR-0106): orchestrators for cluster.create / control-plane.upgrade / etcd.backup / etcd.restore via ports | pending | axis-cloud | IP-004 |
+| [`IP-006-cluster-bootstrap-adapter-kubeadm.md`](IP-006-cluster-bootstrap-adapter-kubeadm.md) | `cloud-k8s-cluster-bootstrap-adapter-kubeadm` (backend-qualified per ADR-0105 Amendment 3): shells out to kubeadm CLI; reads /etc/kubernetes/; etcd snapshot integration | pending | axis-cloud | IP-003 |
+| [`IP-007-node-lifecycle-kernel-usecase.md`](IP-007-node-lifecycle-kernel-usecase.md) | `cloud-k8s-node-lifecycle-{kernel,domain,usecase}`: NodeRegistry + NodeDrainer ports; cordon/drain math; PDB-aware eviction planning | pending | axis-cloud | IP-003 |
+| [`IP-008-network-policy-kernel-usecase.md`](IP-008-network-policy-kernel-usecase.md) | `cloud-k8s-network-policy-{kernel,domain,usecase}`: Cedar → NetworkPolicy + Istio AuthorizationPolicy emission | pending | axis-cloud + ops-security | IP-003 |
+| [`IP-009-service-mesh-control-plane-istio.md`](IP-009-service-mesh-control-plane-istio.md) | `cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}`: IstioCommander port; istioctl wrap; IstioOperator CR; canary control-plane upgrade primitive | pending | axis-cloud | IP-001 |
+| [`IP-010-ingress-controller-envoy.md`](IP-010-ingress-controller-envoy.md) | `cloud-k8s-ingress-controller-{kernel,usecase,adapter-envoy}`: Gateway / VirtualService / DestinationRule emission; TLS termination; SNI route | pending | axis-cloud | IP-009 |
+| [`IP-011-csi-storage-driver-per-backend.md`](IP-011-csi-storage-driver-per-backend.md) | `cloud-k8s-csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}`: CSI provisioner per-backend; QoS class enforcement; VolumeSnapshot integration | pending | axis-cloud | IP-003 |
+| [`IP-012-kubernetes-api-proxy.md`](IP-012-kubernetes-api-proxy.md) | `cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}`: HTTP reverse-proxy mediating kube-apiserver; Cedar policy decision; audit-chain emit per call | pending | axis-cloud + ops-security | IP-003 |
+| [`IP-013-cluster-bootstrap-rest-worker-sdk-app.md`](IP-013-cluster-bootstrap-rest-worker-sdk-app.md) | `cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app}`: REST surface, bootstrap-watcher worker, Rust SDK, composition root | pending | axis-cloud | IP-005, IP-006 |
+| [`IP-014-branch-protection-and-hyperscaler-gate.md`](IP-014-branch-protection-and-hyperscaler-gate.md) | Add `cloud-k8s-iac-smoke`, `check-cis-k8s-benchmark` to `.github/branch-protection.yaml`; register HG-CLOUD-K8S in `/specs/hyperscaler-gates.json` | pending | axis-foundry + axis-cloud | IP-001 .. IP-013 |
 | [`IP-015-observability-slo-and-authority-cohesion.md`](IP-015-observability-slo-and-authority-cohesion.md) | Author `microservices/cloud-k8s/slos/*.openslo.yaml` (cluster-bootstrap availability, node-join latency, NetworkPolicy propagation, api-proxy decision latency); register HG-CLOUD-K8S in authority-cohesion | pending | axis-cloud + axis-observability | IP-014 |
 
 Coverage check vs. ADR-0121 §"Required successor-IP" + ADR-0117 §"Compute" + ADR-0131 §"Per-microservice flat layout":
@@ -132,12 +132,12 @@ oya gate validate etcd-encryption-at-rest-enforced
 
 | Scenario | Command | Pass criterion |
 |---|---|---|
-| Cluster bootstrap | `cargo nextest run -p oya-cloud-k8s-cluster-bootstrap-usecase --test bootstrap_happy_path` | kubeadm init + control-plane Ready ≤ 30 min p99 |
-| Node-join | `cargo nextest run -p oya-cloud-k8s-node-lifecycle-usecase --test node_join_happy_path` | node Ready ≤ 5 min p99 |
-| NetworkPolicy propagation | `cargo nextest run -p oya-cloud-k8s-network-policy-usecase --test policy_propagation` | policy applied ≤ 30 s p99 |
+| Cluster bootstrap | `cargo nextest run -p cloud-k8s-cluster-bootstrap-usecase --test bootstrap_happy_path` | kubeadm init + control-plane Ready ≤ 30 min p99 |
+| Node-join | `cargo nextest run -p cloud-k8s-node-lifecycle-usecase --test node_join_happy_path` | node Ready ≤ 5 min p99 |
+| NetworkPolicy propagation | `cargo nextest run -p cloud-k8s-network-policy-usecase --test policy_propagation` | policy applied ≤ 30 s p99 |
 | Istio mTLS strict enforcement | scripted e2e: cross-namespace cleartext refused | 100 % refused |
 | Envoy SNI routing | scripted e2e: SNI-mismatched request refused | 100 % refused |
-| CSI block-volume provision | `cargo nextest run -p oya-cloud-k8s-csi-storage-driver-usecase --test block_provision` | PV bound ≤ 30 s p99 |
+| CSI block-volume provision | `cargo nextest run -p cloud-k8s-csi-storage-driver-usecase --test block_provision` | PV bound ≤ 30 s p99 |
 | API-proxy refuses direct 6443 | NetworkPolicy probe | 100 % refused at NodePort |
 | Cosign-unsigned image refused | admission-webhook integration test | 100 % refused |
 | etcd snapshot + restore | scripted e2e: snapshot → kill etcd → restore | data integrity verified |
@@ -204,11 +204,11 @@ branches:
   dev:
     required_status_checks:
       # ADDED by this phase:
-      - oya-cloud-k8s-iac-smoke                # NEW
-      - oya-check-cis-k8s-benchmark            # NEW (Kubernetes hardening BLOCKER)
-      - oya-check-cosign-admission             # NEW (supply-chain BLOCKER)
-      - oya-check-etcd-encryption              # NEW (data-at-rest BLOCKER)
-      - oya-check-istio-strict-mtls            # NEW (mesh BLOCKER)
+      - cloud-k8s-iac-smoke                # NEW
+      - check-cis-k8s-benchmark            # NEW (Kubernetes hardening BLOCKER)
+      - check-cosign-admission             # NEW (supply-chain BLOCKER)
+      - check-etcd-encryption              # NEW (data-at-rest BLOCKER)
+      - check-istio-strict-mtls            # NEW (mesh BLOCKER)
 ```
 
 ## Oya VCS Symbol Locks
@@ -216,10 +216,10 @@ branches:
 Per ADR-0116, this phase uses `oya vcs` primitives exclusively. Grit and ICM are explicitly NOT used.
 
 ```bash
-cargo run -p oya-dev-cli -- vcs claim --agent <agent-id> --intent "<IP-NNN-slug>" --paths "microservices/cloud-k8s/src/crates/<crate>/**"
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+cargo run -p dev-cli -- vcs claim --agent <agent-id> --intent "<IP-NNN-slug>" --paths "microservices/cloud-k8s/src/crates/<crate>/**"
+cargo run -p dev-cli -- vcs verify --agent <agent-id> --changeset <id>
+cargo run -p dev-cli -- vcs done --agent <agent-id> --changeset <id>
+cargo run -p dev-cli -- vcs promote --changeset <id>
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/cloud-k8s/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

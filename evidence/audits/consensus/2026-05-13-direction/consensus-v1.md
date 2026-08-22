@@ -24,7 +24,7 @@ Both architect r1 and critic r1 returned ITERATE on planner v1, but converge on 
 
 ### What is ALLOWED during the freeze (critic r1 narrowing)
 
-- **Enforcement-loop work** (highest priority): wire `crates/oya-check-active-artifact-contract` into `oya-dev-cli`; flip `lean-a-active-artifact-contract` from `planned` to `active`; add failing fixture for unregistered machine-readable artifact; record green CI run URL.
+- **Enforcement-loop work** (highest priority): wire `crates/check-active-artifact-contract` into `dev-cli`; flip `lean-a-active-artifact-contract` from `planned` to `active`; add failing fixture for unregistered machine-readable artifact; record green CI run URL.
 - **Stale-pointer repair**: e.g., the `/specs/root-hub-pointers.json` stale `knowledge-graph-catalog.json` pointer (FIXED inline this batch per critic r1 finding #3).
 - **Consumer rewiring**: when an artifact moves (e.g., catalog → 3-layer split), update all inbound references.
 - **Migration slices** (Constitution-content redistribution, Wave plan conversions, ADR migration): only when each slice **reduces drift** AND adds a failing fixture OR active lane.
@@ -42,8 +42,8 @@ Per architect r1 synthesis, the next accepted slice MUST hit all 8 hops:
 
 1. **Tracked registry row** in `/registry/artifact-capabilities-registry.json` (already exists; ≥1 row)
 2. **Schema validation** that fails on schema-violating rows
-3. **Validator runtime** = `crates/oya-check-active-artifact-contract::validate` (already exists; 12 unit tests pass)
-4. **`oya` command** = `oya-dev-cli gate validate active-artifact-contract` subcommand (NEW: write this)
+3. **Validator runtime** = `crates/check-active-artifact-contract::validate` (already exists; 12 unit tests pass)
+4. **`oya` command** = `dev-cli gate validate active-artifact-contract` subcommand (NEW: write this)
 5. **grit/pre-claim or pre-done validation** (or scaffold-lock ICM equivalent during grit-FK fallback) (NEW or existing)
 6. **CI lane active** = `lean-a-active-artifact-contract` status flips from `planned` to `active` in `registry/quality/lanes.yaml`
 7. **Evidence bundle** emitted recording the lane's green CI run URL
@@ -59,7 +59,7 @@ A FAILING FIXTURE must exist: an artifact under `applicable_paths_glob` without 
 
 - **#1** (Option β fair-rewrite): consensus position now treats β's first move as wiring the validator — same as architect r1 synthesis. Resolved by reframing.
 - **#2** (narrowed architect amendment): captured above ("What is ALLOWED during the freeze").
-- **#4** (`lean-a-active-artifact-contract` honest until oya-dev-cli dispatch exists + scripts/check.sh runs it + failing fixture): closed by the vertical-enforcement-loop slice acceptance criteria.
+- **#4** (`lean-a-active-artifact-contract` honest until dev-cli dispatch exists + scripts/check.sh runs it + failing fixture): closed by the vertical-enforcement-loop slice acceptance criteria.
 
 ## Honest gaps (per critic r1)
 
@@ -87,7 +87,7 @@ A FAILING FIXTURE must exist: an artifact under `applicable_paths_glob` without 
 - Negative: 8 of 9 directive-driven queued slices BLOCKED until vertical loop lands (workflow-task-traceability, Wave 7 JSON, Constitution redistribution, ADR migration, CLAUDE.md thinning, dogfooding ADR all defer).
 
 **Follow-ups:**
-1. Implement vertical enforcement loop (oya-dev-cli + active lane + failing fixture + evidence + graph edge).
+1. Implement vertical enforcement loop (dev-cli + active lane + failing fixture + evidence + graph edge).
 2. After loop active, resume queued slices class-by-class with consumer-backed migration.
 3. Foundation handoff: as cosign/trivy/audit-chain land, promote dependent capabilities to operational.
 

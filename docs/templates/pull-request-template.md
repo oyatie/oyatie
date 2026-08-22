@@ -28,7 +28,7 @@ Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes 
 ## Verification
 
 - Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
-- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
+- `presubmit` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
 

@@ -3,7 +3,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-cloud-k8s-cluster-api-availability
+  name: cloud-k8s-cluster-api-availability
   displayName: "cloud-k8s: cluster API-server availability 99.95%"
   labels:
     microservice: cloud-k8s
@@ -46,4 +46,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

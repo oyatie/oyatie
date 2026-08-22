@@ -31,7 +31,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | OCI compute failure, OOM, kernel panic, or scheduled maintenance on the Postgres primary pod |
-| Detection | Patroni REST `/cluster` reports `state: failover_in_progress`; `oya_tenancy_postgres_primary_alive == 0` for ≥ 5s |
+| Detection | Patroni REST `/cluster` reports `state: failover_in_progress`; `tenancy_postgres_primary_alive == 0` for ≥ 5s |
 | Tenant impact | Brief validate-path latency spike during failover (≤ 10s); no data loss (sync replicas absorb writes) |
 | Severity | Sev-2 (degraded; auto-failover handles); Sev-1 if persists > 5min |
 | Immediate mitigation | Patroni elects new primary from sync replicas; tenancy DB connection-pool re-routes; Valkey absorbs read load during ≤ 10s window |
@@ -44,7 +44,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Adversarial / accidental live DB mutation (DBA JIT misuse); CI lane evasion |
-| Detection | `oya-tenancy-rls-state-validator` 5min cadence; `oya_tenancy_rls_drift_total > 0` |
+| Detection | `tenancy-rls-state-validator` 5min cadence; `tenancy_rls_drift_total > 0` |
 | Tenant impact | Potential cross-tenant data exposure (catastrophic); time-bounded to ≤ 5min by validator cadence |
 | Severity | Sev-1 (security breach risk) |
 | Immediate mitigation | Auto-rollback via ArgoCD to last-green YAML state; engage ops-security; freeze affected schema; begin forensic trace |
@@ -57,7 +57,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | OCI failure on coordinator pod; Citus version-upgrade hung |
-| Detection | `oya_tenancy_citus_coordinator_alive == 0` for ≥ 30s; tenant-lifecycle write path latency spike |
+| Detection | `tenancy_citus_coordinator_alive == 0` for ≥ 30s; tenant-lifecycle write path latency spike |
 | Tenant impact | New tenant creations blocked; existing reads via worker nodes proceed; rebalance halted |
 | Severity | Sev-2 (write degraded; reads fine) |
 | Immediate mitigation | Patroni-managed Citus coordinator failover; new coordinator elected from sync replica |
@@ -83,7 +83,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | sqlx migration deadlock; Citus shard placement contention; Patroni replication lag spike |
-| Detection | `oya_tenancy_activation_duration_seconds{quantile="0.99"} > 600` (10min) sustained ≥ 5min |
+| Detection | `tenancy_activation_duration_seconds{quantile="0.99"} > 600` (10min) sustained ≥ 5min |
 | Tenant impact | Specific tenant onboarding delayed; Sev-3 if isolated, Sev-2 if multi-tenant |
 | Severity | Sev-3 (single tenant; recoverable) |
 | Immediate mitigation | Identify deadlock via `pg_locks`; manual `pg_cancel_backend` or `pg_terminate_backend`; restart activation worker for the stuck tenant; alert tenant operator |
@@ -96,10 +96,10 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | A µservice's DSR handler crashes / times out / is missing |
-| Detection | `oya-tenancy-dsr-cascade-worker` SLA timer at 80% of per-pack legal SLA; missing-receipt alert |
+| Detection | `tenancy-dsr-cascade-worker` SLA timer at 80% of per-pack legal SLA; missing-receipt alert |
 | Tenant impact | DSR potentially not honoured within statutory window (regulatory breach risk) |
 | Severity | Sev-2 (regulatory; escalates to Sev-1 if SLA breach imminent) |
-| Immediate mitigation | Engage workload µservice owner; if handler bug → emergency hotfix; if handler missing → escalate to DPO for manual-override path (alternative-measure documentation); LEAN check `oya-governance-dsr-handler-conformance` ensures rare case |
+| Immediate mitigation | Engage workload µservice owner; if handler bug → emergency hotfix; if handler missing → escalate to DPO for manual-override path (alternative-measure documentation); LEAN check `governance-dsr-handler-conformance` ensures rare case |
 | RTO | varies (depends on root cause); legal SLA is the hard ceiling |
 | Recovery runbook | `runbooks/tenant-deletion-dsr-cascade.md` |
 | Postmortem owner | council-privacy + axis-tenancy + µservice owner |
@@ -109,7 +109,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Valkey pod OOM; cluster split-brain; OCI failure |
-| Detection | Valkey health probe failure; `oya_tenancy_valkey_alive == 0` |
+| Detection | Valkey health probe failure; `tenancy_valkey_alive == 0` |
 | Tenant impact | Validate-path latency spike (Valkey miss falls through to Postgres); p99 could reach 20ms vs 5ms target |
 | Severity | Sev-3 (degraded; not blocking; fallback to Postgres works) |
 | Immediate mitigation | Restart Valkey pods (HPA scales); verify Postgres absorbs load; tighten per-tenant rate limits if needed |
@@ -122,7 +122,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Logical replication lag; coordinator restart mid-rebalance |
-| Detection | `oya_tenancy_rebalance_duration_seconds{quantile="0.99"} > 3600` sustained; tenant write latency spike |
+| Detection | `tenancy_rebalance_duration_seconds{quantile="0.99"} > 3600` sustained; tenant write latency spike |
 | Tenant impact | Specific tenant(s) experience write delays during their shard's stuck rebalance window |
 | Severity | Sev-2 |
 | Immediate mitigation | Abort rebalance via `citus_rebalance_stop()`; verify pre-rebalance + post-rebalance row counts match (no data loss); resume from a clean state in next cycle |
@@ -135,7 +135,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Tenancy adapter bug routes pack-eu tenant to pack-us cluster |
-| Detection | Integration test caught at CI; runtime detector `oya_tenancy_pack_misroute_total > 0` |
+| Detection | Integration test caught at CI; runtime detector `tenancy_pack_misroute_total > 0` |
 | Tenant impact | Cross-border transfer violation (DPIA R-04); GDPR / KR PIPA breach |
 | Severity | Sev-1 (regulatory breach) |
 | Immediate mitigation | Quarantine misrouted data; engage ops-security + council-privacy; correct adapter config; begin breach-notification chain |
@@ -148,7 +148,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Workflow event consumer in some µservice is down / lagging |
-| Detection | Per-µservice TenantSuspended event lag exceeds 60s; `oya_tenancy_event_propagation_lag_seconds{microservice=<>} > 60` |
+| Detection | Per-µservice TenantSuspended event lag exceeds 60s; `tenancy_event_propagation_lag_seconds{microservice=<>} > 60` |
 | Tenant impact | Suspended tenant continues to receive requests at the lagging µservice; brief window of allowed access |
 | Severity | Sev-3 (operational delay; suspension still applied via RLS / JWT) |
 | Immediate mitigation | Engage workload µservice owner; verify event consumer health; manually trigger event re-emission |
@@ -161,7 +161,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | OpenBao pod failure; OpenBao DB outage |
-| Detection | OpenBao health probe; `oya_tenancy_openbao_alive == 0` |
+| Detection | OpenBao health probe; `tenancy_openbao_alive == 0` |
 | Tenant impact | Tenant creation blocked (cannot assign canonical → hashed tenant_id); existing tenants unaffected (JWT verification uses cached pubkeys) |
 | Severity | Sev-2 |
 | Immediate mitigation | Engage `cloud-secrets` µservice on-call; verify OpenBao HA state; new tenant onboarding paused until restored |
@@ -187,7 +187,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Secret-scanner CI lane detection; GitHub secret-scanning push protection |
-| Detection | `oya-governance-evidence-secret-scan` lane alarm |
+| Detection | `governance-evidence-secret-scan` lane alarm |
 | Tenant impact | Time-window between leak and rotation = exposure risk (mitigated by rotation speed) |
 | Severity | Sev-1 (security breach) |
 | Immediate mitigation | OpenBao rotates secret < 60s of detection; revoke old credential; forensic trace of leak path; tenant notification per breach-notification SLA if applicable |
@@ -200,7 +200,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Audit-chain µservice degraded; back-pressure on seal queue |
-| Detection | `oya_tenancy_audit_seal_latency_seconds{quantile="0.99"} > 5` sustained |
+| Detection | `tenancy_audit_seal_latency_seconds{quantile="0.99"} > 5` sustained |
 | Tenant impact | Lifecycle events delayed sealing; not blocked (eventual consistency); regulatory artifact freshness degraded briefly |
 | Severity | Sev-3 |
 | Immediate mitigation | Engage audit-chain µservice on-call; monitor seal queue; if persistent, batched seal mode (queue → batch every 1min instead of per-event) |
@@ -213,7 +213,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Field | Value |
 |---|---|
 | Trigger | Tenant runaway traffic; misconfigured tenant validating with no caching layer |
-| Detection | Per-tenant `oya_tenancy_validate_rps{tenant_id=<>} > threshold` |
+| Detection | Per-tenant `tenancy_validate_rps{tenant_id=<>} > threshold` |
 | Tenant impact | Tenant's own request latency spikes; potential noisy-neighbor effect |
 | Severity | Sev-3 |
 | Immediate mitigation | Enforce per-tenant rate limit (WAF + ingress); engage tenant on cause; if production-tier and within global budget, increase tenant limit; otherwise tenant remediates |

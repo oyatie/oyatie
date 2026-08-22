@@ -69,7 +69,7 @@
       "achieves": "Automation and babysit cannot mint merge/APPROVE authority from density of observation.",
       "origin": "Observation packets and green CI were treated as land license.",
       "rule": "Dense observation does not grant intervene/APPROVE/own rights; automation stops at authority edge.",
-      "ensure": "Claim/Land refuse observation-as-APPROVE; dual-critic + oya-ci-required remain admission predicates.",
+      "ensure": "Claim/Land refuse observation-as-APPROVE; dual-critic + presubmit remain admission predicates.",
       "overturn_when": "A new admission predicate is dual-emitted and founder-flipped with explicit OVERRULE receipt.",
       "oyatie_apply": [
         "swarm-delivery-law",
@@ -291,9 +291,9 @@
   "overrules": [
     {
       "id": "OV-merge-gate-forever-name",
-      "distill_claim": "keep name oya-ci-required",
+      "distill_claim": "keep name presubmit",
       "verdict": "OVERRULED",
-      "name_forever": "merge-admission-required",
+      "name_forever": "presubmit",
       "taxonomy_ref": "specs/naming-taxonomy.json#overturned_patterns/OP-merge-gate-brand",
       "note": "Distill corpus is operating-pattern evidence, not naming authority. Brand/ADR-in-title bans stand. Legacy protection pin is dual-emit cutover only."
     },

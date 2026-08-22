@@ -53,7 +53,7 @@ static_resources:
           stat_prefix: api_gateway_https
           codec_type: AUTO
           http_filters:
-          - name: oya-abuse-defence-wasm
+          - name: abuse-defence-wasm
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
               config:
@@ -62,7 +62,7 @@ static_resources:
                   code:
                     local:
                       filename: /etc/envoy/wasm/abuse-defence.wasm
-          - name: oya-cedar-eval-wasm
+          - name: cedar-eval-wasm
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
               config:
@@ -96,7 +96,7 @@ static_resources:
             - name: tenants
               domains: ["*"]
               routes: []
-              # Routes pushed by oya-api-gateway-routing-worker via xDS RDS
+              # Routes pushed by api-gateway-routing-worker via xDS RDS
           http3_protocol_options: {}
           stream_idle_timeout: 30s
           request_timeout: 30s

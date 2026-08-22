@@ -19,13 +19,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_dsar_completion_total{microservice="compliance",completion_days_le="5"}[28d]))
+                sum(rate(compliance_dsar_completion_total{microservice="compliance",completion_days_le="5"}[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_dsar_completion_total{microservice="compliance"}[28d]))
+                sum(rate(compliance_dsar_completion_total{microservice="compliance"}[28d]))
   objectives:
     - displayName: 95% of DSARs complete within 5 days (target)
       target: 0.95

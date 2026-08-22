@@ -114,4 +114,4 @@ when {
 
 // (Cedar policies don't emit; the application's usecase enforces the audit-emission
 //  invariant. This comment documents the contract; verification via LEAN check
-//  `oya-check-auditor-read-emission`.)
+//  `check-auditor-read-emission`.)

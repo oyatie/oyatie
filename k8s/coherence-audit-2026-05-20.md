@@ -248,12 +248,12 @@ iac/ split across:
 - iac/helm/ — karpenter, cni-cilium, envoy-gateway, istiod, istio-base
   Charts with templates and values.
 - iac/kustomize/base/ + overlays/pack-kr/ + components/storage-classes/
-  with canonical names oya-pg-hot, oya-pg-warm, oya-pg-cold,
-  oya-valkey-hot, oya-s3-warm, oya-s3-cold per ADR-0161.
+  with canonical names pg-hot, pg-warm, pg-cold,
+  valkey-hot, s3-warm, s3-cold per ADR-0161.
 
 ### 1.9 Catalog
 
-catalog/oya-cloud-k8s-*.yaml records cluster-bootstrap kernel /
+catalog/cloud-k8s-*.yaml records cluster-bootstrap kernel /
 domain / usecase / adapter / adapter-kubeadm / adapter-containerd /
 rest / worker / sdk / app crates, the ingress-controller
 adapter-envoy, and the service-mesh-control-plane adapter-istio.
@@ -703,7 +703,7 @@ Alignment evidence:
   contains auditor-scope.cedar, ci-scope.cedar, tenant-scope.cedar,
   public-read.cedar. Per-tenant overlays compose on top.
 - One container image set per ADR-0254 D-2. cloud-k8s exposes the
-  catalog/oya-cloud-k8s-*.yaml entries that point at the canonical
+  catalog/cloud-k8s-*.yaml entries that point at the canonical
   OCI image digests.
 - One workflow definition set per ADR-0254 D-2. The PRD's Integration
   via Workflow + Ontology section names the seven events produced

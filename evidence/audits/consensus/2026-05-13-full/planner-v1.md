@@ -23,7 +23,7 @@
 - 5 registries at `/registry/` (artifact-capabilities + reusable-building-blocks + knowledge-graph-{semantic/kinetic/dynamic})
 - 2 ledgers/attestations at `.omc/ledger/` + `/evidence/`
 - 1 ADR-0069 at `docs/decisions/`
-- 1 Rust validator crate (12 tests pass) at `crates/oya-check-active-artifact-contract/`
+- 1 Rust validator crate (12 tests pass) at `crates/check-active-artifact-contract/`
 - 1 CI lane registered (status=planned) at `registry/quality/lanes.yaml`
 - 6 wave plans Accepted at `.omc/plans/ralplan-ops-*` (parent v7 + waves 2-5 + Wave 6 JSON v1.0.0; Wave 7 .md deleted)
 
@@ -87,7 +87,7 @@ Direction consensus (consensus-v1.md pending approval) freezes net-new meta-laye
 
 | # | Slice | Allowed under narrowing? | Reason |
 |---|---|---|---|
-| **VL** | **Vertical enforcement loop** (oya-dev-cli + active lane + failing fixture + evidence + graph edge) | ✅ YES | First load-bearing slice; gates all others |
+| **VL** | **Vertical enforcement loop** (dev-cli + active lane + failing fixture + evidence + graph edge) | ✅ YES | First load-bearing slice; gates all others |
 | 1 | Constitution content redistribution (mission→masterplan, principles→agent-contract, prohibitions→forbidden-operations, decision rights→RACI) | ✅ YES if paired with active lane that fails on redistributed-content drift | Migration slice with drift-reduction |
 | 2 | Wave 1-5 plan conversion to JSON | ⚠️ ONLY when consumer exists (validator demands JSON; or generator emits Markdown projection) | Sans consumer = more paper |
 | 3 | Wave 7 v1.0.0 .json (Wave 6 pattern) | 🛑 BLOCKED | No consumer demand; Wave 6 .json sufficient pattern |
@@ -106,8 +106,8 @@ Per direction consensus §"Acceptance criteria for the next slice":
 |---|---|---|---|
 | 1 | Tracked registry row | ✅ 10 rows in artifact-capabilities-registry.json | Add 1 row for plan-schema.json + verify with validator |
 | 2 | Schema validation | ✅ JSON Schema 2020-12 in /specs/active-machine-readable-artifact-contract.json | Validator parses + checks instance |
-| 3 | Validator runtime | ✅ crates/oya-check-active-artifact-contract::validate (12 tests pass) | No change |
-| 4 | `oya` command | ❌ NOT WIRED | NEW: `oya-dev-cli gate validate active-artifact-contract` subcommand |
+| 3 | Validator runtime | ✅ crates/check-active-artifact-contract::validate (12 tests pass) | No change |
+| 4 | `oya` command | ❌ NOT WIRED | NEW: `dev-cli gate validate active-artifact-contract` subcommand |
 | 5 | Pre-claim/pre-done validation | ❌ NOT WIRED | NEW: scripts/hooks/pre-commit/validate-artifact-contract.sh OR grit pre-claim hook |
 | 6 | CI lane active | ❌ status=planned | Flip to status=active in registry/quality/lanes.yaml |
 | 7 | Evidence bundle | ❌ NOT EMITTED | Emit attestation recording green CI run URL |

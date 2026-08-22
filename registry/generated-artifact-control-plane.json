@@ -2,9 +2,9 @@
   "$schema": "https://docs.oyatie.com/schemas/generated-artifact-control-plane.schema.json",
   "schema_version": 1,
   "canonical_name": "generated-artifact-control-plane",
-  "ci_product_surface": "oya-ci",
+  "ci_product_surface": "ci",
   "purpose": "Productized control plane for generated artifacts in hermetic Rust cloud-ci. It declares generated-output path rules, which generated artifacts exist, who owns them, how they materialize, and why generated outputs must be ignored by default or regenerated from source instead of hand-merged.",
-  "public_product_contract": "Any repository adopting oya-ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution. Generated outputs matching generated_path_rules are ignored by default; any force-added generated output must be declared here with owner, generator, materialization mode, and non-source merge policy.",
+  "public_product_contract": "Any repository adopting ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution. Generated outputs matching generated_path_rules are ignored by default; any force-added generated output must be declared here with owner, generator, materialization mode, and non-source merge policy.",
   "artifacts": [
     {
       "artifact_id": "cloud-ci-adr-census-epoch-receipt",
@@ -17,7 +17,7 @@
         "registry/adr-census-epoch/control-plane.json",
         "specs/adr-census-epoch-control-plane.schema.json",
         "specs/adr-census-epoch-receipt.schema.json",
-        ".github/workflows/oya-ci-required.yml",
+        ".github/workflows/presubmit.yml",
         "historical implementation commit afff4dade737b1833153c4f45d8defdfa2b328a8",
         "corpus commit 1fa09da22be819b062881eb59252f4dd4c6b550a",
         "repository tree d7b15539396db21b219d68779362850cce9afa8f",
@@ -84,7 +84,7 @@
       "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "registry"
@@ -113,7 +113,7 @@
       "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "decision-crosswalk"
@@ -142,7 +142,7 @@
       "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "enforcement-inventory"
@@ -172,7 +172,7 @@
       "public_product_contract": "Enforcement liveness is generated hook wiring metadata and must be regenerated rather than hand-merged.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "enforcement-liveness"
@@ -201,7 +201,7 @@
       "public_product_contract": "The baseline ratchet is shrink-only generated policy; the frozen reference is regenerated from the merge-base source and validated by determinism + provenance, never a committed merge surface that could launder new debt.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "baseline"
@@ -249,14 +249,14 @@
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
-        "libs/oya-ci-config/src/bundled/ttl-policy.json",
+        "libs/ci-config/src/bundled/ttl-policy.json",
         "ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+        "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
         "operation_id": "emit-accounting-face",
         "parameters": {
           "face": "ttl-policy"
@@ -281,11 +281,11 @@
         "specs/masterplan.json",
         "registry/**"
       ],
-      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree through oya-ci://generated-artifact-controller/planning/board-sync after materializing the masterplan projection. Required-CI freshness enforces independent regenerate-twice byte determinism; byte parity against a committed copy is intentionally retired for this face.",
+      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree through ci://generated-artifact-controller/planning/board-sync after materializing the masterplan projection. Required-CI freshness enforces independent regenerate-twice byte determinism; byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Board-sync is a generated planning projection; public adopters must declare equivalent derived planning outputs instead of hand-merging them.",
       "generator": {
-        "runner": "oya-ci-native-controller",
-        "generator_target": "oya-ci://generated-artifact-controller/planning/board-sync",
+        "runner": "ci-native-controller",
+        "generator_target": "ci://generated-artifact-controller/planning/board-sync",
         "operation_id": "emit-planning-projection",
         "parameters": {
           "projection": "board-sync"
@@ -309,11 +309,11 @@
         "specs/master-plan-sequencing.json",
         "docs/decisions/**"
       ],
-      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) before gates consume it. Required-CI freshness is enforced DIRECTLY by the generated-artifact-freshness gate: both the masterplan projection and its downstream product-graph dashboard must regenerate successfully and be independently byte-stable across two regenerations. The masterplan-drift lane (dev-cli local bridge) is feedback, not merge authority. Byte parity against a committed copy is intentionally retired for this face.",
+      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin) before gates consume it. Required-CI freshness is enforced DIRECTLY by the generated-artifact-freshness gate: both the masterplan projection and its downstream product-graph dashboard must regenerate successfully and be independently byte-stable across two regenerations. The masterplan-drift lane (dev-cli local bridge) is feedback, not merge authority. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Masterplan projection is generated planning data and must be materialized by a controller, not manually resolved in PR branches.",
       "generator": {
-        "runner": "oya-ci-native-controller",
-        "generator_target": "oya-ci://generated-artifact-controller/planning/masterplan",
+        "runner": "ci-native-controller",
+        "generator_target": "ci://generated-artifact-controller/planning/masterplan",
         "operation_id": "emit-planning-projection",
         "parameters": {
           "projection": "masterplan"
@@ -337,11 +337,11 @@
         "docs/machine-readable/masterplan.generated.json",
         "docs/architecture/product-graph.template.html"
       ],
-      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin runs the arch-graph generator --write after masterplan) before gates consume it. The generated-artifact-freshness gate requires it to regenerate successfully and be byte-stable across two regenerations (determinism canary). Byte parity against a committed copy is intentionally retired for this face.",
+      "final_tree_validation": "ADR-0613 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree (//ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin runs the arch-graph generator --write after masterplan) before gates consume it. The generated-artifact-freshness gate requires it to regenerate successfully and be byte-stable across two regenerations (determinism canary). Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "The product graph dashboard is a generated architecture projection and must be controller-materialized rather than hand-merged in feature branches.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator",
+        "generator_target": "//tools/architecture-graph-generator-app:architecture-graph-generator",
         "operation_id": "emit-architecture-product-graph-dashboard",
         "parameters": {
           "mode": "write"
@@ -393,11 +393,11 @@
         "specs/reorg/*-move-plan.json",
         "git ls-files (candidate tracked tree)"
       ],
-      "final_tree_validation": "ADR-0563-amended de-commit class (ADR-0614): this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree. //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin runs the codemod `manifest` subcommand as step 1 (materialize_move_manifest) before the scm-facts emitter's rename-aware relabel consumes it. The registry-drift gate validates regenerate-twice determinism (two fresh codemod emissions of the manifest must be byte-identical), not committed-byte parity. Byte parity against a committed copy is intentionally retired for this face; the reviewed move surface is the committed move-plan (specs/reorg/<capability>-move-plan.json) plus git rename detection, not a committed bijection.",
+      "final_tree_validation": "ADR-0563-amended de-commit class (ADR-0614): this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree. //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin runs the codemod `manifest` subcommand as step 1 (materialize_move_manifest) before the scm-facts emitter's rename-aware relabel consumes it. The registry-drift gate validates regenerate-twice determinism (two fresh codemod emissions of the manifest must be byte-identical), not committed-byte parity. Byte parity against a committed copy is intentionally retired for this face; the reviewed move surface is the committed move-plan (specs/reorg/<capability>-move-plan.json) plus git rename detection, not a committed bijection.",
       "public_product_contract": "The authoritative CI-materialized move bijection the rename-aware path-keyed CI baseline relabel consumes (task #64): file-level pairs (brand-residue path-keyed relabel), crate-DIR pairs (total-accounting/target-parity existence relabel), and crate-IDENT pairs (tier-dep endpoint mapping). The file-level + crate-DIR pairs are derived from the candidate POST-move tracked tree (NEW-dir descendants mapped back to OLD), so a real move yields a NON-empty manifest. It is a pure function of committed inputs (move plan committed at specs/reorg/<capability>-move-plan.json + candidate tree); a no-move PR yields the canonical empty manifest (identity relabel). De-committed under ADR-0614 (amends ADR-0563): never a contributor merge surface, materialized on demand rather than committed. Never hand-edited; the codemod is the sole generator.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//tools/oya-reorg-codemod-app:oya-reorg-codemod",
+        "generator_target": "//tools/reorg-codemod-app:reorg-codemod",
         "operation_id": "emit-reorg-move-manifest",
         "parameters": {
           "mode": "manifest"
@@ -420,11 +420,11 @@
         "registry/generated-artifact-control-plane.json (normal-source-merge artifacts)",
         "merge-base source worktree (git show equivalent, read via plain fs from the checkout)"
       ],
-      "final_tree_validation": "De-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand. //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin reuses the SAME merge-base source worktree it already checks out for frozen-baseline regeneration (the one sanctioned git boundary) to read each declared normal-source-merge artifact's content at the merge-base — a plain filesystem read, no additional git call. Consumed by the generated-output-diff-policy gate so it can verify a hand-curated-ratchet baseline's plain-modify content diff (shrink-only / move-plan-backed substitution, see specs/reorg/move-manifest.generated.json) without itself calling git (ci-gate-self-conformance forbids subprocess/network/clock/randomness primitives in gate production code).",
+      "final_tree_validation": "De-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand. //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin reuses the SAME merge-base source worktree it already checks out for frozen-baseline regeneration (the one sanctioned git boundary) to read each declared normal-source-merge artifact's content at the merge-base — a plain filesystem read, no additional git call. Consumed by the generated-output-diff-policy gate so it can verify a hand-curated-ratchet baseline's plain-modify content diff (shrink-only / move-plan-backed substitution, see specs/reorg/move-manifest.generated.json) without itself calling git (ci-gate-self-conformance forbids subprocess/network/clock/randomness primitives in gate production code).",
       "public_product_contract": "Declared normal-source-merge artifact path -> its content at the merge-base. An artifact absent from the merge-base tree (e.g. brand new) is simply omitted; the consuming gate fails closed on it. Never hand-edited; the freshness materializer is the sole generator.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin",
+        "generator_target": "//ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin",
         "operation_id": "emit-ratchet-merge-base-contents",
         "parameters": {
           "mode": "materialize"
@@ -503,7 +503,7 @@
         "registry/history-only-retirement/control-plane.json",
         "specs/history-only-retirement-control-plane.schema.json",
         "specs/history-only-retirement-facts.schema.json",
-        ".github/workflows/oya-ci-required.yml",
+        ".github/workflows/presubmit.yml",
         "full-depth SCM checkout"
       ],
       "final_tree_validation": "This current-tree facts face is controller-produced and NOT tracked in git. The controller validates the immutable protected-null, candidate-exact-three control contract against the predecessor snapshot before materializing facts. It contains lifecycle and object/path/blob/hash/length observations only and cannot assert qualified closure.",
@@ -560,7 +560,7 @@
       "layer_id": "pull-request-presubmit",
       "name": "Pull request presubmit",
       "automation": "Hermetic Rust gates run over committed manifest plus materialized SCM-facts snapshot; presubmit rejects generated-output edits in contributor PRs and requires declared generated artifacts to be regenerated or controller-materialized from source.",
-      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts, unsafe merge policies, stale declared materialized artifacts, or generated outputs used as ordinary source merge surfaces."
+      "enforcement": "The single fan-in context presubmit turns red on undeclared generated artifacts, unsafe merge policies, stale declared materialized artifacts, or generated outputs used as ordinary source merge surfaces."
     },
     {
       "layer_id": "merge-queue-projected-state",
@@ -588,7 +588,7 @@
     }
   ],
   "final_tree_materialization": {
-    "controller_id": "oya-ci-generated-artifact-controller",
+    "controller_id": "ci-generated-artifact-controller",
     "presubmit_authority": "merge-queue-projected-state",
     "postsubmit_authority": "postsubmit-main-materialization",
     "protected_branch_trigger": "push:dev",
@@ -601,7 +601,7 @@
       "rule_id": "generated-json-files",
       "rule_kind": "path_suffix",
       "pattern": ".generated.json",
-      "description": "Canonical oya-ci generated JSON face suffix."
+      "description": "Canonical ci generated JSON face suffix."
     },
     {
       "rule_id": "architecture-product-graph-dashboard",

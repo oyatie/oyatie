@@ -38,7 +38,7 @@ use ci_path_resolver_ports::{
 use serde_json::Value;
 
 /// The move-manifest schema id (must match the codemod's `REORG_MOVE_MANIFEST_SCHEMA`).
-pub const MOVE_MANIFEST_SCHEMA: &str = "oya-ci/reorg-move-manifest/v1";
+pub const MOVE_MANIFEST_SCHEMA: &str = "ci/reorg-move-manifest/v1";
 
 /// The de-committed move-manifest's canonical repo-relative materialization path (a root-stable
 /// anchor — a well-known config location, injected once, NOT a movable gate self-location). The
@@ -170,12 +170,12 @@ impl MoveManifest {
     ///
     /// PRECONDITION (ADR-0614, amends ADR-0563): move-manifest is now DE-COMMITTED — not tracked in
     /// git (`materialization_mode: not-tracked-in-git`). cloud-ci materializes it on demand as STEP 1
-    /// of `//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin`
+    /// of `//ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin`
     /// (`materialize_move_manifest`) BEFORE any relabel-read leg, so the manifest is present on disk
     /// when this loads it. Post-de-commit an ABSENT file means the materializer did not run — a
     /// pipeline precondition failure that must block loudly (a false-RED that never merges bad),
     /// NOT silently degrade to an identity relabel. Every scm-facts emitter invocation runs via the
-    /// materializer (audited across `.github/workflows/oya-ci-required.yml`), so this `Err` arm never
+    /// materializer (audited across `.github/workflows/presubmit.yml`), so this `Err` arm never
     /// triggers in practice — it converts a latent silent hazard into a loud precondition assertion.
     pub fn load(repo_root: &Path, manifest_rel_path: &str) -> Result<Self, String> {
         let path = repo_root.join(manifest_rel_path);
@@ -513,7 +513,7 @@ mod tests {
         }
     }
 
-    const OLD: &str = "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+    const OLD: &str = "cloud/cloud-ci/gates/cloud-ci-firewall-app/ratchet-policy.json";
     const NEW: &str = "ci/facade/baseline-ratchet/ratchet-policy.json";
 
     fn manifest_with(pairs: &[(&str, &str)]) -> Value {
@@ -735,7 +735,7 @@ mod tests {
             .unwrap_or(0);
         let seq = SEQ.fetch_add(1, Ordering::Relaxed);
         let dir = std::env::temp_dir().join(format!(
-            "oya-path-resolver-load-{}-{nanos}-{seq}",
+            "path-resolver-load-{}-{nanos}-{seq}",
             std::process::id()
         ));
         std::fs::create_dir_all(&dir).unwrap();

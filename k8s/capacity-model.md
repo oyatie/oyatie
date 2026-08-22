@@ -223,7 +223,7 @@ TOTAL XS tier per pack region: ~$6500/month
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice cloud-k8s` — exit 0; deployed replica counts ≥ formula minimums.
+- `cargo run -p dev-cli -- gate validate capacity-conformance --microservice cloud-k8s` — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `P_pods_per_ms` averages.
 - Annual reference-architecture refresh: re-verify against current Kubernetes / Istio / Cilium published sizing guides.
 

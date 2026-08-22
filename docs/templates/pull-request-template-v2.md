@@ -10,7 +10,7 @@ purpose: |
 canonical_authority: docs/templates/pull-request-template.md
 superseded_by: docs/templates/pull-request-template.md
 enforcing_fitness_lane: retired by ADR-0716
-merge_status_requirement: oya-ci-required
+merge_status_requirement: presubmit
 review_requirement: independent reviewer approval; F-PR5-06 tracks cloud enforcement
 owner_team: platform-governance + council-architecture
 related:
@@ -40,7 +40,7 @@ trusted server-side/cloud-ci producer. -->
 ## Verification
 
 - Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
-- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
+- `presubmit` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
 

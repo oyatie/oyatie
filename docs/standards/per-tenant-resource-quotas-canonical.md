@@ -53,7 +53,7 @@ pub trait TenantQuotaKernel: Send + Sync {
 }
 ```
 
-Lives in `oya-shared-tenant-quota-kernel`.
+Lives in `shared-tenant-quota-kernel`.
 
 ### 3. Refusal contract
 
@@ -86,7 +86,7 @@ Sovereign-tier tenants (per ADR-0147) have DEDICATED cells; their
 
 Quota enforcement is integration-tested per µservice via the
 existing `cross-tenant-access-fuzz` gate; the new
-`oya-shared-tenant-quota-kernel` trait surface lets the fuzz harness
+`shared-tenant-quota-kernel` trait surface lets the fuzz harness
 inject quota-exhaustion scenarios.
 
 ## References

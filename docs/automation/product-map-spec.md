@@ -10,10 +10,10 @@ purpose: |
   wave, and dependencies. Source: `docs/products/<axis>/PRD.md` frontmatter +
   `docs/ROADMAP.md` wave-mapping. Lift to `docs/visualization/product-map.md`
   with a Mermaid graph as the primary render.
-planned_enforcement_ref: oya-governance-product-map
+planned_enforcement_ref: governance-product-map
 extends_crates:
-  - oya-intelligence-architecture-map-kernel
-  - oya-intelligence-mdbook-kernel
+  - intelligence-architecture-map-kernel
+  - intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
@@ -92,7 +92,7 @@ A sortable table appears below the diagrams: `product_id | axis | status | owner
 | Per-PR touching `docs/ROADMAP.md` | Re-render (wave colors / mapping may change). |
 | Nightly | Full sweep; orphan product detection (PRD without a matching catalog record). |
 
-## 6. Validation gates (`oya-governance-product-map`)
+## 6. Validation gates (`governance-product-map`)
 
 1. **Frontmatter coverage.** Every `docs/products/<axis>/<product>/PRD.md` has all required fields (BLOCKER on omission).
 2. **Status validity.** `status:` ∈ {`pre-preview`, `preview`, `stable`, `sunset`} (BLOCKER).

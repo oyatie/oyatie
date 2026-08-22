@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-iam-just-in-time-elevation-misuse.
 - Primary namespace: `cloud-iam`.
-- Owning rotation: PagerDuty `oya-security-policy-primary`.
-- IAM secondary: PagerDuty `oya-cloud-iam-primary`.
+- Owning rotation: PagerDuty `security-policy-primary`.
+- IAM secondary: PagerDuty `cloud-iam-primary`.
 - Incident channel: `#inc-security-iam`.
 - Customer channel: `#support-cloud-iam-security`.
 - Protected surface: JIT elevation grants, emergency break-glass, Cedar role attachments, provider-target temporary roles.
@@ -39,12 +39,12 @@ doc_status: published
 - Alert `CloudIamBreakGlassWithoutReviewer` fires.
 - Alert `CloudIamElevationAnomalousDuration` fires.
 - Alert `CloudIamPrivilegeGrantOutsideChangeWindow` fires.
-- Metric `oya_cloud_iam_jit_elevation_active_sessions` exceeds tenant baseline by 3 sigma.
-- Metric `oya_cloud_iam_break_glass_grant_total` is non-zero for paid tenant_class without PIV signature.
-- Metric `oya_cloud_iam_jit_elevation_denied_then_allowed_total` spikes for one principal.
-- Metric `oya_cloud_iam_elevation_reviewer_missing_total` is non-zero.
-- Metric `oya_cloud_iam_cross_tenant_elevation_total` is non-zero without dual-tenant permits.
-- Metric `oya_cloud_iam_elevation_session_recording_gap_total` is non-zero.
+- Metric `cloud_iam_jit_elevation_active_sessions` exceeds tenant baseline by 3 sigma.
+- Metric `cloud_iam_break_glass_grant_total` is non-zero for paid tenant_class without PIV signature.
+- Metric `cloud_iam_jit_elevation_denied_then_allowed_total` spikes for one principal.
+- Metric `cloud_iam_elevation_reviewer_missing_total` is non-zero.
+- Metric `cloud_iam_cross_tenant_elevation_total` is non-zero without dual-tenant permits.
+- Metric `cloud_iam_elevation_session_recording_gap_total` is non-zero.
 - Audit-chain sees `cloud_iam.elevation.granted` without matching approval event.
 - Audit-chain sees `cloud_iam.elevation.used` after grant expiration.
 - Support reports tenant admin seeing unexplained elevated access.
@@ -84,10 +84,10 @@ doc_status: published
 3. Acknowledge security page: `pd incident ack --service security-policy --incident $INCIDENT_ID`.
 4. Create security bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-security-iam --severity sev0`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="jit-elevation")'`.
-6. Query active sessions: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_jit_elevation_active_sessions{cell="'$CELL'"}'`.
-7. Query break-glass grants: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_iam_break_glass_grant_total[5m])'`.
-8. Query reviewer gaps: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_elevation_reviewer_missing_total{cell="'$CELL'"}'`.
-9. Query recording gaps: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_iam_elevation_session_recording_gap_total{cell="'$CELL'"}'`.
+6. Query active sessions: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_jit_elevation_active_sessions{cell="'$CELL'"}'`.
+7. Query break-glass grants: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_iam_break_glass_grant_total[5m])'`.
+8. Query reviewer gaps: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_elevation_reviewer_missing_total{cell="'$CELL'"}'`.
+9. Query recording gaps: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_iam_elevation_session_recording_gap_total{cell="'$CELL'"}'`.
 10. Open dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/elevation?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 11. Open session panel: `open "https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/session-recording?orgId=1&var-principal=$PRINCIPAL"`.
 12. Read elevation logs: `kubectl -n cloud-iam logs deploy/cloud-iam-elevation-api --since=60m | rg "elevation|break_glass|reviewer|session_recording"`.
@@ -147,7 +147,7 @@ doc_status: published
 10. Enable session recording hold: `oya iam session recording hold --tenant $TENANT --principal $PRINCIPAL --incident $INCIDENT_ID`.
 11. Quarantine workload principal: `oya iam workload quarantine --tenant $TENANT --principal $PRINCIPAL --ttl 60m --reason $INCIDENT_ID`.
 12. Pause Foundry principal if implicated: `oya foundry principal pause --principal $PRINCIPAL --reason $INCIDENT_ID`.
-13. Hold cloud-iam promotions: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
+13. Hold cloud-iam promotions: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `presubmit` required; local/Jenkins rehearsals are non-authoritative).
 14. Notify affected service owners: `oya notify service-owner --incident $INCIDENT_ID --microservice cloud-iam`.
 15. Notify tenant admin through security copy: `oya notify tenant-admin --tenant $TENANT --incident $INCIDENT_ID --template jit-elevation-contained`.
 16. Preserve evidence: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID.json`.
@@ -166,9 +166,9 @@ doc_status: published
 7. Add regression for expired grant still permitting provider target access.
 8. Add regression for missing reviewer id.
 9. Add regression for paid tenant_class PIV signature requirement.
-10. Run domain tests: `cargo test -p oya-cloud-iam-domain elevation -- --nocapture`.
-11. Run API tests: `cargo test -p oya-cloud-iam-api elevation -- --nocapture`.
-12. Verify the branch-protected production-snapshot gate for `cloud-iam-elevation-policy` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
+10. Run domain tests: `cargo test -p cloud-iam-domain elevation -- --nocapture`.
+11. Run API tests: `cargo test -p cloud-iam-api elevation -- --nocapture`.
+12. Verify the branch-protected production-snapshot gate for `cloud-iam-elevation-policy` in `presubmit` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 13. Verify no active grants: `oya iam elevation list --tenant $TENANT --active --expect none`.
 14. Verify no provider residue: `oya iam target temporary-roles list --tenant $TENANT --principal $PRINCIPAL --provider all --expect none`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_JIT_ELEVATION_MISUSE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
@@ -176,7 +176,7 @@ doc_status: published
 ## Verification Checklist
 - `CloudIamJitElevationMisuseCritical` is green.
 - `CloudIamBreakGlassWithoutReviewer` is green.
-- `oya_cloud_iam_jit_elevation_active_sessions` returns to baseline.
+- `cloud_iam_jit_elevation_active_sessions` returns to baseline.
 - No active suspicious grant remains for the tenant.
 - No provider target temporary role remains for the principal.
 - Audit-chain contains grant, use, revoke, mitigation, and resolution events.
@@ -235,10 +235,10 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-security-policy-primary` immediately for Sev0 JIT misuse.
-- Page `oya-cloud-iam-primary` for revocation, Cedar, and provider target residue.
-- Page `oya-cloud-kms-primary` if session signing or key rotation is required.
-- Page `oya-audit-chain-primary` when forensic events are incomplete.
+- Page `security-policy-primary` immediately for Sev0 JIT misuse.
+- Page `cloud-iam-primary` for revocation, Cedar, and provider target residue.
+- Page `cloud-kms-primary` if session signing or key rotation is required.
+- Page `audit-chain-primary` when forensic events are incomplete.
 - Page affected microservice owners when elevated action touched their resources.
 - Notify `#inc-security-iam` with principal, tenant, and containment state.
 - Notify `#support-cloud-iam-security` before tenant-facing copy.

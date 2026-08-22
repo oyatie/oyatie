@@ -88,7 +88,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 ```
 
 ```
-fix(workspace-mail): correct DKIM signature on outbound mail in oya-pack-kr
+fix(workspace-mail): correct DKIM signature on outbound mail in pack-kr
 
 Outbound IP binding was using global pool instead of pack-specific
 warm pool, causing reputation degradation. Per ADR-0049

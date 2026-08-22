@@ -1,4 +1,4 @@
-# Operational boundaries — `oya-managed-k8s-control-plane-host`
+# Operational boundaries — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376.
 
@@ -8,7 +8,7 @@
    Oyatie's management (control-plane) cluster. It reconciles tenant control
    planes (hosted Kamaji `TenantControlPlane` pods; dedicated Talos spoke
    references) from the management plane. It is enforced at boot: the production
-   `[[bin]]` reads the management kubeconfig from `$OYA_MGMT_KUBECONFIG` and
+   `[[bin]]` reads the management kubeconfig from `$OYATIE_MGMT_KUBECONFIG` and
    refuses to start if absent (`BootError::MissingMgmtKubeconfig`) — it never
    silently falls back to the in-memory fake.
 2. **Never runs tenant workloads.** This is a control-plane management service. It
@@ -34,9 +34,9 @@
 
 ## What this service is NOT
 
-- Not the cluster-CRUD API (that is `oya-managed-k8s-cluster-lifecycle`).
-- Not the quota/RBAC enforcer (that is `oya-managed-k8s-tenant-quota`).
-- Not the SLA/uptime surface (that is `oya-managed-k8s-sla-observability`).
+- Not the cluster-CRUD API (that is `managed-k8s-cluster-lifecycle`).
+- Not the quota/RBAC enforcer (that is `managed-k8s-tenant-quota`).
+- Not the SLA/uptime surface (that is `managed-k8s-sla-observability`).
 
 It owns ONLY the control-plane-host concern and the `ControlPlaneProvisioning`
 port those services consume.

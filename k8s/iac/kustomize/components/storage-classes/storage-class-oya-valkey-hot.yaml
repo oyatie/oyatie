@@ -1,11 +1,11 @@
-# Canonical StorageClass: oya-valkey-hot
+# Canonical StorageClass: valkey-hot
 # Per ADR-0161. NVMe-class block storage for Valkey primary instances backing
 # rate-limit (ADR-0157), session cache, queue state. Sub-millisecond IOPS.
 
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: oya-valkey-hot
+  name: valkey-hot
   labels:
     oyatie.io/canonical: "true"
     oyatie.io/adr: "ADR-0161"

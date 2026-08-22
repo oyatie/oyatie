@@ -113,66 +113,66 @@ Deliverable 38: tenancy/seat-entitlement adds observability evidence for proto3,
 Deliverable 39: tenancy/seat-entitlement adds scalability evidence for BNF v4.1, with unit, contract, and integration tests.
 Deliverable 40: tenancy/seat-entitlement adds performance evidence for ADR-0105 13-layer, with unit, contract, and integration tests.
 ## 5. Observability
-Observation 1: emit oya_journey_40_tenancy_1_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 2: emit oya_journey_40_tenancy_2_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 3: emit oya_journey_40_tenancy_3_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 4: emit oya_journey_40_tenancy_4_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 5: emit oya_journey_40_tenancy_5_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 6: emit oya_journey_40_tenancy_6_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 7: emit oya_journey_40_tenancy_7_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 8: emit oya_journey_40_tenancy_8_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 9: emit oya_journey_40_tenancy_9_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 10: emit oya_journey_40_tenancy_10_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 11: emit oya_journey_40_tenancy_11_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 12: emit oya_journey_40_tenancy_12_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 13: emit oya_journey_40_tenancy_13_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 14: emit oya_journey_40_tenancy_14_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 15: emit oya_journey_40_tenancy_15_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 16: emit oya_journey_40_tenancy_16_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 17: emit oya_journey_40_tenancy_17_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 18: emit oya_journey_40_tenancy_18_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 19: emit oya_journey_40_tenancy_19_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 20: emit oya_journey_40_tenancy_20_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 21: emit oya_journey_40_tenancy_21_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 22: emit oya_journey_40_tenancy_22_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 23: emit oya_journey_40_tenancy_23_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 24: emit oya_journey_40_tenancy_24_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 25: emit oya_journey_40_tenancy_25_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 26: emit oya_journey_40_tenancy_26_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 27: emit oya_journey_40_tenancy_27_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 28: emit oya_journey_40_tenancy_28_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 29: emit oya_journey_40_tenancy_29_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 30: emit oya_journey_40_tenancy_30_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 31: emit oya_journey_40_tenancy_31_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 32: emit oya_journey_40_tenancy_32_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 33: emit oya_journey_40_tenancy_33_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 34: emit oya_journey_40_tenancy_34_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 35: emit oya_journey_40_tenancy_35_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 36: emit oya_journey_40_tenancy_36_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 37: emit oya_journey_40_tenancy_37_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 38: emit oya_journey_40_tenancy_38_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 39: emit oya_journey_40_tenancy_39_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 40: emit oya_journey_40_tenancy_40_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 41: emit oya_journey_40_tenancy_41_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 42: emit oya_journey_40_tenancy_42_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 43: emit oya_journey_40_tenancy_43_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 44: emit oya_journey_40_tenancy_44_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 45: emit oya_journey_40_tenancy_45_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 46: emit oya_journey_40_tenancy_46_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 47: emit oya_journey_40_tenancy_47_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 48: emit oya_journey_40_tenancy_48_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 49: emit oya_journey_40_tenancy_49_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 50: emit oya_journey_40_tenancy_50_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 51: emit oya_journey_40_tenancy_51_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 52: emit oya_journey_40_tenancy_52_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 53: emit oya_journey_40_tenancy_53_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 54: emit oya_journey_40_tenancy_54_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 55: emit oya_journey_40_tenancy_55_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 56: emit oya_journey_40_tenancy_56_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 57: emit oya_journey_40_tenancy_57_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 58: emit oya_journey_40_tenancy_58_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 59: emit oya_journey_40_tenancy_59_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
-Observation 60: emit oya_journey_40_tenancy_60_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 1: emit journey_40_tenancy_1_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 2: emit journey_40_tenancy_2_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 3: emit journey_40_tenancy_3_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 4: emit journey_40_tenancy_4_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 5: emit journey_40_tenancy_5_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 6: emit journey_40_tenancy_6_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 7: emit journey_40_tenancy_7_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 8: emit journey_40_tenancy_8_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 9: emit journey_40_tenancy_9_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 10: emit journey_40_tenancy_10_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 11: emit journey_40_tenancy_11_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 12: emit journey_40_tenancy_12_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 13: emit journey_40_tenancy_13_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 14: emit journey_40_tenancy_14_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 15: emit journey_40_tenancy_15_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 16: emit journey_40_tenancy_16_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 17: emit journey_40_tenancy_17_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 18: emit journey_40_tenancy_18_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 19: emit journey_40_tenancy_19_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 20: emit journey_40_tenancy_20_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 21: emit journey_40_tenancy_21_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 22: emit journey_40_tenancy_22_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 23: emit journey_40_tenancy_23_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 24: emit journey_40_tenancy_24_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 25: emit journey_40_tenancy_25_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 26: emit journey_40_tenancy_26_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 27: emit journey_40_tenancy_27_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 28: emit journey_40_tenancy_28_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 29: emit journey_40_tenancy_29_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 30: emit journey_40_tenancy_30_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 31: emit journey_40_tenancy_31_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 32: emit journey_40_tenancy_32_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 33: emit journey_40_tenancy_33_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 34: emit journey_40_tenancy_34_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 35: emit journey_40_tenancy_35_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 36: emit journey_40_tenancy_36_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 37: emit journey_40_tenancy_37_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 38: emit journey_40_tenancy_38_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 39: emit journey_40_tenancy_39_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 40: emit journey_40_tenancy_40_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 41: emit journey_40_tenancy_41_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 42: emit journey_40_tenancy_42_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 43: emit journey_40_tenancy_43_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 44: emit journey_40_tenancy_44_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 45: emit journey_40_tenancy_45_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 46: emit journey_40_tenancy_46_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 47: emit journey_40_tenancy_47_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 48: emit journey_40_tenancy_48_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 49: emit journey_40_tenancy_49_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 50: emit journey_40_tenancy_50_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 51: emit journey_40_tenancy_51_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 52: emit journey_40_tenancy_52_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 53: emit journey_40_tenancy_53_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 54: emit journey_40_tenancy_54_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 55: emit journey_40_tenancy_55_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 56: emit journey_40_tenancy_56_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 57: emit journey_40_tenancy_57_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 58: emit journey_40_tenancy_58_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 59: emit journey_40_tenancy_59_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
+Observation 60: emit journey_40_tenancy_60_total with labels tenant_id, journey_id, role, pack, region, outcome, and error_class.
 ## 6. Failure modes and rollback
 Failure 1: dependency timeout; tenancy must return a typed failure, keep durable state, and publish Journey40SeatEntitlementFailure1.
 Failure 2: Cedar deny; tenancy must return a typed failure, keep durable state, and publish Journey40SeatEntitlementFailure2.
@@ -424,10 +424,10 @@ IP check 152: tenancy/seat-entitlement satisfies observability for j40-b2b-marke
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-journey-j40-seat-entitlement.md` matched `financial, payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-journey-j40-seat-entitlement.md` matched `financial, payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Pod runtime tier (per ADR-0338)
 - `pod_runtime_tier: 0`
 - Runtime: Kata Containers plus Cloud Hypervisor are REQUIRED for this tenant-customer execution path.
 - Justification: this IP matched `plugin`, so tenant-customer or third-party code can enter the execution path.
-- Surface evidence: `microservices/tenancy/IP-journey-j40-seat-entitlement.md` plus `crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-journey-j40-seat-entitlement.md` plus `crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

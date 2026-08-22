@@ -486,7 +486,7 @@
       "acceptance_rules": [
         "INTEGRATE requires GREEN GATE plus ATTEST evidence for the same change_unit_id",
         "integration queue state MUST be tenant/repository scoped and cannot use a global single leader as correctness dependency",
-        "current bridge integration remains protected PR + oya-ci-required until native cutover is separately authorized"
+        "current bridge integration remains protected PR + presubmit until native cutover is separately authorized"
       ]
     },
     {
@@ -1037,7 +1037,7 @@
     "W4/W5 ScmFactsSource bespoke implementation cutover lane",
     "W6 CD release-ledger/reconciler integration lanes"
   ],
-  "local_verification_authority": "The commands below are local validation aids only; merge/admission authority remains protected PR review plus the oya-ci-required governance context until native cutover is separately proven.",
+  "local_verification_authority": "The commands below are local validation aids only; merge/admission authority remains protected PR review plus the presubmit governance context until native cutover is separately proven.",
   "verification_commands": [
     "python3 -m json.tool specs/bespoke-scm-declare-observe-contract.json >/dev/null",
     "python3 -m json.tool specs/work-area-content-hash-contract.json >/dev/null",

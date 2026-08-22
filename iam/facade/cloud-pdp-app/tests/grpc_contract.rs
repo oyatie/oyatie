@@ -1,7 +1,7 @@
 //! gRPC contract suite for the cloud-iam PDP decision surface.
 //!
 //! Drives the tonic service impl directly (tonic::Request/Response, no TCP
-//! socket — the oya-identity grpc_authorize_deny precedent), proving the
+//! socket — the identity grpc_authorize_deny precedent), proving the
 //! gRPC surface shares the REST decision core:
 //!
 //! - allow + deny are DECISION responses (a deny is never an RPC error);

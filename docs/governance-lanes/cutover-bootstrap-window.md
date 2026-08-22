@@ -9,14 +9,14 @@ doc_status: published
 - purpose: Verify every cutover bootstrap window has audit rows for begin/end and is bounded in time.
 - enforces: ADR-0053 — cutover bootstrap window.
 - adr_citations: ADR-0053 (sanctioned primitives — defines the bootstrap window constraints during which the transition from legacy to sanctioned primitives occurs)
-- kernel_crate: `oya-governance-cutover-bootstrap-window-kernel` — `BootstrapWindow { window_id, begin_row, end_row, duration_minutes }`, verdict `CutoverBootstrapWindowFitnessReport { windows_checked }`.
-- runner_path: `tools/oya-governance-cutover-bootstrap-window`
+- kernel_crate: `governance-cutover-bootstrap-window-kernel` — `BootstrapWindow { window_id, begin_row, end_row, duration_minutes }`, verdict `CutoverBootstrapWindowFitnessReport { windows_checked }`.
+- runner_path: `tools/governance-cutover-bootstrap-window`
 - inputs: audit ledger, declared cutover-window registry.
 - failure_modes:
   - window begin row exists but no end row
   - window duration > policy budget (e.g., 60 min)
   - end row precedes begin row
-- ci_invocation: `cargo run -p oya-governance-cutover-bootstrap-window`
+- ci_invocation: `cargo run -p governance-cutover-bootstrap-window`
 - runtime_budget: 500 ms
 - severity: HIGH
 - kernel_sketch:

@@ -17,8 +17,8 @@
     "canonical_fragment": "/specs/masterplan.json#masterplan_v2",
     "contract_ref": "/specs/planning-closure-contract.json",
     "this_ledger_status": "absorbed-evidence-provenance-not-live-plan-authority",
-    "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
-    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
+    "gate_command": "presubmit cloud-ci planning-closure Rust gate packet",
+    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "closed_status_field_count": 177,
     "former_blocking_status_classes": [
       "was-seed",
@@ -31,14 +31,14 @@
       "authoritative_selection_inputs": [
         "/specs/masterplan.json#masterplan_v2.work_items",
         "/specs/masterplan.json#masterplan_v2.dependency_edges",
-        "plain git protected PR plus oya-ci-required/cloud-ci admission state"
+        "plain git protected PR plus presubmit/cloud-ci admission state"
       ],
       "historical_snapshot_rule": "Historical implementation-index snapshots are provenance-only and cannot by themselves create a current FD-001 ChangeSet claim.",
-      "closed_planning_status_rule": "A planning-closed status is claimable only after /specs/masterplan.json carries the live MPV2 work item with evidence refs and the protected PR plus oya-ci-required/cloud-ci boundary is green.",
+      "closed_planning_status_rule": "A planning-closed status is claimable only after /specs/masterplan.json carries the live MPV2 work item with evidence refs and the protected PR plus presubmit/cloud-ci boundary is green.",
       "fanout_guard": "Shared API/data/policy/evidence/path writes remain serialized until their contract claims and chained-enforcement gates are green."
     }
   },
-  "closure_rule": "A closed planning status means the implementation contract is authored, sequenced, evidence-gated, and claimable through plain git protected PRs plus oya-ci-required/cloud-ci authority. Oya VCS references are future-target/provenance-only for planning closure and are not merge or closure authority. It does not mean product code is already implemented or that exit evidence may be claimed without the listed gates.",
+  "closure_rule": "A closed planning status means the implementation contract is authored, sequenced, evidence-gated, and claimable through plain git protected PRs plus presubmit/cloud-ci authority. Oya VCS references are future-target/provenance-only for planning closure and are not merge or closure authority. It does not mean product code is already implemented or that exit evidence may be claimed without the listed gates.",
   "implementation_guardrails": [
     "Every closed planning item remains a ChangeSet-owned execution unit.",
     "Implementation begins only after the planning-closure gate is green.",

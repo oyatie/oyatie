@@ -145,9 +145,9 @@
   "required_governance_authority": {
     "status": "current-bridge-authority-not-final-product-shape",
     "rule": "Merge/admission authority comes from the protected required governance status context and its evidence bundle; affected-target and RBE results are performance inputs only.",
-    "current_bridge_context": "oya-ci-required",
+    "current_bridge_context": "presubmit",
     "final_shape": "owned API-driven pipeline admission service with the same fail-closed authority semantics",
-    "naming_constraint": "`oya-ci-required` is a temporary bridge context name and must not constrain final API, service, capability, or resource names."
+    "naming_constraint": "`presubmit` is a temporary bridge context name and must not constrain final API, service, capability, or resource names."
   },
   "consumer_contracts": {
     "scm": {

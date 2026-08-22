@@ -9,7 +9,7 @@ deciders: council-architecture, axis-foundry, ops-sre-reliability
 related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/microservice-migration-tooling.json, /specs/agent-durable-goal.json]
 applies_to: every microservice + every artifact in oyatie repo
-enforced_by: oya-governance-industry-best-practice-conformance §"axis-5-practices"
+enforced_by: governance-industry-best-practice-conformance §"axis-5-practices"
 review_cadence: annually + on every major-tooling change affecting agent runtime
 doc_status: published
 ---
@@ -20,7 +20,7 @@ doc_status: published
 
 Cross-cutting principles that distinguish oyatie's repo from a human-developer-team repo. Industry best practices assume a human typing into an editor; oyatie's developer is a fully-agentic team executing in parallel. This standard codifies the optimisation vectors that make every artifact agent-friendly: structured, parallel-safe, idempotent, audit-chain-sealed, fail-closed, smallest-actionable.
 
-Every artifact authored in oyatie MUST satisfy these principles. The `oya-governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and `oya gate` / `oya verify`.
+Every artifact authored in oyatie MUST satisfy these principles. The `governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and `oya gate` / `oya verify`.
 
 ## Principle 1 — Semantic branch scope
 
@@ -113,7 +113,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 - Per-µservice rename operations are batched per ADR-0110 ChangeSet contract.
 - Targeted `sed -i` is allowed ONLY when the pattern is uniquely-identifying (e.g., an `id:` line in YAML frontmatter); use of `sed` requires explicit justification in the PR description.
 
-**Verification:** `oya-governance-changeset-state` (existing lane) plus a `commit-msg` hook that flags any commit message claiming "sed-based" rename.
+**Verification:** `governance-changeset-state` (existing lane) plus a `commit-msg` hook that flags any commit message claiming "sed-based" rename.
 
 ## Principle 8 — No-deeper-hole rule
 
@@ -122,7 +122,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 **Why:** Per durable user preference. Reducing framework leakage keeps the repo replaceable; agents author against stable Oya types, not against shifting third-party APIs.
 
 **How to apply:**
-- New crates depend on `oya-*` façades (e.g., `oya-observability-slo-engine-kernel` for SLO types, not `prometheus-client` directly).
+- New crates depend on `oya-*` façades (e.g., `observability-slo-engine-kernel` for SLO types, not `prometheus-client` directly).
 - When no façade exists and adding one is < 100 lines of code, add it; otherwise file a fixuptask for the missing façade.
 - Adapter layers isolate external framework imports per ADR-0105 layer enum.
 
@@ -130,7 +130,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 
 ## Enforcement
 
-The `oya-governance-industry-best-practice-conformance` CI lane (BLOCKER on dev; per ADR-0133) enforces these 8 principles on every artifact. Existing legacy violations are recorded as `severity: legacy-grandfathered` with a remediation IP filed.
+The `governance-industry-best-practice-conformance` CI lane (BLOCKER on dev; per ADR-0133) enforces these 8 principles on every artifact. Existing legacy violations are recorded as `severity: legacy-grandfathered` with a remediation IP filed.
 
 ## References
 

@@ -1,13 +1,13 @@
 // Cedar policy fragments for cloud-network.
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
 // ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
-// ADR-0346 enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify; oya-governance-oya-verify-exit-code-contract.
-// ADR-0347 purpose: every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
-// ADR-0347 enforced_by: oya-governance-no-legacy-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
+// ADR-0346 enforced_by: governance-verify-ci-mirror-coverage; governance-verify-ci-step-exit-semantics; governance-verify-skip-flag-allowlist; governance-submit-calls-verify; governance-verify-exit-code-contract.
+// ADR-0347 purpose: every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
+// ADR-0347 enforced_by: governance-no-legacy-fitness-residue; governance-lane-prefix-vocabulary; governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
-// ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
+// ADR-0348 enforced_by: governance-sharding-automation-coverage; governance-autosharding-manual-mode-refusal; governance-auto-rebalance-residency-honored; governance-dynamic-sharding-threshold-coverage; governance-audit-chain-emit-on-automation-events; governance-tenant-migration-reversibility.
 // ADR-0349 purpose: Bridge CI orchestration remains authorized for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts where hosted runners are unavailable; ArgoCD remains the GitOps CD bridge/reference adapter and replaces manual kubectl apply plus Helm CLI deploys across all contexts.
-// ADR-0349 enforced_by: oya-governance-ci-github-actions-parity; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-ci-config-as-code-only; oya-governance-deploy-audit-chain-emit.
+// ADR-0349 enforced_by: governance-ci-github-actions-parity; governance-argocd-application-cosign-verified; governance-argocd-tenant-namespace-isolation; governance-ci-config-as-code-only; governance-deploy-audit-chain-emit.
 
 permit(
   principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
@@ -55,12 +55,12 @@ permit(
 ) when {
   resource.microservice == "cloud-network" &&
   context.doctrine.adr_0346 == true &&
-  context.oya_verify_ci_required == true &&
+  context.verify_ci_required == true &&
   context.steps.cargo_fmt_all_check == true &&
   context.steps.cargo_check_workspace_all_targets == true &&
   context.steps.cargo_clippy_workspace_all_targets_d_warnings == true &&
   context.steps.cargo_nextest_workspace_no_fail_fast == true &&
-  context.steps.oya_gate_run_all_ci_required == true &&
+  context.steps.gate_run_all_ci_required == true &&
   context.step_exit_semantics == "block_on_exit_0_each_step" &&
   context.exit_code_contract in [0, 1, 2]
 };
@@ -74,7 +74,7 @@ permit(
   context.doctrine.adr_0349 == true &&
   context.github_actions_parity_ok == true &&
   context.jcasc_declared == true &&
-  context.lane_prefix in ["oya-governance", "oya-check"] &&
+  context.lane_prefix in ["governance", "check"] &&
   context.audit_chain_emit == true
 };
 
@@ -87,7 +87,7 @@ forbid(
   (
     context.github_actions_parity_ok == false ||
     context.jcasc_declared == false ||
-    context.lane_id.matches("^oya-governance-.*$")
+    context.lane_id.matches("^governance-.*$")
   )
 };
 
@@ -124,6 +124,6 @@ forbid(
 ) when {
   resource.microservice == "cloud-network" &&
   context.doctrine.adr_0347 == true &&
-  context.lane_id.matches("^oya-governance-.*$") &&
+  context.lane_id.matches("^governance-.*$") &&
   context.historical_reference != true
 };

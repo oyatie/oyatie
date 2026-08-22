@@ -283,23 +283,23 @@ The plan uses named tenant fixtures from `registry/sample-tenants/` and explicit
 
 ## SLO Conformance Tests
 
-- SLO target: `oya-identity-oidc-token-issue-latency` target `0.99`.
+- SLO target: `identity-oidc-token-issue-latency` target `0.99`.
 - Regression-detection criterion: integration p99 token issue path below declared budget in fixture cells.
-- SLO target: `oya-identity-oidc-token-verify-latency` target `0.999`.
+- SLO target: `identity-oidc-token-verify-latency` target `0.999`.
 - Regression-detection criterion: JWKS rotation overlap test must verify both keys before old-key retirement.
-- SLO target: `oya-identity-webauthn-authenticate-latency` target `0.99`.
+- SLO target: `identity-webauthn-authenticate-latency` target `0.99`.
 - Regression-detection criterion: software authenticator ceremony completes below suite budget.
-- SLO target: `oya-identity-scim-availability` target `0.9995`.
+- SLO target: `identity-scim-availability` target `0.9995`.
 - Regression-detection criterion: SCIM fake provider failure must return retryable status and no partial write.
-- SLO target: `oya-identity-step-up-grant-latency` target `0.95`.
+- SLO target: `identity-step-up-grant-latency` target `0.95`.
 - Regression-detection criterion: Cedar step-up decision fixture completes under 200 ms.
-- SLO target: `oya-identity-jwks-availability` target `0.99999`.
+- SLO target: `identity-jwks-availability` target `0.99999`.
 - Regression-detection criterion: `/.well-known/jwks.json` fake server stays available during signing-key switch.
-- SLO target: `oya-identity-audit-emit-completeness` target `1.0`.
+- SLO target: `identity-audit-emit-completeness` target `1.0`.
 - Regression-detection criterion: every integration write asserts a sealed audit receipt.
-- SLO target: `oya-identity-aaguid-refresh-freshness` target `0.999`.
+- SLO target: `identity-aaguid-refresh-freshness` target `0.999`.
 - Regression-detection criterion: stale FIDO metadata branch emits degraded metric.
-- SLO target: `oya-identity-zitadel-instance-health` target `0.9999`.
+- SLO target: `identity-zitadel-instance-health` target `0.9999`.
 - Regression-detection criterion: fake controller rejects unhealthy instance promotion.
 
 ## CI Pipeline Integration
@@ -310,19 +310,19 @@ The plan uses named tenant fixtures from `registry/sample-tenants/` and explicit
 - Service container: fake tenancy projection server.
 - Service container: fake cloud-secrets OpenBao resolver.
 - Service container: local AsyncAPI broker harness.
-- Command: `cargo nextest run -p oya-identity-integration-tests --all-features`.
-- Command: `cargo test -p oya-identity-scim-server-rest --test scim_rfc7644_integration`.
-- Command: `cargo test -p oya-identity-webauthn-relying-party-rest --test webauthn_ceremony_integration`.
-- Command: `cargo test -p oya-identity-step-up-orchestrator-usecase --test cedar_step_up_integration`.
-- Command: `cargo test -p oya-identity-audit-emitter-usecase --test audit_chain_fake_integration`.
-- Governance crate enforcement: `oya-governance-substance-bar`.
-- Governance crate enforcement: `oya-governance-no-template-stamping`.
-- Governance crate enforcement: `oya-governance-cedar-coverage`.
-- Governance crate enforcement: `oya-governance-audit-event-emission`.
-- Check crate enforcement: `oya-check-step-up-auth-coverage`.
-- Check crate enforcement: `oya-check-audit-chain-seal-coverage`.
-- Check crate enforcement: `oya-check-otel-trace-propagation`.
-- Check crate enforcement: `oya-check-slo-coverage`.
+- Command: `cargo nextest run -p identity-integration-tests --all-features`.
+- Command: `cargo test -p identity-scim-server-rest --test scim_rfc7644_integration`.
+- Command: `cargo test -p identity-webauthn-relying-party-rest --test webauthn_ceremony_integration`.
+- Command: `cargo test -p identity-step-up-orchestrator-usecase --test cedar_step_up_integration`.
+- Command: `cargo test -p identity-audit-emitter-usecase --test audit_chain_fake_integration`.
+- Governance crate enforcement: `governance-substance-bar`.
+- Governance crate enforcement: `governance-no-template-stamping`.
+- Governance crate enforcement: `governance-cedar-coverage`.
+- Governance crate enforcement: `governance-audit-event-emission`.
+- Check crate enforcement: `check-step-up-auth-coverage`.
+- Check crate enforcement: `check-audit-chain-seal-coverage`.
+- Check crate enforcement: `check-otel-trace-propagation`.
+- Check crate enforcement: `check-slo-coverage`.
 - Artifact: `identity-integration-junit.xml`.
 - Artifact: `identity-integration-fixture-manifest.json`.
 - Artifact: `identity-cedar-fuzz-corpus.tar.zst`.

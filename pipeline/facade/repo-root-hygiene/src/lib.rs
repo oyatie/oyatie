@@ -640,7 +640,7 @@ spec:
                 ".codex/hooks.json",
                 ".omc/ultragoal/OWNERS",
                 "ci/facade/x/src/lib.rs",
-                "libs/oya-foo/Cargo.toml",
+                "libs/foo/Cargo.toml",
                 "docs/adr-archive/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
             ]),
         );

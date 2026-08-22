@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-002: oya-tenancy-tenant-lifecycle-kernel
+# IP-002: tenancy-tenant-lifecycle-kernel
 
 ## Intent
 
@@ -21,24 +21,24 @@ Scaffold the `kernel` layer crate per ADR-0105: port traits (sealed) + entity ty
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml`. No downstream consumers in this IP.
+One new Rust crate at `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/tenancy/catalog/tenancy-tenant-lifecycle-kernel.yaml`. No downstream consumers in this IP.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/Cargo.toml` | create |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/lib.rs` | create |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/entities.rs` | create — `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `PlanTier`, `TenantContext` |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/ports.rs` | create — `TenantRepository`, `TenantContextResolver` traits |
-| `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/errors.rs` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/Cargo.toml` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/src/lib.rs` | create |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/src/entities.rs` | create — `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `PlanTier`, `TenantContext` |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/src/ports.rs` | create — `TenantRepository`, `TenantContextResolver` traits |
+| `microservices/tenancy/src/crates/tenancy-tenant-lifecycle-kernel/src/errors.rs` | create |
 | `Cargo.toml` (workspace) | update — register member |
-| `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml` | create |
+| `microservices/tenancy/catalog/tenancy-tenant-lifecycle-kernel.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAME: oya-tenancy-tenant-lifecycle-kernel
+NAME: tenancy-tenant-lifecycle-kernel
 JUSTIFICATION:
 - microservice = tenancy
 - bc-tokens = tenant-lifecycle (primary BC per PRD)
@@ -104,15 +104,15 @@ pub trait TenantContextResolver: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-kernel --all-features
-cargo build -p oya-tenancy-tenant-lifecycle-kernel --all-features
-cargo clippy -p oya-tenancy-tenant-lifecycle-kernel --all-features -- -D warnings
-cargo nextest run -p oya-tenancy-tenant-lifecycle-kernel --all-features
+cargo check -p tenancy-tenant-lifecycle-kernel --all-features
+cargo build -p tenancy-tenant-lifecycle-kernel --all-features
+cargo clippy -p tenancy-tenant-lifecycle-kernel --all-features -- -D warnings
+cargo nextest run -p tenancy-tenant-lifecycle-kernel --all-features
 cargo deny check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-tenant-lifecycle-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-tenancy-tenant-lifecycle-kernel
+cargo run -p dev-cli -- gate validate lean-a1 --crate tenancy-tenant-lifecycle-kernel
+cargo run -p dev-cli -- gate validate port-location --crate tenancy-tenant-lifecycle-kernel
+cargo run -p dev-cli -- gate validate layer-correctness --crate tenancy-tenant-lifecycle-kernel
+cargo run -p dev-cli -- gate validate data-class --crate tenancy-tenant-lifecycle-kernel
 ```
 
 ## Test Plan

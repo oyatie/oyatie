@@ -10,8 +10,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-check-adr-index:oya-check-adr-index",
-        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//libs/check-adr-index:check-adr-index",
+        "//libs/governance-adr-shape-kernel:governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
@@ -25,8 +25,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-check-adr-index:oya-check-adr-index",
-        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//libs/check-adr-index:check-adr-index",
+        "//libs/governance-adr-shape-kernel:governance-adr-shape-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",
@@ -61,14 +61,14 @@ rust_test(
     # the accounting producer reads the committed scm-facts face — no action calls git — while
     # the ADR producer re-renders source decisions into a test-owned temporary directory.
     env = {
-        "OYA_ADR_INDEX_PRODUCER_BIN": "$(exe //marketplace/facade/dev-cli:oya)",
-        "OYA_CI_PRODUCER_BIN": "$(exe //pipeline/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
-        "OYA_IDEA_ARCHIVE_POLICY": "$(location :idea-archive-policy.json)",
+        "OYATIE_ADR_INDEX_PRODUCER_BIN": "$(exe //marketplace/facade/dev-cli:oya)",
+        "OYATIE_CI_PRODUCER_BIN": "$(exe //pipeline/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin)",
+        "OYATIE_IDEA_ARCHIVE_POLICY": "$(location :idea-archive-policy.json)",
         # E7: exact controller-owned Git/object facts. Like the existing de-committed SCM-facts
         # boundary, this face is materialized out-of-graph and is never a Buck source member. The
         # consumer resolves this canonical repo-relative path and fails closed when bytes are
         # absent; no empty or candidate-authored fallback is permitted.
-        "OYA_HISTORY_ONLY_RETIREMENT_FACTS": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "OYATIE_HISTORY_ONLY_RETIREMENT_FACTS": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
     },
     resources = [
         "//docs/ideas:idea-archive-candidate-tree",
@@ -78,7 +78,7 @@ rust_test(
         ":ci-cross-artifact-agreement",
         "//pipeline/adapters/path-resolver:ci-path-resolver-adapters",
         "//pipeline/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
-        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//libs/governance-adr-shape-kernel:governance-adr-shape-kernel",
         "third-party//:serde_json",
         "third-party//:sha2",
         "third-party//:tempfile",

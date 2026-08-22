@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Vertical | ontology |
-| Crate | `oya-ontology-kernel` |
+| Crate | `ontology-kernel` |
 | Stage | SPEC |
 | ADR baseline | Bominal-ADR-0132 (pillar isolation), ADR-0083 (Tier 3 test exemption) |
 | Branch | `feat/task-ontology-entity-type-schema-evolution-2026-05-28` |
@@ -26,7 +26,7 @@ errors. First registration of an unseen id continues to work identically to
 
 ## Scope and boundaries
 
-- **In scope:** `crates/oya-ontology-kernel/src/lib.rs` only.
+- **In scope:** `crates/ontology-kernel/src/lib.rs` only.
 - **Out of scope:** REST/gRPC adapters, Postgres persistence, link/action type
   evolution, pillar annotation evolution, cross-tenant schema propagation.
 - **Not modified:** `src/pillar.rs`, `tests/link_action_invariants.rs`,
@@ -180,6 +180,6 @@ green.
 ## Verification gates
 
 ```
-cargo check -p oya-ontology-kernel --all-targets   # 0 errors
-cargo nextest run -p oya-ontology-kernel           # all green
+cargo check -p ontology-kernel --all-targets   # 0 errors
+cargo nextest run -p ontology-kernel           # all green
 ```

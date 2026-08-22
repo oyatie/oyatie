@@ -19,10 +19,10 @@
       "type": "barchart",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
       "targets": [
-        { "expr": "sum(rate(oya_identity_webauthn_register_total{pack=\"$pack\",stage=\"start\"}[1h]))", "legendFormat": "Register start" },
-        { "expr": "sum(rate(oya_identity_webauthn_register_total{pack=\"$pack\",stage=\"finish\",outcome=\"success\"}[1h]))", "legendFormat": "Register finish" },
-        { "expr": "sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\"}[1h]))", "legendFormat": "Auth start" },
-        { "expr": "sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"finish\",outcome=\"success\"}[1h]))", "legendFormat": "Auth finish" }
+        { "expr": "sum(rate(identity_webauthn_register_total{pack=\"$pack\",stage=\"start\"}[1h]))", "legendFormat": "Register start" },
+        { "expr": "sum(rate(identity_webauthn_register_total{pack=\"$pack\",stage=\"finish\",outcome=\"success\"}[1h]))", "legendFormat": "Register finish" },
+        { "expr": "sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\"}[1h]))", "legendFormat": "Auth start" },
+        { "expr": "sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"finish\",outcome=\"success\"}[1h]))", "legendFormat": "Auth finish" }
       ]
     },
     {
@@ -32,7 +32,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
       "targets": [
         {
-          "expr": "100 * sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\",mediation=\"conditional\"}[1h])) / sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\"}[1h]))"
+          "expr": "100 * sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\",mediation=\"conditional\"}[1h])) / sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",stage=\"start\"}[1h]))"
         }
       ]
     },
@@ -42,7 +42,7 @@
       "type": "piechart",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
       "targets": [
-        { "expr": "topk(10, sum(oya_identity_webauthn_credential_total{pack=\"$pack\"}) by (aaguid))" }
+        { "expr": "topk(10, sum(identity_webauthn_credential_total{pack=\"$pack\"}) by (aaguid))" }
       ]
     },
     {
@@ -51,7 +51,7 @@
       "type": "stat",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
       "targets": [
-        { "expr": "sum(increase(oya_identity_webauthn_sign_count_regression_total{pack=\"$pack\"}[24h]))" }
+        { "expr": "sum(increase(identity_webauthn_sign_count_regression_total{pack=\"$pack\"}[24h]))" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -72,7 +72,7 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
       "targets": [
-        { "expr": "100 * sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",transport=\"hybrid\",outcome=\"success\"}[5m])) / sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",transport=\"hybrid\"}[5m]))" }
+        { "expr": "100 * sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",transport=\"hybrid\",outcome=\"success\"}[5m])) / sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",transport=\"hybrid\"}[5m]))" }
       ]
     },
     {
@@ -81,7 +81,7 @@
       "type": "gauge",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
       "targets": [
-        { "expr": "100 * sum(oya_identity_webauthn_credential_total{pack=\"$pack\",backup_eligible=\"true\"}) / sum(oya_identity_webauthn_credential_total{pack=\"$pack\"})" }
+        { "expr": "100 * sum(identity_webauthn_credential_total{pack=\"$pack\",backup_eligible=\"true\"}) / sum(identity_webauthn_credential_total{pack=\"$pack\"})" }
       ]
     }
   ]

@@ -2394,7 +2394,7 @@
       "microservice_root_pattern": "microservices/<ms>/",
       "code_root_pattern": "microservices/<ms>/src/",
       "no_grouping_microservices": true,
-      "new_governance_lane_prefix": "oya-governance-*",
+      "new_governance_lane_prefix": "governance-*",
       "reserved_namespaces_on_naming": [
         "oyatie",
         "oya",

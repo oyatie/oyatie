@@ -16,7 +16,7 @@ const GENERAL_VALUES: &str = "infra/arc/runner-scale-set-arm64-values.yaml";
 const LIVE_POSTGRES_VALUES: &str = "infra/arc/runner-scale-set-live-postgres-arm64-values.yaml";
 const QEMU_CILIUM_PATCH: &str = "infra/talos/qemu-cilium.patch.yaml";
 const LOCAL_PATH_STORAGE: &str = "infra/gitops/local-path-storage.yaml";
-const GENERAL_WORKERS: [&str; 2] = ["oya-talos-worker-1", "oya-talos-worker-2"];
+const GENERAL_WORKERS: [&str; 2] = ["talos-worker-1", "talos-worker-2"];
 /// Tip-declared retirement: both scale sets scale-to-zero (ARC fleet retired 2026-08-11).
 const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 0;
 /// Spare GiB required when stacking multiple claims on one physical volume.
@@ -470,15 +470,15 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     // RETIRED: both scale sets tip-declare maxRunners=0 (scale-to-zero).
     assert_eq!(general.max_runners, MAX_GENERAL_RUNNERS_THIS_SLICE);
     assert_eq!(live.max_runners, 0);
-    assert_eq!(general.storage_class, "oya-ci-workspace-general");
-    assert_eq!(live.storage_class, "oya-ci-workspace-live-postgres");
+    assert_eq!(general.storage_class, "ci-workspace-general");
+    assert_eq!(live.storage_class, "ci-workspace-live-postgres");
     // Historical topology / hostname pins may remain in the YAML tombstone; packing
     // is skipped when maxRunners=0 (see validate_capacity_contract).
     assert!(
         general.hostname_pin.is_none(),
         "general dual-worker must not pin kubernetes.io/hostname"
     );
-    assert_eq!(live.hostname_pin.as_deref(), Some("oya-talos-worker-2"));
+    assert_eq!(live.hostname_pin.as_deref(), Some("talos-worker-2"));
 
     for runner in &runners {
         assert_eq!(runner.mount_path, "/home/runner/_work");
@@ -539,7 +539,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     );
     assert_eq!(
         path_nodes.get("/var/mnt/ci-workspace-live-postgres"),
-        Some(&BTreeSet::from(["oya-talos-worker-2".to_owned()])),
+        Some(&BTreeSet::from(["talos-worker-2".to_owned()])),
         "live-postgres remains worker-2 only"
     );
     assert_eq!(
@@ -550,11 +550,11 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
 
     let filesystems_gib: FilesystemsGib = [
         (
-            "oya-talos-worker-1",
+            "talos-worker-1",
             "infra/talos/local/patches/ci-workspace-worker-1.yaml",
         ),
         (
-            "oya-talos-worker-2",
+            "talos-worker-2",
             "infra/talos/local/patches/ci-workspace-worker-2.yaml",
         ),
     ]
@@ -588,21 +588,21 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         BTreeMap::from([
             (
                 (
-                    "oya-talos-worker-1".to_owned(),
+                    "talos-worker-1".to_owned(),
                     "ci-workspace-general".to_owned(),
                 ),
                 GENERAL_VOLUME_GIB,
             ),
             (
                 (
-                    "oya-talos-worker-2".to_owned(),
+                    "talos-worker-2".to_owned(),
                     "ci-workspace-general".to_owned(),
                 ),
                 GENERAL_VOLUME_GIB,
             ),
             (
                 (
-                    "oya-talos-worker-2".to_owned(),
+                    "talos-worker-2".to_owned(),
                     "ci-workspace-live-postgres".to_owned(),
                 ),
                 LIVE_POSTGRES_VOLUME_GIB,
@@ -647,7 +647,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     };
     let live = |max_runners| RunnerWorkspace {
         max_runners,
-        hostname_pin: Some("oya-talos-worker-2".to_owned()),
+        hostname_pin: Some("talos-worker-2".to_owned()),
         arch: "arm64".to_owned(),
         mount_path: "/home/runner/_work".to_owned(),
         storage_class: "live".to_owned(),
@@ -658,21 +658,21 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     let dual_worker_filesystems = BTreeMap::from([
         (
             (
-                "oya-talos-worker-1".to_owned(),
+                "talos-worker-1".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
             GENERAL_VOLUME_GIB,
         ),
         (
             (
-                "oya-talos-worker-2".to_owned(),
+                "talos-worker-2".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
             GENERAL_VOLUME_GIB,
         ),
         (
             (
-                "oya-talos-worker-2".to_owned(),
+                "talos-worker-2".to_owned(),
                 "ci-workspace-live-postgres".to_owned(),
             ),
             LIVE_POSTGRES_VOLUME_GIB,
@@ -692,13 +692,13 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         (
             "/var/mnt/ci-workspace-general".to_owned(),
             BTreeSet::from([
-                "oya-talos-worker-1".to_owned(),
-                "oya-talos-worker-2".to_owned(),
+                "talos-worker-1".to_owned(),
+                "talos-worker-2".to_owned(),
             ]),
         ),
         (
             "/var/mnt/ci-workspace-live-postgres".to_owned(),
-            BTreeSet::from(["oya-talos-worker-2".to_owned()]),
+            BTreeSet::from(["talos-worker-2".to_owned()]),
         ),
     ]);
 
@@ -727,24 +727,24 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     let single_general_node = BTreeMap::from([
         (
             "/var/mnt/ci-workspace-general".to_owned(),
-            BTreeSet::from(["oya-talos-worker-1".to_owned()]),
+            BTreeSet::from(["talos-worker-1".to_owned()]),
         ),
         (
             "/var/mnt/ci-workspace-live-postgres".to_owned(),
-            BTreeSet::from(["oya-talos-worker-2".to_owned()]),
+            BTreeSet::from(["talos-worker-2".to_owned()]),
         ),
     ]);
     let single_node_fs = BTreeMap::from([
         (
             (
-                "oya-talos-worker-1".to_owned(),
+                "talos-worker-1".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
             48,
         ),
         (
             (
-                "oya-talos-worker-2".to_owned(),
+                "talos-worker-2".to_owned(),
                 "ci-workspace-live-postgres".to_owned(),
             ),
             48,
@@ -775,7 +775,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     // Hostname pin with maxRunners>1 fails.
     assert!(
         validate_capacity_contract(
-            &[general(4, Some("oya-talos-worker-1"), true), live(1)],
+            &[general(4, Some("talos-worker-1"), true), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -796,7 +796,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     ]);
     assert!(
         validate_capacity_contract(
-            &[general(1, Some("oya-talos-worker-1"), false), live(1)],
+            &[general(1, Some("talos-worker-1"), false), live(1)],
             &shared_path,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -807,14 +807,14 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     // Missing physical volume fails.
     let missing_volume = BTreeMap::from([(
         (
-            "oya-talos-worker-1".to_owned(),
+            "talos-worker-1".to_owned(),
             "ci-workspace-general".to_owned(),
         ),
         48,
     )]);
     assert!(
         validate_capacity_contract(
-            &[general(1, Some("oya-talos-worker-1"), false), live(1)],
+            &[general(1, Some("talos-worker-1"), false), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &missing_volume
@@ -826,16 +826,16 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     let live_only_on_worker_2 = BTreeMap::from([
         (
             "/var/mnt/ci-workspace-general".to_owned(),
-            BTreeSet::from(["oya-talos-worker-1".to_owned()]),
+            BTreeSet::from(["talos-worker-1".to_owned()]),
         ),
         (
             "/var/mnt/ci-workspace-live-postgres".to_owned(),
-            BTreeSet::from(["oya-talos-worker-2".to_owned()]),
+            BTreeSet::from(["talos-worker-2".to_owned()]),
         ),
     ]);
     assert!(
         validate_capacity_contract(
-            &[general(1, Some("oya-talos-worker-2"), false), live(1)],
+            &[general(1, Some("talos-worker-2"), false), live(1)],
             &dual_worker_paths,
             &live_only_on_worker_2,
             &single_node_fs
@@ -848,14 +848,14 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     let stackable_fs = BTreeMap::from([
         (
             (
-                "oya-talos-worker-1".to_owned(),
+                "talos-worker-1".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
             96, // 2*44 + 4 reserve
         ),
         (
             (
-                "oya-talos-worker-2".to_owned(),
+                "talos-worker-2".to_owned(),
                 "ci-workspace-live-postgres".to_owned(),
             ),
             48,
@@ -914,7 +914,7 @@ fn cleanup_alert_uses_deletion_delay_not_healthy_job_age() {
         .iter()
         .find(|rule| string_at(rule, &["alert"]) == "OyaCiWorkspaceNodeDiskPressure")
         .expect("node pressure alert");
-    assert!(string_at(node_pressure, &["expr"]).contains("oya-talos-worker-(1|2)"));
+    assert!(string_at(node_pressure, &["expr"]).contains("talos-worker-(1|2)"));
 
     let cleanup = alerts
         .iter()
@@ -960,10 +960,10 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
     );
     assert!(serialized.contains("0.0.0.0/0"));
     assert!(serialized.contains("10.0.0.0/8"));
-    assert!(serialized.contains("oya-ci"));
-    assert!(serialized.contains("oya-registry"));
-    assert!(!serialized.contains("oya-kms"));
-    assert!(!serialized.contains("oya-data"));
+    assert!(serialized.contains("ci"));
+    assert!(serialized.contains("registry"));
+    assert!(!serialized.contains("kms"));
+    assert!(!serialized.contains("data"));
 
     let openbao = policies
         .iter()
@@ -979,7 +979,7 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
         "general"
     );
     let serialized = serde_json::to_string(openbao).expect("serialize OpenBao egress policy");
-    assert!(serialized.contains("oya-kms") && serialized.contains("8202"));
+    assert!(serialized.contains("kms") && serialized.contains("8202"));
     assert!(!serialized.contains("live-postgres"));
 }
 
@@ -1129,7 +1129,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         "the migration file must remain a complete Argo replacement"
     );
     for (kind, name) in [
-        ("Namespace", "oya-kms"),
+        ("Namespace", "kms"),
         ("PersistentVolumeClaim", "openbao-data"),
     ] {
         assert_eq!(
@@ -1215,7 +1215,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     );
     for (role, workflow, policy) in [(
         "github-cas-writer-dev-push.json",
-        "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+        "jason931225/oyatie/.github/workflows/presubmit.yml@refs/heads/dev",
         "ci-cas-writer",
     )] {
         let payload: serde_json::Value = serde_json::from_str(
@@ -1224,7 +1224,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
                 .expect("role payload"),
         )
         .expect("role JSON");
-        assert_eq!(payload["bound_audiences"][0], "oya-openbao");
+        assert_eq!(payload["bound_audiences"][0], "openbao");
         assert_eq!(payload["user_claim"], "workflow_ref");
         assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
         assert_eq!(payload["bound_claims"]["job_workflow_ref"], workflow);
@@ -1280,7 +1280,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
 
     let stores = yaml_documents(
         &root,
-        "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml",
+        "infra/external-secrets/clustersecretstore-openbao-tls-migration.yaml",
     );
     assert!(
         !read(
@@ -1300,7 +1300,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     for store in migration_stores {
         assert_eq!(
             string_at(store, &["spec", "provider", "vault", "server"]),
-            "https://openbao.oya-kms.svc:8202"
+            "https://openbao.kms.svc:8202"
         );
         assert_eq!(
             string_at(store, &["spec", "provider", "vault", "caProvider", "name"]),
@@ -1318,7 +1318,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     // optional CA ConfigMaps. Still secret-free in git — only empty optional mounts.
     assert!(runner_text.contains("nativelink-client-reader"));
     assert!(runner_text.contains("/etc/nativelink/client"));
-    assert!(runner_text.contains("OYA_CACHE_TLS_CLIENT_CERT"));
+    assert!(runner_text.contains("OYATIE_CACHE_TLS_CLIENT_CERT"));
     assert_eq!(
         runner_text.matches("optional\":true").count(),
         3,

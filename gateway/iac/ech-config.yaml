@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-api-gateway-ech-config
+  name: api-gateway-ech-config
   namespace: api-gateway
 data:
   ech-public-name: "edge.oyatie.com"  # outer SNI; opaque to attackers
@@ -18,7 +18,7 @@ data:
 apiVersion: external-dns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
-  name: oya-api-gateway-https-rr
+  name: api-gateway-https-rr
 spec:
   endpoints:
   - dnsName: api.oyatie.com

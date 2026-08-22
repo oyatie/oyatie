@@ -9,7 +9,7 @@ doc_status: published
 
 # Migration Playbook - Wave 15-ZD ADR-0346..0349 doctrine for `cloud-iac`
 
-Audience: an Oyatie operator or migration owner preparing `cloud-iac` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, GitHub Actions oya-cifiles, ArgoCD applications, or sharding bodies.
+Audience: an Oyatie operator or migration owner preparing `cloud-iac` for the Wave 15-ZD doctrine surface before implementation waves author runtime code, manifests, GitHub Actions cifiles, ArgoCD applications, or sharding bodies.
 
 Outcome: `cloud-iac` has a documented migration path for the four doctrine decisions, with no runtime mutation and no manifest mutation.
 
@@ -17,50 +17,50 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Doctrine purpose bindings
 
-1. ADR-0346 is superseded for this surface: branch-protected `oya-ci-required` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
-2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `the cloud-ci/oya-ci gate fan-in behind `oya-ci-required``, `oya doc adr-index --write`, and `oya lint adr-shape`.
+1. ADR-0346 is superseded for this surface: branch-protected `presubmit` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
+2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `the cloud-ci/ci gate fan-in behind `presubmit``, `oya doc adr-index --write`, and `oya lint adr-shape`.
 3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
-4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
+4. ADR-0347: Declare that every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request.
 5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
 7. ADR-0348: Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 8. ADR-0348: AUTOSHARDING computes tenant->cell/shard placement automatically with no human operator picking placement.
 9. ADR-0348: AUTO-REBALANCE migrates tenants from hot cells to cooler cells, honors residency and compliance pack constraints, requires Cedar permits for cross-jurisdiction migration, and remains observable, reversible, and audit-chain-emit per ADR-0263.
 10. ADR-0348: DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT and COLD-MERGE thresholds, and both operations are atomic plus audit-emit.
-11. ADR-0349: Declare GitHub Actions oya-ci (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-12. ADR-0349: GitHub Actions oya-ci augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
-13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/github-actions-oya-ci/` and `/argocd/` per ADR-0339.
+11. ADR-0349: Declare GitHub Actions ci (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+12. ADR-0349: GitHub Actions ci augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys across all contexts.
+13. ADR-0349: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/github-actions-ci/` and `/argocd/` per ADR-0339.
 
 ## ADR-0346 enforcement lanes
 
-- `oya-governance-cloud-ci-required-coverage` - refuses corpus changes to `cloud-ci/oya-ci required workflow definitions` that do not preserve the branch-protected cloud-ci/oya-ci required-context contract.
-- `oya-governance-cloud-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
-- `oya-governance-cloud-ci-bypass-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
-- `oya-governance-protected-pr-ci-required` - refuses changes that bypass the branch-protected `oya-ci-required` required context per D-10.
-- `oya-governance-cloud-ci-required-context-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
+- `governance-cloud-ci-required-coverage` - refuses corpus changes to `cloud-ci/ci required workflow definitions` that do not preserve the branch-protected cloud-ci/ci required-context contract.
+- `governance-cloud-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
+- `governance-cloud-ci-bypass-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
+- `governance-protected-pr-ci-required` - refuses changes that bypass the branch-protected `presubmit` required context per D-10.
+- `governance-cloud-ci-required-context-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
 
 ## ADR-0347 enforcement lanes
 
-- `oya-governance-no-cloud-governance-fitness-residue` - greps the corpus and refuses any non-historical reference to `oya-governance-*`.
-- `oya-governance-lane-prefix-vocabulary` - refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`.
-- `oya-governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/oya-governance-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
+- `governance-no-cloud-governance-fitness-residue` - greps the corpus and refuses any non-historical reference to `governance-*`.
+- `governance-lane-prefix-vocabulary` - refuses new authoring that introduces a fitness-family lane under any prefix other than `governance-*` or `check-*`.
+- `governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/governance-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
 
 ## ADR-0348 enforcement lanes
 
-- `oya-governance-sharding-automation-coverage` - refuses any microservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema.
-- `oya-governance-autosharding-manual-mode-refusal` - refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual.
-- `oya-governance-auto-rebalance-residency-honored` - refuses every manifest declaring sharding_automation.auto_rebalance.enabled true if the same manifest declares honors_residency false OR omits the field.
-- `oya-governance-dynamic-sharding-threshold-coverage` - refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits any canonical threshold.
-- `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
-- `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
+- `governance-sharding-automation-coverage` - refuses any microservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema.
+- `governance-autosharding-manual-mode-refusal` - refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual.
+- `governance-auto-rebalance-residency-honored` - refuses every manifest declaring sharding_automation.auto_rebalance.enabled true if the same manifest declares honors_residency false OR omits the field.
+- `governance-dynamic-sharding-threshold-coverage` - refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits any canonical threshold.
+- `governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
+- `governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
 ## ADR-0349 enforcement lanes
 
-- `oya-governance-github-actions-oya-ci-required-continuity` - refuses GitHub Actions oya-cifile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
-- `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
-- `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-github-actions-oya-ci-jcasc-only` - refuses GitHub Actions oya-ci controller state declared via the UI; every GitHub Actions oya-ci controller state file is authored under the declarative JCasC module path.
-- `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
+- `governance-github-actions-presubmit-continuity` - refuses GitHub Actions cifile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
+- `governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
+- `governance-github-actions-ci-jcasc-only` - refuses GitHub Actions ci controller state declared via the UI; every GitHub Actions ci controller state file is authored under the declarative JCasC module path.
+- `governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
 
 ## Phase 0 - Inventory
 
@@ -72,16 +72,16 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 1 - ADR-0346 verification migration
 
-1. Treat the branch-protected `oya-ci-required` run as the canonical blocking verification for `cloud-iac` changes.
+1. Treat the branch-protected `presubmit` run as the canonical blocking verification for `cloud-iac` changes.
 2. Do not claim this microservice is push-ready unless the full mirror contract can pass or a documented skip flag from the closed allowlist is intentionally used during incremental development.
 3. When `cloud-iac` changes touch Rust, contracts, manifests, generated docs, or governance lanes, run the verifier before handoff.
 4. Preserve the exit-code contract: 0 means all passed, 1 means at least one failed, and 2 means invalid arguments.
-5. Preserve plain git PR submission plus branch-protected `oya-ci-required` as the merge path; retired Oya CLI submit/verify wrappers are not operator interfaces.
+5. Preserve plain git PR submission plus branch-protected `presubmit` as the merge path; retired Oya CLI submit/verify wrappers are not operator interfaces.
 
 ## Phase 2 - ADR-0347 governance lane rename migration
 
-1. Search `cloud-iac` artifact surfaces for `oya-governance-*` references.
-2. Convert non-historical fitness lane references to `oya-governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
+1. Search `cloud-iac` artifact surfaces for `governance-*` references.
+2. Convert non-historical fitness lane references to `governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
 3. Preserve historical ADR context when an ADR-specific allowlist says the old prefix is historical context.
 4. Update any future `cloud-iac` manifest `governance_lanes` array only in the manifest-owning slot.
 5. Use the rename inventory path under `.omc/state/` as the deterministic source for target governance names.
@@ -98,11 +98,11 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 4 - ADR-0349 self-hostable CI/CD migration
 
-1. Treat GitHub Actions oya-ci LTS as the self-hostable CI substrate for `cloud-iac` when GitHub Actions runners are unavailable.
-2. Keep GitHub Actions as the hosted PR review surface; GitHub Actions oya-ci augments rather than replaces it.
+1. Treat GitHub Actions ci LTS as the self-hostable CI substrate for `cloud-iac` when GitHub Actions runners are unavailable.
+2. Keep GitHub Actions as the hosted PR review surface; GitHub Actions ci augments rather than replaces it.
 3. Treat ArgoCD as the GitOps CD orchestrator for this microservice once deployment artifacts exist.
 4. Do not author manual `kubectl apply` or Helm CLI deployment paths as canonical deployment procedure.
-5. Future GitHub Actions oya-cifile parity must mirror the GitHub Actions CI steps for `cloud-iac`.
+5. Future GitHub Actions cifile parity must mirror the GitHub Actions CI steps for `cloud-iac`.
 6. Future ArgoCD Application sources must attach cosign verification policy and preserve tenant namespace isolation.
 7. Every ArgoCD sync transition must emit an audit-chain deploy event.
 
@@ -119,7 +119,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. Wave 15-ZA owns verifier implementation, not this playbook.
 2. Wave 15-ZB owns lane rename implementation, not this playbook.
 3. Wave 15-ZD owns sharding automation implementation and manifest body work, not this playbook.
-4. Wave 15-ZE owns GitHub Actions oya-ci/ArgoCD substrate rollout, not this playbook.
+4. Wave 15-ZE owns GitHub Actions ci/ArgoCD substrate rollout, not this playbook.
 5. This file is the `cloud-iac` migration scaffold that those implementation lanes can cite.
 
 ## Phase 7 - Rollback and reversibility
@@ -144,7 +144,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 - Local verifier transcript for `cloud-iac` once Wave 15-ZA lands.
 - Rename inventory diff for `cloud-iac` once Wave 15-ZB lands.
 - `sharding_automation` manifest excerpt and rollback_path IP link once Wave 15-ZD lands.
-- GitHub Actions oya-cifile parity evidence and ArgoCD Application policy evidence once Wave 15-ZE lands.
+- GitHub Actions cifile parity evidence and ArgoCD Application policy evidence once Wave 15-ZE lands.
 - ADR citation gate result proving this playbook resolves ADR IDs against `docs/decisions`.
 
 ## Stop condition

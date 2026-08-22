@@ -368,7 +368,7 @@ SHARD-004: Conflicting writes are resolved by lifecycle_version compare-and-swap
 SHARD-005: Valkey caches are regional and disposable; Postgres plus audit-chain are the recovery substrates.
 SHARD-006: Shard count grows slowly because Cell aggregates grow with platform topology, not end-user request volume.
 SHARD-007: The service does not auto-rebalance itself; it triggers cell-rebalancer during drain and records receipt state.
-SHARD-008: Tenant placement sharding remains in tenancy and oya-shuffle-sharding; cell-lifecycle stores lifecycle state only.
+SHARD-008: Tenant placement sharding remains in tenancy and shuffle-sharding; cell-lifecycle stores lifecycle state only.
 
 ## 9. Capacity Model
 CAP-001: Baseline CPU is small because lifecycle commands are control-plane writes, not hot-path tenant requests.
@@ -646,24 +646,24 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 ### ADR-0346 Local CI Mirror
 - `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
 - The verifier MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH mandatory mirror step before success: cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all --ci-required`.
-- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lanes protect the local-to-CI contract.
+- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, and `governance-submit-calls-verify` lanes protect the local-to-CI contract.
 
 ### ADR-0347 Governance Lane Prefix
-- Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- Governance-owned fitness lanes for this microservice use the `governance-*` prefix. The canonical vocabulary is enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
 - Any architecture reference to CI lane ownership must point at the governance prefix and preserve lane invariants, lane checks, and lane semantics across the rename surface.
 
 ### ADR-0348 Sharding Automation Context
 - This microservice participates in the manifest-level `sharding_automation` doctrine: autosharding, auto_rebalance, and dynamic_sharding sub-blocks are declared per the D-1 schema unless an explicit cellular exemption applies.
-- AUTOSHARDING is control-plane-driven tenant-to-cell/shard placement using capacity_model, compliance_pack constraints, ResidencyClass, cell_placement_class, and the oya-shuffle-sharding algorithm. No human operator picks placement.
+- AUTOSHARDING is control-plane-driven tenant-to-cell/shard placement using capacity_model, compliance_pack constraints, ResidencyClass, cell_placement_class, and the shuffle-sharding algorithm. No human operator picks placement.
 - AUTO-REBALANCE migrates tenants from hot cells to cooler cells when cell load skews beyond promotion-gate criteria. Migration honors residency and compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit and emits audit-chain evidence per ADR-0263.
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
-- Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
+- Relevant admission lanes are `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, and `governance-audit-chain-emit-on-automation-events`.
 
 ### ADR-0349 Jenkins And ArgoCD CI/CD Context
 - Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
+- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `governance-jenkins-github-actions-parity`.
 - ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+- CI/CD architecture references must preserve `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit` as acceptance context.
 
 ## ADR-0341 integration
 ADR0341-ARCH-001: ADR-0341 binds the existing `cell-lifecycle` hexagonal ports to explicit Tier 0..4 promotion and demotion evidence rather than adding a new ownership domain.

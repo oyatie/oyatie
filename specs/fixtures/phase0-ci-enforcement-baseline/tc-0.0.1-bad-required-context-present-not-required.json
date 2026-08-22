@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "present_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "required_contexts": [],
     "strict": false
@@ -25,10 +25,10 @@
   "fixture_id": "TC-0.0.1-BAD-required-context-present-not-required",
   "producer_contract": {
     "candidate_bytes_policy": "untrusted_input_only",
-    "context": "oya-ci-required",
-    "controller": "oya-ci-controller",
+    "context": "presubmit",
+    "controller": "ci-controller",
     "gate_definition_source": "trusted_dev_or_controller_state",
-    "kind": "oya-ci-controller"
+    "kind": "ci-controller"
   },
   "purpose": "Proves a context that is merely present/non-required cannot satisfy P0.0 branch-protection authority.",
   "tc_ids": [

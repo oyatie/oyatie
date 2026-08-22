@@ -1,22 +1,22 @@
 {
   "schema_version": "1.0",
   "microservice": "connector",
-  "scorecard_family": "oya-governance-fitness",
+  "scorecard_family": "governance-fitness",
   "overrides": [
     {
-      "lane": "oya-governance-doc-rigor",
+      "lane": "governance-doc-rigor",
       "status": "advisory",
       "reason": "Corpus-wide upgrade pass in progress per documentation-rigor.md; BLOCKER from 2026-07-16",
       "expires": "2026-07-15"
     },
     {
-      "lane": "oya-governance-microservice-doc-set",
+      "lane": "governance-microservice-doc-set",
       "status": "advisory",
       "reason": "Below-floor buildout in progress; artifact count growing from 18 to ≥110",
       "expires": "2026-07-15"
     },
     {
-      "lane": "oya-governance-adr-adherence-matrix",
+      "lane": "governance-adr-adherence-matrix",
       "status": "advisory",
       "reason": "52-row ADR-adherence matrix being wired per keystone bundle 2026-05-20",
       "expires": "2026-07-15"

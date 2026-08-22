@@ -23,10 +23,10 @@
       "work"
     ],
     "crate_refs_planned": [
-      "oya-messenger-kernel",
-      "oya-messenger-domain",
-      "oya-messenger-app",
-      "oya-messenger-rest"
+      "messenger-kernel",
+      "messenger-domain",
+      "messenger-app",
+      "messenger-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
   },
@@ -103,70 +103,70 @@
       "given": "a personal DM is created",
       "when": "participants exchange messages",
       "then": "content is E2E and org-admin APIs cannot decrypt or hold it",
-      "test_ref": "crates/oya-messenger-domain/tests/personal_e2e.rs::test_personal_dm_never_org_discoverable"
+      "test_ref": "crates/messenger-domain/tests/personal_e2e.rs::test_personal_dm_never_org_discoverable"
     },
     {
       "id": "AC-02",
       "given": "a work channel message is created",
       "when": "message persists",
       "then": "content is tenant-DEK encrypted, retention-classed, and auditable with four-eyes approval",
-      "test_ref": "crates/oya-messenger-domain/tests/work_audit.rs::test_work_message_four_eyes_disclosure"
+      "test_ref": "crates/messenger-domain/tests/work_audit.rs::test_work_message_four_eyes_disclosure"
     },
     {
       "id": "AC-03",
       "given": "a professional user posts anonymously in a verified community",
       "when": "routine readers load the post",
       "then": "display identity is pseudonymous while real author remains audit-decryptable under disclosed policy",
-      "test_ref": "crates/oya-messenger-domain/tests/anonymity.rs::test_verified_anonymity_routine_vs_audit"
+      "test_ref": "crates/messenger-domain/tests/anonymity.rs::test_verified_anonymity_routine_vs_audit"
     },
     {
       "id": "AC-04",
       "given": "a message has attachments",
       "when": "client uploads encrypted blobs",
       "then": "attachment metadata, digest, preview policy, and retention class follow the parent message",
-      "test_ref": "crates/oya-messenger-domain/tests/attachments.rs::test_attachment_retention_inherits_parent"
+      "test_ref": "crates/messenger-domain/tests/attachments.rs::test_attachment_retention_inherits_parent"
     },
     {
       "id": "AC-05",
       "given": "realtime delivery is degraded",
       "when": "backpressure triggers",
       "then": "delivery receipts expose queued/retry/failure state without losing idempotency",
-      "test_ref": "crates/oya-messenger-app/tests/realtime.rs::test_delivery_backpressure_is_idempotent"
+      "test_ref": "crates/messenger-app/tests/realtime.rs::test_delivery_backpressure_is_idempotent"
     },
     {
       "id": "AC-06",
       "given": "a work message is edited or deleted by the author",
       "when": "the edit or delete is committed",
       "then": "an immutable edit/delete audit record is appended to the professional message audit chain; original ciphertext retained per retention policy",
-      "test_ref": "crates/oya-messenger-domain/tests/edit_delete.rs::test_work_message_edit_delete_audit_trail"
+      "test_ref": "crates/messenger-domain/tests/edit_delete.rs::test_work_message_edit_delete_audit_trail"
     },
     {
       "id": "AC-07",
       "given": "a work channel has threaded replies enabled",
       "when": "a user posts a reply to a specific message",
       "then": "the reply is scoped to the thread, inherits parent retention/hold, and thread context is preserved in search and eDiscovery export",
-      "test_ref": "crates/oya-messenger-domain/tests/threads.rs::test_channel_thread_inherits_parent_retention"
+      "test_ref": "crates/messenger-domain/tests/threads.rs::test_channel_thread_inherits_parent_retention"
     },
     {
       "id": "AC-08",
       "given": "a user sets their presence status",
       "when": "presence state is read by a colleague in the same work context",
       "then": "presence is scoped to the work pillar; personal context presence is never shared with work colleagues unless explicitly granted",
-      "test_ref": "crates/oya-messenger-domain/tests/presence.rs::test_presence_pillar_isolation"
+      "test_ref": "crates/messenger-domain/tests/presence.rs::test_presence_pillar_isolation"
     },
     {
       "id": "AC-09",
       "given": "a user reacts to a work message with an emoji",
       "when": "reaction is recorded",
       "then": "reaction is tenant-DEK encrypted and covered by the same retention policy as the parent message",
-      "test_ref": "crates/oya-messenger-domain/tests/reactions.rs::test_reaction_retention_follows_parent"
+      "test_ref": "crates/messenger-domain/tests/reactions.rs::test_reaction_retention_follows_parent"
     },
     {
       "id": "AC-10",
       "given": "two organizations connect via the secure cross-org channel API",
       "when": "messages are exchanged",
       "then": "each organization's messages are encrypted under their own tenant DEK; cross-org content does not enter the other org's eDiscovery scope without explicit policy",
-      "test_ref": "crates/oya-messenger-domain/tests/cross_org.rs::test_cross_org_channel_dek_isolation"
+      "test_ref": "crates/messenger-domain/tests/cross_org.rs::test_cross_org_channel_dek_isolation"
     }
   ],
   "scope": {
@@ -488,7 +488,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-governance-regional-pack-contracts"
+    "validation_lane_ref": "governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -530,7 +530,7 @@
         "stable": 180,
         "GA": 90
       },
-      "verification_ref": "cargo bench -p oya-messenger-domain -- send_p99",
+      "verification_ref": "cargo bench -p messenger-domain -- send_p99",
       "lane_ref": "perf-budget"
     },
     {
@@ -541,7 +541,7 @@
         "GA": 500
       },
       "notes": "Oyatie-owned target: p99 <500ms at GA. Official Slack/Microsoft sources support enterprise scale and collaboration features; they do not publish a comparable message-delivery latency SLA here.",
-      "verification_ref": "cargo bench -p oya-messenger-app -- realtime_delivery",
+      "verification_ref": "cargo bench -p messenger-app -- realtime_delivery",
       "lane_ref": "perf-budget"
     },
     {
@@ -551,7 +551,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "cargo nextest -p oya-messenger-domain -- personal_access_denied",
+      "verification_ref": "cargo nextest -p messenger-domain -- personal_access_denied",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -572,7 +572,7 @@
         "GA": 100
       },
       "notes": "Industry requirement: Slack/Teams both retain audit records for edits/deletes in eDiscovery exports",
-      "verification_ref": "cargo nextest -p oya-messenger-domain -- edit_delete_audit",
+      "verification_ref": "cargo nextest -p messenger-domain -- edit_delete_audit",
       "lane_ref": "audit-chain"
     },
     {
@@ -582,7 +582,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-messenger-domain -- presence_pillar",
+      "verification_ref": "cargo nextest -p messenger-domain -- presence_pillar",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -592,7 +592,7 @@
         "stable": 700,
         "GA": 500
       },
-      "verification_ref": "cargo bench -p oya-messenger-app -- realtime_delivery",
+      "verification_ref": "cargo bench -p messenger-app -- realtime_delivery",
       "lane_ref": "perf-budget"
     }
   ],
@@ -886,22 +886,22 @@
     {
       "anti_pattern": "runtime_config_trust_model",
       "why": "permits accidental switch of personal privacy into audit mode; trust model must be compile/data-model enforced",
-      "mitigation": "detection_lane: oya-governance-messenger-trust-boundary"
+      "mitigation": "detection_lane: governance-messenger-trust-boundary"
     },
     {
       "anti_pattern": "unlogged_professional_decrypt",
       "why": "breaks four-eyes chain-of-custody",
-      "mitigation": "detection_lane: oya-governance-messenger-disclosure"
+      "mitigation": "detection_lane: governance-messenger-disclosure"
     },
     {
       "anti_pattern": "spinner_only_thread_loading",
       "why": "fails production UX bar",
-      "mitigation": "detection_lane: oya-governance-frontend-ux"
+      "mitigation": "detection_lane: governance-frontend-ux"
     },
     {
       "anti_pattern": "presence_cross_pillar_exposure",
       "why": "personal availability/status must not be visible to employer; violates dual-context model",
-      "mitigation": "Presence.ownership_pillar enforced; AC-08; detection_lane: oya-governance-messenger-presence-pillar"
+      "mitigation": "Presence.ownership_pillar enforced; AC-08; detection_lane: governance-messenger-presence-pillar"
     },
     {
       "anti_pattern": "edit_delete_without_audit_trail",
@@ -911,7 +911,7 @@
     {
       "anti_pattern": "unbounded_large_channel_fanout",
       "why": "O(N) fan-out to 10K+ member channels causes cascade latency and cost runaway",
-      "mitigation": "tiered fan-out pattern; GA wave; detection_lane: oya-governance-messenger-realtime"
+      "mitigation": "tiered fan-out pattern; GA wave; detection_lane: governance-messenger-realtime"
     },
     {
       "anti_pattern": "cross_org_ediscovery_scope_expansion",
@@ -1011,47 +1011,47 @@
     {
       "id": "BP-01",
       "rule": "personal and professional trust models are separate data-model states, not runtime flags",
-      "planned_enforcement_ref": "oya-governance-messenger-trust-boundary"
+      "planned_enforcement_ref": "governance-messenger-trust-boundary"
     },
     {
       "id": "BP-02",
       "rule": "delivery state transitions are idempotent and replayable",
-      "planned_enforcement_ref": "oya-governance-messenger-realtime"
+      "planned_enforcement_ref": "governance-messenger-realtime"
     },
     {
       "id": "BP-03",
       "rule": "verified anonymity includes explicit disclosure of audit exception",
-      "planned_enforcement_ref": "oya-governance-messenger-anonymity-disclosure"
+      "planned_enforcement_ref": "governance-messenger-anonymity-disclosure"
     },
     {
       "id": "BP-04",
       "rule": "message edit and delete operations append to immutable audit log; original ciphertext retained per retention policy",
-      "planned_enforcement_ref": "oya-governance-messenger-audit"
+      "planned_enforcement_ref": "governance-messenger-audit"
     },
     {
       "id": "BP-05",
       "rule": "presence state is scoped to ownership_pillar; personal presence is never shared with work context without explicit grant",
-      "planned_enforcement_ref": "oya-governance-messenger-presence-pillar"
+      "planned_enforcement_ref": "governance-messenger-presence-pillar"
     },
     {
       "id": "BP-06",
       "rule": "reactions inherit parent message tenant DEK and retention policy",
-      "planned_enforcement_ref": "oya-governance-messenger-audit"
+      "planned_enforcement_ref": "governance-messenger-audit"
     },
     {
       "id": "BP-01",
       "rule": "personal and professional trust models are separate data-model states, not runtime flags",
-      "enforced_by_lane_ref": "oya-governance-messenger-trust-boundary"
+      "enforced_by_lane_ref": "governance-messenger-trust-boundary"
     },
     {
       "id": "BP-02",
       "rule": "delivery state transitions are idempotent and replayable",
-      "enforced_by_lane_ref": "oya-governance-messenger-realtime"
+      "enforced_by_lane_ref": "governance-messenger-realtime"
     },
     {
       "id": "BP-03",
       "rule": "verified anonymity includes explicit disclosure of audit exception",
-      "enforced_by_lane_ref": "oya-governance-messenger-anonymity-disclosure"
+      "enforced_by_lane_ref": "governance-messenger-anonymity-disclosure"
     }
   ],
   "patterns": [
@@ -1090,27 +1090,27 @@
     {
       "anti_pattern": "runtime_config_trust_model",
       "why_forbidden": "permits accidental switch of personal privacy into audit mode",
-      "detection_lane": "oya-governance-messenger-trust-boundary"
+      "detection_lane": "governance-messenger-trust-boundary"
     },
     {
       "anti_pattern": "unlogged_professional_decrypt",
       "why_forbidden": "breaks four-eyes chain-of-custody",
-      "detection_lane": "oya-governance-messenger-disclosure"
+      "detection_lane": "governance-messenger-disclosure"
     },
     {
       "anti_pattern": "spinner_only_thread_loading",
       "why_forbidden": "fails production UX bar",
-      "detection_lane": "oya-governance-frontend-ux"
+      "detection_lane": "governance-frontend-ux"
     },
     {
       "anti_pattern": "presence_cross_pillar_exposure",
       "why_forbidden": "personal availability visible to employer violates dual-context model",
-      "detection_lane": "oya-governance-messenger-presence-pillar"
+      "detection_lane": "governance-messenger-presence-pillar"
     },
     {
       "anti_pattern": "edit_delete_without_audit_trail",
       "why_forbidden": "eDiscovery requires full edit history for professional messages",
-      "detection_lane": "oya-governance-messenger-audit"
+      "detection_lane": "governance-messenger-audit"
     }
   ],
   "goals": {
@@ -1120,11 +1120,11 @@
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-tenant-rbac-domain -- cross_pillar"
+      "verification": "cargo nextest -p tenant-rbac-domain -- cross_pillar"
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-messenger-bench -- messenger_hot_paths"
+      "verification": "cargo bench -p messenger-bench -- messenger_hot_paths"
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
@@ -1300,8 +1300,8 @@
       "machine-learning or ranking features training across personal/professional scopes without a policy-specific opt-in and data-use record"
     ],
     "required_gates": [
-      "oya-governance-dual-context-isolation",
-      "oya-governance-messenger-personal-professional-separation",
+      "governance-dual-context-isolation",
+      "governance-messenger-personal-professional-separation",
       "tenant-rbac-packaging-gate",
       "per-tenant-audit-log-slicing"
     ],

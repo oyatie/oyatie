@@ -1,4 +1,4 @@
-//! observability subsystem for oya-cost. Per ADR-0509 single-crate pattern.
+//! observability subsystem for cost. Per ADR-0509 single-crate pattern.
 
 pub fn init() {
     // TODO(ADR-0480): implement observability

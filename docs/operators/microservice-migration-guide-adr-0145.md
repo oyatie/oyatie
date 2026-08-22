@@ -23,13 +23,13 @@ Add to the µservice's `Cargo.toml` (one of the µservice's app crates, typicall
 
 ```toml
 [dependencies]
-oya-shared-audit-chain-client-kernel = { path = "../oya-shared-audit-chain-client-kernel" }
+shared-audit-chain-client-kernel = { path = "../shared-audit-chain-client-kernel" }
 ```
 
 At every state-changing capability site, emit a seal:
 
 ```rust
-use oya_shared_audit_chain_client_kernel::{
+use shared_audit_chain_client_kernel::{
     AuditChainClient, CallingMicroservice, CalledMicroservice,
     SealEmission, SealEventKind,
 };
@@ -52,13 +52,13 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-oya-shared-tracing-client-kernel = { path = "../oya-shared-tracing-client-kernel" }
+shared-tracing-client-kernel = { path = "../shared-tracing-client-kernel" }
 ```
 
 On every outbound gRPC call, inject the W3C traceparent:
 
 ```rust
-use oya_shared_tracing_client_kernel::{TracingClient, NoopTracingClient};
+use shared_tracing_client_kernel::{TracingClient, NoopTracingClient};
 
 let mut headers = std::collections::BTreeMap::new();
 client.inject(&mut headers)?;
@@ -110,8 +110,8 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
-oya-shared-hyperscaler-metrics-adapter-prometheus = { path = "../oya-shared-hyperscaler-metrics-adapter-prometheus" }
+shared-hyperscaler-metrics-kernel = { path = "../shared-hyperscaler-metrics-kernel" }
+shared-hyperscaler-metrics-adapter-prometheus = { path = "../shared-hyperscaler-metrics-adapter-prometheus" }
 ```
 
 Export the canonical hyperscaler-bar metrics (request rate, error rate, latency p50/p99, in-flight requests) per inter-µservice call surface. These ground the SLO claims declared in `slos/*.openslo.yaml`.
@@ -128,13 +128,13 @@ cargo build -p oya-<ms>-app
 cargo nextest run -p oya-<ms>-app
 
 # Validate manifest
-cargo run -p oya-dev-cli -- gate validate ontology-projection-coverage
+cargo run -p dev-cli -- gate validate ontology-projection-coverage
 
 # Validate audit-chain coverage
-cargo run -p oya-dev-cli -- gate validate audit-chain-seal-coverage
+cargo run -p dev-cli -- gate validate audit-chain-seal-coverage
 
 # Validate trace propagation
-cargo run -p oya-dev-cli -- gate validate otel-trace-propagation
+cargo run -p dev-cli -- gate validate otel-trace-propagation
 ```
 
 All three gates run in DEFERRED (advisory) mode during the skeleton phase; they will surface findings without failing the gate run-all.

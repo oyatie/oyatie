@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/ralplan.schema.json",
   "title": "RalplanConsensusPlan",
-  "description": "Machine-readable canonical form of a ralplan-consensus plan. The Markdown plan at .omc/plans/ralplan-*.md is a generated projection of this JSON. Per ADR-0069 + user directive 'json/toml/yaml/whatever — what can be automated must be automated'. Per autonomous-prompt 'target 0 hand-authored Markdown; canonical knowledge in machine-optimized artifacts'. Generator: crates/oya-gen-ralplan-markdown.",
+  "description": "Machine-readable canonical form of a ralplan-consensus plan. The Markdown plan at .omc/plans/ralplan-*.md is a generated projection of this JSON. Per ADR-0069 + user directive 'json/toml/yaml/whatever — what can be automated must be automated'. Per autonomous-prompt 'target 0 hand-authored Markdown; canonical knowledge in machine-optimized artifacts'. Generator: crates/gen-ralplan-markdown.",
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-PLAN-SCHEMA",

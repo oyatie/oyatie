@@ -15,14 +15,14 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-kms-operator-stuck-reconcile.
 - Primary namespace: `cloud-kms`.
-- Owning rotation: PagerDuty `oya-cloud-kms-primary`.
+- Owning rotation: PagerDuty `cloud-kms-primary`.
 - Incident channel: `#inc-cloud-kms`.
 - Protected surface: `KmsKeyRing`, `KmsSealingRoot`, active key versions, decrypt-only demotion, and quarantine evidence.
 - Safety invariant: ambiguous or partial observed state must fail closed and must not create, rotate, demote, or quarantine key material.
 - Evidence invariant: every reconcile cycle emits exactly one structured wide-event named `cloud_kms_operator_reconcile`.
 - Metrics status: the Prometheus histogram in `cloud-kms-reconcile-convergence` is target-only in this slice; until the exporter mapping lands, use the structured wide-event fields `status`, `error_class`, and `convergence_seconds` as the live signal.
 - Current actuation scope: the live Cloud KMS domain actuator reconciles domain-backed `KmsKeyRing` create/rotate paths, `KmsSealingRoot` creation, decrypt-only demotion, and key-ring quarantine through Cloud KMS domain lifecycle ports.
-- State invariant: production startup requires `OYA_KMS_OPERATOR_STATE_PATH` on the mounted `oya-cloud-kms-operator-state` PVC; missing durable state configuration is a startup failure, not an in-memory fallback.
+- State invariant: production startup requires `OYATIE_KMS_OPERATOR_STATE_PATH` on the mounted `cloud-kms-operator-state` PVC; missing durable state configuration is a startup failure, not an in-memory fallback.
 - Stop condition: reconcile convergence SLO is green, no key ring is stuck in ambiguous observed state, and the audit event stream has a final successful or fail-closed event for every affected object.
 
 ## Trigger Conditions
@@ -36,8 +36,8 @@ doc_status: published
 1. Open the incident console and create a SEV2 incident with service `cloud-kms`, component `operator`, and symptom `stuck-reconcile`.
 2. In Grafana, navigate to the Cloud KMS operator dashboard and set filters to the affected cell, tenant, and key ring.
 3. Confirm whether the structured wide-event stream shows high `convergence_seconds` or repeating fail-closed partial-observation events. Treat the Prometheus SLO as target-only until the exporter mapping is live.
-4. In the Kubernetes console, navigate to namespace `cloud-kms`, workload `oya-cloud-kms-operator`, and verify available replicas, restart count, and the current image digest.
-5. In the Kubernetes console, verify the `oya-cloud-kms-operator-state` PVC is bound and mounted at the configured operator state path.
+4. In the Kubernetes console, navigate to namespace `cloud-kms`, workload `cloud-kms-operator`, and verify available replicas, restart count, and the current image digest.
+5. In the Kubernetes console, verify the `cloud-kms-operator-state` PVC is bound and mounted at the configured operator state path.
 6. In the Kubernetes console, inspect the affected `KmsKeyRing` and `KmsSealingRoot` custom resources. Compare spec generation, status observed generation, status health, and key version list.
 7. In the audit-chain console, search event name `cloud_kms_operator_reconcile` with the affected tenant and key ring. Confirm there is one event per reconcile cycle and record the latest `error_class`.
 8. If `error_class=partial_observed_state`, check the Kubernetes console event stream for watch relist gaps, API server throttling, or missing status subresource permissions.
@@ -46,9 +46,9 @@ doc_status: published
 
 ## Mitigation
 1. Keep the incident in mitigation until the operator emits either a successful reconcile event or a fail-closed event for every affected object.
-2. For `partial_observed_state`, use the Kubernetes console to restart only the `oya-cloud-kms-operator` deployment after confirming CRD API availability is healthy.
+2. For `partial_observed_state`, use the Kubernetes console to restart only the `cloud-kms-operator` deployment after confirming CRD API availability is healthy.
 3. For RBAC denial shown in the Kubernetes console, apply the approved GitOps remediation PR that restores `kms.oyatie.com` get/list/watch/update/status permissions for the operator service account.
-4. For missing or read-only operator state storage, restore the `oya-cloud-kms-operator-state` PVC through GitOps and restart the operator only after the PVC is bound.
+4. For missing or read-only operator state storage, restore the `cloud-kms-operator-state` PVC through GitOps and restart the operator only after the PVC is bound.
 5. For `domain_actuation`, use the Cloud KMS API console to mark the failed key create, rotate, sealing-root, demotion, or quarantine receipt as blocked and attach the incident id.
 6. If a key ring is `Compromised`, page compliance secondary before any rotation or decrypt-only demotion is attempted.
 7. If active key versions are duplicated, leave the newest active version serving and wait for the operator to demote older versions after observed state is complete.
@@ -63,7 +63,7 @@ doc_status: published
 ## Verification Checklist
 - Operator deployment has available replicas.
 - `KmsKeyRing` and `KmsSealingRoot` statuses are fresh.
-- Operator state PVC is bound and mounted at `OYA_KMS_OPERATOR_STATE_PATH`.
+- Operator state PVC is bound and mounted at `OYATIE_KMS_OPERATOR_STATE_PATH`.
 - No affected object has `read_consistency=Partial` or `read_consistency=Ambiguous`.
 - Reconcile convergence SLO burn is green.
 - Every affected cycle has exactly one structured wide-event.

@@ -11,13 +11,13 @@ fn live_tree_has_valid_owned_dependency_automation_contract() {
     assert_eq!(
         report.verdict,
         Verdict::Green,
-        "live oya-deps contract should be green: {:#?}",
+        "live deps contract should be green: {:#?}",
         report.findings
     );
 }
 
 #[test]
-fn missing_oya_deps_is_red() {
+fn missing_deps_is_red() {
     let root = temp_root();
     write_minimal_candidate(&root, "1.96.0");
     fs::remove_file(root.join("deps.toml")).unwrap();

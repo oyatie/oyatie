@@ -747,7 +747,7 @@
         },
         "replay_gate": {
           "type": "string",
-          "pattern": "^oya-governance-[a-z0-9-]{3,96}$"
+          "pattern": "^governance-[a-z0-9-]{3,96}$"
         },
         "sunset_at": {
           "type": "string",

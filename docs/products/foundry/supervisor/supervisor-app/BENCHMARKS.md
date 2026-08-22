@@ -143,7 +143,7 @@ fn emit_audit_json(event: &AuditEvent) -> String {
 
 ## Continuous Benchmarking
 
-The CI lane `lean-settings-drift` (part of the larger `oya-governance-*` suite) runs benchmarks on every PR:
+The CI lane `lean-settings-drift` (part of the larger `governance-*` suite) runs benchmarks on every PR:
 
 ```bash
 # Manual run (mimics CI)

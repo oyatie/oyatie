@@ -32,22 +32,22 @@ source_adrs:
 
 ## Doctrine Anchors
 - ADR-0346 purpose wording: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
-- ADR-0346 enforced_by lanes: `oya-governance-oya-verify-ci-mirror-coverage`; `oya-governance-oya-verify-ci-step-exit-semantics`; `oya-governance-oya-verify-skip-flag-allowlist`; `oya-governance-oya-submit-calls-verify`; `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 purpose wording: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-- ADR-0347 enforced_by lanes: `oya-governance-no-foundry-fitness-residue`; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
+- ADR-0346 enforced_by lanes: `governance-verify-ci-mirror-coverage`; `governance-verify-ci-step-exit-semantics`; `governance-verify-skip-flag-allowlist`; `governance-submit-calls-verify`; `governance-verify-exit-code-contract`.
+- ADR-0347 purpose wording: every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request.
+- ADR-0347 enforced_by lanes: `governance-no-foundry-fitness-residue`; `governance-lane-prefix-vocabulary`; `governance-rename-inventory-presence`.
 - ADR-0348 purpose wording: cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
-- ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
+- ADR-0348 enforced_by lanes: `governance-sharding-automation-coverage`; `governance-autosharding-manual-mode-refusal`; `governance-auto-rebalance-residency-honored`; `governance-dynamic-sharding-threshold-coverage`; `governance-audit-chain-emit-on-automation-events`; `governance-tenant-migration-reversibility`.
 - ADR-0349 purpose wording: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-- ADR-0349 enforced_by lanes: `oya-governance-jenkins-github-actions-parity`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-jenkins-jcasc-only`; `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 enforced_by lanes: `governance-jenkins-github-actions-parity`; `governance-argocd-application-cosign-verified`; `governance-argocd-tenant-namespace-isolation`; `governance-jenkins-jcasc-only`; `governance-deploy-audit-chain-emit`.
 
 ## Trigger Conditions
 - Trigger 1: adjacent shards both remain below cold_merge_utilization_threshold_percent.
 - Trigger 2: the quiet window exceeds cold_merge_minimum_quiet_hours.
 - Trigger 3: the merged shard remains inside SLO, residency, and compliance pack constraints.
-- Trigger 4: `oya_sharding_cold_merge_candidate_count` crosses the declared threshold for two evaluator windows.
-- Trigger 5: `oya_sharding_cold_merge_quiet_hours` threatens the service SLO budget or promotion-gate quiet window.
+- Trigger 4: `sharding_cold_merge_candidate_count` crosses the declared threshold for two evaluator windows.
+- Trigger 5: `sharding_cold_merge_quiet_hours` threatens the service SLO budget or promotion-gate quiet window.
 - Trigger 6: governance reports missing sharding automation coverage for this service.
 - Trigger 7: Jenkins or GitHub Actions parity drift blocks the release train for the sharding automation lane.
 - Trigger 8: ArgoCD reports a pending sync tied to this service after a sharding automation manifest change.
@@ -56,8 +56,8 @@ source_adrs:
 1. Set incident context: `export INCIDENT_ID=INC-compliance-cold-merge-$(date -u +%Y%m%dT%H%M%SZ); export SERVICE=compliance; export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
 2. Verify service deployment: `kubectl -n compliance rollout status deploy/compliance --timeout=60s`.
 3. Verify alerts: `oya observability alerts list --service compliance --runbook cold-merge --since 30m`.
-4. Verify primary metric: `oya metrics query oya_sharding_cold_merge_candidate_count --service compliance --cell $CELL --window 30m`.
-5. Verify secondary metric: `oya metrics query oya_sharding_cold_merge_quiet_hours --service compliance --cell $CELL --window 30m`.
+4. Verify primary metric: `oya metrics query sharding_cold_merge_candidate_count --service compliance --cell $CELL --window 30m`.
+5. Verify secondary metric: `oya metrics query sharding_cold_merge_quiet_hours --service compliance --cell $CELL --window 30m`.
 6. Verify Cedar decision path: `oya cedar eval --principal ops.sre.oncall --action sharding_automation.execute --resource service:$SERVICE --tenant $TENANT`.
 7. Verify residency and compliance pack filters before any candidate target is accepted.
 8. Verify audit-chain availability: `oya audit-chain health --cell $CELL --tenant $TENANT`.
@@ -89,7 +89,7 @@ source_adrs:
 ## Evidence Requirements
 - Evidence 1: audit-chain event `autosharding.dynamic_sharding.cold_merge.planned` with `service`, `cell`, `tenant`, `incident_id`, `cedar_decision_id`, and `rollback_pointer`.
 - Evidence 2: audit-chain event `autosharding.dynamic_sharding.cold_merge.executed` with source and target placement or shard epoch identifiers.
-- Evidence 3: audit-chain event `autosharding.dynamic_sharding.cold_merge.validated` with metric snapshots for `oya_sharding_cold_merge_candidate_count` and `oya_sharding_cold_merge_quiet_hours`.
+- Evidence 3: audit-chain event `autosharding.dynamic_sharding.cold_merge.validated` with metric snapshots for `sharding_cold_merge_candidate_count` and `sharding_cold_merge_quiet_hours`.
 - Evidence 4: Cedar permit or denial id for every state-mutating step.
 - Evidence 5: residency and compliance pack candidate filter output.
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
@@ -111,8 +111,8 @@ source_adrs:
 1. Confirm all trigger metrics are back under threshold for 30 minutes.
 2. Confirm no audit-chain emit gaps exist for the incident window.
 3. Confirm Cedar decisions are sealed and tied to the incident id.
-4. Confirm `oya-governance-auto-rebalance-residency-honored` or `oya-governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
-5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
+4. Confirm `governance-auto-rebalance-residency-honored` or `governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
+5. Confirm `governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
 6. Confirm Jenkins and GitHub Actions parity evidence is attached per ADR-0349.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
 8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.

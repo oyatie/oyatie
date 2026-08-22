@@ -21,7 +21,7 @@ The `meta-trust-root` key:
 - Lives in an **offline HSM** (never network-connected in operational state).
 - Is Shamir-shared **5-of-9** across ≥3 geographic jurisdictions (per synthesis §5.5, F5-243-02 / M1-KB-F4 fix; raised from 3-of-5).
 - Signs the 2-human-approval gate in `platform-self-modification-permits.cedar` when `is_human_approval_present(min_approvers: 2)` is not available.
-- Is distinct from the `org-baseline-key` (which signs day-to-day Cedar fragments) and from the `oya-compliance-office` key (which signs compliance packs).
+- Is distinct from the `org-baseline-key` (which signs day-to-day Cedar fragments) and from the `compliance-office` key (which signs compliance packs).
 
 **Trigger conditions:**
 
@@ -32,7 +32,7 @@ The `meta-trust-root` key:
 
 **Do NOT use this runbook for:**
 - Day-to-day Cedar fragment signing (use `org-baseline-key` ceremony).
-- Compliance pack signing (use `oya-compliance-office` key ceremony).
+- Compliance pack signing (use `compliance-office` key ceremony).
 - Tenant KMS root rotation (see `docs/runbooks/byok-rotation-encryption-tenant-duress.md`).
 
 ---

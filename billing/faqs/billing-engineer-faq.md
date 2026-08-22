@@ -143,7 +143,7 @@ inside the sovereign perimeter. KR K-FSI requires this for financial-sector tena
 
 A rate card is a versioned YAML document with per-resource-kind pricing:
 ```yaml
-rate_card_id: oya-rate-card-smb-paid-v1
+rate_card_id: rate-card-smb-paid-v1
 effective_from: 2026-01-01
 currency: USD
 items:

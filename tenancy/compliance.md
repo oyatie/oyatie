@@ -92,7 +92,7 @@ The canonical control-to-framework mapping for the tenancy µservice. Tells an e
 | A.5.28 | Collection of evidence | Audit-chain Ed25519 emission | ADR-0028 |
 | A.5.30 | ICT readiness for business continuity | Multi-region DR + RPO/RTO targets | `multi-region.md` |
 | A.5.31 | Legal, statutory, regulatory and contractual requirements | This document + per-pack overlays | `compliance.md` |
-| A.5.32 | Intellectual property rights | License-policy CI lane | `oya-check-license-policy` |
+| A.5.32 | Intellectual property rights | License-policy CI lane | `check-license-policy` |
 | A.5.33 | Protection of records | Audit-chain immutability + Postgres retention | `policy/data-residency.md` |
 | A.5.34 | Privacy and protection of PII | DPIA + DSR cascade + Cedar | `dpia.md` + `policy/*.cedar` |
 | A.8.2 | Privileged access rights | JIT elevation via OpenBao; 2-person rule | OpenBao audit |
@@ -229,7 +229,7 @@ Per-pack overlays at `regional-packs/<pack>/tenancy-compliance-overlay.md` carry
 
 ## Continuous Compliance Evidence
 
-### Lane: `oya-governance-compliance-evidence-recency`
+### Lane: `governance-compliance-evidence-recency`
 
 Refuses merges if any evidence artifact older than 90 days is referenced as "current" without a refresh date stamp. Forces quarterly re-validation of every control-implementation cited above.
 
@@ -253,8 +253,8 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0; HG-TEN registered.
+- `cargo run -p dev-cli -- gate validate compliance-evidence-recency --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate authority-cohesion` — exit 0; HG-TEN registered.
 - Annual SOC 2 Type 2 audit: `evidence/audits/soc2/<year>-type2-report.pdf`.
 - Annual ISO 27001:2022 audit.
 - Per-pack audit cadences per local law.
@@ -337,10 +337,10 @@ This anchor is closed for `tenancy` against ADR-0250 §D-1: certification-ready 
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -399,10 +399,10 @@ This anchor is closed for `tenancy` against ADR-0251 §D-2: pack activation, ove
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -461,10 +461,10 @@ This anchor is closed for `tenancy` against ADR-0247 §D-3: Foundry-touching sel
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -523,10 +523,10 @@ This anchor is closed for `tenancy` against ADR-0293 §D-1: meta-trust-root chai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -585,10 +585,10 @@ This anchor is closed for `tenancy` against ADR-0295 §D-2: Tier-1 bootstrap SPI
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -647,10 +647,10 @@ This anchor is closed for `tenancy` against ADR-0284 §D-1: platform_owner indir
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -709,10 +709,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.6.A: de
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -771,10 +771,10 @@ This anchor is closed for `tenancy` against ADR-0310 §D-1: detection-to-investi
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -833,10 +833,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -895,10 +895,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -957,10 +957,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1019,10 +1019,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1081,10 +1081,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1143,10 +1143,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1157,7 +1157,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 
 ### Service-specific answer
 - `tenancy` dependency inventory spans crates/catalog, containers, Helm/Kustomize/OpenTofu, Cedar fragments, contracts, and generated SDKs.
-- Inventory artifacts: `microservices/tenancy/catalog/oya-tenancy-cell-assignment-adapter-citus.yaml`, `microservices/tenancy/catalog/oya-tenancy-dr-pairing-usecase.yaml`, `microservices/tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml`, `microservices/tenancy/catalog/oya-tenancy-lifecycle-locks-kernel.yaml`, `microservices/tenancy/catalog/oya-tenancy-per-tenant-quota-usecase.yaml`, `microservices/tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml`; +21 more.
+- Inventory artifacts: `microservices/tenancy/catalog/tenancy-cell-assignment-adapter-citus.yaml`, `microservices/tenancy/catalog/tenancy-dr-pairing-usecase.yaml`, `microservices/tenancy/catalog/tenancy-kyb-kyc-verifier-domain.yaml`, `microservices/tenancy/catalog/tenancy-lifecycle-locks-kernel.yaml`, `microservices/tenancy/catalog/tenancy-per-tenant-quota-usecase.yaml`, `microservices/tenancy/catalog/tenancy-reserved-namespace-usecase.yaml`; +21 more.
 - Every build emits SBOM, provenance, source commit, builder identity, dependency digests, and signature/transparency-log pointers.
 - Dependencies are pinned to exact versions/digests; unpinned charts/images/crates block promotion.
 - Example: `dsr-cascade-execute` image promotion requires cosign signature, SLSA provenance, vulnerability scan, license check, and matching manifest/catalog record.
@@ -1205,10 +1205,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1267,10 +1267,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
@@ -1329,10 +1329,10 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - Failure mode: key or credential compromise. Behavior: revoke OpenBao lease, rotate signing/provider keys, quarantine impacted events, and replay idempotent work.
 
 ### Verification hooks
-- `oya-governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
-- `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
-- `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
-- `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
+- `governance-adr-adherence-matrix` reads this anchor as the documented answer for the corresponding row.
+- `governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
+- `governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
+- `governance-abuse-defence-ux-floor` and `governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
 - `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass

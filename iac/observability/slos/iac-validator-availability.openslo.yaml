@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-cloud-iac-iac-validator-availability
+  name: cloud-iac-iac-validator-availability
   displayName: "cloud-iac: IaC validator availability 99.9%"
   labels:
     microservice: cloud-iac
@@ -30,13 +30,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_iac_validate_total{outcome=~"pass|fail"}[5m]))
+                sum(rate(cloud_iac_validate_total{outcome=~"pass|fail"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_iac_validate_total[5m]))
+                sum(rate(cloud_iac_validate_total[5m]))
   objectives:
     - target: 0.999
       displayName: "30d rolling validator availability ≥ 99.9%"
@@ -45,4 +45,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

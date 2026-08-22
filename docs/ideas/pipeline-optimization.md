@@ -28,7 +28,7 @@ re-runs work the lane already did?
    target: Bazel `rdeps(//…, changed)` (Google TAP). _Biggest latency+cost win,
    available before the Bazel migration._
 2. **Kill the double-cargo.** Make `oya verify` the governance-only overlay
-   (ADR-0346 `oya_overlay`): consume the lane's nextest results, run only the
+   (ADR-0346 `overlay`): consume the lane's nextest results, run only the
    bespoke gates — never re-run the build/tests.
 3. **Trunk-warmed cache + cached registry.** Trunk/merge-queue builds populate
    the canonical sccache (RW); PR lanes read-through ⇒ warm from first run. Add a

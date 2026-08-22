@@ -12,7 +12,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
+use http_router_kernel::{HttpMethod, Router, RouterError};
 
 pub const MODULE_REGISTRY_DISCOVERY_REST_ROUTE: &str = "/.well-known/terraform.json";
 pub const MODULE_REGISTRY_VERSIONS_REST_ROUTE: &str =

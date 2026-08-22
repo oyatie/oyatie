@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "procurement",
     "bounded_context": "source-to-pay",
-    "crate_prefix": "oya-procurement-source-to-pay",
-    "primary_crate": "oya/crm/crates/oya-procurement-source-to-pay-domain",
+    "crate_prefix": "procurement-source-to-pay",
+    "primary_crate": "oya/crm/crates/procurement-source-to-pay-domain",
     "product_id": "procurement",
     "owning_axis": "axis-enterprise"
   },
@@ -43,35 +43,35 @@
       "given": "a supplier is onboarded before procurement use",
       "when": "the source-to-pay domain qualifies the supplier",
       "then": "tenant, legal entity, supplier profile, KYB evidence, risk-screening evidence, approved vendor-master ref, idempotency key, and schema version are present",
-      "test_ref": "cargo test -p oya-procurement-source-to-pay-domain --test source_to_pay"
+      "test_ref": "cargo test -p procurement-source-to-pay-domain --test source_to_pay"
     },
     {
       "id": "AC-02",
       "given": "a requester creates a purchase requisition",
       "when": "approval is evaluated",
       "then": "supplier qualification, budget ref, policy evidence, approval evidence, financial amount, requester, approver, tenant, and legal entity are required",
-      "test_ref": "cargo test -p oya-procurement-source-to-pay-domain --test source_to_pay"
+      "test_ref": "cargo test -p procurement-source-to-pay-domain --test source_to_pay"
     },
     {
       "id": "AC-03",
       "given": "an approved requisition becomes a purchase order",
       "when": "the purchase order is issued",
       "then": "contract ref, approval evidence, issue evidence, amount, supplier, and requisition linkage are preserved without supplier-network or cloud runtime claims",
-      "test_ref": "cargo test -p oya-procurement-source-to-pay-domain --test source_to_pay"
+      "test_ref": "cargo test -p procurement-source-to-pay-domain --test source_to_pay"
     },
     {
       "id": "AC-04",
       "given": "goods receipt and supplier invoice arrive for an issued purchase order",
       "when": "three-way match is evaluated",
       "then": "ordered, received, and invoiced quantities plus ordered/invoiced amounts must match before accounting liability draft is allowed; payment execution, inventory mutation, supplier network calls, and cloud deployment remain false",
-      "test_ref": "cargo test -p oya-procurement-source-to-pay-domain --test source_to_pay"
+      "test_ref": "cargo test -p procurement-source-to-pay-domain --test source_to_pay"
     },
     {
       "id": "AC-05",
       "given": "untrusted identifiers, source refs, evidence refs, or money values enter the procurement domain",
       "when": "domain validation runs",
       "then": "prefix-only, traversal, whitespace/control, credential-shaped evidence refs, nonpositive amounts, and non-ISO currency codes are refused",
-      "test_ref": "cargo test -p oya-procurement-source-to-pay-domain --test source_to_pay"
+      "test_ref": "cargo test -p procurement-source-to-pay-domain --test source_to_pay"
     }
   ],
   "decision_log": [
@@ -115,7 +115,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "oya/crm/crates/oya-procurement-source-to-pay-domain",
+    "primary_crate_ref": "oya/crm/crates/procurement-source-to-pay-domain",
     "entities_ref": [
       {
         "entity": "Source",

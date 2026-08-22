@@ -27,15 +27,15 @@ Two new crates. SDK is the public surface; REST is admin only.
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-secret-reference-resolver-rest/Cargo.toml` | create |
-| `…/oya-cloud-secrets-secret-reference-resolver-rest/src/lib.rs` | create |
-| `…/oya-cloud-secrets-secret-reference-resolver-rest/src/handlers/*.rs` | create — one handler per OpenAPI path |
-| `…/oya-cloud-secrets-secret-reference-resolver-sdk/Cargo.toml` | create |
-| `…/oya-cloud-secrets-secret-reference-resolver-sdk/src/lib.rs` | create — `SecretClient` |
+| `…/cloud-secrets-secret-reference-resolver-rest/Cargo.toml` | create |
+| `…/cloud-secrets-secret-reference-resolver-rest/src/lib.rs` | create |
+| `…/cloud-secrets-secret-reference-resolver-rest/src/handlers/*.rs` | create — one handler per OpenAPI path |
+| `…/cloud-secrets-secret-reference-resolver-sdk/Cargo.toml` | create |
+| `…/cloud-secrets-secret-reference-resolver-sdk/src/lib.rs` | create — `SecretClient` |
 | `…/src/secret_wrapper.rs` | create — `Secret<T>` newtype with Zeroize + redacted Debug |
 | `…/src/with_secret.rs` | create — scoped callback API |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-rest.yaml` | create |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-sdk.yaml` | create |
+| `microservices/cloud-secrets/catalog/cloud-secrets-secret-reference-resolver-rest.yaml` | create |
+| `microservices/cloud-secrets/catalog/cloud-secrets-secret-reference-resolver-sdk.yaml` | create |
 
 ## Code Shape
 
@@ -56,9 +56,9 @@ impl SecretClient {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-rest
-cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-sdk
-cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang rust
+cargo nextest run -p cloud-secrets-secret-reference-resolver-rest
+cargo nextest run -p cloud-secrets-secret-reference-resolver-sdk
+cargo run -p dev-cli -- gate validate sdk-contract-conformance --sdk-lang rust
 ```
 
 ## Test Plan
@@ -85,7 +85,7 @@ The PRD makes the SDK the primary integration surface, but admin REST and Rust S
 Expose admin/health/config REST routes for operators and a Rust SDK for product µservices. Runtime resolution stays SDK-side with `Secret<T>` wrappers, redacted debug output, zeroization, and corpus-backed parser compatibility.
 
 ### C. Deliverables
-- `oya-cloud-secrets-secret-reference-resolver-rest` and `oya-cloud-secrets-secret-reference-resolver-sdk`.
+- `cloud-secrets-secret-reference-resolver-rest` and `cloud-secrets-secret-reference-resolver-sdk`.
 - REST contract alignment with `contracts/openapi/cloud-secrets.yaml`.
 - SDK API matching `sdk-plan.md` and `reference-implementations/static-and-dynamic-secret-flow-rust-sdk.md`.
 - SLO hooks for secret resolution and audit completeness.
@@ -101,9 +101,9 @@ Expose admin/health/config REST routes for operators and a Rust SDK for product 
 7. Run SDK contract conformance across REST and Rust client fixtures.
 
 ### E. Acceptance
-- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-rest`.
-- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-sdk`.
-- `cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang rust`.
+- `cargo nextest run -p cloud-secrets-secret-reference-resolver-rest`.
+- `cargo nextest run -p cloud-secrets-secret-reference-resolver-sdk`.
+- `cargo run -p dev-cli -- gate validate sdk-contract-conformance --sdk-lang rust`.
 - `Secret<T>` never exposes raw values through `Debug`, logs, panics, or telemetry.
 
 ### F. Evidence

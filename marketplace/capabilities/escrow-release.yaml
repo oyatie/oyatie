@@ -25,6 +25,6 @@ outputs:
   - evidence_ref
   - state
 observability:
-  metric: oya_marketplace_escrow_release_total
+  metric: marketplace_escrow_release_total
   trace: marketplace.escrow-release
   audit_event: MarketplaceDisputeOpened

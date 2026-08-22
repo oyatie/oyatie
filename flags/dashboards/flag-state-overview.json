@@ -10,7 +10,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "count by (tenant_id) (oya_feature_flag_active{lifecycle_state=\"active\"})",
+          "expr": "count by (tenant_id) (feature_flag_active{lifecycle_state=\"active\"})",
           "legendFormat": "{{tenant_id}}"
         }
       ]
@@ -21,7 +21,7 @@
       "alert": "page if > 0 unexpected",
       "targets": [
         {
-          "expr": "sum(oya_feature_flag_killswitch_active)",
+          "expr": "sum(feature_flag_killswitch_active)",
           "legendFormat": "Active kill-switches"
         }
       ]
@@ -31,7 +31,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_feature_flag_eval_total[5m])) by (tenant_id)",
+          "expr": "sum(rate(feature_flag_eval_total[5m])) by (tenant_id)",
           "legendFormat": "{{tenant_id}}"
         }
       ]
@@ -42,7 +42,7 @@
       "slo_ref": "slos/flag-eval-latency.openslo.yaml",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(oya_feature_flag_eval_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(feature_flag_eval_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p99 latency"
         }
       ],
@@ -57,7 +57,7 @@
       "type": "piechart",
       "targets": [
         {
-          "expr": "sum(rate(oya_feature_flag_eval_total[5m])) by (reason)",
+          "expr": "sum(rate(feature_flag_eval_total[5m])) by (reason)",
           "legendFormat": "{{reason}}"
         }
       ]
@@ -67,7 +67,7 @@
       "type": "table",
       "targets": [
         {
-          "expr": "oya_feature_flag_pack_override_total",
+          "expr": "feature_flag_pack_override_total",
           "legendFormat": "{{pack_id}} / {{flag_key}}"
         }
       ]
@@ -77,7 +77,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_feature_flag_mutation_total[5m])) by (action)",
+          "expr": "sum(rate(feature_flag_mutation_total[5m])) by (action)",
           "legendFormat": "{{action}}"
         }
       ]
@@ -87,7 +87,7 @@
       "type": "gauge",
       "targets": [
         {
-          "expr": "1 - (sum(rate(oya_feature_flag_sdk_cache_hit_total[5m])) / sum(rate(oya_feature_flag_eval_total[5m])))",
+          "expr": "1 - (sum(rate(feature_flag_sdk_cache_hit_total[5m])) / sum(rate(feature_flag_eval_total[5m])))",
           "legendFormat": "Cache miss rate"
         }
       ],
@@ -103,7 +103,7 @@
       "slo_ref": "slos/flag-state-propagation.openslo.yaml",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(oya_feature_flag_replication_lag_seconds_bucket[5m])) by (le, cell_id))",
+          "expr": "histogram_quantile(0.99, sum(rate(feature_flag_replication_lag_seconds_bucket[5m])) by (le, cell_id))",
           "legendFormat": "{{cell_id}} p99"
         }
       ],
@@ -116,15 +116,15 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_feature_flag_abuse_detection_total[5m])) by (signal_type)",
+          "expr": "sum(rate(feature_flag_abuse_detection_total[5m])) by (signal_type)",
           "legendFormat": "{{signal_type}}"
         }
       ]
     }
   ],
   "variables": [
-    {"name": "tenant_id", "type": "query", "query": "label_values(oya_feature_flag_eval_total, tenant_id)"},
-    {"name": "cell_id", "type": "query", "query": "label_values(oya_feature_flag_replication_lag_seconds_bucket, cell_id)"}
+    {"name": "tenant_id", "type": "query", "query": "label_values(feature_flag_eval_total, tenant_id)"},
+    {"name": "cell_id", "type": "query", "query": "label_values(feature_flag_replication_lag_seconds_bucket, cell_id)"}
   ],
   "links": [
     {"title": "Experiment Results", "url": "/d/feature-flags-experiments"},

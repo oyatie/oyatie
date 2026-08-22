@@ -1,6 +1,6 @@
 # KMS Engineer — First Week on `cloud-kms`
 
-Audience: a security engineer with HSM + PKCS#11 + AWS KMS experience joining the `oya-cloud-kms-*` lane.
+Audience: a security engineer with HSM + PKCS#11 + AWS KMS experience joining the `cloud-kms-*` lane.
 Goal: by Friday EOD you can mint a CMK, issue + use a DEK via envelope encryption, rotate a KEK, and walk a cryptoshredding cycle.
 
 ## Day 1 — read before touching

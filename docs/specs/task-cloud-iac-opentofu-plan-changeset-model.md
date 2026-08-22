@@ -2,7 +2,7 @@
 
 **Task slug**: `cloud-iac-opentofu-plan-changeset-model`
 **Vertical**: infra
-**Crate**: `oya-cloud-iac-domain` (`crates/oya-cloud-iac-domain`)
+**Crate**: `cloud-iac-domain` (`crates/cloud-iac-domain`)
 **Status**: SPEC
 
 ---
@@ -10,7 +10,7 @@
 ## Objective
 
 Add a pure, deterministic OpenTofu plan-changeset domain model to
-`oya-cloud-iac-domain` alongside the existing GitOps-drift reconciler and IaC
+`cloud-iac-domain` alongside the existing GitOps-drift reconciler and IaC
 plan-diff surface.
 
 This slice models **OpenTofu plan output** — the five-action taxonomy that
@@ -28,8 +28,8 @@ OpenTofu CLI, Argo CD API, or Kubernetes client) is preserved throughout.
 
 ## Scope
 
-- Extends `crates/oya-cloud-iac-domain/src/lib.rs`
-- Adds `crates/oya-cloud-iac-domain/tests/opentofu_plan_changeset.rs`
+- Extends `crates/cloud-iac-domain/src/lib.rs`
+- Adds `crates/cloud-iac-domain/tests/opentofu_plan_changeset.rs`
 - No new workspace members; no new `[dependencies]`
 - Plan file: `tasks/cloud-iac-opentofu-plan-changeset-model-plan.md`
 
@@ -139,7 +139,7 @@ InvalidPlanId,
 
 ## Testing strategy
 
-File: `crates/oya-cloud-iac-domain/tests/opentofu_plan_changeset.rs`
+File: `crates/cloud-iac-domain/tests/opentofu_plan_changeset.rs`
 
 Coverage:
 1. Happy-path: all five action variants accepted, correct summary counts
@@ -177,7 +177,7 @@ infrastructure/adapter layer per the flat-clean-arch boundary.
 
 ## Crate boundary
 
-`oya-cloud-iac-domain` remains a pure domain crate:
+`cloud-iac-domain` remains a pure domain crate:
 - zero runtime dependencies beyond `std`
 - `#![forbid(unsafe_code)]` inherited
 - no I/O of any kind

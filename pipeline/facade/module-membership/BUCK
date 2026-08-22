@@ -10,7 +10,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-capability-membership-app-bin",
+    name = "cloud-ci-capability-membership-app-bin",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

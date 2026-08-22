@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance]
+acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, governance-per-microservice-layout, governance-version-pinning-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -77,8 +77,8 @@ helm lint microservices/cloud-iac/iac/helm/flux
 helm lint microservices/cloud-iac/iac/helm/helm-controller
 helm lint microservices/cloud-iac/iac/helm/kustomize-controller
 kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/pack-kr
-cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `version-pinning-conformance` is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `version-pinning-conformance` is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

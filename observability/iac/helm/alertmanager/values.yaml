@@ -18,7 +18,7 @@ alertmanager:
     receivers:
       - name: 'grafana-oncall'
         webhook_configs:
-          - url: 'http://oya-observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/'
+          - url: 'http://observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/'
             send_resolved: true
             http_config:
               authorization:
@@ -26,10 +26,10 @@ alertmanager:
                 credentials: "${openbao:secret/observability/oncall/webhook-hmac}"
       - name: 'grafana-oncall-page'
         webhook_configs:
-          - url: 'http://oya-observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/?priority=page'
+          - url: 'http://observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/?priority=page'
       - name: 'grafana-oncall-ticket'
         webhook_configs:
-          - url: 'http://oya-observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/?priority=ticket'
+          - url: 'http://observability-oncall.observability.svc:8080/integrations/v1/alertmanager/webhook/?priority=ticket'
     inhibit_rules:
       - source_matchers: [severity="critical", cluster_outage="true"]
         target_matchers: [severity!="critical"]

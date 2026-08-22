@@ -52,12 +52,12 @@ The following tenant IDs are RESERVED and never issued as customer tenant IDs. P
 
 | Reserved tenant | Purpose | Write authority | Read authority |
 |---|---|---|---|
-| `tenant:oya-ci` | Promotion-readiness CI lane + governance lanes | tenancy-isolation-policy-worker SPIFFE | CI runners via short-lived OpenBao-issued keys |
-| `tenant:oya-self` | tenancy µservice self-observability | tenancy platform components | tenancy platform operators |
-| `tenant:oya-aggregate` | Anonymised cross-pack aggregates (DP-noise) | tenancy aggregator job | Public dashboards (non-sensitive) |
-| `tenant:oya-system` | System-internal seed data (RLS policy templates, plan-tier defaults) | tenancy migration runner | tenancy-internal reads only |
+| `tenant:ci` | Promotion-readiness CI lane + governance lanes | tenancy-isolation-policy-worker SPIFFE | CI runners via short-lived OpenBao-issued keys |
+| `tenant:self` | tenancy µservice self-observability | tenancy platform components | tenancy platform operators |
+| `tenant:aggregate` | Anonymised cross-pack aggregates (DP-noise) | tenancy aggregator job | Public dashboards (non-sensitive) |
+| `tenant:system` | System-internal seed data (RLS policy templates, plan-tier defaults) | tenancy migration runner | tenancy-internal reads only |
 
-Any operation referencing `tenant:oya-*` from a source other than the authorised SPIFFE identity is **rejected at the tenant-lifecycle-rest** layer with HTTP 403 + audit-emit `oya_tenancy_reserved_id_violation_total` (alert on > 0 over 5m).
+Any operation referencing `tenant:oya-*` from a source other than the authorised SPIFFE identity is **rejected at the tenant-lifecycle-rest** layer with HTTP 403 + audit-emit `tenancy_reserved_id_violation_total` (alert on > 0 over 5m).
 
 ### Tenant scope enumeration
 
@@ -86,7 +86,7 @@ ALTER TABLE <table> FORCE ROW LEVEL SECURITY;
 
 The `FORCE` modifier ensures RLS applies even to the table owner; without `FORCE`, table-owner connections (often the app role in lax setups) bypass RLS.
 
-CI lane `oya-governance-rls-force-on-tenant-tables` validates this at PR-time: any migration creating a tenant-bound table without `FORCE ROW LEVEL SECURITY` fails the lane.
+CI lane `governance-rls-force-on-tenant-tables` validates this at PR-time: any migration creating a tenant-bound table without `FORCE ROW LEVEL SECURITY` fails the lane.
 
 ### Invariant RLS-02: Per-table CREATE POLICY
 
@@ -104,7 +104,7 @@ Properties:
 - One policy named `tenant_isolation` per table (consistent naming for auditability).
 - Additional policies (e.g., per-role read-only views for auditors) layer on top with explicit policy names; never override or relax the `tenant_isolation` policy.
 
-CI lane `oya-governance-rls-policy-shape` (lightweight): asserts every tenant-bound table has a policy named `tenant_isolation` with the canonical predicate.
+CI lane `governance-rls-policy-shape` (lightweight): asserts every tenant-bound table has a policy named `tenant_isolation` with the canonical predicate.
 
 ### Invariant RLS-03: `SET LOCAL app.current_tenant_id = $1` on every connection checkout
 
@@ -132,7 +132,7 @@ async fn checkout_tenant_scoped(pool: &PgPool, tenant_id: &TenantId) -> Result<P
 }
 ```
 
-CI lane `oya-governance-tenant-context-setlocal-present`: AST-grep across adapter crates; refuses any DB-checkout path that doesn't emit `SET LOCAL app.current_tenant_id`.
+CI lane `governance-tenant-context-setlocal-present`: AST-grep across adapter crates; refuses any DB-checkout path that doesn't emit `SET LOCAL app.current_tenant_id`.
 
 ### Invariant RLS-04: No `bypassrls` on the app role
 
@@ -147,7 +147,7 @@ Only the `tenancy-admin-jit` role (issued via OpenBao JIT elevation; 2-person ru
 - The migration runner during schema evolution (limited to migration time; never application traffic).
 - DBA emergency interventions (extreme; audit-chain emission + post-incident review).
 
-CI lane `oya-governance-rls-no-superuser-bypass` (NEW; load-bearing): AST-grep refuses:
+CI lane `governance-rls-no-superuser-bypass` (NEW; load-bearing): AST-grep refuses:
 - `SET ROLE postgres` in any tenancy-adjacent crate (including all µservices that consume tenant-scoped data).
 - `SET LOCAL row_security = off` anywhere.
 - Direct `bypassrls`-flagged connection setup.
@@ -178,7 +178,7 @@ owner_microservice: workflow
 ### Invariant RLS-06: Continuous DB-state validator
 
 A `tenancy-rls-state-validator` cron (every 5min) compares the declarative YAML manifests against live `pg_policies` + `pg_class.relrowsecurity` + `pg_class.relforcerowsecurity`:
-- Any drift (live policy missing / not forced / predicate mismatch) → emits `oya_tenancy_rls_drift_total{table=<name>}` metric → fires Sev-1 page + auto-rollback via ArgoCD to last-green Helm/manifest state.
+- Any drift (live policy missing / not forced / predicate mismatch) → emits `tenancy_rls_drift_total{table=<name>}` metric → fires Sev-1 page + auto-rollback via ArgoCD to last-green Helm/manifest state.
 - The validator's own metric is monitored; validator-down for ≥ 2min triggers Sev-2 (gate fails-closed for any RLS-mutating PR until validator recovers).
 
 ### Invariant RLS-07: No client-side filter substitutes for RLS
@@ -209,7 +209,7 @@ Verifiers MUST accept only `alg=EdDSA`; refuse `alg=none`, `alg=HS*` (HMAC), and
 
 ### Invariant JWT-02: Issuer + audience binding
 
-JWT `iss` claim must equal `oya-tenancy-<pack>-<env>`; `aud` claim must equal `oyatie-internal`. Mismatch returns 401 + audit-emit.
+JWT `iss` claim must equal `tenancy-<pack>-<env>`; `aud` claim must equal `oyatie-internal`. Mismatch returns 401 + audit-emit.
 
 ### Invariant JWT-03: Expiration window
 
@@ -219,7 +219,7 @@ JWT `exp` ≤ 1h from issuance. Refresh tokens via separate path with stricter b
 
 JWT signing keys rotated every 30d (or on compromise suspicion). Old pubkey valid for 30d grace to verify in-flight tokens. Rotation event emits `JwtSigningKeyRotated` Workflow event + audit-chain seal.
 
-CI lane `oya-governance-jwt-key-fingerprint-advertised`: refuses key rotation without fingerprint event.
+CI lane `governance-jwt-key-fingerprint-advertised`: refuses key rotation without fingerprint event.
 
 ## Cedar Policy Enforcement
 
@@ -230,17 +230,17 @@ Cedar policies (per ADR-0140) layer on top of RLS + JWT to enforce role-based + 
 - `policy/auditor-scope.cedar`: auditors are tenant-scoped + window-bound + read-only.
 - `policy/public-read.cedar`: anonymous reads are limited to specific public-class resources.
 
-Cedar evaluator runs in `tenant-lifecycle-rest` and `dsr-cascade-rest`; non-matching requests return 403 + emit `oya_tenancy_cedar_deny_total`.
+Cedar evaluator runs in `tenant-lifecycle-rest` and `dsr-cascade-rest`; non-matching requests return 403 + emit `tenancy_cedar_deny_total`.
 
 ## Failure Modes (cross-ref `failure-modes.md`)
 
 ### FM-01: RLS policy drift (live state diverges from declared YAML)
 
-**Behaviour:** Continuous validator detects drift; emits `oya_tenancy_rls_drift_total > 0`; fires Sev-1 page; auto-rollback via ArgoCD.
+**Behaviour:** Continuous validator detects drift; emits `tenancy_rls_drift_total > 0`; fires Sev-1 page; auto-rollback via ArgoCD.
 
 **Tenant impact:** Brief window between drift and detection (≤5min); RLS still effective if `FORCE` is intact (which validator ensures).
 
-**Detection:** `oya-tenancy-rls-state-validator` cron metric.
+**Detection:** `tenancy-rls-state-validator` cron metric.
 
 **Recovery:** Auto-rollback to last green state; ops-security incident; root-cause analysis of cause (CI lane evasion? live DB mutation by JIT-elevated DBA?).
 
@@ -270,7 +270,7 @@ Cedar evaluator runs in `tenant-lifecycle-rest` and `dsr-cascade-rest`; non-matc
 
 **Tenant impact:** Cross-tenant exposure window between set time and detection (≤7d worst case; instrumented to ≤1h via real-time event hook).
 
-**Detection:** Weekly `oya-tenancy-postgres-role-audit` job + real-time pg_event_trigger on `ALTER ROLE`.
+**Detection:** Weekly `tenancy-postgres-role-audit` job + real-time pg_event_trigger on `ALTER ROLE`.
 
 **Recovery:** Revoke `bypassrls`; engage ops-security; breach-notification chain if exposure confirmed.
 
@@ -337,10 +337,10 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the l
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate rls-no-superuser-bypass --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate rls-force-on-tenant-tables --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate tenant-context-setlocal-present --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate cedar-fragment-coverage --microservice tenancy` — exit 0.
 - Weekly synthetic cross-tenant probe: tenant-A authenticated, attempts cross-tenant read of tenant-B's rows; expected: zero rows returned across all paths.
 - Quarterly chaos drill: induce RLS drift (controlled); verify validator + auto-rollback fire within 5min.
 - Annual pen-test against RLS boundary: scheduled Q4 of each calendar year (October 1 cycle) coinciding with ISO 27001 surveillance audit; documented in `runbooks/rls-pentest.md`.

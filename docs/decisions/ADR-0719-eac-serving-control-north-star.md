@@ -33,12 +33,12 @@ deliverables:
     exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking without grandfathering catalog.yaml or dual cedar+policy; layout-allowlist PRs match this set."
     verified_by: "presubmit"
   - id: ADR-0719-D9
-    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oya- prefix. Today's oya-ci-required string is a rename target, not the destination name."
-    exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named oya-ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
+    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oya- prefix. Today's presubmit string is a rename target, not the destination name."
+    exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
     verified_by: "presubmit"
   - id: ADR-0719-D10
     description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oya- prefix. No per-capability required GitHub checks."
-    exit_criteria: "This ADR defines those cadences; new workflows use those names; oya-ci-required remains a rename target with branch protection in the same follow-through change."
+    exit_criteria: "This ADR defines those cadences; new workflows use those names; presubmit remains a rename target with branch protection in the same follow-through change."
     verified_by: "presubmit"
   - id: ADR-0719-D11
     description: "Cloud-provider placement: the registered capabilities ARE the cloud. Repo root holds only directory names plus meta (build/third-party; base/ only when admitted) and app/. No kernel/ or os/ rungs — fleet node is Linux + compute agent, not Talos/kube. Each capability owns one engine (core), ports, adapters, facade. 2+ compose in app/. No cloud/ folder."
@@ -692,7 +692,7 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - Admission remains VAP/CEL+PSA as cited from ADR-0704 / ADR-0700. Proposed
   0710-range ids are not `depends_on`.
 - Merge-blocking CI is **presubmit** only (D-10). No second protected
-  `merge-admission-required` context.
+  `presubmit` context.
 - Node OS/kernel: D-13. Do not re-create `kernel/` or `os/` as empty rungs.
 
 ### D-13 — Stripped Linux on Cloud Hypervisor / Firecracker
@@ -915,13 +915,13 @@ No new `scripts/check.sh` / pre-push product. Rust-first: a three-line git hook 
 - **overturn_when:** a five-field ADR names a different runner that still compiles once and stays hermetic.
 
 Do **not** add one required GitHub check per capability (skipped-check failures, queue
-combinatorics). **One** protected context: `presubmit`. `merge-admission-required`
+combinatorics). **One** protected context: `presubmit`. `presubmit`
 is not a second protected check. Lane isolation is **worktrees + non-overlapping
 paths**, not 24 contexts. Do not resurrect merge-base **count** baselines as
 “affected set.”
 
 New workflow and context names: `presubmit`, `postsubmit`, `nightly`, `weekly`,
-`promotion-predecessor`, `release`. No `oya-` prefix. Today’s `oya-ci-required` is
+`promotion-predecessor`, `release`. No `oya-` prefix. Today’s `presubmit` is
 the **presubmit** rename target (branch protection in the same change).
 
 ### D-11 — What the cloud is, and what each capability holds
@@ -1270,6 +1270,22 @@ Founder 2026-08-22: (1) **`app/application`** is the launchpad for the whole sui
 
 **6A.** Drop SAP ghosts from membership. Live `oya/*` dumps that still exist stay mapped until REMOVE/move, then disappear — they are not a roadmap catalog.
 
+**Dump map (founder 2026-08-22: refactor ≠ KEEP+WORK; REMOVE means delete).**
+
+| Tree | Class | Action |
+|---|---|---|
+| `oya/application` → `app/application` | **REFACTOR** | `git mv` (done) |
+| `oya/payments` → `app/payments` | **REFACTOR** | `git mv` (done) |
+| `oya/docs` → `app/foundry/pages` | **REFACTOR** | `git mv` (done) |
+| `app/sheets` → `app/foundry/grid` | **REFACTOR** | `git mv` (done) |
+| `oya/intelligence` | **REMOVE** | deleted |
+| `oya/governance` | **REMOVE** | deleted |
+| `oya/global-trade`, `app/global-trade` | **REMOVE** | deleted |
+| `storage/drive`, `storage/recordings`, `storage/imaging`, `storage/facade/{drive,recordings}` | **REMOVE** | deleted |
+| `observability/diagnostics` | **REMOVE** | deleted |
+| `iam/consent-graph` | **REMOVE** | deleted |
+| `oya/` root | **REMOVE** | empty after moves; deleted |
+
 **MUST (one shell; shrunk v1 People+Finance; ledger product; no ghosts)**
 
 - **achieves:** one launchpad; Foundry is a module; v1 money/people set is small enough to staff; ledger is not billing and not a cap.
@@ -1375,7 +1391,7 @@ two codebases.
   `storage/`. `cargo build --release` is a **CD graph step**, not
   presubmit.
 - **Merge:** **one** required context: **presubmit**. GitHub merge queue
-  is GitHub’s, via an adapter, then gone. No `merge-admission-required`
+  is GitHub’s, via an adapter, then gone. No `presubmit`
   as a second protected check. No owned Gerrit/submit-queue in v1.
 - **CAS + execute client:** When the cloud can **serve** `pipeline/`
   against `storage/` CAS and `compute/` RE, the execute client is
@@ -1537,7 +1553,7 @@ implementation is gone pending rewrite; no dump resurrection.
 - Hand-authored OpenSLO (clones or “unique”) as SLO source of truth.
 - Standing REST/JSON transcode “until SDK is ready” (that is dual-stack debt).
 - Hand-authored OpenSLO as a W0 source of truth.
-- Branding the merge-blocking CI `oya-ci-*` or adding one required check per capability.
+- Branding the merge-blocking CI `ci-*` or adding one required check per capability.
 - Keeping `specs/` as a JSON org-law tree (even “thin”).
 - Keeping `HANDOFF.md` as a fourth root hub.
 - Keeping `console/` as a shell/token-broker capability, or rehoming the
@@ -1556,7 +1572,7 @@ implementation is gone pending rewrite; no dump resurrection.
   optional, not a merge-path pin.
 - Treating `.github/workflows` as the `pipeline/` product, or copying GHA YAML
   into a capability `core/`.
-- A second protected GitHub context (`merge-admission-required`) or per-cap
+- A second protected GitHub context (`presubmit`) or per-cap
   checks. Prow `GateRun` / Tide as `pipeline/core`. A pipeline-owned worker
   cluster beside `compute/`. `iac/` as the CD engine.
 - Dual cargo+buck2 merge proof. Switching tenant #0 to buck2 because CAS
@@ -1609,7 +1625,7 @@ Record of why D-8/D-9/D-10 landed. Not additional MUST.
   **Pending founder:** the sentence “a higher ADR number does not override an earlier
   Accepted ADR by itself; only explicit `amends`/`supersedes`” — admit into this ADR
   if that is still wanted as law (it is not copied here as MUST).
-- **presubmit name:** TAP/presubmit vs postsubmit. Not `oya-ci-required`.
+- **presubmit name:** TAP/presubmit vs postsubmit. Not `presubmit`.
 - **One context vs per-cap CI:** Central **admission** is hyperscaler; central
   **full-repo JSON census** is the conflict source. Per-cap **required** checks are
   the skip-fail anti-pattern.

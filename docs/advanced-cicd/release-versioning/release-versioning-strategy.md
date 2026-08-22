@@ -12,7 +12,7 @@ purpose: |
   Adopt the strongest pattern observed across hyperscalers (AWS, Google/Kubernetes,
   Microsoft Azure, Oracle/Java) so oyatie users, partners, and operators get a
   contract that matches industry expectation.
-planned_enforcement_ref: oya-governance-semver-discipline, oya-governance-api-version-stability, oya-governance-release-branch-cut, oya-governance-version-eol-warning, oya-governance-deprecation-notice, oya-governance-cherry-pick-trail
+planned_enforcement_ref: governance-semver-discipline, governance-api-version-stability, governance-release-branch-cut, governance-version-eol-warning, governance-deprecation-notice, governance-cherry-pick-trail
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -38,8 +38,8 @@ Twilio / Rust / Java).
 
 | Axis | Scheme | Example | Source of truth | Hyperscaler precedent |
 |---|---|---|---|---|
-| **Crate / SDK / library** | SemVer 2.0.0 | `oya-intelligence-control-kernel v3.4.1` | `Cargo.toml` workspace | AWS SDK for Rust, Google libraries, Azure SDK, OCI SDK |
-| **Product / platform** | SemVer-derived | `oya-v3.4.0` | `release/X.Y` tag | Kubernetes (`v1.30.0`), .NET (`net10`), Java (`21 LTS`) |
+| **Crate / SDK / library** | SemVer 2.0.0 | `intelligence-control-kernel v3.4.1` | `Cargo.toml` workspace | AWS SDK for Rust, Google libraries, Azure SDK, OCI SDK |
+| **Product / platform** | SemVer-derived | `v3.4.0` | `release/X.Y` tag | Kubernetes (`v1.30.0`), .NET (`net10`), Java (`21 LTS`) |
 | **External API** | Hybrid stability+date | `/foundry/v1/...?api-version=2026-05-12` | OpenAPI 3.1 spec | Google AIP-180 + Microsoft Azure + AWS + Stripe |
 
 These axes evolve independently. A crate may publish `4.0.0` for an internal
@@ -54,7 +54,7 @@ may roll forward without breaking any external API.
   `[workspace.package] version = "X.Y.Z"`). This eliminates inter-crate skew
   during pre-GA.
 - **Independent cadence after GA**: each crate may bump on its own once the
-  internal API surface has stabilised and `oya-governance-semver-discipline`
+  internal API surface has stabilised and `governance-semver-discipline`
   is consistently green for 60 days.
 - **Pre-release labels**: `alpha.N` → `beta.N` → `rc.N` per SemVer §9. Dev-only
   builds use `dev-snapshot.<YYYYMMDD>` (not registry-publishable).
@@ -63,7 +63,7 @@ Detail: [`crate-versioning-spec.md`](crate-versioning-spec.md).
 
 ## 4. Product / platform versioning
 
-- **Format**: `oya-vX.Y.Z` (SemVer-derived; `Z` is patch-only).
+- **Format**: `vX.Y.Z` (SemVer-derived; `Z` is patch-only).
 - **Bump rules**:
   - Major (X) on any breaking external-API change OR any cross-axis contract
     break. Reviewed via the breaking-change ADR template.
@@ -89,18 +89,18 @@ Microsoft Azure `api-version` query parameter + AWS service date versioning:
 - **OpenAPI 3.1 is the source of truth**; the spec carries the
   `x-stability` extension (`alpha` / `beta` / `stable` / `ga`) and the
   `x-introduced` / `x-deprecated` dates. Planned advisory lane:
-  `oya-governance-api-version-stability`.
+  `governance-api-version-stability`.
 
 Detail: [`api-versioning-spec.md`](api-versioning-spec.md).
 
 ## 6. Release branches
 
 - **Naming**: `release/X.Y` (e.g. `release/3.4`). Cut from prod at the
-  `oya-vX.Y.0` tag. Compatible with Git Flow-style release-branch convention
+  `vX.Y.0` tag. Compatible with Git Flow-style release-branch convention
   and matches Kubernetes' `release-X.Y` semantics.
 - **Read-only**: only the `release-cherry-pick` agent may add commits (see
   [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md)).
-- **Tag pattern**: `oya-vX.Y.Z` SemVer. Patches `Z ≥ 1` accumulate on the
+- **Tag pattern**: `vX.Y.Z` SemVer. Patches `Z ≥ 1` accumulate on the
   release branch; never on prod.
 - Detail: [`release-branch-cut-spec.md`](release-branch-cut-spec.md).
 
@@ -126,7 +126,7 @@ axis to the upstream stability cadence it serves.
 ## 8. LTS policy
 
 - **Every major version is LTS** for **12 months** from release.
-- 90-day EOL warning emitted via `oya-governance-version-eol-warning`
+- 90-day EOL warning emitted via `governance-version-eol-warning`
   (signals `EVT-VERSION-EOL-APPROACHING`).
 - Tracks per-major-version row in `docs/release/EOL-LEDGER.md`.
 - Precedent: Kubernetes patch window (~14 months), .NET LTS (3 years), Java LTS

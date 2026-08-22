@@ -16,7 +16,7 @@
 //! # Naming justification
 //! `messaging-stream-boundary-kernel` follows the ADR-0532/0533 de-branded
 //! grammar `<capability:messaging>-<topic:stream-boundary>-<layer:kernel>`,
-//! mirroring its sibling `messaging-substrate-kernel`. The `oya-stream.`
+//! mirroring its sibling `messaging-substrate-kernel`. The `stream.`
 //! topic prefix below is a WIRE identifier, not a crate name: it is
 //! deliberately unchanged by the de-brand, because renaming a topic is a
 //! behavior change and must not ride along inside a relocation.
@@ -75,7 +75,7 @@ impl StreamName {
     /// Returns [`StreamError::InvalidStreamName`] when the derived topic
     /// name would not be a canonical slug.
     pub fn parse(value: &str) -> Result<Self, StreamError> {
-        TopicName::parse(&format!("oya-stream.{value}")).map_err(|_| {
+        TopicName::parse(&format!("stream.{value}")).map_err(|_| {
             StreamError::InvalidStreamName {
                 value: value.to_owned(),
             }
@@ -109,7 +109,7 @@ impl<'a, S: MessagingSubstrate> EventStream<'a, S> {
         name: &StreamName,
         retention: Duration,
     ) -> Result<Self, StreamError> {
-        let topic = TopicName::parse(&format!("oya-stream.{}", name.as_str()))?;
+        let topic = TopicName::parse(&format!("stream.{}", name.as_str()))?;
         substrate.ensure_topic(
             &topic,
             &TopicSpec {

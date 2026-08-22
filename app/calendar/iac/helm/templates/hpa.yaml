@@ -9,7 +9,7 @@ Per-BC HPA. Per PRD §"State strategy" — events-rest + availability-rest
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: oya-calendar-{{ $bc }}-app-hpa
+  name: calendar-{{ $bc }}-app-hpa
   namespace: calendar
   labels:
     microservice: calendar
@@ -18,7 +18,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: oya-calendar-{{ $bc }}-app
+    name: calendar-{{ $bc }}-app
   minReplicas: {{ $.Values.autoscaling.minReplicas }}
   maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
   metrics:

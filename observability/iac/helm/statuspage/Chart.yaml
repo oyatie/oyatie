@@ -5,7 +5,7 @@
 # ADR-0139 SLO state, with incident narrative pushed from the
 # incident-response µservice.
 apiVersion: v2
-name: oya-observability-statuspage
+name: observability-statuspage
 description: Public status page per ADR-0168; auto-derived from ADR-0139 SLO state + incident-response push; cell-isolated per ADR-0009
 type: application
 version: 0.1.0

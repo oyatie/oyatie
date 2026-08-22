@@ -70,7 +70,7 @@ Replay re-emits a specific lifecycle event (or a range of events) for catch-up s
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- tenancy replay --tenant-id <id> --event-type TenantActivated --since <ISO8601> --until <ISO8601> --reason "<rfc-with-jira-ticket>"`.
+1. Operator invokes: `cargo run -p dev-cli -- tenancy replay --tenant-id <id> --event-type TenantActivated --since <ISO8601> --until <ISO8601> --reason "<rfc-with-jira-ticket>"`.
 2. CLI requires 2-person rule + ops-security approval (replay can shift historical timing — must be audit-trail-bounded).
 3. Tenancy worker emits `<event_type>` Workflow event with `replayed=true` label.
 4. Consumers (workload µservices) are designed for idempotency; replay does not duplicate side effects.

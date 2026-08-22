@@ -8,12 +8,12 @@ doc_status: published
 - date: 2026-05-12
 - enforces: Directive 12 (MASTERPLAN) — sanctioned-primitives policy + ADR-0054 + ADR-0055.
 - activation: Defined/scaffolded in M01-P08-IP-006; enforcement activates at M01-P08-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
-- kernel_crate: `oya-governance-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
-- runner_path: `tools/oya-governance-banned-primitives`
+- kernel_crate: `governance-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
+- runner_path: `tools/governance-banned-primitives`
 - failure_modes:
   - fenced agent block invokes a hard-banned merge or hook-bypass primitive
   - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence
-- ci_invocation: `cargo run -p oya-governance-banned-primitives`
+- ci_invocation: `cargo run -p governance-banned-primitives`
 - runtime_budget: 500 ms
 - severity: BLOCKER
 - kernel_sketch:

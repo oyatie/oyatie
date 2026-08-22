@@ -17,12 +17,12 @@
       "name": "cloud-compute",
       "description": "Code-backed Cloud Compute local foundation for provider-neutral VM, managed Kubernetes, and function metadata invariants plus tenant/cell workload identity, runtime isolation, scheduling, and audit-evidence guardrail. The repository directory remains microservices/cloud-k8s for compatibility, but CS-CLOUD-COMPUTE-001 does not implement live Kubernetes bootstrap, EKS, OKE, EC2, OCI Compute, Lambda, service mesh, CNI, REST server, SDK, worker, OpenTofu plan/apply, measured SLO, active-active DR, provider-live smoke, or audit-chain persistence.",
       "crates": [
-        "oya-cloud-compute-domain",
-        "oya-cloud-compute-functions-api",
-        "oya-cloud-compute-k8s-api",
-        "oya-cloud-compute-vm-api",
-        "oya-cloud-compute-adapter-aws",
-        "oya-cloud-compute-adapter-oci"
+        "cloud-compute-domain",
+        "cloud-compute-functions-api",
+        "cloud-compute-k8s-api",
+        "cloud-compute-vm-api",
+        "cloud-compute-adapter-aws",
+        "cloud-compute-adapter-oci"
       ]
     }
   ],
@@ -56,37 +56,37 @@
     {
       "tier": "T1",
       "name": "compute-domain-resource-residency-quota-image-data-class-invariants",
-      "file": "crates/oya-cloud-compute-domain/src/lib.rs",
+      "file": "crates/cloud-compute-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "tenant-cell-workload-identity-runtime-isolation-scheduling-audit-guardrail-metadata",
-      "file": "crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs",
+      "file": "crates/cloud-compute-domain/tests/cloud_compute_foundation.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "compute-functions-api-boundary-and-idempotency-contract",
-      "file": "crates/oya-cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
+      "file": "crates/cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "compute-k8s-api-boundary-and-idempotency-contract",
-      "file": "crates/oya-cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
+      "file": "crates/cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "compute-vm-api-boundary-and-idempotency-contract",
-      "file": "crates/oya-cloud-compute-vm-api/tests/cloud_compute_vm_api.rs",
+      "file": "crates/cloud-compute-vm-api/tests/cloud_compute_vm_api.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "deterministic-aws-and-oci-compute-vm-command-shaping-adapters",
-      "file": "crates/oya-cloud-compute-adapter-aws/src/lib.rs,crates/oya-cloud-compute-adapter-oci/src/lib.rs",
+      "file": "crates/cloud-compute-adapter-aws/src/lib.rs,crates/cloud-compute-adapter-oci/src/lib.rs",
       "risk_class": "medium"
     }
   ],
@@ -103,7 +103,7 @@
       "id": "CS-CLOUD-COMPUTE-001",
       "title": "Workload identity, runtime isolation, Kubernetes private/restricted/scheduling posture, audit evidence, and Cloud Compute manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs"
+      "file": "crates/cloud-compute-domain/tests/cloud_compute_foundation.rs"
     }
   ],
   "regulatory_packs": [
@@ -303,11 +303,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Cloud Compute is intended Tier-1 substrate because later runtime pods can schedule tenant workloads. CS-CLOUD-COMPUTE-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-cloud-compute-domain/src/lib.rs",
-    "crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs",
-    "crates/oya-cloud-compute-functions-api/src/lib.rs",
-    "crates/oya-cloud-compute-k8s-api/src/lib.rs",
-    "crates/oya-cloud-compute-vm-api/src/lib.rs"
+    "crates/cloud-compute-domain/src/lib.rs",
+    "crates/cloud-compute-domain/tests/cloud_compute_foundation.rs",
+    "crates/cloud-compute-functions-api/src/lib.rs",
+    "crates/cloud-compute-k8s-api/src/lib.rs",
+    "crates/cloud-compute-vm-api/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -330,16 +330,16 @@
   "iac_module_invocations": [],
   "data_classes_processed": [],
   "implemented_source_files": [
-    "crates/oya-cloud-compute-domain/src/lib.rs",
-    "crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs",
-    "crates/oya-cloud-compute-functions-api/src/lib.rs",
-    "crates/oya-cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
-    "crates/oya-cloud-compute-k8s-api/src/lib.rs",
-    "crates/oya-cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
-    "crates/oya-cloud-compute-vm-api/src/lib.rs",
-    "crates/oya-cloud-compute-vm-api/tests/cloud_compute_vm_api.rs",
-    "crates/oya-cloud-compute-adapter-aws/src/lib.rs",
-    "crates/oya-cloud-compute-adapter-oci/src/lib.rs"
+    "crates/cloud-compute-domain/src/lib.rs",
+    "crates/cloud-compute-domain/tests/cloud_compute_foundation.rs",
+    "crates/cloud-compute-functions-api/src/lib.rs",
+    "crates/cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
+    "crates/cloud-compute-k8s-api/src/lib.rs",
+    "crates/cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
+    "crates/cloud-compute-vm-api/src/lib.rs",
+    "crates/cloud-compute-vm-api/tests/cloud_compute_vm_api.rs",
+    "crates/cloud-compute-adapter-aws/src/lib.rs",
+    "crates/cloud-compute-adapter-oci/src/lib.rs"
   ],
   "explicit_non_claims": [
     "No live Kubernetes cluster bootstrap, kubeadm, EKS, OKE, EC2, OCI Compute, Lambda, function execution runtime, CNI, CSI, service mesh, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",

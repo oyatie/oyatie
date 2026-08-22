@@ -1,6 +1,6 @@
 # gateway-slack-connector
 
-Slack enterprise connector — implements `oya_shared_connector_kernel::Connector`.
+Slack enterprise connector — implements `shared_connector_kernel::Connector`.
 
 ## Coverage
 

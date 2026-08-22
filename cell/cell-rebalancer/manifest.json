@@ -141,8 +141,8 @@
   "cloud_ops_foundation": {
     "schema_version": 1,
     "evidence_guardrail": "CloudOpsFoundationGuardrail",
-    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
-    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+    "guardrail_file": "crates/cloud-capacity-domain/src/lib.rs",
+    "guardrail_tests": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
     "evidence_prefixes": {
       "capacity": "evidence/cloud-ops/capacity/",
       "cell": "evidence/cloud-ops/cell/",
@@ -228,8 +228,8 @@
       "name": "capacity-rebalance-plan-local-foundation",
       "description": "Compatibility service manifest now points to the code-backed cloud capacity domain `RebalancePlan` and CloudOpsFoundationGuardrail. No cell-rebalancer crate, durable workflow, tenant migration executor, REST/gRPC API, worker, queue, database, policy engine adapter, or audit-chain emitter exists in this checkout.",
       "crates": [
-        "oya-cloud-capacity-domain",
-        "oya-cloud-capacity-kernel"
+        "cloud-capacity-domain",
+        "cloud-capacity-kernel"
       ]
     }
   ],
@@ -257,19 +257,19 @@
     {
       "tier": "T1",
       "name": "capacity-rebalance-plan-move-limit",
-      "file": "crates/oya-cloud-capacity-domain/src/lib.rs",
+      "file": "crates/cloud-capacity-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "stable-headroom-and-cell-scoped-ops-guardrail",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "capacity-kernel-command-shaping",
-      "file": "crates/oya-cloud-capacity-kernel/src/lib.rs",
+      "file": "crates/cloud-capacity-kernel/src/lib.rs",
       "risk_class": "medium"
     }
   ],
@@ -278,7 +278,7 @@
       "id": "CS-CLOUD-OPS-FOUNDATION-001",
       "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "file": "crates/cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     }
   ]
 }

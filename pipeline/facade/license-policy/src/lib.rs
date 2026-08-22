@@ -3,21 +3,21 @@
 //! Portable conformance gate for workspace package license declarations. The producer owns all
 //! repository I/O: it resolves workspace members, reads each member `Cargo.toml`, and emits rows
 //! shaped as `{package_name, manifest_path, license}`. This crate stays pure and reuses
-//! `oya_check_license_policy::LicensePolicy` so the legacy dev-cli predicate and the cloud-ci gate
+//! `check_license_policy::LicensePolicy` so the legacy dev-cli predicate and the cloud-ci gate
 //! cannot drift.
 //!
 //! `evaluate_keyed` returns one `Finding{code,key}` per invalid package row. Current accepted debt
 //! is frozen by the firewall baseline with `baseline-block-on-new`, so license-policy is a
-//! shrink-only gate: existing findings may shrink away, but new keys make `oya-ci-required` red.
+//! shrink-only gate: existing findings may shrink away, but new keys make `presubmit` red.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeSet;
 
-use oya_check_license_policy::{LicensePolicy, LicensePolicyError};
+use check_license_policy::{LicensePolicy, LicensePolicyError};
 use serde_json::Value;
 
-/// The gate id, matching oya-ci config and the baseline ratchet.
+/// The gate id, matching ci config and the baseline ratchet.
 pub const GATE_ID: &str = "cloud-ci-license-policy";
 
 /// Stable blocking violation codes emitted by this gate.

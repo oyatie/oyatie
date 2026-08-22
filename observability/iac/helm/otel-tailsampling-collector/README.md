@@ -1,4 +1,4 @@
-# oya-observability-otel-tailsampling-collector
+# observability-otel-tailsampling-collector
 
 OpenTelemetry Collector gateway tier configured with the **Tail Sampling Processor**
 per ADR-0210.

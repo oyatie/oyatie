@@ -4,7 +4,7 @@
 // Purpose: enforce per-tenant read scope on metrics/logs/traces/profiles served via
 //          slo-engine-rest, Grafana, and SDK clients.
 // Owner:   ops-security + axis-observability
-// Audit:   every deny emits oya_tenant_unauthorized_read_attempt_total
+// Audit:   every deny emits tenant_unauthorized_read_attempt_total
 // References: tenant-isolation.md §"Invariant TI-07"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

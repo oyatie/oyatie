@@ -5,7 +5,7 @@
 //! (ADR-0506) and would false-RED.
 //!
 //! Usage:
-//!   oya-cloud-ci-crypto-backend-purity-app-bin [--repo-root <path>] [--policy <path>]
+//!   cloud-ci-crypto-backend-purity-app-bin [--repo-root <path>] [--policy <path>]
 //!
 //! Exit codes: 0 = green (no forbidden backend activated); 1 = red findings; 2 = argument or
 //! collection error (fail-closed).
@@ -115,6 +115,6 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-crypto-backend-purity-app-bin [--repo-root <path>] [--policy <path>]"
+    "usage: cloud-ci-crypto-backend-purity-app-bin [--repo-root <path>] [--policy <path>]"
         .to_owned()
 }

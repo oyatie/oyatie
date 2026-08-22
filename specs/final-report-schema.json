@@ -234,11 +234,11 @@
     "closeout": {
       "type": "object",
       "required": [
-        "oya_vcs_promotion_status",
+        "vcs_promotion_status",
         "vcs_completion_payload_id"
       ],
       "properties": {
-        "oya_vcs_promotion_status": {
+        "vcs_promotion_status": {
           "type": "string"
         },
         "vcs_completion_payload_id": {

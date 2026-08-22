@@ -44,24 +44,24 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
             # G002 slice-1b-iii (ADR-0561): the delivered mTLS cert mount. The PDP
             # production boot builds an MtlsContext from this directory and FAIL-CLOSES
             # (boot refusal, never plain TCP) if the SVID material is absent. The
-            # operator that PRODUCES the oya-cloud-iam-pdp-svid Secret is slice-1b-iii-c;
+            # operator that PRODUCES the cloud-iam-pdp-svid Secret is slice-1b-iii-c;
             # until it lands the pod correctly fail-closes without the mount.
-            - name: OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR
-              value: "/etc/oya-cloud-iam-pdp/tls"
+            - name: OYATIE_CLOUD_IAM_PDP_MTLS_CERT_DIR
+              value: "/etc/cloud-iam-pdp/tls"
           volumeMounts:
             - name: pdp-svid
-              mountPath: /etc/oya-cloud-iam-pdp/tls
+              mountPath: /etc/cloud-iam-pdp/tls
               readOnly: true
           readinessProbe:
             httpGet:
@@ -90,4 +90,4 @@ spec:
         # the PDP fail-closes without it.
         - name: pdp-svid
           secret:
-            secretName: oya-cloud-iam-pdp-svid
+            secretName: cloud-iam-pdp-svid

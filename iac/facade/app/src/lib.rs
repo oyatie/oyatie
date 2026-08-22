@@ -30,9 +30,9 @@ use iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
 };
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
     serve_n_connections_on_std_listener, serve_on_std_listener,
 };
@@ -52,14 +52,14 @@ pub const CLOUD_IAC_APP_OBJECT_SOURCE_NON_CLAIM: &str =
     "opentofu-s3-gcs-source-location-no-live-object-store-no-upload";
 pub const CLOUD_IAC_APP_OBJECT_PINNING_NON_CLAIM: &str =
     "object-source-metadata-pin-no-live-object-store-preconditions";
-pub const CLOUD_IAC_APP_BINARY_NAME: &str = "oya-cloud-iac";
-pub const CLOUD_IAC_APP_PACKAGE_NAME: &str = "oya-cloud-iac-app";
-pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYA_CLOUD_IAC_BIND_ADDR";
+pub const CLOUD_IAC_APP_BINARY_NAME: &str = "cloud-iac";
+pub const CLOUD_IAC_APP_PACKAGE_NAME: &str = "cloud-iac-app";
+pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYATIE_CLOUD_IAC_BIND_ADDR";
 pub const CLOUD_IAC_APP_DEFAULT_BIND_ADDR: &str = "0.0.0.0:8080";
-pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYA_CLOUD_IAC_RELEASE_INDEX_PATH";
-pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str = "OYA_CLOUD_IAC_MODULE_REGISTRY_BEARER";
+pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYATIE_CLOUD_IAC_RELEASE_INDEX_PATH";
+pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str = "OYATIE_CLOUD_IAC_MODULE_REGISTRY_BEARER";
 pub const CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV: &str =
-    "OYA_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
+    "OYATIE_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
 pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str =
     "microservices/cloud-iac/tofu/modules/release-index.json";
 pub const CLOUD_IAC_APP_ARTIFACTS_BASE_PATH: &str = "/artifacts/modules/";
@@ -68,7 +68,7 @@ pub const CLOUD_IAC_HEALTH_PATH: &str = "/healthz";
 pub const CLOUD_IAC_LIVENESS_PATH: &str = "/livez";
 
 const CLOUD_IAC_APP_RELEASE_SOURCE_ROOT: &str = "microservices/cloud-iac/tofu/modules/";
-const CLOUD_IAC_APP_ARCHIVE_FILE_ROOT: &str = "target/oya-cloud-iac/module-archives/";
+const CLOUD_IAC_APP_ARCHIVE_FILE_ROOT: &str = "target/cloud-iac/module-archives/";
 const CLOUD_IAC_APP_ARCHIVE_MEDIA_TYPE: &str = "archive/zip";
 
 #[derive(Clone, Eq, PartialEq)]

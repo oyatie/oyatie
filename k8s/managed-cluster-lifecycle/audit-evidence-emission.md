@@ -5,7 +5,7 @@
 Audit chain emission on quota check and quota set operations is tracked as:
 `registry/placeholder-debt/adr-follow-ups.yaml#adr-0376-audit-chain-emission`
 
-The `oya-managed-k8s-tenant-quota-app` crate exposes a typed
+The `managed-k8s-tenant-quota-app` crate exposes a typed
 `Unimplemented::AuditChainEmission` placeholder. No stubbed `Ok(())` is used.
 
 ## When Implemented

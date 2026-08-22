@@ -4,7 +4,7 @@
     "title": "Tenant RBAC API",
     "version": "0.1.0",
     "summary": "Suite policy, group rollup, Workflow, incident rollback, and ops metadata contracts.",
-    "description": "Preview contract surface aligned to the transport-neutral oya-tenant-rbac-api DTO crate. This artifact defines wire shape for later runtime adapters; it does not claim a deployed endpoint.",
+    "description": "Preview contract surface aligned to the transport-neutral tenant-rbac-api DTO crate. This artifact defines wire shape for later runtime adapters; it does not claim a deployed endpoint.",
     "x-oyatie-contract-status": "preview-not-deployed",
     "x-oyatie-non-claims": [
       "no deployed HTTP runtime",
@@ -28,7 +28,7 @@
       "post": {
         "operationId": "admitTenantRbacServiceWrite",
         "summary": "Admit a child HR/Payroll/Accounting write through the tenant RBAC policy gateway.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::admit_service_write",
+        "x-oyatie-app-function": "tenant_rbac_domain::admit_service_write",
         "requestBody": {
           "required": true,
           "content": {
@@ -60,7 +60,7 @@
       "post": {
         "operationId": "rollUpTenantRbacGroupClose",
         "summary": "Roll up legal-entity close state into a group projection.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::roll_up_group_close_status",
+        "x-oyatie-app-function": "tenant_rbac_domain::roll_up_group_close_status",
         "requestBody": {
           "required": true,
           "content": {
@@ -92,7 +92,7 @@
       "post": {
         "operationId": "planTenantRbacCrossServiceWorkflow",
         "summary": "Plan Workflow-owned cross-service routing metadata.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_cross_service_workflow + oya_tenant_rbac_usecase::prepare_cross_service_workflow_envelope",
+        "x-oyatie-app-function": "tenant_rbac_domain::plan_cross_service_workflow + tenant_rbac_usecase::prepare_cross_service_workflow_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -124,7 +124,7 @@
       "post": {
         "operationId": "planTenantRbacIncidentRollback",
         "summary": "Plan rollback/quarantine-first incident metadata.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_incident_rollback + oya_tenant_rbac_usecase::prepare_incident_rollback_envelope",
+        "x-oyatie-app-function": "tenant_rbac_domain::plan_incident_rollback + tenant_rbac_usecase::prepare_incident_rollback_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -156,7 +156,7 @@
       "post": {
         "operationId": "prepareTenantRbacOpsCommand",
         "summary": "Prepare a metadata-only ops command envelope without manual SSH execution.",
-        "x-oyatie-app-function": "oya_tenant_rbac_usecase::prepare_tenant_rbac_ops_envelope",
+        "x-oyatie-app-function": "tenant_rbac_usecase::prepare_tenant_rbac_ops_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -534,7 +534,7 @@
             "type": "string",
             "enum": [
               "OPEN_TOFU",
-              "OYA_OPS",
+              "OYATIE_OPS",
               "OPS_CONSOLE",
               "MANUAL_SSH"
             ]
@@ -578,7 +578,7 @@
             "type": "string",
             "enum": [
               "MAKEFILE_TARGET",
-              "OYA_OPS",
+              "OYATIE_OPS",
               "OPS_CONSOLE",
               "MANUAL_SSH"
             ]

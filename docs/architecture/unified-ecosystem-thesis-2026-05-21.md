@@ -7,7 +7,7 @@ status: 'Proposed'
 date: '2026-05-21'
 authority_tier: '2'
 line_floor: '2500'
-planned_enforcement_ref: 'oya-governance-doc-rigor'
+planned_enforcement_ref: 'governance-doc-rigor'
 purpose: >
   Master architecture narrative for the unified-ecosystem thesis: one platform, one identity, one policy engine, one workflow engine, one ontology, one audit chain, one marketplace settlement, and one UX shell vocabulary. Products are role and capability projections of the unified substrate, not separate adoption islands.
 related_adrs:
@@ -188,15 +188,15 @@ For the 5,000-person enterprise above, total annual fragmentation-tax delta (exc
 
 ### 2.1 The substrate-vs-product layering
 ADR-0245 establishes that substrate microservices serve all products with no duplication. The substrate is:
-- `oya-shared-identity` plus `oya-shared-tenancy` (ADR-0244)
-- `oya-intelligence-policy-engine-cedar` (ADR-0243 universal gate)
-- `oya-intelligence-workflow-engine` (durable-process substrate)
-- `oya-shared-ontology` (object-graph plus projections)
-- `oya-shared-audit-chain` (evidence substrate; ADR-0251 retention-class aware)
-- `oya-shared-marketplace-settlement` (universal settlement; ADR-0314)
-- `oya-shared-ux-shell-action-router` (thirteen-verb vocabulary; ADR-0317 projections)
-- `oya-shared-compliance-pack` (ADR-0251 pack primitive)
-- `oya-shared-plugin-admission` (ADR-0249 multi-category marketplace)
+- `shared-identity` plus `shared-tenancy` (ADR-0244)
+- `intelligence-policy-engine-cedar` (ADR-0243 universal gate)
+- `intelligence-workflow-engine` (durable-process substrate)
+- `shared-ontology` (object-graph plus projections)
+- `shared-audit-chain` (evidence substrate; ADR-0251 retention-class aware)
+- `shared-marketplace-settlement` (universal settlement; ADR-0314)
+- `shared-ux-shell-action-router` (thirteen-verb vocabulary; ADR-0317 projections)
+- `shared-compliance-pack` (ADR-0251 pack primitive)
+- `shared-plugin-admission` (ADR-0249 multi-category marketplace)
 
 Products are role-based and capability-tier projections over the substrate. A "CRM" is the union of (a) the substrate verbs scoped to sales-process role projections, (b) the Ontology-projection of the sales-relevant objects, (c) the Cedar permits for the sales role tree, (d) the Workflow Engine templates for sales-process state machines, (e) the marketplace-settlement integrations for sales-quote-to-cash, (f) the audit-chain projections for sales-audit, and (g) the UX shell density and hint copy tuned for sales-personas.
 
@@ -208,7 +208,7 @@ The product label is a marketing surface and a discovery surface. It is not an a
 ### 2.3 The role projection as workforce surface
 A user's daily experience is a sequence of role projections, not a sequence of products. A finance analyst's workday is "finance-analyst role projection in entity-A tenant" not "QuickBooks then NetSuite then BlackLine." A nurse's workday is "registered-nurse role projection in hospital tenant" not "Epic then Pyxis then Workday." A teacher's workday is "K-12 teacher role projection in district tenant" not "PowerSchool then ClassDojo then Schoology."
 
-The substrate makes this concrete. The role projection is a first-class object (`oya-shared-role-projection`) referenced from the Workflow Engine, from Cedar, from the UX shell action router, and from the audit-chain. Switching from one role projection to another is a single substrate verb (switch role), not a logout-then-login sequence across tools.
+The substrate makes this concrete. The role projection is a first-class object (`shared-role-projection`) referenced from the Workflow Engine, from Cedar, from the UX shell action router, and from the audit-chain. Switching from one role projection to another is a single substrate verb (switch role), not a logout-then-login sequence across tools.
 
 ### 2.4 The capability tier as functional surface
 A capability tier is the substrate's mechanism for offering more or less depth to a tenant or role projection without forking the substrate. The ERP capability tier offers depth on financial-closing, treasury, supply-chain, and procurement. The CRM capability tier offers depth on sales-opportunity-management, marketing-campaigns, and customer-service. The HR capability tier offers depth on benefits, payroll, performance, and learning.
@@ -252,7 +252,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Scalability: identity record sharding is by passkey hash; tenant memberships are sharded by tenant_id; role projections are sharded by tenant_id plus user_id; all three scale horizontally without product forks.
 - Performance: identity resolution at action-router admission must complete within 5 ms p50, 15 ms p99; passkey-recovery flows have a separate budget.
 - Optimization: per-user role-projection cache is held at the UX shell tier; cache invalidation is via Cedar permit-fragment version bump.
-- Code quality: typed identity contracts in `oya-shared-identity-domain`; tests at every layer; deprecation policy for any identity-field change requires ADR.
+- Code quality: typed identity contracts in `shared-identity-domain`; tests at every layer; deprecation policy for any identity-field change requires ADR.
 
 **Failure-mode tree**:
 - Stale projection: deny mutation, refresh projection, emit stale-projection audit evidence, and preserve the prior tenant boundary.
@@ -262,7 +262,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Identity recovery event: freeze high-risk actions until passkey recovery and tenant membership facts are reconciled.
 - Passkey-binding drift: if the user's passkey is replaced on a new device, require a re-attestation flow before high-risk verbs are re-permitted.
 
-**Implementation references**: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-tenancy`, `oya-shared-role-projection`, `oya-intelligence-policy-engine-cedar`.
+**Implementation references**: `shared-identity`, `shared-identity-domain`, `shared-tenancy`, `shared-role-projection`, `intelligence-policy-engine-cedar`.
 
 **Worked example**: Dr. Patel is a physician at three hospitals plus a part-time clinical-researcher at a CRO plus a side-business medical-spa owner. She has four tenant memberships under one passkey-backed identity. Switching tenants is one keystroke; her audit-chain history is one stream. When her passkey is replaced after a device upgrade, every tenant's high-risk verb is frozen until re-attestation completes. When she leaves one hospital, her membership in that tenant is deprovisioned without affecting the other three or her personal tenant.
 
@@ -272,12 +272,12 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one Cedar policy engine for every authorization and denial path.
 
 **Engineering-rigor matrix**:
-- Maintainability: Cedar policy fragments live in `oya-shared-policy-store` versioned by tenant; per-tool policy logic is forbidden.
+- Maintainability: Cedar policy fragments live in `shared-policy-store` versioned by tenant; per-tool policy logic is forbidden.
 - Observability: every Cedar evaluation emits an audit-chain event with the policy fragment version, the decision, and the principal.
 - Scalability: policy evaluation is per-action; Cedar evaluation is sharded by tenant; cache invalidation on policy-fragment version bump.
 - Performance: Cedar evaluation must complete within 2 ms p50, 8 ms p99 for the substrate action-router admission path.
 - Optimization: hot-path policy fragments are pre-compiled; cold-path policies fall back to interpreted evaluation.
-- Code quality: policy authoring tooling at `oya-tools-policy-author` (planned); policy-fragment-fuzz testing at `oya-intelligence-policy-fuzz` (planned).
+- Code quality: policy authoring tooling at `tools-policy-author` (planned); policy-fragment-fuzz testing at `intelligence-policy-fuzz` (planned).
 
 **Failure-mode tree**:
 - Stale policy version: deny by default, refresh policy projection, emit stale-policy audit evidence, and require re-evaluation before permitting the action.
@@ -287,7 +287,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Emergency override: only via break-glass capability tier; every override emits a heightened audit-chain event and triggers a synchronous notification to the tenant's policy administrators.
 - Policy-engine outage: prefer cached-decision-with-deny-fallback for write actions; permit cached read decisions with bounded TTL.
 
-**Implementation references**: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`.
+**Implementation references**: `intelligence-policy-engine-cedar`, `shared-policy-store`, `shared-cedar-evaluator`.
 
 **Worked example**: An employer wants to permit a contractor to view-but-not-edit project-management Ontology objects. The Cedar policy fragment grants `view` on the project-management object class scoped to the contractor's tenant-membership for the duration of the engagement. When the engagement ends, a workflow run deletes the membership and the Cedar evaluation immediately denies all subsequent view attempts. The audit-chain records the deprovisioning event.
 
@@ -297,7 +297,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one state-machine and DAG substrate for every durable process.
 
 **Engineering-rigor matrix**:
-- Maintainability: state machines live in `oya-shared-workflow-templates`; per-tool durable processes are forbidden.
+- Maintainability: state machines live in `shared-workflow-templates`; per-tool durable processes are forbidden.
 - Observability: every Workflow Engine state transition emits an audit-chain event with the workflow-run-id, the state, and the actor.
 - Scalability: Workflow Engine sharded by tenant; deterministic-replay enabled for audit-chain reconstruction.
 - Performance: state transitions complete within 50 ms p50, 200 ms p99; long-running activities (e.g., human approvals) are tracked as suspended states.
@@ -312,7 +312,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Template-version migration: migration policy lives in the template; running runs continue under their starting version unless explicitly rebased.
 - Cross-tenant workflow: forbidden by default; cross-tenant runs require explicit cross-tenant Cedar permit plus marketplace-settlement scope.
 
-**Implementation references**: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`.
+**Implementation references**: `intelligence-workflow-engine`, `shared-workflow-templates`, `shared-workflow-runtime`.
 
 **Worked example**: A purchase-order approval workflow requires: requester submits, manager approves, finance reviews, vendor onboarding check, contract signing, PO issuance. Every step uses one of the thirteen verbs; every state transition is audit-chain-sealed; every Cedar evaluation respects the tenant's spending-authority matrix.
 
@@ -322,7 +322,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one object graph with role, capability, and jurisdiction projections.
 
 **Engineering-rigor matrix**:
-- Maintainability: ontology object classes live in `oya-shared-ontology-schema`; per-tool object models are forbidden.
+- Maintainability: ontology object classes live in `shared-ontology-schema`; per-tool object models are forbidden.
 - Observability: every Ontology object mutation emits an audit-chain event.
 - Scalability: ontology sharded by tenant; large objects (documents, datasets) reference content-addressed storage.
 - Performance: projection materialization within 50 ms p50.
@@ -336,7 +336,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Schema migration: backward-compat enforced for at least one release cycle; rolling migration via projection rebuild.
 - Large-object retrieval: timeout returns partial projection plus retry guidance; full materialization queued.
 
-**Implementation references**: `oya-shared-ontology`, `oya-shared-ontology-schema`, `oya-shared-ontology-projection`.
+**Implementation references**: `shared-ontology`, `shared-ontology-schema`, `shared-ontology-projection`.
 
 **Worked example**: A purchase order is an Ontology object class with fields for requester, vendor, line items, total, currency, and approval state. The CRM-capability-tier projection of a purchase order shows only the vendor relationship and the sales-account link. The ERP-capability-tier projection shows the full financial detail. The audit-capability-tier projection shows the full transition history. The same underlying object has multiple projections; no copy is made.
 
@@ -346,7 +346,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one evidence chain for identity, policy, workflow, settlement, and operations.
 
 **Engineering-rigor matrix**:
-- Maintainability: audit-event classes live in `oya-shared-audit-chain-schema`; per-tool audit logs are forbidden.
+- Maintainability: audit-event classes live in `shared-audit-chain-schema`; per-tool audit logs are forbidden.
 - Observability: audit-chain is itself observable through a query surface; meta-audit (audit of audit-chain reads) is recorded.
 - Scalability: audit-chain sharded by tenant; long-term storage compressed; high-volume tenants get dedicated storage shards.
 - Performance: write within 20 ms p99 for substrate verbs; queries up to 1 month back within 500 ms p99.
@@ -360,7 +360,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Cross-tenant audit query: requires explicit cross-tenant Cedar permit plus optional pack-specific override.
 - Sealing-key rotation: rolling-rotation policy; old keys retained for chain-verification; new keys used for new writes.
 
-**Implementation references**: `oya-shared-audit-chain`, `oya-shared-audit-chain-schema`, `oya-shared-audit-replay`.
+**Implementation references**: `shared-audit-chain`, `shared-audit-chain-schema`, `shared-audit-replay`.
 
 **Worked example**: A clinical handoff at 7 AM emits audit-chain events for the registered-nurse's verify-context, review-history, attach-evidence (vitals), approve (medication-administration), sign (controlled-substance-witness), and route (consult-request). The hospital's compliance officer can query the audit-chain six months later to reconstruct the entire shift's clinical decisions for a peer-review case.
 
@@ -370,7 +370,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one universal deal-settlement surface across consumer, business, labor, and partner exchanges.
 
 **Engineering-rigor matrix**:
-- Maintainability: settlement primitives live in `oya-shared-marketplace-settlement`; per-category marketplace forks are forbidden.
+- Maintainability: settlement primitives live in `shared-marketplace-settlement`; per-category marketplace forks are forbidden.
 - Observability: every settlement event emits an audit-chain event with parties, value, currency, and policy fragment version.
 - Scalability: settlement sharded by tenant; high-volume tenants get dedicated settlement shards.
 - Performance: settlement decision within 100 ms p99; long-running settlement (e.g., escrow) is tracked as a Workflow Engine run.
@@ -385,7 +385,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Refund and chargeback: workflow-engine-driven; settlement event is reversed and a reversal-audit-event is sealed.
 - Dispute: marketplace-dispute workflow with policy-bound mediator role; outcome emits a settlement-adjustment event.
 
-**Implementation references**: `oya-shared-marketplace-settlement`, `oya-shared-marketplace-admission`, `oya-shared-marketplace-dispute`.
+**Implementation references**: `shared-marketplace-settlement`, `shared-marketplace-admission`, `shared-marketplace-dispute`.
 
 **Worked example**: A labor-marketplace gig: a freelance graphic designer proposes a logo project; the requesting tenant approves the proposal; the work is delivered as an Ontology object reference; the requester signs delivery acceptance; settlement transfers funds; audit-chain seals the entire flow; both parties can review history. Same flow applies to a consumer-marketplace book purchase or a business-to-business software-license purchase.
 
@@ -395,7 +395,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one stable interaction vocabulary across roles, devices, collar colors, and locales.
 
 **Engineering-rigor matrix**:
-- Maintainability: the thirteen-verb enum lives in `oya-shared-ux-shell-action-router`; adding a verb requires an ADR.
+- Maintainability: the thirteen-verb enum lives in `shared-ux-shell-action-router`; adding a verb requires an ADR.
 - Observability: every verb-completion emits a timing event plus a modality event (mouse, keyboard, screen-reader, assistive-input).
 - Scalability: UX shell is delivered via CDN with per-tenant overlay; role-projection rendering is at edge.
 - Performance: verb-execution-path latency budget within 200 ms p95 to the substrate router admission.
@@ -410,7 +410,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Accessibility regression: rejected at the UX-shell conformance set.
 - Custom-app shadow vocabulary: rejected at marketplace admission.
 
-**Implementation references**: `oya-shared-ux-shell-action-router`, `oya-shared-ux-shell-localization`, `oya-shared-ux-shell-accessibility`.
+**Implementation references**: `shared-ux-shell-action-router`, `shared-ux-shell-localization`, `shared-ux-shell-accessibility`.
 
 **Worked example**: A new hire opens oyatie on day one. The UX shell shows the same thirteen verbs in their role projection that they used in their personal tenant during the interview process the previous month. The new hire executes their first approve on day one without any platform-specific training; the role-projection-specific evidence-and-policy refresher takes one hour.
 
@@ -423,7 +423,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 
 **Failure-mode tree**: anti-patterns are catalogued in Section 13 and in `training-cost-doctrine-2026-05-21.md` §14. Required correction is to revert the breach or to raise an ADR.
 
-**Implementation references**: `oya-shared-ux-shell-action-router`, plus the substrate verbs' implementations, plus the training-cost-doctrine sibling.
+**Implementation references**: `shared-ux-shell-action-router`, plus the substrate verbs' implementations, plus the training-cost-doctrine sibling.
 
 **Worked example**: see the persona timelines in `training-cost-doctrine-2026-05-21.md` §5.2, §5.2.b, §5.2.c.
 
@@ -433,7 +433,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one pack and evidence model applied before data or workflow exposure.
 
 **Engineering-rigor matrix**:
-- Maintainability: compliance-pack overlays live in `oya-shared-compliance-pack-overlays`; per-tool compliance implementation is forbidden.
+- Maintainability: compliance-pack overlays live in `shared-compliance-pack-overlays`; per-tool compliance implementation is forbidden.
 - Observability: pack-overlay activations and pack-specific denial events emit audit-chain events.
 - Scalability: pack overlays are per-tenant per-cell (ADR-0251); multi-pack tenants compose overlays.
 - Performance: pack evaluation is inline with Cedar evaluation budget.
@@ -447,7 +447,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Pack-specific evidence absent: workflow deferred until evidence is attached; denial-recovery widget guides the user.
 - Pack-attestation expiry: workflow defers high-stakes verbs until attestation is renewed.
 
-**Implementation references**: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-intelligence-policy-engine-cedar`.
+**Implementation references**: `shared-compliance-pack`, `shared-compliance-pack-overlays`, `intelligence-policy-engine-cedar`.
 
 **Worked example**: A multi-national life-sciences tenant has HIPAA (US clinical), GDPR (EU clinical), PCI (e-commerce), and SOC2 (corporate IT) packs active. A US-clinical-research-coordinator's verify-context shows the active packs scoped to the current action; data exported from the US clinical-research workflow is scoped to HIPAA-pack export grammar; data exported from the EU sales-portal is scoped to GDPR-pack export grammar.
 
@@ -457,7 +457,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 **Definition**: one governed extension model with isolation, admission, settlement, and auditability.
 
 **Engineering-rigor matrix**:
-- Maintainability: plugin admission lives in `oya-shared-plugin-admission`; ad-hoc plugin loading is forbidden.
+- Maintainability: plugin admission lives in `shared-plugin-admission`; ad-hoc plugin loading is forbidden.
 - Observability: plugin admission, plugin invocation, and plugin policy denials emit audit-chain events.
 - Scalability: plugins run in isolated cells (ADR-0248 cellular architecture); resource limits per tenant.
 - Performance: plugin invocation budget per role; soft and hard timeouts enforced.
@@ -472,7 +472,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Plugin sunset: deprecation timer plus migration-path required at admission.
 - Plugin pack-violation: tenant pack overlays enforce plugin allow-lists.
 
-**Implementation references**: `oya-shared-plugin-admission`, `oya-shared-plugin-isolation` (planned), `oya-shared-marketplace-admission`.
+**Implementation references**: `shared-plugin-admission`, `shared-plugin-isolation` (planned), `shared-marketplace-admission`.
 
 **Worked example**: A health-system tenant admits a third-party radiology-AI plugin from the marketplace. Admission verifies pack-conformance (HIPAA), isolation-conformance (sandbox), settlement-conformance (per-image billing), and audit-conformance (sealed events on every invocation). When the plugin emits a high-confidence finding, the radiologist sees the finding through the same Ontology projection they already use; the audit-chain shows the plugin-invocation that generated the finding.
 
@@ -1819,22 +1819,22 @@ The doctrine forbids product forks, hidden policy engines, local audit trails, c
 
 ### 13.A.1 Detection: the conformance lanes
 Each anti-pattern in §13 is detected by an automated conformance lane:
-- `oya-governance-doc-rigor` (this thesis lives in its lane)
-- `oya-governance-verb-enum` (UX shell action-router enum conformance)
-- `oya-governance-policy-engine` (Cedar-only authorization paths)
-- `oya-governance-workflow-engine` (durable-state in Workflow Engine only)
-- `oya-governance-ontology` (no private object models)
-- `oya-governance-audit-chain` (all audit events sealed into the chain)
-- `oya-governance-marketplace` (settlement only through the shared primitive)
-- `oya-governance-ux-shell` (verb-affordance conformance per workspace, locale, collar)
-- `oya-governance-accessibility` (substrate-level accessibility coverage)
-- `oya-governance-dual-tenant` (cross-tenant fuzz tests)
-- `oya-governance-suite-residue` (forbidden suite-branding patterns)
-- `oya-governance-plugin-admission` (marketplace admission conformance)
-- `oya-governance-tenant-primitive` (tenant_id presence on every row, audit, and cost line)
-- `oya-governance-workflow-escalation` (escalation path lives in Workflow Engine)
-- `oya-governance-notification` (notifications emitted from substrate stream)
-- `oya-governance-custom-app-store` (Ontology-or-declared-secondary-store only)
+- `governance-doc-rigor` (this thesis lives in its lane)
+- `governance-verb-enum` (UX shell action-router enum conformance)
+- `governance-policy-engine` (Cedar-only authorization paths)
+- `governance-workflow-engine` (durable-state in Workflow Engine only)
+- `governance-ontology` (no private object models)
+- `governance-audit-chain` (all audit events sealed into the chain)
+- `governance-marketplace` (settlement only through the shared primitive)
+- `governance-ux-shell` (verb-affordance conformance per workspace, locale, collar)
+- `governance-accessibility` (substrate-level accessibility coverage)
+- `governance-dual-tenant` (cross-tenant fuzz tests)
+- `governance-suite-residue` (forbidden suite-branding patterns)
+- `governance-plugin-admission` (marketplace admission conformance)
+- `governance-tenant-primitive` (tenant_id presence on every row, audit, and cost line)
+- `governance-workflow-escalation` (escalation path lives in Workflow Engine)
+- `governance-notification` (notifications emitted from substrate stream)
+- `governance-custom-app-store` (Ontology-or-declared-secondary-store only)
 
 Each lane fails closed: a PR that introduces an anti-pattern cannot merge unless the offending change is reverted or an ADR explicitly admits the exception.
 
@@ -1931,7 +1931,7 @@ The identity primitive carries:
 - Dual-tenant primary: every human has a personal tenant from age of consent (ADR-0311).
 - Conglomerate-aware: subsidiary tenant memberships do not auto-propagate to the parent (ADR-0313).
 
-Implementation references: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-identity-recovery`, `oya-shared-identity-passkey`.
+Implementation references: `shared-identity`, `shared-identity-domain`, `shared-identity-recovery`, `shared-identity-passkey`.
 
 ### 13.D.2 Policy-engine primitive details
 The policy-engine primitive carries:
@@ -1942,7 +1942,7 @@ The policy-engine primitive carries:
 - Audit-chain links: every evaluation is sealed.
 - Hot-path precompilation: high-frequency policy fragments precompile for performance.
 
-Implementation references: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`.
+Implementation references: `intelligence-policy-engine-cedar`, `shared-policy-store`, `shared-cedar-evaluator`, `shared-policy-author`.
 
 ### 13.D.3 Workflow-engine primitive details
 The workflow-engine primitive carries:
@@ -1953,7 +1953,7 @@ The workflow-engine primitive carries:
 - Workflow-template version management with backward-compat.
 - Audit-chain links: every state transition is sealed.
 
-Implementation references: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`.
+Implementation references: `intelligence-workflow-engine`, `shared-workflow-templates`, `shared-workflow-runtime`, `shared-workflow-replay`.
 
 ### 13.D.4 Ontology primitive details
 The ontology primitive carries:
@@ -1964,7 +1964,7 @@ The ontology primitive carries:
 - Schema migration tooling.
 - Audit-chain links: every mutation is sealed.
 
-Implementation references: `oya-shared-ontology`, `oya-shared-ontology-schema`, `oya-shared-ontology-projection`, `oya-shared-ontology-migration`.
+Implementation references: `shared-ontology`, `shared-ontology-schema`, `shared-ontology-projection`, `shared-ontology-migration`.
 
 ### 13.D.5 Audit-chain primitive details
 The audit-chain primitive carries:
@@ -1975,7 +1975,7 @@ The audit-chain primitive carries:
 - Meta-audit (audit of audit-chain queries).
 - Sealing-key rotation policy.
 
-Implementation references: `oya-shared-audit-chain`, `oya-shared-audit-chain-schema`, `oya-shared-audit-replay`, `oya-shared-audit-export`.
+Implementation references: `shared-audit-chain`, `shared-audit-chain-schema`, `shared-audit-replay`, `shared-audit-export`.
 
 ### 13.D.6 Marketplace primitive details
 The marketplace primitive carries:
@@ -1985,7 +1985,7 @@ The marketplace primitive carries:
 - Per-counterparty creditworthiness projection.
 - Audit-chain links.
 
-Implementation references: `oya-shared-marketplace-settlement`, `oya-shared-marketplace-admission`, `oya-shared-marketplace-dispute`, `oya-shared-marketplace-reputation`.
+Implementation references: `shared-marketplace-settlement`, `shared-marketplace-admission`, `shared-marketplace-dispute`, `shared-marketplace-reputation`.
 
 ### 13.D.7 UX-shell primitive details
 The UX-shell primitive carries:
@@ -1997,7 +1997,7 @@ The UX-shell primitive carries:
 - Accessibility-substrate (keyboard, screen-reader, switch-control, eye-tracking, dictation).
 - Audit-chain links: every verb completion is sealed.
 
-Implementation references: `oya-shared-ux-shell-action-router`, `oya-shared-ux-shell-localization`, `oya-shared-ux-shell-accessibility`, `oya-shared-ux-shell-density`.
+Implementation references: `shared-ux-shell-action-router`, `shared-ux-shell-localization`, `shared-ux-shell-accessibility`, `shared-ux-shell-density`.
 
 ### 13.D.8 Compliance-pack primitive details
 The compliance-pack primitive carries:
@@ -2007,7 +2007,7 @@ The compliance-pack primitive carries:
 - Per-pack denial-recovery affordances for UX shell.
 - Per-pack settlement scoping for marketplace.
 
-Implementation references: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-shared-compliance-pack-evidence`.
+Implementation references: `shared-compliance-pack`, `shared-compliance-pack-overlays`, `shared-compliance-pack-evidence`.
 
 ### 13.D.9 Plugin-admission primitive details
 The plugin-admission primitive carries:
@@ -2018,7 +2018,7 @@ The plugin-admission primitive carries:
 - Marketplace listing and discovery.
 - Per-tenant allow-listing.
 
-Implementation references: `oya-shared-plugin-admission`, `oya-shared-plugin-isolation`, `oya-shared-marketplace-admission`.
+Implementation references: `shared-plugin-admission`, `shared-plugin-isolation`, `shared-marketplace-admission`.
 
 ### 13.D.10 Tenancy primitive details
 The tenancy primitive carries:
@@ -2029,7 +2029,7 @@ The tenancy primitive carries:
 - Per-tenant settlement scope.
 - Per-tenant audit-chain shard.
 
-Implementation references: `oya-shared-tenancy`, `oya-shared-tenant-membership`, `oya-shared-tenant-config`.
+Implementation references: `shared-tenancy`, `shared-tenant-membership`, `shared-tenant-config`.
 
 ## Section 13.E - Operational doctrine
 
@@ -2317,31 +2317,31 @@ ADR-0249 includes agents in the multi-category marketplace but the AI-evaluation
 The substrate teams own the substrate primitives plus their respective conformance lanes plus their respective ADR sets. Each substrate primitive has a clear primary owning team plus secondary collaborators.
 
 ### 13.L.2 Identity-team scope
-Owns: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-identity-recovery`, `oya-shared-identity-passkey`, `oya-shared-tenancy`, `oya-shared-tenant-membership`. Conformance lanes: `oya-governance-dual-tenant`, `oya-governance-tenant-primitive`. ADRs: ADR-0244, ADR-0311, ADR-0313, ADR-0320, ADR-0242.
+Owns: `shared-identity`, `shared-identity-domain`, `shared-identity-recovery`, `shared-identity-passkey`, `shared-tenancy`, `shared-tenant-membership`. Conformance lanes: `governance-dual-tenant`, `governance-tenant-primitive`. ADRs: ADR-0244, ADR-0311, ADR-0313, ADR-0320, ADR-0242.
 
 ### 13.L.3 Policy-team scope
-Owns: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`. Conformance lanes: `oya-governance-policy-engine`. ADRs: ADR-0243, ADR-0250.
+Owns: `intelligence-policy-engine-cedar`, `shared-policy-store`, `shared-cedar-evaluator`, `shared-policy-author`. Conformance lanes: `governance-policy-engine`. ADRs: ADR-0243, ADR-0250.
 
 ### 13.L.4 Workflow-team scope
-Owns: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`. Conformance lanes: `oya-governance-workflow-engine`, `oya-governance-workflow-escalation`. ADRs: ADR-0245.
+Owns: `intelligence-workflow-engine`, `shared-workflow-templates`, `shared-workflow-runtime`, `shared-workflow-replay`. Conformance lanes: `governance-workflow-engine`, `governance-workflow-escalation`. ADRs: ADR-0245.
 
 ### 13.L.5 Ontology-team scope
-Owns: `oya-shared-ontology`, `oya-shared-ontology-schema`, `oya-shared-ontology-projection`, `oya-shared-ontology-migration`. Conformance lanes: `oya-governance-ontology`. ADRs: ADR-0244, ADR-0245.
+Owns: `shared-ontology`, `shared-ontology-schema`, `shared-ontology-projection`, `shared-ontology-migration`. Conformance lanes: `governance-ontology`. ADRs: ADR-0244, ADR-0245.
 
 ### 13.L.6 Audit-team scope
-Owns: `oya-shared-audit-chain`, `oya-shared-audit-chain-schema`, `oya-shared-audit-replay`, `oya-shared-audit-export`. Conformance lanes: `oya-governance-audit-chain`. ADRs: ADR-0251, ADR-0252.
+Owns: `shared-audit-chain`, `shared-audit-chain-schema`, `shared-audit-replay`, `shared-audit-export`. Conformance lanes: `governance-audit-chain`. ADRs: ADR-0251, ADR-0252.
 
 ### 13.L.7 Marketplace-team scope
-Owns: `oya-shared-marketplace-settlement`, `oya-shared-marketplace-admission`, `oya-shared-marketplace-dispute`, `oya-shared-marketplace-reputation`. Conformance lanes: `oya-governance-marketplace`. ADRs: ADR-0249, ADR-0314.
+Owns: `shared-marketplace-settlement`, `shared-marketplace-admission`, `shared-marketplace-dispute`, `shared-marketplace-reputation`. Conformance lanes: `governance-marketplace`. ADRs: ADR-0249, ADR-0314.
 
 ### 13.L.8 UX-shell-team scope
-Owns: `oya-shared-ux-shell-action-router`, `oya-shared-ux-shell-localization`, `oya-shared-ux-shell-accessibility`, `oya-shared-ux-shell-density`. Conformance lanes: `oya-governance-verb-enum`, `oya-governance-ux-shell`, `oya-governance-accessibility`. ADRs: ADR-0317, ADR-0318, ADR-0253.
+Owns: `shared-ux-shell-action-router`, `shared-ux-shell-localization`, `shared-ux-shell-accessibility`, `shared-ux-shell-density`. Conformance lanes: `governance-verb-enum`, `governance-ux-shell`, `governance-accessibility`. ADRs: ADR-0317, ADR-0318, ADR-0253.
 
 ### 13.L.9 Compliance-pack-team scope
-Owns: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-shared-compliance-pack-evidence`. Conformance lanes: per-pack conformance test sets. ADRs: ADR-0251.
+Owns: `shared-compliance-pack`, `shared-compliance-pack-overlays`, `shared-compliance-pack-evidence`. Conformance lanes: per-pack conformance test sets. ADRs: ADR-0251.
 
 ### 13.L.10 Plugin-team scope
-Owns: `oya-shared-plugin-admission`, `oya-shared-plugin-isolation`. Conformance lanes: `oya-governance-plugin-admission`. ADRs: ADR-0249.
+Owns: `shared-plugin-admission`, `shared-plugin-isolation`. Conformance lanes: `governance-plugin-admission`. ADRs: ADR-0249.
 
 ### 13.L.11 Cross-team RFC process
 Cross-substrate changes (any change touching more than one substrate primitive) require an RFC plus a multispectrum-review v2.4.0 with all relevant facet owners. RFCs are sealed into the doctrine audit-chain.
@@ -2469,16 +2469,16 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 - docs/decisions/ADR-0709-general-live-apex.md
 
 ### Implementation microservices
-- oya-shared-identity, oya-shared-identity-domain (ONE-IDENTITY)
-- oya-shared-tenancy (ONE-IDENTITY plus ADR-0244 tenancy primitive)
-- oya-intelligence-policy-engine-cedar, oya-shared-policy-store, oya-shared-cedar-evaluator (ONE-POLICY-ENGINE)
-- oya-intelligence-workflow-engine, oya-shared-workflow-templates, oya-shared-workflow-runtime (ONE-WORKFLOW-ENGINE)
-- oya-shared-ontology, oya-shared-ontology-schema, oya-shared-ontology-projection (ONE-ONTOLOGY)
-- oya-shared-audit-chain, oya-shared-audit-chain-schema, oya-shared-audit-replay (ONE-AUDIT-CHAIN)
-- oya-shared-marketplace-settlement, oya-shared-marketplace-admission, oya-shared-marketplace-dispute (ONE-MARKETPLACE)
-- oya-shared-ux-shell-action-router, oya-shared-ux-shell-localization, oya-shared-ux-shell-accessibility (ONE-UX-SHELL)
-- oya-shared-compliance-pack, oya-shared-compliance-pack-overlays (ONE-COMPLIANCE-POSTURE)
-- oya-shared-plugin-admission, oya-shared-plugin-isolation (ONE-PLUGIN-EXTENSIBILITY)
+- shared-identity, shared-identity-domain (ONE-IDENTITY)
+- shared-tenancy (ONE-IDENTITY plus ADR-0244 tenancy primitive)
+- intelligence-policy-engine-cedar, shared-policy-store, shared-cedar-evaluator (ONE-POLICY-ENGINE)
+- intelligence-workflow-engine, shared-workflow-templates, shared-workflow-runtime (ONE-WORKFLOW-ENGINE)
+- shared-ontology, shared-ontology-schema, shared-ontology-projection (ONE-ONTOLOGY)
+- shared-audit-chain, shared-audit-chain-schema, shared-audit-replay (ONE-AUDIT-CHAIN)
+- shared-marketplace-settlement, shared-marketplace-admission, shared-marketplace-dispute (ONE-MARKETPLACE)
+- shared-ux-shell-action-router, shared-ux-shell-localization, shared-ux-shell-accessibility (ONE-UX-SHELL)
+- shared-compliance-pack, shared-compliance-pack-overlays (ONE-COMPLIANCE-POSTURE)
+- shared-plugin-admission, shared-plugin-isolation (ONE-PLUGIN-EXTENSIBILITY)
 
 ### External references and precedent anchors
 - Apple ecosystem and Human Interface Guidelines: https://developer.apple.com/design/human-interface-guidelines/

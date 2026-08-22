@@ -10,7 +10,7 @@ license = "Apache-2.0"
 billing-domain = { path = "../billing" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
 billing-metering = { path = "../metering" }
 
 [lib]

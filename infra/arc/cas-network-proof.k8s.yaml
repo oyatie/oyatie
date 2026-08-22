@@ -14,7 +14,7 @@ metadata:
   name: cas-network-proof-probe
   namespace: arc-runners
   labels:
-    app.kubernetes.io/part-of: oya-cloud-ci
+    app.kubernetes.io/part-of: cloud-ci
 spec:
   suspend: true
   backoffLimit: 0
@@ -32,7 +32,7 @@ spec:
       restartPolicy: Never
       nodeSelector:
         kubernetes.io/arch: arm64
-        kubernetes.io/hostname: oya-talos-worker-1
+        kubernetes.io/hostname: talos-worker-1
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
@@ -40,11 +40,11 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: probe
-          image: registry.oya-registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
+          image: registry.registry.svc.cluster.local:5000/oya/runner:arm64-pwsh@sha256:c679cbd7cd00b6b51a18eb3124869971a92b083cceedeecf3bbd68299cf7422d
           command: ["/bin/sh", "-ceu"]
           args:
             - |
-              target=openbao.oya-kms.svc
+              target=openbao.kms.svc
               probe_id="$(hostname)"
               echo "PROOF probe=${probe_id} phase=start"
               if curl --silent --show-error --connect-timeout 3 --max-time 5 \

@@ -37,8 +37,8 @@ doc_status: published
 1. Acknowledge OnCall page.
 2. Check refresh-job status:
    ```bash
-   kubectl get cronjobs -n calendar oya-calendar-tzdata-refresh
-   kubectl logs -n calendar -l job=oya-calendar-tzdata-refresh --tail=100
+   kubectl get cronjobs -n calendar calendar-tzdata-refresh
+   kubectl logs -n calendar -l job=calendar-tzdata-refresh --tail=100
    ```
 3. Check tzdata freshness metric:
    ```promql
@@ -46,7 +46,7 @@ doc_status: published
    ```
 4. Verify upstream IANA reachability:
    ```bash
-   kubectl exec -n calendar oya-calendar-tzdata-refresh-<pod> -- curl -I https://www.iana.org/time-zones
+   kubectl exec -n calendar calendar-tzdata-refresh-<pod> -- curl -I https://www.iana.org/time-zones
    ```
 
 ## Mitigation steps
@@ -54,7 +54,7 @@ doc_status: published
 ### Step 1 — Trigger immediate refresh
 
 ```bash
-kubectl create job --from=cronjob/oya-calendar-tzdata-refresh -n calendar tzdata-refresh-manual-$(date +%s)
+kubectl create job --from=cronjob/calendar-tzdata-refresh -n calendar tzdata-refresh-manual-$(date +%s)
 ```
 
 ### Step 2 — If upstream IANA unreachable, fall back to mirror
@@ -77,7 +77,7 @@ oya calendar tzdata refresh --source fallback --audit-reason "RB-timezone-db-ref
 ### Step 3 — Verify chrono-tz pinned-version sanity check
 
 ```bash
-cargo run -p oya-calendar-event-store-app -- tz validate
+cargo run -p calendar-event-store-app -- tz validate
 ```
 
 Expected output: `tz_db_version=<recent>` matching upstream IANA.

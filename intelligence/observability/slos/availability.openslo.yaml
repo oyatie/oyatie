@@ -26,7 +26,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{
+                sum(rate(cloud_intelligence_requests_total{
                   service="cloud-intelligence",code!~"5..",gateway_error="false"
                 }[5m]))
         total:
@@ -34,7 +34,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{service="cloud-intelligence"}[5m]))
+                sum(rate(cloud_intelligence_requests_total{service="cloud-intelligence"}[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

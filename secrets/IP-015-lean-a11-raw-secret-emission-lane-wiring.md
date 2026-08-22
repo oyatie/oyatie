@@ -19,16 +19,16 @@ Stand up the LEAN-A11 lane that enforces the durable user directive (2026-05-12)
 
 ## ChangeSet boundary
 
-Lane infrastructure in `crates/oya-check-raw-secret-emission/` (under governance µservice) + pattern catalog + integration with gitleaks + tartufo + custom oyatie patterns + reviewer-agent hook.
+Lane infrastructure in `crates/check-raw-secret-emission/` (under governance µservice) + pattern catalog + integration with gitleaks + tartufo + custom oyatie patterns + reviewer-agent hook.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `crates/oya-check-raw-secret-emission/Cargo.toml` | create |
-| `crates/oya-check-raw-secret-emission/src/lib.rs` | create — orchestrator over gitleaks + tartufo + custom |
-| `crates/oya-check-raw-secret-emission/patterns/oyatie-custom.toml` | create — custom regex catalog per `policy/secret-isolation.md` §"TI-03" |
-| `crates/oya-check-raw-secret-emission/tests/fixtures/{positive,negative}/` | create — 100+ entries each |
+| `crates/check-raw-secret-emission/Cargo.toml` | create |
+| `crates/check-raw-secret-emission/src/lib.rs` | create — orchestrator over gitleaks + tartufo + custom |
+| `crates/check-raw-secret-emission/patterns/oyatie-custom.toml` | create — custom regex catalog per `policy/secret-isolation.md` §"TI-03" |
+| `crates/check-raw-secret-emission/tests/fixtures/{positive,negative}/` | create — 100+ entries each |
 | `.github/workflows/lean-a11.yml` | create — PR-time CI |
 | `.gitignore` | update — confirm `.omc/state/` excluded |
 | `microservices/cloud-secrets/IP-015-…md` | this file |
@@ -63,15 +63,15 @@ id = "high-entropy-generic"
 entropy_threshold = 4.5
 min_length = 20
 severity = "blocker"
-allowlist_path = "crates/oya-check-raw-secret-emission/allowlist/internal-only-strings.txt"
+allowlist_path = "crates/check-raw-secret-emission/allowlist/internal-only-strings.txt"
 ```
 
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-check-raw-secret-emission
+cargo nextest run -p check-raw-secret-emission
 # Bench: scan a corpus of 100 known-positives + 1000 known-negatives
-cargo run -p oya-dev-cli -- gate validate lean-a11-self-bench
+cargo run -p dev-cli -- gate validate lean-a11-self-bench
 # false-positive rate ≤0.1%; false-negative rate 0%
 ```
 

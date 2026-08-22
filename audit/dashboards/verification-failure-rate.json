@@ -6,7 +6,7 @@
     "owner_team": "ops-security + axis-audit-chain",
     "audience": "ops-security + ops-sre on-call",
     "tenant_scoped": false,
-    "datasource": "Mimir oya-self + oya-aggregate"
+    "datasource": "Mimir self + aggregate"
   },
   "uid": "audit-chain-verification-failure-rate",
   "title": "Verification Failure Rate — Tamper Detection",
@@ -45,7 +45,7 @@
       "title": "Verification failures (last 5m)",
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "sum(increase(oya_audit_chain_verification_failed_total{pack=~\"$pack\"}[5m]))", "refId": "A"}
+        {"expr": "sum(increase(audit_chain_verification_failed_total{pack=~\"$pack\"}[5m]))", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "red", "value": 10}]}}},
       "alert": {
@@ -60,7 +60,7 @@
       "title": "Verification failures by reason",
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "sum by (reason) (oya_audit_chain_verification_failed_total{pack=~\"$pack\"})", "format": "table", "refId": "A"}
+        {"expr": "sum by (reason) (audit_chain_verification_failed_total{pack=~\"$pack\"})", "format": "table", "refId": "A"}
       ]
     },
     {
@@ -69,8 +69,8 @@
       "title": "Verification rate (verified=true vs verified=false)",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "rate(oya_audit_chain_verification_total{pack=~\"$pack\", verified=\"true\"}[5m])", "legendFormat": "verified", "refId": "A"},
-        {"expr": "rate(oya_audit_chain_verification_total{pack=~\"$pack\", verified=\"false\"}[5m])", "legendFormat": "failed", "refId": "B"}
+        {"expr": "rate(audit_chain_verification_total{pack=~\"$pack\", verified=\"true\"}[5m])", "legendFormat": "verified", "refId": "A"},
+        {"expr": "rate(audit_chain_verification_total{pack=~\"$pack\", verified=\"false\"}[5m])", "legendFormat": "failed", "refId": "B"}
       ]
     },
     {
@@ -79,7 +79,7 @@
       "title": "Anonymous verify probing rate (potential scan pattern)",
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "rate(oya_audit_chain_verification_total{pack=~\"$pack\", principal=\"anonymous\"}[5m])", "legendFormat": "anonymous {{reason}}", "refId": "A"}
+        {"expr": "rate(audit_chain_verification_total{pack=~\"$pack\", principal=\"anonymous\"}[5m])", "legendFormat": "anonymous {{reason}}", "refId": "A"}
       ]
     },
     {
@@ -88,7 +88,7 @@
       "title": "Recent VerificationFailed events (last 1h)",
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "topk(20, oya_audit_chain_verification_failed_recent{pack=~\"$pack\"})", "format": "table", "refId": "A"}
+        {"expr": "topk(20, audit_chain_verification_failed_recent{pack=~\"$pack\"})", "format": "table", "refId": "A"}
       ]
     },
     {
@@ -97,7 +97,7 @@
       "title": "HSM signing mismatch (Sev-1)",
       "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
       "targets": [
-        {"expr": "rate(oya_audit_chain_hsm_signing_mismatch_total{pack=~\"$pack\"}[5m])", "refId": "A"}
+        {"expr": "rate(audit_chain_hsm_signing_mismatch_total{pack=~\"$pack\"}[5m])", "refId": "A"}
       ],
       "alert": {
         "name": "hsm-signing-mismatch-sev1",

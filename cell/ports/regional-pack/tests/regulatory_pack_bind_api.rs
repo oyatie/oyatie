@@ -13,7 +13,7 @@ use cell_regional_pack_api::{
 const REQUEST_ID: &str = "req_regulatory_pack_001";
 const IDEMPOTENCY_KEY: &str = "idem_regulatory_pack_001";
 const TENANT_ID: &str = "ten_regulatory_pack";
-const PRIMARY_PACK_ID: &str = "oya-pack-alpha";
+const PRIMARY_PACK_ID: &str = "pack-alpha";
 
 #[test]
 fn regulatory_pack_bind_contract_runtime_constants_are_covered() {
@@ -64,7 +64,7 @@ fn regulatory_pack_bind_supports_multi_pack_initial_binding() {
         TENANT_ID,
     );
     request.body.pack_refs.push(RegulatoryPackBindingPackRef {
-        pack_id: "oya-pack-gamma".to_string(),
+        pack_id: "pack-gamma".to_string(),
         region: "failover-region".to_string(),
         residency_class: "global".to_string(),
         controls: vec![
@@ -81,7 +81,7 @@ fn regulatory_pack_bind_supports_multi_pack_initial_binding() {
         .expect("multi-pack tenant binding succeeds when the primary pack is included");
 
     assert_eq!(response.data.pack_refs.len(), 2);
-    assert_eq!(response.data.pack_refs[1].pack_id, "oya-pack-gamma");
+    assert_eq!(response.data.pack_refs[1].pack_id, "pack-gamma");
     assert_eq!(response.data.primary_pack_id, PRIMARY_PACK_ID);
     assert_eq!(directory.len(), 1);
 }
@@ -110,7 +110,7 @@ fn regulatory_pack_bind_rejects_path_body_and_primary_pack_drift() {
         "idem_regulatory_pack_primary_drift",
         TENANT_ID,
     );
-    primary_drift.body.primary_pack_id = "oya-pack-secondary".to_string();
+    primary_drift.body.primary_pack_id = "pack-secondary".to_string();
     let primary_error =
         bind_regulatory_pack_from_api(&mut directory, &mut idempotency, primary_drift)
             .expect_err("primary pack must be present in pack_refs");

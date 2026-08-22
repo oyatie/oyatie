@@ -6,13 +6,13 @@
 {{- if not .Values.svidOperator.cellId -}}
 {{- fail "svidOperator.cellId must be set to the real cell id (forms the platform SVID authority); the operator binary fail-closes otherwise" -}}
 {{- end -}}
-{{- /* GH #980 join-token bootstrap contract: the operator reads OYA_SVID_OPERATOR_JOIN_TOKEN
+{{- /* GH #980 join-token bootstrap contract: the operator reads OYATIE_SVID_OPERATOR_JOIN_TOKEN
        from svidOperator.joinToken.secretName and fail-closes if it is empty, so the chart MUST
        NOT enable the operator without a provisioning path for that Secret. Fail the render unless
        exactly one is selected: the ESO ExternalSecret (default) OR an explicit preProvisioned
        acknowledgement that an owned out-of-band mechanism supplies it. */ -}}
 {{- if and (not .Values.svidOperator.joinToken.externalSecret.enabled) (not .Values.svidOperator.joinToken.preProvisioned) -}}
-{{- fail "svidOperator.joinToken has no provisioning contract: set joinToken.externalSecret.enabled=true (ESO->OpenBao, preferred) OR joinToken.preProvisioned=true to acknowledge an owned out-of-band Secret. The operator fail-closes without OYA_SVID_OPERATOR_JOIN_TOKEN." -}}
+{{- fail "svidOperator.joinToken has no provisioning contract: set joinToken.externalSecret.enabled=true (ESO->OpenBao, preferred) OR joinToken.preProvisioned=true to acknowledge an owned out-of-band Secret. The operator fail-closes without OYATIE_SVID_OPERATOR_JOIN_TOKEN." -}}
 {{- end -}}
 {{- if and .Values.svidOperator.joinToken.externalSecret.enabled .Values.svidOperator.joinToken.preProvisioned -}}
 {{- fail "svidOperator.joinToken: choose exactly ONE provisioning path — joinToken.externalSecret.enabled and joinToken.preProvisioned are mutually exclusive (preProvisioned opts OUT of the ESO ExternalSecret)." -}}
@@ -57,21 +57,21 @@ spec:
           image: "{{ .Values.svidOperator.image.registry }}/{{ .Values.svidOperator.image.repository }}{{- if $operatorDigest }}@{{ $operatorDigest }}{{- else }}:{{ .Values.svidOperator.image.tag }}{{- end }}"
           imagePullPolicy: {{ .Values.svidOperator.image.pullPolicy | quote }}
           command:
-            - /usr/local/bin/oya-cloud-iam-pdp-svid-operator
+            - /usr/local/bin/cloud-iam-pdp-svid-operator
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.svidOperator.cargoPackage | quote }}
-            - name: OYA_SVID_OPERATOR_CELL_ID
+            - name: OYATIE_SVID_OPERATOR_CELL_ID
               value: {{ .Values.svidOperator.cellId | quote }}
-            - name: OYA_SVID_OPERATOR_NAMESPACE
+            - name: OYATIE_SVID_OPERATOR_NAMESPACE
               value: {{ .Values.svidOperator.watchedNamespace | quote }}
-            - name: OYA_SVID_OPERATOR_TTL_SECS
+            - name: OYATIE_SVID_OPERATOR_TTL_SECS
               value: {{ .Values.svidOperator.ttlSecs | quote }}
-            - name: OYA_SVID_OPERATOR_ROTATION_WINDOW_SECS
+            - name: OYATIE_SVID_OPERATOR_ROTATION_WINDOW_SECS
               value: {{ .Values.svidOperator.rotationWindowSecs | quote }}
-            - name: OYA_SVID_OPERATOR_JOIN_TOKEN
+            - name: OYATIE_SVID_OPERATOR_JOIN_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.svidOperator.joinToken.secretName | quote }}

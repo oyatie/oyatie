@@ -1,4 +1,4 @@
-service: oya-authn-device-firmware
+service: authn-device-firmware
 role: hardware-firmware-stub
 context: authenticator-firmware (WebAuthn FIDO2/CTAP2)
 pattern: single-crate-per-service

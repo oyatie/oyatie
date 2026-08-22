@@ -591,13 +591,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cloud-intelligence-control-plane
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: cloud-intelligence-control-plane
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 rules:
   - apiGroups: ["cloud-intelligence.oya.io"]
     resources:
@@ -631,11 +631,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: cloud-intelligence-control-plane
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 subjects:
   - kind: ServiceAccount
     name: cloud-intelligence-control-plane
-    namespace: oya-cloud-intelligence
+    namespace: cloud-intelligence
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -645,7 +645,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: cloud-intelligence-gateway
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   minAvailable: 2
   selector:
@@ -656,7 +656,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: cloud-intelligence-default-deny
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
@@ -680,7 +680,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: route-controller
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: route-controller } }
@@ -690,9 +690,9 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: route-controller
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
           imagePullPolicy: Always
-          env: [{ name: OYA_WORKER_KIND, value: route-controller }]
+          env: [{ name: OYATIE_WORKER_KIND, value: route-controller }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -707,7 +707,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: model-inventory-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: model-inventory-worker } }
@@ -717,8 +717,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: model-inventory-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: model-inventory-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: model-inventory-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -733,7 +733,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: credential-refresh-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: credential-refresh-worker } }
@@ -743,8 +743,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: credential-refresh-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: credential-refresh-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: credential-refresh-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -759,7 +759,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: analytics-metering-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: analytics-metering-worker } }
@@ -769,8 +769,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: analytics-metering-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: analytics-metering-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: analytics-metering-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -785,7 +785,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: circuit-breaker-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: circuit-breaker-worker } }
@@ -795,8 +795,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: circuit-breaker-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: circuit-breaker-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: circuit-breaker-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -811,7 +811,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ops-api
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: ops-api } }
@@ -821,8 +821,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: ops-api
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: ops-api }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: ops-api }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -837,7 +837,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agent-runtime-controller
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: agent-runtime-controller } }
@@ -847,8 +847,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: agent-runtime-controller
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: agent-runtime-controller }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-runtime-controller }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -863,7 +863,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agent-scheduler-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: agent-scheduler-worker } }
@@ -873,8 +873,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: agent-scheduler-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: agent-scheduler-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-scheduler-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -889,7 +889,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: agent-delegation-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: agent-delegation-worker } }
@@ -899,8 +899,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: agent-delegation-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: agent-delegation-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-delegation-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -915,7 +915,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: safety-enforcement-controller
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: safety-enforcement-controller } }
@@ -925,8 +925,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: safety-enforcement-controller
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: safety-enforcement-controller }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: safety-enforcement-controller }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -941,7 +941,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guardrail-detection-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: guardrail-detection-worker } }
@@ -951,8 +951,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: guardrail-detection-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: guardrail-detection-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: guardrail-detection-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -967,7 +967,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evidence-retention-controller
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   replicas: 2
   selector: { matchLabels: { app: evidence-retention-controller } }
@@ -977,8 +977,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: evidence-retention-controller
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: evidence-retention-controller }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: evidence-retention-controller }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -993,7 +993,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: drift-parity-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   schedule: "*/15 * * * *"
   jobTemplate:
@@ -1004,8 +1004,8 @@ spec:
           serviceAccountName: cloud-intelligence-control-plane
           containers:
             - name: drift-parity-worker
-              image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-              env: [{ name: OYA_WORKER_KIND, value: drift-parity-worker }]
+              image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+              env: [{ name: OYATIE_WORKER_KIND, value: drift-parity-worker }]
               securityContext:
                 runAsNonRoot: true
                 runAsUser: 65532
@@ -1018,7 +1018,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: compatibility-worker
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   template:
     spec:
@@ -1026,8 +1026,8 @@ spec:
       serviceAccountName: cloud-intelligence-control-plane
       containers:
         - name: compatibility-worker
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
-          env: [{ name: OYA_WORKER_KIND, value: compatibility-worker }]
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: compatibility-worker }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -1040,10 +1040,10 @@ spec:
 # external secret-provider projection + Deployment + Service.
 #
 # Implementation status: kernel + rest adapter + app are 100%-Rust-implemented
-# (crates/oya-cloud-intelligence-{kernel,rest,app}; ~5,600 LOC + 30 tests). This file
+# (crates/cloud-intelligence-{kernel,rest,app}; ~5,600 LOC + 30 tests). This file
 # wires the binary into the cluster.
 #
-# Reads (per crates/oya-cloud-intelligence-rest/src/main.rs):
+# Reads (per crates/cloud-intelligence-rest/src/main.rs):
 #   - $GATEWAY_CONFIG — path to a ConfigMap-mounted JSON file (NO secrets).
 #   - Secret-provider adapter credentials are projected by cloud-secrets/cloud-kms;
 #     cloud-intelligence receives only opaque handles plus realm tokens.
@@ -1060,7 +1060,7 @@ spec:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-cloud-intelligence
+  name: cloud-intelligence
   labels:
     oya.io/cell: tenant
     pod-security.kubernetes.io/enforce: restricted
@@ -1073,7 +1073,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cloud-intelligence-config
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 data:
   config.json: |
     {
@@ -1115,7 +1115,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: cloud-intelligence-secrets
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   refreshInterval: "5m"
   secretStoreRef:
@@ -1139,7 +1139,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cloud-intelligence-gateway
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
   labels:
     app: cloud-intelligence
     oya.microservice: cloud-intelligence
@@ -1170,7 +1170,7 @@ spec:
           # (deferred until operator authorization — see microservices/llm-
           # gateway/k8s/BUILDKIT-JOB-TEMPLATE.md). Before first deploy, the
           # image must exist in the in-cluster registry.
-          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -1236,7 +1236,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cloud-intelligence
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
   labels:
     app: cloud-intelligence
 spec:
@@ -1251,7 +1251,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: cloud-intelligence
-  namespace: oya-cloud-intelligence
+  namespace: cloud-intelligence
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

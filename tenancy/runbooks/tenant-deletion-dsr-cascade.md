@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: tenancy-tenant-deletion-dsr-cascade.
 - Primary service namespace: `tenancy`.
-- Owning rotation: PagerDuty oya-tenancy-primary; data-boundary security secondary.
+- Owning rotation: PagerDuty tenancy-primary; data-boundary security secondary.
 - Incident channel: `#inc-tenancy-boundary`.
 - External dependencies: Citus Data support; Oracle PostgreSQL support; Cloudflare Zero Trust support.
 - API authority: `https://tenancy.internal.oyatie.dev/v1/tenancy/tenant-deletion-dsr-cascade/incident-handoff`.
@@ -26,12 +26,12 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/tenancy-tenant-deletion-dsr-cascade-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `TenancyTenantDeletionDsrCascadeCritical` when `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `TenancyTenantDeletionDsrCascadeSloBurn` when `oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open a sev0 if `oya_tenancy_tenant_deletion_dsr_cascade_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
-- Open a sev1 if `oya_tenancy_tenant_deletion_dsr_cascade_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `TenancyTenantDeletionDsrCascadeCritical` when `tenancy_tenant_deletion_dsr_cascade_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `TenancyTenantDeletionDsrCascadeSloBurn` when `tenancy_tenant_deletion_dsr_cascade_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `tenancy_tenant_deletion_dsr_cascade_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `tenancy_tenant_deletion_dsr_cascade_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `tenancy.tenant-deletion-dsr-cascade.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="tenancy",runbook="tenant-deletion-dsr-cascade"}`.
@@ -45,9 +45,9 @@ doc_status: published
 - Loki signature `tenancy.tenant_deletion_dsr_cascade.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=TenancyTenantDeletionDsrCascadeDegraded` on deployment `tenancy-tenant-deletion-dsr-cascade-worker`.
 - Audit-chain shows missing or delayed `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT --since 30m`.
-- Metric pattern: `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio` rises before `oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_tenancy_tenant_deletion_dsr_cascade_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_tenancy_tenant_deletion_dsr_cascade_queue_depth`; isolate before fleet mitigation.
+- Metric pattern: `tenancy_tenant_deletion_dsr_cascade_error_ratio` rises before `tenancy_tenant_deletion_dsr_cascade_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `tenancy_tenant_deletion_dsr_cascade_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `tenancy_tenant_deletion_dsr_cascade_queue_depth`; isolate before fleet mitigation.
 - Fleet-wide shape: at least three cells report `TenancyTenantDeletionDsrCascadeCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=tenant-deletion-dsr-cascade.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=tenant-deletion-dsr-cascade.break_glass` means manual intervention is active; confirm two-person authorization.
@@ -60,16 +60,16 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n tenancy get pods -l app=tenancy-tenant-deletion-dsr-cascade -o wide`.
 5. Read structured logs: `kubectl -n tenancy logs deploy/tenancy-tenant-deletion-dsr-cascade-worker --since=30m | rg "tenancy.tenant_deletion_dsr_cascade.incident_state|TenancyTenantDeletionDsrCascadeCritical|EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="tenancy",runbook="tenant-deletion-dsr-cascade"}' --since=30m --limit=200`.
-7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_tenant_deletion_dsr_cascade_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_tenant_deletion_dsr_cascade_queue_depth{cell="prod-us-east-1"}'`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=tenancy_tenant_deletion_dsr_cascade_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=tenancy_tenant_deletion_dsr_cascade_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=tenancy_tenant_deletion_dsr_cascade_queue_depth{cell="prod-us-east-1"}'`.
 10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111&var-incident=$INCIDENT_ID"`.
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops tenancy tenant-deletion-dsr-cascade status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --production-snapshot --cell $CELL`.
-15. Check Cargo owner crate: `cargo test -p oya-tenancy-domain tenant_deletion_dsr_cascade -- --nocapture`.
-16. Check API contract smoke: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/tenant-deletion-dsr-cascade/incident-handoff -H "x-oya-tenant: $TENANT"`.
+14. Run production snapshot gate: `cargo run -p dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p tenancy-domain tenant_deletion_dsr_cascade -- --nocapture`.
+16. Check API contract smoke: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/tenant-deletion-dsr-cascade/incident-handoff -H "x-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n tenancy get configmap tenancy-tenant-deletion-dsr-cascade-config -o yaml`.
 18. Inspect feature flags: `oya flags get oya.tenancy.tenant_deletion_dsr_cascade.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status tenancy-tenant-deletion-dsr-cascade-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -77,16 +77,16 @@ doc_status: published
 21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f microservices/tenancy/policy/rls-isolation.md`.
 22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|tenant"`.
-24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_tenant_deletion_dsr_cascade_error_ratio --window 30m --threshold 0.02`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric tenancy_tenant_deletion_dsr_cascade_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice tenancy --runbook tenant-deletion-dsr-cascade --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Tenant Deletion Dsr Cascade incident decision tree
 1. Is TenancyTenantDeletionDsrCascadeCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-tenancy-primary; data-boundary security secondary, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty tenancy-primary; data-boundary security secondary, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_tenancy_tenant_deletion_dsr_cascade_queue_depth grow while oya_tenancy_tenant_deletion_dsr_cascade_error_ratio is flat?
+2. Does tenancy_tenant_deletion_dsr_cascade_queue_depth grow while tenancy_tenant_deletion_dsr_cascade_error_ratio is flat?
    |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
    |-- no: local regression or bad input; continue branch selection.
 3. Does audit-chain show EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT gaps?
@@ -120,42 +120,42 @@ Tenant Deletion Dsr Cascade incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice tenancy --incident $INCIDENT_ID --channel #inc-tenancy-boundary`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-tenancy --incident $INCIDENT_ID --summary tenant-deletion-dsr-cascade`.
 18. Confirm breaker effect: `oya ops breaker status tenancy-tenant-deletion-dsr-cascade-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/tenant-deletion-dsr-cascade/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/tenant-deletion-dsr-cascade/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=tenant-deletion-dsr-cascade`.
 
 ### Mitigation Branch Guidance
 - Branch A: single tenant isolated.
-  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111` to the incident.
   - Required audit: emit `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: fleet-wide propagation.
-  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=112` to the incident.
   - Required audit: emit `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: dependency regression.
-  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=113` to the incident.
   - Required audit: emit `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: operator ceremony incomplete.
-  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `oya_tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
+  - Required action: keep `tenancy-tenant-deletion-dsr-cascade-circuit-breaker` open until `tenancy_tenant_deletion_dsr_cascade_error_ratio` is below 0.005 for 3 windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=114` to the incident.
   - Required audit: emit `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "tenant_deletion_dsr_cascade|TenancyTenantDeletionDsrCascadeCritical|tenancy.tenant_deletion_dsr_cascade.incident_state" crates microservices/tenancy -g "!microservices/tenancy/runbooks/**"`.
-2. Patch domain invariant: `edit oya-tenancy-domain where tenant_deletion_dsr_cascade state transition is validated`.
+2. Patch domain invariant: `edit tenancy-domain where tenant_deletion_dsr_cascade state transition is validated`.
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/tenancy/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-tenancy-domain tenant_deletion_dsr_cascade_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --fixture incident-tenant-deletion-dsr-cascade.json`.
+6. Add regression test: `cargo test -p tenancy-domain tenant_deletion_dsr_cascade_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate tenancy-tenant-deletion-dsr-cascade --fixture incident-tenant-deletion-dsr-cascade.json`.
 8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyTenantDeletionDsrCascadeCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/tenancy/dashboards/dr-pairing-state.json with oya_tenancy_tenant_deletion_dsr_cascade_error_ratio, oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds, and oya_tenancy_tenant_deletion_dsr_cascade_queue_depth`.
-10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
+9. Add dashboard panel: `update microservices/tenancy/dashboards/dr-pairing-state.json with tenancy_tenant_deletion_dsr_cascade_error_ratio, tenancy_tenant_deletion_dsr_cascade_lag_seconds, and tenancy_tenant_deletion_dsr_cascade_queue_depth`.
+10. Rebuild affected crate: `cargo check -p tenancy-domain --all-targets`.
+11. Run targeted tests: `cargo test -p tenancy-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate tenancy-policy --microservice tenancy`.
 13. Deploy canary: `oya deploy canary --microservice tenancy --component tenant-deletion-dsr-cascade-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_tenancy_tenant_deletion_dsr_cascade_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric tenancy_tenant_deletion_dsr_cascade_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close tenancy-tenant-deletion-dsr-cascade-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.tenancy.tenant_deletion_dsr_cascade.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -164,9 +164,9 @@ Tenant Deletion Dsr Cascade incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-tenancy-domain`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
-- `oya-tenancy-kernel`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
-- `oya-tenancy-api`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `tenancy-domain`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `tenancy-kernel`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `tenancy-api`: inspect for tenant_deletion_dsr_cascade invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/dashboards/dr-pairing-state.json`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
@@ -174,9 +174,9 @@ Tenant Deletion Dsr Cascade incident decision tree
 
 ## Verification Checklist
 - TenancyTenantDeletionDsrCascadeCritical and TenancyTenantDeletionDsrCascadeSloBurn are both resolved in Alertmanager for 30 minutes.
-- oya_tenancy_tenant_deletion_dsr_cascade_error_ratio < 0.005 for 3 consecutive 10 minute windows.
-- oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds < 120 for all production cells.
-- oya_tenancy_tenant_deletion_dsr_cascade_queue_depth is draining and not growing for the affected tenant.
+- tenancy_tenant_deletion_dsr_cascade_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- tenancy_tenant_deletion_dsr_cascade_lag_seconds < 120 for all production cells.
+- tenancy_tenant_deletion_dsr_cascade_queue_depth is draining and not growing for the affected tenant.
 - dashboard https://grafana.dev.oyatie.internal/d/tenancy-substrate/tenant-deletion-dsr-cascade?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111 shows green panels for the affected cell.
 - audit-chain query for EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT returns mitigation and resolution events.
 - circuit breaker tenancy-tenant-deletion-dsr-cascade-circuit-breaker is closed after rollback window.
@@ -231,7 +231,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-tenancy-primary; data-boundary security secondary.
+- Primary on-call: PagerDuty tenancy-primary; data-boundary security secondary.
 - Incident SLA: ack 3m for sev0/sev1, 10m for sev2, isolation checkpoint every 10m until contained.
 - Incident commander: first responder from axis-tenancy + ops-sre-reliability + ops-security; transfer only by explicit message in #inc-tenancy-boundary.
 - Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
@@ -258,7 +258,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source tenancy --runbook tenant-deletion-dsr-cascade --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include oya_tenancy_tenant_deletion_dsr_cascade_error_ratio, oya_tenancy_tenant_deletion_dsr_cascade_lag_seconds, oya_tenancy_tenant_deletion_dsr_cascade_queue_depth, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include tenancy_tenant_deletion_dsr_cascade_error_ratio, tenancy_tenant_deletion_dsr_cascade_lag_seconds, tenancy_tenant_deletion_dsr_cascade_queue_depth, current breaker state, and audit seal status.
 - Keep tenancy-tenant-deletion-dsr-cascade-circuit-breaker owner as axis-tenancy + ops-sre-reliability + ops-security until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.

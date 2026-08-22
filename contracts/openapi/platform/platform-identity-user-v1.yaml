@@ -155,7 +155,7 @@ components:
           x-oyatie-data-class: INTERNAL_ONLY
         region_pack:
           type: string
-          pattern: '^oya-pack-[a-z0-9-]+$'
+          pattern: '^pack-[a-z0-9-]+$'
           description: Regional pack used to route this user's IdP binding.
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY

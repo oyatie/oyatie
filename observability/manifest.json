@@ -77,37 +77,37 @@
   ],
   "slos": [
     {
-      "name": "oya-observability-alerting-fanout-latency",
+      "name": "observability-alerting-fanout-latency",
       "target": "0.99",
       "sli": "sum(rate(alertmanager_notification_latency_seconds_bucket{le=\"30\"}[5m]))",
       "file": "observability/observability/slos/alerting-fanout-latency.openslo.yaml"
     },
     {
-      "name": "oya-observability-log-ingest-availability",
+      "name": "observability-log-ingest-availability",
       "target": "0.9995",
       "sli": "sum(rate(loki_distributor_requests_total{status_code=~\"2..\"}[5m]))",
       "file": "observability/observability/slos/log-ingest-availability.openslo.yaml"
     },
     {
-      "name": "oya-observability-metric-ingest-availability",
+      "name": "observability-metric-ingest-availability",
       "target": "0.9995",
       "sli": "sum(rate(cortex_distributor_requests_total{status_code=~\"2..\"}[5m]))",
       "file": "observability/observability/slos/metric-ingest-availability.openslo.yaml"
     },
     {
-      "name": "oya-observability-query-latency-logs",
+      "name": "observability-query-latency-logs",
       "target": "0.95",
       "sli": "sum(rate(loki_request_duration_seconds_bucket{route=~\"/loki/api/v1/query.*\",le=\"0.5\"}[5m]))",
       "file": "observability/observability/slos/query-latency-logs.openslo.yaml"
     },
     {
-      "name": "oya-observability-query-latency-prom",
+      "name": "observability-query-latency-prom",
       "target": "0.95",
       "sli": "sum(rate(cortex_querier_request_duration_seconds_bucket{le=\"0.2\"}[5m]))",
       "file": "observability/observability/slos/query-latency-prom.openslo.yaml"
     },
     {
-      "name": "oya-observability-trace-ingest-availability",
+      "name": "observability-trace-ingest-availability",
       "target": "0.999",
       "sli": "sum(rate(tempo_distributor_spans_received_total[5m])) - sum(rate(tempo_distributor_spans_refused_total[5m]))",
       "file": "observability/observability/slos/trace-ingest-availability.openslo.yaml"
@@ -128,43 +128,43 @@
     },
     {
       "id": "IP-003-slo-engine-kernel",
-      "title": "IP-003: oya-observability-slo-engine-kernel",
+      "title": "IP-003: observability-slo-engine-kernel",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-003-slo-engine-kernel.md"
     },
     {
       "id": "IP-004-slo-engine-domain",
-      "title": "IP-004: oya-observability-slo-engine-domain",
+      "title": "IP-004: observability-slo-engine-domain",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-004-slo-engine-domain.md"
     },
     {
       "id": "IP-005-slo-engine-usecase",
-      "title": "IP-005: oya-observability-slo-engine-usecase",
+      "title": "IP-005: observability-slo-engine-usecase",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-005-slo-engine-usecase.md"
     },
     {
       "id": "IP-006-slo-engine-adapter",
-      "title": "IP-006: oya-observability-slo-engine-adapter + adapter-mimir",
+      "title": "IP-006: observability-slo-engine-adapter + adapter-mimir",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-006-slo-engine-adapter.md"
     },
     {
       "id": "IP-007-slo-engine-rest",
-      "title": "IP-007: oya-observability-slo-engine-rest",
+      "title": "IP-007: observability-slo-engine-rest",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-007-slo-engine-rest.md"
     },
     {
       "id": "IP-008-slo-engine-worker",
-      "title": "IP-008: oya-observability-slo-engine-worker",
+      "title": "IP-008: observability-slo-engine-worker",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-008-slo-engine-worker.md"
     },
     {
       "id": "IP-009-slo-engine-app",
-      "title": "IP-009: oya-observability-slo-engine-app",
+      "title": "IP-009: observability-slo-engine-app",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-009-slo-engine-app.md"
     },
@@ -182,7 +182,7 @@
     },
     {
       "id": "IP-012-governance-promotion-readiness-lane",
-      "title": "IP-012: oya-governance-promotion-readiness CI lane (BLOCKER)",
+      "title": "IP-012: governance-promotion-readiness CI lane (BLOCKER)",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-012-governance-promotion-readiness-lane.md"
     },
@@ -296,7 +296,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "observability is a BNF v4.1 kebab-case microservice slug; generated names follow oya-observability-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "observability is a BNF v4.1 kebab-case microservice slug; generated names follow observability-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"

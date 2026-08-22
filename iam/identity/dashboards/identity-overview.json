@@ -44,7 +44,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
       "targets": [
         {
-          "expr": "sum(rate(oya_identity_oidc_issue_total{pack=\"$pack\"}[5m])) by (grant_type)"
+          "expr": "sum(rate(identity_oidc_issue_total{pack=\"$pack\"}[5m])) by (grant_type)"
         }
       ]
     },
@@ -55,7 +55,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
       "targets": [
         {
-          "expr": "sum(rate(oya_identity_oidc_verify_total{pack=\"$pack\"}[5m]))"
+          "expr": "sum(rate(identity_oidc_verify_total{pack=\"$pack\"}[5m]))"
         }
       ]
     },
@@ -72,7 +72,7 @@
       "gridPos": { "h": 6, "w": 6, "x": 0, "y": 10 },
       "targets": [
         {
-          "expr": "100 * sum(rate(oya_identity_oidc_issue_total{pack=\"$pack\",error!=\"\"}[5m])) / sum(rate(oya_identity_oidc_issue_total{pack=\"$pack\"}[5m]))"
+          "expr": "100 * sum(rate(identity_oidc_issue_total{pack=\"$pack\",error!=\"\"}[5m])) / sum(rate(identity_oidc_issue_total{pack=\"$pack\"}[5m]))"
         }
       ],
       "fieldConfig": {
@@ -95,7 +95,7 @@
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 10 },
       "targets": [
         {
-          "expr": "100 * sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\",outcome=\"failure\"}[5m])) / sum(rate(oya_identity_webauthn_authenticate_total{pack=\"$pack\"}[5m]))"
+          "expr": "100 * sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\",outcome=\"failure\"}[5m])) / sum(rate(identity_webauthn_authenticate_total{pack=\"$pack\"}[5m]))"
         }
       ]
     },
@@ -106,7 +106,7 @@
       "gridPos": { "h": 6, "w": 6, "x": 12, "y": 10 },
       "targets": [
         {
-          "expr": "100 * sum(rate(oya_identity_scim_request_total{pack=\"$pack\",http_status=~\"5..\"}[5m])) / sum(rate(oya_identity_scim_request_total{pack=\"$pack\"}[5m]))"
+          "expr": "100 * sum(rate(identity_scim_request_total{pack=\"$pack\",http_status=~\"5..\"}[5m])) / sum(rate(identity_scim_request_total{pack=\"$pack\"}[5m]))"
         }
       ]
     },
@@ -117,7 +117,7 @@
       "gridPos": { "h": 6, "w": 6, "x": 18, "y": 10 },
       "targets": [
         {
-          "expr": "100 * sum(rate(oya_identity_step_up_total{pack=\"$pack\",outcome=\"denied\"}[5m])) / sum(rate(oya_identity_step_up_total{pack=\"$pack\"}[5m]))"
+          "expr": "100 * sum(rate(identity_step_up_total{pack=\"$pack\",outcome=\"denied\"}[5m])) / sum(rate(identity_step_up_total{pack=\"$pack\"}[5m]))"
         }
       ]
     },
@@ -133,9 +133,9 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(oya_identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p50" },
-        { "expr": "histogram_quantile(0.99, sum(rate(oya_identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p99" },
-        { "expr": "histogram_quantile(0.999, sum(rate(oya_identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p999" }
+        { "expr": "histogram_quantile(0.50, sum(rate(identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.99, sum(rate(identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p99" },
+        { "expr": "histogram_quantile(0.999, sum(rate(identity_oidc_issue_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p999" }
       ]
     },
     {
@@ -144,8 +144,8 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(oya_identity_webauthn_authenticate_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p50" },
-        { "expr": "histogram_quantile(0.99, sum(rate(oya_identity_webauthn_authenticate_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p99" }
+        { "expr": "histogram_quantile(0.50, sum(rate(identity_webauthn_authenticate_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.99, sum(rate(identity_webauthn_authenticate_duration_seconds_bucket{pack=\"$pack\"}[5m])) by (le))", "legendFormat": "p99" }
       ]
     },
     {
@@ -160,7 +160,7 @@
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
       "targets": [
-        { "expr": "100 * oya_identity_zitadel_postgres_pool_utilization{pack=\"$pack\"}" }
+        { "expr": "100 * identity_zitadel_postgres_pool_utilization{pack=\"$pack\"}" }
       ]
     },
     {

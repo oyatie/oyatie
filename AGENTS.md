@@ -10,7 +10,7 @@ Pointers: `/specs/masterplan.json#masterplan_v2` (the only live plan authority);
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## Doctrine survival (INV-DOC-9)
 
@@ -29,7 +29,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **achieves:** preserve merge integrity and blast-radius discipline.
 - **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
 - **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
-- **ensure:** reviewer APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split below.
+- **ensure:** reviewer APPROVE + green `presubmit` remain distinct; coordinator/worker split below.
 - **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
 
 ### Survival rule itself (INV-DOC-9)
@@ -59,7 +59,7 @@ cloud OS; Asterinas/Hermit are not plant today — reconsider only per ADR-0719 
 automation
 deliverables are Rust, never shell/Python/Node (rust-first automation-hygiene gate); ALL CLI
 surfaces are retirement-marked — new capabilities ship as APIs + declarative state + reconcilers;
-nothing merges except a protected PR against `dev` behind the single required `oya-ci-required`
+nothing merges except a protected PR against `dev` behind the single required `presubmit`
 context.
 
 Repository topology and the full operating contract live in
@@ -79,10 +79,10 @@ Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--
 | `cargo clippy --workspace --all-targets -- -D warnings` | Lint gate — same command CI runs |
 | `cargo test --workspace` | Primary test — every workspace member, gate fleet included |
 | `buck2 build //...` / `buck2 test //...` | Local hermeticity only, never merge evidence (weekly CI smoke keeps the graph honest) |
-| `cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root .` | Regenerate `*.generated.json` faces — never hand-edit |
+| `cargo run -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root .` | Regenerate `*.generated.json` faces — never hand-edit |
 
 Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is
-only the `oya-ci-required` context on the PR (ADR-0716).
+only the `presubmit` context on the PR (ADR-0716).
 
 There is no root Makefile. Cloudflare edge fmt/plan/apply is `tofu -chdir=infra/cloudflare`
 (see [`iac/README.md`](iac/README.md)). Do not treat Make as cargo verify.
@@ -133,7 +133,7 @@ more-is-not-better (net-reduce) · full-target design, staged delivery (no big-b
 **Enforcement model** — every rule ships in three layers, in priority order: (1) **instruction** here in
 AGENTS.md so authors comply *before* a gate fires (enforcement without instruction forces broad retroactive
 fixes); (2) **automation** — the gate ships its own auto-fix wherever it makes sense (the key to low-friction
-progression); (3) **CI enforcement** — a blocking backstop in `oya-ci-required`. Each ships as a neutral
+progression); (3) **CI enforcement** — a blocking backstop in `presubmit`. Each ships as a neutral
 engine + policy-as-data so any repo/team can adopt it (pipeline-as-product): our pain is everyone's pain.
 
 <!-- agent-instructions:start -->
@@ -143,9 +143,9 @@ required_sequence:
   - isolated worktree branch per agent lane (one lane = one worktree)
   - SSH-signed commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - single required status context oya-ci-required green (produced by the cloud-ci gate apps per ADR-0515)
+  - single required status context presubmit green (produced by the cloud-ci gate apps per ADR-0515)
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
-    and the required oya-ci-required context green; then squash merge
+    and the required presubmit context green; then squash merge
   - the merged PR and its green checks are the record; no separate post-merge packet (ADR-0716)
 coordinator_worker_split:
   coordinator: portfolio/architecture coordinator evaluates architecture, system design,
@@ -158,9 +158,9 @@ coordinator_worker_split:
 blocker_policy: blockers become dispatcher-ready resolution cards with source context,
   blocker class, acceptance criteria, verification path, suggested owner/profile,
   and dependency/conflict notes unless the coordinator is explicitly assigned as worker
-generated_faces_policy: never add or modify any *.generated.json by hand; cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . materializes them and the diff-policy gate fails closed on hand edits
+generated_faces_policy: never add or modify any *.generated.json by hand; cargo run -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root . materializes them and the diff-policy gate fails closed on hand edits
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-cli_retirement_note: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09. Verification and merge authority live in the cloud-ci gate apps behind the single required context oya-ci-required; operations ride the console + API. Legacy `oya-dev-cli` invocations are local bridge feedback only, never merge authority; the tracked `bin/oya` PATH shim is retired. Historical note (retired tooling, cited as history only): the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/done/promote) were retired by ADR-0363, and the pre-cutover CI backbone plus its gate-runner entrypoints were retired by ADR-0515.
+cli_retirement_note: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09. Verification and merge authority live in the cloud-ci gate apps behind the single required context presubmit; operations ride the console + API. Legacy `dev-cli` invocations are local bridge feedback only, never merge authority; the tracked `bin/oya` PATH shim is retired. Historical note (retired tooling, cited as history only): the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/done/promote) were retired by ADR-0363, and the pre-cutover CI backbone plus its gate-runner entrypoints were retired by ADR-0515.
 <!-- agent-instructions:end -->

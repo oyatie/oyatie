@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-network-cross-cell-routing-stall.
 - Primary namespace: `cloud-network`.
-- Owning rotation: PagerDuty `oya-cloud-network-primary`.
-- Cell secondary: PagerDuty `oya-cell-operations-primary`.
+- Owning rotation: PagerDuty `cloud-network-primary`.
+- Cell secondary: PagerDuty `cell-operations-primary`.
 - Incident channel: `#inc-cloud-network`.
 - Customer channel: `#support-network-routing`.
 - Protected surface: per-tenant VPCs, Cilium clustermesh, cross-region peering, service discovery, ingress, egress, route health.
@@ -40,14 +40,14 @@ doc_status: published
 - Alert `CloudNetworkCiliumClusterMeshUnhealthy` fires.
 - Alert `CloudNetworkResidencyRouteViolation` fires.
 - Alert `CloudNetworkServiceDiscoveryStale` fires.
-- Metric `oya_cloud_network_cross_cell_route_success_ratio` drops below 0.995.
-- Metric `oya_cloud_network_route_convergence_lag_seconds` exceeds 120.
-- Metric `oya_cloud_network_cilium_clustermesh_unhealthy_nodes` is non-zero.
-- Metric `oya_cloud_network_service_discovery_stale_endpoint_total` increases.
-- Metric `oya_cloud_network_residency_route_refusal_total` increases unexpectedly.
-- Metric `oya_cloud_network_cross_cell_packet_drop_total` spikes.
-- Metric `oya_cloud_network_bgp_peer_down_total` is non-zero.
-- Metric `oya_cloud_network_wireguard_peer_handshake_age_seconds` exceeds 300.
+- Metric `cloud_network_cross_cell_route_success_ratio` drops below 0.995.
+- Metric `cloud_network_route_convergence_lag_seconds` exceeds 120.
+- Metric `cloud_network_cilium_clustermesh_unhealthy_nodes` is non-zero.
+- Metric `cloud_network_service_discovery_stale_endpoint_total` increases.
+- Metric `cloud_network_residency_route_refusal_total` increases unexpectedly.
+- Metric `cloud_network_cross_cell_packet_drop_total` spikes.
+- Metric `cloud_network_bgp_peer_down_total` is non-zero.
+- Metric `cloud_network_wireguard_peer_handshake_age_seconds` exceeds 300.
 - Tenant reports cross-region service unavailable.
 - Cloud-compute reports pods healthy but service unreachable from another cell.
 - Cloud-iam reports authorization succeeds but network connect fails.
@@ -84,11 +84,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-network --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-network --severity sev1`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="cross-cell-routing")'`.
-6. Query route success: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_cross_cell_route_success_ratio{cell="'$CELL'",peer_cell="'$PEER_CELL'"}'`.
-7. Query convergence lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_route_convergence_lag_seconds{cell="'$CELL'"}'`.
-8. Query clustermesh nodes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_cilium_clustermesh_unhealthy_nodes{cell="'$CELL'"}'`.
-9. Query packet drops: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_network_cross_cell_packet_drop_total[5m])'`.
-10. Query WireGuard handshakes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_network_wireguard_peer_handshake_age_seconds{cell="'$CELL'",peer_cell="'$PEER_CELL'"}'`.
+6. Query route success: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_cross_cell_route_success_ratio{cell="'$CELL'",peer_cell="'$PEER_CELL'"}'`.
+7. Query convergence lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_route_convergence_lag_seconds{cell="'$CELL'"}'`.
+8. Query clustermesh nodes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_cilium_clustermesh_unhealthy_nodes{cell="'$CELL'"}'`.
+9. Query packet drops: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_network_cross_cell_packet_drop_total[5m])'`.
+10. Query WireGuard handshakes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_network_wireguard_peer_handshake_age_seconds{cell="'$CELL'",peer_cell="'$PEER_CELL'"}'`.
 11. Open routing dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/cross-cell-routing?orgId=1&var-cell=$CELL&var-peer=$PEER_CELL&var-tenant=$TENANT"`.
 12. Open flow dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-network-substrate/flow-logs?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 13. Read controller logs: `kubectl -n cloud-network logs deploy/cloud-network-route-controller --since=60m | rg "route|clustermesh|residency|convergence"`.
@@ -165,18 +165,18 @@ doc_status: published
 6. Patch residency policy if a valid route was falsely refused.
 7. Add regression fixture for cross-cell route convergence.
 8. Add regression fixture for stale service endpoint.
-9. Run domain tests: `cargo test -p oya-cloud-network-domain routing -- --nocapture`.
-10. Run VPC API tests: `cargo test -p oya-cloud-network-vpc-api cloud_network_vpc_api -- --nocapture`.
-11. Run LB API tests if ingress changed: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
-12. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-routing --production-snapshot --cell $CELL`.
+9. Run domain tests: `cargo test -p cloud-network-domain routing -- --nocapture`.
+10. Run VPC API tests: `cargo test -p cloud-network-vpc-api cloud_network_vpc_api -- --nocapture`.
+11. Run LB API tests if ingress changed: `cargo test -p cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
+12. Run production gate: `cargo run -p dev-cli -- gate validate cloud-network-routing --production-snapshot --cell $CELL`.
 13. Re-enable route automation: `oya flags set oya.cloud_network.routing.auto_promote=true --cell $CELL --reason resolved-$INCIDENT_ID`.
 14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_CROSS_CELL_ROUTING_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist
 - `CloudNetworkCrossCellRoutingStallCritical` is green.
-- `oya_cloud_network_cross_cell_route_success_ratio` is above 0.995.
-- `oya_cloud_network_route_convergence_lag_seconds` is below 60.
+- `cloud_network_cross_cell_route_success_ratio` is above 0.995.
+- `cloud_network_route_convergence_lag_seconds` is below 60.
 - Cilium clustermesh status is healthy.
 - WireGuard peer handshake age is below 120 seconds.
 - BGP peers are established.
@@ -237,11 +237,11 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-network-primary` for routing stalls.
-- Page `oya-cell-operations-primary` when multiple cells or cell fabric is affected.
-- Page `oya-security-policy-primary` when residency or tenant isolation risk exists.
-- Page `oya-cloud-compute-primary` when service endpoints are stale.
-- Page `oya-audit-chain-primary` when route events do not seal.
+- Page `cloud-network-primary` for routing stalls.
+- Page `cell-operations-primary` when multiple cells or cell fabric is affected.
+- Page `security-policy-primary` when residency or tenant isolation risk exists.
+- Page `cloud-compute-primary` when service endpoints are stale.
+- Page `audit-chain-primary` when route events do not seal.
 - Notify `#inc-cloud-network` with tenant, cell, and peer cell.
 - Notify `#support-network-routing` before tenant-facing messaging.
 - Notify `#compliance-review` for residency route questions.

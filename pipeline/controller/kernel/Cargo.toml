@@ -6,10 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# oya-ci controller kernel — pure-domain state machine for Phase-1 bespoke-Prow
-# (oya-ci-bespoke-prow design). No I/O, no async, no kube, no tokio.
+# ci controller kernel — pure-domain state machine for Phase-1 bespoke-Prow
+# (ci-bespoke-prow design). No I/O, no async, no kube, no tokio.
 # Owns: GateRun, GateOutcome, CommitState, JobObservation, map_job_to_status.
-# ADR-0387 (ci-gate substrate); see docs/ideas/oya-ci-bespoke-prow.md Phase 1.
+# ADR-0387 (ci-gate substrate); see docs/ideas/ci-bespoke-prow.md Phase 1.
 
 [lib]
 name = "ci_controller_kernel"

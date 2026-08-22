@@ -90,11 +90,11 @@
           "hits": [
             {
               "line": 46,
-              "excerpt": "| Valkey (hot-feed cache + vote buffer) | `oya-community-voting-engine-*` (8 crates) |"
+              "excerpt": "| Valkey (hot-feed cache + vote buffer) | `community-voting-engine-*` (8 crates) |"
             },
             {
               "line": 79,
-              "excerpt": "\u2502  oya-community-voting-engine-rest \u2500\u2500\u25ba Valkey (per-tenant key prefix)       \u2502"
+              "excerpt": "\u2502  community-voting-engine-rest \u2500\u2500\u25ba Valkey (per-tenant key prefix)       \u2502"
             },
             {
               "line": 148,
@@ -384,11 +384,11 @@
           "hits": [
             {
               "line": 45,
-              "excerpt": "| Elasticsearch / Tantivy (search-index) | `oya-community-thread-tree-*` (7 crates) |"
+              "excerpt": "| Elasticsearch / Tantivy (search-index) | `community-thread-tree-*` (7 crates) |"
             },
             {
               "line": 80,
-              "excerpt": "\u2502  oya-community-search-index-rest \u2500\u2500\u2500\u25ba Elasticsearch (per-tenant index)    \u2502"
+              "excerpt": "\u2502  community-search-index-rest \u2500\u2500\u2500\u25ba Elasticsearch (per-tenant index)    \u2502"
             },
             {
               "line": 133,

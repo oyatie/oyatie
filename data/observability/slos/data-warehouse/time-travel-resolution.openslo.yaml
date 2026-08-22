@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_time_travel_resolve_under_1s_total[5m]))
+              query: sum(rate(data_warehouse_time_travel_resolve_under_1s_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_time_travel_resolve_total[5m]))
+              query: sum(rate(data_warehouse_time_travel_resolve_total[5m]))
   objectives:
     - displayName: p99 time-travel resolve under 1s
       target: 0.99

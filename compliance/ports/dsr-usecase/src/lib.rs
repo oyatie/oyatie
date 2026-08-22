@@ -15,7 +15,7 @@ use compliance_dsr::{
     DsrStoreRefCreate, ErasureProof, ErasureProofCreate, PlatformDsrError,
     platform_dsr_data_class_from_legacy,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 /// Fail-closed authorization seam for the DSR erasure cascade (AUTH-005 /
 /// Wave-2b; ADR-0589). The cascade is UNREACHABLE without a verified principal
@@ -995,7 +995,7 @@ fn store_ref_from_target(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
+) -> Result<data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         PlatformDsrApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

@@ -5,7 +5,7 @@
 //! pipeline's largest false-green channel: the only binding buck2 lane was scoped to
 //! `//cloud/cloud-ci/...`, so code anywhere else (oya/*, libs/*, cloud/* services) could merge
 //! broken (proven live: PR #651 head cf16525 did not compile yet its buck2 lane was green;
-//! `//oya/ci-webhook-gateway:oya-ci-webhook-gateway-tests` carried an E0428 on dev itself).
+//! `//oya/ci-webhook-gateway:ci-webhook-gateway-tests` carried an E0428 on dev itself).
 //!
 //! Precedent (proven patterns, Rust reimplementation): Bazel "target determination" /
 //! bazel-diff (Tinder) — derive the affected-target cone from the VCS diff via the build
@@ -806,7 +806,7 @@ pub fn resolve(
 /// to defend. This function makes "may be the entire selection" a separate, named, reviewable
 /// licence, so the `[]`-inert false green cannot be reintroduced for a NEW class by one line.
 ///
-/// ARTIFACT NOTE: `.github/workflows/oya-ci-required.yml` keeps the `affected-set-operator-artifacts`
+/// ARTIFACT NOTE: `.github/workflows/presubmit.yml` keeps the `affected-set-operator-artifacts`
 /// upload on `if: always()` because, before this assertion existed, that artifact was the ONLY
 /// witness of an empty affected set. This function is the gate that comment defers to; once it has
 /// proven itself in production the upload can drop to `failure()` like its siblings — an empty
@@ -1049,7 +1049,7 @@ pub fn failing_targets(report: &BTreeMap<String, TargetBuildStatus>) -> BTreeSet
 
 /// The ONLY workflow whose push-to-dev runs may publish a trusted merge-base baseline (ADR-0515
 /// single required context). Bound into run selection so the artifact NAME alone is never enough.
-pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
+pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/presubmit.yml";
 
 /// The only job allowed to publish the build/test pair consumed by the trusted-baseline fast
 /// path. A workflow run is an aggregate: an unrelated hosted lane may fail after this owned,
@@ -2712,9 +2712,9 @@ mod tests {
         // present at the merge-base -> all grandfathered -> GREEN (no flag-day requirement).
         let baseline = set(&[
             "root//third-party:blake3",
-            "root//libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest",
-            "root//ci/controller/app:oya-ci-controller",
-            "root//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter-build-script-run",
+            "root//libs/data-sql-adapter-sqlx:data-sql-adapter-sqlx-unittest",
+            "root//ci/controller/app:ci-controller",
+            "root//libs/shared-backbone-grpc-generated-adapter:shared-backbone-grpc-generated-adapter-build-script-run",
         ]);
         let head = baseline.clone();
         let v = build_health_verdict(&baseline, &head);

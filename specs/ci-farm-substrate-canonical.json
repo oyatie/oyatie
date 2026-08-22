@@ -32,7 +32,7 @@
   },
   "ephemeral_agents": {
     "provider": "cloud-ci kubernetes plugin clouds",
-    "namespace": "oya-ci",
+    "namespace": "ci",
     "container_cap": 20,
     "runtime_class": "kata-cloud-hypervisor",
     "pod_runtime_tier": "1 (tenant-untrusted CI workload per ADR-0338)",
@@ -41,16 +41,16 @@
     "agent_image": "registry.oyatie.dev/ci/rust:stable (cosign-required, digest-pinned)"
   },
   "remote_build_cache": {
-    "rationale": "Bazel-RBE-style shared cache is the primary lever for true N-way parallelism: without it each ephemeral agent recompiles the shared substrate (121 *-kernel + 30 oya-shared-* crates + dependency graph) cold. With it, shared-substrate objects are compiled once and reused across all lanes, so per-lane wall-clock is dominated by the lane's own crates.",
+    "rationale": "Bazel-RBE-style shared cache is the primary lever for true N-way parallelism: without it each ephemeral agent recompiles the shared substrate (121 *-kernel + 30 shared-* crates + dependency graph) cold. With it, shared-substrate objects are compiled once and reused across all lanes, so per-lane wall-clock is dominated by the lane's own crates.",
     "compiler_cache": "sccache",
     "backend": "SeaweedFS S3 API (ADR-0196 canonical object storage; Apache-2.0; self-hostable, license-clean — no external cache dependency)",
-    "bucket": "oya-ci-sccache-shared-prod",
+    "bucket": "ci-sccache-shared-prod",
     "agent_env": {
       "RUSTC_WRAPPER": "sccache",
-      "SCCACHE_BUCKET": "oya-ci-sccache-shared-prod",
-      "SCCACHE_ENDPOINT": "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333",
+      "SCCACHE_BUCKET": "ci-sccache-shared-prod",
+      "SCCACHE_ENDPOINT": "seaweedfs-s3.ci-jenkins.svc.cluster.local:8333",
       "SCCACHE_S3_USE_SSL": "false",
-      "SCCACHE_REGION": "oya-local",
+      "SCCACHE_REGION": "local",
       "SCCACHE_S3_KEY_PREFIX": "rustc/${rust_toolchain_version}",
       "CARGO_INCREMENTAL": "0"
     },
@@ -72,7 +72,7 @@
       "scoped oya gate validate",
       "cosign-verified image build (ADR-0181)"
     ],
-    "shared_library": "oya-ci-shared global library carries the cache-wiring and gate-invocation steps so lanes inherit them rather than duplicating."
+    "shared_library": "ci-shared global library carries the cache-wiring and gate-invocation steps so lanes inherit them rather than duplicating."
   },
   "merge_queue_integration": {
     "admission": "Parallel lane branches fan in through the ADR-0111 merge-queue projected state; the merge queue serializes admission so concurrent lanes never corrupt trunk.",
@@ -81,7 +81,7 @@
   },
   "ci_lane": {
     "parity_gate": "RETIRED (ADR-0361): no Actions<->cloud-ci parity; cloud-ci is the sole CI",
-    "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/pipeline.yaml and the cloud-ci agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
+    "cache_discipline_gate": "governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/pipeline.yaml and the cloud-ci agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
     "verify_mirror": "ADR-0346 oya verify --ci-required"
   },
   "deployment": {

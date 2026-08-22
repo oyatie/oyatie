@@ -19,7 +19,7 @@ doc_status: published
 ONE of:
 1. **Single drift event**: drift-detector emits `DriftDetected{microservice, resource}` event for a specific µservice resource.
 2. **Drift cascade** (FM-02): rate of drift events > 100/min for ≥ 5min.
-3. **Drift coverage gap** (FM-11): `oya_cloud_iac_drift_coverage_pct < 99.5` over 1h window.
+3. **Drift coverage gap** (FM-11): `cloud_iac_drift_coverage_pct < 99.5` over 1h window.
 4. **Render non-determinism** (FM-15): re-render produces different content digest.
 
 ## Severity
@@ -79,7 +79,7 @@ Cause: validator-worker outage; Postgres lag; apiserver throttling.
 | 1 | Verify validator-worker pods: `kubectl -n cloud-iac get pods -l app=iac-validator-worker` |
 | 2 | If pods are unhealthy: restart; investigate via `runbooks/evaluator-down.md` (cross-µservice pattern) |
 | 3 | If apiserver-throttled: throttle other workloads or scale up apiserver |
-| 4 | Verify drift cycles resume: `rate(oya_cloud_iac_drift_cycles_completed_total[5m])` > expected |
+| 4 | Verify drift cycles resume: `rate(cloud_iac_drift_cycles_completed_total[5m])` > expected |
 | 5 | Compute coverage backfill: gap-cycles re-run to ensure no drift went undetected |
 
 ## Recovery Path E — Render non-determinism (FM-15)
@@ -91,14 +91,14 @@ Cause: a chart references current timestamp, env var, or non-deterministic sourc
 | 1 | Identify non-deterministic value in the chart: cloud-native IaC controller/API `render --chart` workflow shows the diff between renders |
 | 2 | Common patterns: `{{ now }}`, `{{ randAlphaNum }}`, env-var interpolation, file-mtime |
 | 3 | Replace with deterministic source: PR review; merge |
-| 4 | LEAN check `oya-cloud-iac-render-determinism` will catch future regressions |
+| 4 | LEAN check `cloud-iac-render-determinism` will catch future regressions |
 | 5 | Document the convention violation in `microservices/<ms>/iac/<chart>/README.md` |
 
 ## Verification
 
 After recovery:
-- `oya_cloud_iac_drift_events_total` rate < 10 / min for affected µservice for ≥ 30min.
-- `oya_cloud_iac_drift_coverage_pct >= 99.5` over 1h window.
+- `cloud_iac_drift_events_total` rate < 10 / min for affected µservice for ≥ 30min.
+- `cloud_iac_drift_coverage_pct >= 99.5` over 1h window.
 - Live state matches git-declared state (verified via spot-check cloud-native IaC controller/API `diff --microservice` workflow).
 - No security-sensitive resources in drift state.
 

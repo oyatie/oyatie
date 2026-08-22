@@ -18,7 +18,7 @@ Reference: ADR-0330 in the decision index; this doc avoids repeating retired tri
   `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
   `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
 - Merge/gate authority: branch-protected GitHub Actions required context
-  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  `presubmit` is the live blocker until the owned `ci` cutover reuses
   the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
   checks, shell scripts, and legacy build-server mirrors are
   non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
@@ -32,13 +32,13 @@ Reference: ADR-0330 in the decision index; this doc avoids repeating retired tri
 ## Doctrine references
 
 - ADR-0346: legacy CI-mirror control intent only. The former local verifier authority wording is superseded for
-  `cloud-kms`; the branch-protected `oya-ci-required` context is the live
+  `cloud-kms`; the branch-protected `presubmit` context is the live
   required gate, and reusable Rust gate logic must be re-homed into cloud-ci /
-  owned `oya-ci` rather than revived as local CLI authority.
-- ADR-0347: Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348: Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+  owned `ci` rather than revived as local CLI authority.
+- ADR-0347: Every `governance-*` CI lane prefix RENAMES to `governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `governance-retired-vocab-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348: Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
 - ADR-0349: legacy self-hostable substrate control intent only. The retired build-server bridge is not a
-  parallel merge authority for `cloud-kms`; GitHub Actions `oya-ci-required`
-  remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps
+  parallel merge authority for `cloud-kms`; GitHub Actions `presubmit`
+  remains the live required context until owned `ci` cutover. ArgoCD/GitOps
   remains the declarative CD direction and replaces manual `kubectl apply` or
   Helm CLI deploys as canonical procedure.

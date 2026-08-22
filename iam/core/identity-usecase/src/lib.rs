@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, Principal, issue_credential,
 };
-use oya_data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
+use data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
 
 pub const IDENTITY_TOKEN_ISSUE_SURFACE: &str = "identity.token.issue";
 pub const IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT: &str =
@@ -1034,7 +1034,7 @@ fn identity_error_issue(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "tenant id must use the ten_ prefix",
         IdentityError::InvalidUserId => "human subject id must use the usr_ prefix",
-        IdentityError::InvalidRegionPack => "region pack must use the oya-pack- prefix",
+        IdentityError::InvalidRegionPack => "region pack must use the pack- prefix",
         IdentityError::InvalidIdentityProviderId => "identity provider id must use the idp_ prefix",
         IdentityError::EmptyExternalSubject => "external subject must be non-empty",
         IdentityError::InvalidServicePrincipalId => "service subject id must use the sp_ prefix",

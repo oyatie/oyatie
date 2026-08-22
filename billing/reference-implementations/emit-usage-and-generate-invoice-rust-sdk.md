@@ -1,4 +1,4 @@
-# Reference implementation — Emit usage + generate invoice + export FOCUS via `oya-cloud-billing-sdk`
+# Reference implementation — Emit usage + generate invoice + export FOCUS via `cloud-billing-sdk`
 
 Runnable Rust program that emits a batch of usage events from a fake µservice, triggers a synthetic period close, generates an
 invoice, and writes a FOCUS 1.1 export to local disk.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-billing-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-billing-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 time = { version = "0.3", features = ["macros", "serde-well-known"] }
@@ -28,11 +28,11 @@ uuid = { version = "1.10", features = ["v7"] }
 
 ```rust
 use anyhow::Result;
-use oya_cloud_billing_sdk::{
+use cloud_billing_sdk::{
     BillingClient, BillingConfig, FocusFormat, FocusExportRequest, InvoiceMode, MeteringEvent,
     Period, Tenant,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use time::{Date, Month, OffsetDateTime};
 use tracing::{info, warn};
@@ -188,7 +188,7 @@ INFO  focus validation OK
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_billing_sdk::testkit::Hermetic` to spin a single-process loopback cell with an in-memory
+The `hermetic` feature uses `cloud_billing_sdk::testkit::Hermetic` to spin a single-process loopback cell with an in-memory
 Kafka stub + in-memory rate card; tests finish in ≤ 90 s.
 
 ## Error budget

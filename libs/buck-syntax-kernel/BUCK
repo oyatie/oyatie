@@ -1,0 +1,17 @@
+rust_library(
+    name = "buck-syntax-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "buck_syntax_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "buck-syntax-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "buck_syntax_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

@@ -12,7 +12,7 @@ traceability:
   changeset: CS-CLOUD-INTELLIGENCE-WIRE-REAL-ADAPTERS-001
   source_adrs: [ADR-0105, ADR-0131, ADR-0193, ADR-0384]
 non_claims:
-  - implements EventSink from intelligence-kernel; INSERTs LlmGatewayEvent rows into cloud_intelligence_receipts table via oya-shared-olap-clickhouse-adapter (ADR-0193)
+  - implements EventSink from intelligence-kernel; INSERTs LlmGatewayEvent rows into cloud_intelligence_receipts table via shared-olap-clickhouse-adapter (ADR-0193)
   - emit is best-effort — failures are logged via tracing::warn and swallowed per D6 non-fatal contract; errors never propagate to the request path
   - no batching or coalescing of INSERT calls (Stage-8 follow-up)
   - no DDL bootstrap — the cloud_intelligence_receipts table must exist before the adapter is used; creation is an operator runbook item

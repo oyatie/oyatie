@@ -1,8 +1,8 @@
 // cloud-k8s µservice — CI-scope policy fragment
 // Cedar v4
 //
-// Purpose: scope the oya-ci principal's Kubernetes API access to cluster-readonly
-//          observations + writes confined to the `oya-ci` namespace.
+// Purpose: scope the ci principal's Kubernetes API access to cluster-readonly
+//          observations + writes confined to the `ci` namespace.
 // Owner:   axis-platform + axis-cloud + ops-security
 // References: policy/cluster-isolation.md §"Reserved namespaces"; ADR-0123 HG-CLOUD-K8S
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
@@ -11,11 +11,11 @@
 // PERMIT 1 — CI principal reads cluster state (read-only, cluster-wide)
 // =============================================================================
 //
-// CI lanes (oya-cloud-k8s-iac-smoke, oya-check-cis-k8s-benchmark, etc.) read
+// CI lanes (cloud-k8s-iac-smoke, check-cis-k8s-benchmark, etc.) read
 // cluster state to verify conformance.
 
 permit (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [Action::"get", Action::"list", Action::"watch"],
   resource in KubernetesResource::?r
 )
@@ -42,17 +42,17 @@ when {
 };
 
 // =============================================================================
-// PERMIT 2 — CI principal writes in oya-ci namespace only
+// PERMIT 2 — CI principal writes in ci namespace only
 // =============================================================================
 
 permit (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [Action::"create", Action::"update", Action::"patch", Action::"delete"],
   resource in KubernetesResource::?r
 )
 when {
   resource has namespace &&
-  resource.namespace == "oya-ci"
+  resource.namespace == "ci"
 };
 
 // =============================================================================
@@ -60,7 +60,7 @@ when {
 // =============================================================================
 
 permit (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action == Action::"create",
   resource in KubernetesResource::?r
 )
@@ -74,7 +74,7 @@ when {
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [Action::"exec", Action::"attach", Action::"portforward"],
   resource
 );
@@ -84,7 +84,7 @@ forbid (
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action,
   resource
 )
@@ -98,7 +98,7 @@ when {
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action == Action::"read_logs",
   resource in KubernetesResource::?r
 )
@@ -108,17 +108,17 @@ when {
 };
 
 // =============================================================================
-// FORBID — CI principal cannot write to reserved namespaces (except oya-ci)
+// FORBID — CI principal cannot write to reserved namespaces (except ci)
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [Action::"create", Action::"update", Action::"patch", Action::"delete"],
   resource in KubernetesResource::?r
 )
 when {
   resource has namespace &&
-  resource.namespace != "oya-ci" &&
+  resource.namespace != "ci" &&
   (
     resource.namespace like "kube-*" ||
     resource.namespace like "istio-*" ||

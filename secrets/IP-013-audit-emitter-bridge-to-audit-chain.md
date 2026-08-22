@@ -25,17 +25,17 @@ Five new crates: kernel, usecase, api, adapter-audit-chain-bridge, app.
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-audit-emitter-kernel/` | `SecretAuditEvent`, `AuditChainBridgeMessage` |
-| `…/oya-cloud-secrets-audit-emitter-usecase/` | orchestrate file-tail → sign → bridge |
-| `…/oya-cloud-secrets-audit-emitter-api/` | typed contracts |
-| `…/oya-cloud-secrets-audit-emitter-adapter-audit-chain-bridge/` | bridge HTTP client (audit-chain) |
-| `…/oya-cloud-secrets-audit-emitter-app/` | bridge worker binary |
+| `…/cloud-secrets-audit-emitter-kernel/` | `SecretAuditEvent`, `AuditChainBridgeMessage` |
+| `…/cloud-secrets-audit-emitter-usecase/` | orchestrate file-tail → sign → bridge |
+| `…/cloud-secrets-audit-emitter-api/` | typed contracts |
+| `…/cloud-secrets-audit-emitter-adapter-audit-chain-bridge/` | bridge HTTP client (audit-chain) |
+| `…/cloud-secrets-audit-emitter-app/` | bridge worker binary |
 | 5× catalog yamls | create |
 
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-audit-emitter-*'
+cargo nextest run -p 'cloud-secrets-audit-emitter-*'
 # E2E with mock audit-chain
 cargo nextest run --features audit-seal-e2e
 ```
@@ -64,7 +64,7 @@ Secret access is only defensible if every create, read, rotate, revoke, namespac
 Bridge OpenBao audit-device output into the `audit-chain` microservice through a typed adapter. The bridge canonicalizes events, signs with Ed25519, buffers durably under backpressure, and replays idempotently after outages.
 
 ### C. Deliverables
-- `oya-cloud-secrets-audit-emitter-{kernel,usecase,api,adapter-audit-chain-bridge,app}`.
+- `cloud-secrets-audit-emitter-{kernel,usecase,api,adapter-audit-chain-bridge,app}`.
 - Event schema alignment with `contracts/asyncapi/cloud-secrets-events.yaml`.
 - Audit completeness SLO in `slos/audit-log-completeness.openslo.yaml`.
 - Dashboard `dashboards/audit-emission-completeness.json`.
@@ -80,13 +80,13 @@ Bridge OpenBao audit-device output into the `audit-chain` microservice through a
 7. Add e2e tests with mock audit-chain outage and recovery.
 
 ### E. Acceptance
-- `cargo nextest run -p 'oya-cloud-secrets-audit-emitter-*'`.
+- `cargo nextest run -p 'cloud-secrets-audit-emitter-*'`.
 - `cargo nextest run --features audit-seal-e2e`.
 - Every `SecretAccessed` event reaches audit-chain within the p99 SLO or enters durable backlog.
 - Unsigned events and unbounded local files are blockers.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-06/FR-10, `manifest.json`, `catalog/oya-cloud-secrets-audit-emitter-adapter-audit-chain-bridge.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `slos/audit-log-completeness.openslo.yaml`, and `runbooks/audit-emission-backlog.md`.
+Evidence anchors are `PRD.md` FR-06/FR-10, `manifest.json`, `catalog/cloud-secrets-audit-emitter-adapter-audit-chain-bridge.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `slos/audit-log-completeness.openslo.yaml`, and `runbooks/audit-emission-backlog.md`.
 
 ### G. Counterpart Comparison
 Vault audit devices, AWS CloudTrail, Google Cloud Audit Logs, Azure Monitor, OCI Audit, and Akeyless activity logs provide access records. The parity matrix says Oyatie's differentiator is Merkle + Ed25519 non-repudiation and per-pack audit residency; this bridge is the concrete implementation point.

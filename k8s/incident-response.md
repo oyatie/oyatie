@@ -70,7 +70,7 @@ Regulatory notification chain begins
 72-hour clock starts (GDPR Art. 33)
 ```
 
-Two-channel corroboration: Sev-1/Sev-2 fires BOTH a Mimir metric (`oya_cloud_k8s_incident_active{severity="N"}`) AND an OnCall page.
+Two-channel corroboration: Sev-1/Sev-2 fires BOTH a Mimir metric (`cloud_k8s_incident_active{severity="N"}`) AND an OnCall page.
 
 ## Incident Lifecycle
 
@@ -242,7 +242,7 @@ On-call compensation + handoff per `runbooks/oncall-rotation.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice cloud-k8s` — exit 0; every FM-ID has matching runbook.
+- `cargo run -p dev-cli -- gate validate incident-runbook-coverage --microservice cloud-k8s` — exit 0; every FM-ID has matching runbook.
 - Quarterly DR failover drill validates the response chain end-to-end (per `multi-region.md`).
 - Annual tabletop simulates Sev-1 regional outage; comms + regulatory chain rehearsed.
 

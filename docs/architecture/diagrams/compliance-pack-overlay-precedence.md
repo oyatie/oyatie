@@ -156,7 +156,7 @@ stateDiagram-v2
 - Service: [microservices/governance/](../../../microservices/governance/)
 - Service: [microservices/audit-chain/](../../../microservices/audit-chain/)
 - Service: [microservices/tenancy/](../../../microservices/tenancy/)
-- Cell ownership: [tenancy §cell-assignment](../../../microservices/tenancy/ARCHITECTURE.md#cell-assignment), [cloud-iac §cell-provisioning](../../../microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning), [observability §cell-health](../../../microservices/observability/ARCHITECTURE.md#cell-health), [api-gateway §cell-aware-routing](../../../microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing), [audit-chain §cell-scoped-audit](../../../microservices/audit-chain/ARCHITECTURE.md#cell-scoped-audit), and [oya-shuffle-sharding](../../../crates/oya-shuffle-sharding/README.md).
+- Cell ownership: [tenancy §cell-assignment](../../../microservices/tenancy/ARCHITECTURE.md#cell-assignment), [cloud-iac §cell-provisioning](../../../microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning), [observability §cell-health](../../../microservices/observability/ARCHITECTURE.md#cell-health), [api-gateway §cell-aware-routing](../../../microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing), [audit-chain §cell-scoped-audit](../../../microservices/audit-chain/ARCHITECTURE.md#cell-scoped-audit), and [shuffle-sharding](../../../crates/shuffle-sharding/README.md).
 - Service: [microservices/identity/](../../../microservices/identity/)
 - Service: [microservices/observability/](../../../microservices/observability/)
 - Service: [microservices/finops-portal/](../../../microservices/finops-portal/)

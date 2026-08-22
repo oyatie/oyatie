@@ -18,7 +18,7 @@ purpose: |
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-lts-dependency
+planned_enforcement_ref: governance-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
@@ -52,7 +52,7 @@ and MASTERPLAN §2 Directive 8:
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
   `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
-- Lane: `oya-governance-lts-dependency` checks every direct
+- Lane: `governance-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
 ### 1.1 Current floor (2026-05-12)
@@ -96,7 +96,7 @@ Permitted licenses (per `deny.toml`):
 | Elasticsearch ≥ 7.11 | SSPLv1 / Elastic License v2 | **OpenSearch** (Apache-2.0) or **ClickHouse** |
 | `gnu-time` (in containers) | GPLv3 | `time` builtin / busybox `time` |
 
-Lane: `oya-governance-license` (`cargo-deny check licenses`) refuses
+Lane: `governance-license` (`cargo-deny check licenses`) refuses
 any forbidden license on every PR.
 
 ## 3. Supply-chain triad
@@ -105,9 +105,9 @@ Per [`security-review.md`](security-review.md) §2:
 
 | Tool | Scope | Lane |
 |---|---|---|
-| `cargo-audit` | RustSec advisory DB | `oya-governance-cargo-audit` |
-| `cargo-deny` | license + advisory + source + duplicate | `oya-governance-license` |
-| `cargo-vet` | human-audit trail | `oya-governance-cargo-vet` |
+| `cargo-audit` | RustSec advisory DB | `governance-cargo-audit` |
+| `cargo-deny` | license + advisory + source + duplicate | `governance-license` |
+| `cargo-vet` | human-audit trail | `governance-cargo-vet` |
 
 Pinning rules:
 
@@ -123,7 +123,7 @@ ADR-0535 supersedes the earlier external-bot baseline: Oyatie uses a
 closed-schema root [`deps.toml`](../../deps.toml) as DATA for an
 in-house Rust bump-bot. The bot opens provider-neutral scm-facts ChangeSets,
 runs license/advisory/version gates before proposing updates, and reaches merge
-only through the single `oya-ci-required` context. GitHub Actions is a
+only through the single `presubmit` context. GitHub Actions is a
 transitional runner adapter; GitHub PRs are an adapter surface, not the
 canonical automation substrate.
 
@@ -166,14 +166,14 @@ pub trait ProviderAdapter: Send + Sync {
 
 Concrete implementations:
 
-- `oya-intelligence-adapter-anthropic` — Anthropic claude API (no official Rust
+- `intelligence-adapter-anthropic` — Anthropic claude API (no official Rust
   SDK; in-tree HTTP client over reqwest+rustls).
-- `oya-intelligence-adapter-openai` — OpenAI API (community crate
+- `intelligence-adapter-openai` — OpenAI API (community crate
   `async-openai 0.38.1`; cargo-vet certified).
-- `oya-intelligence-adapter-gemini` — Google Gemini (no official Rust SDK;
+- `intelligence-adapter-gemini` — Google Gemini (no official Rust SDK;
   in-tree HTTP client).
-- `oya-cloud-adapter-aws`, `-gcp`, `-azure`, `-oci` — cloud SDK adapters.
-- `oya-platform-adapter-secrets-openbao` — secrets adapter.
+- `cloud-adapter-aws`, `-gcp`, `-azure`, `-oci` — cloud SDK adapters.
+- `platform-adapter-secrets-openbao` — secrets adapter.
 
 ### 5.2 Provider-SDK pinning
 
@@ -190,7 +190,7 @@ generated from each provider's published OpenAPI schema where available.
 
 ### 5.3 Provider-coupling lane
 
-Lane `oya-governance-provider-coupling` refuses provider-specific
+Lane `governance-provider-coupling` refuses provider-specific
 imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 `domain` layers see only the `ProviderAdapter` trait.
 
@@ -271,9 +271,9 @@ CI/CD-platform dependency in §8 — MUST be classified into one of three
 
 ### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
 
-**Maintainer-class floor:** every `oya-*` crate (~200+); `oya-shuffle-sharding`
-(ADR-0333 substrate); `oya-dev-cli` (ADR-0218); `oya-shared-policy-engine-client`
-(Cedar wrapper); `oya-shared-workflow-engine`; `oya-shared-ontology-projection`;
+**Maintainer-class floor:** every `oya-*` crate (~200+); `shuffle-sharding`
+(ADR-0333 substrate); `dev-cli` (ADR-0218); `shared-policy-engine-client`
+(Cedar wrapper); `shared-workflow-engine`; `shared-ontology-projection`;
 internal hooks + tools under `tools/` + `bin/`.
 
 **Contributor-class floor (11 upstreams):** Cilium (ADR-0148, CNI/ClusterMesh);
@@ -302,30 +302,30 @@ OSS stewardship uses **class** (a relationship label), NOT **tier**. The word
 - **ADR-0338 pod runtime tiers** — Tier 0..3 (tenant-customer untrusted / substrate
   tenant-data-plane / first-party / edge perf-critical).
 
-The lane **`oya-governance-stewardship-class-vocabulary`** refuses corpus drift
+The lane **`governance-stewardship-class-vocabulary`** refuses corpus drift
 toward the word "tier" in OSS-stewardship contexts. Enforced day-1 from ADR-0345
 Acceptance; no grace window.
 
 ### 11.4 Enforcement lanes (per ADR-0345 §E)
 
-- `oya-check-oss-stewardship-registry-presence` — refuses corpus changes
+- `check-oss-stewardship-registry-presence` — refuses corpus changes
   adding a new direct upstream (in `Cargo.toml`, OpenTofu providers, Helm
   charts, Dockerfile `FROM`) without a corresponding registry entry.
-- `oya-check-oss-stewardship-class-declaration` — refuses registry entries
+- `check-oss-stewardship-class-declaration` — refuses registry entries
   missing `stewardship_class ∈ {maintainer, contributor, consumer}`.
-- `oya-check-oss-stewardship-cve-sla` — refuses Contributor entries missing
+- `check-oss-stewardship-cve-sla` — refuses Contributor entries missing
   P0 ≤ 7-day + P1 ≤ 30-day fields; refuses Consumer entries missing pin-update
   ≤ 14-day field.
-- `oya-check-oss-stewardship-owner-team` — refuses entries missing `owner_team`
+- `check-oss-stewardship-owner-team` — refuses entries missing `owner_team`
   value drawn from the council / axis / ops taxonomy.
-- `oya-check-oss-stewardship-resourcing-declaration` — refuses Maintainer
+- `check-oss-stewardship-resourcing-declaration` — refuses Maintainer
   entries missing `maintainer_engineering_time_percent`; Contributor entries
   missing `contribution_budget_dev_days_per_quarter`; Consumer entries missing
   `audit_subscription_cost_usd`.
-- `oya-check-oss-stewardship-license-cross-check` — refuses entries whose
+- `check-oss-stewardship-license-cross-check` — refuses entries whose
   `license` value contradicts the forbidden-license list in §2 above +
   `specs/forbidden-operations.json` FO-09.
-- `oya-governance-stewardship-class-vocabulary` — refuses "tier" applied to
+- `governance-stewardship-class-vocabulary` — refuses "tier" applied to
   OSS stewardship (day-1 BLOCKER).
 
 ### 11.5 SOC2 + ISO 27001 vendor-risk-management binding
@@ -359,7 +359,7 @@ Apple opensource.apple.com. Oyatie's registry is the corpus-wide analog.
 
 Every NEW substrate-adoption ADR (e.g., a future substrate-adoption ADR that selects
 a new upstream) MUST add a registry entry as part of the ADR's required
-artifact. The `oya-check-oss-stewardship-registry-presence` lane refuses
+artifact. The `check-oss-stewardship-registry-presence` lane refuses
 substrate adoption that skips registry declaration. Council-architecture +
 council-security + ops-supply-chain joint approval is required for the dev-days
 or audit-subscription budget.

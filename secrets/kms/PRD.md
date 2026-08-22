@@ -26,7 +26,7 @@ doc_status: drafted
   `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
   `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
 - Merge/gate authority: branch-protected GitHub Actions required context
-  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  `presubmit` is the live blocker until the owned `ci` cutover reuses
   the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
   checks, shell scripts, and legacy build-server mirrors are
   non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
@@ -39,10 +39,10 @@ doc_status: drafted
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-kms`; the branch-protected `oya-ci-required` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `oya-ci` rather than revived as local CLI authority.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-kms`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
+- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-kms`; the branch-protected `presubmit` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `ci` rather than revived as local CLI authority.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-retired-vocab-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-kms`; GitHub Actions `presubmit` remains the live required context until owned `ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-kms` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

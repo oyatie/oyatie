@@ -1,0 +1,22 @@
+{{/*
+Per-BC PodDisruptionBudget. min-available 50% per ADR-0131 baseline.
+*/}}
+{{- if $.Values.podDisruptionBudget.enabled }}
+{{- range $bc := list "document-store" "collab-crdt" "block-types" "comments-and-suggestions" "version-history" "sharing-and-permissions" "export-import" "embed-resolver" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: docs-{{ $bc }}-app-pdb
+  namespace: docs
+  labels:
+    microservice: docs
+    bc: {{ $bc }}
+spec:
+  minAvailable: {{ $.Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      microservice: docs
+      bc: {{ $bc }}
+{{- end }}
+{{- end }}

@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0153
   - ADR-0204
   - ADR-0208
-enforced_by: oya-check-realtime-transport-tier
+enforced_by: check-realtime-transport-tier
 ---
 
 # Realtime Transport Tier Standard
@@ -68,7 +68,7 @@ Per-µservice tunable in `manifest.json` `realtime.payload_budget`.
 
 ## Coverage gate
 
-`oya-check-realtime-transport-tier` (advisory) flags:
+`check-realtime-transport-tier` (advisory) flags:
 
 1. Bidirectional traffic on SSE.
 2. WebSocket on one-way surface.

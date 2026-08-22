@@ -90,15 +90,15 @@ graph TD
 ## Acceptance Gates (Phase exit)
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-*' --all-features
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets   # raw-secret-emission
-cargo run -p oya-dev-cli -- gate validate port-location --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate data-class --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
+cargo nextest run -p 'cloud-secrets-*' --all-features
+cargo run -p dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate lean-a1 --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate lean-a2 --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate lean-a11 --microservice cloud-secrets   # raw-secret-emission
+cargo run -p dev-cli -- gate validate port-location --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate layer-correctness --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate data-class --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate authority-cohesion
 helm lint microservices/cloud-secrets/iac/helm/openbao
 helm lint microservices/cloud-secrets/iac/helm/postgres
 helm lint microservices/cloud-secrets/iac/helm/hsm-operator

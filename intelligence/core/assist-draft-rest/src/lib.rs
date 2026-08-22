@@ -2,7 +2,7 @@
 //!
 //! This crate defines a framework-free, source-level REST route facade for the
 //! assist-draft API boundary. It maps method/path checks to stable HTTP-shaped
-//! responses and delegates accepted POST bodies to `oya-intelligence-assist-draft-api`.
+//! responses and delegates accepted POST bodies to `intelligence-assist-draft-api`.
 //! It performs no HTTP serving, socket binding, serialization framework work,
 //! prompt rendering, model/provider calls, builder mutation, network I/O,
 //! durable idempotency storage, durable audit-chain emission, queue processing,

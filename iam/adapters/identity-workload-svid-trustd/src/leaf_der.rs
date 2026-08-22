@@ -320,7 +320,7 @@ mod tests {
         let leaf_signer = EcdsaP256Signer::generate().unwrap();
         let server_leaf = Certificate {
             serial: 43,
-            subject: DistinguishedName::common("oya-cloud-iam-pdp"),
+            subject: DistinguishedName::common("cloud-iam-pdp"),
             issuer: DistinguishedName::common("oyatie-cell-7-ca"),
             validity: Validity {
                 not_before: 1_000,

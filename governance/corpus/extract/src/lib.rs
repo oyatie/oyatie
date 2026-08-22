@@ -7,7 +7,7 @@
 //! corpus `syn` cannot resolve to a clean fact).
 //!
 //! ## What it does (the pipeline)
-//! 1. [`resolve_capability_crates`] — reuse [`oya_workspace_members_kernel::resolve_member_dirs`] to
+//! 1. [`resolve_capability_crates`] — reuse [`workspace_members_kernel::resolve_member_dirs`] to
 //!    get the workspace member dirs, then filter to those under a capability dir-prefix. NO
 //!    re-derivation of member-glob semantics; the kernel is the single source.
 //! 2. [`SourceSet`] — the git-tracked `.rs` files of those crates, supplied by the caller (the
@@ -59,7 +59,7 @@ use corpus_core::{
     AstSource, ContentHash, Edge, EdgeKind, Extraction, FactSet, Function, Graph, ItemKind, Node,
     NodeId, OpaqueReason, Visibility,
 };
-use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs};
+use workspace_members_kernel::{ResolveError, resolve_member_dirs};
 use quote::ToTokens;
 use syn::visit::{self, Visit};
 

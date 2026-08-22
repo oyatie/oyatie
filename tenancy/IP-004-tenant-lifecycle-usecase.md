@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-004: oya-tenancy-tenant-lifecycle-usecase
+# IP-004: tenancy-tenant-lifecycle-usecase
 
 ## Intent
 
@@ -21,8 +21,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness]
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-tenant-lifecycle-usecase/Cargo.toml` | create |
-| `oya-tenancy-tenant-lifecycle-usecase/src/{lib,create_tenant,activate_tenant,suspend_tenant,resume_tenant,request_deletion}.rs` | create (6 files) |
+| `tenancy-tenant-lifecycle-usecase/Cargo.toml` | create |
+| `tenancy-tenant-lifecycle-usecase/src/{lib,create_tenant,activate_tenant,suspend_tenant,resume_tenant,request_deletion}.rs` | create (6 files) |
 | catalog row | create |
 
 ## Code Shape
@@ -55,8 +55,8 @@ impl<TR: TenantRepository, CA: CellAssigner, ES: EventSink> CreateTenantUseCase<
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-usecase
-cargo nextest run -p oya-tenancy-tenant-lifecycle-usecase
+cargo check -p tenancy-tenant-lifecycle-usecase
+cargo nextest run -p tenancy-tenant-lifecycle-usecase
 ```
 
 ## Test Plan

@@ -280,7 +280,7 @@
     },
     "chargeback_formula": {
       "type": "object",
-      "description": "Formula components combined by oya-cloud-billing-domain::chargeback::compute_period().",
+      "description": "Formula components combined by cloud-billing-domain::chargeback::compute_period().",
       "required": [
         "formula_text",
         "source_rollup_ref",
@@ -542,7 +542,7 @@
           "type": "object",
           "properties": {
             "bucket_template": {
-              "const": "oya-finops-focus-export-shared-<env>"
+              "const": "finops-focus-export-shared-<env>"
             },
             "formats": {
               "type": "array",

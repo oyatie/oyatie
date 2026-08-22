@@ -1,0 +1,31 @@
+[package]
+name = "reorg-codemod-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "tooling"
+kind = "shared"
+layer = "app"
+purpose = "Deterministic, reversible capability-move codemod + pre-move green-snapshot oracle (ADR-0562 Phase-0 reorg machinery); ships unused until the strangler invokes it."
+
+[lib]
+name = "reorg_codemod_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "reorg-codemod"
+path = "src/main.rs"
+
+[dependencies]
+cargo-lock-transform-kernel = { path = "../../libs/cargo-lock-transform-kernel" }
+workspace-members-kernel = { path = "../../libs/workspace-members-kernel" }
+serde_json = { workspace = true }
+toml_edit = "0.22"
+
+[lints]
+workspace = true

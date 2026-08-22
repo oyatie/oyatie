@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-iac-opentofu
+name: cloud-iac-opentofu
 description: OpenTofu self-hosted runner per ADR-0139 Layer-A; Terraform-Cloud-equivalent
 type: application
 version: 0.1.0

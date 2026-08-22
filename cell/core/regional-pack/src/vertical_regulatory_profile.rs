@@ -47,7 +47,7 @@ impl AdVertical {
 /// Binds one vertical to a KR regulatory pack subset and a set of applicable controls.
 ///
 /// `pack_id` must match a `RegionalPack::id` already provisioned in the pack registry
-/// (prefix `oya-pack-`).  `controls` is the non-empty subset of controls from that pack
+/// (prefix `pack-`).  `controls` is the non-empty subset of controls from that pack
 /// that apply to this vertical.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VerticalRegulatoryProfile {
@@ -59,7 +59,7 @@ pub struct VerticalRegulatoryProfile {
 /// Errors produced when constructing a [`VerticalRegulatoryProfile`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum VerticalRegulatoryProfileError {
-    /// `pack_id` does not start with `oya-pack-`.
+    /// `pack_id` does not start with `pack-`.
     InvalidPackId,
     /// `controls` slice is empty — every vertical must bind at least one control.
     EmptyControls,
@@ -72,7 +72,7 @@ impl VerticalRegulatoryProfile {
         pack_id: String,
         controls: Vec<String>,
     ) -> Result<Self, VerticalRegulatoryProfileError> {
-        if !pack_id.starts_with("oya-pack-") {
+        if !pack_id.starts_with("pack-") {
             return Err(VerticalRegulatoryProfileError::InvalidPackId);
         }
         if controls.is_empty() {
@@ -94,14 +94,14 @@ mod tests {
     fn accepts_valid_vertical_regulatory_profile() {
         let profile = VerticalRegulatoryProfile::new(
             AdVertical::Healthcare,
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             vec!["PIPA".to_string(), "HMIS".to_string()],
         )
         .expect("valid profile should be accepted");
 
         assert_eq!(profile.vertical, AdVertical::Healthcare);
         assert_eq!(profile.vertical.label(), "healthcare");
-        assert_eq!(profile.pack_id, "oya-pack-alpha");
+        assert_eq!(profile.pack_id, "pack-alpha");
         assert_eq!(profile.controls.len(), 2);
     }
 
@@ -112,7 +112,7 @@ mod tests {
             "pack-kr".to_string(),
             vec!["PIPA".to_string()],
         )
-        .expect_err("pack_id without oya-pack- prefix must be rejected");
+        .expect_err("pack_id without pack- prefix must be rejected");
 
         assert_eq!(err, VerticalRegulatoryProfileError::InvalidPackId);
     }
@@ -121,7 +121,7 @@ mod tests {
     fn rejects_empty_controls() {
         let err = VerticalRegulatoryProfile::new(
             AdVertical::Retail,
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             vec![],
         )
         .expect_err("empty controls must be rejected");

@@ -5,7 +5,7 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "SVID-delivery operator composition root (G002 slice-1b-iii-c; ADR-0561): the deployable that wires the pure operator-kernel reconcile decision, the transient kube-rs Secret-projection adapter, and the trustd EcdsaP256 issuance backend into a reconcile loop. Owns runtime wiring only — env-driven desired-state config with fail-closed validation (cell-id/namespace/ttl/rotation-window; non-zero exit on invalid config), and the bin oya-cloud-iam-pdp-svid-operator that produces the oya-cloud-iam-pdp-svid Secret in-cluster. API-only: no CLI, declarative env config is the management surface."
+description = "SVID-delivery operator composition root (G002 slice-1b-iii-c; ADR-0561): the deployable that wires the pure operator-kernel reconcile decision, the transient kube-rs Secret-projection adapter, and the trustd EcdsaP256 issuance backend into a reconcile loop. Owns runtime wiring only — env-driven desired-state config with fail-closed validation (cell-id/namespace/ttl/rotation-window; non-zero exit on invalid config), and the bin cloud-iam-pdp-svid-operator that produces the cloud-iam-pdp-svid Secret in-cluster. API-only: no CLI, declarative env config is the management surface."
 
 [lib]
 name = "iam_identity_workload_svid_operator_app"
@@ -13,7 +13,7 @@ path = "src/lib.rs"
 doctest = false
 
 [[bin]]
-name = "oya-cloud-iam-pdp-svid-operator"
+name = "cloud-iam-pdp-svid-operator"
 path = "src/main.rs"
 
 [dependencies]

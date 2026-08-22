@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-jwks-availability
+  name: identity-jwks-availability
   displayName: "identity: JWKS endpoint availability 99.999%"
   labels:
     microservice: identity
@@ -24,16 +24,16 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_jwks_request_total{http_status!~"5.."}[5m]))
+                sum(rate(identity_jwks_request_total{http_status!~"5.."}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_jwks_request_total[5m]))
+                sum(rate(identity_jwks_request_total[5m]))
   objectives:
     - target: 0.99999
       displayName: "99.999% availability over 30d (≤ 5.26 min/yr)"
   timeWindow: [{ duration: 30d, isRolling: true }]
   budgetingMethod: Occurrences
-  alertPolicies: [{ alertPolicyRef: oya-canonical-burn-rate-multi-window }]
+  alertPolicies: [{ alertPolicyRef: canonical-burn-rate-multi-window }]

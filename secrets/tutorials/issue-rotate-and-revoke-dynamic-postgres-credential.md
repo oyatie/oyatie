@@ -62,7 +62,7 @@ status : Active
 Expected:
 ```json
 { "lease_id": "le-2026-05-20T08:31:00.214Z-fa3c…",
-  "user": "oya_dyn_4f8c2b7a9e1d",
+  "user": "dyn_4f8c2b7a9e1d",
   "password": "k7m@2vQ9pX!nL6tR3wY8eF5sB0",
   "expires_at": "2026-05-20T08:46:00.214Z",
   "fencing_token": "ft-blake3-256:0a2b…" }
@@ -73,7 +73,7 @@ Expected:
 ## Step 4 — use the credential to query Postgres
 
 ```bash
-psql "postgres://oya_dyn_4f8c2b7a9e1d:k7m@2vQ9pX!nL6tR3wY8eF5sB0@localhost:5439/acme_prod?sslmode=require" \
+psql "postgres://dyn_4f8c2b7a9e1d:k7m@2vQ9pX!nL6tR3wY8eF5sB0@localhost:5439/acme_prod?sslmode=require" \
   -c "SELECT count(*) FROM orders WHERE created_at > now() - interval '24 hours';"
 ```
 
@@ -100,13 +100,13 @@ audit_event: ce-2026-05-20T08:34:11.318Z-…
 ```
 
 During the overlap window, both versions are accepted by Postgres for admin operations; new dynamic users from this point use the
-new admin credential. Pre-existing dynamic users (your `oya_dyn_4f8c2b7a9e1d`) are unaffected — they have their own passwords.
+new admin credential. Pre-existing dynamic users (your `dyn_4f8c2b7a9e1d`) are unaffected — they have their own passwords.
 
 ## Step 6 — observe lease expiry
 
 Wait until `expires_at`. After expiry, attempting the query:
 ```bash
-psql "postgres://oya_dyn_4f8c2b7a9e1d:…@localhost:5439/acme_prod"
+psql "postgres://dyn_4f8c2b7a9e1d:…@localhost:5439/acme_prod"
 # FATAL:  password authentication failed
 ```
 

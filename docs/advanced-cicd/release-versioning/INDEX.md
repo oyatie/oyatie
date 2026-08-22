@@ -9,7 +9,7 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Catalogue of the release-versioning policy for oyatie. Maps each artefact to its
   lift target, the standard(s) it updates, and the lane(s) that enforce it.
-planned_enforcement_ref: oya-governance-orphan-detection
+planned_enforcement_ref: governance-orphan-detection
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -40,12 +40,12 @@ doc_status: published
 
 ## New fitness lanes (6)
 
-1. `oya-governance-semver-discipline` (BLOCKER)
-2. `oya-governance-api-version-stability` (BLOCKER)
-3. `oya-governance-version-eol-warning` (HIGH → BLOCKER on EOL day)
-4. `oya-governance-release-branch-cut` (BLOCKER)
-5. `oya-governance-cherry-pick-trail` (HIGH)
-6. `oya-governance-deprecation-notice` (BLOCKER)
+1. `governance-semver-discipline` (BLOCKER)
+2. `governance-api-version-stability` (BLOCKER)
+3. `governance-version-eol-warning` (HIGH → BLOCKER on EOL day)
+4. `governance-release-branch-cut` (BLOCKER)
+5. `governance-cherry-pick-trail` (HIGH)
+6. `governance-deprecation-notice` (BLOCKER)
 
 ## New agent role (1)
 

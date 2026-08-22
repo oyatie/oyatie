@@ -6,7 +6,7 @@ purpose: |
   Diátaxis-aligned operational runbook. Dual-audience: identical text readable by an on-call agent (Foundry runbook-execution capability) and a human on-call engineer. Symptom → diagnostic → mitigation → postmortem link → SLO impact. Every alert resolves to a runbook URL; every runbook is exec-readable.
 lift_target: oyatie/docs/templates/runbook-template.md
 supersedes: docs/templates/runbook-template.md
-enforcing_fitness_lane: oya-governance-runbook-index-resolves
+enforcing_fitness_lane: governance-runbook-index-resolves
 owner_team: ops-sre-reliability
 related:
   - docs/RUNBOOKS-INDEX.md
@@ -66,7 +66,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 
 <!-- agent-instructions:start -->
 **Agent path** (Foundry runbook-execution capability):
-- Every diagnostic step **MUST** be invoked via `oya-tooling-agent-read run-evidence <cmd>`; raw stdout is captured to the audit chain.
+- Every diagnostic step **MUST** be invoked via `tooling-agent-read run-evidence <cmd>`; raw stdout is captured to the audit chain.
 - After step completion, emit `EVT-RUNBOOK-STEP-<n>` with step ID + outcome + timestamp.
 - Halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `/templates/checklists/escalation-checklist.md` if an unexpected outcome appears at any step.
 <!-- agent-instructions:end -->
@@ -78,7 +78,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
    Expected: <output shape>
    If differs: route to RB-<other>; do not proceed.
 
-2. Inspect recent deploys — `oya-tooling-agent-read deploy-log --last 1h`
+2. Inspect recent deploys — `tooling-agent-read deploy-log --last 1h`
    Expected: <output shape>
    If differs: suspect deploy; jump to Mitigation step M2.
 

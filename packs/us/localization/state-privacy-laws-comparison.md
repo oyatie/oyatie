@@ -655,10 +655,10 @@ The pack default is to apply the most protective triggered state duty unless a n
 - STATE-XREF-008: `specs/microservices/audit-chain` registry entries are future hosts for state privacy events.
 - STATE-XREF-009: `specs/microservices/anonymous.json` is a likely host for de-identification and anonymization workflows.
 - STATE-XREF-010: `specs/microservices/intelligence.json` is a likely host for compliance evidence build workflows.
-- STATE-XREF-011: `registry/catalog/oya-check-data-class.yaml` is a future state sensitive-category gate.
-- STATE-XREF-012: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future state evidence completeness gate.
-- STATE-XREF-013: `registry/catalog/oya-check-cedar-fragment-coverage.yaml` is a future Cedar coverage gate.
-- STATE-XREF-014: `registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml` connects state profiling opt-outs to AI decision guardrails.
+- STATE-XREF-011: `registry/catalog/check-data-class.yaml` is a future state sensitive-category gate.
+- STATE-XREF-012: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future state evidence completeness gate.
+- STATE-XREF-013: `registry/catalog/check-cedar-fragment-coverage.yaml` is a future Cedar coverage gate.
+- STATE-XREF-014: `registry/catalog/check-high-risk-auto-decision-refusal.yaml` connects state profiling opt-outs to AI decision guardrails.
 - STATE-XREF-015: California official CPPA pages are the citation source for consumer-rights descriptions.
 - STATE-XREF-016: Official state code pages or attorney-general portals must replace vendor summaries during implementation.
 - STATE-XREF-017: Every state law in this file needs a `law_effective_at` and `law_refreshed_at` value before runtime enforcement.

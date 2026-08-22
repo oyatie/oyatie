@@ -22,7 +22,7 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing `oya-cloud-billing-domain` crate (`crates/oya-cloud-billing-domain/src/lib.rs`, 1,030 lines) as the canonical billing aggregate root. The kernel already encodes nine bounded contexts (BillingAccount, CloudBillingEvent, Invoice, InvoiceLineItem, BillingPeriod, Money, CurrencyCode, TaxRegistrationId, PaymentMethodRef) as value-typed Rust structs whose invariants are enforced at construction time and whose data-class classification is enforced through `oya_data_boundary_kernel::Classified<T>`. This IP closes the kernel-ahead-of-spec gap by formalizing the domain contract so downstream consumers (cloud-iam, finops-portal, payments, cloud-billing-tax-app, audit-chain) can bind to a stable surface.
+Document the existing `cloud-billing-domain` crate (`crates/cloud-billing-domain/src/lib.rs`, 1,030 lines) as the canonical billing aggregate root. The kernel already encodes nine bounded contexts (BillingAccount, CloudBillingEvent, Invoice, InvoiceLineItem, BillingPeriod, Money, CurrencyCode, TaxRegistrationId, PaymentMethodRef) as value-typed Rust structs whose invariants are enforced at construction time and whose data-class classification is enforced through `data_boundary_kernel::Classified<T>`. This IP closes the kernel-ahead-of-spec gap by formalizing the domain contract so downstream consumers (cloud-iam, finops-portal, payments, cloud-billing-tax-app, audit-chain) can bind to a stable surface.
 
 ## §B Scope
 
@@ -32,7 +32,7 @@ In scope:
 - Value types: `CurrencyCode` (3-letter ASCII uppercase per ISO 4217 + the reserved internal credit code `OYC`), `Money` (currency + minor_units `u64`), `BillingPeriod` (epoch-seconds bounds with `start < end`).
 - Aggregate roots: `BillingAccount`, `CloudBillingEvent`, `Invoice`, `InvoiceLineItem`.
 - State enums: `BillingAccountState ∈ {Active, Suspended, Delinquent}`, `InvoiceState ∈ {Issued, Paid, Overdue, Void}`, `CloudBillingEventKind ∈ {ResourceCreated, ResourceTerminated, Usage, Reservation, Commitment, Credit}` (extended by proto3 to include `RevenueShare`, `RevenueShareReversal`, `SeatCount`, `Subscription`).
-- Tax invoice format binding: `TaxInvoiceFormat::for_regional_pack(&str) → Result` derives format from regional pack identifier (`oya-pack-electronic-tax`, `oya-pack-qualified-tax`, `oya-pack-country-tax`, `oya-pack-market-tax`, `oya-pack-trade-tax`, `oya-pack-vat-tax`, `oya-pack-gst-tax`, `oya-pack-fiscal-tax`, `oya-pack-clearance-tax`, `oya-pack-registration-tax`).
+- Tax invoice format binding: `TaxInvoiceFormat::for_regional_pack(&str) → Result` derives format from regional pack identifier (`pack-electronic-tax`, `pack-qualified-tax`, `pack-country-tax`, `pack-market-tax`, `pack-trade-tax`, `pack-vat-tax`, `pack-gst-tax`, `pack-fiscal-tax`, `pack-clearance-tax`, `pack-registration-tax`).
 - Schema versioning: `BILLING_ACCOUNT_SCHEMA_VERSION = 1`, `CLOUD_BILLING_EVENT_SCHEMA_VERSION = 1`, `CLOUD_INVOICE_SCHEMA_VERSION = 1`.
 - Ledger primitive: `CloudBillingLedger` with O(log n) by-id maps and idempotency map.
 
@@ -58,7 +58,7 @@ Every billing identifier is a prefixed token: `prefix + opaque_body` where `body
 
 ### §C.3 Classified<T> data-class wrapping
 
-Every aggregate field carries a `Classified<T>` wrapper from `oya_data_boundary_kernel`. The Classified envelope binds a value to a DataClass at compile time. Cloud-billing's domain rules:
+Every aggregate field carries a `Classified<T>` wrapper from `data_boundary_kernel`. The Classified envelope binds a value to a DataClass at compile time. Cloud-billing's domain rules:
 
 - `Public`: region, schema_version, CloudBillingEvent.data_class.
 - `InternalOnly`: every identifier, billing period, money amounts, line items.
@@ -84,7 +84,7 @@ Tenant id is validated by `validate_tenant_id` (must start with `ten_` per ADR-0
 
 ### §C.6 Metering kernel handoff
 
-`CloudBillingEvent::to_meter_event_create() → MeterEventCreate` produces a `oya_metering_domain::MeterEventCreate` whose `capability_id` is derived from `CloudBillingEventKind::capability_id()`:
+`CloudBillingEvent::to_meter_event_create() → MeterEventCreate` produces a `metering_domain::MeterEventCreate` whose `capability_id` is derived from `CloudBillingEventKind::capability_id()`:
 
 | CloudBillingEventKind | capability_id |
 |---|---|
@@ -101,7 +101,7 @@ Source axis is fixed to `AxisId::Cloud`; plane is fixed to `PlaneTag::Data`. Mtr
 ### §D.1 BillingAccount creation
 
 1. Caller submits `BillingAccountCreate {id, tenant_id, region, regional_pack, payment_method, credit_balance, state, data_class, created_at_epoch_seconds}`.
-2. Kernel validates: id prefix `ba_*`, tenant_id `ten_*`, region resolves to a `RegionCode`, regional_pack starts with `oya-pack-`, payment_method `pm_*`, data_class is `Financial`.
+2. Kernel validates: id prefix `ba_*`, tenant_id `ten_*`, region resolves to a `RegionCode`, regional_pack starts with `pack-`, payment_method `pm_*`, data_class is `Financial`.
 3. On success returns `BillingAccount` with `schema_version = 1` and every field classified.
 
 ### §D.2 CloudBillingEvent ingestion
@@ -137,8 +137,8 @@ Resource attribute schema for the Cedar evaluator (per `policies/tenant-class-bi
 
 ### §F.1 Source files (real, present in repo)
 
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/src/lib.rs` (1,030 lines, 9 aggregate roots, 23 invariants, 8 unit tests).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/Cargo.toml` (workspace member, dependencies on `oya-cloud-region-domain`, `oya-cloud-resource-domain`, `oya-data-boundary-kernel`, `oya-metering-domain`).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-domain/src/lib.rs` (1,030 lines, 9 aggregate roots, 23 invariants, 8 unit tests).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-domain/Cargo.toml` (workspace member, dependencies on `cloud-region-domain`, `cloud-resource-domain`, `data-boundary-kernel`, `metering-domain`).
 
 ### §F.2 Tests demonstrating invariants
 

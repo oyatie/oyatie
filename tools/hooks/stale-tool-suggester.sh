@@ -4,8 +4,8 @@
 # Trigger:  Claude Code PreToolUse(Bash)
 # Purpose:  When a Bash command references retired local authority surfaces,
 #           suggest the current plain git path + the single required context
-#           'oya-ci-required' (produced by GitHub Actions per ADR-0515;
-#           oya-ci is the shadow/future runner).
+#           'presubmit' (produced by GitHub Actions per ADR-0515;
+#           ci is the shadow/future runner).
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
 #           Prints a suggestion to stderr with the canonical replacement.
 #           Agent decides whether to rewrite.
@@ -46,7 +46,7 @@ RETIRED_AUTHORITY_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)(\./bin/|bi
 if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$RETIRED_AUTHORITY_PATTERN" 2>/dev/null; then
     echo "ℹ [stale-tool-suggester] Retired local authority surface detected." >&2
     echo "ℹ  Use plain git for local VCS work and Buck2/cloud-ci targets for local confidence." >&2
-    echo "ℹ  Merge readiness is the single required context 'oya-ci-required' (produced by GitHub Actions per ADR-0515; oya-ci is the shadow/future runner), not local oya wrappers." >&2
+    echo "ℹ  Merge readiness is the single required context 'presubmit' (produced by GitHub Actions per ADR-0515; ci is the shadow/future runner), not local oya wrappers." >&2
     echo "ℹ  This advisory is paired with local-authority-enforcer, which blocks retired authority commands." >&2
 fi
 

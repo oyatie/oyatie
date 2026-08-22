@@ -28,7 +28,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use base64::Engine as _;
-use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
+use http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::{ClientConfig, DigitallySignedStruct, Error, SignatureScheme};
@@ -119,7 +119,7 @@ fn issue_server_leaf(
     let srv = EcdsaP256Signer::generate().unwrap();
     let key = KeyPair::new(srv.private_key_der(), srv.public_key_spki_der());
     let mut csr =
-        CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
+        CertificateSigningRequest::for_node("cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
     csr.sans.dns_names.push("localhost".to_owned());
     // The SPIFFE id the PDP's cell pin is derived from at boot (mandatory).
     csr.sans.uris.push(PDP_SERVER_SPIFFE.to_owned());
@@ -159,7 +159,7 @@ fn write_real_mount(
     ca_der: &[u8],
 ) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-boot-{}-{tag}",
+        "cloud-iam-pdp-boot-{}-{tag}",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -391,7 +391,7 @@ async fn production_boot_from_mount_allows_trusted_svid_and_denies_cross_tenant(
 async fn production_boot_fails_closed_on_absent_mount() {
     let bundle_path = seed_bundle_file("absent");
     let absent = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-boot-{}-absent-does-not-exist",
+        "cloud-iam-pdp-boot-{}-absent-does-not-exist",
         std::process::id()
     ));
     // Ensure it truly does not exist.
@@ -421,7 +421,7 @@ async fn production_boot_fails_closed_on_absent_mount() {
 async fn production_boot_fails_closed_on_empty_mount_dir() {
     let bundle_path = seed_bundle_file("empty-dir");
     let empty_dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-boot-{}-empty-dir",
+        "cloud-iam-pdp-boot-{}-empty-dir",
         std::process::id()
     ));
     std::fs::create_dir_all(&empty_dir).unwrap();
@@ -463,7 +463,7 @@ fn real_mount_parts() -> (Vec<u8>, Vec<u8>, Vec<u8>) {
 fn from_path_missing_tls_key_is_mount_unreadable() {
     let (leaf, _key, ca_der) = real_mount_parts();
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-frompath-{}-missing-key",
+        "cloud-iam-pdp-frompath-{}-missing-key",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -481,7 +481,7 @@ fn from_path_missing_tls_key_is_mount_unreadable() {
 fn from_path_empty_ca_crt_is_empty() {
     let (leaf, key, _ca) = real_mount_parts();
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-frompath-{}-empty-ca",
+        "cloud-iam-pdp-frompath-{}-empty-ca",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -499,7 +499,7 @@ fn from_path_empty_ca_crt_is_empty() {
 fn from_path_ca_crt_with_zero_ca_certs_is_no_ca_anchors() {
     let (leaf, key, _ca) = real_mount_parts();
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-frompath-{}-no-anchors",
+        "cloud-iam-pdp-frompath-{}-no-anchors",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -518,7 +518,7 @@ fn from_path_ca_crt_with_zero_ca_certs_is_no_ca_anchors() {
 fn from_path_garbage_pem_is_malformed() {
     let (leaf, key, _ca) = real_mount_parts();
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-frompath-{}-garbage",
+        "cloud-iam-pdp-frompath-{}-garbage",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -569,7 +569,7 @@ impl OperatorClock for FixedOperatorClock {
 /// Write the operator-produced PEM members to a mount dir the PDP boots from.
 fn write_operator_mount(tag: &str, material: &SvidSecretMaterial) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-operator-{}-{tag}",
+        "cloud-iam-pdp-operator-{}-{tag}",
         std::process::id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
@@ -598,7 +598,7 @@ async fn operator_produced_secret_boots_pdp_and_yields_real_allow_deny_handshake
         spiffe_id: "spiffe://oyatie.cell-7/platform/cloud-iam-pdp".to_owned(),
         ttl_secs: 10_000_000,
         rotation_window_secs: 600,
-        secret_name: "oya-cloud-iam-pdp-svid".to_owned(),
+        secret_name: "cloud-iam-pdp-svid".to_owned(),
         secret_namespace: "cloud-iam".to_owned(),
     };
     let (report, material) = run_reconcile_once(
@@ -666,7 +666,7 @@ async fn pdp_fails_closed_when_operator_has_not_produced_the_secret() {
     // cert-delivery dimension the operator owns.
     let bundle_path = seed_bundle_file("operator-absent");
     let absent = std::env::temp_dir().join(format!(
-        "oya-cloud-iam-pdp-operator-{}-absent-secret",
+        "cloud-iam-pdp-operator-{}-absent-secret",
         std::process::id()
     ));
     let _ = std::fs::remove_dir_all(&absent);

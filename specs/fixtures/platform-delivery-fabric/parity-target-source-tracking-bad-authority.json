@@ -30,7 +30,7 @@
       "parity_posture": "pessimistic_reference_only",
       "authority_boundary": "duplicate row must fail",
       "validation_refs": [
-        "libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking"
+        "libs/check-honest-claims/src/lib.rs#validate_parity_target_source_tracking"
       ],
       "stop_conditions": [
         "source_changed_reopen_required"

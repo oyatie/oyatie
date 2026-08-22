@@ -33,7 +33,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_ttft_seconds_bucket{
+                sum(rate(cloud_intelligence_ttft_seconds_bucket{
                   service="cloud-intelligence",stream="true",outcome!="client_cancelled",le="1.5"
                 }[5m])) by (provider)
         total:
@@ -41,7 +41,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_ttft_seconds_count{
+                sum(rate(cloud_intelligence_ttft_seconds_count{
                   service="cloud-intelligence",stream="true",outcome!="client_cancelled"
                 }[5m])) by (provider)
   timeWindow:

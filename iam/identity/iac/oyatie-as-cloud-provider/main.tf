@@ -59,7 +59,7 @@ variable "tenant_id" {
 
 variable "oyatie_cell_id" {
   type        = string
-  description = "Oyatie internal cell identifier (e.g., oya-cell-iad-001)."
+  description = "Oyatie internal cell identifier (e.g., cell-iad-001)."
 }
 
 variable "cell_criticality_tier" {

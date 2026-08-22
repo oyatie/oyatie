@@ -30,7 +30,7 @@ This document specifies SDK strategy: which languages, how generated, what guara
 
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
-| **Rust** | M01 (primary; oyatie's own language) | First-party authored (`oya-cloud-iac-iac-renderer-sdk` + `oya-cloud-iac-iac-registry-sdk` crates; per PRD BC layer mapping) | axis-cloud-iac |
+| **Rust** | M01 (primary; oyatie's own language) | First-party authored (`cloud-iac-iac-renderer-sdk` + `cloud-iac-iac-registry-sdk` crates; per PRD BC layer mapping) | axis-cloud-iac |
 | **TypeScript** | M01+1 (first external tenant SDK) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-cloud-iac + gtm |
 | **Python** | M02 | OpenAPI-generated; published to PyPI | axis-cloud-iac + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-cloud-iac + gtm |
@@ -45,8 +45,8 @@ Prioritisation: oyatie's own µservice languages first; then largest tenant deve
 ### Rust SDK (first-party)
 
 Two crates per the BC mapping:
-- `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-sdk/` — render + plan-preview client.
-- `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-registry-sdk/` — registry reads (apply-state, drift report, provenance).
+- `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-sdk/` — render + plan-preview client.
+- `microservices/cloud-iac/src/crates/cloud-iac-iac-registry-sdk/` — registry reads (apply-state, drift report, provenance).
 
 Public surface:
 - `RendererClient::new(opts) -> RendererClient; client.trigger_render(...) -> Result<RenderId, Error>`.
@@ -57,7 +57,7 @@ Properties:
 - Scope binding: client is bound to a microservice_scope at construction; X-Microservice header automatically populated.
 - Retry policy: built-in exponential backoff for transient 5xx and 429.
 - Streaming: `client.stream_apply_jobs(...) -> impl Stream<Item=ApplyJob>` via gRPC streaming.
-- Re-exports types from `oya-cloud-iac-iac-renderer-kernel` + `-iac-registry-kernel` so consumers see consistent shapes.
+- Re-exports types from `cloud-iac-iac-renderer-kernel` + `-iac-registry-kernel` so consumers see consistent shapes.
 - No `unsafe`; `#![deny(unsafe_code)]`.
 - Published to oyatie internal crate registry; open-source decision scheduled-for-distinct-tracked-work per Stripe/Twilio precedent.
 

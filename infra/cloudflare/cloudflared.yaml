@@ -15,15 +15,15 @@
 #
 # TUNNEL_TOKEN is sourced from OpenBao/Keychain into the Secret below — NEVER committed. Create it at
 # deploy time:
-#   kubectl -n oya-cloudflared create secret generic cloudflared-token \
+#   kubectl -n cloudflared create secret generic cloudflared-token \
 #     --from-literal=token="$(security find-generic-password -s oyatie-cf-tunnel-token -w)"
 # (canonical: OpenBao secret/oyatie/cloudflare/tunnel-token via External Secrets — follow-up.)
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-cloudflared
+  name: cloudflared
   labels:
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0371
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
@@ -33,7 +33,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cloudflared
-  namespace: oya-cloudflared
+  namespace: cloudflared
   labels: { app.kubernetes.io/name: cloudflared }
 spec:
   replicas: 2                       # HA: survive a node loss (anti-affinity spreads them)

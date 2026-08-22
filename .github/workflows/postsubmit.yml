@@ -1,0 +1,16 @@
+# TAP postsubmit: the merged commit on `dev` re-runs the same graph as presubmit.
+# Not a required context. Merge authority is `presubmit` only (ADR-0719 D-9/D-10).
+name: postsubmit
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  postsubmit:
+    name: postsubmit
+    uses: ./.github/workflows/presubmit.yml
+    secrets: inherit

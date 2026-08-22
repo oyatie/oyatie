@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0246
   - ADR-0316
 enforced_by:
-  - oya-governance-cedar-policy-authoring
-  - oya-governance-cedar-structural-validator
-  - oya-governance-capability-tier-cedar-coverage
+  - governance-cedar-policy-authoring
+  - governance-cedar-structural-validator
+  - governance-capability-tier-cedar-coverage
 canonical_paths:
   - docs/standards/cedar-policy-discipline.md
   - specs/cedar-fragment-schema.json
@@ -263,7 +263,7 @@ permit (principal, action == Action::"ReadDocument", resource);
 
 ## Verification
 
-Merge/promotion authority is the cloud-ci/oya-ci Rust gate packet for Cedar policy authoring,
+Merge/promotion authority is the cloud-ci/ci Rust gate packet for Cedar policy authoring,
 Cedar structural validation, capability-tier Cedar coverage, and autonomy-ceiling coverage.
 Legacy `oya gate` invocations are transitional/local feedback only; they are not merge
 authority, promotion authority, or a required context.
@@ -582,25 +582,25 @@ namespace Oyatie {
 
 | ID | Concern | Requirement | Example path | Checker |
 |---|---|---|---|---|
-| CEDAR-MAT-001 | Default deny | No blanket permit | `policy/*.cedar` | `oya-check-cedar-default-deny` |
-| CEDAR-MAT-002 | Forbid priority | Explicit forbids for regulated denial | `policy/*.cedar` | `oya-check-cedar-forbid-priority` |
-| CEDAR-MAT-003 | Action name | Dotted action id | `Action::"foundry.provider.invoke.t2"` | `oya-check-cedar-action-names` |
-| CEDAR-MAT-004 | Principal | Tenant or actor entity | schema | `oya-check-cedar-schema` |
-| CEDAR-MAT-005 | Resource | Capability or object entity | schema | `oya-check-cedar-schema` |
-| CEDAR-MAT-006 | Context | trace id required | schema | `oya-check-policy-context` |
-| CEDAR-MAT-007 | Data class | context carries data class | schema | `oya-check-data-class` |
-| CEDAR-MAT-008 | Pack | context carries regulatory pack | schema | `oya-check-pack-policy` |
-| CEDAR-MAT-009 | Capability | action maps to capability tier | capability matrix | `oya-check-capability-tier-matrix` |
-| CEDAR-MAT-010 | Budget | spend action checks budget | policy | `oya-check-provider-budget-policy` |
-| CEDAR-MAT-011 | Human gate | regulated action requires human flag | policy | `oya-check-human-gate-policy` |
-| CEDAR-MAT-012 | Tenant isolation | no cross-tenant wildcard | policy | `oya-check-tenant-isolation` |
-| CEDAR-MAT-013 | Auditor | JIT expiry for audit reads | policy | `oya-check-auditor-jit` |
-| CEDAR-MAT-014 | Tests | allow/deny fixtures | `policy/tests` | `oya-check-cedar-fixtures` |
-| CEDAR-MAT-015 | Signing | fragment signature | registry | `oya-check-cedar-fragment-signature` |
+| CEDAR-MAT-001 | Default deny | No blanket permit | `policy/*.cedar` | `check-cedar-default-deny` |
+| CEDAR-MAT-002 | Forbid priority | Explicit forbids for regulated denial | `policy/*.cedar` | `check-cedar-forbid-priority` |
+| CEDAR-MAT-003 | Action name | Dotted action id | `Action::"foundry.provider.invoke.t2"` | `check-cedar-action-names` |
+| CEDAR-MAT-004 | Principal | Tenant or actor entity | schema | `check-cedar-schema` |
+| CEDAR-MAT-005 | Resource | Capability or object entity | schema | `check-cedar-schema` |
+| CEDAR-MAT-006 | Context | trace id required | schema | `check-policy-context` |
+| CEDAR-MAT-007 | Data class | context carries data class | schema | `check-data-class` |
+| CEDAR-MAT-008 | Pack | context carries regulatory pack | schema | `check-pack-policy` |
+| CEDAR-MAT-009 | Capability | action maps to capability tier | capability matrix | `check-capability-tier-matrix` |
+| CEDAR-MAT-010 | Budget | spend action checks budget | policy | `check-provider-budget-policy` |
+| CEDAR-MAT-011 | Human gate | regulated action requires human flag | policy | `check-human-gate-policy` |
+| CEDAR-MAT-012 | Tenant isolation | no cross-tenant wildcard | policy | `check-tenant-isolation` |
+| CEDAR-MAT-013 | Auditor | JIT expiry for audit reads | policy | `check-auditor-jit` |
+| CEDAR-MAT-014 | Tests | allow/deny fixtures | `policy/tests` | `check-cedar-fixtures` |
+| CEDAR-MAT-015 | Signing | fragment signature | registry | `check-cedar-fragment-signature` |
 | CEDAR-MAT-016 | Schema | no implicit unknown fields | schema | `cedar validate` |
-| CEDAR-MAT-017 | Simulation | decision fixture hash | simulator output | `oya-check-cedar-simulation` |
-| CEDAR-MAT-018 | Audit | decision emits audit event | audit chain | `oya-check-audit-emission` |
-| CEDAR-MAT-019 | Version | bundle version bump | policy bundle | `oya-check-policy-version` |
+| CEDAR-MAT-017 | Simulation | decision fixture hash | simulator output | `check-cedar-simulation` |
+| CEDAR-MAT-018 | Audit | decision emits audit event | audit chain | `check-audit-emission` |
+| CEDAR-MAT-019 | Version | bundle version bump | policy bundle | `check-policy-version` |
 | CEDAR-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
 
 ## Extended Cedar Evidence Ledger

@@ -217,37 +217,37 @@
   ],
   "slos": [
     {
-      "name": "oya-api-gateway-edge-availability",
+      "name": "api-gateway-edge-availability",
       "target": "0.9999",
       "file": "gateway/observability/slos/edge-availability.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-edge-latency-p50",
+      "name": "api-gateway-edge-latency-p50",
       "target": "0.5",
       "file": "gateway/observability/slos/edge-latency-p50.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-edge-latency-p95",
+      "name": "api-gateway-edge-latency-p95",
       "target": "0.95",
       "file": "gateway/observability/slos/edge-latency-p95.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-edge-latency-p99",
+      "name": "api-gateway-edge-latency-p99",
       "target": "0.99",
       "file": "gateway/observability/slos/edge-latency-p99.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-tls-handshake-success",
+      "name": "api-gateway-tls-handshake-success",
       "target": "0.9995",
       "file": "gateway/observability/slos/tls-handshake-success.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-h3-negotiation-rate",
+      "name": "api-gateway-h3-negotiation-rate",
       "target": "0.8",
       "file": "gateway/observability/slos/h3-negotiation-rate.openslo.yaml"
     },
     {
-      "name": "oya-api-gateway-pqc-negotiation-rate",
+      "name": "api-gateway-pqc-negotiation-rate",
       "target": "0.1",
       "file": "gateway/observability/slos/pqc-negotiation-rate.openslo.yaml"
     }

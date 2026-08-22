@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud
-acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance, oya-check-cis-k8s-benchmark]
+acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, governance-per-microservice-layout, governance-version-pinning-conformance, check-cis-k8s-benchmark]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -132,9 +132,9 @@ helm lint microservices/cloud-k8s/iac/helm/csi-file
 terraform -chdir=microservices/cloud-k8s/iac/terraform/kubeadm-cluster validate
 terraform -chdir=microservices/cloud-k8s/iac/terraform/containerd-config validate
 kubectl --dry-run=client apply -k microservices/cloud-k8s/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
-cargo run -p oya-dev-cli -- gate validate cis-k8s-benchmark --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate version-pinning-conformance
+cargo run -p dev-cli -- gate validate cis-k8s-benchmark --microservice cloud-k8s
 ```
 
 ## Test Plan

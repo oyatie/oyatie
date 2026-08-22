@@ -35,7 +35,7 @@ It is a **multi-provider reverse proxy** that:
 
 - presents **one canonical OpenAI-compatible wire surface** (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) so every caller uses an off-the-shelf OpenAI SDK with zero custom client code (brief §2 REST API contract; de-facto standard mirrored by Azure APIM importing OpenAI/Anthropic-Messages surfaces and Kong `llm/v1/*`);
 - abstracts each provider behind an **adapter trait** that injects the right auth header and base URL, and **passes SSE bytes straight through** (brief §1 Architecture — Kong `response_streaming` passthrough; re-serialize only the non-stream path);
-- runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/oya-cloud-intelligence-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
+- runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/cloud-intelligence-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
 - enforces **per-tenant key pools + concurrent token budgets** as the isolation and FinOps unit (brief §6 Multi-tenant isolation, brief §8 Cost/FinOps; LiteLLM virtual-key budgets, Azure `llm-token-limit`);
 - sources provider keys **only through owned cloud-secrets/cloud-kms handles** (`secret-ref://` / `kms-ref://`), with transient backing adapters hidden behind the secret-provider port, in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock-style handle-only key pattern);
 - emits a **Bedrock-shaped immutable audit record** plus low-PII usage metering, with prompt/completion body logging **default-OFF** (brief §3 Async events, brief §9 Audit evidence).
@@ -45,7 +45,7 @@ It is a **multi-provider reverse proxy** that:
 This µservice is intentionally distinct from:
 
 - **cloud-kms / cloud-secrets** µservices — they own the secret-provider/KMS substrate, backing adapters, and HSM-backed encryption-at-rest. cloud-intelligence is a *consumer* of opaque secret handles and resolved short-lived credentials, never a secrets store. (`depends_on_microservices: [cloud-kms, cloud-secrets]`.)
-- The generic **oya-http-router-kernel / oya-http-runtime-hyper-adapter** backbone — those provide the HTTP plumbing (ADR-0090); cloud-intelligence is the LLM-specific application layered on top.
+- The generic **http-router-kernel / http-runtime-hyper-adapter** backbone — those provide the HTTP plumbing (ADR-0090); cloud-intelligence is the LLM-specific application layered on top.
 - A future **model-eval / prompt-registry** surface — cloud-intelligence brokers inference traffic; it does not own prompt templates, eval harnesses, or fine-tune jobs.
 
 The split gives blast-radius isolation (a provider-key storm cannot starve KMS), spend isolation (per-tenant budgets live here, not in every calling service), and a single auditable place where every external model call is recorded.
@@ -219,7 +219,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 
 ```
                  ┌──────────────────────────────────────────────┐
-   agent/tenant  │  oya-cloud-intelligence-rest  (ADR-0105 rest layer)   │
+   agent/tenant  │  cloud-intelligence-rest  (ADR-0105 rest layer)   │
    OpenAI SDK    │                                                │
   ───bearer────▶ │  ingress auth (constant-time)                  │
                  │     │                                          │     cloud-secrets / cloud-kms
@@ -227,7 +227,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
                  │  per-tenant budget admission (estimate)        │◀── key refresh
                  │     │                                          │
                  │     ▼            ┌───────────────────────┐     │
-                 │  KeyPool.select ─┤ oya-cloud-intelligence-kernel │     │
+                 │  KeyPool.select ─┤ cloud-intelligence-kernel │     │
                  │     │            │  (ADR-0105 kernel,     │     │
                  │     ▼            │   pure state machine)  │     │
                  │  provider adapter└───────────────────────┘     │     OpenAI
@@ -243,8 +243,8 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
    admin realm: GET pool status · POST key refresh   (separate security scheme)
 ```
 
-- **oya-cloud-intelligence-kernel** (`kernel` layer, ADR-0105) — pure key-pool state machine, no I/O. Already implemented (`crates/oya-cloud-intelligence-kernel/src/lib.rs`).
-- **oya-cloud-intelligence-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, owned secret-provider port consumption, metering/audit emission, OTel, admin ops.
+- **cloud-intelligence-kernel** (`kernel` layer, ADR-0105) — pure key-pool state machine, no I/O. Already implemented (`crates/cloud-intelligence-kernel/src/lib.rs`).
+- **cloud-intelligence-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, owned secret-provider port consumption, metering/audit emission, OTel, admin ops.
 
 ## 8. Non-Functional Requirements
 

@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [helm-lint, terraform-validate, oya-governance-per-microservice-layout]
+acceptance_lanes: [helm-lint, terraform-validate, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -81,7 +81,7 @@ resource "oci_objectstorage_bucket" "cloud_iac_state" {
 ```bash
 helm lint microservices/cloud-iac/iac/helm/opentofu
 tofu validate microservices/cloud-iac/iac/terraform/
-cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

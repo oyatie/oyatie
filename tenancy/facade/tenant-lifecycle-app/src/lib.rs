@@ -58,10 +58,10 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::routing::{delete, get, post};
 use serde::{Deserialize, Serialize};
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
-use oya_shared_resource_provider_contract_kernel::{
+use shared_resource_provider_contract_kernel::{
     IdempotencyKey, Operation, OperationResult, PageRequest, PageToken, ProviderError,
     ResourceName, ResourceProvider,
 };
@@ -99,7 +99,7 @@ const ENV_PLATFORM_ADMIN_TOKEN: &str = "TENANCY_PLATFORM_ADMIN_TOKEN";
 /// token (constant-time verified) is *some* tenant operator — but the bearer
 /// alone proves NEITHER which operator NOR which tenants it may act for (it is a
 /// SHARED credential). The verified operator's authorized tenants are resolved
-/// SERVER-SIDE from the [`TenantMembershipResolver`]; the `x-oya-tenant` header
+/// SERVER-SIDE from the [`TenantMembershipResolver`]; the `x-tenant` header
 /// may at most SELECT among those assigned tenants. An operator can NEVER act for
 /// a tenant it is not a member of (the C7 self-attestation fix), and the PDP then
 /// backstops the membership-bound axis against the target {id}.
@@ -107,9 +107,9 @@ const ENV_TENANT_OPERATOR_TOKEN: &str = "TENANCY_TENANT_OPERATOR_TOKEN";
 
 /// Env var carrying tenant-bound operator bearer credentials as
 /// `tenantA:tokenA,tenantB:tokenB`. This is the #771 retirement path for the
-/// shared operator bearer + self-asserted `x-oya-tenant` selector: the verified
+/// shared operator bearer + self-asserted `x-tenant` selector: the verified
 /// credential itself binds exactly one tenant axis. A conflicting
-/// `x-oya-tenant` header is denied, and an absent header is accepted because the
+/// `x-tenant` header is denied, and an absent header is accepted because the
 /// tenant came from the credential, not from caller data.
 const ENV_TENANT_BOUND_OPERATOR_TOKENS: &str = "TENANCY_TENANT_BOUND_OPERATOR_TOKENS";
 
@@ -135,9 +135,9 @@ const REFERENCE_OPERATOR_PRINCIPAL_ID: &str = "tenant-operator";
 /// REFUSES to serve if the connection fails (fail-closed — never a silent
 /// downgrade to in-memory). When absent, the in-memory store is used for
 /// single-node dev bring-up. Reuses the repo-canonical Postgres URL env name
-/// (`OYA_BACKBONE_POSTGRES_URL`, the same one the durable adapter's live tests
+/// (`OYATIE_BACKBONE_POSTGRES_URL`, the same one the durable adapter's live tests
 /// point at) so runtime and live-test config share one source of truth.
-const ENV_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
+const ENV_DATABASE_URL: &str = "OYATIE_BACKBONE_POSTGRES_URL";
 
 /// Optional network PDP endpoint/base URL for dogfooding the tenant lifecycle
 /// PEP against the shared PDP REST surface. When present, boot composes a
@@ -146,7 +146,7 @@ const ENV_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
 const ENV_AUTHZ_PDP_URL: &str = "TENANCY_LIFECYCLE_AUTHZ_PDP_URL";
 
 /// The header asserting which tenant a verified tenant-operator is acting as.
-const HEADER_TENANT_AXIS: &str = "x-oya-tenant";
+const HEADER_TENANT_AXIS: &str = "x-tenant";
 
 /// The storage-port bound a served lifecycle provider needs: the kernel store
 /// port, plus the thread/async-share markers axum handlers require. `Sync` is
@@ -173,7 +173,7 @@ impl<T> LifecycleStore for T where T: TenantLifecycleStore + Send + Sync + 'stat
 /// for the in-memory single-node bring-up, but it serializes all mutations.
 /// Per-tenant / row-level concurrency is NOT this layer's concern: it moves
 /// into the persistent store adapter behind the unchanged `TenantLifecycleStore`
-/// port (the G03 oya-data store does row-level locking / optimistic
+/// port (the G03 data store does row-level locking / optimistic
 /// concurrency), so the delivery surface keeps this single-writer invariant and
 /// the store owns the contention model. Do not pre-optimize the in-memory lock.
 pub type SharedProvider<S> = Arc<Mutex<TenantLifecycleProvider<S>>>;
@@ -200,7 +200,7 @@ pub struct AppState<S: LifecycleStore> {
     authorizer: SharedAuthorizer,
     /// The server-side tenant-membership resolver. REQUIRED — the verified
     /// operator's authorized tenants are resolved HERE, never self-attested via
-    /// the `x-oya-tenant` header (the C7 fix). There is no "no resolver" variant.
+    /// the `x-tenant` header (the C7 fix). There is no "no resolver" variant.
     membership: SharedMembershipResolver,
     /// Constant-time-verified platform-admin bearer token. `None` means no
     /// platform admin can authenticate (register/list deny-all), never an open
@@ -210,7 +210,7 @@ pub struct AppState<S: LifecycleStore> {
     /// tenant operator can authenticate (per-tenant ops deny-all).
     tenant_operator_token: Option<String>,
     /// Constant-time-verified tenant-bound operator bearers. Each token binds a
-    /// single verified tenant axis and does not require `x-oya-tenant`.
+    /// single verified tenant axis and does not require `x-tenant`.
     tenant_bound_operator_tokens: TenantBoundOperatorTokens,
 }
 
@@ -578,11 +578,11 @@ fn tenant_name(tenant_id: &str) -> Result<ResourceName, HandlerError> {
 ///
 /// A tenant-operator bearer proves only that the caller is *some* operator; it is
 /// a SHARED credential and proves NOTHING about which tenants that operator may
-/// act for. The `x-oya-tenant` header therefore CANNOT grant a tenant axis. The
+/// act for. The `x-tenant` header therefore CANNOT grant a tenant axis. The
 /// PEP resolves the verified operator's ASSIGNED tenants from the server-side
 /// [`TenantMembershipResolver`] and binds the axis ONLY to a tenant in that set:
-///   - no `x-oya-tenant` header AND exactly one assigned tenant ⇒ bind to it;
-///   - `x-oya-tenant` present ⇒ SELECT it, but ONLY if it is in the assigned set;
+///   - no `x-tenant` header AND exactly one assigned tenant ⇒ bind to it;
+///   - `x-tenant` present ⇒ SELECT it, but ONLY if it is in the assigned set;
 ///     an unassigned selection is 403 (the operator has no authority over it);
 ///   - no assigned tenants (unknown operator) ⇒ 403 (default-deny);
 ///   - a membership-store fault ⇒ 403 (fail-closed).
@@ -612,7 +612,7 @@ where
             return Err(err(
                 StatusCode::FORBIDDEN,
                 "PERMISSION_DENIED",
-                "tenant-bound credential does not match x-oya-tenant selection",
+                "tenant-bound credential does not match x-tenant selection",
             ));
         }
 
@@ -683,7 +683,7 @@ where
                     return Err(err(
                         StatusCode::BAD_REQUEST,
                         "TENANT_SELECTION_REQUIRED",
-                        "tenant-operator is assigned multiple tenants; an x-oya-tenant \
+                        "tenant-operator is assigned multiple tenants; an x-tenant \
                          selection (within the assigned set) is required",
                     ));
                 }
@@ -1238,7 +1238,7 @@ pub fn build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
 /// authorizer over the seed tenancy bundle. Mirrors [`build_inmemory_router`]
 /// but composes [`PgTenantLifecycleStore`] (the ADR-0510 transitional durable
 /// adapter behind the unchanged `TenantLifecycleStore` kernel port — cutover
-/// litmus holds: the oya-data/G003 owned store swaps the adapter later with no
+/// litmus holds: the data/G003 owned store swaps the adapter later with no
 /// change here). The bearer tokens gate authentication exactly as the in-memory
 /// path; an absent token means that principal class cannot authenticate.
 ///
@@ -1253,7 +1253,7 @@ pub fn build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
 ///     Note: the guard is necessary but not sufficient for full tenant isolation;
 ///     full isolation additionally requires that `tenancy_lifecycle_runtime`
 ///     exists provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`,
-///     mirroring oya-data-outbox-adapter-postgres).
+///     mirroring data-outbox-adapter-postgres).
 /// - [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
@@ -1661,7 +1661,7 @@ fn validate_credentials(
 /// Bind and serve the tenant lifecycle service on `listen_addr`, fail-closed.
 ///
 /// ## Store selection (12-factor composition-root config, NOT a CLI surface)
-///   - `ENV_DATABASE_URL` (`OYA_BACKBONE_POSTGRES_URL`) present + non-empty →
+///   - `ENV_DATABASE_URL` (`OYATIE_BACKBONE_POSTGRES_URL`) present + non-empty →
 ///     the DURABLE [`PgTenantLifecycleStore`] is composed. If the connection
 ///     fails or the RLS-enforceability guard fires (bypass-capable role, or
 ///     role not a member of `tenancy_lifecycle_runtime`), the service REFUSES

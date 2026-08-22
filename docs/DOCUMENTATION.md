@@ -6,7 +6,7 @@ status: historical
 
 # DOCUMENTATION.md — historical tombstone
 
-**Historical.** Draft v0.1 (2026-05-09). Taught a retired `oya doc` CLI (`oya-doc rustdoc|openapi|mdbook|adr-index|catalog`) that is not merge authority.
+**Historical.** Draft v0.1 (2026-05-09). Taught a retired `oya doc` CLI (`doc rustdoc|openapi|mdbook|adr-index|catalog`) that is not merge authority.
 
 **Current protocol (one):** [`AGENTS.md`](AGENTS.md) + [`specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json). Entry: [`specs/root-hub-pointers.json`](../specs/root-hub-pointers.json).
 

@@ -1,7 +1,7 @@
 // oyatie.contract.exposure: internal-only
 // oyatie.contract.transport: grpc-http2
 // oyatie.contract.identity: spiffe-mtls-tls13
-// oya-cloud-k8s — gRPC contract
+// cloud-k8s — gRPC contract
 // Internal-only service RPC projection; contracts/openapi/cloud-k8s.yaml remains the public client contract.
 // Per ADR-0121 + ADR-0131.
 

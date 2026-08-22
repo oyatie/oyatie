@@ -6,12 +6,12 @@
         "datasource": "prometheus",
         "iconColor": "rgba(0, 211, 255, 1)",
         "enable": true,
-        "expr": "changes(oya_community_deployment_info[1m]) > 0"
+        "expr": "changes(community_deployment_info[1m]) > 0"
       }
     ]
   },
   "title": "Community — Post Throughput",
-  "uid": "oya-community-post-throughput",
+  "uid": "community-post-throughput",
   "tags": ["community", "post-store", "throughput"],
   "schemaVersion": 38,
   "version": 1,
@@ -23,7 +23,7 @@
         "name": "tenant_id",
         "type": "query",
         "datasource": "prometheus",
-        "query": "label_values(oya_community_post_create_total, tenant_id)",
+        "query": "label_values(community_post_create_total, tenant_id)",
         "includeAll": true
       }
     ]
@@ -35,7 +35,7 @@
       "datasource": "prometheus",
       "targets": [
         {
-          "expr": "sum by (tenant_id, kind) (rate(oya_community_post_create_total{tenant_id=~\"$tenant_id\"}[5m]))",
+          "expr": "sum by (tenant_id, kind) (rate(community_post_create_total{tenant_id=~\"$tenant_id\"}[5m]))",
           "legendFormat": "{{tenant_id}} / {{kind}}"
         }
       ]
@@ -46,7 +46,7 @@
       "datasource": "prometheus",
       "targets": [
         {
-          "expr": "sum by (tenant_id) (rate(oya_community_post_edit_total{tenant_id=~\"$tenant_id\"}[5m]))"
+          "expr": "sum by (tenant_id) (rate(community_post_edit_total{tenant_id=~\"$tenant_id\"}[5m]))"
         }
       ]
     },
@@ -56,7 +56,7 @@
       "datasource": "prometheus",
       "targets": [
         {
-          "expr": "sum by (tenant_id, deletor_role) (rate(oya_community_post_delete_total{tenant_id=~\"$tenant_id\"}[5m]))"
+          "expr": "sum by (tenant_id, deletor_role) (rate(community_post_delete_total{tenant_id=~\"$tenant_id\"}[5m]))"
         }
       ],
       "alert": {
@@ -76,9 +76,9 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum by (le, tenant_id) (rate(oya_community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p50 {{tenant_id}}" },
-        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(oya_community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p99 {{tenant_id}}" },
-        { "expr": "histogram_quantile(0.999, sum by (le, tenant_id) (rate(oya_community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p999 {{tenant_id}}" }
+        { "expr": "histogram_quantile(0.50, sum by (le, tenant_id) (rate(community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p50 {{tenant_id}}" },
+        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p99 {{tenant_id}}" },
+        { "expr": "histogram_quantile(0.999, sum by (le, tenant_id) (rate(community_post_create_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))", "legendFormat": "p999 {{tenant_id}}" }
       ]
     },
     {
@@ -86,7 +86,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(oya_community_feed_render_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))" }
+        { "expr": "histogram_quantile(0.99, sum by (le, tenant_id) (rate(community_feed_render_duration_seconds_bucket{tenant_id=~\"$tenant_id\"}[5m])))" }
       ]
     },
     {
@@ -94,7 +94,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_post_velocity_zscore{tenant_id=~\"$tenant_id\"}" }
+        { "expr": "community_post_velocity_zscore{tenant_id=~\"$tenant_id\"}" }
       ]
     }
   ]

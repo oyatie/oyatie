@@ -13,16 +13,16 @@
   },
   "current": {
     "cloud-ci-target-parity": {
-      "member_missing_buck": ["libs/oya-brand-new-domain"]
+      "member_missing_buck": ["libs/brand-new-domain"]
     }
   },
   "proposed_baseline": {
     "gates": {
       "cloud-ci-target-parity": {
-        "member_missing_buck": {"mode": "baseline-block-on-new", "keys": ["libs/oya-brand-new-domain"], "frozen_empty": true}
+        "member_missing_buck": {"mode": "baseline-block-on-new", "keys": ["libs/brand-new-domain"], "frozen_empty": true}
       }
     }
   },
   "signoff": {"_sign_off_additions": {}},
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-firewall-app/tests/firewall.rs"
 }

@@ -37,11 +37,11 @@ spec:
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
-            - name: OYA_FINOPS_PORTAL_COST_CENTER
+            - name: OYATIE_FINOPS_PORTAL_COST_CENTER
               value: {{ .Values.costAttribution.costCenter | quote }}
-            - name: OYA_FINOPS_PORTAL_WORKLOAD_CLASS
+            - name: OYATIE_FINOPS_PORTAL_WORKLOAD_CLASS
               value: {{ .Values.costAttribution.workloadClass | quote }}
-            - name: OYA_FINOPS_PORTAL_REGULATORY_PACK
+            - name: OYATIE_FINOPS_PORTAL_REGULATORY_PACK
               value: {{ .Values.costAttribution.regulatoryPack | quote }}
           livenessProbe:
             httpGet:

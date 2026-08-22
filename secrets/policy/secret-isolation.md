@@ -46,7 +46,7 @@ Within a tenant namespace, every consumer µservice has a scope of `secret/<tena
 
 **Enforcement**:
 - OpenBao policy at `policy/openbao/per-microservice-scope.hcl` (templated).
-- LEAN-A12 lane `oya-check-openbao-policy-scope` refuses any policy granting `>scope`.
+- LEAN-A12 lane `check-openbao-policy-scope` refuses any policy granting `>scope`.
 - Audit-emit `cross_microservice_read_attempt`.
 
 ### TI-03 — SecretReference is the law
@@ -78,7 +78,7 @@ Resolved by the SecretReference SDK at runtime; never written as a raw value to:
 - environment variables in plain text (consumers receive references, not values; values resolved in-process).
 
 **Enforcement**:
-- **LEAN-A11 `oya-check-raw-secret-emission` lane (BLOCKER)**: gitleaks + tartufo + oyatie custom regexes scan every PR diff + commit history. Patterns include but are not limited to:
+- **LEAN-A11 `check-raw-secret-emission` lane (BLOCKER)**: gitleaks + tartufo + oyatie custom regexes scan every PR diff + commit history. Patterns include but are not limited to:
   - Generic high-entropy strings (Shannon entropy > 4.5 per character over ≥20 chars)
   - AWS: `AKIA[0-9A-Z]{16}`, `[0-9a-zA-Z/+]{40}`
   - Stripe: `sk_(live|test)_[0-9a-zA-Z]{24,}`, `pk_(live|test)_[0-9a-zA-Z]{24,}`
@@ -90,9 +90,9 @@ Resolved by the SecretReference SDK at runtime; never written as a raw value to:
   - OAuth client secrets matching common provider shapes (Slack, Discord, Twilio, SendGrid, etc.)
   - oyatie-specific: any string of length > 30 matching `[A-Za-z0-9+/=]{30,}` not whitelisted as `INTERNAL_ONLY`
   - HSM PKCS#11 PIN-shaped strings
-- **`oya-check-secret-newtype-leak` LEAN lane**: scans Rust code for `format!("{:?}", secret)`, `.to_string()` on `Secret<T>`, `println!("{}")` patterns; refuses commit.
+- **`check-secret-newtype-leak` LEAN lane**: scans Rust code for `format!("{:?}", secret)`, `.to_string()` on `Secret<T>`, `println!("{}")` patterns; refuses commit.
 - **Pre-receive Git hook** on `oya-vcs`-managed branches (defence-in-depth).
-- **Quarterly retroactive scan** via `oya-cloud-secrets-secret-leak-scanner` cron over full git history + `.omc/state/sessions/*` directories.
+- **Quarterly retroactive scan** via `cloud-secrets-secret-leak-scanner` cron over full git history + `.omc/state/sessions/*` directories.
 - **Reviewer-agent vigilance**: pr-review skill checks for any SecretReference URI alteration that broadens scope.
 
 ### TI-04 — Cache TTL ceiling
@@ -145,16 +145,16 @@ Tenant-supplied encryption-key BYOK material (ADR-0251 §D-10) MUST be wrapped u
 | Echoing secret in error message | Error logs are noisy + retained | Errors return opaque codes |
 | Storing a secret in `.omc/state/` (agent checkpoint) | Checkpoint persistence == leak | Agent context never contains raw secret; only reference |
 | Storing a secret in chat (agent dialogue) | Chat transcripts retained + exportable | Agent treats secret references symbolically; never resolves |
-| Importing `oya-cloud-secrets-*` from a different product | Cross-product import violation | Consume via SDK only |
+| Importing `cloud-secrets-*` from a different product | Cross-product import violation | Consume via SDK only |
 | HSM bypass for "test in production" | Test in stage; PR-review enforces | Stage cluster has its own HSM partition |
 
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate lean-a12 --microservice cloud-secrets   # policy-scope
-cargo run -p oya-dev-cli -- gate validate secret-newtype-leak --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate cedar-deny-by-default --policy microservices/cloud-secrets/policy/
+cargo run -p dev-cli -- gate validate lean-a11 --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate lean-a12 --microservice cloud-secrets   # policy-scope
+cargo run -p dev-cli -- gate validate secret-newtype-leak --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate cedar-deny-by-default --policy microservices/cloud-secrets/policy/
 ```
 
 Monthly chaos drills:

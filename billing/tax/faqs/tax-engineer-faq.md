@@ -15,7 +15,7 @@ systems already call Avalara, we ship a passthrough adapter (`cloud-billing-tax-
 
 **Q2. How does the catalog compare to Avalara's?**
 
-Avalara ships ~22,000 tax codes globally; the `oya-tax-codes-sovereign-paid-v1` catalog ships ~9,800. The Oyatie catalog is
+Avalara ships ~22,000 tax codes globally; the `tax-codes-sovereign-paid-v1` catalog ships ~9,800. The Oyatie catalog is
 narrower-by-design (modern SaaS-and-services centric); we have parity on SaaS, professional services, digital goods, telecom,
 and physical-goods e-commerce. Avalara wins on niche categories (alcohol fuel taxes by state, cannabis tax by county). We file
 new codes via `oya tax codes propose` with governance review.
@@ -93,7 +93,7 @@ submitted to the seller's home country tax authority (which then forwards propor
 - **Union Territory**: CGST + UTGST.
 
 The calculator picks based on `seller_state` vs `buyer_state`. Special economic zones (SEZ) are zero-rated. Composition-scheme
-sellers have separate brackets. All this is encoded in `oya-tax-codes-global-paid-v1`'s IN-specific section.
+sellers have separate brackets. All this is encoded in `tax-codes-global-paid-v1`'s IN-specific section.
 
 ---
 
@@ -203,4 +203,4 @@ Each rate-card publish triggers a 50,000-transaction synthetic corpus run that:
 3. Spot-checks against published tax tables from primary sources.
 
 Divergence > 0.5 % from any sanity baseline blocks the publish. Test corpus + ground truth lives at
-`crates/oya-cloud-billing-tax-test-corpus-v1/`.
+`crates/cloud-billing-tax-test-corpus-v1/`.

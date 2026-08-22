@@ -27,7 +27,7 @@
       "post": {
         "operationId": "postAccountingJournal",
         "summary": "Create a journal-post command envelope.",
-        "x-oyatie-app-function": "oya_accounting_journal_app::post_journal_with_audit",
+        "x-oyatie-app-function": "accounting_journal_app::post_journal_with_audit",
         "requestBody": {
           "required": true,
           "content": {
@@ -59,7 +59,7 @@
       "post": {
         "operationId": "recordAccountingPayrollPosting",
         "summary": "Record payroll posting evidence metadata.",
-        "x-oyatie-app-function": "oya_accounting_journal_app::record_payroll_posting",
+        "x-oyatie-app-function": "accounting_journal_app::record_payroll_posting",
         "requestBody": {
           "required": true,
           "content": {
@@ -91,7 +91,7 @@
       "post": {
         "operationId": "planAccountingVatWorkflow",
         "summary": "Plan KR VAT Workflow dispatch metadata.",
-        "x-oyatie-app-function": "oya_accounting_journal_app::plan_vat_workflow",
+        "x-oyatie-app-function": "accounting_journal_app::plan_vat_workflow",
         "requestBody": {
           "required": true,
           "content": {

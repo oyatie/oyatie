@@ -6,7 +6,7 @@
 //! The `authz_engine` sub-module adds P14-policy `AuthzRequest` / `AuthzDecision`
 //! / `EvalLogFilter` value types that encode the Cedar evaluation contract without
 //! importing any framework crates beyond `serde`.  These types will migrate into a
-//! dedicated `oya-policy-engine-kernel` crate when IP-001 scaffolds the full
+//! dedicated `policy-engine-kernel` crate when IP-001 scaffolds the full
 //! policy-engine BC (P14 impl-plan, `execution_variant = merge-into-existing-crates`).
 //!
 //! The `obligations` sub-module adds Cedar-style annotation/obligation key-value pairs

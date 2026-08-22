@@ -15,7 +15,7 @@
 // =============================================================================
 
 permit (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action in [
     Action::"read_policy_fragment",
     Action::"read_iac_manifest",
@@ -40,7 +40,7 @@ when {
 // write within this sandbox namespace only.
 
 permit (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action in [
     Action::"resolve_secret_reference",
     Action::"write_secret_reference",
@@ -55,9 +55,9 @@ permit (
 // =============================================================================
 
 permit (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action == Action::"emit_scan_finding",
-  resource in ScanFindingsBucket::"oya-cloud-secrets-leak-scan-findings"
+  resource in ScanFindingsBucket::"cloud-secrets-leak-scan-findings"
 );
 
 // =============================================================================
@@ -65,7 +65,7 @@ permit (
 // =============================================================================
 
 forbid (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action == Action::"resolve_secret_reference",
   resource
 )
@@ -79,7 +79,7 @@ unless {
 // =============================================================================
 
 forbid (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action in [
     Action::"hsm_sign",
     Action::"hsm_attest",
@@ -95,7 +95,7 @@ forbid (
 // =============================================================================
 
 forbid (
-  principal == CIRunner::"oya-ci",
+  principal == CIRunner::"ci",
   action in [
     Action::"break_glass_admin",
     Action::"unseal_recovery",

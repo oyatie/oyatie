@@ -3,7 +3,7 @@
 //
 // Purpose: enforce per-tenant + per-µservice scope on secret resolution + admin reads.
 // Owner:   ops-security + axis-cloud-secrets
-// Audit:   every deny emits oya_cloud_secrets_tenant_unauthorized_read_attempt_total
+// Audit:   every deny emits cloud_secrets_tenant_unauthorized_read_attempt_total
 // References: secret-isolation.md §"TI-01 Per-tenant namespace", §"TI-02 Per-µservice scope"
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

@@ -11,24 +11,24 @@ acceptance_lanes: [buck2-test, lean-a1]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-004: oya-cloud-secrets-secret-reference-resolver-domain
+# IP-004: cloud-secrets-secret-reference-resolver-domain
 
 ## Intent
 
-Pure SecretReference URI parsing + cache-TTL clamp arithmetic in the current `oya-secrets-domain` crate. Zero I/O. Revocation invalidation remains a follow-up usecase/adapter concern unless a later IP adds crate-backed domain rules.
+Pure SecretReference URI parsing + cache-TTL clamp arithmetic in the current `secrets-domain` crate. Zero I/O. Revocation invalidation remains a follow-up usecase/adapter concern unless a later IP adds crate-backed domain rules.
 
 ## ChangeSet boundary
 
-Current implementation lives in the existing `cloud/cloud-secrets/crates/oya-secrets-domain` crate and direct test target. Planned shared corpus artifacts must mirror this crate-backed behavior before becoming release authority.
+Current implementation lives in the existing `cloud/cloud-secrets/crates/secrets-domain` crate and direct test target. Planned shared corpus artifacts must mirror this crate-backed behavior before becoming release authority.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs` | update/verify current `SecretReferenceUri`, config-wrapper parser, normalized serializer, and `clamp_secret_reference_cache_ttl_seconds` |
-| `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs` | update/verify parser and TTL tests |
-| `cloud/cloud-secrets/crates/oya-secrets-domain/BUCK` | update/verify Buck2 test/build targets |
-| `secrets/catalog/oya-cloud-secrets-secret-reference-resolver-domain.yaml` | planned/verify catalog compatibility if a split resolver crate is reintroduced |
+| `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs` | update/verify current `SecretReferenceUri`, config-wrapper parser, normalized serializer, and `clamp_secret_reference_cache_ttl_seconds` |
+| `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs` | update/verify parser and TTL tests |
+| `cloud/cloud-secrets/crates/secrets-domain/BUCK` | update/verify Buck2 test/build targets |
+| `secrets/catalog/cloud-secrets-secret-reference-resolver-domain.yaml` | planned/verify catalog compatibility if a split resolver crate is reintroduced |
 
 ## Code Shape
 
@@ -51,8 +51,8 @@ pub fn parse(input: &str) -> Result<SecretReferenceUri, SecretReferenceUriError>
 ## Acceptance Gates
 
 ```bash
-buck2 test //cloud/cloud-secrets/crates/oya-secrets-domain:secret-reference-uri-test
-buck2 build //cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain[check]
+buck2 test //cloud/cloud-secrets/crates/secrets-domain:secret-reference-uri-test
+buck2 build //cloud/cloud-secrets/crates/secrets-domain:secrets-domain[check]
 ```
 
 ## Test Plan
@@ -82,9 +82,9 @@ The resolver domain is the security boundary between a syntactically valid Secre
 Keep this crate pure: parse and normalize references, derive cache TTL ceilings, and reject any URI outside the ABNF from IP-002. All OpenBao I/O remains in adapters; domain code only emits deterministic decisions that the usecase layer can audit. Revocation behavior remains future-facing unless backed by a later domain implementation.
 
 ### C. Deliverables
-- `oya-secrets-domain` crate implementation from `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`.
+- `secrets-domain` crate implementation from `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs`.
 - Consolidated `src/lib.rs` parser/TTL surface rather than separate parser, TTL, and invalidation modules.
-- Direct Buck2 test target `//cloud/cloud-secrets/crates/oya-secrets-domain:secret-reference-uri-test` until shared fixture artifacts are generated.
+- Direct Buck2 test target `//cloud/cloud-secrets/crates/secrets-domain:secret-reference-uri-test` until shared fixture artifacts are generated.
 - Policy alignment with `policy/secret-isolation.md` and `policy/tenant-scope.cedar`.
 - Contract alignment with `contracts/openapi/cloud-secrets.yaml`.
 
@@ -95,17 +95,17 @@ Keep this crate pure: parse and normalize references, derive cache TTL ceilings,
 4. Reject path traversal, raw literal values, query strings, malformed wrappers, and invalid versions.
 5. Keep malformed-string and TTL arithmetic tests in the Buck2 parser test target.
 6. Expose only typed domain errors for usecase/audit mapping.
-7. Validate dependency direction with Buck2 check targets and branch-protected `oya-ci-required` / owned `oya-ci` gates.
+7. Validate dependency direction with Buck2 check targets and branch-protected `presubmit` / owned `ci` gates.
 
 ### E. Acceptance
-- `buck2 test //cloud/cloud-secrets/crates/oya-secrets-domain:secret-reference-uri-test`.
-- `buck2 build //cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain[check]`.
-- Branch-protected `oya-ci-required` / owned `oya-ci` evidence for LEAN-A1 before external release claims.
+- `buck2 test //cloud/cloud-secrets/crates/secrets-domain:secret-reference-uri-test`.
+- `buck2 build //cloud/cloud-secrets/crates/secrets-domain:secrets-domain[check]`.
+- Branch-protected `presubmit` / owned `ci` evidence for LEAN-A1 before external release claims.
 - Parser accepts only corpus-approved references and clamps all TTLs to <=60s.
 - Domain crate has no OpenBao, HTTP, Kubernetes, or audit-chain dependency.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` SecretReference functional requirements, `ARCHITECTURE.md` port-trait table, `manifest.json` crate registry, `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`, `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs`, `policy/secret-isolation.md`, and `slos/secret-resolve-latency.openslo.yaml`.
+Evidence anchors are `PRD.md` SecretReference functional requirements, `ARCHITECTURE.md` port-trait table, `manifest.json` crate registry, `cloud/cloud-secrets/crates/secrets-domain/src/lib.rs`, `cloud/cloud-secrets/crates/secrets-domain/tests/secret_reference_uri.rs`, `policy/secret-isolation.md`, and `slos/secret-resolve-latency.openslo.yaml`.
 
 ### G. Counterpart Comparison
 HashiCorp Vault, AWS Secrets Manager, and Google Secret Manager expose flexible naming and versioning, but the counterpart matrices mark SDK-enforced safety and TTL ceilings as Oyatie differentiators. This domain crate turns that differentiator into deterministic code instead of leaving it as SDK guidance.

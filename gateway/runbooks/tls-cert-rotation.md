@@ -22,7 +22,7 @@
 ## C — Procedure (scheduled)
 
 1. **Initiate renewal:**
-   - `kubectl annotate certificate oya-api-gateway-cert cert-manager.io/renew=true -n api-gateway`.
+   - `kubectl annotate certificate api-gateway-cert cert-manager.io/renew=true -n api-gateway`.
    - cert-manager issues new cert from CA.
    - Timing budget: ≤10min.
 2. **Sidecar reload:**
@@ -46,7 +46,7 @@
 3. **Push revocation to CRL + OCSP:**
    - Wait ≤5min for OCSP propagation; clients with must-staple will fail-hard.
 4. **Issue new cert + new keypair:**
-   - `kubectl delete certificate oya-api-gateway-cert -n api-gateway && kubectl apply -f iac/cert-manager.yaml`.
+   - `kubectl delete certificate api-gateway-cert -n api-gateway && kubectl apply -f iac/cert-manager.yaml`.
    - Timing budget: ≤15min.
 5. **Roll OpenBao TLS private key** (per ADR-0296):
    - `oyatie-openbao secret rotate --path secret/tls`.

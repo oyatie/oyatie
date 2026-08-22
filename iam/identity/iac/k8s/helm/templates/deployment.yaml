@@ -46,49 +46,49 @@ spec:
             - name: grpc
               containerPort: {{ .Values.service.grpcTargetPort }}
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
-            - name: OYA_IDENTITY_REST_ADDR
+            - name: OYATIE_IDENTITY_REST_ADDR
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
-            - name: OYA_IDENTITY_GRPC_ADDR
+            - name: OYATIE_IDENTITY_GRPC_ADDR
               value: "0.0.0.0:{{ .Values.service.grpcTargetPort }}"
-            - name: OYA_IDENTITY_ISSUER
+            - name: OYATIE_IDENTITY_ISSUER
               value: {{ .Values.identity.issuer | quote }}
-            - name: OYA_IDENTITY_AUDIENCE
+            - name: OYATIE_IDENTITY_AUDIENCE
               value: {{ .Values.identity.audience | quote }}
-            - name: OYA_IDENTITY_JWKS_PATH
-              value: /etc/oya-identity/keys/jwks.json
-            - name: OYA_IDENTITY_CEDAR_POLICY_PATH
-              value: /etc/oya-identity/cedar/policies.cedar
+            - name: OYATIE_IDENTITY_JWKS_PATH
+              value: /etc/identity/keys/jwks.json
+            - name: OYATIE_IDENTITY_CEDAR_POLICY_PATH
+              value: /etc/identity/cedar/policies.cedar
             {{- if .Values.identity.signingKeySecretName }}
-            - name: OYA_IDENTITY_SIGNING_KEY_PATH
+            - name: OYATIE_IDENTITY_SIGNING_KEY_PATH
               value: {{ .Values.identity.signingKeyPath | quote }}
             {{- end }}
             {{- if .Values.identity.principalsConfigMapName }}
-            - name: OYA_IDENTITY_PRINCIPALS_PATH
-              value: /etc/oya-identity/principals/principals.json
+            - name: OYATIE_IDENTITY_PRINCIPALS_PATH
+              value: /etc/identity/principals/principals.json
             {{- end }}
           volumeMounts:
             - name: jwks
-              mountPath: /etc/oya-identity/keys
+              mountPath: /etc/identity/keys
               readOnly: true
             - name: cedar-policies
-              mountPath: /etc/oya-identity/cedar
+              mountPath: /etc/identity/cedar
               readOnly: true
             {{- if .Values.identity.signingKeySecretName }}
             - name: signing-key
-              mountPath: /etc/oya-identity/signing
+              mountPath: /etc/identity/signing
               readOnly: true
             {{- end }}
             {{- if .Values.identity.principalsConfigMapName }}
             - name: principals
-              mountPath: /etc/oya-identity/principals
+              mountPath: /etc/identity/principals
               readOnly: true
             {{- end }}
           readinessProbe:

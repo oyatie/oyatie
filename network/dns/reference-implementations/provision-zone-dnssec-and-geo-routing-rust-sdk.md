@@ -1,4 +1,4 @@
-# Reference implementation — Provision zone + DNSSEC + geo-routing + health-checks via `oya-cloud-network-dns-sdk`
+# Reference implementation — Provision zone + DNSSEC + geo-routing + health-checks via `cloud-network-dns-sdk`
 
 Runnable Rust program that creates a tenant zone, enables DNSSEC, configures a geo-routed apex record set with three regional
 answers + health-checks, and verifies responses via DoH/3 + DoQ.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-network-dns-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-network-dns-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
@@ -25,11 +25,11 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::Result;
-use oya_cloud_network_dns_sdk::{
+use cloud_network_dns_sdk::{
     DnssecAlgorithm, DnssecEnableRequest, DnsClient, DnsConfig, GeoContinent, HealthCheckRequest,
     NsecMode, RecordKind, RecordRequest, RoutingPolicy, Tenant, Transport, ZoneCreateRequest,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 
@@ -232,7 +232,7 @@ INFO  failover to EU answer confirmed
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_network_dns_sdk::testkit::Hermetic` with an in-process Knot DNS resolver + SoftHSM-backed
+The `hermetic` feature uses `cloud_network_dns_sdk::testkit::Hermetic` with an in-process Knot DNS resolver + SoftHSM-backed
 DNSSEC; tests finish in ≤ 30 s.
 
 ## Error budget

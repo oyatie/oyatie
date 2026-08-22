@@ -1,0 +1,20 @@
+context: compatibility
+role: application
+capability: cloud-cell-application
+plane: control
+slo: no-runtime-slo
+status: retired-compatibility-row-no-crate
+successor_catalogs:
+  - registry/catalog/cell-bind-api.yaml
+  - registry/catalog/cell-routing.yaml
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-OPS-FOUNDATION-001
+non_claims:
+  - no matching crate exists in this checkout
+  - retained only for catalog compatibility during markdown retirement and foundation truth-down
+  - no runtime adapter provider SDK fake adapter or network operation is implemented

@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0222
   - ADR-0316
 enforced_by:
-  - oya-governance-workflow-substrate-engine
-  - oya-governance-workflow-vs-direct-grpc
-  - oya-governance-saga-compensation
+  - governance-workflow-substrate-engine
+  - governance-workflow-vs-direct-grpc
+  - governance-saga-compensation
 canonical_paths:
   - specs/microservices/workflow.json
   - microservices/workflow-engine/
@@ -612,25 +612,25 @@ ports:
 
 | ID | Concern | Required evidence | Checker |
 |---|---|---|---|
-| WF-VER-001 | Idempotency | duplicate trigger test | `oya-check-workflow-idempotency` |
-| WF-VER-002 | Timers | deterministic timer fixture | `oya-check-workflow-timers` |
-| WF-VER-003 | Compensation | saga rollback fixture | `oya-check-saga-compensation` |
-| WF-VER-004 | Policy | Cedar guard fixture | `oya-check-workflow-cedar-guards` |
-| WF-VER-005 | Audit | transition audit events | `oya-check-audit-emission` |
-| WF-VER-006 | Outbox | event publish ack | `oya-check-outbox-pattern` |
-| WF-VER-007 | Retry | bounded retry manifest | `oya-check-workflow-retry-bounds` |
-| WF-VER-008 | Replay | replay from event log | `oya-check-workflow-replay` |
-| WF-VER-009 | Versioning | workflow template version | `oya-check-workflow-versioning` |
-| WF-VER-010 | Direct call | direct-gRPC exception absent or justified | `oya-check-direct-grpc-rubric` |
-| WF-VER-011 | Human gate | actor authorization evidence | `oya-check-human-gate` |
-| WF-VER-012 | Data class | context field labels | `oya-check-data-class` |
-| WF-VER-013 | Residency | workflow state cell binding | `oya-check-residency-parity` |
-| WF-VER-014 | Pack overlay | regulatory timer override | `oya-check-pack-overlay` |
-| WF-VER-015 | Metrics | latency and stuck-workflow metrics | `oya-check-workflow-metrics` |
-| WF-VER-016 | Runbook | stuck execution runbook link | `oya-check-runbook-linkage` |
-| WF-VER-017 | Test | state-machine transition coverage | `oya-check-workflow-test-coverage` |
-| WF-VER-018 | Fixture | invalid transition fixture | `oya-check-workflow-fixtures` |
-| WF-VER-019 | Schema | OpenAPI/AsyncAPI/Proto parity | `oya-check-contract-parity` |
+| WF-VER-001 | Idempotency | duplicate trigger test | `check-workflow-idempotency` |
+| WF-VER-002 | Timers | deterministic timer fixture | `check-workflow-timers` |
+| WF-VER-003 | Compensation | saga rollback fixture | `check-saga-compensation` |
+| WF-VER-004 | Policy | Cedar guard fixture | `check-workflow-cedar-guards` |
+| WF-VER-005 | Audit | transition audit events | `check-audit-emission` |
+| WF-VER-006 | Outbox | event publish ack | `check-outbox-pattern` |
+| WF-VER-007 | Retry | bounded retry manifest | `check-workflow-retry-bounds` |
+| WF-VER-008 | Replay | replay from event log | `check-workflow-replay` |
+| WF-VER-009 | Versioning | workflow template version | `check-workflow-versioning` |
+| WF-VER-010 | Direct call | direct-gRPC exception absent or justified | `check-direct-grpc-rubric` |
+| WF-VER-011 | Human gate | actor authorization evidence | `check-human-gate` |
+| WF-VER-012 | Data class | context field labels | `check-data-class` |
+| WF-VER-013 | Residency | workflow state cell binding | `check-residency-parity` |
+| WF-VER-014 | Pack overlay | regulatory timer override | `check-pack-overlay` |
+| WF-VER-015 | Metrics | latency and stuck-workflow metrics | `check-workflow-metrics` |
+| WF-VER-016 | Runbook | stuck execution runbook link | `check-runbook-linkage` |
+| WF-VER-017 | Test | state-machine transition coverage | `check-workflow-test-coverage` |
+| WF-VER-018 | Fixture | invalid transition fixture | `check-workflow-fixtures` |
+| WF-VER-019 | Schema | OpenAPI/AsyncAPI/Proto parity | `check-contract-parity` |
 | WF-VER-020 | Promote | evidence names workflow template | `oya-vcs-admission` |
 
 ## Extended Review Questions
@@ -663,7 +663,7 @@ WF-REV-013. Does the workflow avoid becoming the product data authority?
 
 WF-REV-014. Does the direct-gRPC rubric justify any bypass?
 
-WF-REV-015. Does promote evidence cite `oya-check-workflow-substrate-engine`?
+WF-REV-015. Does promote evidence cite `check-workflow-substrate-engine`?
 
 ## Extended Workflow Evidence Ledger
 

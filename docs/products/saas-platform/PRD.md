@@ -27,7 +27,7 @@ planning_refs:
   - specs/masterplan.json#/live_implementation_index/milestones/M03/phases/M03-P04
   - specs/masterplan.json#/live_implementation_index/milestones/M03/phases/M03-P08
 live_readiness_claim: target_non_claim_until_changeset_gate_evidence
-ci_authority: oya-ci-required
+ci_authority: presubmit
 doc_status: published
 ---
 
@@ -37,7 +37,7 @@ doc_status: published
 > **Owning team:** [`docs/teams/axis-saas/CHARTER.md`](../../teams/axis-saas/CHARTER.md)
 > **Planning authority:** `specs/masterplan.json` M03-P04 and M03-P08.
 > **Current-truth authority:** `specs/root-hub-pointers.json` routes to `specs/masterplan.json#masterplan_v2` and the applicable Accepted ADRs. `HANDOFF.md` is a thin fresh-session redirect only. The `registry/stores/*` files remain product-domain inputs, not portfolio plan/status authority.
-> **Live CI authority:** the branch-protected `oya-ci-required` context produced by GitHub Actions until the owned runner cutover is proven.
+> **Live CI authority:** the branch-protected `presubmit` context produced by GitHub Actions until the owned runner cutover is proven.
 
 ## 1. North star
 
@@ -65,15 +65,15 @@ The product exists to make tenant business operations programmable and governabl
 | W-SaaS-Preview / M03-P04-IP-001 | Workflow engine kernel, per-tenant workflow definition versioning, state-machine + DAG execution, jurisdiction overlays, sealed steps, saga compensation. | Workflow execution tests, definition-version migration tests, audit emission checks, deadlock runbook evidence. |
 | W-SaaS-Preview / M03-P04-IP-002 | Plugin substrate with Wasmtime/WASI-P2, capability-gated `PluginContext`, Cosign/Rekor provenance, trust tiers, resource caps, and lifecycle actions. | Sandbox escape regression tests, signature/SBOM/license gates, trust-tier/capability policy checks, revoke propagation evidence. |
 | W-SaaS-Preview / M03-P04-IP-003 | Marketplace listing, ISV onboarding, trust-tier publishing, tenant install, entitlement, and listing takedown behavior. | Listing/install contract tests, entitlement/DealSet state checks, takedown runbook evidence, fraud/policy gates. |
-| Cross-axis / M03-P08-IP-001 | SaaS↔Cloud, SaaS↔Search, and SaaS↔Agent-runtime contracts. | Contract registry entries, consumer fitness lanes, and branch-protected `oya-ci-required` gate evidence. |
+| Cross-axis / M03-P08-IP-001 | SaaS↔Cloud, SaaS↔Search, and SaaS↔Agent-runtime contracts. | Contract registry entries, consumer fitness lanes, and branch-protected `presubmit` gate evidence. |
 
 ### 3.2 Out of scope / anti-scope
 
 - Cloud infrastructure hosting, Kubernetes cluster lifecycle, IAM/KMS/secrets implementation, and storage substrate internals are Cloud-axis responsibilities.
-- Model/provider execution is `cloud-intelligence` scope; SaaS consumes capability-bound `oya-intelligence` tenant workflow execution through workflow steps.
+- Model/provider execution is `cloud-intelligence` scope; SaaS consumes capability-bound `intelligence` tenant workflow execution through workflow steps.
 - Search indexing implementation is Search-axis scope; SaaS emits consent- and ontology-scoped content contracts.
 - Per-vertical domain logic remains with vertical/business/workplace teams; SaaS provides the shared workflow/plugin/marketplace substrate.
-- Local CLI, shell scripts, or human-invoked governance are not destination authority. Any existing local command is diagnostic or developer convenience only; enforcement belongs in cloud-native services, declarative manifests, Rust gate crates, and the live `oya-ci-required` context.
+- Local CLI, shell scripts, or human-invoked governance are not destination authority. Any existing local command is diagnostic or developer convenience only; enforcement belongs in cloud-native services, declarative manifests, Rust gate crates, and the live `presubmit` context.
 
 ## 4. Architecture overview
 
@@ -94,7 +94,7 @@ The SaaS Platform bounded context owns reusable tenant application primitives an
 |---|---|---|---|
 | SaaS↔Cloud | Declare tenant workload, storage residency, billing-event, and cell-affinity requirements. | `axis-cloud` | Cloud resource and billing contracts pass M03-P08 fitness; no local control-plane authority. |
 | SaaS↔Search | Emit ontology/data-boundary scoped index events and consent tiers. | `axis-search` | Search consumes only permitted tenant content and rejects stale schema. |
-| SaaS↔Agent-runtime | Invoke agents only through capability-bound workflow steps with autonomy ceilings. | `cloud-intelligence` / `oya-intelligence` | Capability registry and audit evidence prove agent action bounds. |
+| SaaS↔Agent-runtime | Invoke agents only through capability-bound workflow steps with autonomy ceilings. | `cloud-intelligence` / `intelligence` | Capability registry and audit evidence prove agent action bounds. |
 | SaaS↔Workplace/verticals | Provide template library, plugin substrate, and workflow runtime without owning domain semantics. | Workplace and vertical teams | Template definitions compile and pass domain-owner contract checks. |
 | SaaS↔Governance/audit | Emit immutable events and consume central Cedar/PaC/CaC/PaaS/CaaS decisions. | central governance + audit-chain | Gate and audit evidence are sealed before readiness claims. |
 
@@ -102,7 +102,7 @@ The SaaS Platform bounded context owns reusable tenant application primitives an
 
 - Source-of-truth planning is `specs/masterplan.json`; scratch `.omc`/`.omx` paths are references only when materialized through the committed plan projection.
 - Current-truth decisions come from registry stores plus accepted ADRs; stale docs are not authority until reconciled.
-- Live merge authority is the single branch-protected `oya-ci-required` context. The owned runner is a future cutover of the same pipeline, not a parallel verdict source.
+- Live merge authority is the single branch-protected `presubmit` context. The owned runner is a future cutover of the same pipeline, not a parallel verdict source.
 
 ## 5. Data structures
 
@@ -149,7 +149,7 @@ Schema migrations must be reversible, tenant-scoped, and audit-emitting. Cross-a
 | Cosign/Rekor/SBOM tooling | Adopted provenance controls per ADR-0036/ADR-0534. | Required for artifact trust; failure blocks production loading. |
 | Marketplace settlement | In-house DealSet primitive per ADR-0314. | Avoids one table per product/module and preserves tenant/audit/settlement cohesion. |
 | Governance/policy | Central PaC/CaC/PaaS/CaaS and Cedar. | No scattered CLI governance or per-service policy dialects. |
-| CI/gates | Shared Rust gate logic invoked by `oya-ci-required`. | One live required context; no parallel CI authority or local false-green verdict. |
+| CI/gates | Shared Rust gate logic invoked by `presubmit`. | One live required context; no parallel CI authority or local false-green verdict. |
 
 No new dependency is introduced by this PRD. Future dependency additions require ADR/license/security review and changeset gate evidence.
 
@@ -157,19 +157,19 @@ No new dependency is introduced by this PRD. Future dependency additions require
 
 | Metric | Target / gate | Evidence source |
 |---|---|---|
-| W-SaaS-Preview functional gate | Tenant onboarding, plugin install, and marketplace listing are functional. | M03-P04 changeset tests and `oya-ci-required` gate output. |
+| W-SaaS-Preview functional gate | Tenant onboarding, plugin install, and marketplace listing are functional. | M03-P04 changeset tests and `presubmit` gate output. |
 | Workflow execution latency | p99 under 500 ms for synchronous steps where the step is not waiting on a human/external timer. | Workflow SLO dashboard and test fixtures. |
 | Plugin sandbox escape incidents | 0 unresolved production escapes; every attempted escape emits deny/audit evidence. | Runtime security metrics and plugin incident runbook evidence. |
 | Marketplace review turnaround | ≤ 5 business days for complete verified-ISV submissions. | Listing review queue metrics. |
 | Metering completeness | 100% of billable workflow/plugin/marketplace/API events emitted once. | Metering idempotency and reconciliation checks. |
-| Cross-axis contract drift | 0 unreviewed contract changes at merge. | M03-P08 fitness lanes and branch-protected `oya-ci-required`. |
+| Cross-axis contract drift | 0 unreviewed contract changes at merge. | M03-P08 fitness lanes and branch-protected `presubmit`. |
 | Audit evidence completeness | 100% of mutable workflow/plugin/listing/entitlement state changes sealed. | Audit-chain correlation checks. |
 
 ## Competitive benchmark
 
 | Comparator | SaaS Platform benchmark stance | Evidence / caveat |
 |---|---|---|
-| Salesforce Flow / AppExchange | Oyatie targets a unified workflow + plugin + marketplace substrate instead of separate automation, extension, entitlement, and audit surfaces. | Target contract only until M03-P04/M03-P08 changesets prove workflow execution, plugin install, marketplace listing, entitlement, and audit-chain behavior behind `oya-ci-required`. |
+| Salesforce Flow / AppExchange | Oyatie targets a unified workflow + plugin + marketplace substrate instead of separate automation, extension, entitlement, and audit surfaces. | Target contract only until M03-P04/M03-P08 changesets prove workflow execution, plugin install, marketplace listing, entitlement, and audit-chain behavior behind `presubmit`. |
 | ServiceNow App Engine / Store | Oyatie requires tenant-scoped workflow and plugin execution with sealed audit evidence, regional-pack overlays, and central policy authority. | Success gates include p99 under 500 ms for synchronous workflow steps, 0 unresolved production sandbox escapes, and 100% billable-event emission. |
 | Zapier / n8n automation ecosystems | Oyatie treats workflow automation as an in-tenant governed execution fabric, not an external integration-only tool. | Local CLI checks remain diagnostic; cloud-native control-plane evidence and branch-protected CI are the readiness authority. |
 | AWS Marketplace / Atlassian Marketplace | Oyatie's marketplace benchmark is install governance, trust-tier publishing, takedown, DealSet entitlement state, and tenant/audit continuity. | Listing review target is ≤ 5 business days for complete verified-ISV submissions; live readiness remains a target/non-claim until gate evidence exists. |
@@ -181,8 +181,8 @@ No new dependency is introduced by this PRD. Future dependency additions require
 | Plugin sandbox escape crosses tenant/data boundaries. | Catastrophic | Wasmtime/WASI-P2, no raw host access, capability-gated `PluginContext`, Cosign/Rekor/SBOM, resource caps, and Sev 1 runbook. |
 | Workflow deadlock stalls tenant operations. | High | Versioned definitions, state-vector restore, saga compensation, idempotency, per-tenant quarantine, and deadlock runbook. |
 | Marketplace fraudulent or unsafe listing is published. | High | Trust-tier review, publisher KYB/KYC, artifact provenance, listing takedown runbook, and DealSet entitlement state. |
-| Cross-axis contract drift breaks Cloud/Search/Agent-runtime consumers. | High | M03-P08 contract registry, consumer fitness lanes, and `oya-ci-required` blocking context. |
-| Local command output is mistaken for production authority. | High | D-CLOUD-NATIVE and D-CICD-AUTHORITY: only cloud-native pipeline/controller evidence and branch-protected `oya-ci-required` can satisfy readiness gates. |
+| Cross-axis contract drift breaks Cloud/Search/Agent-runtime consumers. | High | M03-P08 contract registry, consumer fitness lanes, and `presubmit` blocking context. |
+| Local command output is mistaken for production authority. | High | D-CLOUD-NATIVE and D-CICD-AUTHORITY: only cloud-native pipeline/controller evidence and branch-protected `presubmit` can satisfy readiness gates. |
 | Metering gaps create billing or compliance defects. | Medium | Idempotent metering events, reconciliation gates, audit-chain correlation, and FinOps ownership. |
 | Product breadth turns into disconnected surfaces. | Medium | Axis-saas charter, PRD scope boundaries, shared aggregates, and central governance. |
 
@@ -204,7 +204,7 @@ No product-scope question blocks this PRD surface. Implementation readiness rema
 
 - `HANDOFF.md` — thin fresh-session redirect; derive repo/CI/current truth from its canonical targets and live GitHub state.
 - `registry/stores/design-store.json` — D-CLOUD-NATIVE, D-CICD-AUTHORITY, D-GOVERNANCE-CENTRAL, plugin/workflow/marketplace current-truth entries.
-- `registry/stores/instructions-store.json` — no CLI authority, no shell/governance CLI, one `oya-ci-required` context, GitHub Actions live authority.
+- `registry/stores/instructions-store.json` — no CLI authority, no shell/governance CLI, one `presubmit` context, GitHub Actions live authority.
 - `registry/stores/registry-store.json` and `registry/stores/canon-id-crosswalk.json` — canon/store authority chain.
 - `specs/masterplan.json` — M03-P04 SaaS Platform Preview and M03-P08 cross-axis contract registry planning authority.
 - `docs/PRD.md` — W-SaaS-Preview scope, cohesion thesis, and cross-axis integration table.
@@ -223,12 +223,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| SAAS-PRD-AC-001 | The SaaS Platform PRD is used as a planning contract and tenant workflow, plugin, marketplace, billing, and audit contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | workflow/plugin/marketplace acceptance is linked to test and evidence paths instead of a generic readiness sentence | SAAS-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| SAAS-PRD-AC-002 | SaaS subscription or partner integration readiness is evaluated | Readiness evidence is evaluated | fresh tenant workflow execution, plugin publish, marketplace listing, billing, and audit evidence is required outside this PRD | SAAS-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| SAAS-PRD-AC-001 | The SaaS Platform PRD is used as a planning contract and tenant workflow, plugin, marketplace, billing, and audit contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | workflow/plugin/marketplace acceptance is linked to test and evidence paths instead of a generic readiness sentence | SAAS-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| SAAS-PRD-AC-002 | SaaS subscription or partner integration readiness is evaluated | Readiness evidence is evaluated | fresh tenant workflow execution, plugin publish, marketplace listing, billing, and audit evidence is required outside this PRD | SAAS-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| SaaS workflow/plugin/marketplace planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one SaaS row names workflow, plugin, marketplace, tenant, and audit/billing evidence obligations | `oya-ci-required` |
-| SaaS product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A SaaS promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `oya-ci-required` |
+| SaaS workflow/plugin/marketplace planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one SaaS row names workflow, plugin, marketplace, tenant, and audit/billing evidence obligations | `presubmit` |
+| SaaS product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | A SaaS promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |

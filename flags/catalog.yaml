@@ -1,7 +1,7 @@
 apiVersion: oyatie.com/v1
 kind: MicroserviceCatalog
 metadata:
-  name: oya-flags
+  name: flags
 spec:
   role: tenant-service
   context: feature-flag-substrate

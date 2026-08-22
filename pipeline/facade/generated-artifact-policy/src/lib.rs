@@ -137,7 +137,7 @@ const GENERATOR_FIELDS: [&str; 6] = [
     "output_mode",
 ];
 
-const GENERATOR_RUNNERS: [&str; 2] = ["buck2", "oya-ci-native-controller"];
+const GENERATOR_RUNNERS: [&str; 2] = ["buck2", "ci-native-controller"];
 
 const GENERATOR_OUTPUT_MODES: [&str; 3] = [
     "stdout-json",
@@ -392,8 +392,8 @@ fn validate_generator(
                     artifact_id,
                 ));
             }
-            if runner == Some("oya-ci-native-controller")
-                && !value.starts_with("oya-ci://generated-artifact-controller/")
+            if runner == Some("ci-native-controller")
+                && !value.starts_with("ci://generated-artifact-controller/")
             {
                 findings.insert(Finding::new(
                     "generated_artifact_manifest_generator_controller_target_not_canonical",
@@ -462,7 +462,7 @@ fn validate_generator(
         input_contract_set.insert(value.to_owned());
     }
 
-    if runner == Some("oya-ci-native-controller") && output_mode != Some("controller-materialized")
+    if runner == Some("ci-native-controller") && output_mode != Some("controller-materialized")
     {
         findings.insert(Finding::new(
             "generated_artifact_manifest_generator_controller_output_not_materialized",
@@ -888,7 +888,7 @@ fn parse_ratchet_tsv(content: &str) -> Vec<RatchetRow> {
 }
 
 /// Boundary-safe path-token replace — mirrors
-/// `tools/oya-reorg-codemod-app/src/model.rs::rewrite_path_token` (duplicated rather than
+/// `tools/reorg-codemod-app/src/model.rs::rewrite_path_token` (duplicated rather than
 /// cross-crate-shared: this gate crate must not depend on the reorg codemod's local-bridge-tool
 /// surface). A match qualifies only when the byte before it (if any) is not a path-continuation
 /// byte (alnum/`_`/`-`/`/`/`.`) and the byte after it (if any) is not an identifier-continuation
@@ -1125,7 +1125,7 @@ fn validate_final_tree_materialization(manifest: &Value, findings: &mut BTreeSet
         return;
     }
 
-    if required_str(policy, "controller_id") != Some("oya-ci-generated-artifact-controller") {
+    if required_str(policy, "controller_id") != Some("ci-generated-artifact-controller") {
         findings.insert(Finding::new(
             "generated_artifact_manifest_final_tree_controller_invalid",
             "controller_id",
@@ -1324,7 +1324,7 @@ fn parse_declared_artifacts(
             "canonical_name",
         ));
     }
-    if required_str(manifest, "ci_product_surface") != Some("oya-ci") {
+    if required_str(manifest, "ci_product_surface") != Some("ci") {
         findings.insert(Finding::new(
             "generated_artifact_manifest_ci_product_surface_missing",
             "ci_product_surface",
@@ -1812,7 +1812,7 @@ mod tests {
 
     fn scm(paths: &[&str]) -> Value {
         json!({
-            "schema": "oya-ci/scm-facts/v1",
+            "schema": "ci/scm-facts/v1",
             "tracked_paths": paths,
         })
     }
@@ -1827,7 +1827,7 @@ mod tests {
             "owner_team": "cloud-ci-platform",
             "generator": {
                 "runner": "buck2",
-                "generator_target": "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin",
+                "generator_target": "//ci/facade/artifact-inventory-registry:cloud-ci-accounting-registry-app-bin",
                 "operation_id": "emit-accounting-face",
                 "parameters": {"face": "registry"},
                 "input_contract": ["repo-root", "declared-source-inputs", "scm-facts-snapshot"],
@@ -1843,10 +1843,10 @@ mod tests {
         json!({
             "schema_version": 1,
             "canonical_name": "generated-artifact-control-plane",
-            "ci_product_surface": "oya-ci",
+            "ci_product_surface": "ci",
             "public_product_contract": "A public, hermetic Rust CI product can adopt this manifest shape in any repo.",
             "final_tree_materialization": {
-                "controller_id": "oya-ci-generated-artifact-controller",
+                "controller_id": "ci-generated-artifact-controller",
                 "presubmit_authority": "merge-queue-projected-state",
                 "postsubmit_authority": "postsubmit-main-materialization",
                 "protected_branch_trigger": "push:dev",
@@ -1859,7 +1859,7 @@ mod tests {
                     "rule_id": "generated-json-files",
                     "rule_kind": "path_suffix",
                     "pattern": ".generated.json",
-                    "description": "canonical oya-ci generated JSON face suffix"
+                    "description": "canonical ci generated JSON face suffix"
                 },
                 {
                     "rule_id": "generated-directory-component",
@@ -2044,7 +2044,7 @@ mod tests {
         product_graph["materialization_mode"] = json!("main-branch-materialized");
         product_graph["merge_policy"] = json!("controller-owned-main-materialization");
         product_graph["generator"]["generator_target"] =
-            json!("//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator");
+            json!("//tools/architecture-graph-generator-app:architecture-graph-generator");
         product_graph["generator"]["operation_id"] =
             json!("emit-architecture-product-graph-dashboard");
         product_graph["generator"]["parameters"] = json!({"mode": "write"});
@@ -2241,7 +2241,7 @@ mod tests {
     fn diff_policy_allows_a_plain_modify_of_a_normal_source_merge_artifact_with_valid_content() {
         // GREEN: the ACTUAL #1335 need — embedded-asset-hermeticity-baseline.json's
         // move-triggered path-key relabel (openapi-domain: `oya/intelligence/crates/
-        // oya-intelligence-openapi-domain` -> `intelligence/core/openapi-domain`) is a
+        // intelligence-openapi-domain` -> `intelligence/core/openapi-domain`) is a
         // move-plan-backed bijective substitution (cardinality-preserving, ceiling unchanged),
         // so it passes `validate_ratchet_diff` and the plain modify is allowed. A blanket
         // `merge_policy` exemption is NOT enough on its own (see the RED tests below) — the
@@ -2253,7 +2253,7 @@ mod tests {
         let diff = format!("M\t{path}\n");
         let merge_base = r#"{"_provenance":{"ceilings":{"skip_non_literal_argument":1}},
             "codes":{"skip_non_literal_argument":
-                ["oya/intelligence/crates/oya-intelligence-openapi-domain/src/lib.rs:6088"]}}"#;
+                ["oya/intelligence/crates/intelligence-openapi-domain/src/lib.rs:6088"]}}"#;
         let candidate = r#"{"_provenance":{"ceilings":{"skip_non_literal_argument":1}},
             "codes":{"skip_non_literal_argument":
                 ["intelligence/core/openapi-domain/src/lib.rs:6088"]}}"#;
@@ -2263,7 +2263,7 @@ mod tests {
             (merge_base.to_owned(), candidate.to_owned()),
         );
         let move_plan_pairs = vec![(
-            "oya/intelligence/crates/oya-intelligence-openapi-domain".to_owned(),
+            "oya/intelligence/crates/intelligence-openapi-domain".to_owned(),
             "intelligence/core/openapi-domain".to_owned(),
         )];
         let (findings, violations) = generated_output_diff_policy_violations_with_ratchet_context(
@@ -3039,7 +3039,7 @@ mod tests {
         face["merge_policy"] = json!("not-tracked-in-git");
         let manifest = manifest(vec![face]);
         let scm_facts = json!({
-            "schema": "oya-ci/scm-facts/v1"
+            "schema": "ci/scm-facts/v1"
         });
 
         let findings = evaluate_keyed(&manifest, &scm_facts);
@@ -3057,7 +3057,7 @@ mod tests {
     fn malformed_scm_facts_tracked_paths_shape_is_red() {
         let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let scm_facts = json!({
-            "schema": "oya-ci/scm-facts/v1",
+            "schema": "ci/scm-facts/v1",
             "tracked_paths": "out/example.generated.json"
         });
 
@@ -3076,7 +3076,7 @@ mod tests {
     fn malformed_scm_facts_tracked_path_items_are_red() {
         let manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
         let scm_facts = json!({
-            "schema": "oya-ci/scm-facts/v1",
+            "schema": "ci/scm-facts/v1",
             "tracked_paths": ["out/example.generated.json", 7, " "]
         });
 

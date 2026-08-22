@@ -135,7 +135,7 @@ fn main() -> ExitCode {
         Err(e) => {
             eprintln!("{LOG}: ARGS ERROR: {e}");
             eprintln!(
-                "{LOG}: usage: oya-cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>] [--test-baseline-report <merge-base-test-report.json>] [--decision-artifact-out <path>]"
+                "{LOG}: usage: cloud-ci-affected-set --policy <pack.json> [--base <ref>] [--head <ref>] [--mode auto|full] [--derive-only] [--baseline-report <merge-base-build-report.json>] [--test-baseline-report <merge-base-test-report.json>] [--decision-artifact-out <path>]"
             );
             return ExitCode::from(2);
         }
@@ -1053,7 +1053,7 @@ fn admission_test_report_path() -> PathBuf {
 }
 
 fn long_step_telemetry_interval() -> Duration {
-    std::env::var("OYA_CI_LONG_STEP_TELEMETRY_INTERVAL_SECS")
+    std::env::var("OYATIE_CI_LONG_STEP_TELEMETRY_INTERVAL_SECS")
         .ok()
         .and_then(|raw| raw.parse::<u64>().ok())
         .filter(|seconds| *seconds > 0)

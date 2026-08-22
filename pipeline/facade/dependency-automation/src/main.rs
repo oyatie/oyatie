@@ -136,6 +136,6 @@ fn parse_overlay_args(mut args: impl Iterator<Item = String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage:\n  oya-cloud-ci-dependency-automation-app-bin [--repo-root <path>]\n  oya-cloud-ci-dependency-automation-app-bin apply-third-party-overlay --buck-file <path>"
+    "usage:\n  cloud-ci-dependency-automation-app-bin [--repo-root <path>]\n  cloud-ci-dependency-automation-app-bin apply-third-party-overlay --buck-file <path>"
         .to_owned()
 }

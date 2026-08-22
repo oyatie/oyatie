@@ -162,14 +162,14 @@ For now, DSR application uses the existing `cap.cloud.billing.read_invoice` + cl
 
 ### §F.1 Source files
 
-- `oya-cloud-billing-domain::Classified<T>` wrapping (per IP-001 §C.3) — the substrate that makes per-data-class retention enforceable.
+- `cloud-billing-domain::Classified<T>` wrapping (per IP-001 §C.3) — the substrate that makes per-data-class retention enforceable.
 - Cedar fragments: `cloud-billing.cedar` lines 173–195 (read_invoice, read_settlement_statement gates).
 
 ### §F.2 Data-class evidence in code
 
-- `oya-cloud-billing-domain/src/lib.rs` lines 31–69 (every identifier struct's `// data_class:` comment).
-- `oya-cloud-billing-domain/src/lib.rs` line 169 — tax_registration_id classified as Financial.
-- `oya-cloud-billing-tax-app/src/lib.rs` line 27 — tax_registration_id REST API surface tagged `FINANCIAL_REGULATED_CREDIT`.
+- `cloud-billing-domain/src/lib.rs` lines 31–69 (every identifier struct's `// data_class:` comment).
+- `cloud-billing-domain/src/lib.rs` line 169 — tax_registration_id classified as Financial.
+- `cloud-billing-tax-app/src/lib.rs` line 27 — tax_registration_id REST API surface tagged `FINANCIAL_REGULATED_CREDIT`.
 
 ### §F.3 ADR anchors
 

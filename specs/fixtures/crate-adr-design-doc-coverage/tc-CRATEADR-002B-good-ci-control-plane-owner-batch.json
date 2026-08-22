@@ -69,7 +69,7 @@
       "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     ],
-    "rationale": "Cloud-ci and ci-controller crates should cite the cloud-ci/oya-ci single-required-context authority and freshness/target-parity ADRs."
+    "rationale": "Cloud-ci and ci-controller crates should cite the cloud-ci/ci single-required-context authority and freshness/target-parity ADRs."
   },
   "gate_contract": {
     "gate_id": "crate-adr-design-doc-coverage",
@@ -104,8 +104,8 @@
   },
   "rows": [
     {
-      "crate_name": "oya-cloud-ci-enforcement-liveness-app",
-      "crate_manifest": "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/Cargo.toml",
+      "crate_name": "cloud-ci-enforcement-liveness-app",
+      "crate_manifest": "cloud/cloud-ci/gates/cloud-ci-enforcement-liveness-app/Cargo.toml",
       "owner_batch": "ci-control-plane",
       "owner_unit": "cloud/cloud-ci",
       "required_action": "cite_existing_adr",
@@ -130,8 +130,8 @@
       }
     },
     {
-      "crate_name": "oya-cloud-ci-manifest-hygiene-app",
-      "crate_manifest": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/Cargo.toml",
+      "crate_name": "cloud-ci-manifest-hygiene-app",
+      "crate_manifest": "cloud/cloud-ci/gates/cloud-ci-manifest-hygiene-app/Cargo.toml",
       "owner_batch": "ci-control-plane",
       "owner_unit": "cloud/cloud-ci",
       "required_action": "cite_existing_adr",
@@ -156,8 +156,8 @@
       }
     },
     {
-      "crate_name": "oya-ci-controller-k8s-adapter",
-      "crate_manifest": "oya/ci-controller/crates/oya-ci-controller-k8s-adapter/Cargo.toml",
+      "crate_name": "ci-controller-k8s-adapter",
+      "crate_manifest": "oya/ci-controller/crates/ci-controller-k8s-adapter/Cargo.toml",
       "owner_batch": "ci-control-plane",
       "owner_unit": "oya/ci-controller",
       "required_action": "cite_existing_adr",

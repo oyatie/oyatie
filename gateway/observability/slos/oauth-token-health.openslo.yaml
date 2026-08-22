@@ -21,13 +21,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_connector_oauth_token_fetch_duration_seconds_bucket{le="0.5",result="success"}[5m]))
+                sum(rate(connector_oauth_token_fetch_duration_seconds_bucket{le="0.5",result="success"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_connector_oauth_token_fetch_duration_seconds_count[5m]))
+                sum(rate(connector_oauth_token_fetch_duration_seconds_count[5m]))
   timeWindow:
     - count: 30
       isRolling: true

@@ -8,7 +8,7 @@
 # reviewed change.
 #
 # Dark-by-default invariant: the root .buckconfig never selects this platform and
-# never sets the [oya_cache] section. Only the opt-in CI overlays
+# never sets the [cache] section. Only the opt-in CI overlays
 # (infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig) select it and set the knobs,
 # so every build that does not explicitly pass an overlay is bit-identical to today
 # (the conformance gate in ci/facade/build-cache-policy asserts the root config stays

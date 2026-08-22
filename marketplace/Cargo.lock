@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "oya-marketplace-doc-set-scaffold"
+name = "marketplace-doc-set-scaffold"
 version = "0.1.0"

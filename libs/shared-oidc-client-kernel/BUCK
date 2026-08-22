@@ -1,0 +1,26 @@
+rust_library(
+    name = "shared-oidc-client-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_oidc_client_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "shared-oidc-client-kernel-oidc-client-kernel",
+    srcs = ["tests/oidc_client_kernel.rs"],
+    crate = "shared_oidc_client_kernel_oidc_client_kernel",
+    crate_root = "tests/oidc_client_kernel.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":shared-oidc-client-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+    ],
+)

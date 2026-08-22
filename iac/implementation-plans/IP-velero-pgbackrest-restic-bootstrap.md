@@ -22,15 +22,15 @@ schedules + sigil schedules + restore-drill cadence.
    `values.yaml#configuration.schedules`.
 2. pgBackRest 2.58 sidecar chart deployed alongside the canonical
    per-µservice Postgres pattern; WAL archive lands in
-   `oya-backup-postgres-shared-<env>`.
+   `backup-postgres-shared-<env>`.
 3. Restic 0.18 daemonset deployed on bare-metal nodes; filesystem
-   archive lands in `oya-backup-filesystem-shared-<env>`.
+   archive lands in `backup-filesystem-shared-<env>`.
 4. age recipient public keys per `(tenant, prong)` provisioned via
    OpenBao operator.
 5. First backup of each prong completes; first restore-drill in
    `dr-staging` succeeds within the workload-class RTO target per
    ADR-0197 D-4.
-6. `oya-check-backup-retention-discipline` reports no blocking
+6. `check-backup-retention-discipline` reports no blocking
    findings.
 
 ## File-level work plan
@@ -52,4 +52,4 @@ schedules + sigil schedules + restore-drill cadence.
 
 - ADR-0197 — backup substrate canonical (this slice's authority).
 - `docs/standards/backup-canonical.md`.
-- `oya-shared-backup-kernel` (this batch).
+- `shared-backup-kernel` (this batch).

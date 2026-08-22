@@ -383,7 +383,7 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
            pub fn r() -> Router { Router::new().route("/healthz", get(hz)).merge(admin_subrouter()).with_state(()) }"#,
     )
     .unwrap();
-    // Owned-kernel POST (oya-http-router-kernel grammar) with no guard.
+    // Owned-kernel POST (http-router-kernel grammar) with no guard.
     fs::write(
         src.join("owned_post.rs"),
         r#"fn build(router: &mut Router<SyncHandler>) -> Result<(), RouterError> {
@@ -409,7 +409,7 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
     // MAJOR fix RED fixture: owned-kernel-SHAPED 3-arg call where arg2 is a field access
     // (`route.path` contains `.` → not a literal/ident path). Must fail-CLOSED as
     // AC-UNCLASSIFIED-SURFACE instead of silently dropping (fail-open). Reproduces the exact
-    // shape of libs/oya-shared-backbone-rest-runtime-adapter/src/lib.rs:503.
+    // shape of libs/shared-backbone-rest-runtime-adapter/src/lib.rs:503.
     fs::write(
         src.join("major_field_path.rs"),
         r#"fn register(router: &mut Router<SyncHandler>, route: &RouteSpec, handler: SyncHandler) {

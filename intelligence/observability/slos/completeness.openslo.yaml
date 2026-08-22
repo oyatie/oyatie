@@ -33,7 +33,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_stream_total{
+                sum(rate(cloud_intelligence_stream_total{
                   service="cloud-intelligence",termination="done_sentinel"
                 }[5m])) by (provider)
         total:
@@ -41,7 +41,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_stream_total{
+                sum(rate(cloud_intelligence_stream_total{
                   service="cloud-intelligence",termination!="client_cancelled"
                 }[5m])) by (provider)
   timeWindow:

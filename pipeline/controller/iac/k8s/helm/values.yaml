@@ -1,6 +1,6 @@
 microservice:
-  id: oya-ci-controller
-  cargoPackage: oya-ci-controller-app
+  id: ci-controller
+  cargoPackage: ci-controller-app
   tenantClass: contributor
 
 workloadLabels:
@@ -20,14 +20,14 @@ podRuntime:
 # to call the K8s API server). This diverges from the gateway (which has
 # automountToken: false / no-live-cluster-rbac).
 serviceAccount:
-  name: oya-ci-controller
+  name: ci-controller
   automountToken: true
   nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-proof
 
 # Separate low-privilege ServiceAccount for the gate runner Pods.
 # Gate runner Pods (untrusted PR code) must NOT be able to touch the cluster.
 gateRunnerServiceAccount:
-  name: oya-ci-gate-runner
+  name: ci-gate-runner
   automountToken: false
   nonClaim: static-serviceaccount-template-only-gate-runner-no-k8s-api-access
 
@@ -41,18 +41,18 @@ networkPolicy:
     # kube-apiserver egress (Job/Pod watch + create)
     apiserverPort: 6443
     # GitHub in-cluster (status post + clone)
-    githubNamespaceName: oya-forge
+    githubNamespaceName: forge
     githubPort: 3000
     # OpenBao (ESO token sync)
-    openbaoNamespaceName: oya-secrets
+    openbaoNamespaceName: secrets
     openbaoPort: 8200
     # OTel collector
     otelNamespaceName: observability
     otelPort: 4317
 
 image:
-  registry: registry.oya-registry.svc.cluster.local:5000
-  repository: oya-ci-controller
+  registry: registry.registry.svc.cluster.local:5000
+  repository: ci-controller
   tag: "0.1.0"
   digest: ""
   pullPolicy: IfNotPresent
@@ -62,7 +62,7 @@ image:
 
 # rust-ci image used for gate Job Pods
 gateJobImage:
-  registry: registry.oya-registry.svc.cluster.local:5000
+  registry: registry.registry.svc.cluster.local:5000
   repository: rust-ci
   tag: "dev"
 
@@ -91,9 +91,9 @@ externalSecret:
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 
 config:
-  namespace: oya-ci
+  namespace: ci
   githubBase: "https://api.github.com"
-  githubRepoOwner: oya-admin
+  githubRepoOwner: admin
   githubRepoName: oyatie
   forgeCloneUrl: "https://github.com/jason931225/oyatie.git"
   gateActiveDeadlineSecs: 3600

@@ -1,6 +1,6 @@
 context: managed-k8s-cluster-lifecycle
 role: app
-crate: oya-managed-k8s-cluster-lifecycle-app
+crate: managed-k8s-cluster-lifecycle-app
 capability: managed-k8s-cluster-lifecycle-composition-root
 plane: control
 slo: preview-control-plane

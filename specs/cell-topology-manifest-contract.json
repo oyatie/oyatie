@@ -7,10 +7,10 @@
   "title": "Cell / Residency / Multi-Region Topology Manifest Contract",
   "purpose": "Defines the first atomic manifest surface that binds a service/tenant fixture to ADR-0009 cell tier, ADR-0049 residency class, ADR-0158 region disposition, ADR-0161 canonical storage class, and quarterly ADR-0009 isolation evidence handles. This is a manifest/spec/cloud-ci gate slice only; it does not implement runtime cell routing, storage provisioning, migration, or evidence collection.",
   "authoring_task": "CELL-001R",
-  "cloud_ci_gate": "oya-cloud-ci-cell-topology-manifest-contract",
+  "cloud_ci_gate": "cloud-ci-cell-topology-manifest-contract",
   "authority": {
-    "merge_authority": "protected oya-ci-required context produced by cloud-ci Rust gate apps per ADR-0515",
-    "validator_surface": "cloud-ci Rust gate crate cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app",
+    "merge_authority": "protected presubmit context produced by cloud-ci Rust gate apps per ADR-0515",
+    "validator_surface": "cloud-ci Rust gate crate cloud/cloud-ci/gates/cloud-ci-cell-topology-manifest-contract-app",
     "proposed_adr_scope": "ADR-0009 and ADR-0049 are planning/context inputs for this spec-only manifest contract and authorize no runtime product/cloud mutation; accepted ADR-0158 and ADR-0161 provide the binding current manifest/storage-class surfaces for this slice.",
     "deprecated_surface_guardrail": "No retired local command surface is introduced or promoted as merge authority. Local command output, if any, is provenance only."
   },
@@ -23,7 +23,7 @@
   "manifest_field": {
     "path_pattern": "{cloud,oya}/<service>/manifest.json#cell_topology",
     "fixture_path": "specs/fixtures/cell-topology-manifest/tenancy-kr-strict.json",
-    "validator": "cloud-ci Rust gate: oya-cloud-ci-cell-topology-manifest-contract-app"
+    "validator": "cloud-ci Rust gate: cloud-ci-cell-topology-manifest-contract-app"
   },
   "required_contract_fields": [
     "service_id",
@@ -80,12 +80,12 @@
     "single_region": "ADR-0158: one region; no cross-region presence"
   },
   "storage_class_enum": [
-    "oya-pg-hot",
-    "oya-pg-warm",
-    "oya-pg-cold",
-    "oya-redis-hot",
-    "oya-s3-warm",
-    "oya-s3-cold"
+    "pg-hot",
+    "pg-warm",
+    "pg-cold",
+    "redis-hot",
+    "s3-warm",
+    "s3-cold"
   ],
   "storage_class_source": "ADR-0161 canonical StorageClass naming scheme oya-<kind>-<tier>.",
   "quarterly_isolation_evidence_kinds": [
@@ -108,7 +108,7 @@
       "specs/cell-topology-manifest-contract.json",
       "specs/fixtures/cell-topology-manifest/",
       "specs/root-hub-pointers.json",
-      "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app/"
+      "cloud/cloud-ci/gates/cloud-ci-cell-topology-manifest-contract-app/"
     ],
     "non_parallel_notes": "Serialize with other specs/, root-hub, governance registry, and generated-face work. This slice does not hand-edit generated faces."
   },

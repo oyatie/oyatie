@@ -3,13 +3,13 @@
 //! [`TracingDecisionAuditSink`] bridges the kernel [`DecisionAuditSink`]
 //! port onto structured tracing JSON so every decision — allow or deny,
 //! cached or evaluated — is on the log stream from first boot (the
-//! oya-identity `TracingAuditSink` precedent). The audit-chain bridge
+//! identity `TracingAuditSink` precedent). The audit-chain bridge
 //! (CloudEvents envelope + signed digest chain) lands behind this SAME port
 //! in a follow-up slice.
 
 use iam_cloud_pdp_kernel::DecisionAuditSink;
-use oya_shared_pdp_kernel::DecisionAuditRecord;
-use oya_shared_platform_contracts_kernel::pdp::Decision;
+use shared_pdp_kernel::DecisionAuditRecord;
+use shared_platform_contracts_kernel::pdp::Decision;
 
 /// [`DecisionAuditSink`] that emits each sealed record as one structured
 /// tracing event. Emission cannot fail (tracing is fire-and-forget), so the
@@ -32,7 +32,7 @@ impl DecisionAuditSink for TracingDecisionAuditSink {
             Decision::Deny => "deny",
         };
         tracing::info!(
-            target: "oya_cloud_iam_pdp::audit",
+            target: "cloud_iam_pdp::audit",
             decision_id = %record.decision_id,
             request_id = %record.request_id,
             tenant_id = %record.tenant_id,

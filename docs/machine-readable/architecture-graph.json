@@ -2,15 +2,15 @@
   "_meta": {
     "purpose": "Machine-readable dataset driving the multi-view architecture dashboard. ACCURACY-CRITICAL: every node/edge traced to a source doc; no invented nodes.",
     "generated": "2026-06-07",
-    "on_canon": "NO foundry/Kafka/forgejo/jenkins/oya-vcs/oya-CLI nodes. Eventing=Pulsar-from-day0->owned-diskless. Forge=GitHub->cloud-scm. CI/CD=GitHub-Actions->oya-ci/cd. Governance=PaC/CaC/PaaS/CaaS. LLM=cloud-intelligence. Pure-split: oya/=product, cloud/=platform.",
+    "on_canon": "NO foundry/Kafka/forgejo/jenkins/oya-vcs/oya-CLI nodes. Eventing=Pulsar-from-day0->owned-diskless. Forge=GitHub->cloud-scm. CI/CD=GitHub-Actions->ci/cd. Governance=PaC/CaC/PaaS/CaaS. LLM=cloud-intelligence. Pure-split: oya/=product, cloud/=platform.",
     "sources": [
-      "00-VERTICALS-MAP.md (+10-cloud/oya-a/oya-d/oya-n)",
+      "00-VERTICALS-MAP.md (+10-cloud/a/d/n)",
       "00-TECH-STACK.md (+10-techstack-now/roadmap)",
       "source/docs/machine-readable/masterplan.generated.json",
       "AMENDMENT-PLAN.md §B/§C/Δ"
     ],
     "counts": {
-      "oya_nodes": 85,
+      "nodes": 85,
       "cloud_nodes": 25,
       "total_nodes": 110,
       "vertical_edges": 50,
@@ -1461,7 +1461,7 @@
         "layer": "kernel+app+2 adapters",
         "status": "crates",
         "maturity": "cohesion",
-        "desc": "Dogfooded oya-ci control plane.",
+        "desc": "Dogfooded ci control plane.",
         "source": "VM:(b)ci-cd-tooling#ci-controller; OA",
         "ports": [
           "github-adapter",
@@ -1579,15 +1579,15 @@
         ]
       },
       {
-        "id": "oya-authn-device-firmware",
-        "label": "oya-authn-device-firmware",
+        "id": "authn-device-firmware",
+        "label": "authn-device-firmware",
         "realm": "oya",
         "cluster": "ops-observability",
         "layer": "single firmware crate",
         "status": "crates",
         "maturity": "firmware",
         "desc": "FIDO2/CTAP2 hardware authenticator firmware (YubiKey-class).",
-        "source": "VM:(b)ops-observability#oya-authn-device-firmware; ON",
+        "source": "VM:(b)ops-observability#authn-device-firmware; ON",
         "bcs": [
           "device-authn-firmware"
         ]
@@ -1665,8 +1665,8 @@
         "source": "VM:(b)marketplace#diagnostics; OD"
       },
       {
-        "id": "oya-billing",
-        "label": "oya-billing",
+        "id": "billing",
+        "label": "billing",
         "realm": "oya",
         "cluster": "catalog-stubs",
         "layer": "catalog+slo",
@@ -1676,8 +1676,8 @@
         "source": "VM:(b)catalog-stubs; ON"
       },
       {
-        "id": "oya-cost",
-        "label": "oya-cost",
+        "id": "cost",
+        "label": "cost",
         "realm": "oya",
         "cluster": "catalog-stubs",
         "layer": "catalog+slo",
@@ -1687,8 +1687,8 @@
         "source": "VM:(b)catalog-stubs; ON"
       },
       {
-        "id": "oya-flags",
-        "label": "oya-flags",
+        "id": "flags",
+        "label": "flags",
         "realm": "oya",
         "cluster": "catalog-stubs",
         "layer": "catalog+slo",
@@ -1698,8 +1698,8 @@
         "source": "VM:(b)catalog-stubs; ON"
       },
       {
-        "id": "oya-identity",
-        "label": "oya-identity",
+        "id": "identity",
+        "label": "identity",
         "realm": "oya",
         "cluster": "catalog-stubs",
         "layer": "catalog+slo",
@@ -1709,8 +1709,8 @@
         "source": "VM:(b)catalog-stubs; ON"
       },
       {
-        "id": "oya-meter",
-        "label": "oya-meter",
+        "id": "meter",
+        "label": "meter",
         "realm": "oya",
         "cluster": "catalog-stubs",
         "layer": "catalog+slo",
@@ -1947,27 +1947,27 @@
         "kind": "serves"
       },
       {
-        "source": "oya-flags",
+        "source": "flags",
         "target": "feature-flags",
         "kind": "depends"
       },
       {
-        "source": "oya-identity",
+        "source": "identity",
         "target": "identity",
         "kind": "depends"
       },
       {
-        "source": "oya-billing",
+        "source": "billing",
         "target": "cloud-billing",
         "kind": "depends"
       },
       {
-        "source": "oya-meter",
+        "source": "meter",
         "target": "cloud-billing",
         "kind": "depends"
       },
       {
-        "source": "oya-cost",
+        "source": "cost",
         "target": "cloud-finops",
         "kind": "depends"
       }
@@ -1985,7 +1985,7 @@
           "choice": "Keep cargo+buck2; buck2 build-graph over a CAS core becomes the CI brain"
         },
         "ideal_owned": {
-          "choice": "owned build-graph engine inside oya-ci/cd",
+          "choice": "owned build-graph engine inside ci/cd",
           "desc": "Buck2 build-graph = the differentiator"
         },
         "source": "00-TECH-STACK.md:Language/build (D3,D8); 10-techstack-roadmap.md"
@@ -2008,14 +2008,14 @@
       {
         "layer": "CI/CD",
         "now": {
-          "choice": "GitHub Actions = sole live merge authority; oya-ci product (controller/tide/webhook-gateway) shadow",
+          "choice": "GitHub Actions = sole live merge authority; ci product (controller/tide/webhook-gateway) shadow",
           "kind": "interim-best-in-class"
         },
         "planned": {
-          "choice": "oya-ci built parallel/shadow now; gate LOGIC = Rust crates run by GitHub-Actions (live) + oya-ci (shadow)"
+          "choice": "ci built parallel/shadow now; gate LOGIC = Rust crates run by GitHub-Actions (live) + ci (shadow)"
         },
         "ideal_owned": {
-          "choice": "oya-ci / oya-cd",
+          "choice": "ci / cd",
           "desc": "Rust-native CI/CD = Run + Buck2 build-graph over CAS; faces Prow/Tekton/Argo/Argo-CD; day-0 crown-jewel"
         },
         "source": "00-TECH-STACK.md:CI/CD (D3,D-CICD,D-CICD-AUTHORITY); roadmap#2"
@@ -2132,10 +2132,10 @@
           "kind": "interim-best-in-class"
         },
         "planned": {
-          "choice": "oya-identity owned kernel built alongside (oidc-issuer-kernel, workload oidc/cedar adapters); Zitadel demoted to bridge"
+          "choice": "identity owned kernel built alongside (oidc-issuer-kernel, workload oidc/cedar adapters); Zitadel demoted to bridge"
         },
         "ideal_owned": {
-          "choice": "oya-identity",
+          "choice": "identity",
           "desc": "Bespoke Rust OIDC/SCIM/WebAuthn issuer = owned endpoint; Zitadel retired on cutover"
         },
         "source": "00-TECH-STACK.md:Identity (D5); roadmap#4"
@@ -2173,7 +2173,7 @@
       {
         "layer": "governance/compliance (CaC)",
         "now": {
-          "choice": "cloud-native pipeline gates = Rust binaries run by GitHub-Actions (live) + oya-ci (shadow)",
+          "choice": "cloud-native pipeline gates = Rust binaries run by GitHub-Actions (live) + ci (shadow)",
           "kind": "interim-best-in-class"
         },
         "planned": {
@@ -2316,7 +2316,7 @@
         },
         "ideal_owned": {
           "choice": "cloud-intelligence owned Bedrock-analog framework+runtime",
-          "desc": "GA-parity + BEAT on 4 owned differentiators (Automated-Reasoning guardrails, per-session microVM, durable execution, eval-as-proof); oya-intelligence = thin per-tenant layer"
+          "desc": "GA-parity + BEAT on 4 owned differentiators (Automated-Reasoning guardrails, per-session microVM, durable execution, eval-as-proof); intelligence = thin per-tenant layer"
         },
         "source": "00-TECH-STACK.md:AI/LLM (D-INTEL,D-LLM-DOMAIN); roadmap#7"
       },
@@ -2331,7 +2331,7 @@
         },
         "ideal_owned": {
           "choice": "owned progressive-delivery/chaos",
-          "desc": "Owned progressive-delivery/chaos folds into oya-cd's Argo-Rollouts face"
+          "desc": "Owned progressive-delivery/chaos folds into cd's Argo-Rollouts face"
         },
         "source": "00-TECH-STACK.md:Progressive delivery/chaos (D10,D-CICD); roadmap#17"
       }
@@ -2350,7 +2350,7 @@
         "id": "L2",
         "title": "Foundry per-file sense-routed rename + 4-term eradication (831 files)",
         "wave": "Wave-0",
-        "desc": "foundry sense-routed to cloud-intelligence (~274) vs governance (~135); forgejo/jenkins/oya-vcs = fixed replacements (GitHub-now/cloud-scm; GitHub-Actions/oya-ci; cloud-scm). Palantir-Foundry (43) carve-out. RULED D11(d)+:52; Δ1.",
+        "desc": "foundry sense-routed to cloud-intelligence (~274) vs governance (~135); forgejo/jenkins/oya-vcs = fixed replacements (GitHub-now/cloud-scm; GitHub-Actions/ci; cloud-scm). Palantir-Foundry (43) carve-out. RULED D11(d)+:52; Δ1.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:§B L2 + Δ1"
       },
       {
@@ -2371,7 +2371,7 @@
         "id": "L5",
         "title": "New / reshaped ADRs",
         "wave": "Wave-2",
-        "desc": "oya-ci reshape ratifier; unified safety-gate invariant; KR EmploymentClassification enum; infra-sovereignty ratchet; domain-cohesion meta-ADR; masterplan-generated wiring meta-ADR. Rulings D3/D-SAFETY/D-KR/D-SEQ/D15/D1.",
+        "desc": "ci reshape ratifier; unified safety-gate invariant; KR EmploymentClassification enum; infra-sovereignty ratchet; domain-cohesion meta-ADR; masterplan-generated wiring meta-ADR. Rulings D3/D-SAFETY/D-KR/D-SEQ/D15/D1.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:§B L5"
       },
       {
@@ -2390,9 +2390,9 @@
       },
       {
         "id": "L8",
-        "title": "oya-gate/oya-cli SUPERSEDE + CaC/CaaS governance-pipeline re-homing",
+        "title": "gate/cli SUPERSEDE + CaC/CaaS governance-pipeline re-homing",
         "wave": "Wave-1",
-        "desc": "oya gate/oya cli/oya check/oya verify/oya-dev-cli/oya git ADRs marked Superseded; preserved gate/governance/honest-claim LOGIC re-authored as cloud-native CaC/CaaS pipeline ADRs; foundational grammar (0056/0092/0105) amended to pipeline-gate convention. RULED D-CLOUD-NATIVE + D-GOVERNANCE-CENTRAL; Δ2/Δ3.",
+        "desc": "oya gate/oya cli/oya check/oya verify/dev-cli/oya git ADRs marked Superseded; preserved gate/governance/honest-claim LOGIC re-authored as cloud-native CaC/CaaS pipeline ADRs; foundational grammar (0056/0092/0105) amended to pipeline-gate convention. RULED D-CLOUD-NATIVE + D-GOVERNANCE-CENTRAL; Δ2/Δ3.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:Δ2 (new lane L8)"
       }
     ],
@@ -2414,7 +2414,7 @@
           "L1",
           "L8"
         ],
-        "desc": "L1-refound (ADR-0000+ re-foundation) + L1 Proposed batch (D14); L8 oya-gate/oya-cli supersede begins (ADR re-authoring). After Wave-0 clean base + MAP-freeze.",
+        "desc": "L1-refound (ADR-0000+ re-foundation) + L1 Proposed batch (D14); L8 gate/cli supersede begins (ADR re-authoring). After Wave-0 clean base + MAP-freeze.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:§B wave-membership + Δ2"
       },
       {

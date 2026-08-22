@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,

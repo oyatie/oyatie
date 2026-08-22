@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-webauthn-authenticate-latency
+  name: identity-webauthn-authenticate-latency
   displayName: "identity: WebAuthn assertion p99 ≤ 100ms"
   labels:
     microservice: identity
@@ -21,16 +21,16 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_webauthn_authenticate_duration_seconds_bucket{le="0.1"}[5m]))
+                sum(rate(identity_webauthn_authenticate_duration_seconds_bucket{le="0.1"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_webauthn_authenticate_duration_seconds_count[5m]))
+                sum(rate(identity_webauthn_authenticate_duration_seconds_count[5m]))
   objectives:
     - target: 0.99
       displayName: "p99 ≤ 100ms for 99% of 5min windows over 30d"
   timeWindow: [{ duration: 30d, isRolling: true }]
   budgetingMethod: Occurrences
-  alertPolicies: [{ alertPolicyRef: oya-canonical-burn-rate-multi-window }]
+  alertPolicies: [{ alertPolicyRef: canonical-burn-rate-multi-window }]

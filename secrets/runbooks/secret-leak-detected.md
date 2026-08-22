@@ -17,7 +17,7 @@ Triggered by ANY of:
 - LEAN-A11 lane fails on a PR with a credential-shaped finding (pre-merge BLOCKER — handle as Sev-2 unless merged; if merged, Sev-1).
 - Quarterly retroactive scanner finds a credential-shaped string.
 - External responsible-disclosure email.
-- Observability anomaly: spike in `oya_cloud_secrets_resolve_total{path="…"}` from unexpected source.
+- Observability anomaly: spike in `cloud_secrets_resolve_total{path="…"}` from unexpected source.
 - Tenant or operator reports having pasted a secret in chat / checkpoint / ticket.
 
 ## Step 1 — Triage (t+0 → t+5min)
@@ -33,13 +33,13 @@ For each affected secret path:
 
 ```bash
 # Revoke immediately
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin revoke \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- admin revoke \
     --path "secret/<tenant>/<microservice>/<name>" \
     --incident-id "<ulid>" \
     --reason "leaked-in-<repo|chat|checkpoint|log|disclosure>"
 
 # Verify revocation propagation (consumer SDKs should have flushed within 5s)
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin verify-revocation \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- admin verify-revocation \
     --path "secret/<tenant>/<microservice>/<name>" \
     --sla-seconds 5
 ```
@@ -47,7 +47,7 @@ cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin verify-rev
 Confirm SecretRevoked event sealed in audit-chain:
 
 ```bash
-cargo run -p oya-audit-chain-app -- query \
+cargo run -p audit-chain-app -- query \
     --event-type SecretRevoked \
     --since "5 minutes ago" \
     --filter "incident_id=<ulid>"
@@ -58,21 +58,21 @@ cargo run -p oya-audit-chain-app -- query \
 Identify dependents (DEKs encrypted by a revoked KEK; downstream credentials):
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- cascade list \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- cascade list \
     --root "secret/<tenant>/<microservice>/<name>"
 ```
 
 Trigger immediate rotation for the full cascade:
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- rotate \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- rotate \
     --path "secret/<tenant>/<microservice>/<name>" \
     --cascade \
     --priority immediate \
     --incident-id "<ulid>"
 ```
 
-Cascade completion is event-driven; monitor `oya_cloud_secrets_cascade_rotation_completed_total{incident_id="<ulid>"}` until count matches `cascade list` size.
+Cascade completion is event-driven; monitor `cloud_secrets_cascade_rotation_completed_total{incident_id="<ulid>"}` until count matches `cascade list` size.
 
 ## Step 4 — Forensic (t+30min → t+24h)
 
@@ -152,11 +152,11 @@ Post-mortem lives at `evidence/incidents/<incident_id>/post-mortem.md`. Sealed i
 
 ## §"Revocation cascade" — when revoke push isn't propagating
 
-If `oya_cloud_secrets_revocation_propagation_lag_seconds > 5`:
+If `cloud_secrets_revocation_propagation_lag_seconds > 5`:
 
 ```bash
 # List lagging consumers
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin lagging-consumers \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- admin lagging-consumers \
     --path "secret/<tenant>/<microservice>/<name>"
 
 # Force-flush via SDK admin endpoint OR restart consumer pod
@@ -187,10 +187,10 @@ If audit-emit shows `cross_pack_write_attempt`:
 
 ```bash
 # Confirm revocation event sealed
-cargo run -p oya-audit-chain-app -- verify-seal --incident-id <ulid>
+cargo run -p audit-chain-app -- verify-seal --incident-id <ulid>
 
 # Confirm cascade complete
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- cascade status --incident-id <ulid>
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- cascade status --incident-id <ulid>
 
 # Run chaos drill at next monthly cadence
 ```

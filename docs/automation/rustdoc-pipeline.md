@@ -10,10 +10,10 @@ purpose: |
   API reference inside the mdbook, with a cross-crate link graph and a
   nightly + per-PR delta surface. This is the canonical Rust API doc pipeline
   for Oyatie — no hand-written API reference docs are permitted to compete.
-planned_enforcement_ref: oya-governance-rustdoc-publish
+planned_enforcement_ref: governance-rustdoc-publish
 extends_crates:
-  - oya-intelligence-mdbook-kernel
-  - oya-governance-readme-doc-coverage-kernel
+  - intelligence-mdbook-kernel
+  - governance-readme-doc-coverage-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/DOC-CATALOG.md
@@ -26,7 +26,7 @@ doc_status: published
 
 ## 1. Purpose
 
-Take every workspace crate's `cargo doc --no-deps --document-private-items=false` JSON output and lift it into the `oya-intelligence-mdbook-kernel`-validated source tree at `docs/site/src/api/rust/<crate>/`. No hand-authored Rust API reference is permitted; the kernel rejects unlisted markdown sources, so any drift fails CI.
+Take every workspace crate's `cargo doc --no-deps --document-private-items=false` JSON output and lift it into the `intelligence-mdbook-kernel`-validated source tree at `docs/site/src/api/rust/<crate>/`. No hand-authored Rust API reference is permitted; the kernel rejects unlisted markdown sources, so any drift fails CI.
 
 ## 2. Inputs (sources of truth)
 
@@ -50,7 +50,7 @@ Take every workspace crate's `cargo doc --no-deps --document-private-items=false
 | Nightly | Full re-render across all workspace members; full link-graph rebuild. |
 | Per-tag release | Snapshot of the rustdoc tree archived to `docs/site/archive/<version>/api/rust/`. |
 
-## 5. Validation gates (the `oya-governance-rustdoc-publish` lane)
+## 5. Validation gates (the `governance-rustdoc-publish` lane)
 
 The lane consumes the JSON sidecar plus the rendered source tree and refuses to pass when any of the following hold:
 
@@ -58,7 +58,7 @@ The lane consumes the JSON sidecar plus the rendered source tree and refuses to 
 2. **Orphan symbol.** A symbol exists in `_index.json` whose rendered chapter is missing from the mdbook source tree.
 3. **Broken cross-crate link.** A `use other_crate::Symbol` edge resolves to a symbol absent from `other_crate`'s `_index.json`.
 4. **Hand-authored intrusion.** Any markdown under `docs/site/src/api/rust/` lacks the `<!-- generated-by: rustdoc-pipeline -->` magic header (HIGH).
-5. **mdbook-kernel rejection.** The generated tree fails `oya-intelligence-mdbook-kernel::validate_mdbook_source` for any reason.
+5. **mdbook-kernel rejection.** The generated tree fails `intelligence-mdbook-kernel::validate_mdbook_source` for any reason.
 
 ## 6. Cross-crate link graph algorithm
 
@@ -72,4 +72,4 @@ The PR comment posts a table with `<crate>: +N symbols, -M symbols, coverage Δ 
 
 - Private-item docs (workspace policy: rustdoc is the public surface).
 - Cross-language API reference (covered by `openapi-pipeline.md` for HTTP/gRPC).
-- Per-symbol example code execution (deferred to `cargo-doctest` lane in `oya-governance-quality-lane-kernel`).
+- Per-symbol example code execution (deferred to `cargo-doctest` lane in `governance-quality-lane-kernel`).

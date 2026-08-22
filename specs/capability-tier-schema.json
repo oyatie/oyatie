@@ -311,7 +311,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^oya-governance-[a-z0-9-]+$"
+            "pattern": "^governance-[a-z0-9-]+$"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -701,7 +701,7 @@
         },
         "validator_lane": {
           "type": "string",
-          "pattern": "^oya-governance-[a-z0-9-]+$"
+          "pattern": "^governance-[a-z0-9-]+$"
         },
         "required_for": {
           "type": "array",
@@ -882,7 +882,7 @@
         {
           "prerequisite_id": "pre_cedar_fixtures",
           "description": "Cedar positive and negative fixtures must pass for the tier permit set.",
-          "validator_lane": "oya-governance-capability-tier-cedar-coverage",
+          "validator_lane": "governance-capability-tier-cedar-coverage",
           "required_for": [
             "preview",
             "active"
@@ -915,14 +915,14 @@
           "evidence/capability-tiers/sales-cloud-core-review.json"
         ],
         "validator_lanes": [
-          "oya-governance-capability-tier-registry-shape",
-          "oya-governance-capability-tier-ontology-projection-pin"
+          "governance-capability-tier-registry-shape",
+          "governance-capability-tier-ontology-projection-pin"
         ],
         "runbook_refs": [
           "docs/runbooks/capability-tier-grant-rollback.md"
         ],
         "test_refs": [
-          "crates/oya-shared-capability-tier-registry/tests/grant_lifecycle.rs"
+          "crates/shared-capability-tier-registry/tests/grant_lifecycle.rs"
         ]
       }
     },
@@ -1027,7 +1027,7 @@
         {
           "prerequisite_id": "pre_projection_pin",
           "description": "Ontology projection pin must resolve before preview activation.",
-          "validator_lane": "oya-governance-capability-tier-ontology-projection-pin",
+          "validator_lane": "governance-capability-tier-ontology-projection-pin",
           "required_for": [
             "preview",
             "active"
@@ -1059,13 +1059,13 @@
           "evidence/capability-tiers/executive-dashboard-review.json"
         ],
         "validator_lanes": [
-          "oya-governance-capability-tier-registry-shape"
+          "governance-capability-tier-registry-shape"
         ],
         "runbook_refs": [
           "docs/runbooks/capability-tier-grant-rollback.md"
         ],
         "test_refs": [
-          "crates/oya-shared-capability-tier-registry/tests/no_product_fragmentation.rs"
+          "crates/shared-capability-tier-registry/tests/no_product_fragmentation.rs"
         ]
       }
     },
@@ -1174,7 +1174,7 @@
         {
           "prerequisite_id": "pre_pack_overlay",
           "description": "Regulated file attributes must map to pack overlays before tenant preview.",
-          "validator_lane": "oya-governance-capability-tier-compliance-overlay-coverage",
+          "validator_lane": "governance-capability-tier-compliance-overlay-coverage",
           "required_for": [
             "preview",
             "active"
@@ -1207,14 +1207,14 @@
           "evidence/capability-tiers/content-classification-review.json"
         ],
         "validator_lanes": [
-          "oya-governance-capability-tier-registry-shape",
-          "oya-governance-capability-tier-compliance-overlay-coverage"
+          "governance-capability-tier-registry-shape",
+          "governance-capability-tier-compliance-overlay-coverage"
         ],
         "runbook_refs": [
           "docs/runbooks/capability-tier-grant-rollback.md"
         ],
         "test_refs": [
-          "crates/oya-shared-capability-tier-registry/tests/grant_lifecycle.rs"
+          "crates/shared-capability-tier-registry/tests/grant_lifecycle.rs"
         ]
       }
     }

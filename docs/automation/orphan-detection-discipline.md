@@ -7,15 +7,15 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Every file/dir/JSON in the repo carries a `purpose:` field. The
-  `oya-governance-orphan-detection` lane (HIGH severity) sweeps every
+  `governance-orphan-detection` lane (HIGH severity) sweeps every
   `**/*.md`, `**/*.json`, `**/*.toml` and fails any PR that introduces a file
   without a declared purpose, or that leaves a file referenced nowhere. No
   orphans in `main`.
-planned_enforcement_ref: oya-governance-orphan-detection
+planned_enforcement_ref: governance-orphan-detection
 extends_crates:
-  - oya-governance-readme-doc-coverage-kernel
-  - oya-intelligence-catalog-kernel
-  - oya-governance-placeholder-debt-kernel
+  - governance-readme-doc-coverage-kernel
+  - intelligence-catalog-kernel
+  - governance-placeholder-debt-kernel
 companion_docs:
   - INDEX.md
   - cross-reference-index-spec.md
@@ -46,7 +46,7 @@ Every path matching:
 - `**/*.json` (excluding `target/`, `node_modules/`, generated `package-lock.json`)
 - `**/*.toml` (excluding `Cargo.lock`)
 
-Excluded by ADR-tracked exemption: vendored dirs (`vendor/`, `third_party/`), generated sidecars under `*/generated/`, and Cargo's own files (`Cargo.toml` are catalogued via `oya-governance-cargo-prefix-kernel` and need no per-file `purpose:` field provided the catalog row exists).
+Excluded by ADR-tracked exemption: vendored dirs (`vendor/`, `third_party/`), generated sidecars under `*/generated/`, and Cargo's own files (`Cargo.toml` are catalogued via `governance-cargo-prefix-kernel` and need no per-file `purpose:` field provided the catalog row exists).
 
 ## 4. Orphan-detection algorithm
 
@@ -56,7 +56,7 @@ Given the file inventory under scope:
 2. For each in-scope file, check that it is referenced by ≥ 1 other file OR is itself a root anchor (`MASTERPLAN.md`, `README.md`, `docs/INDEX.md`, repo-root `Cargo.toml`).
 3. Orphans = in-scope files with zero inbound references and not a root anchor.
 
-## 5. Validation gates (`oya-governance-orphan-detection`)
+## 5. Validation gates (`governance-orphan-detection`)
 
 1. **Purpose declaration.** Every in-scope file declares `purpose:` (HIGH).
 2. **Orphan ban.** Every in-scope file has ≥ 1 inbound reference (HIGH).
@@ -77,10 +77,10 @@ Given the file inventory under scope:
 When the lane fails on a PR, the bot comments:
 
 ```
-oya-governance-orphan-detection: HIGH
+governance-orphan-detection: HIGH
 
 The following files lack a `purpose:` frontmatter field:
-- crates/oya-intelligence-new-feature-kernel/Cargo.toml
+- crates/intelligence-new-feature-kernel/Cargo.toml
 - docs/runbooks/new-runbook.md
 
 The following files have zero inbound references:

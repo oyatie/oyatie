@@ -18,7 +18,7 @@
 //! ## Layering (ADR-0131 / ADR-0562 faces)
 //!
 //! This is a PORT crate: it depends only on the locked PDP contract family in
-//! `oya-shared-platform-contracts-kernel`. It has ZERO dependency on any
+//! `shared-platform-contracts-kernel`. It has ZERO dependency on any
 //! adapter or facade — the Cedar-backed PDP adapter and the axum facade both
 //! depend INWARD on this port. Face-direction review ("would this trait change
 //! at W5 cutover?"): no — it models the destination decision surface (caller +
@@ -85,12 +85,12 @@ impl std::error::Error for MembershipFault {}
 ///
 /// The tenant-operator bearer is a SHARED credential; on its own it proves only
 /// that the caller is *some* operator, NEVER which tenants that operator may act
-/// for. A self-attested `x-oya-tenant` header therefore MUST NOT grant a tenant
+/// for. A self-attested `x-tenant` header therefore MUST NOT grant a tenant
 /// axis (the C7 finding: an operator holding the shared bearer could select ANY
 /// victim tenant via the header). This port resolves — from a TRUSTED server-side
 /// source keyed on the VERIFIED operator principal — the exact set of tenants the
 /// operator is assigned to. The PEP binds the tenant axis ONLY to a tenant in
-/// this set; the `x-oya-tenant` header may at most SELECT among assigned tenants,
+/// this set; the `x-tenant` header may at most SELECT among assigned tenants,
 /// never grant an unassigned one.
 ///
 /// Default-deny: an unknown operator resolves to an EMPTY membership set, so

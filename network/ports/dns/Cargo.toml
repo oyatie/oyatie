@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 network-domain = { path = "../../core/domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
 
 [dev-dependencies]
 network-residency = { path = "../../core/residency" }

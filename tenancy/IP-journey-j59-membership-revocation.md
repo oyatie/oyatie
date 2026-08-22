@@ -24,11 +24,11 @@ related_adrs:
   - ADR-0311-dual-tenant-identity-personal-vs-work-boundary
   - ADR-0313-conglomerate-tenant-hierarchy-sovereign-children
 acceptance_lanes:
-  - oya-governance-doc-rigor
-  - oya-governance-adr-citation
-  - oya-governance-per-microservice-layout
-  - oya-governance-critical-path-coverage
-  - oya-governance-doc-link-resolves
+  - governance-doc-rigor
+  - governance-adr-citation
+  - governance-per-microservice-layout
+  - governance-critical-path-coverage
+  - governance-doc-link-resolves
 ---
 
 # IP: j59 `tenancy` — `membership-revocation`
@@ -70,8 +70,8 @@ BNF v4.1 policy grammar names the service action as `<service>::<role>::v1` and 
 5. Emit a denial audit event with appeal route when a human can remediate.
 
 ## Observability Requirements
-- Metric: `oya_journey_slice_total{journey_id,service,role,status}`.
-- Latency: `oya_journey_slice_duration_ms{journey_id,service,role}` with p50/p95/p99.
+- Metric: `journey_slice_total{journey_id,service,role,status}`.
+- Latency: `journey_slice_duration_ms{journey_id,service,role}` with p50/p95/p99.
 - Trace span: `journey.j{journey_id}.{service}.{role}` parented to workflow-engine when orchestration is active.
 - Log schema: stable JSON with `tenant_id`, `principal_hash`, `audit_event_class`, and redacted payload digest.
 - Audit event: signed sidecar event per ADR-0263 and Merkle-sealed by audit-chain where required.
@@ -433,17 +433,17 @@ IP row 290: In Identity and tenant resolution, `mail` owns `forward-and-retentio
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `openapi, asyncapi, .proto`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `openapi, asyncapi, .proto`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## DR posture (per ADR-0343)
 - Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `p99, payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `p99, payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Sustainability emission (per ADR-0344)
 - Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
 - Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
-- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-journey-j59-membership-revocation.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

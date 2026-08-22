@@ -4,13 +4,13 @@
 |-------|-------|
 | Task slug | `managed-k8s-nodepool-drain-lifecycle-kernel` |
 | Vertical | infra |
-| Crate | `oya-managed-k8s-cluster-lifecycle-kernel` |
+| Crate | `managed-k8s-cluster-lifecycle-kernel` |
 | Branch | `feat/task-managed-k8s-nodepool-drain-lifecycle-kernel-2026-05-28` |
 | Stage | SPEC |
 
 ## Objective
 
-Extend the pure-domain `oya-managed-k8s-cluster-lifecycle-kernel` crate with:
+Extend the pure-domain `managed-k8s-cluster-lifecycle-kernel` crate with:
 
 1. A **NodePoolOp** request model — `NodePoolAction` enum (ScaleUp, ScaleDown,
    Cordon, Drain) and `NodePoolOpRequest` value object — with fail-closed
@@ -24,7 +24,7 @@ no new dependencies, no HTTP/gRPC handlers, no provider adapters.
 
 ## Vertical and Crate Context
 
-`oya-managed-k8s-cluster-lifecycle-kernel` already owns:
+`managed-k8s-cluster-lifecycle-kernel` already owns:
 
 - `DesiredTier` — `Hosted` | `Dedicated` with `parse()` + `as_str()`
 - `ClusterResourceRequest` — nodes/vcpu/ram_gib with internal `validate()`
@@ -251,7 +251,7 @@ Pre-existing tests (`request_validates_identity_and_resources`,
 
 ## Boundary Constraints
 
-- `crates/oya-managed-k8s-cluster-lifecycle-kernel/` is the only directory
+- `crates/managed-k8s-cluster-lifecycle-kernel/` is the only directory
   modified in the codebase.
 - Root `Cargo.toml` is not touched; no new workspace member is introduced.
 - No new `[dependencies]` are added (serde workspace dep already present).

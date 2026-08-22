@@ -13,7 +13,7 @@ traceability:
   source_adrs: [ADR-0105, ADR-0131, ADR-0384]
 non_claims:
   - composition root for the OAuth subscription-pool µservice — wires kernel + Cedar adapter + REST adapter + real OpenBao Transit (D8) + ClickHouse + Valkey Stream EventSink adapters (D6) into a runnable axum binary
-  - bin/cloud-intelligence reads config from env (OYA_CLOUD_INTEL_LISTEN_ADDR, OYA_CLOUD_INTEL_TENANT_ID, OYA_CLOUD_INTEL_OPENBAO_URL, OYA_CLOUD_INTEL_OPENBAO_TOKEN, OYA_CLOUD_INTEL_TRANSIT_KEY_NAME, OYA_CLOUD_INTEL_CLICKHOUSE_URL, OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD, OYA_CLOUD_INTEL_VALKEY_URL, etc.); production deployment on Talos via Helm + ArgoCD is a Stage-8 item
+  - bin/cloud-intelligence reads config from env (OYATIE_CLOUD_INTEL_LISTEN_ADDR, OYATIE_CLOUD_INTEL_TENANT_ID, OYATIE_CLOUD_INTEL_OPENBAO_URL, OYATIE_CLOUD_INTEL_OPENBAO_TOKEN, OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME, OYATIE_CLOUD_INTEL_CLICKHOUSE_URL, OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD, OYATIE_CLOUD_INTEL_VALKEY_URL, etc.); production deployment on Talos via Helm + ArgoCD is a Stage-8 item
   - wired with real OpenBao Transit + ClickHouse + Valkey Stream adapters; in-process mocks remain available via build_app_for_tests for unit/integration tests
   - no Codex provider adapter (Stage-6 follow-up; current path is Anthropic-only)
   - no production Helm chart / ArgoCD ApplicationSet (Stage-8)

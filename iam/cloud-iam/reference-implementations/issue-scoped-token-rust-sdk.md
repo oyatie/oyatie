@@ -1,4 +1,4 @@
-# Reference implementation — Issue + introspect a scoped token with `oya-cloud-iam-sdk`
+# Reference implementation — Issue + introspect a scoped token with `cloud-iam-sdk`
 
 Runnable Rust program that authenticates a service account, issues a scoped token with fingerprint binding, exercises the token
 against the Cedar evaluator, and verifies the audit-chain anchor.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-iam-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-iam-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
@@ -25,11 +25,11 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::{Context, Result};
-use oya_cloud_iam_sdk::{
+use cloud_iam_sdk::{
     AuthorizeDecision, IamClient, IamConfig, PrincipalUid, ResourceUid, ScopedTokenRequest, Tenant,
     TokenBinding,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 
@@ -173,7 +173,7 @@ INFO  audit-chain anchor verified chain_root=blake3-256:… signed_by=hsm-key-08
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_iam_sdk::testkit::Hermetic` to spin a single-process loopback `cloud-iam` cell with an
+The `hermetic` feature uses `cloud_iam_sdk::testkit::Hermetic` to spin a single-process loopback `cloud-iam` cell with an
 in-memory Cedar entity store; tests finish in ≤ 30 s.
 
 ## Error budget

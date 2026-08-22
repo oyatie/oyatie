@@ -1,0 +1,502 @@
+{
+  "schema_version": "1.0",
+  "microservice": "application",
+  "tier": "product",
+  "tier_subtype": "product-developer-application-shell",
+  "dr_tier": "T1",
+  "version": "0.1.0",
+  "owner": "axis-application",
+  "bounded_contexts": [
+    {
+      "name": "auth-gateway",
+      "description": "Bounded context 'auth-gateway' within application (control plane)",
+      "crates": []
+    },
+    {
+      "name": "frontend-bundle-serve",
+      "description": "Bounded context 'frontend-bundle-serve' within application (control plane)",
+      "crates": []
+    },
+    {
+      "name": "module-loader",
+      "description": "Bounded context 'module-loader' within application (control plane)",
+      "crates": []
+    },
+    {
+      "name": "shell-routing",
+      "description": "Bounded context 'shell-routing' within application (data plane)",
+      "crates": []
+    },
+    {
+      "name": "tenant-context",
+      "description": "Bounded context 'tenant-context' within application (control plane)",
+      "crates": []
+    },
+    {
+      "name": "tenant-admin-console",
+      "description": "No-code tenant control plane for roles, Cedar fragments, JIT access, context visibility, and AI enablement per ADR-0218.",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/application/contracts/openapi/application.yaml",
+      "microservices/application/contracts/openapi/tenant-admin-console.yaml"
+    ],
+    "asyncapi": [
+      "microservices/application/contracts/asyncapi/application-events.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/application/contracts/proto/application.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "module-load",
+      "file": "microservices/application/capabilities/module-load.yaml",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "session-emit",
+      "file": "microservices/application/capabilities/session-emit.yaml",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T1",
+      "name": "shell-render",
+      "file": "microservices/application/capabilities/shell-render.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "tenant-admin-console-control",
+      "file": "microservices/application/capabilities/tenant-admin-console-control.yaml",
+      "risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "application-audit-seal",
+      "target": "0.999 (1.0)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "oya/application/slos/audit-seal.openslo.yaml"
+    },
+    {
+      "name": "application-module-load",
+      "target": "0.999",
+      "sli": "sum by (pack, module) (",
+      "file": "oya/application/slos/module-load.openslo.yaml"
+    },
+    {
+      "name": "application-oidc-signin",
+      "target": "0.999 (0.2)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "oya/application/slos/oidc-signin.openslo.yaml"
+    },
+    {
+      "name": "application-route-resolve",
+      "target": "0.999 (0.1)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "oya/application/slos/route-resolve.openslo.yaml"
+    },
+    {
+      "name": "application-tti",
+      "target": "0.999 (2.0)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "oya/application/slos/tti.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-shell-routing-kernel",
+      "title": "IP-001: application-shell-routing-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-001-shell-routing-kernel.md"
+    },
+    {
+      "id": "IP-002-shell-routing-domain",
+      "title": "IP-002: application-shell-routing-domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-002-shell-routing-domain.md"
+    },
+    {
+      "id": "IP-003-shell-routing-usecase",
+      "title": "IP-003: application-shell-routing-usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-003-shell-routing-usecase.md"
+    },
+    {
+      "id": "IP-004-shell-routing-adapter",
+      "title": "IP-004: application-shell-routing-adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-004-shell-routing-adapter.md"
+    },
+    {
+      "id": "IP-005-shell-routing-rest",
+      "title": "IP-005: application-shell-routing-rest",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-005-shell-routing-rest.md"
+    },
+    {
+      "id": "IP-006-tenant-context-kernel",
+      "title": "IP-006: application-tenant-context-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-006-tenant-context-kernel.md"
+    },
+    {
+      "id": "IP-007-tenant-context-usecase-rest",
+      "title": "IP-007: tenant-context usecase + domain + adapter + rest",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-007-tenant-context-usecase-rest.md"
+    },
+    {
+      "id": "IP-008-auth-gateway-kernel-domain",
+      "title": "IP-008: auth-gateway kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-008-auth-gateway-kernel-domain.md"
+    },
+    {
+      "id": "IP-009-auth-gateway-adapters-oidc-saml",
+      "title": "IP-009: auth-gateway adapter-oidc + adapter-saml + adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-009-auth-gateway-adapters-oidc-saml.md"
+    },
+    {
+      "id": "IP-010-auth-gateway-rest-worker",
+      "title": "IP-010: auth-gateway usecase + rest + worker",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-010-auth-gateway-rest-worker.md"
+    },
+    {
+      "id": "IP-011-module-loader-kernel-domain",
+      "title": "IP-011: module-loader kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-011-module-loader-kernel-domain.md"
+    },
+    {
+      "id": "IP-012-module-loader-usecase-adapter-cdn",
+      "title": "IP-012: module-loader usecase + adapter + adapter-cdn + rest + sdk",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-012-module-loader-usecase-adapter-cdn.md"
+    },
+    {
+      "id": "IP-013-frontend-bundle-serve",
+      "title": "IP-013: frontend-bundle-serve crates",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-013-frontend-bundle-serve.md"
+    },
+    {
+      "id": "IP-014-leptos-frontend-and-composition",
+      "title": "IP-014: Leptos frontend + composition-root binaries",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-014-leptos-frontend-and-composition.md"
+    },
+    {
+      "id": "IP-015-application-openslo-and-hg-app",
+      "title": "IP-015: OpenSLO authoring + HG-APP gate registration + branch-protection",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-015-application-openslo-and-hg-app.md"
+    },
+    {
+      "id": "IP-016-tenant-admin-console-control-surface",
+      "title": "IP-016: Tenant Admin Console control surface",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-016-tenant-admin-console-control-surface.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "postgres": "16.0\"  # Postgres LTS",
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0065",
+      "title": "Docs As Leptos Webapp With Machine Readable Coemit",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0121",
+      "title": "Onprem K8s Stack Kubeadm Containerd Istio Envoy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0234",
+      "title": "Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0215",
+      "title": "Multi-context platform architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0218",
+      "title": "Tenant granular control surface",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0219",
+      "title": "No-code-first UX with optional AI assist",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.application.module-load",
+      "oya.application.session-emit",
+      "oya.application.shell-render",
+      "oya.application.tenant-admin.policy-draft-created",
+      "oya.application.tenant-admin.policy-change-applied",
+      "oya.application.tenant-admin.jit-access-reviewed"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
+  },
+  "naming_justifications": "application is a BNF v4.1 kebab-case microservice slug; generated names follow application-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-application",
+  "tier_classification": "B2B",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "identity",
+    "tenancy",
+    "observability",
+    "audit-chain",
+    "network",
+    "ontology",
+    "compliance",
+    "governance",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.28,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 6,
+    "connections_per_tenant": {
+      "valkey": 4,
+      "postgres": 4,
+      "outbound_http": 10
+    },
+    "scaling_dimension": "per_user",
+    "cell_placement_class": "Tier-2",
+    "notes": "Application shell sessions, auth-gateway checks, module loading, and tenant-context hydration scale with active tenant users."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 30,
+    "rpo_p99_seconds": 5,
+    "multi_region_active_active": false,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "valkey",
+      "object_storage_versioned"
+    ],
+    "failover_runbook": "runbooks/tenant-context-recovery.md",
+    "replication_shape": "active-passive-cross-region-continuous"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Application is the first-party shell, routing, auth-gateway integration, and tenant-context surface; it is critical product entry infrastructure but not the tenant key or customer-code execution substrate.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/application/PRD.md",
+    "microservices/application/ARCHITECTURE.md",
+    "microservices/application/IP-008-auth-gateway-kernel-domain.md",
+    "microservices/application/contracts/openapi/application.yaml"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2025-11-21",
+      "2026-02-21",
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/application/contracts/openapi/application.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/application/contracts/asyncapi/application-events.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "cedar",
+    "openbao",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "dns",
+      "version_pin": "v1"
+    }
+  ],
+  "doc_class": "Machine-Readable-Spec"
+}

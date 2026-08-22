@@ -1,4 +1,4 @@
-# Reference implementation — Envelope-encrypt + rotate + cryptoshred via `oya-cloud-kms-sdk`
+# Reference implementation — Envelope-encrypt + rotate + cryptoshred via `cloud-kms-sdk`
 
 Runnable Rust program that mints a CMK, envelope-encrypts a customer PII row, rotates the KEK, decrypts after rotation,
 and walks a cryptoshred receipt verification.
@@ -13,8 +13,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-kms-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-kms-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
@@ -26,11 +26,11 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::Result;
-use oya_cloud_kms_sdk::{
+use cloud_kms_sdk::{
     Aad, CmkAlias, CmkCreateRequest, CmkRotationCadence, CryptoshredReason, KmsClient, KmsConfig,
     KmsError, Tenant,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tracing::{info, warn};
 
@@ -199,7 +199,7 @@ INFO  cryptoshred receipt extracted chain_root=blake3-256:… hsm_quote_kind=tdx
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_kms_sdk::testkit::Hermetic` with SoftHSM 2.6.1 as the in-process HSM; tests finish in
+The `hermetic` feature uses `cloud_kms_sdk::testkit::Hermetic` with SoftHSM 2.6.1 as the in-process HSM; tests finish in
 ≤ 45 s and do not require a real HSM.
 
 ## Error budget

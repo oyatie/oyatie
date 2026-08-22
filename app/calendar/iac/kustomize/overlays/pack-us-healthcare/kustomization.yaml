@@ -17,7 +17,7 @@ commonLabels:
   oyatie.dev/compliance: hipaa
 
 configMapGenerator:
-  - name: oya-calendar-pack-config
+  - name: calendar-pack-config
     namespace: calendar
     literals:
       - PACK_REGION=us-healthcare
@@ -31,7 +31,7 @@ configMapGenerator:
       - CALDAV_BACKEND=sabredav      # per ADR-CAL-0001 healthcare overlay
 
 patches:
-  - target: {kind: Deployment, name: oya-calendar-ics-import-export-app}
+  - target: {kind: Deployment, name: calendar-ics-import-export-app}
     patch: |
       - op: replace
         path: /spec/template/spec/containers/0/env/2/value
@@ -39,7 +39,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value: {name: CALDAV_BACKEND_PREFERRED, value: sabredav}
-  - target: {kind: HorizontalPodAutoscaler, name: oya-calendar-event-store-app-hpa}
+  - target: {kind: HorizontalPodAutoscaler, name: calendar-event-store-app-hpa}
     patch: |
       - op: replace
         path: /spec/maxReplicas

@@ -28,8 +28,8 @@ path = "src/main.rs"
 
 [dependencies]
 data-analytics-domain = { path = "../../core/analytics-domain" }
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
-oya-shared-olap-clickhouse-adapter = { path = "../../../libs/oya-shared-olap-clickhouse-adapter" }
+shared-olap-client-kernel = { path = "../../../libs/shared-olap-client-kernel" }
+shared-olap-clickhouse-adapter = { path = "../../../libs/shared-olap-clickhouse-adapter" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }

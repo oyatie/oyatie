@@ -59,7 +59,7 @@ body:
     attributes:
       label: Evidence
       description: >-
-        Command output excerpts, CI status links (`oya-ci-required`), audit-chain
+        Command output excerpts, CI status links (`presubmit`), audit-chain
         emission IDs, or gate-packet excerpts.
     validations:
       required: false

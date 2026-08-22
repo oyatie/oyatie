@@ -5,7 +5,7 @@ ip_id: IP-002
 microservice: identity
 status: ga
 related_adrs: [ADR-0145, ADR-0187]
-related_crates: [oya-shared-oidc-client-kernel]
+related_crates: [shared-oidc-client-kernel]
 date: 2026-05-18
 owner_team: axis-identity
 ---
@@ -14,15 +14,15 @@ owner_team: axis-identity
 
 ## Goal
 
-Land the `oya-shared-oidc-client-kernel` crate: vendor-neutral OIDC verifier with JWKS validation, `tenant_id` / `acr` / `purpose` / `data_class` claim extraction, and pluggable signature-verifier adapter so callers can plug `ring`, `rustls`, or HSM-backed verifiers without forcing crypto into the kernel.
+Land the `shared-oidc-client-kernel` crate: vendor-neutral OIDC verifier with JWKS validation, `tenant_id` / `acr` / `purpose` / `data_class` claim extraction, and pluggable signature-verifier adapter so callers can plug `ring`, `rustls`, or HSM-backed verifiers without forcing crypto into the kernel.
 
 ## Files to create
 
 | File | Purpose |
 |---|---|
-| `crates/oya-shared-oidc-client-kernel/Cargo.toml` | manifest; deps: `serde`, `serde_json`; no crypto |
-| `crates/oya-shared-oidc-client-kernel/src/lib.rs` | trait + reference verifier + types |
-| `crates/oya-shared-oidc-client-kernel/tests/oidc_client_kernel.rs` | integration tests |
+| `crates/shared-oidc-client-kernel/Cargo.toml` | manifest; deps: `serde`, `serde_json`; no crypto |
+| `crates/shared-oidc-client-kernel/src/lib.rs` | trait + reference verifier + types |
+| `crates/shared-oidc-client-kernel/tests/oidc_client_kernel.rs` | integration tests |
 
 Total LoC: ~330 (lib) + ~270 (tests) = ~600 lines.
 
@@ -107,14 +107,14 @@ The kernel distinguishes failure classes so consumers can choose response code:
 
 | Artefact | Path |
 |---|---|
-| `cargo test -p oya-shared-oidc-client-kernel` results | `evidence/identity/crate-tests/oya-shared-oidc-client-kernel-<date>.json` |
+| `cargo test -p shared-oidc-client-kernel` results | `evidence/identity/crate-tests/shared-oidc-client-kernel-<date>.json` |
 | Test count | 16 tests, 16 passed |
-| Code coverage report | `evidence/identity/coverage/oya-shared-oidc-client-kernel-<date>.html` |
+| Code coverage report | `evidence/identity/coverage/shared-oidc-client-kernel-<date>.html` |
 
 ## Acceptance — DONE when
 
-- [x] Crate builds: `cargo build -p oya-shared-oidc-client-kernel` exits 0.
-- [x] Tests pass: `cargo test -p oya-shared-oidc-client-kernel` shows 16/16 passed.
+- [x] Crate builds: `cargo build -p shared-oidc-client-kernel` exits 0.
+- [x] Tests pass: `cargo test -p shared-oidc-client-kernel` shows 16/16 passed.
 - [x] No `#[allow(...)]` directives in src.
 - [x] No `panic!`, `unwrap()`, `expect()` in src (workspace lints enforce).
 - [x] Documented as `pub` API: every public type carries a `///` doc comment.

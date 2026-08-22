@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-iac-seaweedfs
+name: cloud-iac-seaweedfs
 description: |
   SeaweedFS distributed object store (S3-compatible API) per ADR-0196 storage
   canonical. Primary blob substrate for workflow artifacts, evidence files,

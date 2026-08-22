@@ -17,7 +17,7 @@
       "cargo-check",
       "cargo-clippy",
       "cargo-nextest",
-      "oya-pr-review"
+      "pr-review"
     ],
     "strict": false
   },
@@ -30,11 +30,11 @@
   ],
   "fixture_id": "TC-0.0.1-BAD-missing-required-context",
   "producer_contract": {
-    "context": "oya-pr-review",
+    "context": "pr-review",
     "kind": "reviewer_status_non_ci",
     "status": "producer_not_live_for_ci_authority"
   },
-  "purpose": "Proves branch protection without cloud-ci-required/oya-ci-required cannot satisfy P0.0.",
+  "purpose": "Proves branch protection without cloud-ci-required/presubmit cannot satisfy P0.0.",
   "tc_ids": [
     "TC-0.0.1"
   ]

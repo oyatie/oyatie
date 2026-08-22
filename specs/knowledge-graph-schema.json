@@ -24,7 +24,7 @@
       "docs/decisions/ADR-0709-general-live-apex.md"
     ],
     "enforcing_fitness_lane": "lean-a-knowledge-graph-integrity",
-    "validator_crate": "crates/oya-check-knowledge-graph (planned)",
+    "validator_crate": "crates/check-knowledge-graph (planned)",
     "purpose": "Canonical knowledge-graph substrate for the entire Oyatie project. Every relationship, capability, feature, schema, crate, BC, microservice, ADR, plan, lane, hook, generator, healer, owner, block — modeled as nodes + typed edges."
   },
   "type": "object",

@@ -474,7 +474,7 @@
         },
         "required_gate": {
           "type": "string",
-          "pattern": "^oya-governance-[a-z0-9-]{3,80}$"
+          "pattern": "^governance-[a-z0-9-]{3,80}$"
         }
       }
     },
@@ -785,7 +785,7 @@
         {
           "workflow_template_ref": "workflow-template:sales-consent-review:v1",
           "constraint_type": "consent-check",
-          "required_gate": "oya-governance-gdpr-consent-check"
+          "required_gate": "governance-gdpr-consent-check"
         }
       ],
       "audit_requirements": [
@@ -939,7 +939,7 @@
         {
           "workflow_template_ref": "workflow-template:care-access-attestation:v1",
           "constraint_type": "minimum-necessary-attestation",
-          "required_gate": "oya-governance-hipaa-minimum-necessary"
+          "required_gate": "governance-hipaa-minimum-necessary"
         }
       ],
       "audit_requirements": [
@@ -1088,7 +1088,7 @@
         {
           "workflow_template_ref": "workflow-template:sovereign-export-review:v1",
           "constraint_type": "export-review",
-          "required_gate": "oya-governance-kr-csap-export-review"
+          "required_gate": "governance-kr-csap-export-review"
         }
       ],
       "audit_requirements": [

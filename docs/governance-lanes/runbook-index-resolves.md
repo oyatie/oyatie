@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every runbook listed in `docs/runbooks/INDEX.md` resolves to an existing file and every runbook file appears in INDEX.
-- enforces: STANDARD/runbook-index; AGENTS.md fitness-lane `oya-governance-runbook-index-resolves`.
-- kernel_crate: `oya-governance-runbook-index-kernel` — `RunbookEntry { runbook_id, path }`, `RunbookFile { path }`, verdict `RunbookIndexFitnessReport { entries_checked, files_checked }`.
-- runner_path: `tools/oya-governance-runbook-index-resolves`
+- enforces: STANDARD/runbook-index; AGENTS.md fitness-lane `governance-runbook-index-resolves`.
+- kernel_crate: `governance-runbook-index-kernel` — `RunbookEntry { runbook_id, path }`, `RunbookFile { path }`, verdict `RunbookIndexFitnessReport { entries_checked, files_checked }`.
+- runner_path: `tools/governance-runbook-index-resolves`
 - inputs: `docs/runbooks/INDEX.md`, `docs/runbooks/**/*.md`.
 - failure_modes:
   - INDEX row points at missing file
   - runbook file exists but not listed in INDEX
   - duplicate runbook id
-- ci_invocation: `cargo run -p oya-governance-runbook-index-resolves`
+- ci_invocation: `cargo run -p governance-runbook-index-resolves`
 - runtime_budget: 250 ms
 - severity: HIGH
 - kernel_sketch:

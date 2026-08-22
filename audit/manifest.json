@@ -78,7 +78,7 @@
       "ports": 10
     },
     "crates_covered_by_no_other_manifest": 18,
-    "_overlap_note": "All eighteen workspace members under audit/ are owned exclusively by this capability root; catalog/*.yaml rows still use legacy oya-audit-chain-* service names and are not re-declared here.",
+    "_overlap_note": "All eighteen workspace members under audit/ are owned exclusively by this capability root; catalog/*.yaml rows still use legacy audit-chain-* service names and are not re-declared here.",
     "path_verification": {
       "verified_retargeted": [
         "audit/capabilities/audit-emit.yaml",
@@ -137,45 +137,45 @@
   ],
   "slos": [
     {
-      "name": "oya-audit-chain-chain-of-custody-integrity-correctness",
+      "name": "audit-chain-chain-of-custody-integrity-correctness",
       "target": "1.0",
-      "sli": "sum(rate(oya_audit_chain_custody_verify_total{outcome=\"intact\"}[5m]))",
+      "sli": "sum(rate(audit_chain_custody_verify_total{outcome=\"intact\"}[5m]))",
       "file": "audit/observability/slos/chain-of-custody-integrity-correctness.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-evidence-export-freshness",
+      "name": "audit-chain-evidence-export-freshness",
       "target": "0.95",
-      "sli": "sum(rate(oya_audit_chain_evidence_export_duration_seconds_bucket{le=\"300\"}[5m]))",
+      "sli": "sum(rate(audit_chain_evidence_export_duration_seconds_bucket{le=\"300\"}[5m]))",
       "file": "audit/observability/slos/evidence-export-freshness.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-merkle-chain-verification-latency",
+      "name": "audit-chain-merkle-chain-verification-latency",
       "target": "0.95",
-      "sli": "sum(rate(oya_audit_chain_merkle_verify_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "sli": "sum(rate(audit_chain_merkle_verify_duration_seconds_bucket{le=\"0.2\"}[5m]))",
       "file": "audit/observability/slos/merkle-chain-verification-latency.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-seal-storage-availability",
+      "name": "audit-chain-seal-storage-availability",
       "target": "0.9999",
-      "sli": "sum(rate(oya_audit_chain_storage_op_total{outcome=\"success\"}[5m]))",
+      "sli": "sum(rate(audit_chain_storage_op_total{outcome=\"success\"}[5m]))",
       "file": "audit/observability/slos/seal-storage-availability.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-seal-write-availability",
+      "name": "audit-chain-seal-write-availability",
       "target": "0.9999",
-      "sli": "sum(rate(oya_audit_chain_seal_write_total{outcome=\"success\"}[5m]))",
+      "sli": "sum(rate(audit_chain_seal_write_total{outcome=\"success\"}[5m]))",
       "file": "audit/observability/slos/seal-write-availability.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-seal-write-latency",
+      "name": "audit-chain-seal-write-latency",
       "target": "0.99",
-      "sli": "sum(rate(oya_audit_chain_seal_write_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "sli": "sum(rate(audit_chain_seal_write_duration_seconds_bucket{le=\"0.05\"}[5m]))",
       "file": "audit/observability/slos/seal-write-latency.openslo.yaml"
     },
     {
-      "name": "oya-audit-chain-seal-cycle-latency",
+      "name": "audit-chain-seal-cycle-latency",
       "target": "0.99",
-      "sli": "sum(rate(oya_audit_chain_seal_cycle_duration_seconds_bucket{le=\"1\"}[5m]))",
+      "sli": "sum(rate(audit_chain_seal_cycle_duration_seconds_bucket{le=\"1\"}[5m]))",
       "file": "audit/observability/slos/seal-cycle-latency.openslo.yaml"
     }
   ],
@@ -196,14 +196,14 @@
     },
     {
       "id": "IP-003-emission-kernel",
-      "title": "IP-003: oya-audit-chain-emission-kernel",
+      "title": "IP-003: audit-chain-emission-kernel",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-003-emission-kernel.md",
       "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-004-emission-domain",
-      "title": "IP-004: oya-audit-chain-emission-domain",
+      "title": "IP-004: audit-chain-emission-domain",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-004-emission-domain.md",
       "path_verification": "deferred_missing_home"
@@ -217,21 +217,21 @@
     },
     {
       "id": "IP-006-sealing-kernel",
-      "title": "IP-006: oya-audit-chain-sealing-kernel",
+      "title": "IP-006: audit-chain-sealing-kernel",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-006-sealing-kernel.md",
       "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-007-sealing-domain-merkle",
-      "title": "IP-007: oya-audit-chain-sealing-domain (Merkle math)",
+      "title": "IP-007: audit-chain-sealing-domain (Merkle math)",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-007-sealing-domain-merkle.md",
       "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-008-sealing-adapter-hsm",
-      "title": "IP-008: oya-audit-chain-sealing-adapter-hsm",
+      "title": "IP-008: audit-chain-sealing-adapter-hsm",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-008-sealing-adapter-hsm.md",
       "path_verification": "deferred_missing_home"
@@ -397,7 +397,7 @@
     "ambient_waypoint": true,
     "north_south_only": false
   },
-  "naming_justifications": "capability root `audit` (registry name); absorbed microservice slug `audit-chain` retained for seal-event / catalog continuity. Workspace crate names follow audit-<bounded-context>-<face> under adapters/core/ports (ADR-0562 faces); legacy oya-audit-chain-* catalog rows remain until a catalog retarget slice.",
+  "naming_justifications": "capability root `audit` (registry name); absorbed microservice slug `audit-chain` retained for seal-event / catalog continuity. Workspace crate names follow audit-<bounded-context>-<face> under adapters/core/ports (ADR-0562 faces); legacy audit-chain-* catalog rows remain until a catalog retarget slice.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"

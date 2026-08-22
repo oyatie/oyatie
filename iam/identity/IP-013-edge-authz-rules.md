@@ -86,7 +86,7 @@ Custom oyatie rules:
 ## Acceptance — DONE when
 
 - 10 tests pass.
-- `oya-check-authz-tier-discipline` finds 0 origin-concerns in these filters.
+- `check-authz-tier-discipline` finds 0 origin-concerns in these filters.
 - Per-pack overlays render valid CiliumNetworkPolicy + Envoy filter config.
 - Synthetic DDoS test in staging shows ≥99% drop at edge.
 

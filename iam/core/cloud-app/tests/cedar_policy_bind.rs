@@ -15,7 +15,7 @@ use iam_policy_cedar_domain::{
     AuthorizationQuery, AuthorizationSubject, PolicyEffect, PolicyRuleInput, PolicyScope,
     PolicySet, PolicyVersion,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use std::collections::BTreeMap;
 
 const TENANT_ID: &str = "ten_alpha";
@@ -34,7 +34,7 @@ fn directory_with_principal() -> IamDirectory {
             display_name: "cloud provisioner".to_string(),
             external_subject: None,
             identity_provider_id: None,
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             mfa_state: MfaState::NotRequired,
             last_authenticated_at_epoch_seconds: None,
             created_at_epoch_seconds: 1_700_000_001,

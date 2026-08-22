@@ -5,7 +5,7 @@ control plane. This is a **Helm chart**: a cell is an entry in `values.cells`, n
 (ADR-0375 D3). Pick a substrate per cell, fill its block, render, apply.
 
 ```sh
-helm template oya-spokes infra/capi/clusters -f my-cells.yaml | kubectl apply -f -
+helm template spokes infra/capi/clusters -f my-cells.yaml | kubectl apply -f -
 ```
 
 | Substrate | `substrate:` | Infra provider | Use |

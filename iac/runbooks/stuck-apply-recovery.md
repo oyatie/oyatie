@@ -16,7 +16,7 @@ doc_status: published
 
 ## Trigger
 
-An iac-applier-worker job hangs > 15min, exceeding the p999 apply latency target. Manifests as `oya_cloud_iac_apply_duration_seconds{quantile="0.99"} > 900` or a specific `ApplyJob` in `Running` state > 15min.
+An iac-applier-worker job hangs > 15min, exceeding the p999 apply latency target. Manifests as `cloud_iac_apply_duration_seconds{quantile="0.99"} > 900` or a specific `ApplyJob` in `Running` state > 15min.
 
 ## Severity
 
@@ -73,8 +73,8 @@ An iac-applier-worker job hangs > 15min, exceeding the p999 apply latency target
 ## Verification
 
 After recovery:
-- `oya_cloud_iac_apply_duration_seconds{quantile="0.99"}` returns to ≤ 5min steady state for ≥ 30min.
-- Stuck-apply count `oya_cloud_iac_stuck_apply_total` rate < 1 / 1h.
+- `cloud_iac_apply_duration_seconds{quantile="0.99"}` returns to ≤ 5min steady state for ≥ 30min.
+- Stuck-apply count `cloud_iac_stuck_apply_total` rate < 1 / 1h.
 - All ApplyJobs reach `Completed` or `Failed` (no `Running` > 15min).
 - Self-SLO returns to green: `https://grafana-<pack>.oyatie.dev/d/cloud-iac-self/overview`.
 

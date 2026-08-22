@@ -1,7 +1,7 @@
 # Spec: b2b-payroll-group-gl-posting-dispatch
 
 vertical: b2b
-crate: oya-payroll-run-domain (single-crate; no new workspace member)
+crate: payroll-run-domain (single-crate; no new workspace member)
 branch: feat/task-b2b-payroll-group-gl-posting-dispatch-2026-05-28
 adr-layout: ADR-0131 flat per-microservice layout; ADR-0509 single-crate-per-service
 
@@ -21,7 +21,7 @@ existing `build_payroll_journal` — no duplicated logic.
 ## Vertical and Crate Boundaries
 
 - Vertical: b2b
-- Owning crate: `crates/oya-payroll-run-domain` (`src/lib.rs`)
+- Owning crate: `crates/payroll-run-domain` (`src/lib.rs`)
 - No new crate; no root `Cargo.toml` change.
 - No REST/gRPC adapter; domain-only additions.
 

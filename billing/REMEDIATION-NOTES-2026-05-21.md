@@ -199,7 +199,7 @@ Status: CLOSED for spec and contract surfaces; DEFERRED for kernel implementatio
 
 Evidence: PRD section 6 defines the closed enum; README states exact values; proto defines `TenantClass`; OpenAPI and AsyncAPI expose tenant_class payloads; Cedar policies bind principal/resource/context tenant_class values.
 
-Residual: `crates/oya-cloud-billing-domain` was not modified in this sprint, so the Rust kernel extension is still future work.
+Residual: `crates/cloud-billing-domain` was not modified in this sprint, so the Rust kernel extension is still future work.
 
 CB-F-006: billing_components set plus revenue_share, per_seat, per_usage not modeled.
 
@@ -265,7 +265,7 @@ Residual: Cedar syntax/runtime validation was not run in this finalizer; no code
 
 Overall status: spec-authored and contract-authored; kernel implementation deferred.
 
-The prior sprint preserved `crates/oya-cloud-billing-domain`.
+The prior sprint preserved `crates/cloud-billing-domain`.
 
 No Rust changes were made for `TenantClass`, `BillingComponentSet`, or component workers.
 
@@ -640,9 +640,9 @@ For completeness, the artifacts that EXIST and are referenced from PRD/ARCHITECT
 
 Existing Rust crates on tree (workspace members, confirmed):
 
-- `crates/oya-cloud-billing-domain` — billing-account, cloud-billing-event, invoice, tax-registration domain types; integrates with `oya-metering-domain`, `oya-cloud-region-domain`, `oya-cloud-resource-domain`, `oya-data-boundary-kernel`.
-- `crates/oya-cloud-billing-kernel` — kernel surface for cloud-billing.
-- `crates/oya-cloud-billing-tax-app` — tax composition app (includes integration tests under `tests/cloud_billing_invoice_api.rs`).
+- `crates/cloud-billing-domain` — billing-account, cloud-billing-event, invoice, tax-registration domain types; integrates with `metering-domain`, `cloud-region-domain`, `cloud-resource-domain`, `data-boundary-kernel`.
+- `crates/cloud-billing-kernel` — kernel surface for cloud-billing.
+- `crates/cloud-billing-tax-app` — tax composition app (includes integration tests under `tests/cloud_billing_invoice_api.rs`).
 
 Existing contract surfaces on tree:
 
@@ -658,7 +658,7 @@ Existing Cedar policies on tree:
 
 artifacts confirmed existing: 3 Rust crates + 3 contract files + 6 Cedar policy files + 10 SLO files + 4 IaC files for `oyatie-public-cloud`.
 
-Compile evidence: `cargo check -p oya-cloud-billing-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app` finished cleanly under workspace dev profile. No new crates were required; all declared (in non-IP docs) crates resolve.
+Compile evidence: `cargo check -p cloud-billing-domain -p cloud-billing-kernel -p cloud-billing-tax-app` finished cleanly under workspace dev profile. No new crates were required; all declared (in non-IP docs) crates resolve.
 
 ### D. Artifacts scaffolded
 
@@ -682,7 +682,7 @@ No changes. No new crates were created, so the workspace member list is unchange
 
 cargo check status: PASS.
 
-Command: `cargo check -p oya-cloud-billing-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app`.
+Command: `cargo check -p cloud-billing-domain -p cloud-billing-kernel -p cloud-billing-tax-app`.
 
 Result: `Finished dev profile [unoptimized + debuginfo] target(s) in 1.20s` with zero errors and zero warnings reported for the three cloud-billing crates.
 
@@ -691,7 +691,7 @@ Result: `Finished dev profile [unoptimized + debuginfo] target(s) in 1.20s` with
 The honest truth-up boundary for cloud-billing is that there is no IP corpus to truth-up. The follow-up work, ordered:
 
 1. Wave 15-IP-substance owes cloud-billing the IP files listed in section 10 (`IP-001` through `IP-015`). Until those exist, IMPL-truth-up has nothing to ratify for this µservice.
-2. When those IPs are authored they MUST be authored against the already-confirmed crates (`oya-cloud-billing-domain`, `oya-cloud-billing-kernel`, `oya-cloud-billing-tax-app`) and the already-confirmed contracts under `contracts/` to avoid declaring phantom artifacts.
+2. When those IPs are authored they MUST be authored against the already-confirmed crates (`cloud-billing-domain`, `cloud-billing-kernel`, `cloud-billing-tax-app`) and the already-confirmed contracts under `contracts/` to avoid declaring phantom artifacts.
 3. Per ADR-0331 D-1/D-5/D-7/D-11, `manifest.json`, `capabilities/tenant-class-caps.yaml`, `cost-budget.md`, and `tests/tenant_class/` remain deferred (section 6 of this file) — IPs must drive those before truth-up can act on them.
 4. Per CB-F-007 / CB-F-008, the empty `iac/<context>/` directories for `guest-on-aws`, `guest-on-oci`, `on-prem`, `colo`, `oyatie-as-cloud-provider`, and `oci-guest/always-free` still need OpenTofu module files; truth-up does not author IaC modules because that is not the truth-up step's deliverable.
 5. Per CB-F-003 / CB-F-004, Wave 15I (foundry absorption) and Wave 15J (tier-vocabulary retirement) own the legacy-doc rewrite — out of scope for truth-up.

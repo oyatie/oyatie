@@ -12,18 +12,18 @@ owner_team: axis-identity
 
 ## Goal
 
-Land the `oya-identity-webauthn-relying-party-rest` crate: HTTP handlers as `axum::Router` exposing `/webauthn/register/start`, `/webauthn/register/finish`, `/webauthn/authenticate/start`, `/webauthn/authenticate/finish` per W3C WebAuthn L3, backed by the kernel from IP-004 + a Postgres-backed `CredentialStore` adapter + Valkey-backed `ChallengeStore`.
+Land the `identity-webauthn-relying-party-rest` crate: HTTP handlers as `axum::Router` exposing `/webauthn/register/start`, `/webauthn/register/finish`, `/webauthn/authenticate/start`, `/webauthn/authenticate/finish` per W3C WebAuthn L3, backed by the kernel from IP-004 + a Postgres-backed `CredentialStore` adapter + Valkey-backed `ChallengeStore`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-webauthn-relying-party-rest/Cargo.toml` | manifest; axum + sqlx + valkey |
-| `crates/oya-identity-webauthn-relying-party-rest/src/lib.rs` | Router builder + handlers |
-| `crates/oya-identity-webauthn-relying-party-rest/src/postgres_credential_store.rs` | Postgres-backed CredentialStore impl |
-| `crates/oya-identity-webauthn-relying-party-rest/src/valkey_challenge_store.rs` | Valkey-backed ChallengeStore impl |
-| `crates/oya-identity-webauthn-relying-party-rest/src/error.rs` | HTTP error envelope |
-| `crates/oya-identity-webauthn-relying-party-rest/tests/handlers.rs` | request-response tests via `tower::ServiceExt::oneshot` |
+| `crates/identity-webauthn-relying-party-rest/Cargo.toml` | manifest; axum + sqlx + valkey |
+| `crates/identity-webauthn-relying-party-rest/src/lib.rs` | Router builder + handlers |
+| `crates/identity-webauthn-relying-party-rest/src/postgres_credential_store.rs` | Postgres-backed CredentialStore impl |
+| `crates/identity-webauthn-relying-party-rest/src/valkey_challenge_store.rs` | Valkey-backed ChallengeStore impl |
+| `crates/identity-webauthn-relying-party-rest/src/error.rs` | HTTP error envelope |
+| `crates/identity-webauthn-relying-party-rest/tests/handlers.rs` | request-response tests via `tower::ServiceExt::oneshot` |
 
 ## Endpoints
 
@@ -81,7 +81,7 @@ Key: `webauthn:challenge:{type}:{challenge_id}`; TTL 300s; value: serialised cha
 | `replay_attack_rejected` | submit same assertion twice; second is 401 |
 | `audit_emitted_on_register_success` | observe `IdentityWebAuthnRegistered` event |
 | `audit_emitted_on_authenticate_success` | observe `IdentitySignInSucceeded` event |
-| `metrics_emitted` | Prometheus scrape shows `oya_identity_webauthn_*` counters |
+| `metrics_emitted` | Prometheus scrape shows `identity_webauthn_*` counters |
 
 ## Failure-handling
 

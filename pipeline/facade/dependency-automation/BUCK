@@ -10,7 +10,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-cloud-ci-dependency-automation-app-bin",
+    name = "cloud-ci-dependency-automation-app-bin",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

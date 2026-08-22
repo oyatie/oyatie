@@ -59,7 +59,7 @@
         "unit",
         "integration"
       ],
-      "command": "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test",
+      "command": "cargo run -p dev-cli -- gate validate typescript-workspace --lane test",
       "required_when": [
         "TS/JS package changed"
       ],
@@ -173,11 +173,11 @@
         "contract",
         "integration"
       ],
-      "command": "cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity && cargo run -p oya-dev-cli -- gate validate api-semver",
+      "command": "cargo run -p dev-cli -- gate validate openapi-rest-route-parity && cargo run -p dev-cli -- gate validate api-semver",
       "required_when": [
         "OpenAPI/AsyncAPI/Proto/schema changed"
       ],
-      "runner": "oya-dev-cli",
+      "runner": "dev-cli",
       "evidence_outputs": [
         "/evidence/*contract*",
         "/evidence/*openapi*"

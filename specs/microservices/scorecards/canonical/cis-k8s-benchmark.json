@@ -117,7 +117,7 @@
         {
           "id": "5.4.2",
           "name": "No literal secrets in values.yaml",
-          "evidence_pattern": "registry/quality/lanes.yaml#evidence-secret-scan (CI gate); .github/workflows/oya-governance-evidence-secret-scan.yml",
+          "evidence_pattern": "registry/quality/lanes.yaml#evidence-secret-scan (CI gate); .github/workflows/governance-evidence-secret-scan.yml",
           "passing": true
         },
         {

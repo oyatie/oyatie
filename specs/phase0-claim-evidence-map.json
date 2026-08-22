@@ -20,7 +20,7 @@
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-target-non-claim-with-owner.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-performance-spec-ready-with-budget.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-ungrounded-production-ready.json",
-      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-oya-authority-claim.json",
+      "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-authority-claim.json",
       "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-performance-without-budget.json"
     ],
     "fixture_directory": "specs/fixtures/phase0-claim-ceiling",
@@ -32,7 +32,7 @@
       },
       {
         "green": "tc-0.17-good-target-non-claim-with-owner.json",
-        "red": "tc-0.17-bad-local-oya-authority-claim.json",
+        "red": "tc-0.17-bad-local-authority-claim.json",
         "tc_id": "TC-0.17.2"
       },
       {
@@ -45,7 +45,7 @@
   "gate_contract": {
     "id": "cloud-ci-claim-ceiling",
     "phase0_exit_status": "required_context_cutover_verified_remaining_gaps_block_AC_0_12_green",
-    "producer": "GitHub Actions .github/workflows/oya-ci-required.yml fan-in over Rust/Buck2 gate packets; owned oya-ci runner only after explicit proven cutover",
+    "producer": "GitHub Actions .github/workflows/presubmit.yml fan-in over Rust/Buck2 gate packets; owned ci runner only after explicit proven cutover",
     "reds_when": [
       "regulated vocabulary appears in authoritative ADR/spec/plan/operating-contract text without a claim row",
       "the row's claim tier lacks the evidence required by /specs/hyperscaler-production-readiness-claim-contract.json",
@@ -57,7 +57,7 @@
   "known_gaps_before_green": [
     "Seed rows are not exhaustive; the claim-ceiling gate must discover and require rows for all regulated terms in authoritative artifacts.",
     "No production_ready or hyperscaler_grade claim is currently allowed for the program as a whole.",
-    "The exact oya-ci-required cutover is verified. Mechanical-enforcement/P0-green remains disallowed because trusted producer/candidate isolation, F-PR5-06 review authority, enforce-admin/signature drift, override, structured-result, and tenant-isolation gaps remain."
+    "The exact presubmit cutover is verified. Mechanical-enforcement/P0-green remains disallowed because trusted producer/candidate isolation, F-PR5-06 review authority, enforce-admin/signature drift, override, structured-result, and tenant-isolation gaps remain."
   ],
   "regulated_vocabulary": [
     "hyperscaler-grade",
@@ -113,7 +113,7 @@
       "claim_text": "required-context cutover verified; Phase-0 mechanical enforcement not green",
       "claim_tier": "spec_ready",
       "current_evidence": [
-        "specs/phase0-ci-enforcement-baseline.json records required_context CLOSED_WITH_EVIDENCE for exactly oya-ci-required",
+        "specs/phase0-ci-enforcement-baseline.json records required_context CLOSED_WITH_EVIDENCE for exactly presubmit",
         "Live dev protection and current origin/dev workflow receipt prove the exact context is required and green",
         "Trusted-producer isolation, F-PR5-06 review admission, enforce-admin/signature parity, override, structured-result, and tenant-isolation rows remain GAP"
       ],
@@ -137,11 +137,11 @@
       "claim_text": "oya CLI retired from CI authority",
       "claim_tier": "spec_ready",
       "current_evidence": [
-        "dev requires only oya-ci-required; no oya CLI status is merge authority",
+        "dev requires only presubmit; no oya CLI status is merge authority",
         "automation ratchet blocks mapping new blocking invariants to oya CLI commands",
         "ADR-0363 and docs/AGENTS.md retain residual CLI surfaces as retirement debt/local feedback only"
       ],
-      "id": "CLAIM-P0-oya-cli-retired-from-ci-authority",
+      "id": "CLAIM-P0-cli-retired-from-ci-authority",
       "missing_for_next_tier": [
         "complete retired-surface and canonical-reference scanner coverage for all residual oya CLI entrypoints"
       ],

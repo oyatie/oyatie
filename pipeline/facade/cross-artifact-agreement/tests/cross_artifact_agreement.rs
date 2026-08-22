@@ -32,12 +32,12 @@ use sha2::{Digest, Sha256};
 
 const BUCK: &str = include_str!("../BUCK");
 const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
-const ADR_INDEX_PRODUCER_ENV: &str = "OYA_ADR_INDEX_PRODUCER_BIN";
+const ADR_INDEX_PRODUCER_ENV: &str = "OYATIE_ADR_INDEX_PRODUCER_BIN";
 const ADR_INDEX_CARGO_BINDING: &str = "cargo-test-binary:oya";
-const HISTORY_ONLY_FACTS_ENV: &str = "OYA_HISTORY_ONLY_RETIREMENT_FACTS";
+const HISTORY_ONLY_FACTS_ENV: &str = "OYATIE_HISTORY_ONLY_RETIREMENT_FACTS";
 const HISTORY_ONLY_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
-const SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_EMITTER_BIN";
+const SCM_FACTS_EMITTER_ENV: &str = "OYATIE_CI_EMITTER_BIN";
 const RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE: &str =
     "evidence/goals/masterplan-gates-ci-wiring-20260702.json";
 
@@ -59,7 +59,7 @@ fn repo_root() -> PathBuf {
 fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
     let Some(bin) = producer_bin else {
         return Err(
-            "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
+            "FAIL-CLOSED: missing OYATIE_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
     ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
@@ -88,7 +88,7 @@ fn resolve_declared_binary(root: &Path, variable: &str, value: &OsStr) -> Result
 fn assert_cargo_buck_generated_resource_parity() {
     assert!(
         BUCK.contains(
-            "\"OYA_ADR_INDEX_PRODUCER_BIN\": \"$(exe //marketplace/facade/dev-cli:oya)\""
+            "\"OYATIE_ADR_INDEX_PRODUCER_BIN\": \"$(exe //marketplace/facade/dev-cli:oya)\""
         ),
         "Buck must retain the sanctioned ADR-index producer binding"
     );
@@ -122,7 +122,7 @@ fn assert_cargo_buck_generated_resource_parity() {
     assert!(
         CARGO_CONFIG.lines().any(|line| {
             line == format!(
-                "{SCM_FACTS_EMITTER_ENV} = \"cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app\""
+                "{SCM_FACTS_EMITTER_ENV} = \"cargo-test-binary:cloud-ci-scm-facts-emitter-app\""
             )
         }),
         "clean Cargo fallback must use the existing owned Rust SCM facts emitter"
@@ -133,8 +133,8 @@ fn assert_cargo_buck_generated_resource_parity() {
 fn producer_binary_env_is_required_for_hermetic_gate() {
     assert_cargo_buck_generated_resource_parity();
     let err = producer_binary(Path::new("/repo"), None)
-        .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
-    assert!(err.contains("OYA_CI_PRODUCER_BIN"));
+        .expect_err("missing OYATIE_CI_PRODUCER_BIN must fail closed");
+    assert!(err.contains("OYATIE_CI_PRODUCER_BIN"));
 }
 
 fn fixture_dir() -> PathBuf {
@@ -1203,7 +1203,7 @@ fn history_only_retirement_control_plane_declares_workflow_and_event_identity_in
         .as_array()
         .expect("history-only retirement source inputs array");
     for required in [
-        ".github/workflows/oya-ci-required.yml",
+        ".github/workflows/presubmit.yml",
         "specs/history-only-retirement-facts.schema.json",
     ] {
         assert!(
@@ -1224,8 +1224,8 @@ fn history_only_retirement_control_plane_declares_workflow_and_event_identity_in
 
 #[test]
 fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_regenerators_use_it() {
-    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
-        .expect("read oya-ci-required workflow");
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
+        .expect("read presubmit workflow");
     assert_occurs_exactly_once(&workflow, "merge_group:\n    types: [checks_requested]");
 
     for (key, binding) in [
@@ -1276,7 +1276,7 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
     assert_occurs_exactly_once(producer, "--github-event");
     assert!(
         producer.contains(
-            "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event"
+            "cargo run --locked -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root . --github-event"
         ),
         "the cargo materializer must own provider-tuple interpretation"
     );
@@ -1303,8 +1303,8 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
     let candidate_materializer_lines = workflow
         .lines()
         .filter(|line| {
-            (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
-                || line.contains("oya-cloud-ci-materialize-generated-faces -- --repo-root ."))
+            (line.contains("cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+                || line.contains("cloud-ci-materialize-generated-faces -- --repo-root ."))
                 && !line.contains("--help")
                 && !line.contains("historical_retirement_args")
         })
@@ -1346,8 +1346,8 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
 
 #[test]
 fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_base_historical() {
-    let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
-        .expect("read oya-ci-required workflow");
+    let workflow = fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
+        .expect("read presubmit workflow");
 
     // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests.
     // ADR-0716 retired producer-regen / artifact download; every remaining consumer
@@ -1375,7 +1375,7 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
     );
 
     let materialize_step_name = "Materialize generated faces";
-    let cargo_materializer = "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event";
+    let cargo_materializer = "cargo run --locked -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root . --github-event";
     for (job_name, broad_step) in [("test", "Workspace tests")] {
         let job = workflow_job(&workflow, job_name);
         assert_occurs_exactly_once(job, &format!("- name: {materialize_step_name}"));
@@ -3072,11 +3072,11 @@ fn read_governed_citation_corpus(root: &Path) -> String {
 }
 
 /// Run the producer to emit a single face to stdout, HERMETICALLY. The producer binary must be
-/// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
+/// provided by `OYATIE_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
-    let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
+    let producer_bin = std::env::var("OYATIE_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
         .arg("--repo-root")

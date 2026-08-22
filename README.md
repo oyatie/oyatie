@@ -23,7 +23,7 @@ and evidence-source rules are in
 ## Build & verify
 
 The merge path is the **Cargo workspace graph** (toolchain pinned in `rust-toolchain.toml`), enforced
-by the single required status context `oya-ci-required` (ADR-0716):
+by the single required status context `presubmit` (ADR-0716):
 
 ```sh
 cargo fmt --all --check
@@ -34,7 +34,7 @@ cargo test --workspace
 The hermetic [buck2](https://buck2.build) graph remains a **local** hermeticity tool
 (`buck2 build //...` / `buck2 test //...`) kept honest by a weekly non-blocking CI smoke;
 it is not part of the merge path. Generated `*.generated.json` faces are materialized by
-`cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root .` — never hand-edit them.
+`cargo run -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root .` — never hand-edit them.
 
 Quality is enforced on every change by the cloud-ci gate fleet behind that single required
 context: conformance, accounting, cross-artifact agreement, freshness, hygiene, security, and

@@ -428,7 +428,7 @@ fn requirement(
         workload_scope,
         official_doc_url,
         expected_evidence_ref,
-        source_manifest_ref: "crates/oya-tenant-rbac-cloud-deployment-manifest/src/lib.rs::tenant_rbac_cloud_deployment_manifest",
+        source_manifest_ref: "crates/tenant-rbac-cloud-deployment-manifest/src/lib.rs::tenant_rbac_cloud_deployment_manifest",
         tenant_namespace: TENANT_NAMESPACE,
         requires_controller_observation,
         requires_digest_pinned_revision: requirement_kind
@@ -458,7 +458,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_manifest_ref,
-        "crates/oya-tenant-rbac-cloud-deployment-manifest/",
+        "crates/tenant-rbac-cloud-deployment-manifest/",
         TenantRbacCloudDeploymentEvidenceError::InvalidSourceManifestRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

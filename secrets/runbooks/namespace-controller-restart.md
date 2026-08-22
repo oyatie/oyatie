@@ -12,7 +12,7 @@ severity_default: Sev-2
 ## When to use
 
 - `NamespaceProvisioningStuck` event fired.
-- `oya_cloud_secrets_namespace_provisioning_lag_seconds > 600` (10 min).
+- `cloud_secrets_namespace_provisioning_lag_seconds > 600` (10 min).
 - Controller pods crash-looping.
 - Tenant onboarding flow stalled (ops report).
 
@@ -38,7 +38,7 @@ If lease is held by a crashed pod, lease expiry (default 15s) lets a new replica
 ### Step 3 — Backlog
 
 ```bash
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- backlog --pack <pack>
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- backlog --pack <pack>
 ```
 
 Output: pending `TenantRegistered`, `TenantDeprovisioned`, `MicroserviceRegistered` events.
@@ -75,7 +75,7 @@ Controller may panic on a malformed namespace policy template. Check logs for st
 Controller consumes `TenantRegistered` from `tenancy` µservice. If event-bus consumer lag is high:
 
 ```bash
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- consumer-lag --pack <pack>
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- consumer-lag --pack <pack>
 ```
 
 If lag > 10min: scale controller replicas:
@@ -95,7 +95,7 @@ If controller crash-loops on a specific event:
 kubectl -n cloud-secrets-<pack> logs <pod> --previous | grep "event_id"
 
 # Quarantine the event (skip and re-enqueue manually after fix)
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- skip-event \
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- skip-event \
     --event-id <id> \
     --reason "bug-quarantine" \
     --reroute-to "dead-letter-queue"
@@ -135,17 +135,17 @@ kubectl -n cloud-secrets-<pack> rollout undo deployment/per-tenant-namespace-con
 
 ```bash
 # Lag clears
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- backlog --pack <pack>
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- backlog --pack <pack>
 # Expect: < 10
 
 # Tenant onboard test
-cargo run -p oya-cloud-secrets-per-tenant-namespace-controller-app -- onboard-test \
+cargo run -p cloud-secrets-per-tenant-namespace-controller-app -- onboard-test \
     --pack <pack> \
     --tenant-id tenant:test-onboard-<ulid> \
     --expect-completion-within 30s
 
 # Audit-chain has NamespaceProvisioned events
-cargo run -p oya-audit-chain-app -- query \
+cargo run -p audit-chain-app -- query \
     --event-type NamespaceProvisioned \
     --since "10 minutes ago"
 ```

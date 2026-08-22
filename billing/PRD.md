@@ -69,7 +69,7 @@ top_3_counterparts:
 
 The `cloud-billing` microservice is Oyatie's source-of-truth for **commercial state** — tenant class membership, billing-component composition, metering ledgers, multi-currency invoicing, rate-card lifecycle, reservation purchasing, credit memo issuance, FX lock provenance, revenue-share settlement, per-seat counting, per-usage aggregation, FOCUS 1.1 export, and ERP reconciliation. It is the keystone µservice for the binary `tenant_class ∈ {demo_trial, paid}` enum and for the composable `billing_components ⊆ {revenue_share, per_seat, per_usage}` set defined in ADR-0330. cloud-billing publishes the canonical tenant-class read API consumed by cloud-iam at principal-issuance time; it owns the demo_trial → paid conversion transaction; it owns cap-breach detection and grace-window enforcement; it owns the monthly settlement engine that drives payments and the audit-chain.
 
-The mission of cloud-billing is to make commercial state engineering-grade. Every dollar that enters or leaves Oyatie's ledger does so through a deterministic, idempotent, audit-chain-anchored pipeline whose source data is principle-class invariant: tenant_id is required on every event, region matches the originating resource, idempotency_key is required on every emission, currency is a closed ISO 4217 + Oyatie internal credit code, totals are reconstructable from line items, period boundaries are validated, and tax invoice format is derived from the regional pack rather than carried out-of-band. The kernel crate `oya-cloud-billing-domain` already enforces these invariants at the type system layer (1,030 lines of strict Rust as of 2026-05-21). This PRD documents the kernel's commitments and extends them to address the billing_components composability that ADR-0330 made canonical.
+The mission of cloud-billing is to make commercial state engineering-grade. Every dollar that enters or leaves Oyatie's ledger does so through a deterministic, idempotent, audit-chain-anchored pipeline whose source data is principle-class invariant: tenant_id is required on every event, region matches the originating resource, idempotency_key is required on every emission, currency is a closed ISO 4217 + Oyatie internal credit code, totals are reconstructable from line items, period boundaries are validated, and tax invoice format is derived from the regional pack rather than carried out-of-band. The kernel crate `cloud-billing-domain` already enforces these invariants at the type system layer (1,030 lines of strict Rust as of 2026-05-21). This PRD documents the kernel's commitments and extends them to address the billing_components composability that ADR-0330 made canonical.
 
 cloud-billing is **shared substrate** in the ADR-0245 sense, not a hero product. It is consumed by `finops-portal` (tenant-facing FinOps surface, a Phase-1 product that presents cloud-billing's data to end users), by `payments` (charge attempts, mandate handling, settlement payout execution), by `cloud-billing-tax` (per-jurisdiction tax computation overlaying cloud-billing's tax-naive subtotals), by `audit-chain` (every billing event seals into the immutable ledger), by `cloud-iam` (reads tenant_class for principal claim emission), by `tenancy` (reads tenant_class for tenant lifecycle UX), by `cloud-storage` (FOCUS export delivery target), by `cloud-kms` (signs invoices + settlement statements), by `observability` (per-tenant cost metrics emission), and by every other Phase-0/Phase-1/Phase-2 µservice that contributes per_usage meter events. It is upstream of every product surface that touches money.
 
@@ -79,7 +79,7 @@ cloud-billing is a Phase-0 substrate per ADR-0328 §D-1 canonical build sequence
 
 ### 2.1 Tenant outcomes
 
-- **Outcome 1 — Trial fairness.** A demo_trial tenant gets the full product surface, full quality bar, full performance budget, and full architectural posture. The only differences vs paid are usage caps (enforced as soft alerts at 80% and Cedar-deny writes after 100%+grace), absence of contractual SLO commitment, and gates on compliance pack activation / BYOK / marketplace listing. There is no feature lockout; there is no degraded model; there is no second-class UX surface. This rule is CI-enforced via `oya-governance-paid-quality-bar-parity`.
+- **Outcome 1 — Trial fairness.** A demo_trial tenant gets the full product surface, full quality bar, full performance budget, and full architectural posture. The only differences vs paid are usage caps (enforced as soft alerts at 80% and Cedar-deny writes after 100%+grace), absence of contractual SLO commitment, and gates on compliance pack activation / BYOK / marketplace listing. There is no feature lockout; there is no degraded model; there is no second-class UX surface. This rule is CI-enforced via `governance-paid-quality-bar-parity`.
 - **Outcome 2 — Paid clarity.** A paid tenant gets a single monthly statement that aggregates per_seat line items, per_usage line items, revenue_share settlement statements (or payout-direction settlement statements when oyatie owes the tenant), and clawback nettings — all denominated in the tenant's contracted settlement currency with explicit FX provenance. The statement reconstructs from line items; the line items reconstruct from per-event sources; the per-event sources are sealed in the audit-chain. SOX-404, ASC 606, IFRS 15, K-FSI, and FedRAMP retention regimes are satisfied by the same provenance chain without per-regime re-authoring.
 - **Outcome 3 — Multi-currency honesty.** Multi-currency activity is recorded at the transaction-time FX rate from a documented FX feed (ECB-reference-rates-daily for fiat; per-vendor mid-rate for stable-coin) and settled in the tenant's contracted settlement currency with an explicit settlement-FX-adjustment line item. There is no hidden FX margin; there is no surprise re-FX at settlement; there is no ambiguity about which day's rate applied. The kernel's `Money::checked_add` invariant forbids cross-currency arithmetic without provenance.
 - **Outcome 4 — Composability without surprise.** A paid tenant whose contract carries `{per_seat, per_usage}` may add `revenue_share` at any point by contract amendment. The amendment is a single atomic transaction (cloud-billing applies the change, emits the audit-chain event, refreshes principal tokens within 30 seconds). No re-onboarding, no data migration, no functional surface change.
@@ -90,7 +90,7 @@ cloud-billing is a Phase-0 substrate per ADR-0328 §D-1 canonical build sequence
 - **Outcome 6 — Invoice timing.** Monthly close emits invoices within the contracted SLO window. The unified industry-leader bar is "p99 ≤ 4 hours from period close to invoice issuance" matching Stripe Billing's posted invoicing SLO. Tenant-class does not stratify this number; deployment-context overlays may add a small constant for on-prem and colo where ERP-export round-trip applies.
 - **Outcome 7 — Reservation flight-deck.** Reservation recommender ingests the prior 60 days of usage, computes break-even per workload kind (vCPU, memory, function invocation, K8s pod-minute), produces recommendations with explicit savings projections, and offers a Cedar-gated `ConvertReservation` action that the tenant finance lead authorizes. Auto-purchase is opt-in per tenant; default is recommend-only.
 - **Outcome 8 — Chargeback attribution.** Every dollar of vendor pass-through cost (when applicable for hosted tenants) and every dollar of Oyatie-provisioned substrate cost is attributable to a cost-center via attribution rules. Mismatches between vendor tags and tenant cost-centers surface in finops-portal with explicit reconciliation actions.
-- **Outcome 9 — Sovereign deployability.** Sovereign deployments (KR K-FSI, MAS-TRM, CSAP, EU-AI-Act, FedRAMP High) operate cloud-billing without changes to the kernel. Sovereign behavior is encoded in regional packs (`oya-pack-*-tax`) that map to TaxInvoiceFormat variants. Air-gapped operation uses a local metering bus with one-way replication to the sovereign control plane.
+- **Outcome 9 — Sovereign deployability.** Sovereign deployments (KR K-FSI, MAS-TRM, CSAP, EU-AI-Act, FedRAMP High) operate cloud-billing without changes to the kernel. Sovereign behavior is encoded in regional packs (`pack-*-tax`) that map to TaxInvoiceFormat variants. Air-gapped operation uses a local metering bus with one-way replication to the sovereign control plane.
 
 ### 2.3 Substrate outcomes
 
@@ -228,8 +228,8 @@ Compliance pack overlays (activated when `tenant_class == paid` per ADR-0330 §B
 - **GDPR** — Art 6(1)(b) contract + Art 6(1)(c) legal obligation for invoice retention; DPIA at `dpia.md`; data subject right-to-erasure handled via cloud-billing's deletion-provenance flow.
 - **PCI DSS v4.0** — scope-minimized: cloud-billing never stores PAN, CVV, or expiry; only `PaymentMethodRef` (an opaque token issued by payments).
 - **EU AI Act** — Annex III §5 (employment + credit + access decisions): cloud-billing's billing decisions are not Annex III; cap-breach + conversion CTA are not credit decisions in the legal sense.
-- **CSAP-KR** — Korean cloud security accreditation: regional pack `oya-pack-electronic-tax` activates; sovereign replicator at sovereign-pack overlay.
-- **K-FSI** — Korean financial supervisory: regional pack `oya-pack-qualified-tax`; SOX-equivalent retention; sovereign deployment context.
+- **CSAP-KR** — Korean cloud security accreditation: regional pack `pack-electronic-tax` activates; sovereign replicator at sovereign-pack overlay.
+- **K-FSI** — Korean financial supervisory: regional pack `pack-qualified-tax`; SOX-equivalent retention; sovereign deployment context.
 - **MAS-TRM** — Singapore monetary authority technology risk management: deployment context guest-on-aws (Singapore region) or on-prem; per-tenant cell anchoring.
 - **SOX-404** — segregation of duties + retention of 7 years: enforced by cloud-billing's audit-chain seal + cloud-storage object-lock.
 - **FedRAMP High** — 3-year retention minimum; deployment context oyatie-as-cloud-provider (sovereign US tenants).
@@ -251,11 +251,11 @@ Compliance pack overlays (activated when `tenant_class == paid` per ADR-0330 §B
 ### 5.6 Data residency
 
 Per-tenant data residency is enforced by the tenant's deployment_context choice (ADR-0218). Sovereign packs override with stricter posture:
-- `oya-pack-electronic-tax` (KR CSAP / K-FSI) — KR region; air-gapped option.
-- `oya-pack-qualified-tax` (KR K-FSI) — KR region; SOX-equivalent retention.
-- `oya-pack-country-tax` (EU member state) — EU region; GDPR transfer rules.
-- `oya-pack-gst-tax` (IN GST) — IN region.
-- `oya-pack-vat-tax` (UAE 5% VAT) — UAE region.
+- `pack-electronic-tax` (KR CSAP / K-FSI) — KR region; air-gapped option.
+- `pack-qualified-tax` (KR K-FSI) — KR region; SOX-equivalent retention.
+- `pack-country-tax` (EU member state) — EU region; GDPR transfer rules.
+- `pack-gst-tax` (IN GST) — IN region.
+- `pack-vat-tax` (UAE 5% VAT) — UAE region.
 
 FX feeds (ECB-daily) are fetched from the primary deployment context's network egress; air-gapped deployments use a pre-mirrored daily snapshot via the sovereign replicator.
 
@@ -325,17 +325,17 @@ demo_trial tenants are subject to two cap families:
 **Time cap.** Default 30 days from tenant creation. Configurable per global policy (60 days for higher-touch trials) or per-µservice override. The time cap counts wall-clock days, not active-use days. At T-7d, T-3d, and T-0, cloud-billing emits a `cap_breach_warning_emitted` event consumed by notifications.
 
 **Usage caps.** Per-µservice limits on resource units:
-- `oya-agentic-agent`: max 5 active agents
-- `oya-workflow-engine`: max 100 workflow executions per day
+- `agentic-agent`: max 5 active agents
+- `workflow-engine`: max 100 workflow executions per day
 - `cloud-iam`: max 10 seats
-- `oya-messaging-mls`: max 3 MLS groups
+- `messaging-mls`: max 3 MLS groups
 - `cloud-data-store`: max 5 GB stored
 - `cloud-compute-functions`: max 10,000 invocations per month
 - `cloud-compute-k8s`: max 100 pod-minutes per day
 - `cloud-compute-vm`: max 1 vCPU + 2 GB RAM
 - `cloud-storage`: max 5 GB storage
-- `oya-search-index`: max 1,000 vector queries per day
-- `oya-intelligence-inference`: max 100,000 input tokens + 25,000 output tokens per day (per default model class)
+- `search-index`: max 1,000 vector queries per day
+- `intelligence-inference`: max 100,000 input tokens + 25,000 output tokens per day (per default model class)
 
 Each cap is configurable per tenant via the tenant-class trial policy. Hard caps fail-closed via Cedar deny on write paths; read paths remain open during grace.
 
@@ -450,10 +450,10 @@ cloud-billing aggregates meter events from every contributing µservice. Each µ
 
 | Microservice | Meter unit | Cadence | Pricing dimension |
 |---|---|---|---|
-| oya-intelligence-inference | `llm_input_tokens` | continuous | model, region |
-| oya-intelligence-inference | `llm_output_tokens` | continuous | model, region |
-| oya-intelligence-inference | `gpu_seconds` | continuous | model class, region |
-| oya-workflow-engine | `workflow_executions` | continuous | template_class, region |
+| intelligence-inference | `llm_input_tokens` | continuous | model, region |
+| intelligence-inference | `llm_output_tokens` | continuous | model, region |
+| intelligence-inference | `gpu_seconds` | continuous | model class, region |
+| workflow-engine | `workflow_executions` | continuous | template_class, region |
 | cloud-data-store | `gb_stored` | hourly snapshot | region, storage_class |
 | cloud-data-store | `gb_egress` | continuous | region, dest_class |
 | cloud-api-gateway | `api_calls` | continuous | region, tier (req/sec band) |
@@ -462,7 +462,7 @@ cloud-billing aggregates meter events from every contributing µservice. Each µ
 | cloud-compute-k8s | `pod_minute` | continuous | pod class, region |
 | cloud-compute-functions | `invocation_count` | continuous | region |
 | cloud-compute-functions | `gb_seconds` | continuous | region |
-| oya-search-index | `vector_search_queries` | continuous | index class, region |
+| search-index | `vector_search_queries` | continuous | index class, region |
 | cloud-storage | `gb_stored` | hourly snapshot | region, storage_class |
 | cloud-storage | `requests` | continuous | region, operation_class |
 
@@ -562,7 +562,7 @@ tenancy reads tenant_class for tenant lifecycle UX (display "trial — 12 days r
 
 ### 8.12 governance (Phase-0 substrate)
 
-governance enforces the `oya-governance-cloud-billing-source-of-truth`, `oya-governance-tenant-class-enum-closed`, `oya-governance-billing-components-subset-closed`, and `oya-governance-paid-quality-bar-parity` lanes per ADR-0330 §enforced_by.
+governance enforces the `governance-cloud-billing-source-of-truth`, `governance-tenant-class-enum-closed`, `governance-billing-components-subset-closed`, and `governance-paid-quality-bar-parity` lanes per ADR-0330 §enforced_by.
 
 ### 8.13 marketplace (Phase-1 product surface)
 
@@ -570,7 +570,7 @@ marketplace listings are gated by `billing_components.contains_revenue_share()` 
 
 ## 9. Constraints + Invariants
 
-### 9.1 Kernel invariants (already enforced by `oya-cloud-billing-domain`)
+### 9.1 Kernel invariants (already enforced by `cloud-billing-domain`)
 
 - Every `BillingAccount` is created with `data_class == Financial` (kernel rejects others).
 - Every `CloudBillingEvent` is created with `data_class == Public` (kernel rejects others).
@@ -602,7 +602,7 @@ The kernel + this PRD + ARCHITECTURE + contracts + SLOs + Cedar + IaC + OS manif
 
 demo_trial and paid tenants receive uniform performance SLO targets, uniform scalability targets, uniform security posture, uniform observability coverage, uniform accessibility compliance, uniform localization coverage. The only acceptable difference is SLO commitment posture (paid carries contractual penalty; demo_trial is best-effort).
 
-CI-enforced via `oya-governance-paid-quality-bar-parity`.
+CI-enforced via `governance-paid-quality-bar-parity`.
 
 ### 9.6 Cedar-gate-only invariant (per ADR-0243)
 
@@ -647,7 +647,7 @@ The kernel's `CurrencyCode::new` requires three ASCII uppercase letters. ISO 421
 
 Tradeoff: strict ISO 4217 only would reject OYC (we'd need a separate type for internal credits, doubling the surface). Accepting non-ISO 3-letter uppercase codes risks accidental drift (someone mints "XYZ" for a non-canonical purpose).
 
-Decision: accept any 3-letter ASCII uppercase; document the Oyatie-internal codes in a CurrencyCode appendix; CI lane `oya-governance-currency-code-allowlist` enforces the closed set in production tenant invoices.
+Decision: accept any 3-letter ASCII uppercase; document the Oyatie-internal codes in a CurrencyCode appendix; CI lane `governance-currency-code-allowlist` enforces the closed set in production tenant invoices.
 
 ### 11.4 Demo_trial reverse-DNS tenant naming vs `ten_*` prefix
 
@@ -772,7 +772,7 @@ The PRD is accepted when:
 
 This PRD is authored under the substance-bar requirement of ADR-0322 (line floor 800; bespoke clauses, not templated text). Every section is bespoke; the meter shape table in §7.4 is per-µservice; the cross-µservice handoff table in §8 is per-µservice; the FR table in §4 is per-FR; the NFR table in §5 is per-metric; the persona table in §3 is per-persona.
 
-The PRD pre-supposes the kernel implementation in `crates/oya-cloud-billing-domain/src/lib.rs` (1,030 lines as of 2026-05-21) and extends the kernel to address billing_components composability per ADR-0330 §D-1. Kernel preservation is mandatory; the kernel's invariants are the substance truth that the PRD describes.
+The PRD pre-supposes the kernel implementation in `crates/cloud-billing-domain/src/lib.rs` (1,030 lines as of 2026-05-21) and extends the kernel to address billing_components composability per ADR-0330 §D-1. Kernel preservation is mandatory; the kernel's invariants are the substance truth that the PRD describes.
 
 ## 17. Authoring history
 
@@ -782,10 +782,10 @@ The PRD pre-supposes the kernel implementation in `crates/oya-cloud-billing-doma
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 <!--
 COMPLETION REPORT — Wave 15B cloud-billing spec-authoring sprint
@@ -793,7 +793,7 @@ COMPLETION REPORT — Wave 15B cloud-billing spec-authoring sprint
 
 This PRD addresses the kernel-ahead-of-spec inversion identified in
 coherence-audit-2026-05-20.md. The 1,030-line Rust kernel in
-crates/oya-cloud-billing-domain is the SUBSTANCE TRUTH; this PRD
+crates/cloud-billing-domain is the SUBSTANCE TRUTH; this PRD
 documents what the kernel does and extends to address billing_components
 composability per ADR-0330.
 
@@ -827,7 +827,7 @@ Deliverables shipped under this sprint:
 13. REMEDIATION-NOTES-2026-05-21.md
 
 NO COMMITS produced per execution rules. NO scripting/stamping.
-KERNEL PRESERVED — crates/oya-cloud-billing-domain untouched.
+KERNEL PRESERVED — crates/cloud-billing-domain untouched.
 SPEC AUTHORING ONLY — microservices/cloud-billing/ scope only.
 -->
 

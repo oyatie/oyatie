@@ -2,7 +2,7 @@
 
 ## Summary
 
-cloud-billing had substantive Rust kernel (~1,491 lines across 3 crates: oya-cloud-billing-domain 1,030 lines + oya-cloud-billing-kernel 185 lines + oya-cloud-billing-tax-app 276 lines) but ZERO IP files in `implementation-plans/`. This is the canonical kernel-ahead-of-spec anti-pattern flagged in the Wave 4 audit + confirmed by Wave 15 IMPL-truth-up.
+cloud-billing had substantive Rust kernel (~1,491 lines across 3 crates: cloud-billing-domain 1,030 lines + cloud-billing-kernel 185 lines + cloud-billing-tax-app 276 lines) but ZERO IP files in `implementation-plans/`. This is the canonical kernel-ahead-of-spec anti-pattern flagged in the Wave 4 audit + confirmed by Wave 15 IMPL-truth-up.
 
 Wave 15B sprint authored 15 IPs (IP-001 through IP-015) documenting the actual implementation. Each IP references real files / tests / Cedar fragments / OpenAPI / AsyncAPI / proto3 / ADRs — no speculation.
 
@@ -10,8 +10,8 @@ Wave 15B sprint authored 15 IPs (IP-001 through IP-015) documenting the actual i
 
 | IP | Title | Lines | Anchor existing code/contract |
 |---|---|---|---|
-| IP-001 | Domain layer bounded contexts | ~ 230 | oya-cloud-billing-domain (1,030 lines, 8 tests) |
-| IP-002 | Kernel layer line item finalize | ~ 165 | oya-cloud-billing-kernel (185 lines, 6 tests) |
+| IP-001 | Domain layer bounded contexts | ~ 230 | cloud-billing-domain (1,030 lines, 8 tests) |
+| IP-002 | Kernel layer line item finalize | ~ 165 | cloud-billing-kernel (185 lines, 6 tests) |
 | IP-003 | Tax computation multi-jurisdiction | ~ 175 | TaxInvoiceFormat dispatch + tax-app crate |
 | IP-004 | Composable billing_components | ~ 195 | ADR-0330 §B.11 + billing-components-gates.cedar |
 | IP-005 | demo_trial tenant_class | ~ 190 | demo-trial-gates.cedar (174 lines) + conversion-gates.cedar |
@@ -91,9 +91,9 @@ microservices/cloud-billing/implementation-plans/IP-015-counterpart-parity-strip
 ## Existing files referenced (not modified)
 
 ```
-crates/oya-cloud-billing-domain/src/lib.rs (1,030 lines)
-crates/oya-cloud-billing-kernel/src/lib.rs (185 lines)
-crates/oya-cloud-billing-tax-app/src/lib.rs (276 lines)
+crates/cloud-billing-domain/src/lib.rs (1,030 lines)
+crates/cloud-billing-kernel/src/lib.rs (185 lines)
+crates/cloud-billing-tax-app/src/lib.rs (276 lines)
 microservices/cloud-billing/contracts/proto/cloud-billing.proto (700 lines)
 contracts/openapi/cloud/cloud-billing-invoice-v1.yaml (544 lines)
 contracts/asyncapi/cloud/cloud-billing-events-v1.yaml (50 lines)

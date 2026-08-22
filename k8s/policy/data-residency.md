@@ -180,11 +180,11 @@ Retention is the MAX of: cluster default; pack legal minimum; tenant-contracted 
 | pack-ae | Audit log | UAE PDPL implied | 2y default |
 | pack-ksa | Audit log | KSA PDPL + SAMA CSF (when finance) | 5y for finance; 2y default |
 
-LEAN check `oya-governance-retention-conformance` validates per-pack etcd snapshot + audit-log retention configs against this matrix.
+LEAN check `governance-retention-conformance` validates per-pack etcd snapshot + audit-log retention configs against this matrix.
 
 ## DSR Cascade
 
-Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18(V)) honoured via `oya-dsr-cascade-runner`:
+Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18(V)) honoured via `dsr-cascade-runner`:
 
 1. Tenant raises DSR on behalf of end-user (joint controllership).
 2. DSR runner identifies end-user identifiers in:
@@ -227,7 +227,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-residency-overlay.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate data-residency-conformance --microservice cloud-k8s` — exit 0.
+- `cargo run -p dev-cli -- gate validate data-residency-conformance --microservice cloud-k8s` — exit 0.
 - Quarterly per-pack residency audit.
 - Annual cross-border transfer review.
 

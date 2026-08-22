@@ -5,7 +5,7 @@ Extend `ArchitectureMap` with two pure deterministic graph query methods:
 transitive reachability and DependsOn-scoped cycle detection.
 
 ## Crate
-`oya-intelligence-architecture-map-kernel`
+`intelligence-architecture-map-kernel`
 
 ## API
 

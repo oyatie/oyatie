@@ -1,7 +1,7 @@
 # ADR-0381 D2 — storage specialty cell patch.
 #
 # Applied to the 1 storage specialty worker (storage-0) hosting:
-#   - SeaweedFS Deployment (oya-storage; ADR-0381 D4) — currently all-in-one,
+#   - SeaweedFS Deployment (storage; ADR-0381 D4) — currently all-in-one,
 #     splits into 4 sibling Deployments (master/volume/filer/bucket-api) once this pool
 #     lands.
 #   - Future: any other stateful substrate (Postgres for tenant data,

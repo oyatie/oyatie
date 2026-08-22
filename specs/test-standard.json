@@ -17,7 +17,7 @@
       "merge-queue CI/CD gates"
     ],
     "planned_enforcement_refs": [
-      "oya-governance-test-evidence",
+      "governance-test-evidence",
       "merge-queue CI/CD gates"
     ],
     "purpose": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion."

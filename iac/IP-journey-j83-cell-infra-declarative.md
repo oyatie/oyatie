@@ -18,7 +18,7 @@ Put the localization gate in the validator bounded context, not in the applier. 
 ## C. Deliverables
 - A j83 validation example in `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`.
 - A denied-plan event in `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`.
-- Catalog binding for `microservices/cloud-iac/catalog/oya-cloud-iac-iac-validator-usecase.yaml`.
+- Catalog binding for `microservices/cloud-iac/catalog/cloud-iac-iac-validator-usecase.yaml`.
 - Runbook references to `microservices/cloud-iac/runbooks/state-lock-break.md` and `microservices/cloud-iac/runbooks/drift-remediation.md`.
 
 ## D. Implementation

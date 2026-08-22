@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-identity-workload — events
+  title: identity-workload — events
   version: 1.0.0
   summary: Sealed decision-log events emitted by the workload-identity service.
   description: |

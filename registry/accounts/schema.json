@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/foundry-accounts.schema.json",
   "title": "FoundryAccountList",
-  "description": "Per-driver account list for oya-intelligence-supervisor. Each file covers one provider family (Claude / Codex / Gemini). Parsed by account-kernel:48 parser — provider_family MUST be CamelCase. No raw credentials; all secrets via sref:// OpenBao references per ADR-0067.",
+  "description": "Per-driver account list for intelligence-supervisor. Each file covers one provider family (Claude / Codex / Gemini). Parsed by account-kernel:48 parser — provider_family MUST be CamelCase. No raw credentials; all secrets via sref:// OpenBao references per ADR-0067.",
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-FOUNDRY-ACCOUNTS",
@@ -11,7 +11,7 @@
     "owner_team": "axis-foundry",
     "created_at": "2026-05-15T00:00:00Z",
     "n_threshold_note": "Drift-detection lane (lean-settings-drift) is feature-flagged off in production until sum(rows across registry/accounts/*.toml) >= 10. Before threshold: lane runs against fixture files only in CI (passes vacuously for empty fleet). Threshold checked at lane start via: wc -l registry/accounts/*.toml | tail -1 | awk '{print $1}'. Per v5 §A.1.2 + §C.26.",
-    "parser_ref": "microservices/intelligence/crates/oya-intelligence-settings-template-kernel/src/account_kernel.rs:48",
+    "parser_ref": "microservices/intelligence/crates/intelligence-settings-template-kernel/src/account_kernel.rs:48",
     "purpose": "Auto-backfilled purpose for schema.json"
   },
   "type": "object",

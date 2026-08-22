@@ -21,7 +21,7 @@
 //
 // Owner:   axis-community + ops-security + council-privacy + general-counsel
 // Audit:   every permit/deny emits
-//          oya_community_fully_anonymous_policy_eval_total{surface, verdict}
+//          community_fully_anonymous_policy_eval_total{surface, verdict}
 // References:
 //   - ADR-0243 (Cedar universal gate)
 //   - ADR-0244 (tenant scoping primitive)

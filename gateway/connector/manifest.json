@@ -77,7 +77,7 @@
       "oya.connector.retirement.readiness_checked"
     ]
   },
-  "naming_justifications": "connect is a BNF v4.1 kebab-case microservice slug; generated names follow oya-connector-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "connect is a BNF v4.1 kebab-case microservice slug; generated names follow connector-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
   "capability_tracks": [
     "T2",
     "T3"

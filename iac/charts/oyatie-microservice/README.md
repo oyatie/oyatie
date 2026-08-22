@@ -68,7 +68,7 @@ to render without a real signed digest):
 - **11** have genuine deployment differences and keep bespoke charts until each
   is reviewed individually: `ci-controller`, `comms-mail`, `comms-messenger`,
   `data-analytics`, `iam-cloud-iam`, `iam-identity`, `intelligence`,
-  `observability`, `oya-ci-webhook-gateway`, `oya-community`, `secrets-kms`.
+  `observability`, `ci-webhook-gateway`, `community`, `secrets-kms`.
 
 ## What the render gate surfaced, and what came of it
 

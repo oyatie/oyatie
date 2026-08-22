@@ -14,7 +14,7 @@
 // ADR-0145 inter-µservice communication, ADR-0373 (key-pool resilience).
 //
 // The field shapes mirror the IMPLEMENTED pure kernel
-// (crates/oya-cloud-intelligence-kernel/src/lib.rs): ProviderChannel enum, the
+// (crates/cloud-intelligence-kernel/src/lib.rs): ProviderChannel enum, the
 // active/blacklisted KeyState with a cooldown-until timestamp, KeyPool::active_count,
 // and the hash-only KeyFingerprint. No raw key material is ever carried on the wire
 // (brief §5 — keys appear only as fingerprints).

@@ -15,5 +15,5 @@
       "reported_then_archived": false
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
 }

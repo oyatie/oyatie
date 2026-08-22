@@ -51,11 +51,11 @@ Add the canonical chart `microservices/<ms>/iac/helm/timescaledb-extension/` to 
 
 ### 3. Per-µservice refresh + retention worker
 
-Per ADR-0194 §"Continuous aggregates" + §"Retention", TimescaleDB's automated refresh + retention policies are TSL-only. Each µservice ships a sibling worker binary that calls `CALL refresh_continuous_aggregate()` + `SELECT drop_chunks()` on schedule. Canonical worker scaffold at `crates/oya-shared-timescale-policy-worker/` (Phase-2 follow-on; not yet authored). Until that scaffold lands, per-µservice teams write the equivalent ~30 LOC inline in their existing worker binary.
+Per ADR-0194 §"Continuous aggregates" + §"Retention", TimescaleDB's automated refresh + retention policies are TSL-only. Each µservice ships a sibling worker binary that calls `CALL refresh_continuous_aggregate()` + `SELECT drop_chunks()` on schedule. Canonical worker scaffold at `crates/shared-timescale-policy-worker/` (Phase-2 follow-on; not yet authored). Until that scaffold lands, per-µservice teams write the equivalent ~30 LOC inline in their existing worker binary.
 
 ### 4. Kernel-only API surface
 
-Use the `oya-shared-timeseries-kernel` trait surface for all hypertable / continuous-aggregate / retention operations. The kernel rejects TSL function names at compile-or-runtime (depending on call site) per §"TSL component fence". Do not embed raw SQL containing forbidden TSL functions anywhere in the µservice.
+Use the `shared-timeseries-kernel` trait surface for all hypertable / continuous-aggregate / retention operations. The kernel rejects TSL function names at compile-or-runtime (depending on call site) per §"TSL component fence". Do not embed raw SQL containing forbidden TSL functions anywhere in the µservice.
 
 ### 5. SLO authoring
 
@@ -74,7 +74,7 @@ Override in manifest's per-hypertable declaration only when the cardinality clas
 
 ## Forbidden TSL functions
 
-The `oya-check-license-policy` CI lane rejects any SQL fragment containing the following function names (enumerated in `oya-shared-timeseries-kernel::FORBIDDEN_TSL_FUNCTIONS`):
+The `check-license-policy` CI lane rejects any SQL fragment containing the following function names (enumerated in `shared-timeseries-kernel::FORBIDDEN_TSL_FUNCTIONS`):
 
 - `add_retention_policy`, `add_compression_policy`, `add_continuous_aggregate_policy`, `add_reorder_policy`
 - `policy_compression`, `policy_refresh_continuous_aggregate`, `policy_retention`
@@ -118,4 +118,4 @@ refresh + retention worker.
 
 - ADR-0194 — tenant-facing time-series TimescaleDB.
 - ADR-0184 — storage tier layering.
-- `crates/oya-shared-timeseries-kernel/`
+- `crates/shared-timeseries-kernel/`

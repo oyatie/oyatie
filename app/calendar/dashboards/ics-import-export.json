@@ -32,7 +32,7 @@
           {"text": "pack-ksa", "value": "ksa"}
         ]},
       {"name": "tenant", "type": "query", "label": "Tenant",
-        "query": "label_values(oya_calendar_ics_import_total{pack=\"$pack\"}, tenant_id)"},
+        "query": "label_values(calendar_ics_import_total{pack=\"$pack\"}, tenant_id)"},
       {"name": "caldav_backend", "type": "custom", "label": "CalDAV backend",
         "options": [
           {"text": "radicale", "value": "radicale", "selected": true},
@@ -43,64 +43,64 @@
   "panels": [
     {"id": 1, "type": "stat", "title": "ICS imports (5m rate)",
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
-      "targets": [{"expr": "sum(rate(oya_calendar_ics_import_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+      "targets": [{"expr": "sum(rate(calendar_ics_import_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
 
     {"id": 2, "type": "stat", "title": "ICS imports — events parsed/sec",
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
-      "targets": [{"expr": "sum(rate(oya_calendar_ics_import_events_parsed_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+      "targets": [{"expr": "sum(rate(calendar_ics_import_events_parsed_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
 
     {"id": 3, "type": "stat", "title": "CalDAV requests/sec",
       "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
-      "targets": [{"expr": "sum(rate(oya_calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "refId": "A"}]},
+      "targets": [{"expr": "sum(rate(calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "refId": "A"}]},
 
     {"id": 4, "type": "stat", "title": "CalDAV availability (5m)",
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
-      "targets": [{"expr": "sum(rate(oya_calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\",status_class=~\"2..|4..\"}[5m])) / sum(rate(oya_calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "refId": "A"}],
+      "targets": [{"expr": "sum(rate(calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\",status_class=~\"2..|4..\"}[5m])) / sum(rate(calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "red"}, {"value": 0.99, "color": "yellow"}, {"value": 0.9995, "color": "green"}]}}}},
 
     {"id": 5, "type": "timeseries", "title": "ICS import latency p50/p95 by event-count bucket",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.50, sum by (le, event_count_bucket) (rate(oya_calendar_ics_import_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[15m])))", "legendFormat": "p50 {{event_count_bucket}}", "refId": "A"},
-        {"expr": "histogram_quantile(0.95, sum by (le, event_count_bucket) (rate(oya_calendar_ics_import_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[15m])))", "legendFormat": "p95 {{event_count_bucket}}", "refId": "B"}
+        {"expr": "histogram_quantile(0.50, sum by (le, event_count_bucket) (rate(calendar_ics_import_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[15m])))", "legendFormat": "p50 {{event_count_bucket}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le, event_count_bucket) (rate(calendar_ics_import_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[15m])))", "legendFormat": "p95 {{event_count_bucket}}", "refId": "B"}
       ]},
 
     {"id": 6, "type": "timeseries", "title": "CalDAV ETag mismatch rate (caldav-sync-loop indicator)",
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum(rate(oya_calendar_caldav_if_match_etag_mismatch_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "legendFormat": "ETag mismatches", "refId": "A"}
+        {"expr": "sum(rate(calendar_caldav_if_match_etag_mismatch_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "legendFormat": "ETag mismatches", "refId": "A"}
       ]},
 
     {"id": 7, "type": "timeseries", "title": "ICS import parse-refusal by reason",
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (refusal_reason) (rate(oya_calendar_ics_import_parse_refused_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{refusal_reason}}", "refId": "A"}
+        {"expr": "sum by (refusal_reason) (rate(calendar_ics_import_parse_refused_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{refusal_reason}}", "refId": "A"}
       ]},
 
     {"id": 8, "type": "timeseries", "title": "CalDAV request distribution by method (PROPFIND/REPORT/PUT/DELETE)",
       "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (method) (rate(oya_calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "legendFormat": "{{method}}", "refId": "A"}
+        {"expr": "sum by (method) (rate(calendar_caldav_request_total{pack=\"$pack\",tenant_id=\"$tenant\",backend=\"$caldav_backend\"}[5m]))", "legendFormat": "{{method}}", "refId": "A"}
       ]},
 
     {"id": 9, "type": "timeseries", "title": "Recurrence bound-exceeded refusals (ADR-CAL-0002 + AC-10)",
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum by (reason) (rate(oya_calendar_recurrence_bound_exceeded_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{reason}}", "refId": "A"}
+        {"expr": "sum by (reason) (rate(calendar_recurrence_bound_exceeded_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{reason}}", "refId": "A"}
       ]},
 
     {"id": 10, "type": "timeseries", "title": "tzdb in-use distribution (cluster-default vs per-tenant pin)",
       "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "count by (pin) (oya_calendar_tzdb_release_in_use{pack=\"$pack\"})", "legendFormat": "{{pin}}", "refId": "A"},
-        {"expr": "max(oya_calendar_tzdb_cluster_default_staleness_days{pack=\"$pack\"})", "legendFormat": "cluster-default staleness days", "refId": "B"}
+        {"expr": "count by (pin) (calendar_tzdb_release_in_use{pack=\"$pack\"})", "legendFormat": "{{pin}}", "refId": "A"},
+        {"expr": "max(calendar_tzdb_cluster_default_staleness_days{pack=\"$pack\"})", "legendFormat": "cluster-default staleness days", "refId": "B"}
       ]}
   ],
   "annotations": {
     "list": [
       {"name": "rollouts", "datasource": "argo-rollouts", "iconColor": "blue", "query": "{microservice=\"calendar\"}"},
-      {"name": "tzdb-bumps", "datasource": "prometheus", "iconColor": "orange", "expr": "changes(oya_calendar_tzdb_release_in_use{pin=\"cluster-default\"}[1h]) > 0"},
-      {"name": "rrule-corpus-failures", "datasource": "prometheus", "iconColor": "red", "expr": "increase(oya_calendar_rfc5545_corpus_failure_total[1h]) > 0"}
+      {"name": "tzdb-bumps", "datasource": "prometheus", "iconColor": "orange", "expr": "changes(calendar_tzdb_release_in_use{pin=\"cluster-default\"}[1h]) > 0"},
+      {"name": "rrule-corpus-failures", "datasource": "prometheus", "iconColor": "red", "expr": "increase(calendar_rfc5545_corpus_failure_total[1h]) > 0"}
     ]
   }
 }

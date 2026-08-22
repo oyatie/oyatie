@@ -233,7 +233,7 @@ fn temp_repo() -> PathBuf {
         .as_nanos();
     let counter = TEMP_REPO_COUNTER.fetch_add(1, Ordering::Relaxed);
     let root = std::env::temp_dir().join(format!(
-        "oya-no-graphql-gate-test-{}-{nanos}-{counter}",
+        "no-graphql-gate-test-{}-{nanos}-{counter}",
         std::process::id()
     ));
     fs::create_dir_all(&root).expect("create temp repo");

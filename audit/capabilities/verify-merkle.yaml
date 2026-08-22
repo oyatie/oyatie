@@ -9,7 +9,7 @@ description: |
   artefacts; offline-verifiable; no state mutation.
 
   Anonymous-allowed (rate-limited at WAF); tenant + auditor scopes have higher quotas.
-  Reference implementation in oya-audit-chain-verification-sdk; open-source per sdk-plan.md.
+  Reference implementation in audit-chain-verification-sdk; open-source per sdk-plan.md.
 
 owner_team: axis-audit-chain
 maturity: stable
@@ -88,7 +88,7 @@ eval_set:
   reference: |
     10k synthetic tampered EventEnvelope inputs; every mutation must classify
     verified=false. Property-based test in microservices/audit-chain/src/crates/
-    oya-audit-chain-verification-domain/tests/.
+    audit-chain-verification-domain/tests/.
 
 sunset:
   status: none

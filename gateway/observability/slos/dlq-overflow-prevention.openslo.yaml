@@ -21,13 +21,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                count(oya_connector_dlq_depth_per_tenant < 9000)
+                count(connector_dlq_depth_per_tenant < 9000)
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                count(oya_connector_dlq_depth_per_tenant >= 0)
+                count(connector_dlq_depth_per_tenant >= 0)
   timeWindow:
     - count: 30
       isRolling: true

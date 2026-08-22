@@ -11,7 +11,7 @@
 // cloud-billing). The fragments below gate identity's own behavior against
 // those claims and forbid retired capability-adoption predicates.
 //
-// Audit: every deny emits oya_identity_tenant_class_unauthorized_attempt_total
+// Audit: every deny emits identity_tenant_class_unauthorized_attempt_total
 // with labels {action, tenant_class, deny_reason}.
 // Sweep: imports microservices/governance/policy/cedar-canonical-imports.cedar
 // Allowlist: this fragment contains no demo_trial/paid with per_seat billing_component/paid with per_usage billing_component/paid with compliance_pack gating strings.

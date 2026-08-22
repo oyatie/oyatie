@@ -1,7 +1,7 @@
 # Spec: RouteTable Longest-Prefix-Match Resolver
 
 **Slug**: `network-domain-routetable-longest-prefix-resolve`
-**Crate**: `oya-cloud-network-domain`
+**Crate**: `cloud-network-domain`
 **Lane**: infra | Priority: high | Effort: M
 
 ---
@@ -64,6 +64,6 @@ This is a pure in-process computation kernel (no network I/O, no async). No OTel
 
 ## Crate boundary
 
-- Modifies: `crates/oya-cloud-network-domain/src/lib.rs` only
+- Modifies: `crates/cloud-network-domain/src/lib.rs` only
 - New dependencies: none
 - Existing helpers used: `Ipv4Cidr::contains_ip`, `Ipv6Cidr::contains_ip`, `parse_ipv4_cidr`, `parse_ipv6_cidr`

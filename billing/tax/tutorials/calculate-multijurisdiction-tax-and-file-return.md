@@ -6,7 +6,7 @@ and file via the loopback simulator. End-to-end on a loopback `cloud-billing-tax
 Pre-reqs:
 - Loopback tax cell: `make dev-cell.up CELL=tax-loopback-1 PROFILE=cloud-billing-tax-dev`
 - Tenant: `make dev-tenant.create T=oyatie.b2b.smb.acme-software TENANT_CLASS=paid`
-- Tax catalog: `make dev-tax-codes.attach T=oyatie.b2b.smb.acme-software CATALOG=oya-tax-codes-multiregion-paid-v1`
+- Tax catalog: `make dev-tax-codes.attach T=oyatie.b2b.smb.acme-software CATALOG=tax-codes-multiregion-paid-v1`
 - Seller registered in: US-CA (home), DE (EU OSS Union scheme registered as IE-OSS for SaaS B2C across EU).
 
 ## Step 1 — register seller jurisdictions

@@ -114,7 +114,7 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id != "tenant:oya-aggregate"
+  resource.tenant_id != "tenant:aggregate"
 };
 
 // =============================================================================

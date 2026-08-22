@@ -104,7 +104,7 @@
           "hits": [
             {
               "line": 40,
-              "excerpt": "| Valkey (availability cache) | `oya-calendar-recurrence-engine-*` (6 crates) |"
+              "excerpt": "| Valkey (availability cache) | `calendar-recurrence-engine-*` (6 crates) |"
             },
             {
               "line": 83,
@@ -172,7 +172,7 @@
             },
             {
               "line": 36,
-              "excerpt": "| `microservices/calendar/src/crates/oya-calendar-availability-resolver-adapter-valkey/` | create | Valkey cache backend |"
+              "excerpt": "| `microservices/calendar/src/crates/calendar-availability-resolver-adapter-valkey/` | create | Valkey cache backend |"
             },
             {
               "line": 69,
@@ -218,7 +218,7 @@
           "hits_total": 7
         },
         {
-          "file": "microservices/calendar/catalog/oya-calendar-availability-resolver-adapter-valkey.yaml",
+          "file": "microservices/calendar/catalog/calendar-availability-resolver-adapter-valkey.yaml",
           "hits": [
             {
               "line": 23,

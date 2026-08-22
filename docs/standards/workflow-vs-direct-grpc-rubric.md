@@ -66,7 +66,7 @@ Use **direct gRPC** when ALL of these are true:
 ## Operational notes
 
 - Direct gRPC calls must satisfy ADR-0145 Invariants 1 + 2 + 3: audit-chain seal at the calling side, W3C traceparent propagation, ontology projection (for entity-owning µservices).
-- Workflow calls inherit Invariants 1 + 2 automatically because workflow-engine integrates the canonical clients (`oya-shared-audit-chain-client-kernel`, `oya-shared-tracing-client-kernel`).
+- Workflow calls inherit Invariants 1 + 2 automatically because workflow-engine integrates the canonical clients (`shared-audit-chain-client-kernel`, `shared-tracing-client-kernel`).
 - The mesh (Cilium primary + Istio Ambient Tier-2 per ADR-0148) enforces mTLS + Cedar authorization on BOTH paths. The rubric does not change the trust boundary.
 
 ## Anti-patterns

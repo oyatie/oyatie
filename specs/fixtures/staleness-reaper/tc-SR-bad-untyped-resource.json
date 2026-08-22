@@ -13,5 +13,5 @@
       "ttl": {"ttl_class": "", "budget_days": null, "protected": false, "action": "report"}
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
 }

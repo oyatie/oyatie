@@ -2,7 +2,7 @@
 
 **Vertical:** infra  
 **Task slug:** `cloud-iac-gitops-drift-reconcile-domain`  
-**Crate:** `oya-cloud-iac-domain` (`crates/oya-cloud-iac-domain/`)  
+**Crate:** `cloud-iac-domain` (`crates/cloud-iac-domain/`)  
 **ADR authority:** ADR-0131 (per-microservice flat layout), ADR-0509 (single-crate-per-service)  
 **Stage:** SPEC → BUILD → VERIFY
 
@@ -10,7 +10,7 @@
 
 ## Objective
 
-Add a pure-domain, zero-I/O drift reconciliation function to `oya-cloud-iac-domain`.
+Add a pure-domain, zero-I/O drift reconciliation function to `cloud-iac-domain`.
 The function compares a _desired_ `GitOpsEvidence` (what the declarative pipeline
 intends) against an _observed_ `GitOpsEvidence` (what the GitOps controller last
 reported) and returns a typed `GitOpsDriftReport` describing the verdict and the
@@ -170,8 +170,8 @@ struct literals.
 
 | Subtask     | Gate                                                                 |
 |-------------|----------------------------------------------------------------------|
-| iac-drift-1 | `cargo check -p oya-cloud-iac-domain --all-targets` green            |
-| iac-drift-2 | `cargo nextest run -p oya-cloud-iac-domain` green; 6 new tests pass  |
+| iac-drift-1 | `cargo check -p cloud-iac-domain --all-targets` green            |
+| iac-drift-2 | `cargo nextest run -p cloud-iac-domain` green; 6 new tests pass  |
 | iac-drift-3 | Both commands green; git diff additive-only within crate directory   |
 
 ---

@@ -254,11 +254,11 @@ decision_owner: axis-connector + council-integrations
 - Load test `oauth_grants_100k_concurrent_state_machine`.
 - Chaos test `vendor_outage_trips_connector_circuit_breaker`.
 - Chaos test `openbao_unavailable_blocks_credential_resolution`.
-- Metric `oya_connector_action_total{connector,action,status}`.
-- Metric `oya_connector_oauth_grant_total{connector,outcome}`.
-- Metric `oya_connector_webhook_receive_total{connector,verify_outcome}`.
-- Metric `oya_connector_dlq_depth{wiring_id}`.
-- Metric `oya_connector_schema_drift_total{connector,severity}`.
+- Metric `connector_action_total{connector,action,status}`.
+- Metric `connector_oauth_grant_total{connector,outcome}`.
+- Metric `connector_webhook_receive_total{connector,verify_outcome}`.
+- Metric `connector_dlq_depth{wiring_id}`.
+- Metric `connector_schema_drift_total{connector,severity}`.
 - Dashboard `dashboards/connector-usage-by-tenant.json`.
 - Dashboard `dashboards/dlq-state.json`.
 - Dashboard `dashboards/webhook-receiver-throughput.json`.

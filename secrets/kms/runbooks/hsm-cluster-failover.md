@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-kms-hsm-cluster-failover.
 - Primary namespace: `cloud-kms`.
-- Owning rotation: PagerDuty `oya-cloud-kms-primary`.
-- Crypto secondary: PagerDuty `oya-crypto-operations-primary`.
+- Owning rotation: PagerDuty `cloud-kms-primary`.
+- Crypto secondary: PagerDuty `crypto-operations-primary`.
 - Incident channel: `#inc-cloud-kms`.
 - Customer channel: `#support-cloud-kms-tenant-impact`.
 - Protected surface: CMK metadata, KEK availability, DEK unwrap, signing operations, tenant CA issuance.
@@ -39,14 +39,14 @@ doc_status: published
 - Alert `CloudKmsDecryptErrorRatioHigh` fires in any production cell.
 - Alert `CloudKmsSignErrorRatioHigh` fires for tenant CA signing.
 - Alert `CloudKmsHsmAttestationDrift` fires.
-- Metric `oya_cloud_kms_hsm_available_nodes` falls below quorum for tier.
-- Metric `oya_cloud_kms_hsm_operation_timeout_total` increases by more than 50 in 5 minutes.
-- Metric `oya_cloud_kms_decrypt_error_ratio` exceeds 0.005.
-- Metric `oya_cloud_kms_sign_error_ratio` exceeds 0.005.
-- Metric `oya_cloud_kms_hsm_attestation_invalid_total` is non-zero.
-- Metric `oya_cloud_kms_hsm_failover_attempt_total` increases without success.
-- Metric `oya_cloud_kms_hsm_cluster_latency_p99_seconds` exceeds 3.
-- Metric `oya_cloud_kms_peer_region_decrypt_fallback_total` increases.
+- Metric `cloud_kms_hsm_available_nodes` falls below quorum for tier.
+- Metric `cloud_kms_hsm_operation_timeout_total` increases by more than 50 in 5 minutes.
+- Metric `cloud_kms_decrypt_error_ratio` exceeds 0.005.
+- Metric `cloud_kms_sign_error_ratio` exceeds 0.005.
+- Metric `cloud_kms_hsm_attestation_invalid_total` is non-zero.
+- Metric `cloud_kms_hsm_failover_attempt_total` increases without success.
+- Metric `cloud_kms_hsm_cluster_latency_p99_seconds` exceeds 3.
+- Metric `cloud_kms_peer_region_decrypt_fallback_total` increases.
 - Synthetic probe `oya ops probe cloud-kms hsm-decrypt` fails twice.
 - Synthetic probe `oya ops probe cloud-kms hsm-sign` fails twice.
 - Tenant reports decrypt failures or certificate issuance failures.
@@ -83,11 +83,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-kms --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-kms --severity sev1`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.service=="cloud-kms")'`.
-6. Query available HSM nodes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_hsm_available_nodes{cell="'$CELL'",tier="'$TIER'"}'`.
-7. Query operation timeouts: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_kms_hsm_operation_timeout_total[5m])'`.
-8. Query decrypt errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_decrypt_error_ratio{cell="'$CELL'"}'`.
-9. Query sign errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_sign_error_ratio{cell="'$CELL'"}'`.
-10. Query attestation drift: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_kms_hsm_attestation_invalid_total[5m])'`.
+6. Query available HSM nodes: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_hsm_available_nodes{cell="'$CELL'",tier="'$TIER'"}'`.
+7. Query operation timeouts: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_kms_hsm_operation_timeout_total[5m])'`.
+8. Query decrypt errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_decrypt_error_ratio{cell="'$CELL'"}'`.
+9. Query sign errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_sign_error_ratio{cell="'$CELL'"}'`.
+10. Query attestation drift: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_kms_hsm_attestation_invalid_total[5m])'`.
 11. Open HSM dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/hsm-clusters?orgId=1&var-cell=$CELL&var-tenant_class=$TIER"`.
 12. Open crypto operations dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/crypto-ops?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 13. Read API logs: `kubectl -n cloud-kms logs deploy/cloud-kms-api --since=30m | rg "HsmClusterDegraded|hsm_operation_status|attestation"`.
@@ -164,9 +164,9 @@ doc_status: published
 6. Patch rotation guard if rotation continued while quorum was below minimum.
 7. Add regression fixture for HSM node timeout and peer failover.
 8. Add regression fixture for invalid attestation isolation.
-9. Run domain tests: `cargo test -p oya-cloud-kms-domain hsm -- --nocapture`.
-10. Run API tests: `cargo test -p oya-cloud-kms-api hsm_failover -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-kms-hsm --production-snapshot --cell $CELL`.
+9. Run domain tests: `cargo test -p cloud-kms-domain hsm -- --nocapture`.
+10. Run API tests: `cargo test -p cloud-kms-api hsm_failover -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-kms-hsm --production-snapshot --cell $CELL`.
 12. Re-enable rotation: `oya flags set oya.cloud_kms.rotation.pause=false --cell $CELL --reason resolved-$INCIDENT_ID`.
 13. Re-enable cryptoshred: `oya flags set oya.cloud_kms.cryptoshred.pause=false --cell $CELL --reason resolved-$INCIDENT_ID`.
 14. Close breaker: `oya ops breaker close cloud-kms-hsm-cluster --cell $CELL --reason resolved-$INCIDENT_ID`.
@@ -175,9 +175,9 @@ doc_status: published
 ## Verification Checklist
 - `CloudKmsHsmClusterDegradedCritical` is green for 30 minutes.
 - `CloudKmsHsmOperationTimeoutBurn` is green for 30 minutes.
-- `oya_cloud_kms_hsm_available_nodes` meets tenant_class quorum.
-- `oya_cloud_kms_decrypt_error_ratio` is below 0.001.
-- `oya_cloud_kms_sign_error_ratio` is below 0.001.
+- `cloud_kms_hsm_available_nodes` meets tenant_class quorum.
+- `cloud_kms_decrypt_error_ratio` is below 0.001.
+- `cloud_kms_sign_error_ratio` is below 0.001.
 - HSM attestation receipts validate for active nodes.
 - Decrypt canary passes in the affected cell.
 - Sign canary passes in the affected cell.
@@ -236,11 +236,11 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-kms-primary` for any HSM cluster degradation.
-- Page `oya-crypto-operations-primary` for attestation drift, quorum loss, or HSM isolation.
-- Page `oya-cloud-iam-primary` when session signing depends on affected keys.
-- Page `oya-cloud-network-primary` when tenant CA issuance fails.
-- Page `oya-intelligence-primary` when artifact signing fails.
+- Page `cloud-kms-primary` for any HSM cluster degradation.
+- Page `crypto-operations-primary` for attestation drift, quorum loss, or HSM isolation.
+- Page `cloud-iam-primary` when session signing depends on affected keys.
+- Page `cloud-network-primary` when tenant CA issuance fails.
+- Page `intelligence-primary` when artifact signing fails.
 - Notify `#inc-cloud-kms` with cell, tier, vendor, and tenant scope.
 - Notify `#support-cloud-kms-tenant-impact` for decrypt or sign impact.
 - Notify compliance when regulated tenants lose FIPS-backed operation.

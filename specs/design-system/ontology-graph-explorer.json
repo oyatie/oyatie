@@ -39,8 +39,8 @@
     "dynamic-state freshness lag is visible and blocks stale decision-grade actions"
   ],
   "test_refs": [
-    "crates/oya-ontology-api/tests/graph_traversal.rs::test_kg_3layer_join_perf",
-    "crates/oya-ontology-adapter/tests/dynamic_state.rs::test_freshness_budget"
+    "crates/ontology-api/tests/graph_traversal.rs::test_kg_3layer_join_perf",
+    "crates/ontology-adapter/tests/dynamic_state.rs::test_freshness_budget"
   ],
   "consumers": [
     "$ref:specs/microservices/ontology.json#frontend_components"

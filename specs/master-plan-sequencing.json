@@ -135,7 +135,7 @@
           "sequencing_effect": "none",
           "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
           "hold_state": "HOLD(Planning)",
-          "note": "Accepted path/event-optional fan-in legs under singleton oya-ci-required. Binds CI FinOps classification without minting product work-items or authorizing docs-skip of A-always admission gates."
+          "note": "Accepted path/event-optional fan-in legs under singleton presubmit. Binds CI FinOps classification without minting product work-items or authorizing docs-skip of A-always admission gates."
         },
         {
           "id": "ADR-0700",
@@ -287,8 +287,8 @@
   "planning_closure_contract": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "oya-ci-required cloud-ci planning-closure Rust gate packet",
-    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy oya-dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
+    "gate_command": "presubmit cloud-ci planning-closure Rust gate packet",
+    "gate_command_authority_note": "destination authority per the founder all-CLI-retirement directive of 2026-06-09; legacy dev-cli planning-closure validation is provenance-only migration input and is never merge or exit authority",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
     "implementation_start_claim_rule": "Implementation may start only after the planning-closure gate proves product scope, architecture/system design, sequencing, acceptance criteria, KR localization, and no-placeholder posture are complete enough to avoid implementation-time invention."
@@ -492,27 +492,27 @@
   "forbidden_primitives": [
     {
       "primitive": "oya git",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
+      "enforcement_lane_id": "governance-banned-primitives",
       "lane_status": "retired by ADR-0363; agents use plain git only, with no wrapper resurrection"
     },
     {
       "primitive": "oya vcs",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci/oya-ci required contexts + GitHub (interim) branch protection; legacy oya gate output is advisory bridge feedback only, never merge readiness authority"
+      "enforcement_lane_id": "governance-banned-primitives",
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci/ci required contexts + GitHub (interim) branch protection; legacy oya gate output is advisory bridge feedback only, never merge readiness authority"
     },
     {
       "primitive": "gh",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
+      "enforcement_lane_id": "governance-banned-primitives",
       "lane_status": "forbidden as forward substrate; GitHub (interim) is the target and GitHub remains bootstrap-only per ADR-0363/ADR-0247"
     },
     {
       "primitive": "manual-merge-bypassing-required-checks",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; branch protection, cloud-ci/oya-ci required checks, and reviewer approval own merge readiness; legacy oya gate evidence is advisory bridge feedback only"
+      "enforcement_lane_id": "governance-banned-primitives",
+      "lane_status": "forbidden; branch protection, cloud-ci/ci required checks, and reviewer approval own merge readiness; legacy oya gate evidence is advisory bridge feedback only"
     },
     {
       "primitive": "manual-push-to-protected-branch",
-      "enforcement_lane_id": "oya-governance-banned-primitives",
+      "enforcement_lane_id": "governance-banned-primitives",
       "lane_status": "forbidden; agent lanes use isolated worktree branches and protected integration flow"
     },
     {
@@ -532,18 +532,18 @@
     },
     {
       "primitive": "shared-scm-ci-cd-pipeline-across-internal-and-tenants",
-      "enforcement_lane_id": "oya-governance-toolchain-tenant-isolation",
+      "enforcement_lane_id": "governance-toolchain-tenant-isolation",
       "lane_status": "forbidden; internal tenant=oyatie-internal and every customer tenant pipeline must have isolated identities, secrets, runner/workspace/cache/artifact/log/evidence/release-ledger/deploy/status-callback/audit boundaries."
     },
     {
       "primitive": "affected-only-ci-as-merge-authority",
-      "enforcement_lane_id": "oya-governance-required-context-match",
+      "enforcement_lane_id": "governance-required-context-match",
       "lane_status": "forbidden; affected-only checks are developer feedback and cannot satisfy branch protection, merge, or Phase-0 exit authority."
     }
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub/cloud-ci enforcement deployment remains a GitOps verification gap.",
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub/cloud-ci enforcement deployment remains a GitOps verification gap.",
     "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
   },
   "repo_state_protocol": [
@@ -910,7 +910,7 @@
         "15W-DR-Matrix-declaration",
         "15X-OSS-stewardship",
         "15Y-Sustainability-FinOps",
-        "15-ZA-oya-verify-full-ci-mirror",
+        "15-ZA-verify-full-ci-mirror",
         "15-ZB-foundry-fitness-to-governance-rename",
         "15-ZD-autosharding-doctrine",
         "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
@@ -920,35 +920,35 @@
       "doctrine_propagation_adrs": {
         "ADR-0346": {
           "path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-          "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
+          "queued_sub_wave": "15-ZA-verify-full-ci-mirror",
+          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
           "enforced_by": [
             "cloud-ci-required-context-producer (blocks required contexts produced by legacy oya CLI/local-only/advisory status)",
-            "cloud-ci-full-matrix-gate-packet (format/build/test/lint/supply-chain/security/governance semantics as Rust/cloud-ci gates, not oya-dev-cli extension)",
-            "cloud-ci-legacy-oya-retirement-scanner (blocks new oya verify/oya gate protected-branch authority and requires retirement packet for residual invocations)"
+            "cloud-ci-full-matrix-gate-packet (format/build/test/lint/supply-chain/security/governance semantics as Rust/cloud-ci gates, not dev-cli extension)",
+            "cloud-ci-legacy-retirement-scanner (blocks new oya verify/oya gate protected-branch authority and requires retirement packet for residual invocations)"
           ]
         },
         "ADR-0347": {
           "path": "docs/decisions/ADR-0709-general-live-apex.md",
           "queued_sub_wave": "15-ZB-foundry-fitness-to-governance-rename",
-          "purpose_excerpt": "Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB) rather than via 34 per-lane migration IPs as originally sequenced in CLAUDE.md `new_governance_lane_prefix`.",
+          "purpose_excerpt": "Declare that every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB) rather than via 34 per-lane migration IPs as originally sequenced in CLAUDE.md `new_governance_lane_prefix`.",
           "enforced_by": [
-            "oya-governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-governance-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)",
-            "oya-governance-lane-prefix-vocabulary (new lane; refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`; the two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132)",
-            "oya-governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/oya-governance-*.yml + crates/oya-governance-*/ + registry/catalog/oya-governance-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)"
+            "governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `governance-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)",
+            "governance-lane-prefix-vocabulary (new lane; refuses new authoring that introduces a fitness-family lane under any prefix other than `governance-*` or `check-*`; the two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132)",
+            "governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/governance-*.yml + crates/governance-*/ + registry/catalog/governance-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)"
           ]
         },
         "ADR-0348": {
           "path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
           "queued_sub_wave": "15-ZD-autosharding-doctrine",
-          "purpose_excerpt": "Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: (1) AUTOSHARDING — tenant→cell/shard placement is computed by the control plane automatically, with no human operator picking placement; (2) AUTO-REBALANCE — when cell load skews beyond promotion-gate criteria, cross-cell tenant migration moves tenants from hot cells to cooler cells; (3) DYNAMIC SHARDING — shard count within a cell adjusts based on load. OWNERSHIP AMENDED by ADR-0351: cross-cell rebalance is owned by the cell-rebalancer µservice (NOT 'composed across tenancy + observability'), cell lifecycle by the cell-lifecycle µservice, and within-cell hot-split/cold-merge sharding by the oya-shuffle-sharding crate.",
+          "purpose_excerpt": "Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: (1) AUTOSHARDING — tenant→cell/shard placement is computed by the control plane automatically, with no human operator picking placement; (2) AUTO-REBALANCE — when cell load skews beyond promotion-gate criteria, cross-cell tenant migration moves tenants from hot cells to cooler cells; (3) DYNAMIC SHARDING — shard count within a cell adjusts based on load. OWNERSHIP AMENDED by ADR-0351: cross-cell rebalance is owned by the cell-rebalancer µservice (NOT 'composed across tenancy + observability'), cell lifecycle by the cell-lifecycle µservice, and within-cell hot-split/cold-merge sharding by the shuffle-sharding crate.",
           "enforced_by": [
-            "oya-governance-sharding-automation-coverage (new lane; refuses any µservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema; allowlist for µservices on the EXEMPT_FROM_CELLULAR list at .omc/state/cellular-exemption-allowlist-2026-05-21.json — e.g., static-only edge surfaces, no-tenant-state µservices)",
-            "oya-governance-autosharding-manual-mode-refusal (new lane; refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual; the canonical autosharding mode is control_plane_driven; a manual-mode exception requires an ADR-amendment to this ADR enumerating the surface justifying the exception)",
-            "oya-governance-auto-rebalance-residency-honored (new lane; greps every manifest declaring sharding_automation.auto_rebalance.enabled true and refuses if the same manifest also declares honors_residency false OR omits the field; cross-jurisdiction rebalance without Cedar permit is refused at admission time per ADR-0243)",
-            "oya-governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-µservice declaration of load characteristics)",
-            "oya-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)",
-            "oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)"
+            "governance-sharding-automation-coverage (new lane; refuses any µservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema; allowlist for µservices on the EXEMPT_FROM_CELLULAR list at .omc/state/cellular-exemption-allowlist-2026-05-21.json — e.g., static-only edge surfaces, no-tenant-state µservices)",
+            "governance-autosharding-manual-mode-refusal (new lane; refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual; the canonical autosharding mode is control_plane_driven; a manual-mode exception requires an ADR-amendment to this ADR enumerating the surface justifying the exception)",
+            "governance-auto-rebalance-residency-honored (new lane; greps every manifest declaring sharding_automation.auto_rebalance.enabled true and refuses if the same manifest also declares honors_residency false OR omits the field; cross-jurisdiction rebalance without Cedar permit is refused at admission time per ADR-0243)",
+            "governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-µservice declaration of load characteristics)",
+            "governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)",
+            "governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)"
           ]
         },
         "ADR-0349": {
@@ -956,11 +956,11 @@
           "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
           "purpose_excerpt": "Historical bridge ADR for cloud-scm CI/CD substrates (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json). Bespoke Rust cloud-ci/cloud-cd services are the destination; legacy bridge/reference adapters require deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
           "enforced_by": [
-            "oya-governance-provider-ci-residue (successor to provider-CI parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
-            "oya-governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
-            "oya-governance-argocd-tenant-namespace-isolation (bridge/reference lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243)",
-            "oya-governance-ci-jcasc-only (bridge-only lane; refuses CI controller state declared via UI while legacy CI remains a transition adapter)",
-            "oya-governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 §D.4 deploy-event class)"
+            "governance-provider-ci-residue (successor to provider-CI parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
+            "governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
+            "governance-argocd-tenant-namespace-isolation (bridge/reference lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243)",
+            "governance-ci-jcasc-only (bridge-only lane; refuses CI controller state declared via UI while legacy CI remains a transition adapter)",
+            "governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 §D.4 deploy-event class)"
           ]
         }
       },
@@ -1005,13 +1005,13 @@
           ],
           "sunset_window": "30 days post-ADR-0336-Acceptance OR Wave 15-Valkey landing, whichever later",
           "new_ci_lanes": [
-            "oya-governance-valkey-not-redis-vocabulary",
-            "oya-governance-valkey-crate-naming",
-            "oya-governance-valkey-iac-module-path",
-            "oya-governance-valkey-env-var",
-            "oya-governance-valkey-cedar-entity-type",
-            "oya-governance-valkey-not-redis-substrate-dependencies",
-            "oya-governance-counterpart-fact-preservation"
+            "governance-valkey-not-redis-vocabulary",
+            "governance-valkey-crate-naming",
+            "governance-valkey-iac-module-path",
+            "governance-valkey-env-var",
+            "governance-valkey-cedar-entity-type",
+            "governance-valkey-not-redis-substrate-dependencies",
+            "governance-counterpart-fact-preservation"
           ],
           "depends_on": [
             "15I-foundry-retirement (landed; touched foundry/IP-002-runtime-redis-and-postgres-baseline.md content)"
@@ -1038,12 +1038,12 @@
           ],
           "sunset_window": "30 days post-ADR-0337-Acceptance OR Wave 15-OLAP landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-iceberg-canonical-write-path",
-            "oya-governance-olap-table-format-vocabulary",
-            "oya-governance-iceberg-crate-naming",
-            "oya-governance-iceberg-rest-catalog-binding",
-            "oya-governance-clickhouse-compute-layering",
-            "oya-governance-counterpart-fact-preservation (existing; reused from ADR-0336)"
+            "check-iceberg-canonical-write-path",
+            "governance-olap-table-format-vocabulary",
+            "governance-iceberg-crate-naming",
+            "governance-iceberg-rest-catalog-binding",
+            "governance-clickhouse-compute-layering",
+            "governance-counterpart-fact-preservation (existing; reused from ADR-0336)"
           ],
           "preserve_counterpart_fact": "Databricks defaults to Delta Lake; Onehouse + Uber use Hudi; Apple + Netflix authored Iceberg — references remain quote-bound",
           "preserve_customer_migration_playbooks": "from-Delta-on-AWS and from-Hudi-on-AWS migration playbooks retain source-substrate name; target substrate is Iceberg",
@@ -1072,7 +1072,7 @@
             "per-cell two-nodepool topology kata-pool + runc-pool (+ optional runc-edge-pool for Tier 3)",
             "three RuntimeClass declarations per cell (kata-cloud-hypervisor / runc / runc-edge) + node labels + taints + tolerations",
             "Kyverno admission policy enforce-pod-runtime-tier refuses pod admission on tier-vs-nodepool mismatch",
-            "CI lane oya-check-pod-runtime-tier validates declaration + surface-evidence + Helm chart RuntimeClass binding",
+            "CI lane check-pod-runtime-tier validates declaration + surface-evidence + Helm chart RuntimeClass binding",
             "capacity model implications (kata-pool ~1.5x density-scaled vs runc baseline; bounded to Tier 0 + Tier 1 workloads)",
             "quarterly tier review process (founder + council-security walks corpus for promotion/demotion candidates)",
             "default tier for new µservices = Tier 2 (no evidence required); Tier 0 / Tier 1 / Tier 3 require surface-evidence",
@@ -1082,11 +1082,11 @@
           ],
           "sunset_window": "30 days post-ADR-0338-Acceptance OR Wave 15S-Pod-Runtime-Tier-declaration landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-pod-runtime-tier",
-            "oya-governance-runtime-class-allowlist",
-            "oya-governance-nodepool-binding",
-            "oya-governance-tier-promotion-evidence",
-            "oya-check-pod-runtime-tier-helm-binding"
+            "check-pod-runtime-tier",
+            "governance-runtime-class-allowlist",
+            "governance-nodepool-binding",
+            "governance-tier-promotion-evidence",
+            "check-pod-runtime-tier-helm-binding"
           ],
           "kyverno_policies": [
             "enforce-pod-runtime-tier (ClusterPolicy; validationFailureAction audit at landing, enforce at sunset)"
@@ -1139,7 +1139,7 @@
             "module versioning + per-wrapper pinning (semver per module)",
             "OpenTofu signed-module discipline via cosign per ADR-0181",
             "module catalog + discovery + docs at docs/iac-catalog/",
-            "CI lane oya-check-iac-shared-module-usage validates wrappers source from canonical library",
+            "CI lane check-iac-shared-module-usage validates wrappers source from canonical library",
             "quarterly module-upgrade windows coordinated per network-substrate-versions cadence",
             "Always Free sub-context (oci-guest/always-free) as first-class module category",
             "migration path for existing per-microservice iac/ modules (factor into shared library or declare extends-base)",
@@ -1196,10 +1196,10 @@
           },
           "sunset_window": "30 days post-ADR-0339-Acceptance OR Wave 15Q-IaC-modules landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-iac-shared-module-usage",
-            "oya-check-iac-module-signature-cosign",
-            "oya-check-iac-module-version-pin",
-            "oya-governance-iac-module-catalog-presence"
+            "check-iac-shared-module-usage",
+            "check-iac-module-signature-cosign",
+            "check-iac-module-version-pin",
+            "governance-iac-module-catalog-presence"
           ],
           "amends_microservice_artifacts": [
             "microservices/cloud-iac/modules/<context>/<primitive>/ (~50 canonical primitives authored)",
@@ -1240,7 +1240,7 @@
             "per-edge warm-soak floors per ADR-0341 §D-3",
             "auto-promotion execution path via cell-orchestrator per ADR-0341 §D-4 (signed audit-chain row per ADR-0263 + Kyverno-admitted node label mutation + manifest history update via self-modification PR per ADR-0247)",
             "demotion path symmetric inverse with stricter thresholds per ADR-0341 §D-5",
-            "Rust-strict gate-evaluator crate oya-cell-orchestrator-gate-evaluator per feedback_rust_strict_only_no_python_2026_05_20",
+            "Rust-strict gate-evaluator crate cell-orchestrator-gate-evaluator per feedback_rust_strict_only_no_python_2026_05_20",
             "evidence pack for emergency-override-path promotions per ADR-0341 §D-7",
             "Kyverno admission policy enforce-cell-promotion-gates per ADR-0341 §D-8",
             "emergency-override path with multi-party authorization (incident commander + on-call SRE + council-security) per ADR-0341 §D-9",
@@ -1250,11 +1250,11 @@
           ],
           "sunset_window": "30 days post-ADR-0341-Acceptance OR Wave 15T-Cell-Promotion-Gates landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-cell-promotion-gates",
-            "oya-governance-cell-tier-promotion-evidence",
-            "oya-governance-cell-tier-numbering-convention",
-            "oya-governance-cell-promotion-quiet-window",
-            "oya-governance-cell-orchestrator-binding"
+            "check-cell-promotion-gates",
+            "governance-cell-tier-promotion-evidence",
+            "governance-cell-tier-numbering-convention",
+            "governance-cell-promotion-quiet-window",
+            "governance-cell-orchestrator-binding"
           ],
           "kyverno_policies": [
             "enforce-cell-promotion-gates (ClusterPolicy; validationFailureAction audit at landing, enforce at sunset)"
@@ -1306,14 +1306,14 @@
           ],
           "sunset_window": "30 days post-ADR-0342-Acceptance OR Wave 15V-API-Versioning-Adoption landing, whichever later; date-version deprecation 180 days minimum",
           "new_ci_lanes": [
-            "oya-check-public-api-date-version-carrier",
-            "oya-check-sdk-semver-to-date-pin",
-            "oya-check-api-version-discovery-surface",
-            "oya-check-api-deprecation-rfc-headers",
-            "oya-check-internal-mesh-exemption",
-            "oya-check-tenant-version-pinning-schema",
-            "oya-check-public-surface-files-per-version",
-            "oya-governance-api-versioning-vocabulary"
+            "check-public-api-date-version-carrier",
+            "check-sdk-semver-to-date-pin",
+            "check-api-version-discovery-surface",
+            "check-api-deprecation-rfc-headers",
+            "check-internal-mesh-exemption",
+            "check-tenant-version-pinning-schema",
+            "check-public-surface-files-per-version",
+            "governance-api-versioning-vocabulary"
           ],
           "amends_microservice_artifacts": [
             "specs/microservices/manifest-schema.json (tenant_version_pinning block added)",
@@ -1335,7 +1335,7 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0340",
-          "scope": "corpus-wide per-µservice manifest.json capacity_model block declaration: baseline_cpu_per_tenant (vCPU decimal) + baseline_ram_per_tenant (MiB integer) + storage_per_tenant (GB integer) + connections_per_tenant.{valkey,postgres,outbound_http} (integers) + scaling_dimension (closed enum: per_user/per_request/per_capability/per_message/per_query/per_workflow_run) + cell_placement_class (closed enum: Tier-0..Tier-4 per ADR-0248 cellular criticality numbering — DISTINCT from ADR-0338 pod_runtime_tier; co-variance table in ADR-0340 D-6) + optional tenant_class_deltas (demo_trial vs paid per ADR-0330+0331) + optional compliance_pack_overrides (hipaa/pci-dss/gdpr-strict/soc2/csap/eu-ai-act-annex-iii per ADR-0251) + notes; drives autoscaler (Karpenter NodePool + HPA + KEDA per ADR-0198) + cell sizing (per ADR-0009 + ADR-0248) + FinOps projection (per ADR-0174 + ADR-0199) + cellular placement determinism (oya-shuffle-sharding per ADR-0333)",
+          "scope": "corpus-wide per-µservice manifest.json capacity_model block declaration: baseline_cpu_per_tenant (vCPU decimal) + baseline_ram_per_tenant (MiB integer) + storage_per_tenant (GB integer) + connections_per_tenant.{valkey,postgres,outbound_http} (integers) + scaling_dimension (closed enum: per_user/per_request/per_capability/per_message/per_query/per_workflow_run) + cell_placement_class (closed enum: Tier-0..Tier-4 per ADR-0248 cellular criticality numbering — DISTINCT from ADR-0338 pod_runtime_tier; co-variance table in ADR-0340 D-6) + optional tenant_class_deltas (demo_trial vs paid per ADR-0330+0331) + optional compliance_pack_overrides (hipaa/pci-dss/gdpr-strict/soc2/csap/eu-ai-act-annex-iii per ADR-0251) + notes; drives autoscaler (Karpenter NodePool + HPA + KEDA per ADR-0198) + cell sizing (per ADR-0009 + ADR-0248) + FinOps projection (per ADR-0174 + ADR-0199) + cellular placement determinism (shuffle-sharding per ADR-0333)",
           "dispatch_mode": "Claude orchestrator authors schema fragment + seven CI lanes + Kyverno admission policy + autoscaler/cell-sizer/FinOps consumer wiring stubs; codex-bucket fan-out for per-µservice manifest capacity_model declarations under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "ten_declaration_surfaces": [
             "manifest schema fragment at /specs/microservices/manifest-schema.json (capacity_model object property per ADR-0340 D-1)",
@@ -1343,7 +1343,7 @@
             "scaling_dimension closed enum {per_user, per_request, per_capability, per_message, per_query, per_workflow_run}",
             "cell_placement_class closed enum {Tier-0, Tier-1, Tier-2, Tier-3, Tier-4} per ADR-0248 cellular criticality numbering",
             "connections_per_tenant sub-object (valkey + postgres + outbound_http; sanity-ceiling 1024 per kind)",
-            "co-variance table pod_runtime_tier × cell_placement_class per ADR-0340 D-6 (machine-checkable via oya-check-capacity-model-cellular-tier-coherence)",
+            "co-variance table pod_runtime_tier × cell_placement_class per ADR-0340 D-6 (machine-checkable via check-capacity-model-cellular-tier-coherence)",
             "autoscaler input wiring (Karpenter NodePool + HPA + KEDA ScaledObject derive targets from capacity_model values per ADR-0340 D-7)",
             "FinOps cost projection wiring (cost_floor = baseline_cpu × cpu_unit + baseline_ram × ram_unit / 1024 + storage × storage_unit per ADR-0340 D-8)",
             "cell sizing input wiring (tenants_per_cell_max formula + capacity_saturation_ratio SLI per ADR-0340 D-9)",
@@ -1351,13 +1351,13 @@
           ],
           "sunset_window": "30 days post-ADR-0340-Acceptance OR Wave 15U-Capacity-Model-declaration landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-capacity-model-present",
-            "oya-check-capacity-model-units",
-            "oya-check-capacity-model-scaling-dimension",
-            "oya-check-capacity-model-cell-placement",
-            "oya-check-capacity-model-tenant-class-deltas",
-            "oya-check-capacity-model-finops-anchor",
-            "oya-check-capacity-model-cellular-tier-coherence"
+            "check-capacity-model-present",
+            "check-capacity-model-units",
+            "check-capacity-model-scaling-dimension",
+            "check-capacity-model-cell-placement",
+            "check-capacity-model-tenant-class-deltas",
+            "check-capacity-model-finops-anchor",
+            "check-capacity-model-cellular-tier-coherence"
           ],
           "kyverno_policies": [
             "enforce-capacity-model-presence (ClusterPolicy; validationFailureAction audit at landing, enforce at sunset)"
@@ -1383,7 +1383,7 @@
             "microservices/<name>/helm/values.yaml (Karpenter NodePool + HPA + KEDA ScaledObject interpolations consume capacity_model)",
             "microservices/finops-portal/dashboards/per-tenant-cost-floor.md (new dashboard consuming capacity_model)",
             "microservices/observability/dashboards/per-cell-capacity-saturation.md (new dashboard with capacity_saturation_ratio SLI)",
-            "crates/oya-shuffle-sharding/src/lib.rs (consumes cell_placement_class for shard sub-population selection)",
+            "crates/shuffle-sharding/src/lib.rs (consumes cell_placement_class for shard sub-population selection)",
             "specs/platform-architecture.json (capacity_model declaration recorded as cross-cutting manifest surface)",
             "tools/hooks/_canonical-primitives.md (Capacity Model section added)"
           ],
@@ -1451,15 +1451,15 @@
           },
           "sunset_window": "30 days post-ADR-0344-Acceptance OR Wave 15Y-Sustainability-FinOps landing, whichever later",
           "new_ci_lanes": [
-            "oya-check-audit-row-carbon-fields",
-            "oya-check-sustainability-emission-model",
-            "oya-check-finops-portal-dimensional-rollup",
-            "oya-check-carbon-intensity-provider-binding",
-            "oya-check-regulatory-sustainability-report-emission",
-            "oya-governance-carbon-aware-scheduling"
+            "check-audit-row-carbon-fields",
+            "check-sustainability-emission-model",
+            "check-finops-portal-dimensional-rollup",
+            "check-carbon-intensity-provider-binding",
+            "check-regulatory-sustainability-report-emission",
+            "governance-carbon-aware-scheduling"
           ],
           "preserved_ci_lanes": [
-            "oya-governance-sustainability-tag-allowlist (existing ADR-0174 lane preserved verbatim)"
+            "governance-sustainability-tag-allowlist (existing ADR-0174 lane preserved verbatim)"
           ],
           "carbon_aware_tier_eligibility": {
             "eligible_for_deferral": [
@@ -1541,16 +1541,16 @@
             "per-pack auditor dashboard manifest at microservices/compliance/dashboards/per-pack-dr-floor-satisfaction.yaml (auto-generated from pack-floor table x per-microservice declarations; surfaces declared/floor/effective triple + drill freshness + floor satisfaction per microservice per pack)",
             "pack-activation gate Cedar fragment `pack-<pack-id>-dr-floor-satisfaction` per ADR-0343 D-10 (signed per ADR-0181; loaded under scope pack/<pack-id>; refuses tenant pack activation on floor mismatch)"
           ],
-          "sunset_window": "Day 30 promotion to BLOCKER for oya-check-dr-manifest-block + oya-check-dr-multi-region-required + oya-check-dr-runbook-presence + oya-check-dr-backup-substrate-allowlist + oya-check-dr-pack-floor-table-coverage; Day 60 promotion to BLOCKER for oya-check-dr-drill-evidence-fresh; Day 90 promotion to BLOCKER for oya-check-dr-pack-floor-satisfaction + oya-governance-dr-auditor-dashboard-presence per ADR-0343 G sunset schedule",
+          "sunset_window": "Day 30 promotion to BLOCKER for check-dr-manifest-block + check-dr-multi-region-required + check-dr-runbook-presence + check-dr-backup-substrate-allowlist + check-dr-pack-floor-table-coverage; Day 60 promotion to BLOCKER for check-dr-drill-evidence-fresh; Day 90 promotion to BLOCKER for check-dr-pack-floor-satisfaction + governance-dr-auditor-dashboard-presence per ADR-0343 G sunset schedule",
           "new_ci_lanes": [
-            "oya-check-dr-manifest-block",
-            "oya-check-dr-pack-floor-satisfaction",
-            "oya-check-dr-multi-region-required",
-            "oya-check-dr-runbook-presence",
-            "oya-check-dr-backup-substrate-allowlist",
-            "oya-check-dr-drill-evidence-fresh",
-            "oya-check-dr-pack-floor-table-coverage",
-            "oya-governance-dr-auditor-dashboard-presence"
+            "check-dr-manifest-block",
+            "check-dr-pack-floor-satisfaction",
+            "check-dr-multi-region-required",
+            "check-dr-runbook-presence",
+            "check-dr-backup-substrate-allowlist",
+            "check-dr-drill-evidence-fresh",
+            "check-dr-pack-floor-table-coverage",
+            "governance-dr-auditor-dashboard-presence"
           ],
           "cedar_fragments_authored": [
             "pack-hipaa-2024-dr-floor-satisfaction",
@@ -1631,17 +1631,17 @@
           ],
           "stewardship_class_floor_enumerations": {
             "maintainer_floor": [
-              "oya-shuffle-sharding",
-              "oya-dev-cli",
-              "oya-shared-policy-engine-client",
-              "oya-shared-workflow-engine",
-              "oya-shared-ontology-projection",
+              "shuffle-sharding",
+              "dev-cli",
+              "shared-policy-engine-client",
+              "shared-workflow-engine",
+              "shared-ontology-projection",
               "oya-*-domain-layer-roll-up",
               "oya-*-kernel-layer-roll-up",
               "oya-*-app-layer-roll-up",
               "oya-*-api-layer-roll-up",
               "oya-*-adapter-layer-roll-up",
-              "oya-check-* + oya-governance-* lane roll-up"
+              "check-* + governance-* lane roll-up"
             ],
             "contributor_floor": [
               "cilium",
@@ -1691,18 +1691,18 @@
             "maintainer_engineering_time_percent_default": "5-12 percent per substrate crate (declared per-crate under Wave 15X-OSS-stewardship)",
             "consumer_audit_subscription_cost_usd_aggregate": "varies; ~90,000 USD/year baseline for paid OS subscriptions (RHEL + SLES)"
           },
-          "sunset_window": "30 days post-ADR-0345-Acceptance for new authoring (E.1..E.6); day 1 for vocabulary discipline (E.7 oya-governance-stewardship-class-vocabulary refuses 'tier' applied to OSS stewardship); per-µservice manifest declaration follows ADR-0328 canonical-build phase order",
+          "sunset_window": "30 days post-ADR-0345-Acceptance for new authoring (E.1..E.6); day 1 for vocabulary discipline (E.7 governance-stewardship-class-vocabulary refuses 'tier' applied to OSS stewardship); per-µservice manifest declaration follows ADR-0328 canonical-build phase order",
           "new_ci_lanes": [
-            "oya-check-oss-stewardship-registry-presence",
-            "oya-check-oss-stewardship-class-declaration",
-            "oya-check-oss-stewardship-cve-sla",
-            "oya-check-oss-stewardship-owner-team",
-            "oya-check-oss-stewardship-resourcing-declaration",
-            "oya-check-oss-stewardship-license-cross-check",
-            "oya-governance-stewardship-class-vocabulary",
-            "oya-check-oss-stewardship-adr-provenance"
+            "check-oss-stewardship-registry-presence",
+            "check-oss-stewardship-class-declaration",
+            "check-oss-stewardship-cve-sla",
+            "check-oss-stewardship-owner-team",
+            "check-oss-stewardship-resourcing-declaration",
+            "check-oss-stewardship-license-cross-check",
+            "governance-stewardship-class-vocabulary",
+            "check-oss-stewardship-adr-provenance"
           ],
-          "terminology_binding": "OSS stewardship uses 'class' (relationship label: Maintainer / Contributor / Consumer); the word 'tier' is RESERVED for ADR-0248 cellular tiers (Tier 0..4) and ADR-0338 pod runtime tiers (Tier 0..3); enforced day-1 by oya-governance-stewardship-class-vocabulary lane",
+          "terminology_binding": "OSS stewardship uses 'class' (relationship label: Maintainer / Contributor / Consumer); the word 'tier' is RESERVED for ADR-0248 cellular tiers (Tier 0..4) and ADR-0338 pod runtime tiers (Tier 0..3); enforced day-1 by governance-stewardship-class-vocabulary lane",
           "amends_microservice_artifacts": [
             "microservices/<name>/manifest.json (every µservice; consumes_upstream_oss field added)",
             "crates/<oya-*>/manifest declarations (every Maintainer crate; oss_stewardship_class field + maintainer_engineering_time_percent)",
@@ -1738,27 +1738,27 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0348",
-          "scope": "cell-orchestrator implementation (logical responsibility composed across tenancy=placement-registry + observability=load-skew-detection + cloud-iac=cell-provisioning+shard-catalog + audit-chain=event-emission + oya-shuffle-sharding-crate=algorithm + api-gateway=cell-aware-routing per ADR-0333) for the three control-plane-driven automation modes declared by ADR-0348: (a) autosharding = tenant→cell/shard placement automatically computed by control plane consuming capacity_model (ADR-0340) + compliance pack constraints (ADR-0251) + ResidencyClass (ADR-0240) + cell_placement_class (ADR-0248 Tier 0..4) + shuffle-sharding algorithm (ADR-0333); (b) auto-rebalance = automatic tenant migration from hot cells to cooler cells when cell load skews beyond promotion-gate criteria (ADR-0341); honors residency + compliance packs; cross-jurisdiction migration requires explicit Cedar permit per ADR-0243; reversible via audit-chain trail; emits per ADR-0263; (c) dynamic sharding = within-cell shard count automatically adjusts via hot-split (p99 > SLO OR utilization > 80%) + cold-merge (utilization < 20% for > 24h; per-µservice declarable thresholds rejected from default-fill); atomic + audit-emit; reversible. NOT a new µservice; cross-µservice coordinator pattern per ADR-0145 + ADR-0263; orchestrator principal = oyatie.foundry.cell-orchestrator per ADR-0247. Per-µservice manifest.json sharding_automation block (declared in specs/microservices/manifest-schema.json) carries autosharding mode + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt µservice manifest declarations + EXEMPT_FROM_CELLULAR allowlist at .omc/state/cellular-exemption-allowlist-2026-05-21.json.",
+          "scope": "cell-orchestrator implementation (logical responsibility composed across tenancy=placement-registry + observability=load-skew-detection + cloud-iac=cell-provisioning+shard-catalog + audit-chain=event-emission + shuffle-sharding-crate=algorithm + api-gateway=cell-aware-routing per ADR-0333) for the three control-plane-driven automation modes declared by ADR-0348: (a) autosharding = tenant→cell/shard placement automatically computed by control plane consuming capacity_model (ADR-0340) + compliance pack constraints (ADR-0251) + ResidencyClass (ADR-0240) + cell_placement_class (ADR-0248 Tier 0..4) + shuffle-sharding algorithm (ADR-0333); (b) auto-rebalance = automatic tenant migration from hot cells to cooler cells when cell load skews beyond promotion-gate criteria (ADR-0341); honors residency + compliance packs; cross-jurisdiction migration requires explicit Cedar permit per ADR-0243; reversible via audit-chain trail; emits per ADR-0263; (c) dynamic sharding = within-cell shard count automatically adjusts via hot-split (p99 > SLO OR utilization > 80%) + cold-merge (utilization < 20% for > 24h; per-µservice declarable thresholds rejected from default-fill); atomic + audit-emit; reversible. NOT a new µservice; cross-µservice coordinator pattern per ADR-0145 + ADR-0263; orchestrator principal = oyatie.foundry.cell-orchestrator per ADR-0247. Per-µservice manifest.json sharding_automation block (declared in specs/microservices/manifest-schema.json) carries autosharding mode + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt µservice manifest declarations + EXEMPT_FROM_CELLULAR allowlist at .omc/state/cellular-exemption-allowlist-2026-05-21.json.",
           "dispatch_mode": "codex-bucket fan-out for the per-µservice manifest declarations + Claude orchestrator for tenancy + observability + cloud-iac + audit-chain coordinator-subsystem authoring + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "eight_adoption_surfaces": [
             "per-µservice manifest.json sharding_automation block (autosharding + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt manifests)",
-            "cell-orchestrator responsibility composition (logical across tenancy + observability + cloud-iac + audit-chain + oya-shuffle-sharding crate + api-gateway; cross-µservice coordinator pattern; NOT new µservice per ADR-0333)",
-            "autosharding placement algorithm (canonical 7-step algorithm in oya-shuffle-sharding crate place_tenant API; Tier match → residency match → compliance pack match → capacity headroom → shuffle hash; deterministic per tenant_id)",
+            "cell-orchestrator responsibility composition (logical across tenancy + observability + cloud-iac + audit-chain + shuffle-sharding crate + api-gateway; cross-µservice coordinator pattern; NOT new µservice per ADR-0333)",
+            "autosharding placement algorithm (canonical 7-step algorithm in shuffle-sharding crate place_tenant API; Tier match → residency match → compliance pack match → capacity headroom → shuffle hash; deterministic per tenant_id)",
             "auto-rebalance trigger + candidate-selection + migration execution (load-skew detection from observability; candidate filter by residency + compliance packs + Tier + capacity headroom + Cedar permit; atomic ACID transition in tenancy assignment registry + api-gateway routing + session state)",
-            "dynamic sharding hot-split + cold-merge execution (oya-shuffle-sharding crate split + merge primitives; atomic cell-registry shard-count transition; api-gateway routing transition; in-flight transaction draining per ADR-0252 HLC semantics; brief read-only window on cold-merge)",
+            "dynamic sharding hot-split + cold-merge execution (shuffle-sharding crate split + merge primitives; atomic cell-registry shard-count transition; api-gateway routing transition; in-flight transaction draining per ADR-0252 HLC semantics; brief read-only window on cold-merge)",
             "audit-chain emission per ADR-0263 for every automation event (event_type + microservice + cell_id + shard_id + tenant_id + pre_state + post_state + residency_check_result + compliance_pack_check_result + cedar_permit_id + initiated_by + HLC timestamp + audit_chain_seal)",
             "tenant migration reversibility (IP authoring rollback_path section enumerating audit-chain-trail-based reversal + operator-role authorization + Cedar policy fragment + edge cases for in-flight transactions + session state + cross-jurisdiction rollback)",
             "six new CI lane scaffolds (.github/workflows/<lane>.yml + registry/quality/lanes.yaml + registry/catalog/<lane>.yaml + crates/<lane>-* scaffold; REPORT-ONLY at ADR-0348 Acceptance; BLOCKER 30 days post-Wave-15-ZD-completion)"
           ],
-          "sunset_window": "30 days post-Wave-15-ZD-completion for new authoring (E.1..E.6 promote REPORT-ONLY → BLOCKER); E.7 oya-governance-cell-orchestrator-no-new-microservice remains informational indefinitely",
+          "sunset_window": "30 days post-Wave-15-ZD-completion for new authoring (E.1..E.6 promote REPORT-ONLY → BLOCKER); E.7 governance-cell-orchestrator-no-new-microservice remains informational indefinitely",
           "new_ci_lanes": [
-            "oya-governance-sharding-automation-coverage",
-            "oya-governance-autosharding-manual-mode-refusal",
-            "oya-governance-auto-rebalance-residency-honored",
-            "oya-governance-dynamic-sharding-threshold-coverage",
-            "oya-governance-audit-chain-emit-on-automation-events",
-            "oya-governance-tenant-migration-reversibility",
-            "oya-governance-cell-orchestrator-no-new-microservice (informational)"
+            "governance-sharding-automation-coverage",
+            "governance-autosharding-manual-mode-refusal",
+            "governance-auto-rebalance-residency-honored",
+            "governance-dynamic-sharding-threshold-coverage",
+            "governance-audit-chain-emit-on-automation-events",
+            "governance-tenant-migration-reversibility",
+            "governance-cell-orchestrator-no-new-microservice (informational)"
           ],
           "default_thresholds": {
             "auto_rebalance_load_skew_threshold_percent": 30,
@@ -1771,7 +1771,7 @@
           "canonical_autosharding_mode": "control_plane_driven",
           "manual_mode_refused_by_lane_E2": true,
           "orchestrator_principal": "oyatie.foundry.cell-orchestrator",
-          "cell_orchestrator_no_new_microservice": "ADR-0333 preserved; logical responsibility composed across tenancy + observability + cloud-iac + audit-chain + oya-shuffle-sharding crate + api-gateway",
+          "cell_orchestrator_no_new_microservice": "ADR-0333 preserved; logical responsibility composed across tenancy + observability + cloud-iac + audit-chain + shuffle-sharding crate + api-gateway",
           "amends_adrs": [
             "ADR-0248 (cellular topology baseline; tenant→cell/shard placement control-plane-driven; hot-cell rebalancing automatic; shard count dynamic)",
             "ADR-0341 (cellular promotion gates; tenant-level + shard-level automation layered underneath cell-level promotion gates)",
@@ -1787,11 +1787,11 @@
             "microservices/observability/ARCHITECTURE.md (cell-orchestrator subsystem within observability)",
             "microservices/cloud-iac/PRD.md (cell provisioning + shard catalog responsibility)",
             "microservices/audit-chain/PRD.md (automation event emission contract reference)",
-            "crates/oya-shuffle-sharding/README.md (split + merge primitive API documentation)",
+            "crates/shuffle-sharding/README.md (split + merge primitive API documentation)",
             "tools/hooks/_canonical-primitives.md (Sharding Automation section added)",
             ".omc/state/cellular-exemption-allowlist-2026-05-21.json (EXEMPT_FROM_CELLULAR allowlist; maintained over time)"
           ],
-          "preserve_oya_shuffle_sharding_crate": "ADR-0333 oya-shuffle-sharding crate preserved verbatim; only API documentation gains the split + merge primitive description; algorithm unchanged",
+          "preserve_shuffle_sharding_crate": "ADR-0333 shuffle-sharding crate preserved verbatim; only API documentation gains the split + merge primitive description; algorithm unchanged",
           "preserve_cell_placement_class_field": "ADR-0248 Tier 0..4 declaration remains a separate manifest field from sharding_automation; autosharding control plane reads cell_placement_class as one of its inputs",
           "preserve_capacity_model_schema": "ADR-0340 schema preserved verbatim; field is READ by the autosharding control plane as one of its inputs",
           "preserve_cellular_promotion_gates": "ADR-0341 cell-level promotion gates preserved verbatim; auto-rebalance triggers underneath the gates when a cell breaches promotion-gate criteria due to load skew",
@@ -1814,12 +1814,12 @@
             "ADR-0328 substance-bar-as-canonical-sequence-and-batch-discipline (Wave 15 batching; doctrine PR lands before this sub-wave)"
           ]
         },
-        "15-ZA-oya-verify-full-ci-mirror": {
+        "15-ZA-verify-full-ci-mirror": {
           "status": "superseded-by-platform-readiness-cloud-ci",
           "queued_at": "2026-05-21",
           "adr": "ADR-0346",
-          "scope": "Do not extend crates/oya-dev-cli. Preserve only legacy local-mirror evidence while porting required semantics into Prow-shaped cloud-ci/oya-ci Rust gate packets and required contexts. Block protected-branch authority from `oya verify`/`oya gate`; affected/local runs remain feedback only.",
-          "dispatch_mode": "cloud-ci/oya-ci Rust gate packet workstream + legacy-oya-authority retirement scanner; no new oya CLI surface",
+          "scope": "Do not extend crates/dev-cli. Preserve only legacy local-mirror evidence while porting required semantics into Prow-shaped cloud-ci/ci Rust gate packets and required contexts. Block protected-branch authority from `oya verify`/`oya gate`; affected/local runs remain feedback only.",
+          "dispatch_mode": "cloud-ci/ci Rust gate packet workstream + legacy-authority retirement scanner; no new oya CLI surface",
           "depends_on": [
             "ADR-0346 Acceptance",
             "ADR-0221 hooks-vs-gates",
@@ -1830,7 +1830,7 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0347",
-          "scope": "bulk rename oya-governance-* → oya-governance-* across 10 GitHub Actions workflows + ~40 lane records in registry/quality/lanes.yaml + 28 catalog records at registry/catalog/oya-governance-*.yaml + ~51 crate dirs at crates/oya-governance-*-* + workspace Cargo.toml + Cargo.lock regeneration + ~41 ADR cross-citations under docs/decisions/ + 1 file docs/standards/ + 1 file .omc/state/ + 14 sub-wave entries in specs/master-plan-sequencing.json + tools/hooks/_canonical-primitives.md + .github/branch-protection.yaml required-status-checks. Pre-rename inventory at .omc/state/oya-governance-rename-inventory-2026-05-21.json (machine-readable list of 34 lanes + their target governance-* names). E.1 oya-governance-no-foundry-fitness-residue + E.2 oya-governance-lane-prefix-vocabulary + E.3 oya-governance-rename-inventory-presence + E.4 oya-governance-rename-residue-allowlist-integrity.",
+          "scope": "bulk rename governance-* → governance-* across 10 GitHub Actions workflows + ~40 lane records in registry/quality/lanes.yaml + 28 catalog records at registry/catalog/governance-*.yaml + ~51 crate dirs at crates/governance-*-* + workspace Cargo.toml + Cargo.lock regeneration + ~41 ADR cross-citations under docs/decisions/ + 1 file docs/standards/ + 1 file .omc/state/ + 14 sub-wave entries in specs/master-plan-sequencing.json + tools/hooks/_canonical-primitives.md + .github/branch-protection.yaml required-status-checks. Pre-rename inventory at .omc/state/governance-rename-inventory-2026-05-21.json (machine-readable list of 34 lanes + their target governance-* names). E.1 governance-no-foundry-fitness-residue + E.2 governance-lane-prefix-vocabulary + E.3 governance-rename-inventory-presence + E.4 governance-rename-residue-allowlist-integrity.",
           "dispatch_mode": "1 codex orchestrator for the mechanical rename across 34 lane prefixes + ~200 cross-references + workspace Cargo.toml + Cargo.lock regen + 4 new governance lanes",
           "depends_on": [
             "ADR-0347 Acceptance",
@@ -1845,11 +1845,11 @@
           "scope": "Bridge/backfill work for legacy CI and ArgoCD GitOps CD only while cloud-ci/cloud-cd Rust service authority is being built. Legacy adapters are no longer sole/canonical destinations; they are self-hostable provider adapters/reference substrates with deletion criteria, tenant isolation fixtures, trusted status production, cosign/audit-chain evidence, and no customer-facing product-authority claim.",
           "dispatch_mode": "Bridge orchestrator for OpenTofu/config-as-code/Argo adapter surfaces plus governance lanes, executed after the P0.0/full bespoke CI baseline and reconciled into cloud-ci/cloud-cd parity/deletion evidence.",
           "five_new_lanes": [
-            "oya-governance-provider-ci-residue",
-            "oya-governance-argocd-application-cosign-verified",
-            "oya-governance-argocd-tenant-namespace-isolation",
-            "oya-governance-ci-jcasc-only",
-            "oya-governance-deploy-audit-chain-emit"
+            "governance-provider-ci-residue",
+            "governance-argocd-application-cosign-verified",
+            "governance-argocd-tenant-namespace-isolation",
+            "governance-ci-jcasc-only",
+            "governance-deploy-audit-chain-emit"
           ],
           "forbidden_alternatives": [
             "Jenkins X",
@@ -1923,7 +1923,7 @@
             ]
           },
           "zf_4_validation": [
-            "oya-ci-required cloud-ci ADR-citation Rust gate packet",
+            "presubmit cloud-ci ADR-citation Rust gate packet",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
           "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
@@ -2017,7 +2017,7 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-governance-plan-hierarchy + governance-admission"
+    "validation_lane": "governance-plan-hierarchy + governance-admission"
   },
   "deployment_contexts": {
     "version": "1.0.0",

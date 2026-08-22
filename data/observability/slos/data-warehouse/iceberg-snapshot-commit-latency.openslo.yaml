@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_iceberg_commit_under_3s_total[5m]))
+              query: sum(rate(data_warehouse_iceberg_commit_under_3s_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_iceberg_commit_total[5m]))
+              query: sum(rate(data_warehouse_iceberg_commit_total[5m]))
   objectives:
     - displayName: p99 Iceberg snapshot commit under 3s
       target: 0.99

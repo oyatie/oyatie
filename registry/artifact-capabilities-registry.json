@@ -24,23 +24,23 @@
       },
       "verification": {
         "checker_crate": "governance/check/active-artifact-contract",
-        "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract --workspace"
+        "command": "presubmit/cloud-ci evidence: active-artifact-contract --workspace"
       },
       "validation": {
         "validator": "scripts/hooks/pre-commit/validate-artifact-capabilities-registry.sh (planned)"
       },
       "autogen": {
-        "generator": "planned oya-gen-artifact-capabilities-registry crate (no live path) (planned)"
+        "generator": "planned gen-artifact-capabilities-registry crate (no live path) (planned)"
       },
       "selfheal": {
-        "healer": "planned oya-heal-artifact-capabilities-registry crate (no live path) (planned)"
+        "healer": "planned heal-artifact-capabilities-registry crate (no live path) (planned)"
       },
       "telemetry": {
         "exporter": "governance/check/active-artifact-contract::metrics (planned)",
         "dashboard": "docs/dashboards/artifact-capabilities-registry.json (planned)",
         "metrics": [
           {
-            "id": "oya_artifact_registry_row_count",
+            "id": "artifact_registry_row_count",
             "kind": "gauge",
             "unit": "1",
             "labels": [
@@ -51,7 +51,7 @@
             "cardinality_budget": 1000
           },
           {
-            "id": "oya_artifact_capability_status_count",
+            "id": "artifact_capability_status_count",
             "kind": "gauge",
             "unit": "1",
             "labels": [
@@ -61,7 +61,7 @@
             "cardinality_budget": 36
           },
           {
-            "id": "oya_artifact_verification_failure_total",
+            "id": "artifact_verification_failure_total",
             "kind": "counter",
             "unit": "1",
             "labels": [
@@ -71,7 +71,7 @@
             "cardinality_budget": 5000
           },
           {
-            "id": "oya_artifact_selfheal_invocation_total",
+            "id": "artifact_selfheal_invocation_total",
             "kind": "counter",
             "unit": "1",
             "labels": [
@@ -105,7 +105,7 @@
         },
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-artifact-contract.sh (planned)"
@@ -114,12 +114,12 @@
           "generator": ""
         },
         "selfheal": {
-          "healer": "planned oya-heal-active-artifact-contract crate (no live path)"
+          "healer": "planned heal-active-artifact-contract crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_artifact_contract_version_active",
+              "id": "artifact_contract_version_active",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -151,7 +151,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -257,7 +257,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -350,7 +350,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -372,7 +372,7 @@
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: foundry-capability-schema --capabilities-dir registry/capability-templates"
+          "command": "presubmit/cloud-ci evidence: foundry-capability-schema --capabilities-dir registry/capability-templates"
         },
         "validation": {
           "validator": "retired-local-cli-surface::foundry_capability_schema_gates"
@@ -407,7 +407,7 @@
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: foundry-eval --capabilities-dir registry/capability-templates"
+          "command": "presubmit/cloud-ci evidence: foundry-eval --capabilities-dir registry/capability-templates"
         },
         "validation": {
           "validator": "retired-local-cli-surface::foundry_eval_gates"
@@ -442,7 +442,7 @@
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: foundry-eval --capabilities-dir registry/capability-templates"
+          "command": "presubmit/cloud-ci evidence: foundry-eval --capabilities-dir registry/capability-templates"
         },
         "validation": {
           "validator": "retired-local-cli-surface::foundry_eval_gates"
@@ -474,7 +474,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/cedar-fragment-coverage",
-          "command": "oya-ci-required/cloud-ci evidence: cedar-fragment-coverage"
+          "command": "presubmit/cloud-ci evidence: cedar-fragment-coverage"
         },
         "enforcement": {
           "lane_id": "lean-a-cedar-fragment-coverage"
@@ -496,7 +496,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -510,12 +510,12 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
-      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active via oya-ci-required/cloud-ci gate suite).",
+      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active via presubmit/cloud-ci gate suite).",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -537,7 +537,7 @@
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: codeview-read-surface --spec /specs/codeview-read-surface.json"
+          "command": "presubmit/cloud-ci evidence: codeview-read-surface --spec /specs/codeview-read-surface.json"
         },
         "validation": {
           "validator": "retired-local-cli-surface::codeview_read_surface_gates"
@@ -660,15 +660,15 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "ops-compliance + axis-foundry",
-      "purpose_short": "Canonical EvidenceBundle schema. Lifts Phase-00 evidence shape. Enforced via oya-governance-audit-emission.",
+      "purpose_short": "Canonical EvidenceBundle schema. Lifts Phase-00 evidence shape. Enforced via governance-audit-emission.",
       "artifact_profile": "template",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-governance-audit-emission"
+          "lane_id": "governance-audit-emission"
         },
         "verification": {
-          "checker_crate": "planned oya-governance-audit-emission crate (no live path) (planned)",
-          "command": "oya-ci-required/cloud-ci evidence: evidence-bundle <path>"
+          "checker_crate": "planned governance-audit-emission crate (no live path) (planned)",
+          "command": "presubmit/cloud-ci evidence: evidence-bundle <path>"
         },
         "validation": {
           "validator": "audit-chain emitter (M01/M02 prerequisite)"
@@ -677,12 +677,12 @@
           "generator": "audit-chain emitter (M01/M02)"
         },
         "selfheal": {
-          "healer": "planned oya-governance-audit-emission crate (no live path)::heal"
+          "healer": "planned governance-audit-emission crate (no live path)::heal"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_evidence_bundle_emission_total",
+              "id": "evidence_bundle_emission_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -713,8 +713,8 @@
           "lane_id": "lean-a-evidence-taxonomy"
         },
         "verification": {
-          "checker_crate": "planned oya-check-evidence-taxonomy crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: evidence-taxonomy"
+          "checker_crate": "planned check-evidence-taxonomy crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: evidence-taxonomy"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-evidence-record.sh"
@@ -723,12 +723,12 @@
           "generator": ""
         },
         "selfheal": {
-          "healer": "planned oya-heal-evidence-taxonomy crate (no live path)"
+          "healer": "planned heal-evidence-taxonomy crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_evidence_record_freshness_seconds",
+              "id": "evidence_record_freshness_seconds",
               "kind": "histogram",
               "unit": "s",
               "labels": [
@@ -758,22 +758,22 @@
           "lane_id": "lean-a-final-report-schema"
         },
         "verification": {
-          "checker_crate": "planned oya-check-final-report-schema crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: final-report-schema <path>"
+          "checker_crate": "planned check-final-report-schema crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: final-report-schema <path>"
         },
         "validation": {
-          "validator": "planned oya-final-report-emitter crate (no live path) (planned)"
+          "validator": "planned final-report-emitter crate (no live path) (planned)"
         },
         "autogen": {
-          "generator": "planned oya-final-report-emitter crate (no live path)"
+          "generator": "planned final-report-emitter crate (no live path)"
         },
         "selfheal": {
-          "healer": "planned oya-heal-final-report-schema crate (no live path)"
+          "healer": "planned heal-final-report-schema crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_mpr_report_emission_total",
+              "id": "mpr_report_emission_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -852,7 +852,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_drift_check_duration_ms",
+              "id": "settings_drift_check_duration_ms",
               "kind": "histogram",
               "unit": "ms",
               "labels": [
@@ -886,7 +886,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "libs/check-dependency-seam",
           "command": "cargo check -p intelligence-settings-template-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -895,7 +895,7 @@
           ]
         },
         "validation": {
-          "validator": "libs/oya-check-dependency-seam::kernel_boundary_gate",
+          "validator": "libs/check-dependency-seam::kernel_boundary_gate",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
@@ -929,7 +929,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_render_total",
+              "id": "settings_render_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -939,7 +939,7 @@
               "cardinality_budget": 100
             },
             {
-              "id": "oya_settings_verify_duration_ms",
+              "id": "settings_verify_duration_ms",
               "kind": "histogram",
               "unit": "ms",
               "labels": [
@@ -974,7 +974,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "libs/check-dependency-seam",
           "command": "cargo check -p intelligence-supervisor-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -983,7 +983,7 @@
           ]
         },
         "validation": {
-          "validator": "libs/oya-check-dependency-seam::kernel_boundary_gate",
+          "validator": "libs/check-dependency-seam::kernel_boundary_gate",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
@@ -1018,7 +1018,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_supervisor_tick_total",
+              "id": "supervisor_tick_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1028,7 +1028,7 @@
               "cardinality_budget": 5000
             },
             {
-              "id": "oya_supervisor_tick_duration_ms",
+              "id": "supervisor_tick_duration_ms",
               "kind": "histogram",
               "unit": "ms",
               "labels": [
@@ -1064,7 +1064,7 @@
         },
         "verification": {
           "checker_crate": "intelligence/core/settings-template-kernel",
-          "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
+          "command": "presubmit/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
           "verifies": [
             "template instances valid per schema.json",
             "blake3 hash stable"
@@ -1111,7 +1111,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_drift_detected_total",
+              "id": "settings_drift_detected_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1148,7 +1148,7 @@
         },
         "verification": {
           "checker_crate": "intelligence/core/settings-template-kernel",
-          "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
+          "command": "presubmit/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
           "verifies": [
             "template instances valid per schema.json",
             "blake3 hash stable"
@@ -1195,7 +1195,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_drift_detected_total",
+              "id": "settings_drift_detected_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1232,7 +1232,7 @@
         },
         "verification": {
           "checker_crate": "intelligence/core/settings-template-kernel",
-          "command": "oya-ci-required/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
+          "command": "presubmit/cloud-ci evidence: settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
           "verifies": [
             "template instances valid per schema.json",
             "blake3 hash stable"
@@ -1279,7 +1279,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_drift_detected_total",
+              "id": "settings_drift_detected_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1309,8 +1309,8 @@
           "lane_id": "cloud-ci-generated-artifact-control-plane"
         },
         "verification": {
-          "checker_crate": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app",
-          "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app:oya-cloud-ci-generated-artifact-control-plane-app-gate"
+          "checker_crate": "cloud/cloud-ci/gates/cloud-ci-generated-artifact-control-plane-app",
+          "command": "buck2 test //cloud/cloud-ci/gates/cloud-ci-generated-artifact-control-plane-app:cloud-ci-generated-artifact-control-plane-app-gate"
         },
         "validation": {
           "validator": "specs/generated-artifact-control-plane.schema.json"
@@ -1324,7 +1324,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_ci_generated_artifact_control_plane_declared_artifacts_total",
+              "id": "ci_generated_artifact_control_plane_declared_artifacts_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1348,15 +1348,15 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "cloud-ci-platform",
-      "purpose_short": "Public oya-ci schema for declaring generated artifact ownership, materialization, merge policy, and final-tree validation.",
+      "purpose_short": "Public ci schema for declaring generated artifact ownership, materialization, merge policy, and final-tree validation.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {
           "lane_id": "cloud-ci-generated-artifact-control-plane"
         },
         "verification": {
-          "checker_crate": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app",
-          "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app:oya-cloud-ci-generated-artifact-control-plane-app-gate"
+          "checker_crate": "cloud/cloud-ci/gates/cloud-ci-generated-artifact-control-plane-app",
+          "command": "buck2 test //cloud/cloud-ci/gates/cloud-ci-generated-artifact-control-plane-app:cloud-ci-generated-artifact-control-plane-app-gate"
         },
         "validation": {
           "validator": "JSON Schema Draft 2020-12 plus cloud-ci-generated-artifact-control-plane gate"
@@ -1468,7 +1468,7 @@
           "lane_id": "lean-a-gitops-vcs-replacement"
         },
         "verification": {
-          "checker_crate": "jq + future planned oya-check-gitops-vcs-replacement crate (no live path)",
+          "checker_crate": "jq + future planned check-gitops-vcs-replacement crate (no live path)",
           "command": "jq empty /specs/gitops-vcs-replacement.json"
         },
         "validation": {
@@ -1483,7 +1483,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_vcs_merge_conflict_total",
+              "id": "vcs_merge_conflict_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1492,7 +1492,7 @@
               "cardinality_budget": 50
             },
             {
-              "id": "oya_vcs_work_discarded_ratio",
+              "id": "vcs_work_discarded_ratio",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1501,7 +1501,7 @@
               "cardinality_budget": 50
             },
             {
-              "id": "oya_vcs_promotion_latency_seconds",
+              "id": "vcs_promotion_latency_seconds",
               "kind": "histogram",
               "unit": "s",
               "labels": [
@@ -1511,7 +1511,7 @@
               "cardinality_budget": 100
             },
             {
-              "id": "oya_vcs_review_fix_iterations_total",
+              "id": "vcs_review_fix_iterations_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1520,7 +1520,7 @@
               "cardinality_budget": 20
             },
             {
-              "id": "oya_vcs_controller_rebase_total",
+              "id": "vcs_controller_rebase_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1529,7 +1529,7 @@
               "cardinality_budget": 20
             },
             {
-              "id": "oya_vcs_merge_queue_wait_seconds",
+              "id": "vcs_merge_queue_wait_seconds",
               "kind": "histogram",
               "unit": "s",
               "labels": [
@@ -1538,7 +1538,7 @@
               "cardinality_budget": 20
             },
             {
-              "id": "oya_vcs_polyglot_claim_coverage_ratio",
+              "id": "vcs_polyglot_claim_coverage_ratio",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1547,7 +1547,7 @@
               "cardinality_budget": 100
             },
             {
-              "id": "oya_vcs_required_test_tier_coverage_ratio",
+              "id": "vcs_required_test_tier_coverage_ratio",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1557,7 +1557,7 @@
               "cardinality_budget": 150
             },
             {
-              "id": "oya_vcs_ast_symbol_index_freshness_seconds",
+              "id": "vcs_ast_symbol_index_freshness_seconds",
               "kind": "histogram",
               "unit": "s",
               "labels": [
@@ -1674,8 +1674,8 @@
           "lane_id": "lean-a-hyperscaler-gates"
         },
         "verification": {
-          "checker_crate": "planned oya-check-hyperscaler-gates crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: hyperscaler-gates"
+          "checker_crate": "planned check-hyperscaler-gates crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: hyperscaler-gates"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-hyperscaler-gates.sh"
@@ -1684,12 +1684,12 @@
           "generator": ""
         },
         "selfheal": {
-          "healer": "planned oya-heal-hyperscaler-gates crate (no live path)"
+          "healer": "planned heal-hyperscaler-gates crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_hg_gate_coverage_ratio",
+              "id": "hg_gate_coverage_ratio",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -1717,7 +1717,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -1885,7 +1885,7 @@
         },
         "verification": {
           "checker_crate": "intelligence/core/settings-template-kernel",
-          "command": "oya-ci-required/cloud-ci evidence: settings-drift --workspace",
+          "command": "presubmit/cloud-ci evidence: settings-drift --workspace",
           "verifies": [
             "all rendered per-account files match their template blake3",
             "N-threshold gate respected"
@@ -1927,7 +1927,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_settings_drift_lane_run_total",
+              "id": "settings_drift_lane_run_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -1954,11 +1954,11 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-governance-loop-recovery-patterns"
+          "lane_id": "governance-loop-recovery-patterns"
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: loop-recovery-patterns"
+          "command": "presubmit/cloud-ci evidence: loop-recovery-patterns"
         },
         "validation": {
           "validator": "retired-local-cli-surface::loop_recovery_patterns_gate"
@@ -1972,7 +1972,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_loop_recovery_patterns_active_total",
+              "id": "loop_recovery_patterns_active_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2002,8 +2002,8 @@
           "lane_id": "lean-a-master-plan-sequencing"
         },
         "verification": {
-          "checker_crate": "planned oya-check-master-plan-sequencing crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: master-plan-sequencing"
+          "checker_crate": "planned check-master-plan-sequencing crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: master-plan-sequencing"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-master-plan-sequencing.sh (planned)"
@@ -2012,12 +2012,12 @@
           "generator": ""
         },
         "selfheal": {
-          "healer": "planned oya-heal-master-plan-sequencing crate (no live path)"
+          "healer": "planned heal-master-plan-sequencing crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_forbidden_primitive_invocation_total",
+              "id": "forbidden_primitive_invocation_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -2047,17 +2047,17 @@
           "lane_id": "lean-a-masterplan-json"
         },
         "verification": {
-          "checker_crate": "jq + future planned oya-check-masterplan crate (no live path)",
+          "checker_crate": "jq + future planned check-masterplan crate (no live path)",
           "command": "jq empty /specs/masterplan.json"
         },
         "validation": {
           "validator": "jq empty + future masterplan.schema.json validator"
         },
         "autogen": {
-          "generator": "planned oya-gen-masterplan-json crate (no live path) (planned)"
+          "generator": "planned gen-masterplan-json crate (no live path) (planned)"
         },
         "selfheal": {
-          "healer": "planned oya-heal-masterplan-json crate (no live path) (planned)"
+          "healer": "planned heal-masterplan-json crate (no live path) (planned)"
         },
         "telemetry": {
           "metrics": []
@@ -2080,7 +2080,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2150,12 +2150,12 @@
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2176,22 +2176,22 @@
           "lane_id": "lean-a-ops-portal-claim-matrix"
         },
         "verification": {
-          "checker_crate": "planned oya-check-ops-portal-claim-matrix crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: ops-portal-claim-matrix"
+          "checker_crate": "planned check-ops-portal-claim-matrix crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: ops-portal-claim-matrix"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-ops-portal-claim-matrix.sh"
         },
         "autogen": {
-          "generator": "planned oya-gen-ops-portal-claim-matrix crate (no live path)"
+          "generator": "planned gen-ops-portal-claim-matrix crate (no live path)"
         },
         "selfheal": {
-          "healer": "planned oya-heal-ops-portal-claim-matrix crate (no live path)"
+          "healer": "planned heal-ops-portal-claim-matrix crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_claim_matrix_claim_count",
+              "id": "claim_matrix_claim_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2214,12 +2214,12 @@
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops workspace shell BC. Consumes oya-ops-workspace-shell-kernel types (SurfaceCatalogPort + SurfaceState + VisibilityTier). Cedar-gated; ADR-0067 perf authority.",
+      "purpose_short": "OpenAPI 3.2 contract for ops workspace shell BC. Consumes ops-workspace-shell-kernel types (SurfaceCatalogPort + SurfaceState + VisibilityTier). Cedar-gated; ADR-0067 perf authority.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2228,8 +2228,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-middleware-kernel-manifest",
-      "artifact_path": "libs/oya-http-middleware-kernel/Cargo.toml",
+      "artifact_id": "http-middleware-kernel-manifest",
+      "artifact_path": "libs/http-middleware-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2238,7 +2238,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2247,8 +2247,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-router-kernel-manifest",
-      "artifact_path": "libs/oya-http-router-kernel/Cargo.toml",
+      "artifact_id": "http-router-kernel-manifest",
+      "artifact_path": "libs/http-router-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2257,7 +2257,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2266,8 +2266,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-runtime-hyper-adapter-manifest",
-      "artifact_path": "libs/oya-http-runtime-hyper-adapter/Cargo.toml",
+      "artifact_id": "http-runtime-hyper-adapter-manifest",
+      "artifact_path": "libs/http-runtime-hyper-adapter/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2276,7 +2276,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2285,8 +2285,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-sse-kernel-manifest",
-      "artifact_path": "libs/oya-http-sse-kernel/Cargo.toml",
+      "artifact_id": "http-sse-kernel-manifest",
+      "artifact_path": "libs/http-sse-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2295,7 +2295,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2304,8 +2304,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-telemetry-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-telemetry-middleware-infrastructure/Cargo.toml",
+      "artifact_id": "http-telemetry-middleware-infrastructure-manifest",
+      "artifact_path": "libs/http-telemetry-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2314,7 +2314,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2323,8 +2323,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-tenant-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-tenant-middleware-infrastructure/Cargo.toml",
+      "artifact_id": "http-tenant-middleware-infrastructure-manifest",
+      "artifact_path": "libs/http-tenant-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2333,7 +2333,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2352,7 +2352,7 @@
       "capability_overrides": {
         "verification": {
           "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
+          "command": "presubmit/cloud-ci evidence: active-artifact-contract"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
@@ -2388,7 +2388,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_pci_readiness_control_coverage_total",
+              "id": "pci_readiness_control_coverage_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2462,7 +2462,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_regulatory_identity_architecture_open_gaps_total",
+              "id": "regulatory_identity_architecture_open_gaps_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2572,7 +2572,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_reset_eligibility",
+              "id": "reset_eligibility",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2728,11 +2728,11 @@
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "oya-governance-loop-recovery-patterns"
+          "lane_id": "governance-loop-recovery-patterns"
         },
         "verification": {
           "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: loop-recovery-patterns"
+          "command": "presubmit/cloud-ci evidence: loop-recovery-patterns"
         },
         "validation": {
           "validator": "retired-local-cli-surface::loop_recovery_patterns_gate"
@@ -2746,7 +2746,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_score_cards_checked_total",
+              "id": "score_cards_checked_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2822,8 +2822,8 @@
           "lane_id": "lean-a-stop-conditions"
         },
         "verification": {
-          "checker_crate": "planned oya-check-stop-conditions crate (no live path)",
-          "command": "oya-ci-required/cloud-ci evidence: stop-conditions"
+          "checker_crate": "planned check-stop-conditions crate (no live path)",
+          "command": "presubmit/cloud-ci evidence: stop-conditions"
         },
         "validation": {
           "validator": "scripts/hooks/pre-commit/validate-stop-conditions.sh"
@@ -2832,12 +2832,12 @@
           "generator": ""
         },
         "selfheal": {
-          "healer": "planned oya-heal-stop-conditions crate (no live path)"
+          "healer": "planned heal-stop-conditions crate (no live path)"
         },
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_master_plan_stop_attempt_total",
+              "id": "master_plan_stop_attempt_total",
               "kind": "counter",
               "unit": "1",
               "labels": [
@@ -2924,7 +2924,7 @@
           "lane_id": "lean-a-test-set-registry"
         },
         "verification": {
-          "checker_crate": "jq + future planned oya-check-test-set-registry crate (no live path)",
+          "checker_crate": "jq + future planned check-test-set-registry crate (no live path)",
           "command": "jq empty /registry/test-set-registry.json"
         },
         "validation": {
@@ -2939,7 +2939,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_test_set_registry_row_count",
+              "id": "test_set_registry_row_count",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -2969,7 +2969,7 @@
           "lane_id": "lean-a-test-standard"
         },
         "verification": {
-          "checker_crate": "jq + future planned oya-check-test-standard crate (no live path)",
+          "checker_crate": "jq + future planned check-test-standard crate (no live path)",
           "command": "jq empty /specs/test-standard.json"
         },
         "validation": {
@@ -2984,7 +2984,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_test_standard_required_tier_coverage_ratio",
+              "id": "test_standard_required_tier_coverage_ratio",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -3028,7 +3028,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_vulnerability_decision_contract_coverage_total",
+              "id": "vulnerability_decision_contract_coverage_total",
               "kind": "gauge",
               "unit": "1",
               "labels": [
@@ -3074,7 +3074,7 @@
         "telemetry": {
           "metrics": [
             {
-              "id": "oya_work_area_hash_alias_violations_total",
+              "id": "work_area_hash_alias_violations_total",
               "kind": "counter",
               "unit": "1",
               "labels": [

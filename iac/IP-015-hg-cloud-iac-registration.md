@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-governance + axis-cloud-iac
-acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, oya-cloud-iac-iac-smoke]
+acceptance_lanes: [governance-authority-cohesion, governance-hyperscaler-maturity-claims, cloud-iac-iac-smoke]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -40,7 +40,7 @@ Updates `/specs/hyperscaler-gates.json` + adds a bootstrap-script under `microse
   "microservice": "cloud-iac",
   "competitors": ["argocd", "flux", "terraform-cloud", "opentofu", "spacelift", "atlantis", "env0", "pulumi-service", "crossplane"],
   "claim_boundary_doc": "microservices/cloud-iac/competitor-parity-matrix.md",
-  "verification_lane": "oya-cloud-iac-iac-smoke",
+  "verification_lane": "cloud-iac-iac-smoke",
   "registered_at": "2026-05-17",
   "status": "incubating"
 }
@@ -70,7 +70,7 @@ helm dep update microservices/cloud-iac/iac/helm/opentofu
 kubectl apply -k microservices/cloud-iac/iac/kustomize/overlays/${PACK}
 
 # 4. Wait for ArgoCD + iac-applier-worker + iac-registry-worker pods Ready
-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=oya-cloud-iac --timeout=10m -n cloud-iac
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=cloud-iac --timeout=10m -n cloud-iac
 
 # 5. Bootstrap iac-state-index Postgres schema
 kubectl exec -n cloud-iac iac-state-index-pg-0 -- psql -U cloud_iac -f /migrations/0001_initial.sql
@@ -91,12 +91,12 @@ echo "Bootstrap complete. cloud-iac now self-managed in ${PACK}."
 microservices/cloud-iac/scripts/bootstrap.sh pack-kr
 
 # After bootstrap, verify self-apply works
-cargo nextest run -p oya-cloud-iac-iac-applier-app --test self_apply
+cargo nextest run -p cloud-iac-iac-applier-app --test self_apply
 
 # HG-CLOUD-IAC gate registers green
-cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `hyperscaler-maturity-claims` is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `cloud-iac-iac-smoke` for --pack pack-kr is green in the branch-protected `oya-ci-required` context
+cloud-ci/ci governance gate `authority-cohesion` is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `hyperscaler-maturity-claims` is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `cloud-iac-iac-smoke` for --pack pack-kr is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

@@ -19,7 +19,7 @@ info:
     email: axis-integration@oyatie.app
   license:
     name: oyatie-proprietary
-  x-oya-related-adrs: [ADR-0145, ADR-0246, ADR-0253, ADR-0255, ADR-0258, ADR-0263, ADR-0297]
+  x-related-adrs: [ADR-0145, ADR-0246, ADR-0253, ADR-0255, ADR-0258, ADR-0263, ADR-0297]
 
 servers:
   - url: https://api.{tenant}.oyatie.app/connect/v1
@@ -293,28 +293,28 @@ components:
         purpose: >-
           Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
         enforced_by:
-          - oya-governance-oya-verify-ci-mirror-coverage
-          - oya-governance-oya-verify-ci-step-exit-semantics
-          - oya-governance-oya-verify-skip-flag-allowlist
-          - oya-governance-oya-submit-calls-verify
-          - oya-governance-oya-verify-exit-code-contract
+          - governance-verify-ci-mirror-coverage
+          - governance-verify-ci-step-exit-semantics
+          - governance-verify-skip-flag-allowlist
+          - governance-submit-calls-verify
+          - governance-verify-exit-code-contract
       ADR-0347:
         purpose: >-
-          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+          Declare that every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
         enforced_by:
           - cloud-ci-brand-residue
-          - oya-governance-lane-prefix-vocabulary
-          - oya-governance-rename-inventory-presence
+          - governance-lane-prefix-vocabulary
+          - governance-rename-inventory-presence
       ADR-0348:
         purpose: >-
           Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
         enforced_by:
-          - oya-governance-sharding-automation-coverage
-          - oya-governance-autosharding-manual-mode-refusal
-          - oya-governance-auto-rebalance-residency-honored
-          - oya-governance-dynamic-sharding-threshold-coverage
-          - oya-governance-audit-chain-emit-on-automation-events
-          - oya-governance-tenant-migration-reversibility
+          - governance-sharding-automation-coverage
+          - governance-autosharding-manual-mode-refusal
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
         event_surface:
           autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
@@ -322,13 +322,13 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0515:
         purpose: >-
-          Declare GitHub Actions plus branch protection as live CI authority until explicit owned-runner cutover, with cloud-ci producing the single protected `oya-ci-required` context.
+          Declare GitHub Actions plus branch protection as live CI authority until explicit owned-runner cutover, with cloud-ci producing the single protected `presubmit` context.
         enforced_by:
-          - oya-ci-required
-          - oya-governance-argocd-application-cosign-verified
-          - oya-governance-argocd-tenant-namespace-isolation
-          - oya-ci-required
-          - oya-governance-deploy-audit-chain-emit
+          - presubmit
+          - governance-argocd-application-cosign-verified
+          - governance-argocd-tenant-namespace-isolation
+          - presubmit
+          - governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
       governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.

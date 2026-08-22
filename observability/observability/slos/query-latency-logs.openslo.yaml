@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-observability-query-latency-logs
+  name: observability-query-latency-logs
   displayName: "observability: Loki query latency p95 ≤ 500ms"
   labels:
     microservice: observability
@@ -45,4 +45,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

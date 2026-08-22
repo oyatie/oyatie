@@ -6,7 +6,7 @@
     "owner_team": "axis-cloud-iac + cloud-secrets + ops-sre-reliability",
     "audience": "on-call IC + axis-cloud-iac SME + auditors",
     "tenant_scoped": false,
-    "datasource": "Mimir (oya-cloud-iac-self); recording-rules; Postgres exporter"
+    "datasource": "Mimir (cloud-iac-self); recording-rules; Postgres exporter"
   },
   "uid": "cloud-iac-registry-health",
   "title": "cloud-iac — Registry Health (iac-state-index + chart catalog + provenance)",
@@ -22,7 +22,7 @@
       "title": "iac-state-index rows",
       "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
       "targets": [
-        {"expr": "sum(oya_cloud_iac_registry_rows_total)", "refId": "A"}
+        {"expr": "sum(cloud_iac_registry_rows_total)", "refId": "A"}
       ]
     },
     {
@@ -31,7 +31,7 @@
       "title": "Registered chart count",
       "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
       "targets": [
-        {"expr": "sum(oya_cloud_iac_chart_records_total)", "refId": "A"}
+        {"expr": "sum(cloud_iac_chart_records_total)", "refId": "A"}
       ]
     },
     {
@@ -40,7 +40,7 @@
       "title": "SLSA L3 attestations (last 24h)",
       "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
       "targets": [
-        {"expr": "sum(increase(oya_cloud_iac_slsa_verifications_passed_total[24h]))", "refId": "A"}
+        {"expr": "sum(increase(cloud_iac_slsa_verifications_passed_total[24h]))", "refId": "A"}
       ]
     },
     {
@@ -49,7 +49,7 @@
       "title": "SLSA verify failures (last 24h; target=0)",
       "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
       "targets": [
-        {"expr": "sum(increase(oya_cloud_iac_slsa_verify_failure_total[24h]))", "refId": "A"}
+        {"expr": "sum(increase(cloud_iac_slsa_verify_failure_total[24h]))", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}}}
     },
@@ -79,7 +79,7 @@
       "title": "iac-state-index write rate",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "rate(oya_cloud_iac_registry_writes_total[5m])", "legendFormat": "writes/sec", "refId": "A"}
+        {"expr": "rate(cloud_iac_registry_writes_total[5m])", "legendFormat": "writes/sec", "refId": "A"}
       ]
     },
     {
@@ -88,7 +88,7 @@
       "title": "iac-state-index read latency (p99)",
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.99, rate(oya_cloud_iac_registry_read_duration_seconds_bucket[5m]))", "legendFormat": "p99", "refId": "A"}
+        {"expr": "histogram_quantile(0.99, rate(cloud_iac_registry_read_duration_seconds_bucket[5m]))", "legendFormat": "p99", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.3}, {"color": "red", "value": 1}]}}}
     },
@@ -98,8 +98,8 @@
       "title": "SLSA L3 verification rate (success vs failure)",
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "rate(oya_cloud_iac_slsa_verifications_passed_total[5m])", "legendFormat": "pass", "refId": "A"},
-        {"expr": "rate(oya_cloud_iac_slsa_verify_failure_total[5m])", "legendFormat": "fail", "refId": "B"}
+        {"expr": "rate(cloud_iac_slsa_verifications_passed_total[5m])", "legendFormat": "pass", "refId": "A"},
+        {"expr": "rate(cloud_iac_slsa_verify_failure_total[5m])", "legendFormat": "fail", "refId": "B"}
       ]
     },
     {
@@ -108,8 +108,8 @@
       "title": "Cosign + Rekor verification latency",
       "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.99, rate(oya_cloud_iac_cosign_verify_duration_seconds_bucket[5m]))", "legendFormat": "Cosign p99", "refId": "A"},
-        {"expr": "histogram_quantile(0.99, rate(oya_cloud_iac_rekor_lookup_duration_seconds_bucket[5m]))", "legendFormat": "Rekor p99", "refId": "B"}
+        {"expr": "histogram_quantile(0.99, rate(cloud_iac_cosign_verify_duration_seconds_bucket[5m]))", "legendFormat": "Cosign p99", "refId": "A"},
+        {"expr": "histogram_quantile(0.99, rate(cloud_iac_rekor_lookup_duration_seconds_bucket[5m]))", "legendFormat": "Rekor p99", "refId": "B"}
       ]
     },
     {
@@ -118,7 +118,7 @@
       "title": "Top 10 µservices by apply count (last 24h)",
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 10},
       "targets": [
-        {"expr": "topk(10, sum by (microservice) (increase(oya_cloud_iac_apply_completed_total[24h])))", "format": "table", "refId": "A"}
+        {"expr": "topk(10, sum by (microservice) (increase(cloud_iac_apply_completed_total[24h])))", "format": "table", "refId": "A"}
       ]
     },
     {
@@ -127,7 +127,7 @@
       "title": "Registry storage by pack",
       "gridPos": {"x": 12, "y": 20, "w": 12, "h": 10},
       "targets": [
-        {"expr": "sum by (pack) (oya_cloud_iac_registry_rows_total)", "format": "table", "refId": "A"}
+        {"expr": "sum by (pack) (cloud_iac_registry_rows_total)", "format": "table", "refId": "A"}
       ]
     }
   ]

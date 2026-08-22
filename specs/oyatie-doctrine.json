@@ -294,7 +294,7 @@
     "/specs/root-hub-pointers.json",
     "/specs/multispectrum-review.json (inherits P0..P16)",
     "every ADR (cites applicable principles)",
-    "oya-check-dependency-seam (mechanical enforcement)"
+    "check-dependency-seam (mechanical enforcement)"
   ],
   "decision_log": [
     {

@@ -57,7 +57,7 @@ pub(crate) fn validate_policy_values(config: &Value, findings: &mut BTreeSet<Fin
     expect_string(
         config,
         &["automation", "merge_authority"],
-        "oya-ci-required",
+        "presubmit",
         "DEP-AUTO-MERGE-AUTHORITY",
         "dependency updates must still merge through the single required context",
         findings,

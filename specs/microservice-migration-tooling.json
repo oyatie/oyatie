@@ -12,7 +12,7 @@
     "purpose": "Spec for the `oya dev migrate-microservice` command that mechanises per-µservice migrations from the legacy scattered layout (crates/, docs/prds/, /specs/microservices/, .omc/plans/milestones/, registry/catalog/) to the canonical per-microservice flat layout under microservices/<ms>/ per ADR-0131."
   },
   "command": "oya dev migrate-microservice",
-  "implemented_by": "crates/oya-dev-cli/src/commands/migrate_microservice.rs (Turn 2 IP)",
+  "implemented_by": "crates/dev-cli/src/commands/migrate_microservice.rs (Turn 2 IP)",
   "synopsis": "oya dev migrate-microservice --microservice <ms> [--dry-run] [--force] [--from-paths <path-list>] [--scope crates|docs|specs|catalog|contracts|all]",
   "arguments": {
     "--microservice": {
@@ -123,7 +123,7 @@
                 },
                 "rename_pkg": {
                   "type": "boolean",
-                  "description": "true if Cargo.toml package name rewrite needed (e.g., oya-check-* → oya-governance-*)"
+                  "description": "true if Cargo.toml package name rewrite needed (e.g., check-* → governance-*)"
                 },
                 "details": {
                   "type": "object"
@@ -207,14 +207,14 @@
       "refs_updated": 500,
       "wall_time": "≤ 10min per sub-microservice; running in parallel: ≤ 15min total"
     },
-    "governance bundle (50 oya-check-* crates with name rename)": {
+    "governance bundle (50 check-* crates with name rename)": {
       "files_moved": 250,
       "refs_updated": 1000,
       "wall_time": "≤ 30min (atomic; long but bundleable as one ChangeSet)"
     }
   },
   "verification_post_completion": {
-    "lane": "oya-governance-per-microservice-layout",
+    "lane": "governance-per-microservice-layout",
     "expected_state": "every migrated µservice conforms to ADR-0131 canonical folder shape",
     "rollback_window": "Migration commit may be reverted within 24h without ADR; after 24h, revert requires its own ADR-shaped decision."
   },

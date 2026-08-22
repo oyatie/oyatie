@@ -1,0 +1,33 @@
+# Transactional outbox + CDC change-stream shapes on the owned data SQL
+# port (ADR-0536 D-10/D-13; story G003 sub-slice 3). Generic outbox events
+# append into the SAME port WriteBatch as business rows (atomic commit =
+# effectively-once when paired with an at-least-once relay, the D-13
+# messaging doctrine); the ChangeStreamSource port models the W5 engine's
+# native changefeeds with HLC checkpoints, and the transitional impl is
+# outbox polling behind the same trait. Builds ON data-sql-kernel; the
+# messenger-specific shared-transactional-outbox-* crates remain the
+# transitional service-local seam. NO broker IO, NO polling loops here.
+# authoring_adrs: ADR-0510, ADR-0536, ADR-0537
+
+[package]
+name = "data-outbox-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "data_outbox_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+data-sql-kernel = { path = "../data-sql-kernel" }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

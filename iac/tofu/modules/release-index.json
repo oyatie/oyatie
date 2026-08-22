@@ -79,7 +79,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-cloud-account-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-cloud-account-opentofu-0.1.0.zip",
       "archive_sha256": "81afadc2feca2ed070719a3a326e1d1cb5697f11e100463831152bb3fca5f38d",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",
@@ -116,7 +116,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-dns-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-dns-opentofu-0.1.0.zip",
       "archive_sha256": "a6c4a3c0fdf982c015296ecce8d31bb0f69cc06a823f3a5a49ceb4186c85ba45",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",
@@ -153,7 +153,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-k8s-namespace-bootstrap-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-k8s-namespace-bootstrap-opentofu-0.1.0.zip",
       "archive_sha256": "df4335a69506ba3dc60dce97614a6543e4191886ea59af0cb78328d7a0c0c250",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",
@@ -190,7 +190,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-kms-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-kms-opentofu-0.1.0.zip",
       "archive_sha256": "6316f7c34a076b7db5b08a4e256bdc3fcb70d66e85323c10ba9b14cb1e33bfee",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",
@@ -227,7 +227,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-secrets-bootstrap-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-secrets-bootstrap-opentofu-0.1.0.zip",
       "archive_sha256": "97599d18a46450f38d32113e035b72b88b7609809ecc8482aa883f3c10bfd6a1",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",
@@ -264,7 +264,7 @@
         }
       ],
       "archive_manifest_ref": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-      "archive_file": "target/oya-cloud-iac/module-archives/oyatie-vpc-opentofu-0.1.0.zip",
+      "archive_file": "target/cloud-iac/module-archives/oyatie-vpc-opentofu-0.1.0.zip",
       "archive_sha256": "edf94120a669269c0994cb3250c1240c2d71b2703e7fd5e8faf0b67de27c35a1",
       "archive_format": "zip",
       "archive_media_type": "archive/zip",

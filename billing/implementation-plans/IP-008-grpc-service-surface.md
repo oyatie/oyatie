@@ -172,7 +172,7 @@ The caller can chain audit hashes for cross-µservice transactions. The seal is 
 
 ### §C.6 Rust-only codegen (ADR feedback_rust_strict_only_no_python)
 
-`option go_package = ""` and `option java_package = ""` are explicitly blank because Rust-strict-only is the directive. Codegen uses `tonic` + `prost`; clients are generated into per-consumer Rust crates (`oya-cloud-billing-grpc-client`).
+`option go_package = ""` and `option java_package = ""` are explicitly blank because Rust-strict-only is the directive. Codegen uses `tonic` + `prost`; clients are generated into per-consumer Rust crates (`cloud-billing-grpc-client`).
 
 ## §D Lifecycle
 

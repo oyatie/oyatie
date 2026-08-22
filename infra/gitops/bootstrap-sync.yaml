@@ -12,7 +12,7 @@
 #   wave -10  root app-of-apps (self-referential; already running post-bootstrap)
 #   wave  0   CNI (Cilium) + storage (local-path-provisioner)
 #   wave  1   VCS substrate (GitHub interim)
-#   wave  2   CI (oya-ci) + observability
+#   wave  2   CI (ci) + observability
 #
 # Storage: the local-path-provisioner bootstrap is handled by the Talos
 # ClusterResourceSet (infra/capi/crs/). Cilium is wired via infra/gitops/values.yaml.
@@ -72,7 +72,7 @@ spec:
       include: 'vcs-substrate.yaml'
   destination:
     server: https://kubernetes.default.svc
-    namespace: oya-forge
+    namespace: forge
   syncPolicy:
     automated:
       prune: true

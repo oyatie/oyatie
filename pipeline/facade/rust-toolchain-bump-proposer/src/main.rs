@@ -2,9 +2,9 @@
 //!
 //! The capability's primary surface is the `reconcile` library API (desired state in, reconciled
 //! tree + report out). This binary is a thin adapter a scheduled workflow or the future typed
-//! cloud-ci runner invokes — the same shape as the other `oya-cloud-ci-*` automation binaries.
+//! cloud-ci runner invokes — the same shape as the other `cloud-ci-*` automation binaries.
 //! It performs NO network I/O, NO subprocesses, NO clock, NO randomness: the latest stable
-//! version is supplied by the caller (`--latest-stable <v>` or `OYA_LATEST_STABLE_RUST`), so the
+//! version is supplied by the caller (`--latest-stable <v>` or `OYATIE_LATEST_STABLE_RUST`), so the
 //! scheduled fetch of `https://static.rust-lang.org/dist/channel-rust-stable.toml` lives in the
 //! workflow step and the parsed version is handed in.
 //!
@@ -26,7 +26,7 @@ use ci_rust_toolchain_bump_proposer::{
     plan_bump, reconcile, verify_clean,
 };
 
-const LATEST_STABLE_ENV: &str = "OYA_LATEST_STABLE_RUST";
+const LATEST_STABLE_ENV: &str = "OYATIE_LATEST_STABLE_RUST";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {

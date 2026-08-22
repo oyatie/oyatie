@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0717-D1
     description: "Extend the repo-root-hygiene gate with a policy-driven corpus-budget dimension: class match rules (prefixes + optional suffixes) and frozen ceilings live in DATA; growth past a ceiling is born-blocking with a one-in-one-out remediation; an absent or malformed block fails closed."
     exit_criteria: "Unit tests cover per-class growth, absent-block fail-closed, and malformed counts; a live merge-base test requires any corpus reduction to lower the frozen ceiling in the same PR; the docs/markdown classes seed the gate as a synthetic dependency in the affected-set policy so docs-only PRs execute it."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 
 # ADR-0717: Corpus-budget sprawl ratchet

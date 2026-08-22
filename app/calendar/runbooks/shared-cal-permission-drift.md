@@ -20,11 +20,11 @@ after one is updated through the CalDAV protocol (which speaks DAV
 ACLs natively per RFC 3744) and the other is updated through the
 oyatie REST surface. Visible as:
 
-- `oya_calendar_shared_cal_acl_drift_total{tenant_id, calendar_id}`
+- `calendar_shared_cal_acl_drift_total{tenant_id, calendar_id}`
   emits a non-zero count.
 - A tenant reports "I added a viewer to my shared calendar but they
   can't see it" or "I removed a viewer but they can still see it."
-- `oya_calendar_shared_cal_permission_check_refused_total` spikes for a
+- `calendar_shared_cal_permission_check_refused_total` spikes for a
   specific calendar_id (Cedar refusing despite CalDAV ACL admitting,
   or vice versa).
 
@@ -54,7 +54,7 @@ Calendar shares are governed by two parallel access-control sources:
 
 The two MUST agree. Cedar is the source of truth; the CalDAV ACL is
 a derived projection synchronised by
-`oya-calendar-ics-import-export-adapter-caldav-radicale-worker`.
+`calendar-ics-import-export-adapter-caldav-radicale-worker`.
 Drift happens when:
 
 - The worker is paused / crashed / queue-clogged → CalDAV ACL stale.
@@ -69,9 +69,9 @@ Drift happens when:
 
 ```bash
 # Top calendars by drift count over the last 1h
-kubectl -n calendar exec deploy/oya-calendar-event-store-rest -- \
+kubectl -n calendar exec deploy/calendar-event-store-rest -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_shared_cal_acl_drift_total' |
+  grep 'calendar_shared_cal_acl_drift_total' |
   sort -t'}' -k2 -n -r | head -10
 ```
 
@@ -79,11 +79,11 @@ kubectl -n calendar exec deploy/oya-calendar-event-store-rest -- \
 
 ```bash
 # Fetch Cedar-resolved permissions
-cargo run -p oya-dev-cli -- calendar acl describe \
+cargo run -p dev-cli -- calendar acl describe \
   --tenant <tenant_id> --calendar-id <calendar_id> --source cedar
 
 # Fetch CalDAV-projected ACL
-cargo run -p oya-dev-cli -- calendar acl describe \
+cargo run -p dev-cli -- calendar acl describe \
   --tenant <tenant_id> --calendar-id <calendar_id> --source caldav
 ```
 
@@ -93,8 +93,8 @@ Diff. The Cedar version is authoritative.
 
 ```bash
 # Is the CalDAV ACL reconciliation worker healthy?
-kubectl -n calendar get deploy oya-calendar-ics-import-export-adapter-caldav-radicale-worker
-kubectl -n calendar logs deploy/oya-calendar-ics-import-export-adapter-caldav-radicale-worker --since=15m |
+kubectl -n calendar get deploy calendar-ics-import-export-adapter-caldav-radicale-worker
+kubectl -n calendar logs deploy/calendar-ics-import-export-adapter-caldav-radicale-worker --since=15m |
   grep -E '(WARN|ERROR|reconcile)' | tail -30
 ```
 
@@ -105,7 +105,7 @@ CalDAV-ALLOW (unauthorised access route):
 
 ```bash
 # Audit: how many CalDAV reads occurred against affected calendars in the last 24h?
-cargo run -p oya-dev-cli -- calendar audit query \
+cargo run -p dev-cli -- calendar audit query \
   --tenant <tenant_id> --calendar-ids <calendar_id_list> \
   --action ReadEvents --since 24h
 ```
@@ -119,11 +119,11 @@ Any reads that Cedar would have denied are reportable per the DPIA.
 Re-enable + force a full re-sync:
 
 ```bash
-kubectl -n calendar scale deploy/oya-calendar-ics-import-export-adapter-caldav-radicale-worker --replicas=2
+kubectl -n calendar scale deploy/calendar-ics-import-export-adapter-caldav-radicale-worker --replicas=2
 
 # Force re-sync for affected calendars
 for cal in <calendar_id_list>; do
-  cargo run -p oya-dev-cli -- calendar acl resync \
+  cargo run -p dev-cli -- calendar acl resync \
     --tenant <tenant_id> --calendar-id "$cal"
 done
 ```
@@ -133,7 +133,7 @@ done
 The Cedar policy is authoritative; revert the CalDAV change:
 
 ```bash
-cargo run -p oya-dev-cli -- calendar acl reset-to-cedar \
+cargo run -p dev-cli -- calendar acl reset-to-cedar \
   --tenant <tenant_id> --calendar-id <calendar_id>
 ```
 
@@ -147,7 +147,7 @@ If a Cedar policy version-bump is in flight, wait for it to settle:
 
 ```bash
 # Check Cedar policy version
-cargo run -p oya-dev-cli -- policy version --microservice calendar
+cargo run -p dev-cli -- policy version --microservice calendar
 ```
 
 If the version is still propagating (typically <60s), wait + retry.
@@ -161,7 +161,7 @@ immediately:
 1. Lock down the affected calendars:
    ```bash
    for cal in <calendar_id_list>; do
-     cargo run -p oya-dev-cli -- calendar acl lock-down \
+     cargo run -p dev-cli -- calendar acl lock-down \
        --tenant <tenant_id> --calendar-id "$cal" --reason "privacy-incident"
    done
    ```
@@ -176,13 +176,13 @@ immediately:
 
 ```bash
 # Drift counter returning to zero
-kubectl -n calendar exec deploy/oya-calendar-event-store-rest -- \
+kubectl -n calendar exec deploy/calendar-event-store-rest -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_shared_cal_acl_drift_total'
+  grep 'calendar_shared_cal_acl_drift_total'
 
 # Re-run the diff
-cargo run -p oya-dev-cli -- calendar acl describe --tenant <tenant_id> --calendar-id <calendar_id> --source cedar > /tmp/cedar.json
-cargo run -p oya-dev-cli -- calendar acl describe --tenant <tenant_id> --calendar-id <calendar_id> --source caldav > /tmp/caldav.json
+cargo run -p dev-cli -- calendar acl describe --tenant <tenant_id> --calendar-id <calendar_id> --source cedar > /tmp/cedar.json
+cargo run -p dev-cli -- calendar acl describe --tenant <tenant_id> --calendar-id <calendar_id> --source caldav > /tmp/caldav.json
 diff /tmp/cedar.json /tmp/caldav.json   # expect empty diff
 ```
 

@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0700-D1
     description: "Live apex source-of-truth for topic ci_admission: Live CI admission, build hermeticity, and runner substrate."
     exit_criteria: "docs/decisions/ADR-0700-ci-admission-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0700: Live CI admission, build hermeticity, and runner substrate
 
@@ -39,14 +39,14 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### Live hard norms (restated from ADR-0515 lineage — full text in archive)
 
-1. **Single required admission context:** `oya-ci-required` is the sole protected merge context (no dual CI authority).
+1. **Single required admission context:** `presubmit` is the sole protected merge context (no dual CI authority).
 2. **Cloud-native gates:** binding verification is Rust/Buck2 gate apps; legacy shell/CLI is bridge feedback only.
 3. **No dual-authority CI:** GitHub Actions is transitional adapter; no re-introduction of dual merge authorities (legacy farm substrates retired).
 4. **Warm CAS / RE activation:** fail-closed until explicit go-gate (credentials #1541, cache-only proof, Accepted activation ADR). Apex gists that mention `remote_enabled=true` are **historical design**, not activation authority.
 5. **Generated faces:** never hand-edit `*.generated.json`; materialize via sanctioned producers.
-6. **ADR census epoch gate (ADR-0624 lineage):** `ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs` keeps P2 remains active with its immutable historical receipt while P3 remains dormant as a deterministic, non-materializing policy check. It runs beneath the sole protected `oya-ci-required` context and does not authorize planning dispatch.
+6. **ADR census epoch gate (ADR-0624 lineage):** `ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs` keeps P2 remains active with its immutable historical receipt while P3 remains dormant as a deterministic, non-materializing policy check. It runs beneath the sole protected `presubmit` context and does not authorize planning dispatch.
 7. **Census epoch ownership marker:** `registry/adr-census-epoch/OWNERS` remains the narrow ownership seed for the census epoch control plane (implementation surface from ADR-0624).
-8. **Live Postgres law (2026-08-11):** Mocks/fakes are the default Class A path. Live Postgres is reserved for durable adapter/facade truth (RLS, migrations, real driver/SQL dialect, SCIM/tenant lifecycle, outbox — #901 class). On `pull_request`, live-PG jobs are **path-optional** (skip when cone-irrelevant; fail-closed → run when path detection fails). When armed, run **touched live targets (+ explicit declared dependents)** — **BAN** a broad fixed multi-crate PG suite as the default whenever *any* path in a coarse cone matches. Full estate proof belongs on `merge_group` / push@`dev` / nightly / ship. Transitional workflow may still use coarse adapter vs facade cones with a fixed buck list; **target** is touched-surface select (same affected discipline as Buck2 units). Pattern is PRODUCTIZED; exact oyatie path prefixes/target lists are OYA_SPECIFIC overlay. Provenance: archived ADR-0639 (P-path legs) + programme N=1 SSOT *Live Postgres law*.
+8. **Live Postgres law (2026-08-11):** Mocks/fakes are the default Class A path. Live Postgres is reserved for durable adapter/facade truth (RLS, migrations, real driver/SQL dialect, SCIM/tenant lifecycle, outbox — #901 class). On `pull_request`, live-PG jobs are **path-optional** (skip when cone-irrelevant; fail-closed → run when path detection fails). When armed, run **touched live targets (+ explicit declared dependents)** — **BAN** a broad fixed multi-crate PG suite as the default whenever *any* path in a coarse cone matches. Full estate proof belongs on `merge_group` / push@`dev` / nightly / ship. Transitional workflow may still use coarse adapter vs facade cones with a fixed buck list; **target** is touched-surface select (same affected discipline as Buck2 units). Pattern is PRODUCTIZED; exact oyatie path prefixes/target lists are OYATIE_SPECIFIC overlay. Provenance: archived ADR-0639 (P-path legs) + programme N=1 SSOT *Live Postgres law*.
 
 1. **This ADR is the live reading entry** for topic `ci_admission` under the end-state ADR policy.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
@@ -58,23 +58,23 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 - **ADR-9** (ADR-0009-cell-architecture-per-tenant-per-region): We adopt **cells as the primary blast-radius isolation primitive**, sized per-tenant per-region with five cell tiers, cell-routing primitives at edge / mesh / store / event layers, and per-cell HSM partitions. Cell-isolation evidence is collected quarterly per regulatory pack. ### Cell sizing tiers | Tier | Reads as | Tenant count | Use case | |---
 - **ADR-10** (ADR-0010-regional-pack-architecture): We adopt **canonical-architecture + regional-pack plug-ins** as the locale model. The architecture is locale-agnostic; every per-locale concern lives in a regional pack that plugs into published seams. One pack per market, versioned and signed. ### Pack contents (per pack) | Pack section | What's inside | |---|---| | `regulatory` | Regulator names,
-- **ADR-21** (ADR-0021-intelligence-capability-registry-and-mcp-gateway): We define the canonical `Capability` record in `oya-intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime. ### Capability primitive (`oya-intelligence-capability-kernel`) ```ru
+- **ADR-21** (ADR-0021-intelligence-capability-registry-and-mcp-gateway): We define the canonical `Capability` record in `intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime. ### Capability primitive (`intelligence-capability-kernel`) ```ru
 - **ADR-28** (ADR-0028-cloud-microservice-architecture): We adopt a **three-phase compute trajectory** with a **phase-invariant product surface**. Customers consume the same APIs, the same SKUs, the same IAM model, and the same audit shape regardless of whether the underlying capacity is rented, leased in a colo, or owned in a mega-DC. **Naming justification (BNF v4.1, ADR-0056):** - Cloud µservice crate
-- **ADR-29** (ADR-0029-connect-dual-context-architecture): We adopt as a **suite of twelve canonical apps** plus three adjunct surfaces, each its own bounded context under `oya-connect-<app>-*`, sharing the six substrates from ADR-0001 plus a Connect-internal **document-format kernel** and **collab-runtime kernel**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-mail-kernel`: slot2 = `connector` (re
-- **ADR-30** (ADR-0030-search-microservice-architecture): We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by 
-- **ADR-31** (ADR-0031-ads-and-analytics-microservice-architecture): We adopt a **singleton tenant-ads-gate sourcing rule** plus a **five-pillar Ads architecture** (Serving / Pricing / Attribution / Advertiser console / Publisher inventory) plus a **DP-budgeted Analytics architecture**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-ads-gate-kernel`: slot2 = `ads` (registered µservice); slot3 = `gate` (BC); s
-- **ADR-35** (ADR-0035-workflow-engine-state-machine-and-dag-hybrid): We build `crates/oya-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime
+- **ADR-29** (ADR-0029-connect-dual-context-architecture): We adopt as a **suite of twelve canonical apps** plus three adjunct surfaces, each its own bounded context under `connect-<app>-*`, sharing the six substrates from ADR-0001 plus a Connect-internal **document-format kernel** and **collab-runtime kernel**. **Naming justification (BNF v4.1, ADR-0056):** - `mail-kernel`: slot2 = `connector` (re
+- **ADR-30** (ADR-0030-search-microservice-architecture): We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by 
+- **ADR-31** (ADR-0031-ads-and-analytics-microservice-architecture): We adopt a **singleton tenant-ads-gate sourcing rule** plus a **five-pillar Ads architecture** (Serving / Pricing / Attribution / Advertiser console / Publisher inventory) plus a **DP-budgeted Analytics architecture**. **Naming justification (BNF v4.1, ADR-0056):** - `ads-gate-kernel`: slot2 = `ads` (registered µservice); slot3 = `gate` (BC); s
+- **ADR-35** (ADR-0035-workflow-engine-state-machine-and-dag-hybrid): We build `crates/workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime
 - **ADR-40** (ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback): We adopt **Argo Rollouts** as the canonical progressive-delivery controller; **canary 5% → 25% → 50% → 100%** as the default stage progression; **metric-gated rollback** at SLO 1h burn-rate ≥ 14.4× (Sev-1-class trigger); **blue-green** for stateful surfaces; **per-region phased rollout** as the geographic progression; **per-cell rollback** as the u
 - **ADR-44** (ADR-0044-service-mesh-istio-ambient-and-envoy-gateway): We adopt **Istio Ambient mode** as the canonical east-west service mesh; **Envoy** (gateway-class) as the canonical north-south edge gateway; **mTLS everywhere** as the default with per-traffic-type opt-out only via ADR; **per-cell namespace** as the isolation unit; **cross-cell traffic** explicit + Cedar-policied + audit-chained per call. ### Isti
-- **ADR-47** (ADR-0047-search-backend-strategy): We adopt **pgroonga** day-1 with **legal isolation** per License Policy ADR + replacement plan; **Tantivy** (MIT) in-Rust at scale; **OpenSearch** (Apache-2) only as an adapter behind a port; **Elasticsearch SSPL forbidden** in product surface; **in-house long-horizon** (KR morphology + Tantivy + custom ranker) under `crates/oya-search-backend-*`. 
+- **ADR-47** (ADR-0047-search-backend-strategy): We adopt **pgroonga** day-1 with **legal isolation** per License Policy ADR + replacement plan; **Tantivy** (MIT) in-Rust at scale; **OpenSearch** (Apache-2) only as an adapter behind a port; **Elasticsearch SSPL forbidden** in product surface; **in-house long-horizon** (KR morphology + Tantivy + custom ranker) under `crates/search-backend-*`. 
 - **ADR-56** (ADR-0056-rust-clean-architecture-bnf): ### Canonical BNF v4.1 ```bnf crate ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer | "oya" "-" "check" "-" rule-name microservice ::= kebab-token ( "-" kebab-token )* (* 1..3 tokens; registry-validated *) bc-tokens ::= kebab-token ( "-" kebab-token )* (* 0..N; OPTIONAL *) layer ::= "kernel" | "domain" | "usecase" | "app" | "adapter" | "inf
 - **ADR-83** (ADR-0083-rust-error-handling-tier-decision): We adopt a **three-tier** error-handling policy applied uniformly across every `oya-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **
 - **ADR-91** (ADR-0091-governance-write-gate-foundations): The write-gate kernel owns the canonical write-gate state machine: ``` Proposed → Reviewed { reviewer } → Approved { approver } → Executed \ / +----------> Rejected { reason } <--------------+ ``` Linear forward path: `Proposed → Reviewed → Approved → Executed`. Any non-terminal state may transition to `Rejected`. `Executed` and `Rejected` are term
-- **ADR-94** (ADR-0094-handler-trait-with-associated-error): Add a typed `Handler` trait in `oya-http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into()
+- **ADR-94** (ADR-0094-handler-trait-with-associated-error): Add a typed `Handler` trait in `http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into()
 - **ADR-99** (Cedar policy extension — intelligence supervisor capabilities in docs/policies/foundr): Add `docs/policies/intelligence-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, r
 - **ADR-104** (Ecosystem-expansion principle for check-lane + adapter crate reintroduction): **Ecosystem-expansion rule.** A crate is shipped iff: 1. The kernel/domain layer it implements is itself shipped, AND 2. At least one consumer in the workspace imports it, AND 3. The crate has a real implementation (not a doc-stub). If any condition fails, the crate is not shipped. Documentation of the trigger that would unblock the crate lives in 
 - **ADR-117** (ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation): 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/oya-vcs-admission infra/kyverno/oya-vcs-admission` (history-preserving), removing the now-empt
-- **ADR-118** (ADR-0118-retire-archive-orphan-fitness-lane): Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/oya-governance-archive-orphan-kernel` - `tools/oya-governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retiremen
+- **ADR-118** (ADR-0118-retire-archive-orphan-fitness-lane): Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/governance-archive-orphan-kernel` - `tools/governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retiremen
 - **ADR-123** (ADR-0123-hyperscaler-maturity-claim-gate): Use `/specs/hyperscaler-gates.json` as the machine-readable maturity claim registry. The exact phrase "we are hyperscaler mature" is forbidden unless the registry claim rule is allowed and all required gates have fresh evidence. Add the repo-native gate: ```text oya gate validate hyperscaler-maturity-claims ``` The gate validates: - Required maturi
 - **ADR-128** (ADR-0128-hyperscaler-architecture-invariants): `specs/hyperscaler-architecture-invariants.json` (spec_id: EXE-HYPERSCALER-ARCH-INVARIANTS, version 1.0.0) is the canonical, machine-readable, binding source of truth for what "hyperscaler-grade" means in the Oyatie portfolio. This PR lands the catalog validator; it does not claim that product PRDs are already blocked on the catalog. Binding rules:
 - **ADR-129** (ADR-0129-changeset-plan-dag-and-honest-claims-gate): The existing ImplementationPlan frontmatter `id` is the canonical ChangeSet ID. No separate `changeset_id` field is introduced. The validator treats these fields as the exact ChangeSet graph contract: | Field | Status | Meaning | |---|---|---| | `doc_class` | required | Must be `ImplementationPlan`. | | `id` | required | Canonical ChangeSet ID, mat
@@ -83,13 +83,13 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-148** (ADR-0148-service-mesh-cilium-ambient-layered): Oyatie adopts a **layered service-mesh substrate** in which **each layer owns exactly one concern**: ### Layer ownership (canonical; zero overlap) | Layer | Owner | Responsibilities | Out-of-scope | |---|---|---|---| | **Layer 3/4 (kernel-level dataplane)** | **Cilium 1.19.x** (pin 1.19.4) [amended 2026-05-26 — see note] | CNI (pod networking, IPAM
 - **ADR-157** (ADR-0157-api-gateway-tier): Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external HTTPS REST or realtime request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice. ### Operational shape 1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation 
 - **ADR-162** (ADR-0162-per-tenant-audit-log-slicing): Audit-chain seals partition by `tenant_id`. The audit-chain µservice maintains: ### Sharding scheme - **Per-pack shared shard.** Multi-tenant cells (e.g. `pack-us-shared`) use a *per-pack* audit-chain Merkle tree; tenant_id partition is a *leaf-level* partition within the shared tree. The Merkle root covers all tenants in the pack; per-tenant retri
-- **ADR-167** (ADR-0167 — Tenant-facing CLI binary `oya` (separate from internal `oya-dev-cli`)): Oyatie introduces a SECOND CLI binary, also named `oya` from the tenant's perspective, distributed as the crate `oya-tenant-cli` and packaged under the name `oya` in tenant-facing artifact channels (Homebrew tap, apt repo, container image `ghcr.io/oyatie/oya:<semver>`, MSI installer). The two binaries are kept distinct via: - **Repo layout**: `crat
+- **ADR-167** (ADR-0167 — Tenant-facing CLI binary `oya` (separate from internal `dev-cli`)): Oyatie introduces a SECOND CLI binary, also named `oya` from the tenant's perspective, distributed as the crate `tenant-cli` and packaged under the name `oya` in tenant-facing artifact channels (Homebrew tap, apt repo, container image `ghcr.io/oyatie/oya:<semver>`, MSI installer). The two binaries are kept distinct via: - **Repo layout**: `crat
 - **ADR-175** (ADR-0175-tenant-lifecycle-workflow): ### D-1. Canonical six-state machine ``` Pending ──onboard_saga──▶ Active ──┬──suspend_saga──▶ Suspended ──unsuspend_saga──▶ Active │ └──migrate_saga──▶ Migrating ──migrate_completion──▶ Active (in target cell) │ └──offboard_saga──▶ Offboarded │ delete_saga │ ▼ DeletionConfirmed ``` State semantics: | State | Meaning | Allowed transitions | | --- |
 - **ADR-182** (ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation): Oyatie adopts a **two-substrate ingress model** with zero feature overlap: ### North-south (public → cluster): Envoy Gateway 1.8.0 The canonical north-south substrate is **Envoy Gateway 1.8.0** (CNCF; Kubernetes Gateway API v1.0 conformant; vendor-neutral; deployed as a dedicated `api-gateway` µservice per ADR-0157). Envoy Gateway owns: - **TLS ter
 - **ADR-185** (ADR-0185-workflow-studio-client-stack): Oyatie adopts the following per-surface client matrix. Each surface is native; each ecosystem shares logic via its own idiomatic shared-layer; the cross-ecosystem unifier is the OpenAPI 3.2.0 contract. ### Per-surface client matrix | Surface | Stack | API client codegen | Ecosystem-shared layer | Status | |---|---|---|---|---| | Web (Phase 1) | **S
 - **ADR-190** (ADR-0190-scim-2-provisioning-enterprise-tenants): **Identity µservice exposes a SCIM 2.0 RFC 7643/7644 endpoint at `/scim/v2/{tenant}` per tenant. Inbound provisioning from Okta / Entra / Workspace pushes Users + Groups; lifecycle states (active, suspended, deleted) propagate. A pluggable adapter contract (`HrisAdapter` trait) handles non-SCIM HRIS sources by translating to internal SCIM-shaped op
 - **ADR-194** (ADR-0194-tenant-facing-timeseries-timescaledb): Oyatie adopts **TimescaleDB 2.26.x Community Edition (Apache-2.0)** as a Postgres 18 extension installed onto the existing Tier 1 Postgres OLTP cluster (per ADR-0184), opt-in per µservice via manifest. TimescaleDB community-edition v2.26 supports Postgres 18 since v2.23 (March 2026 release line). ### Scope (in-scope features — Apache-2.0 community 
-- **ADR-204** (ADR-0204-workflow-studio-canvas-library): Per stack: | Stack | Phase 1 canvas | Phase 2 canvas (in-house) | |---|---|---| | SvelteKit (web, Phase 1) | **svelte-flow** (`@xyflow/svelte`, MIT) | `oya-canvas-svelte` (built on Svelte 5 + signals + SVG/Canvas2D) | | Leptos (web, Phase 2) | (skipped — Leptos web ships Phase 2) | `oya-canvas-leptos` (Rust-native, Leptos signals + SVG/Canvas2D + W
+- **ADR-204** (ADR-0204-workflow-studio-canvas-library): Per stack: | Stack | Phase 1 canvas | Phase 2 canvas (in-house) | |---|---|---| | SvelteKit (web, Phase 1) | **svelte-flow** (`@xyflow/svelte`, MIT) | `canvas-svelte` (built on Svelte 5 + signals + SVG/Canvas2D) | | Leptos (web, Phase 2) | (skipped — Leptos web ships Phase 2) | `canvas-leptos` (Rust-native, Leptos signals + SVG/Canvas2D + W
 - **ADR-213** (Ecosystem-as-a-Service architecture — Plugin/App Store substrate (third-party de): Oyatie ships an **Ecosystem-as-a-Service** product surface, composed of **two single-concern µservices** under the ADR-0131 flat layout, citing the industry inheritances listed in the frontmatter: ### 1. Two µservices, single-concern each (per ADR-0132) | µservice | Concern | Persona served | Inheritance | |---|---|---|---| | `microservices/plugin-
 - **ADR-215** (ADR-0215-multi-context-platform-architecture): Adopt a multi-context principal model across Oyatie. One human principal can hold multiple active data contexts simultaneously: - `work-context-{employer}` for each employer or client relationship; - `personal-context` for B2C artifacts; - `healthcare-patient-context`; - `healthcare-provider-context`; - `education-student-context`; - `government-ci
 - **ADR-234** (ADR-0234-connect-social-expansion-planning-contract): Accept the expansion PRDs as a **planning contract** for PR #130, with these constraints: - The new sub-products are catalog/planning surfaces only until their crates, validators, gates, and CI lanes land. - `industry_patterns_adopted`, `anti_patterns_avoided`, `hyperscaler_bar`, and `production_readiness_gates` are advisory unless a concrete valid
@@ -107,7 +107,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-328** (Substance Bar as Canonical Sequence and Batch Discipline): ### B.1 Decision statement Oyatie realignment work MUST follow the five-phase canonical build sequence in Section D-1. Phase 4 work MUST follow the Big 8 sub-sequence in Section D-2. Every agent dispatch in the realignment wave MUST include an agent-class-specific five-anchor set as defined in Section D-3. Every microservice ownership audit MUST us
 - **ADR-334** (ADR-0334-shorts-microservice-merged-into-social): D-1. `microservices/shorts/` is retired as a standalone µservice. D-2. `microservices/shorts/` keeps only a `RETIRED.md` redirect marker. D-3. Historical shorts service content is not the live authority after this ADR. D-4. `microservices/social/` is the canonical owner of short-form video. D-5. `microservices/social/` is the canonical owner of lon
 - **ADR-340** (Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram): ### B.1 Decision statement Every µservice's `microservices/<name>/manifest.json` MUST declare a top-level `capacity_model` block with the following required fields: - `baseline_cpu_per_tenant`: decimal vCPU value per active tenant at steady state (e.g., `0.1`). - `baseline_ram_per_tenant`: integer MiB value per active tenant at steady state (e.g., 
-- **ADR-341** (Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + a): ### B.1 Decision statement Every cellular promotion or demotion event between ADR-0248 tiers (Tier 0..Tier 4, where Tier 0 = highest blast-radius / most isolated, Tier 4 = best-effort / edge / lowest blast-radius) MUST be evaluated against six machine-checkable gate inputs by the new CI lane `oya-check-cell-promotion-gates` plus the in-cluster cell
+- **ADR-341** (Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + a): ### B.1 Decision statement Every cellular promotion or demotion event between ADR-0248 tiers (Tier 0..Tier 4, where Tier 0 = highest blast-radius / most isolated, Tier 4 = best-effort / edge / lowest blast-radius) MUST be evaluated against six machine-checkable gate inputs by the new CI lane `check-cell-promotion-gates` plus the in-cluster cell
 - **ADR-346** (oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + car): ### B.1 Decision statement `./bin/oya verify --ci-required` is the canonical local pre-push verifier. The verifier MUST locally mirror the full CI matrix at `.github/workflows/pr-tests.yml` and MUST block on exit-0 of EACH step before returning success to the caller. The five mandatory mirror steps are: 1. **D-1:** `cargo fmt --all --check` — forma
 - **ADR-348** (Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support): ### B.1 Decision statement Cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: 1. **Autosharding** — tenant→cell/shard placement is computed automatically by the control plane; no human operator picks placement; inputs are capacity_model (ADR-0340) + com
 - **ADR-360** (CI/CD pipeline optimization program — affected-target precision, gate-only overl): Adopt a seven-part CI/CD optimization program. Each part has a hard correctness rule so optimization never weakens the governance gates. - **O1 — Affected-target precision.** Add an additive `oya verify --affected [--base <ref>]` presubmit mode. Classify the changed-file set vs the base into: **Full** (any of `Cargo.lock`, root/`[workspace]` `Cargo
@@ -115,7 +115,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-367** (ADR-0367-trustless-pre-merge-verification-gateway): ### 1. The producer never certifies its own work The author-agent's self-reported evidence (claimed test/gate results) is **never trusted** for the merge decision. It is at most a hint. ### 2. Trusted-runner-signed evidence The **trusted runner** (the farm / legacy-CI-farm, ADR-0349/0361) re-executes every gate **hermetically from a clean checkout** and *
 - **ADR-369** (ADR-0369-gated-stacked-trunk-change-flow): **Gated stacked-trunk with a speculative train**, on plain git (ADR-0363) + GitHub PRs as the cheap mechanism + audit record (ADR-0367 §4): 1. **Conflict prevention — ownership-sharding (now, D1).** One owner-agent per service on disjoint flat paths (ADR-0362); `concurrent-safe-paths` admission + CODEOWNERS. Disjoint paths → most concurrent work ne
 - **ADR-373** (ADR-0373-llm-gateway-production-design): Adopt the design recorded in the gateway design dossier, summarized as four decisions: 1. **Provider abstraction + canonical OpenAI-compatible surface** (ADR-0373-D1): one canonical OpenAI-shaped request/response with per-provider adapter traits; OpenAPI 3.2.0 contract; byte-passthrough SSE; OpenAI error envelope; 429 + `Retry-After`; two security 
-- **ADR-374** (ADR-0374-ci-webhook-gateway-github-actions): Build a **flat single-concern Rust microservice**, `ci-webhook-gateway` (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package `oya-ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline: 1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/ Tower/Hyper — blessed runtime deps). 2. **Verify**
+- **ADR-374** (ADR-0374-ci-webhook-gateway-github-actions): Build a **flat single-concern Rust microservice**, `ci-webhook-gateway` (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package `ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline: 1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/ Tower/Hyper — blessed runtime deps). 2. **Verify**
 - _…plus 66 additional members listed in supersedes frontmatter; full text in git history / archive._
 
 ## Consequences
@@ -126,7 +126,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-21 residual
 
-**ADR-0021-intelligence-capability-registry-and-mcp-gateway** — We define the canonical `Capability` record in `oya-intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime. ### Capability primitive (`oya-intelligence-capability-kernel`) ```rust // crates/oya-intelligence-capability-kernel/sr
+**ADR-0021-intelligence-capability-registry-and-mcp-gateway** — We define the canonical `Capability` record in `intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime. ### Capability primitive (`intelligence-capability-kernel`) ```rust // crates/intelligence-capability-kernel/sr
 
 ### ADR-273 residual
 
@@ -162,7 +162,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-538 residual
 
-**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oya-*", "cloud/*/crates/oya-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oya-*", "oya/office/oya-*", "tools/oya-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)`.
+**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oya-*", "cloud/*/crates/oya-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oya-*", "oya/office/oya-*", "tools/oya-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `libs/workspace-members-kernel::resolve_member_dirs(repo_root)`.
 
 ### ADR-44 residual
 
@@ -170,7 +170,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-341 residual
 
-**Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator** — ### B.1 Decision statement Every cellular promotion or demotion event between ADR-0248 tiers (Tier 0..Tier 4, where Tier 0 = highest blast-radius / most isolated, Tier 4 = best-effort / edge / lowest blast-radius) MUST be evaluated against six machine-checkable gate inputs by the new CI lane `oya-check-cell-promotion-gates` plus the in-cluster cell-orchestrator µservice. The six gates are: (1) err
+**Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator** — ### B.1 Decision statement Every cellular promotion or demotion event between ADR-0248 tiers (Tier 0..Tier 4, where Tier 0 = highest blast-radius / most isolated, Tier 4 = best-effort / edge / lowest blast-radius) MUST be evaluated against six machine-checkable gate inputs by the new CI lane `check-cell-promotion-gates` plus the in-cluster cell-orchestrator µservice. The six gates are: (1) err
 
 ### ADR-369 residual
 
@@ -178,7 +178,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-515 residual
 
-**Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture — oya-ci-required is the single GitHub-Actions** — ### D1. The Phase-0 firewall is the enforcement substrate The Phase-0 false-green firewall is the substrate that makes merge-gate enforcement **real**: 1. **One generated accounting-registry.** `oya-cloud-ci-accounting-registry-app` emits one deterministic record per tracked path (+ the TTL / crosswalk / enforcement-inventory faces); `registry-drift` enforces `committed == regenerated` byte-for-by
+**Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture — presubmit is the single GitHub-Actions** — ### D1. The Phase-0 firewall is the enforcement substrate The Phase-0 false-green firewall is the substrate that makes merge-gate enforcement **real**: 1. **One generated accounting-registry.** `cloud-ci-accounting-registry-app` emits one deterministic record per tracked path (+ the TTL / crosswalk / enforcement-inventory faces); `registry-drift` enforces `committed == regenerated` byte-for-by
 
 ### ADR-631 residual
 
@@ -194,11 +194,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-94 residual
 
-**ADR-0094-handler-trait-with-associated-error** — Add a typed `Handler` trait in `oya-http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into(), } } ``` Plus a bridge helper in the adapter that
+**ADR-0094-handler-trait-with-associated-error** — Add a typed `Handler` trait in `http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into(), } } ``` Plus a bridge helper in the adapter that
 
 ### ADR-605 residual
 
-**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
+**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
 
 ### ADR-348 residual
 
@@ -210,11 +210,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-167 residual
 
-**ADR-0167 — Tenant-facing CLI binary `oya` (separate from internal `oya-dev-cli`)** — Oyatie introduces a SECOND CLI binary, also named `oya` from the tenant's perspective, distributed as the crate `oya-tenant-cli` and packaged under the name `oya` in tenant-facing artifact channels (Homebrew tap, apt repo, container image `ghcr.io/oyatie/oya:<semver>`, MSI installer). The two binaries are kept distinct via: - **Repo layout**: `crates/oya-tenant-cli/` (this ADR) vs `crates/oya-dev-
+**ADR-0167 — Tenant-facing CLI binary `oya` (separate from internal `dev-cli`)** — Oyatie introduces a SECOND CLI binary, also named `oya` from the tenant's perspective, distributed as the crate `tenant-cli` and packaged under the name `oya` in tenant-facing artifact channels (Homebrew tap, apt repo, container image `ghcr.io/oyatie/oya:<semver>`, MSI installer). The two binaries are kept distinct via: - **Repo layout**: `crates/tenant-cli/` (this ADR) vs `crates/dev-
 
 ### ADR-527 residual
 
-**oya-ci conformance FLOOR as a config-driven portable engine: engine-vs-policy seam + closed-schema oya-ci.toml loader + ** — Extract ALL oyatie POLICY out of compiled-in `const`s + producer literals into a CLOSED-schema repo-rooted config (`oya-ci.toml` at repo root, OR `.oya-ci/config.json` — format is OQ-1, carried to the founder; one canonical format, identical schema either way), loaded by a NEW pure I/O-free `oya-ci-config` (kernel-role) crate that parses + validates into typed structs and REJECTS unknown keys. The
+**ci conformance FLOOR as a config-driven portable engine: engine-vs-policy seam + closed-schema ci.toml loader + ** — Extract ALL oyatie POLICY out of compiled-in `const`s + producer literals into a CLOSED-schema repo-rooted config (`ci.toml` at repo root, OR `.ci/config.json` — format is OQ-1, carried to the founder; one canonical format, identical schema either way), loaded by a NEW pure I/O-free `ci-config` (kernel-role) crate that parses + validates into typed structs and REJECTS unknown keys. The
 
 ### ADR-83 residual
 
@@ -226,11 +226,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-528 residual
 
-**Remediation is first-class on the gate contract: remediate() ships WITH every gate (pure, returns described edits, never** — Extend the published, semver'd gate-trait crate `oya-ci-gate-contract` (the home of `Finding` / `evaluate_keyed`, per ADR-0515 WS-D) so every gate carries a remediation sibling to detection: ```text fn remediate(&self, finding: &Finding, face: &Value) -> Remediation where Remediation = AutoFix(Edit) | AutoGenerate(NewFile) | None ``` `remediate()` is as PURE as `evaluate_keyed` — it returns a *des
+**Remediation is first-class on the gate contract: remediate() ships WITH every gate (pure, returns described edits, never** — Extend the published, semver'd gate-trait crate `ci-gate-contract` (the home of `Finding` / `evaluate_keyed`, per ADR-0515 WS-D) so every gate carries a remediation sibling to detection: ```text fn remediate(&self, finding: &Finding, face: &Value) -> Remediation where Remediation = AutoFix(Edit) | AutoGenerate(NewFile) | None ``` `remediate()` is as PURE as `evaluate_keyed` — it returns a *des
 
 ### ADR-525 residual
 
-**oya-ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + ** — Four condensed parts: **D1 — git-facts boundary (Option C).** Push ALL ambient git access to ONE out-of-graph emitter and make every downstream action consume a frozen, content-addressed snapshot. A NEW non-hermetic `rust_binary` `oya-cloud-ci-git-facts-emitter` (the four `Command::new("git")` calls moved verbatim out of the producer) emits a COMMITTED canonical-JSON face `git-facts.generated.json
+**ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + ** — Four condensed parts: **D1 — git-facts boundary (Option C).** Push ALL ambient git access to ONE out-of-graph emitter and make every downstream action consume a frozen, content-addressed snapshot. A NEW non-hermetic `rust_binary` `cloud-ci-git-facts-emitter` (the four `Command::new("git")` calls moved verbatim out of the producer) emits a COMMITTED canonical-JSON face `git-facts.generated.json
 
 ### ADR-194 residual
 
@@ -246,7 +246,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-539 residual
 
-**Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity** — Add `ci/facade/generated-artifact-freshness` as a single-concern Rust gate. NAME: oya-cloud-ci-freshness-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = freshness: the bounded concern is candidate-tree freshness, not general registry accounting. - layer = app: the crate exposes a composition-root binary plus a pure librar
+**Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity** — Add `ci/facade/generated-artifact-freshness` as a single-concern Rust gate. NAME: cloud-ci-freshness-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = freshness: the bounded concern is candidate-tree freshness, not general registry accounting. - layer = app: the crate exposes a composition-root binary plus a pure librar
 
 ### ADR-313 residual
 
@@ -258,15 +258,15 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-609 residual
 
-**Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required)** — 1. **Single plan authority.** `/specs/masterplan.json` `masterplan_v2` is the SOLE live plan authority: one `MPV2-*` work-item ID space, an explicit dependency DAG, program-sharded coverage, per-claim evidence refs, and an auditable `surface_dispositions` ledger that absorbs or archives-with-provenance every legacy surface. Surviving human-facing surfaces (`docs/MASTERPLAN.md`) are GENERATED proje
+**Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into presubmit)** — 1. **Single plan authority.** `/specs/masterplan.json` `masterplan_v2` is the SOLE live plan authority: one `MPV2-*` work-item ID space, an explicit dependency DAG, program-sharded coverage, per-claim evidence refs, and an auditable `surface_dispositions` ledger that absorbs or archives-with-provenance every legacy surface. Surviving human-facing surfaces (`docs/MASTERPLAN.md`) are GENERATED proje
 
 ### ADR-531 residual
 
-**Auto-remediation delivery + safety model: the oya-bot-autofix PROPOSE-only fleet member, shrink-only burn-down, HMAC web** — The privileged delivery process that APPLIES `remediate()` output (ADR-0528) is `oya-bot-autofix`, a member of the repo-automation-bot fleet alongside `oya-bot-depupdate` / `oya-bot-release`, sharing the host, signed-capability trust model, and merge-gate kernel. Five binding safety invariants: 1. **DETERMINISTIC + REPRODUCIBLE** — same face ⇒ byte-identical edits, tested with the RED/GREEN fixtur
+**Auto-remediation delivery + safety model: the bot-autofix PROPOSE-only fleet member, shrink-only burn-down, HMAC web** — The privileged delivery process that APPLIES `remediate()` output (ADR-0528) is `bot-autofix`, a member of the repo-automation-bot fleet alongside `bot-depupdate` / `bot-release`, sharing the host, signed-capability trust model, and merge-gate kernel. Five binding safety invariants: 1. **DETERMINISTIC + REPRODUCIBLE** — same face ⇒ byte-identical edits, tested with the RED/GREEN fixtur
 
 ### ADR-47 residual
 
-**ADR-0047-search-backend-strategy** — We adopt **pgroonga** day-1 with **legal isolation** per License Policy ADR + replacement plan; **Tantivy** (MIT) in-Rust at scale; **OpenSearch** (Apache-2) only as an adapter behind a port; **Elasticsearch SSPL forbidden** in product surface; **in-house long-horizon** (KR morphology + Tantivy + custom ranker) under `crates/oya-search-backend-*`. ### pgroonga day-1 (KR launch) ```sql -- per-tenan
+**ADR-0047-search-backend-strategy** — We adopt **pgroonga** day-1 with **legal isolation** per License Policy ADR + replacement plan; **Tantivy** (MIT) in-Rust at scale; **OpenSearch** (Apache-2) only as an adapter behind a port; **Elasticsearch SSPL forbidden** in product surface; **in-house long-horizon** (KR morphology + Tantivy + custom ranker) under `crates/search-backend-*`. ### pgroonga day-1 (KR launch) ```sql -- per-tenan
 
 ### ADR-581 residual
 
@@ -278,7 +278,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-540 residual
 
-**Cargo workspace to Buck2 target parity gate** — Add `ci/facade/build-target-parity` as a pure cloud-ci gate. NAME: oya-cloud-ci-target-parity-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = target-parity: the bounded concern is Cargo member to Buck target parity. - layer = app: the crate is an executable CI gate surface with pure evaluator logic. - exemptions claimed:
+**Cargo workspace to Buck2 target parity gate** — Add `ci/facade/build-target-parity` as a pure cloud-ci gate. NAME: cloud-ci-target-parity-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = target-parity: the bounded concern is Cargo member to Buck target parity. - layer = app: the crate is an executable CI gate surface with pure evaluator logic. - exemptions claimed:
 
 ### ADR-560 residual
 
@@ -286,7 +286,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-566 residual
 
-**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
+**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
 
 ### ADR-616 residual
 
@@ -294,11 +294,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-118 residual
 
-**ADR-0118-retire-archive-orphan-fitness-lane** — Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/oya-governance-archive-orphan-kernel` - `tools/oya-governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retirement keeps a small historical lane record at `docs/fi
+**ADR-0118-retire-archive-orphan-fitness-lane** — Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/governance-archive-orphan-kernel` - `tools/governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retirement keeps a small historical lane record at `docs/fi
 
 ### ADR-526 residual
 
-**oya-ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour** — Two coupled, byte-parity-preserving moves, and nothing else: **(1) RENAME every git-flavored identifier in the boundary to the VCS-agnostic family `scm-facts` / `scm_facts` / `SCM_FACTS` / `ScmFacts`.** The emitter crate dir + binary `oya-cloud-ci-git-facts-emitter-app` → `oya-cloud-ci-scm-facts-emitter-app`; the committed snapshot `git-facts.generated.json` → `scm-facts.generated.json`; the schem
+**ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour** — Two coupled, byte-parity-preserving moves, and nothing else: **(1) RENAME every git-flavored identifier in the boundary to the VCS-agnostic family `scm-facts` / `scm_facts` / `SCM_FACTS` / `ScmFacts`.** The emitter crate dir + binary `cloud-ci-git-facts-emitter-app` → `cloud-ci-scm-facts-emitter-app`; the committed snapshot `git-facts.generated.json` → `scm-facts.generated.json`; the schem
 
 ### ADR-234 residual
 
@@ -306,11 +306,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-534 residual
 
-**Gate/pipeline-step SDK + gate-artifact marketplace: trait Gate extraction, runtime GateRegistry, three binding kinds (pr** — (1) **SDK EXTRACTION (highest-leverage):** extract ONE versioned crate (`oya-ci-gate-sdk`) holding the gate contract — `trait Gate { gate_id; codes; evaluate_keyed(&FaceValue) -> BTreeSet<Finding> [SSOT]; evaluate() -> Report [provided] }` plus the `Finding`/`Report`/`Verdict` types — replacing the copied `struct Finding` definitions. Preserve the pure/I-O-free/panic-free shape (`#![forbid(unsafe_
+**Gate/pipeline-step SDK + gate-artifact marketplace: trait Gate extraction, runtime GateRegistry, three binding kinds (pr** — (1) **SDK EXTRACTION (highest-leverage):** extract ONE versioned crate (`ci-gate-sdk`) holding the gate contract — `trait Gate { gate_id; codes; evaluate_keyed(&FaceValue) -> BTreeSet<Finding> [SSOT]; evaluate() -> Report [provided] }` plus the `Finding`/`Report`/`Verdict` types — replacing the copied `struct Finding` definitions. Preserve the pure/I-O-free/panic-free shape (`#![forbid(unsafe_
 
 ### ADR-597 residual
 
-**oya-ci-materializer-kernel (E1): universal generated-artifact lifecycle — pure planner kernel** — Ship `libs/oya-ci-materializer-kernel` — a pure Rust planner + predicate kernel with zero I/O, zero clock, zero subprocess, zero git, zero net. Dependencies: `serde` + `serde_json` only. ### Public API ```rust // Pure analysis phase — no filesystem, clock, buck2, git. pub fn plan(manifest: &ControlPlane, scope: MaterializeScope) -> Result<MaterializePlan, PlanError>; // Pure verdict predicate — fe
+**ci-materializer-kernel (E1): universal generated-artifact lifecycle — pure planner kernel** — Ship `libs/ci-materializer-kernel` — a pure Rust planner + predicate kernel with zero I/O, zero clock, zero subprocess, zero git, zero net. Dependencies: `serde` + `serde_json` only. ### Public API ```rust // Pure analysis phase — no filesystem, clock, buck2, git. pub fn plan(manifest: &ControlPlane, scope: MaterializeScope) -> Result<MaterializePlan, PlanError>; // Pure verdict predicate — fe
 
 ### ADR-547 residual
 
@@ -326,19 +326,19 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-600 residual
 
-**Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible** — Ship `oya-cloud-ci-root-workspace-hygiene-app` — a born-blocking, UNIVERSAL, HERMETIC gate with a default-DENY posture and the legitimate root surface expressed as DATA. **Allowlist-as-DATA (universal).** `root-workspace-hygiene-policy.json` declares `allowed_root_files` (a rule table of `exact`/`suffix`/`prefix` basename matchers) and `allowed_root_dirs` (the permitted top-level capability/meta h
+**Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible** — Ship `cloud-ci-root-workspace-hygiene-app` — a born-blocking, UNIVERSAL, HERMETIC gate with a default-DENY posture and the legitimate root surface expressed as DATA. **Allowlist-as-DATA (universal).** `root-workspace-hygiene-policy.json` declares `allowed_root_files` (a rule table of `exact`/`suffix`/`prefix` basename matchers) and `allowed_root_dirs` (the permitted top-level capability/meta h
 
 ### ADR-570 residual
 
-**Clean-arch port-placement gate (ports defined in core, not adapters)** — Ship `cloud-ci-port-placement`, a born-blocking cloud-ci gate that flags a `pub trait <Name>` whose name matches a storage/repository/port suffix heuristic and is DEFINED in a crate whose repo-relative path contains a forbidden layer-dir segment (`adapters`). - **HERMETIC pure-Rust predicate.** `collect_port_traits(root, policy)` enumerates workspace members (reusing `oya-workspace-members-kernel`
+**Clean-arch port-placement gate (ports defined in core, not adapters)** — Ship `cloud-ci-port-placement`, a born-blocking cloud-ci gate that flags a `pub trait <Name>` whose name matches a storage/repository/port suffix heuristic and is DEFINED in a crate whose repo-relative path contains a forbidden layer-dir segment (`adapters`). - **HERMETIC pure-Rust predicate.** `collect_port_traits(root, policy)` enumerates workspace members (reusing `workspace-members-kernel`
 
 ### ADR-608 residual
 
-**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. ### D1 — Pure, po
+**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, po
 
 ### ADR-624 residual
 
-**Stage the immutable ADR census epoch transition** — ### 1. Use a four-step protected merge train The epoch transition proceeds in exactly this order. Every step is a separate protected pull request against `dev`, with an SSH-signed commit, independent review, resolved threads, and a green `oya-ci-required` context on the exact candidate head. 1. **Bootstrap the generic epoch producer and gate.** Protect the generic producer, validator, receipt sche
+**Stage the immutable ADR census epoch transition** — ### 1. Use a four-step protected merge train The epoch transition proceeds in exactly this order. Every step is a separate protected pull request against `dev`, with an SSH-signed commit, independent review, resolved threads, and a green `presubmit` context on the exact candidate head. 1. **Bootstrap the generic epoch producer and gate.** Protect the generic producer, validator, receipt sche
 
 ### ADR-185 residual
 
@@ -362,7 +362,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-31 residual
 
-**ADR-0031-ads-and-analytics-microservice-architecture** — We adopt a **singleton tenant-ads-gate sourcing rule** plus a **five-pillar Ads architecture** (Serving / Pricing / Attribution / Advertiser console / Publisher inventory) plus a **DP-budgeted Analytics architecture**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-ads-gate-kernel`: slot2 = `ads` (registered µservice); slot3 = `gate` (BC); slot4 = `kernel` - `oya-analytics-event-router-work
+**ADR-0031-ads-and-analytics-microservice-architecture** — We adopt a **singleton tenant-ads-gate sourcing rule** plus a **five-pillar Ads architecture** (Serving / Pricing / Attribution / Advertiser console / Publisher inventory) plus a **DP-budgeted Analytics architecture**. **Naming justification (BNF v4.1, ADR-0056):** - `ads-gate-kernel`: slot2 = `ads` (registered µservice); slot3 = `gate` (BC); slot4 = `kernel` - `analytics-event-router-work
 
 ### ADR-521 residual
 
@@ -382,7 +382,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-30 residual
 
-**ADR-0030-search-microservice-architecture** — We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by default and gated by the Data Use Boundary policy
+**ADR-0030-search-microservice-architecture** — We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by default and gated by the Data Use Boundary policy
 
 ### ADR-305 residual
 
@@ -390,7 +390,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-544 residual
 
-**Friction-ledger closed-loop accounting meta-gate** — Add `ci/facade/action-item-accounting` as a pure cloud-ci meta-gate. NAME: oya-cloud-ci-friction-accounting-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = friction-accounting: the bounded concern is closed-loop friction-ledger accounting. - layer = app: the crate is an executable CI gate surface with a pure evaluator ker
+**Friction-ledger closed-loop accounting meta-gate** — Add `ci/facade/action-item-accounting` as a pure cloud-ci meta-gate. NAME: cloud-ci-friction-accounting-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = friction-accounting: the bounded concern is closed-loop friction-ledger accounting. - layer = app: the crate is an executable CI gate surface with a pure evaluator ker
 
 ### ADR-295 residual
 
@@ -402,7 +402,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-636 residual
 
-**Bound interim cross-run affected-set baseline reuse to immutable producer provenance** — 1. The affected-set job MAY reuse the exact build/test report pair from one completed canonical push-to-`dev` `oya-ci-required` run at the merge-base, even if that run's aggregate conclusion is red, only when the unique exact affected-set producer job completed successfully. 2. `actions: read` MUST be job-scoped to `gate-affected-target-set`; job permissions re-declare `contents: read`. No workflo
+**Bound interim cross-run affected-set baseline reuse to immutable producer provenance** — 1. The affected-set job MAY reuse the exact build/test report pair from one completed canonical push-to-`dev` `presubmit` run at the merge-base, even if that run's aggregate conclusion is red, only when the unique exact affected-set producer job completed successfully. 2. `actions: read` MUST be job-scoped to `gate-affected-target-set`; job permissions re-declare `contents: read`. No workflo
 
 ### ADR-633 residual
 
@@ -422,7 +422,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-595 residual
 
-**De-commit the pure-derivation cloud-ci accounting faces — derive-on-demand + gate teaching** — STOP committing the six producer faces above. They are declared `materialization_mode: not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived on demand via `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` and materialize
+**De-commit the pure-derivation cloud-ci accounting faces — derive-on-demand + gate teaching** — STOP committing the six producer faces above. They are declared `materialization_mode: not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived on demand via `buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin` and materialize
 
 ### ADR-586 residual
 
@@ -430,7 +430,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-546 residual
 
-**Canonical-JSON determinism gate** — Add `ci/facade/canonical-json` as a pure cloud-ci determinism gate. NAME: oya-cloud-ci-canonical-json-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = canonical-json: the bounded concern is deterministic JSON serialization. - layer = app: the crate is an executable CI gate surface with a pure canonicalizer kernel. - single
+**Canonical-JSON determinism gate** — Add `ci/facade/canonical-json` as a pure cloud-ci determinism gate. NAME: cloud-ci-canonical-json-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = canonical-json: the bounded concern is deterministic JSON serialization. - layer = app: the crate is an executable CI gate surface with a pure canonicalizer kernel. - single
 
 ### ADR-129 residual
 
@@ -450,7 +450,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-28 residual
 
-**ADR-0028-cloud-microservice-architecture** — We adopt a **three-phase compute trajectory** with a **phase-invariant product surface**. Customers consume the same APIs, the same SKUs, the same IAM model, and the same audit shape regardless of whether the underlying capacity is rented, leased in a colo, or owned in a mega-DC. **Naming justification (BNF v4.1, ADR-0056):** - Cloud µservice crates: `oya-cloud-<bc>-<layer>` where `cloud` is the r
+**ADR-0028-cloud-microservice-architecture** — We adopt a **three-phase compute trajectory** with a **phase-invariant product surface**. Customers consume the same APIs, the same SKUs, the same IAM model, and the same audit shape regardless of whether the underlying capacity is rented, leased in a colo, or owned in a mega-DC. **Naming justification (BNF v4.1, ADR-0056):** - Cloud µservice crates: `cloud-<bc>-<layer>` where `cloud` is the r
 
 ### ADR-248 residual
 
@@ -458,7 +458,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-559 residual
 
-**Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service over the shared emb** — Commission `cloud/cloud-iam`'s policy-decision-point service as G004 slice 1: a **runnable authorization-decision service** in the ADR-0550 kernel/adapter/app shape, reusing the shared PDP kernel + Cedar adapter wholesale (zero forked evaluation logic). ### D1 — Service shape (ADR-0550 seams) - `oya-cloud-iam-pdp-kernel` — pure ports: `PolicyBundleStore` (policy-store backend seam), `DecisionAudit
+**Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service over the shared emb** — Commission `cloud/cloud-iam`'s policy-decision-point service as G004 slice 1: a **runnable authorization-decision service** in the ADR-0550 kernel/adapter/app shape, reusing the shared PDP kernel + Cedar adapter wholesale (zero forked evaluation logic). ### D1 — Service shape (ADR-0550 seams) - `cloud-iam-pdp-kernel` — pure ports: `PolicyBundleStore` (policy-store backend seam), `DecisionAudit
 
 ### ADR-334 residual
 
@@ -466,15 +466,15 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-35 residual
 
-**ADR-0035-workflow-engine-state-machine-and-dag-hybrid** — We build `crates/oya-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime via the regional-pack architecture. ### Engine ar
+**ADR-0035-workflow-engine-state-machine-and-dag-hybrid** — We build `crates/workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime via the regional-pack architecture. ### Engine ar
 
 ### ADR-383 residual
 
-**ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana** — **KEEP** the Grafana Labs Loki / Tempo / Mimir / Grafana stack as the canonical observability storage and visualization layer, subject to all three of the following gates: 1. **Fully self-hosted in oya-cells.** Every Grafana Labs component runs inside an oyatie-operated cell. No traffic is routed to Grafana Cloud SaaS. No managed-service dependency on Grafana Labs infrastructure is introduced. The
+**ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana** — **KEEP** the Grafana Labs Loki / Tempo / Mimir / Grafana stack as the canonical observability storage and visualization layer, subject to all three of the following gates: 1. **Fully self-hosted in cells.** Every Grafana Labs component runs inside an oyatie-operated cell. No traffic is routed to Grafana Cloud SaaS. No managed-service dependency on Grafana Labs infrastructure is introduced. The
 
 ### ADR-380 residual
 
-**ADR-0380-ci-loop-closure-on-talos-legacy-ci-farm-farm-re-establishment** — Sequence the re-establishment into five deliverables (D1–D5): 1. **D1**: Install the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) via `helm upgrade` of the bring-up-managed legacy-CI-farm with `installPlugins` extensions in `values-local.yaml`. Reboot once; CasC error-on-conflict means the existing oya-ci-farm cloud config must not be re-declared in any new configScrip
+**ADR-0380-ci-loop-closure-on-talos-legacy-ci-farm-farm-re-establishment** — Sequence the re-establishment into five deliverables (D1–D5): 1. **D1**: Install the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) via `helm upgrade` of the bring-up-managed legacy-CI-farm with `installPlugins` extensions in `values-local.yaml`. Reboot once; CasC error-on-conflict means the existing ci-farm cloud config must not be re-declared in any new configScrip
 
 ### ADR-530 residual
 
@@ -494,7 +494,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-29 residual
 
-**ADR-0029-connect-dual-context-architecture** — We adopt as a **suite of twelve canonical apps** plus three adjunct surfaces, each its own bounded context under `oya-connect-<app>-*`, sharing the six substrates from ADR-0001 plus a Connect-internal **document-format kernel** and **collab-runtime kernel**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-mail-kernel`: slot2 = `connector` (registered µservice); slot3 = `mail` (BC); slot4 = `
+**ADR-0029-connect-dual-context-architecture** — We adopt as a **suite of twelve canonical apps** plus three adjunct surfaces, each its own bounded context under `connect-<app>-*`, sharing the six substrates from ADR-0001 plus a Connect-internal **document-format kernel** and **collab-runtime kernel**. **Naming justification (BNF v4.1, ADR-0056):** - `mail-kernel`: slot2 = `connector` (registered µservice); slot3 = `mail` (BC); slot4 = `
 
 ### ADR-392 residual
 
@@ -506,7 +506,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-139 residual
 
-**ADR-0139-agentic-slo-gated-promotion** — oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `oya-obs
+**ADR-0139-agentic-slo-gated-promotion** — oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `obs
 
 ### ADR-190 residual
 
@@ -526,7 +526,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-606 residual
 
-**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. ### D1 — Pure, policy-
+**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, policy-
 
 ### ADR-309 residual
 
@@ -534,7 +534,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-374 residual
 
-**ADR-0374-ci-webhook-gateway-github-actions** — Build a **flat single-concern Rust microservice**, `ci-webhook-gateway` (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package `oya-ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline: 1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/ Tower/Hyper — blessed runtime deps). 2. **Verify** the `X-Hub-Signature-256` (or legacy `X-Gitea-Sig
+**ADR-0374-ci-webhook-gateway-github-actions** — Build a **flat single-concern Rust microservice**, `ci-webhook-gateway` (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package `ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline: 1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/ Tower/Hyper — blessed runtime deps). 2. **Verify** the `X-Hub-Signature-256` (or legacy `X-Gitea-Sig
 
 ### ADR-360 residual
 
@@ -550,11 +550,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-549 residual
 
-**oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`libs/oya-buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two cloud-ci gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
+**buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`libs/buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two cloud-ci gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
 
 ### ADR-204 residual
 
-**ADR-0204-workflow-studio-canvas-library** — Per stack: | Stack | Phase 1 canvas | Phase 2 canvas (in-house) | |---|---|---| | SvelteKit (web, Phase 1) | **svelte-flow** (`@xyflow/svelte`, MIT) | `oya-canvas-svelte` (built on Svelte 5 + signals + SVG/Canvas2D) | | Leptos (web, Phase 2) | (skipped — Leptos web ships Phase 2) | `oya-canvas-leptos` (Rust-native, Leptos signals + SVG/Canvas2D + WebGL escape hatch for >5k nodes) | | SwiftUI (Appl
+**ADR-0204-workflow-studio-canvas-library** — Per stack: | Stack | Phase 1 canvas | Phase 2 canvas (in-house) | |---|---|---| | SvelteKit (web, Phase 1) | **svelte-flow** (`@xyflow/svelte`, MIT) | `canvas-svelte` (built on Svelte 5 + signals + SVG/Canvas2D) | | Leptos (web, Phase 2) | (skipped — Leptos web ships Phase 2) | `canvas-leptos` (Rust-native, Leptos signals + SVG/Canvas2D + WebGL escape hatch for >5k nodes) | | SwiftUI (Appl
 
 ### ADR-117 residual
 
@@ -566,7 +566,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-639 residual
 
-**Path- and event-conditional constituents under the single oya-ci-required fan-in** — ### D1 — Singleton preserved Branch protection and merge admission continue to require **only** the context name `oya-ci-required`. No second required check for “docs CI,” “fast CI,” or “full CI.” Optional legs remain **constituents** of the same fan-in aggregator. ### D2 — Leg classes Every job listed in the `oya-ci-required` fan-in `needs:` list MUST be classified as exactly one of: | Class | Sy
+**Path- and event-conditional constituents under the single presubmit fan-in** — ### D1 — Singleton preserved Branch protection and merge admission continue to require **only** the context name `presubmit`. No second required check for “docs CI,” “fast CI,” or “full CI.” Optional legs remain **constituents** of the same fan-in aggregator. ### D2 — Leg classes Every job listed in the `presubmit` fan-in `needs:` list MUST be classified as exactly one of: | Class | Sy
 
 ### ADR-618 residual
 
@@ -578,7 +578,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-533 residual
 
-**The config-driven public boundary: profile/neutral_default() + schema_version + faces_dir/cross_artifact/test-harness po** — Generalize the proven closed-schema `oya-ci-config` seam into a policy-FREE public boundary. Five additive changes (all preserve `#[serde(deny_unknown_fields)]`): 1. Split `bundled_default()` into `OyaCiConfig::neutral()` (empty forbidden_stems, no required_prefix, generic root_markers defaulting to `.git`, no governance_lanes, gates present-but-quiet, ZERO oyatie path literals) vs `OyaCiConfig::o
+**The config-driven public boundary: profile/neutral_default() + schema_version + faces_dir/cross_artifact/test-harness po** — Generalize the proven closed-schema `ci-config` seam into a policy-FREE public boundary. Five additive changes (all preserve `#[serde(deny_unknown_fields)]`): 1. Split `bundled_default()` into `OyaCiConfig::neutral()` (empty forbidden_stems, no required_prefix, generic root_markers defaulting to `.git`, no governance_lanes, gates present-but-quiet, ZERO oyatie path literals) vs `OyaCiConfig::o
 
 ### ADR-40 residual
 
@@ -598,7 +598,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-582 residual
 
-**DTO-authz-trust gate (caller-supplied authorization decision backstop)** — Ship `ci/facade/caller-supplied-authorization`, a born-blocking cloud-ci gate that makes a NEW instance of the caller-supplied-authz-trust antipattern IMPOSSIBLE to ship while frozen-baselining the existing debt (shrink-only). It is a SIBLING of the authz-coverage gate (ADR-0566) and registers in the same `oya-ci-required` matrix gate family. It mirrors the kernel-purity (ADR-0547) / port-placemen
+**DTO-authz-trust gate (caller-supplied authorization decision backstop)** — Ship `ci/facade/caller-supplied-authorization`, a born-blocking cloud-ci gate that makes a NEW instance of the caller-supplied-authz-trust antipattern IMPOSSIBLE to ship while frozen-baselining the existing debt (shrink-only). It is a SIBLING of the authz-coverage gate (ADR-0566) and registers in the same `presubmit` matrix gate family. It mirrors the kernel-purity (ADR-0547) / port-placemen
 
 ### ADR-56 residual
 
@@ -618,7 +618,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-554 residual
 
-**Binding buck2 coverage for the full workspace: affected-set lane with fail-closed full-run escalation** — Ship the **tiered** design (option c), evaluated against the alternatives below: - **D1 — Binding affected-set lane on every PR.** A new bespoke gate lane `gate · affected-set (ADR-0554)` in `oya-ci-required.yml` (additive; fan-in `needs:` wired; registered per the gate-registration meta-test as a Buck target lane) derives the merge-base diff's target cone via `buck2 uquery owner()` (per-file, bat
+**Binding buck2 coverage for the full workspace: affected-set lane with fail-closed full-run escalation** — Ship the **tiered** design (option c), evaluated against the alternatives below: - **D1 — Binding affected-set lane on every PR.** A new bespoke gate lane `gate · affected-set (ADR-0554)` in `presubmit.yml` (additive; fan-in `needs:` wired; registered per the gate-registration meta-test as a Buck target lane) derives the merge-base diff's target cone via `buck2 uquery owner()` (per-file, bat
 
 ### ADR-587 residual
 

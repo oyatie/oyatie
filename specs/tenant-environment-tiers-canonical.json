@@ -64,7 +64,7 @@
       "residency-class change (recreate-only per ADR-0049)"
     ],
     "cedar_condition": "prod_destructive_acknowledged: true",
-    "header_required": "x-oya-prod-destructive-ack: true",
+    "header_required": "x-prod-destructive-ack: true",
     "ui_flow": "explicit confirmation dialog before sending header",
     "audit_chain_seal": "captures (who, when, what)"
   },

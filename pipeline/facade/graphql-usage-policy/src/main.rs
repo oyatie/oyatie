@@ -10,7 +10,7 @@
 //! shell-out, no network, no VCS).
 //!
 //! Usage:
-//!   oya-cloud-ci-no-graphql-without-adr-app-bin [--repo-root <path>] [--policy <path>]
+//!   cloud-ci-no-graphql-without-adr-app-bin [--repo-root <path>] [--policy <path>]
 //!
 //! Exit codes: 0 = green (no forbidden GraphQL artifact); 1 = red findings; 2 = argument or
 //! collection error (fail-closed).
@@ -120,6 +120,6 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-no-graphql-without-adr-app-bin [--repo-root <path>] [--policy <path>]"
+    "usage: cloud-ci-no-graphql-without-adr-app-bin [--repo-root <path>] [--policy <path>]"
         .to_owned()
 }

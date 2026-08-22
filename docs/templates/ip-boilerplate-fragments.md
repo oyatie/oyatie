@@ -30,7 +30,7 @@ Per-µservice IPs add: which files/crates the ChangeSet touches.
 A ChangeSet MUST halt and request human review when ANY of:
 
 1. Any acceptance lane in the IP frontmatter exits non-zero AFTER the IP
-   author claims green (i.e. honesty violation — `oya-check-honest-claims`).
+   author claims green (i.e. honesty violation — `check-honest-claims`).
 2. Any irreversible operation appears in the diff (per
    `/specs/forbidden-operations.json`): destructive git, force-push to
    protected branch, schema-breaking change without ADR + version bump.
@@ -53,7 +53,7 @@ Every IP author collects ALL of these BEFORE marking the IP complete:
 2. `buck2 test <touched-test-targets>` exits 0
 3. the relevant Buck2/cloud-ci lint/static-analysis gate exits 0
 4. the relevant Buck2/cloud-ci formatting gate exits 0
-5. the relevant cloud-ci acceptance gate packet is green in `oya-ci-required`
+5. the relevant cloud-ci acceptance gate packet is green in `presubmit`
 6. New / modified files match canonical schemas:
    - `*.cedar` → `specs/policy/cedar-scope-schema.md`
    - `iac/helm/*/Chart.yaml` → depends on `_oya-helpers`
@@ -118,8 +118,8 @@ specifics:
 (Per canonical fragment in docs/templates/ip-boilerplate-fragments.md#ChangeSet-boundary)
 
 This IP's ChangeSet touches:
-- `microservices/workflow-studio/src/crates/oya-workflow-studio-visual-canvas-kernel/`
-- `microservices/workflow-studio/src/crates/oya-workflow-studio-visual-canvas-domain/`
+- `microservices/workflow-studio/src/crates/workflow-studio-visual-canvas-kernel/`
+- `microservices/workflow-studio/src/crates/workflow-studio-visual-canvas-domain/`
 
 ## Halt Conditions
 

@@ -122,7 +122,7 @@
         "canonical_artifacts": [
           "PR vs dev",
           "branch-pipeline: dev → staging → production",
-          "registry/release/* + oya-governance-* lanes",
+          "registry/release/* + governance-* lanes",
           ".github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
         ],
         "entry_gate": "PR opened from dev phase; first CI lane run started",
@@ -401,10 +401,10 @@
       "name": "no_silent_regression",
       "rule": "Public contracts protected. Any breaking change requires ADR + version bump + sunset clause + BREAKING marker in CHANGELOG. Internal callers swept in same PR.",
       "planned_enforcement_refs": [
-        "oya-governance-lean-a10"
+        "governance-lean-a10"
       ],
       "enforced_by": [
-        "oya-governance-api-semver"
+        "governance-api-semver"
       ],
       "references": [
         "feedback_no_silent_regression"
@@ -448,7 +448,7 @@
     {
       "id": "OP-06",
       "name": "doc_coverage_enforced",
-      "rule": "µservice introduction triggers PRD + BoundedContext + Phase-Spec + ImplementationPlan + ADR refs. CI-enforced via oya-governance-doc-catalog. Phase not Complete until lane green.",
+      "rule": "µservice introduction triggers PRD + BoundedContext + Phase-Spec + ImplementationPlan + ADR refs. CI-enforced via governance-doc-catalog. Phase not Complete until lane green.",
       "references": [
         "feedback_doc_coverage_enforced"
       ]
@@ -551,7 +551,7 @@
           "name": "audit_chain_schema_touched",
           "type": "boolean",
           "weight_if_true": 20,
-          "detection": "diff hits evidence/audit-chain.jsonl schema OR oya-intelligence-audit-chain-* crates"
+          "detection": "diff hits evidence/audit-chain.jsonl schema OR intelligence-audit-chain-* crates"
         },
         {
           "id": "S5",
@@ -695,7 +695,7 @@
       "Checks with 0 matches over 30 days → meta_watcher auto-demotes to candidate stage",
       "Checks with false-positive rate >10% → meta_watcher files F-CHECK-FALSE-POSITIVE-RATE-HIGH; auto-throttle to ADVISORY severity",
       "Blind-spot detection: if a check passes 100% of PRs but downstream incidents occur in that area → meta_watcher files F-CHECK-BLIND-SPOT; promotion of a sharper check via lane_promotion_protocol",
-      "Determinism audit lane: oya-governance-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
+      "Determinism audit lane: governance-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
     ],
     "llm_triage_protocol": "When a deterministic check FAILS, an LLM may be invoked to (a) explain WHY in human-readable form, (b) propose a candidate fix patch. The LLM's output is INPUT to the agent loop, NOT a re-judgment of pass/fail.",
     "spec_path": "specs/score-cards.json — full check inventory (separate spec file, candidate for next planning round)"
@@ -703,7 +703,7 @@
   "source_driven_contract": {
     "rule": "Every public API change MUST cite the authoritative documentation source (URL + commit hash or version tag + accessed-date) in the PR body OR in an ADR referenced from the PR body. Implementing against memory or assumption is forbidden.",
     "enforcement": {
-      "lane": "oya-governance-source-citation",
+      "lane": "governance-source-citation",
       "lane_category": "pre_merge_critical (BLOCKER)",
       "trigger_when": "blast_radius_score.S1 (public_api_touched) == true",
       "deterministic_check": "regex match for /Source:\\s+https?:\\/\\/[^\\s]+ \\(commit:[a-f0-9]+|version:[\\w.-]+, accessed:\\d{4}-\\d{2}-\\d{2}\\)/ in PR body OR linked ADR; followed by URL HEAD-check (status 200)",
@@ -721,7 +721,7 @@
     "enforcement": {
       "trigger": "T1+ dispatch (per review_tiering.tiers)",
       "mechanism": "autonomous_foundry.roles.critic must run with fresh_context: true — no prior conversation context; loaded with the diff + the load-bearing assumption identified by the author + the spec_contract acceptance_criteria",
-      "deterministic_check": "evidence/debate/<change_id>-critic-r1.json must declare {load_bearing_assumption: '...', adversarial_findings: [...], severity_assessment: '...', cross_vendor_confirmation: true}; lane oya-governance-doubt-driven-trace asserts presence + cross-vendor distinctness",
+      "deterministic_check": "evidence/debate/<change_id>-critic-r1.json must declare {load_bearing_assumption: '...', adversarial_findings: [...], severity_assessment: '...', cross_vendor_confirmation: true}; lane governance-doubt-driven-trace asserts presence + cross-vendor distinctness",
       "lane_failure_action": "PR cannot merge until critic evidence file present + cross-vendor distinct from author"
     },
     "anti_pattern_caught": "author-marks-own-work-as-good. Critic must be different vendor; critic prompted explicitly as 'find what's wrong'; critic gets token-budget credit ONLY on findings filed (per autonomous_foundry.anti_collusion_rules)",
@@ -750,7 +750,7 @@
       "_meta.owner_team"
     ],
     "acceptance_criteria_rule": "Every spec carries acceptance_criteria[] where each entry has {id: AC-NNN, given, when, then, test_id (reference to the test that proves it)}.",
-    "test_id_back_link_rule": "Each AC-ID is back-linked from the test that proves it (e.g., `// AC-007` comment in the test file). CI lane oya-governance-ac-coverage verifies bidirectional linkage.",
+    "test_id_back_link_rule": "Each AC-ID is back-linked from the test that proves it (e.g., `// AC-007` comment in the test file). CI lane governance-ac-coverage verifies bidirectional linkage.",
     "missing_spec_action": "STOP. Apply confusion_management. Do NOT begin implementation.",
     "references": [
       "agent-skills:spec-driven-development",
@@ -775,7 +775,7 @@
       "integration": "domain + usecase layer — exercises adapters with real fixtures; runs in <2s per test",
       "contract": "api/worker boundary — pinned against contracts/*.yaml schemas",
       "e2e": "full pipeline — branch-pipeline rehearsal under cargo nextest e2e profile",
-      "fitness": "oya-governance-* lanes — CI-only structural checks"
+      "fitness": "governance-* lanes — CI-only structural checks"
     },
     "coverage_floor": "Per crate: 100% of new public API + 80% of internal branches. No floor on auto-generated code.",
     "references": [
@@ -799,9 +799,9 @@
           "cargo-clippy",
           "cargo-nextest",
           "oya-vcs-admission",
-          "oya-governance-supply-chain",
-          "oya-governance-api-semver",
-          "oya-governance-cohesion"
+          "governance-supply-chain",
+          "governance-api-semver",
+          "governance-cohesion"
         ]
       },
       "pre_merge_advisory": {
@@ -809,9 +809,9 @@
         "fail_policy": "report-only",
         "parallelism": "all in parallel",
         "lanes": [
-          "oya-governance-doc-catalog",
-          "oya-governance-protection-context-match",
-          "oya-governance-changeset-state-monotonicity"
+          "governance-doc-catalog",
+          "governance-protection-context-match",
+          "governance-changeset-state-monotonicity"
         ]
       },
       "post_merge_promotion_gate": {
@@ -1365,7 +1365,7 @@
         {
           "stage": "S2_candidate_lane",
           "trigger": "Candidate created",
-          "action": "Lane is implemented as oya-governance-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."
+          "action": "Lane is implemented as governance-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."
         },
         {
           "stage": "S3_empirical_evidence",

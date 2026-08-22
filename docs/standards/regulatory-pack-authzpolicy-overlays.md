@@ -83,7 +83,7 @@ Both artifacts derive from the same Cedar source-of-truth; pack-specific Cedar p
 
 ## Cell-µservice scheduling awareness
 
-Regulated-pack cells declare `cell-pack-eu`, `cell-pack-kr`, `cell-pack-us-healthcare`, `cell-pack-ksa`, `cell-pack-uae` tiers requiring Istio Ambient waypoint node-pool affinity. Tenancy refuses to bind a regulated tenant to a non-Ambient-capable cell using cloud-iac cell capability metadata and the `oya-shuffle-sharding` crate. Documented in `microservices/tenancy/ARCHITECTURE.md#cell-assignment` and `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning`.
+Regulated-pack cells declare `cell-pack-eu`, `cell-pack-kr`, `cell-pack-us-healthcare`, `cell-pack-ksa`, `cell-pack-uae` tiers requiring Istio Ambient waypoint node-pool affinity. Tenancy refuses to bind a regulated tenant to a non-Ambient-capable cell using cloud-iac cell capability metadata and the `shuffle-sharding` crate. Documented in `microservices/tenancy/ARCHITECTURE.md#cell-assignment` and `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning`.
 
 ## Observability
 

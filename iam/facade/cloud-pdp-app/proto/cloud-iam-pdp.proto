@@ -4,7 +4,7 @@
 // Cloud IAM PDP decision surface (ADR-0559, G004 slice 1).
 //
 // Mirrors the locked PDP contract family in
-// libs/oya-shared-platform-contracts-kernel/src/pdp.rs (PARC request,
+// libs/shared-platform-contracts-kernel/src/pdp.rs (PARC request,
 // attributable response, zookie policy-version echo). The PEP assembles and
 // sends the entity slice with every request: the PDP evaluates against
 // EXACTLY that slice and never dials a PIP at decision time (ADR-0536 D-2).

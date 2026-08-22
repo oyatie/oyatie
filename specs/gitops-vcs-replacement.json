@@ -332,7 +332,7 @@
       },
       {
         "id": "retired-multispectrum-evidence",
-        "rule": "RETIRED: standalone multispectrum evidence-file attachment belonged to the retired bespoke admission-adapter path and MUST NOT be required for current plain-git protected PR promotion. Preserve multi-lens review through PR Code Review evidence, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets."
+        "rule": "RETIRED: standalone multispectrum evidence-file attachment belonged to the retired bespoke admission-adapter path and MUST NOT be required for current plain-git protected PR promotion. Preserve multi-lens review through PR Code Review evidence, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/ci gate packets."
       },
       {
         "id": "cli-command-surface",
@@ -1382,7 +1382,7 @@
       {
         "id": "cli-command-surface",
         "status": "patched-in-current-repo",
-        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote ratchet commands with JSON output and targeted tests"
+        "acceptance": "dev-cli exposes Oya VCS claim/work/verify/done/promote ratchet commands with JSON output and targeted tests"
       },
       {
         "id": "provider-adapter-proof",
@@ -1392,13 +1392,13 @@
     ],
     "verification": [
       "cargo run -q -p oya-vcs-admission-gate-app",
-      "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
-      "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
-      "cargo test -p oya-dev-cli vcs",
-      "cargo run -q -p oya-dev-cli -- vcs --format json claim ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json done ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json promote ...",
-      "cargo run -q -p oya-dev-cli -- vcs --format json verify ..."
+      "cargo run -q -p dev-cli -- gate audit master-plan-completion --check",
+      "cargo run -q -p dev-cli -- doc render master-plan-ledger --check",
+      "cargo test -p dev-cli vcs",
+      "cargo run -q -p dev-cli -- vcs --format json claim ...",
+      "cargo run -q -p dev-cli -- vcs --format json done ...",
+      "cargo run -q -p dev-cli -- vcs --format json promote ...",
+      "cargo run -q -p dev-cli -- vcs --format json verify ..."
     ]
   },
   "current_ci_admission_lane": {
@@ -1421,7 +1421,7 @@
       "Oya VCS workspace packages are absent",
       "targeted Oya VCS tests fail",
       "branch protection or PR workflow stops exposing oya-vcs-admission",
-      "oya-dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
+      "dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
       "provider evidence slots for CI, GitHub Actions, Trivy, or Argo GitOps are missing or not passed",
       "multispectrum evidence files are missing audit-chain coverage rows",
       "provider execution proof script is absent or fails credential-safe CI/GitHub Actions, Trivy, or Argo desired-state checks",

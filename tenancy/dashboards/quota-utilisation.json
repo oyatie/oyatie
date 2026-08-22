@@ -5,11 +5,11 @@
   "tags": ["tenancy", "quota"],
   "panels": [
     {"id": 1, "type": "stat", "title": "Quota breaches / hour",
-     "targets": [{"expr": "sum(rate(oya_tenancy_quota_breach_total[1h]))"}]},
+     "targets": [{"expr": "sum(rate(tenancy_quota_breach_total[1h]))"}]},
     {"id": 2, "type": "timeseries", "title": "Top tenants by quota %",
-     "targets": [{"expr": "topk(10, oya_tenancy_quota_used_ratio)"}]},
+     "targets": [{"expr": "topk(10, tenancy_quota_used_ratio)"}]},
     {"id": 3, "type": "table", "title": "Quota updates by reason",
-     "targets": [{"expr": "sum by (reason) (oya_tenancy_quota_updated_total)"}]}
+     "targets": [{"expr": "sum by (reason) (tenancy_quota_updated_total)"}]}
   ],
   "binding_adrs": ["ADR-0244", "ADR-0263"]
 }

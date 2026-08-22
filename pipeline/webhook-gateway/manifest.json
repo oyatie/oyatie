@@ -99,7 +99,7 @@
       {
         "name": "github-webhook-secret",
         "sref": "sref://openbao/oya/ci/github-webhook-secret",
-        "env": "OYA_GITHUB_WEBHOOK_SECRET",
+        "env": "OYATIE_GITHUB_WEBHOOK_SECRET",
         "purpose": "HMAC-SHA256 webhook signature verification (fail-closed)."
       }
     ]
@@ -121,14 +121,14 @@
   "capabilities": [
     "capabilities/capability-catalog.md"
   ],
-  "tenant_isolation": "N/A — substrate service, not tenant-scoped. Runs in the oya-ci namespace; no cross-tenant data path.",
+  "tenant_isolation": "N/A — substrate service, not tenant-scoped. Runs in the ci namespace; no cross-tenant data path.",
   "dispatch_targets": {
     "trusted_runner": "Jenkins oyaCiLane pipeline (infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy)",
     "status_sink": "GitHub Commit Status API (posted by Jenkins, not by this gateway)"
   },
   "unbuilt_downstreams": [
     {
-      "stage": "oya-pr-review",
+      "stage": "pr-review",
       "tracked": "registry/placeholder-debt/adr-follow-ups.yaml#adr-0374-reviewer-gate-dispatch"
     },
     {

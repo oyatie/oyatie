@@ -21,9 +21,9 @@ responds ACCEPT / DECLINE / TENTATIVE within a narrow window
 (typically 5 minutes after the original invitation lands in inboxes).
 Visible as:
 
-- `oya_calendar_rsvp_fanout_inflight{tenant_id}` spikes >100× the 24h
+- `calendar_rsvp_fanout_inflight{tenant_id}` spikes >100× the 24h
   baseline for one tenant.
-- `oya_calendar_invitation_flow_worker_queue_depth` rises into the
+- `calendar_invitation_flow_worker_queue_depth` rises into the
   thousands.
 - `rsvp-fanout-latency` SLO p95 breach: response-to-event-store-write
   latency exceeds 2s (target ≤500ms p95).
@@ -46,8 +46,8 @@ axis-calendar on-call.
 
 ```bash
 # Find the event with the highest concurrent RSVP rate
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp top-events --window 5m --limit 5
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp top-events --window 5m --limit 5
 ```
 
 Output is `(event_id, tenant_id, rsvp_count_5min, attendee_count_total)`.
@@ -64,15 +64,15 @@ Output is `(event_id, tenant_id, rsvp_count_5min, attendee_count_total)`.
 
 ```bash
 # Bot check: count distinct attendees per event
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp distinct-attendees --event-id <event_id>
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp distinct-attendees --event-id <event_id>
 ```
 
 ### Step 3 — Backend backpressure check
 
 ```bash
 # Are downstream consumers keeping up?
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
   curl -s localhost:9090/metrics |
   grep -E '(queue_depth|consumer_lag)'
 ```
@@ -86,8 +86,8 @@ attendees finish responding:
 
 ```bash
 # Apply a per-event rate limit
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp throttle-add \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp throttle-add \
   --event-id <event_id> \
   --rate "100 rps" \
   --duration 30m
@@ -102,15 +102,15 @@ Throttle by attendee or by tenant:
 
 ```bash
 # Per-attendee throttle (most common)
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp throttle-add \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp throttle-add \
   --attendee-id <attendee_id> \
   --rate "10 rpm" \
   --duration 1h
 
 # Per-tenant throttle (if multiple attendees in same tenant are bot-RSVPing)
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp throttle-add \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp throttle-add \
   --tenant <tenant_id> \
   --rate "1000 rpm" \
   --duration 1h
@@ -124,9 +124,9 @@ ops-security if abuse is suspected.
 Pause the invitation-flow worker; let the replay drain:
 
 ```bash
-kubectl -n calendar scale deploy/oya-calendar-invitation-flow-worker --replicas=0
+kubectl -n calendar scale deploy/calendar-invitation-flow-worker --replicas=0
 # Wait 2 minutes for in-flight RSVPs to settle, then bring it back up at reduced concurrency
-kubectl -n calendar scale deploy/oya-calendar-invitation-flow-worker --replicas=2
+kubectl -n calendar scale deploy/calendar-invitation-flow-worker --replicas=2
 # Monitor queue_depth; scale back up as it drains
 ```
 
@@ -136,7 +136,7 @@ If audit-chain or mail-bridge is backing up:
 
 ```bash
 # Coalesce RSVP fanout events into batches of 100 (per-event-id)
-kubectl -n calendar patch configmap oya-calendar-invitation-flow-config --type merge -p \
+kubectl -n calendar patch configmap calendar-invitation-flow-config --type merge -p \
   '{"data":{"fanout_batch_size":"100","fanout_batch_window_ms":"500"}}'
 ```
 
@@ -147,16 +147,16 @@ relief. Revert after the storm subsides.
 
 ```bash
 # Queue depth returning to baseline
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_invitation_flow_worker_queue_depth'
+  grep 'calendar_invitation_flow_worker_queue_depth'
 
 # rsvp-fanout-latency SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
 
 # Storm event has drained (rsvp_count_5min back to baseline)
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar rsvp top-events --window 5m --limit 1
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar rsvp top-events --window 5m --limit 1
 ```
 
 ## Post-incident

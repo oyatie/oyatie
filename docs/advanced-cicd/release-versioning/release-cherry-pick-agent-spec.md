@@ -10,7 +10,7 @@ purpose: |
   Define the release-cherry-pick agent: the only identity authorised to add
   commits to a release/X.Y branch and to mint patch tags. Operates under
   Directive 12 (documented direct tool invocations).
-planned_enforcement_ref: oya-governance-cherry-pick-trail, oya-governance-release-branch-cut
+planned_enforcement_ref: governance-cherry-pick-trail, governance-release-branch-cut
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -48,7 +48,7 @@ The agent MAY invoke these tools directly, with documented rationale via
 | Tool | Justification template |
 |---|---|
 | `git cherry-pick <sha>` | "Move fix `<sha>` from prod to release/X.Y per frontmatter / operator request." |
-| `git tag -a oya-vX.Y.<Z+1>` | "Mint patch tag after release-branch CI green." |
+| `git tag -a vX.Y.<Z+1>` | "Mint patch tag after release-branch CI green." |
 | `git push origin <branch>` | "Publish cherry-pick / tag (push restricted to this agent's signing key)." |
 | `gh release create` | "Cut GitHub release record for the patch tag with release notes." |
 
@@ -62,7 +62,7 @@ topic: release-cherry-picks
 content: |
   prod_sha: <sha>
   release_branch: release/X.Y
-  patch_tag: oya-vX.Y.<Z+1>
+  patch_tag: vX.Y.<Z+1>
   cherry_pick_status: clean | conflict-resolved | refused
   rationale: <one line>
   approving_reviewers: [<list>]
@@ -82,7 +82,7 @@ keywords: [cherry-pick, release, X.Y, <axis>]
    - API-stability check (refuse if it touches `contracts/openapi/`).
 5. `git cherry-pick <prod-sha>` on `release/X.Y`.
 6. Push → trigger release-branch CI.
-7. On CI green: increment patch in `Cargo.toml`, tag `oya-vX.Y.<Z+1>`,
+7. On CI green: increment patch in `Cargo.toml`, tag `vX.Y.<Z+1>`,
    push tag.
 8. `gh release create` with the release notes (auto-generated from commit msgs).
 10. Emit `EVT-CHERRY-PICK-LANDED` to D14.
@@ -123,7 +123,7 @@ OIDC identity. The trail is verifiable by replaying:
 prod_sha → release_branch_sha → patch_tag → release_artefact
 ```
 
-`oya-governance-cherry-pick-trail` verifies the chain weekly.
+`governance-cherry-pick-trail` verifies the chain weekly.
 
 ## 9. Constraints
 

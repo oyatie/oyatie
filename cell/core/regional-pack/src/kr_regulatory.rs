@@ -2,7 +2,7 @@
 //! and CSAP control evidence references.
 //!
 //! Implements M04-P02-IP-001 (merge-variant delta-1): smallest net-new types
-//! merged into `oya-regional-pack-domain`; no new crate scaffolding.
+//! merged into `regional-pack-domain`; no new crate scaffolding.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -61,7 +61,7 @@ impl PipaDataClassification {
 /// against PIPA Art-23 and CSAP, and records the CSAP evidence reference.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KrRegulatoryBinding {
-    /// Pack identifier (must match `RegionalPack::id` prefix `oya-pack-`).
+    /// Pack identifier (must match `RegionalPack::id` prefix `pack-`).
     pack_id: String,
     /// PIPA classification for the primary data processed by this pack.
     pipa_classification: PipaDataClassification,
@@ -82,7 +82,7 @@ impl KrRegulatoryBinding {
         pipa_classification: PipaDataClassification,
         csap_evidence_ref: String,
     ) -> Result<Self, KrRegulatoryBindingError> {
-        if !pack_id.starts_with("oya-pack-") {
+        if !pack_id.starts_with("pack-") {
             return Err(KrRegulatoryBindingError::InvalidPackId);
         }
         if csap_evidence_ref.trim().is_empty() {
@@ -171,13 +171,13 @@ mod tests {
     #[test]
     fn kr_regulatory_binding_accepts_valid_inputs() {
         let binding = KrRegulatoryBinding::new(
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PipaDataClassification::HealthOrMedical,
             "csap-ctrl-kr-2026-001".to_string(),
         )
         .expect("valid binding should be accepted");
 
-        assert_eq!(binding.pack_id(), "oya-pack-alpha");
+        assert_eq!(binding.pack_id(), "pack-alpha");
         assert!(binding.pipa_classification().is_sensitive());
         assert_eq!(binding.csap_evidence_ref(), "csap-ctrl-kr-2026-001");
     }
@@ -189,7 +189,7 @@ mod tests {
             PipaDataClassification::General,
             "csap-ctrl-kr-2026-001".to_string(),
         )
-        .expect_err("non-oya-pack- prefix must be rejected");
+        .expect_err("non-pack- prefix must be rejected");
 
         assert_eq!(err, KrRegulatoryBindingError::InvalidPackId);
     }
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn kr_regulatory_binding_rejects_empty_csap_ref() {
         let err = KrRegulatoryBinding::new(
-            "oya-pack-alpha".to_string(),
+            "pack-alpha".to_string(),
             PipaDataClassification::General,
             "   ".to_string(),
         )

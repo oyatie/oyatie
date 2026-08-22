@@ -144,10 +144,10 @@ fn tenant_residency_contract_preserves_manifest_policy_refs_and_scope() {
                 .starts_with("evidence/residency/fd001-tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && requirement
                 .source_admission_policy_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-admission-policy/")
+                .starts_with("crates/tenant-rbac-tenant-admission-policy/")
             && requirement
                 .source_tenant_model_ref
                 .starts_with("specs/tenant-model.json")

@@ -170,7 +170,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/tenancy-multi-region-overlay.m
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice tenancy` — exit 0.
+- `cargo run -p dev-cli -- gate validate multi-region-conformance --microservice tenancy` — exit 0.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 
@@ -229,7 +229,7 @@ Per ADR-0163, every tenant has three environment tiers — `test`, `staging`, `p
 
 **Destructive-operation acknowledgment (prod tier only):**
 - Cedar condition `prod_destructive_acknowledged: true`.
-- Request header `x-oya-prod-destructive-ack: true`.
+- Request header `x-prod-destructive-ack: true`.
 - UI prompt before send.
 - Audit-chain seal captures (who, when, what).
 

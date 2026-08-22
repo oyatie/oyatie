@@ -5,13 +5,13 @@
   "tags": ["finops-portal", "rightsizing"],
   "panels": [
     {"id": 1, "type": "stat", "title": "Open recommendations",
-     "targets": [{"expr": "sum(oya_finops_rightsizing_recommendation_state{state=\"OPEN\"})"}]},
+     "targets": [{"expr": "sum(finops_rightsizing_recommendation_state{state=\"OPEN\"})"}]},
     {"id": 2, "type": "stat", "title": "Estimated savings $/month (top 100 tenants)",
-     "targets": [{"expr": "sum(oya_finops_rightsizing_estimated_monthly_savings_usd)"}]},
+     "targets": [{"expr": "sum(finops_rightsizing_estimated_monthly_savings_usd)"}]},
     {"id": 3, "type": "timeseries", "title": "Recommendations emitted / day",
-     "targets": [{"expr": "sum(rate(oya_finops_rightsizing_recommendation_emitted_total[1d]))"}]},
+     "targets": [{"expr": "sum(rate(finops_rightsizing_recommendation_emitted_total[1d]))"}]},
     {"id": 4, "type": "table", "title": "Top recommendations by savings",
-     "targets": [{"expr": "topk(20, oya_finops_rightsizing_estimated_monthly_savings_usd)"}]}
+     "targets": [{"expr": "topk(20, finops_rightsizing_estimated_monthly_savings_usd)"}]}
   ],
   "binding_adrs": ["ADR-0199", "ADR-0255"]
 }

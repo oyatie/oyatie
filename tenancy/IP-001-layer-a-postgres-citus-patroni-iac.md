@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: ops-sre-reliability + axis-tenancy
-acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance]
+acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, governance-per-microservice-layout, governance-version-pinning-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -109,8 +109,8 @@ helm lint microservices/tenancy/iac/helm/citus
 helm lint microservices/tenancy/iac/helm/patroni
 kubectl --dry-run=client apply -k microservices/tenancy/iac/kustomize/overlays/pack-kr
 tofu validate microservices/tenancy/iac/terraform/
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tenancy
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+cargo run -p dev-cli -- gate validate per-microservice-layout --microservice tenancy
+cargo run -p dev-cli -- gate validate version-pinning-conformance
 ```
 
 ## Test Plan
@@ -132,7 +132,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md` matched `multi-region`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md` matched `multi-region`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Next IP
 

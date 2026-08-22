@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-identity — events
+  title: identity — events
   version: 1.0.0
   summary: 18 sealed events emitted by the identity µservice per ADR-0162.
   description: |

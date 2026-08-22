@@ -20,7 +20,7 @@
     },
     "alerting_complete": {
       "documented": true,
-      "evidence": "alertPolicyRef oya-canonical-burn-rate-multi-window applied to all 9 SLOs"
+      "evidence": "alertPolicyRef canonical-burn-rate-multi-window applied to all 9 SLOs"
     },
     "runbooks_complete": {
       "documented": true,

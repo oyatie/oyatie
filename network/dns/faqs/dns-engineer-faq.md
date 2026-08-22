@@ -64,7 +64,7 @@ multi-region quorum, ≤ 8 s (BGP withdraw timing).
 **Q8. Can I write a custom record type?**
 
 At paid: register the RR-Type via `oya dns rrtype register`, providing the wire-format codec. The resolver fleet picks up the
-codec via plugin. At paid: use RR-Type 65000+ (private use); the codec lives in `crates/oya-cloud-network-dns-rrtype-tenant-<tenant>/`.
+codec via plugin. At paid: use RR-Type 65000+ (private use); the codec lives in `crates/cloud-network-dns-rrtype-tenant-<tenant>/`.
 
 ---
 

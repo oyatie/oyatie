@@ -9,7 +9,7 @@ paths:
     post:
       operationId: createManagedK8sCluster
       summary: Admit and provision a tenant managed-Kubernetes cluster
-      description: Gateway-internal only. Requires a trusted upstream gateway to strip caller-supplied `x-oya-tenant-id` and inject the authenticated tenant id; this service checks that header against `tenant_id` before quota/provisioning.
+      description: Gateway-internal only. Requires a trusted upstream gateway to strip caller-supplied `x-tenant-id` and inject the authenticated tenant id; this service checks that header against `tenant_id` before quota/provisioning.
       requestBody:
         required: true
         content:
@@ -70,7 +70,7 @@ components:
     TenantPrincipalHeader:
       type: apiKey
       in: header
-      name: x-oya-tenant-id
+      name: x-tenant-id
       description: Gateway-injected tenant principal. This is not a public self-asserted credential; upstream must strip client-supplied values and inject the authenticated tenant id.
   schemas:
     ClusterCreateRequest:

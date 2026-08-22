@@ -1,4 +1,4 @@
-# Tenant isolation — `oya-managed-k8s-control-plane-host`
+# Tenant isolation — `managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376, ADR-0009 (cells), ADR-0148 (mesh), ADR-0147/0338 (Kata +
 Cloud Hypervisor for untrusted workloads). non_claim: the LIVE isolation

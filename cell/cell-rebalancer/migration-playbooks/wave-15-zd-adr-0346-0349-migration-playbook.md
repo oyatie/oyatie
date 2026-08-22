@@ -20,7 +20,7 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 1. ADR-0346: Establish that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 2. ADR-0346: The verifier invokes `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, `oya gate run-all --ci-required`, `oya doc adr-index --write`, and `oya lint adr-shape`.
 3. ADR-0346: The verifier MUST block on exit-0 of EACH step before returning success to the caller.
-4. ADR-0347: Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
+4. ADR-0347: Declare that every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request.
 5. ADR-0347: The rename surface includes workflow names, lane records, catalog records, Rust check-family crates, ADR cross-citations, docs/standards references, .omc/state references, master-plan sub-wave entries, canonical primitives, branch-protection checks, and per-microservice manifest `governance_lanes` arrays.
 6. ADR-0347: Governance is the actual owning team per ADR-0132 + axis-governance, and the bulk rename collapses 34 per-lane migration IPs into one Wave 15-ZB codex-bucket fan-out PR.
 7. ADR-0348: Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
@@ -33,34 +33,34 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## ADR-0346 enforcement lanes
 
-- `oya-governance-oya-verify-ci-mirror-coverage` - refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis.
-- `oya-governance-oya-verify-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
-- `oya-governance-oya-verify-skip-flag-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
-- `oya-governance-oya-submit-calls-verify` - refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10.
-- `oya-governance-oya-verify-exit-code-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
+- `governance-verify-ci-mirror-coverage` - refuses corpus changes to `crates/dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis.
+- `governance-verify-ci-step-exit-semantics` - refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps.
+- `governance-verify-skip-flag-allowlist` - refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8.
+- `governance-submit-calls-verify` - refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10.
+- `governance-verify-exit-code-contract` - refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11.
 
 ## ADR-0347 enforcement lanes
 
-- `oya-governance-no-foundry-fitness-residue` - greps the corpus and refuses any non-historical reference to `oya-governance-*`.
-- `oya-governance-lane-prefix-vocabulary` - refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`.
-- `oya-governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/oya-governance-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
+- `governance-no-foundry-fitness-residue` - greps the corpus and refuses any non-historical reference to `governance-*`.
+- `governance-lane-prefix-vocabulary` - refuses new authoring that introduces a fitness-family lane under any prefix other than `governance-*` or `check-*`.
+- `governance-rename-inventory-presence` - refuses corpus changes to `.github/workflows/governance-*.yml`, crates, catalog, and lane records that do not also update the rename inventory path under `.omc/state/`.
 
 ## ADR-0348 enforcement lanes
 
-- `oya-governance-sharding-automation-coverage` - refuses any microservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema.
-- `oya-governance-autosharding-manual-mode-refusal` - refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual.
-- `oya-governance-auto-rebalance-residency-honored` - refuses every manifest declaring sharding_automation.auto_rebalance.enabled true if the same manifest declares honors_residency false OR omits the field.
-- `oya-governance-dynamic-sharding-threshold-coverage` - refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits any canonical threshold.
-- `oya-governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
-- `oya-governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
+- `governance-sharding-automation-coverage` - refuses any microservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema.
+- `governance-autosharding-manual-mode-refusal` - refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual.
+- `governance-auto-rebalance-residency-honored` - refuses every manifest declaring sharding_automation.auto_rebalance.enabled true if the same manifest declares honors_residency false OR omits the field.
+- `governance-dynamic-sharding-threshold-coverage` - refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits any canonical threshold.
+- `governance-audit-chain-emit-on-automation-events` - refuses every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true if audit_chain_emit is omitted on the corresponding sub-block.
+- `governance-tenant-migration-reversibility` - refuses any microservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section.
 
 ## ADR-0349 enforcement lanes
 
-- `oya-governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
-- `oya-governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
-- `oya-governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
-- `oya-governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
-- `oya-governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
+- `governance-jenkins-github-actions-parity` - refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract.
+- `governance-argocd-application-cosign-verified` - refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181.
+- `governance-argocd-tenant-namespace-isolation` - refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243.
+- `governance-jenkins-jcasc-only` - refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under the declarative JCasC module path.
+- `governance-deploy-audit-chain-emit` - refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class.
 
 ## Phase 0 - Inventory
 
@@ -80,8 +80,8 @@ Scope boundary: this playbook is documentation-only. It records the migration se
 
 ## Phase 2 - ADR-0347 governance lane rename migration
 
-1. Search `cell-rebalancer` artifact surfaces for `oya-governance-*` references.
-2. Convert non-historical fitness lane references to `oya-governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
+1. Search `cell-rebalancer` artifact surfaces for `governance-*` references.
+2. Convert non-historical fitness lane references to `governance-*` in the Wave 15-ZB implementation lane, not in this playbook scaffold.
 3. Preserve historical ADR context when an ADR-specific allowlist says the old prefix is historical context.
 4. Update any future `cell-rebalancer` manifest `governance_lanes` array only in the manifest-owning slot.
 5. Use the rename inventory path under `.omc/state/` as the deterministic source for target governance names.

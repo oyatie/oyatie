@@ -15,19 +15,19 @@ related_adrs: [ADR-0244, ADR-0250, ADR-0292, ADR-0263]
 
 ## B. Approach
 
-Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models verification cases, document requirements, screening results, decision state, expiry, and escalation. Provider calls remain outside this IP; this domain receives provider-independent facts and decides whether the tenant lifecycle may advance from `Created` to `Activated`.
+Create `tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models verification cases, document requirements, screening results, decision state, expiry, and escalation. Provider calls remain outside this IP; this domain receives provider-independent facts and decides whether the tenant lifecycle may advance from `Created` to `Activated`.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-kyb-kyc-verifier-domain/Cargo.toml` | create | Domain crate. |
+| `microservices/tenancy/src/crates/tenancy-kyb-kyc-verifier-domain/Cargo.toml` | create | Domain crate. |
 | `src/case.rs` | create | `VerificationCase`, `CaseStatus`, `Decision`. |
 | `src/document.rs` | create | `DocumentRequirement`, `DocumentSubmission`, `DocumentStatus`. |
 | `src/screening.rs` | create | Sanctions, PEP, adverse-media, minor-protection screening results. |
 | `src/rules.rs` | create | Country, tenant_class, and audience-specific requirement resolver. |
 | `src/events.rs` | create | Domain events for completed, declined, escalated, expired. |
-| `microservices/tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml` | update/create | Catalog row already present in the service inventory. |
+| `microservices/tenancy/catalog/tenancy-kyb-kyc-verifier-domain.yaml` | update/create | Catalog row already present in the service inventory. |
 | `microservices/tenancy/capabilities/kyb-kyc-complete.yaml` | align | Capability declares this domain as decision owner. |
 
 ## D. Implementation
@@ -42,7 +42,7 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-kyb-kyc-verifier-domain --all-features`.
+- `cargo nextest run -p tenancy-kyb-kyc-verifier-domain --all-features`.
 - No network, database, HTTP, or provider SDK dependencies appear in the crate.
 - Tests show `TenantStatus::Activated` eligibility only after `Decision::Approve`.
 - Domain events map to `oya.tenancy.kyb-kyc-completed`, `oya.tenancy.kyb-kyc-declined`, and `oya.tenancy.kyb-kyc-escalated` for `IP-024`.
@@ -51,7 +51,7 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 ## F. Evidence
 
 - `microservices/tenancy/PRD.md` requires sub-5-minute self-serve activation and identifies tenant lifecycle as the authority every µservice trusts.
-- `microservices/tenancy/manifest.json` lists `kyb-kyc-complete.yaml` and the `oya-tenancy-kyb-kyc-verifier-domain` catalog row.
+- `microservices/tenancy/manifest.json` lists `kyb-kyc-complete.yaml` and the `tenancy-kyb-kyc-verifier-domain` catalog row.
 - `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md` already exists as the operational path for stuck cases.
 - `microservices/payments/competitor-parity-matrix.md` shows Stripe Identity/pressure on verified account onboarding; tenancy must supply the tenant-side proof before payments handles sub-merchants.
 
@@ -68,4 +68,4 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-018-kyb-kyc-verifier-domain.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-018-kyb-kyc-verifier-domain.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

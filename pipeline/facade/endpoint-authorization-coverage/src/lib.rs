@@ -21,7 +21,7 @@
 //! `Router` PARAMETER / an aliased binding / a builder-returned `Router` produced it, and regardless
 //! of whether it is declared before or AFTER `.with_state(...)` (PR #780 second-pass BLOCKER-1/2/3).
 //! Two route grammars are classified: axum `.route(path, METHOD(handler))` and the owned
-//! `oya-http-router-kernel` `.route(HttpMethod::X, path, handler)`. A surface is a CONTROL PLANE when
+//! `http-router-kernel` `.route(HttpMethod::X, path, handler)`. A surface is a CONTROL PLANE when
 //! any route is either
 //! - a MUTATING method (`post`/`put`/`patch`/`delete`/`any`, or `HttpMethod::POST/PUT/PATCH/DELETE`)
 //!   on a non-exempt path, or
@@ -444,7 +444,7 @@ struct RouteCall<'a> {
 ///
 /// The parser is line/char based (no Rust-source AST kernel exists yet) but robust to the corpus
 /// shapes: multiline calls, turbofish handlers, the axum `(path, METHOD(handler))` grammar AND the
-/// owned `oya-http-router-kernel` `(HttpMethod::X, path, handler)` grammar. Any `.route(` shape it
+/// owned `http-router-kernel` `(HttpMethod::X, path, handler)` grammar. Any `.route(` shape it
 /// cannot classify into either grammar → an `AC-UNCLASSIFIED-SURFACE` route (fail-closed, item 5).
 ///
 /// Structure is searched against a length-preserving [`mask_non_code`] view (so comment/string
@@ -798,7 +798,7 @@ fn attr_contains_test_token(attr: &str) -> bool {
 /// A `.route(` is a genuine route-INTRODUCTION iff its argument shape matches one of the two HTTP
 /// route grammars the corpus uses — and crucially an HTTP route ALWAYS carries either a string-ish
 /// path or an `HttpMethod::` verb, so the discriminator never misses a real route:
-/// - **owned `oya-http-router-kernel`** `(HttpMethod::X, path, handler)`: arg1 is `HttpMethod::X`.
+/// - **owned `http-router-kernel`** `(HttpMethod::X, path, handler)`: arg1 is `HttpMethod::X`.
 /// - **axum** `(path, METHOD(handler))`: arg1 is a `"..."`/raw-string literal path OR a
 ///   route-path-shaped ident/`&expr` path AND arg2 is a recognized method-router
 ///   (`get/post/.../on(MethodFilter::X, h)`/a resolvable `let`-bound var). The literal-path case
@@ -979,7 +979,7 @@ fn method_router_call_shaped(arg: &str) -> bool {
 }
 
 /// If `arg` is an `HttpMethod::X` (or a `::`-qualified `..::HttpMethod::X`) verb expression, return
-/// the verb `X`; else None. The owned `oya-http-router-kernel` first route arg.
+/// the verb `X`; else None. The owned `http-router-kernel` first route arg.
 fn strip_http_method_prefix(arg: &str) -> Option<String> {
     let needle = "HttpMethod::";
     let at = arg.find(needle)?;
@@ -3394,7 +3394,7 @@ mod tests {
         );
     }
 
-    // ---- Owned `oya-http-router-kernel` grammar `(HttpMethod::X, path, handler)` --------------------
+    // ---- Owned `http-router-kernel` grammar `(HttpMethod::X, path, handler)` --------------------
 
     // RED: an owned-kernel POST with no guard.
     const RED_OWNED_KERNEL_POST: &str = r#"
@@ -3455,7 +3455,7 @@ mod tests {
 
         struct PolicyAdmissionHandler;
 
-        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+        impl http_middleware_kernel::Handler for PolicyAdmissionHandler {
             type Error = HttpResponse;
 
             fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -3500,7 +3500,7 @@ mod tests {
 
         struct PolicyAdmissionHandler;
 
-        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+        impl http_middleware_kernel::Handler for PolicyAdmissionHandler {
             type Error = HttpResponse;
 
             fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -3549,7 +3549,7 @@ mod tests {
     // RED: owned-kernel-SHAPED 3-arg `.route(method_var, field.path, handler)` where the path
     // arg is a field access (contains `.`) — the engine cannot classify it into either grammar.
     // Must fail-CLOSED as AC-UNCLASSIFIED-SURFACE rather than silently dropping (fail-open).
-    // This is the MAJOR fix: libs/oya-shared-backbone-rest-runtime-adapter uses exactly this shape.
+    // This is the MAJOR fix: libs/shared-backbone-rest-runtime-adapter uses exactly this shape.
     const RED_OWNED_KERNEL_FIELD_PATH: &str = r#"
         fn register(router: &mut Router<SyncHandler>, route: &RouteSpec, handler: SyncHandler) {
             router.route(method, route.path, handler).expect("route");

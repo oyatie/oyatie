@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-007: oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}
+# IP-007: cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}
 
 ## Intent
 
@@ -25,16 +25,16 @@ Four new Rust crates: `*-kernel`, `*-domain`, `*-usecase`, `*-adapter`. Catalog 
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-node-lifecycle-kernel/{Cargo.toml,src/{lib.rs,entities.rs,ports.rs,errors.rs}}` | create |
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-node-lifecycle-domain/{Cargo.toml,src/{lib.rs,drain_planning.rs,eviction_math.rs}}` | create |
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-node-lifecycle-usecase/{Cargo.toml,src/{lib.rs,add.rs,cordon.rs,drain.rs,remove.rs}}` | create |
-| `microservices/cloud-k8s/src/crates/oya-cloud-k8s-node-lifecycle-adapter/{Cargo.toml,src/{lib.rs,kube_node_client.rs,eviction_client.rs,pdb_client.rs}}` | create |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}.yaml` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-node-lifecycle-kernel/{Cargo.toml,src/{lib.rs,entities.rs,ports.rs,errors.rs}}` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-node-lifecycle-domain/{Cargo.toml,src/{lib.rs,drain_planning.rs,eviction_math.rs}}` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-node-lifecycle-usecase/{Cargo.toml,src/{lib.rs,add.rs,cordon.rs,drain.rs,remove.rs}}` | create |
+| `microservices/cloud-k8s/src/crates/cloud-k8s-node-lifecycle-adapter/{Cargo.toml,src/{lib.rs,kube_node_client.rs,eviction_client.rs,pdb_client.rs}}` | create |
+| `microservices/cloud-k8s/catalog/cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAMES: oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}
+NAMES: cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}
 JUSTIFICATION:
 - microservice = cloud-k8s; bc-tokens = node-lifecycle
 - layers per ADR-0105 4 layers (kernel + domain + usecase + adapter)
@@ -63,7 +63,7 @@ pub trait NodeDrainer: Send + Sync + Sealed {
 
 ```rust
 // domain/src/drain_planning.rs
-use oya_cloud_k8s_node_lifecycle_kernel::entities::*;
+use cloud_k8s_node_lifecycle_kernel::entities::*;
 pub fn compute_drain_plan(pods: &[Pod], pdbs: &[PodDisruptionBudget]) -> Result<DrainPlan, DrainPlanError> {
     // pure logic; produces ordered eviction list respecting PDB budgets
 }
@@ -73,15 +73,15 @@ pub fn compute_drain_plan(pods: &[Pod], pdbs: &[PodDisruptionBudget]) -> Result<
 
 ```bash
 for crate in node-lifecycle-{kernel,domain,usecase,adapter}; do
-  cargo check -p oya-cloud-k8s-$crate
-  cargo build -p oya-cloud-k8s-$crate
-  cargo clippy -p oya-cloud-k8s-$crate -- -D warnings
-  cargo nextest run -p oya-cloud-k8s-$crate
+  cargo check -p cloud-k8s-$crate
+  cargo build -p cloud-k8s-$crate
+  cargo clippy -p cloud-k8s-$crate -- -D warnings
+  cargo nextest run -p cloud-k8s-$crate
 done
 cargo deny check
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice cloud-k8s
-cargo run -p oya-dev-cli -- gate validate port-location --microservice cloud-k8s
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate lean-a1 --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate port-location --microservice cloud-k8s
+cargo run -p dev-cli -- gate validate layer-correctness --microservice cloud-k8s
 ```
 
 ## Test Plan

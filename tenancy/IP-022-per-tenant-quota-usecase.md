@@ -15,19 +15,19 @@ Tenancy owns the canonical tenant record, but quota enforcement is currently imp
 
 ## B. Approach
 
-Create `oya-tenancy-per-tenant-quota-usecase` to read tenant class, pack, and lifecycle status, resolve quota defaults, apply overrides, and expose quota decisions to Cedar and REST. Enforcement remains local to each service, but the quota source of truth lives in tenancy.
+Create `tenancy-per-tenant-quota-usecase` to read tenant class, pack, and lifecycle status, resolve quota defaults, apply overrides, and expose quota decisions to Cedar and REST. Enforcement remains local to each service, but the quota source of truth lives in tenancy.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-per-tenant-quota-usecase/Cargo.toml` | create | Usecase crate. |
+| `microservices/tenancy/src/crates/tenancy-per-tenant-quota-usecase/Cargo.toml` | create | Usecase crate. |
 | `src/resolve_quota.rs` | create | Resolve effective quota from tier defaults plus overrides. |
 | `src/update_quota.rs` | create | Operator/tenant-admin bounded updates. |
 | `src/decision.rs` | create | Soft/hard limit decision result. |
 | `src/ports.rs` | create | `QuotaStore`, `TenantReadPort`, `AuditEmitPort`, `PolicyEvalPort`. |
 | `microservices/tenancy/capabilities/quota-update.yaml` | align | Capability row for quota mutation. |
-| `microservices/tenancy/catalog/oya-tenancy-per-tenant-quota-usecase.yaml` | update/create | Catalog evidence. |
+| `microservices/tenancy/catalog/tenancy-per-tenant-quota-usecase.yaml` | update/create | Catalog evidence. |
 
 ## D. Implementation
 
@@ -41,7 +41,7 @@ Create `oya-tenancy-per-tenant-quota-usecase` to read tenant class, pack, and li
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-per-tenant-quota-usecase --all-features`.
+- `cargo nextest run -p tenancy-per-tenant-quota-usecase --all-features`.
 - `microservices/tenancy/capabilities/quota-update.yaml` names the usecase owner and audit events.
 - Cedar tests cover tenant-admin self-read, substrate-principal update, and forbidden over-ceiling update.
 - REST follow-up `IP-026` can expose `GET /v1/tenants/{tid}/quotas` without inventing quota semantics.
@@ -49,7 +49,7 @@ Create `oya-tenancy-per-tenant-quota-usecase` to read tenant class, pack, and li
 ## F. Evidence
 
 - `microservices/tenancy/contracts/openapi/tenancy.yaml` defines tenant `plan_tier` values consumed by quota defaults.
-- `microservices/tenancy/manifest.json` lists `quota-update.yaml` and `oya-tenancy-per-tenant-quota-usecase.yaml`.
+- `microservices/tenancy/manifest.json` lists `quota-update.yaml` and `tenancy-per-tenant-quota-usecase.yaml`.
 - `microservices/tenancy/dashboards/quota-utilisation.json` is the operational dashboard target.
 - `microservices/tenancy/policy/action-authorization.cedar` is the mutation authorization surface.
 
@@ -65,10 +65,10 @@ Create `oya-tenancy-per-tenant-quota-usecase` to read tenant class, pack, and li
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-022-per-tenant-quota-usecase.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-022-per-tenant-quota-usecase.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Pod runtime tier (per ADR-0338)
 - `pod_runtime_tier: 0`
 - Runtime: Kata Containers plus Cloud Hypervisor are REQUIRED for this tenant-customer execution path.
 - Justification: this IP matched `sandbox`, so tenant-customer or third-party code can enter the execution path.
-- Surface evidence: `microservices/tenancy/IP-022-per-tenant-quota-usecase.md` plus `crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-022-per-tenant-quota-usecase.md` plus `crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

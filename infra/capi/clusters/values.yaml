@@ -1,7 +1,7 @@
 # Spoke-cell catalog. One CAPI Talos cluster per cell (ADR-0009 cell-per-region). A cell is an
 # entry in `cells` below — NOT a copied file. Fill the substrate block for the provider you pick.
 #
-#   helm template oya-spokes infra/capi/clusters -f my-cells.yaml | kubectl apply -f -
+#   helm template spokes infra/capi/clusters -f my-cells.yaml | kubectl apply -f -
 #
 # Provider CRDs (OCICluster/AWSCluster/Metal3Cluster/TalosControlPlane) exist only after
 # `clusterctl init` (infra/capi/init.sh). Validate a render with `kubectl --dry-run=server` post-init.

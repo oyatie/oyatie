@@ -22,7 +22,7 @@
       "title": "Cluster status by pack",
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "targets": [
-        {"expr": "count by (pack) (oya_cloud_k8s_cluster_status{status=\"ready\"})", "legendFormat": "{{pack}} ready", "refId": "A"}
+        {"expr": "count by (pack) (cloud_k8s_cluster_status{status=\"ready\"})", "legendFormat": "{{pack}} ready", "refId": "A"}
       ]
     },
     {
@@ -88,7 +88,7 @@
       "title": "Sec since last etcd snapshot",
       "gridPos": {"x": 16, "y": 12, "w": 8, "h": 6},
       "targets": [
-        {"expr": "time() - oya_cloud_k8s_etcd_snapshot_completed_timestamp_seconds", "refId": "A"}
+        {"expr": "time() - cloud_k8s_etcd_snapshot_completed_timestamp_seconds", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 300}, {"color": "red", "value": 600}]}}}
     },
@@ -98,8 +98,8 @@
       "title": "kubernetes-api-proxy request rate + latency p99",
       "gridPos": {"x": 0, "y": 18, "w": 12, "h": 6},
       "targets": [
-        {"expr": "rate(oya_kubernetes_api_proxy_requests_total[5m])", "legendFormat": "rate (req/s)", "refId": "A"},
-        {"expr": "histogram_quantile(0.99, rate(oya_kubernetes_api_proxy_request_duration_seconds_bucket[5m]))", "legendFormat": "p99 latency", "refId": "B"}
+        {"expr": "rate(kubernetes_api_proxy_requests_total[5m])", "legendFormat": "rate (req/s)", "refId": "A"},
+        {"expr": "histogram_quantile(0.99, rate(kubernetes_api_proxy_request_duration_seconds_bucket[5m]))", "legendFormat": "p99 latency", "refId": "B"}
       ]
     },
     {
@@ -117,7 +117,7 @@
       "title": "Recent ClusterBootstrapped / NodeJoined / NodeFailed events",
       "gridPos": {"x": 0, "y": 24, "w": 24, "h": 8},
       "targets": [
-        {"expr": "topk(20, oya_cloud_k8s_audit_event_timestamp{event_kind=~\"ClusterBootstrapped|NodeJoined|NodeFailed|KubeadmUpgraded\"})", "format": "table", "refId": "A"}
+        {"expr": "topk(20, cloud_k8s_audit_event_timestamp{event_kind=~\"ClusterBootstrapped|NodeJoined|NodeFailed|KubeadmUpgraded\"})", "format": "table", "refId": "A"}
       ]
     }
   ]

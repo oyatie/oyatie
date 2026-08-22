@@ -19,7 +19,7 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing tax-format dispatch encoded in `oya-cloud-billing-domain` and the runtime invoice API surface in `oya-cloud-billing-tax-app` (276 lines). Tax computation in cloud-billing follows the **regional-pack-derives-format** rule per ADR-0064 canonical-base + localization: the regional pack identifier deterministically selects a `TaxInvoiceFormat`, which in turn imposes a shape on `tax_registration_id`. Per-jurisdiction tax rates and inclusion semantics are resolved by an upstream tax engine and surface to cloud-billing as the `tax_profile_ref` opaque string (IP-002).
+Document the existing tax-format dispatch encoded in `cloud-billing-domain` and the runtime invoice API surface in `cloud-billing-tax-app` (276 lines). Tax computation in cloud-billing follows the **regional-pack-derives-format** rule per ADR-0064 canonical-base + localization: the regional pack identifier deterministically selects a `TaxInvoiceFormat`, which in turn imposes a shape on `tax_registration_id`. Per-jurisdiction tax rates and inclusion semantics are resolved by an upstream tax engine and surface to cloud-billing as the `tax_profile_ref` opaque string (IP-002).
 
 This IP closes the spec gap on tax handling: cloud-billing's existing kernel encodes 7 invoice formats and 10 regional packs, but no IP documents the format/pack/registration triple.
 
@@ -45,16 +45,16 @@ Out of scope:
 
 | Regional pack | TaxInvoiceFormat | tax_registration_id shape | Typical jurisdictions |
 |---|---|---|---|
-| `oya-pack-electronic-tax` | `ElectronicTaxInvoice` | `taxid/electronic/` + 10 ASCII digits | KR e-Tax Invoice (NTS clearance) |
-| `oya-pack-qualified-tax` | `QualifiedTaxInvoice` | `taxid/qualified/T` + 13 ASCII digits | JP Qualified Invoice (T-corp number) |
-| `oya-pack-country-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | EU VAT registration (varies by member state) |
-| `oya-pack-market-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — marketplace seller VAT |
-| `oya-pack-trade-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — cross-border trade VAT |
-| `oya-pack-vat-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — explicit VAT |
-| `oya-pack-gst-tax` | `GstTaxInvoice` | `taxid/gst/` + 15 alphanumeric | IN GST (GSTIN), AU GST, SG GST, NZ GST |
-| `oya-pack-fiscal-tax` | `FiscalDocumentInvoice` | `taxid/fiscal/` + 14 ASCII digits | BR NFe (Nota Fiscal Eletrônica), IT FE |
-| `oya-pack-clearance-tax` | `ClearanceQrInvoice` | `taxid/clearance/` + 15 ASCII digits | SA ZATCA clearance QR, MX CFDI, EG e-invoice |
-| `oya-pack-registration-tax` | `VatRegistrationInvoice` | `taxid/registration/` + 15 ASCII digits | UK VAT, AE VAT, GCC VAT alternative |
+| `pack-electronic-tax` | `ElectronicTaxInvoice` | `taxid/electronic/` + 10 ASCII digits | KR e-Tax Invoice (NTS clearance) |
+| `pack-qualified-tax` | `QualifiedTaxInvoice` | `taxid/qualified/T` + 13 ASCII digits | JP Qualified Invoice (T-corp number) |
+| `pack-country-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | EU VAT registration (varies by member state) |
+| `pack-market-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — marketplace seller VAT |
+| `pack-trade-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — cross-border trade VAT |
+| `pack-vat-tax` | `CountryEInvoice` | `taxid/vat/` + 8+ ASCII token | Aliased — explicit VAT |
+| `pack-gst-tax` | `GstTaxInvoice` | `taxid/gst/` + 15 alphanumeric | IN GST (GSTIN), AU GST, SG GST, NZ GST |
+| `pack-fiscal-tax` | `FiscalDocumentInvoice` | `taxid/fiscal/` + 14 ASCII digits | BR NFe (Nota Fiscal Eletrônica), IT FE |
+| `pack-clearance-tax` | `ClearanceQrInvoice` | `taxid/clearance/` + 15 ASCII digits | SA ZATCA clearance QR, MX CFDI, EG e-invoice |
+| `pack-registration-tax` | `VatRegistrationInvoice` | `taxid/registration/` + 15 ASCII digits | UK VAT, AE VAT, GCC VAT alternative |
 
 ### §C.2 Why pack drives format
 
@@ -66,7 +66,7 @@ ADR-0064 canonical-base + localization mandates that "every µservice = canonica
 
 ### §C.3 Subtotal/tax/total invariant
 
-`Invoice::generate` (lines 469–527 of `oya-cloud-billing-domain/src/lib.rs`) enforces:
+`Invoice::generate` (lines 469–527 of `cloud-billing-domain/src/lib.rs`) enforces:
 
 ```rust
 let computed_subtotal = sum_line_items(&line_items)?;
@@ -83,8 +83,8 @@ This is the **tax-naive subtotal** rule: cloud-billing's domain crate treats the
 
 The two crates serve distinct roles:
 
-- `oya-cloud-billing-domain` (IP-001): tax-naive aggregate root with format+registration shape validation.
-- `oya-cloud-billing-tax-app` (this IP): API-surface adapter that proves runtime alignment with `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml`.
+- `cloud-billing-domain` (IP-001): tax-naive aggregate root with format+registration shape validation.
+- `cloud-billing-tax-app` (this IP): API-surface adapter that proves runtime alignment with `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml`.
 
 The tax-app crate's `generate_cloud_billing_invoice_from_api` function validates the API request preconditions in a defined order:
 
@@ -118,8 +118,8 @@ The recognition timing is not encoded in the domain crate; it is computed by the
 ### §D.2 Cross-border invoice scenario (US tenant → JP customer)
 
 1. cloud-marketplace ascertains the buyer jurisdiction is JP.
-2. cloud-billing-tax µservice resolves the buyer-jurisdiction pack: `oya-pack-qualified-tax`.
-3. New BillingAccount opened for the buyer with `regional_pack = oya-pack-qualified-tax`.
+2. cloud-billing-tax µservice resolves the buyer-jurisdiction pack: `pack-qualified-tax`.
+3. New BillingAccount opened for the buyer with `regional_pack = pack-qualified-tax`.
 4. Tax engine computes JCT (Japanese Consumption Tax) per OECD digital-services rule.
 5. cloud-billing issues the invoice with `tax_invoice_format = QualifiedTaxInvoice` and the buyer's T-corp number as `tax_registration_id`.
 
@@ -145,8 +145,8 @@ Context attributes used by Cedar:
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-domain/src/lib.rs` lines 94–103 (`TaxInvoiceFormat` enum), 314–349 (`TaxRegistrationId::new`), 406–422 (`TaxInvoiceFormat::for_regional_pack`), 469–527 (`Invoice::generate` cross-checks).
-- `/Users/jasonlee/oyatie/crates/oya-cloud-billing-tax-app/src/lib.rs` lines 162–253 (`generate_cloud_billing_invoice_from_api`).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-domain/src/lib.rs` lines 94–103 (`TaxInvoiceFormat` enum), 314–349 (`TaxRegistrationId::new`), 406–422 (`TaxInvoiceFormat::for_regional_pack`), 469–527 (`Invoice::generate` cross-checks).
+- `/Users/jasonlee/oyatie/crates/cloud-billing-tax-app/src/lib.rs` lines 162–253 (`generate_cloud_billing_invoice_from_api`).
 - `/Users/jasonlee/oyatie/contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` (544 lines; the runtime contract this tax-app crate mirrors).
 
 ### §F.2 Tests demonstrating tax invariants
@@ -156,7 +156,7 @@ Context attributes used by Cedar:
 
 ### §F.3 Integration test surface
 
-- `crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`: HTTP-level test against the OpenAPI contract — proves status codes (201/400/401/403/409/422) round-trip.
+- `crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`: HTTP-level test against the OpenAPI contract — proves status codes (201/400/401/403/409/422) round-trip.
 
 ### §F.4 ADR anchors
 
@@ -173,11 +173,11 @@ Context attributes used by Cedar:
 | Stripe Tax | Customer.tax_ids[] (multiple per customer) | `BillingAccount.tax_registration_id` (one per account; multi-jurisdiction tenants use multiple accounts) | Oyatie binds tax id to billing account, not to tenant root — supports B2B reseller patterns. |
 | Avalara AvaTax | Per-product tax codes + nexus determination | `tax_profile_ref` opaque string resolved by tax engine | Oyatie wraps Avalara-style determination at the boundary; kernel is engine-agnostic. |
 | Vertex | "Tax Decision Engine" with rule sets per jurisdiction | Pack-driven format + downstream tax engine resolution | Same architectural shape — both separate decision from invoicing. |
-| TaxJar | Sales tax calculation API (US-centric) | `oya-pack-vat-tax` aliases CountryEInvoice; US sales tax computed by upstream engine | TaxJar is US-only; oyatie's pack model supports global out-of-the-box. |
+| TaxJar | Sales tax calculation API (US-centric) | `pack-vat-tax` aliases CountryEInvoice; US sales tax computed by upstream engine | TaxJar is US-only; oyatie's pack model supports global out-of-the-box. |
 | Chargebee Tax | `Customer.taxability ∈ {taxable, exempt}` | Pack-determined; exemption is via dedicated tax_profile_ref | Oyatie is stricter — exemption is provenance-tracked, not a boolean. |
 | Stripe (revenue recognition) | ASC 606 revenue recognition module bundled with Billing | Recognition timing computed at FOCUS/ERP export (IP-015) | Oyatie separates concerns; tax-app stays minimal. |
 
 ## §H Open questions
 
 - Whether to add a `WithholdingTaxInvoice` format for India / Brazil withholding scenarios. Current decision: handled via line-item-level adjustment in tax engine, not a separate format.
-- Whether `oya-pack-clearance-tax` should split into per-country variants (SA-ZATCA vs MX-CFDI). Current decision: keep one pack name with country-specific tax_profile_ref bodies; revisit if regulators diverge.
+- Whether `pack-clearance-tax` should split into per-country variants (SA-ZATCA vs MX-CFDI). Current decision: keep one pack name with country-specific tax_profile_ref bodies; revisit if regulators diverge.

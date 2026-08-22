@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading multi-tenant identity + isolation products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-TEN). Re-validated bi-annually because the competitor landscape moves.
+Quantitative + qualitative parity comparison vs the industry-leading multi-tenant identity + isolation products. Drives the `governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-TEN). Re-validated bi-annually because the competitor landscape moves.
 
 ## Competitor Set
 

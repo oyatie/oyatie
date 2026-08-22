@@ -72,7 +72,7 @@ ESRG is benchmarked against best-in-class consumer + enterprise messaging system
 
 ### 1.4 In-scope surfaces
 
-A surface uses ESRG by importing the `oya-expression-*` client SDK and Cedar-gating sticker/pack/GIF operations. The following surfaces are first-class in v1:
+A surface uses ESRG by importing the `expression-*` client SDK and Cedar-gating sticker/pack/GIF operations. The following surfaces are first-class in v1:
 
 - `microservices/messenger` (DM + channel + thread + huddle chat overlay)
 - `microservices/community` (posts + comments + reactions)
@@ -466,7 +466,7 @@ my-pack.oyastk
 | Max animation duration | 3 s | 6 s | 10 s |
 | Loop max | 5 loops | infinite | infinite |
 
-The pack-build pipeline (CLI tool `oya-stickers build`) validates all constraints and rejects packs violating them with a descriptive error.
+The pack-build pipeline (CLI tool `stickers build`) validates all constraints and rejects packs violating them with a descriptive error.
 
 ### 3.2 Per-tenant sticker pack registry
 
@@ -596,7 +596,7 @@ Reactions attach to:
 - A comment under a doc/drive/sheet/slide (Docs-style inline).
 - A post (Community).
 
-Each surface's reaction storage is local (per its bounded context); ESRG provides the rendering + picker + payload-schema-validation libraries. Cross-microservice schema is canonicalized via `oya-shared-expression-protocol` (proto + AsyncAPI; see [§16](#16-bounded-contexts)).
+Each surface's reaction storage is local (per its bounded context); ESRG provides the rendering + picker + payload-schema-validation libraries. Cross-microservice schema is canonicalized via `shared-expression-protocol` (proto + AsyncAPI; see [§16](#16-bounded-contexts)).
 
 ### 4.7 Reaction shortcut
 
@@ -827,7 +827,7 @@ Three scopes for custom emoji + sticker:
 - Lowercase ASCII alphanumeric + underscore + dash.
 - 2-32 characters.
 - Must be unique within its scope.
-- Reserved prefixes: `oya_`, `system_`, `unicode_` cannot be used.
+- Reserved prefixes: ``, `system_`, `unicode_` cannot be used.
 
 Regex: `^[a-z0-9][a-z0-9_-]{1,30}[a-z0-9]$`.
 
@@ -881,12 +881,12 @@ When the user inserts via `:slug:`, ESRG resolves to the highest-fidelity versio
 
 ### 7.1 Sticker pack blobs (SeaweedFS per cell)
 
-Per-cell SeaweedFS bucket: `s3://oya-stickers-{cell-id}/packs/{tenant_id}/{pack_id}/{version}/`.
+Per-cell SeaweedFS bucket: `s3://stickers-{cell-id}/packs/{tenant_id}/{pack_id}/{version}/`.
 
 Bucket layout:
 
 ```
-oya-stickers-cell-kr1/
+stickers-cell-kr1/
   packs/
     {tenant_id}/
       {pack_id}/
@@ -904,7 +904,7 @@ Replication factor: 3 within cell. Cross-cell replication for packs marked `glob
 
 ### 7.2 Postgres: per-tenant pack registry
 
-Citus-sharded `oya-stickers-registry` Postgres database:
+Citus-sharded `stickers-registry` Postgres database:
 
 ```sql
 -- distribution key: tenant_id
@@ -1007,7 +1007,7 @@ For tenants in jurisdictions requiring data residency (KR, EU per GDPR Article 4
 
 Stack:
 
-- **React 18+** with the `oya-expression-web` SDK.
+- **React 18+** with the `expression-web` SDK.
 - **Twemoji v15.1+** glyph delivery via the `@twemoji/parser` library; SVG-by-default for crisp scaling; PNG fallback for legacy browsers.
 - **Animated WebP** via the native `<picture>` + `<img>` with WebP source set (all modern browsers support animated WebP since Safari 16 in 2022).
 - **APNG fallback** for IE/legacy (we don't support IE, but APNG covers old Firefox forks).
@@ -1634,7 +1634,7 @@ Pack-build pipeline:
 
 ## 16. Bounded Contexts
 
-If the ESRG substrate is extracted into a dedicated future µservice (per ADR-0132's per-microservice flat layout; lane prefix `oya-shared-expression-*` per ADR-0132 governance lane convention), the following bounded contexts are anticipated:
+If the ESRG substrate is extracted into a dedicated future µservice (per ADR-0132's per-microservice flat layout; lane prefix `shared-expression-*` per ADR-0132 governance lane convention), the following bounded contexts are anticipated:
 
 ### 16.1 `pack-registry`
 
@@ -1664,10 +1664,10 @@ SeaweedFS bucket per cell; CDN-fronted. Bounded context owns:
 
 No server bounded context; client library only. Per platform:
 
-- `oya-expression-web` (npm)
-- `oya-expression-ios` (Swift package)
-- `oya-expression-android` (Maven)
-- `oya-expression-rust` (crate for native desktop apps + Foundry CLI)
+- `expression-web` (npm)
+- `expression-ios` (Swift package)
+- `expression-android` (Maven)
+- `expression-rust` (crate for native desktop apps + Foundry CLI)
 
 The crate naming follows the canonical convention (per `crate-naming-convention.md`).
 
@@ -2094,7 +2094,7 @@ These are versioned (semver) per the event-schema-versioning canonical doc. Brea
 27. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` — communication patterns.
 28. `docs/decisions/ADR-0700-ci-admission-live-apex.md` — Cedar policy gating.
 29. `docs/decisions/ADR-0708-platform-foundations-live-apex.md` — compliance pack tiers.
-30. `docs/standards/crate-naming-convention.md` — `oya-shared-expression-*` naming.
+30. `docs/standards/crate-naming-convention.md` — `shared-expression-*` naming.
 31. `docs/standards/api-design.md` — REST + gRPC + AsyncAPI canonical conventions.
 32. `docs/standards/i18n-canonical.md` — internationalization.
 33. `docs/standards/a11y-canonical.md` — accessibility.
@@ -2119,16 +2119,16 @@ These are versioned (semver) per the event-schema-versioning canonical doc. Brea
 
 ### Appendix A: Pack-build CLI
 
-The `oya-stickers` CLI (Rust binary; ships in `tools/`) provides:
+The `stickers` CLI (Rust binary; ships in `tools/`) provides:
 
 ```
-oya-stickers init <pack-name>             # scaffold a new pack
-oya-stickers add <sticker-file>           # add a sticker to current pack
-oya-stickers validate                     # validate manifest + assets
-oya-stickers build                        # build .oyastk archive
-oya-stickers sign --key <ed25519-key>     # sign for marketplace
-oya-stickers publish --marketplace-url    # upload to marketplace
-oya-stickers lint                         # cross-renderer Lottie lint
+stickers init <pack-name>             # scaffold a new pack
+stickers add <sticker-file>           # add a sticker to current pack
+stickers validate                     # validate manifest + assets
+stickers build                        # build .oyastk archive
+stickers sign --key <ed25519-key>     # sign for marketplace
+stickers publish --marketplace-url    # upload to marketplace
+stickers lint                         # cross-renderer Lottie lint
 ```
 
 ### Appendix B: Picker UX wireframes (textual)
@@ -2192,7 +2192,7 @@ oya-stickers lint                         # cross-renderer Lottie lint
 
 For tenants migrating from Slack, Discord, KakaoTalk, or LINE:
 
-- **Slack import**: per-workspace custom emoji exported via Slack admin tools; oyatie ingestion CLI (`oya-stickers import slack-export.zip`) recreates per-server custom emoji.
+- **Slack import**: per-workspace custom emoji exported via Slack admin tools; oyatie ingestion CLI (`stickers import slack-export.zip`) recreates per-server custom emoji.
 - **Discord import**: per-server custom emoji; same CLI tool.
 - **KakaoTalk migration**: limited; users may need to re-purchase due to KakaoTalk DRM restrictions.
 - **LINE migration**: limited; LINE sticker DRM restricts re-distribution.
@@ -2203,10 +2203,10 @@ Minimum test coverage for the ESRG substrate:
 
 | Test | Surface |
 |---|---|
-| Unit: pack manifest validator | `oya-stickers` CLI |
+| Unit: pack manifest validator | `stickers` CLI |
 | Unit: Cedar policy evaluator (sticker.pack.install) | substrate |
 | Unit: WebP decode | client SDKs |
-| Unit: Lottie linter | `oya-stickers` CLI |
+| Unit: Lottie linter | `stickers` CLI |
 | Integration: pack install via marketplace → registry → blob store | end-to-end |
 | Integration: reaction add → projection across surfaces | end-to-end |
 | Integration: GIF search via Tenor → result rendering | end-to-end |
@@ -2288,7 +2288,7 @@ All metrics tagged per tenant + per cell + per surface (matching `microservices/
 | CSAM upload | Pre-publication classifier (Intelligence Substrate); auto-block; auto-report per legal jurisdiction |
 | Copyright infringement | Fingerprint match against known IP database; DMCA workflow |
 | Tenant-policy bypass | Cedar deny-by-default; admin-set policies enforced at every read + write |
-| Emoji-name impersonation | Reserved prefixes (`oya_`, `system_`, `unicode_`) cannot be claimed by user-uploads |
+| Emoji-name impersonation | Reserved prefixes (``, `system_`, `unicode_`) cannot be claimed by user-uploads |
 
 ### Appendix L: Capacity planning
 

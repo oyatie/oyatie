@@ -1,6 +1,6 @@
 # Spec: pooling-kernel-cooldown-window
 
-**Crate:** `oya-intelligence-provider-pool-kernel`
+**Crate:** `intelligence-provider-pool-kernel`
 **Lane:** `pooling`
 **Priority:** high
 **Effort:** M
@@ -117,5 +117,5 @@ consume this kernel are responsible for emitting OTel spans (IP-002/IP-003).
 
 ## Crate boundary
 
-Changes are 100% inside `oya-intelligence-provider-pool-kernel`. No other crate
+Changes are 100% inside `intelligence-provider-pool-kernel`. No other crate
 is touched. `Cargo.toml` is unchanged.

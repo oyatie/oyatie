@@ -24,7 +24,7 @@ fn records_method_path_query_headers_and_body() {
         .post(server.url("/repos/o/r/statuses/abc?per_page=100&page=1"))
         .header("Authorization", "Bearer test-token")
         .header("X-GitHub-Api-Version", "2022-11-28")
-        .json(&json!({"state": "success", "context": "oya-pr-review"}))
+        .json(&json!({"state": "success", "context": "pr-review"}))
         .send()
         .expect("send");
     assert_eq!(response.status().as_u16(), 200);
@@ -49,7 +49,7 @@ fn records_method_path_query_headers_and_body() {
     assert!(request.has_header("content-length"));
     assert_eq!(
         request.json(),
-        json!({"state": "success", "context": "oya-pr-review"})
+        json!({"state": "success", "context": "pr-review"})
     );
 }
 

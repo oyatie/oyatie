@@ -1,6 +1,6 @@
 microservice:
   id: identity
-  cargoPackage: oya-identity
+  cargoPackage: identity
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-identity
+  name: identity
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-identity
+  repository: identity
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -32,20 +32,20 @@ service:
 
 identity:
   issuer: https://idp.oyatie.com
-  audience: oya-cloud-kms
+  audience: cloud-kms
   # Secret holding the RFC 7517 JWKS document (key: jwks.json). Key custody
   # moves to the G02 KMS port; the mount contract stays the same.
-  jwksSecretName: oya-identity-jwks
+  jwksSecretName: identity-jwks
   # Secret holding the ES256 issuer signing key (key: signing-key.pk8). The
-  # runtime serves OIDC discovery/JWKS only when OYA_IDENTITY_SIGNING_KEY_PATH is
+  # runtime serves OIDC discovery/JWKS only when OYATIE_IDENTITY_SIGNING_KEY_PATH is
   # present, so the chart wires the mounted key path explicitly.
   # Default EMPTY: the issuer surface is config-gated OFF, matching the binary
-  # default (no OYA_IDENTITY_SIGNING_KEY_PATH => no discovery/JWKS routes).
+  # default (no OYATIE_IDENTITY_SIGNING_KEY_PATH => no discovery/JWKS routes).
   # Deployments that issue tokens opt in by naming the secret, e.g.
-  # `oya-identity-signing-key`.
+  # `identity-signing-key`.
   signingKeySecretName: ""
   signingKeySecretKey: signing-key.pk8
-  signingKeyPath: /etc/oya-identity/signing/signing-key.pk8
+  signingKeyPath: /etc/identity/signing/signing-key.pk8
   # Optional bring-up principal seed (key: principals.json). The durable
   # principal store lands behind the G03 repository port.
   principalsConfigMapName: ""
@@ -57,7 +57,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-identity-cedar
+  policyConfigMapName: identity-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(

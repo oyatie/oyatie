@@ -82,7 +82,7 @@ agent execution, scheduled tasks, sandbox policy, and safety-signal escalation.
 - **Threat:** Runaway or hostile consumption drains provider budget (denial-of-wallet); bulk
   extraction of model behavior; a retry storm amplifies an upstream failure into a cost event.
 - **Mitigation (front-line control):** The jittered-cooldown key-pool state machine
-  (`crates/oya-cloud-intelligence-kernel`) — failing keys are blacklisted and cooled down; **jitter
+  (`crates/cloud-intelligence-kernel`) — failing keys are blacklisted and cooled down; **jitter
   prevents thundering-herd restore** (brief §5, §10). Per-tenant **hard token/cost budgets** across
   concurrent windows + max-prompt-size precheck + per-key concurrency (brief §5, §8). All-keys-
   cooling-down **fast-fails** with `Retry-After` rather than rotating forever — the gateway must

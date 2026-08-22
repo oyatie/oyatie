@@ -2127,7 +2127,7 @@ mod tests {
             &["-cli".to_owned()]
         ));
         assert!(!package_name_matches_suffix(
-            "oya-cloud-ci-firewall-app",
+            "cloud-ci-firewall-app",
             &["-cli".to_owned()]
         ));
     }
@@ -2355,7 +2355,7 @@ mod tests {
     fn forbidden_uses_scan_recurses_into_nested_composite_actions() {
         let mut root = std::env::temp_dir();
         root.push(format!(
-            "oya-rust-first-action-scan-{}-{}",
+            "rust-first-action-scan-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

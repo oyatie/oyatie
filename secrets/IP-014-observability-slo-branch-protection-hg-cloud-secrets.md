@@ -35,9 +35,9 @@ Pure governance + observability wiring; no Rust code.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate openslo-manifest --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate promotion-readiness --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate openslo-manifest --microservice cloud-secrets
+cargo run -p dev-cli -- gate validate authority-cohesion
+cargo run -p dev-cli -- gate validate promotion-readiness --microservice cloud-secrets
 ```
 
 ## Test Plan
@@ -79,9 +79,9 @@ Bind the service's OpenSLO manifests, dashboards, authority-cohesion registratio
 7. Capture final promotion evidence in remediation notes.
 
 ### E. Acceptance
-- `cargo run -p oya-dev-cli -- gate validate openslo-manifest --microservice cloud-secrets`.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion`.
-- `cargo run -p oya-dev-cli -- gate validate promotion-readiness --microservice cloud-secrets`.
+- `cargo run -p dev-cli -- gate validate openslo-manifest --microservice cloud-secrets`.
+- `cargo run -p dev-cli -- gate validate authority-cohesion`.
+- `cargo run -p dev-cli -- gate validate promotion-readiness --microservice cloud-secrets`.
 - Branch protection fails PRs that touch cloud-secrets while required gates are red.
 
 ### F. Evidence

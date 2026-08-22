@@ -1,13 +1,13 @@
 # Complete GitOps replacement for openbao.k8s.yaml. Promote only after the
-# bootstrap has created Secret oya-kms/openbao-server-tls. Namespace and PVC are
+# bootstrap has created Secret kms/openbao-server-tls. Namespace and PVC are
 # repeated byte-for-byte so Argo prune/self-heal cannot delete the KMS namespace
 # or its barrier-encrypted data during the reviewed source switch.
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-kms
+  name: kms
   labels:
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0043
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
@@ -17,7 +17,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: openbao-tls-migration-config
-  namespace: oya-kms
+  namespace: kms
 data:
   openbao.hcl: |
     storage "file" { path = "/openbao/data" }
@@ -33,8 +33,8 @@ data:
       tls_key_file    = "/openbao/tls/tls.key"
       tls_min_version = "tls13"
     }
-    api_addr     = "https://openbao.oya-kms.svc.cluster.local:8202"
-    cluster_addr = "https://openbao.oya-kms.svc.cluster.local:8203"
+    api_addr     = "https://openbao.kms.svc.cluster.local:8202"
+    cluster_addr = "https://openbao.kms.svc.cluster.local:8203"
     ui = true
     log_level = "info"
     default_lease_ttl = "768h"
@@ -44,7 +44,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: openbao-data
-  namespace: oya-kms
+  namespace: kms
 spec:
   accessModes: ["ReadWriteOnce"]
   resources: { requests: { storage: 2Gi } }
@@ -53,7 +53,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openbao
-  namespace: oya-kms
+  namespace: kms
   labels: { app.kubernetes.io/name: openbao }
 spec:
   replicas: 1
@@ -105,7 +105,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openbao
-  namespace: oya-kms
+  namespace: kms
 spec:
   selector: { app.kubernetes.io/name: openbao }
   ports:
@@ -118,10 +118,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: openbao-ingress
-  namespace: oya-kms
+  namespace: kms
   labels:
     app.kubernetes.io/name: openbao
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     oya.io/adr: ADR-0043
 spec:
   podSelector:
@@ -141,7 +141,7 @@ spec:
         - { protocol: TCP, port: 8202 }
     - from:
         - namespaceSelector:
-            matchLabels: { kubernetes.io/metadata.name: oya-kms }
+            matchLabels: { kubernetes.io/metadata.name: kms }
       ports:
         - { protocol: TCP, port: 8201 }
         - { protocol: TCP, port: 8203 }

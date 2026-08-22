@@ -10,7 +10,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "count(oya_experiment_lifecycle_state{state=\"active\"})",
+          "expr": "count(experiment_lifecycle_state{state=\"active\"})",
           "legendFormat": "Active experiments"
         }
       ]
@@ -20,7 +20,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_experiment_assignments_total[5m])) by (experiment_id, variant)",
+          "expr": "sum(rate(experiment_assignments_total[5m])) by (experiment_id, variant)",
           "legendFormat": "{{experiment_id}} / {{variant}}"
         }
       ]
@@ -30,7 +30,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(oya_experiment_conversion_total[5m])) by (experiment_id, variant) / sum(rate(oya_experiment_assignments_total[5m])) by (experiment_id, variant)",
+          "expr": "sum(rate(experiment_conversion_total[5m])) by (experiment_id, variant) / sum(rate(experiment_assignments_total[5m])) by (experiment_id, variant)",
           "legendFormat": "{{experiment_id}} / {{variant}} CVR"
         }
       ]
@@ -41,7 +41,7 @@
       "description": "Bayesian posterior probability that treatment beats control. ≥0.95 = significant.",
       "targets": [
         {
-          "expr": "oya_experiment_bayesian_posterior_probability",
+          "expr": "experiment_bayesian_posterior_probability",
           "legendFormat": "{{experiment_id}}"
         }
       ],
@@ -58,7 +58,7 @@
       "alert": "page if srm_detected = true",
       "targets": [
         {
-          "expr": "oya_experiment_srm_detected",
+          "expr": "experiment_srm_detected",
           "legendFormat": "{{experiment_id}} SRM"
         }
       ]
@@ -69,7 +69,7 @@
       "slo_ref": "slos/experiment-result-freshness.openslo.yaml",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(oya_experiment_result_computation_lag_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(experiment_result_computation_lag_seconds_bucket[5m])) by (le))",
           "legendFormat": "p95 freshness lag"
         }
       ],
@@ -83,7 +83,7 @@
       "description": "Per protected class TPR/FPR deviation. ±2pp threshold per ADR-0309.",
       "targets": [
         {
-          "expr": "oya_experiment_fairness_tpr_fpr_delta",
+          "expr": "experiment_fairness_tpr_fpr_delta",
           "legendFormat": "{{experiment_id}} / {{protected_class}}"
         }
       ],
@@ -96,19 +96,19 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "oya_experiment_msprt_statistic",
+          "expr": "experiment_msprt_statistic",
           "legendFormat": "{{experiment_id}} mSPRT stat"
         },
         {
-          "expr": "oya_experiment_msprt_boundary",
+          "expr": "experiment_msprt_boundary",
           "legendFormat": "{{experiment_id}} stopping boundary"
         }
       ]
     }
   ],
   "variables": [
-    {"name": "experiment_id", "type": "query", "query": "label_values(oya_experiment_assignments_total, experiment_id)"},
-    {"name": "tenant_id", "type": "query", "query": "label_values(oya_experiment_assignments_total, tenant_id)"}
+    {"name": "experiment_id", "type": "query", "query": "label_values(experiment_assignments_total, experiment_id)"},
+    {"name": "tenant_id", "type": "query", "query": "label_values(experiment_assignments_total, tenant_id)"}
   ],
   "links": [
     {"title": "Flag State Overview", "url": "/d/feature-flags-flag-state"},

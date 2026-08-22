@@ -91,7 +91,7 @@
         "*m-cc*"
       ],
       "exempt_globs": [
-        "oya-kernel",
+        "kernel",
         "oyadb",
         "oyatie",
         "oyatie-worktrees"

@@ -6,7 +6,7 @@ use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, IdpBinding, Principal, User, UserId,
     issue_credential,
 };
-use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
+use data_boundary_kernel::{DataClass, DataClassification, Purpose};
 
 #[test]
 fn sts_credentials_are_short_lived_scope_bound_and_redacted() {
@@ -38,7 +38,7 @@ fn sts_credentials_are_short_lived_scope_bound_and_redacted() {
 #[test]
 fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
     let binding = IdpBinding::new(
-        "oya-pack-alpha".into(),
+        "pack-alpha".into(),
         "idp_kr_oidc".into(),
         "oidc://kr.example/admin".into(),
         1_700_000_000,
@@ -67,7 +67,7 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
         DataClassification::from(DataClass::InternalOnly)
     );
     assert_eq!(user.idp_binding(), &binding);
-    assert_eq!(user.idp_binding().region_pack.value, "oya-pack-alpha");
+    assert_eq!(user.idp_binding().region_pack.value, "pack-alpha");
     assert_eq!(
         user.idp_binding().external_subject.data_class,
         DataClassification::from(DataClass::PiiIdentifying)
@@ -79,7 +79,7 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
 #[test]
 fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     let valid_binding = IdpBinding::new(
-        "oya-pack-alpha".into(),
+        "pack-alpha".into(),
         "idp_kr_oidc".into(),
         "oidc://kr.example/admin".into(),
         1_700_000_000,
@@ -130,7 +130,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         IdpBinding::new(
-            "oya-pack-alpha".into(),
+            "pack-alpha".into(),
             "provider".into(),
             "oidc://kr.example/admin".into(),
             1_700_000_000,
@@ -139,7 +139,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         IdpBinding::new(
-            "oya-pack-alpha".into(),
+            "pack-alpha".into(),
             "idp_kr_oidc".into(),
             " ".into(),
             1_700_000_000,

@@ -83,9 +83,9 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
 - [ ] `cargo check --workspace --all-targets --all-features` passes.
 - [ ] `oya gate validate architecture-boundaries --self-test` passes.
 - [ ] `oya gate validate architecture-boundaries` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push` passes or the PR records a local-resource blocker plus the targeted substitutes above.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- catalog validate` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime --bin repoctl -- pre-push` passes or the PR records a local-resource blocker plus the targeted substitutes above.
 
 ---
 

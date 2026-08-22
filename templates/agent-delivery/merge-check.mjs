@@ -75,7 +75,7 @@ const check = (k, v, ok) => { say(k, v, ok); if (!ok) bad++ }
 // 1. The required context resolved against the EXACT head — a rollup lags a fresh push.
 const head = json(pr, 'headRefOid').headRefOid
 const runs = JSON.parse(gh(['api', `repos/${REPO}/commits/${head}/check-runs`]))
-const req = (runs.check_runs || []).find(r => r.name === 'oya-ci-required')
+const req = (runs.check_runs || []).find(r => r.name === 'presubmit')
 check('required context', req ? `${req.status}/${req.conclusion}` : 'NOT RUN YET', req?.conclusion === 'success')
 
 // 2. No failing check anywhere in the rollup.

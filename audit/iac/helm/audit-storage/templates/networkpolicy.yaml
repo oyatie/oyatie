@@ -12,7 +12,7 @@ Per ADR-0131 per-µservice flat layout.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-audit-chain-default-deny
+  name: audit-chain-default-deny
   namespace: audit-chain
 spec:
   podSelector: {}
@@ -21,7 +21,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-audit-chain-allow-mesh-ingress
+  name: audit-chain-allow-mesh-ingress
   namespace: audit-chain
 spec:
   podSelector:
@@ -40,7 +40,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-audit-chain-allow-egress
+  name: audit-chain-allow-egress
   namespace: audit-chain
 spec:
   podSelector:

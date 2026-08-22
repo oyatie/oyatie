@@ -19,7 +19,7 @@ purpose: |
   and the 12-value canonical layer enum (kernel, domain, usecase, app, adapter,
   infrastructure, cli, rest, grpc, worker, sdk, api) per ADR-0056 as amended by ADR-0565.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-clippy-pedantic
+planned_enforcement_ref: governance-clippy-pedantic
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/dependency-policy.md
@@ -133,7 +133,7 @@ Exceptions (FFI, perf-critical primitives, kernel allocators):
 3. Every unsafe surface MUST be covered by a `cargo-fuzz` harness per
    [`testing.md`](testing.md) §5 AND, where feasible, a Kani harness per
    ADR-RST-003 (pending).
-4. CI lane `oya-governance-unsafe-kani` enforces (2) + (3).
+4. CI lane `governance-unsafe-kani` enforces (2) + (3).
 
 Sources: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-open-source-projects-are-using-kani-to-write-better-software-in-rust/),
 [Firecracker](https://firecracker-microvm.github.io/),
@@ -160,9 +160,9 @@ Rules:
 - `<layer>` — slot 4 (final token): one of 12 canonical values per ADR-0056 §"12-Value Layer Enum":
   `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`,
   `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. Adding a layer is a 1-ADR action.
-- Cross-cutting check crates use the flat namespace: `oya-check-<rule-name>` (exempt from 3-slot BNF).
+- Cross-cutting check crates use the flat namespace: `check-<rule-name>` (exempt from 3-slot BNF).
 - Package name MUST equal the directory name. `[lib] name` MUST equal snake_case of `[package] name`.
-  Enforced by `oya-shared-architecture-check-cli -- lib-name-parity`.
+  Enforced by `shared-architecture-check-cli -- lib-name-parity`.
 
 Inside a crate:
 
@@ -215,10 +215,10 @@ layer violation (per ADR-0056 §"LEAN-A1 dependency-direction allowed-set").
 
 Lanes enforcing this:
 
-- `oya-shared-architecture-check-cli -- dependency-direction` enforces the 12-value matrix (LEAN-A1).
-- `oya-shared-architecture-check-cli -- layer-correctness` verifies each crate's declared layer matches its code shape.
-- `oya-shared-architecture-check-cli -- lib-name-parity` validates `[lib] name` = snake_case(`[package] name`).
-- `oya-governance-provider-coupling` per Directive 4 refuses provider
+- `shared-architecture-check-cli -- dependency-direction` enforces the 12-value matrix (LEAN-A1).
+- `shared-architecture-check-cli -- layer-correctness` verifies each crate's declared layer matches its code shape.
+- `shared-architecture-check-cli -- lib-name-parity` validates `[lib] name` = snake_case(`[package] name`).
+- `governance-provider-coupling` per Directive 4 refuses provider
   imports outside `oya-*-adapter-<provider>-*` crates.
 
 ## 7. Async / runtime

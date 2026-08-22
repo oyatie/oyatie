@@ -1,7 +1,7 @@
 # IP-CLUSTERAPI-002 — Cluster lifecycle orchestration
 
 > ADR anchor: ADR-0202, ADR-0171.
-> Owner: `oya-cloud-k8s`.
+> Owner: `cloud-k8s`.
 > Estimate: 4 days.
 
 ## Goal
@@ -15,7 +15,7 @@ IP-CLUSTERAPI-001.
 ### 1. Create
 
 - Trigger: oyatie operator runs
-  `oya-cli k8s cluster create --class oya-prod-aws-large --region eu-central-1`.
+  `cli k8s cluster create --class prod-aws-large --region eu-central-1`.
 - Cluster API + CAPA reconciles to ready.
 
 ### 2. Upgrade

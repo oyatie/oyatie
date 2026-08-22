@@ -23,10 +23,10 @@ regulatory) per ADR-0198 D-2.
    - Webhook live + serving.
    - ServiceMonitor scraping `:8000`.
 2. Four NodePool CRDs created per ADR-0198 D-2:
-   - `oya-app` (general-purpose; on-demand bias).
-   - `oya-batch` (compute-optimized; spot-first; tainted).
-   - `oya-gpu` (GPU on-demand only; tainted).
-   - `oya-regulatory` (sovereign-region-pinned; on-demand only; tainted).
+   - `app` (general-purpose; on-demand bias).
+   - `batch` (compute-optimized; spot-first; tainted).
+   - `gpu` (GPU on-demand only; tainted).
+   - `regulatory` (sovereign-region-pinned; on-demand only; tainted).
 3. Cluster Autoscaler is REMOVED (per ADR-0198 D-1 strict).
 4. Drift detection enabled fleet-wide.
 5. Spot-to-spot consolidation enabled for app + batch NodePools.

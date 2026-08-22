@@ -16,7 +16,7 @@ doc_status: published
 
 ## Trigger
 
-OpenTofu state-lock held > 10min OR `oya_iac_state_lock_timeout_total > 0`.
+OpenTofu state-lock held > 10min OR `iac_state_lock_timeout_total > 0`.
 
 ## Severity
 
@@ -64,10 +64,10 @@ Cause: many appliers competing for state-locks across different (microservice, p
 ## Verification
 
 After recovery:
-- `oya_iac_state_lock_wait_seconds_p99 < 30` for ≥ 30min.
+- `iac_state_lock_wait_seconds_p99 < 30` for ≥ 30min.
 - No orphan locks in `pg_locks` advisory lock listing.
 - Applier queue depth returns to baseline.
-- `oya_iac_state_lock_timeout_total` rate < 1 / hour.
+- `iac_state_lock_timeout_total` rate < 1 / hour.
 
 ## Post-incident updates
 

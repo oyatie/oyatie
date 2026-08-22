@@ -23,7 +23,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Registered keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Registered refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Registered records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Registered emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Registered emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Registered emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Registered emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.2 State: Activated
@@ -33,7 +33,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Activated keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Activated refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Activated records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Activated emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Activated emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Activated emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Activated emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.3 State: Promoted-T4
@@ -43,7 +43,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Promoted-T4 keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Promoted-T4 refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Promoted-T4 records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Promoted-T4 emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Promoted-T4 emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Promoted-T4 emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Promoted-T4 emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.4 State: Promoted-T3
@@ -53,7 +53,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Promoted-T3 keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Promoted-T3 refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Promoted-T3 records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Promoted-T3 emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Promoted-T3 emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Promoted-T3 emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Promoted-T3 emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.5 State: Promoted-T2
@@ -63,7 +63,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Promoted-T2 keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Promoted-T2 refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Promoted-T2 records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Promoted-T2 emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Promoted-T2 emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Promoted-T2 emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Promoted-T2 emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.6 State: Promoted-T1
@@ -73,7 +73,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Promoted-T1 keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Promoted-T1 refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Promoted-T1 records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Promoted-T1 emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Promoted-T1 emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Promoted-T1 emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Promoted-T1 emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.7 State: Promoted-T0
@@ -83,7 +83,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Promoted-T0 keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Promoted-T0 refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Promoted-T0 records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Promoted-T0 emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Promoted-T0 emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Promoted-T0 emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Promoted-T0 emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.8 State: Draining
@@ -93,7 +93,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Draining keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Draining refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Draining records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Draining emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Draining emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Draining emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Draining emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 ### 2.9 State: Decommissioned
@@ -103,7 +103,7 @@ Service purpose: own logical cell lifecycle transitions without owning infrastru
 - Evidence invariant: the LifecycleHistory row for Decommissioned keeps evidence_pack_id, gate_snapshot_sha256, and request_id for replay.
 - Blast-radius invariant: operations in Decommissioned refuse to expand placement beyond the state's ADR-0204 tier permit.
 - Tenant-class invariant: evidence for Decommissioned records demo_trial and paid applicability even when one class has zero current residents.
-- Observability invariant: every transition touching Decommissioned emits oya_cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
+- Observability invariant: every transition touching Decommissioned emits cell_lifecycle_transition_total with from_state, to_state, result, and tier labels.
 - Audit invariant: every accepted transition into Decommissioned emits audit-chain event cell.lifecycle.transition.accepted before the response is returned.
 - Rejection invariant: every refused transition involving Decommissioned emits cell.lifecycle.transition.rejected with refusal_code and cedar_decision_id when available.
 
@@ -806,10 +806,10 @@ AC-090: The scaffold documents state machine behavior with a concrete validator 
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0341 adoption
 ADOPT-0341-001: `cell-lifecycle` adopts ADR-0341 as the product requirement for routine promotion, demotion, and emergency override state transitions across ADR-0248 Tier 0..4.

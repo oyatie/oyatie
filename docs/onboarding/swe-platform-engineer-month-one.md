@@ -22,8 +22,8 @@ inbound_citations:
   - docs/onboarding/intern-day-one.md
   - docs/onboarding/intern-week-one.md
 enforced_by:
-  - oya-governance-doc-rigor
-  - oya-governance-doc-graph-6hops
+  - governance-doc-rigor
+  - governance-doc-graph-6hops
 ---
 
 # SWE Platform Engineer Month-One Onboarding
@@ -106,16 +106,16 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 3. docs/standards/layer-enum-adr-0105.md
 4. specs/crate-naming-audit.json
 5. Cargo.toml
-6. crates/oya-policy-cedar-domain/src/lib.rs
-7. crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
-8. crates/oya-audit-chain-domain/src/lib.rs
-9. crates/oya-audit-chain-domain/tests/merkle_chain.rs
-10. crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
-11. crates/oya-ontology-kernel/src/lib.rs
-12. crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
-13. registry/catalog/oya-policy-cedar-domain.yaml
-14. registry/catalog/oya-audit-chain-domain.yaml
-15. registry/catalog/oya-ontology-kernel.yaml
+6. crates/policy-cedar-domain/src/lib.rs
+7. crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
+8. crates/audit-chain-domain/src/lib.rs
+9. crates/audit-chain-domain/tests/merkle_chain.rs
+10. crates/audit-chain-usecase/tests/audit_event_emit.rs
+11. crates/ontology-kernel/src/lib.rs
+12. crates/ontology-api/tests/object_graph_entity_upsert_api.rs
+13. registry/catalog/policy-cedar-domain.yaml
+14. registry/catalog/audit-chain-domain.yaml
+15. registry/catalog/ontology-kernel.yaml
 
 
 ### Named ADRs to read
@@ -129,13 +129,13 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 
 ### Named playgrounds
 
-1. crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+1. crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
    - Artifact: write a four-sentence note explaining what this playground proves for backend Rust SWE, platform substrate team.
-2. crates/oya-audit-chain-domain/tests/merkle_chain.rs
+2. crates/audit-chain-domain/tests/merkle_chain.rs
    - Artifact: write a four-sentence note explaining what this playground proves for backend Rust SWE, platform substrate team.
-3. crates/oya-ontology-kernel/tests/types.rs
+3. crates/ontology-kernel/tests/types.rs
    - Artifact: write a four-sentence note explaining what this playground proves for backend Rust SWE, platform substrate team.
-4. registry/catalog/oya-check-ontology-projection-coverage.yaml
+4. registry/catalog/check-ontology-projection-coverage.yaml
    - Artifact: write a four-sentence note explaining what this playground proves for backend Rust SWE, platform substrate team.
 
 ### Week-one failure modes to inspect
@@ -154,13 +154,13 @@ Target result: one small merged or review-ready contribution that exercises the 
 
 ### Named easy bugs and starter PRs
 
-1. SWE-STARTER-001 add a missing audit-event assertion in `crates/oya-audit-chain-usecase/tests/audit_event_emit.rs`
+1. SWE-STARTER-001 add a missing audit-event assertion in `crates/audit-chain-usecase/tests/audit_event_emit.rs`
    - Acceptance evidence: targeted test, screenshot, evidence file, runbook diff, or reviewer-approved trace for SWE.
    - Rollback evidence: name the exact file revert or policy rollback and the check that proves it worked.
 2. SWE-STARTER-002 extend one `registry/catalog/*.yaml` row with an explicit layer enum note
    - Acceptance evidence: targeted test, screenshot, evidence file, runbook diff, or reviewer-approved trace for SWE.
    - Rollback evidence: name the exact file revert or policy rollback and the check that proves it worked.
-3. SWE-STARTER-003 add a Cedar default-deny fixture to `crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs`
+3. SWE-STARTER-003 add a Cedar default-deny fixture to `crates/policy-cedar-api/tests/cedar_policy_publish_api.rs`
    - Acceptance evidence: targeted test, screenshot, evidence file, runbook diff, or reviewer-approved trace for SWE.
    - Rollback evidence: name the exact file revert or policy rollback and the check that proves it worked.
 4. SWE-STARTER-004 document one stale 12-layer reference with the ADR-0105 13-value correction
@@ -422,7 +422,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-005 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-006: OpenAPI api crate boundary
-- Read: crates/oya-policy-cedar-domain/src/lib.rs
+- Read: crates/policy-cedar-domain/src/lib.rs
 - Connects to: library-first read path versus service fan-out
 - Build or inspect: a minimal artifact that proves OpenAPI api crate boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenAPI api crate boundary.
@@ -432,7 +432,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-006 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-007: catalog row ownership
-- Read: crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+- Read: crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
 - Connects to: registry catalog row shape and ownership metadata
 - Build or inspect: a minimal artifact that proves catalog row ownership without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for catalog row ownership.
@@ -442,7 +442,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-007 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-008: registry reverse dependency lookup
-- Read: crates/oya-audit-chain-domain/src/lib.rs
+- Read: crates/audit-chain-domain/src/lib.rs
 - Connects to: versioning and deprecation for substrate crates
 - Build or inspect: a minimal artifact that proves registry reverse dependency lookup without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for registry reverse dependency lookup.
@@ -452,7 +452,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-008 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-009: multi-region audit replication
-- Read: crates/oya-audit-chain-domain/tests/merkle_chain.rs
+- Read: crates/audit-chain-domain/tests/merkle_chain.rs
 - Connects to: multi-region audit event replication behavior
 - Build or inspect: a minimal artifact that proves multi-region audit replication without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for multi-region audit replication.
@@ -462,7 +462,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-009 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-010: sovereign-cell data class handling
-- Read: crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
+- Read: crates/audit-chain-usecase/tests/audit_event_emit.rs
 - Connects to: sovereign-cell constraints for regulated tenants
 - Build or inspect: a minimal artifact that proves sovereign-cell data class handling without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for sovereign-cell data class handling.
@@ -472,7 +472,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-010 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-011: Rust property test fixture
-- Read: crates/oya-ontology-kernel/src/lib.rs
+- Read: crates/ontology-kernel/src/lib.rs
 - Connects to: 13-value layer enum and why `api` is protocol-neutral
 - Build or inspect: a minimal artifact that proves Rust property test fixture without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Rust property test fixture.
@@ -482,7 +482,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-011 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-012: Merklized evidence chain
-- Read: crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
+- Read: crates/ontology-api/tests/object_graph_entity_upsert_api.rs
 - Connects to: Cedar fragment lifecycle from proposal to signed activation
 - Build or inspect: a minimal artifact that proves Merklized evidence chain without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Merklized evidence chain.
@@ -492,7 +492,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-012 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-013: Cedar soak rollback
-- Read: registry/catalog/oya-policy-cedar-domain.yaml
+- Read: registry/catalog/policy-cedar-domain.yaml
 - Connects to: audit-chain Merkle seal, Ed25519 signature, and replay verification
 - Build or inspect: a minimal artifact that proves Cedar soak rollback without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar soak rollback.
@@ -502,7 +502,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-013 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-014: ontology version deprecation
-- Read: registry/catalog/oya-audit-chain-domain.yaml
+- Read: registry/catalog/audit-chain-domain.yaml
 - Connects to: ontology projection for workflow and product surfaces
 - Build or inspect: a minimal artifact that proves ontology version deprecation without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ontology version deprecation.
@@ -512,7 +512,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-014 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-015: policy evaluation latency budget
-- Read: registry/catalog/oya-ontology-kernel.yaml
+- Read: registry/catalog/ontology-kernel.yaml
 - Connects to: per-tenant scoping in Rust domain types
 - Build or inspect: a minimal artifact that proves policy evaluation latency budget without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for policy evaluation latency budget.
@@ -572,7 +572,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-020 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-021: audit event replay
-- Read: crates/oya-policy-cedar-domain/src/lib.rs
+- Read: crates/policy-cedar-domain/src/lib.rs
 - Connects to: 13-value layer enum and why `api` is protocol-neutral
 - Build or inspect: a minimal artifact that proves audit event replay without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit event replay.
@@ -582,7 +582,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-021 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-022: ontology action projection
-- Read: crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+- Read: crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
 - Connects to: Cedar fragment lifecycle from proposal to signed activation
 - Build or inspect: a minimal artifact that proves ontology action projection without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ontology action projection.
@@ -592,7 +592,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-022 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-023: tenant_id type boundary
-- Read: crates/oya-audit-chain-domain/src/lib.rs
+- Read: crates/audit-chain-domain/src/lib.rs
 - Connects to: audit-chain Merkle seal, Ed25519 signature, and replay verification
 - Build or inspect: a minimal artifact that proves tenant_id type boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant_id type boundary.
@@ -602,7 +602,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-023 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-024: OpenAPI api crate boundary
-- Read: crates/oya-audit-chain-domain/tests/merkle_chain.rs
+- Read: crates/audit-chain-domain/tests/merkle_chain.rs
 - Connects to: ontology projection for workflow and product surfaces
 - Build or inspect: a minimal artifact that proves OpenAPI api crate boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenAPI api crate boundary.
@@ -612,7 +612,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-024 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-025: catalog row ownership
-- Read: crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
+- Read: crates/audit-chain-usecase/tests/audit_event_emit.rs
 - Connects to: per-tenant scoping in Rust domain types
 - Build or inspect: a minimal artifact that proves catalog row ownership without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for catalog row ownership.
@@ -622,7 +622,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-025 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-026: registry reverse dependency lookup
-- Read: crates/oya-ontology-kernel/src/lib.rs
+- Read: crates/ontology-kernel/src/lib.rs
 - Connects to: library-first read path versus service fan-out
 - Build or inspect: a minimal artifact that proves registry reverse dependency lookup without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for registry reverse dependency lookup.
@@ -632,7 +632,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-026 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-027: multi-region audit replication
-- Read: crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
+- Read: crates/ontology-api/tests/object_graph_entity_upsert_api.rs
 - Connects to: registry catalog row shape and ownership metadata
 - Build or inspect: a minimal artifact that proves multi-region audit replication without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for multi-region audit replication.
@@ -642,7 +642,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-027 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-028: sovereign-cell data class handling
-- Read: registry/catalog/oya-policy-cedar-domain.yaml
+- Read: registry/catalog/policy-cedar-domain.yaml
 - Connects to: versioning and deprecation for substrate crates
 - Build or inspect: a minimal artifact that proves sovereign-cell data class handling without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for sovereign-cell data class handling.
@@ -652,7 +652,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-028 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-029: Rust property test fixture
-- Read: registry/catalog/oya-audit-chain-domain.yaml
+- Read: registry/catalog/audit-chain-domain.yaml
 - Connects to: multi-region audit event replication behavior
 - Build or inspect: a minimal artifact that proves Rust property test fixture without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Rust property test fixture.
@@ -662,7 +662,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-029 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-030: Merklized evidence chain
-- Read: registry/catalog/oya-ontology-kernel.yaml
+- Read: registry/catalog/ontology-kernel.yaml
 - Connects to: sovereign-cell constraints for regulated tenants
 - Build or inspect: a minimal artifact that proves Merklized evidence chain without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Merklized evidence chain.
@@ -722,7 +722,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-035 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-036: crate naming exception analysis
-- Read: crates/oya-policy-cedar-domain/src/lib.rs
+- Read: crates/policy-cedar-domain/src/lib.rs
 - Connects to: library-first read path versus service fan-out
 - Build or inspect: a minimal artifact that proves crate naming exception analysis without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for crate naming exception analysis.
@@ -732,7 +732,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-036 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-037: layer enum crate classification
-- Read: crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+- Read: crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
 - Connects to: registry catalog row shape and ownership metadata
 - Build or inspect: a minimal artifact that proves layer enum crate classification without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for layer enum crate classification.
@@ -742,7 +742,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-037 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-038: Cedar publish default-deny
-- Read: crates/oya-audit-chain-domain/src/lib.rs
+- Read: crates/audit-chain-domain/src/lib.rs
 - Connects to: versioning and deprecation for substrate crates
 - Build or inspect: a minimal artifact that proves Cedar publish default-deny without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar publish default-deny.
@@ -752,7 +752,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-038 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-039: audit event replay
-- Read: crates/oya-audit-chain-domain/tests/merkle_chain.rs
+- Read: crates/audit-chain-domain/tests/merkle_chain.rs
 - Connects to: multi-region audit event replication behavior
 - Build or inspect: a minimal artifact that proves audit event replay without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit event replay.
@@ -762,7 +762,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-039 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-040: ontology action projection
-- Read: crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
+- Read: crates/audit-chain-usecase/tests/audit_event_emit.rs
 - Connects to: sovereign-cell constraints for regulated tenants
 - Build or inspect: a minimal artifact that proves ontology action projection without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ontology action projection.
@@ -772,7 +772,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-040 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-041: tenant_id type boundary
-- Read: crates/oya-ontology-kernel/src/lib.rs
+- Read: crates/ontology-kernel/src/lib.rs
 - Connects to: 13-value layer enum and why `api` is protocol-neutral
 - Build or inspect: a minimal artifact that proves tenant_id type boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant_id type boundary.
@@ -782,7 +782,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-041 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-042: OpenAPI api crate boundary
-- Read: crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
+- Read: crates/ontology-api/tests/object_graph_entity_upsert_api.rs
 - Connects to: Cedar fragment lifecycle from proposal to signed activation
 - Build or inspect: a minimal artifact that proves OpenAPI api crate boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenAPI api crate boundary.
@@ -792,7 +792,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-042 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-043: catalog row ownership
-- Read: registry/catalog/oya-policy-cedar-domain.yaml
+- Read: registry/catalog/policy-cedar-domain.yaml
 - Connects to: audit-chain Merkle seal, Ed25519 signature, and replay verification
 - Build or inspect: a minimal artifact that proves catalog row ownership without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for catalog row ownership.
@@ -802,7 +802,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-043 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-044: registry reverse dependency lookup
-- Read: registry/catalog/oya-audit-chain-domain.yaml
+- Read: registry/catalog/audit-chain-domain.yaml
 - Connects to: ontology projection for workflow and product surfaces
 - Build or inspect: a minimal artifact that proves registry reverse dependency lookup without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for registry reverse dependency lookup.
@@ -812,7 +812,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-044 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-045: multi-region audit replication
-- Read: registry/catalog/oya-ontology-kernel.yaml
+- Read: registry/catalog/ontology-kernel.yaml
 - Connects to: per-tenant scoping in Rust domain types
 - Build or inspect: a minimal artifact that proves multi-region audit replication without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for multi-region audit replication.
@@ -872,7 +872,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-050 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-051: policy evaluation latency budget
-- Read: crates/oya-policy-cedar-domain/src/lib.rs
+- Read: crates/policy-cedar-domain/src/lib.rs
 - Connects to: 13-value layer enum and why `api` is protocol-neutral
 - Build or inspect: a minimal artifact that proves policy evaluation latency budget without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for policy evaluation latency budget.
@@ -882,7 +882,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-051 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-052: audit payload redaction
-- Read: crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+- Read: crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
 - Connects to: Cedar fragment lifecycle from proposal to signed activation
 - Build or inspect: a minimal artifact that proves audit payload redaction without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit payload redaction.
@@ -892,7 +892,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-052 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-053: event schema migration
-- Read: crates/oya-audit-chain-domain/src/lib.rs
+- Read: crates/audit-chain-domain/src/lib.rs
 - Connects to: audit-chain Merkle seal, Ed25519 signature, and replay verification
 - Build or inspect: a minimal artifact that proves event schema migration without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for event schema migration.
@@ -902,7 +902,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-053 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-054: crate naming exception analysis
-- Read: crates/oya-audit-chain-domain/tests/merkle_chain.rs
+- Read: crates/audit-chain-domain/tests/merkle_chain.rs
 - Connects to: ontology projection for workflow and product surfaces
 - Build or inspect: a minimal artifact that proves crate naming exception analysis without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for crate naming exception analysis.
@@ -912,7 +912,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-054 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-055: layer enum crate classification
-- Read: crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
+- Read: crates/audit-chain-usecase/tests/audit_event_emit.rs
 - Connects to: per-tenant scoping in Rust domain types
 - Build or inspect: a minimal artifact that proves layer enum crate classification without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for layer enum crate classification.
@@ -922,7 +922,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-055 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-056: Cedar publish default-deny
-- Read: crates/oya-ontology-kernel/src/lib.rs
+- Read: crates/ontology-kernel/src/lib.rs
 - Connects to: library-first read path versus service fan-out
 - Build or inspect: a minimal artifact that proves Cedar publish default-deny without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar publish default-deny.
@@ -932,7 +932,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-056 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-057: audit event replay
-- Read: crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
+- Read: crates/ontology-api/tests/object_graph_entity_upsert_api.rs
 - Connects to: registry catalog row shape and ownership metadata
 - Build or inspect: a minimal artifact that proves audit event replay without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit event replay.
@@ -942,7 +942,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-057 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-058: ontology action projection
-- Read: registry/catalog/oya-policy-cedar-domain.yaml
+- Read: registry/catalog/policy-cedar-domain.yaml
 - Connects to: versioning and deprecation for substrate crates
 - Build or inspect: a minimal artifact that proves ontology action projection without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ontology action projection.
@@ -952,7 +952,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-058 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-059: tenant_id type boundary
-- Read: registry/catalog/oya-audit-chain-domain.yaml
+- Read: registry/catalog/audit-chain-domain.yaml
 - Connects to: multi-region audit event replication behavior
 - Build or inspect: a minimal artifact that proves tenant_id type boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant_id type boundary.
@@ -962,7 +962,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-059 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-060: OpenAPI api crate boundary
-- Read: registry/catalog/oya-ontology-kernel.yaml
+- Read: registry/catalog/ontology-kernel.yaml
 - Connects to: sovereign-cell constraints for regulated tenants
 - Build or inspect: a minimal artifact that proves OpenAPI api crate boundary without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenAPI api crate boundary.
@@ -1022,7 +1022,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-065 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-066: Merklized evidence chain
-- Read: crates/oya-policy-cedar-domain/src/lib.rs
+- Read: crates/policy-cedar-domain/src/lib.rs
 - Connects to: library-first read path versus service fan-out
 - Build or inspect: a minimal artifact that proves Merklized evidence chain without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Merklized evidence chain.
@@ -1032,7 +1032,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-066 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-067: Cedar soak rollback
-- Read: crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+- Read: crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
 - Connects to: registry catalog row shape and ownership metadata
 - Build or inspect: a minimal artifact that proves Cedar soak rollback without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar soak rollback.
@@ -1042,7 +1042,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-067 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-068: ontology version deprecation
-- Read: crates/oya-audit-chain-domain/src/lib.rs
+- Read: crates/audit-chain-domain/src/lib.rs
 - Connects to: versioning and deprecation for substrate crates
 - Build or inspect: a minimal artifact that proves ontology version deprecation without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ontology version deprecation.
@@ -1052,7 +1052,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-068 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-069: policy evaluation latency budget
-- Read: crates/oya-audit-chain-domain/tests/merkle_chain.rs
+- Read: crates/audit-chain-domain/tests/merkle_chain.rs
 - Connects to: multi-region audit event replication behavior
 - Build or inspect: a minimal artifact that proves policy evaluation latency budget without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for policy evaluation latency budget.
@@ -1062,7 +1062,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-069 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-070: audit payload redaction
-- Read: crates/oya-audit-chain-usecase/tests/audit_event_emit.rs
+- Read: crates/audit-chain-usecase/tests/audit_event_emit.rs
 - Connects to: sovereign-cell constraints for regulated tenants
 - Build or inspect: a minimal artifact that proves audit payload redaction without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit payload redaction.
@@ -1072,7 +1072,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-070 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-071: event schema migration
-- Read: crates/oya-ontology-kernel/src/lib.rs
+- Read: crates/ontology-kernel/src/lib.rs
 - Connects to: 13-value layer enum and why `api` is protocol-neutral
 - Build or inspect: a minimal artifact that proves event schema migration without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for event schema migration.
@@ -1082,7 +1082,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-071 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-072: crate naming exception analysis
-- Read: crates/oya-ontology-api/tests/object_graph_entity_upsert_api.rs
+- Read: crates/ontology-api/tests/object_graph_entity_upsert_api.rs
 - Connects to: Cedar fragment lifecycle from proposal to signed activation
 - Build or inspect: a minimal artifact that proves crate naming exception analysis without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for crate naming exception analysis.
@@ -1092,7 +1092,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-072 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-073: layer enum crate classification
-- Read: registry/catalog/oya-policy-cedar-domain.yaml
+- Read: registry/catalog/policy-cedar-domain.yaml
 - Connects to: audit-chain Merkle seal, Ed25519 signature, and replay verification
 - Build or inspect: a minimal artifact that proves layer enum crate classification without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for layer enum crate classification.
@@ -1102,7 +1102,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SWE-073 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SWE-074: Cedar publish default-deny
-- Read: registry/catalog/oya-audit-chain-domain.yaml
+- Read: registry/catalog/audit-chain-domain.yaml
 - Connects to: ontology projection for workflow and product surfaces
 - Build or inspect: a minimal artifact that proves Cedar publish default-deny without widening beyond backend Rust SWE, platform substrate team.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar publish default-deny.

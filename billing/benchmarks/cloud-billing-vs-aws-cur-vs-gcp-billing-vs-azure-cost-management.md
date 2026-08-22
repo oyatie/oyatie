@@ -30,7 +30,7 @@
 
 | Surface | FOCUS 1.1 conformant | Native FOCUS export | Schema validation built-in | Extension columns |
 | --- | --- | --- | --- | --- |
-| `cloud-billing` | ✅ | ✅ Parquet + Kafka stream | ✅ | `oya_tenant_id`, `oya_cost_center`, `oya_pack_id` |
+| `cloud-billing` | ✅ | ✅ Parquet + Kafka stream | ✅ | `tenant_id`, `cost_center`, `pack_id` |
 | AWS CUR 2.0 | partial (mapping table) | preview | ❌ (external tooling) | none |
 | GCP Billing | partial | beta | ❌ | none |
 | Azure Cost Mgmt | partial | preview | ❌ | none |

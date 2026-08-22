@@ -6,7 +6,7 @@
 //!
 //! Also covers D8 — admin-plane cross-tenant forbid + accounts scoping (AUTH-005 / ADR-0573):
 //! the admin credential must be bound to the configured tenant (never the
-//! x-oya-admin-tenant header); cross-tenant path => 403; gate is consulted and
+//! x-admin-tenant header); cross-tenant path => 403; gate is consulted and
 //! fail-closed; /admin/v1/accounts scoped to the verified tenant only.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 

@@ -12,9 +12,9 @@
       "enforceable_or_automatable": true,
       "evidence_path": "operator note",
       "id": "BAD-human-branch-protection-checklist",
-      "no_new_oya_cli_surface": true,
+      "no_new_cli_surface": true,
       "owner": "platform-toolchain",
-      "requirement": "Protected branch required context must be cloud-ci/oya-ci and not affected-only.",
+      "requirement": "Protected branch required context must be cloud-ci/ci and not affected-only.",
       "retirement_phase": "none",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.0",
       "target_gate_or_controller": "operator reads GitHub UI before merge"

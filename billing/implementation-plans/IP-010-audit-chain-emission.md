@@ -65,7 +65,7 @@ Every state-mutating RPC in `cloud-billing.proto` returns a response containing 
 - GetFxLockResponse.audit (FX lock is itself an evidence event)
 - RetryDunningResponse.audit
 
-A response missing `AuditChainHeader` would fail the proto3 compile-time `oya-governance-audit-chain-completeness` lint (per ADR-0263 §C-2 lint registration).
+A response missing `AuditChainHeader` would fail the proto3 compile-time `governance-audit-chain-completeness` lint (per ADR-0263 §C-2 lint registration).
 
 ### §C.2 AuditChainHeader fields
 
@@ -130,7 +130,7 @@ This is the SOX-404 segregation-of-duties evidence: each µservice has its own s
 
 1. cloud-billing-invoice-worker calls `IssueInvoice` gRPC.
 2. Cedar `cap.cloud.billing.issue_invoice` evaluates and permits.
-3. `oya-cloud-billing-domain::CloudBillingLedger::generate_invoice` executes.
+3. `cloud-billing-domain::CloudBillingLedger::generate_invoice` executes.
 4. cloud-billing constructs `AuditEvent { event_class: "cloud.billing.invoice.issued", tenant_id, resource_id: invoice.id, payload: invoice (proto-encoded), occurred_at: HLC }`.
 5. cloud-billing calls audit-chain gRPC `Seal(AuditEvent)`.
 6. audit-chain signs with tenant-specific Ed25519 key, appends to Merkle tree, returns `{audit_chain_hash, sealed_at_epoch_seconds}`.

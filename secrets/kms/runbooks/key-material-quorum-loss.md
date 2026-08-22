@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-kms-key-material-quorum-loss.
 - Primary namespace: `cloud-kms`.
-- Owning rotation: PagerDuty `oya-crypto-operations-primary`.
-- KMS secondary: PagerDuty `oya-cloud-kms-primary`.
+- Owning rotation: PagerDuty `crypto-operations-primary`.
+- KMS secondary: PagerDuty `cloud-kms-primary`.
 - Incident channel: `#inc-crypto-quorum`.
 - Customer channel: `#support-cloud-kms-security`.
 - Protected surface: M-of-N operator custody, HSM partition quorum, BYOK imports, cryptoshred approvals, paid key custody.
@@ -41,13 +41,13 @@ doc_status: published
 - Alert `CloudKmsDestructiveActionBlockedByQuorum` fires.
 - Alert `CloudKmsByokImportQuorumFailure` fires.
 - Alert `CloudKmsCryptoshredQuorumFailure` fires.
-- Metric `oya_cloud_kms_operator_quorum_available` drops below required M.
-- Metric `oya_cloud_kms_operator_card_inventory_missing_total` is non-zero.
-- Metric `oya_cloud_kms_quorum_approval_timeout_total` increases.
-- Metric `oya_cloud_kms_destructive_action_blocked_total` increases.
-- Metric `oya_cloud_kms_byok_import_blocked_total` increases.
-- Metric `oya_cloud_kms_cryptoshred_blocked_total` increases.
-- Metric `oya_cloud_kms_rotation_blocked_by_quorum_total` increases.
+- Metric `cloud_kms_operator_quorum_available` drops below required M.
+- Metric `cloud_kms_operator_card_inventory_missing_total` is non-zero.
+- Metric `cloud_kms_quorum_approval_timeout_total` increases.
+- Metric `cloud_kms_destructive_action_blocked_total` increases.
+- Metric `cloud_kms_byok_import_blocked_total` increases.
+- Metric `cloud_kms_cryptoshred_blocked_total` increases.
+- Metric `cloud_kms_rotation_blocked_by_quorum_total` increases.
 - Custody reconciliation job misses monthly SLA.
 - Tenant reports key rotation or cryptoshred request stuck.
 - Compliance reviewer reports missing card attestation.
@@ -85,10 +85,10 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service crypto-operations --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-crypto-quorum --severity sev0`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="kms-quorum")'`.
-6. Query available quorum: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_operator_quorum_available{tenant_id="'$TENANT'"}'`.
-7. Query missing cards: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_kms_operator_card_inventory_missing_total{tenant_id="'$TENANT'"}'`.
-8. Query approval timeouts: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_kms_quorum_approval_timeout_total[5m])'`.
-9. Query blocked actions: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_kms_destructive_action_blocked_total[5m])'`.
+6. Query available quorum: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_operator_quorum_available{tenant_id="'$TENANT'"}'`.
+7. Query missing cards: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_kms_operator_card_inventory_missing_total{tenant_id="'$TENANT'"}'`.
+8. Query approval timeouts: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_kms_quorum_approval_timeout_total[5m])'`.
+9. Query blocked actions: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_kms_destructive_action_blocked_total[5m])'`.
 10. Open quorum dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/quorum?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 11. Open custody dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/operator-custody?orgId=1&var-cell=$CELL&var-tenant=$TENANT"`.
 12. Read quorum logs: `kubectl -n cloud-kms logs deploy/cloud-kms-quorum-api --since=60m | rg "quorum|custody|operator_card|PIV|CAC"`.
@@ -167,9 +167,9 @@ doc_status: published
 7. Patch audit writer if approval events were missing.
 8. Add regression fixture for missing operator card.
 9. Add regression fixture for roster/script mismatch.
-10. Run domain tests: `cargo test -p oya-cloud-kms-domain quorum -- --nocapture`.
-11. Run API tests: `cargo test -p oya-cloud-kms-api quorum -- --nocapture`.
-12. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-kms-quorum --production-snapshot --cell $CELL`.
+10. Run domain tests: `cargo test -p cloud-kms-domain quorum -- --nocapture`.
+11. Run API tests: `cargo test -p cloud-kms-api quorum -- --nocapture`.
+12. Run production gate: `cargo run -p dev-cli -- gate validate cloud-kms-quorum --production-snapshot --cell $CELL`.
 13. Run destructive dry-run only: `oya kms cryptoshred --tenant $TENANT --cmk $CMK --dry-run --require-quorum`.
 14. Unpause gated actions: `oya flags set oya.cloud_kms.destructive_actions.pause=false --tenant $TENANT --cell $CELL --reason resolved-$INCIDENT_ID`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_KMS_KEY_QUORUM_LOSS_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
@@ -177,7 +177,7 @@ doc_status: published
 ## Verification Checklist
 - `CloudKmsOperatorQuorumLost` is green.
 - `CloudKmsCustodyCardMissing` is green.
-- `oya_cloud_kms_operator_quorum_available` meets policy.
+- `cloud_kms_operator_quorum_available` meets policy.
 - Custody roster and HSM script roster match.
 - All active operator cards verify.
 - Destructive dry-run proves quorum without executing destruction.
@@ -236,9 +236,9 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-crypto-operations-primary` for every quorum loss.
-- Page `oya-cloud-kms-primary` for software queue, HSM script, or API failures.
-- Page `oya-compliance-primary` for regulated custody evidence gaps.
+- Page `crypto-operations-primary` for every quorum loss.
+- Page `cloud-kms-primary` for software queue, HSM script, or API failures.
+- Page `compliance-primary` for regulated custody evidence gaps.
 - Page tenant custodian contacts when tenant-owned operator cards are missing.
 - Notify `#inc-crypto-quorum` with tenant, tier, and action queue scope.
 - Notify `#support-cloud-kms-security` before tenant-facing messages.

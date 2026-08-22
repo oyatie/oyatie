@@ -1,0 +1,18 @@
+[package]
+name = "check-claim-ceiling"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-catalog-domain = { path = "../../intelligence/core/catalog-domain" }
+
+[lib]
+name = "check_claim_ceiling"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

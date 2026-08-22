@@ -1,4 +1,4 @@
-# Canonical StorageClass: oya-s3-warm
+# Canonical StorageClass: s3-warm
 # Per ADR-0161. S3-compatible object storage, standard tier.
 #
 # Note: S3-compatible access is via S3 API (not filesystem mount). This
@@ -8,7 +8,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: oya-s3-warm
+  name: s3-warm
   labels:
     oyatie.io/canonical: "true"
     oyatie.io/adr: "ADR-0161"

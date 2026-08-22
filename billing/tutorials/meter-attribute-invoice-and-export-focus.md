@@ -6,7 +6,7 @@ and produce a FOCUS 1.1 Parquet export. End-to-end on a loopback `cloud-billing`
 Pre-reqs:
 - Loopback billing cell: `make dev-cell.up CELL=billing-loopback-1 PROFILE=cloud-billing-dev`
 - Tenant: `make dev-tenant.create T=oyatie.b2b.smb.acme-software TENANT_CLASS=paid CURRENCY=EUR`
-- Rate card: `make dev-rate-card.attach T=oyatie.b2b.smb.acme-software CARD=oya-rate-card-smb-paid-v1`
+- Rate card: `make dev-rate-card.attach T=oyatie.b2b.smb.acme-software CARD=rate-card-smb-paid-v1`
 - `jq`, `python3` (for FOCUS validation), `parquet-tools` on PATH.
 
 ## Step 1 — configure cost centers
@@ -161,7 +161,7 @@ focus_version     : 1.1
 rows              : 8000
 required_columns  : ChargeCategory, ChargeClass, BilledCost, EffectiveCost, ListCost, ConsumedQuantity, ServiceName, ... (all present)
 schema_errors     : 0
-extension_columns : oya_tenant_id, oya_cost_center, oya_pack_id
+extension_columns : tenant_id, cost_center, pack_id
 ```
 
 Inspect via `parquet-tools`:
@@ -171,7 +171,7 @@ parquet-tools head -n 2 focus-2026-05-acme.parquet
 
 Output (truncated):
 ```
-ChargeCategory=Usage, ChargeClass=Standard, ServiceName=cloud_compute_k8s, ConsumedQuantity=1.0, ConsumedUnit=minute, BilledCost=0.0131, BillingCurrency=EUR, oya_tenant_id=oyatie.b2b.smb.acme-software, oya_cost_center=engineering
+ChargeCategory=Usage, ChargeClass=Standard, ServiceName=cloud_compute_k8s, ConsumedQuantity=1.0, ConsumedUnit=minute, BilledCost=0.0131, BillingCurrency=EUR, tenant_id=oyatie.b2b.smb.acme-software, cost_center=engineering
 ```
 
 ## Step 8 — deliver to tenant warehouse (optional)

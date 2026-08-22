@@ -45,10 +45,10 @@ All components introduced by Bominal ADR-0018 (tenancy + RLS posture, inherited)
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
-| Postgres 16 (primary metadata store) | `oya-tenancy-tenant-lifecycle-*` (10 crates) |
-| Citus 12.x (multi-tenant sharding extension) | `oya-tenancy-isolation-policy-*` (9 crates) |
-| Patroni (HA management for Postgres + Citus coordinator) | `oya-tenancy-cell-assignment-*` (8 crates) |
-| Valkey (cell-assignment + tenant-validate cache) | `oya-tenancy-dsr-cascade-*` (8 crates) |
+| Postgres 16 (primary metadata store) | `tenancy-tenant-lifecycle-*` (10 crates) |
+| Citus 12.x (multi-tenant sharding extension) | `tenancy-isolation-policy-*` (9 crates) |
+| Patroni (HA management for Postgres + Citus coordinator) | `tenancy-cell-assignment-*` (8 crates) |
+| Valkey (cell-assignment + tenant-validate cache) | `tenancy-dsr-cascade-*` (8 crates) |
 | OpenBao (JWT signing key + DB password secrets) | RLS policy YAML at `microservices/tenancy/policy/rls/*.yaml` |
 | sqlx migration runner (schema + RLS DDL emission) | Cedar policy fragments at `microservices/tenancy/policy/*.cedar` |
 
@@ -137,7 +137,7 @@ Five trust boundaries:
 
 ## Assets & Data Classification
 
-Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data-class` LEAN lane.
+Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `check-data-class` LEAN lane.
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
@@ -191,8 +191,8 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - 30d signing-key rotation; 30d grace for old pubkey to verify in-flight tokens; rotation event audit-chain-sealed.
   - JWT `iss` claim bound to pack + env; cross-pack JWTs rejected by verifier.
   - JWT `exp` claim ≤ 1h sliding window; refresh via separate refresh-token path; revocation list synced via Workflow.
-  - LEAN check `oya-governance-jwt-key-fingerprint-advertised`: refuses key rotation without a fingerprint Workflow event.
-  - Pen-test: synthetic JWT forgery attempt annually; should fail with audit-emitted `oya_jwt_signature_invalid_total`.
+  - LEAN check `governance-jwt-key-fingerprint-advertised`: refuses key rotation without a fingerprint Workflow event.
+  - Pen-test: synthetic JWT forgery attempt annually; should fail with audit-emitted `jwt_signature_invalid_total`.
 - Owner: ops-security + axis-tenancy
 - Residual: L (signing-key compromise required + audit visibility on attempt)
 - Frameworks: SOC 2 CC6.1, CC6.2, CC6.6; ISO 27001 A.5.17, A.8.5, A.8.7, A.8.24; GDPR Art. 32(1)(b)(c); KR PIPA Art. 29 + Art. 29-2 (encryption)
@@ -225,7 +225,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Platform-operator OIDC + MFA + JIT elevation via OpenBao for any create/delete operation.
   - 2-person rule for delete (CLI requires second signature from ops-security operator).
-  - Mass-deletion anomaly detection: `oya_tenancy_delete_rate{}` over 5m > N triggers Sev-1 page.
+  - Mass-deletion anomaly detection: `tenancy_delete_rate{}` over 5m > N triggers Sev-1 page.
   - Soft-delete with 30d recovery window default (Open Question 4 resolution in IP-009); hard-delete after grace.
 - Owner: ops-security + council-privacy
 - Residual: L
@@ -249,8 +249,8 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Postgres `pg_policies` + RLS DDL state
 - Likelihood: M / Impact: H (would expose every row to every tenant; **catastrophic blast radius**) / Risk: **H (CRITICAL)**
 - Mitigations:
-  - LEAN check `oya-governance-rls-no-superuser-bypass` (NEW): refuses any superuser-context code path in tenancy-adjacent crates; PR-time enforcement.
-  - LEAN check `oya-governance-rls-force-on-tenant-tables` (NEW): refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`; PR-time enforcement.
+  - LEAN check `governance-rls-no-superuser-bypass` (NEW): refuses any superuser-context code path in tenancy-adjacent crates; PR-time enforcement.
+  - LEAN check `governance-rls-force-on-tenant-tables` (NEW): refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`; PR-time enforcement.
   - All RLS policy mutations via declarative YAML in `microservices/tenancy/policy/rls/<table>.yaml` + PR review by CODEOWNERS (axis-tenancy + ops-security).
   - Continuous DB-state validator (runs every 5min): compares live `pg_policies` to declared YAML; drift triggers Sev-1 + auto-rollback if config-as-code drift detected.
   - Postgres role separation: app role cannot `ALTER POLICY` or `ALTER TABLE ... DISABLE ROW LEVEL SECURITY`; only `tenancy-admin-jit` role can, and JIT elevation requires 2-person rule.
@@ -365,7 +365,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: tenant data rows
 - Likelihood: L / Impact: H (catastrophic; **simultaneous breach of every tenant**) / Risk: **H (CRITICAL)**
 - Mitigations:
-  - LEAN check `oya-governance-rls-no-superuser-bypass` (NEW; PR-time): refuses any code that connects as a superuser to a tenant-bound database OR sets `bypass_rls=true` on a connection. The check uses `cargo-deny` advisory + AST-grep patterns for `SET ROLE postgres`, `SET LOCAL row_security = off`, and direct `bypassrls`-flagged connections.
+  - LEAN check `governance-rls-no-superuser-bypass` (NEW; PR-time): refuses any code that connects as a superuser to a tenant-bound database OR sets `bypass_rls=true` on a connection. The check uses `cargo-deny` advisory + AST-grep patterns for `SET ROLE postgres`, `SET LOCAL row_security = off`, and direct `bypassrls`-flagged connections.
   - Postgres role design: app role (`tenancy_app`) has no `bypassrls`; only `tenancy-admin-jit` role can, and JIT issuance requires 2-person rule + audit-chain seal.
   - Continuous-compliance scan: weekly Postgres role-attribute audit; any role with `bypassrls=true` in non-JIT state triggers Sev-1.
   - Pen-test: attempt to read cross-tenant rows via every code path; should fail.
@@ -378,7 +378,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
   - All tenant-id-bearing queries use parameterised `$1` placeholders (sqlx prepared statements); never string-formatted.
-  - LEAN check `oya-check-sql-injection-via-format-string`: AST-grep for `format!("...tenant_id = '{}'", ...)` pattern; refuses.
+  - LEAN check `check-sql-injection-via-format-string`: AST-grep for `format!("...tenant_id = '{}'", ...)` pattern; refuses.
   - Even if injection succeeded, RLS at row level would still block (defence-in-depth).
   - Static analysis via `sqlx::query!` macro: validates SQL at compile time.
 - Owner: axis-tenancy + ops-security
@@ -413,7 +413,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: M (engineering discipline gap; some µservice's DSR handler is buggy / missing) / Impact: H / Risk: **M-H**
 - Mitigations:
   - DSR cascade SLA timer: per-µservice receipt within 30d; missing receipt = halt-and-escalate.
-  - LEAN check `oya-governance-dsr-handler-conformance`: every µservice must register a DSR handler in its catalog record; PR-time enforced.
+  - LEAN check `governance-dsr-handler-conformance`: every µservice must register a DSR handler in its catalog record; PR-time enforced.
   - Quarterly DSR drill: synthetic tenant created + deleted across all µservices; cumulative proof should match expected µservice count.
   - Receipt aggregation surfaces missing-µservice with the µservice name + reason; DPO sign-off required for proof-of-erasure emission with missing receipt + alternative-measure (e.g., data already deleted by retention policy).
 - Owner: council-privacy + axis-tenancy + every workload µservice owner
@@ -424,7 +424,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: OpenBao-managed secrets emitted accidentally
 - Likelihood: M / Impact: H (cascades to broad compromise) / Risk: **H**
 - Mitigations:
-  - Secret-scanner CI lane (`oya-governance-evidence-secret-scan` — already exists) scans every commit + log emission for known secret patterns.
+  - Secret-scanner CI lane (`governance-evidence-secret-scan` — already exists) scans every commit + log emission for known secret patterns.
   - OpenBao SecretReference materialisation never logs the raw secret; wraps in `Secret<T>` type with stripped `Debug` impl.
   - OTel SDK redactor strips known-secret patterns at emission time.
   - Rotation policy: 30d for JWT signing keys, 30d for API tokens, 90d for Postgres passwords (rotate before leaked secret expires).
@@ -521,7 +521,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
   - Cedar v4+ used; no known template-escape vectors.
-  - Cedar fragments fuzzed at CI time (`oya-check-cedar-fragment-coverage` lane).
+  - Cedar fragments fuzzed at CI time (`check-cedar-fragment-coverage` lane).
   - Field input lengths bounded at REST API; oversized inputs rejected pre-policy.
 - Owner: ops-security + axis-tenancy
 - Residual: L
@@ -571,7 +571,7 @@ LINDDUN (Linkability / Identifiability / Non-repudiation / Detectability / Discl
 | T-L-04 | Detectability | DSR submission timing | An external observer (e.g., a public regulator) could infer "tenant X just submitted a DSR" from API timing. | DSR submission masked via constant-time response; outbound `DsrRequest` event timing jittered ±30s. | L |
 | T-L-05 | Disclosure | Auditor read scope | Auditor could pivot from scoped tenant A to non-scoped tenant B via shared dashboard. | Auditor Cedar policy enforces scoped_tenants; pen-test annually. | L |
 | T-L-06 | Unawareness | End-user (the tenant's user) | The tenant's end-user may not know their account is enrolled in oyatie's tenant database. | Joint-controllership clause in DPA template; tenant must disclose to its end-users per Art. 26. | M |
-| T-L-07 | Non-compliance | GDPR Art. 17 right-to-erasure | DSR cascade may have gaps where a µservice's handler is missing. | LEAN check `oya-governance-dsr-handler-conformance` refuses µservice without registered handler; quarterly drill. | M |
+| T-L-07 | Non-compliance | GDPR Art. 17 right-to-erasure | DSR cascade may have gaps where a µservice's handler is missing. | LEAN check `governance-dsr-handler-conformance` refuses µservice without registered handler; quarterly drill. | M |
 | T-L-08 | Linkability | Cell-assignment record ↔ tenant business behavior | Cell load patterns could reveal a tenant's traffic shape (linkability via timing). | Cell-load aggregates published at pack level only; per-tenant cell load is `BEHAVIORAL_TENANT_PRODUCT` (not cross-tenant exposed). | L |
 | T-L-09 | Non-repudiation | Workflow event emitter | All Workflow events SPIFFE-signed + audit-chain-sealed; emitter cannot deny. | – | L |
 | T-L-10 | Disclosure | Proof-of-erasure exposed to wrong regulator | Regulator A could read tenant T's proof when only Regulator B has jurisdiction. | Cedar policy on regulator-scope.cedar enforces jurisdiction-bound read. | L |
@@ -582,17 +582,17 @@ LINDDUN (Linkability / Identifiability / Non-repudiation / Detectability / Discl
 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
-| Postgres RLS `FORCE ROW LEVEL SECURITY` on all tenant-bound tables | Preventive | axis-tenancy + ops-security | `oya-governance-rls-force-on-tenant-tables` lane |
-| LEAN check `oya-governance-rls-no-superuser-bypass` | Preventive | axis-tenancy + ops-security | PR-time CI lane |
-| JWT Ed25519 signing with OpenBao-managed key + 30d rotation + fingerprint advertise | Preventive | ops-security | `oya-governance-jwt-key-fingerprint-advertised` lane |
+| Postgres RLS `FORCE ROW LEVEL SECURITY` on all tenant-bound tables | Preventive | axis-tenancy + ops-security | `governance-rls-force-on-tenant-tables` lane |
+| LEAN check `governance-rls-no-superuser-bypass` | Preventive | axis-tenancy + ops-security | PR-time CI lane |
+| JWT Ed25519 signing with OpenBao-managed key + 30d rotation + fingerprint advertise | Preventive | ops-security | `governance-jwt-key-fingerprint-advertised` lane |
 | Patroni HA with 3-node minimum + quorum DCS | Preventive (availability) | ops-sre-reliability | Quarterly failover drill |
 | Citus shard-by-tenant_id + transactional rebalance | Preventive | axis-tenancy | Monthly rebalance integrity drill |
 | 2-person rule for tenant create + delete + DBA-JIT | Preventive (insider) | ops-security | OpenBao audit log + audit-chain seal |
-| Cedar policy enforcement on every REST request | Preventive | ops-security + axis-tenancy | `oya-governance-tenancy-cedar-coverage` lane |
+| Cedar policy enforcement on every REST request | Preventive | ops-security + axis-tenancy | `governance-tenancy-cedar-coverage` lane |
 | DSR cascade with per-µservice receipts + proof-of-erasure Merkle root | Detective + Non-repudiation | council-privacy + audit-chain | Quarterly DSR drill |
 | Audit-chain Ed25519 seal on every lifecycle event | Detective + Non-repudiation | audit-chain | Audit-chain regression tests |
 | Per-tenant rate limits at WAF + ingress | Preventive (DoS) | ops-sre-reliability | WAF dashboards |
-| Per-pack pinning (no cross-pack movement default) | Preventive (residency) | axis-tenancy + council-privacy | `oya-governance-tenancy-residency-conformance` lane |
+| Per-pack pinning (no cross-pack movement default) | Preventive (residency) | axis-tenancy + council-privacy | `governance-tenancy-residency-conformance` lane |
 | Continuous DB-state validator (Postgres role + RLS policy drift) | Detective | ops-security + axis-tenancy | 5-min cadence + Sev-1 page on drift |
 | Soft-delete with 30d recovery window default | Preventive (insider; accidental) | council-privacy + axis-tenancy | Hard-delete after grace; recovery path documented |
 

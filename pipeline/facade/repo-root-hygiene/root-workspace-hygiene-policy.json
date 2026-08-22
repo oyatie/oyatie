@@ -103,7 +103,7 @@
       "id": "ci-toml",
       "kind": "exact",
       "value": "ci.toml",
-      "reason": "portable oya-ci enforcement config (DATA)"
+      "reason": "portable ci enforcement config (DATA)"
     },
     {
       "id": "gitignore",

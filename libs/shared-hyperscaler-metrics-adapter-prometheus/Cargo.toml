@@ -1,0 +1,24 @@
+[package]
+name = "shared-hyperscaler-metrics-adapter-prometheus"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Reference impl of `HyperscalerMetrics` against the `prometheus` 0.13.x
+# crate (the canonical Rust Prometheus client). Per ADR-0064 canonical-
+# base-and-localization-packs: the kernel above is the seam; this adapter
+# is the canonical impl every µservice can adopt or replace with a
+# pack-local adapter (e.g. an OpenTelemetry-only deployment).
+#
+# Prometheus client lib is pinned at adapter-local scope (not promoted to
+# workspace.dependencies) so the dep does not leak into Layer 1-4 crates
+# per ADR-0090 hyper-canonical-http-backbone discipline.
+
+[dependencies]
+shared-hyperscaler-metrics-kernel = { path = "../shared-hyperscaler-metrics-kernel" }
+prometheus = { version = "0.13", default-features = false }
+
+[lints]
+workspace = true

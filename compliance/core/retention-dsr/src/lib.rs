@@ -16,7 +16,7 @@ use compliance_retention::{
     RetentionHorizon, RetentionLawfulBasis, RetentionPolicy, RetentionPolicyCreate,
     RetentionRequestKind, WorkspaceRetentionSurface,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DSR_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DSR_STORE_REF_SCHEMA_VERSION: u32 = 1;
@@ -758,7 +758,7 @@ mod tests {
     use compliance_retention::{
         RetentionDecisionCreate, RetentionRecordRef, RetentionRecordRefCreate,
     };
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()

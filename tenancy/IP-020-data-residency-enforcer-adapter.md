@@ -15,19 +15,19 @@ The tenancy PRD makes `jurisdiction_code` immutable and forbids cross-pack movem
 
 ## B. Approach
 
-Build `oya-tenancy-data-residency-enforcer-adapter` as an adapter crate that wraps outbound event and RPC ports. It injects residency metadata, evaluates `policy/data-residency.cedar`, blocks disallowed routes, and emits a denial audit event instead of relying on every downstream service to re-derive the rule.
+Build `tenancy-data-residency-enforcer-adapter` as an adapter crate that wraps outbound event and RPC ports. It injects residency metadata, evaluates `policy/data-residency.cedar`, blocks disallowed routes, and emits a denial audit event instead of relying on every downstream service to re-derive the rule.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/src/crates/oya-tenancy-data-residency-enforcer-adapter/Cargo.toml` | create | Adapter crate. |
+| `microservices/tenancy/src/crates/tenancy-data-residency-enforcer-adapter/Cargo.toml` | create | Adapter crate. |
 | `src/envelope.rs` | create | Adds tenant home jurisdiction and pack labels to outbound envelopes. |
 | `src/cedar_eval.rs` | create | Library-first Cedar evaluator wrapper for `data-residency.cedar`. |
 | `src/outbound_guard.rs` | create | Guard for event and RPC dispatch. |
 | `src/errors.rs` | create | `ResidencyViolationBlocked`, `MissingResidencyMetadata`, `PolicyUnavailable`. |
 | `microservices/tenancy/policy/data-residency.cedar` | extend if needed | Entity/action names used by adapter. |
-| `microservices/tenancy/catalog/oya-tenancy-data-residency-enforcer-adapter.yaml` | create | Catalog row. |
+| `microservices/tenancy/catalog/tenancy-data-residency-enforcer-adapter.yaml` | create | Catalog row. |
 
 ## D. Implementation
 
@@ -41,11 +41,11 @@ Build `oya-tenancy-data-residency-enforcer-adapter` as an adapter crate that wra
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-data-residency-enforcer-adapter --all-features`.
+- `cargo nextest run -p tenancy-data-residency-enforcer-adapter --all-features`.
 - Cedar decision tests use real `microservices/tenancy/policy/data-residency.cedar`.
 - Every denial carries audit evidence and no outbound event/RPC is dispatched.
 - `rg "home_jurisdiction|source_pack|target_pack" microservices/tenancy/contracts` finds the event contract labels after the implementation.
-- `cargo run -p oya-dev-cli -- gate validate tenancy-residency-conformance --microservice tenancy`.
+- `cargo run -p dev-cli -- gate validate tenancy-residency-conformance --microservice tenancy`.
 
 ## F. Evidence
 
@@ -66,11 +66,11 @@ Build `oya-tenancy-data-residency-enforcer-adapter` as an adapter crate that wra
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-020-data-residency-enforcer-adapter.md` matched `asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-020-data-residency-enforcer-adapter.md` matched `asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## DR posture (per ADR-0343)
 - Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-020-data-residency-enforcer-adapter.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-020-data-residency-enforcer-adapter.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.

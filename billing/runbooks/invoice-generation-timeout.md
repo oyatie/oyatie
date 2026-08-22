@@ -15,8 +15,8 @@ doc_status: published
 ## Operator Contract
 - Runbook id: cloud-billing-invoice-generation-timeout.
 - Primary namespace: `cloud-billing`.
-- Owning rotation: PagerDuty `oya-cloud-billing-primary`.
-- Finance secondary: PagerDuty `oya-finance-operations-primary`.
+- Owning rotation: PagerDuty `cloud-billing-primary`.
+- Finance secondary: PagerDuty `finance-operations-primary`.
 - Incident channel: `#inc-cloud-billing`.
 - Customer channel: `#support-invoice-generation`.
 - Protected surface: invoice previews, final invoices, tax handoff, FX lock, credit memos, ERP export, revenue recognition.
@@ -30,8 +30,8 @@ doc_status: published
 - Tax dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/tax-handoff?orgId=1&var-period=current`.
 - Loki query: `{namespace="cloud-billing",runbook="invoice-generation-timeout"}`.
 - Canonical FAQ: `microservices/cloud-billing/faqs/billing-engineer-faq.md`.
-- Related test: `crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`.
-- Related API: `crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs`.
+- Related test: `crates/cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`.
+- Related API: `crates/cloud-finops-api/tests/cloud_finops_report_api.rs`.
 
 ## Trigger Conditions
 - Alert `CloudBillingInvoiceGenerationTimeout` fires.
@@ -39,13 +39,13 @@ doc_status: published
 - Alert `CloudBillingTaxHandoffTimeout` fires.
 - Alert `CloudBillingFxLockMissing` fires.
 - Alert `CloudBillingErpExportTimeout` fires.
-- Metric `oya_cloud_billing_invoice_generation_lag_seconds` exceeds tier SLO.
-- Metric `oya_cloud_billing_invoice_generation_timeout_total` increases.
-- Metric `oya_cloud_billing_invoice_queue_depth` exceeds 1000.
-- Metric `oya_cloud_billing_tax_handoff_error_ratio` exceeds 0.01.
-- Metric `oya_cloud_billing_fx_lock_missing_total` is non-zero.
-- Metric `oya_cloud_billing_invoice_finalization_retry_total` spikes.
-- Metric `oya_cloud_billing_erp_export_lag_seconds` exceeds 3600.
+- Metric `cloud_billing_invoice_generation_lag_seconds` exceeds tier SLO.
+- Metric `cloud_billing_invoice_generation_timeout_total` increases.
+- Metric `cloud_billing_invoice_queue_depth` exceeds 1000.
+- Metric `cloud_billing_tax_handoff_error_ratio` exceeds 0.01.
+- Metric `cloud_billing_fx_lock_missing_total` is non-zero.
+- Metric `cloud_billing_invoice_finalization_retry_total` spikes.
+- Metric `cloud_billing_erp_export_lag_seconds` exceeds 3600.
 - Month-end close monitor reports invoices missing.
 - Finance reports revenue recognition control is blocked.
 - Tenant admin reports invoice unavailable.
@@ -83,11 +83,11 @@ doc_status: published
 3. Acknowledge page: `pd incident ack --service cloud-billing --incident $INCIDENT_ID`.
 4. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-cloud-billing --severity sev1`.
 5. Query active alerts: `curl -s https://alertmanager.dev.oyatie.internal/api/v2/alerts | jq '.[] | select(.labels.surface=="invoice-generation")'`.
-6. Query generation lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_invoice_generation_lag_seconds{tenant_id="'$TENANT'",period="'$PERIOD'"}'`.
-7. Query timeout count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(oya_cloud_billing_invoice_generation_timeout_total[5m])'`.
-8. Query queue depth: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_invoice_queue_depth{period="'$PERIOD'"}'`.
-9. Query tax errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_tax_handoff_error_ratio{period="'$PERIOD'"}'`.
-10. Query ERP lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_cloud_billing_erp_export_lag_seconds{period="'$PERIOD'"}'`.
+6. Query generation lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_invoice_generation_lag_seconds{tenant_id="'$TENANT'",period="'$PERIOD'"}'`.
+7. Query timeout count: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=rate(cloud_billing_invoice_generation_timeout_total[5m])'`.
+8. Query queue depth: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_invoice_queue_depth{period="'$PERIOD'"}'`.
+9. Query tax errors: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_tax_handoff_error_ratio{period="'$PERIOD'"}'`.
+10. Query ERP lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=cloud_billing_erp_export_lag_seconds{period="'$PERIOD'"}'`.
 11. Open invoice dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/invoicing?orgId=1&var-tenant=$TENANT&var-period=$PERIOD"`.
 12. Open tax dashboard: `open "https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/tax-handoff?orgId=1&var-tenant=$TENANT&var-period=$PERIOD"`.
 13. Read invoice logs: `kubectl -n cloud-billing logs deploy/cloud-billing-invoice-worker --since=60m | rg "invoice|tax_handoff|fx_lock|credit_memo|erp"`.
@@ -164,9 +164,9 @@ doc_status: published
 6. Patch ERP export if finalization succeeded but export timed out.
 7. Add regression fixture for tax handoff timeout.
 8. Add regression fixture for missing FX lock.
-9. Run invoice tests: `cargo test -p oya-cloud-billing-tax-app cloud_billing_invoice_api -- --nocapture`.
-10. Run FinOps report tests: `cargo test -p oya-cloud-finops-api cloud_finops_report_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-invoicing --production-snapshot --period $PERIOD`.
+9. Run invoice tests: `cargo test -p cloud-billing-tax-app cloud_billing_invoice_api -- --nocapture`.
+10. Run FinOps report tests: `cargo test -p cloud-finops-api cloud_finops_report_api -- --nocapture`.
+11. Run production gate: `cargo run -p dev-cli -- gate validate cloud-billing-invoicing --production-snapshot --period $PERIOD`.
 12. Verify final invoice: `oya billing invoice get --tenant $TENANT --period $PERIOD --expect finalized`.
 13. Release portal delay: `oya billing portal clear-delayed --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
 14. Release deploy hold: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -175,7 +175,7 @@ doc_status: published
 ## Verification Checklist
 - `CloudBillingInvoiceGenerationTimeout` is green.
 - `CloudBillingInvoiceSloBurn` is green for affected tier.
-- `oya_cloud_billing_invoice_generation_lag_seconds` is inside tier SLO.
+- `cloud_billing_invoice_generation_lag_seconds` is inside tier SLO.
 - Invoice state is `finalized`.
 - Tax lines exist for every taxable line item.
 - FX lock has source and timestamp.
@@ -236,10 +236,10 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Page `oya-cloud-billing-primary` for invoice generation timeout.
-- Page `oya-finance-operations-primary` when close or revenue recognition is blocked.
-- Page `oya-cloud-billing-tax-primary` when tax handoff is failing.
-- Page `oya-audit-chain-primary` when finalization events fail to seal.
+- Page `cloud-billing-primary` for invoice generation timeout.
+- Page `finance-operations-primary` when close or revenue recognition is blocked.
+- Page `cloud-billing-tax-primary` when tax handoff is failing.
+- Page `audit-chain-primary` when finalization events fail to seal.
 - Notify `#inc-cloud-billing` with tenant, period, tier, and failing stage.
 - Notify `#support-invoice-generation` before tenant messaging.
 - Notify `#sox-controls` when month-end close is blocked.

@@ -185,15 +185,15 @@ Per `feedback_quality_performance_scalability_bar.md` + `feedback_workflow_studi
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `studio` | `oya-workflow-studio-{rest,sdk}` | Visual editor authoring surface; version history; template library | `WorkflowDefinition`, `WorkflowVersion` |
-| `engine` | `oya-workflow-engine-{kernel,domain,application,adapter,worker}` | Runtime: state machines, DAGs, transitions, schedulers, step executors | `WorkflowRun`, `StepExecution` |
-| `transitions` | `oya-workflow-transitions-{kernel,domain}` | Transition rules + invariants; state machine graph validation | `Transition`, `TransitionRule` |
-| `approvals` | `oya-workflow-approvals-{kernel,domain,application}` | Multi-step + four-eyes approval primitive | `ApprovalRequest`, `ApprovalDecision` |
-| `sla` | `oya-workflow-sla-{domain,worker}` | SLA timers; escalation chains; breach detection | `SlaTimer`, `Escalation` |
-| `automations` | `oya-workflow-automations-{domain,worker}` | Agentic runner (LLM via ADR-0107) + scripted automation workers | `AutomationRun` |
-| `triggers` | `oya-workflow-triggers-{adapter}` | Cron / webhook / event-topic / ontology-event / manual / API trigger sources | `TriggerConfig`, `TriggerEvent` |
-| `integrations` | `oya-workflow-integrations-{adapter}` | Connector library; HTTP action; internal µservice nodes; KR carrier nodes; plugin SDK | `ConnectorConfig`, `ConnectorExecution` |
-| `app` | `oya-workflow-app` | Composition-root binary; wires all BCs; starts HTTP server + workers | — |
+| `studio` | `workflow-studio-{rest,sdk}` | Visual editor authoring surface; version history; template library | `WorkflowDefinition`, `WorkflowVersion` |
+| `engine` | `workflow-engine-{kernel,domain,application,adapter,worker}` | Runtime: state machines, DAGs, transitions, schedulers, step executors | `WorkflowRun`, `StepExecution` |
+| `transitions` | `workflow-transitions-{kernel,domain}` | Transition rules + invariants; state machine graph validation | `Transition`, `TransitionRule` |
+| `approvals` | `workflow-approvals-{kernel,domain,application}` | Multi-step + four-eyes approval primitive | `ApprovalRequest`, `ApprovalDecision` |
+| `sla` | `workflow-sla-{domain,worker}` | SLA timers; escalation chains; breach detection | `SlaTimer`, `Escalation` |
+| `automations` | `workflow-automations-{domain,worker}` | Agentic runner (LLM via ADR-0107) + scripted automation workers | `AutomationRun` |
+| `triggers` | `workflow-triggers-{adapter}` | Cron / webhook / event-topic / ontology-event / manual / API trigger sources | `TriggerConfig`, `TriggerEvent` |
+| `integrations` | `workflow-integrations-{adapter}` | Connector library; HTTP action; internal µservice nodes; KR carrier nodes; plugin SDK | `ConnectorConfig`, `ConnectorExecution` |
+| `app` | `workflow-app` | Composition-root binary; wires all BCs; starts HTTP server + workers | — |
 
 ### Clean Architecture Layer Map
 
@@ -216,12 +216,12 @@ Dependency direction: strictly inward-only. Per `feedback_clean_architecture_req
 Port traits live in `kernel` — ZERO business logic, ZERO I/O:
 
 ```rust
-// oya-workflow-engine-kernel/src/ports.rs
+// workflow-engine-kernel/src/ports.rs
 
 #[doc(hidden)]
 mod sealed { pub trait Sealed {} }
 
-/// State persistence port — implemented in oya-workflow-engine-adapter
+/// State persistence port — implemented in workflow-engine-adapter
 #[async_trait::async_trait]
 pub trait WorkflowStateStore: Send + Sync + sealed::Sealed {
     async fn load_run(&self, run_id: &RunId) -> Result<WorkflowRun, StoreError>;
@@ -229,21 +229,21 @@ pub trait WorkflowStateStore: Send + Sync + sealed::Sealed {
     async fn save_step(&self, step: &StepExecution) -> Result<(), StoreError>;
 }
 
-/// Transition engine port — implemented in oya-workflow-engine-adapter
+/// Transition engine port — implemented in workflow-engine-adapter
 #[async_trait::async_trait]
 pub trait TransitionEngine: Send + Sync + sealed::Sealed {
     async fn evaluate(&self, run: &WorkflowRun, event: &WorkflowEvent)
         -> Result<Transition, TransitionError>;
 }
 
-/// Event bus port — implemented in oya-workflow-engine-adapter (Kafka KRaft)
+/// Event bus port — implemented in workflow-engine-adapter (Kafka KRaft)
 #[async_trait::async_trait]
 pub trait EventBus: Send + Sync + sealed::Sealed {
     async fn publish(&self, topic: &str, event: &WorkflowEvent) -> Result<(), BusError>;
     async fn subscribe(&self, topic: &str) -> Result<EventStream, BusError>;
 }
 
-// oya-workflow-approvals-kernel/src/ports.rs
+// workflow-approvals-kernel/src/ports.rs
 #[async_trait::async_trait]
 pub trait ApprovalStore: Send + Sync + sealed::Sealed {
     async fn create_request(&self, req: &ApprovalRequest) -> Result<ApprovalId, StoreError>;
@@ -251,7 +251,7 @@ pub trait ApprovalStore: Send + Sync + sealed::Sealed {
     async fn load_request(&self, id: &ApprovalId) -> Result<ApprovalRequest, StoreError>;
 }
 
-// oya-workflow-sla-kernel/src/ports.rs (in transitions-kernel crate)
+// workflow-sla-kernel/src/ports.rs (in transitions-kernel crate)
 #[async_trait::async_trait]
 pub trait SlaTimerStore: Send + Sync + sealed::Sealed {
     async fn arm_timer(&self, timer: &SlaTimer) -> Result<(), StoreError>;
@@ -259,25 +259,25 @@ pub trait SlaTimerStore: Send + Sync + sealed::Sealed {
 }
 ```
 
-Implementations: `oya-workflow-engine-adapter` (Postgres + Citus state store;
+Implementations: `workflow-engine-adapter` (Postgres + Citus state store;
 Kafka KRaft event bus). Domain calls through ports; domain never imports adapter.
 
 ```
-NAME: oya-workflow-engine-kernel
+NAME: workflow-engine-kernel
 JUSTIFICATION:
 - microservice = workflow: Workflow µservice; flat catalog; shared substrate; ADR-0056 v4.1; no "shared|vertical" bisection; "workflow" IS the µservice name (not "shared-workflow" — BNF v4.1 drops shared slot)
 - bc-tokens = engine: workflow has multiple BCs (studio/engine/transitions/approvals/sla/automations/triggers/integrations); engine BC owns WorkflowRun entity + StepExecution + transition engine port-traits; ADR-0056 v4.1 BC-optionality
 - layer = kernel: shared WorkflowId + RunId value types + port-traits consumed cross-layer; no I/O; ADR-0056 §"Layer semantics"
 - exemptions: none
 
-NAME: oya-workflow-studio-rest
+NAME: workflow-studio-rest
 JUSTIFICATION:
 - microservice = workflow
 - bc-tokens = studio: visual editor authoring surface; owns WorkflowDefinition + version history; distinct from engine (runtime) BC
 - layer = rest: HTTP handler wiring for Studio authoring API; maps HTTP → application commands; no business logic; ADR-0056 §"Layer semantics"
 - exemptions: none
 
-NAME: oya-workflow-app
+NAME: workflow-app
 JUSTIFICATION:
 - microservice = workflow
 - bc-tokens: OMITTED — composition-root binary assembles all BCs; no BC-level split at app layer
@@ -421,7 +421,7 @@ Sharding:
 - Postgres + Citus on `tenant_id`; run log append-only; Citus distributed table.
 - Kafka KRaft: per-tenant topic namespace; cell-local KRaft cluster; cross-cell
   bridge for multi-cell workflow fan-out.
-- `oya-check-shardability-cli` CI lane enforces `tenant_id` partition key
+- `check-shardability-cli` CI lane enforces `tenant_id` partition key
   presence on all workflow tables (M02 substrate phase).
 
 ---
@@ -431,14 +431,14 @@ Sharding:
 | AC-ID | Criterion | Verification |
 |---|---|---|
 | AC-01 | Workflow definition saved → trigger fires → first step executes in ≤200 ms | integration test `test_workflow_end_to_end_latency` |
-| AC-02 | Deterministic replay: same event log produces same step sequence 100% | `cargo nextest run -p oya-workflow-engine-domain --test deterministic_replay` |
+| AC-02 | Deterministic replay: same event log produces same step sequence 100% | `cargo nextest run -p workflow-engine-domain --test deterministic_replay` |
 | AC-03 | Durable execution: engine process killed mid-run; on restart, run resumes from last completed step | integration test `test_engine_durability_restart` |
-| AC-04 | Multi-step approval: four-eyes constraint enforced; single approver cannot approve twice | `cargo nextest run -p oya-workflow-approvals-domain --test four_eyes_invariant` |
-| AC-05 | SLA timer fires escalation on breach; not before | `cargo nextest run -p oya-workflow-sla-domain --test sla_escalation_timing` |
+| AC-04 | Multi-step approval: four-eyes constraint enforced; single approver cannot approve twice | `cargo nextest run -p workflow-approvals-domain --test four_eyes_invariant` |
+| AC-05 | SLA timer fires escalation on breach; not before | `cargo nextest run -p workflow-sla-domain --test sla_escalation_timing` |
 | AC-06 | Agentic node: LLM decision via agent gateway routes to correct branch | integration test `test_agentic_node_routing` |
 | AC-07 | LEAN-A2: workflow crates have no product µservice imports (hr/payroll/connect etc.) | `oya gate validate lean-a2 --ms workflow` exits 0 |
 | AC-09 | 10k concurrent active runs per cell; p99 step execution ≤200 ms | k6 load: `k6 run tests/load/workflow-engine-10k.js` |
-| AC-10 | Tenant isolation: tenant A run cannot observe tenant B event payloads | `cargo nextest run -p oya-workflow-engine-domain --test tenant_run_isolation` |
+| AC-10 | Tenant isolation: tenant A run cannot observe tenant B event payloads | `cargo nextest run -p workflow-engine-domain --test tenant_run_isolation` |
 | AC-11 | Audit chain: every run sealed; tampering detected on verification | `oya gate validate audit-chain --ms workflow` |
 | AC-12 | All 10 M03 domain templates loadable in Studio; no errors | integration test `test_template_library_load` |
 

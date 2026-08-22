@@ -22,16 +22,16 @@ severity_default: Sev-2 (routine rotation); Sev-1 (compromise)
 
 ```bash
 # Verify HSM partitions healthy
-cargo run -p oya-cloud-secrets-hsm-integration-app -- partition status --pack <pack>
+cargo run -p cloud-secrets-hsm-integration-app -- partition status --pack <pack>
 
 # Verify Postgres + OpenBao healthy
-cargo run -p oya-cloud-secrets-openbao-operator-app -- cluster status --pack <pack>
+cargo run -p cloud-secrets-openbao-operator-app -- cluster status --pack <pack>
 ```
 
 ### Step 1 — Generate new KEK in HSM
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- kek generate \
+cargo run -p cloud-secrets-hsm-integration-app -- kek generate \
     --pack <pack> \
     --alias "kek-<yyyy-mm>" \
     --algorithm AES-256-GCM \
@@ -44,19 +44,19 @@ The 4-eye witness model is enforced; OpenBao Sentinel policy `4_eye_approval` is
 ### Step 2 — Re-wrap all DEKs under new KEK
 
 ```bash
-cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- kek-rotate \
+cargo run -p cloud-secrets-key-rotation-scheduler-app -- kek-rotate \
     --pack <pack> \
     --from-kek "kek-<yyyy-mm-prev>" \
     --to-kek "kek-<yyyy-mm>" \
     --batch-size 100
 ```
 
-This step is event-driven; OpenBao Transit re-wraps DEKs in batches. Monitor `oya_cloud_secrets_dek_rewrap_completed_total` until matches DEK count.
+This step is event-driven; OpenBao Transit re-wraps DEKs in batches. Monitor `cloud_secrets_dek_rewrap_completed_total` until matches DEK count.
 
 ### Step 3 — Promote new KEK as primary
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- kek promote \
+cargo run -p cloud-secrets-hsm-integration-app -- kek promote \
     --pack <pack> \
     --alias "kek-<yyyy-mm>"
 ```
@@ -66,13 +66,13 @@ Old KEK retained for 30 days (decrypt-only) to permit late-arriving ciphertext.
 ### Step 4 — Audit + verify
 
 ```bash
-cargo run -p oya-audit-chain-app -- query \
+cargo run -p audit-chain-app -- query \
     --event-type KekRotated \
     --since "1 hour ago" \
     --filter "pack=<pack>"
 
 # Verify all consumers' resolve operations succeed against new KEK
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- bench resolve \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- bench resolve \
     --pack <pack> \
     --duration 5m \
     --acceptance "p99 ≤ 25ms"
@@ -81,7 +81,7 @@ cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- bench resolve \
 ### Step 5 — Decommission old KEK (t+30d)
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- kek decommission \
+cargo run -p cloud-secrets-hsm-integration-app -- kek decommission \
     --pack <pack> \
     --alias "kek-<yyyy-mm-prev>"
 ```
@@ -94,7 +94,7 @@ This destroys the old KEK in the HSM partition. Confirm via `KekDestroyed` audit
 
 ```bash
 # Check partition heartbeat
-cargo run -p oya-cloud-secrets-hsm-integration-app -- partition heartbeat --pack <pack>
+cargo run -p cloud-secrets-hsm-integration-app -- partition heartbeat --pack <pack>
 
 # Check PKCS#11 client error rate
 # Loki: {namespace="cloud-secrets",app="openbao"} |~ "pkcs11" | json | __error__="" | rate by ()
@@ -103,7 +103,7 @@ cargo run -p oya-cloud-secrets-hsm-integration-app -- partition heartbeat --pack
 ### Step 1 — Confirm HA partition healthy
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- partition status \
+cargo run -p cloud-secrets-hsm-integration-app -- partition status \
     --pack <pack> \
     --partition-id <ha-partition-id>
 ```
@@ -113,7 +113,7 @@ cargo run -p oya-cloud-secrets-hsm-integration-app -- partition status \
 PKCS#11 client config has HA partition listed as fallback; automatic failover should engage. If not:
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- partition failover \
+cargo run -p cloud-secrets-hsm-integration-app -- partition failover \
     --pack <pack> \
     --from <primary-partition-id> \
     --to <ha-partition-id>
@@ -148,7 +148,7 @@ Daily attestation cron runs at 03:00 UTC. Failure pages immediately.
 ### Step 1 — Confirm true failure
 
 ```bash
-cargo run -p oya-cloud-secrets-hsm-integration-app -- attestation verify \
+cargo run -p cloud-secrets-hsm-integration-app -- attestation verify \
     --pack <pack> \
     --report-id <attestation-report-id> \
     --verbose
@@ -210,17 +210,17 @@ If trust in vendor is meaningfully reduced:
 
 ```bash
 # KEK is fresh
-cargo run -p oya-cloud-secrets-hsm-integration-app -- kek list --pack <pack>
+cargo run -p cloud-secrets-hsm-integration-app -- kek list --pack <pack>
 
 # Attestation passes
-cargo run -p oya-cloud-secrets-hsm-integration-app -- attestation verify --pack <pack>
+cargo run -p cloud-secrets-hsm-integration-app -- attestation verify --pack <pack>
 
 # Consumer resolve operations succeed
-cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- bench resolve \
+cargo run -p cloud-secrets-secret-reference-resolver-app -- bench resolve \
     --pack <pack> --acceptance "p99 ≤ 25ms"
 
 # Audit-chain has KekRotated + KekAttested events
-cargo run -p oya-audit-chain-app -- query \
+cargo run -p audit-chain-app -- query \
     --event-type KekRotated --since "1 hour ago"
 ```
 

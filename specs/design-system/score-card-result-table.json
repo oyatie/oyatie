@@ -39,8 +39,8 @@
     "failure rows link to reproducible command before any prose explanation"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic",
-    "crates/oya-dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs"
+    "crates/dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic",
+    "crates/dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs"
   ],
   "consumers": [
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"

@@ -1,6 +1,6 @@
 microservice:
   id: cloud-billing-tax
-  cargoPackage: oya-cloud-billing-tax-app
+  cargoPackage: cloud-billing-tax-app
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: runc
 
 serviceAccount:
-  name: oya-cloud-billing-tax
+  name: cloud-billing-tax
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-cloud-billing-tax
+  repository: cloud-billing-tax
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-cloud-billing-tax-cedar
+  policyConfigMapName: cloud-billing-tax-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     // Deployed Cedar mirrors the authored PBAC policy directories for this capability.
@@ -88,12 +88,12 @@ cedar:
     ) when {
       resource.microservice == "cloud-billing-tax" &&
       context.doctrine.adr_0346 == true &&
-      context.oya_verify_ci_required == true &&
+      context.verify_ci_required == true &&
       context.steps.cargo_fmt_all_check == true &&
       context.steps.cargo_check_workspace_all_targets == true &&
       context.steps.cargo_clippy_workspace_all_targets_d_warnings == true &&
       context.steps.cargo_nextest_workspace_no_fail_fast == true &&
-      context.steps.oya_gate_run_all_ci_required == true &&
+      context.steps.gate_run_all_ci_required == true &&
       context.step_exit_semantics == "block_on_exit_0_each_step" &&
       context.exit_code_contract in [0, 1, 2]
     };
@@ -107,7 +107,7 @@ cedar:
       context.doctrine.adr_0349 == true &&
       context.github_actions_parity_ok == true &&
       context.jcasc_declared == true &&
-      context.lane_prefix in ["oya-governance", "oya-check"] &&
+      context.lane_prefix in ["governance", "check"] &&
       context.audit_chain_emit == true
     };
 
@@ -120,7 +120,7 @@ cedar:
       (
         context.github_actions_parity_ok == false ||
         context.jcasc_declared == false ||
-        context.lane_id.matches("^oya-governance-.*$")
+        context.lane_id.matches("^governance-.*$")
       )
     };
 
@@ -157,7 +157,7 @@ cedar:
     ) when {
       resource.microservice == "cloud-billing-tax" &&
       context.doctrine.adr_0347 == true &&
-      context.lane_id.matches("^oya-governance-.*$") &&
+      context.lane_id.matches("^governance-.*$") &&
       context.historical_reference != true
     };
 

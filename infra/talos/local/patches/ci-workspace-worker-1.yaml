@@ -1,5 +1,5 @@
 # #1504 repository-side Talos declaration for the currently blank 150 GiB vdb on
-# oya-talos-worker-1. This file is NOT rollout evidence and MUST be applied only
+# talos-worker-1. This file is NOT rollout evidence and MUST be applied only
 # after independent review and a readback confirming that /dev/vdb remains blank.
 #
 # Apply (credential-gated, outside CI):

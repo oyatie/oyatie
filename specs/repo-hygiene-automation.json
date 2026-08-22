@@ -15,7 +15,7 @@
       "id": "git_worktree_hygiene",
       "owner": "platform-scm-ci-cd",
       "policy": "one isolated worktree branch per lane; no shared branch edits; branch owners record PR, disposition, and cleanup state",
-      "automation": "git worktree list --porcelain inventory plus future oya-scm worktree lease registry; local static check is repo-hygiene-automation-check",
+      "automation": "git worktree list --porcelain inventory plus future scm worktree lease registry; local static check is repo-hygiene-automation-check",
       "claim_boundary": "does not delete worktrees or branches by default",
       "live_mutation": false
     },
@@ -83,7 +83,7 @@
     ],
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {
-      "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "command": "buck2 build //tools/doc-staleness-inventory-app:doc-staleness-inventory-json",
       "cutoff_days": 3,
       "scanned_paths": [
         "README.md",
@@ -96,7 +96,7 @@
       "default_action": "inventory_only_then_separate_evidence_backed_update_archive_or_delete_pr",
       "live_mutation": false,
       "claim_boundary": "inventory_only_no_deletion_no_archive_no_live_mutation",
-      "implementation": "tools/oya-doc-staleness-inventory-app (Rust, Buck2-owned; optional local Cargo manifest is advisory only)"
+      "implementation": "tools/doc-staleness-inventory-app (Rust, Buck2-owned; optional local Cargo manifest is advisory only)"
     }
   },
   "native_scm_adapter_contract": {
@@ -126,8 +126,8 @@
     "buck2 build //:github-lane-unlocker-bridge-check",
     "buck2 build //:third-party-durable-handedits-check",
     "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
-    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
-    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+    "buck2 build //tools/doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
+    "buck2 build //tools/doc-staleness-inventory-app:doc-staleness-inventory-json"
   ],
   "official_sources": [
     {
@@ -237,7 +237,7 @@
   },
   "active_context_drift_scan": {
     "required_interim_context": "github-lane-unlocker-required",
-    "native_cutover_context": "oya-ci-required",
+    "native_cutover_context": "presubmit",
     "required_tool_examples": [
       "git worktree add",
       "gh pr create --base dev",
@@ -245,12 +245,12 @@
       "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD"
     ],
     "forbidden_active_doc_phrases": [
-      "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
-      "cloud-ci/oya-ci required context is merge authority",
+      "cloud-ci/ci required context + reviewer APPROVE gate merge readiness",
+      "cloud-ci/ci required context is merge authority",
       "GitHub Actions is retired",
       "legacy_ci_server CI + oya gate run-all",
       "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
-      "manual oya-ci-required success statuses to merge bridge PRs",
+      "manual presubmit success statuses to merge bridge PRs",
       "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
     ],
     "scan_scope": [

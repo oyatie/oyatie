@@ -18,11 +18,11 @@
       "name": "managed-k8s-control-plane-host",
       "description": "Hosted-tier (Kamaji TenantControlPlane) + dedicated-tier (Talos spoke) tenant control-plane provisioning + management-cluster multi-tenancy hardening (ADR-0376). Control plane (provision/observe/teardown); never runs tenant workloads.",
       "crates": [
-        "oya-managed-k8s-control-plane-host-kernel",
-        "oya-managed-k8s-control-plane-host-api",
-        "oya-managed-k8s-control-plane-host-adapter-capi",
-        "oya-managed-k8s-control-plane-host-adapter-inmemory",
-        "oya-managed-k8s-control-plane-host-app"
+        "managed-k8s-control-plane-host-kernel",
+        "managed-k8s-control-plane-host-api",
+        "managed-k8s-control-plane-host-adapter-capi",
+        "managed-k8s-control-plane-host-adapter-inmemory",
+        "managed-k8s-control-plane-host-app"
       ]
     }
   ],
@@ -34,10 +34,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/oya-managed-k8s-control-plane-host/contracts/openapi.yaml"
+      "microservices/managed-k8s-control-plane-host/contracts/openapi.yaml"
     ],
     "asyncapi": [
-      "microservices/oya-managed-k8s-control-plane-host/contracts/asyncapi.yaml"
+      "microservices/managed-k8s-control-plane-host/contracts/asyncapi.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -51,19 +51,19 @@
     {
       "tier": "T3",
       "name": "control-plane-provision",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-provision.yaml",
+      "file": "microservices/managed-k8s-control-plane-host/capabilities/control-plane-provision.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "control-plane-teardown",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-teardown.yaml",
+      "file": "microservices/managed-k8s-control-plane-host/capabilities/control-plane-teardown.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "control-plane-status",
-      "file": "microservices/oya-managed-k8s-control-plane-host/capabilities/control-plane-status.yaml",
+      "file": "microservices/managed-k8s-control-plane-host/capabilities/control-plane-status.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -71,13 +71,13 @@
     {
       "name": "control-plane-provisioning-latency",
       "target": "0.95",
-      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))",
+      "sli": "histogram_quantile(0.95, sum(rate(managed_k8s_control_plane_provision_duration_seconds_bucket[5m])) by (le))",
       "file": "k8s/observability/slos/control-plane-host/provisioning-latency.openslo.yaml"
     },
     {
       "name": "control-plane-availability",
       "target": "0.999",
-      "sli": "sum(rate(oya_managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
+      "sli": "sum(rate(managed_k8s_control_plane_status_requests_total{status!~\"5..\"}[5m]))",
       "file": "k8s/observability/slos/control-plane-host/availability.openslo.yaml"
     }
   ],
@@ -86,7 +86,7 @@
       "id": "IP-001-control-plane-host-kernel-api-adapters-app",
       "title": "IP-001: control-plane-host kernel + ControlPlaneProvisioning port + CAPI/in-memory adapters + composition root",
       "acceptance_status": "ga",
-      "file": "microservices/oya-managed-k8s-control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
+      "file": "microservices/managed-k8s-control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
     }
   ],
   "regulatory_packs": [
@@ -198,7 +198,7 @@
   "no_grouping_authority": "ADR-0132",
   "layer": "app",
   "data_classification": "INTERNAL_ONLY, AUDIT; tenant-scoped control-plane identity (tenant_id, cluster_name, opaque handle) — no tenant workload data",
-  "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to oya-managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior.",
+  "maturity_non_claim": "design-spec maturity (ADR-0376 lane): the kernel + ControlPlaneProvisioning port + in-memory adapter + composition root are BUILT and tested; the kube-rs CAPI adapter's LIVE Kamaji/Talos CRD reconciliation is honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration). Billing, public SLA, DPIA, and external multi-tenant GA are deferred to managed-k8s-commercial-ga per ADR-0376. All aspirational fields below describe design intent, not runtime behavior.",
   "explicit_non_claims": [
     "No provider-live Kamaji/Talos/CAPI reconciliation, provider actuation, tenant workload hosting, or production readiness is implemented by this manifest.",
     "The live CAPI adapter boundary remains honest-deferred behind kamaji-provider-live-integration; any provider-facing method must fail closed until that follow-on lands.",

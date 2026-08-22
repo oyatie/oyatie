@@ -3,28 +3,28 @@
 # no [package] here until that absorb. BAN agent-dotdirs as forever homes.
 
 rust_library(
-    name = "oya-process-kit",
+    name = "process-kit",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_process_kit",
+    crate = "process_kit",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [],
 )
 
 rust_binary(
-    name = "oya-process-kit-check-daemon",
+    name = "process-kit-check-daemon",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/bin/check_daemon.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-process-kit",
+        ":process-kit",
     ],
 )
 
 rust_test(
-    name = "oya-process-kit-unittest",
+    name = "process-kit-unittest",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_process_kit",
+    crate = "process_kit",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [],

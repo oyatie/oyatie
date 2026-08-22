@@ -16,7 +16,7 @@ static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn fixture_root() -> PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "oya-face-settle-{}-{}",
+        "face-settle-{}-{}",
         std::process::id(),
         COUNTER.fetch_add(1, Ordering::Relaxed)
     ));
@@ -72,7 +72,7 @@ fn init_repo_with_faces() -> PathBuf {
         "[workspace]\nmembers = [\"libs/*\"]\nexclude = []\n\n[workspace.package]\nversion = \"0.1.0\"\n",
     )
     .expect("write workspace manifest");
-    std::fs::create_dir_all(root.join("libs/oya-fixture-kernel")).expect("create member dir");
+    std::fs::create_dir_all(root.join("libs/fixture-kernel")).expect("create member dir");
     write_member_manifest(&root, "0.1.0");
     write_lock(&root, "0.1.0");
     for path in generated_face_paths() {
@@ -87,8 +87,8 @@ fn init_repo_with_faces() -> PathBuf {
 
 fn write_member_manifest(root: &Path, version: &str) {
     std::fs::write(
-        root.join("libs/oya-fixture-kernel/Cargo.toml"),
-        format!("[package]\nname = \"oya-fixture-kernel\"\nversion = \"{version}\"\n"),
+        root.join("libs/fixture-kernel/Cargo.toml"),
+        format!("[package]\nname = \"fixture-kernel\"\nversion = \"{version}\"\n"),
     )
     .expect("write member manifest");
 }
@@ -97,7 +97,7 @@ fn write_lock(root: &Path, version: &str) {
     std::fs::write(
         root.join("Cargo.lock"),
         format!(
-            "version = 3\n\n[[package]]\nname = \"oya-fixture-kernel\"\nversion = \"{version}\"\n"
+            "version = 3\n\n[[package]]\nname = \"fixture-kernel\"\nversion = \"{version}\"\n"
         ),
     )
     .expect("write lock");
@@ -283,7 +283,7 @@ fn parse_face_settle_args_refuses_commit_without_settle() {
     assert!(error.to_string().contains("--commit requires --settle"));
 }
 
-/// Mirror of the emitter's `is_generated_class` (oya-cloud-ci-scm-facts-emitter-app
+/// Mirror of the emitter's `is_generated_class` (cloud-ci-scm-facts-emitter-app
 /// src/main.rs): the generated class is excluded from scm-facts last_touch so settle
 /// (faces-only) and lock-refresh (Cargo.lock-only) commits are fixpoints.
 fn is_generated_class(path: &str) -> bool {
@@ -364,7 +364,7 @@ fn verify_fails_on_stale_lock_even_when_faces_are_settled() {
     settle_metadata_bearing_faces(&root);
     // Bump the member version WITHOUT refreshing Cargo.lock; commit as content.
     write_member_manifest(&root, "0.2.0");
-    git(&root, &["add", "libs/oya-fixture-kernel/Cargo.toml"]);
+    git(&root, &["add", "libs/fixture-kernel/Cargo.toml"]);
     git(&root, &["commit", "-m", "feat: bump fixture kernel"]);
     // Re-settle so the FACE half is fresh again at HEAD; only the lock is stale now.
     settle_metadata_bearing_faces(&root);
@@ -436,7 +436,7 @@ fn verify_fails_after_docs_only_commit_following_settle() {
     assert!(
         report
             .message
-            .contains("oya-cloud-ci-face-settle --settle --commit")
+            .contains("cloud-ci-face-settle --settle --commit")
     );
 }
 

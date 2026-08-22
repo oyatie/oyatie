@@ -1,4 +1,4 @@
-# Default values for oya-identity-zitadel.
+# Default values for identity-zitadel.
 # Override in per-pack overlays under iac/kustomize/overlays/pack-<pack>/values.yaml.
 # Authority: ADR-0187, ADR-0117 (SecretReference), ADR-0146 (distroless-nonroot),
 # ADR-0148 (Cilium + Ambient).

@@ -335,4 +335,4 @@ cargo nextest run -p intelligence-model-routing-usecase
 ```
 
 Both must exit 0. Run from the worktree root
-`/tmp/oya-task-model-routing-usecase-fallback-and-receipt-hardening-2026-05-28`.
+`/tmp/task-model-routing-usecase-fallback-and-receipt-hardening-2026-05-28`.

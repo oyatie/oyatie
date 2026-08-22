@@ -35,9 +35,9 @@ Settings templates declare secrets via `sref://` references:
 # Illustrative settings-template fragment (templates/foundry-supervisor/ deleted —
 # hooks pointed at missing tools/foundry-supervisor-* binaries).
 [[mcp_servers]]
-name = "oya-mcp-gateway"
+name = "mcp-gateway"
 env_secret_refs = [
-    { env_var = "OYA_MCP_TOKEN", sref = "sref://openbao/foundry/mcp-gateway/token" }
+    { env_var = "OYATIE_MCP_TOKEN", sref = "sref://openbao/foundry/mcp-gateway/token" }
 ]
 ```
 
@@ -209,6 +209,6 @@ pub struct RequestId(pub String);
 - **ADR-0008:** Data use boundary + privacy classes
 - **ADR-0024:** Autonomy tier + Cedar enforcement
 - **ADR-0003:** Audit chain + evidence emission
-- **Kernel source:** `crates/oya-intelligence-supervisor-kernel/src/lib.rs`
+- **Kernel source:** `crates/intelligence-supervisor-kernel/src/lib.rs`
 - **v4 Plan § BLOCKER-3:** Audit-chain ADR-0003 conformance + data_class annotations
 - **v6 Plan § BLOCKER-6:** Settings-template renderer symlink defense

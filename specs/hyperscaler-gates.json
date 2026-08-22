@@ -367,8 +367,8 @@
       "requires": [
         "tmp_home_repo_and_oyatie_worktrees_inventory_before_closeout",
         "build_artifacts_are_cleaned_or_explicitly_exempted",
-        "configured_build_artifacts_are_removed_by_oya_gate_validate_workspace_hygiene_clean_build_artifacts",
-        "configured_temp_artifacts_are_removed_by_oya_gate_validate_workspace_hygiene_clean_temp_artifacts",
+        "configured_build_artifacts_are_removed_by_gate_validate_workspace_hygiene_clean_build_artifacts",
+        "configured_temp_artifacts_are_removed_by_gate_validate_workspace_hygiene_clean_temp_artifacts",
         "owned_home_and_worktree_roots_have_exemption_evidence_refs",
         "strict_hygiene_mode_has_zero_untriaged_findings_before_release_or_hyperscaler_claim",
         "kept_artifacts_link_to_owner_or_evidence",
@@ -451,8 +451,8 @@
       "id": "HG-VCS",
       "name": "Oya VCS coordination authority",
       "requires": [
-        "oya_vcs_claim_verify_done_promote_used",
-        "oya_vcs_admission_gate_covers_concurrent_safe_paths",
+        "vcs_claim_verify_done_promote_used",
+        "vcs_admission_gate_covers_concurrent_safe_paths",
         "ChangeBundle_to_Promotion_to_ReleaseTrain_is_forward_closure_authority",
         "manual_PR_entry_is_labeled_temporary_Wave_B_seam",
         "no_grit_rtk_icm_vox_agent_transition"

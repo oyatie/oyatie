@@ -1,6 +1,6 @@
 context: managed-k8s-cluster-lifecycle
 role: adapter
-crate: oya-managed-k8s-cluster-lifecycle-api
+crate: managed-k8s-cluster-lifecycle-api
 capability: managed-k8s-cluster-lifecycle-quota-before-provisioning
 plane: control
 slo: preview-control-plane

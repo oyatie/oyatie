@@ -15,13 +15,13 @@
   "bounded_contexts": [
     {
       "name": "managed-k8s-tenant-quota",
-      "description": "Per-tenant quota and RBAC enforcement for managed Kubernetes clusters. Provides the QuotaDecision PORT (oya-managed-k8s-tenant-quota-api) that cluster-lifecycle calls before provisioning. ADR-0376.",
+      "description": "Per-tenant quota and RBAC enforcement for managed Kubernetes clusters. Provides the QuotaDecision PORT (managed-k8s-tenant-quota-api) that cluster-lifecycle calls before provisioning. ADR-0376.",
       "crates": [
-        "oya-managed-k8s-tenant-quota-kernel",
-        "oya-managed-k8s-tenant-quota-api",
-        "oya-managed-k8s-tenant-quota-adapter-cedar",
-        "oya-managed-k8s-tenant-quota-adapter-inmemory",
-        "oya-managed-k8s-tenant-quota-app"
+        "managed-k8s-tenant-quota-kernel",
+        "managed-k8s-tenant-quota-api",
+        "managed-k8s-tenant-quota-adapter-cedar",
+        "managed-k8s-tenant-quota-adapter-inmemory",
+        "managed-k8s-tenant-quota-app"
       ]
     }
   ],
@@ -50,25 +50,25 @@
     {
       "tier": "T3",
       "name": "quota-decision-evaluate",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs",
+      "file": "microservices/managed-k8s-tenant-quota/crates/managed-k8s-tenant-quota-kernel/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "quota-decision-port",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/src/lib.rs",
+      "file": "microservices/managed-k8s-tenant-quota/crates/managed-k8s-tenant-quota-api/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "quota-rbac-cedar-authz",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/src/lib.rs",
+      "file": "microservices/managed-k8s-tenant-quota/crates/managed-k8s-tenant-quota-adapter-cedar/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "quota-admin-rest-api",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs",
+      "file": "microservices/managed-k8s-tenant-quota/crates/managed-k8s-tenant-quota-app/src/lib.rs",
       "risk_class": "medium"
     }
   ],
@@ -199,7 +199,7 @@
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Pure quota enforcement kernel + in-memory adapters; no database, no external I/O on the hot path. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs"
+    "microservices/managed-k8s-tenant-quota/crates/managed-k8s-tenant-quota-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],

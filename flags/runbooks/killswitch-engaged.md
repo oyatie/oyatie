@@ -14,7 +14,7 @@ companion_docs:
   - microservices/feature-flags/runbooks/experiment-rollback.md
   - microservices/feature-flags/incident-response.md
   - microservices/feature-flags/policy/safety-killswitch-authorization.cedar
-planned_enforcement_ref: oya-governance-adr-adherence-matrix
+planned_enforcement_ref: governance-adr-adherence-matrix
 ---
 
 # Runbook: Kill-Switch Engaged
@@ -99,13 +99,13 @@ Next action: <monitoring / rollout resume after fix>
 
 ### Step 6 — Monitor flag evaluation metrics (ongoing)
 
-Dashboard: `dashboards/flag-state-overview.json` → confirm `oya_feature_flag_killswitch_active{flag_key="<flag_key>"}` = 1.
+Dashboard: `dashboards/flag-state-overview.json` → confirm `feature_flag_killswitch_active{flag_key="<flag_key>"}` = 1.
 
-Watch: `oya_feature_flag_eval_total{flag_key="<flag_key>",reason="KILL_SWITCH"}` — should see evaluation volume with KILL_SWITCH reason.
+Watch: `feature_flag_eval_total{flag_key="<flag_key>",reason="KILL_SWITCH"}` — should see evaluation volume with KILL_SWITCH reason.
 
 ## D. Verification
 
-- `oya_feature_flag_killswitch_active{flag_key="<flag_key>"}` gauge = 1 in all cells.
+- `feature_flag_killswitch_active{flag_key="<flag_key>"}` gauge = 1 in all cells.
 - `KillSwitchEngaged` audit event present and sealed.
 - No evaluation with `reason != KILL_SWITCH` for the affected flag.
 - User reports of the affected feature showing disabled state.
@@ -122,7 +122,7 @@ oya flags kill-switch disengage <flag_key> \
   --step-up-token $STEP_UP_TOKEN
 ```
 
-Verify: `oya_feature_flag_killswitch_active{flag_key="<flag_key>"}` gauge returns to 0.
+Verify: `feature_flag_killswitch_active{flag_key="<flag_key>"}` gauge returns to 0.
 
 **IMPORTANT:** Do NOT re-enable immediately into 100% traffic. Use rollout orchestration (`RolloutPlan`) to ramp up gradually after fix.
 

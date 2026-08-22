@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_query_latency_good_total[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_warehouse_query_latency_good_total[5m])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_query_latency_total[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_warehouse_query_latency_total[5m])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Interactive warehouse query latency
       target: 0.99

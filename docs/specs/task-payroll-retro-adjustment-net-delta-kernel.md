@@ -7,7 +7,7 @@ corrected current totals. Distinct from variance (BPS-swing anomaly gating) and
 from journal/GL posting.
 
 ## Crate
-`oya-payroll-run-domain` (flat clean-arch, ADR-0509)
+`payroll-run-domain` (flat clean-arch, ADR-0509)
 
 ## Public API
 

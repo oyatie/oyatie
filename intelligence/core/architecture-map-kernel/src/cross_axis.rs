@@ -317,10 +317,10 @@ mod tests {
     fn cross_axis_contract_construction() {
         let consumers = vec![ConsumerSpec::Axis(AxisKind::Cloud)];
         let b = AxisBinding::new("saas", consumers, StabilityTier::Stable);
-        let c = CrossAxisContract::new("TENANT_KERNEL", b, Some("crates/oya-tenancy-kernel"));
+        let c = CrossAxisContract::new("TENANT_KERNEL", b, Some("crates/tenancy-kernel"));
         assert_eq!(c.id, "TENANT_KERNEL");
         assert_eq!(c.binding.owner, "saas");
-        assert_eq!(c.artifact_location, Some("crates/oya-tenancy-kernel"));
+        assert_eq!(c.artifact_location, Some("crates/tenancy-kernel"));
     }
 
     #[test]

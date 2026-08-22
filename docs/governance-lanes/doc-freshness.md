@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every doc respects its doc-class staleness budget (e.g., runbook <= 90d, standard <= 180d, ADR no budget).
 - enforces: Directive 10 (MASTERPLAN) — staleness budget per doc-class.
-- kernel_crate: `oya-governance-doc-freshness-kernel` — `DocFreshness { path, doc_class, age_days }`, verdict `DocFreshnessFitnessReport { docs_checked }`.
-- runner_path: `tools/oya-governance-doc-freshness`
+- kernel_crate: `governance-doc-freshness-kernel` — `DocFreshness { path, doc_class, age_days }`, verdict `DocFreshnessFitnessReport { docs_checked }`.
+- runner_path: `tools/governance-doc-freshness`
 - inputs: catalog rows, git last-touched timestamp.
 - failure_modes:
   - runbook last touched 200 days ago
   - standard older than 180d with no `reviewed:` extension
   - unknown doc-class (=> no budget to check against)
-- ci_invocation: `cargo run -p oya-governance-doc-freshness`
+- ci_invocation: `cargo run -p governance-doc-freshness`
 - runtime_budget: 700 ms
 - severity: MED
 - kernel_sketch:

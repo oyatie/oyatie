@@ -97,7 +97,7 @@ gate wants it present, carrying a value nobody measured, is the defect this work
 **Naming.** File is exactly `<root>/manifest.json` — lowercase, no prefix, no suffix.
 `collect_named_files` compares `file_name() == "manifest.json"` **exactly**, so
 `service-manifest.json`, `client-manifest.json` and `archive-manifest.json` are invisible to the
-gate. `microservice` is the bare root name (`"cell"`, not `"oya-cell"`, not `"cell-capability"`).
+gate. `microservice` is the bare root name (`"cell"`, not `"cell"`, not `"cell-capability"`).
 
 **Ownership.** `owner` is the literal single token from `<root>/OWNERS`. All five roots already have
 their own `OWNERS`, each far under `[owners] max_paths_per_owners_file = 2000`

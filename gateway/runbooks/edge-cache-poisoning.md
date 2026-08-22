@@ -7,7 +7,7 @@
 
 ## A — Trigger conditions
 
-- Per-tenant cache-key collision detection: `oya_api_gateway_cache_key_collision_total` > 0.
+- Per-tenant cache-key collision detection: `api_gateway_cache_key_collision_total` > 0.
 - Anomalous cache-hit response with wrong tenant-context.
 - Customer report: "I'm seeing another tenant's data."
 - WAF rule `cache-poisoning-attempt` triggered.
@@ -58,13 +58,13 @@
 If cache disable caused performance degradation:
 
 1. Re-enable cache with conservative Vary headers.
-2. Monitor `oya_api_gateway_cache_hit_ratio` recovery.
+2. Monitor `api_gateway_cache_hit_ratio` recovery.
 
 ## F — Post-incident
 
 1. **Breach notification** if PII exposure: 72h per GDPR Art. 33.
 2. **Postmortem** within 5 business days.
-3. **CI lane addition:** synthetic cache-poisoning test in `oya-governance-edge-cache-coverage`.
+3. **CI lane addition:** synthetic cache-poisoning test in `governance-edge-cache-coverage`.
 4. **WAF rule promotion** to default ruleset.
 
 ## G — References

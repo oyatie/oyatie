@@ -25,6 +25,6 @@ outputs:
   - evidence_ref
   - state
 observability:
-  metric: oya_marketplace_revenue_share_accrue_total
+  metric: marketplace_revenue_share_accrue_total
   trace: marketplace.revenue-share-accrue
   audit_event: MarketplaceRevenueShareAccrued

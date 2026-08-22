@@ -57,7 +57,7 @@ Vendor-API-version pins used here:
 
 Oyatie status: **covered**. Owning artifact:
 `microservices/cloud-billing-tax/reference-implementations/calculate-tax-batch-rust-sdk.md`
-+ planned `crates/oya-cloud-billing-tax-sdk` SDK + planned
++ planned `crates/cloud-billing-tax-sdk` SDK + planned
 `contracts/openapi/cloud-billing-tax.openapi.yaml`. Cedar action
 `cloud_billing_tax::Action::Calculate`.
 
@@ -1255,7 +1255,7 @@ Demo_trial tenant_class is the canonical sandbox surface.
 
 Oyatie status: **covered**. Per FAQ Q20 — 50,000-transaction synthetic
 corpus + cross-vendor comparison + 0.5% divergence gate, stored at
-`crates/oya-cloud-billing-tax-test-corpus-v1/`.
+`crates/cloud-billing-tax-test-corpus-v1/`.
 
 ### §13.7 Webhook notifications (e.g., rate-card-published, filing-acknowledged)
 

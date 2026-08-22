@@ -9,7 +9,7 @@ purpose: |
   Istio/Envoy mirror primitive, provider-agnostic via service-mesh adapter pattern.
   The mesh-level mechanism dark-launch + per-cell rollback ride on.
 planned_enforcement_ref:
-  - oya-governance-shadow-diff
+  - governance-shadow-diff
 related_adrs: [ADR-0044, ADR-0040, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -26,12 +26,12 @@ Used as the transport for [`dark-launch-spec.md`](dark-launch-spec.md). Also use
 
 ## 2. Provider-agnostic via adapter
 
-Per [Directive 4](../../../docs/MASTERPLAN.md), mirror is exposed by `oya-platform-traffic-mirror-kernel` (NEW) with provider adapters:
+Per [Directive 4](../../../docs/MASTERPLAN.md), mirror is exposed by `platform-traffic-mirror-kernel` (NEW) with provider adapters:
 
-- `oya-platform-traffic-mirror-adapter-istio` (NEW) — Istio `VirtualService.mirror` + `mirrorPercentage`. Default per [ADR-0044](../../decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md).
-- `oya-platform-traffic-mirror-adapter-envoy-gateway` (NEW) — Envoy Gateway native `RequestMirror` filter.
-- `oya-platform-traffic-mirror-adapter-aws-app-mesh` (NEW) — AWS App Mesh shadow (where AWS-native customers run).
-- `oya-platform-traffic-mirror-adapter-linkerd` (NEW; future) — Linkerd traffic-split + tap.
+- `platform-traffic-mirror-adapter-istio` (NEW) — Istio `VirtualService.mirror` + `mirrorPercentage`. Default per [ADR-0044](../../decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md).
+- `platform-traffic-mirror-adapter-envoy-gateway` (NEW) — Envoy Gateway native `RequestMirror` filter.
+- `platform-traffic-mirror-adapter-aws-app-mesh` (NEW) — AWS App Mesh shadow (where AWS-native customers run).
+- `platform-traffic-mirror-adapter-linkerd` (NEW; future) — Linkerd traffic-split + tap.
 
 Application config never references a specific mesh; mesh-binding is per-cell deployment manifest.
 
@@ -56,23 +56,23 @@ Mirror percentage steps with the dark-launch / blue-green stage. Sampling rates 
 
 ## 4. Header propagation
 
-Mirrored requests are tagged with `x-oya-shadow: true` (header) and `x-oya-shadow-correlation: <uuid>` (header). Downstream services MUST detect the header and:
+Mirrored requests are tagged with `x-shadow: true` (header) and `x-shadow-correlation: <uuid>` (header). Downstream services MUST detect the header and:
 
 1. Skip external side-effects (emails, payment, webhooks).
 2. Use a sandbox transaction or shadow store (per [`dark-launch-spec.md`](dark-launch-spec.md) §6).
 3. Tag downstream emitted events as shadow (don't propagate to real consumers).
 
-Lane `oya-governance-shadow-diff` includes a static check for `x-oya-shadow` recognition in every service that may receive mirrored traffic.
+Lane `governance-shadow-diff` includes a static check for `x-shadow` recognition in every service that may receive mirrored traffic.
 
 ## 5. Cohort interaction
 
-Mirrored traffic is sampled **only** from cohorts that consent to participate. Stable-regulated tenants are excluded from mirror sampling unless their per-vertical pack explicitly permits ([`stable-cohort-spec.md`](stable-cohort-spec.md) §3). Sampling logic lives in `oya-platform-tenant-cohort-kernel`, queried by the mesh via webhook.
+Mirrored traffic is sampled **only** from cohorts that consent to participate. Stable-regulated tenants are excluded from mirror sampling unless their per-vertical pack explicitly permits ([`stable-cohort-spec.md`](stable-cohort-spec.md) §3). Sampling logic lives in `platform-tenant-cohort-kernel`, queried by the mesh via webhook.
 
 ## 6. Failure modes
 
 - **Shadow upstream slow.** Mirror is fire-and-forget by mesh contract; primary response unaffected. Slow shadow accumulates queue → mesh sheds at queue-depth threshold. Configured per-cell.
 - **Shadow upstream OOM / crash loop.** Mesh detects via outlier-detection and disables mirror automatically. Emits Sev-2 ticket.
-- **Header strip by intermediary.** Forbidden. `oya-governance-shadow-diff` includes a CI check that no Envoy filter strips `x-oya-shadow*`.
+- **Header strip by intermediary.** Forbidden. `governance-shadow-diff` includes a CI check that no Envoy filter strips `x-shadow*`.
 
 ## 7. Auditability
 
@@ -81,11 +81,11 @@ Every mirror activation emits a D14 audit-chain entry: which surface, which perc
 
 ## 8. Per-cell scope
 
-Mirror is configured per-cell. A global dark-launch is N per-cell mirror configurations orchestrated by `oya-platform-rollout-controller-kernel`. No global mirror primitive — too easy to mis-target.
+Mirror is configured per-cell. A global dark-launch is N per-cell mirror configurations orchestrated by `platform-rollout-controller-kernel`. No global mirror primitive — too easy to mis-target.
 
 ## 9. Cost
 
-Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-running shadow pods). Network egress doubled for mirrored portion. Budgeted per release in `oya-intelligence-cost-budget-kernel`.
+Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-running shadow pods). Network egress doubled for mirrored portion. Budgeted per release in `intelligence-cost-budget-kernel`.
 
 ## 10. Hyperscaler equivalents
 
@@ -98,8 +98,8 @@ Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-
 
 ## 11. Compliance gates
 
-- `oya-governance-shadow-diff` (NEW; HIGH).
-- `oya-governance-cohort-honor` (NEW; HIGH).
+- `governance-shadow-diff` (NEW; HIGH).
+- `governance-cohort-honor` (NEW; HIGH).
 
 ## 12. ADR citations
 

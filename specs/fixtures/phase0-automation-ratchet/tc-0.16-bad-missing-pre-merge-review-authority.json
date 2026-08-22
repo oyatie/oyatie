@@ -21,18 +21,18 @@
       "has_review_title_evidence": false,
       "has_review_body_evidence": false,
       "id": "BAD-green-ci-without-review-authority",
-      "no_new_oya_cli_surface": true,
+      "no_new_cli_surface": true,
       "owner": "platform-toolchain + platform-governance",
-      "requirement": "Protected branch merge admission requires a pre-merge review authority, not only the oya-ci-required context, and that authority must bind the PR, head SHA, author, distinct reviewer, verdict, and durable evidence URL.",
+      "requirement": "Protected branch merge admission requires a pre-merge review authority, not only the presubmit context, and that authority must bind the PR, head SHA, author, distinct reviewer, verdict, and durable evidence URL.",
       "requires_pre_merge_review_authority": true,
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": false,
       "reviewer_identity_distinct_from_author": false,
       "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0700-ci-admission-live-apex.md",
-      "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer (missing/not live)",
+      "target_gate_or_controller": "cloud-ci/ci review-admission packet producer (missing/not live)",
       "review_authority_live": false,
       "review_authority_source": "target_branch_protection_shadow_only"
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
 }

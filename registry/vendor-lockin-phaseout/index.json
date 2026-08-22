@@ -161,10 +161,10 @@
       "adoption_rationale": "Best Rust-native CRDT today for collaborative editing in notes/sheets/slides.",
       "replacement_path": "yrs (Yrs/Yjs Rust port) OR automerge-rs via the portability trait",
       "replacement_readiness_gate": "yrs reaches feature-parity OR loro maintainer signal is lost for >180d",
-      "seam_adapter_trait": "crates/oya-collab-crdt-portability-kernel",
+      "seam_adapter_trait": "crates/collab-crdt-portability-kernel",
       "seam_adapter_impls": [
-        "crates/oya-collab-crdt-loro-adapter",
-        "crates/oya-collab-crdt-yrs-adapter (planned per ADR-0142)"
+        "crates/collab-crdt-loro-adapter",
+        "crates/collab-crdt-yrs-adapter (planned per ADR-0142)"
       ],
       "phase_out_target_date_or_signal": "signal: yrs parity OR loro maintenance lapse"
     },
@@ -392,11 +392,11 @@
       "adoption_rationale": "Frontier-class LLM access for foundry providers; in-house substrate (ADR-0026) not at parity yet. ADR-0020 multi-provider adapter model.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "human-eval >= 95% on internal benchmark set + tool-use parity + per-second-token throughput parity at target cost",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-anthropic-api-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-openai-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-gemini-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -408,11 +408,11 @@
       "adoption_rationale": "OAuth/subscription auth path (Claude Code); ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-anthropic-subscription-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-openai-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-gemini-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -424,11 +424,11 @@
       "adoption_rationale": "Frontier-class LLM access; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-openai-api-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-openai-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-gemini-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -440,11 +440,11 @@
       "adoption_rationale": "Codex subscription auth path; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-openai-subscription-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-openai-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-gemini-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -456,11 +456,11 @@
       "adoption_rationale": "Frontier-class LLM access; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-gemini-api-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-api-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-api-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-gemini-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-api-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-openai-api-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -472,11 +472,11 @@
       "adoption_rationale": "Subscription auth path; ADR-0020.",
       "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
       "replacement_readiness_gate": "same as anthropic-api",
-      "seam_adapter_trait": "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-kernel",
+      "seam_adapter_trait": "microservices/intelligence/crates/intelligence-adapter-gemini-subscription-kernel",
       "seam_adapter_impls": [
-        "microservices/intelligence/crates/oya-intelligence-adapter-gemini-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
-        "microservices/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter"
+        "microservices/intelligence/crates/intelligence-adapter-gemini-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-anthropic-subscription-adapter",
+        "microservices/intelligence/crates/intelligence-adapter-openai-subscription-adapter"
       ],
       "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
     },
@@ -518,7 +518,7 @@
       "adoption_rationale": "NOT CURRENTLY ADOPTED. Pre-classified Tier II so adoption requires this ADR's discipline. Replacement substrate available today: Envoy + Varnish on private edge nodes.",
       "replacement_path": "self-hosted Envoy + Varnish + ACME on private edge nodes",
       "replacement_readiness_gate": "edge POPs commissioned in >=3 geos with anycast routing",
-      "seam_adapter_trait": "crates/oya-edge-cdn-kernel (not yet created — would be created on adoption)",
+      "seam_adapter_trait": "crates/edge-cdn-kernel (not yet created — would be created on adoption)",
       "seam_adapter_impls": [],
       "phase_out_target_date_or_signal": "NOT ADOPTED"
     },
@@ -530,7 +530,7 @@
       "adoption_rationale": "NOT CURRENTLY ADOPTED. Pre-classified Tier II.",
       "replacement_path": "self-hosted Envoy + Varnish on private edge nodes",
       "replacement_readiness_gate": "edge POPs commissioned in >=3 geos",
-      "seam_adapter_trait": "crates/oya-edge-cdn-kernel (not yet created)",
+      "seam_adapter_trait": "crates/edge-cdn-kernel (not yet created)",
       "seam_adapter_impls": [],
       "phase_out_target_date_or_signal": "NOT ADOPTED"
     },
@@ -650,7 +650,7 @@
       "adoption_rationale": "PRE-CLASSIFIED. Acceptable as temporary Tier II under phase-out contract; long-term target is Grafana OnCall.",
       "replacement_path": "Grafana OnCall (Tier I)",
       "replacement_readiness_gate": "Grafana OnCall reaches Slack/Teams escalation parity + on-call rotation parity",
-      "seam_adapter_trait": "crates/oya-oncall-notifier-kernel (would be created on adoption)",
+      "seam_adapter_trait": "crates/oncall-notifier-kernel (would be created on adoption)",
       "seam_adapter_impls": [],
       "phase_out_target_date_or_signal": "NOT ADOPTED"
     }

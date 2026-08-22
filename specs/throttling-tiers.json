@@ -60,7 +60,7 @@
               "const": 20
             },
             "headroom_header": {
-              "const": "oya-throttle-ip-headroom"
+              "const": "throttle-ip-headroom"
             },
             "denial_class_header_value": {
               "const": "ip-abuse"
@@ -86,7 +86,7 @@
               "const": 200
             },
             "headroom_header": {
-              "const": "oya-throttle-key-headroom"
+              "const": "throttle-key-headroom"
             },
             "denial_class_header_value": {
               "const": "api-key"
@@ -109,7 +109,7 @@
               "const": 60
             },
             "headroom_header": {
-              "const": "oya-throttle-user-headroom"
+              "const": "throttle-user-headroom"
             },
             "denial_class_header_value": {
               "const": "user"
@@ -137,7 +137,7 @@
               "const": 0.2
             },
             "headroom_header": {
-              "const": "oya-throttle-tenant-headroom"
+              "const": "throttle-tenant-headroom"
             },
             "denial_class_header_value": {
               "const": "tenant"

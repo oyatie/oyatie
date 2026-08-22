@@ -17,7 +17,7 @@
       "ADR-0123",
       "ADR-0131"
     ],
-    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the cloud-ci promotion jobs."
+    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the observability-slo-engine crate family, the governance-promotion-readiness CI lane, and the cloud-ci promotion jobs."
   },
   "industry_baseline": {
     "burn_rate_model": "Google SRE Workbook ch. 5 multi-window multi-burn-rate",
@@ -41,19 +41,19 @@
     },
     "reserved_tenants": [
       {
-        "id": "tenant:oya-ci",
+        "id": "tenant:ci",
         "purpose": "promotion-readiness CI lane writes/reads",
         "write_authority": "spiffe://oyatie/observability/slo-engine-worker",
         "read_authority": "ci-runners-via-short-lived-openbao-keys"
       },
       {
-        "id": "tenant:oya-self",
+        "id": "tenant:self",
         "purpose": "observability platform self-observability",
         "write_authority": "spiffe://oyatie/observability/*",
         "read_authority": "ops-sre-reliability + observability-platform-operators"
       },
       {
-        "id": "tenant:oya-aggregate",
+        "id": "tenant:aggregate",
         "purpose": "differential-privacy-protected cross-tenant aggregates",
         "write_authority": "spiffe://oyatie/observability/slo-engine-aggregator",
         "read_authority": "public (DP epsilon ≤ 1.0 enforced)"
@@ -90,59 +90,59 @@
         "sandbox": 2500,
         "internal": 500000
       },
-      "over_limit_response": "HTTP 429 + emit oya_tenant_rate_limit_exceeded_total{tenant} metric"
+      "over_limit_response": "HTTP 429 + emit tenant_rate_limit_exceeded_total{tenant} metric"
     },
     "reserved_metric_namespaces": [
       {
-        "prefix": "oya_promotion_*",
+        "prefix": "promotion_*",
         "authorised_writer_spiffe": "spiffe://oyatie/observability/slo-engine-worker"
       },
       {
-        "prefix": "oya_governance_*",
+        "prefix": "governance_*",
         "authorised_writer_spiffe": "spiffe://oyatie/governance/*"
       },
       {
-        "prefix": "oya_observability_internal_*",
+        "prefix": "observability_internal_*",
         "authorised_writer_spiffe": "spiffe://oyatie/observability/*"
       },
       {
-        "prefix": "oya_audit_chain_*",
+        "prefix": "audit_chain_*",
         "authorised_writer_spiffe": "spiffe://oyatie/audit-chain/*"
       }
     ],
     "violation_metrics": [
       {
-        "name": "oya_tenant_reserved_id_violation_total",
+        "name": "tenant_reserved_id_violation_total",
         "alert_threshold": "any > 0 over 5m",
         "severity": "critical"
       },
       {
-        "name": "oya_tenant_spoofing_attempt_total",
+        "name": "tenant_spoofing_attempt_total",
         "alert_threshold": "any > 0 over 1m",
         "severity": "critical"
       },
       {
-        "name": "oya_promotion_metric_unauthorized_writer_total",
+        "name": "promotion_metric_unauthorized_writer_total",
         "alert_threshold": "any > 0 over 1m",
         "severity": "critical"
       },
       {
-        "name": "oya_tenant_unauthorized_read_attempt_total",
+        "name": "tenant_unauthorized_read_attempt_total",
         "alert_threshold": "any > 0 over 5m",
         "severity": "high"
       },
       {
-        "name": "oya_tenant_rate_limit_exceeded_total",
+        "name": "tenant_rate_limit_exceeded_total",
         "alert_threshold": "rate > 1/s over 10m",
         "severity": "warning"
       }
     ],
     "ci_lanes_enforced": [
-      "oya-governance-mimir-tenancy-enforced",
-      "oya-governance-mimir-no-wildcard-query",
-      "oya-governance-cedar-fragment-coverage",
-      "oya-governance-retention-conformance",
-      "oya-governance-pack-routing-conformance"
+      "governance-mimir-tenancy-enforced",
+      "governance-mimir-no-wildcard-query",
+      "governance-cedar-fragment-coverage",
+      "governance-retention-conformance",
+      "governance-pack-routing-conformance"
     ],
     "policy_references": [
       "microservices/observability/policy/tenant-isolation.md",
@@ -231,7 +231,7 @@
     "rationale": "Ledger storage in Mimir time-series (not git-tracked JSONL) per 2026-05-17 user decision. At hyperscaler scale (10k+ µservices × 60s evaluator cadence × per-environment) a single JSONL file would grow ~14M records/day; Mimir is purpose-built for this cardinality and the burn-rate evaluator is already querying Mimir for SLI signal. Queries are PromQL. The audit trail is the Mimir block-storage history (object-storage-backed retention) plus active typed quality-gate / cloud-ci evidence artifacts for the change; standalone multispectrum evidence-file emission is retired.",
     "metric_emissions": [
       {
-        "name": "oya_promotion_eligibility_verdict",
+        "name": "promotion_eligibility_verdict",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -243,7 +243,7 @@
         "value": "1 for current verdict; 0 for prior verdicts (staleness flag)"
       },
       {
-        "name": "oya_promotion_eligibility_evaluated_at",
+        "name": "promotion_eligibility_evaluated_at",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -253,7 +253,7 @@
         "value": "unix timestamp of last evaluation"
       },
       {
-        "name": "oya_promotion_burn_rate_fast_1h",
+        "name": "promotion_burn_rate_fast_1h",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -263,7 +263,7 @@
         "value": "fast-burn rate over 1h window"
       },
       {
-        "name": "oya_promotion_burn_rate_slow_6h",
+        "name": "promotion_burn_rate_slow_6h",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -273,7 +273,7 @@
         "value": "slow-burn rate over 6h window"
       },
       {
-        "name": "oya_promotion_budget_remaining_pct",
+        "name": "promotion_budget_remaining_pct",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -283,7 +283,7 @@
         "value": "remaining error budget percentage 0-100"
       },
       {
-        "name": "oya_promotion_release_pointer_current",
+        "name": "promotion_release_pointer_current",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -293,7 +293,7 @@
         "value": "1 for current release pointer; carries SHA in label for query addressability"
       },
       {
-        "name": "oya_promotion_release_pointer_prior",
+        "name": "promotion_release_pointer_prior",
         "type": "gauge",
         "labels": [
           "microservice",
@@ -306,12 +306,12 @@
     "recording_rules_summary": [
       {
         "rule": "oya:current_verdict:by_microservice_env",
-        "expr": "max by (microservice, target_env, verdict) (oya_promotion_eligibility_verdict == 1)",
-        "purpose": "the latest verdict per (microservice, target_env); consumed by oya-governance-promotion-readiness lane"
+        "expr": "max by (microservice, target_env, verdict) (promotion_eligibility_verdict == 1)",
+        "purpose": "the latest verdict per (microservice, target_env); consumed by governance-promotion-readiness lane"
       },
       {
         "rule": "oya:all_eligible:by_sha",
-        "expr": "min by (source_sha, target_env) (count by (microservice, source_sha, target_env, verdict) (oya_promotion_eligibility_verdict{verdict=\"eligible\"}))",
+        "expr": "min by (source_sha, target_env) (count by (microservice, source_sha, target_env, verdict) (promotion_eligibility_verdict{verdict=\"eligible\"}))",
         "purpose": "1 iff every microservice touched by the SHA is eligible"
       }
     ],
@@ -332,10 +332,10 @@
       "require_signed_tags": true,
       "enforcement_state": "planned_until_IP_012_and_required_check_configuration_merge",
       "planned_required_status_checks_staging": [
-        "oya-governance-promotion-readiness"
+        "governance-promotion-readiness"
       ],
       "planned_required_status_checks_production": [
-        "oya-governance-promotion-readiness"
+        "governance-promotion-readiness"
       ]
     },
     "deprecated_refs": [
@@ -384,7 +384,7 @@
   },
   "evaluator": {
     "cadence_seconds": 60,
-    "implementation": "oya-observability-slo-engine-worker crate (long-lived service)",
+    "implementation": "observability-slo-engine-worker crate (long-lived service)",
     "rejected_alternative_implementation": "scheduled GitHub Action against Prometheus snapshots — rejected as primary; retained as bootstrap fallback only",
     "idempotency": "ledger writes keyed on (microservice, source_sha, target_env); duplicate evaluations append a no-op record only when verdict changes",
     "emits_event": "EligibilityChanged"
@@ -444,7 +444,7 @@
       "production": "17 * * * *"
     },
     "preconditions": [
-      "oya-governance-promotion-readiness CI check green for source SHA on target environment",
+      "governance-promotion-readiness CI check green for source SHA on target environment",
       "burn-rate evaluator has emitted at least one record for (microservice, source_sha, target_env) and the latest verdict is 'eligible'",
       "source ref's commits are signed (existing required-check invariant)"
     ],
@@ -494,7 +494,7 @@
     "abort_on": "any burn-rate alert; immediately drain canary cohort to 0%"
   },
   "ci_lane_contract": {
-    "name": "oya-governance-promotion-readiness",
+    "name": "governance-promotion-readiness",
     "severity": "BLOCKER",
     "added_to": "planned for cloud-ci/GitHub required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
     "behaviour": [
@@ -503,7 +503,7 @@
       "exit 0 only when every microservice has an 'eligible' verdict",
       "exit non-zero with structured JSON listing which microservices are held|rejected|rollback and the burn-rate snapshot"
     ],
-    "implementation": "cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <sha> --env <env>"
+    "implementation": "cargo run -p dev-cli -- gate validate governance-promotion-readiness --sha <sha> --env <env>"
   },
   "bootstrap_order_decision": {
     "policy": "incremental — each microservice brings its OpenSLO manifest at the time it migrates to microservices/<ms>/ per ADR-0131. Until a microservice has a manifest, the gate treats its eligibility as 'held' (fail-closed) and that microservice cannot promote past 'dev'.",
@@ -516,7 +516,7 @@
     "backfill_event_label": "verdict_kind=backfilled",
     "backfill_consumed_by_promote_workflow": false,
     "backfill_per_tenant_rate_limit": "1 per microservice per hour",
-    "replay_trigger": "manual via `cargo run -p oya-dev-cli -- promotion replay-eligibility`",
+    "replay_trigger": "manual via `cargo run -p dev-cli -- promotion replay-eligibility`",
     "replay_authority": "2-person rule (operator + ops-security) + audit-chain seal",
     "replay_event_label": "verdict_kind=replayed",
     "replay_immutability_invariant": "replay appends new verdict record; never mutates original"

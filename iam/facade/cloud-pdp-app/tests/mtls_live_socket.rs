@@ -22,7 +22,7 @@ mod common;
 
 use std::sync::Arc;
 
-use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
+use http_runtime_hyper_adapter::pqc_hybrid_tls13_client_config_builder;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::{ClientConfig, DigitallySignedStruct, Error, SignatureScheme};
@@ -128,7 +128,7 @@ fn issue_server_leaf(
     let srv = EcdsaP256Signer::generate().unwrap();
     let key = KeyPair::new(srv.private_key_der(), srv.public_key_spki_der());
     let mut csr =
-        CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
+        CertificateSigningRequest::for_node("cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
     csr.sans.dns_names.push("localhost".to_owned());
     // The SPIFFE id the PDP's cell pin is derived from at boot.
     csr.sans.uris.push(PDP_SERVER_SPIFFE.to_owned());
@@ -160,7 +160,7 @@ fn issue_server_leaf_with_uris(
     let srv = EcdsaP256Signer::generate().unwrap();
     let key = KeyPair::new(srv.private_key_der(), srv.public_key_spki_der());
     let mut csr =
-        CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
+        CertificateSigningRequest::for_node("cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
     csr.sans.dns_names.push("localhost".to_owned());
     for uri in uris {
         csr.sans.uris.push((*uri).to_owned());
@@ -187,7 +187,7 @@ fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
-        mtls_cert_dir: "/etc/oya-cloud-iam-pdp/tls".to_owned(),
+        mtls_cert_dir: "/etc/cloud-iam-pdp/tls".to_owned(),
     }
 }
 
@@ -671,7 +671,7 @@ fn grpc_entities() -> Vec<proto::EntityRecord> {
 // is NOT a caller leaf, so the caller-path `verify_peer` clientAuth gate does not
 // apply to it). This proves the load-bearing server-identity facts a real
 // client-side verifier checks: (a) the genuine PDP server leaf carries the EXPECTED
-// SPIFFE identity (`oya-cloud-iam-pdp` in `oyatie.cell-7`) and chains to the trusted
+// SPIFFE identity (`cloud-iam-pdp` in `oyatie.cell-7`) and chains to the trusted
 // CA (its real signature verifies under the bundle's CA SPKI); (b) an IMPERSONATOR
 // presenting the same identity signed by a ROGUE CA the client does not trust does
 // NOT chain — a client verifying the server identity refuses a PDP impersonator.

@@ -4,7 +4,7 @@ doc_status: published
 
 # Oyatie Runbook — Marketplace Listing Takedown
 
-> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `presubmit` are green.
 > **Owner:** `axis-saas + ops-security + legal/compliance when regulatory or sanctions scope is present`
 > **Severity scope:** Sev 3 by default; escalate to Sev 1 for active exploit, sanctions/export-control, regulated data exposure, or cross-tenant settlement impact.
 > **Authority:** ADR-0249 marketplace doctrine, ADR-0314 DealSet settlement doctrine, ADR-0036 plugin trust model, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.

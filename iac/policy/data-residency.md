@@ -139,7 +139,7 @@ Apply-state index + apply audit retention (cloud-iac is `AUDIT` data; retention 
 | pack-br | `AUDIT` | LGPD Art. 16 | 3y |
 | (all packs) | `SECRET` (cluster kubeconfigs, ArgoCD tokens, state-encryption keys) | rotate per ISO 27001 A.5.17 | 24h kubeconfigs, 90d signing keys |
 
-The CI lane `oya-governance-retention-conformance` validates apply-state index retention against this table.
+The CI lane `governance-retention-conformance` validates apply-state index retention against this table.
 
 ## DSR Cascade
 
@@ -175,9 +175,9 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-residency-overlay.md`. Pac
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `retention-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
-- cloud-ci/oya-ci governance gate `pack-routing-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
-- cloud-ci/oya-ci governance gate `cross-pack-state-replication-forbidden` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/ci governance gate `retention-conformance` is green in the branch-protected `presubmit` context — exit 0.
+- cloud-ci/ci governance gate `pack-routing-conformance` is green in the branch-protected `presubmit` context — exit 0.
+- cloud-ci/ci governance gate `cross-pack-state-replication-forbidden` is green in the branch-protected `presubmit` context — exit 0.
 - Annual residency audit: confirm each µservice's apply-state location matches its assigned pack.
 - Quarterly chaos drill: induce a cross-pack state-write attempt; verify rejection + alerting.
 

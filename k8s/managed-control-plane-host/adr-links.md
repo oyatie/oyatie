@@ -1,4 +1,4 @@
-# ADR links — `oya-managed-k8s-control-plane-host`
+# ADR links — `managed-k8s-control-plane-host`
 
 | ADR | Title | Relationship |
 |-----|-------|--------------|
@@ -17,5 +17,5 @@
   — the live Kamaji `TenantControlPlane` / Talos control-plane CRD reconcile (a
   follow-on ADR owns the real CRD wiring + the concrete Kamaji/CAPI-provider
   version pin in `registry/lts-pins.yaml`).
-- `oya-managed-k8s-commercial-ga` (named in ADR-0376 §Decision) — billing, public
+- `managed-k8s-commercial-ga` (named in ADR-0376 §Decision) — billing, public
   SLA, DPIA, external multi-tenant GA.

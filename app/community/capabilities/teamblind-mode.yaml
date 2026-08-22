@@ -10,7 +10,7 @@
 #   - ADR-ANON-0001 (cryptographic blinding protocol — migrated from anonymous/)
 #   - ADR-ANON-0002 (affinity attestation verification — migrated from anonymous/)
 
-capability_id: oya-community-teamblind-mode
+capability_id: community-teamblind-mode
 tier: product-surface
 microservice: community
 status: Accepted

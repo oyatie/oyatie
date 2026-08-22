@@ -12,7 +12,7 @@ doc_status: published
 
 ## A. Trigger conditions
 
-- `oya_connector_dlq_depth{tenant_id="<X>"} > tenant_retention_cap × 0.8`
+- `connector_dlq_depth{tenant_id="<X>"} > tenant_retention_cap × 0.8`
 - PG disk-pressure alert
 - Tenant reports "DLQ entries being dropped"
 
@@ -59,11 +59,11 @@ doc_status: published
 
 ```promql
 # DLQ depth trending down
-oya_connector_dlq_depth{tenant_id="<X>"}
+connector_dlq_depth{tenant_id="<X>"}
 
 # Replay success rate
-rate(oya_connector_dlq_replay_total{outcome="success"}[5m])
-  / rate(oya_connector_dlq_replay_total[5m])
+rate(connector_dlq_replay_total{outcome="success"}[5m])
+  / rate(connector_dlq_replay_total[5m])
 ```
 
 ## E. Rollback
@@ -74,7 +74,7 @@ DLQ entries dropped via retention-cap are non-recoverable. Communicate to tenant
 
 - If vendor outage: track vendor SLA + adjust circuit-breaker thresholds
 - If tenant pattern: surface to gtm-customer-success for tier discussion
-- If bug: regression test in `oya-connector-retry-and-dlq-domain`
+- If bug: regression test in `connector-retry-and-dlq-domain`
 
 ## G. References
 

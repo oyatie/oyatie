@@ -71,7 +71,7 @@
       "regulatory pack binding is enforced at runtime",
       "eligible cell pools are provisioned or observable",
       "tenant workloads can be migrated automatically",
-      "branch protection or oya-ci-required enforces this contract"
+      "branch protection or presubmit enforces this contract"
     ]
   },
   "source_of_truth_rule": {

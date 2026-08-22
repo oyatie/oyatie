@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use intelligence_capability_domain::{AutonomyTier, Capability};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
 };
 

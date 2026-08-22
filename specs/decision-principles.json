@@ -27,7 +27,7 @@
           "check-cohesion"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-cohesion-kernel"
+          "governance-cohesion-kernel"
         ],
         "evidence": "PR-time cohesion-lane verdict"
       }
@@ -43,7 +43,7 @@
           "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-pr-traceability-kernel"
+          "governance-pr-traceability-kernel"
         ],
         "evidence": "doc-catalog lane refuses PRs that change a canonical surface without updating dependents the catalog names"
       }
@@ -69,7 +69,7 @@
       "enforcement": {
         "mode": "cultural",
         "enforced_by": null,
-        "evidence": "PR review; no current programmatic check (gap candidate for oya-governance-dual-audience lane)"
+        "evidence": "PR review; no current programmatic check (gap candidate for governance-dual-audience lane)"
       }
     },
     {
@@ -80,7 +80,7 @@
       "enforcement": {
         "mode": "mechanical-deferred",
         "planned_enforcement_refs": [
-          "oya-governance-authoritative-tracked-kernel"
+          "governance-authoritative-tracked-kernel"
         ],
         "evidence": "Planned authoritative-tracked lane will verify every doc cited as authoritative in docs/AGENTS.md is repo-tracked; current control is PR review."
       }
@@ -96,7 +96,7 @@
           "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-doc-style-kernel"
+          "governance-doc-style-kernel"
         ],
         "evidence": "doc-style lane enforces length cap + frontmatter shape per doc_class"
       }
@@ -109,7 +109,7 @@
       "enforcement": {
         "mode": "cultural",
         "enforced_by": null,
-        "evidence": "convention: <!-- forward-reference: wave-N --> sentinel; no current programmatic resolution check (gap candidate for oya-governance-forward-reference-resolution lane)"
+        "evidence": "convention: <!-- forward-reference: wave-N --> sentinel; no current programmatic resolution check (gap candidate for governance-forward-reference-resolution lane)"
       }
     },
     {

@@ -14,7 +14,7 @@
       "pattern": "^[0-9a-f]{64}$"
     },
     "schema": {
-      "const": "oya-ci/adr-census-epoch-receipt/v2"
+      "const": "ci/adr-census-epoch-receipt/v2"
     },
     "receipt": {
       "$ref": "#/$defs/receipt"
@@ -97,7 +97,7 @@
           "$ref": "#/$defs/predecessor"
         },
         "receipt_schema": {
-          "const": "oya-ci/adr-census-epoch-receipt/v2"
+          "const": "ci/adr-census-epoch-receipt/v2"
         },
         "selector": {
           "const": "docs-decisions-direct-adr-v1"

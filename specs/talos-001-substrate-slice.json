@@ -68,18 +68,18 @@
       ],
       "required_contract": [
         "vfkit plus Talos is the canonical local substrate; colima is retired as the active cluster target.",
-        "The operator config home is ~/.oya/talos-local with kube context admin@oya-local.",
+        "The operator config home is ~/.oya/talos-local with kube context admin@local.",
         "Talos remains immutable/API-driven with no SSH troubleshooting path.",
         "Kata cloud-hypervisor on Apple Silicon is treated as a known local gap when the inner VMM cannot create a microVM; non-Kata substrate smoke can still pass."
       ],
       "acceptance": [
-        "A future live smoke records talosctl and kubectl evidence against admin@oya-local.",
+        "A future live smoke records talosctl and kubectl evidence against admin@local.",
         "The smoke distinguishes the known Apple-Silicon Kata gap from the health of the Talos/Cilium substrate.",
         "No local smoke stores talosconfig, kubeconfig, machine secrets, or PKI material in git."
       ],
       "verification": [
         "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-        "future hardware/local evidence: kubectl config current-context == admin@oya-local and Talos node/Cilium/cloud-ci pods are observed from the canonical config home"
+        "future hardware/local evidence: kubectl config current-context == admin@local and Talos node/Cilium/cloud-ci pods are observed from the canonical config home"
       ],
       "non_claims": [
         "This slice does not boot vfkit, create a VM, run talosctl, or run kubectl against a live cluster.",

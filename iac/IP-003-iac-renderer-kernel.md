@@ -8,12 +8,12 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-per-microservice-layout]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, governance-per-microservice-layout]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-003: oya-cloud-iac-iac-renderer-kernel
+# IP-003: cloud-iac-iac-renderer-kernel
 
 ## Intent
 
@@ -21,24 +21,24 @@ Scaffold the `kernel` layer crate per ADR-0105: port traits + entity types + val
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/cloud-iac/catalog/oya-cloud-iac-iac-renderer-kernel.yaml`.
+One new Rust crate at `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/cloud-iac/catalog/cloud-iac-iac-renderer-kernel.yaml`.
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/Cargo.toml` | create | `[package]` + minimal deps (`async-trait`, `serde`) |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/src/lib.rs` | create | module declarations + `pub use` surface |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/src/entities.rs` | create | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` with `data_class` annotations |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/src/ports.rs` | create | port trait declarations (sealed): `ChartSourceReader`, `KustomizeOverlayReader`, `TerraformPlanComputer`, `RenderEventEmitter` |
-| `microservices/cloud-iac/src/crates/oya-cloud-iac-iac-renderer-kernel/src/errors.rs` | create | error variants per port + entity |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/Cargo.toml` | create | `[package]` + minimal deps (`async-trait`, `serde`) |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/src/lib.rs` | create | module declarations + `pub use` surface |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/src/entities.rs` | create | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` with `data_class` annotations |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/src/ports.rs` | create | port trait declarations (sealed): `ChartSourceReader`, `KustomizeOverlayReader`, `TerraformPlanComputer`, `RenderEventEmitter` |
+| `microservices/cloud-iac/src/crates/cloud-iac-iac-renderer-kernel/src/errors.rs` | create | error variants per port + entity |
 | `Cargo.toml` (workspace) | update | add new crate to `[workspace.members]` |
-| `microservices/cloud-iac/catalog/oya-cloud-iac-iac-renderer-kernel.yaml` | create | catalog row |
+| `microservices/cloud-iac/catalog/cloud-iac-iac-renderer-kernel.yaml` | create | catalog row |
 
 ## Crate Naming
 
 ```
-NAME: oya-cloud-iac-iac-renderer-kernel
+NAME: cloud-iac-iac-renderer-kernel
 JUSTIFICATION:
 - microservice = cloud-iac (microservices/cloud-iac/)
 - bc-tokens = iac-renderer (primary BC per PRD §"Bounded Contexts")
@@ -122,16 +122,16 @@ pub trait RenderEventEmitter: Send + Sync + Sealed {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-renderer-kernel --all-features
-cargo build -p oya-cloud-iac-iac-renderer-kernel --all-features
-cargo clippy -p oya-cloud-iac-iac-renderer-kernel --all-features -- -D warnings
-cargo nextest run -p oya-cloud-iac-iac-renderer-kernel --all-features
+cargo check -p cloud-iac-iac-renderer-kernel --all-features
+cargo build -p cloud-iac-iac-renderer-kernel --all-features
+cargo clippy -p cloud-iac-iac-renderer-kernel --all-features -- -D warnings
+cargo nextest run -p cloud-iac-iac-renderer-kernel --all-features
 cargo deny check
-cargo doc -p oya-cloud-iac-iac-renderer-kernel --no-deps
-cloud-ci/oya-ci governance gate `lean-a1` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `port-location` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `layer-correctness` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
-cloud-ci/oya-ci governance gate `data-class` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
+cargo doc -p cloud-iac-iac-renderer-kernel --no-deps
+cloud-ci/ci governance gate `lean-a1` for --crate cloud-iac-iac-renderer-kernel is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `port-location` for --crate cloud-iac-iac-renderer-kernel is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `layer-correctness` for --crate cloud-iac-iac-renderer-kernel is green in the branch-protected `presubmit` context
+cloud-ci/ci governance gate `data-class` for --crate cloud-iac-iac-renderer-kernel is green in the branch-protected `presubmit` context
 ```
 
 ## Test Plan

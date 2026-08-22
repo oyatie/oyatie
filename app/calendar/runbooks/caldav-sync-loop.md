@@ -19,11 +19,11 @@ A CalDAV client (most commonly Apple Calendar on macOS / iOS) issues a
 loop of PROPFIND / REPORT / PUT / DELETE calls against the same
 calendar collection, often with rising volume. Visible as:
 
-- `oya_calendar_caldav_request_rate{tenant_id, client_user_agent}` spikes >10×
+- `calendar_caldav_request_rate{tenant_id, client_user_agent}` spikes >10×
   the 24h baseline for one or more `(tenant_id, client_user_agent)` pairs.
 - p99 latency on `caldav-availability` SLO degrades despite no
   underlying backend slowdown.
-- `oya_calendar_caldav_if_match_etag_mismatch_total` rising in proportion
+- `calendar_caldav_if_match_etag_mismatch_total` rising in proportion
   to the loop volume — the loop is driven by If-Match / ETag mismatches.
 
 ## Severity
@@ -43,9 +43,9 @@ axis-calendar on-call. Escalate to ops-sre-reliability if Sev-1.
 
 ```bash
 # Per-tenant, per-client-UA request rate sorted descending
-kubectl -n calendar exec deploy/oya-calendar-ics-import-export-rest -- \
+kubectl -n calendar exec deploy/calendar-ics-import-export-rest -- \
   curl -s localhost:9090/metrics |
-  grep '^oya_calendar_caldav_request_rate'
+  grep '^calendar_caldav_request_rate'
 ```
 
 Look for one `(tenant_id, client_user_agent)` pair at >10× baseline.
@@ -54,7 +54,7 @@ Look for one `(tenant_id, client_user_agent)` pair at >10× baseline.
 
 ```bash
 # Are mismatches concentrated on a single VEVENT UID?
-kubectl -n calendar logs deploy/oya-calendar-ics-import-export-rest --since=15m |
+kubectl -n calendar logs deploy/calendar-ics-import-export-rest --since=15m |
   grep 'caldav_etag_mismatch' |
   jq -s 'group_by(.event_uid) | map({uid: .[0].event_uid, count: length}) | sort_by(.count) | reverse | .[0:10]'
 ```
@@ -76,7 +76,7 @@ Three common cases:
 
 ```bash
 # Is the loop a client problem or a backend regression?
-kubectl -n calendar logs deploy/oya-calendar-ics-import-export-adapter-caldav-radicale-app --since=30m |
+kubectl -n calendar logs deploy/calendar-ics-import-export-adapter-caldav-radicale-app --since=30m |
   grep -E '(WARN|ERROR)' | head -50
 ```
 
@@ -90,7 +90,7 @@ If backend logs show ETag computation errors → backend regression.
 1. Throttle the offending `(tenant_id, client_user_agent)` pair at
    the gateway:
    ```bash
-   cargo run -p oya-dev-cli -- vcs admin throttle-add \
+   cargo run -p dev-cli -- vcs admin throttle-add \
      --microservice calendar \
      --tenant <tenant_id> \
      --client-user-agent "macOS/CalendarAgent" \
@@ -114,7 +114,7 @@ If backend logs show ETag computation errors → backend regression.
    ```bash
    git switch -c rollback/calendar-caldav-$INCIDENT_ID dev
    # Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
-   # and require `oya-ci-required` + `oya gate run-all --ci-required` before merge.
+   # and require `presubmit` + `oya gate run-all --ci-required` before merge.
    ```
 2. Page council-architecture; the regression is in our strong-ETag
    computation (per ADR-CAL-0001 — backend-qualified adapter must
@@ -128,7 +128,7 @@ Likely a deploy-time regression. Trigger global rollback per the
 ADR-0114 canary-rollback procedure:
 
 ```bash
-cargo run -p oya-dev-cli -- vcs canary rollback --microservice calendar --to-stable
+cargo run -p dev-cli -- vcs canary rollback --microservice calendar --to-stable
 ```
 
 Then proceed as Case C.
@@ -139,18 +139,18 @@ After mitigation:
 
 ```bash
 # Loop volume back to baseline
-kubectl -n calendar exec deploy/oya-calendar-ics-import-export-rest -- \
+kubectl -n calendar exec deploy/calendar-ics-import-export-rest -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_caldav_request_rate' |
+  grep 'calendar_caldav_request_rate' |
   head -5
 
 # ETag mismatch counter has stopped rising
-kubectl -n calendar exec deploy/oya-calendar-ics-import-export-rest -- \
+kubectl -n calendar exec deploy/calendar-ics-import-export-rest -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_caldav_if_match_etag_mismatch_total'
+  grep 'calendar_caldav_if_match_etag_mismatch_total'
 
 # caldav-availability SLO is recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo caldav-availability
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo caldav-availability
 ```
 
 ## Post-incident

@@ -38,8 +38,8 @@
     "stale telemetry is rendered as blocking warning, never silently reused"
   ],
   "test_refs": [
-    "crates/oya-saas-workflow-app/tests/durability.rs::test_resume_after_restart_idempotent",
-    "crates/oya-saas-workflow-studio-app/tests/replay.rs::test_audit_gap_blocks_retry"
+    "crates/saas-workflow-app/tests/durability.rs::test_resume_after_restart_idempotent",
+    "crates/saas-workflow-studio-app/tests/replay.rs::test_audit_gap_blocks_retry"
   ],
   "consumers": [
     "$ref:specs/microservices/workflow.json#frontend_components",

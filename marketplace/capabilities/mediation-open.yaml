@@ -25,6 +25,6 @@ outputs:
   - evidence_ref
   - state
 observability:
-  metric: oya_marketplace_mediation_open_total
+  metric: marketplace_mediation_open_total
   trace: marketplace.mediation-open
   audit_event: MarketplaceOrderExported

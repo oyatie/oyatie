@@ -1,10 +1,10 @@
 asyncapi: 3.1.0
 info:
-  title: oya-observability — eligibility events
+  title: observability — eligibility events
   version: 1.0.0
   summary: Eligibility verdict, promotion, and rollback events emitted by the SLO engine
   description: |
-    Cross-µservice Workflow events emitted by `oya-observability-slo-engine-worker`.
+    Cross-µservice Workflow events emitted by `observability-slo-engine-worker`.
     Per ADR-0139 and `/specs/agentic-slo-gated-promotion.json` §`events`.
 
     Consumers:

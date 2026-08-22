@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "strict": false
   },
@@ -25,7 +25,7 @@
   "producer_contract": {
     "candidate_bytes_policy": "untrusted_input_only",
     "command": "sh infra/ci/buck2-affected-gate.sh origin/dev origin/pr-42",
-    "context": "oya-ci-required",
+    "context": "presubmit",
     "controller": "jenkins-bridge",
     "gate_definition_source": "trusted_dev_or_controller_state",
     "kind": "affected_only_bridge"

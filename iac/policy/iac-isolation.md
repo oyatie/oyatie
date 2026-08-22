@@ -59,7 +59,7 @@ The following apply-scopes are RESERVED and never issued for customer-µservice 
 | `system:cloud-secrets` | OpenBao substrate apply | only cloud-secrets µservice's SPIFFE identity |
 | `system:observability` | observability stack apply | only observability µservice's SPIFFE identity |
 
-Any inbound apply with `apply_scope.microservice = system:*` from a source other than the authorised SPIFFE identity is **rejected at iac-applier-worker** with HTTP 403 and emits `oya_cloud_iac_reserved_scope_violation_total` metric (alert on > 0 over 5m).
+Any inbound apply with `apply_scope.microservice = system:*` from a source other than the authorised SPIFFE identity is **rejected at iac-applier-worker** with HTTP 403 and emits `cloud_iac_reserved_scope_violation_total` metric (alert on > 0 over 5m).
 
 ### Per-tenant scope inheritance
 
@@ -69,13 +69,13 @@ Each µservice may declare tenant-bound subsets (e.g., a tenant-specific overlay
 
 ### Invariant ISO-01: per-µservice apply scope enforced server-side
 
-The iac-applier-worker validates every apply against the µservice's declared `apply_scope`. Resources outside scope refused with HTTP 403 and `apply_scope_violation` audit event. There is no exception. The CI lane `oya-cloud-iac-iac-apply-scope` validates this at PR-time; PRs that mutate outside declared scope fail to merge.
+The iac-applier-worker validates every apply against the µservice's declared `apply_scope`. Resources outside scope refused with HTTP 403 and `apply_scope_violation` audit event. There is no exception. The CI lane `cloud-iac-iac-apply-scope` validates this at PR-time; PRs that mutate outside declared scope fail to merge.
 
 ### Invariant ISO-02: Cluster RBAC enforces namespace-scoped admin
 
 The iac-applier-worker ServiceAccount has `namespace-scoped admin` RBAC role on the declared `apply_scope.namespaces` only. The ServiceAccount has NO cluster-admin role. Cross-namespace mutation refused at the Kubernetes apiserver layer (defense-in-depth).
 
-CI lane: `oya-check-applier-rbac-scope` validates RBAC bindings stay namespace-scoped.
+CI lane: `check-applier-rbac-scope` validates RBAC bindings stay namespace-scoped.
 
 ### Invariant ISO-03: Cross-µservice apply forbidden by default
 
@@ -91,7 +91,7 @@ Every ArgoCD Application resource carries a `oya/scope-attestation` annotation s
 
 Every Helm chart applied by cloud-iac must have an SLSA L3 build-provenance attestation verifiable against Sigstore Fulcio / Rekor. Unsigned charts refused at iac-applier-worker pre-apply.
 
-CI lane: `oya-cloud-iac-provenance-slsa-l3` validates attestation chain.
+CI lane: `cloud-iac-provenance-slsa-l3` validates attestation chain.
 
 ### Invariant ISO-06: Apply rate limits per µservice
 
@@ -119,7 +119,7 @@ permit (
 };
 ```
 
-(Full fragment at `policy/tenant-scope.cedar`.) Non-matching reads return 403 + emit `oya_cloud_iac_unauthorized_read_attempt_total`.
+(Full fragment at `policy/tenant-scope.cedar`.) Non-matching reads return 403 + emit `cloud_iac_unauthorized_read_attempt_total`.
 
 ## Failure Modes
 
@@ -129,7 +129,7 @@ permit (
 
 **Tenant impact:** None (write rejected).
 
-**Detection:** `oya_cloud_iac_admission_violation_total > 0` over 5m fires page.
+**Detection:** `cloud_iac_admission_violation_total > 0` over 5m fires page.
 
 **Recovery:** Trace source; revoke credentials; root-cause.
 
@@ -139,7 +139,7 @@ permit (
 
 **Tenant impact:** Caught pre-merge OR within 5min via live-cluster diff.
 
-**Detection:** `oya-check-applier-rbac-scope` lane + RBAC-state validator.
+**Detection:** `check-applier-rbac-scope` lane + RBAC-state validator.
 
 **Recovery:** Auto-rollback to declared RBAC via ArgoCD; ops-security incident if cause is intentional.
 
@@ -149,7 +149,7 @@ permit (
 
 **Tenant impact:** Promotion held pending substrate recovery.
 
-**Detection:** `oya_cloud_iac_slsa_verify_failure_total > 0`.
+**Detection:** `cloud_iac_slsa_verify_failure_total > 0`.
 
 **Recovery:** If transient (provider outage): retry. If chart actually unsigned: refuse + require chart re-signing.
 
@@ -159,7 +159,7 @@ permit (
 
 **Tenant impact:** Apply refused; PR refused; µservice owner notified.
 
-**Detection:** `oya_cloud_iac_cross_microservice_violation_total > 0`.
+**Detection:** `cloud_iac_cross_microservice_violation_total > 0`.
 
 **Recovery:** Refactor IaC: shared resources should be managed by the substrate µservice (cloud-k8s for namespace bootstrap, cloud-secrets for secrets) and referenced (not mutated) by µservices.
 
@@ -179,7 +179,7 @@ permit (
 
 **Tenant impact:** None (write rejected).
 
-**Detection:** `oya_cloud_iac_reserved_scope_violation_total > 0`.
+**Detection:** `cloud_iac_reserved_scope_violation_total > 0`.
 
 **Recovery:** Trace source; revoke credentials; root-cause.
 
@@ -198,7 +198,7 @@ Every apply-scope boundary event is audit-chain-emitted per Bominal ADR-0028:
 | ApplyExecuted | iac-applier-worker | `microservice, pack, environment, sha, actor, executed_at, signature` | ≥ 1y (≥ 6y HIPAA pack) |
 | ApplyRolledBack | iac-rollback-worker | `microservice, from_sha, to_sha, reason, executed_at, signature` | ≥ 1y |
 
-The audit log is itself stored in iac-state-index + Mimir under `tenant:oya-cloud-iac-self` and replicated to the `audit-chain` µservice for Merkle-tree sealing.
+The audit log is itself stored in iac-state-index + Mimir under `tenant:cloud-iac-self` and replicated to the `audit-chain` µservice for Merkle-tree sealing.
 
 ## Per-Pack Overlay
 
@@ -229,10 +229,10 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-isolation-overlay.md`.
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `iac-apply-scope` is green in the branch-protected `oya-ci-required` context — exit 0.
-- cloud-ci/oya-ci governance gate `applier-rbac-scope` is green in the branch-protected `oya-ci-required` context — exit 0.
-- cloud-ci/oya-ci governance gate `slsa-l3-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
-- cloud-ci/oya-ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/ci governance gate `iac-apply-scope` is green in the branch-protected `presubmit` context — exit 0.
+- cloud-ci/ci governance gate `applier-rbac-scope` is green in the branch-protected `presubmit` context — exit 0.
+- cloud-ci/ci governance gate `slsa-l3-conformance` is green in the branch-protected `presubmit` context — exit 0.
+- cloud-ci/ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `presubmit` context — exit 0.
 - Annual pen-test against apply-scope boundary; documented in `runbooks/apply-scope-pentest.md` (Slice D).
 - Quarterly chaos drill: induce reserved-scope write + cross-µservice apply attempt; verify rejection + alerting.
 

@@ -1,7 +1,7 @@
 // oyatie.contract.exposure: internal-only
 // oyatie.contract.transport: grpc-http2
 // oyatie.contract.identity: spiffe-mtls-tls13
-// oya-cloud-iac — gRPC contract
+// cloud-iac — gRPC contract
 // Internal-only service RPC projection; contracts/openapi/cloud-iac.yaml remains the public client contract.
 // Per PRD-cloud-iac + ADR-0131.
 

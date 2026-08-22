@@ -29,8 +29,8 @@ use iac_app::{
     serve_bounded_cloud_iac_app_on_listener,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 
 const TEST_BEARER: &str = "local-registry-bearer-fixture";
 const TEST_PRINCIPAL: &str = "sp_cloud_iac_app_test_reader";
@@ -54,7 +54,7 @@ fn http_request_with_auth(method: HttpMethod, path: &str, bearer: &str) -> HttpR
     request
 }
 
-fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
+fn body_text(response: &http_middleware_kernel::HttpResponse) -> String {
     String::from_utf8(response.body.clone()).expect("response body is UTF-8")
 }
 
@@ -82,11 +82,11 @@ fn test_provider() -> Arc<CloudIacModuleRegistryAuthzProvider> {
 const RELEASE_INDEX_JSON: &str = include_str!("../../../tofu/modules/release-index.json");
 const TEST_ARTIFACT_ARCHIVE: &str = "oyatie-unit-artifact-opentofu-0.1.0.zip";
 const TEST_ARTIFACT_PATH: &str =
-    "target/oya-cloud-iac/module-archives/oyatie-unit-artifact-opentofu-0.1.0.zip";
+    "target/cloud-iac/module-archives/oyatie-unit-artifact-opentofu-0.1.0.zip";
 const TEST_ARTIFACT_SHA256: &str =
     "c3c49717514288b70d1efe74929f5531a4b3a7610cb2fdf821c6b62f08683014";
 const TEST_MISMATCH_ARTIFACT_PATH: &str =
-    "target/oya-cloud-iac/module-archives/oyatie-digest-mismatch-opentofu-0.1.0.zip";
+    "target/cloud-iac/module-archives/oyatie-digest-mismatch-opentofu-0.1.0.zip";
 // libtest runs `#[test]`s as parallel threads in one process, and `fs::write` is
 // `File::create` (truncate to 0) + `write_all`. Two tests sharing one fixture path
 // let one test's request-time sha256 read land inside the other's truncate window,
@@ -95,9 +95,9 @@ const TEST_MISMATCH_ARTIFACT_PATH: &str =
 // The archive must sit directly under the local module-archive root (a subdirectory is
 // rejected by `validate_archive_file`), so the path is made unique by file name.
 const TEST_BEARER_ARTIFACT_PATH: &str =
-    "target/oya-cloud-iac/module-archives/oyatie-bearer-artifact-opentofu-0.1.0.zip";
+    "target/cloud-iac/module-archives/oyatie-bearer-artifact-opentofu-0.1.0.zip";
 const TEST_PDP_DENIED_ARTIFACT_PATH: &str =
-    "target/oya-cloud-iac/module-archives/oyatie-pdp-denied-artifact-opentofu-0.1.0.zip";
+    "target/cloud-iac/module-archives/oyatie-pdp-denied-artifact-opentofu-0.1.0.zip";
 
 fn registry() -> ModuleRegistry {
     let mut registry = ModuleRegistry::default();
@@ -208,7 +208,7 @@ fn serve_refuses_without_bearer_and_principal() {
 
 #[test]
 fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_public() {
-    fs::create_dir_all("target/oya-cloud-iac/module-archives")
+    fs::create_dir_all("target/cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
     fs::write(
         TEST_BEARER_ARTIFACT_PATH,
@@ -296,7 +296,7 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
 
 #[test]
 fn artifact_route_denies_when_pdp_denies_download_surface() {
-    fs::create_dir_all("target/oya-cloud-iac/module-archives")
+    fs::create_dir_all("target/cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
     fs::write(
         TEST_PDP_DENIED_ARTIFACT_PATH,
@@ -451,8 +451,8 @@ fn bounded_loopback_entrypoint_serves_health_and_discovery_without_deploy_claim(
     assert!(responses[0].contains(r#"{"status":"ok","service":"cloud-iac","check":"healthz"}"#));
     assert!(responses[1].starts_with("HTTP/1.1 200 OK"));
     assert!(responses[1].contains(r#"{"modules.v1":"/v1/modules/"}"#));
-    assert_eq!(CLOUD_IAC_APP_BINARY_NAME, "oya-cloud-iac");
-    assert_eq!(CLOUD_IAC_APP_PACKAGE_NAME, "oya-cloud-iac-app");
+    assert_eq!(CLOUD_IAC_APP_BINARY_NAME, "cloud-iac");
+    assert_eq!(CLOUD_IAC_APP_PACKAGE_NAME, "cloud-iac-app");
     assert_eq!(
         CLOUD_IAC_APP_ENTRYPOINT_NON_CLAIM,
         "local-app-entrypoint-health-and-module-registry-no-deploy-no-production-readiness"
@@ -503,7 +503,7 @@ fn release_index_loader_builds_registry_for_gate_validated_local_modules() {
 
 #[test]
 fn release_index_backed_app_serves_local_archive_artifact_without_object_store_claim() {
-    fs::create_dir_all("target/oya-cloud-iac/module-archives")
+    fs::create_dir_all("target/cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
     fs::write(TEST_ARTIFACT_PATH, b"deterministic-local-archive-fixture")
         .expect("write local artifact fixture bytes");
@@ -767,7 +767,7 @@ fn object_source_entries_require_provider_specific_pin_metadata() {
 
 #[test]
 fn artifact_route_rejects_local_archive_digest_drift_before_serving_bytes() {
-    fs::create_dir_all("target/oya-cloud-iac/module-archives")
+    fs::create_dir_all("target/cloud-iac/module-archives")
         .expect("create local artifact fixture directory");
     fs::write(
         TEST_MISMATCH_ARTIFACT_PATH,
@@ -818,7 +818,7 @@ fn artifact_route_rejects_local_archive_digest_drift_before_serving_bytes() {
 #[test]
 fn artifact_route_rejects_invalid_unknown_and_missing_local_archive_requests() {
     let missing_artifact_path =
-        "target/oya-cloud-iac/module-archives/oyatie-missing-artifact-opentofu-0.1.0.zip";
+        "target/cloud-iac/module-archives/oyatie-missing-artifact-opentofu-0.1.0.zip";
     let _ = fs::remove_file(missing_artifact_path);
     let release_index = format!(
         r#"{{
@@ -884,7 +884,7 @@ fn release_index_loader_rejects_empty_modules_bad_archives_and_secret_like_evide
           "system": "opentofu",
           "version": "0.1.0",
           "source_path": "microservices/cloud-iac/tofu/modules/vpc",
-          "archive_file": "target/oya-cloud-iac/module-archives/../secret-0.1.0.zip",
+          "archive_file": "target/cloud-iac/module-archives/../secret-0.1.0.zip",
           "archive_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "archive_media_type": "archive/zip",
           "evidence_ref": "evidence://cloud-iac/modules/vpc/0.1.0/local-foundation"
@@ -901,7 +901,7 @@ fn release_index_loader_rejects_empty_modules_bad_archives_and_secret_like_evide
           "system": "opentofu",
           "version": "0.1.0",
           "source_path": "microservices/cloud-iac/tofu/modules/vpc",
-          "archive_file": "target/oya-cloud-iac/module-archives/oyatie-vpc-opentofu-0.1.0.zip",
+          "archive_file": "target/cloud-iac/module-archives/oyatie-vpc-opentofu-0.1.0.zip",
           "archive_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "archive_media_type": "archive/zip",
           "evidence_ref": "evidence://cloud-iac/modules/vpc/token=abc/0.1.0"

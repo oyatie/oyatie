@@ -35,10 +35,10 @@ Any layer's denial short-circuits subsequent evaluation.
 
 | Layer | Counter store | Window | Default budget | Burst | Denial header |
 | --- | --- | --- | --- | --- | --- |
-| per-IP | Redis mesh-edge cache | rolling 1 min | 100 req/min (anon), 10000 req/min (mesh-internal) | 20 tokens | `oya-throttle-class: ip-abuse` |
-| per-API-key | Envoy ratelimit-service | rolling 1 min + 1 hour | 1000/min, 50000/hour | 200 tokens | `oya-throttle-class: api-key` |
-| per-user | Tenant-scope Redis per cell | rolling 1 min | 600 req/min | 60 tokens | `oya-throttle-class: user` |
-| per-tenant | Cell-level Postgres + Redis lookaside | rolling 1 min + 1 day | Free=1k, Pro=10k, Enterprise=negotiated | budget × 0.2 | `oya-throttle-class: tenant` |
+| per-IP | Redis mesh-edge cache | rolling 1 min | 100 req/min (anon), 10000 req/min (mesh-internal) | 20 tokens | `throttle-class: ip-abuse` |
+| per-API-key | Envoy ratelimit-service | rolling 1 min + 1 hour | 1000/min, 50000/hour | 200 tokens | `throttle-class: api-key` |
+| per-user | Tenant-scope Redis per cell | rolling 1 min | 600 req/min | 60 tokens | `throttle-class: user` |
+| per-tenant | Cell-level Postgres + Redis lookaside | rolling 1 min + 1 day | Free=1k, Pro=10k, Enterprise=negotiated | budget × 0.2 | `throttle-class: tenant` |
 
 Denial: HTTP 429 with `Retry-After` per RFC 6585.
 
@@ -48,17 +48,17 @@ Every response emits four headroom headers (`0.0` = no headroom; `1.0`
 = full headroom):
 
 ```
-oya-throttle-ip-headroom: 0.83
-oya-throttle-key-headroom: 0.62
-oya-throttle-user-headroom: 0.94
-oya-throttle-tenant-headroom: 0.71
+throttle-ip-headroom: 0.83
+throttle-key-headroom: 0.62
+throttle-user-headroom: 0.94
+throttle-tenant-headroom: 0.71
 ```
 
 Public-customer SDKs read these and self-bias their request patterns.
 The µservice also publishes them as Prometheus gauges:
 
 ```
-oya_throttle_headroom{layer="ip|key|user|tenant", microservice="<name>"}
+throttle_headroom{layer="ip|key|user|tenant", microservice="<name>"}
 ```
 
 ## Brown-out integration

@@ -84,7 +84,7 @@ apps:
     type: path
     path: infra/gitops
     include: vcs-substrate.yaml
-    namespace: oya-forge
+    namespace: forge
     syncWave: "1"
 
   - name: openbao
@@ -93,7 +93,7 @@ apps:
     # TLS promotion is a reviewed source switch to openbao-tls-migration.k8s.yaml.
     # Never kubectl-apply that manifest over this self-healing Application.
     include: openbao.k8s.yaml
-    namespace: oya-kms
+    namespace: kms
     syncWave: "1"
 
   # External Secrets Operator — projects OpenBao secrets (sref://openbao/...) into
@@ -120,8 +120,8 @@ apps:
     valueFiles: [infra/arc/controller-values.yaml]
     syncWave: "1"
 
-  # RETIRED: oya-arm64 scale set — tip values maxRunners:0. Remove after drain.
-  - name: oya-arm64
+  # RETIRED: arm64 scale set — tip values maxRunners:0. Remove after drain.
+  - name: arm64
     type: chart
     repoURL: ghcr.io/actions/actions-runner-controller-charts
     chart: gha-runner-scale-set
@@ -130,8 +130,8 @@ apps:
     valueFiles: [infra/arc/runner-scale-set-arm64-values.yaml]
     syncWave: "2"
 
-  # RETIRED: oya-live-postgres-arm64 — live-PG gates use GH service containers.
-  - name: oya-live-postgres-arm64
+  # RETIRED: live-postgres-arm64 — live-PG gates use GH service containers.
+  - name: live-postgres-arm64
     type: chart
     repoURL: ghcr.io/actions/actions-runner-controller-charts
     chart: gha-runner-scale-set
@@ -140,8 +140,8 @@ apps:
     valueFiles: [infra/arc/runner-scale-set-live-postgres-arm64-values.yaml]
     syncWave: "2"
 
-  # RETIRED with oya-live-postgres-arm64 — remove after runner drain.
-  - name: oya-live-postgres-network-policy
+  # RETIRED with live-postgres-arm64 — remove after runner drain.
+  - name: live-postgres-network-policy
     type: path
     path: infra/arc
     include: live-postgres-runner-network-policy.yaml
@@ -150,11 +150,11 @@ apps:
 
   # HISTORICAL ARC workspace storage (fleet retired). Keep until scale sets /
   # PVCs are gone; then remove with founder live-ops checklist.
-  - name: oya-ci-workspace-storage
+  - name: ci-workspace-storage
     type: path
     path: infra/arc
     include: ci-workspace-storage.yaml
-    namespace: oya-ci-workspace-storage
+    namespace: ci-workspace-storage
     syncWave: "1"
 
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
@@ -163,7 +163,7 @@ apps:
     type: path
     path: infra/registry
     include: registry.k8s.yaml
-    namespace: oya-registry
+    namespace: registry
     syncWave: "1"
 
   # SeaweedFS (Apache 2; ADR-0349 canonical) — Oyatie's cluster-internal
@@ -177,7 +177,7 @@ apps:
     type: path
     path: infra/seaweedfs
     include: seaweedfs.k8s.yaml
-    namespace: oya-storage
+    namespace: storage
     syncWave: "1"
 
   # cloud-intelligence microservice — agent-dispatch reverse proxy with OpenBao-bound
@@ -185,14 +185,14 @@ apps:
   # + app are Rust-implemented (~5,600 LOC + 30 tests across the 3 crates).
   # The image is BuildKit-built via the operator-run Job (see
   # microservices/cloud-intelligence/k8s/BUILDKIT-JOB-TEMPLATE.md); the Deployment
-  # references it at registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev.
+  # references it at registry.registry.svc.cluster.local:5000/cloud-intelligence:dev.
   - name: cloud-intelligence
     type: path
     path: microservices/cloud-intelligence/k8s
-    namespace: oya-cloud-intelligence
+    namespace: cloud-intelligence
     syncWave: "2"
 
-  # Cell-boundary NetworkPolicies (ADR-0381 D3). First boundary: oya-storage
+  # Cell-boundary NetworkPolicies (ADR-0381 D3). First boundary: storage
   # ingress restricted to the CI cell + ArgoCD + same-namespace. Cilium L3/L4
   # (ADR-0148) enforces. Sibling boundaries (ci/tenant/foundation) follow as
   # additional files in infra/cilium/cell-boundaries/. syncWave 2 — applied
@@ -200,7 +200,7 @@ apps:
   - name: cell-boundaries
     type: path
     path: infra/cilium/cell-boundaries
-    namespace: oya-storage
+    namespace: storage
     syncWave: "2"
 
   # jenkins: was bootstrap-managed by bring-up.sh (now deleted per ADR-0515 D3).

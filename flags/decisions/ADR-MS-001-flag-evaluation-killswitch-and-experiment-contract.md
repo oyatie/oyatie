@@ -247,11 +247,11 @@ decision_owner: axis-feature-flags + release-engineering
 - Chaos test `audit_chain_unavailable_blocks_mutation`.
 - Chaos test `cedar_unavailable_blocks_writes_but_allows_valid_signed_read_snapshot`.
 - Chaos test `state_snapshot_signing_failure_blocks_publish`.
-- Metric `oya_feature_flags_eval_latency_good_total`.
-- Metric `oya_feature_flags_state_propagation_good_total`.
-- Metric `oya_feature_flags_killswitch_fire_latency_good_total`.
-- Metric `oya_feature_flags_experiment_result_freshness_good_total`.
-- Metric `oya_feature_flags_mutation_denied_total`.
+- Metric `feature_flags_eval_latency_good_total`.
+- Metric `feature_flags_state_propagation_good_total`.
+- Metric `feature_flags_killswitch_fire_latency_good_total`.
+- Metric `feature_flags_experiment_result_freshness_good_total`.
+- Metric `feature_flags_mutation_denied_total`.
 - Dashboard `dashboards/flag-state-overview.json`.
 - Dashboard `dashboards/killswitch-history.json`.
 - Dashboard `dashboards/experiment-results.json`.

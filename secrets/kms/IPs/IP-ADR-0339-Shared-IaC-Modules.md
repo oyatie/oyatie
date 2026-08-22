@@ -41,8 +41,8 @@ DOSSIER-010: DR replication shape is `active-active-multi-az-cross-region-warm` 
 DOSSIER-011: Regulatory packs declared: kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa.
 DOSSIER-012: Data classes processed: AUTHENTICATION, AUDIT, INTERNAL_ONLY.
 DOSSIER-BC-001: Bounded context `cloud-kms` states: Bounded context 'cloud-kms' for CMK/KEK/DEK lifecycle, envelope encryption, HSM custody, signing, crypto-shred receipts.; crate count=2.
-DOSSIER-CRATE-001: Existing crate `oya-cloud-kms-api` remains untouched by this document-stage IP.
-DOSSIER-CRATE-002: Existing crate `oya-cloud-kms-domain` remains untouched by this document-stage IP.
+DOSSIER-CRATE-001: Existing crate `cloud-kms-api` remains untouched by this document-stage IP.
+DOSSIER-CRATE-002: Existing crate `cloud-kms-domain` remains untouched by this document-stage IP.
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: contracts/openapi/cloud/cloud-kms-v1.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
@@ -57,13 +57,13 @@ ADR0339-004: Purpose binding: cloud-iac owns primitive implementation, provider 
 ADR0339-005: Purpose binding: wrapper files must remain OpenTofu-native and avoid provider-proprietary Terraform Cloud behavior.
 ADR0339-006: Purpose binding: every consumed module pin must be explicit, versioned, and reviewable.
 ADR0339-007: Purpose binding: every shared module release must be signed under ADR-0181 supply-chain discipline.
-ADR0339-LANE-001: Enforced_by lane `oya-check-iac-shared-module-usage` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-002: Enforced_by lane `oya-check-iac-module-path-canonical` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-003: Enforced_by lane `oya-check-iac-module-signature-cosign` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-004: Enforced_by lane `oya-check-iac-module-pin` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-005: Enforced_by lane `oya-check-iac-opentofu-only` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-006: Enforced_by lane `oya-check-iac-thin-wrapper-line-floor` applies to `cloud-kms` once its migration bucket enters blocker mode.
-ADR0339-LANE-007: Enforced_by lane `oya-check-iac-module-catalog-discoverability` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-001: Enforced_by lane `check-iac-shared-module-usage` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-002: Enforced_by lane `check-iac-module-path-canonical` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-003: Enforced_by lane `check-iac-module-signature-cosign` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-004: Enforced_by lane `check-iac-module-pin` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-005: Enforced_by lane `check-iac-opentofu-only` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-006: Enforced_by lane `check-iac-thin-wrapper-line-floor` applies to `cloud-kms` once its migration bucket enters blocker mode.
+ADR0339-LANE-007: Enforced_by lane `check-iac-module-catalog-discoverability` applies to `cloud-kms` once its migration bucket enters blocker mode.
 ADR0339-015: ADR-0322 substance bar applies to this IP; the content below is service-specific and intentionally connects module doctrine to manifest facts.
 ADR0339-016: ADR-0248 cellular topology applies because wrapper choices determine where this service lands by cell and tenant class.
 ADR0339-017: ADR-0338 pod runtime tier applies because shared modules choose Kata or runc nodepool topology from manifest tier data.
@@ -192,7 +192,7 @@ MAINT-24M-024: Month 24: `cloud-kms` should have wrapper drift near zero; primit
 ## 9. Horizontal Scalability Path
 SCALE-001: Scaling dimension for `cloud-kms` is `per_request`, so 10x means ten times that unit before the wrapper should ask for larger primitives.
 SCALE-002: At 10x, `cloud-kms` keeps one cell family when p99, queue depth, and storage fill stay below ADR-0340 thresholds.
-SCALE-003: At 100x, `cloud-kms` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and oya-shuffle-sharding.
+SCALE-003: At 100x, `cloud-kms` expects multiple cells in the same residency boundary, with tenant placement resolved by ADR-0248 and shuffle-sharding.
 SCALE-004: At 1000x, `cloud-kms` expects regional cell families, per-cell module pins, and explicit compliance-pack overlays to avoid one global blast radius.
 SCALE-005: CPU limit dimension: baseline `0.1` vCPU per tenant becomes 1.00 at 10 tenants, 10.00 at 100, and 100.00 at 1000.
 SCALE-006: RAM limit dimension: baseline `256` MiB per tenant becomes 2560 MiB at 10 tenants, 25600 MiB at 100, and 256000 MiB at 1000.
@@ -307,9 +307,9 @@ VERIFY-009: Static read confirms `cloud-kms` ARCH has an `ADR-0339 integration` 
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: `cargo run -q -p dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
+VERIFY-014: `cargo run -q -p dev-cli -- gate validate cohesion` must pass before commit.
+VERIFY-015: `cargo run -q -p dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `cloud-kms` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-kms` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-kms` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.

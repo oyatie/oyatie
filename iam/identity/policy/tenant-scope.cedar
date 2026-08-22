@@ -1,7 +1,7 @@
 // identity µservice — tenant-scope Cedar policy
 // Authority: ADR-0183 (Cedar app-authz), ADR-0162 (per-tenant audit slicing)
 // Owner:   ops-security + axis-identity
-// Audit:   every deny emits oya_identity_tenant_unauthorized_attempt_total
+// Audit:   every deny emits identity_tenant_unauthorized_attempt_total
 // Sweep:   imports microservices/governance/policy/cedar-canonical-imports.cedar
 
 // =============================================================================

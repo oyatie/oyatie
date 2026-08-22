@@ -31,7 +31,7 @@ The base Kubernetes API (kubectl, helm, client-go, etc.) is **not** wrapped by o
 
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
-| **Rust** | M01 (primary) | First-party authored (`oya-cloud-k8s-cluster-bootstrap-sdk`, `oya-cloud-k8s-kubernetes-api-proxy-sdk` crates) | axis-cloud |
+| **Rust** | M01 (primary) | First-party authored (`cloud-k8s-cluster-bootstrap-sdk`, `cloud-k8s-kubernetes-api-proxy-sdk` crates) | axis-cloud |
 | **TypeScript** | M01+1 | OpenAPI-generated + first-party wrapper; npm | axis-cloud + gtm |
 | **Python** | M02 | OpenAPI-generated; PyPI | axis-cloud + gtm |
 | **Go** | M02 | gRPC-generated + wrapper; go-module | axis-cloud + gtm |
@@ -45,8 +45,8 @@ Prioritisation: oyatie's own µservice languages first (Rust); then largest tena
 ### Rust SDK (first-party)
 
 Two crates per BC where SDK applies:
-- `oya-cloud-k8s-cluster-bootstrap-sdk` — operator-facing read + write
-- `oya-cloud-k8s-kubernetes-api-proxy-sdk` — tenant-facing read of own namespace state
+- `cloud-k8s-cluster-bootstrap-sdk` — operator-facing read + write
+- `cloud-k8s-kubernetes-api-proxy-sdk` — tenant-facing read of own namespace state
 
 Public surface:
 - `Client::new(opts) -> Client`

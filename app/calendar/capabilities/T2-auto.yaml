@@ -32,7 +32,7 @@ capabilities:
       adjusts the focus blocks. The user can change the policy or
       revoke it at any time; existing focus blocks remain unless the
       user deletes them.
-    surface: background-worker (oya-calendar-event-store-worker — focus-block sub-worker)
+    surface: background-worker (calendar-event-store-worker — focus-block sub-worker)
     triggers:
       - tick on policy refresh interval (default 1h)
       - new event lifecycle event (EventCreated/Updated/Canceled) for the user
@@ -70,7 +70,7 @@ capabilities:
       higher-priority commitments, the assistant declines the recurring
       series with a templated reason. Once declined, the series remains
       declined unless re-opted-in.
-    surface: background-worker (oya-calendar-invitation-flow-worker)
+    surface: background-worker (calendar-invitation-flow-worker)
     triggers:
       - recurring invitation arrives with conflicts in ≥ 3 of the next 5 occurrences
       - user has opted in to auto-decline-recurring
@@ -105,7 +105,7 @@ capabilities:
       optimisation pass over the next 14 days' bookings and proposes
       room swaps; per-tenant policy decides whether swaps auto-apply
       (T2) or surface as admin-approval queue (T1).
-    surface: background-worker (oya-calendar-room-booking-worker — rebalance sub-worker)
+    surface: background-worker (calendar-room-booking-worker — rebalance sub-worker)
     triggers:
       - tick at 00:00 daily (per-tenant timezone-aware)
       - tenant policy "auto-apply rebalance" set

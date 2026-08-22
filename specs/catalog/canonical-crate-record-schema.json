@@ -71,7 +71,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^oya-pack-[a-z-]+$"
+        "pattern": "^pack-[a-z-]+$"
       }
     },
     "lifecycle": {

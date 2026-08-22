@@ -11,11 +11,11 @@ purpose: |
   and distroless container image. Source: every `Cargo.toml`, every
   `package.json`, the verified LTS roster, and the distroless-base declarations.
   Lift to `docs/visualization/tech-stack.md` as Mermaid.
-planned_enforcement_ref: oya-governance-tech-stack-map
+planned_enforcement_ref: governance-tech-stack-map
 extends_crates:
-  - oya-governance-license-policy-kernel
-  - oya-governance-vendor-contract-recency-kernel
-  - oya-intelligence-architecture-map-kernel
+  - governance-license-policy-kernel
+  - governance-vendor-contract-recency-kernel
+  - intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
   - service-map-spec.md
@@ -48,7 +48,7 @@ crate: tokio-postgres
 version_pinned: "0.7.x"
 lts_track: "PostgreSQL 16 LTS"
 role: "primary OLTP store"
-adapter_crate: oya-tenant-rbac-storage-postgres-adapter
+adapter_crate: tenant-rbac-storage-postgres-adapter
 distroless_base: "gcr.io/distroless/cc-debian12"
 license: "MIT OR Apache-2.0"
 last_audit: 2026-04-30
@@ -61,11 +61,11 @@ last_audit: 2026-04-30
 ```mermaid
 graph LR
   subgraph "Persistence"
-    pg["PostgreSQL 16 LTS<br/>tokio-postgres 0.7<br/>oya-tenant-rbac-storage-postgres-adapter"]
-    obj["Object Storage S3-API<br/>aws-sdk-s3<br/>oya-tenant-rbac-storage-object-adapter-aws"]
+    pg["PostgreSQL 16 LTS<br/>tokio-postgres 0.7<br/>tenant-rbac-storage-postgres-adapter"]
+    obj["Object Storage S3-API<br/>aws-sdk-s3<br/>tenant-rbac-storage-object-adapter-aws"]
   end
   subgraph "Identity"
-    cedar["Cedar 4.x<br/>cedar-policy<br/>oya-cloud-iam-kernel"]
+    cedar["Cedar 4.x<br/>cedar-policy<br/>cloud-iam-kernel"]
   end
   subgraph "Runtime"
     rust["Rust 1.96 stable<br/>workspace toolchain"]
@@ -84,13 +84,13 @@ A sortable companion table with `dep_id | ecosystem | version | lts_track | role
 
 For each axis, an axis-scoped Mermaid view showing only the deps that axis consumes. Helps the axis lead see "what am I responsible for keeping current."
 
-## 5. Validation gates (`oya-governance-tech-stack-map`)
+## 5. Validation gates (`governance-tech-stack-map`)
 
 1. **LTS conformance.** Every dep's `version_pinned` resolves to the current LTS major.minor per `lts-versions-verified-*.md` (BLOCKER absent ADR-tracked exception).
 2. **Adapter-boundary discipline.** Provider-specific deps (AWS, GCP, Azure, OCI, OpenAI, Anthropic, etc.) appear ONLY in `oya-*-adapter-<provider>-*` crates (BLOCKER per Directive 4).
 3. **Distroless conformance.** Every binary crate's Dockerfile inherits `gcr.io/distroless/static-debian12` or `gcr.io/distroless/cc-debian12` (BLOCKER per Directive 5).
-4. **License-policy compliance.** Every dep's license passes `oya-governance-license-policy-kernel` (BLOCKER on prohibited license).
-5. **Vendor-contract recency.** For commercial vendors, `last_audit` ≤ 365 days (HIGH; via `oya-governance-vendor-contract-recency-kernel`).
+4. **License-policy compliance.** Every dep's license passes `governance-license-policy-kernel` (BLOCKER on prohibited license).
+5. **Vendor-contract recency.** For commercial vendors, `last_audit` ≤ 365 days (HIGH; via `governance-vendor-contract-recency-kernel`).
 6. **Generated drift.** Committed tech-stack map differs from re-rendered (BLOCKER).
 
 ## 6. Per-dep doc cross-link

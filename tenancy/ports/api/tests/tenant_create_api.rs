@@ -106,7 +106,7 @@ fn request_for(
             home_region: "region-home".to_string(),
             residency_class: "strict_home_region".to_string(),
             regulatory_packs: vec![TenantRegulatoryPackRef {
-                value: "oya-pack-alpha".to_string(),
+                value: "pack-alpha".to_string(),
             }],
         },
     }
@@ -309,7 +309,7 @@ fn tenant_create_creates_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.legal_name, "Alpha Tenant Ltd");
     assert_eq!(first.data.home_region, "region-home");
     assert_eq!(first.data.residency_class, "strict_home_region");
-    assert_eq!(first.data.regulatory_packs[0].value, "oya-pack-alpha");
+    assert_eq!(first.data.regulatory_packs[0].value, "pack-alpha");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
     assert!(directory.get(TARGET_TENANT_ID).is_some());

@@ -7,45 +7,45 @@
 
 use std::fmt;
 
-/// `OYA_IDENTITY_REST_ADDR` — REST bind address (default `0.0.0.0:8080`).
-pub const ENV_REST_ADDR: &str = "OYA_IDENTITY_REST_ADDR";
-/// `OYA_IDENTITY_GRPC_ADDR` — gRPC bind address (default `0.0.0.0:8081`).
-pub const ENV_GRPC_ADDR: &str = "OYA_IDENTITY_GRPC_ADDR";
-/// `OYA_IDENTITY_ISSUER` — expected `iss` for workload tokens (required).
-pub const ENV_ISSUER: &str = "OYA_IDENTITY_ISSUER";
-/// `OYA_IDENTITY_AUDIENCE` — expected `aud` for workload tokens (required).
-pub const ENV_AUDIENCE: &str = "OYA_IDENTITY_AUDIENCE";
-/// `OYA_IDENTITY_JWKS_PATH` — path to an RFC 7517 JWKS document (required).
-pub const ENV_JWKS_PATH: &str = "OYA_IDENTITY_JWKS_PATH";
-/// `OYA_IDENTITY_CEDAR_POLICY_PATH` — path to the Cedar policy set (required).
-pub const ENV_CEDAR_POLICY_PATH: &str = "OYA_IDENTITY_CEDAR_POLICY_PATH";
-/// `OYA_IDENTITY_PRINCIPALS_PATH` — optional path to a JSON seed of workload
+/// `OYATIE_IDENTITY_REST_ADDR` — REST bind address (default `0.0.0.0:8080`).
+pub const ENV_REST_ADDR: &str = "OYATIE_IDENTITY_REST_ADDR";
+/// `OYATIE_IDENTITY_GRPC_ADDR` — gRPC bind address (default `0.0.0.0:8081`).
+pub const ENV_GRPC_ADDR: &str = "OYATIE_IDENTITY_GRPC_ADDR";
+/// `OYATIE_IDENTITY_ISSUER` — expected `iss` for workload tokens (required).
+pub const ENV_ISSUER: &str = "OYATIE_IDENTITY_ISSUER";
+/// `OYATIE_IDENTITY_AUDIENCE` — expected `aud` for workload tokens (required).
+pub const ENV_AUDIENCE: &str = "OYATIE_IDENTITY_AUDIENCE";
+/// `OYATIE_IDENTITY_JWKS_PATH` — path to an RFC 7517 JWKS document (required).
+pub const ENV_JWKS_PATH: &str = "OYATIE_IDENTITY_JWKS_PATH";
+/// `OYATIE_IDENTITY_CEDAR_POLICY_PATH` — path to the Cedar policy set (required).
+pub const ENV_CEDAR_POLICY_PATH: &str = "OYATIE_IDENTITY_CEDAR_POLICY_PATH";
+/// `OYATIE_IDENTITY_PRINCIPALS_PATH` — optional path to a JSON seed of workload
 /// principals for single-node bring-up (the durable store arrives behind the
 /// same repository port via the G03 persistence lane).
-pub const ENV_PRINCIPALS_PATH: &str = "OYA_IDENTITY_PRINCIPALS_PATH";
-/// `OYA_IDENTITY_SIGNING_KEY_PATH` — optional path to a PKCS#8 (DER) ES256
+pub const ENV_PRINCIPALS_PATH: &str = "OYATIE_IDENTITY_PRINCIPALS_PATH";
+/// `OYATIE_IDENTITY_SIGNING_KEY_PATH` — optional path to a PKCS#8 (DER) ES256
 /// issuer signing key. When set, the OIDC issuer surface (RFC 8414 discovery
 /// + JWKS publication) is served; key custody moves behind the G02 KMS port.
-pub const ENV_SIGNING_KEY_PATH: &str = "OYA_IDENTITY_SIGNING_KEY_PATH";
-/// `OYA_IDENTITY_SIGNING_KID` — key id for the issuer signing key
-/// (default `oya-identity-k1`).
-pub const ENV_SIGNING_KID: &str = "OYA_IDENTITY_SIGNING_KID";
-/// `OYA_IDENTITY_LIFECYCLE_BEARER` — REQUIRED bearer credential the mutating
+pub const ENV_SIGNING_KEY_PATH: &str = "OYATIE_IDENTITY_SIGNING_KEY_PATH";
+/// `OYATIE_IDENTITY_SIGNING_KID` — key id for the issuer signing key
+/// (default `identity-k1`).
+pub const ENV_SIGNING_KID: &str = "OYATIE_IDENTITY_SIGNING_KID";
+/// `OYATIE_IDENTITY_LIFECYCLE_BEARER` — REQUIRED bearer credential the mutating
 /// principal-lifecycle control plane (`:suspend`/`:retire`) verifies in constant
 /// time before any mutation (ADR-0581 / AUTH-005). The binary REFUSES to start
 /// without it: there is no unauthenticated mutating control plane. Production
 /// custody moves behind the cloud-iam credential store / mTLS-SPIFFE adapter.
-pub const ENV_LIFECYCLE_BEARER: &str = "OYA_IDENTITY_LIFECYCLE_BEARER";
-/// `OYA_IDENTITY_LIFECYCLE_CALLER_TENANT` — the tenant the verified lifecycle
+pub const ENV_LIFECYCLE_BEARER: &str = "OYATIE_IDENTITY_LIFECYCLE_BEARER";
+/// `OYATIE_IDENTITY_LIFECYCLE_CALLER_TENANT` — the tenant the verified lifecycle
 /// caller acts within (REQUIRED; bound to the credential, never a header).
-pub const ENV_LIFECYCLE_CALLER_TENANT: &str = "OYA_IDENTITY_LIFECYCLE_CALLER_TENANT";
-/// `OYA_IDENTITY_LIFECYCLE_CALLER_ID` — a stable identity label for the verified
+pub const ENV_LIFECYCLE_CALLER_TENANT: &str = "OYATIE_IDENTITY_LIFECYCLE_CALLER_TENANT";
+/// `OYATIE_IDENTITY_LIFECYCLE_CALLER_ID` — a stable identity label for the verified
 /// lifecycle caller (default `lifecycle-control-plane`).
-pub const ENV_LIFECYCLE_CALLER_ID: &str = "OYA_IDENTITY_LIFECYCLE_CALLER_ID";
+pub const ENV_LIFECYCLE_CALLER_ID: &str = "OYATIE_IDENTITY_LIFECYCLE_CALLER_ID";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
-const DEFAULT_SIGNING_KID: &str = "oya-identity-k1";
+const DEFAULT_SIGNING_KID: &str = "identity-k1";
 const DEFAULT_LIFECYCLE_CALLER_ID: &str = "lifecycle-control-plane";
 
 /// Service configuration resolved from the environment.
@@ -146,10 +146,10 @@ mod tests {
             ENV_REST_ADDR => Some("127.0.0.1:9080".into()),
             ENV_GRPC_ADDR => Some("127.0.0.1:9081".into()),
             ENV_ISSUER => Some("https://idp.oyatie.com".into()),
-            ENV_AUDIENCE => Some("oya-cloud-kms".into()),
-            ENV_JWKS_PATH => Some("/etc/oya-identity/jwks.json".into()),
-            ENV_CEDAR_POLICY_PATH => Some("/etc/oya-identity/policies.cedar".into()),
-            ENV_PRINCIPALS_PATH => Some("/etc/oya-identity/principals.json".into()),
+            ENV_AUDIENCE => Some("cloud-kms".into()),
+            ENV_JWKS_PATH => Some("/etc/identity/jwks.json".into()),
+            ENV_CEDAR_POLICY_PATH => Some("/etc/identity/policies.cedar".into()),
+            ENV_PRINCIPALS_PATH => Some("/etc/identity/principals.json".into()),
             ENV_LIFECYCLE_BEARER => Some("super-secret-lifecycle-bearer".into()),
             ENV_LIFECYCLE_CALLER_TENANT => Some("ten_platform".into()),
             _ => None,
@@ -162,12 +162,12 @@ mod tests {
         assert_eq!(config.rest_addr, "127.0.0.1:9080");
         assert_eq!(config.grpc_addr, "127.0.0.1:9081");
         assert_eq!(config.issuer, "https://idp.oyatie.com");
-        assert_eq!(config.audience, "oya-cloud-kms");
-        assert_eq!(config.jwks_path, "/etc/oya-identity/jwks.json");
-        assert_eq!(config.cedar_policy_path, "/etc/oya-identity/policies.cedar");
+        assert_eq!(config.audience, "cloud-kms");
+        assert_eq!(config.jwks_path, "/etc/identity/jwks.json");
+        assert_eq!(config.cedar_policy_path, "/etc/identity/policies.cedar");
         assert_eq!(
             config.principals_path.as_deref(),
-            Some("/etc/oya-identity/principals.json")
+            Some("/etc/identity/principals.json")
         );
         assert_eq!(config.lifecycle_bearer, "super-secret-lifecycle-bearer");
         assert_eq!(config.lifecycle_caller_tenant, "ten_platform");

@@ -175,7 +175,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-iac-multi-region-overlay
 
 ## Verification
 
-- cloud-ci/oya-ci governance gate `multi-region-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; deployed topology matches this document for every active pack.
+- cloud-ci/ci governance gate `multi-region-conformance` for --microservice cloud-iac is green in the branch-protected `presubmit` context — exit 0; deployed topology matches this document for every active pack.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 

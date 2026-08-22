@@ -7,7 +7,7 @@ use hr_employment_domain::{
     EmployeeCreate, EmploymentStatus, HrLifecycleKind, Jurisdiction, LaborComplianceObligationKind,
     LegalEntityWorkforceSnapshot, TenantTierSnapshot,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn onboarding_emits_metadata_only_audit_event() {

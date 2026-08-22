@@ -23,7 +23,7 @@ use billing_domain::{
     Money, TaxInvoiceFormat,
 };
 use billing_metering::{MeterUnit, MeterUnitKind};
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 // ---------------------------------------------------------------------------
 // Shared fixtures (mirror the in-crate helpers exactly so tests are
@@ -42,7 +42,7 @@ fn account_create() -> BillingAccountCreate {
         id: "ba_ten_alpha".to_string(),
         tenant_id: "ten_alpha".to_string(),
         region: "region-alpha".to_string(),
-        regional_pack: "oya-pack-electronic-tax".to_string(),
+        regional_pack: "pack-electronic-tax".to_string(),
         payment_method: "pm_card_001".to_string(),
         credit_balance: Money::new("OYC", 10_000).expect("money fixture valid"),
         state: BillingAccountState::Active,
@@ -67,7 +67,7 @@ fn invoice_generate() -> InvoiceGenerate {
         id: "inv_alpha_202605_001".to_string(),
         billing_account_id: "ba_ten_alpha".to_string(),
         tenant_id: "ten_alpha".to_string(),
-        regional_pack: "oya-pack-electronic-tax".to_string(),
+        regional_pack: "pack-electronic-tax".to_string(),
         period: BillingPeriod::new(1_700_000_000, 1_700_086_400).expect("period fixture valid"),
         line_items: vec![invoice_line_item()],
         subtotal: Money::new("OYC", 100_000).expect("money fixture valid"),

@@ -31,38 +31,38 @@ source_adrs:
 - Safety invariant: prefer refusal with evidence over a partially observed automation event.
 
 ## Doctrine Anchors
-- ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not active authority; `oya-ci-required` is the cloud-ci/oya-ci required context.
-- ADR-0346 enforced_by lanes: `oya-ci-required`; cloud-ci shared Rust gate logic; `local-authority-enforcer` for retired local authority commands.
-- ADR-0347 purpose wording: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-- ADR-0347 enforced_by lanes: retired-fitness-residue detection; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
+- ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not active authority; `presubmit` is the cloud-ci/ci required context.
+- ADR-0346 enforced_by lanes: `presubmit`; cloud-ci shared Rust gate logic; `local-authority-enforcer` for retired local authority commands.
+- ADR-0347 purpose wording: every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request.
+- ADR-0347 enforced_by lanes: retired-fitness-residue detection; `governance-lane-prefix-vocabulary`; `governance-rename-inventory-presence`.
 - ADR-0348 purpose wording: cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
-- ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 supersession: GitHub Actions produces live `oya-ci-required` until owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
-- ADR-0349 enforced_by lanes: `oya-ci-required`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-deploy-audit-chain-emit`.
+- ADR-0348 enforced_by lanes: `governance-sharding-automation-coverage`; `governance-autosharding-manual-mode-refusal`; `governance-auto-rebalance-residency-honored`; `governance-dynamic-sharding-threshold-coverage`; `governance-audit-chain-emit-on-automation-events`; `governance-tenant-migration-reversibility`.
+- ADR-0349 supersession: GitHub Actions produces live `presubmit` until owned ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
+- ADR-0349 enforced_by lanes: `presubmit`; `governance-argocd-application-cosign-verified`; `governance-argocd-tenant-namespace-isolation`; `governance-deploy-audit-chain-emit`.
 
 ## Trigger Conditions
 - Trigger 1: shard p99 latency exceeds the declared SLO threshold.
 - Trigger 2: shard utilization exceeds the declared hot_split_utilization_threshold_percent.
 - Trigger 3: the target split preserves tenant-scoped routing and audit-chain continuity.
-- Trigger 4: `oya_sharding_hot_split_threshold_breach_total` crosses the declared threshold for two evaluator windows.
-- Trigger 5: `oya_sharding_hot_split_duration_seconds_p99` threatens the service SLO budget or promotion-gate quiet window.
+- Trigger 4: `sharding_hot_split_threshold_breach_total` crosses the declared threshold for two evaluator windows.
+- Trigger 5: `sharding_hot_split_duration_seconds_p99` threatens the service SLO budget or promotion-gate quiet window.
 - Trigger 6: governance reports missing sharding automation coverage for this service.
-- Trigger 7: the required `oya-ci-required` status or ArgoCD GitOps evidence blocks the release train for the sharding automation lane.
+- Trigger 7: the required `presubmit` status or ArgoCD GitOps evidence blocks the release train for the sharding automation lane.
 - Trigger 8: ArgoCD reports a pending sync tied to this service after a sharding automation manifest change.
 
 ## Preflight Checklist
 1. Set incident context: `export INCIDENT_ID=INC-cloud-iac-hot-split-$(date -u +%Y%m%dT%H%M%SZ); export SERVICE=cloud-iac; export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
 2. Verify service deployment: `kubectl -n cloud-iac rollout status deploy/cloud-iac --timeout=60s`.
 3. Verify alerts: `oya observability alerts list --service cloud-iac --runbook hot-split --since 30m`.
-4. Verify primary metric: `oya metrics query oya_sharding_hot_split_threshold_breach_total --service cloud-iac --cell $CELL --window 30m`.
-5. Verify secondary metric: `oya metrics query oya_sharding_hot_split_duration_seconds_p99 --service cloud-iac --cell $CELL --window 30m`.
+4. Verify primary metric: `oya metrics query sharding_hot_split_threshold_breach_total --service cloud-iac --cell $CELL --window 30m`.
+5. Verify secondary metric: `oya metrics query sharding_hot_split_duration_seconds_p99 --service cloud-iac --cell $CELL --window 30m`.
 6. Verify Cedar decision path: `oya cedar eval --principal ops.sre.oncall --action sharding_automation.execute --resource service:$SERVICE --tenant $TENANT`.
 7. Verify residency and compliance pack filters before any candidate target is accepted.
 8. Verify audit-chain availability: `oya audit-chain health --cell $CELL --tenant $TENANT`.
 9. Verify ArgoCD sync health: `argocd app get $SERVICE --refresh`.
-10. Verify `oya-ci-required` evidence exists for this service before declaring the runbook complete.
+10. Verify `presubmit` evidence exists for this service before declaring the runbook complete.
 
 ## Decision Tree
 1. If Cedar denies the operation, stop the automation and attach the decision id to the incident.
@@ -70,7 +70,7 @@ source_adrs:
 3. If audit-chain emit is unhealthy, freeze the operation before state mutation.
 4. If only observability is stale, refresh telemetry once and compare against the last sealed audit-chain event.
 5. If GitOps sync is pending, pause execution until ArgoCD confirms the service declaration is current.
-6. If `oya-ci-required` evidence is unknown, keep the change in report-only state and wait for the protected cloud-ci/oya-ci status before promotion.
+6. If `presubmit` evidence is unknown, keep the change in report-only state and wait for the protected cloud-ci/ci status before promotion.
 7. If all gates pass, continue with the smallest reversible cohort.
 8. If the first cohort fails validation, roll back from the audit-chain pointer and do not expand blast radius.
 
@@ -89,12 +89,12 @@ source_adrs:
 ## Evidence Requirements
 - Evidence 1: audit-chain event `autosharding.dynamic_sharding.hot_split.planned` with `service`, `cell`, `tenant`, `incident_id`, `cedar_decision_id`, and `rollback_pointer`.
 - Evidence 2: audit-chain event `autosharding.dynamic_sharding.hot_split.executed` with source and target placement or shard epoch identifiers.
-- Evidence 3: audit-chain event `autosharding.dynamic_sharding.hot_split.validated` with metric snapshots for `oya_sharding_hot_split_threshold_breach_total` and `oya_sharding_hot_split_duration_seconds_p99`.
+- Evidence 3: audit-chain event `autosharding.dynamic_sharding.hot_split.validated` with metric snapshots for `sharding_hot_split_threshold_breach_total` and `sharding_hot_split_duration_seconds_p99`.
 - Evidence 4: Cedar permit or denial id for every state-mutating step.
 - Evidence 5: residency and compliance pack candidate filter output.
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
-- Evidence 7: GitHub Actions or owned oya-ci run id producing the required `oya-ci-required` context for this service.
-- Evidence 8: local confidence output, if attached, explicitly labeled non-authoritative and paired with the protected `oya-ci-required` run id.
+- Evidence 7: GitHub Actions or owned ci run id producing the required `presubmit` context for this service.
+- Evidence 8: local confidence output, if attached, explicitly labeled non-authoritative and paired with the protected `presubmit` run id.
 - Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 
@@ -111,9 +111,9 @@ source_adrs:
 1. Confirm all trigger metrics are back under threshold for 30 minutes.
 2. Confirm no audit-chain emit gaps exist for the incident window.
 3. Confirm Cedar decisions are sealed and tied to the incident id.
-4. Confirm `oya-governance-auto-rebalance-residency-honored` or `oya-governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
-5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
-6. Confirm `oya-ci-required` and ArgoCD GitOps evidence is attached per current cloud-ci/oya-ci authority.
+4. Confirm `governance-auto-rebalance-residency-honored` or `governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
+5. Confirm `governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
+6. Confirm `presubmit` and ArgoCD GitOps evidence is attached per current cloud-ci/ci authority.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
 8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.

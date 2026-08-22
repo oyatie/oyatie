@@ -10,7 +10,7 @@ use std::process::{Child, Command, Output, Stdio};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use oya_cloud_ci_rust_first_automation_hygiene_app::{
+use cloud_ci_rust_first_automation_hygiene_app::{
     Finding, Verdict, collect_observed_cli_package_authority,
     collect_observed_forbidden_workflow_uses, collect_observed_interpreter_command_authority,
     collect_observed_non_rust_automation, collect_observed_workflow_inline_shell,
@@ -273,7 +273,7 @@ fn thirdparty_python_overlay_is_retired_into_owned_rust() {
 /// The two Python BUCK generators are retired, and the one whose JOB is still live has a NAMED
 /// owned-Rust successor. This is the pointer: `scripts/emit_rust_tests.py` mirrored a
 /// `rust_library` into a `<name>-unittest` `rust_test`, which is exactly what the ADR-0540
-/// generator `//tools/oya-buck-test-wiring-app` does — and does strictly better, because the
+/// generator `//tools/buck-test-wiring-app` does — and does strictly better, because the
 /// Python version carried the same blanket `already has a rust_test` skip that #1496 removed from
 /// the Rust tool (it hid every crate whose unit test was wired but whose `tests/*.rs` were not).
 /// `scripts/gen_first_party_buck.py` has no successor because it has no job: all 868 workspace
@@ -311,10 +311,10 @@ fn python_buck_generators_are_retired_with_the_wiring_successor_named() {
     }
 
     assert!(
-        root.join("tools/oya-buck-test-wiring-app/src/lib.rs")
+        root.join("tools/buck-test-wiring-app/src/lib.rs")
             .is_file(),
         "the rust_test wiring job must live in the owned-Rust ADR-0540 generator \
-         //tools/oya-buck-test-wiring-app — retiring the Python emitter without it would drop a \
+         //tools/buck-test-wiring-app — retiring the Python emitter without it would drop a \
          live job, not a dead one"
     );
 }
@@ -375,7 +375,7 @@ fn live_scan_scope_does_not_narrow_the_immutable_merge_base_configuration() {
 fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_without_shell_topology()
 {
     let root = repo_root();
-    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow_path = root.join(".github/workflows/presubmit.yml");
     let workflow = fs::read_to_string(&workflow_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
     let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
@@ -432,7 +432,7 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         .and_then(YamlValue::as_str)
         .expect("materializer must be a Rust-owned run step");
     assert!(
-        run.contains("cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event"),
+        run.contains("cargo run --locked -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root . --github-event"),
         "the one-line Rust materializer must own provider-tuple interpretation"
     );
     for forbidden in ["if [", "case ", "git ", "HEAD^", "rev-list", "cat-file"] {
@@ -470,8 +470,8 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
     );
 
     for line in workflow.lines().filter(|line| {
-        (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
-            || line.contains("oya-cloud-ci-materialize-generated-faces -- --repo-root ."))
+        (line.contains("cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+            || line.contains("cloud-ci-materialize-generated-faces -- --repo-root ."))
             && !line.contains("--help")
             && !line.contains("historical_retirement_args")
             || line.contains("\"${freshness_bin}\" --repo-root .")
@@ -487,7 +487,7 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
 #[test]
 fn lint_format_gate_is_cargo_fmt_all_check() {
     let root = repo_root();
-    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow_path = root.join(".github/workflows/presubmit.yml");
     let workflow = fs::read_to_string(&workflow_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
     let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
@@ -518,7 +518,7 @@ fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
     // fan-in input. GitHub rejects job-level `if:` that reads `matrix.*`, so a
     // two-element os matrix cannot be event-gated and must not live on this job.
     let root = repo_root();
-    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow_path = root.join(".github/workflows/presubmit.yml");
     let workflow = fs::read_to_string(&workflow_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
     let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
@@ -549,7 +549,7 @@ fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
 
     let fan_in_needs = workflow_doc
         .get("jobs")
-        .and_then(|jobs| jobs.get("oya-ci-required"))
+        .and_then(|jobs| jobs.get("presubmit"))
         .and_then(|job| job.get("needs"))
         .and_then(YamlValue::as_sequence)
         .expect("fan-in needs");
@@ -590,15 +590,15 @@ fn retirement_control_plane_has_a_dedicated_owners_boundary() {
 /// and so were capable of failing. Nothing ever downloaded it and no ADR governed it, so the
 /// intent moved to where it can actually fail the build: a fail-closed assertion in each live
 /// path. This test keeps that from silently rotting back into an unasserted artifact —
-/// `oya-data-sql-adapter-sqlx` had no such assertion at all until the archive was removed.
+/// `data-sql-adapter-sqlx` had no such assertion at all until the archive was removed.
 #[test]
 fn every_live_postgres_path_asserts_rls_is_enforceable() {
     let root = repo_root();
     // Each source below backs one target the gate-live-postgres-* jobs run, and must carry
     // either its own rolsuper/rolbypassrls probe or the shared boot guard.
     for relative_path in [
-        "libs/oya-data-sql-adapter-sqlx/src/lib.rs",
-        "libs/oya-data-outbox-adapter-postgres/src/lib.rs",
+        "libs/data-sql-adapter-sqlx/src/lib.rs",
+        "libs/data-outbox-adapter-postgres/src/lib.rs",
         "tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs",
         "iam/adapters/identity-scim-store-postgres/src/lib.rs",
         "tenancy/facade/tenant-lifecycle-app/src/lib.rs",
@@ -685,20 +685,20 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     let baseline = json!({
         "codes": {
             "rust_first_automation_unbaselined_workflow_inline_shell": [
-                {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1}
+                {"key": ".github/workflows/presubmit.yml::buck2::Named shell", "shell_lines": 1}
             ]
         }
     });
     // Baselined key is present (accepted) + a NEW unbaselined key injected.
     let observed = json!({"steps": [
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::Named shell", "shell_lines": 1},
-        {"key": ".github/workflows/oya-ci-required.yml::buck2::New shell", "shell_lines": 1}
+        {"key": ".github/workflows/presubmit.yml::buck2::Named shell", "shell_lines": 1},
+        {"key": ".github/workflows/presubmit.yml::buck2::New shell", "shell_lines": 1}
     ]});
     let findings = evaluate_workflow_inline_shell_keyed(&observed, &baseline);
     assert!(
         findings.iter().any(|finding| {
             finding.code == "rust_first_automation_unbaselined_workflow_inline_shell"
-                && finding.key == ".github/workflows/oya-ci-required.yml::buck2::New shell"
+                && finding.key == ".github/workflows/presubmit.yml::buck2::New shell"
         }),
         "a new inline-shell step beyond baseline must be born-blocking with its key surfaced; got \
          {findings:#?}"
@@ -706,7 +706,7 @@ fn new_inline_shell_beyond_baseline_is_born_blocking_red() {
     // The accepted baselined key must NOT be flagged (no false positive).
     assert!(
         !findings.iter().any(|finding| {
-            finding.key == ".github/workflows/oya-ci-required.yml::buck2::Named shell"
+            finding.key == ".github/workflows/presubmit.yml::buck2::Named shell"
         }),
         "an accepted baselined key must not be flagged"
     );
@@ -2109,7 +2109,7 @@ impl TestDir {
             .expect("clock after Unix epoch")
             .as_nanos();
         let path = std::env::temp_dir().join(format!(
-            "oya-buck2-installer-{label}-{}-{nonce}",
+            "buck2-installer-{label}-{}-{nonce}",
             std::process::id()
         ));
         fs::create_dir_all(&path).expect("create test directory");
@@ -3075,7 +3075,7 @@ esac
     assert_success(output);
 
     let content_dir = runner_temp_posix
-        .join("oya-ci-buck2-fixture")
+        .join("ci-buck2-fixture")
         .join(format!("sha256-{digest}"));
     assert_eq!(
         fs::read(content_dir.join("buck2.exe")).expect("installed Windows Buck2 executable"),
@@ -3083,7 +3083,7 @@ esac
     );
     assert_eq!(
         fs::read_to_string(&github_path).expect("read GitHub PATH file"),
-        format!("D:\\a\\_temp\\oya-ci-buck2-fixture\\sha256-{digest}\n"),
+        format!("D:\\a\\_temp\\ci-buck2-fixture\\sha256-{digest}\n"),
         "native Windows consumers must receive a Win32 path, never Git Bash's POSIX path",
     );
 }

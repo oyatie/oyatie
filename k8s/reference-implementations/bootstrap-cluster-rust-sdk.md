@@ -1,6 +1,6 @@
 ---
 doc_class: ReferenceImplementation
-title: Bootstrap a regulated workload cluster with `oya-cloud-k8s-cluster-bootstrap-sdk`
+title: Bootstrap a regulated workload cluster with `cloud-k8s-cluster-bootstrap-sdk`
 microservice: cloud-k8s
 classification: INTERNAL_ONLY
 date: 2026-05-20
@@ -15,7 +15,7 @@ related_artifacts:
 doc_status: published
 ---
 
-# Reference implementation — Bootstrap a regulated cluster + NetworkPolicy + event stream via `oya-cloud-k8s-cluster-bootstrap-sdk`
+# Reference implementation — Bootstrap a regulated cluster + NetworkPolicy + event stream via `cloud-k8s-cluster-bootstrap-sdk`
 
 Runnable Rust program that mints a Cluster API workload cluster from an oyatie `ClusterClass`, attaches the Cilium CNI +
 Istio (1.22) mesh control plane, applies a default-deny `NetworkPolicy`, waits for the reviewer-agent admission verdict,
@@ -34,9 +34,9 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1"
-oya-cloud-k8s-cluster-bootstrap-sdk = "0.42.0"
-oya-cloud-k8s-kubernetes-api-proxy-sdk = "0.42.0"
-oya-trace = "0.42.0"
+cloud-k8s-cluster-bootstrap-sdk = "0.42.0"
+cloud-k8s-kubernetes-api-proxy-sdk = "0.42.0"
+trace = "0.42.0"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 tokio = { version = "1.43", features = ["macros", "rt-multi-thread"] }
@@ -51,16 +51,16 @@ tracing-subscriber = "0.3"
 ```rust
 use anyhow::{Context, Result};
 use futures_util::StreamExt;
-use oya_cloud_k8s_cluster_bootstrap_sdk::{
+use cloud_k8s_cluster_bootstrap_sdk::{
     AdmissionDecision, ClusterApiTemplate, ClusterBootstrapClient, ClusterBootstrapConfig,
     ClusterBootstrapRequest, ClusterClass, CniChoice, ControlPlaneSize, K8sError, MeshChoice,
     NodePoolSpec, PackId, RuntimeChoice, ShuffleShardId, Tenant,
 };
-use oya_cloud_k8s_kubernetes_api_proxy_sdk::{
+use cloud_k8s_kubernetes_api_proxy_sdk::{
     EventClass, KubeProxyClient, KubeProxyConfig, NetworkPolicySpec, NodeReadyState,
     PodDisruptionBudgetSpec,
 };
-use oya_trace::TraceContext;
+use trace::TraceContext;
 use std::time::Duration;
 use tokio::time::sleep;
 use tracing::{info, warn};
@@ -292,7 +292,7 @@ profile. Source: `microservices/cloud-k8s/competitor-parity-matrix.md` §3 boots
 cargo test --features hermetic
 ```
 
-The `hermetic` feature uses `oya_cloud_k8s_cluster_bootstrap_sdk::testkit::Hermetic`, which spins up an in-process
+The `hermetic` feature uses `cloud_k8s_cluster_bootstrap_sdk::testkit::Hermetic`, which spins up an in-process
 mock-apiserver backed by `kine` (etcd-replacement) + a stubbed Cilium agent + a stubbed Istio control plane; tests finish
 in ≤ 60 s and do not require a real Kubernetes cluster, real Cloud Hypervisor host, or real HSM.
 

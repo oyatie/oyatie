@@ -21,10 +21,10 @@
       "work"
     ],
     "crate_refs_planned": [
-      "oya-calendar-kernel",
-      "oya-calendar-domain",
-      "oya-calendar-app",
-      "oya-calendar-rest"
+      "calendar-kernel",
+      "calendar-domain",
+      "calendar-app",
+      "calendar-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
   },
@@ -87,35 +87,35 @@
       "given": "a work calendar event is created",
       "when": "attendees accept or change it",
       "then": "event is Org pillar, tenant-DEK encrypted, retention-classed, and audit logged",
-      "test_ref": "crates/oya-calendar-domain/tests/work_event.rs::test_work_event_org_pillar_audit"
+      "test_ref": "crates/calendar-domain/tests/work_event.rs::test_work_event_org_pillar_audit"
     },
     {
       "id": "AC-02",
       "given": "a personal calendar event exists",
       "when": "an org admin queries availability details",
       "then": "policy returns only allowed free/busy projection or 403 for details",
-      "test_ref": "crates/oya-calendar-domain/tests/personal.rs::test_personal_details_not_org_visible"
+      "test_ref": "crates/calendar-domain/tests/personal.rs::test_personal_details_not_org_visible"
     },
     {
       "id": "AC-03",
       "given": "a work event contains an approval action card",
       "when": "user approves inline",
       "then": "Workflow receives a policy-gated handoff and WorkflowHandoffAuditLog links event, action, consent/policy basis",
-      "test_ref": "crates/oya-calendar-domain/tests/action_card.rs::test_action_card_workflow_handoff_audited"
+      "test_ref": "crates/calendar-domain/tests/action_card.rs::test_action_card_workflow_handoff_audited"
     },
     {
       "id": "AC-04",
       "given": "a professional calendar event is under legal hold",
       "when": "retention expiry runs",
       "then": "event, attendee history, action cards, and audit chain are preserved",
-      "test_ref": "crates/oya-calendar-domain/tests/legal_hold.rs::test_calendar_hold_preserves_attendee_history"
+      "test_ref": "crates/calendar-domain/tests/legal_hold.rs::test_calendar_hold_preserves_attendee_history"
     },
     {
       "id": "AC-05",
       "given": "a tenant has KR/EU/US policy overlays",
       "when": "calendar retention is computed",
       "then": "the selected retention window stays inside jurisdiction bounds and is visible in admin UX",
-      "test_ref": "crates/oya-calendar-domain/tests/retention.rs::test_jurisdiction_bounds"
+      "test_ref": "crates/calendar-domain/tests/retention.rs::test_jurisdiction_bounds"
     }
   ],
   "scope": {
@@ -286,7 +286,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-governance-regional-pack-contracts"
+    "validation_lane_ref": "governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -328,7 +328,7 @@
         "stable": 180,
         "GA": 100
       },
-      "verification_ref": "cargo bench -p oya-calendar-domain -- event_write",
+      "verification_ref": "cargo bench -p calendar-domain -- event_write",
       "lane_ref": "perf-budget"
     },
     {
@@ -338,7 +338,7 @@
         "stable": 200,
         "GA": 120
       },
-      "verification_ref": "cargo bench -p oya-calendar-app -- availability",
+      "verification_ref": "cargo bench -p calendar-app -- availability",
       "lane_ref": "perf-budget"
     },
     {
@@ -358,7 +358,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-calendar-domain -- personal_details_not_visible",
+      "verification_ref": "cargo nextest -p calendar-domain -- personal_details_not_visible",
       "lane_ref": "cargo-nextest"
     }
   ],
@@ -427,17 +427,17 @@
     {
       "id": "BP-01",
       "rule": "calendar details are never used as implicit personal-to-work inference source",
-      "enforced_by_lane_ref": "oya-governance-calendar-pillar"
+      "enforced_by_lane_ref": "governance-calendar-pillar"
     },
     {
       "id": "BP-02",
       "rule": "Workflow handoff is explicit action card or documented tenant policy only",
-      "enforced_by_lane_ref": "oya-governance-calendar-workflow-handoff"
+      "enforced_by_lane_ref": "governance-calendar-workflow-handoff"
     },
     {
       "id": "BP-03",
       "rule": "recurrence expansion is bounded and observable",
-      "enforced_by_lane_ref": "oya-governance-calendar-scale"
+      "enforced_by_lane_ref": "governance-calendar-scale"
     }
   ],
   "patterns": [
@@ -461,17 +461,17 @@
     {
       "anti_pattern": "silent_calendar_mining",
       "why_forbidden": "turns scheduling into surveillance and violates consent boundary",
-      "detection_lane": "oya-governance-calendar-pillar"
+      "detection_lane": "governance-calendar-pillar"
     },
     {
       "anti_pattern": "unbounded_recurrence_materialization",
       "why_forbidden": "creates scale and cost runaway",
-      "detection_lane": "oya-governance-calendar-scale"
+      "detection_lane": "governance-calendar-scale"
     },
     {
       "anti_pattern": "workflow_handoff_without_policy_basis",
       "why_forbidden": "breaks chain-of-custody and privacy notice",
-      "detection_lane": "oya-governance-calendar-workflow-handoff"
+      "detection_lane": "governance-calendar-workflow-handoff"
     }
   ],
   "goals": {
@@ -481,11 +481,11 @@
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-tenant-rbac-domain -- cross_pillar"
+      "verification": "cargo nextest -p tenant-rbac-domain -- cross_pillar"
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-calendar-bench -- calendar_hot_paths"
+      "verification": "cargo bench -p calendar-bench -- calendar_hot_paths"
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",

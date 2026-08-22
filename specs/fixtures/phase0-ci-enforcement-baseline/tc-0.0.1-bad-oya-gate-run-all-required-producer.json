@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "strict": false
   },
@@ -23,11 +23,11 @@
     "candidate_bytes_can_weaken_gate",
     "candidate_sourced_gate_definition"
   ],
-  "fixture_id": "TC-0.0.1-BAD-oya-gate-run-all-required-producer",
+  "fixture_id": "TC-0.0.1-BAD-gate-run-all-required-producer",
   "producer_contract": {
     "candidate_bytes_policy": "may_execute_candidate_repository_code",
     "command": "oya gate run-all --ci-required",
-    "context": "oya-ci-required",
+    "context": "presubmit",
     "kind": "legacy_local_cli"
   },
   "purpose": "Proves oya gate run-all is local/bridge evidence only and cannot produce a required P0.0 context.",

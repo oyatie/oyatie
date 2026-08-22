@@ -7,7 +7,7 @@ syntax = "proto3";
 //
 // Authority: ADR-0002 (tenant-and-identity-kernel), ADR-0131 (flat per-µservice
 // layout), ADR-0183 (Cedar app-authz). Bounded context: workload-identity
-// (crates oya-identity-workload-domain / -oidc-adapter / -authz-cedar-adapter).
+// (crates identity-workload-domain / -oidc-adapter / -authz-cedar-adapter).
 //
 // This is the east-west (mesh-internal, ADR-0145) face of the same PDP whose
 // north-south face is contracts/identity.openapi.yaml. It is the hot-path

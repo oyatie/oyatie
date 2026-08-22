@@ -102,17 +102,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn accepts_oya_prefixed_member_paths_and_package_names() {
+    fn accepts_prefixed_member_paths_and_package_names() {
         assert_eq!(
             validate_cargo_prefix(
                 [
                     CargoPrefixMember {
-                        member_path: "crates/oya-intelligence-capability-kernel".into(),
-                        package_name: "oya-intelligence-capability-kernel".into(),
+                        member_path: "crates/intelligence-capability-kernel".into(),
+                        package_name: "intelligence-capability-kernel".into(),
                     },
                     CargoPrefixMember {
-                        member_path: "crates/oya-dev-cli".into(),
-                        package_name: "oya-dev-cli".into(),
+                        member_path: "crates/dev-cli".into(),
+                        package_name: "dev-cli".into(),
                     },
                 ],
                 "oya-",
@@ -127,7 +127,7 @@ mod tests {
             validate_cargo_prefix(
                 [CargoPrefixMember {
                     member_path: "crates/foundry-capability-kernel".into(),
-                    package_name: "oya-intelligence-capability-kernel".into(),
+                    package_name: "intelligence-capability-kernel".into(),
                 }],
                 "oya-",
             ),
@@ -144,13 +144,13 @@ mod tests {
         assert_eq!(
             validate_cargo_prefix(
                 [CargoPrefixMember {
-                    member_path: "crates/oya-intelligence-capability-kernel".into(),
+                    member_path: "crates/intelligence-capability-kernel".into(),
                     package_name: "foundry-capability-kernel".into(),
                 }],
                 "oya-",
             ),
             Err(CargoPrefixError::PackageNamePrefixViolation {
-                member_path: "crates/oya-intelligence-capability-kernel".into(),
+                member_path: "crates/intelligence-capability-kernel".into(),
                 package_name: "foundry-capability-kernel".into(),
                 expected_prefix: "oya-".into(),
             })
@@ -162,15 +162,15 @@ mod tests {
         assert_eq!(
             validate_cargo_prefix(
                 [CargoPrefixMember {
-                    member_path: "crates/oya-intelligence-capability-kernel".into(),
-                    package_name: "oya-intelligence-policy-kernel".into(),
+                    member_path: "crates/intelligence-capability-kernel".into(),
+                    package_name: "intelligence-policy-kernel".into(),
                 }],
                 "oya-",
             ),
             Err(CargoPrefixError::PackageNamePathMismatch {
-                member_path: "crates/oya-intelligence-capability-kernel".into(),
-                crate_id: "oya-intelligence-capability-kernel".into(),
-                package_name: "oya-intelligence-policy-kernel".into(),
+                member_path: "crates/intelligence-capability-kernel".into(),
+                crate_id: "intelligence-capability-kernel".into(),
+                package_name: "intelligence-policy-kernel".into(),
             })
         );
     }
@@ -180,8 +180,8 @@ mod tests {
         assert_eq!(
             validate_cargo_prefix(
                 [CargoPrefixMember {
-                    member_path: "crates/oya-intelligence-capability-kernel".into(),
-                    package_name: "oya-intelligence-capability-kernel".into(),
+                    member_path: "crates/intelligence-capability-kernel".into(),
+                    package_name: "intelligence-capability-kernel".into(),
                 }],
                 " ",
             ),

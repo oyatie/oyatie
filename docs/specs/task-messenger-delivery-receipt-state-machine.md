@@ -2,7 +2,7 @@
 
 **Vertical**: messenger
 **Task slug**: messenger-delivery-receipt-state-machine
-**Crate**: `oya-messenger-message-stream-usecase`
+**Crate**: `messenger-message-stream-usecase`
 **ADR authority**: ADR-0509 (flat single-crate per service, mod-based clean arch)
 
 ---
@@ -27,9 +27,9 @@ All orchestration is runtime-neutral — no DB I/O, no broker publish, consisten
 ```
 messenger (microservice)
 └── crates/
-    ├── oya-messenger-domain              # domain invariants (read-only for this task)
-    ├── oya-messenger-message-stream-api  # API types + AuthorizedMessengerContext (read-only)
-    └── oya-messenger-message-stream-usecase  ← ONLY crate modified by this task
+    ├── messenger-domain              # domain invariants (read-only for this task)
+    ├── messenger-message-stream-api  # API types + AuthorizedMessengerContext (read-only)
+    └── messenger-message-stream-usecase  ← ONLY crate modified by this task
 ```
 
 This task MUST NOT touch root `Cargo.toml`, any other crate, or create new workspace members.

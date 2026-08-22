@@ -7,18 +7,18 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-observability
-  labels: { app.kubernetes.io/part-of: oya-substrate, oya.io/adr: ADR-0130 }
+  name: observability
+  labels: { app.kubernetes.io/part-of: substrate, oya.io/adr: ADR-0130 }
 ---
 # ---------- VictoriaMetrics (single-node metrics store) ----------
 apiVersion: v1
 kind: PersistentVolumeClaim
-metadata: { name: vmsingle-data, namespace: oya-observability }
+metadata: { name: vmsingle-data, namespace: observability }
 spec: { accessModes: ["ReadWriteOnce"], resources: { requests: { storage: 5Gi } } }
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: victoriametrics, namespace: oya-observability, labels: { app.kubernetes.io/name: victoriametrics } }
+metadata: { name: victoriametrics, namespace: observability, labels: { app.kubernetes.io/name: victoriametrics } }
 spec:
   replicas: 1
   strategy: { type: Recreate }
@@ -40,13 +40,13 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-metadata: { name: victoriametrics, namespace: oya-observability }
+metadata: { name: victoriametrics, namespace: observability }
 spec: { selector: { app.kubernetes.io/name: victoriametrics }, ports: [{ name: http, port: 8428, targetPort: http }] }
 ---
 # ---------- OpenTelemetry Collector (OTLP ingest -> VM remote-write) ----------
 apiVersion: v1
 kind: ConfigMap
-metadata: { name: otel-collector-config, namespace: oya-observability }
+metadata: { name: otel-collector-config, namespace: observability }
 data:
   config.yaml: |
     receivers:
@@ -59,7 +59,7 @@ data:
       memory_limiter: { check_interval: 5s, limit_percentage: 80, spike_limit_percentage: 25 }
     exporters:
       prometheus_remote_write:
-        endpoint: http://victoriametrics.oya-observability.svc.cluster.local:8428/api/v1/write
+        endpoint: http://victoriametrics.observability.svc.cluster.local:8428/api/v1/write
       debug: { verbosity: basic }
     service:
       pipelines:
@@ -69,7 +69,7 @@ data:
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: otel-collector, namespace: oya-observability, labels: { app.kubernetes.io/name: otel-collector } }
+metadata: { name: otel-collector, namespace: observability, labels: { app.kubernetes.io/name: otel-collector } }
 spec:
   replicas: 1
   selector: { matchLabels: { app.kubernetes.io/name: otel-collector } }
@@ -89,17 +89,17 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-metadata: { name: otel-collector, namespace: oya-observability }
+metadata: { name: otel-collector, namespace: observability }
 spec:
   selector: { app.kubernetes.io/name: otel-collector }
   ports:
     - { name: otlp-grpc, port: 4317, targetPort: otlp-grpc }
     - { name: otlp-http, port: 4318, targetPort: otlp-http }
 ---
-# ---------- Grafana (viz; admin password from Secret oya-grafana-admin, created at deploy) ----------
+# ---------- Grafana (viz; admin password from Secret grafana-admin, created at deploy) ----------
 apiVersion: v1
 kind: ConfigMap
-metadata: { name: grafana-datasources, namespace: oya-observability }
+metadata: { name: grafana-datasources, namespace: observability }
 data:
   datasources.yaml: |
     apiVersion: 1
@@ -107,12 +107,12 @@ data:
       - name: VictoriaMetrics
         type: prometheus
         access: proxy
-        url: http://victoriametrics.oya-observability.svc.cluster.local:8428
+        url: http://victoriametrics.observability.svc.cluster.local:8428
         isDefault: true
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: grafana, namespace: oya-observability, labels: { app.kubernetes.io/name: grafana } }
+metadata: { name: grafana, namespace: observability, labels: { app.kubernetes.io/name: grafana } }
 spec:
   replicas: 1
   selector: { matchLabels: { app.kubernetes.io/name: grafana } }
@@ -125,7 +125,7 @@ spec:
           image: grafana/grafana:11.6.16
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
-              valueFrom: { secretKeyRef: { name: oya-grafana-admin, key: password } }
+              valueFrom: { secretKeyRef: { name: grafana-admin, key: password } }
             - { name: GF_ANALYTICS_REPORTING_ENABLED, value: "false" }
             - { name: GF_ANALYTICS_CHECK_FOR_UPDATES, value: "false" }
           ports: [{ name: http, containerPort: 3000 }]
@@ -137,5 +137,5 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-metadata: { name: grafana, namespace: oya-observability }
+metadata: { name: grafana, namespace: observability }
 spec: { selector: { app.kubernetes.io/name: grafana }, ports: [{ name: http, port: 3000, targetPort: http }] }

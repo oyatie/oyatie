@@ -49,7 +49,7 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
 /// with a non-forcing `relative = true` entry in `.cargo/config.toml`. An unbound or non-regular
 /// resource fails closed instead of silently reading the wrong bytes.
 fn manifest() -> String {
-    const BINDING: &str = "OYA_INTELLIGENCE_K8S_MANIFEST";
+    const BINDING: &str = "OYATIE_INTELLIGENCE_K8S_MANIFEST";
     let path = std::env::var_os(BINDING)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| panic!("FAIL-CLOSED: declared manifest binding {BINDING} is unset"));

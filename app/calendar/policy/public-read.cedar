@@ -115,7 +115,7 @@ when {
 // =====================================================================================
 // LEAN check: drift detection.
 // =====================================================================================
-// LEAN lane `oya-check-public-collection-drift` scans every Postgres row with
+// LEAN lane `check-public-collection-drift` scans every Postgres row with
 // `visibility=public` and verifies tenant-operator opt-in signature on file.
 // Drift (e.g., a row that drifted from private to public without signature) triggers
 // alert + auto-revert to private + audit-chain emission.

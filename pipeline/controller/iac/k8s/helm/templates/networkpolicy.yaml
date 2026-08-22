@@ -1,5 +1,5 @@
 {{- if .Values.networkPolicy.enabled }}
-# NetworkPolicy for the oya-ci controller.
+# NetworkPolicy for the ci controller.
 # Ingress: monitoring namespace only (/healthz + /metrics).
 # Egress: kube-apiserver (Job/Pod watch+create), GitHub (status post + clone),
 #         OpenBao (ESO token sync), OTel collector, DNS.

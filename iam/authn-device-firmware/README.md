@@ -1,4 +1,4 @@
-# oya-authn-device-firmware
+# authn-device-firmware
 
 Phase-1 reference firmware stub for the oyatie hardware security key.
 

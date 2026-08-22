@@ -3,20 +3,20 @@
 ## Objective
 Append the four built-but-unaggregated quality lanes (`statelessness`, `shardability`,
 `perf-budget`, `benchmark`) to `AGGREGATED_VALIDATE_LANES` in
-`crates/oya-governance-gate-catalog-domain/src/lib.rs` so that `oya gate run-all`
+`crates/governance-gate-catalog-domain/src/lib.rs` so that `oya gate run-all`
 dispatches to the check crates that already exist.
 
 ## Scope
-Single crate: `oya-governance-gate-catalog-domain` (one-file flat crate).
+Single crate: `governance-gate-catalog-domain` (one-file flat crate).
 No workspace additions. No external crate changes.
 
 ## Lane descriptions
 | Lane | Validator crate | Governing ADR/spec |
 |---|---|---|
-| `statelessness` | `oya-check-statelessness` (M02b/P22 exit-gate lane 1) | ADR-0231 §"Plane 8 — Statelessness" |
-| `shardability` | `oya-check-shardability` (M02b/P22 exit-gate lane 2) | ADR-0231 §"Plane 8 — Shardability" |
-| `perf-budget` | `oya-check-perf-budget` (M02b/P22 exit-gate lane 3) | ADR-0062 §"performance budgets" |
-| `benchmark` | `oya-check-benchmark` (M02b/P22 exit-gate lane 4) | ADR-0062 §"competitive benchmark" |
+| `statelessness` | `check-statelessness` (M02b/P22 exit-gate lane 1) | ADR-0231 §"Plane 8 — Statelessness" |
+| `shardability` | `check-shardability` (M02b/P22 exit-gate lane 2) | ADR-0231 §"Plane 8 — Shardability" |
+| `perf-budget` | `check-perf-budget` (M02b/P22 exit-gate lane 3) | ADR-0062 §"performance budgets" |
+| `benchmark` | `check-benchmark` (M02b/P22 exit-gate lane 4) | ADR-0062 §"competitive benchmark" |
 
 ## Mod layout (flat-clean-arch, ADR-0509)
 `src/lib.rs` — single file; all logic inline; no new modules.
@@ -47,4 +47,4 @@ Existing tests preserved without modification:
 Domain crate is Tier 1 (kernel): no OTel, no SLO. Observability contract unchanged.
 
 ## Crate boundary
-Touches ONLY `crates/oya-governance-gate-catalog-domain/src/lib.rs`.
+Touches ONLY `crates/governance-gate-catalog-domain/src/lib.rs`.

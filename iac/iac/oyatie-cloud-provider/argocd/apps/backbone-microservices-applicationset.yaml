@@ -2,9 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: backbone-microservices-dev
-  namespace: oya-cd-argocd
+  namespace: cd-argocd
   labels:
-    app.kubernetes.io/part-of: oya-ci-cd-substrate
+    app.kubernetes.io/part-of: ci-cd-substrate
     app.kubernetes.io/managed-by: argocd
     oyatie.com/adr: ADR-0349
     oyatie.com/image-promotion: ADR-0181
@@ -31,10 +31,10 @@ spec:
           - microservice: messenger
             owner: axis-messenger
             chartPath: microservices/messenger/iac/k8s/helm
-            namespace: oya-backbone-messenger
-            imageRepository: oya-messenger
+            namespace: backbone-messenger
+            imageRepository: messenger
             imageDigest: "" # release automation injects ADR-0181 signed digest
-            primaryCargoPackage: oya-messenger-app
+            primaryCargoPackage: messenger-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
             workloadClass: app
@@ -44,10 +44,10 @@ spec:
           - microservice: mail
             owner: axis-mail
             chartPath: microservices/mail/iac/k8s/helm
-            namespace: oya-backbone-mail
-            imageRepository: oya-mail
+            namespace: backbone-mail
+            imageRepository: mail
             imageDigest: "" # release automation injects ADR-0181 signed digest
-            primaryCargoPackage: oya-mail-mailbox-store-app
+            primaryCargoPackage: mail-mailbox-store-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
             workloadClass: app
@@ -57,8 +57,8 @@ spec:
           - microservice: social
             owner: axis-social
             chartPath: microservices/social/iac/k8s/helm
-            namespace: oya-backbone-social
-            imageRepository: oya-social
+            namespace: backbone-social
+            imageRepository: social
             imageDigest: "" # release automation injects ADR-0181 signed digest
             primaryCargoPackage: community-social-app
             tenantId: fd001-dogfood
@@ -70,8 +70,8 @@ spec:
           - microservice: community
             owner: axis-community
             chartPath: microservices/community/iac/k8s/helm
-            namespace: oya-backbone-community
-            imageRepository: oya-community
+            namespace: backbone-community
+            imageRepository: community
             imageDigest: "" # release automation injects ADR-0181 signed digest
             primaryCargoPackage: community-post-store-app
             tenantId: fd001-dogfood
@@ -104,7 +104,7 @@ spec:
         oyatie.com/audit-chain-event: EVT-BACKBONE-ARGOCD-SYNC-REQUESTED
         oyatie.com/tenant-namespace-isolation: single-microservice
     spec:
-      project: oya-oyatie-cloud-provider-tenants
+      project: oyatie-cloud-provider-tenants
       source:
         repoURL: https://git.oyatie.internal/oyatie/oyatie.git
         targetRevision: dev

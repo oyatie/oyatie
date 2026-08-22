@@ -1,7 +1,7 @@
 # `gate · affected-set` wall-clock profile (measured 2026-08-08)
 
 Measurement record for bead `oyatie-zng`. Every number below was read off a completed
-`oya-ci-required` run via `gh api .../jobs`, or off the job log; none is estimated.
+`presubmit` run via `gh api .../jobs`, or off the job log; none is estimated.
 **No code changed to take these measurements** — every number was read off a completed run. The
 PR carrying this document is NOT documentation-only: it also (a) makes `resolve()` UNION synthetic
 dependency declarations with a non-empty `owner()` instead of consulting them only as a no-owner
@@ -51,7 +51,7 @@ Commands: 14362 (cached: 0, remote: 0, local: 14362)
 `cached: 0, remote: 0` on every buck2 invocation in this job — the derive preflight
 (`Commands: 4`, `Commands: 2`, `Commands: 454`), the face materializer (`Commands: 220`),
 and the head build (`Commands: 14362`). The job starts from an empty runner-local `buck-out`
-by design (ADR-0554 D10, `.github/workflows/oya-ci-required.yml:554-560`).
+by design (ADR-0554 D10, `.github/workflows/presubmit.yml:554-560`).
 
 ## 3. Fixed floor, paid by every run including the 6-minute one
 
@@ -90,7 +90,7 @@ new or edited BUCK file adds and removes targets that dependents resolve, so a h
 
 Filesystem snapshotting of `buck-out` is closed by decision — a 6.37 GB `actions/cache` archive
 crossed the owned node's ephemeral-storage eviction threshold on 2026-08-01
-(`oya-ci-required.yml:554-560`). The sanctioned route is a Buck2-aware remote action cache + CAS,
+(`presubmit.yml:554-560`). The sanctioned route is a Buck2-aware remote action cache + CAS,
 and most of it already exists:
 
 - `infra/ci/buckconfig/warm-cache-ro.buckconfig` / `warm-cache-rw.buckconfig` carry complete
@@ -99,8 +99,8 @@ and most of it already exists:
 - `specs/cache-warm-license.json` ships `warm_reads_licensed: false`; ADR-0556 D2 is an IFF —
   warm-eligible class AND the most recent scheduled cold integrity-canary GREEN. The resolver
   refuses every warm mode until then. **This is a blocking precondition, not a footnote.**
-- **The gap:** `oya-cloud-ci-cache-wiring-bin` has 12 call sites — 9 in
-  `.github/workflows/cache-integrity-canary.yml`, 3 in `oya-ci-required.yml` (:587, :604, :606),
+- **The gap:** `cloud-ci-cache-wiring-bin` has 12 call sites — 9 in
+  `.github/workflows/cache-integrity-canary.yml`, 3 in `presubmit.yml` (:587, :604, :606),
   all three inside the `buck2` job (:502-626, `CACHE_BUILD_CLASS: untrusted-author-presubmit`).
   The `gate-affected-target-set` job (:650-1026) **never calls the resolver.** Licensing warm
   reads tomorrow would not move this job by one second.
@@ -136,9 +136,9 @@ throughout. This phase **produces** the cache-only proof the gate demands.
   promotion is a reviewed source switch). This block is listed so the dependency is **recorded, not
   implied**; it is sequenced by `infra/external-secrets/RUNBOOK.md:25-60`, whose order is
   authoritative over the wording of any single comment.
-  - *(i) TLS bootstrap* (RUNBOOK step 1). Secret `oya-kms/openbao-server-tls` (`tls.crt`/`tls.key`)
+  - *(i) TLS bootstrap* (RUNBOOK step 1). Secret `kms/openbao-server-tls` (`tls.crt`/`tls.key`)
     plus the **populated** `openbao-offline-root-ca` ConfigMap in both `external-secrets` and
-    `arc-runners`, with the certificate covering `openbao.oya-kms.svc`. Do not apply the empty
+    `arc-runners`, with the certificate covering `openbao.kms.svc`. Do not apply the empty
     public-CA scaffold directly.
   - *(ii) Identity roles* (RUNBOOK step 2). Apply `infra/kms/openbao-ci-identity.k8s.yaml` and
     bootstrap the JWT + PKI roles **over the existing plaintext 8200 listener** — this is the origin
@@ -170,13 +170,13 @@ throughout. This phase **produces** the cache-only proof the gate demands.
   rather than a task. The CAS is cluster-internal: both Services are ClusterIP (no `spec.type`,
   `nativelink-cas.k8s.yaml:357-383`), there is no Ingress, LoadBalancer, NodePort or Gateway
   anywhere under `storage/adapters/nativelink/` or `infra/ci/`, and the buckconfigs dial
-  `grpc://nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}` — cluster DNS,
+  `grpc://nativelink-cas-{writer,reader}.ci.svc.cluster.local:{50051,50052}` — cluster DNS,
   which a GitHub-hosted runner cannot resolve or route. The canary is pinned to hosted amd64
   (`cache-integrity-canary.yml:98`, `runs-on: ubuntu-latest`) and is consumed via `workflow_call`,
   which cannot override `runs-on` — so **both** lanes are affected, not just A4: A3's writer seed
-  runs the same reusable workflow (`oya-ci-required.yml:627-635`). Left as-is, A4's verdict stays
+  runs the same reusable workflow (`presubmit.yml:627-635`). Left as-is, A4's verdict stays
   `INACTIVE_NO_ENDPOINT` (nonzero) permanently. The move itself is a one-line `runs-on` change to
-  the `oya-arm64` scale set; the CAS client labels it needs are **already provisioned and not
+  the `arm64` scale set; the CAS client labels it needs are **already provisioned and not
   outstanding work** — `infra/arc/runner-scale-set-arm64-values.yaml:51-62` already sets
   `oya.io/nativelink-cas-{reader,writer}: "true"` on the runner pod template, and that file is
   registered in GitOps at `infra/gitops/values.yaml:131`, so the labels come with the fleet for
@@ -186,7 +186,7 @@ throughout. This phase **produces** the cache-only proof the gate demands.
     `podSelector` — and a podSelector can only ever match a pod **in** the cluster, so no hosted
     runner can satisfy it regardless of routing. That is a larger, security-relevant change than
     moving the canary, and it is not chosen here.
-  - *Consequence this step must carry.* `oya-arm64` is an **arm64** fleet (arch-pinned by
+  - *Consequence this step must carry.* `arm64` is an **arm64** fleet (arch-pinned by
     nodeSelector) while the required lane is amd64-hosted, and buck2 action keys include `cpu:`
     and `os:` — the same file's comment at line 66 says so. An arm64 canary therefore proves
     byte-equality in a **different cache namespace** from the one the required amd64 lane would
@@ -197,12 +197,12 @@ throughout. This phase **produces** the cache-only proof the gate demands.
   (`cache-integrity-canary.yml:182-189`). **This is not a standalone action.** The identities are
   the `github-cas-writer-dev-push` / `github-cas-reader-integrity-canary` JWT roles and the two
   `pki_cas_*` PKI roles created in **A0(ii)**, and the canary performs the exchange against
-  `OYA_OPENBAO_ADDR: https://openbao.oya-kms.svc:8202` (`cache-integrity-canary.yml:75`, asserted —
+  `OYATIE_OPENBAO_ADDR: https://openbao.kms.svc:8202` (`cache-integrity-canary.yml:75`, asserted —
   not incidental — by `infra/arc/tests/ci_workspace_capacity.rs:1353`). That address **does not
   resolve until A0(iii) lands**: declared state today terminates plaintext 8200 only. Until then
   this step has no endpoint to exchange against.
-- **A4.** Set repo var `OYA_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
-  `cache-writer-identity` job (`oya-ci-required.yml:627-635`, trusted dev push only) seeds the
+- **A4.** Set repo var `OYATIE_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
+  `cache-writer-identity` job (`presubmit.yml:627-635`, trusted dev push only) seeds the
   fresh CAS.
 - **A5.** Run the `workflow_dispatch` reader proof with `prelicense_probe=true` and `writer_run_id`
   set to the same-SHA writer run (`cache-integrity-canary.yml:44-66`, `:167-174`, `:205`). Its
@@ -243,21 +243,21 @@ Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activatio
   cold. That speeds the dev-push tier and leaves every PR-lane number in section 1 unchanged.
 - **B3.** **Issue and mount a cache identity for this lane.** `controlled_child` resolves its
   overlay through `effective_buckconfig`, which **rejects every warm mode** when
-  `OYA_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
+  `OYATIE_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
   (`ci/facade/build-cache-policy/src/lib.rs:230-245`), and `gate-affected-target-set` grants only
-  `contents: read` / `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`). Wiring
+  `contents: read` / `actions: read` and mounts no secret (`presubmit.yml:652-654`). Wiring
   the resolver in without this step either fails the required job or leaves it in bypass — no
   reuse either way. Fork PRs are handed no secret at all, so they must resolve to a declared
   cold/bypass class rather than to a broken warm one. Mounting a secret into the **required** job is
   activation, which is why this sits after the gate and not in Phase A.
 - **B4.** Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own
   build class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
-  forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
+  forks). This is a `.github/workflows/presubmit.yml` edit and is the piece that has never
   been written.
 
   **PRECONDITION, not covered by B3 — reachability.** `gate-affected-target-set` is
-  `runs-on: ubuntu-latest` (`oya-ci-required.yml:657`) while `cache-wiring-bin` dials
-  `nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}`, hardcoded at
+  `runs-on: ubuntu-latest` (`presubmit.yml:657`) while `cache-wiring-bin` dials
+  `nativelink-cas-{writer,reader}.ci.svc.cluster.local:{50051,50052}`, hardcoded at
   `ci/facade/build-cache-policy/src/main.rs:215-216`. A hosted runner cannot resolve or route those,
   and per A2 external exposure is ruled out by the `nativelink-cas-ingress` `podSelector`, which no
   hosted runner can ever satisfy. B3 supplies a **certificate, not reachability** — so with B3 alone
@@ -265,8 +265,8 @@ Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activatio
   requires moving the job onto an in-cluster runner.
 
   **And that is NOT the one-line change A2 was.** This is the **binding linux-amd64** lane, and the
-  only in-cluster fleets declared in `infra/gitops/values.yaml` are `oya-arm64` (`:125`) and
-  `oya-live-postgres-arm64` (`:137`) — **both arm64**. The comment at `:122-124` says an amd64 box
+  only in-cluster fleets declared in `infra/gitops/values.yaml` are `arm64` (`:125`) and
+  `live-postgres-arm64` (`:137`) — **both arm64**. The comment at `:122-124` says an amd64 box
   "adds a sibling entry + values file", i.e. **none exists today**. Covering this lane therefore
   needs either an amd64 scale set (a new `infra/arc/runner-scale-set-amd64-values.yaml` plus a
   sibling Application entry) or the explicitly argued cross-arch claim the A2 consequence note

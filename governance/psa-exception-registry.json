@@ -44,7 +44,7 @@
       "exit_condition": "Upstream Kubernetes does not permit a restricted kube-system; this record is expected to be renewed rather than retired, and its expiry exists to force periodic re-justification, not eventual deletion."
     },
     {
-      "namespace": "oya-ci-workspace-storage",
+      "namespace": "ci-workspace-storage",
       "psa_level": "privileged",
       "declared_in": "infra/arc/ci-workspace-storage.yaml",
       "forcing_capability": "Node-pinned CI workspace provisioning for the ARC runner fleet: the local-path-provisioner helper Pod mounts a hostPath at the declared nodePath, which `restricted` forbids.",

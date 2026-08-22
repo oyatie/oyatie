@@ -41,7 +41,7 @@ This section supersedes the historical “when authored” statements later in t
 - **Signed source/content commit:** `7f9fe56b650e5178fb9ab9fbcacecebba06a3ce4` (`feat(k8s): admit deterministic Go-to-Rust port W0`).
 - **Signed producer-settle commit:** `a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264` (`chore: settle k8s port governance projections`).
 - **Draft PR:** <https://github.com/jason931225/oyatie/pull/1561>, base `dev`, mergeable with no content conflict when last inspected. The live PR head is authoritative and is intentionally not hardcoded because committing this journal advances it; verify it against local HEAD and the pushed branch before acting.
-- **Protected pipeline:** the `oya-ci-required` jobs are queued/pending. They are not green evidence. The PR has no formal GitHub review and remains blocked/draft.
+- **Protected pipeline:** the `presubmit` jobs are queued/pending. They are not green evidence. The PR has no formal GitHub review and remains blocked/draft.
 - **Durable tracking:** Beads `oyatie-7xf` remains `in_progress` with external reference `gh-1561`; the Ultragoal ledger records stabilization, push, PR, review, and model-fallback facts.
 - **Delegation fallback:** Fable-backed lanes may trigger cybersecurity restrictions. Use another bundled role/model or bounded inline work, record the fallback in Beads and the Ultragoal ledger, and preserve every acceptance and review gate.
 - **Scope boundary:** this handoff covers W0-A closeout and then W0-B through W0-H only. W1+ remains unapproved.
@@ -72,7 +72,7 @@ The architectural contract is:
 
 ## Judgment
 
-W0-A source and generated projections are implemented, reviewed, SSH-signed, pushed, and present in draft PR #1561. W0-A is **not complete** because `oya-ci-required`, formal GitHub review, thread resolution, branch-protection admission, squash merge, the post-merge packet, and the G001 durable checkpoint remain outstanding.
+W0-A source and generated projections are implemented, reviewed, SSH-signed, pushed, and present in draft PR #1561. W0-A is **not complete** because `presubmit`, formal GitHub review, thread resolution, branch-protection admission, squash merge, the post-merge packet, and the G001 durable checkpoint remain outstanding.
 
 Implemented source surfaces:
 
@@ -139,14 +139,14 @@ Fresh-agent resume procedure:
 3. Inspect PR #1561 and its exact check runs. Queued/pending is not passing. If any cloud check fails, diagnose the authoritative job log, repair the source cause, rerun affected local verification and independent review, keep source and generated-settle commits separate, and rerun face-settle before pushing.
 4. For any new source change, run `cargo fmt -p ci-k8s-program-docs -- --check`, `rustfmt --check ci/facade/affected-target-set/tests/affected_set.rs`, the focused Cargo/Buck commands above, ADR index check, masterplan projection check, JSON parsing/canonical gate, and `git diff --check`. Workspace/package-wide format checks expose unrelated drift and MUST NOT be repaired in this lane.
 5. Never hand-edit generated projections. Materialize with the sanctioned Buck target or `infra/ci/materialize-cloud-ci-generated-faces.sh`, commit PR-owned generated deltas separately, and run face-settle `--verify` last before every push. Controller-owned faces are not contributor-authored.
-6. Keep PR #1561 draft until the actual current diff and all checks are ready. Then obtain formal GitHub approval, resolve every review thread, confirm no merge conflict, confirm branch protection, and require the singleton `oya-ci-required` context green. Green CI alone is insufficient.
+6. Keep PR #1561 draft until the actual current diff and all checks are ready. Then obtain formal GitHub approval, resolve every review thread, confirm no merge conflict, confirm branch protection, and require the singleton `presubmit` context green. Green CI alone is insufficient.
 7. Squash merge only after every admission condition in step 6 is satisfied.
-8. Record the post-merge completion packet: promoted commit and `oya-ci-required` status URL, rollout/non-runtime verification, rollback note, observability impact, user-story evidence, release-governance/release-note impact, and agent-observation harvest with created/linked cards or duplicate/no-action rationale.
+8. Record the post-merge completion packet: promoted commit and `presubmit` status URL, rollout/non-runtime verification, rollback note, observability impact, user-story evidence, release-governance/release-note impact, and agent-observation harvest with created/linked cards or duplicate/no-action rationale.
 9. Close Beads `oyatie-7xf` only after merge evidence exists. Checkpoint Ultragoal `G001` complete with a deferred quality gate containing real targeted-verification evidence. Do not call aggregate `goal complete`; start `G002` only after the G001 durable receipt exists.
 
 ## Remaining program stories
 
-- **G002 / W0-B:** six `oya-port` crates under `build/port-engine/*`; root members-line amendment; neutral rule pack with selecting fixtures; pinned out-of-band SourceModel extractor and byte-identical snapshot pair; front-end sizing; end-to-end six-axis receipts.
+- **G002 / W0-B:** six `port` crates under `build/port-engine/*`; root members-line amendment; neutral rule pack with selecting fixtures; pinned out-of-band SourceModel extractor and byte-identical snapshot pair; front-end sizing; end-to-end six-axis receipts.
 - **G003 / W0-C:** five determinism gates; separate scanned/finding counters; unconditional zero-scan RED; registered planted canaries; empty-corpus GREEN with live canary; snapshot mismatch RED; manual-edit refusal.
 - **G004 / W0-D:** bounded Talos second-corpus proof through the neutral engine against the landed `os/harness/difftest-app` vectors, with no Kubernetes- or Talos-specific neutral rule.
 - **G005 / W0-E:** expanded trial; measured `H_rule`, `H_det`, `R_detached`, `T_lane`, `N1`; ratified detached ceiling; derived SLA; measured performance budget; process-fix list.

@@ -1,10 +1,10 @@
-# oya-cloud-intelligence — production multi-stage build (cargo-chef layer caching).
-# Workspace member at crates/oya-cloud-intelligence-app (binary: cloud-intelligence).
+# cloud-intelligence — production multi-stage build (cargo-chef layer caching).
+# Workspace member at crates/cloud-intelligence-app (binary: cloud-intelligence).
 #
 # Build context is the WORKSPACE root (not this directory) because the binary
 # depends on workspace siblings. Build invocation from the repo root:
 #   docker build -f microservices/cloud-intelligence/Dockerfile \
-#                -t registry.oyatie.dev/oya-cloud-intelligence:0.1.0 .
+#                -t registry.oyatie.dev/cloud-intelligence:0.1.0 .
 # Or via in-cluster BuildKit Job: see microservices/cloud-intelligence/k8s/
 #
 # Hyperscaler-lens: rust:1.97.1-bookworm (Apache 2/MIT) +

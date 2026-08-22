@@ -35,6 +35,6 @@ activation_claim: not-active
 - Operational maturity remains separate from this planning-closed evidence surface.
 
 ## Acceptance Commands
-- cargo run -q -p oya-dev-cli -- gate validate korea-localization-evidence
-- cargo run -q -p oya-dev-cli -- gate validate planning-closure
-- cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality
+- cargo run -q -p dev-cli -- gate validate korea-localization-evidence
+- cargo run -q -p dev-cli -- gate validate planning-closure
+- cargo run -q -p dev-cli -- gate validate canonical-base-neutrality

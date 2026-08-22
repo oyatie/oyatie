@@ -17,7 +17,7 @@ doc_status: published
 ## Operator Contract
 - Runbook id: marketplace-seller-onboarding-deny-spike.
 - Primary service namespace: `marketplace`.
-- Owning rotation: PagerDuty oya-marketplace-primary; seller-buyer-ops-secondary.
+- Owning rotation: PagerDuty marketplace-primary; seller-buyer-ops-secondary.
 - Incident channel: `#inc-marketplace`.
 - Operational focus: seller onboarding denies spike due to KYB, sanctions, or policy drift.
 - Named precedent: this follows the Stripe marketplace settlement plus Amazon Marketplace dispute mediation pattern.
@@ -28,19 +28,19 @@ doc_status: published
 - Safety invariant: never clear the incident until `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/marketplace-seller-onboarding-deny-spike-<incident-id>.md`.
 
 ## Trigger Conditions
-- Page on alert `SellerOnboardingDenySpikeCritical` when `oya_marketplace_seller_onboarding_deny_spike_error_ratio > 0.02` for 10 minutes in any production cell.
-- Page on alert `SellerOnboardingDenySpikeSloBurn` when `oya_marketplace_seller_onboarding_deny_spike_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open sev1 if `oya_marketplace_seller_onboarding_deny_total` exceeds the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
-- Open sev1 if `oya_marketplace_seller_onboarding_deny_spike_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Page on alert `SellerOnboardingDenySpikeCritical` when `marketplace_seller_onboarding_deny_spike_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `SellerOnboardingDenySpikeSloBurn` when `marketplace_seller_onboarding_deny_spike_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open sev1 if `marketplace_seller_onboarding_deny_total` exceeds the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
+- Open sev1 if `marketplace_seller_onboarding_deny_spike_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `marketplace.seller-onboarding-deny-spike.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `cargo run -p dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/marketplace/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/marketplace/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="marketplace",runbook="seller-onboarding-deny-spike"}`.
 - Alertmanager route: `oyatie-marketplace-seller-onboarding-deny-spike-critical`; silence only with incident commander approval and `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` evidence.
 - Synthetic probe: `oya ops probe marketplace seller-onboarding-deny-spike --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
 - Drift detector: `registry/marketplace/seller-onboarding-deny-spike/expected-state.json` hash differs from live `https://marketplace.internal.oyatie.dev/v1/marketplace/seller-onboarding-deny-spike/admin/state-hash`.
-- Service-specific metric `oya_marketplace_seller_onboarding_deny_total` is red while `oya_marketplace_seller_onboarding_deny_spike_audit_emit_total{status="sealed"}` is flat.
+- Service-specific metric `marketplace_seller_onboarding_deny_total` is red while `marketplace_seller_onboarding_deny_spike_audit_emit_total{status="sealed"}` is flat.
 
 ## Symptoms
 - User-facing impact: buyers, sellers, or finance operators may see stalled deal acceptance, escrow, mediation, or settlement state; scenario focus is seller onboarding denies spike due to KYB, sanctions, or policy drift.
@@ -48,15 +48,15 @@ doc_status: published
 - Loki signature `marketplace.seller_onboarding_deny_spike.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
 - Kubernetes events include `reason=SellerOnboardingDenySpikeDegraded` on deployment `marketplace-seller-onboarding-deny-spike-worker` or `marketplace-api`.
 - Audit-chain shows missing or delayed `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT --since 30m`.
-- Metric pattern: `oya_marketplace_seller_onboarding_deny_spike_error_ratio` rises before `oya_marketplace_seller_onboarding_deny_spike_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
-- Metric pattern: `oya_marketplace_seller_onboarding_deny_spike_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
-- Tenant-specific shape: one `tenant_id` dominates labels in `oya_marketplace_seller_onboarding_deny_spike_queue_depth`; isolate tenant before fleet mitigation.
+- Metric pattern: `marketplace_seller_onboarding_deny_spike_error_ratio` rises before `marketplace_seller_onboarding_deny_spike_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `marketplace_seller_onboarding_deny_spike_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `marketplace_seller_onboarding_deny_spike_queue_depth`; isolate tenant before fleet mitigation.
 - Fleet-wide shape: at least three cells report `SellerOnboardingDenySpikeCritical` in one 15 minute window; switch to cross-cell bridge even if individual tenants are low-volume.
 - Log signature `decision=deny reason=seller-onboarding-deny-spike.policy_guard` means the guard is working; investigate caller inputs before rollback.
 - Log signature `decision=permit reason=seller-onboarding-deny-spike.break_glass` means manual intervention is active; confirm two-person authorization.
 - Log signature `audit_emit_status=stalled event_class=EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` means mitigation cannot be closed until replay succeeds.
-- Service-specific pattern: `oya_marketplace_seller_onboarding_deny_total` rises while `oya_marketplace_seller_onboarding_deny_spike_dependency_error_ratio` is flat; inspect local state before escalating Stripe support.
-- Service-specific pattern: `oya_marketplace_seller_onboarding_deny_spike_dependency_error_ratio` rises while `oya_marketplace_seller_onboarding_deny_total` is flat; inspect vendor or adjacent-service dependency health before local rollback.
+- Service-specific pattern: `marketplace_seller_onboarding_deny_total` rises while `marketplace_seller_onboarding_deny_spike_dependency_error_ratio` is flat; inspect local state before escalating Stripe support.
+- Service-specific pattern: `marketplace_seller_onboarding_deny_spike_dependency_error_ratio` rises while `marketplace_seller_onboarding_deny_total` is flat; inspect vendor or adjacent-service dependency health before local rollback.
 
 ## Failure Mode Tree
 - Failure mode 1: single-tenant DealSet inconsistency; contain with tenant quarantine, preserve all `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` rows, and avoid fleet rollback.
@@ -65,7 +65,7 @@ doc_status: published
 - Failure mode 4: external dependency outage at Stripe support; open vendor ticket only after local dashboards and handoff APIs prove the dependency is causal.
 - Failure mode 5: operator mitigation made state worse; roll back feature flag `oya.marketplace.seller_onboarding_deny_spike.incident_hold`, close `marketplace-seller-onboarding-deny-spike-circuit-breaker`, and restore the previous deployment revision.
 - Failure mode 6: audit emission is delayed; do not close even when customer symptoms improve because ADR-0263 evidence is incomplete.
-- Failure mode 7: regional partition; keep prod-us-east-1 as evidence leader and reject cross-region mutation until `oya_marketplace_seller_onboarding_deny_spike_state_hash_match == 1`.
+- Failure mode 7: regional partition; keep prod-us-east-1 as evidence leader and reject cross-region mutation until `marketplace_seller_onboarding_deny_spike_state_hash_match == 1`.
 - Failure mode 8: compliance-pack mismatch; require compliance handoff when KR-CSAP, EU-sovereign, FedRAMP-High, IL5, or CN-PIPL labels are present.
 - Failure mode 9: stale dashboard data; verify direct Mimir queries before making rollback decisions.
 - Failure mode 10: runbook step ambiguity; halt the ambiguous branch, emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with outcome `blocked`, and patch this runbook after recovery.
@@ -77,17 +77,17 @@ doc_status: published
 4. List unhealthy pods: `kubectl -n marketplace get pods -l app=seller-onboarding-deny-spike -o wide`.
 5. Read structured logs: `kubectl -n marketplace logs deploy/marketplace-seller-onboarding-deny-spike-worker --since=30m | rg "marketplace.seller_onboarding_deny_spike.incident_state|SellerOnboardingDenySpikeCritical|EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="marketplace",runbook="seller-onboarding-deny-spike"}' --since=30m --limit=200`.
-7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_marketplace_seller_onboarding_deny_spike_error_ratio{cell="prod-us-east-1"}'`.
-8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_marketplace_seller_onboarding_deny_spike_lag_seconds{cell="prod-us-east-1"}'`.
-9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_marketplace_seller_onboarding_deny_spike_queue_depth{cell="prod-us-east-1"}'`.
-10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_marketplace_seller_onboarding_deny_total{cell="prod-us-east-1"}'`.
+7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=marketplace_seller_onboarding_deny_spike_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=marketplace_seller_onboarding_deny_spike_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=marketplace_seller_onboarding_deny_spike_queue_depth{cell="prod-us-east-1"}'`.
+10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=marketplace_seller_onboarding_deny_total{cell="prod-us-east-1"}'`.
 11. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101&var-incident=$INCIDENT_ID"`.
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops marketplace seller-onboarding-deny-spike status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --production-snapshot --cell $CELL`.
-16. Run crate smoke test: `cargo test -p oya-cloud-marketplace-domain seller_onboarding_deny_spike -- --nocapture`.
-17. Check API contract smoke: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/seller-onboarding-deny-spike/incident-handoff -H "x-oya-tenant: $TENANT"`.
+15. Run production snapshot gate: `cargo run -p dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --production-snapshot --cell $CELL`.
+16. Run crate smoke test: `cargo test -p cloud-marketplace-domain seller_onboarding_deny_spike -- --nocapture`.
+17. Check API contract smoke: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/seller-onboarding-deny-spike/incident-handoff -H "x-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/marketplace/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/marketplace/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.marketplace.seller_onboarding_deny_spike.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status marketplace-seller-onboarding-deny-spike-circuit-breaker --cell $CELL --tenant $TENANT`.
@@ -95,17 +95,17 @@ doc_status: published
 22. Check policy file: `test -f microservices/marketplace/policies/deal-accept.cedar || find microservices/marketplace/policy -maxdepth 2 -type f | sort`.
 23. Check SLO files: `ls microservices/marketplace/slos/*.openslo.yaml | sort | rg "deal|deal"`.
 24. Check contract binding: `test -f microservices/marketplace/contracts/openapi-v1.yaml && sed -n '1,120p' microservices/marketplace/contracts/openapi-v1.yaml`.
-25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from marketplace_seller_onboarding_deny_spike_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
-26. Confirm no cross-cell spread: `oya ops cells query --metric oya_marketplace_seller_onboarding_deny_spike_error_ratio --window 30m --threshold 0.02`.
+25. Run targeted SQL state query: `psql $OYATIE_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from marketplace_seller_onboarding_deny_spike_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
+26. Confirm no cross-cell spread: `oya ops cells query --metric marketplace_seller_onboarding_deny_spike_error_ratio --window 30m --threshold 0.02`.
 27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice marketplace --runbook seller-onboarding-deny-spike --output evidence/incidents/$INCIDENT_ID.json`.
 
 ### Diagnostic Decision Tree
 ```text
 Seller Onboarding Deny Spike incident decision tree
 1. Is SellerOnboardingDenySpikeCritical firing in more than one cell?
-   |-- yes: declare fleet incident, page PagerDuty oya-marketplace-primary, and run cross-cell containment.
+   |-- yes: declare fleet incident, page PagerDuty marketplace-primary, and run cross-cell containment.
    |-- no: keep scope to the affected cell and continue tenant isolation checks.
-2. Does oya_marketplace_seller_onboarding_deny_spike_queue_depth grow while oya_marketplace_seller_onboarding_deny_spike_error_ratio is flat?
+2. Does marketplace_seller_onboarding_deny_spike_queue_depth grow while marketplace_seller_onboarding_deny_spike_error_ratio is flat?
    |-- yes: downstream dependency, replay backlog, or queue-drain issue; choose mitigation branch B.
    |-- no: local regression, bad input, or policy/config drift; continue branch selection.
 3. Does audit-chain show EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT gaps?
@@ -139,42 +139,42 @@ Seller Onboarding Deny Spike incident decision tree
 16. Notify service owners: `oya notify service-owner --microservice marketplace --incident $INCIDENT_ID --channel #inc-marketplace`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor "Stripe support" --incident $INCIDENT_ID --summary marketplace-seller-onboarding-deny-spike`.
 18. Confirm breaker effect: `oya ops breaker status marketplace-seller-onboarding-deny-spike-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
-19. Confirm user impact reduced: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/seller-onboarding-deny-spike/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+19. Confirm user impact reduced: `curl -s https://marketplace.internal.oyatie.dev/v1/marketplace/seller-onboarding-deny-spike/incident-handoff/health -H "x-tenant: $TENANT"`.
 20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=seller-onboarding-deny-spike`.
 
 ### Mitigation Branch Guidance
 - Branch A: confirmed DealSet correctness risk.
-  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `oya_marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.005 for 3 evaluator windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=110` to the incident.
   - Required audit: emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
 - Branch B: dependency saturation or replay backlog.
-  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `oya_marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.01 for 3 evaluator windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111` to the incident.
   - Required audit: emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
 - Branch C: policy, permit, or tenant-scope drift.
-  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `oya_marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.005 for 3 evaluator windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=112` to the incident.
   - Required audit: emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
 - Branch D: customer-visible or regulated evidence gap.
-  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `oya_marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required action: keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` open until `marketplace_seller_onboarding_deny_spike_error_ratio` is below 0.01 for 3 evaluator windows.
   - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=113` to the incident.
   - Required audit: emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
 1. Identify code owner path: `rg "seller_onboarding_deny_spike|SellerOnboardingDenySpikeCritical|marketplace.seller_onboarding_deny_spike.incident_state" crates microservices/marketplace -g "!microservices/marketplace/runbooks/**"`.
-2. Patch domain invariant: `edit oya-cloud-marketplace-domain where seller_onboarding_deny_spike state transition is validated`.
+2. Patch domain invariant: `edit cloud-marketplace-domain where seller_onboarding_deny_spike state transition is validated`.
 3. Patch API guard: `edit microservices/marketplace/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/marketplace/policies/deal-accept.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/marketplace/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
-6. Add regression test: `cargo test -p oya-cloud-marketplace-domain seller_onboarding_deny_spike_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --fixture incident-seller-onboarding-deny-spike.json`.
+6. Add regression test: `cargo test -p cloud-marketplace-domain seller_onboarding_deny_spike_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p dev-cli -- gate validate marketplace-seller-onboarding-deny-spike --fixture incident-seller-onboarding-deny-spike.json`.
 8. Add SLO assertion: `update microservices/marketplace/slos/deal-accept-latency.openslo.yaml with alert SellerOnboardingDenySpikeCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/marketplace/dashboards/audit-evidence.json with oya_marketplace_seller_onboarding_deny_spike_error_ratio, oya_marketplace_seller_onboarding_deny_spike_lag_seconds, and oya_marketplace_seller_onboarding_deny_total`.
-10. Rebuild affected crate: `cargo check -p oya-cloud-marketplace-domain --all-targets`.
-11. Run targeted tests: `cargo test -p oya-cloud-marketplace-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate marketplace-policy --microservice marketplace`.
+9. Add dashboard panel: `update microservices/marketplace/dashboards/audit-evidence.json with marketplace_seller_onboarding_deny_spike_error_ratio, marketplace_seller_onboarding_deny_spike_lag_seconds, and marketplace_seller_onboarding_deny_total`.
+10. Rebuild affected crate: `cargo check -p cloud-marketplace-domain --all-targets`.
+11. Run targeted tests: `cargo test -p cloud-marketplace-domain --all-features`.
+12. Run policy validation: `cargo run -p dev-cli -- gate validate marketplace-policy --microservice marketplace`.
 13. Deploy canary: `oya deploy canary --microservice marketplace --component marketplace-seller-onboarding-deny-spike-worker --cell $CELL --weight 1`.
-14. Watch burn rate: `oya ops watch --metric oya_marketplace_seller_onboarding_deny_spike_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+14. Watch burn rate: `oya ops watch --metric marketplace_seller_onboarding_deny_spike_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close marketplace-seller-onboarding-deny-spike-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.marketplace.seller_onboarding_deny_spike.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
@@ -183,23 +183,23 @@ Seller Onboarding Deny Spike incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `oya-cloud-marketplace-domain`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `oya-saas-plugin-marketplace-kernel`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `cloud-marketplace-domain`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `saas-plugin-marketplace-kernel`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `marketplace DealSet usecase`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `SettlementLedger worker`: inspect for `seller_onboarding_deny_spike` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `microservices/marketplace/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
 - `microservices/marketplace/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
 - `microservices/marketplace/contracts/marketplace-v1.proto`: verify request/response or event contract only when incident evidence points there.
-- `microservices/marketplace/dashboards/audit-evidence.json`: verify panel coverage for `oya_marketplace_seller_onboarding_deny_spike_error_ratio`, `oya_marketplace_seller_onboarding_deny_spike_lag_seconds`, and `oya_marketplace_seller_onboarding_deny_total`.
+- `microservices/marketplace/dashboards/audit-evidence.json`: verify panel coverage for `marketplace_seller_onboarding_deny_spike_error_ratio`, `marketplace_seller_onboarding_deny_spike_lag_seconds`, and `marketplace_seller_onboarding_deny_total`.
 - `microservices/marketplace/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
 - `microservices/marketplace/policies/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
 ## Verification Checklist
 - `SellerOnboardingDenySpikeCritical` and `SellerOnboardingDenySpikeSloBurn` are both resolved in Alertmanager for 30 minutes.
-- `oya_marketplace_seller_onboarding_deny_spike_error_ratio < 0.005` for 3 consecutive 10 minute windows.
-- `oya_marketplace_seller_onboarding_deny_spike_lag_seconds < 120` for all production cells.
-- `oya_marketplace_seller_onboarding_deny_spike_queue_depth` is draining and not growing for the affected tenant.
-- Service-specific signal `oya_marketplace_seller_onboarding_deny_total` is below the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
+- `marketplace_seller_onboarding_deny_spike_error_ratio < 0.005` for 3 consecutive 10 minute windows.
+- `marketplace_seller_onboarding_deny_spike_lag_seconds < 120` for all production cells.
+- `marketplace_seller_onboarding_deny_spike_queue_depth` is draining and not growing for the affected tenant.
+- Service-specific signal `marketplace_seller_onboarding_deny_total` is below the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
 - Dashboard `https://grafana.dev.oyatie.internal/d/marketplace-ops/seller-onboarding-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` shows green panels for the affected cell.
 - Audit-chain query for `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` returns mitigation and resolution events.
 - Circuit breaker `marketplace-seller-onboarding-deny-spike-circuit-breaker` is closed after rollback window.
@@ -208,10 +208,10 @@ Seller Onboarding Deny Spike incident decision tree
 - Service owner acknowledged final handoff in `#inc-marketplace`.
 
 ## Capacity and Rollback Guardrails
-- Capacity math: if `oya_marketplace_seller_onboarding_deny_spike_queue_depth` is 5000 and the worker drains 25 items/second, the best-case drain is 200 seconds before retries; page earlier when drain time exceeds 300 seconds.
+- Capacity math: if `marketplace_seller_onboarding_deny_spike_queue_depth` is 5000 and the worker drains 25 items/second, the best-case drain is 200 seconds before retries; page earlier when drain time exceeds 300 seconds.
 - Capacity math: with 12 replicas at 25 items/second each, the hard ceiling is 300 items/second; keep tenant throttle below 25 RPS until error ratio stays below 0.005.
 - Rollback checkpoint 1: before changing `oya.marketplace.seller_onboarding_deny_spike.incident_hold`, snapshot current value with `oya flags get oya.marketplace.seller_onboarding_deny_spike.incident_hold --output json`.
-- Rollback checkpoint 2: before opening `marketplace-seller-onboarding-deny-spike-circuit-breaker`, capture `oya_marketplace_seller_onboarding_deny_spike_request_rate` and `oya_marketplace_seller_onboarding_deny_spike_success_ratio` from Mimir.
+- Rollback checkpoint 2: before opening `marketplace-seller-onboarding-deny-spike-circuit-breaker`, capture `marketplace_seller_onboarding_deny_spike_request_rate` and `marketplace_seller_onboarding_deny_spike_success_ratio` from Mimir.
 - Rollback checkpoint 3: before scaling deployments, capture `kubectl -n marketplace get deploy marketplace-seller-onboarding-deny-spike-worker -o yaml`.
 - Rollback command for flag: `oya flags set oya.marketplace.seller_onboarding_deny_spike.incident_hold=false --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
 - Rollback command for breaker: `oya ops breaker close marketplace-seller-onboarding-deny-spike-circuit-breaker --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
@@ -266,7 +266,7 @@ evidence_hash: <sha256>
 ```
 
 ## Escalation Path
-- Primary on-call: PagerDuty oya-marketplace-primary; seller-buyer-ops-secondary.
+- Primary on-call: PagerDuty marketplace-primary; seller-buyer-ops-secondary.
 - Incident SLA: ack 3m for sev0/sev1, 10m for sev2, 30m for sev3; status update every 10m until the critical alert clears.
 - Incident commander: first responder from axis-marketplace + ops-sre-reliability; transfer only by explicit message in `#inc-marketplace`.
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
@@ -295,7 +295,7 @@ evidence_hash: <sha256>
 - Tenancy handoff API: `oya incident handoff --target tenancy --source marketplace --runbook seller-onboarding-deny-spike --incident $INCIDENT_ID`.
 
 ## Handoff Notes
-- Do not hand off with only the alert name; include `oya_marketplace_seller_onboarding_deny_spike_error_ratio`, `oya_marketplace_seller_onboarding_deny_spike_lag_seconds`, `oya_marketplace_seller_onboarding_deny_spike_queue_depth`, `oya_marketplace_seller_onboarding_deny_total`, current breaker state, and audit seal status.
+- Do not hand off with only the alert name; include `marketplace_seller_onboarding_deny_spike_error_ratio`, `marketplace_seller_onboarding_deny_spike_lag_seconds`, `marketplace_seller_onboarding_deny_spike_queue_depth`, `marketplace_seller_onboarding_deny_total`, current breaker state, and audit seal status.
 - Keep `marketplace-seller-onboarding-deny-spike-circuit-breaker` owner as axis-marketplace + ops-sre-reliability until the receiving service explicitly accepts.
 - If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
 - Close only after `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
@@ -308,6 +308,6 @@ evidence_hash: <sha256>
 - `microservices/marketplace/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `seller-onboarding-deny-spike` is the scenario anchor.
 
 ## Checkpoint Closure Criteria
-- The runbook remains current when `SellerOnboardingDenySpikeCritical`, `SellerOnboardingDenySpikeSloBurn`, `oya_marketplace_seller_onboarding_deny_total`, `oya.marketplace.seller_onboarding_deny_spike.incident_hold`, and `marketplace-seller-onboarding-deny-spike-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
+- The runbook remains current when `SellerOnboardingDenySpikeCritical`, `SellerOnboardingDenySpikeSloBurn`, `marketplace_seller_onboarding_deny_total`, `oya.marketplace.seller_onboarding_deny_spike.incident_hold`, and `marketplace-seller-onboarding-deny-spike-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
 - The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.

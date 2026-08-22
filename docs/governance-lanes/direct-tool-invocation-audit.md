@@ -6,10 +6,10 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- kernel_crate: `oya-governance-direct-tool-invocation-kernel` — `ToolInvocation { session_id, tool, command, icm_record_id }`, verdict `DirectToolInvocationFitnessReport { invocations_checked }`.
-- runner_path: `tools/oya-governance-direct-tool-invocation-audit`
+- kernel_crate: `governance-direct-tool-invocation-kernel` — `ToolInvocation { session_id, tool, command, icm_record_id }`, verdict `DirectToolInvocationFitnessReport { invocations_checked }`.
+- runner_path: `tools/governance-direct-tool-invocation-audit`
 - failure_modes:
-- ci_invocation: `cargo run -p oya-governance-direct-tool-invocation-audit`
+- ci_invocation: `cargo run -p governance-direct-tool-invocation-audit`
 - runtime_budget: 800 ms
 - severity: HIGH
 - kernel_sketch:

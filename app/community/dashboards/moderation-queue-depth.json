@@ -1,6 +1,6 @@
 {
   "title": "Community — Moderation Queue Depth",
-  "uid": "oya-community-moderation-queue-depth",
+  "uid": "community-moderation-queue-depth",
   "tags": ["community", "moderation-queue"],
   "schemaVersion": 38,
   "version": 1,
@@ -8,7 +8,7 @@
   "time": { "from": "now-12h", "to": "now" },
   "templating": {
     "list": [
-      { "name": "tenant_id", "type": "query", "datasource": "prometheus", "query": "label_values(oya_community_moderation_queue_depth, tenant_id)", "includeAll": true }
+      { "name": "tenant_id", "type": "query", "datasource": "prometheus", "query": "label_values(community_moderation_queue_depth, tenant_id)", "includeAll": true }
     ]
   },
   "panels": [
@@ -17,7 +17,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_moderation_queue_depth{tenant_id=~\"$tenant_id\"}", "legendFormat": "{{tenant_id}}" }
+        { "expr": "community_moderation_queue_depth{tenant_id=~\"$tenant_id\"}", "legendFormat": "{{tenant_id}}" }
       ],
       "alert": {
         "name": "community-moderation-queue-depth-critical",
@@ -31,7 +31,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_moderation_oldest_flag_age_seconds{tenant_id=~\"$tenant_id\"}" }
+        { "expr": "community_moderation_oldest_flag_age_seconds{tenant_id=~\"$tenant_id\"}" }
       ]
     },
     {
@@ -39,7 +39,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "sum by (tenant_id, reason) (rate(oya_community_flag_raised_total{tenant_id=~\"$tenant_id\"}[5m]))" }
+        { "expr": "sum by (tenant_id, reason) (rate(community_flag_raised_total{tenant_id=~\"$tenant_id\"}[5m]))" }
       ]
     },
     {
@@ -47,7 +47,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "sum by (tenant_id, verb) (rate(oya_community_moderation_actioned_total{tenant_id=~\"$tenant_id\"}[5m]))" }
+        { "expr": "sum by (tenant_id, verb) (rate(community_moderation_actioned_total{tenant_id=~\"$tenant_id\"}[5m]))" }
       ]
     },
     {
@@ -55,7 +55,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "rate(oya_community_moderation_worker_oom_kill_total[5m])" }
+        { "expr": "rate(community_moderation_worker_oom_kill_total[5m])" }
       ],
       "alert": {
         "name": "community-moderation-worker-oom",
@@ -69,7 +69,7 @@
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [
-        { "expr": "oya_community_guardrails_bridge_lag_seconds" }
+        { "expr": "community_guardrails_bridge_lag_seconds" }
       ]
     }
   ]

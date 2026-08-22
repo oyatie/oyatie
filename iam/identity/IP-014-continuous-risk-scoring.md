@@ -18,11 +18,11 @@ Risk-score every sign-in + every sensitive action against contextual signals (im
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-risk-scoring-kernel/Cargo.toml` | manifest |
-| `crates/oya-identity-risk-scoring-kernel/src/lib.rs` | `RiskScorer` trait + signal types |
-| `crates/oya-identity-risk-scoring-domain/src/lib.rs` | risk computation algorithm |
-| `crates/oya-identity-risk-scoring-usecase/src/lib.rs` | score-and-decide pipeline |
-| `crates/oya-identity-risk-scoring-app/src/lib.rs` | hot-path service |
+| `crates/identity-risk-scoring-kernel/Cargo.toml` | manifest |
+| `crates/identity-risk-scoring-kernel/src/lib.rs` | `RiskScorer` trait + signal types |
+| `crates/identity-risk-scoring-domain/src/lib.rs` | risk computation algorithm |
+| `crates/identity-risk-scoring-usecase/src/lib.rs` | score-and-decide pipeline |
+| `crates/identity-risk-scoring-app/src/lib.rs` | hot-path service |
 
 ## Signal sources
 
@@ -88,7 +88,7 @@ Risk-score every sign-in + every sensitive action against contextual signals (im
 
 ## Out of scope (future)
 
-- Active ML model (deferred to oya-governance-eval-domain integration).
+- Active ML model (deferred to governance-eval-domain integration).
 - Per-tenant custom risk policies.
 
 ## Counterpart references - 014-continuous-risk-scoring

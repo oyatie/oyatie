@@ -40,7 +40,7 @@ hsm_operator:
     # Every PKCS#11 call emits a structured audit event
     enabled: true
     emit_to_audit_chain: true  # recursive; self-audit
-    emit_to_mimir_oya_self: true
+    emit_to_mimir_self: true
 
   health_check:
     enabled: true

@@ -14,7 +14,7 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
             id: "ba_001".to_owned(),
             tenant_id: "ten_001".to_owned(),
             region: "region-home-1".to_owned(),
-            regional_pack: "oya-pack-kr".to_owned(),
+            regional_pack: "pack-kr".to_owned(),
             payment_method: "pm_001".to_owned(),
             credit_balance: CloudBillingMoneyRequest {
                 currency: "KRW".to_owned(),
@@ -25,7 +25,7 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
             created_at_epoch_seconds: 1,
         },
         tenant_id: "ten_001".to_owned(),
-        regional_pack: "oya-pack-kr".to_owned(),
+        regional_pack: "pack-kr".to_owned(),
         period: CloudBillingPeriodRequest {
             start_epoch_seconds: 10,
             end_epoch_seconds: 20,
@@ -126,13 +126,13 @@ fn covers_documented_status_codes() {
 #[test]
 fn maps_supported_regional_packs_to_documented_tax_formats() {
     for (regional_pack, tax_invoice_format) in [
-        ("oya-pack-kr", "kr_electronic_tax_invoice"),
-        ("oya-pack-jp", "jp_qualified_invoice"),
-        ("oya-pack-eu", "eu_country_e_invoice"),
-        ("oya-pack-in", "in_gst"),
-        ("oya-pack-br", "br_nfe"),
-        ("oya-pack-ksa", "ksa_fatoora"),
-        ("oya-pack-uae", "uae_vat"),
+        ("pack-kr", "kr_electronic_tax_invoice"),
+        ("pack-jp", "jp_qualified_invoice"),
+        ("pack-eu", "eu_country_e_invoice"),
+        ("pack-in", "in_gst"),
+        ("pack-br", "br_nfe"),
+        ("pack-ksa", "ksa_fatoora"),
+        ("pack-uae", "uae_vat"),
     ] {
         assert_eq!(
             CloudBillingTaxInvoiceFormatPolicy::expected_for_regional_pack(regional_pack),
@@ -144,7 +144,7 @@ fn maps_supported_regional_packs_to_documented_tax_formats() {
 #[test]
 fn rejects_account_and_invoice_regional_pack_mismatch() {
     let result = generate(CloudBillingInvoiceGenerateRequest {
-        regional_pack: "oya-pack-jp".to_owned(),
+        regional_pack: "pack-jp".to_owned(),
         tax_invoice_format: "jp_qualified_invoice".to_owned(),
         ..valid_request()
     });
@@ -158,7 +158,7 @@ fn rejects_account_and_invoice_regional_pack_mismatch() {
 
 #[test]
 fn rejects_tax_invoice_format_that_does_not_match_regional_pack() {
-    let result = generate(request_for_pack("oya-pack-jp", "kr_electronic_tax_invoice"));
+    let result = generate(request_for_pack("pack-jp", "kr_electronic_tax_invoice"));
 
     assert_eq!(
         result.status,
@@ -173,7 +173,7 @@ fn rejects_tax_invoice_format_that_does_not_match_regional_pack() {
 #[test]
 fn rejects_unsupported_regional_pack_tax_format_pairs() {
     let result = generate(request_for_pack(
-        "oya-pack-mars",
+        "pack-mars",
         "kr_electronic_tax_invoice",
     ));
 

@@ -197,7 +197,7 @@ impl Drop for TempRepo {
 
 fn new_temp_repo() -> TempRepo {
     let unique = format!(
-        "oya-mem-fixture-{}-{}",
+        "mem-fixture-{}-{}",
         std::process::id(),
         FIXTURE_COUNTER.fetch_add(1, Ordering::Relaxed)
     );
@@ -330,8 +330,8 @@ fn red_new_top_level_dir_common_fails_from_disk() {
     );
     write_file(
         root,
-        "common/oya-util/Cargo.toml",
-        &package_manifest("oya-util"),
+        "common/util/Cargo.toml",
+        &package_manifest("util"),
     );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect red#2 fixture");

@@ -26,7 +26,7 @@ rust_test(
 # on the candidate tree before gates run — no git, no producer exec in the action), asserts the gate is GREEN
 # on today's clean allowlisted root tree, and proves a synthetic tracked `foo.log` at root is
 # born-blocking RED (the make-impossible guarantee). Runs in the cargo-matrix lane
-# (`cargo test -p oya-cloud-ci-root-workspace-hygiene-app`) via the in-repo working tree.
+# (`cargo test -p cloud-ci-root-workspace-hygiene-app`) via the in-repo working tree.
 # G-INTEGRITY track: no build-graph dep on the firewall.
 rust_test(
     name = "ci-repo-root-hygiene-gate",

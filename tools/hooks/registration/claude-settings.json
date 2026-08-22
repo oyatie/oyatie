@@ -1,6 +1,6 @@
 {
   "_managed_by": "hand-maintained (governance PR review); the tools/hook-bootstrap installer was retired in #634",
-  "_marker": "oya-bootstrap-v1",
+  "_marker": "bootstrap-v1",
   "_note": "Project-scoped Claude Code hooks (G011: recreated 2026-06-09 after deletion in #606 left Claude sessions without the cargo/local-authority enforcement that Codex sessions get via .codex/hooks.json). Mirrors the .codex/hooks.json hook set; keep the two files in sync via governance PR. The historical sandbox/permissions hardening from the 2026-05-29 security redesign (see git show b626818d1^:.claude/settings.json) is restorable in a separate security lane.",
   "hooks": {
     "Stop": [

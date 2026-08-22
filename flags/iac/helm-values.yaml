@@ -21,7 +21,7 @@ autoscaling:
   maxReplicas: 50
   targetCPUUtilizationPercentage: 70
   targetCustomMetric:
-    name: oya_feature_flag_eval_queue_depth
+    name: feature_flag_eval_queue_depth
     targetAverageValue: "1000"
 
 resources:

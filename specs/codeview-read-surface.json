@@ -16,35 +16,35 @@
   "commands": [
     {
       "name": "log",
-      "primary_binary": "oya-codeview-cli",
-      "compatibility_binary": "oya-tooling-agent-read",
+      "primary_binary": "codeview-cli",
+      "compatibility_binary": "tooling-agent-read",
       "mode": "read-only",
       "purpose": "Inspect commit history for scoped paths through the sanctioned read primitive."
     },
     {
       "name": "diff",
-      "primary_binary": "oya-codeview-cli",
-      "compatibility_binary": "oya-tooling-agent-read",
+      "primary_binary": "codeview-cli",
+      "compatibility_binary": "tooling-agent-read",
       "mode": "read-only",
       "purpose": "Inspect scoped textual diffs without invoking direct git."
     },
     {
       "name": "pr-view",
-      "primary_binary": "oya-codeview-cli",
-      "compatibility_binary": "oya-tooling-agent-read",
+      "primary_binary": "codeview-cli",
+      "compatibility_binary": "tooling-agent-read",
       "mode": "read-only",
       "purpose": "Read pull-request metadata through the sanctioned codeview surface when connector context is unavailable."
     }
   ],
   "compatibility_binaries": [
     {
-      "binary": "oya-codeview-cli",
-      "crate": "crates/oya-codeview-cli",
+      "binary": "codeview-cli",
+      "crate": "crates/codeview-cli",
       "status": "primary-bnf-v4.1"
     },
     {
-      "binary": "oya-tooling-agent-read",
-      "crate": "tools/oya-tooling-agent-read",
+      "binary": "tooling-agent-read",
+      "crate": "tools/tooling-agent-read",
       "status": "compatibility-alias"
     }
   ],

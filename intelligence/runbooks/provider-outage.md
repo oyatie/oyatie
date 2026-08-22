@@ -16,21 +16,21 @@ themselves are tripped. Here the per-provider circuit breaker opens and the gate
 
 ## Detection
 
-- Alert: `oya_cloud_intelligence_provider_breaker_open{provider="..."} == 1`.
-- Metric: `oya_cloud_intelligence_upstream_failures_total{provider,code=~"5..|transport"}` spiking across
+- Alert: `cloud_intelligence_provider_breaker_open{provider="..."} == 1`.
+- Metric: `cloud_intelligence_upstream_failures_total{provider,code=~"5..|transport"}` spiking across
   *all* fingerprints of a pool simultaneously (the tell that distinguishes this from per-key
   failure).
 - SLO: availability + completeness fast-burn (mid-stream drops truncate streams → completeness burn).
 - Symptom: 503 `{"error":{"type":"gateway_provider_unavailable", ...}}` + `Retry-After`; or, if a
-  fallback absorbed it, elevated `oya_cloud_intelligence_fallback_total{from,to}` with 200s.
+  fallback absorbed it, elevated `cloud_intelligence_fallback_total{from,to}` with 200s.
 - Provider status page confirms an incident.
 
 ## Triage (first 5 minutes)
 
 1. **Confirm provider-level, not key-level.** `GET /admin/v1/pools` → if `active_keys > 0` but
    every request still fails 5xx, it is the provider, not the keys. Cross-check
-   `oya_cloud_intelligence_upstream_failures_total` is uniform across all fingerprints.
-2. **Is a fallback absorbing it?** Check `oya_cloud_intelligence_fallback_total{from="<down>",to="..."}`
+   `cloud_intelligence_upstream_failures_total` is uniform across all fingerprints.
+2. **Is a fallback absorbing it?** Check `cloud_intelligence_fallback_total{from="<down>",to="..."}`
    and the fallback pool's `active_keys`. If fallback is healthy and serving, impact is degraded
    latency/cost, not an outage → Sev 2.
 3. **Check provider status.** OpenAI / Anthropic / Google status pages; correlate the breaker-open
@@ -58,7 +58,7 @@ themselves are tripped. Here the per-provider circuit breaker opens and the gate
 
 ## Recovery verification
 
-- Provider status page reports resolved; `oya_cloud_intelligence_upstream_failures_total` for that
+- Provider status page reports resolved; `cloud_intelligence_upstream_failures_total` for that
   provider drops to baseline.
 - The per-provider breaker closes (`provider_breaker_open == 0`); the gateway resumes routing to
   the primary pool (blacklisted keys restore lazily on `select`).

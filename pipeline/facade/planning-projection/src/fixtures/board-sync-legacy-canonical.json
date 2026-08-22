@@ -11,7 +11,7 @@
   },
   "issues": [
     {
-      "body": "Generated from masterplan deliverable `A-1`.\n\nfirst item\n\n<!-- oya-board-sync:A-1 -->\n",
+      "body": "Generated from masterplan deliverable `A-1`.\n\nfirst item\n\n<!-- board-sync:A-1 -->\n",
       "deliverable_id": "A-1",
       "labels": [
         "state/in-progress",
@@ -22,7 +22,7 @@
       "title": "A-1: first item"
     },
     {
-      "body": "Generated from masterplan deliverable `ADR-0377-D3`.\n\nboard sync\n\n<!-- oya-board-sync:ADR-0377-D3 -->\n",
+      "body": "Generated from masterplan deliverable `ADR-0377-D3`.\n\nboard sync\n\n<!-- board-sync:ADR-0377-D3 -->\n",
       "deliverable_id": "ADR-0377-D3",
       "labels": [
         "state/declared",

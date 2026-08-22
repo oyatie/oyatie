@@ -10,7 +10,7 @@
 #   - community/ARCHITECTURE.md §community-as-4-mixture-product
 #   - §3.2.5 critical-path matrix row 27
 
-capability_id: oya-community-bug-bounty-submission
+capability_id: community-bug-bounty-submission
 tier: product-surface
 microservice: community
 status: Accepted

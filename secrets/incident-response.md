@@ -60,7 +60,7 @@ This document defines the severity ladder, response timeline, communication tree
 
 ### Containment Actions
 
-1. **Immediate revocation**: `cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- admin revoke <path>`; OpenBao emits SecretRevoked; revocation push to consumers.
+1. **Immediate revocation**: `cargo run -p cloud-secrets-secret-reference-resolver-app -- admin revoke <path>`; OpenBao emits SecretRevoked; revocation push to consumers.
 2. **Cascade-rotate dependents**: identify secrets depending on the revoked secret (e.g., DEKs encrypted by a revoked KEK); rotation-scheduler triggered with `priority=immediate`.
 3. **Audit-emit**: every revocation + rotation event sealed in audit-chain with `incident_id` correlation.
 4. **Forensic**: examine logs, agent transcripts, git history (find the emission origin); fix the gap (pattern update, training, tool change).

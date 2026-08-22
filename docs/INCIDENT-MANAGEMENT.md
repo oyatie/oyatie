@@ -44,7 +44,7 @@ Mitigation → Resolution → Postmortem → Prevention loop
 - Customer-reported via `oya admin incident report`
 - Synthetic monitoring failure (#138)
 - Security alert (Trivy / Cosign / RUSTSEC / red-team)
-- Foundry capability anomaly (per `oya-intelligence-anomaly-*`)
+- Foundry capability anomaly (per `intelligence-anomaly-*`)
 
 ### 3.2 Triage
 IM declares Sev within 5 minutes of detection. Re-classifies during response if new info emerges.

@@ -44,7 +44,7 @@ metadata:
   name: webapp
   tenant: oyatie.b2b.smb.acme-software
 spec:
-  image: ghcr.io/oya-samples/echo:0.4.1
+  image: ghcr.io/samples/echo:0.4.1
   replicas: 2
   ports:
     - name: http
@@ -60,7 +60,7 @@ metadata:
   name: pgproxy
   tenant: oyatie.b2b.smb.acme-software
 spec:
-  image: ghcr.io/oya-samples/pgproxy:0.2.0
+  image: ghcr.io/samples/pgproxy:0.2.0
   replicas: 1
   ports:
     - name: postgres

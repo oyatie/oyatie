@@ -1,0 +1,28 @@
+[package]
+name = "shared-backbone-rest-runtime-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-api = { path = "../../app/community/ports/post-store-api" }
+community-post-store-domain = { path = "../../app/community/core/post-store-domain" }
+community-post-store-rest = { path = "../../app/community/adapters/post-store-rest" }
+http-middleware-kernel = { path = "../http-middleware-kernel" }
+http-router-kernel = { path = "../http-router-kernel" }
+http-runtime-hyper-adapter = { path = "../http-runtime-hyper-adapter" }
+community-social-post-composition-api = { path = "../../app/community/ports/social-post-composition-api" }
+community-social-post-composition-rest = { path = "../../app/community/adapters/social-post-composition-rest" }
+shared-postgres-command-kernel = { path = "../shared-postgres-command-kernel" }
+serde_json.workspace = true
+tokio.workspace = true
+
+[lib]
+name = "shared_backbone_rest_runtime_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

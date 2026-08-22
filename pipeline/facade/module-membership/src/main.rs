@@ -14,7 +14,7 @@
 //! would defeat the entire freeze.
 //!
 //! Usage:
-//!   oya-cloud-ci-capability-membership-app-bin [--repo-root <path>] [--policy <path>]
+//!   cloud-ci-capability-membership-app-bin [--repo-root <path>] [--policy <path>]
 //!                                             [--emit-legacy-freeze [--allow-new]]
 //!
 //! Exit codes: 0 = green (no findings); 1 = red findings remain; 2 = argument or collection error,
@@ -247,7 +247,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-capability-membership-app-bin [--repo-root <path>] [--policy <path>] \
+    "usage: cloud-ci-capability-membership-app-bin [--repo-root <path>] [--policy <path>] \
      [--emit-legacy-freeze [--allow-new]]"
         .to_owned()
 }

@@ -339,7 +339,7 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+            "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
           ]
         },
         {
@@ -356,7 +356,7 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+            "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
           ]
         },
         {
@@ -373,7 +373,7 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+            "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
           ]
         },
         {
@@ -390,7 +390,7 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+            "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
           ]
         },
         {
@@ -407,13 +407,13 @@
           "status_claims_allowed_without_evidence": false,
           "drift_policy": "fail-closed-on-conflict-or-manual-live-plan-content",
           "evidence_refs": [
-            "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
+            "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/src/lib.rs#evaluate_masterplan_v2_projection_freshness"
           ]
         }
       ]
     }
   },
-  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
   "root_hub_pointers": {
     "agent_entry_surface_allowlist": {
       "read_timing_class": "entry-surface",

@@ -10,7 +10,7 @@ info:
     All channels: NATS JetStream over QUIC per ADR-0253; consumer groups per BC.
     Every message carries `tenant_id`, `traceparent`, `tracestate`.
   contact: {name: axis-integration}
-  x-oya-related-adrs: [ADR-0145, ADR-0253, ADR-0263]
+  x-related-adrs: [ADR-0145, ADR-0253, ADR-0263]
 
 servers:
   prod-kr:

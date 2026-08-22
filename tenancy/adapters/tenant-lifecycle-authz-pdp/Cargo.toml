@@ -5,14 +5,14 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "PDP-backed authorization adapter for the tenant-lifecycle delivery surface (AUTH-005 / ADR-0564 D7). Dogfoods the repo's embedded Cedar PDP (iam/adapters/pdp-cedar over oya-shared-pdp-kernel; cloud-iam is the IdP/PDP per ADR-0559): carries the tenancy authz bundle (structural cross-tenant forbid + tenant-operator + platform-admin permits), assembles the PEP entity slice from the verified caller, and maps the PDP decision to the port. Fail-closed, default-deny."
+description = "PDP-backed authorization adapter for the tenant-lifecycle delivery surface (AUTH-005 / ADR-0564 D7). Dogfoods the repo's embedded Cedar PDP (iam/adapters/pdp-cedar over shared-pdp-kernel; cloud-iam is the IdP/PDP per ADR-0559): carries the tenancy authz bundle (structural cross-tenant forbid + tenant-operator + platform-admin permits), assembles the PEP entity slice from the verified caller, and maps the PDP decision to the port. Fail-closed, default-deny."
 
 [dependencies]
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
-oya-shared-pdp-kernel = { path = "../../../libs/oya-shared-pdp-kernel" }
+shared-pdp-kernel = { path = "../../../libs/shared-pdp-kernel" }
 iam-pdp-cedar = { path = "../../../iam/adapters/pdp-cedar" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-ulid-id-kernel = { path = "../../../libs/oya-shared-ulid-id-kernel" }
+shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
+shared-ulid-id-kernel = { path = "../../../libs/shared-ulid-id-kernel" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 reqwest = { workspace = true }

@@ -31,13 +31,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_calendar_caldav_request_total{status_class=~"2..|4.."}[5m]))
+                sum(rate(calendar_caldav_request_total{status_class=~"2..|4.."}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_calendar_caldav_request_total[5m]))
+                sum(rate(calendar_caldav_request_total[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

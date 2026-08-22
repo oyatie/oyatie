@@ -6,9 +6,9 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# K8s Job spawn + watch adapter for the oya-ci controller.
+# K8s Job spawn + watch adapter for the ci controller.
 # Implements kernel::JobSpawner and provides observe_job() projection.
-# Uses kube-rs to create/watch batch/v1 Jobs in namespace oya-ci.
+# Uses kube-rs to create/watch batch/v1 Jobs in namespace ci.
 
 [lib]
 name = "ci_controller_k8s_adapter"

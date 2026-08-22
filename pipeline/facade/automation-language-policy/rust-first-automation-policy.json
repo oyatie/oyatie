@@ -74,8 +74,8 @@
     },
     {
       "path": "tools/hooks/main-checkout-guard.sh",
-      "reason": "ADR-0523 irreducible-glue class 6 exec shim: locates and execs the Rust guard binary (tools/oya-checkout-guard-app) for the PreToolUse hook; zero policy logic in shell.",
-      "replacement": "Hook configuration invokes the Rust guard binary directly (Buck2 target //tools/oya-checkout-guard-app) once hook-binary provisioning is automated; ADR-0523 class 6 shrinks to zero.",
+      "reason": "ADR-0523 irreducible-glue class 6 exec shim: locates and execs the Rust guard binary (tools/checkout-guard-app) for the PreToolUse hook; zero policy logic in shell.",
+      "replacement": "Hook configuration invokes the Rust guard binary directly (Buck2 target //tools/checkout-guard-app) once hook-binary provisioning is automated; ADR-0523 class 6 shrinks to zero.",
       "status": "temporary_legacy_bridge"
     },
     {
@@ -285,7 +285,7 @@
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
         ".github/workflows/buck2-weekly-smoke.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 14
+        ".github/workflows/presubmit.yml": 14
       },
       "keys_total": 17
     },
@@ -309,59 +309,59 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::lint::Check formatting",
+          "key": ".github/workflows/presubmit.yml::lint::Check formatting",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Bootstrap roles and schemas (adapters)",
+          "key": ".github/workflows/presubmit.yml::live-postgres-adapters::Bootstrap roles and schemas (adapters)",
           "shell_lines": 10
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Live Postgres tests (adapters)",
+          "key": ".github/workflows/presubmit.yml::live-postgres-adapters::Live Postgres tests (adapters)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Bootstrap roles and schemas (facades)",
+          "key": ".github/workflows/presubmit.yml::live-postgres-facades::Bootstrap roles and schemas (facades)",
           "shell_lines": 10
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Live Postgres tests (facades)",
+          "key": ".github/workflows/presubmit.yml::live-postgres-facades::Live Postgres tests (facades)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict",
+          "key": ".github/workflows/presubmit.yml::presubmit::Fan-in verdict",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Build enforcement-liveness producer",
+          "key": ".github/workflows/presubmit.yml::test::Build enforcement-liveness producer",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Install pinned buck2 (digest-verified)",
+          "key": ".github/workflows/presubmit.yml::test::Install pinned buck2 (digest-verified)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Kernel workspace tests",
+          "key": ".github/workflows/presubmit.yml::test::Kernel workspace tests",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Live hub-exclusivity admission",
+          "key": ".github/workflows/presubmit.yml::test::Live hub-exclusivity admission",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
+          "key": ".github/workflows/presubmit.yml::test::Materialize generated faces",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",
+          "key": ".github/workflows/presubmit.yml::test::Pre-provision pinned toolchain components",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Reject non-deletion generated output edits",
+          "key": ".github/workflows/presubmit.yml::test::Reject non-deletion generated output edits",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Workspace tests",
+          "key": ".github/workflows/presubmit.yml::test::Workspace tests",
           "shell_lines": 1
         }
       ]

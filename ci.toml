@@ -1,11 +1,11 @@
-# ci.toml — portable oya-ci CONFORMANCE-FLOOR config (pipeline-as-product).
+# ci.toml — portable ci CONFORMANCE-FLOOR config (pipeline-as-product).
 #
 # This file reproduces oyatie's CURRENT policy byte-for-byte: the producer
-# (oya-cloud-ci-accounting-registry-app) loads it via oya-ci-config-kernel's CLOSED-schema
+# (cloud-ci-accounting-registry-app) loads it via ci-config-kernel's CLOSED-schema
 # loader (unknown keys are an error), falling back to the compiled-in bundled default when
 # the file is absent. Authoring it here makes the policy DATA (doc-as-data doctrine): a repo
-# adopts oya-ci by dropping its own `ci.toml`. Loaders still read legacy `oya-ci.toml` when
-# this file is absent (merge-base compatibility). Schema reference + defaults: docs/oya-ci/.
+# adopts ci by dropping its own `ci.toml`. Loaders still read legacy `ci.toml` when
+# this file is absent (merge-base compatibility). Schema reference + defaults: docs/ci/.
 #
 # The ttl + unit_class + gate-disposition tables stay as the crate's bundled JSON DATA (the
 # `[ttl]` / `[unit_class]` sections below are intentionally empty = "use the bundled table");
@@ -24,13 +24,12 @@ root_markers = ["specs/root-hub-pointers.json"]
 path_excludes = ["third-party/"]
 
 [naming]
-# Prefix burn is a follow-up after `libs/` empties. Do not set this empty while first-party
-# crates still carry `oya-`; that would fail the whole workspace.
-required_prefix = "oya-"
+# Empty: crate names are role-first (ADR-0719 D-9). A required brand prefix is bureaucracy.
+required_prefix = ""
 allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "worker", "sdk", "api"]
-check_family_prefix = "oya-check-"
+check_family_prefix = "check-"
 backend_suffixes = ["fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite"]
-doctrinal_carve_outs = ["oya-tooling-agent-read", "oya-ci-gate-contract"]
+doctrinal_carve_outs = ["tooling-agent-read", "ci-gate-contract"]
 
 [[vocab.forbidden_stems]]
 stem = "foundry"
@@ -51,7 +50,7 @@ code = "forbidden_oya-vcs"
 [[vocab.carve_outs]]
 kind = "path_exact"
 value = "ci/facade/cloud-name-ratchet/cloud-name-baseline.json"
-reason = "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed, and some of those identifiers contain a forbidden stem. Listing the debt is the census, not the debt — the same rationale that carves out oya-check-brand-residue's own source and this file."
+reason = "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed, and some of those identifiers contain a forbidden stem. Listing the debt is the census, not the debt — the same rationale that carves out check-brand-residue's own source and this file."
 
 [[vocab.carve_outs]]
 kind = "path_exact"
@@ -75,13 +74,13 @@ reason = "the frozen missing-Competitive-Benchmark-section baseline ENUMERATES t
 
 [[vocab.carve_outs]]
 kind = "path_prefix"
-value = "libs/oya-check-brand-residue/"
+value = "libs/check-brand-residue/"
 reason = "the deny-list patterns themselves are not residue"
 
 [[vocab.carve_outs]]
 kind = "path_prefix"
-value = "libs/oya-ci-config/"
-reason = "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)"
+value = "libs/ci-config/"
+reason = "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as check-brand-residue)"
 
 [[vocab.carve_outs]]
 kind = "path_exact"
@@ -90,7 +89,7 @@ reason = "the repo-root CI policy IS the deny-list (it declares the forbidden-st
 
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = "registry/catalog/oya-check-brand-residue.yaml"
+value = "registry/catalog/check-brand-residue.yaml"
 reason = "the catalog deny-list spec is not residue"
 
 [[vocab.carve_outs]]
@@ -101,7 +100,7 @@ reason = "intentional historical archive of the dropped work"
 [[vocab.carve_outs]]
 kind = "path_prefix"
 value = "marketplace/facade/dev-cli/tests/"
-reason = "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined"
+reason = "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/dev-cli/tests/ where it was already baselined"
 
 [[vocab.carve_outs]]
 kind = "line_contains_ci"
@@ -247,10 +246,10 @@ file_name = "OWNERS"
 max_paths_per_owners_file = 2000
 
 [enforcement]
-governance_crate_substr = "oya-governance"
+governance_crate_substr = "governance"
 governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governance-lanes/prd-axis-coverage.md"]
 
-# Gate input contracts are DATA so public oya-ci adopters can point gates at their own repo
+# Gate input contracts are DATA so public ci adopters can point gates at their own repo
 # shapes without forking the engine. This default mirrors Oyatie's catalog row source.
 [slo_coverage]
 catalog_record_globs = ["registry/catalog/*.yaml"]
@@ -267,7 +266,7 @@ catalog_record_globs = ["registry/catalog/*.yaml"]
 [unit_class]
 
 # This list is the accounting-registry/firewall baseline gate set, not the full
-# `.github/workflows/oya-ci-required.yml` job matrix. Standalone workflow gates
+# `.github/workflows/presubmit.yml` job matrix. Standalone workflow gates
 # keep their own policy files. The gate-registration meta-test asserts convergence:
 # every ID here has bundled disposition DATA, and every configured gate has required
 # workflow authority via the homogeneous matrix, freshness job, or firewall producer path.

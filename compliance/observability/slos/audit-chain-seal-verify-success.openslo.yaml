@@ -17,13 +17,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_seal_verify_success_total[28d]))
+                sum(rate(compliance_seal_verify_success_total[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_seal_verify_total[28d]))
+                sum(rate(compliance_seal_verify_total[28d]))
   objectives:
     - displayName: Seal verify success ≥ 99.999%
       target: 0.99999

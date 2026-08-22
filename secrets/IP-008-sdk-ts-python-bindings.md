@@ -57,7 +57,7 @@ cd packages/cloud-secrets-sdk-ts && npm run build && npm test
 cd packages/cloud-secrets-sdk-python && maturin develop && pytest
 
 # Cross-lang smoke
-cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang all
+cargo run -p dev-cli -- gate validate sdk-contract-conformance --sdk-lang all
 ```
 
 ## Test Plan
@@ -84,7 +84,7 @@ Generate TS and Python bindings from the Rust SDK surface while preserving `Secr
 
 ### C. Deliverables
 - `packages/cloud-secrets-sdk-ts` and `packages/cloud-secrets-sdk-python`.
-- napi-rs and pyo3 bindings over `oya-cloud-secrets-secret-reference-resolver-sdk`.
+- napi-rs and pyo3 bindings over `cloud-secrets-secret-reference-resolver-sdk`.
 - Shared corpus consumption from IP-002 fixtures.
 - Contract conformance with `sdk-plan.md` and `contracts/openapi/cloud-secrets.yaml`.
 - Reference examples for static and dynamic secret flow.
@@ -101,7 +101,7 @@ Generate TS and Python bindings from the Rust SDK surface while preserving `Secr
 ### E. Acceptance
 - `cd packages/cloud-secrets-sdk-ts && npm run build && npm test`.
 - `cd packages/cloud-secrets-sdk-python && maturin develop && pytest`.
-- `cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang all`.
+- `cargo run -p dev-cli -- gate validate sdk-contract-conformance --sdk-lang all`.
 - No FFI path exposes an unwrapped raw byte vector or printable secret string.
 
 ### F. Evidence

@@ -20,16 +20,16 @@
       "work"
     ],
     "crate_refs_planned": [
-      "oya-community-anonymous-kernel",
-      "oya-community-anonymous-domain",
-      "oya-community-anonymous-app",
-      "oya-community-anonymous-rest"
+      "community-anonymous-kernel",
+      "community-anonymous-domain",
+      "community-anonymous-app",
+      "community-anonymous-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
     "crate_ref_bindings": [
       {
-        "crate": "oya-community-anonymous-kernel",
-        "crate_name": "oya-community-anonymous-kernel",
+        "crate": "community-anonymous-kernel",
+        "crate_name": "community-anonymous-kernel",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "anonymous",
@@ -49,8 +49,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-anonymous-domain",
-        "crate_name": "oya-community-anonymous-domain",
+        "crate": "community-anonymous-domain",
+        "crate_name": "community-anonymous-domain",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "anonymous",
@@ -70,8 +70,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-anonymous-app",
-        "crate_name": "oya-community-anonymous-app",
+        "crate": "community-anonymous-app",
+        "crate_name": "community-anonymous-app",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "anonymous",
@@ -91,8 +91,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-anonymous-rest",
-        "crate_name": "oya-community-anonymous-rest",
+        "crate": "community-anonymous-rest",
+        "crate_name": "community-anonymous-rest",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "anonymous",
@@ -112,7 +112,7 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       }
     ],
-    "naming_justification": "All planned community-anonymous crates parse as oya-community-anonymous-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
+    "naming_justification": "All planned community-anonymous crates parse as community-anonymous-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
   },
   "inherits": {
     "bominal_adrs": [
@@ -162,48 +162,48 @@
       "given": "a verified employee posts in the anonymous company channel",
       "when": "the post is stored",
       "then": "the stored artifact contains only an anonymous_author_token (a one-way hash unlinkable without the salt held in a separate HSM-backed vault); real user_id is never stored in the anonymous post table or search index",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_anonymous_post_stores_no_real_identity"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_anonymous_post_stores_no_real_identity"
     },
     {
       "id": "AC-ANON-02",
       "given": "an employer admin queries the company anonymous channel",
       "when": "posts are returned",
       "then": "only aggregate stats (post count, topic distribution, sentiment trend) are returned; individual posts are NOT attributable to any employee; the API returns 403 for any individual-attribution query from an employer role",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_employer_admin_sees_only_aggregates"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_employer_admin_sees_only_aggregates"
     },
     {
       "id": "AC-ANON-03",
       "given": "a court order is received requiring identity disclosure",
       "when": "the legal hold four-eyes procedure is executed",
       "then": "two authorized compliance officers must approve; the HSM-backed salt vault is accessed; real identity is disclosed in a sealed audit package; the event is permanently recorded in the immutable audit chain",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes"
     },
     {
       "id": "AC-ANON-04",
       "given": "a user verifies their work email for anonymous posting",
       "when": "verification completes",
       "then": "the verification link is one-time-use; the verified credential is stored in a separate verification vault that does NOT share a foreign key with the anonymous posts table; verification tokens expire after 24h",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_verification_vault_isolation",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_verification_vault_isolation"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_verification_vault_isolation",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_verification_vault_isolation"
     },
     {
       "id": "AC-ANON-05",
       "given": "a user shares salary or compensation data",
       "when": "the data is stored and queried",
       "then": "individual salary entries are stored with anonymous_author_token only; aggregate compensation data is returned for peer comparison; individual entry is never linkable to real identity in query path",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_salary_data_anonymous_storage",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_salary_data_anonymous_storage"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_salary_data_anonymous_storage",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_salary_data_anonymous_storage"
     },
     {
       "id": "AC-ANON-06",
       "given": "a content moderation action is taken on an anonymous post",
       "when": "the moderator reviews the post",
       "then": "the moderator sees the anonymous_author_token (not real identity) for appeal processing; moderation decision is audit logged with anonymous_author_token; real identity is not surfaced to moderator",
-      "verification_command": "cargo nextest -p oya-community-anonymous-domain -- test_moderation_preserves_anonymity",
-      "test_ref": "cargo nextest -p oya-community-anonymous-domain -- test_moderation_preserves_anonymity"
+      "verification_command": "cargo nextest -p community-anonymous-domain -- test_moderation_preserves_anonymity",
+      "test_ref": "cargo nextest -p community-anonymous-domain -- test_moderation_preserves_anonymity"
     }
   ],
   "scope": {
@@ -287,7 +287,7 @@
       "no_foreign_key_constraint": "anonymous posts table has no FK to user identity table; join is physically impossible in query path",
       "legal_reveal_procedure": "four-eyes HSM vault access with dual compliance officer approval; produces sealed audit package; emits ConnectAnonIdentityRevealed to immutable audit chain"
     },
-    "enforcement_lane": "oya-governance-connect-anon-identity-isolation",
+    "enforcement_lane": "governance-connect-anon-identity-isolation",
     "cross_context_mediation": {
       "policy": "Community Anonymous remains work-context only. Personal-to-work or work-to-personal movement is denied by default and may only occur through Workflow consent-token flows that emit aggregate-only Ontology projections.",
       "mediators": [
@@ -399,28 +399,28 @@
     {
       "anti_pattern": "policy_only_anonymity_without_cryptographic_enforcement",
       "why": "policy-only anonymity is insufficient for this product; cryptographic separation is the required planning target",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation",
+      "detection_lane": "governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "employer_individual_attribution",
       "why": "destroys psychological safety; ADR-0208/0215; employers receive aggregate stats only",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation",
+      "detection_lane": "governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "moderator_identity_reveal_without_legal_hold",
       "why": "moderators must see anonymous_author_token only; real identity is HSM-gated four-eyes procedure",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation",
+      "detection_lane": "governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "personal_context_anonymous_boards",
       "why": "CommunityAnonymous is work-context only; mixing personal anonymous discussion with professional is out of scope and a pillar violation",
-      "detection_lane": "oya-governance-tenant-rbac-context-isolation",
+      "detection_lane": "governance-tenant-rbac-context-isolation",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
@@ -430,48 +430,48 @@
       "dimension": "anonymous_post_write_p95_ms",
       "target": 100,
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-anonymous-bench -- anonymous_post_write_p95",
+      "planned_verification_ref": "cargo bench -p community-anonymous-bench -- anonymous_post_write_p95",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "company_channel_feed_p95_ms",
       "target": 150,
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-anonymous-bench -- company_channel_feed_p95",
+      "planned_verification_ref": "cargo bench -p community-anonymous-bench -- company_channel_feed_p95",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "salary_benchmark_query_p95_ms",
       "target": 200,
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "cargo bench -p oya-community-anonymous-bench -- salary_benchmark_query_p95",
+      "planned_verification_ref": "cargo bench -p community-anonymous-bench -- salary_benchmark_query_p95",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "cross_pillar_denial_correctness_pct",
       "target": 100,
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "cargo nextest -p oya-community-anonymous-domain -- pillar",
+      "planned_verification_ref": "cargo nextest -p community-anonymous-domain -- pillar",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "identity_leak_to_anonymous_post_table_count",
       "target": 0,
       "enforcement_status": "advisory_until_community_expansion_gates",
-      "planned_verification_ref": "cargo nextest -p oya-community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
+      "planned_verification_ref": "cargo nextest -p community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "availability_slo",
       "target": "99.95% monthly availability for anonymous read/post APIs; 99.99% durability for legal-hold audit evidence",
-      "planned_verification_ref": "cargo nextest -p oya-community-anonymous-domain -- slo",
+      "planned_verification_ref": "cargo nextest -p community-anonymous-domain -- slo",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Planning target only; no availability monitor ships in PR #130."
     },
     {
       "dimension": "scale_envelope",
       "target": "planning target: 500k verified employees per cell, 5k anonymous post writes/minute per region, aggregate dashboards only for cohorts k>=10",
-      "planned_verification_ref": "cargo bench -p oya-community-anonymous-bench -- scale_envelope",
+      "planned_verification_ref": "cargo bench -p community-anonymous-bench -- scale_envelope",
       "enforcement_status": "advisory_until_community_expansion_gates",
       "claim_boundary": "Capacity target only; no benchmark harness ships in PR #130."
     },
@@ -486,32 +486,32 @@
   "production_readiness_gates": [
     {
       "gate": "anonymous-post-stores-no-real-identity",
-      "check": "cargo nextest -p oya-community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
+      "check": "cargo nextest -p community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
       "must_pass": true
     },
     {
       "gate": "employer-admin-aggregate-only",
-      "check": "cargo nextest -p oya-community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
+      "check": "cargo nextest -p community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
       "must_pass": true
     },
     {
       "gate": "legal-hold-four-eyes",
-      "check": "cargo nextest -p oya-community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes",
+      "check": "cargo nextest -p community-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes",
       "must_pass": true
     },
     {
       "gate": "verification-vault-isolation",
-      "check": "cargo nextest -p oya-community-anonymous-domain -- test_verification_vault_isolation",
+      "check": "cargo nextest -p community-anonymous-domain -- test_verification_vault_isolation",
       "must_pass": true
     },
     {
       "gate": "moderation-preserves-anonymity",
-      "check": "cargo nextest -p oya-community-anonymous-domain -- test_moderation_preserves_anonymity",
+      "check": "cargo nextest -p community-anonymous-domain -- test_moderation_preserves_anonymity",
       "must_pass": true
     },
     {
       "gate": "perf-budget",
-      "check": "cargo bench -p oya-community-anonymous-bench -- anonymous_post_write_p95",
+      "check": "cargo bench -p community-anonymous-bench -- anonymous_post_write_p95",
       "must_pass": true
     },
     {
@@ -721,7 +721,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
+      "verification_ref": "cargo nextest -p community-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -731,7 +731,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "cargo nextest -p oya-community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
+      "verification_ref": "cargo nextest -p community-anonymous-domain -- test_employer_admin_sees_only_aggregates",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -741,8 +741,8 @@
         "stable": 150,
         "GA": 100
       },
-      "verification_ref": "cargo bench -p oya-community-anonymous-bench -- anonymous_post_write_p95",
-      "lane_ref": "oya-governance-perf-budget"
+      "verification_ref": "cargo bench -p community-anonymous-bench -- anonymous_post_write_p95",
+      "lane_ref": "governance-perf-budget"
     }
   ],
   "risks": [
@@ -865,17 +865,17 @@
     {
       "id": "BP-ANON-01",
       "rule": "anonymous posts store anonymous_author_token only",
-      "planned_enforcement_ref": "oya-governance-connect-anon-identity-isolation"
+      "planned_enforcement_ref": "governance-connect-anon-identity-isolation"
     },
     {
       "id": "BP-ANON-02",
       "rule": "employer-facing views expose aggregate stats only",
-      "planned_enforcement_ref": "oya-governance-connect-anon-aggregate-only"
+      "planned_enforcement_ref": "governance-connect-anon-aggregate-only"
     },
     {
       "id": "BP-ANON-03",
       "rule": "legal identity reveal requires two compliance officers and HSM vault access",
-      "planned_enforcement_ref": "oya-governance-connect-anon-legal-hold"
+      "planned_enforcement_ref": "governance-connect-anon-legal-hold"
     }
   ],
   "patterns": [
@@ -909,22 +909,22 @@
     {
       "anti_pattern": "policy_only_anonymity_without_cryptographic_enforcement",
       "why_forbidden": "policy can be bypassed; cryptographic separation (no FK, keyed hash, HSM vault) is the only trustworthy guarantee",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation"
+      "detection_lane": "governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "employer_individual_attribution",
       "why_forbidden": "destroys psychological safety; ADR-0208/0215; employers receive aggregate stats only",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation"
+      "detection_lane": "governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "moderator_identity_reveal_without_legal_hold",
       "why_forbidden": "moderators must see anonymous_author_token only; real identity is HSM-gated four-eyes procedure",
-      "detection_lane": "oya-governance-connect-anon-identity-isolation"
+      "detection_lane": "governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "personal_context_anonymous_boards",
       "why_forbidden": "CommunityAnonymous is work-context only; mixing personal anonymous discussion with professional is out of scope and a pillar violation",
-      "detection_lane": "oya-governance-tenant-rbac-context-isolation"
+      "detection_lane": "governance-tenant-rbac-context-isolation"
     }
   ],
   "goals": {
@@ -1103,9 +1103,9 @@
       "erasure": "erasure recomputes scoped tokens inside the vault path and deletes matching records without exposing identity to application databases"
     },
     "verification_plan": [
-      "cargo nextest -p oya-community-anonymous-domain -- threat_model",
-      "cargo nextest -p oya-community-anonymous-domain -- legal_hold_four_eyes",
-      "cargo nextest -p oya-community-anonymous-domain -- aggregate_k_anonymity",
+      "cargo nextest -p community-anonymous-domain -- threat_model",
+      "cargo nextest -p community-anonymous-domain -- legal_hold_four_eyes",
+      "cargo nextest -p community-anonymous-domain -- aggregate_k_anonymity",
       "oya gate validate community-anonymous-threat-model"
     ]
   }

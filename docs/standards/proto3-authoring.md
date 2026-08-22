@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0258
   - ADR-0316
 enforced_by:
-  - oya-governance-proto3-authoring
-  - oya-governance-grpc-contract-compatibility
-  - oya-governance-sdk-generation
+  - governance-proto3-authoring
+  - governance-grpc-contract-compatibility
+  - governance-sdk-generation
 canonical_paths:
   - microservices/*/contracts/*.proto
   - docs/standards/api-surface-separation.md
@@ -561,25 +561,25 @@ message CancelWorkflowExecutionResponse {
 
 | ID | Concern | Requirement | Example | Checker |
 |---|---|---|---|---|
-| PROTO-MAT-001 | Syntax | `proto3` | root field | `oya-check-proto-syntax` |
-| PROTO-MAT-002 | Package | versioned package | `oyatie.workflow.v1` | `oya-check-proto-package` |
-| PROTO-MAT-003 | Service | stable service name | `WorkflowExecutionService` | `oya-check-proto-service` |
-| PROTO-MAT-004 | RPC | stable RPC name | `StartWorkflowExecution` | `oya-check-proto-rpc` |
-| PROTO-MAT-005 | Field | no field reuse | field numbers | `oya-check-proto-field-numbers` |
-| PROTO-MAT-006 | Field | idempotency key on mutation | `idempotency_key` | `oya-check-idempotency` |
-| PROTO-MAT-007 | Field | trace id on boundary | `trace_id` | `oya-check-trace-context` |
-| PROTO-MAT-008 | Field | tenant id on tenant surface | `tenant_id` | `oya-check-tenant-boundary` |
-| PROTO-MAT-009 | Compatibility | reserved removed fields | `reserved` | `oya-check-proto-compatibility` |
-| PROTO-MAT-010 | Data class | option or manifest label | manifest | `oya-check-data-class` |
-| PROTO-MAT-011 | Cedar | RPC maps to action | policy map | `oya-check-cedar-action-coverage` |
-| PROTO-MAT-012 | Workflow | workflow RPC maps to template | workflow manifest | `oya-check-workflow-linkage` |
-| PROTO-MAT-013 | SDK | generated SDK compiles | SDK path | `oya-check-proto-sdk` |
-| PROTO-MAT-014 | Gateway | REST gateway parity if exposed | OpenAPI path | `oya-check-contract-parity` |
-| PROTO-MAT-015 | Errors | typed status mapping | error map | `oya-check-grpc-error-map` |
-| PROTO-MAT-016 | Examples | synthetic fixtures | fixtures | `oya-check-example-safety` |
-| PROTO-MAT-017 | Versioning | breaking change bumps package | package v2 | `oya-check-contract-version` |
-| PROTO-MAT-018 | Docs | ADR links exist | docs path | `oya-check-doc-links` |
-| PROTO-MAT-019 | Audit | mutating RPC emits event | audit map | `oya-check-audit-emission` |
+| PROTO-MAT-001 | Syntax | `proto3` | root field | `check-proto-syntax` |
+| PROTO-MAT-002 | Package | versioned package | `oyatie.workflow.v1` | `check-proto-package` |
+| PROTO-MAT-003 | Service | stable service name | `WorkflowExecutionService` | `check-proto-service` |
+| PROTO-MAT-004 | RPC | stable RPC name | `StartWorkflowExecution` | `check-proto-rpc` |
+| PROTO-MAT-005 | Field | no field reuse | field numbers | `check-proto-field-numbers` |
+| PROTO-MAT-006 | Field | idempotency key on mutation | `idempotency_key` | `check-idempotency` |
+| PROTO-MAT-007 | Field | trace id on boundary | `trace_id` | `check-trace-context` |
+| PROTO-MAT-008 | Field | tenant id on tenant surface | `tenant_id` | `check-tenant-boundary` |
+| PROTO-MAT-009 | Compatibility | reserved removed fields | `reserved` | `check-proto-compatibility` |
+| PROTO-MAT-010 | Data class | option or manifest label | manifest | `check-data-class` |
+| PROTO-MAT-011 | Cedar | RPC maps to action | policy map | `check-cedar-action-coverage` |
+| PROTO-MAT-012 | Workflow | workflow RPC maps to template | workflow manifest | `check-workflow-linkage` |
+| PROTO-MAT-013 | SDK | generated SDK compiles | SDK path | `check-proto-sdk` |
+| PROTO-MAT-014 | Gateway | REST gateway parity if exposed | OpenAPI path | `check-contract-parity` |
+| PROTO-MAT-015 | Errors | typed status mapping | error map | `check-grpc-error-map` |
+| PROTO-MAT-016 | Examples | synthetic fixtures | fixtures | `check-example-safety` |
+| PROTO-MAT-017 | Versioning | breaking change bumps package | package v2 | `check-contract-version` |
+| PROTO-MAT-018 | Docs | ADR links exist | docs path | `check-doc-links` |
+| PROTO-MAT-019 | Audit | mutating RPC emits event | audit map | `check-audit-emission` |
 | PROTO-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
 
 ## Extended Proto Evidence Ledger

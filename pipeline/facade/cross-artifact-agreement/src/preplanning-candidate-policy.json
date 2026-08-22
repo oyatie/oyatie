@@ -7,6 +7,6 @@
     "number": 1340,
     "base_url": "https://github.com/jason931225/oyatie/pull",
     "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
-    "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate."
+    "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful presubmit check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate."
   }
 }

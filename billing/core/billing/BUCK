@@ -8,7 +8,7 @@ rust_library(
         "//billing/core/metering:billing-metering",
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -32,7 +32,7 @@ rust_test(
     deps = [
         ":billing-domain",
         "//billing/core/metering:billing-metering",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -46,6 +46,6 @@ rust_test(
         "//billing/core/metering:billing-metering",
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )

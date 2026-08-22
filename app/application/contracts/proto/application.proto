@@ -1,0 +1,180 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+// application — gRPC contract
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/application.yaml.
+// Per ADR-0123 + ADR-0131.
+
+syntax = "proto3";
+
+package oya.application.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// =========================================================================
+// Service: ApplicationShell
+// =========================================================================
+//
+// Authn: SPIFFE mTLS/TLS 1.3 authenticates the calling workload; forwarded user claims are
+// application authorization context and do not make this a public RPC surface.
+// Authz: Cedar policy evaluation server-side; same fragments as REST.
+// Tenancy: per-request metadata key "x-tenant-id" = "tenant:<hashed-id>";
+//          mismatch with JWT claim returns UNAUTHENTICATED.
+
+service ApplicationShell {
+  // Resolve a route's scope.
+  rpc ResolveRoute(ResolveRouteRequest) returns (RouteResolveResponse);
+
+  // Read current session.
+  rpc GetSession(google.protobuf.Empty) returns (Session);
+
+  // Sign out (revoke session).
+  rpc DeleteSession(google.protobuf.Empty) returns (google.protobuf.Empty);
+
+  // Read a module's signed manifest.
+  rpc GetModuleManifest(GetModuleManifestRequest) returns (ModuleManifest);
+
+  // Publish a module manifest (ServiceAccount ci-publish only).
+  rpc PublishModuleManifest(PublishModuleManifestRequest) returns (ModuleManifest);
+
+  // Read current bundle pointer.
+  rpc GetBundlePointer(GetBundlePointerRequest) returns (BundleVersionPointer);
+
+  // Stream route-access-denied events (operator subscription).
+  rpc StreamRouteAccessDenied(StreamRouteAccessDeniedRequest) returns (stream RouteAccessDenied);
+
+  // Trigger CDN purge (operator only; sealed).
+  rpc PurgeCdn(PurgeCdnRequest) returns (PurgeCdnResponse);
+}
+
+// =========================================================================
+// Common types
+// =========================================================================
+
+enum Environment {
+  ENVIRONMENT_UNSPECIFIED = 0;
+  ENVIRONMENT_DEV = 1;
+  ENVIRONMENT_STAGING = 2;
+  ENVIRONMENT_PRODUCTION = 3;
+}
+
+enum TenantScope {
+  TENANT_SCOPE_UNSPECIFIED = 0;
+  TENANT_SCOPE_GLOBAL_PUBLIC = 1;
+  TENANT_SCOPE_TENANT_SCOPED = 2;
+  TENANT_SCOPE_CROSS_TENANT_OPERATOR = 3;
+}
+
+enum MfaFactor {
+  MFA_FACTOR_UNSPECIFIED = 0;
+  MFA_FACTOR_NONE = 1;
+  MFA_FACTOR_TOTP = 2;
+  MFA_FACTOR_WEBAUTHN = 3;
+}
+
+enum Provider {
+  PROVIDER_UNSPECIFIED = 0;
+  PROVIDER_OIDC = 1;
+  PROVIDER_SAML = 2;
+}
+
+// =========================================================================
+// Route
+// =========================================================================
+
+message ResolveRouteRequest {
+  string path = 1;
+}
+
+message RouteResolveResponse {
+  string route = 1;
+  TenantScope tenant_scope = 2;
+  repeated string required_roles = 3;
+  string pack_residency = 4;
+  bool admin_scope = 5;
+  string csp_module_id = 6;
+  MfaFactor required_mfa = 7;
+}
+
+message RouteAccessDenied {
+  string event_id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  string path = 4;
+  string reason = 5;
+  google.protobuf.Timestamp denied_at = 6;
+  string pack = 7;
+}
+
+message StreamRouteAccessDeniedRequest {
+  string pack = 1;
+  string since = 2;  // RFC 3339 timestamp
+}
+
+// =========================================================================
+// Session
+// =========================================================================
+
+message Session {
+  string session_id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  google.protobuf.Timestamp started_at = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  MfaFactor mfa_factor = 6;
+  string ip_address = 7;
+  string user_agent = 8;
+  Provider provider = 9;
+}
+
+// =========================================================================
+// Module + Bundle
+// =========================================================================
+
+message ModuleManifest {
+  string module = 1;
+  string version = 2;
+  string sri_hash = 3;  // sha384-<base64>
+  string signer_key_id = 4;
+  string signature = 5;  // detached Ed25519 over canonical CBOR; base64url
+  repeated RouteResolveResponse routes = 6;
+  string bundle_url = 7;
+  google.protobuf.Timestamp published_at = 8;
+}
+
+message GetModuleManifestRequest {
+  string module = 1;
+}
+
+message PublishModuleManifestRequest {
+  ModuleManifest manifest = 1;
+}
+
+message BundleVersionPointer {
+  Environment environment = 1;
+  string active_sha = 2;
+  string prior_sha = 3;
+  google.protobuf.Timestamp promoted_at = 4;
+}
+
+message GetBundlePointerRequest {
+  string module = 1;
+  Environment environment = 2;
+}
+
+// =========================================================================
+// CDN
+// =========================================================================
+
+message PurgeCdnRequest {
+  string pack = 1;
+  string pattern = 2;
+  string reason = 3;
+}
+
+message PurgeCdnResponse {
+  string job_id = 1;
+  google.protobuf.Timestamp accepted_at = 2;
+}

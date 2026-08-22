@@ -18,16 +18,16 @@ Pluggable `HrisAdapter` trait + concrete adapters for the three most-requested n
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-hris-adapter-kernel/Cargo.toml` | trait + types |
-| `crates/oya-identity-hris-adapter-kernel/src/lib.rs` | `HrisAdapter` + `HrisHire` + `HrisChange` + `HrisTermination` |
-| `crates/oya-identity-hris-adapter-workday/Cargo.toml` | Workday adapter |
-| `crates/oya-identity-hris-adapter-workday/src/lib.rs` | SOAP client; Workday-XML → internal types |
-| `crates/oya-identity-hris-adapter-bamboohr/Cargo.toml` | BambooHR adapter |
-| `crates/oya-identity-hris-adapter-bamboohr/src/lib.rs` | REST + OAuth2 client |
-| `crates/oya-identity-hris-adapter-rippling/Cargo.toml` | Rippling adapter |
-| `crates/oya-identity-hris-adapter-rippling/src/lib.rs` | REST + OAuth2 client |
-| `crates/oya-identity-hris-adapter-worker/Cargo.toml` | tokio poller |
-| `crates/oya-identity-hris-adapter-worker/src/lib.rs` | scheduler + DLQ + reconciliation job |
+| `crates/identity-hris-adapter-kernel/Cargo.toml` | trait + types |
+| `crates/identity-hris-adapter-kernel/src/lib.rs` | `HrisAdapter` + `HrisHire` + `HrisChange` + `HrisTermination` |
+| `crates/identity-hris-adapter-workday/Cargo.toml` | Workday adapter |
+| `crates/identity-hris-adapter-workday/src/lib.rs` | SOAP client; Workday-XML → internal types |
+| `crates/identity-hris-adapter-bamboohr/Cargo.toml` | BambooHR adapter |
+| `crates/identity-hris-adapter-bamboohr/src/lib.rs` | REST + OAuth2 client |
+| `crates/identity-hris-adapter-rippling/Cargo.toml` | Rippling adapter |
+| `crates/identity-hris-adapter-rippling/src/lib.rs` | REST + OAuth2 client |
+| `crates/identity-hris-adapter-worker/Cargo.toml` | tokio poller |
+| `crates/identity-hris-adapter-worker/src/lib.rs` | scheduler + DLQ + reconciliation job |
 
 ## Adapter contract
 

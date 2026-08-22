@@ -43,7 +43,7 @@ use ci_affected_target_set::{
 const GITHUB_CLASS_DIR: &str = ".github";
 
 /// A representative `.github` path used to interrogate the SHIPPED policy end to end.
-const PROBE_PATH: &str = ".github/workflows/oya-ci-required.yml";
+const PROBE_PATH: &str = ".github/workflows/presubmit.yml";
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
 /// `specs/root-hub-pointers.json`). Same anchor the gate tests under `ci/facade/` use, so this
@@ -220,7 +220,7 @@ impl TestDir {
             .expect("clock after Unix epoch")
             .as_nanos();
         let path = std::env::temp_dir().join(format!(
-            "oya-github-consumer-{label}-{}-{nonce}",
+            "github-consumer-{label}-{}-{nonce}",
             std::process::id()
         ));
         fs::create_dir_all(&path).expect("create test directory");
@@ -256,7 +256,7 @@ fn an_undeclared_new_consumer_is_detected() {
     );
     dir.write(
         "ci/facade/newcomer/tests/newcomer.rs",
-        "fn main() { let _ = root.join(\".github/workflows/oya-ci-required.yml\"); }\n",
+        "fn main() { let _ = root.join(\".github/workflows/presubmit.yml\"); }\n",
     );
 
     let found =
@@ -293,7 +293,7 @@ fn non_consumers_are_not_surfaced() {
     );
     dir.write(
         "ci/facade/prose/src/lib.rs",
-        "//! Replaces the inline shell in `.github/workflows/oya-ci-required.yml`.\n",
+        "//! Replaces the inline shell in `.github/workflows/presubmit.yml`.\n",
     );
 
     // 3. No enclosing buildfile: not a buck2 package at all, so it has no target to seed.

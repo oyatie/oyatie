@@ -38,7 +38,7 @@ pub(crate) fn validate_rust_pin_alignment(
         findings.insert(Finding::new(
             "DEP-AUTO-RUST-PIN-DRIFT",
             "rust-toolchain.toml",
-            format!("toolchain.channel must equal oya-deps rust.pin {pin}"),
+            format!("toolchain.channel must equal deps rust.pin {pin}"),
         ));
     }
 

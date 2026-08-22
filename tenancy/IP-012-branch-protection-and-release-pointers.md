@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-012-branch-protection-and-release-pointers
 status: pending
 owner: ops-sre-reliability
-acceptance_lanes: [oya-governance-protection-context-match]
+acceptance_lanes: [governance-protection-context-match]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -32,11 +32,11 @@ branches:
   dev:
     required_status_checks:
       # existing...
-      - oya-governance-rls-no-superuser-bypass        # NEW
-      - oya-governance-rls-force-on-tenant-tables     # NEW
-      - oya-governance-jwt-key-fingerprint-advertised # NEW
-      - oya-governance-tenancy-residency-conformance  # NEW
-      - oya-governance-tenancy-cedar-coverage         # NEW
+      - governance-rls-no-superuser-bypass        # NEW
+      - governance-rls-force-on-tenant-tables     # NEW
+      - governance-jwt-key-fingerprint-advertised # NEW
+      - governance-tenancy-residency-conformance  # NEW
+      - governance-tenancy-cedar-coverage         # NEW
 
   ? release/tenancy/staging
   :
@@ -45,9 +45,9 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     required_status_checks:
-      - oya-governance-promotion-readiness
-      - oya-governance-rls-no-superuser-bypass
-      - oya-governance-rls-force-on-tenant-tables
+      - governance-promotion-readiness
+      - governance-rls-no-superuser-bypass
+      - governance-rls-force-on-tenant-tables
 
   ? release/tenancy/production
   :
@@ -57,7 +57,7 @@ branches:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate protection-context-match
+cargo run -p dev-cli -- gate validate protection-context-match
 gh api repos/jason931225/oyatie/branches?protected=true | jq '.[].name'
 ```
 

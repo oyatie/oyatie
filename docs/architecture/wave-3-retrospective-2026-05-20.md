@@ -1365,7 +1365,7 @@ Question 3: Which services are the first Rust scaffold batch?
 Question 4: Should ERP services get runtime scaffolds before B2B leader services?
 Question 5: Should marketplace and workplace-integration be treated as P0 because earlier audits showed low artifact counts?
 Question 6: Which CI gate crate owns the six-hop graph walker?
-Question 7: Should the six-hop walker live under tools, crates, or oya-dev-cli?
+Question 7: Should the six-hop walker live under tools, crates, or dev-cli?
 Question 8: What is the authoritative schema for per-microservice ADRs?
 Question 9: Should per-microservice ADRs use local numbering only, or should they register in a global ADR index?
 Question 10: How should ADR amendments be numbered to avoid duplicate root ADR IDs?

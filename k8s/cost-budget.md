@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the cloud-k8s µservice's monthly cloud cost across compute + storage + network + KMS + load balancer + IP allocation, per cluster component, per pack region; surface budget breach via the `oya-check-cost-budget` LEAN lane.
+Track the cloud-k8s µservice's monthly cloud cost across compute + storage + network + KMS + load balancer + IP allocation, per cluster component, per pack region; surface budget breach via the `check-cost-budget` LEAN lane.
 
 ## Cost Categories
 
@@ -118,7 +118,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice cloud-k8s` — exit 0; current spend within 110%.
+- `cargo run -p dev-cli -- gate validate cost-budget --microservice cloud-k8s` — exit 0; current spend within 110%.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh.
 

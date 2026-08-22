@@ -28,7 +28,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: oya-storage
+  name: storage
   labels:
     oya.io/cell: storage
     pod-security.kubernetes.io/enforce: restricted
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: seaweedfs-data
-  namespace: oya-storage
+  namespace: storage
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: local-path
@@ -51,7 +51,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: seaweedfs
-  namespace: oya-storage
+  namespace: storage
   labels:
     app: seaweedfs
     oya.adr/decided-by: ADR-0349
@@ -220,7 +220,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: seaweedfs-bucket-api-ingress
-  namespace: oya-storage
+  namespace: storage
 spec:
   podSelector:
     matchLabels:
@@ -252,7 +252,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seaweedfs-master
-  namespace: oya-storage
+  namespace: storage
 spec:
   selector:
     app: seaweedfs
@@ -262,7 +262,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seaweedfs-volume
-  namespace: oya-storage
+  namespace: storage
 spec:
   selector:
     app: seaweedfs
@@ -272,7 +272,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seaweedfs-filer
-  namespace: oya-storage
+  namespace: storage
 spec:
   selector:
     app: seaweedfs
@@ -280,7 +280,7 @@ spec:
 ---
 # Primary consumer surface: the object-bucket API for BuildKit cache, sccache,
 # artifact storage. Address:
-#   seaweedfs-bucket-api.oya-storage.svc.cluster.local:8333
+#   seaweedfs-bucket-api.storage.svc.cluster.local:8333
 # The wire protocol is the industry-standard object-bucket API (consumed
 # unchanged by sccache + BuildKit). We name OUR Service for the substrate
 # role it plays (bucket-api on SeaweedFS), not for the AWS product whose name
@@ -290,7 +290,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seaweedfs-bucket-api
-  namespace: oya-storage
+  namespace: storage
   labels:
     oya.surface/object-bucket-api: "true"
 spec:

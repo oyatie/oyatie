@@ -11,7 +11,7 @@
       "higher": 329
     },
     {
-      "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+      "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md",
       "adr": 358,
       "action": "status\u2192Superseded",
       "from": "Proposed",

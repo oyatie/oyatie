@@ -437,7 +437,7 @@ const fn encryption_label(mode: EncryptionMode) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
     use storage_domain::{
         CloudStorageError, ResidencyClass, StorageProviderBlockCreateVolumeRequest,
         VolumePerformance,

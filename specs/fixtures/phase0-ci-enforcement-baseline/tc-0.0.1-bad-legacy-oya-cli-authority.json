@@ -13,23 +13,23 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-verify"
+      "verify"
     ],
     "strict": false
   },
   "expected_verdict": "RED",
   "expected_violations": [
     "missing_cloud_ci_required_context",
-    "legacy_oya_cli_required_context",
+    "legacy_cli_required_context",
     "untrusted_or_legacy_status_producer",
     "candidate_bytes_can_weaken_gate",
     "candidate_sourced_gate_definition"
   ],
-  "fixture_id": "TC-0.0.1-BAD-legacy-oya-cli-authority",
+  "fixture_id": "TC-0.0.1-BAD-legacy-cli-authority",
   "producer_contract": {
     "candidate_bytes_policy": "may_execute_candidate_repository_code",
     "command": "./bin/oya verify --ci-required",
-    "context": "oya-verify",
+    "context": "verify",
     "kind": "legacy_local_cli"
   },
   "purpose": "Proves a protected-branch required context mapped to a legacy oya CLI invocation is not accepted as merge or Phase-0 exit authority.",

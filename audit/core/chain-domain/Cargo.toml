@@ -12,7 +12,7 @@ license = "Apache-2.0"
 [dependencies]
 ed25519-dalek = "2"
 sha2 = "0.10"
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
 
 [lib]
 name = "audit_chain_domain"

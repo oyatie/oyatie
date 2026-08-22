@@ -6,7 +6,7 @@
     {"crate": "ring", "reason": "ADR-0506 forbids ring as a crypto backend; aws-lc-rs is the single canonical Phase-1 backend. ring must never be ACTIVATED (compiled) in the local Buck graph.", "mandated_replacement": "aws-lc-rs"}
   ],
   "mandated": [
-    {"crate": "aws-lc-rs", "reason": "ADR-0506 canonical Phase-1 crypto backend (oya-crypto is the Tier-4 bespoke destination)."}
+    {"crate": "aws-lc-rs", "reason": "ADR-0506 canonical Phase-1 crypto backend (crypto is the Tier-4 bespoke destination)."}
   ],
   "min_expected_workspace_packages": 1,
   "product_contract": {

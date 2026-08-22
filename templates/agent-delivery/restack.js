@@ -149,8 +149,8 @@ FRESH-WORKTREE RECIPE, measured cost 8m25s cold sweep plus roughly 15 minutes of
 worktree has NO materialized generated faces, so most gates fail on absence and diagnose themselves
 ("this gate reads the materialized tracked-path face ... absent in a clean worktree"). The standard
 invocation is NOT sufficient on its own:
-    buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .
-    buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base $(git rev-parse HEAD)
+    buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root .
+    buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base $(git rev-parse HEAD)
 The second is required for cross-artifact-agreement's event-tuple face; without it you get a single
 failure at 72/73 that reads exactly like a real defect.
 

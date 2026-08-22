@@ -18,9 +18,9 @@ pgbackrest:
   repo:
     type: s3
     s3:
-      endpoint: "http://oya-cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333"
-      bucket: "oya-backup-postgres-shared-prod"
-      region: oya-on-prem
+      endpoint: "http://cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333"
+      bucket: "backup-postgres-shared-prod"
+      region: on-prem
       uriStyle: path
       accessKeyRef: "openbao://secret/cloud-iac/pgbackrest/s3-access-key"
       secretKeyRef: "openbao://secret/cloud-iac/pgbackrest/s3-secret-key"
@@ -59,7 +59,7 @@ microservice: cloud-iac
 boundedContext: backup-postgres
 tier: M
 plane: data
-partOf: oya-cloud-iac
+partOf: cloud-iac
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:
@@ -67,5 +67,5 @@ costAttribution:
   workloadClass: "batch"
 
 # ---- canonical helm library ----
-oya-helpers:
+helpers:
   enabled: true

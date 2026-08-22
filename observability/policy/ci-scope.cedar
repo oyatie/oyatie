@@ -1,7 +1,7 @@
 // observability µservice — CI-scope policy fragment
 // Cedar v4
 //
-// Purpose: scope the oya-ci reserved tenant's access to promotion-readiness queries only;
+// Purpose: scope the ci reserved tenant's access to promotion-readiness queries only;
 //          forbid reads of customer-tenant per-series data.
 // Owner:   axis-foundry + axis-observability + ops-security
 // References: tenant-isolation.md §"Reserved tenant IDs", §"Invariant TI-06"
@@ -21,24 +21,24 @@ forbid (
 // PERMIT 1 — CI lane reads promotion-eligibility verdicts only
 // =============================================================================
 //
-// The oya-governance-promotion-readiness CI lane (running as principal Service::"oya-ci")
-// may read the aggregated verdict metrics from the oya-aggregate or oya-ci
+// The governance-promotion-readiness CI lane (running as principal Service::"ci")
+// may read the aggregated verdict metrics from the aggregate or ci
 // reserved tenants. It MAY NOT read customer-tenant per-series data.
 
 permit (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action == Action::"read_metrics",
   resource in MetricSeries::?m
 )
 when {
   resource has metric_name &&
   (
-    resource.metric_name like "oya_promotion_*" ||
+    resource.metric_name like "promotion_*" ||
     resource.metric_name == "oya:current_verdict:by_microservice_env" ||
     resource.metric_name == "oya:all_eligible:by_sha"
   ) &&
   resource has tenant_id &&
-  resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate", "tenant:oya-self"]
+  resource.tenant_id in ["tenant:ci", "tenant:aggregate", "tenant:self"]
 };
 
 // =============================================================================
@@ -46,7 +46,7 @@ when {
 // =============================================================================
 //
 // The worker (SPIFFE: spiffe://oyatie/observability/slo-engine-worker)
-// is the sole authorised writer of oya_promotion_* metrics into tenant:oya-ci.
+// is the sole authorised writer of promotion_* metrics into tenant:ci.
 
 permit (
   principal == Service::"slo-engine-worker",
@@ -55,13 +55,13 @@ permit (
 )
 when {
   resource has metric_name &&
-  resource.metric_name like "oya_promotion_*" &&
+  resource.metric_name like "promotion_*" &&
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-ci"
+  resource.tenant_id == "tenant:ci"
 };
 
 // =============================================================================
-// PERMIT 3 — slo-engine-worker emits to oya-self for self-observability
+// PERMIT 3 — slo-engine-worker emits to self for self-observability
 // =============================================================================
 
 permit (
@@ -71,7 +71,7 @@ permit (
 )
 when {
   resource has tenant_id &&
-  resource.tenant_id == "tenant:oya-self"
+  resource.tenant_id == "tenant:self"
 };
 
 // =============================================================================
@@ -79,13 +79,13 @@ when {
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action,
   resource in MetricSeries::?m
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate", "tenant:oya-self"])
+  !(resource.tenant_id in ["tenant:ci", "tenant:aggregate", "tenant:self"])
 };
 
 // =============================================================================
@@ -93,13 +93,13 @@ when {
 // =============================================================================
 
 forbid (
-  principal == Service::"oya-ci",
+  principal == Service::"ci",
   action in [Action::"write_metrics", Action::"write_logs", Action::"write_traces"],
   resource
 )
 unless {
   resource has tenant_id &&
-  resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate"]
+  resource.tenant_id in ["tenant:ci", "tenant:aggregate"]
 };
 
 // =============================================================================
@@ -117,5 +117,5 @@ forbid (
 )
 when {
   resource has tenant_id &&
-  !(resource.tenant_id in ["tenant:oya-ci", "tenant:oya-aggregate", "tenant:oya-self"])
+  !(resource.tenant_id in ["tenant:ci", "tenant:aggregate", "tenant:self"])
 };

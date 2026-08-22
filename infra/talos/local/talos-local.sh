@@ -45,7 +45,7 @@ set -euo pipefail
 # ── constants ────────────────────────────────────────────────────────────────
 TALOS_VERSION="${TALOS_VERSION:-v1.13.3}"          # Talos OS version (arm64)
 K8S_VERSION="${K8S_VERSION:-1.36.1}"               # Kubernetes version
-CLUSTER="${CLUSTER:-oya-local}"
+CLUSTER="${CLUSTER:-local}"
 # Image Factory schematic with the Kata Containers extension baked in (matches the
 # fleet's kataInstallerImage). arm64 metal raw image for the vz backend.
 SCHEMATIC_ID="${SCHEMATIC_ID:-3da7f440f279f4814fa73bdf83c84710a8e93c40a4a3cbba4d969f14afb96298}"

@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every shipped binary has a Syft-generated SBOM attached as a release artifact.
 - enforces: hyperscaler-best-practices spec — every binary ships SBOM via Syft.
-- kernel_crate: `oya-governance-sbom-attestation-kernel` — `BinaryArtifact { binary, sbom_path, sbom_format }`, verdict `SbomAttestationFitnessReport { binaries_checked }`.
-- runner_path: `tools/oya-governance-sbom-attestation`
+- kernel_crate: `governance-sbom-attestation-kernel` — `BinaryArtifact { binary, sbom_path, sbom_format }`, verdict `SbomAttestationFitnessReport { binaries_checked }`.
+- runner_path: `tools/governance-sbom-attestation`
 - inputs: release artifact manifest, SBOM file index.
 - failure_modes:
   - binary published with no SBOM
   - SBOM not in SPDX or CycloneDX format
   - SBOM path unresolved
-- ci_invocation: `cargo run -p oya-governance-sbom-attestation`
+- ci_invocation: `cargo run -p governance-sbom-attestation`
 - runtime_budget: 1500 ms
 - severity: HIGH
 - kernel_sketch:

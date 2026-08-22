@@ -1,9 +1,9 @@
 //! Acceptance tests for the attribution composition root, grounded in the
 //! vertical slice's actual behaviors:
-//! - `oya-intelligence-attribution-kernel::plan_attribution`
-//! - `oya-intelligence-attribution-domain::plan_domain_attribution`
-//! - `oya-intelligence-attribution-usecase::IntelligenceAttributionUsecase::plan`
-//! - `oya-intelligence-attribution-adapter::IntelligenceAttributionAdapter::dispatch`
+//! - `intelligence-attribution-kernel::plan_attribution`
+//! - `intelligence-attribution-domain::plan_domain_attribution`
+//! - `intelligence-attribution-usecase::IntelligenceAttributionUsecase::plan`
+//! - `intelligence-attribution-adapter::IntelligenceAttributionAdapter::dispatch`
 //!
 //! These drive the FULL flow through the REAL kernel/domain/usecase pipeline
 //! plus the REAL renderer adapter. There are NO stubs for those layers. The

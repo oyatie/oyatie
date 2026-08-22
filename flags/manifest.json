@@ -13,15 +13,15 @@
   "owner": "axis-governance",
   "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting. Consumed by all 46+ µservices as shared substrate per ADR-0245.",
   "substrate_dependencies": [
-    "oya-shared-policy-eval",
-    "oya-shared-hlc",
-    "oya-shared-tenant-context",
-    "oya-shared-audit-emitter",
-    "oya-shared-otel",
-    "oya-shared-step-up-auth",
-    "oya-shared-kafka-producer",
-    "oya-shared-clickhouse-client",
-    "oya-shared-citus-client"
+    "shared-policy-eval",
+    "shared-hlc",
+    "shared-tenant-context",
+    "shared-audit-emitter",
+    "shared-otel",
+    "shared-step-up-auth",
+    "shared-kafka-producer",
+    "shared-clickhouse-client",
+    "shared-citus-client"
   ],
   "adrs": [
     {
@@ -498,21 +498,21 @@
     }
   ],
   "catalog_records": [
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-domain.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-usecase.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-adapter-postgres.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-app.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-rest.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-targeting-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-experiment-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-killswitch-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-rollout-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-metric-kernel.yaml"
+    "microservices/feature-flags/catalog/feature-flags-flag-kernel.yaml",
+    "microservices/feature-flags/catalog/feature-flags-flag-domain.yaml",
+    "microservices/feature-flags/catalog/feature-flags-flag-usecase.yaml",
+    "microservices/feature-flags/catalog/feature-flags-flag-adapter-postgres.yaml",
+    "microservices/feature-flags/catalog/feature-flags-flag-app.yaml",
+    "microservices/feature-flags/catalog/feature-flags-flag-rest.yaml",
+    "microservices/feature-flags/catalog/feature-flags-targeting-kernel.yaml",
+    "microservices/feature-flags/catalog/feature-flags-experiment-kernel.yaml",
+    "microservices/feature-flags/catalog/feature-flags-killswitch-kernel.yaml",
+    "microservices/feature-flags/catalog/feature-flags-rollout-kernel.yaml",
+    "microservices/feature-flags/catalog/feature-flags-metric-kernel.yaml"
   ],
   "naming_justifications": {
     "microservice": "feature-flags — single-concern substrate per ADR-0132 no-grouping policy; hyphen-separated per BNF v4.1",
-    "crate_pattern": "oya-feature-flags-<bc>-<layer> per ADR-0105 13-layer enum; BC values: flag, targeting, experiment, metric, rollout, killswitch",
+    "crate_pattern": "feature-flags-<bc>-<layer> per ADR-0105 13-layer enum; BC values: flag, targeting, experiment, metric, rollout, killswitch",
     "kafka_topics": "oya.feature-flags.<event-class> — dot-separated namespace; snake_case event class per ADR-0263",
     "cedar_fragments": "policy/<capability>-<action>-authorization.cedar — kebab-case; action-scoped per ADR-0183"
   },

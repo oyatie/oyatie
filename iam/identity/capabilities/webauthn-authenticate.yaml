@@ -48,7 +48,7 @@ outputs:
     type: bytes
 
 slo_targets:
-  - oya-identity-webauthn-authenticate-latency
+  - identity-webauthn-authenticate-latency
 
 audit_events_emitted:
   - IdentitySignInSucceeded

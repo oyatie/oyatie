@@ -5,7 +5,7 @@ status: Proposed
 date: 2026-05-21
 authority_tier: 2
 length_cap: 3200
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 purpose: |
   Month-one onboarding expanding from doctrine into substrate microservices, capability-tier authoring, journey contribution, incident shadowing, and first sole-ownership slice.
 related_adrs:

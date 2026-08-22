@@ -25,12 +25,12 @@ Six new crates: kernel, domain, usecase, api, adapter, app. Single deployment bi
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-openbao-operator-kernel/` | create — `OpenBaoCluster`, `UnsealState`, `RaftPeer`, `UpgradePlan` |
-| `…/oya-cloud-secrets-openbao-operator-domain/` | create — pure Raft-peer + unseal-quorum arithmetic |
-| `…/oya-cloud-secrets-openbao-operator-usecase/` | create — Reconcile<OpenBaoCluster> |
-| `…/oya-cloud-secrets-openbao-operator-api/` | create — CRD types |
-| `…/oya-cloud-secrets-openbao-operator-adapter/` | create — kube-rs CRD watcher; Helm-template emission |
-| `…/oya-cloud-secrets-openbao-operator-app/` | create — controller binary |
+| `…/cloud-secrets-openbao-operator-kernel/` | create — `OpenBaoCluster`, `UnsealState`, `RaftPeer`, `UpgradePlan` |
+| `…/cloud-secrets-openbao-operator-domain/` | create — pure Raft-peer + unseal-quorum arithmetic |
+| `…/cloud-secrets-openbao-operator-usecase/` | create — Reconcile<OpenBaoCluster> |
+| `…/cloud-secrets-openbao-operator-api/` | create — CRD types |
+| `…/cloud-secrets-openbao-operator-adapter/` | create — kube-rs CRD watcher; Helm-template emission |
+| `…/cloud-secrets-openbao-operator-app/` | create — controller binary |
 | 6× catalog yamls | create |
 
 ## CRD
@@ -62,11 +62,11 @@ status:
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-openbao-operator-*'
+cargo nextest run -p 'cloud-secrets-openbao-operator-*'
 # kind cluster e2e
 kind create cluster --name cs-test
 kubectl apply -f microservices/cloud-secrets/tests/e2e/cluster-fixtures/
-cargo run -p oya-cloud-secrets-openbao-operator-app
+cargo run -p cloud-secrets-openbao-operator-app
 # verify cluster reaches healthy within 5 min
 ```
 
@@ -92,7 +92,7 @@ OpenBao must be a managed substrate, not a one-off install. Manual cluster lifec
 Build a kube-rs operator over the declared `openbao-operator` crate family. The operator reconciles OpenBao clusters, drives Helm/Kustomize output, performs HSM-backed unseal, watches Raft membership, and reports readiness to authority and SLO gates.
 
 ### C. Deliverables
-- `oya-cloud-secrets-openbao-operator-{kernel,domain,usecase,api,adapter,app}`.
+- `cloud-secrets-openbao-operator-{kernel,domain,usecase,api,adapter,app}`.
 - CRD `OpenBaoCluster` and Kubernetes manifests under `iac/helm/openbao` and `iac/kustomize`.
 - Catalog files for the operator crate family.
 - Runbook evidence in `runbooks/openbao-restart.md` and `runbooks/namespace-controller-restart.md`.
@@ -108,13 +108,13 @@ Build a kube-rs operator over the declared `openbao-operator` crate family. The 
 7. Register operator health and SLO burn signals with observability.
 
 ### E. Acceptance
-- `cargo nextest run -p 'oya-cloud-secrets-openbao-operator-*'`.
+- `cargo nextest run -p 'cloud-secrets-openbao-operator-*'`.
 - kind cluster e2e reaches Ready within the stated window.
 - Reconcile is idempotent across restarts and partial Kubernetes failures.
 - HSM unseal cannot fall back to software keys in regulated packs.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-07, `PHASE-01-OPENBAO-SECRETREFERENCE-SUBSTRATE.md`, `manifest.json`, `catalog/oya-cloud-secrets-openbao-operator-*.yaml`, `multi-region.md`, `policy/data-residency.md`, and `runbooks/openbao-restart.md`.
+Evidence anchors are `PRD.md` FR-07, `PHASE-01-OPENBAO-SECRETREFERENCE-SUBSTRATE.md`, `manifest.json`, `catalog/cloud-secrets-openbao-operator-*.yaml`, `multi-region.md`, `policy/data-residency.md`, and `runbooks/openbao-restart.md`.
 
 ### G. Counterpart Comparison
 HashiCorp Vault Enterprise has mature Raft and operational tooling; managed AWS/GCP/Azure secret stores hide lifecycle behind vendor control planes. Oyatie's parity gap is operational maturity, and this IP closes it by making OpenBao lifecycle explicit, Kubernetes-native, pack-resident, and auditable.

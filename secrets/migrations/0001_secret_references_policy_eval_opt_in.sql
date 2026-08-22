@@ -25,7 +25,7 @@
 --
 --   policy_evaluation_network_opt_in_reasons TEXT[] (default '{}')
 --     Human-readable + machine-parseable justification codes declaring WHY the opt-in
---     is required. CI lane oya-check-library-first-credential-sidecar (per ADR-0296)
+--     is required. CI lane check-library-first-credential-sidecar (per ADR-0296)
 --     rejects any SecretReference row with opt_in=TRUE and an empty reasons array.
 --     Canonical reason codes (open enum; register new codes in
 --     microservices/cloud-secrets/policy/opt-in-reasons.yaml):
@@ -48,7 +48,7 @@ COMMENT ON COLUMN cloud_secrets.secret_references.policy_evaluation_network_opt_
     'Per ADR-0246-amendment §D-2 + ADR-0257-amendment §D-2. Requires non-empty reasons array.';
 
 COMMENT ON COLUMN cloud_secrets.secret_references.policy_evaluation_network_opt_in_reasons IS
-    'Justification codes for the network opt-in. CI lane oya-check-library-first-credential-sidecar '
+    'Justification codes for the network opt-in. CI lane check-library-first-credential-sidecar '
     'rejects opt_in=TRUE with empty reasons. Canonical codes in policy/opt-in-reasons.yaml. '
     'Per ADR-0296 §D-3 + ADR-0246-amendment §D-2.';
 
@@ -59,7 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_secret_references_policy_eval_opt_in
     WHERE policy_evaluation_network_opt_in = TRUE;
 
 -- Constraint: network opt-in TRUE requires at least one reason code.
--- Enforced at application layer too (oya-check-library-first-credential-sidecar CI lane),
+-- Enforced at application layer too (check-library-first-credential-sidecar CI lane),
 -- but belt-and-suspenders at the DB layer prevents silent opt-in with empty reasons.
 ALTER TABLE cloud_secrets.secret_references
     ADD CONSTRAINT chk_secret_references_opt_in_reasons

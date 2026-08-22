@@ -40,8 +40,8 @@
     "schema errors include stable machine code plus actionable remediation"
   ],
   "test_refs": [
-    "crates/oya-saas-workflow-studio-app/tests/node_config.rs::test_error_summary_focus",
-    "crates/oya-saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"
+    "crates/saas-workflow-studio-app/tests/node_config.rs::test_error_summary_focus",
+    "crates/saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"
   ],
   "consumers": [
     "$ref:specs/microservices/workflow-studio.json#frontend_components"

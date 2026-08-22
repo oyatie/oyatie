@@ -4,7 +4,7 @@
   "status": "binding",
   "authority": "ADR-0711 Amendment A-2 + D-5; specs/integ-branch-envelopes.json#merge_windows",
   "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
-  "script": "//ci/process-kit:oya-process-kit-check-daemon",
+  "script": "//ci/process-kit:process-kit-check-daemon",
   "daemon": "ci/process-kit/src/bin/check_daemon.rs",
   "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
   "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
@@ -27,7 +27,7 @@
     "forbidden": [
       "treating LSP diagnostics as merge authority",
       "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
-      "equating rust-analyzer with check-daemon or oya-ci-required"
+      "equating rust-analyzer with check-daemon or presubmit"
     ],
     "note": "LSP read-only \u2260 build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
   },
@@ -35,7 +35,7 @@
     "ci/process-kit lib refuses SWARM_BLESSED_PUSH inherit + GIT_REAL retarget",
     "ci/process-kit git_shim refuse_no_verify + toolguard worker deny",
     "ci/process-kit check-daemon stub requires SWARM_ORCHESTRATOR=1",
-    "buck2 test //ci/process-kit:oya-process-kit-unittest",
+    "buck2 test //ci/process-kit:process-kit-unittest",
     "integ/build workspace membership before claiming live hot-set"
   ],
   "overturn_when": [

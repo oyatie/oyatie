@@ -21,7 +21,7 @@ Define the SecretReference SDK that every oyatie µservice imports to consume se
 
 | Language | Crate / package | Binding | Status |
 |---|---|---|---|
-| Rust (canonical) | `oya-cloud-secrets-secret-reference-resolver-sdk` | native | M01 launch |
+| Rust (canonical) | `cloud-secrets-secret-reference-resolver-sdk` | native | M01 launch |
 | TypeScript | `@oyatie/cloud-secrets-sdk` | napi-rs (Rust core, Node binding) | M01 launch |
 | Python | `oyatie-cloud-secrets` | pyo3 (Rust core, Python binding) | M01 launch |
 | Go (future) | `github.com/oyatie/cloud-secrets-go` | cgo wrapping Rust core OR native gRPC | subsequent-to-M01-completion |
@@ -34,7 +34,7 @@ The Rust core is the canonical implementation; bindings ensure protocol fidelity
 ### Rust
 
 ```rust
-use oya_cloud_secrets_secret_reference_resolver_sdk::{
+use cloud_secrets_secret_reference_resolver_sdk::{
     SecretClient, SecretReference, Secret,
 };
 
@@ -114,7 +114,7 @@ with client.with_secret(secret_ref) as value:
 
 ## Required SDK Behaviour Contract
 
-Every SDK MUST honour the following contract; CI lane `oya-check-sdk-contract-conformance` validates against a reference test set.
+Every SDK MUST honour the following contract; CI lane `check-sdk-contract-conformance` validates against a reference test set.
 
 ### C-01: SecretReference URI parsing
 
@@ -176,7 +176,7 @@ When `Secret<T>` is dropped:
 - Semver: major.minor.patch.
 - LTS: every odd-minor (1.1, 1.3, 1.5, ...) is LTS for 6 months past next-odd-minor release.
 - Sunset window: 6 months between deprecation announcement and EOL.
-- CI lane `oya-check-sdk-version-pin` refuses any consumer crate pinning an SDK version > 1 minor behind current.
+- CI lane `check-sdk-version-pin` refuses any consumer crate pinning an SDK version > 1 minor behind current.
 
 ## Performance budget
 

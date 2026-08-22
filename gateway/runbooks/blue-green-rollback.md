@@ -28,7 +28,7 @@
    - Per IP-014 automated rollback primitive; emits the same swap with `--reason burnrate-auto`.
 3. **Verify traffic shift:**
    - `oyatie-bg-status` → `blue: 100%`.
-   - `oya_api_gateway_requests_total{version="green"}` rate drops to 0 within 60s.
+   - `api_gateway_requests_total{version="green"}` rate drops to 0 within 60s.
 4. **Monitor recovery:**
    - SLO `edge-availability` should recover within 5min.
    - Customer-facing latency should return to baseline.

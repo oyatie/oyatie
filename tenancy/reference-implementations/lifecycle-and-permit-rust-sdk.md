@@ -28,9 +28,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-oya-tenancy-client = { path = "../../../../crates/oya-tenancy-client" }
-oya-audit-chain-client = { path = "../../../../crates/oya-audit-chain-client" }
-oya-cedar-client = { path = "../../../../crates/oya-cedar-client" }
+tenancy-client = { path = "../../../../crates/tenancy-client" }
+audit-chain-client = { path = "../../../../crates/audit-chain-client" }
+cedar-client = { path = "../../../../crates/cedar-client" }
 tokio = { version = "1.40", features = ["rt-multi-thread", "macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -44,14 +44,14 @@ tracing-subscriber = "0.3"
 
 ```rust
 use anyhow::Result;
-use oya_tenancy_client::{
+use tenancy_client::{
     TenancyClient, TenancyClientConfig,
     TenantCreate, TenantKind, TenantTransitionCommand,
     RelationshipCreate, RelationshipType,
     PermitCreate, ActionNamespace, ResourceScope,
     LifecycleLockCreate, LifecycleLockType,
 };
-use oya_cedar_client::CedarPrincipal;
+use cedar_client::CedarPrincipal;
 use chrono::Utc;
 use tracing::info;
 
@@ -306,4 +306,4 @@ curl -X GET https://tenancy.prod-us-east-1.oyatie.local/v1/tenancy/tenants/acme-
 
 ## Where this file lives
 
-`microservices/tenancy/reference-implementations/lifecycle-and-permit-rust-sdk.md` (this file). The runnable Cargo project lands at `microservices/tenancy/reference-implementations/lifecycle-example/` once `oya-tenancy-client` ships.
+`microservices/tenancy/reference-implementations/lifecycle-and-permit-rust-sdk.md` (this file). The runnable Cargo project lands at `microservices/tenancy/reference-implementations/lifecycle-example/` once `tenancy-client` ships.

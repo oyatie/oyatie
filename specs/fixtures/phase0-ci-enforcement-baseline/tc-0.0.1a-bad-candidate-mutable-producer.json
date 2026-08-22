@@ -13,7 +13,7 @@
   },
   "branch_protection": {
     "required_contexts": [
-      "oya-ci-required"
+      "presubmit"
     ],
     "strict": false
   },
@@ -31,7 +31,7 @@
   "fixture_id": "TC-0.0.1a-BAD-candidate-mutable-producer",
   "producer_contract": {
     "candidate_bytes_policy": "trusted_for_gate_definition",
-    "context": "oya-ci-required",
+    "context": "presubmit",
     "gate_definition_source": "candidate_pr_bytes",
     "kind": "candidate_checkout_script"
   },

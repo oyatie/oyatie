@@ -4,7 +4,7 @@
 // Purpose: enforce per-tenant CRUD scope on tenant lifecycle + DSR + cell-assignment +
 //          RLS-policy reads served via tenant-lifecycle-rest, dsr-cascade-rest, SDK clients.
 // Owner:   ops-security + axis-tenancy
-// Audit:   every deny emits oya_tenancy_cedar_deny_total
+// Audit:   every deny emits tenancy_cedar_deny_total
 // References: rls-isolation.md §"Cedar Policy Enforcement"; threat-model.md T-S-02, T-E-03
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

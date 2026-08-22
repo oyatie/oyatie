@@ -20,7 +20,7 @@ fn codes(findings: &[Finding]) -> BTreeSet<FindingCode> {
 
 fn fixture_root() -> PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "oya-freshness-{}-{}",
+        "freshness-{}-{}",
         std::process::id(),
         COUNTER.fetch_add(1, Ordering::Relaxed)
     ));
@@ -32,12 +32,12 @@ fn fixture_root() -> PathBuf {
 #[test]
 fn lock_freshness_is_green_when_member_packages_match_sourceless_lock_entries() {
     let members = vec![
-        MemberPackage::new("libs/oya-alpha-kernel", "oya-alpha-kernel", "0.1.0"),
-        MemberPackage::new("tools/oya-beta-cli", "oya-beta-cli", "0.1.0"),
+        MemberPackage::new("libs/alpha-kernel", "alpha-kernel", "0.1.0"),
+        MemberPackage::new("tools/beta-cli", "beta-cli", "0.1.0"),
     ];
     let lock_packages = vec![
-        LockPackage::path("oya-alpha-kernel", "0.1.0"),
-        LockPackage::path("oya-beta-cli", "0.1.0"),
+        LockPackage::path("alpha-kernel", "0.1.0"),
+        LockPackage::path("beta-cli", "0.1.0"),
         LockPackage::external("serde", "1.0.0"),
     ];
 
@@ -47,8 +47,8 @@ fn lock_freshness_is_green_when_member_packages_match_sourceless_lock_entries() 
 #[test]
 fn lock_freshness_reports_missing_member_package() {
     let members = vec![MemberPackage::new(
-        "libs/oya-missing-kernel",
-        "oya-missing-kernel",
+        "libs/missing-kernel",
+        "missing-kernel",
         "0.1.0",
     )];
     let lock_packages = vec![];
@@ -59,17 +59,17 @@ fn lock_freshness_reports_missing_member_package() {
         codes(&findings),
         BTreeSet::from([FindingCode::LockMissingMemberPackage])
     );
-    assert_eq!(findings[0].key, "libs/oya-missing-kernel");
+    assert_eq!(findings[0].key, "libs/missing-kernel");
 }
 
 #[test]
 fn lock_freshness_reports_stale_member_version() {
     let members = vec![MemberPackage::new(
-        "libs/oya-stale-kernel",
-        "oya-stale-kernel",
+        "libs/stale-kernel",
+        "stale-kernel",
         "0.2.0",
     )];
-    let lock_packages = vec![LockPackage::path("oya-stale-kernel", "0.1.0")];
+    let lock_packages = vec![LockPackage::path("stale-kernel", "0.1.0")];
 
     let findings = evaluate_lock_freshness(&members, &lock_packages);
 
@@ -84,13 +84,13 @@ fn lock_freshness_reports_stale_member_version() {
 #[test]
 fn lock_freshness_reports_orphan_sourceless_lock_package() {
     let members = vec![MemberPackage::new(
-        "libs/oya-live-kernel",
-        "oya-live-kernel",
+        "libs/live-kernel",
+        "live-kernel",
         "0.1.0",
     )];
     let lock_packages = vec![
-        LockPackage::path("oya-live-kernel", "0.1.0"),
-        LockPackage::path("oya-orphan-kernel", "0.1.0"),
+        LockPackage::path("live-kernel", "0.1.0"),
+        LockPackage::path("orphan-kernel", "0.1.0"),
     ];
 
     let findings = evaluate_lock_freshness(&members, &lock_packages);
@@ -99,7 +99,7 @@ fn lock_freshness_reports_orphan_sourceless_lock_package() {
         codes(&findings),
         BTreeSet::from([FindingCode::LockOrphanPathPackage])
     );
-    assert_eq!(findings[0].key, "oya-orphan-kernel");
+    assert_eq!(findings[0].key, "orphan-kernel");
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn lock_parser_keeps_only_package_name_version_and_source_presence() {
 version = 4
 
 [[package]]
-name = "oya-alpha-kernel"
+name = "alpha-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -122,7 +122,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
     assert_eq!(
         packages,
         vec![
-            LockPackage::path("oya-alpha-kernel", "0.1.0"),
+            LockPackage::path("alpha-kernel", "0.1.0"),
             LockPackage::external("serde", "1.0.0"),
         ]
     );
@@ -423,16 +423,16 @@ fn remediation_includes_exact_sanctioned_commands() {
 fn member_manifest_parser_resolves_workspace_inherited_version() {
     let manifest = r#"
 [package]
-name = "oya-alpha-kernel"
+name = "alpha-kernel"
 version.workspace = true
 "#;
 
-    let package = parse_member_package_manifest("libs/oya-alpha-kernel", manifest, "0.7.0")
+    let package = parse_member_package_manifest("libs/alpha-kernel", manifest, "0.7.0")
         .expect("parse member package");
 
     assert_eq!(
         package,
-        MemberPackage::new("libs/oya-alpha-kernel", "oya-alpha-kernel", "0.7.0",)
+        MemberPackage::new("libs/alpha-kernel", "alpha-kernel", "0.7.0",)
     );
 }
 
@@ -455,7 +455,7 @@ fn rendered_findings_include_codes_keys_details_and_remediation() {
 #[test]
 fn repo_checker_combines_lock_and_face_findings() {
     let root = fixture_root();
-    std::fs::create_dir_all(root.join("libs/oya-alpha-kernel")).expect("create member");
+    std::fs::create_dir_all(root.join("libs/alpha-kernel")).expect("create member");
     std::fs::create_dir_all(root.join("ci/facade/artifact-inventory-registry"))
         .expect("create faces dir");
     std::fs::write(
@@ -471,10 +471,10 @@ version = "0.2.0"
     )
     .expect("write root manifest");
     std::fs::write(
-        root.join("libs/oya-alpha-kernel/Cargo.toml"),
+        root.join("libs/alpha-kernel/Cargo.toml"),
         r#"
 [package]
-name = "oya-alpha-kernel"
+name = "alpha-kernel"
 version.workspace = true
 "#,
     )
@@ -485,7 +485,7 @@ version.workspace = true
 version = 4
 
 [[package]]
-name = "oya-alpha-kernel"
+name = "alpha-kernel"
 version = "0.1.0"
 "#,
     )

@@ -46,7 +46,7 @@ Out of scope:
 
 ### §C.1 Phase-0 prospect signup
 
-1. Prospect lands on signup page (rendered by `oya-product-app-marketing`).
+1. Prospect lands on signup page (rendered by `product-app-marketing`).
 2. Submits email + organization name.
 3. tenancy µservice creates tenant: `tenant_id = ten_<ULID>` (or `demo_<ULID>` for demo_trial reserved-namespace per ADR-0244 §C-4).
 4. tenancy emits `tenant.created` event.
@@ -57,7 +57,7 @@ BillingAccountCreate {
   id: "ba_<tenant_short_id>",
   tenant_id: <tenant_id>,
   region: <prospect_region>,
-  regional_pack: "oya-pack-electronic-tax", // default — refined per locale
+  regional_pack: "pack-electronic-tax", // default — refined per locale
   payment_method: "pm_demo_trial_placeholder",
   credit_balance: Money { currency: "OYC", minor_units: 0 },
   state: BillingAccountState::Active,
@@ -238,7 +238,7 @@ The five-phase journey is summarized as a state machine:
 
 - All six Cedar fragments under `microservices/cloud-billing/policies/`.
 - proto3 ConvertTenantToPaid + MutateBillingComponents + IssueInvoice RPCs.
-- `oya-cloud-billing-domain::BillingAccount::new` (lines 530–551).
+- `cloud-billing-domain::BillingAccount::new` (lines 530–551).
 - IaC `microservices/cloud-billing/iac/oci-guest/always-free/` (demo_trial substrate).
 
 ### §F.2 ADR anchors

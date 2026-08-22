@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-observability-prometheus
+name: observability-prometheus
 description: Prometheus 3.x query path embedded by Mimir per ADR-0139 Layer-A; standalone Prometheus optional for ad-hoc per-cluster monitoring
 type: application
 version: 0.1.0

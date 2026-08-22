@@ -10,7 +10,7 @@
       "prefix": "tools/hooks/registration/"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under templates/agent-delivery/ (local bridge feedback only; merge authority remains oya-ci-required).",
+      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under templates/agent-delivery/ (local bridge feedback only; merge authority remains presubmit).",
       "prefix": "templates/agent-delivery/"
     },
     {
@@ -38,7 +38,7 @@
       "prefix": ".github/workflows/buck2-weekly-smoke.yml"
     },
     {
-      "anchor": "Phase0 dual-emit / naming_sweep: domain-stabilize workflow callable/entry surface under integ/ci; local bridge feedback only — merge authority remains oya-ci-required until PAUSE-AND-PAIR forever-name flip to merge-admission-required (ADR-0515).",
+      "anchor": "Phase0 dual-emit / naming_sweep: domain-stabilize workflow callable/entry surface under integ/ci; local bridge feedback only — merge authority remains presubmit until PAUSE-AND-PAIR forever-name flip to presubmit (ADR-0515).",
       "prefix": ".github/workflows/domain-stabilize.yml"
     },
     {
@@ -46,8 +46,8 @@
       "prefix": ".github/workflows/license-weekly-advisory.yml"
     },
     {
-      "anchor": "Forever merge-admission workflow filename + dual-emit public status string merge-admission-required (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
-      "prefix": ".github/workflows/merge-admission-required.yml"
+      "anchor": "Forever merge-admission workflow filename + dual-emit public status string presubmit (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
+      "prefix": ".github/workflows/presubmit.yml"
     },
     {
       "anchor": "ADR-0700 (CI admission live apex; preserves ADR-0139 agentic SLO-gated promotion): promotion PRs targeting staging/canary/production must use the predecessor rung as head (dev>staging>canary>production). Feature PRs stay against dev. uses-only workflow (no run: shell) so rust-first workflow_inline_shell does not grow.",
@@ -102,7 +102,7 @@
       "prefix": "cell/"
     },
     {
-      "anchor": "ADR-0527/ADR-0533: root ci.toml is the portable closed-schema CI policy (pipeline-as-product; formerly oya-ci.toml).",
+      "anchor": "ADR-0527/ADR-0533: root ci.toml is the portable closed-schema CI policy (pipeline-as-product; formerly ci.toml).",
       "prefix": "ci.toml"
     },
     {
@@ -198,12 +198,12 @@
       "prefix": "data/BUCK"
     },
     {
-      "anchor": "ADR-0565 zero-GraphQL owned API surface: the analytics contract catalog record, one of the two files ADR-0565 names verbatim (with oya-analytics-api.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/contracts.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
+      "anchor": "ADR-0565 zero-GraphQL owned API surface: the analytics contract catalog record, one of the two files ADR-0565 names verbatim (with analytics-api.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/contracts.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
       "prefix": "data/analytics/catalog/contracts.json"
     },
     {
-      "anchor": "ADR-0565 zero-GraphQL owned API surface: the oya-analytics-api catalog record, the second of the two files ADR-0565 names verbatim (with contracts.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/oya-analytics-api.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
-      "prefix": "data/analytics/catalog/oya-analytics-api.json"
+      "anchor": "ADR-0565 zero-GraphQL owned API surface: the analytics-api catalog record, the second of the two files ADR-0565 names verbatim (with contracts.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/analytics-api.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
+      "prefix": "data/analytics/catalog/analytics-api.json"
     },
     {
       "anchor": "ADR-0562 capability-root + oyatie-0s8 tip-free packet (PR #1654 plane): the data capability service manifest — microservice/tier/bounded-context descriptor for the registered data capability. Tip-free pre-register so integ/data can re-add the file after firewall REACHED clears; EXACT path, not a tree over data/analytics or data/ops prefixes already registered.",
@@ -218,7 +218,7 @@
       "prefix": "data/ops/"
     },
     {
-      "anchor": "ADR-0535 §5: root deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate (formerly oya-deps.toml).",
+      "anchor": "ADR-0535 §5: root deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate (formerly deps.toml).",
       "prefix": "deps.toml"
     },
     {
@@ -258,7 +258,7 @@
       "prefix": "docs/programs/g004-enforcement-debt/g004-enforcement-debt-mapping.md"
     },
     {
-      "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
+      "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live presubmit cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
       "prefix": "docs/programs/hyperscaler-delivery-lanes/"
     },
     {
@@ -414,7 +414,7 @@
       "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml"
     },
     {
-      "anchor": "ADR-0561 slice-1b-iii-c: the SVID-delivery operator's Helm RBAC template (Secret create/update/patch scoped to oya-cloud-iam-pdp-svid in the cloud-iam namespace), amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so each new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)",
+      "anchor": "ADR-0561 slice-1b-iii-c: the SVID-delivery operator's Helm RBAC template (Secret create/update/patch scoped to cloud-iam-pdp-svid in the cloud-iam namespace), amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so each new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)",
       "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml"
     },
     {
@@ -454,11 +454,11 @@
       "prefix": "iam/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
     },
     {
-      "anchor": "ADR-0562 §10.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention — all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old→new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir",
+      "anchor": "ADR-0562 §10.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention — all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old→new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir",
       "prefix": "iam/observability/slos/identity-workload-svid-kernel/"
     },
     {
-      "anchor": "ADR-0561 slice-1b-iii-c + ADR-0139 SLO-home: the in-cluster SVID-delivery operator's promotion-gating SLO subtree (the operator that PRODUCES the oya-cloud-iam-pdp-svid Secret the PDP mTLS PEP boots from — the single producer that closes the cert-delivery dimension of FRIC-1781490000 and unblocks G004). Per the ADR-0139 SLO-home convention this SLO is non-crate-resident (homed at <cap>/observability/slos/), so it is NOT reachable via cargo-members and needs an explicit reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact observability path verbatim. breadth: just this svid-operator SLO subdir",
+      "anchor": "ADR-0561 slice-1b-iii-c + ADR-0139 SLO-home: the in-cluster SVID-delivery operator's promotion-gating SLO subtree (the operator that PRODUCES the cloud-iam-pdp-svid Secret the PDP mTLS PEP boots from — the single producer that closes the cert-delivery dimension of FRIC-1781490000 and unblocks G004). Per the ADR-0139 SLO-home convention this SLO is non-crate-resident (homed at <cap>/observability/slos/), so it is NOT reachable via cargo-members and needs an explicit reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact observability path verbatim. breadth: just this svid-operator SLO subdir",
       "prefix": "iam/observability/slos/identity-workload-svid-operator-kernel/"
     },
     {
@@ -494,11 +494,11 @@
       "prefix": "infra/arc/live-postgres-admission-bootstrap.json"
     },
     {
-      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-network-policy Application: exact network-policy artifact consumed by GitOps before the wave-2 live PostgreSQL ARC runner Pods; it denies runner-cell ingress and denies shared-data egress for the dedicated and general ARC cell labels. breadth: exact path only",
+      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml live-postgres-network-policy Application: exact network-policy artifact consumed by GitOps before the wave-2 live PostgreSQL ARC runner Pods; it denies runner-cell ingress and denies shared-data egress for the dedicated and general ARC cell labels. breadth: exact path only",
       "prefix": "infra/arc/live-postgres-runner-network-policy.yaml"
     },
     {
-      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-arm64 Application: exact ARC 0.14.2 Helm values artifact consumed by the dedicated live PostgreSQL runner-scale-set GitOps Application. breadth: exact path only",
+      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml live-postgres-arm64 Application: exact ARC 0.14.2 Helm values artifact consumed by the dedicated live PostgreSQL runner-scale-set GitOps Application. breadth: exact path only",
       "prefix": "infra/arc/runner-scale-set-live-postgres-arm64-values.yaml"
     },
     {
@@ -506,11 +506,11 @@
       "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
     },
     {
-      "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)",
+      "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)",
       "prefix": "infra/ci/buckconfig/"
     },
     {
-      "anchor": "ADR-0630 D4 (Artifact accounting): the baked owned-runner image recipe consumed by the oya-arm64 ARC scale set — buck2 + the pinned Rust toolchain + clang/lld + pwsh (the required lane's gate matrix runs `shell: pwsh`, which the upstream actions-runner image does not ship); base-image digest pinned and arch-agnostic via uname -m; ownership seed infra/ci/runner-image/OWNERS (cloud-ci-platform)",
+      "anchor": "ADR-0630 D4 (Artifact accounting): the baked owned-runner image recipe consumed by the arm64 ARC scale set — buck2 + the pinned Rust toolchain + clang/lld + pwsh (the required lane's gate matrix runs `shell: pwsh`, which the upstream actions-runner image does not ship); base-image digest pinned and arch-agnostic via uname -m; ownership seed infra/ci/runner-image/OWNERS (cloud-ci-platform)",
       "prefix": "infra/ci/runner-image/"
     },
     {
@@ -523,7 +523,7 @@
     },
     {
       "anchor": "ADR-0560 keyed CAS boundary: TLS-migration-only ExternalSecret stores preserve the existing plaintext rollback path during staged cutover.",
-      "prefix": "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml"
+      "prefix": "infra/external-secrets/clustersecretstore-openbao-tls-migration.yaml"
     },
     {
       "anchor": "CAS proof-cell bootstrap / PR #1558: exact Buck package marker that exposes reviewed GitOps declarative inputs (including local-path storage for the isolated CAS proof cell) to the repository corpus graph; indexing only — no live apply authority.",
@@ -674,11 +674,11 @@
       "prefix": "oya/BUCK"
     },
     {
-      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/cards/ holds the per-card durable shard files written only through the oya-fabric-loop-state-app coordinator ports; new shard files are created per drive-loop pass, so the subtree is registered by prefix. Byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ to the swept subtree per independent-review finding (ADR-0609 review, minor 2).",
+      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/cards/ holds the per-card durable shard files written only through the fabric-loop-state-app coordinator ports; new shard files are created per drive-loop pass, so the subtree is registered by prefix. Byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ to the swept subtree per independent-review finding (ADR-0609 review, minor 2).",
       "prefix": "plan/fabric-loop/cards/"
     },
     {
-      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/flow-metrics/passes/ holds the strictly-monotonic per-pass flow-metrics ledger rows written only through the oya-fabric-loop-state-app FlowMetricsPort; one pass-NNN row is appended per dispatch pass, so the subtree is registered by prefix. Byte re-derivation of every row is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ per independent-review finding (ADR-0609 review, minor 2).",
+      "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/flow-metrics/passes/ holds the strictly-monotonic per-pass flow-metrics ledger rows written only through the fabric-loop-state-app FlowMetricsPort; one pass-NNN row is appended per dispatch pass, so the subtree is registered by prefix. Byte re-derivation of every row is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ per independent-review finding (ADR-0609 review, minor 2).",
       "prefix": "plan/fabric-loop/flow-metrics/passes/"
     },
     {
@@ -738,11 +738,11 @@
       "prefix": "specs/cache-warmth-policy.json"
     },
     {
-      "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/oya-ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
+      "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
       "prefix": "specs/cloud-ci-run-observability-packet.schema.json"
     },
     {
-      "anchor": "ADR-0515 run-observability status amendment: the separately serialized cloud-ci/oya-ci status/query projection is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
+      "anchor": "ADR-0515 run-observability status amendment: the separately serialized cloud-ci/ci status/query projection is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
       "prefix": "specs/cloud-ci-run-observability-status.schema.json"
     },
     {
@@ -766,11 +766,11 @@
       "prefix": "specs/integ-branch-envelopes.json"
     },
     {
-      "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the oya-port program and its R-DOC/gate consumers.",
+      "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the port program and its R-DOC/gate consumers.",
       "prefix": "specs/k8s-port/"
     },
     {
-      "anchor": "Phase-0 capability-first reorg (ADR-0562/0536/0245): the per-service tier classification PROJECTION — the read-only roll-up of the per-manifest tier/tier_subtype/dr_tier facets, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref; its named consumer is the oya-cloud-ci-tier-field-coverage-app born-blocking gate + platform-architecture.json related ref",
+      "anchor": "Phase-0 capability-first reorg (ADR-0562/0536/0245): the per-service tier classification PROJECTION — the read-only roll-up of the per-manifest tier/tier_subtype/dr_tier facets, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref; its named consumer is the cloud-ci-tier-field-coverage-app born-blocking gate + platform-architecture.json related ref",
       "prefix": "specs/microservice-tier-classification.json"
     },
     {
@@ -794,7 +794,7 @@
       "prefix": "specs/product-protocol-contract.json"
     },
     {
-      "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry",
+      "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by ci.toml [reachability].registry",
       "prefix": "specs/reachability-registry.json"
     },
     {
@@ -842,7 +842,7 @@
       "prefix": "third-party/"
     },
     {
-      "anchor": "ADR-0560 D3: the cache-only execution platform (toolchains//cache:cache-platform) the overlays select; mirrors prelude//platforms:default with [oya_cache] knobs; ownership seed toolchains/cache/OWNERS (cloud-ci-platform)",
+      "anchor": "ADR-0560 D3: the cache-only execution platform (toolchains//cache:cache-platform) the overlays select; mirrors prelude//platforms:default with [cache] knobs; ownership seed toolchains/cache/OWNERS (cloud-ci-platform)",
       "prefix": "toolchains/cache/"
     },
     {

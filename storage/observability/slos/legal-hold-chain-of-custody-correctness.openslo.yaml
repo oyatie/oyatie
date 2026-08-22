@@ -41,13 +41,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_legal_hold_chain_of_custody_event_total{result="correct"}[30d]))
+                sum(rate(recordings_legal_hold_chain_of_custody_event_total{result="correct"}[30d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_legal_hold_chain_of_custody_event_total[30d]))
+                sum(rate(recordings_legal_hold_chain_of_custody_event_total[30d]))
   timeWindow:
     - duration: 30d
       isRolling: true

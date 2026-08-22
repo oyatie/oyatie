@@ -16,7 +16,7 @@ non_claims:
   - local release-index loader seeds the in-memory app registry from gate-validated repo-local OpenTofu module metadata only
   - release-index archive_file is converted to a deterministic /artifacts/modules/<archive>.zip download location when no object source is configured
   - optional archive_source_location can return OpenTofu s3::https:// or gcs::https:// archive source locations from module-registry download responses
-  - local artifact route serves bytes from target/oya-cloud-iac/module-archives only when the deterministic archive file exists in the local workspace and no object source overrides the download location
+  - local artifact route serves bytes from target/cloud-iac/module-archives only when the deterministic archive file exists in the local workspace and no object source overrides the download location
   - local artifact route verifies bytes against release-index archive_sha256 before serving the archive
   - local request-auth middleware requires Authorization Bearer credentials for registered module-registry and artifact routes only while leaving health/liveness public
   - bounded loopback daemon harness proves request/response serving through Hyper but is not deployed service evidence

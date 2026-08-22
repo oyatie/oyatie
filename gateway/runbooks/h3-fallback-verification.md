@@ -30,9 +30,9 @@
 4. **NEVER fall to HTTP/1.0** (forbidden by ADR-0253):
    - `curl --http1.0 https://api.oyatie.com/healthz -v 2>&1 | grep -E "^HTTP/"` → expect connection error or upgrade.
 5. **Per-region h3 negotiation rate:**
-   - Pull metric `oya_api_gateway_h3_negotiation_ratio` per cell; expect ≥0.8 on non-restrictive networks, ≥0.5 globally.
+   - Pull metric `api_gateway_h3_negotiation_ratio` per cell; expect ≥0.8 on non-restrictive networks, ≥0.5 globally.
 6. **Per-tenant h3 negotiation rate:**
-   - `oya_api_gateway_h3_negotiation_ratio{tenant_id=<id>}`; if a tenant drops below 0.5 unexpectedly, investigate their network.
+   - `api_gateway_h3_negotiation_ratio{tenant_id=<id>}`; if a tenant drops below 0.5 unexpectedly, investigate their network.
 
 ## D — Verification
 

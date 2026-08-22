@@ -12,7 +12,7 @@
 // =====================================================================================
 
 forbid (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action in [
     Action::"event_read",
     Action::"event_write",
@@ -33,7 +33,7 @@ when {
 // =====================================================================================
 
 permit (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action in [
     Action::"event_read",
     Action::"event_write",
@@ -55,7 +55,7 @@ when {
 // =====================================================================================
 
 permit (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action in [
     Action::"evidence_read",
     Action::"metrics_read",
@@ -74,7 +74,7 @@ when {
 // =====================================================================================
 
 permit (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action in [
     Action::"evidence_write",
     Action::"audit_chain_emit_test"
@@ -91,7 +91,7 @@ when {
 // =====================================================================================
 
 forbid (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action in [
     Action::"event_purge",
     Action::"legal_hold_lift",
@@ -107,7 +107,7 @@ forbid (
 // =====================================================================================
 
 forbid (
-  principal in CIRole::"oya-ci",
+  principal in CIRole::"ci",
   action == Action::"secret_read",
   resource
 )

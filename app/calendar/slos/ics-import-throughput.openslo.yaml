@@ -28,7 +28,7 @@ spec:
           type: Prometheus
           spec:
             query: |
-              histogram_quantile(0.95, sum(rate(oya_calendar_ics_import_seconds_bucket{event_count_bucket="10k"}[15m])) by (le))
+              histogram_quantile(0.95, sum(rate(calendar_ics_import_seconds_bucket{event_count_bucket="10k"}[15m])) by (le))
   timeWindow:
     - duration: 30d
       isRolling: true

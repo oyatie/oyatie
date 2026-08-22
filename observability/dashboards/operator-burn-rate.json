@@ -6,7 +6,7 @@
     "owner_team": "ops-sre-reliability + axis-observability",
     "audience": "internal operators (cross-tenant view; behind admin-only RBAC + Cedar)",
     "tenant_scoped": false,
-    "datasource": "Mimir aggregate (oya-aggregate tenant; DP-noise protected for any cross-tenant aggregates) and per-pack Mimir endpoints"
+    "datasource": "Mimir aggregate (aggregate tenant; DP-noise protected for any cross-tenant aggregates) and per-pack Mimir endpoints"
   },
   "uid": "obs-operator-burn-rate",
   "title": "Burn-rate Operator View (cross-microservice)",
@@ -58,7 +58,7 @@
       "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "topk(10, oya_promotion_burn_rate_fast_1h{pack=\"$pack\"})",
+          "expr": "topk(10, promotion_burn_rate_fast_1h{pack=\"$pack\"})",
           "legendFormat": "{{microservice}}/{{sli}}",
           "refId": "A"
         }
@@ -83,7 +83,7 @@
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
         {
-          "expr": "increase(oya_promotion_eligibility_verdict{verdict=\"rollback\",pack=\"$pack\"}[24h])",
+          "expr": "increase(promotion_eligibility_verdict{verdict=\"rollback\",pack=\"$pack\"}[24h])",
           "legendFormat": "{{microservice}}",
           "refId": "A"
         }
@@ -95,8 +95,8 @@
       "title": "Evaluator alive + lag",
       "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
       "targets": [
-        {"expr": "oya_observability_internal_evaluator_alive{pack=\"$pack\"}", "legendFormat": "evaluator alive", "refId": "A"},
-        {"expr": "time() - oya_promotion_eligibility_evaluated_at{pack=\"$pack\"}", "legendFormat": "{{microservice}} eval lag (s)", "refId": "B"}
+        {"expr": "observability_internal_evaluator_alive{pack=\"$pack\"}", "legendFormat": "evaluator alive", "refId": "A"},
+        {"expr": "time() - promotion_eligibility_evaluated_at{pack=\"$pack\"}", "legendFormat": "{{microservice}} eval lag (s)", "refId": "B"}
       ]
     }
   ]

@@ -20,10 +20,10 @@ An RFC 6638 auto-scheduling poll (a "meeting-time poll" with multiple
 proposed slots and multiple attendees) fails to converge within the
 expected window. Visible as:
 
-- `oya_calendar_scheduling_poll_open_duration_seconds{tenant_id}` p95
+- `calendar_scheduling_poll_open_duration_seconds{tenant_id}` p95
   exceeds the SLO target of 500ms convergence (poll-resolution latency)
   measured from poll-open to all-attendees-decided.
-- `oya_calendar_scheduling_poll_orphan_count{tenant_id}` rising — polls
+- `calendar_scheduling_poll_orphan_count{tenant_id}` rising — polls
   that have not converged after their declared `dtdue` boundary.
 - Attendees see "waiting on other attendees" UX state indefinitely.
 
@@ -73,9 +73,9 @@ The deadlock cases (each is a known RFC 6638 corner):
 
 ```bash
 # Orphan polls per tenant
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_scheduling_poll_orphan_count' |
+  grep 'calendar_scheduling_poll_orphan_count' |
   sort -t'}' -k2 -n -r | head -10
 ```
 
@@ -83,12 +83,12 @@ kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
 
 ```bash
 # Pick the first orphan
-poll_id=$(kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar scheduling list-orphan-polls --limit 1 --output json | jq -r '.polls[0].poll_id')
+poll_id=$(kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar scheduling list-orphan-polls --limit 1 --output json | jq -r '.polls[0].poll_id')
 
 # Fetch the poll state
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar scheduling describe-poll --poll-id "$poll_id"
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar scheduling describe-poll --poll-id "$poll_id"
 ```
 
 Look for:
@@ -104,7 +104,7 @@ Look for:
 
 ```bash
 # Recent scheduling worker transaction logs
-kubectl -n calendar logs deploy/oya-calendar-invitation-flow-worker --since=30m |
+kubectl -n calendar logs deploy/calendar-invitation-flow-worker --since=30m |
   grep -E 'scheduling_poll' | tail -30
 ```
 
@@ -121,8 +121,8 @@ If logs show "stale read after commit" → read-replica lag exceeded the
 Manually fire the expiry path for orphan polls:
 
 ```bash
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar scheduling expire-poll --poll-id "$poll_id" --reason "operator-recovery"
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar scheduling expire-poll --poll-id "$poll_id" --reason "operator-recovery"
 ```
 
 The poll resolves to "no consensus reached"; the organiser receives a
@@ -136,8 +136,8 @@ timestamps tie, the server uses a deterministic tie-breaker (lower
 attendee message-id wins). Force re-convergence:
 
 ```bash
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar scheduling reconverge --poll-id "$poll_id"
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar scheduling reconverge --poll-id "$poll_id"
 ```
 
 ### Case C — Organiser convergence raced with attendee ACCEPT
@@ -147,8 +147,8 @@ silently discarded by the spec. Our orphan metric over-counts this
 case. Suppress the false positive:
 
 ```bash
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
-  oya-dev-cli calendar scheduling mark-resolved --poll-id "$poll_id" \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
+  dev-cli calendar scheduling mark-resolved --poll-id "$poll_id" \
   --reason "organiser-converged-rfc-6638-5.4"
 ```
 
@@ -159,7 +159,7 @@ Suggests a backend regression. Roll back to prior LTS:
 ```bash
 git switch -c rollback/calendar-invitation-flow-$INCIDENT_ID dev
 # Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
-# and require oya-ci-required + `oya gate run-all --ci-required` before merge.
+# and require presubmit + `oya gate run-all --ci-required` before merge.
 ```
 
 Then file an investigation; the recurrence engine + scheduling
@@ -170,12 +170,12 @@ as one of the named edge cases).
 
 ```bash
 # Orphan count returning to baseline
-kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
+kubectl -n calendar exec deploy/calendar-invitation-flow-worker -- \
   curl -s localhost:9090/metrics |
-  grep 'oya_calendar_scheduling_poll_orphan_count'
+  grep 'calendar_scheduling_poll_orphan_count'
 
 # Scheduling-convergence SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo scheduling-convergence-latency
+cargo run -p dev-cli -- gate validate slo --microservice calendar --slo scheduling-convergence-latency
 ```
 
 ## Post-incident

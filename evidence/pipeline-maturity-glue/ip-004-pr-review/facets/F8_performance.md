@@ -15,4 +15,4 @@ You are the performance facet. Read the PR diff and assess:
 
 Cite file:line + the offending complexity class. REJECT only when a documented perf budget is violated; CHANGES_REQUESTED otherwise.
 
-Cross-reference: `oya-check-perf-budget`, `oya-check-benchmark` lanes.
+Cross-reference: `check-perf-budget`, `check-benchmark` lanes.

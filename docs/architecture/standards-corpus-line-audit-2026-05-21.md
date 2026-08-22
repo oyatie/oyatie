@@ -161,7 +161,7 @@ Template-class and non-Standard files included for completeness (they are exempt
 - Diátaxis quadrant declaration (reference / tutorial / how-to / explanation)
 - RFC-2119 normative discipline throughout
 - Frontmatter shape with `doc_class:` key (same as above)
-- Enforcement lane `oya-governance-doc-style` (or `oya-governance-doc-style` post-ADR-0132)
+- Enforcement lane `governance-doc-style` (or `governance-doc-style` post-ADR-0132)
 
 ### 1.3 Key canonical decisions applicable to this audit
 
@@ -171,7 +171,7 @@ The following memory and ADR directives are the primary drift anchors checked in
 |---|---|---|
 | 13-layer enum is canonical | ADR-0105 | Any file citing "12-layer enum" or referencing ADR-0056 for the layer enum is drift |
 | grit / icm / rtk / vox retired | ADR-0116 (2026-05-16) | Any file referencing these tools is stale contamination |
-| `oya git` is canonical VCS primitive | feedback_oya_git_canonical_2026_05_18 | `oya vcs` references are drift |
+| `oya git` is canonical VCS primitive | feedback_git_canonical_2026_05_18 | `oya vcs` references are drift |
 | Multispectrum review v2.4.0-cadence.md is operative | multispectrum-review-v2.4.0-cadence.md | v2.1/v2.2/v2.3 references are stale |
 | Cedar v4.2 LTS is canonical | observability-slo.md (Accepted 2026-05-17) | Cedar 3.x or 4.9.x references are drift |
 | ADR-0145 retired ADR-0141 and ADR-0140 | ADR-0145 | Citations to ADR-0141 as authority are drift |
@@ -368,7 +368,7 @@ Findings where the content has drifted from canonical decisions recorded in ADRs
 
 ### 3.2 Retired VCS primitive drift — `oya vcs` superseded by `oya git`
 
-**Canonical directive:** `oya git` is the canonical agent VCS primitive (feedback_oya_git_canonical_2026_05_18, 2026-05-18). `oya vcs` is permanently superseded.
+**Canonical directive:** `oya git` is the canonical agent VCS primitive (feedback_git_canonical_2026_05_18, 2026-05-18). `oya vcs` is permanently superseded.
 
 | File | Location | Drift evidence | Severity |
 |---|---|---|---|
@@ -499,18 +499,18 @@ While minor, version strings in standards are consumed by CI generators. An inco
 
 ### 3.13 Enforcement-lane prefix drift
 
-**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `oya-governance-*`. Existing `oya-governance-*` lanes are retained until each is individually renamed in its own migration IP.
+**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `governance-*`. Existing `governance-*` lanes are retained until each is individually renamed in its own migration IP.
 
-The following files reference `oya-governance-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
+The following files reference `governance-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
 
 | File | Lane name referenced | Note |
 |---|---|---|
-| `multispectrum-review-v2.4.0-cadence.md` | `oya-governance-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
-| `testing.md` | `oya-governance-test-evidence` | Date 2026-05-12 |
-| `observability.md` | `oya-governance-otel-emit` | Older |
+| `multispectrum-review-v2.4.0-cadence.md` | `governance-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
+| `testing.md` | `governance-test-evidence` | Date 2026-05-12 |
+| `observability.md` | `governance-otel-emit` | Older |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` | Pre-ADR-0132 |
-| `on-call.md` | `oya-governance-runbook-index-resolves` | Older |
-| `security-review.md` | `oya-governance-supply-chain` | Older |
+| `on-call.md` | `governance-runbook-index-resolves` | Older |
+| `security-review.md` | `governance-supply-chain` | Older |
 
 **Note:** This is informational only (P3). ADR-0132 explicitly states existing lanes are retained until migrated. No action required until the migration IP for each lane runs.
 
@@ -562,8 +562,8 @@ An Accepted standard MUST NOT contain placeholder marker fields, PENDING enforce
 | `error-handling.md` | `F-PENDING-SILENT-FAILURE` enforcement | P2 |
 | `fintech-compliance.md` | "Open questions" section with explicit placeholder marker items | P2 |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` and `F-PENDING-CONTAINER-BASE` | P2 |
-| `on-call.md` | `planned_enforcement_ref: oya-governance-runbook-index-resolves` with no shipping timeline | P2 |
-| `release-management.md` | `planned_enforcement_ref: oya-governance-flag-debt` | P2 |
+| `on-call.md` | `planned_enforcement_ref: governance-runbook-index-resolves` with no shipping timeline | P2 |
+| `release-management.md` | `planned_enforcement_ref: governance-flag-debt` | P2 |
 
 ### 4.5 Superseded references without markers
 
@@ -588,7 +588,7 @@ A superseded or retired standard MUST carry a visible "SUPERSEDED — see [repla
 | `release.md` | `STANDARDS-AND-TEMPLATES.md` | Very likely does not exist (same broken reference pattern) | P2 |
 | `migration-playbook.md` | `templates/migration-runbook-template.md` | Explicitly noted as "planned, non-existent" in body | P2 |
 | `fips-hsm-substrate-root-signing.md` | `ADR-NNNN-foundry-meta-trust-root` | Placeholder ADR number; real ADR not yet authored | P2 |
-| `timescaledb-adoption.md` | `crates/oya-shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
+| `timescaledb-adoption.md` | `crates/shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
 | `testing.md` | `docs/QA-TEST-STRATEGY.md` | Not confirmed in this audit | P3 |
 | `testing.md` | `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` | Scratch file; not a durable normative reference | P3 |
 
@@ -768,7 +768,7 @@ This is invalid YAML. Every key uses `**bold:**` markdown syntax rather than pla
 | `release.md` | `STANDARDS-AND-TEMPLATES.md` | Does not exist in `docs/` | P2 |
 | `migration-playbook.md` | `templates/migration-runbook-template.md` | Explicitly "planned, non-existent" per body text | P2 |
 | `fips-hsm-substrate-root-signing.md` | `ADR-NNNN-foundry-meta-trust-root` | Placeholder; real ADR not authored | P2 |
-| `timescaledb-adoption.md` | `crates/oya-shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
+| `timescaledb-adoption.md` | `crates/shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
 | `testing.md` | `docs/QA-TEST-STRATEGY.md` | Not confirmed; not in standards corpus scope | P3 |
 | `testing.md` | `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` | Scratch file; not a durable reference | P3 |
 
@@ -907,7 +907,7 @@ Owner recommendation: lane-governance
 
 **R-P0-04 | Rewrite `git-workflow.md` §1 around `oya git`; merge double-frontmatter**
 
-§1 "sanctioned-primitive triad" is the key superseded element. Rewrite to describe `oya git` as the canonical primitive per feedback_oya_git_canonical_2026_05_18. Remove `oya vcs claim`/`oya vcs work`/`oya vcs done` from all workflow steps. Remove `icm-store` rationale contracts. Remove ADR-0052/0053/0054 from related_adrs. Merge the two frontmatter blocks into one.
+§1 "sanctioned-primitive triad" is the key superseded element. Rewrite to describe `oya git` as the canonical primitive per feedback_git_canonical_2026_05_18. Remove `oya vcs claim`/`oya vcs work`/`oya vcs done` from all workflow steps. Remove `icm-store` rationale contracts. Remove ADR-0052/0053/0054 from related_adrs. Merge the two frontmatter blocks into one.
 
 Affected: `git-workflow.md`
 Owner recommendation: lane-governance
@@ -1199,7 +1199,7 @@ Referenced by `testing.md` as a companion doc. Confirm the file exists and is no
 
 **R-P3-03 | Audit enforcement-lane prefix post-ADR-0132**
 
-When migrating existing `oya-governance-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
+When migrating existing `governance-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
 
 **R-P3-04 | Normalize `hyperscaler-invariant-conformance.md` doc_class**
 
@@ -1207,7 +1207,7 @@ Change `Hyperscaler-Invariant-Conformance-Standard` to `Standard`. If a named sh
 
 **R-P3-05 | Add "Phase-2, not yet authored" notice to `timescaledb-adoption.md`**
 
-The reference to `crates/oya-shared-timescale-policy-worker/` should carry an explicit "Phase-2 follow-on; not yet created" note to prevent implementers from wasting time looking for the crate.
+The reference to `crates/shared-timescale-policy-worker/` should carry an explicit "Phase-2 follow-on; not yet created" note to prevent implementers from wasting time looking for the crate.
 
 **R-P3-06 | Add conditional caveat to `ux-best-practices.md` §20 brand-voice reference**
 
@@ -1431,7 +1431,7 @@ This appendix translates the findings above into a practical sprint allocation, 
 
 **Sprint 2 total estimate:** ~14 hours across 2 engineers
 
-**Success criterion:** A YAML-linting CI gate (`oya-governance-doc-frontmatter-lint`) passes on all 89 files with zero errors. Every file has `doc_class:`, `status:`, `date:`.
+**Success criterion:** A YAML-linting CI gate (`governance-doc-frontmatter-lint`) passes on all 89 files with zero errors. Every file has `doc_class:`, `status:`, `date:`.
 
 ### D.3 Sprint 3 — Layer-enum drift + SLSA/Cedar conflict resolution
 
@@ -1556,7 +1556,7 @@ purpose: |
   One paragraph explaining what this standard governs, who it applies to,
   and what problem it solves.
 canonical_authority: docs/decisions/template ADR-name.md
-enforced_by: oya-governance-<lane-name>
+enforced_by: governance-<lane-name>
 related_adrs:
   - template ADR
   - concrete superseded ADR
@@ -1601,7 +1601,7 @@ Based on the findings in this audit, the following automated checks SHOULD be ad
 | AC-11 | Every referenced file path must resolve (no broken links) | Link checker | ADVISORY |
 | AC-12 | `date:` field must be a valid ISO 8601 date | Date parse | BLOCKER |
 
-These checks can be implemented as a single `oya-governance-doc-frontmatter-lint` CI job using a small Rust binary that walks `docs/standards/`, parses each frontmatter block, and reports violations. Estimated implementation: 1 sprint.
+These checks can be implemented as a single `governance-doc-frontmatter-lint` CI job using a small Rust binary that walks `docs/standards/`, parses each frontmatter block, and reports violations. Estimated implementation: 1 sprint.
 
 ---
 

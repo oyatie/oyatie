@@ -108,7 +108,7 @@ Reading: oyatie paid tenant_class baseline is competitive; paid tenant_class exp
 ## Reproducibility
 
 ```sh
-cargo run -p oya-dev-cli -- benchmarks tenancy \
+cargo run -p dev-cli -- benchmarks tenancy \
     --workload 10k-tenants-conglomerate \
     --tenant-class paid \
     --comparators azure-b2c,cognito,auth0-orgs,workos,frontegg \

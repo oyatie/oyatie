@@ -15,8 +15,8 @@
   "identity": {
     "microservice": "supply-chain-planning",
     "bounded_context": "enterprise-supply-chain-planning",
-    "crate_prefix": "oya-supply-chain-planning",
-    "primary_crate": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain",
+    "crate_prefix": "supply-chain-planning",
+    "primary_crate": "microservices/supply-chain-planning/crates/supply-chain-planning-domain",
     "product_id": "supply-chain-planning",
     "owning_axis": "axis-enterprise"
   },
@@ -49,35 +49,35 @@
       "given": "a demand plan has tenant, legal entity, planning area, item, demand location, forecast, firm order, adjustment, horizon, effective date, source refs, and consensus evidence",
       "when": "the supply-chain-planning domain approves the demand plan",
       "then": "demand plan, tenant, legal entity, planning area, item, location, method, quantities, consensus demand quantity, horizon, effective date, source refs, evidence, idempotency key, state, schema version, and false ML/collaboration/cloud flags are present",
-      "test_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::demand_plan_drives_supply_network_and_atp_response"
+      "test_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain/tests/supply_chain_planning.rs::demand_plan_drives_supply_network_and_atp_response"
     },
     {
       "id": "AC-02",
       "given": "an approved demand plan is available with on-hand, scheduled receipt, in-transit, safety stock, capacity, lot size, lead time, and planning evidence values",
       "when": "supply-network plan proposal metadata is prepared",
       "then": "supply plan, demand plan, tenant, legal entity, planning area, item, source and demand locations, demand and supply quantities, net requirement, rounded planned supply, constrained shortage, feasibility flag, evidence, idempotency key, state, and false production/procurement/inventory/cloud flags are present",
-      "test_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_refuses_unapproved_and_unproposed_flow,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
+      "test_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_refuses_unapproved_and_unproposed_flow,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
     },
     {
       "id": "AC-03",
       "given": "a proposed supply plan is available for an order promise request with requested quantity, available-to-promise quantity, priority, requested ship date, and promise evidence",
       "when": "available-to-promise response metadata is prepared",
       "then": "ATP response, supply plan, tenant, legal entity, planning area, item, request location, requested/available/promised/backorder quantities, priority, requested ship date, evidence, idempotency key, state, backorder flag, and false order-management/warehouse/cloud flags are present",
-      "test_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_refuses_unapproved_and_unproposed_flow}"
+      "test_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_refuses_unapproved_and_unproposed_flow}"
     },
     {
       "id": "AC-04",
       "given": "a proposed supply plan has distribution lane metadata with source/destination locations, transfer quantity, lane capacity, lead time, freight cost, source refs, and lane evidence",
       "when": "distribution-lane plan metadata is prepared",
       "then": "distribution plan, supply plan, tenant, legal entity, planning area, item, source/destination locations, transfer quantity, lane capacity, remaining capacity, lead time, freight cost, evidence, idempotency key, state, lane sufficiency flag, and false carrier/warehouse/cloud flags are present",
-      "test_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
+      "test_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain/tests/supply_chain_planning.rs::{demand_plan_drives_supply_network_and_atp_response,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
     },
     {
       "id": "AC-05",
       "given": "untrusted identifiers, source refs, evidence refs, dates, horizons, lead times, priority scores, quantities, lane capacities, or overclaim paths enter the supply-chain-planning domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid dates, invalid horizons, invalid lead times, zero quantities, invalid priorities, missing demand approval, missing supply-plan proposal, and insufficient lane capacity are refused",
-      "test_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain/tests/supply_chain_planning.rs::{supply_chain_planning_refuses_unapproved_and_unproposed_flow,supply_chain_planning_validates_refs_dates_horizons_and_quantities,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
+      "test_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain/tests/supply_chain_planning.rs::{supply_chain_planning_refuses_unapproved_and_unproposed_flow,supply_chain_planning_validates_refs_dates_horizons_and_quantities,supply_chain_planning_records_capacity_shortage_without_execution_claim}"
     }
   ],
   "decision_log": [
@@ -121,7 +121,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain",
+    "primary_crate_ref": "microservices/supply-chain-planning/crates/supply-chain-planning-domain",
     "entities_ref": [
       {
         "entity": "Enterprise",

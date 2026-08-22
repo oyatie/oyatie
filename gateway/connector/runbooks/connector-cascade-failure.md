@@ -12,14 +12,14 @@ doc_status: published
 
 ## A. Trigger conditions
 
-- `oya_connector_action_error_rate_5m{connector="<X>"} > 0.5` for 5+ minutes
-- `oya_connector_circuit_breaker_open_total{connector="<X>"} > 0`
+- `connector_action_error_rate_5m{connector="<X>"} > 0.5` for 5+ minutes
+- `connector_circuit_breaker_open_total{connector="<X>"} > 0`
 - PagerDuty alert `ConnectorCascadeFailure` fires
 - Tenant reports widespread "vendor error" responses
 
 ## B. Pre-checks
 
-1. Confirm scope: `kubectl exec -n connector deploy/connector-adapter-worker -- curl localhost:9090/metrics | grep oya_connector_circuit_breaker_open_total` — which connector(s)?
+1. Confirm scope: `kubectl exec -n connector deploy/connector-adapter-worker -- curl localhost:9090/metrics | grep connector_circuit_breaker_open_total` — which connector(s)?
 2. Check vendor status page (e.g., status.salesforce.com, status.stripe.com).
 3. Check our egress network: `kubectl exec -n connector deploy/connector-adapter-worker -- nc -zv <vendor-host> 443`.
 4. Check audit chain for recent ProviderCredentialRotated events (rotation could correlate).
@@ -47,12 +47,12 @@ doc_status: published
    Tenant dashboards show `<connector> unavailable`; failed actions go to DLQ.
 
 4. **Vendor outage path** (vendor-side issue)
-   - Verify circuit-breaker is open (`oya_connector_circuit_breaker_open_total{connector="<X>"} > 0`).
+   - Verify circuit-breaker is open (`connector_circuit_breaker_open_total{connector="<X>"} > 0`).
    - Surface tenant notification via ops-dashboard-control-center incident-declare capability (severity Sev-3 unless impact is wide).
    - Monitor vendor status; circuit auto-closes after half-open success.
 
 5. **DLQ accumulation** (≤5min)
-   - Check DLQ depth: `oya_connector_dlq_depth{connector="<X>"}`.
+   - Check DLQ depth: `connector_dlq_depth{connector="<X>"}`.
    - Per ADR-0145 §invariant-1, DLQ accepts overflow without blocking new actions.
    - If approaching tenant retention cap, surface via ops-dashboard.
 
@@ -61,13 +61,13 @@ doc_status: published
 ```bash
 # Error rate trending down
 kubectl exec -n observability prometheus-0 -- promtool query instant \
-  "oya_connector_action_error_rate_5m{connector='<X>'}"
+  "connector_action_error_rate_5m{connector='<X>'}"
 
 # Circuit-breaker closed
-curl http://connector-adapter-worker.connector:9090/metrics | grep oya_connector_circuit_breaker_open
+curl http://connector-adapter-worker.connector:9090/metrics | grep connector_circuit_breaker_open
 
 # DLQ stable or draining
-curl http://connector-adapter-worker.connector:9090/metrics | grep oya_connector_dlq_depth
+curl http://connector-adapter-worker.connector:9090/metrics | grep connector_dlq_depth
 ```
 
 Expected: error_rate < 0.05; circuit_breaker_open = 0; DLQ depth flat or decreasing.
@@ -89,7 +89,7 @@ kubectl rollout undo deployment/connect-adapter-worker -n connect
 - Blameless retro within 7d.
 - Evidence-pack export via ops-dashboard-control-center per ADR-0263.
 - Update vendor SLA tracking in `microservices/connector/catalog/connectors/<connector>.yaml` if vendor-side.
-- If oyatie-side regression: add property test to `oya-connector-adapter-domain` covering the regression.
+- If oyatie-side regression: add property test to `connector-adapter-domain` covering the regression.
 
 ## G. References
 

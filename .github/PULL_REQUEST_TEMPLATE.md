@@ -17,7 +17,7 @@ trusted server-side/cloud-ci producer.
 ## Verification
 
 - Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
-- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
+- `presubmit` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
 

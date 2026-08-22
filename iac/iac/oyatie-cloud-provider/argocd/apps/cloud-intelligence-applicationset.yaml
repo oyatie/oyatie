@@ -2,9 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: cloud-intelligence
-  namespace: oya-cd-argocd
+  namespace: cd-argocd
   labels:
-    app.kubernetes.io/part-of: oya-ci-cd-substrate
+    app.kubernetes.io/part-of: ci-cd-substrate
     app.kubernetes.io/managed-by: argocd
     oyatie.com/adr: ADR-0349
     oyatie.com/image-promotion: ADR-0181
@@ -70,7 +70,7 @@ spec:
         oyatie.com/audit-chain-event: EVT-CLOUD-INTEL-ARGOCD-SYNC-REQUESTED
         oyatie.com/tenant-namespace-isolation: single-microservice
     spec:
-      project: oya-oyatie-cloud-provider-tenants
+      project: oyatie-cloud-provider-tenants
       source:
         repoURL: https://git.oyatie.internal/oyatie/oyatie.git
         targetRevision: '{{ .targetRevision }}'

@@ -25,13 +25,13 @@ Seven new crates: kernel, domain, usecase, api, adapter, worker, app.
 
 | Path | Action |
 |---|---|
-| `…/oya-cloud-secrets-key-rotation-scheduler-kernel/` | `RotationPolicy`, `RotationJob`, `CascadeDependency`, `RotationStateMachine` |
-| `…/oya-cloud-secrets-key-rotation-scheduler-domain/` | pure topo-sort over cascade DAG; jitter arithmetic |
-| `…/oya-cloud-secrets-key-rotation-scheduler-usecase/` | orchestrators: schedule, execute, cascade |
-| `…/oya-cloud-secrets-key-rotation-scheduler-api/` | typed contracts |
-| `…/oya-cloud-secrets-key-rotation-scheduler-adapter/` | OpenBao + audit-emitter adapter wiring |
-| `…/oya-cloud-secrets-key-rotation-scheduler-worker/` | long-lived worker binary |
-| `…/oya-cloud-secrets-key-rotation-scheduler-app/` | composition root |
+| `…/cloud-secrets-key-rotation-scheduler-kernel/` | `RotationPolicy`, `RotationJob`, `CascadeDependency`, `RotationStateMachine` |
+| `…/cloud-secrets-key-rotation-scheduler-domain/` | pure topo-sort over cascade DAG; jitter arithmetic |
+| `…/cloud-secrets-key-rotation-scheduler-usecase/` | orchestrators: schedule, execute, cascade |
+| `…/cloud-secrets-key-rotation-scheduler-api/` | typed contracts |
+| `…/cloud-secrets-key-rotation-scheduler-adapter/` | OpenBao + audit-emitter adapter wiring |
+| `…/cloud-secrets-key-rotation-scheduler-worker/` | long-lived worker binary |
+| `…/cloud-secrets-key-rotation-scheduler-app/` | composition root |
 | 7× catalog yamls | create |
 
 ## Rotation State Machine
@@ -45,9 +45,9 @@ Scheduled → InProgress → Rotated → CascadeQueued → CascadeInProgress →
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p 'oya-cloud-secrets-key-rotation-scheduler-*'
+cargo nextest run -p 'cloud-secrets-key-rotation-scheduler-*'
 # Rotation e2e
-cargo nextest run -p oya-cloud-secrets-key-rotation-scheduler-worker --features e2e
+cargo nextest run -p cloud-secrets-key-rotation-scheduler-worker --features e2e
 # Cascade e2e (chain of 3 dependents)
 cargo nextest run --features cascade-e2e
 ```
@@ -76,7 +76,7 @@ Rotation cannot be advisory because stale credentials invalidate the PRD's ISO 2
 Implement the key-rotation scheduler as a worker-backed bounded context over declared kernel/domain/usecase/adapter/api/app crates. The worker evaluates `RotationPolicy`, emits `RotationJob`, invokes OpenBao/HSM adapters, rotates dependents in topological order, and records outcomes in audit-chain.
 
 ### C. Deliverables
-- `oya-cloud-secrets-key-rotation-scheduler-{kernel,domain,usecase,api,adapter,worker,app}`.
+- `cloud-secrets-key-rotation-scheduler-{kernel,domain,usecase,api,adapter,worker,app}`.
 - Catalog files for each scheduler crate.
 - Capability linkage to `capabilities/secret-rotate.yaml`.
 - SLO linkage to `slos/key-rotation-correctness.openslo.yaml`.
@@ -92,13 +92,13 @@ Implement the key-rotation scheduler as a worker-backed bounded context over dec
 7. Add e2e tests for normal rotation, cascade, stuck detection, and storm throttling.
 
 ### E. Acceptance
-- `cargo nextest run -p 'oya-cloud-secrets-key-rotation-scheduler-*'`.
-- `cargo nextest run -p oya-cloud-secrets-key-rotation-scheduler-worker --features e2e`.
+- `cargo nextest run -p 'cloud-secrets-key-rotation-scheduler-*'`.
+- `cargo nextest run -p cloud-secrets-key-rotation-scheduler-worker --features e2e`.
 - `cargo nextest run --features cascade-e2e`.
 - `key-rotation-correctness` SLO records on-cadence completion and pages on overdue jobs.
 
 ### F. Evidence
-Evidence anchors are `PRD.md` FR-03/FR-08, `manifest.json`, `capabilities/secret-rotate.yaml`, `catalog/oya-cloud-secrets-key-rotation-scheduler-worker.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `slos/key-rotation-correctness.openslo.yaml`, and `runbooks/rotation-cascade-recovery.md`.
+Evidence anchors are `PRD.md` FR-03/FR-08, `manifest.json`, `capabilities/secret-rotate.yaml`, `catalog/cloud-secrets-key-rotation-scheduler-worker.yaml`, `contracts/asyncapi/cloud-secrets-events.yaml`, `slos/key-rotation-correctness.openslo.yaml`, and `runbooks/rotation-cascade-recovery.md`.
 
 ### G. Counterpart Comparison
 AWS Secrets Manager supports scheduled and Lambda-backed rotation; Vault supports dynamic leases and revocation; GCP/Azure have weaker automatic rotation surfaces. Oyatie's counterpart advantage is cascade rotation plus revocation push, so this worker must prove dependency-aware rotation instead of simple periodic rewrite.

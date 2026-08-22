@@ -161,7 +161,7 @@ Each risk has at least one mitigation in §6 + corresponding STRIDE / LINDDUN th
 
 | Risk | Measures | Mitigated to | Owner |
 |---|---|---|---|
-| R-01 (policy regression cross-tenant) | Istio STRICT mTLS mesh-wide; Cilium NetworkPolicy kernel-layer; LEAN `oya-check-network-policy-conformance`; continuous-state validator; pen-test annually | L | axis-cloud + ops-security |
+| R-01 (policy regression cross-tenant) | Istio STRICT mTLS mesh-wide; Cilium NetworkPolicy kernel-layer; LEAN `check-network-policy-conformance`; continuous-state validator; pen-test annually | L | axis-cloud + ops-security |
 | R-02 (container escape) | seccomp/AppArmor; non-privileged; user namespaces; gVisor opt-in; kernel CVE tracking | M (residual irreducible) | ops-security |
 | R-03 (etcd disk theft) | KMS-envelope encryption-at-rest; PV access via per-component IAM; physical security via cloud-iac µservice | L | ops-security + cloud-iac |
 | R-04 (longitudinal profiling) | Retention bounded per pack; cold-tier aggregation; DSR cascade; data_class enforcement | L-M | council-privacy |

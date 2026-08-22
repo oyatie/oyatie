@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Vertical | workflow |
-| Crate | `oya-workflow-studio-dsl-emitter-domain` |
+| Crate | `workflow-studio-dsl-emitter-domain` |
 | Stage | SPEC |
 | Branch | `feat/task-workflow-studio-dsl-structural-validation-2026-05-28` |
 | ADR authority | ADR-0509 (flat crate per service), ADR-0131 (flat µservice layout) |
@@ -39,9 +39,9 @@ GraphCycle / DanglingEdge / DuplicateNode checks:
 ## Vertical & crate boundaries
 
 - **Files changed:**
-  - `crates/oya-workflow-studio-dsl-emitter-domain/src/lib.rs` — new variants,
+  - `crates/workflow-studio-dsl-emitter-domain/src/lib.rs` — new variants,
     PartialEq/Display arms, and edge-condition validation pass.
-  - `crates/oya-workflow-studio-dsl-emitter-domain/tests/graph_integrity.rs` —
+  - `crates/workflow-studio-dsl-emitter-domain/tests/graph_integrity.rs` —
     new integration tests for WF-STU-2 and WF-STU-3.
 - Root `Cargo.toml` is not touched. No new workspace members. No new crates.
 - No storage, signing, transport, HTTP, or gRPC concerns enter this crate.
@@ -55,7 +55,7 @@ additions remain in `lib.rs` alongside the existing code. Integration tests
 extend the existing `tests/graph_integrity.rs` file.
 
 ```
-crates/oya-workflow-studio-dsl-emitter-domain/
+crates/workflow-studio-dsl-emitter-domain/
   src/
     lib.rs              ← new variants + edge-condition validation pass
   tests/
@@ -166,7 +166,7 @@ New integration tests added for WF-STU-2 and WF-STU-3:
 | `emit_rejects_ambiguous_default_edge_spec` | spec with two unconditional siblings | `Err(AmbiguousDefaultEdge(_))` from `emit_canonical_json` |
 | `canonical_json_of_valid_spec_is_stable` | pin byte-exact JSON of the linear helper spec | byte-identical to hardcoded expected string |
 
-Test runner: `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain`
+Test runner: `cargo nextest run -p workflow-studio-dsl-emitter-domain`
 
 ---
 
@@ -174,8 +174,8 @@ Test runner: `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain`
 
 | # | Criterion |
 |---|---|
-| A1 | `cargo check -p oya-workflow-studio-dsl-emitter-domain --all-targets` exits 0 |
-| A2 | `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain` exits 0, all tests green |
+| A1 | `cargo check -p workflow-studio-dsl-emitter-domain --all-targets` exits 0 |
+| A2 | `cargo nextest run -p workflow-studio-dsl-emitter-domain` exits 0, all tests green |
 | A3 | Disconnected node → `Err(UnreachableNode(node_id))` ordered by sorted id |
 | A4 | Duplicate-condition siblings → `Err(DuplicateEdgeCondition(node_id))` |
 | A5 | Two unconditional siblings → `Err(AmbiguousDefaultEdge(node_id))` |

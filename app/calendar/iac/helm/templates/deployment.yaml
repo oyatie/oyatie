@@ -10,12 +10,12 @@ ADR-CAL-0001/0002/0004 component bindings.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oya-calendar-{{ $bc }}-app
+  name: calendar-{{ $bc }}-app
   namespace: calendar
   labels:
     microservice: calendar
     bc: {{ $bc }}
-    app.kubernetes.io/name: oya-calendar-{{ $bc }}-app
+    app.kubernetes.io/name: calendar-{{ $bc }}-app
     app.kubernetes.io/version: {{ $.Chart.AppVersion }}
 spec:
   replicas: {{ $cfg.replicaCount }}
@@ -32,7 +32,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ $.Values.global.observability.metricsPort }}"
     spec:
-      serviceAccountName: oya-calendar
+      serviceAccountName: calendar
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -46,9 +46,9 @@ spec:
             - {name: app,     containerPort: {{ $cfg.port }}, protocol: TCP}
             - {name: metrics, containerPort: {{ $.Values.global.observability.metricsPort }}, protocol: TCP}
           env:
-            - {name: OYA_MICROSERVICE,   value: calendar}
-            - {name: OYA_BC,             value: {{ $bc }}}
-            - {name: OYA_PACK_REGION,    value: {{ $.Values.global.packRegion }}}
+            - {name: OYATIE_MICROSERVICE,   value: calendar}
+            - {name: OYATIE_BC,             value: {{ $bc }}}
+            - {name: OYATIE_PACK_REGION,    value: {{ $.Values.global.packRegion }}}
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "{{ $.Values.global.observability.tracingEndpoint }}"}
             - {name: RUST_LOG, value: info}
           resources:

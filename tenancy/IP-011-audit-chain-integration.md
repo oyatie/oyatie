@@ -21,10 +21,10 @@ Every lifecycle event + DSR receipt + RLS policy install + JWT rotation + cell r
 
 | Path | Action |
 |---|---|
-| `oya-tenancy-tenant-lifecycle-adapter/src/audit_chain_sink.rs` | create |
-| `oya-tenancy-isolation-policy-adapter/src/audit_chain_sink.rs` | create |
-| `oya-tenancy-cell-assignment-adapter/src/audit_chain_sink.rs` | create |
-| `oya-tenancy-dsr-cascade-adapter/src/audit_chain_sink.rs` | create |
+| `tenancy-tenant-lifecycle-adapter/src/audit_chain_sink.rs` | create |
+| `tenancy-isolation-policy-adapter/src/audit_chain_sink.rs` | create |
+| `tenancy-cell-assignment-adapter/src/audit_chain_sink.rs` | create |
+| `tenancy-dsr-cascade-adapter/src/audit_chain_sink.rs` | create |
 | Shared utility crate (or shared in each adapter) | create |
 | Catalog rows | update — audit-chain dependency declared |
 
@@ -44,7 +44,7 @@ pub async fn seal<E: AuditChainEnvelope>(client: &AuditChainClient, envelope: E)
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter --test audit_chain_seal_latency
+cargo nextest run -p tenancy-tenant-lifecycle-adapter --test audit_chain_seal_latency
 ```
 
 ## Test Plan
@@ -59,7 +59,7 @@ cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter --test audit_chain_sea
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-011-audit-chain-integration.md` matched `p99, SLO`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `microservices/tenancy/IP-011-audit-chain-integration.md` matched `p99, SLO`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/tenancy-api/src/lib.rs`; type anchor `crates/tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Next IP
 

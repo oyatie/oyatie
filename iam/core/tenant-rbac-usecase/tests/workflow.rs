@@ -6,7 +6,7 @@ use iam_tenant_rbac_domain::{
     plan_cross_service_workflow,
 };
 use iam_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn workflow_envelope_routes_to_workflow_without_executing_it() {

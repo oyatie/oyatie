@@ -10,7 +10,7 @@
 #
 # Invariants:
 # - Closed mapping: every GitHub event we react to MUST appear here.
-#   The oya-governance-event-router-completeness CI lane (wave-C)
+#   The governance-event-router-completeness CI lane (wave-C)
 #   asserts this so we never silently miss an event.
 # - New rows go through an ADR amendment — no silent additions.
 # - Empty `action: ""` is the row-side wildcard; ADR-0112 uses it for
@@ -54,11 +54,11 @@ rows:
   # questions" #2. If a workflow_run delivery arrives with a conclusion
   # other than success/failure (e.g. cancelled, timed_out, skipped),
   # the lookup falls through to RoutingFailed and the
-  # oya-governance-event-router-completeness lane (wave-C) alerts.
+  # governance-event-router-completeness lane (wave-C) alerts.
   - event: workflow_run
     action: completed
     conclusion: success
-    agent: oya-intelligence-pr-review-dispatcher-app
+    agent: intelligence-pr-review-dispatcher-app
     purpose: Run PR review (IP-004)
 
   - event: workflow_run

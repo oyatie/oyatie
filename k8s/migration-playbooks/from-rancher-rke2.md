@@ -118,7 +118,7 @@ oya cloud-k8s migrate sunset-evidence \
     --out evidence/migrations/rke2-prod-to-oyatie-prod.json
 ```
 
-The evidence file enumerates: inventory diff, conversion log, PV migration receipts, ingress cutover timeline, RKE2 cluster final-state ledger. Required by the `oya-governance-migration-evidence` lane.
+The evidence file enumerates: inventory diff, conversion log, PV migration receipts, ingress cutover timeline, RKE2 cluster final-state ledger. Required by the `governance-migration-evidence` lane.
 
 ## Risk register
 

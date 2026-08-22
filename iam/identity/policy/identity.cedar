@@ -1,7 +1,7 @@
 // Workload-identity PARC authorization policy
 // Authority: ADR-0002 (tenant-and-identity-kernel), ADR-0183 (Cedar app-authz),
 //            ADR-0162 (per-tenant audit slicing).
-// Bounded context: workload-identity (oya-identity-workload-authz-cedar-adapter).
+// Bounded context: workload-identity (identity-workload-authz-cedar-adapter).
 // Owner:   axis-identity + ops-security
 //
 // Design grounding — microservices/identity/design/hyperscaler-best-practice-brief.md §10:

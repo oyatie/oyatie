@@ -78,7 +78,7 @@ Run on each `src/lib.rs` it walks the whole chain. All three chains are identica
 |---|---|---|---|---|---|
 | Birth | `3786d41e8` | 2026-06-05 | `A stack/kuberos/talos-kubernetes/src/lib.rs` | `A stack/kuberos/talos-kubelet/src/lib.rs` | `A stack/kuberos/talos-k8s-control/src/lib.rs` |
 | Reorg | `2adcbc2ef` | 2026-06-07 | `R100` → `stack/operating-system/…` | `R100` | `R100` |
-| Consolidation | `2fadcaec1` / `aee2297fe` | 2026-06-09 | `A cloud/cloud-os/crates/oya-cloud-os-kubernetes-domain/…` | `A …-kubelet-domain/…` | `A …-k8s-control-domain/…` |
+| Consolidation | `2fadcaec1` / `aee2297fe` | 2026-06-09 | `A cloud/cloud-os/crates/cloud-os-kubernetes-domain/…` | `A …-kubelet-domain/…` | `A …-k8s-control-domain/…` |
 | Homing | `24b917f5d` | 2026-07-26 | `R100` → `os/core/kubernetes-domain/…` | `R097` | `R099` |
 
 Every step after birth is a pure rename: `R100`, `R100`, `R100`, then `R100`/`R097`/`R099`. **No
@@ -99,7 +99,7 @@ depend only on the foundational kernel crate"* and `aee2297fe` describes slice 3
 whose internal deps all resolve within slices 1-2"*. `kubelet-domain` and the other two landed in
 different slices **because of their dependency counts**, for stacked-PR reviewability — not because
 anyone judged them to be different domains. Both commits say the rename `talos-<name>` →
-`oya-cloud-os-<name>-domain` was applied *"per the BNF 13-suffix + oya- prefix + manifest-hygiene
+`cloud-os-<name>-domain` was applied *"per the BNF 13-suffix + oya- prefix + manifest-hygiene
 gate rules"*, i.e. mechanically.
 
 **Verdict on the fence: the fence has no builder on record.** That is a strictly different state

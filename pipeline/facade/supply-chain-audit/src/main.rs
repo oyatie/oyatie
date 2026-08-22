@@ -11,7 +11,7 @@
 //! review the diff before committing.
 //!
 //! Usage:
-//!   oya-cloud-ci-supply-chain-audit-app-bin [--repo-root <path>] [--policy <path>] [--write]
+//!   cloud-ci-supply-chain-audit-app-bin [--repo-root <path>] [--policy <path>] [--write]
 //!
 //! Exit codes: 0 = green; 1 = red findings remain; 2 = argument/collection error.
 #![forbid(unsafe_code)]
@@ -182,6 +182,6 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-supply-chain-audit-app-bin [--repo-root <path>] [--policy <path>] [--write]"
+    "usage: cloud-ci-supply-chain-audit-app-bin [--repo-root <path>] [--policy <path>] [--write]"
         .to_owned()
 }

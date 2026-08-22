@@ -20,7 +20,7 @@ seaweedfs:
       limits:   {cpu: "2", memory: "4Gi"}
     persistence:
       enabled: true
-      storageClass: oya-csi-fast-replicated
+      storageClass: csi-fast-replicated
       size: 20Gi
     config: |
       [master.maintenance]
@@ -46,7 +46,7 @@ seaweedfs:
       limits:   {cpu: "4", memory: "8Gi"}
     persistence:
       enabled: true
-      storageClass: oya-csi-fast-replicated
+      storageClass: csi-fast-replicated
       size: 1Ti
     # EC (erasure coding) shape — 10 data shards + 4 parity per ADR-0196 §Storage-efficiency
     ec:
@@ -64,7 +64,7 @@ seaweedfs:
       limits:   {cpu: "2", memory: "4Gi"}
     persistence:
       enabled: true
-      storageClass: oya-csi-fast-replicated
+      storageClass: csi-fast-replicated
       size: 50Gi
     config: |
       [filer.options]
@@ -94,25 +94,25 @@ seaweedfs:
     # Buckets declared per-µservice in cloud-iac IaC; preallocated to enforce naming convention
     # Convention: oya-<purpose>-<tenant-or-shared>-<env>
     defaultBuckets:
-      - name: oya-workflow-artifacts-shared-prod
+      - name: workflow-artifacts-shared-prod
         quota: 100Gi
         ttl: 90d
-      - name: oya-evidence-shared-prod
+      - name: evidence-shared-prod
         quota: 500Gi
         ttl: 7y  # regulatory retention per ADR-0162
-      - name: oya-clickhouse-cold-shared-prod
+      - name: clickhouse-cold-shared-prod
         quota: 50Ti
         ttl: 1y
-      - name: oya-milvus-object-shared-prod
+      - name: milvus-object-shared-prod
         quota: 10Ti
         ttl: 1y
-      - name: oya-velero-backup-shared-prod
+      - name: velero-backup-shared-prod
         quota: 100Ti
         ttl: 7y  # backup retention per ADR-0197
-      - name: oya-audit-chain-archive-shared-prod
+      - name: audit-chain-archive-shared-prod
         quota: 100Ti
         ttl: 10y  # regulatory archival per ADR-0162
-      - name: oya-ci-sccache-shared-prod
+      - name: ci-sccache-shared-prod
         quota: 200Gi
         ttl: 30d  # CI remote build cache (sccache backend) per ADR-0349 + specs/ci-farm-substrate-canonical.json; regenerable, short TTL
 
@@ -130,12 +130,12 @@ seaweedfs:
     serviceMonitor:
       enabled: true
 
-# ---- canonical labels (consumed by oya-helpers) ----
+# ---- canonical labels (consumed by helpers) ----
 microservice: cloud-iac
 boundedContext: object-store
 tier: M
 plane: data
-partOf: oya-cloud-iac
+partOf: cloud-iac
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:
@@ -143,5 +143,5 @@ costAttribution:
   workloadClass: "app"
 
 # ---- canonical helm library ----
-oya-helpers:
+helpers:
   enabled: true

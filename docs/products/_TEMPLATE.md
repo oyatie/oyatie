@@ -53,7 +53,7 @@ Bulleted list. Anti-scope is binding; promotion to in-scope requires a council d
 
 ### 4.1 Bounded context
 
-Which bounded context this product owns (per [DESIGN.md §1](../DESIGN.md)). Cite the flat-crates target prefix (e.g. `crates/oya-foundry-*`).
+Which bounded context this product owns (per [DESIGN.md §1](../DESIGN.md)). Cite the flat-crates target prefix (e.g. `crates/foundry-*`).
 
 ### 4.2 Layered structure (clean architecture inside the bounded context)
 
@@ -199,7 +199,7 @@ Per `agent-durable-goal.json#score_cards.design_principle`: deterministic checks
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| (metric name) | `oya gate validate <lane>` OR `cargo nextest -p <crate> -- <test>` OR `jq '...' <evidence-path>` | `exit 0` / `count == 0` / `>= threshold` | `oya-governance-<lane>` |
+| (metric name) | `oya gate validate <lane>` OR `cargo nextest -p <crate> -- <test>` OR `jq '...' <evidence-path>` | `exit 0` / `count == 0` / `>= threshold` | `governance-<lane>` |
 
 Anti-pattern (forbidden): `TBD verification` or `manual check` — every metric MUST have a runnable command. If a metric can't be verified mechanically, it doesn't belong in this table (move to §11 open questions).
 
@@ -276,7 +276,7 @@ Per user directive 2026-05-16 captured in `agent-durable-goal.json#OP-11.user_di
 | Dimension | Target | Verification |
 |---|---|---|
 | Scalability | (concrete number — tenants, RPS, GB/day) | (benchmark lane / load-test artifact) |
-| Security | (e.g., per-tenant isolation by row-level security + signed audit-chain + Cedar policy at every edge) | (oya-governance-* lane) |
+| Security | (e.g., per-tenant isolation by row-level security + signed audit-chain + Cedar policy at every edge) | (governance-* lane) |
 | Performance | (latency p50/p99, throughput) | (perf-budget lane in CI) |
 | Efficiency | (cost per tenant per month, per call, per GB) | (FinOps unit-economics dashboard) |
 | Reliability | (SLO targets — availability, MTTR, error budget) | (canary-observability + post-deploy lanes per agent-durable-goal.json#pipeline.lane_categories.post_deploy_observability) |
@@ -310,7 +310,7 @@ When this PRD is created or updated, also update:
 
 ## Validation checks
 
-`oya-governance-product-prd` runs:
+`governance-product-prd` runs:
 - All required sections present
 - Every flat-crates target referenced exists in `Cargo.toml` (or is a planned target on the roadmap)
 - Every entity field has a `data_class` annotation

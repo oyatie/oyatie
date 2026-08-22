@@ -193,7 +193,7 @@
         "patch_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$",
-          "description": "sha256 of the full PR diff vs base; agent fetches via oya-tooling-agent-read diff --base <base> --head <head>."
+          "description": "sha256 of the full PR diff vs base; agent fetches via tooling-agent-read diff --base <base> --head <head>."
         }
       }
     },
