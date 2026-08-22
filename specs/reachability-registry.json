@@ -50,6 +50,10 @@
       "prefix": ".github/workflows/merge-admission-required.yml"
     },
     {
+      "anchor": "ADR-0700 (CI admission live apex; preserves ADR-0139 agentic SLO-gated promotion): promotion PRs targeting staging/canary/production must use the predecessor rung as head (dev>staging>canary>production). Feature PRs stay against dev. uses-only workflow (no run: shell) so rust-first workflow_inline_shell does not grow.",
+      "prefix": ".github/workflows/promotion-predecessor.yml"
+    },
+    {
       "anchor": "Drained mm-kit harness (PR #2180): live schemas now live under ci/facade/harness/; .grok/ is gitignored agent scratch, not a tracked reachability tree.",
       "prefix": "ci/facade/harness/"
     },
