@@ -88,7 +88,6 @@
     "libs",
     "tools",
     "bin",
-    "benchmarks",
     "contracts",
     "docs",
     "evidence",
@@ -105,7 +104,6 @@
   ],
   "non_crate_top_level_dirs": [
     "bin",
-    "benchmarks",
     "contracts",
     "docs",
     "evidence",
