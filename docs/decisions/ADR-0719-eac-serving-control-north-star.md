@@ -69,8 +69,8 @@ deliverables:
     exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
     verified_by: "presubmit"
   - id: ADR-0719-D19
-    description: "Need/have/don't for every repo-root name. Capabilities are the cloud provider. No new cloud-* crates, dirs, or registry rows. Wrong-home dumps burn or rewrite; they are not rehomed into another cap."
-    exit_criteria: "This table is the placement reading; new crates match Need; no PR adds a cloud-* path or crate; leftover roots in Don't are not used as destinations."
+    description: "Every repo-root name is DO or DON'T, and HAVE or HAVE NOT: DONE, BUILD, REMOVE, or STAY GONE. No new cloud-* crates. REMOVE is delete/rewrite in charter, not a move to another cap."
+    exit_criteria: "New crates are DO+HAVE-NOT (BUILD) or DO+HAVE (DONE); PRs that add DON'T names or rehome REMOVE dumps fail review."
     verified_by: "presubmit"
 ---
 
@@ -811,53 +811,68 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 - **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`; new crate names use the cap slug (`cell-clock-api`, not `cloud-clock`).
 - **overturn_when:** a §7 split/merge ADR with five fields lands same-wave.
 
-### D-19 — Need / have / don't (so dumps stop changing address)
+### D-19 — DO / DON'T × HAVE / HAVE NOT
 
-Repo-root **capabilities** are the cloud provider. If it is not in **Need**, it is not a cap root. If **Have** is a dump, do not move the dump into another cap — burn or rewrite in place. **Don't** is not a destination.
+Repo-root capabilities are the cloud provider. Every name is exactly one cell:
 
-**Need (closed cloud-provider set).** One root each. Engine in `core/`. No `cloud-*` names.
+|  | **DO** (should exist) | **DON'T** (must never exist) |
+|---|---|---|
+| **HAVE** (on this branch) | **DONE** — keep | **REMOVE** — delete or rewrite **here**; do not move |
+| **HAVE NOT** (absent) | **BUILD** — create in charter | **STAY GONE** — do not invent a home |
 
-| Root | Need | Have (this branch) | Don't | Do |
-|---|---|---|---|---|
-| `cell/` | Topology, clock port | Region/bind crates + **clock port** | CRM, `time/` cap, `cloud-cell` | Keep engine; clock port stays |
-| `tenancy/` | Tenant lifecycle, home-cell | Present | IdP, PDP | Keep engine; burn novels |
-| `iam/` | Who + `device_attestation` | Identity crates + attestation **port**; PDP still here | Cedar eval, browser, SVID issue | Extract PDP → `policy/`; keep attestation |
-| `policy/` | Cedar + ReBAC | **Absent** (crates still in `iam/`) | Empty scaffold, cap-root `<other>/policy/` | Extract; no vacant dir first |
-| `secrets/` | KMS, SPIFFE **issue** | Present | PDP | Absorb trustd with `os/` delete |
-| `audit/` | Merkle log + tenant export | Present | Pack DPIA, packet capture | Keep engine; burn essays |
-| `observability/` | Telemetry + SLO controller | Present | Hand OpenSLO, SIEM cap, GuardDuty | Keep engine; generated SLO only |
-| `storage/` | Bytes, digest/generation | Present | SQL, search, TrueTime identity, `cloud-storage` | Keep engine |
-| `data/` | Records; **consumes** cell clock | Ontology/analytics leftovers | `cloud-*`, SERP, BI app, private `Now()` | Keep engines; no `cloud-*` crates |
-| `compute/` | VM + k8s-on-compute + functions (3 reconcilers) | Present | One Raft, GKE product | Keep; do not split 3 caps |
-| `k8s/` | Managed cluster (GKE-class) | Present + dump | kube port as `core/`, `k8s-port/` | Dump burns; port = `build/port-engine` |
-| `network/` | VPC/DNS/dataplane; allow UDP/443 | Present | Istio identity, `firewall/`, block QUIC | Keep; `flow_log`/`quic_metadata` after dump |
-| `gateway/` | One Connect door, TLS/WAF/IAP | **Connector dump** (Workday/Slack/Salesforce/…) | Second door, iPaaS, `cloud-gateway`, Island browser | **Purge connectors**; rewrite door; no strangler |
-| `bus/` | Owned queue/bus/outbox | Tree still `messaging/` | Kafka core, mailbox | Retired name `messaging/`; no new crates there |
-| `intelligence/` | Vertex/Bedrock | Present; detection purged | GuardDuty, copilot app, `cloud-ml` | Keep inference; no detection |
-| `workflow/` | Step Functions | **Absent** (purged) | n8n, forms, bus, empty dir | Rewrite = dir + `core/` same PR |
-| `pipeline/` | TAP + Cloud Build | Tree still `ci/` + census leftovers | GHA as product, `cloud-ci` | Retired name `ci/`; D-17 keep only |
-| `iac/` | IR unifier | Present | Helm/Tofu **source** | Keep engine; Helm adapter only |
-| `billing/` | Meter/rate/invoice/tax on **platform SKUs** | Present | Payments rails, ledger books | Keep; do not absorb payroll |
-| `marketplace/` | Plugins + SKU engine | Thin after purge | KYC, app store, `cloud-marketplace` | Keep kernel |
-| `compliance/` | Pack evidence | Present | Merkle log, cloned DPIA | Keep |
-| `notify/` | SES-class send | **Absent** (comms purged) | Mailbox/Meet, empty dir, `cloud-mail` | Rewrite = dir + `core/` same PR |
-| `flags/` | Eval + kill switch | `evaluation-domain` **plus dump** | Experiments product, REST+gRPC, catalog.yaml, clock switch | Keep eval; burn dump |
+No new `cloud-*` crates. REMOVE is not rehome.
 
-**Need (meta, not sold APIs):** `docs/` (ADRs), `governance/` (registry + D-17 checks), `build/` (toolchains, port-engine, SKU **view**), `third-party/` (pins), `packs/` (jurisdiction data), `app/` (2+ composition only), `base/` only when admitted. **No `kernel/` / `os/` rungs. No `cloud/`.**
+**DONE** (DO + HAVE)
 
-**Have and must not be repo-root (Don't = not a destination):** `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`. Burn/rehome per existing rows — do not invent `cloud-*` homes for them.
+- `cell/` engine + clock port
+- `tenancy/` engine
+- `iam/` who + `device_attestation` port
+- `secrets/`, `audit/`, `observability/` engines
+- `storage/` bytes engine; `data/` records engines (not `cloud-*`)
+- `compute/` (one cap); `k8s/` managed-cluster engine; `network/` dataplane
+- `intelligence/` inference (detection already gone)
+- `iac/` unifier; `billing/` platform meter; `marketplace/` plugin+SKU kernel; `compliance/`
+- `flags/core/evaluation-domain`
+- Meta: `docs/`, `governance/`, `build/`, `third-party/`, `packs/`, `app/` (composition only)
 
-**Have in `app/` today:** calendar, community, global-trade, hr, payroll, sheets. These are **not** caps. They do not grow engines. Roster is not closed here (apps discussion).
+**BUILD** (DO + HAVE NOT)
 
-**Need, not this set (don't park in a cap):** `payments/` (rails **product**), `ledger/` (books **product**). Absent is correct until a §7 product ADR. Not `billing/core`. Not `cloud-payments`.
+- `policy/` — extract PDP crates from `iam/` in the same change as the directory
+- `gateway/` Connect/H3 door, TLS/WAF/IAP/fingerprint crates (after REMOVE of connectors)
+- `bus/` slug (tree is still `messaging/`)
+- `pipeline/` slug (tree is still `ci/`)
+- `workflow/` Step Functions — directory + `core/` in one PR
+- `notify/` SES send — directory + `core/` in one PR
+- `network/` `flow_log` + `quic_metadata`; `k8s/ports` `owned_journal`; `data/` `commit_wait` crate
+- `gateway/` TLS adapters (`tls13_hybrid_mlkem`, `tls13_x25519`, `ech`) after the dump is gone
+- `base/` only when the ≥3-caps rule admits the first crate
 
-**MUST (need/have/don't; no cloud-* debt)**
+**REMOVE** (DON'T + HAVE)
 
-- **achieves:** agents cannot use an unclear home as a reason to put iPaaS in `gateway/` or `cloud-*` in `data/`.
-- **origin:** dumps migrated instead of dying; `cloud-*` prefixes recreated the retired `cloud/` tree inside caps.
-- **rule:** Need is the only legal cap root; Have-dump is burned or rewritten in that charter, not moved; Don't is not a destination; no new `cloud-*` crate, directory, or registry row.
-- **ensure:** new crates match the Need column and the cap slug; PRs that add `cloud-*` or park connectors in `gateway/` fail review.
-- **overturn_when:** a §7 split/merge names a new Need root with five fields same-wave.
+- `gateway/` Workday/Slack/Salesforce/… connectors (iPaaS, second door)
+- `flags/` cap-root dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
+- Nested census in `k8s/`, `data/`, `iam/` (PDP files stay until BUILD `policy/`)
+- Repo-root leftovers: `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`
+- Retired names as **live** homes: new crates under `ci/` or `messaging/`
+- `cloud-*` crates still in tree; `CloudRegion`-class prefixes as a pattern
+- Cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product surfaces, `catalog.yaml`
+
+**STAY GONE** (DON'T + HAVE NOT)
+
+- `cloud/`, `console/`, `comms/`, `time/`, `firewall/`, `k8s-port/`, empty `kernel/`/`os/`/`policy/`/`workflow/`/`notify/` scaffolds
+- Island-class browser as a cloud root; `payments/` and `ledger/` as **caps** (products, §7)
+- Kafka as `bus/` core; GHA as `pipeline/` core; Istio as identity; on-path QUIC MITM
+- New `cloud-*` names; EU-as-world-floor; REST+gRPC as a standing product
+
+`app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps** — apps discussion, not D-19 BUILD.
+
+**MUST (DONE / BUILD / REMOVE / STAY GONE; no cloud-* debt)**
+
+- **achieves:** placement is a 2×2, not a vibe; dumps cannot “move to the right cap.”
+- **origin:** need/have/don't still let agents treat REMOVE as BUILD-elsewhere; `cloud-*` recreated `cloud/`.
+- **rule:** DO+HAVE = keep; DO+HAVE NOT = build in charter; DON'T+HAVE = remove here; DON'T+HAVE NOT = stay gone; no new `cloud-*`; REMOVE is not rehome.
+- **ensure:** new crates are BUILD or DONE; PRs that add STAY GONE names or rehome REMOVE dumps fail review.
+- **overturn_when:** a §7 split/merge changes DO/DON'T with five fields same-wave.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
