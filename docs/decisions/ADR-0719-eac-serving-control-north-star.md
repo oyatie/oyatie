@@ -97,8 +97,8 @@ deliverables:
     exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; adapters for our cloud and for commodity substitutes; no path-dep on cloud core/ports."
     verified_by: "presubmit"
   - id: ADR-0719-D26
-    description: "First-party privilege is not a feature flag and not in-process cores. Same ports/proto as customers. Mechanism: injected adapter + principal + VIP. Tenant #0 uses a first-party principal on that proto (AWS service-linked / Google LOAS analog). Portability proof is commodity adapters in tests, not forcing prod to impersonate a random customer."
-    exit_criteria: "No cfg/flag linking cloud core into app; no skip-PDP API; adapter chosen at compose time; first-party is a PDP principal; SQLite/S3/Postgres adapters exist as substitutes."
+    description: "REJECT a trusted-vs-untrusted tenant mode in apps. D-23/D-25 already prove the cloud (same facade) and portability (commodity adapters). First-party is an IAM principal like any other; not an app flag, VIP class, skip-PDP, or in-process core. Do not add a mechanism we will regret."
+    exit_criteria: "No TrustedTenant/cfg(trusted)/first-party quota class in app cores; no skip-PDP; no second cloud API; adapter injection and IAM principals remain the only knobs."
     verified_by: "presubmit"
 ---
 
@@ -1426,42 +1426,27 @@ Founder 2026-08-22 (clarified): maximize **business logic** behind ports. Cloud 
 - **ensure:** new `app/<p>/core` crate that imports sqlx/reqwest/`storage-*`/`data-*`/`iam-*` fails review; each durable port has a non-Oyatie adapter path in charter (SQLite and/or commodity).
 - **overturn_when:** a five-field ADR same-wave allows in-process cloud cores or makes an app require a living Oyatie SKU with no substitute adapter.
 
-### D-26 — First-party access is identity + VIP, not a flag and not a second API
+### D-26 — Do not add a trusted-tenant *mode* (premise rejected)
 
-Founder 2026-08-22: a way for first-party apps to be a **trusted** tenant (not only untrusted) to prove the cloud works — **not necessarily a feature flag**.
+Founder 2026-08-22: maybe privileged access as a trusted tenant vs untrusted, to prove the cloud works — flag or otherwise. **Do not weaken or add a regret.**
 
-#### Hyperscaler challenge
+**The premise is surplus.** D-23 already proves the cloud (apps call the sold facade). D-25 already proves portability (commodity adapters at SKU EOL). IAM already issues service principals. A named trusted/untrusted **mode in the app** is a second path. Second paths become skip-PDP, unmetered, extra proto, or `cfg` linking `storage/core`. That is a product regression.
 
-AWS Console / WorkMail does **not** compile RDS into the app, and does **not** flip a “trusted Dynamo” flag. It calls the **same** service APIs with a **service-linked role** (or the *customer’s* role when acting on customer data). Google is Stubby + LOAS: **same method**, calling-job identity, ACLs still on. Private VIP / Borg-local stub is placement, not a new protocol. A `cfg(trusted)` that `path =` `storage/core` is the anti-pattern (vendor lock to ourselves; D-25 dies the week the flag is on in prod).
+Hyperscalers do not ship “trusted GCS for Gmail.” One API, identities, ACLs. Console is not an enum inside S3.
 
-Forcing **production** tenant #0 to impersonate a random customer (public H3, noisy-neighbor quota) is also not what they do. That starves dogfood and is not the portability proof. Portability proof is **substitute adapters** (SQLite, S3, Postgres, IMAP) in tests and at SKU EOL. Cloud-works proof is tenant #0 using the **customer proto** with a **first-party principal**.
+**Do not add:** feature flag; `TrustedTenant` in `app/*/core`; first-party quota class; skip-PDP; second cloud API; in-process cloud cores.
 
-**Confused deputy:** when Foundry reads *a customer’s* bucket, it must use **that tenant’s** credentials (or an explicitly scoped grant). First-party privilege is for **Foundry’s own** tenant-#0 data, not a god mode over all tenants.
-
-**FinOps:** first-party still emits meters. A free internal class hides unit cost and returns the dual-ledger lie.
-
-**PDP:** no skip. Breakglass is an IAM grant with audit, not a second API.
-
-#### Mechanisms (flag is the worst)
-
-| Mechanism | Use? | Why |
-|---|---|---|
-| `cfg` / product `flags/` compiling cloud `core` into `app/` | **BAN** | Second stack; untrusted adapter rots |
-| Distinct privileged cloud API | **BAN** | Customers and dogfood diverge |
-| Skip PDP for first-party | **BAN** | God mode |
-| **Injected adapter** at compose (SQLite vs cloud-client vs S3) | **YES** | Hexagonal; two facade bins may share `core` |
-| **Same proto, first-party principal** (SPIFFE / service-linked) | **YES** | AWS/Google default |
-| **Same proto, cell-local VIP** (D-4 TCP+SPIFFE) | **YES** | Placement, not a new contract |
-| Tenant config / pack-id selecting adapter | **YES** | Which substrate, not privilege |
-| Impersonate random customer **in prod** | **NO** | Not hyperscaler dogfood |
+**Already exists (do not rebrand as trusted mode):** adapter injection (sqlite | cloud-client | s3 | …); IAM principal including first-party; cell-local VIP as **network**, not an app bit; customer-data access uses **that customer’s** grant.
 
 **MUST**
 
-- **achieves:** dogfood uses the customer contract; SKU EOL stays an adapter swap; no compile-time backdoor.
-- **origin:** privilege-as-flag or in-process cores; over-correcting to “prod must look like an untrusted stranger.”
-- **rule:** same ports/proto for all tenants; first-party = principal + optional private VIP + still PDP + still metered; adapter chosen at compose/config; customer-data access uses that customer’s grant; substitute adapters (SQLite/commodity) prove D-25; no `cfg` linking cloud `core` into `app/`.
-- **ensure:** review rejects skip-PDP APIs, `cfg(trusted)` path-deps, and first-party unmetered classes.
-- **overturn_when:** a five-field ADR same-wave allows a distinct privileged API or in-process cores for tenant #0.
+- **achieves:** no regret mechanism that splits dogfood from customers or bypasses D-23/D-25.
+- **origin:** “prove it works” invited a second path; second paths become the only path.
+- **rule:** no trusted-tenant mode, flag, or skip-PDP. Proofs remain sold facade + commodity adapters. First-party is an IAM principal. Adapter injection is substrate choice, not privilege.
+- **ensure:** review rejects `TrustedTenant`, `cfg(trusted)` cloud-core path-deps, first-party unmetered classes, and privileged extra APIs.
+- **overturn_when:** a five-field ADR same-wave shows a missing capability that IAM+adapters cannot express AND names a fail-closed alternative that is still one proto.
+
+### D-16 — `console/` is not a capability; discard the pilot
 
 The tree at `console/` is **ops-dashboard-control-center**: a Wave-15 internal
 ops dashboard (incident-command, tenant-admin, pack-author, on-call-handoff, …).
