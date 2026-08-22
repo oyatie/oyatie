@@ -1,0 +1,15 @@
+[package]
+name = "cell-clock-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "cell_clock_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

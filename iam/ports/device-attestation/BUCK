@@ -1,0 +1,19 @@
+rust_library(
+    name = "iam-device-attestation-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_device_attestation_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "iam-device-attestation-api-attestation-port",
+    srcs = ["tests/attestation_port.rs"],
+    crate = "iam_device_attestation_api_attestation_port",
+    crate_root = "tests/attestation_port.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iam-device-attestation-api",
+    ],
+)

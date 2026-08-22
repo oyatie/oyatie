@@ -747,7 +747,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
 | **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
 | **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
-| **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. Clock adapter (`cell/` IR). | Cap-root junk. |
+| **flags** | Deterministic **eval** (keep `evaluation-domain`), targeting, kill switch, pack-gated overrides. | Experiments product / p-value dashboards. OpenAPI+REST+gRPC dual. Clock adapter. OFREP as SSOT. | Cap-root dump (`catalog.yaml`, IPs, Helm, AUDIT-FINDINGS). REST/gRPC server dual. |
 | **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
 | **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
@@ -778,7 +778,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
-| **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. **Clock adapter** (`cell/` IR). |
+| **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
 | **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
