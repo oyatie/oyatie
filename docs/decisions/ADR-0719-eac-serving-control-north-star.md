@@ -317,11 +317,18 @@ It is not a copy of ciphertext on the path.
 1. **Endpoint / browser inspect (DLP and malware before encrypt).** Applies as
    the **client end**, not as `gateway/` core. Chrome Enterprise / Island /
    CrowdStrike-class: scan on the device, then wrap in QUIC/TLS, path stays
-   E2E. We compose with that; we do not intercept after encrypt. A sold
-   enterprise-browser or agent is an `app/` (or a client of
-   `explicit_proxy`), not a cloud cap. Device posture / attestation is
-   **Cedar context** on the call (`acr_required`), issued by the endpoint,
-   not inferred from ciphertext.
+   E2E. We compose with that; we do not intercept after encrypt.
+
+   **We do not ship an Island-class browser as a cloud requirement.** AWS
+   does not; Google can because they already own Chrome. Device health is
+   a **port**, not a Chromium fork: `iam/` `device_attestation` crate
+   (closed adapters: passkey/WebAuthn, MDM/Intune, Chrome-Enterprise
+   attestation, SPIFFE workload). Cedar reads those as context
+   (`acr_required`). First-party web apps (when the apps discussion
+   adds them) run **in the customer’s browser** as tenant #0, same APIs.
+   A sold enterprise-browser `app/` exists only if that discussion
+   explicitly adds it — deleting the **attestation port** is
+   born-blocking; not building Chromium is not a gap.
 
 2. **Handshake metadata and behavior (JA4/JA4S, volume, timing, dest
    reputation).** Applies at **our terminate and dataplane** as abuse/bot
@@ -353,6 +360,7 @@ Closed adapter crates (delete = born-blocking):
 | `waf` | `gateway/` | L7 inspect **after** decrypt. |
 | `explicit_proxy` | `gateway/` | ZTNA / explicit hop. Trusted terminate, not transparent MITM. |
 | `fingerprint` | `gateway/` | JA4-class handshake signal. Not Cedar. Not DLP. |
+| `device_attestation` | `iam/` | Device/workload posture into Cedar. Not a browser. |
 | `flow_log` | `network/` | 5-tuple + identity. No payload. |
 | `quic_metadata` | `network/` | Version / connection-ID. Not payload decrypt. |
 
@@ -719,7 +727,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 |---|---|---|---|
 | **cell** | Topology, hard caps, router, rebalance, **clock port** (ntp / ptp_phc / gnss_atomic). Borg/GCP-zone analog. | GKE product (`k8s/`). Tenant CRM. A `time/` cap. Clock via `flags/`. | Census, leftover lifecycle dirs once faces exist. |
 | **tenancy** | Tenant lifecycle, home-cell, org/account analog. | IdP (`iam`). PDP (`policy`). SKU catalog (`marketplace`). | Enablement side-effects; JSON tenant novels. |
-| **iam** | Principals, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). | PDP crates **move to `policy/`**. trustd deps **move to `secrets/`** with `os/` delete. |
+| **iam** | Principals, passkeys, SCIM, role **store**, workload identity **consume**, **`device_attestation` port**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). An Island-class browser. | PDP crates **move to `policy/`**. trustd deps **move to `secrets/`** with `os/` delete. |
 | **policy** | Cedar + ReBAC PDP, G-face + C0 snapshots. | IdP. Empty dir forever. | **Extract crates from iam now.** Cap-root `<other>/policy/*.cedar` → `<other>/cedar/`. |
 | **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
 | **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
@@ -756,7 +764,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 |---|---|---|---|
 | **cell** | Bound failure domains and place load. | Topology, hard caps, router, rebalance, home-cell, **clock port** + adapters (`ntp` v1, `ptp_phc`, `gnss_atomic` destination). TrueTime interval is the API; plant only sets ε. | GKE product. Tenant CRM. Spanner ε as a v1 claim. Clock selection via `flags/`. A `time/` cap. |
 | **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete tenant, home-cell binding, org/account tree. | IdP (`iam`). Authz eval (`policy`). Marketplace SKUs. HR orgs. |
-| **iam** | Prove **who**. | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). |
+| **iam** | Prove **who** (and **device posture** as Cedar context). | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**, `device_attestation` (WebAuthn / MDM / Chrome-Enterprise / SPIFFE adapters). | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). Forking Chromium. |
 | **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
 | **secrets** | Crypto root and issuance. | KMS, secret material, SPIFFE **issue**, cert **issue** when sold. | PDP. Embedding secrets in app products. |
 | **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability, **tenant-exportable** access events (the CISO feed). | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. On-path packet capture as the audit product. |
@@ -962,6 +970,9 @@ for the apps discussion.
 - On-path QUIC MITM, blocking UDP/443 in our dataplane, or turning ECH off
   so a NGFW can read SNI. A `firewall/` capability. Visibility by weakening
   cryptography.
+- Forking Chromium / shipping Island-class browser as a cloud v1
+  requirement so that endpoint DLP exists. Attestation is the port;
+  their browser is the client.
 - Zanzibar global tuple replica.
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
