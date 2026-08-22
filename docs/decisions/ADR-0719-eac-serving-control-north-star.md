@@ -719,6 +719,14 @@ compute/ agent (Borglet analog)  ──host Linux (KVM)──
 
 **Sold kube SKU** (optional): kubelet runs **inside a guest**, as a tenant. It is not the host agent.
 
+**kube-rs / k8s-openapi:** Kubernetes **client** libraries (OpenAPI types for
+Pod/Job/…). They talk to a **kube-apiserver**. That is **not Borg.** Do
+**not** use them as the fleet scheduler (`compute/` / `cell/`). Using
+them for “our Borg” **is** running Kubernetes. Allowed only as
+**`k8s/` adapters** talking to **upstream** kube for the **sold SKU**.
+Pipeline must not spawn `batch/v1 Job`s as the worker plant (that is
+Prow-on-kube). Workers are CH/FC guests via `compute/`.
+
 `build/` ships: host image, guest kernel, CH/FC binaries (pinned). `storage/` holds images. `pipeline/` builds them when the graph says so. No `os/` farm. No Talos machine API.
 
 - **Delete `kernel/`.** Asterinas is gone. No third-party pin “in case.”
@@ -807,7 +815,9 @@ not a destination.
 - **ensure:** registry has no `kernel/` or `os/`; no Asterinas/Hermit
   evaluation tree; no PR treats Talos as the fleet OS; new VM/microVM
   code is CH/Firecracker adapters under `compute/`; guest/host kernels
-  are `build/` artifacts from upstream Linux, not an `os/` capability.
+  are `build/` artifacts from upstream Linux, not an `os/` capability;
+  no `kube`/`k8s-openapi` in `compute/` or `cell/` core (sold `k8s/`
+  adapters only).
 - **overturn_when:** Asterinas **or Hermit** (or equal) is measured
   mature **and** a five-field ADR replaces Linux as the guest kernel
   same-wave, with CH/Firecracker still the VMM unless that ADR also
@@ -1308,6 +1318,8 @@ implementation is gone pending rewrite; no dump resurrection.
 - Asterinas or Hermit as **today’s** node kernel or a vacant `kernel/`
   rung “until it matures.” QEMU as the compute identity. Kubernetes as
   the cloud OS. Talos as the fleet OS.
+- kube-rs / k8s-openapi as the fleet (Borg) control plane. Those
+  libraries are a kube-apiserver client. Sold `k8s/` adapters only.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,
