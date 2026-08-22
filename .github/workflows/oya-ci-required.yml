@@ -1,6 +1,17 @@
 # Single canonical required status check: branch protection keys on the `oya-ci-required`
 # context, which is green IFF every constituent lane is green.
 #
+# Stage split (cheap local vs this engine):
+#   git hook pre-commit  — rustfmt on staged *.rs (seconds). No workspace compile.
+#   git hook pre-push    — not a full nextest; authors use CI for that.
+#   this file            — PRE-MERGE (pull_request + merge_group): rustfmt + native
+#                          Linux amd64 nextest. Live-postgres on amd64.
+#                          No cargo build --release, no buck2 build //..., no mac/win.
+#                          Arm64 nextest is not a job here (GitHub forbids job-level
+#                          if: matrix.*; D88-amend follow-up workflow for nightly/train).
+#   buck2-weekly-smoke   — POST-SUBMIT graph honesty.
+#   CD train (D63)       — PRE-DEPLOYMENT: release binaries / multi-arch OCI.
+#
 # Execution engine: the Cargo workspace graph (rust-toolchain.toml pins the toolchain).
 # buck2 is local hermeticity tooling plus a weekly non-blocking smoke;
 # (buck2-weekly-smoke.yml). Inside the merge path, buck2 appears only as the
@@ -50,64 +61,33 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ADR-0718-D1. FAST BLOCKING LANE. `rustfmt --check` compiles nothing — it is differential
-  # over the changed *.rs files only. It previously shared a job with an ADVISORY
-  # `cargo clippy --workspace --all-targets`, so the blocking format verdict could not report
-  # until a full-workspace compile finished, and the job restored/saved a cargo cache the
-  # format check has no use for.
+  # ADR-0718-D1. FAST BLOCKING LANE. `cargo fmt` compiles nothing. `--all` is the
+  # merge bar for a format-clean workspace (Cargo owns file discovery + rustfmt.toml
+  # + edition). Local hooks must NOT pass `--all` — they format the change, not 885 crates.
   lint:
     name: lint (format + clippy)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          # The format gate diffs against the base ref.
-          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
           components: rustfmt
       - name: Check formatting
-        # Blocking and differential: only ACMR (added/copied/modified/renamed) *.rs
-        # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
-        # keeps a crate-root path from re-checking untouched sibling modules that
-        # still carry pre-existing rustfmt debt. Repo-wide drift is a follow-up PR.
-        env:
-          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
-        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${BASE_REF#refs/heads/}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
-
-  # ADR-0718-D1. DEEP LINT LANE, parallel with `test` and deliberately ABSENT from the
-  # oya-ci-required fan-in. It was already `continue-on-error: true` inside the old lint job,
-  # so it has never been able to fail a merge; keeping it out of `needs` therefore removes no
-  # enforcement and takes an advisory full-workspace compile off the merge path. If the
-  # repo-wide lint-debt cleanup lands and clippy becomes blocking, it must be added back to the
-  # fan-in in that same change — ADR-0718 does not pre-authorize that.
-  clippy:
-    name: clippy (advisory)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.97.1"
-          components: clippy
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-clippy
-      - name: Clippy, warnings denied
-        # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
-        # The differential format gate in `lint` is the blocking new-debt guard today.
-        continue-on-error: true
-        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+        run: cargo fmt --all --check
 
   test:
+    # D88-amend: per-PR / merge_group / push-to-dev nextest is native Linux
+    # amd64 only. GitHub rejects job-level `if:` that reads `matrix.*`
+    # ("Unrecognized named-value: matrix"), so arm64 cannot share this job.
+    # Arm64 nextest stays a follow-up workflow (nightly + promotion train);
+    # it is not a fan-in input below.
     name: test (workspace + gates)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: read
@@ -122,14 +102,6 @@ jobs:
       OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/tools/hooks/registration/claude-settings.json
       OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/tools/hooks/registration/codex-hooks.json
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
-      # swatinem/rust-cache caches registry dependencies, NOT workspace members, and this
-      # workspace has 885 of them — a run logged a cache HIT with Cargo.lock untouched and still
-      # compiled 1,565 crates. sccache is content-addressed per compilation unit, so it survives
-      # the lockfile churn and the workspace-member gap that rust-cache leaves open.
-      # CARGO_INCREMENTAL=0 (set workflow-wide) is a prerequisite: sccache cannot cache
-      # incremental compilation.
-      RUSTC_WRAPPER: sccache
-      SCCACHE_GHA_ENABLED: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -148,7 +120,7 @@ jobs:
           # small subset of the workspace; sharing a key would let their thin save overwrite this
           # lane's workspace-crate cache on every run — cache thrash that silently undoes the
           # setting below.
-          shared-key: cargo-ci-test-workspace
+          shared-key: cargo-ci-test-workspace-ubuntu-24.04
           # THE fix for the measured defect: a run logged `Cache hit for: v0-rust-cargo-ci`
           # with Cargo.lock untouched and still compiled 1,565 crates, because this action
           # caches dependency crates but NOT workspace members by default — and this workspace
@@ -158,7 +130,6 @@ jobs:
           cache-workspace-crates: "true"
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
-      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
       - name: Install pinned buck2 (digest-verified)
         shell: bash
         run: infra/ci/install-buck2.sh
@@ -169,17 +140,17 @@ jobs:
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
+        # Buck2 still resolves 1.96.0 (prelude pin) as well as rust-toolchain.toml 1.97.1.
+        # Pre-install both so face materialize does not rustup-download clippy in-band.
         run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
+      # This is cargo *run* of the materializer, not a product `cargo build --workspace`.
+      # The materializer still shells out to buck2 to build face-tool bins (ADR-0716
+      # leak); product `buck2 build //...` stays on the weekly honesty job / CD train.
       - name: Materialize generated faces
-        run: |
-          cargo build --locked --workspace --tests --quiet &
-          compile=$!
-          cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-          wait "$compile"
-      # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
-      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER. Step name is a frozen
-      # workflow_inline_shell baseline key — do not rename.
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+      # Test-fixture binary that gate tests exec via OYA_CI_PRODUCER_BIN. nextest does
+      # not build unrelated bins. Not a product image build.
       - name: Build enforcement-liveness producer
         run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
@@ -194,10 +165,10 @@ jobs:
         # at a time. Running the suite out reports every failure in one run at the same verdict.
         # This is not an advisory escape: the job still fails if any test fails, unlike
         # `--keep-going` or `|| true`, which the registration gates reject for that reason.
-        run: cargo nextest run --locked --workspace --no-fail-fast
+        run: cargo nextest run --locked --workspace --profile ci
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
-        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml
+        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --no-fail-fast
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
@@ -221,6 +192,7 @@ jobs:
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -281,6 +253,7 @@ jobs:
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -332,56 +305,10 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  cross-platform-smoke:
-    name: cross-platform-smoke (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    # Portability signal only where it is actionable. On merge_group this job's result is
-    # structurally discarded: it is absent from the fan-in verdict below (which checks only
-    # lint/test/live-postgres-*) and carries continue-on-error, so it cannot affect
-    # admission. That is observable, not inferred -- dev merges green today with the
-    # windows leg red. The two legs are 73 of the 90 billable minutes a queue build costs
-    # (macOS bills 10x, Windows 2x), so running them where nothing can read the answer is
-    # 81% of that build spent for no merge signal.
-    #
-    # It stays on pull_request, which is the only event where an author can still change
-    # the diff in response, and on push to dev for post-merge detection.
-    if: github.event_name != 'merge_group'
-    continue-on-error: true
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Configure MSVC toolchain
-        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756
-        if: matrix.os == 'windows-latest'
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-${{ matrix.os }}
-      - name: Install pinned buck2 (digest-verified)
-        shell: bash
-        run: infra/ci/install-buck2.sh
-      - name: Pre-provision pinned toolchain components
-        shell: bash
-        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
-        # build resolves the triple-named toolchain through rustup; pre-installing everything
-        # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
-      - name: Materialize generated faces
-        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-      - name: Cross-platform smoke tests
-        run: cargo test --locked -p ci-scm-facts-snapshot
-
-  # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
-  # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
+  # Fan-in: the single required context. Green IFF lint, Linux amd64 nextest, and
+  # both live-postgres lanes are green. Arm64 nextest is not a per-PR fan-in
+  # input (D88-amend). No Windows/macOS job. Skipped on the nightly schedule so
+  # a skipped lint/postgres lane cannot fail-closed a non-merge event.
   oya-ci-required:
     # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
     # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
@@ -389,12 +316,7 @@ jobs:
     # a replacement-window ADR.
     name: merge-admission-required
     runs-on: ubuntu-latest
-    if: ${{ always() }}
-    # cross-platform-smoke is deliberately NOT a dependency. The verdict below never reads
-    # its result, so listing it only made the fan-in WAIT on a lane it does not consult --
-    # and would make this required context's fate depend on that job's skip state. With
-    # enforce_admins on, a required context that fails to report blocks every merge, so the
-    # dependency is removed rather than reasoned about.
+    if: ${{ always() && github.event_name != 'schedule' }}
     needs: [lint, test, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict
