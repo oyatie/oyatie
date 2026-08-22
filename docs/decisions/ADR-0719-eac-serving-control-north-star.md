@@ -312,6 +312,35 @@ It is not a copy of ciphertext on the path.
 | Tenant admin (workloads in a cell) | `network/` flow logs + SPIFFE identity; `audit/` export to their SIEM; WAF events after **our** terminate. | A `firewall/` cap. Sidecar MITM. Security groups that **block** UDP/443. |
 | Employee device / corp SASE | **Explicit-proxy / ZTNA adapter** on `gateway/`: they **choose** us as the hop; both legs are real TLS/H3 (PQC+ECH still on). Or **Connect on H2** (same contract, TCP) if their office blocks UDP. Or private connectivity so the NGFW is not on path. Endpoint agents they run see pre-encrypt — their device, not our wire. | Transparent QUIC MITM. “Enterprise mode” that turns ECH off so SNI is visible to a middlebox. A second public API for “inspected” clients. |
 
+**How the three SASE patterns map (apply, do not become a NGFW).**
+
+1. **Endpoint / browser inspect (DLP and malware before encrypt).** Applies as
+   the **client end**, not as `gateway/` core. Chrome Enterprise / Island /
+   CrowdStrike-class: scan on the device, then wrap in QUIC/TLS, path stays
+   E2E. We compose with that; we do not intercept after encrypt. A sold
+   enterprise-browser or agent is an `app/` (or a client of
+   `explicit_proxy`), not a cloud cap. Device posture / attestation is
+   **Cedar context** on the call (`acr_required`), issued by the endpoint,
+   not inferred from ciphertext.
+
+2. **Handshake metadata and behavior (JA4/JA4S, volume, timing, dest
+   reputation).** Applies at **our terminate and dataplane** as abuse/bot
+   **signal**, never as the PDP and never as DLP. `gateway/` `fingerprint`
+   crate (JA4-class on the ClientHello we actually terminate);
+   `network/` `quic_metadata` + `flow_log`; dest reputation is **egress**
+   of tenant workloads, not SNI-steal on inbound. ECH makes outer-hello
+   fingerprints weaker — do not “fix” that by turning ECH off. ML-on-flow
+   is `observability/` + gateway WAF, not `intelligence/detection`
+   (GuardDuty stays out). Authz remains Cedar.
+
+3. **Identity-aware proxy for inbound workloads.** Applies: this **is**
+   north-south `gateway/` + `iam/` + in-process `policy/` Check. Validate
+   identity, device health, context, then the backend sees an already
+   authorized call. It does **not** apply as a sidecar / ephemeral proxy
+   per microservice (that is Istio). East-west stays SPIFFE library +
+   in-process PEP. A sold “Cloud IAP” SKU is a `gateway/` **facade** on
+   the same contract, not a second door and not a mesh.
+
 **Connect transport:** one RPC contract. H3 is the door default. **H2 is
 the same Connect framing** when the path cannot carry UDP — not a second
 SDK, not REST, not “disable QUIC in the product.” Our `network/` default
@@ -323,6 +352,7 @@ Closed adapter crates (delete = born-blocking):
 |---|---|---|
 | `waf` | `gateway/` | L7 inspect **after** decrypt. |
 | `explicit_proxy` | `gateway/` | ZTNA / explicit hop. Trusted terminate, not transparent MITM. |
+| `fingerprint` | `gateway/` | JA4-class handshake signal. Not Cedar. Not DLP. |
 | `flow_log` | `network/` | 5-tuple + identity. No payload. |
 | `quic_metadata` | `network/` | Version / connection-ID. Not payload decrypt. |
 
@@ -342,13 +372,14 @@ into `network/` as plugins, they do not become our door.
   blocked) is the only product RPC; Check is in-process; no Istio/Linkerd
   as identity; `gateway/` TLS port has hybrid ML-KEM (public default),
   classical (dying), and ECH adapters as crates; visibility is Zero Trust
-  **endpoint isolation** (client agent / explicit-proxy + server
-  terminate + `audit/` export); no on-path QUIC MITM; no `firewall/` cap;
+  **endpoint isolation**; browser DLP is the client end not `gateway/`
+  core; JA4/flow are signals not the PDP; IAP is the one north-south
+  door not a per-pod proxy; no on-path QUIC MITM; no `firewall/` cap;
   no standing gRPC or REST product; our dataplane does not block UDP/443.
-- **ensure:** new RPCs generate Connect; new TLS/ECH/WAF/proxy/flow-log
+- **ensure:** new RPCs generate Connect; new TLS/ECH/WAF/proxy/fingerprint/flow-log
   code implements those ports; layout/registry cannot drop those adapter
   names without OVERRULE; no new gRPC service crates; no PR that turns ECH
-  off as “enterprise visibility.”
+  off as “enterprise visibility”; no PR adds a sidecar IAP.
 - **overturn_when:** a measured serving path needs a different RPC **and** a
   five-field ADR lands same-wave; TLS suite change is a new adapter plus IR,
   not a second door.
@@ -698,7 +729,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **compute** | **One** cap: VM + k8s-on-compute + functions as **three reconcilers / facades**. | GKE product (`k8s/`). GPU = facade when sold. One Raft for all three. | Splitting into 3 caps. |
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
 | **network** | VPC/DNS/**dataplane**, security groups (allow UDP/443), `flow_log` + `quic_metadata` crates. Not Istio. | Public API door (`gateway`). A `firewall/` cap. Sidecar mesh as **our** identity. On-path QUIC decrypt. | Census. Istio/Linkerd as default. |
-| **gateway** | One Connect **contract** (H3 default, H2 same framing), N cell frontends, TLS + `waf` + `explicit_proxy` crates. | Mesh (`network`). Second REST/gRPC API. One global VIP. Transparent QUIC MITM. ECH-off “enterprise mode.” | REST/gRPC dual-stack; connector leftover if it’s a second door. |
+| **gateway** | One Connect **contract** (H3 default, H2 same framing), N cell frontends, TLS + `waf` + `explicit_proxy` + `fingerprint` crates. Cloud IAP is this facade. | Mesh (`network`). Second REST/gRPC API. One global VIP. Transparent QUIC MITM. ECH-off “enterprise mode.” Per-pod IAP sidecar. Browser DLP as this cap’s core. | REST/gRPC dual-stack; connector leftover if it’s a second door. |
 | **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | Retired tree name `messaging/`: no new crates there. Kafka/Pulsar = **adapters** or a sold SKU facade, never SSOT. |
 | **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
@@ -735,7 +766,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **compute** | Run **workloads**. | One cap, three reconcilers: VM, k8s-on-compute, functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). One Raft / one scheduler for all three. |
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
 | **network** | Connect inside the cloud. | VPC, DNS snapshots, dataplane, security groups **allow UDP/443**, `flow_log`, `quic_metadata`. | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. A `firewall/` cap. Block QUIC. Payload decrypt. |
-| **gateway** | **One** north-south **contract**, many cell frontends. | Connect (H3 default, H2 same framing if UDP blocked), authn terminate, quota, Cedar, TLS port (hybrid ML-KEM, classical dying, ECH), `waf` after decrypt, `explicit_proxy` ZTNA crate. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs here. gRPC-Web operator UI. Transparent QUIC MITM. ECH-off enterprise mode. |
+| **gateway** | **One** north-south **contract**, many cell frontends. | Connect (H3 default, H2 same framing if UDP blocked), authn terminate, quota, Cedar, TLS port (hybrid ML-KEM, classical dying, ECH), `waf` after decrypt, `explicit_proxy` ZTNA, `fingerprint` (JA4 signal). Sold IAP = this facade. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs here. gRPC-Web operator UI. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. Endpoint DLP as core. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
