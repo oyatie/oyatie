@@ -45,7 +45,7 @@ deliverables:
     exit_criteria: "This table is the placement reading; new engines go in an existing cap or a §7 registry split, not a new root dump; app/ is composition only."
     verified_by: "presubmit"
   - id: ADR-0719-D13
-    description: "Fleet node is Linux + our compute agent (Borglet analog), not Kubernetes, not Talos. Delete in-tree kernel/ and os/. Talos only as optional adapter for a sold kube SKU. port-engine is generic for when we own the node OS, not a kube/Talos program."
+    description: "Fleet is stripped-minimum Linux guests on Cloud Hypervisor and/or Firecracker. Not Asterinas (never). Not Talos/kube as the cloud OS. Delete kernel/ and os/. compute/ agent is the Borglet analog."
     exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
     verified_by: "presubmit"
   - id: ADR-0719-D14
@@ -617,11 +617,11 @@ GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`
 `OWNERS`, `AGENTS.md`, `CLAUDE.md`. Meta: `build/`, `third-party/`. `base/` is **not**
 pre-created; it appears only when the first crate admitted under the ≥3-caps-below-all
 rule. `governance/` is a **capability** (checks + `capability-registry.json`).
-**No `kernel/` and no `os/` rungs.** Fleet node is **Linux + our agent**
-(`compute/`), not Talos, not kubelet. Asterinas evaluation is **removed**.
-In-tree Talos/Asterinas port output is **deleted**. `build/port-engine` may
-regenerate a port **when we own the node OS**, not as a Talos/kube program.
-`os/ports/kernel-abi` dies with `os/`.
+**No `kernel/` and no `os/` rungs.** Fleet is **stripped-minimum Linux**
+on **Cloud Hypervisor** and/or **Firecracker** (`compute/`). Not Talos,
+not kubelet, **not Asterinas**. Asterinas **will not work** as our kernel;
+do not vendor, evaluate, or pin it as destination. In-tree Talos/Asterinas
+output is **deleted**. `os/ports/kernel-abi` dies with `os/`.
 Composition: `app/`. One directory per **registered** capability (including `policy/`
 the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle the engines load.
 `docs/` = ADRs + operating contract. **No catch-all `specs/`.** Machine contracts live
@@ -682,26 +682,36 @@ still speak REST may go red until they speak proto — that break is in-scope hy
   `merge-admission-required` context.
 - Node OS/kernel: D-13. Do not re-create `kernel/` or `os/` as empty rungs.
 
-### D-13 — Fleet node is Linux + our agent; not kube, not Talos
+### D-13 — Stripped Linux on Cloud Hypervisor / Firecracker
 
-**Decision.** Hyperscalers do **not** run Talos or Kubernetes as the cloud
-OS. Google: Linux + **Borglet**. Meta: Linux + **Twine**. AWS: **Nitro**
-hosts, not Talos. Talos is an immutable **Kubernetes node** OS (Sidero).
-GKE nodes are COS/Ubuntu, not Talos.
+**Decision.** Hyperscalers do **not** run Talos or Kubernetes as the
+cloud OS. Google: Linux + **Borglet**. Meta: Linux + **Twine**. AWS:
+**Nitro** + **Firecracker** (Lambda/microVM) / KVM VMs — not Talos.
+Talos is a **Kubernetes node** OS. GKE nodes are COS/Ubuntu, not Talos.
 
-**Our fleet node** = **upstream Linux** + a **`compute/` agent** (Borglet
-analog). Not kubelet. Not Talos. There is **one** kernel story: Linux
-today; owned OS later via port-engine **if** we own it.
+**Honest constraint: Asterinas will never work** as our node kernel.
+Delete `kernel/`. Do not vendor it. Do not leave an “evaluation” pin
+as a destination.
 
-- **Delete `kernel/`.** Asterinas evaluation is removed. Vendor to
-  `third-party/` only if we need the pin.
-- **Delete `os/`.** The in-tree Talos domain farm is not our node OS.
-  Generator stays at `build/port-engine` for a **future owned node OS**,
-  not to keep Talos in git.
-- **`os/ports/kernel-abi` is deleted with `os/`.**
-- **Talos** is at most a **`k8s/` adapter** for a **sold** kube SKU’s
-  worker OS — optional, not the fleet. `infra/talos/` burns with `infra/`
-  into that adapter or **deletes**. It is not `os/` and not how we operate.
+**Our fleet:** **stripped-to-minimum Linux** guests, scheduled by
+**`compute/` + `cell/`**, running on:
+
+| Adapter | Class | Analog |
+|---|---|---|
+| **Firecracker** | microVM / functions / dense isolation | Lambda, Fargate microVM |
+| **Cloud Hypervisor** | VM | rust VMM, virtio, full-ish guests |
+
+Both are KVM. Not QEMU as identity. Not kubelet. The **agent** on the
+guest (or host) is ours — Borglet analog. `compute/` already has three
+reconcilers; Firecracker ≈ functions, Cloud Hypervisor ≈ VM.
+k8s-on-compute remains an **optional sold SKU**, not how we operate.
+
+- **Delete `kernel/`.** Asterinas is gone. No third-party pin “in case.”
+- **Delete `os/`.** Talos farm is not the fleet OS.
+- **`os/ports/kernel-abi` dies with `os/`.** We are not porting a
+  second kernel ABI until we own one — and that is **not** Asterinas.
+- **Talos** at most a **`k8s/` adapter** for a sold kube worker image —
+  optional. `infra/talos/` burns or that adapter. Not operations.
 
 **Hyperscale operation does not use Kubernetes.** Google’s fleet is **Borg**
 (still; kube ~5k-node class is not Borg). Meta’s fleet is **Twine**. AWS’s
@@ -764,7 +774,7 @@ state), not into an `os/` keep.
 | `os/ports/kernel-abi` | none worth keeping | **Delete** with `os/`. |
 | `os/harness/*` | workspace glob | **Delete** with `os/` or fold into `k8s/` only if it tests k8s, not Talos-port. |
 | `infra/talos/**` | local kube bring-up | **`k8s/adapters`** only if we sell that worker image; else **delete**. Not fleet OS. |
-| `kernel/**` Asterinas | nested workspace only | **Delete.** Vendor to `third-party/` if we ever need the pin. |
+| `kernel/**` Asterinas | nested workspace only | **Delete.** Do not vendor. It will not be the node kernel. |
 
 Census JSON (`registry/graph`, manifests) **regenerates or dies** with the dirs. It is
 not a destination.
@@ -775,14 +785,15 @@ not a destination.
   the cloud OS; no empty rungs.
 - **origin:** kuberos deleted; Talos port farm remained as if Sidero were the
   hyperscaler node story.
-- **rule:** in-tree `kernel/` and `os/` are gone; fleet node is Linux +
-  `compute/` agent; Talos is not operations plant; kube port-engine is not
-  operations; sold `k8s/` may wrap upstream kube and optionally Talos as a
-  **SKU worker image**.
-- **ensure:** registry `meta_directories` has no `kernel/` or `os/`; tree has
-  no those dirs; no PR treats Talos as the fleet OS.
-- **overturn_when:** we own a node OS and land it as port-engine output with
-  five fields same-wave.
+- **rule:** in-tree `kernel/` and `os/` are gone; **Asterinas is never the
+  kernel**; fleet is **stripped Linux** on **Cloud Hypervisor and/or
+  Firecracker**; agent is `compute/`; Talos/kube are not operations plant;
+  sold `k8s/` may wrap upstream kube as a SKU.
+- **ensure:** registry has no `kernel/` or `os/`; no Asterinas pin; no PR
+  treats Talos as the fleet OS; new VM/microVM code is CH/Firecracker
+  adapters under `compute/`.
+- **overturn_when:** a five-field ADR names a different VMM or kernel
+  **other than Asterinas** with measured plant.
 
 **MUST (ADR override)**
 
@@ -956,7 +967,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
 | **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
 | **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
-| **compute** | Run **the fleet** (Borg/Twine analog). | One cap, three reconcilers: VM, optional k8s-on-compute **SKU**, functions. GPU as facade when sold. **This is how we operate**, not kube. | GKE product (`k8s`). Cell topology (`cell`). One Raft. Kubernetes as the cloud OS. |
+| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. | GKE as the fleet. Talos as the fleet OS. Asterinas. QEMU as identity. One Raft. |
 | **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
 | **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
 | **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
@@ -1276,6 +1287,8 @@ implementation is gone pending rewrite; no dump resurrection.
   fleet is `compute/`+`cell/`. Sold `k8s/` wraps **upstream**.
 - Talos (Sidero) as the fleet node OS. Hyperscalers do not run Talos.
   Talos is a kube-node OS; at most a sold-SKU worker image.
+- Asterinas as the node kernel (it will not work). QEMU as the compute
+  identity. Kubernetes as the cloud OS.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,
