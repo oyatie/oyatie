@@ -140,7 +140,9 @@ jobs:
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add --toolchain 1.97.1-$host cargo clippy rustfmt rust-std rustc && rustup default 1.97.1 && rustc --version
+        # Buck2 still resolves 1.96.0 (prelude pin) as well as rust-toolchain.toml 1.97.1.
+        # Pre-install both so face materialize does not rustup-download clippy in-band.
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       # This is cargo *run* of the materializer, not a product `cargo build --workspace`.
       # The materializer still shells out to buck2 to build face-tool bins (ADR-0716
