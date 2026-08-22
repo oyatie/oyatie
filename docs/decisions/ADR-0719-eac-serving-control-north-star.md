@@ -80,6 +80,10 @@ deliverables:
     description: "Palantir Foundry is the product (app/foundry). Ontology + Pages + Grid live there, not in data/ and not in intelligence/. Intelligence foundry/RAG is dead. D41 retired notes/slides/sites/office only — docs/sheets are Foundry primitives, not retired."
     exit_criteria: "data/ charter has no ontology kernel; no foundry/ capability root; no intelligence foundry surface; D41 list is notes/slides/sites/office/translate only."
     verified_by: "presubmit"
+  - id: ADR-0719-D22
+    description: "Apps 2x2 start: one launchpad app/application; Foundry is a module in it. V1 People=hr+payroll; V1 Finance=accounting+payments. Not v1: FP&A, treasury, performance, learning."
+    exit_criteria: "No empty app dirs for treasury/financial-planning/performance-management/learning-management; shell is not console/; Foundry is not the only shell."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -1001,7 +1005,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **governance/** | Registry. Check crates **off ladder**; D-17 default **delete**. | Org JSON `specs/` corpus. Cloud product. | Census kernels (`no-template-stamping`, …). |
 | **build/** | Toolchains, images, CH/FC+kernel **pins**. Port-engine **frozen** until a named owned corpus is Accepted. | Capability engines. Price list. Fleet agent. | `evidence/` essays. Staffing port-engine as Borg. |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
-| **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments; **do not absorb the `console/` pilot**. |
+| **app/** | 2+ cap products. One shell `application`; Foundry is a **module**. V1: foundry, hr, payroll, accounting, payments, calendar, mail, messenger, community. | A cloud engine. Ops console. D41 retirees. V1 treasury/FP&A/performance/learning. | Absorbing D41; parking payments as a **cap**; `console/` pilot; empty SAP ghosts. |
 
 **Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric. **D-20:** no `k8s-on-compute`; ontology not `data/core`; no gateway PDP; no `build/` price view.
 
@@ -1116,7 +1120,9 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `notify/` SES send — directory + `core/` in one PR
 - `network/` `flow_log` + `quic_metadata`; `k8s/ports` `owned_journal`; `data/` `commit_wait`
 - `base/` only when the ≥3-caps rule admits the first crate
-- `app/foundry` — Palantir Foundry product (ontology + Pages + Grid + Workshop). No empty scaffold until that PR. Not a cap.
+- `app/foundry` — Palantir Foundry product (ontology + Pages + Grid + Workshop). No empty scaffold until that PR. Not a cap. Module of `app/application`.
+- `app/application` — suite launchpad (from `oya/application`). Not console.
+- `app/mail`, `app/messenger`, `app/payments`, `app/accounting` — v1 products; no empty scaffold until each PR
 
 **REMOVE** (DON'T + HAVE)
 
@@ -1226,6 +1232,37 @@ No empty `app/foundry/` until the BUILD PR. Ontology crates today under `data/` 
 - **rule:** `app/foundry` owns ontology + Pages + Grid; `data/` has no ontology kernel; no `foundry/` cap; no intelligence foundry/RAG; D41 list is notes/slides/sites/office only.
 - **ensure:** new ontology crates land under `app/foundry` (when it exists); PRs that add `foundry/` as a cap, revive intelligence foundry, or implement ontology in `data/core` fail review.
 - **overturn_when:** a five-field ADR same-wave names a different Foundry home.
+
+### D-22 — Apps: one shell; v1 People + Finance (shrunk)
+
+Founder 2026-08-22: (1) **`app/application`** is the launchpad for the whole suite; **`app/foundry`** is a **module** in that shell (Palantir Workspace hosts Foundry — Foundry is not the only shell). D-16 stands: not `console/`, not `app/ops-console`. (2) Interview D1 Finance+People clusters stay the **shape**, but v1 **drops** FP&A, treasury, performance-management, learning-management. That is D1-A shrunk toward “B plus payments.”
+
+**V1 product dirs** (BUILD when missing; no empty scaffolds; KEEP+WORK if HAVE):
+
+| Dir | Role |
+|---|---|
+| `app/application` | **Shell / launchpad** (move from `oya/application`) |
+| `app/foundry` | Foundry module (ontology + Pages + Grid + Workshop) — D-21 |
+| `app/hr` | People |
+| `app/payroll` | People |
+| `app/accounting` | Finance UI (GL/close). Posting engine placement still open (ledger fork). |
+| `app/payments` | Payment **execution** product. Not `billing/`. Not a cap. |
+| `app/calendar` | D18/D32 — still v1 unless later overruled |
+| `app/mail` | D18 — mailbox. `notify/` is send only |
+| `app/messenger` | D18 — chat; meet **inside** (D20/D32) |
+| `app/community` | D18 — v1; SecureDrop shrink still open |
+
+**Not v1** (no dirs, not membership ghosts): `app/treasury`, `app/financial-planning`, `app/performance-management`, `app/learning-management`. D1 can grow them later.
+
+**Still open (not recorded):** ledger as `app/ledger` vs inside accounting; community SecureDrop; personal messenger network (D38); registry SAP ghosts.
+
+**MUST (one shell; shrunk v1 People+Finance)**
+
+- **achieves:** one launchpad; Foundry is a module; v1 money/people set is small enough to staff.
+- **origin:** D23/D35 one shell vs D-16 no console; D1 full Finance+People vs founder 2026-08-22 drop of four modules.
+- **rule:** `app/application` is the only shell; `app/foundry` is a module in it; v1 People = hr+payroll; v1 Finance = accounting+payments; not v1 = treasury, FP&A, performance, learning.
+- **ensure:** no `app/ops-console`; no empty dirs for the four dropped modules; Foundry PRs do not replace the launchpad.
+- **overturn_when:** a five-field ADR same-wave changes the shell or the v1 roster.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
