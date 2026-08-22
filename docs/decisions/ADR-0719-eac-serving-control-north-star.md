@@ -12,16 +12,16 @@ supersedes: []
 superseded_by: []
 amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708]
 amended_by: []
-depends_on: [ADR-0615, ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0710]
+depends_on: [ADR-0615, ADR-0701, ADR-0702, ADR-0704, ADR-0705]
 related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
 milestone: W0
 deliverables:
   - id: ADR-0719-D1
-    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs. Time is our TrueTime: interval API always; cell clock port with NTP/PTP/GNSS-atomic adapters; works with or without hardware; no product flag; no ε claim until measured."
+    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. k8s/ports: etcd is the v1 adapter, owned journal is the destination adapter; cluster-object API is never the etcd API. Time is our TrueTime: interval API always; cell clock port; data consumes it; storage does not use clock as identity."
     exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
     verified_by: "presubmit"
   - id: ADR-0719-D2
-    description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one Connect/H3 gateway contract (N cell frontends). No wrap language. JSON is not a product codec. Gateway TLS port crates: hybrid ML-KEM public default, classical dying, ECH in tree. No Istio identity. No standing gRPC."
+    description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one Connect/H3 gateway contract (N cell frontends). No wrap language. JSON is not a product codec. Gateway TLS port crates: hybrid ML-KEM public default, classical dying, ECH in tree. Visibility is after trusted terminate + audit export, not on-path QUIC MITM. No Istio. No standing gRPC. No firewall/ cap."
     exit_criteria: "New public product surfaces and IR apply/preview/watch are authored from the Rust/proto contract SSOT; Helm/Tofu/CUE are not sources of desired state."
     verified_by: "presubmit"
   - id: ADR-0719-D3
@@ -65,7 +65,7 @@ deliverables:
     exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
     verified_by: "presubmit"
   - id: ADR-0719-D18
-    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; messaging→bus; .github/scripts any-language glue."
+    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; ci/ and messaging/ are retired names not live aliases; .github/scripts any-language glue."
     exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
     verified_by: "presubmit"
 ---
@@ -110,7 +110,9 @@ sell a **cloud** sharded by **cells**, not a 100k-node logo.
 - **Monitor** = `observability` + `audit` + `iac` drift. No `eac-monitor`.
 - **Audit on serving:** two classes. Privileged / admin / payroll-approve / policy-publish
   persist evidence **before ACK**. Other `Check`s may be async/sampled. Silent drop under
-  load on privileged class is forbidden (DORA/NIS2-shaped).
+  load on privileged class is **platform-forbidden**. DORA/NIS2/CSAP retention
+  overlays live in packs (D-6): a pack may **raise** the privileged class, never
+  lower it.
 
 **MUST (serving store)**
 
@@ -152,18 +154,17 @@ fbclock all return an **interval**; the antenna only **narrows** it.
   still Window of Uncertainty (~100× better commit-wait vs NTP). v1 plant
   is NTP/chrony. Skipping GNSS/PTP *forever* is not Meta/AWS/Google. Not
   a `time/` cap. Sold Time Sync is a later `cell` facade.
-- **Use (`data/` and anyone who commit-stamps).** Linearizability is
-  **cell-local** via Raft/Paxos (or a FoundationDB sequencer /
-  versionstamps). Cross-cell: no global commit timestamp (home-cell +
-  async, same as ReBAC). Serving `Check` does not commit-wait.
-  **Commit-wait is not v1 and is not implied by the interval API.**
-  Google waits because ε is ~ms and overlaps Paxos RTT. NTP ε is
-  100–250ms — baking that wait into every OLTP write is not “works
-  without hardware,” it is a product tax. v1 stamps come from the
-  consensus leader (or versionstamp). Cockroach-style **uncertainty
-  restart** is allowed on the control path. External-consistency
-  commit-wait is a later mode, on only when a measured bound exists
-  and an SLO says the wait is cheaper than a restart.
+- **Use.** `data/` **consumes** cell `Now() → Interval`. It does not own
+  a second clock. Linearizability is **cell-local** via Raft/Paxos.
+  **FoundationDB versionstamps** are an OLTP **commit ordinal** inside an
+  engine, not a second TrueTime and not a replacement for `Now()`.
+  `storage/` identity is digest / generation / CAS key. `Last-Modified` is
+  metadata, not a consistency primitive — TrueTime-on-PUT would kill the
+  cheap object store. Cross-cell: no global commit timestamp. Serving
+  `Check` does not commit-wait. **Commit-wait is not implied by the
+  interval API.** v1 OLTP does not wait NTP ε. `data/` keeps a
+  `commit_wait` **adapter crate** (IR off unless a measured ε SLO says
+  wait is cheaper than restart). Deleting that crate is born-blocking.
 
 **MUST (time: our TrueTime, ported plant)**
 
@@ -174,26 +175,38 @@ fbclock all return an **interval**; the antenna only **narrows** it.
   a flags switch would change ε under live timestamps.
 - **rule:** TrueTime API is always an interval; clock source is a `cell/`
   port with ntp / ptp_phc / gnss_atomic adapters; v1 is ntp; GNSS/atomic
-  is destination plant not a later API; no `time/` cap; no `flags/` clock
-  switch; no global commit time; Check does not commit-wait; v1 OLTP
+  is destination plant not a missing API; no `time/` cap; no `flags/` clock
+  switch; no global commit time; `data/` consumes the interval;
+  versionstamps are commit ordinals not a second clock; `storage/` does
+  not use wall time as identity; Check does not commit-wait; v1 OLTP
   does not commit-wait NTP ε; no ε claim without measured plant.
 - **ensure:** new clock code implements the port; no PR requires GPS for
   v1 merge; no PR forbids the GNSS adapter; no PR adds `Now() → Instant`
-  as the product clock; no PR wires clock selection through `flags/`.
+  as the product clock; no PR wires clock selection through `flags/`;
+  no PR puts TrueTime into object identity.
 - **overturn_when:** a measured GNSS/atomic plant exists AND a five-field
   ADR publishes ε (the API does not wait for that ADR).
 
 ### D-2 — k8s / etcd / “AWS journal”
 
-`k8s/` remains the owned control plane + managed-k8s facade (ADR-0704). Its durable store
-is **cluster objects in a cell** (pods, nodes, VAP params), served from an apiserver
-**watch cache**. Vanilla Talos etcd Raft is accepted **only** until `k8s/ports` grows an
-owned journal+memory adapter.
+`k8s/` remains the managed-cluster product (ADR-0704 as scoped by D-13). Durable
+store is **cluster objects in a cell**, served from an apiserver **watch cache**.
+The store is a **port** (`k8s/ports`):
 
-Do **not** adopt Amazon’s EKS journal. It is closed, not OSS, clock/hardware-shaped, and
-exists to preserve the **etcd API** for a Kubernetes vendor. Steal the split (log vs
-memory, no single Raft leader on the hot path). Implement the log ourselves behind the
-port, cell-local, MIT/Apache. Cells, not one mega-cluster, are the scale lever.
+| Adapter | Role |
+|---|---|
+| `etcd` | v1. Vanilla Talos etcd. Cell-sized, not 100k-node. |
+| `owned_journal` | Destination. Log vs memory, no single Raft leader on the hot path, MIT/Apache, cell-local. |
+
+The **cluster-object API is never the etcd API**. Product records, tuples, and
+IR are never etcd keys (D-1). Do **not** adopt Amazon’s closed EKS journal.
+Steal the split, not the binary. Do **not** rewrite etcd before cells exist
+(opportunity cost: cells are the scale lever). Do **not** leave a door that
+blesses etcd as destination. Deleting the `owned_journal` adapter name is
+born-blocking.
+
+Admission (VAP/CEL+PSA) remains the live rule cited from ADR-0704 / ADR-0700.
+Proposed 0710-range ids are not `depends_on`.
 
 ### D-3 — EaC shape
 
@@ -262,21 +275,80 @@ East-west SPIFFE certs use the same TLS port; ECH is a **public-door** adapter
 (SNI privacy), not an in-cell SPIFFE feature. ADR-0354 remains the crypto
 apex this amends.
 
+**Enterprise visibility = Zero Trust endpoint isolation, not a QUIC
+firewall.** A 2019 NGFW gets “visibility” by blocking UDP/443 or MITMing
+TLS (custom CA, read SNI). QUIC + ECH are designed so an **on-path** box
+cannot do that. Disabling ECH, blocking H3, or decrypting QUIC in the
+middle weakens the product so a Palo Alto can keep its business model.
+We do not sell that.
+
+Inspection happens at **endpoints**. The path is opaque.
+
+```
+[Zero Trust: endpoint isolation]
+
+  Client  -- inspect here --========================>  Server
+  (device agent / ZTNA      encrypted H3 + ECH + PQC   (we terminate:
+   client the user chose)    no SNI steal, no DPI       Cedar, WAF, audit)
+```
+
+Two trusted ends, not a middlebox:
+
+- **Client end:** device posture + pre-encrypt inspect (their agent), or
+  an **explicit** ZTNA hop they chose (`gateway/` `explicit_proxy` crate).
+  That hop is a client they authenticated to, then a new H3/PQC/ECH leg
+  to origin. It is not transparent UDP MITM.
+- **Server end:** we terminate. After decrypt: Cedar, WAF, quota,
+  structured events into `audit/` (tenant-exportable). This is GFE, not
+  a NGFW on the wire.
+
+What they need is **who talked to what, whether the call was allowed,
+and whether data left**. That is endpoint evidence + our audit export.
+It is not a copy of ciphertext on the path.
+
+| Observer | Visibility (does not weaken H3/ECH/PQC) | Forbidden |
+|---|---|---|
+| Us (operator) | We **terminate**. After decrypt: Cedar, WAF, quota, structured access events into `audit/`. | On-path QUIC DPI of tenant traffic we did not terminate. |
+| Tenant admin (workloads in a cell) | `network/` flow logs + SPIFFE identity; `audit/` export to their SIEM; WAF events after **our** terminate. | A `firewall/` cap. Sidecar MITM. Security groups that **block** UDP/443. |
+| Employee device / corp SASE | **Explicit-proxy / ZTNA adapter** on `gateway/`: they **choose** us as the hop; both legs are real TLS/H3 (PQC+ECH still on). Or **Connect on H2** (same contract, TCP) if their office blocks UDP. Or private connectivity so the NGFW is not on path. Endpoint agents they run see pre-encrypt — their device, not our wire. | Transparent QUIC MITM. “Enterprise mode” that turns ECH off so SNI is visible to a middlebox. A second public API for “inspected” clients. |
+
+**Connect transport:** one RPC contract. H3 is the door default. **H2 is
+the same Connect framing** when the path cannot carry UDP — not a second
+SDK, not REST, not “disable QUIC in the product.” Our `network/` default
+**allows** UDP/443.
+
+Closed adapter crates (delete = born-blocking):
+
+| Crate | Cap | Role |
+|---|---|---|
+| `waf` | `gateway/` | L7 inspect **after** decrypt. |
+| `explicit_proxy` | `gateway/` | ZTNA / explicit hop. Trusted terminate, not transparent MITM. |
+| `flow_log` | `network/` | 5-tuple + identity. No payload. |
+| `quic_metadata` | `network/` | Version / connection-ID. Not payload decrypt. |
+
+No `firewall/` capability (ADR-0132). Marketplace NGFW appliances plug
+into `network/` as plugins, they do not become our door.
+
 `Check` is never a public method. Product RPCs are. PEPs call the in-cell PDP.
 
-**MUST (one Connect wire; TLS adapters in tree)**
+**MUST (one Connect wire; TLS adapters in tree; visibility at terminate)**
 
 - **achieves:** one generated SDK; PQC/ECH cannot vanish into chat; no sidecar
-  tax on the serving path.
+  tax; enterprise audit without turning off cryptography.
 - **origin:** “gRPC+mesh vs protobuf+HTTP for middleboxes” is a tenant-on-AWS
-  playbook; we own the door. Prose-only PQC/ECH is defer and gets forgotten.
-- **rule:** Connect-class HTTP/3 + protobuf is the only product RPC; Check is
-  in-process; no Istio/Linkerd as identity; `gateway/` TLS port has hybrid
-  ML-KEM (public default), classical (dying), and ECH adapters as crates; no
-  standing gRPC or REST product.
-- **ensure:** new RPCs generate Connect; new TLS/ECH code implements the port;
-  layout/registry cannot drop those adapter names without OVERRULE; no new
-  gRPC service crates.
+  playbook. “Inspect QUIC like a NGFW” is the same playbook applied to H3:
+  visibility by weakening. Prose-only PQC/ECH/WAF is forgotten.
+- **rule:** Connect-class HTTP (H3 default, H2 same contract if UDP is
+  blocked) is the only product RPC; Check is in-process; no Istio/Linkerd
+  as identity; `gateway/` TLS port has hybrid ML-KEM (public default),
+  classical (dying), and ECH adapters as crates; visibility is Zero Trust
+  **endpoint isolation** (client agent / explicit-proxy + server
+  terminate + `audit/` export); no on-path QUIC MITM; no `firewall/` cap;
+  no standing gRPC or REST product; our dataplane does not block UDP/443.
+- **ensure:** new RPCs generate Connect; new TLS/ECH/WAF/proxy/flow-log
+  code implements those ports; layout/registry cannot drop those adapter
+  names without OVERRULE; no new gRPC service crates; no PR that turns ECH
+  off as “enterprise visibility.”
 - **overturn_when:** a measured serving path needs a different RPC **and** a
   five-field ADR lands same-wave; TLS suite change is a new adapter plus IR,
   not a second door.
@@ -321,13 +393,16 @@ in-cell; proto IDL; in-process `Check`; k8s store behind a port; apps as IR modu
 two-class evidence; shreddable principals; eIDAS/KR step-up; owned cell journal; one
 gateway (one contract, N cell frontends); packs; TrueTime interval API with a
 cell clock port (ntp/ptp/gnss adapters); Connect-class one wire; gateway TLS
-port with hybrid-ML-KEM + ECH crates.
+port with hybrid-ML-KEM + ECH crates; Zero Trust endpoint isolation (not
+on-path QUIC MITM).
 
 **Regret:** etcd as product DB; AWS closed journal; JSON as product codec; Helm-as-source;
 Kyverno/Kubewarden as default; one global cluster; worldwide ACL replica; silent drop of
 privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-baseline;
 cap-root census files; dual `cedar/`+`policy/` children; Istio/Linkerd as our
-mTLS identity; standing gRPC east-west; PQC/ECH as ADR prose with no crates.
+mTLS identity; standing gRPC east-west; PQC/ECH as ADR prose with no crates;
+on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
+`messaging/` as live aliases.
 
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
@@ -399,7 +474,8 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 
 - Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
-- Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open ADR-0710's D-8.
+- Admission remains VAP/CEL+PSA as cited from ADR-0704 / ADR-0700. Proposed
+  0710-range ids are not `depends_on`.
 - Merge-blocking CI is **presubmit**. Pair with **merge-admission**. See D-10.
 - Node OS/kernel: D-13. Do not re-create `kernel/` or `os/` as empty rungs.
 
@@ -581,16 +657,16 @@ calls `policy/` in-process; it does not embed a second PDP.
 | KMS / Secrets Manager / SPIFFE | **secrets** | core: keys, secrets, **SVID issuance**. |
 | CloudTrail | **audit** | core: Merkle log. Always on. Async seal on serving path (D-1). |
 | CloudWatch / Monarch | **observability** | core: telemetry + SLO **controller**. Per-cap SLOs are IR → generated OpenSLO, not this cap’s YAML novel. |
-| S3 / GCS / CAS | **storage** | core: **bytes** (object/CAS). Drive/recordings = byte **facade**. Not SQL. |
-| Spanner / Cockroach / Cloud SQL / BigQuery / Dataflow | **data** | core: **records** — OLTP (Spanner/Cockroach/RDS-class), OLAP (BigQuery/Redshift/ClickHouse-class), pipelines, ontology. **No `cloud-*` crates.** Postgres/Cockroach/Spanner are this cap’s **engines or adapters**, never `storage/`. |
-| EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** engine: VM + k8s-on-compute + functions. Facades, not three caps. |
+| S3 / GCS / CAS | **storage** | core: **bytes** (object/CAS). Identity = digest/generation. Wall time is metadata, not TrueTime. Not SQL. |
+| Spanner / Cockroach / Cloud SQL / BigQuery / Dataflow | **data** | core: **records**. Consumes cell TrueTime interval. Versionstamps = engine commit ordinal, not a second clock. **No `cloud-*` crates.** |
+| EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** cap, **three reconcilers** (VM, k8s-on-compute, functions). Facades, not three caps, not one Raft. |
 | GKE / EKS control plane (sold) | **k8s** | core: managed cluster (lifecycle, CP host, quota, CAPI). Adapter: upstream or owned apiserver when we run it (D-13). Store: cluster objects only (D-2). |
-| VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
-| Front door / GFE / API Gateway | **gateway** | core: one Connect/H3 **contract**, Maglev-class frontend **per cell**. TLS port: hybrid ML-KEM default, ECH adapter. Transcode is not a second API. |
-| Pub/Sub / SQS | **bus** (today’s dir `messaging/` until git mv) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
+| VPC / DNS / firewall / flow logs | **network** | core: dataplane, security groups (**allow** UDP/443), flow logs, QUIC metadata. Not Istio. Not a `firewall/` cap. |
+| Front door / GFE / WAF / IAP | **gateway** | core: one Connect contract (H3 default, H2 same framing), Maglev **per cell**. TLS port + WAF-after-decrypt + explicit-proxy crates. Transcode is not a second API. |
+| Pub/Sub / SQS | **bus** (retired tree name `messaging/`) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
 | Vertex / Bedrock | **intelligence** | core: inference + agent runtime + adapters. Not GuardDuty. Not a chat app. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
-| Cloud Build / TAP / CodePipeline | **pipeline** (today’s dir `ci/` until git mv) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
+| Cloud Build / TAP / CodePipeline | **pipeline** (retired tree name `ci/`) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
 | Marketplace | **marketplace** | core: signed plugins + Cedar install envelope + SKU **engine**. Price list is `build/` view. Not KYC/escrow. |
@@ -617,16 +693,16 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
 | **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
 | **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO. Detection is **not** this cap and **not** intelligence core. |
-| **storage** | Durable **bytes**: object/CAS. | SQL/Spanner/Cockroach (`data`). Search. Analytics query. | Imaging leftover; census. Block/file = facades **when sold**, no empty dirs. |
-| **data** | Durable **records**: Spanner/Cockroach/RDS-class OLTP, BigQuery-class OLAP, Dataflow, ontology. | S3/CAS (`storage`). Google Search / SERP. RAG. BI **app**. `cloud-*` names. | Nested dumps + `search-*` + `data-cloud-*` **purged**. ClickHouse/Postgres = **adapters**. |
-| **compute** | **One** engine: VM + k8s-on-compute + functions. | GKE product (`k8s/`). GPU = facade when sold. | Splitting into 3 caps. |
+| **storage** | Durable **bytes**: object/CAS. Identity = digest/generation. | SQL/Spanner/Cockroach (`data`). Search. Analytics query. TrueTime as object identity. | Imaging leftover; census. Block/file = facades **when sold**, no empty dirs. |
+| **data** | Durable **records**. **Consumes** cell TrueTime. Versionstamps = commit ordinal, not a second clock. `commit_wait` adapter crate (IR off on NTP ε). | S3/CAS (`storage`). Google Search / SERP. RAG. BI **app**. `cloud-*` names. A private `Now()`. | Nested dumps + `search-*` + `data-cloud-*` **purged**. ClickHouse/Postgres = **adapters**. |
+| **compute** | **One** cap: VM + k8s-on-compute + functions as **three reconcilers / facades**. | GKE product (`k8s/`). GPU = facade when sold. One Raft for all three. | Splitting into 3 caps. |
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
-| **network** | VPC/DNS/**dataplane**. Not Istio. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. Sidecar mesh as **our** identity. | Census. Istio/Linkerd as default. |
-| **gateway** | One Connect/H3 **contract**, N cell frontends, quota, TLS port (hybrid ML-KEM + ECH crates). | Mesh (`network`). Second REST/gRPC API. One global VIP. | REST/gRPC dual-stack; connector leftover if it’s a second door. |
-| **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | git mv `messaging/` later. Kafka/Pulsar = **adapters** or a later sold SKU, never SSOT. |
+| **network** | VPC/DNS/**dataplane**, security groups (allow UDP/443), `flow_log` + `quic_metadata` crates. Not Istio. | Public API door (`gateway`). A `firewall/` cap. Sidecar mesh as **our** identity. On-path QUIC decrypt. | Census. Istio/Linkerd as default. |
+| **gateway** | One Connect **contract** (H3 default, H2 same framing), N cell frontends, TLS + `waf` + `explicit_proxy` crates. | Mesh (`network`). Second REST/gRPC API. One global VIP. Transparent QUIC MITM. ECH-off “enterprise mode.” | REST/gRPC dual-stack; connector leftover if it’s a second door. |
+| **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | Retired tree name `messaging/`: no new crates there. Kafka/Pulsar = **adapters** or a sold SKU facade, never SSOT. |
 | **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
-| **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. git mv `ci/` → `pipeline/` later. |
+| **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. Retired tree name `ci/`: no new crates there. |
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
 | **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
@@ -652,14 +728,14 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **iam** | Prove **who**. | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). |
 | **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
 | **secrets** | Crypto root and issuance. | KMS, secret material, SPIFFE **issue**, cert **issue** when sold. | PDP. Embedding secrets in app products. |
-| **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability. | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. |
+| **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability, **tenant-exportable** access events (the CISO feed). | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. On-path packet capture as the audit product. |
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
-| **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. |
-| **data** | Durable **records** + query engines. | OLTP: Spanner, Cockroach, Cloud SQL/Aurora-class. OLAP **engine**: BigQuery, Redshift, ClickHouse-class. Pipelines: Dataflow. Ontology. | Bytes (`storage`). **BI product** (Looker/Metabase — later `app/`). **Web search / SERP** (not a cloud cap). **RAG** (`intelligence` facade if sold). OpenSearch-class tenant search = **facade of data when sold**, not `core/` today. **`cloud-*` crate names.** |
-| **compute** | Run **workloads**. | One engine: VM + k8s-on-compute + functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). |
+| **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
+| **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
+| **compute** | Run **workloads**. | One cap, three reconcilers: VM, k8s-on-compute, functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). One Raft / one scheduler for all three. |
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
-| **network** | Connect inside the cloud. | VPC, DNS snapshots, **dataplane** (not a sidecar control plane). | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. |
-| **gateway** | **One** north-south **contract**, many cell frontends. | Connect/H3, authn terminate, quota, Cedar on the call, TLS port: `tls13_hybrid_mlkem` public default, `tls13_x25519` dying, `ech` crate (IR on when cover-name exists). Same Connect east-west. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs implemented here. gRPC-Web operator UI. |
+| **network** | Connect inside the cloud. | VPC, DNS snapshots, dataplane, security groups **allow UDP/443**, `flow_log`, `quic_metadata`. | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. A `firewall/` cap. Block QUIC. Payload decrypt. |
+| **gateway** | **One** north-south **contract**, many cell frontends. | Connect (H3 default, H2 same framing if UDP blocked), authn terminate, quota, Cedar, TLS port (hybrid ML-KEM, classical dying, ECH), `waf` after decrypt, `explicit_proxy` ZTNA crate. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs here. gRPC-Web operator UI. Transparent QUIC MITM. ECH-off enterprise mode. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
@@ -772,12 +848,12 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
 ### D-18 — `pipeline/` product vs GHA operator; purge `workflow/`; `.github/scripts` glue
 
 **Product.** Analog: Google **TAP** (internal graph-aware execute) + **Cloud Build**
-(sold). Destination slug is **`pipeline/`** (rename from `ci/` — git mv later, not
-this change). Core: execute a graph, queue, controller. GitHub is an **adapter**,
-not the engine. Tenant pipelines (including first-party apps as tenant #0) run
-**here**. D-17 crates still under `ci/facade/` are **operator admission**, not
-`pipeline/` core — they move to `governance/` or die with GHA; they do not become
-the TAP product.
+(sold). Live slug is **`pipeline/`**. Tree name `ci/` is **retired**, not an
+alias: no new crates under `ci/` except moving D-17 admission into
+`governance/` or deleting it. GitHub is an **adapter**, not the engine.
+Tenant pipelines (including first-party apps as tenant #0) run **here**.
+D-17 crates still under `ci/facade/` are **operator admission**, not
+`pipeline/` core — they do not become the TAP product.
 
 **Operator GHA.** `.github/workflows` is a **temporary** merge path for *this*
 monorepo. Completely **disjoint** from `pipeline/`: no YAML copied into cap
@@ -795,11 +871,13 @@ workspace member; no shared crate with a capability; no `npm install` / `pip ins
 / `go get` on the presubmit path (pin a binary or a file in that directory). The
 exception **dies with GHA**. It is not a license to grow `scripts/` or `tools/`.
 
-**`bus/`.** `messaging/` collides with human chat. Destination slug is **`bus/`**.
-git mv later. Engine is **owned** (port already in `messaging/core/substrate-kernel`).
-Google Pub/Sub / AWS SQS+SNS — not Kafka. Kafka and Pulsar are **adapters** (or a
-later “bring Kafka” SKU). They are not `core/`, not the serving path, not the
-outbox store. D-1 still applies: Check/IR/tuples are not a broker log.
+**`bus/`.** `messaging/` collides with human chat. Live slug is **`bus/`**.
+Tree name `messaging/` is **retired**, not an alias: no new crates there.
+Engine is **owned**. Google Pub/Sub / AWS SQS+SNS — not Kafka. Kafka and
+Pulsar are **adapters** (or a sold “bring Kafka” facade crate — deleting
+the facade **name** is born-blocking; it is not `core/`). They are not
+the serving path, not the outbox store. D-1 still applies: Check/IR/tuples
+are not a broker log.
 
 **MUST (owned bus, not Kafka)**
 
@@ -807,7 +885,7 @@ outbox store. D-1 still applies: Check/IR/tuples are not a broker log.
 - **origin:** Kafka-as-default is industry cargo-cult; hyperscalers sell MSK, they
   do not run Kafka as S3/IAM’s bus.
 - **rule:** `bus/` core is the owned queue/bus/stream + outbox; Kafka/Pulsar only
-  as `adapters/` or a later facade SKU; serving traffic is not a Kafka consume.
+  as `adapters/` or a sold facade crate; serving traffic is not a Kafka consume.
 - **ensure:** no new `core/` crate named kafka/pulsar; workflow Kafka dumps stay
   deleted (D-18).
 - **overturn_when:** a five-field ADR sells Kafka-protocol as `core/` with
@@ -835,8 +913,8 @@ for the apps discussion.
   disjoint; rust-first does not scan `.github/scripts/`; `workflow/` implementation
   is gone pending rewrite.
 - **ensure:** no new GHA glue outside `.github/scripts/` and workflow YAML; no
-  `workflow/` dump resurrection; git mv `ci/` → `pipeline/` does not carry D-17
-  gates into product `core/`.
+  `workflow/` dump resurrection; no new crates under retired `ci/` or
+  `messaging/`; moving trees must not carry D-17 gates into product `core/`.
 - **overturn_when:** `pipeline/` runs this repo and GHA is deleted same-wave, or a
   five-field ADR names a different sold slug.
 
@@ -849,7 +927,10 @@ for the apps discussion.
   because middleboxes break HTTP/2 — we own the door; leftover gRPC deletes.
 - Istio/Linkerd/sidecar as SPIFFE identity.
 - PQC/ECH only in prose (no `gateway/` TLS adapter crates). Classical TLS as
-  the destination suite. ECH “later” with no crate.
+  the destination suite. ECH with no crate.
+- On-path QUIC MITM, blocking UDP/443 in our dataplane, or turning ECH off
+  so a NGFW can read SNI. A `firewall/` capability. Visibility by weakening
+  cryptography.
 - Zanzibar global tuple replica.
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
