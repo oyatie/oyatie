@@ -986,10 +986,13 @@ two codebases.
   as a second protected check. No owned Gerrit/submit-queue in v1.
 - **CAS + execute client:** When the cloud can **serve** `pipeline/`
   against `storage/` CAS and `compute/` RE, the execute client is
-  **buck2** (hermetic **polyglot** action graph). Tenants are not
-  Rust-only: Cloud Build/TAP/CodeBuild run C++, Go, Java, Python, TS,
-  and Rust as **actions**, not as one runtime per language. The sold
-  graph IR is language-agnostic (D-3 protobuf). **Do not sell cargo.**
+  **buck2** (hermetic **polyglot** action graph). The language set is
+  **not closed**: C, C++, C#, Go, Java, Kotlin, Scala, Python, Ruby,
+  JS/TS, Dart, Swift, Rust, Zig, Haskell, Assembly, R, SQL, Shell, and
+  whatever else we need. Each is an **action + toolchain**, not a CI
+  SKU. The sold graph IR is language-agnostic (D-3 protobuf). New
+  language = `build/` toolchain (or tenant-provided tool in the graph),
+  not a new cap and not a cargo/go/npm product. **Do not sell cargo.**
   **Do not** grow one SKU per language (the Actions-matrix anti-pattern).
   Tenant #0 is Rust-first **in this repo**; that is not the product
   contract. Cargo is not a second pipeline runtime. Keep cargo only
@@ -1139,8 +1142,9 @@ implementation is gone pending rewrite; no dump resurrection.
 - Dual cargo+buck2 merge proof. Switching tenant #0 to buck2 because CAS
   exists but pipeline does not yet **serve** that graph. Cargo as a
   standing second pipeline runtime after cutover. Cargo-as-destination TAP.
-  A sold per-language CI (cargo for Rust, go test for Go, npm for JS).
-  Requiring tenant graphs to be Cargo.toml.
+  A sold per-language CI (cargo / go test / npm / mvn as products).
+  Requiring tenant graphs to be Cargo.toml. A closed language enum that
+  refuses Haskell/Zig/SQL/Shell/… without a new cap.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
 - Keeping the slug `messaging/` as a live capability name (collides with
