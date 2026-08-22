@@ -440,20 +440,25 @@ blob. Packages are the unit (`eu/gdpr`, `eu/dora`, `kr/pipa`,
 `kr/csap`, `us/hipaa`). Selecting a package is **not** blanket
 application to the tenant.
 
-Each package **projects** onto named surfaces. IR declares the
-projection; Cedar is scoped to it. Closed v1 surfaces:
+Each package **projects** onto dimensions of the request. IR declares
+the projection; Cedar is scoped to it. Dimensions are **not a closed
+product catalog**. If a regulation attaches to it, it must be
+projectable. They **map onto Cedar’s tuple** so we do not grow a second
+policy language:
 
-| Projection | What it binds | Example |
+| Dimension (examples) | Cedar | Example package |
 |---|---|---|
-| **client** | principal / data subject | `eu/gdpr` on customer C (DE), not on every principal in the tenant |
-| **transaction** | this call / business txn (RPC, workflow step, payment) | `eu/dora` on an operational posting, not on a profile read |
-| **record** | the bytes / resource | `kr/pipa` on RRN fields; `us/hipaa` on a clinical row |
-| **cell** | placement / certification | `kr/csap` on the cell, not copied onto each Check |
+| **client** / subject / device | Principal | `eu/gdpr` on customer C, not every principal |
+| **action** / RPC / business transaction | Action | `eu/dora` on an operational posting, not a profile `Get` |
+| **resource** / record / field | Resource | `kr/pipa` on RRN; `us/hipaa` on a clinical row |
+| **routing** / cell / hop / home-cell | Context | `kr/csap` on the cell; cross-cell Check; no silent replica |
+| **purpose, acr, sector, time, …** | Context | `acr_required`; DORA ICT third-party; retention window |
 
-A Check or commit **unions** only the packages whose projection
-**includes this** (principal, action, resource, cell). DORA does not
-run on a marketing Check because `packs/eu` was selected. HIPAA does
-not attach to a US anonymous download.
+A Check **unions** packages whose projection **matches this**
+(Principal, Action, Resource, Context). Selecting `packs/eu` does not
+blanket DORA onto every dimension. HIPAA does not attach to an
+anonymous US download. New dimension = pack IR + Cedar attribute, not a
+new cap and not a markdown folder.
 
 **Placement:** packages that project onto **cell** or **record** still
 need `required ⊆ certified_for` for those bytes. Contradiction on the
@@ -484,13 +489,15 @@ no in-process PDP only we can call. CaS is a **facade of `compliance/`
 - **origin:** markdown country trees; EU as a country; one pack per
   tenant; combinatoric `kr-eu`; namespace implied every instrument.
 - **rule:** v1 namespaces `us`, `eu`, `jp`, `kr`; EU is Union law not a
-  country; packages are granular; each package **projects** (client,
-  transaction, record, cell); a Check **unions** only projections that
-  include this principal/action/resource/cell; not blanket tenant apply;
-  cell covers packages that project onto those bytes; conflict
-  fail-closes or splits; no `packs/<a>-<b>` ids; packs are CaC; consume
-  is CaS on the public door; first-party and third-party apps use the
-  same CaS; `packs/` is not a cap.
+  country; packages are granular; each package **projects** onto
+  request dimensions (Principal, Action, Resource, Context — client,
+  transaction, record, routing, cell, purpose, acr, …); the set is not
+  closed: if compliance attaches, it is projectable; a Check **unions**
+  matching projections only; not blanket tenant apply; cell covers
+  packages that project onto those bytes; conflict fail-closes or
+  splits; no `packs/<a>-<b>` ids; packs are CaC; consume is CaS on the
+  public door; first-party and third-party apps use the same CaS;
+  `packs/` is not a cap.
 - **ensure:** no new namespace outside {us,eu,jp,kr} without a five-field
   pack ADR; no PR that assigns one blob to a whole tenant as the only
   law; no PR that blanket-applies `eu/*` to every Check; no empty
@@ -862,7 +869,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
 | **compliance** | Evidence **engine** + **CaS facade**. | Pack catalog, projection bind, evidence export. First-party and third-party apps consume this + `policy/` Check. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA. A private pack API for `app/`. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
-| **packs/** (data, not a cap) | **CaC** — jurisdiction/program packages the engines load. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. Granular packages **projected** on client / transaction / record / cell; Check **unions** matching projections. Cedar+IR. Consumed via CaS (`compliance/` facade + `policy/` Check), including third-party apps. | A capability `core/`. Copied into each cap. EU as world floor. EU as a country. Combinatoric ids. Blanket apply. Empty per-instrument dirs. Markdown as CaC. OVH/AWS YAML. Private pack path for first-party apps. |
+| **packs/** (data, not a cap) | **CaC** — jurisdiction/program packages the engines load. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. Granular packages **projected** on any compliance dimension (Cedar Principal/Action/Resource/Context: client, action/txn, resource, routing/cell, purpose, acr, …). Check **unions** matching projections. CaS for first- and third-party apps. | A capability `core/`. Closed dimension catalog that cannot add routing/action. Blanket apply. Combinatoric ids. Markdown as CaC. Private pack path. |
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
