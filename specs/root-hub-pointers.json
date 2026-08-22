@@ -175,6 +175,13 @@
       "purpose": "Fail-closed schema for ignored controller-produced ADR census epoch receipts; receipt validity does not authorize planning, dispatch, or closure.",
       "target_path_after_md_retirement": "same"
     },
+    "agent_durable_goal": {
+      "current_path": "/specs/agent-durable-goal.json",
+      "kind": "spec",
+      "migration_phase": "live-successor-of-fd001-evidence-prompt",
+      "purpose": "Live agent durable-goal and score-card contract. Historical FD-001 evidence prompt remains in git history; this spec is the destination authority.",
+      "target_path_after_md_retirement": "same"
+    },
     "agent_operating_contract": {
       "current_path": "docs/AGENTS.md",
       "kind": "spec",
