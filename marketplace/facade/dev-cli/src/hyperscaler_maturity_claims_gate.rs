@@ -388,7 +388,11 @@ fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
     // D88-amend: there is no merge-path OS matrix. `fail-fast: false` is only meaningful
     // when a `strategy.matrix` exists (origin/dev still had windows/macos smoke).
     if workflow.contains("matrix:") {
-        require_contains(workflow, "fail-fast: false", "oya-ci-required workflow contract")?;
+        require_contains(
+            workflow,
+            "fail-fast: false",
+            "oya-ci-required workflow contract",
+        )?;
     }
     // The Cargo merge path itself (ADR-0716), locked so the lockfile is authoritative — but
     // the RUNNER is interchangeable (ADR-0718-D3). Asserting the property rather than one
