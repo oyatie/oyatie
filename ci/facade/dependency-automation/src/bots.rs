@@ -24,7 +24,7 @@ pub(crate) fn reject_external_bot_configs(root: &Path, findings: &mut BTreeSet<F
             findings.insert(Finding::new(
                 "DEP-AUTO-EXTERNAL-BOT-CONFIG",
                 rel,
-                "ADR-0535 rejects Renovate/Dependabot adoption; use owned oya-deps.toml + Rust bump-bot",
+                "ADR-0535 rejects Renovate/Dependabot adoption; use owned deps.toml + Rust bump-bot",
             ));
         }
     }

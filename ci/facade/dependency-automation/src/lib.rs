@@ -1,7 +1,7 @@
 //! ADR-0535 dependency-automation gate and canonical Reindeer overlay capability.
 //!
 //! This gate keeps dependency updates on the owned cloud-ci path instead of reintroducing a
-//! third-party bot config. The policy source is root `oya-deps.toml`: a small closed-schema DATA
+//! third-party bot config. The policy source is root `deps.toml`: a small closed-schema DATA
 //! contract consumed by the future in-house Rust bump-bot. The gate is deliberately filesystem-only
 //! and VCS-free so it runs the same way under GitHub Actions today and the owned runner later.
 //! The sibling overlay module is a local, fail-closed generator bridge over
@@ -30,28 +30,22 @@ pub use third_party_overlay::{
 };
 
 pub const GATE_ID: &str = "cloud-ci-dependency-automation";
-pub const CONFIG_PATH: &str = "oya-deps.toml";
+pub const CONFIG_PATH: &str = "deps.toml";
+pub const CONFIG_PATH_LEGACY: &str = "oya-deps.toml";
 
 pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
     let mut findings = BTreeSet::new();
     bots::reject_external_bot_configs(root, &mut findings);
 
-    let config_path = root.join(CONFIG_PATH);
-    let text = match fs::read_to_string(&config_path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+    let (config_rel, text) = match read_deps_policy(root)? {
+        Some(found) => found,
+        None => {
             findings.insert(Finding::new(
                 "DEP-AUTO-MISSING-CONFIG",
                 CONFIG_PATH,
-                "root oya-deps.toml is required by ADR-0535",
+                "root deps.toml is required by ADR-0535",
             ));
             return Ok(report::report(findings));
-        }
-        Err(error) => {
-            return Err(GateError::Io(format!(
-                "read {}: {error}",
-                config_path.display()
-            )));
         }
     };
 
@@ -60,7 +54,7 @@ pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
         Err(error) => {
             findings.insert(Finding::new(
                 "DEP-AUTO-MALFORMED-CONFIG",
-                CONFIG_PATH,
+                &config_rel,
                 format!("parse TOML: {error}"),
             ));
             return Ok(report::report(findings));
@@ -74,4 +68,18 @@ pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
     pin::validate_rust_pin_alignment(root, &config, &mut findings)?;
 
     Ok(report::report(findings))
+}
+
+fn read_deps_policy(root: &Path) -> Result<Option<(String, String)>, GateError> {
+    for name in [CONFIG_PATH, CONFIG_PATH_LEGACY] {
+        let path = root.join(name);
+        match fs::read_to_string(&path) {
+            Ok(text) => return Ok(Some((name.to_owned(), text))),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(GateError::Io(format!("read {}: {error}", path.display())));
+            }
+        }
+    }
+    Ok(None)
 }

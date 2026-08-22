@@ -4,7 +4,7 @@ oya-ci is a portable, config-driven conformance engine: a deterministic **produc
 of generated *faces* from the tracked repo, a shrink-only **firewall ratchet** blocks any NEW
 policy violation while tolerating the frozen pre-existing debt, and a **registry-drift** byte-diff
 makes the faces tamper-evident. The engine is generic; only the *policy* is per-repo, and the
-policy is DATA in a single `oya-ci.toml` at the repo root.
+policy is DATA in a single `ci.toml` at the repo root.
 
 This directory is the FLOOR documentation (OYA-CI-CONFORMANCE-FLOOR-PLAN §6). It covers what a repo
 needs to adopt the floor; the broader product north-star (third-party gate SDK, cloud control
@@ -13,9 +13,9 @@ documented here.
 
 ## Documents
 
-- [Quick-start / adoption](./quick-start.md) — drop in an `oya-ci.toml`, wire the CI lanes, see
+- [Quick-start / adoption](./quick-start.md) — drop in a `ci.toml`, wire the CI lanes, see
   your first baseline.
-- [Config reference](./config-reference.md) — every `oya-ci.toml` section + its default, and the
+- [Config reference](./config-reference.md) — every `ci.toml` section + its default, and the
   closed-schema rules.
 - [Gate catalog](./gate-catalog.md) — each gate, its pack, its input KIND, its violation codes.
 - [Firewall / ratchet mental model](./firewall-model.md) — the shrink-only ratchet,
@@ -26,9 +26,9 @@ documented here.
 | Layer | What it is | Where it lives |
 |---|---|---|
 | **Engine (generic, fixed)** | the ratchet (compare-mode + ratchet-invariant), registry-drift byte-parity, the `Finding`/`evaluate_keyed` contract, `build_gate_baseline`'s disposition join, the one-way sign-off door | the gate crates + the firewall crate — touched by NO per-repo config |
-| **Policy (per-repo, DATA)** | naming tables, forbidden-vocab tables, manifest field-set, repo roots + path-excludes, reachability/justification/owners/enforcement sources, ttl + unit-class tables, the enabled-gate set + each gate's input KIND + per-(gate,code) dispositions | `oya-ci.toml` (closed-schema), parsed by the `oya-ci-config-kernel` crate |
+| **Policy (per-repo, DATA)** | naming tables, forbidden-vocab tables, manifest field-set, repo roots + path-excludes, reachability/justification/owners/enforcement sources, ttl + unit-class tables, the enabled-gate set + each gate's input KIND + per-(gate,code) dispositions | `ci.toml` (closed-schema), parsed by the `oya-ci-config-kernel` crate |
 
-A repo with **no** `oya-ci.toml` gets a sane bundled default: language-agnostic gates present but
+A repo with **no** `ci.toml` gets a sane bundled default: language-agnostic gates present but
 quiet (empty policy tables), no false RED. Adding config *widens* enforcement. The schema is
 **closed** — an unknown key is a hard error, so the shared spine cannot silently drift.
 

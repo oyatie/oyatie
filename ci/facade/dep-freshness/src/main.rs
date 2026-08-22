@@ -19,7 +19,8 @@ use ci_dep_freshness::{
 };
 
 const STEWARDSHIP_REGISTRY: &str = "specs/oss-stewardship-registry.json";
-const DEPS_POLICY: &str = "oya-deps.toml";
+const DEPS_POLICY: &str = "deps.toml";
+const DEPS_POLICY_LEGACY: &str = "oya-deps.toml";
 
 fn main() -> ExitCode {
     let mut repo_root = PathBuf::from(".");
@@ -61,8 +62,17 @@ fn read(root: &Path, relative: &str) -> Result<String, String> {
     fs::read_to_string(&path).map_err(|e| format!("read {}: {e}", path.display()))
 }
 
+fn read_deps_policy(root: &Path) -> Result<String, String> {
+    let primary = root.join(DEPS_POLICY);
+    match fs::read_to_string(&primary) {
+        Ok(text) => Ok(text),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => read(root, DEPS_POLICY_LEGACY),
+        Err(e) => Err(format!("read {}: {e}", primary.display())),
+    }
+}
+
 fn report(root: &Path, json: bool) -> Result<(), String> {
-    let policy = Policy::from_toml(&read(root, DEPS_POLICY)?).map_err(|e| e.to_string())?;
+    let policy = Policy::from_toml(&read_deps_policy(root)?).map_err(|e| e.to_string())?;
     let manifest = parse_manifest(&read(root, &policy.manifest)?)?;
     let as_of = manifest.snapshot_date.clone();
     let releases = mirror(&read(root, &policy.mirror)?)?;

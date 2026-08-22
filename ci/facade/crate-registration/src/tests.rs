@@ -578,8 +578,8 @@ fn meta_homed_crate_emits_no_capability_mapping_edit() {
     );
 }
 
-// ─────────────────────────── Issue C: non-oyatie oya-ci.toml ───────────────────────────
-// The orchestrator loads the repo's oya-ci.toml (not the compiled-in oyatie default). A non-oyatie
+// ─────────────────────────── Issue C: non-oyatie ci.toml ───────────────────────────
+// The orchestrator loads the repo's ci.toml (not the compiled-in oyatie default). A non-oyatie
 // repo (neutral profile + custom reachability.registry / justification.adr_dir / owners.file_name)
 // has its loaders + bridges honour those custom paths, proving universality.
 #[test]
@@ -589,7 +589,7 @@ fn honours_non_oyatie_oya_ci_toml() {
     };
     // A non-oyatie config: neutral profile, with custom non-oyatie SSOT paths.
     repo.write(
-        "oya-ci.toml",
+        "ci.toml",
         "profile = \"neutral\"\n\n\
          [reachability]\nregistry = \"governance/reach.json\"\n\n\
          [justification]\nadr_dir = \"governance/decisions\"\n\n\
@@ -659,21 +659,21 @@ fn honours_non_oyatie_oya_ci_toml() {
     );
 }
 
-// A malformed oya-ci.toml fails CLOSED (loud), never silently reverting to the oyatie default.
+// A malformed ci.toml fails CLOSED (loud), never silently reverting to the oyatie default.
 #[test]
 fn malformed_oya_ci_toml_fails_closed() {
     let repo = fixture_tagged("malformed-cfg");
-    repo.write("oya-ci.toml", "this is = = not valid toml [[[\n");
+    repo.write("ci.toml", "this is = = not valid toml [[[\n");
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();
     let err = register_crate(&repo.root, &req).unwrap_err();
     match err {
         RegisterError::Io(msg) => assert!(
-            msg.contains("oya-ci.toml"),
-            "a malformed config must fail closed naming oya-ci.toml, got {msg:?}"
+            msg.contains("ci.toml"),
+            "a malformed config must fail closed naming ci.toml, got {msg:?}"
         ),
-        other => panic!("expected Io(malformed oya-ci.toml), got {other:?}"),
+        other => panic!("expected Io(malformed ci.toml), got {other:?}"),
     }
 }
 

@@ -1,11 +1,11 @@
-# oya-ci.toml — oyatie's EXPLICIT oya-ci CONFORMANCE-FLOOR config (OYA-CI-CONFORMANCE-FLOOR-PLAN Stage 2).
+# ci.toml — portable oya-ci CONFORMANCE-FLOOR config (pipeline-as-product).
 #
 # This file reproduces oyatie's CURRENT policy byte-for-byte: the producer
 # (oya-cloud-ci-accounting-registry-app) loads it via oya-ci-config-kernel's CLOSED-schema
 # loader (unknown keys are an error), falling back to the compiled-in bundled default when
 # the file is absent. Authoring it here makes the policy DATA (doc-as-data doctrine): a repo
-# adopts oya-ci by dropping its own oya-ci.toml. The schema reference + every default lives in
-# docs/oya-ci/ (Stage D).
+# adopts oya-ci by dropping its own `ci.toml`. Loaders still read legacy `oya-ci.toml` when
+# this file is absent (merge-base compatibility). Schema reference + defaults: docs/oya-ci/.
 #
 # The ttl + unit_class + gate-disposition tables stay as the crate's bundled JSON DATA (the
 # `[ttl]` / `[unit_class]` sections below are intentionally empty = "use the bundled table");
@@ -24,6 +24,8 @@ root_markers = ["specs/root-hub-pointers.json"]
 path_excludes = ["third-party/"]
 
 [naming]
+# Prefix burn is a follow-up after `libs/` empties. Do not set this empty while first-party
+# crates still carry `oya-`; that would fail the whole workspace.
 required_prefix = "oya-"
 allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "worker", "sdk", "api"]
 check_family_prefix = "oya-check-"
@@ -83,8 +85,8 @@ reason = "the config-era deny-list SSOT (forbidden-stem table + bundled disposit
 
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = "oya-ci.toml"
-reason = "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue"
+value = "ci.toml"
+reason = "the repo-root CI policy IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue"
 
 [[vocab.carve_outs]]
 kind = "path_exact"

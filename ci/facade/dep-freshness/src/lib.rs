@@ -49,11 +49,11 @@ pub enum PolicyError {
 impl std::fmt::Display for PolicyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Unparseable(e) => write!(f, "oya-deps.toml is not parseable TOML: {e}"),
-            Self::MissingKey(k) => write!(f, "oya-deps.toml [freshness] is missing {k}"),
+            Self::Unparseable(e) => write!(f, "deps.toml is not parseable TOML: {e}"),
+            Self::MissingKey(k) => write!(f, "deps.toml [freshness] is missing {k}"),
             Self::UnsupportedEnforcement(mode) => write!(
                 f,
-                "oya-deps.toml declares [freshness] enforcement = {mode:?}, but this gate only \
+                "deps.toml declares [freshness] enforcement = {mode:?}, but this gate only \
                  implements \"advisory\". Refusing to guess: a gate that silently downgrades a \
                  blocking policy to advisory reports success it was never authorised to report."
             ),
