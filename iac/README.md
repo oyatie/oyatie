@@ -1,6 +1,8 @@
-# cloud-iac
+# iac
 
-See `manifest.json` for this microservice canonical machine-readable declaration.
+See `manifest.json` for this capability's machine-readable declaration, and `PRD.md` for product intent.
+
+This tree is the IaC *engine* we sell (`core/` `ports/` `adapters/` `facade/`: plan, apply, drift) plus shared OpenTofu modules under `tofu/modules/` (VPC, DNS, KMS, namespace bootstrap). Desired state lives with the runtime at `<capability>/iac/` and `app/<product>/iac/`. Org bootstrap stays in `os/` / `k8s/` / this engine — not a second `infra/` mega-dir. Env overlays are promotion rungs, not provider-folder copies.
 
 ## Cloudflare edge (OpenTofu)
 
