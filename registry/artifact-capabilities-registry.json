@@ -505,51 +505,6 @@
       }
     },
     {
-      "artifact_id": "check-empirical-evidence",
-      "artifact_path": "/registry/check-empirical-evidence",
-      "artifact_format": "json-directory",
-      "contract_version": "v3.0.0",
-      "owner_team": "axis-foundry",
-      "purpose_short": "Evidence records proving deterministic score cards caught or prevented real regressions before blocker promotion.",
-      "artifact_profile": "registry",
-      "capability_overrides": {
-        "enforcement": {
-          "lane_id": "oya-governance-loop-recovery-patterns"
-        },
-        "verification": {
-          "checker_crate": "retired-local-cli-surface",
-          "command": "oya-ci-required/cloud-ci evidence: loop-recovery-patterns"
-        },
-        "validation": {
-          "validator": "retired-local-cli-surface::loop_recovery_patterns_gate"
-        },
-        "autogen": {
-          "generator": "autonomous_foundry.lane_promotion_protocol S3_empirical_evidence"
-        },
-        "selfheal": {
-          "healer": "manual-with-suggestion until lane promotion automation lands"
-        },
-        "telemetry": {
-          "metrics": [
-            {
-              "id": "oya_check_empirical_evidence_records_total",
-              "kind": "gauge",
-              "unit": "1",
-              "labels": [
-                "status"
-              ],
-              "cardinality_budget": 100
-            }
-          ]
-        },
-        "provenance": {
-          "current_author": "codex",
-          "current_reviewed_by": "pending pipeline-reviewer",
-          "last_modified_at": "2026-05-16T00:00:00Z"
-        }
-      }
-    },
-    {
       "artifact_id": "check-openapi-rest-route-parity-manifest",
       "artifact_path": "governance/check/openapi-rest-route-parity/Cargo.toml",
       "artifact_format": "cargo-toml",
@@ -787,41 +742,6 @@
           "current_author": "ops-compliance + axis-foundry",
           "current_reviewed_by": "pending audit",
           "last_modified_at": "2026-05-13T00:00:00Z"
-        }
-      }
-    },
-    {
-      "artifact_id": "fd001-planning-closure-implementation-goal",
-      "artifact_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-      "artifact_format": "json",
-      "contract_version": "v3.0.0",
-      "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Active FD-001 planning-closure and implementation goal artifact replacing the archived implement-masterplan-goal-prompt draft.",
-      "artifact_profile": "template",
-      "capability_overrides": {
-        "enforcement": {
-          "lane_id": "lean-a-active-artifact-contract"
-        },
-        "verification": {
-          "checker_crate": "jq + future check-active-artifact-contract",
-          "command": "jq empty /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
-        },
-        "validation": {
-          "validator": "jq empty + planning-closure goal contract cross-check"
-        },
-        "autogen": {
-          "generator": ""
-        },
-        "selfheal": {
-          "healer": "manual-with-suggestion until prompt-artifact schema exists"
-        },
-        "telemetry": {
-          "metrics": []
-        },
-        "provenance": {
-          "current_author": "codex",
-          "current_reviewed_by": "planning-closure FD-001 replacement recorded in /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-          "last_modified_at": "2026-05-20T00:00:00Z"
         }
       }
     },

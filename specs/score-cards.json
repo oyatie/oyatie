@@ -13,8 +13,7 @@
       "query": "grep -rhoE 'uses:[[:space:]]*[^[:space:]]+' .github/workflows | grep -vE '@[0-9a-f]{40}$'",
       "pass_criterion": "empty output; every third-party `uses:` reference in every workflow names a full 40-hex commit SHA. Executed natively (no shell) by require_third_party_actions_are_sha_pinned, which also refuses a walk that saw zero references.",
       "score": 10,
-      "severity_tier": "BLOCKER",
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-pre-push-github-action-sha.json"
+      "severity_tier": "BLOCKER"
     },
     {
       "id": "score-card:pre-push:nextest-profile-ci",
@@ -22,8 +21,7 @@
       "query": "grep -qF '[profile.ci]' .config/nextest.toml && cargo nextest list --profile ci --workspace",
       "pass_criterion": "exit 0; CI nextest profile exists before any nextest run command can be trusted",
       "score": 10,
-      "severity_tier": "BLOCKER",
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-pre-push-nextest-profile-ci.json"
+      "severity_tier": "BLOCKER"
     },
     {
       "id": "score-card:pre-push:shell-shebang",
@@ -31,8 +29,7 @@
       "query": "find scripts -type f -perm -111 -exec grep -L '^#!' {} + | head -1",
       "pass_criterion": "stdout empty; executable transitional shell wrappers must be explicit while Rust replacement proceeds",
       "score": 8,
-      "severity_tier": "CRITICAL",
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-pre-push-shell-shebang.json"
+      "severity_tier": "CRITICAL"
     },
     {
       "id": "score-card:pre-push:loop-recovery-patterns",
@@ -40,8 +37,7 @@
       "query": "oya gate validate loop-recovery-patterns",
       "pass_criterion": "exit 0; active repeat-loop patterns are linked to deterministic score cards and mistakes-ledger rows",
       "score": 10,
-      "severity_tier": "BLOCKER",
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-pre-push-loop-recovery-patterns.json"
+      "severity_tier": "BLOCKER"
     },
     {
       "id": "score-card:industry-pattern:foundry-pr126",
@@ -52,7 +48,6 @@
       "severity_tier": "CRITICAL",
       "adr_reference": "ADR-0134",
       "source_pr": 126,
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-industry-pattern-foundry-pr126.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json#foundry-pr126",
       "activation_requires": [
@@ -70,7 +65,6 @@
       "severity_tier": "CRITICAL",
       "adr_reference": "ADR-0134",
       "source_pr": 127,
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-industry-pattern-workflow-studio-pr127.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json#workflow-studio-pr127",
       "activation_requires": [
@@ -88,7 +82,6 @@
       "severity_tier": "CRITICAL",
       "adr_reference": "ADR-0134",
       "source_pr": 128,
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-industry-pattern-cloud-pr128.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json#cloud-pr128",
       "activation_requires": [
@@ -106,7 +99,6 @@
       "severity_tier": "CRITICAL",
       "adr_reference": "ADR-0134",
       "source_pr": 129,
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-industry-pattern-enterprise-pr129.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json#enterprise-pr129",
       "activation_requires": [
@@ -124,7 +116,6 @@
       "severity_tier": "CRITICAL",
       "adr_reference": "ADR-0134",
       "source_pr": 131,
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-industry-pattern-connect-pr130-131.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json#connect-pr130-131",
       "activation_requires": [
@@ -147,7 +138,6 @@
         "ontology",
         "workflow"
       ],
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-hyperscaler-capability-circuit-breaker.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "ADR-0134#llm-circuit-breaker",
       "activation_requires": [
@@ -170,7 +160,6 @@
         "workflow-studio",
         "ontology"
       ],
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-hyperscaler-per-tenant-rate-limit.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "ADR-0134#per-tenant-rate-limit",
       "activation_requires": [
@@ -191,7 +180,6 @@
       "affected_products": [
         "foundry"
       ],
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-hyperscaler-provider-degraded-shed.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "ADR-0134#provider-degraded-shed",
       "activation_requires": [
@@ -212,7 +200,6 @@
       "affected_products": [
         "workflow-studio"
       ],
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-hyperscaler-golden-signals-workflow-studio.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "ADR-0134#workflow-studio-golden-signals",
       "activation_requires": [
@@ -237,7 +224,6 @@
         "workflow-studio",
         "ontology"
       ],
-      "empirical_evidence_path": "registry/check-empirical-evidence/score-card-hyperscaler-error-budget-burn-rate.json",
       "enforcement_status": "advisory-until-validator",
       "planned_verification_ref": "ADR-0134#error-budget-burn-rate",
       "activation_requires": [

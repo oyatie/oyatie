@@ -176,14 +176,11 @@
       "target_path_after_md_retirement": "same"
     },
     "agent_durable_goal": {
-      "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-      "kind": "goal_prompt",
-      "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
-      "superseded_path": "/specs/agent-durable-goal.json",
-      "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
-      "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
-      "archive_manifest_status": "retired-from-tracked-tree-local-only; use git history for provenance, not live authority"
+      "current_path": "/specs/agent-durable-goal.json",
+      "kind": "spec",
+      "migration_phase": "live-successor-of-fd001-evidence-prompt",
+      "purpose": "Live agent durable-goal and score-card contract. Historical FD-001 evidence prompt remains in git history; this spec is the destination authority.",
+      "target_path_after_md_retirement": "same"
     },
     "agent_operating_contract": {
       "current_path": "docs/AGENTS.md",
@@ -234,12 +231,6 @@
       "purpose": "7 profiles (schema/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle); reduces per-row authoring burden.",
       "target_path_after_md_retirement": "same"
     },
-    "audit_chain": {
-      "current_path": "/evidence/audit-chain.jsonl",
-      "kind": "ledger",
-      "migration_phase": "scaffold (F-EVIDENCE-AUDIT-CHAIN-WIRE pending for ADR-0069 cryptographic-immutability integration)",
-      "purpose": "Append-only JSONL stream of changeset evidence emissions, lane runs, spec-version bumps, ADR acceptances, IP status flips, seam audit baselines. Schema: {event_type, change_id?, session_id, timestamp_unix, payload}."
-    },
     "audit_kg_robustness": {
       "current_path": "/registry/milestone-audit/index.json",
       "current_path_status": "historical-audit-index-only",
@@ -263,13 +254,6 @@
       "migration_phase": "w4-contract-lock",
       "purpose": "Machine-readable W4 contract for the ADR-0518 DECLARE/ADMIT/LEASE/ISOLATE/AUTHOR/GATE/ATTEST/INTEGRATE/PROPAGATE/OBSERVE bespoke SCM pipeline. Metadata-only; locks typed stage envelopes, handoff invariants, and RED/GREEN fixtures without claiming native SCM storage, virtual filesystem runtime, CD runtime, or bridge cutover.",
       "target_path_after_md_retirement": "same (machine-readable W4 bespoke SCM stage contract)"
-    },
-    "check_empirical_evidence": {
-      "current_path": "/registry/check-empirical-evidence",
-      "kind": "registry",
-      "migration_phase": "complete",
-      "purpose": "Evidence records proving a deterministic score card has caught or prevented at least one regression before BLOCKER promotion.",
-      "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "ci_farm_substrate_canonical": {
       "current_path": "/specs/ci-farm-substrate-canonical.json",
@@ -634,13 +618,6 @@
       "migration_phase": "complete",
       "purpose": "Append-only repeat-loop recovery patterns linked to deterministic score-card ids and mistakes-ledger rows. Enforced by the loop-recovery-patterns gate; legacy `oya` mirror invocations are migration evidence only until ported to cloud-ci/Rust gate contexts.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
-    },
-    "markdown_retirement_ledger": {
-      "current_path": "/evidence/ledger/markdown-retirement-ledger.json",
-      "kind": "ledger",
-      "migration_phase": "complete (seed; per-row migration tracked over time)",
-      "purpose": "Per-file rows tracking each Markdown retirement event (source_md_path / target_json_path / status / migration_date).",
-      "target_path_after_md_retirement": "same"
     },
     "master_plan_sequencing": {
       "current_path": "/specs/master-plan-sequencing.json",

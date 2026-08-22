@@ -678,8 +678,7 @@
       "query": "deterministic command — jq filter / regex / cargo nextest -p ... / oya gate validate ...",
       "pass_criterion": "string — e.g. 'exit 0', 'count==0', 'jq returns true'",
       "score": "integer 0-10 — how much weight this check carries in the facet aggregate",
-      "severity_tier": "enum {INFO, MINOR, MAJOR, CRITICAL, BLOCKER}",
-      "empirical_evidence_path": "registry/check-empirical-evidence/<check_id>.json — must list ≥1 prevented incident or caught regression for the check to be promoted to BLOCKER"
+      "severity_tier": "enum {INFO, MINOR, MAJOR, CRITICAL, BLOCKER}"
     },
     "aggregation": {
       "per_facet_score": "min(blocking_check_scores) — single critical blocking failure = facet fail",
@@ -692,14 +691,14 @@
       }
     },
     "no_false_signals_discipline": [
-      "Every check must have ≥1 prevented incident OR caught regression in registry/check-empirical-evidence/<check_id>.json BEFORE promotion to BLOCKER severity",
+      "Git history is the audit log; do not commit evidence JSON/JSONL for score-card promotion",
       "Checks with 0 matches over 30 days → meta_watcher auto-demotes to candidate stage",
       "Checks with false-positive rate >10% → meta_watcher files F-CHECK-FALSE-POSITIVE-RATE-HIGH; auto-throttle to ADVISORY severity",
       "Blind-spot detection: if a check passes 100% of PRs but downstream incidents occur in that area → meta_watcher files F-CHECK-BLIND-SPOT; promotion of a sharper check via lane_promotion_protocol",
       "Determinism audit lane: oya-governance-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
     ],
     "llm_triage_protocol": "When a deterministic check FAILS, an LLM may be invoked to (a) explain WHY in human-readable form, (b) propose a candidate fix patch. The LLM's output is INPUT to the agent loop, NOT a re-judgment of pass/fail.",
-    "spec_path": "specs/score-cards.json — full check inventory + per-check empirical evidence pointers (separate spec file, candidate for next planning round)"
+    "spec_path": "specs/score-cards.json — full check inventory (separate spec file, candidate for next planning round)"
   },
   "source_driven_contract": {
     "rule": "Every public API change MUST cite the authoritative documentation source (URL + commit hash or version tag + accessed-date) in the PR body OR in an ADR referenced from the PR body. Implementing against memory or assumption is forbidden.",
