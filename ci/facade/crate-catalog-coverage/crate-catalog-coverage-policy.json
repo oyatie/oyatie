@@ -1,10 +1,10 @@
 {
-  "_comment": "FROZEN shrink-only baseline of first-party crates that carry NO registry/catalog/<name>.yaml row today. The catalog is keyed by FILENAME, one file per crate, which makes a missing row invisible to any content search for the crate name. This gate closes the crate->row direction; the existing catalog-liveness / slo-coverage checks close row->crate. Entries here are tolerated pre-existing debt: a NEW crate must ship its row, and a MOVED crate (which has a new package name, absent from this list) must move its row in the SAME change. Removing a name from this list is burn-down and is always allowed; adding one is not, and the stale-entry code fires if a listed crate gains a row or disappears, so slack cannot outlive the debt it was granted for.",
+  "_comment": "Catalog YAML is OPTIONAL census metadata, not a per-crate membership requirement. Missing registry/catalog/<name>.yaml is not born-blocking; membership is the Cargo workspace plus the closed capability registry. uncatalogued is retained as historical policy DATA and is not a verdict input. min_expected_crates remains the false-green floor on the crate collector. Extra YAML is ignored here; unmarked stale rows are catalog-liveness.",
   "gate_id": "cloud-ci-crate-catalog-coverage",
   "_provenance": {
     "frozen_at": "the first commit of ci/facade/crate-catalog-coverage",
     "uncatalogued_total": "176",
-    "policy": "shrink-only; a new or moved crate must carry its catalog row in the same change",
+    "policy": "catalog YAML optional; missing row is not born-blocking; crate corpus floor still fail-closed",
     "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates).",
     "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change."
   },

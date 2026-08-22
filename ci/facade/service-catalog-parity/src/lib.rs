@@ -1,9 +1,10 @@
 //! # cloud-ci-catalog-liveness
 //!
-//! Portable conformance gate enforcing the founder bidirectional catalog policy:
+//! Portable conformance gate enforcing the catalog-liveness policy:
 //! every catalog record must either name a LIVE workspace crate or carry an EXPLICIT non-live
-//! marker, and every config-governed LIVE workspace crate must either have a catalog row or carry
-//! an EXPLICIT exemption with owner, reason, and cutover.
+//! marker. Catalog YAML is optional census metadata — a live workspace crate without a row is
+//! not a finding. Membership is the Cargo workspace plus the closed capability registry.
+//! Unmarked extra YAML (a row whose crate is gone) remains RED.
 //!
 //! The producer (`oya-cloud-ci-accounting-registry-app`) owns all repository I/O: it enumerates
 //! `registry/catalog/*.yaml` via the config-declared `[catalog_liveness].catalog_record_globs`,
@@ -15,8 +16,8 @@
 //!
 //! `evaluate_keyed` returns one `Finding{code,key}` per catalog drift. The Oyatie corpus is
 //! expected to carry ZERO findings, so the disposition table marks violation codes `frozen_empty`:
-//! future stale rows, stale source paths, and missing reverse catalog edges cannot be laundered into
-//! the accepted baseline by regeneration.
+//! future stale rows and stale source paths cannot be laundered into the accepted baseline by
+//! regeneration. Missing catalog YAML is not reverse-coverage debt.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -113,29 +114,14 @@ fn source_crate_exists(row: &Value) -> bool {
     row.get("source_crate_exists").and_then(Value::as_bool) == Some(true)
 }
 
-fn has_catalog_row(row: &Value) -> bool {
-    row.get("has_catalog_row").and_then(Value::as_bool) == Some(true)
-}
-
-fn has_valid_exemption(row: &Value) -> bool {
-    let Some(exemption) = row.get("exemption").and_then(Value::as_object) else {
-        return false;
-    };
-    ["owner", "reason", "cutover"].into_iter().all(|field| {
-        exemption
-            .get(field)
-            .and_then(Value::as_str)
-            .is_some_and(|v| !v.trim().is_empty())
-    })
-}
-
 /// Pure evaluator. Input shape:
 /// `{"rows":[{"crate_id","source_path","is_live","marker","source_crate","source_crate_exists"}],
 ///   "live_crates":[{"crate_id","member_path","has_catalog_row","exemption"}]}`.
 ///
-/// It emits one finding per stale catalog row, stale non-historical source path, or governed live
-/// crate missing a row/exemption. An empty catalog row corpus is RED. A missing `live_crates`
-/// collection is also RED: row-only faces cannot prove reverse coverage.
+/// It emits one finding per stale catalog row or stale non-historical source path. An empty
+/// catalog row corpus is RED. A missing `live_crates` collection is also RED so a producer that
+/// dropped the workspace member set cannot present as green. Live crates without a catalog row
+/// are not findings.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     let rows = match input.get("rows").and_then(Value::as_array) {
@@ -188,11 +174,10 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
                 "catalog_live_crate_empty_id",
                 "<empty-crate-id>",
             ));
-            continue;
         }
-        if !has_catalog_row(row) && !has_valid_exemption(row) {
-            findings.insert(Finding::new("catalog_live_crate_without_row", crate_id));
-        }
+        // Catalog YAML is optional. A live crate without a row is not a finding.
+        // `catalog_live_crate_without_row` remains in VIOLATION_CODES for disposition
+        // compatibility and is not emitted.
     }
 
     findings
@@ -382,7 +367,7 @@ mod tests {
     }
 
     #[test]
-    fn live_crate_without_row_or_exemption_is_red() {
+    fn live_crate_without_row_is_green() {
         let input = json!({
             "rows": [{
                 "crate_id": "cataloged-live",
@@ -408,15 +393,18 @@ mod tests {
             ]
         });
         let findings = evaluate_keyed(&input);
-        assert!(findings.iter().any(|finding| {
-            finding.code == "catalog_live_crate_without_row" && finding.key == "missing-live"
-        }));
-        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.code == "catalog_live_crate_without_row" && finding.key == "missing-live"
+            }),
+            "catalog YAML is optional: {findings:?}"
+        );
+        assert_eq!(evaluate(&input).verdict, Verdict::Green, "{findings:?}");
     }
 
     #[test]
-    fn explicit_live_crate_exemption_is_green_only_when_bounded() {
-        let good = json!({
+    fn live_crate_without_row_needs_no_exemption() {
+        let input = json!({
             "rows": [{
                 "crate_id": "cataloged-live",
                 "source_path": "registry/catalog/cataloged-live.yaml",
@@ -429,32 +417,14 @@ mod tests {
                 "crate_id": "temporarily-exempt",
                 "member_path": "temporarily-exempt",
                 "has_catalog_row": false,
-                "exemption": {
-                    "owner": "platform-governance",
-                    "reason": "covered by a separate generated-face registry until catalog backfill",
-                    "cutover": "remove before Track-A structural migration"
-                },
+                "exemption": Value::Null,
             }]
         });
-        assert!(evaluate_keyed(&good).is_empty());
-
-        let unbounded = json!({
-            "rows": good["rows"].clone(),
-            "live_crates": [{
-                "crate_id": "temporarily-exempt",
-                "member_path": "temporarily-exempt",
-                "has_catalog_row": false,
-                "exemption": {
-                    "owner": "platform-governance",
-                    "reason": "missing cutover is not a bounded exemption",
-                    "cutover": ""
-                },
-            }]
-        });
-        let findings = evaluate_keyed(&unbounded);
-        assert!(findings.iter().any(|finding| {
-            finding.code == "catalog_live_crate_without_row" && finding.key == "temporarily-exempt"
-        }));
+        assert!(
+            evaluate_keyed(&input).is_empty(),
+            "{:?}",
+            evaluate_keyed(&input)
+        );
     }
 
     #[test]

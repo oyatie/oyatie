@@ -207,7 +207,7 @@ fn synthetic_stale_source_crate_makes_the_gate_red() {
 }
 
 #[test]
-fn synthetic_live_crate_without_row_makes_the_gate_red() {
+fn synthetic_live_crate_without_row_keeps_the_gate_green() {
     let root = repo_root();
     let mut face = run_producer_face(&root, "catalog-liveness");
 
@@ -223,12 +223,12 @@ fn synthetic_live_crate_without_row_makes_the_gate_red() {
 
     let findings = evaluate_keyed(&face);
     assert!(
-        findings.iter().any(|f| {
+        !findings.iter().any(|f| {
             f.code == "catalog_live_crate_without_row" && f.key == "synthetic-live-without-row"
         }),
-        "the synthetic live crate without row must be surfaced as a finding: {findings:?}"
+        "catalog YAML is optional; a live crate without a row must not be a finding: {findings:?}"
     );
-    assert_eq!(evaluate(&face).verdict, Verdict::Red);
+    assert_eq!(evaluate(&face).verdict, Verdict::Green);
 }
 
 /// A dead BUT explicitly-marked synthetic record stays GREEN — the gate enforces

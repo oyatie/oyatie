@@ -1,14 +1,12 @@
 // cloud-ci-crate-catalog-coverage live-corpus gate.
 //
 // 1. LIVE: collect the REAL crate set (every tracked Cargo.toml `[package] name`) and the
-//    REAL catalog row set (registry/catalog/*.yaml stems), evaluate against the frozen
-//    baseline, and assert GREEN.
-// 2. RED FIXTURE: a synthetic uncatalogued crate MUST fail. A gate only observed passing
+//    REAL catalog row set (registry/catalog/*.yaml stems). Missing YAML is not born-blocking.
+// 2. RED FIXTURE: an implausibly small corpus MUST fail. A gate only observed passing
 //    has not been shown capable of failing.
-// 3. BASELINE FIDELITY: every frozen entry is still genuinely uncatalogued — the baseline
-//    is neither stale nor over-broad.
-// 4. FLOOR: the collector must see the real corpus, so a collection bug cannot present as
-//    clean coverage.
+// 3. OPTIONAL CENSUS: a live crate without a catalog row is GREEN.
+// 4. FLOOR: the collector must see the real crate corpus, so a collection bug cannot
+//    present as clean coverage.
 //
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -18,7 +16,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_crate_catalog_coverage::{
-    Baseline, CODE_CRATE_WITHOUT_CATALOG_ROW, GATE_ID, Observed, Verdict, evaluate,
+    Baseline, CODE_IMPLAUSIBLE_CORPUS, GATE_ID, Observed, Verdict, evaluate,
 };
 
 const POLICY_PATH: &str = "ci/facade/crate-catalog-coverage/crate-catalog-coverage-policy.json";
@@ -125,7 +123,7 @@ fn collect(root: &Path) -> Observed {
 }
 
 #[test]
-fn live_corpus_is_green_against_the_frozen_baseline() {
+fn live_corpus_is_green_when_yaml_is_optional() {
     let root = repo_root();
     let observed = collect(&root);
     let baseline = load_baseline(&root);
@@ -143,58 +141,45 @@ fn live_corpus_is_green_against_the_frozen_baseline() {
             .join("\n")
     );
     eprintln!(
-        "{GATE_ID} live corpus: GREEN — {} crates / {} catalog rows / {} baselined gaps",
-        report.crates_checked,
-        report.rows_checked,
-        baseline.uncatalogued.len()
+        "{GATE_ID} live corpus: GREEN — {} crates / {} catalog rows (optional census)",
+        report.crates_checked, report.rows_checked
     );
 }
 
 #[test]
-fn red_fixture_uncatalogued_crate_fails_closed() {
-    // A synthetic crate with no row and no baseline entry MUST fail. This is the
-    // proof the gate can fail at all — the difference between a gate and a decoration.
+fn red_fixture_implausible_corpus_fails_closed() {
     let observed = Observed {
-        crates: [(
-            "synthetic-uncatalogued-crate".to_owned(),
-            "x/Cargo.toml".to_owned(),
-        )]
-        .into_iter()
-        .collect(),
+        crates: BTreeMap::new(),
         catalog_rows: BTreeSet::new(),
     };
+    let baseline = Baseline {
+        uncatalogued: BTreeSet::new(),
+        min_expected_crates: 500,
+    };
+    let report = evaluate(&observed, &baseline);
+    assert_eq!(report.verdict, Verdict::Red);
+    assert_eq!(report.findings[0].code, CODE_IMPLAUSIBLE_CORPUS);
+}
+
+#[test]
+fn missing_catalog_yaml_is_not_a_live_finding() {
+    let root = repo_root();
+    let observed = collect(&root);
     let baseline = Baseline {
         uncatalogued: BTreeSet::new(),
         min_expected_crates: 0,
     };
     let report = evaluate(&observed, &baseline);
-    assert_eq!(report.verdict, Verdict::Red);
-    assert_eq!(report.findings[0].code, CODE_CRATE_WITHOUT_CATALOG_ROW);
-}
-
-#[test]
-fn frozen_baseline_is_exactly_the_live_gap_set() {
-    // Neither stale (listing a crate that now has a row, or no longer exists) nor
-    // over-broad. Burn-down must shrink the baseline in the same change.
-    let root = repo_root();
-    let observed = collect(&root);
-    let baseline = load_baseline(&root);
-
-    let live_gaps: BTreeSet<String> = observed
-        .crates
-        .keys()
-        .filter(|n| !observed.catalog_rows.contains(*n))
-        .cloned()
-        .collect();
-
-    assert_eq!(
-        live_gaps, baseline.uncatalogued,
-        "the frozen baseline must equal the live uncatalogued set exactly"
+    assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
+    assert!(
+        report.findings.is_empty(),
+        "catalog YAML is optional; missing rows must not be findings: {:?}",
+        report.findings
     );
 }
 
 #[test]
-fn collector_sees_the_real_corpus() {
+fn collector_sees_the_real_crate_corpus() {
     // FALSE-GREEN FLOOR: prove the collection actually walked the tree. Without this,
     // a broken collector reports zero crates, zero findings, and a clean pass.
     let root = repo_root();
@@ -203,11 +188,6 @@ fn collector_sees_the_real_corpus() {
         observed.crates.len() > 780,
         "collected only {} crates — the collector is broken",
         observed.crates.len()
-    );
-    assert!(
-        observed.catalog_rows.len() > 680,
-        "collected only {} catalog rows — the catalog scan is broken",
-        observed.catalog_rows.len()
     );
 }
 
