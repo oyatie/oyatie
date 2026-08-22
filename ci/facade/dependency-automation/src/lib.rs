@@ -4,8 +4,8 @@
 //! third-party bot config. The policy source is root `oya-deps.toml`: a small closed-schema DATA
 //! contract consumed by the future in-house Rust bump-bot. The gate is deliberately filesystem-only
 //! and VCS-free so it runs the same way under GitHub Actions today and the owned runner later.
-//! The sibling overlay module is a local, fail-closed generator bridge invoked by the canonical
-//! `scripts/ci/regen-third-party.sh`; it does not carry merge authority.
+//! The sibling overlay module is a local, fail-closed generator bridge over
+//! Reindeer output; it does not carry merge authority.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 

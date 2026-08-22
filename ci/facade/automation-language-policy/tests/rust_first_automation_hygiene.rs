@@ -242,15 +242,31 @@ fn thirdparty_python_overlay_is_retired_into_owned_rust() {
             .is_file(),
         "the semantic overlay must live in the owned Rust dependency-automation capability"
     );
-    let wrapper = exceptions
-        .iter()
-        .find(|row| row["path"].as_str() == Some("scripts/ci/regen-third-party.sh"))
-        .expect("remaining Reindeer wrapper exception");
+    let retired_scripts = [
+        "scripts/ci/regen-third-party.sh",
+        "scripts/tests/cloud_observability_slo_evidence_check.py",
+        "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+        "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
+    ];
+    for path in retired_scripts {
+        assert!(
+            !root.join(path).exists(),
+            "retired scripts/ bridge must be absent: {path}"
+        );
+        assert!(
+            !exceptions
+                .iter()
+                .any(|row| row["path"].as_str() == Some(path)),
+            "retired scripts/ bridge must not remain exceptioned: {path}"
+        );
+        assert!(
+            !baseline.iter().any(|value| value.as_str() == Some(path)),
+            "retired scripts/ bridge must shrink from the frozen baseline: {path}"
+        );
+    }
     assert!(
-        wrapper["reason"]
-            .as_str()
-            .is_some_and(|reason| reason.contains("owned Rust/Buck2")),
-        "remaining wrapper debt must distinguish the Rust-owned overlay: {wrapper:#?}"
+        root.join("scripts/tests/OWNERS").is_file(),
+        "scripts/ stays a tracked scan root (OWNERS only) so rust-first scan.roots cannot narrow and scan-root-liveness cannot grow a new dead root"
     );
 }
 
