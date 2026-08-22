@@ -697,12 +697,21 @@ kernel story.
 - Consume Talos as **upstream** through **`k8s/adapters`** / **`iac/`**, not a
   parallel `os/` engine.
 
-**`k8s/` is GKE/EKS/AKS, not kubernetes/kubernetes.** A successful Go→Rust **port**
-of kube-apiserver does **not** give multi-tenant CP hosting, upgrades, quota, SLA,
-CAPI, cell placement, or cluster billing. Google still has **GKE** after writing
-Kubernetes. AWS/Azure sell **EKS/AKS** without writing Kubernetes. Collapsing those
-into one “core = port, facade = managed” charter is the dual-stack we just killed
-for Talos.
+**Hyperscale operation does not use Kubernetes.** Google’s fleet is **Borg**
+(still; kube ~5k-node class is not Borg). Meta’s fleet is **Twine**. AWS’s
+fleet is not EKS; they **sell** EKS by wrapping **upstream** kube and never
+needed a Go→Rust apiserver. Our fleet scheduler is **`compute/` + `cell/`**
+(Borg/Twine analog). A `build/port-engine` **kubernetes.git port is not
+required to run the cloud.** It is a SKU choice: if we sell GKE-class, **EKS
+pattern** (upstream apiserver + our hosting/quota/SLA) is enough. Porting
+kube-apiserver does **not** give multi-tenant CP hosting, upgrades, quota,
+SLA, CAPI, cell placement, or cluster billing. Google still has **GKE** after
+writing Kubernetes. Collapsing “core = port, facade = managed” is the
+dual-stack we killed for Talos.
+
+`build/port-engine` stays as a **generic** generator for when we **own the
+node OS** (D-13), not as a standing kubernetes-port program. Do not staff a
+kube port because the tree once had one.
 
 - **Do not add a second empty capability** for “the port.” Empty `k8s-port/` is a
   magnet. `build/port-engine` **is** the port (build meta, ADR-0704). Generated
@@ -727,8 +736,10 @@ for Talos.
   product; no generated apiserver tree as `k8s/core`.
 - **origin:** 0704 port-engine + 0562 coarse “k8s = owned CP + managed facade”
   mixed two jobs hyperscalers split (GKE vs kubernetes.git).
-- **rule:** `k8s/` is the managed-cluster product; the port lives in
-  `build/port-engine` and lands as an **adapter** only when we run it.
+- **rule:** hyperscale **operation** is `compute/`+`cell/`, not Kubernetes;
+  `k8s/` is a **sold** GKE/EKS-class SKU wrapping **upstream** kube unless
+  a later ADR owns an apiserver; no kubernetes port-engine as an operations
+  requirement.
 - **ensure:** no in-tree generated kube API farm; no empty port capability dir;
   nested `managed-*` deleted in favor of existing faces.
 - **overturn_when:** we cut over production to an owned apiserver **and** a
@@ -936,8 +947,8 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
 | **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
 | **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
-| **compute** | Run **workloads**. | One cap, three reconcilers: VM, k8s-on-compute, functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). One Raft / one scheduler for all three. |
-| **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
+| **compute** | Run **the fleet** (Borg/Twine analog). | One cap, three reconcilers: VM, optional k8s-on-compute **SKU**, functions. GPU as facade when sold. **This is how we operate**, not kube. | GKE product (`k8s`). Cell topology (`cell`). One Raft. Kubernetes as the cloud OS. |
+| **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
 | **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
 | **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: **queue** (competing consumers), **bus** (fan-out subscriptions), **stream** (seekable cursor); transactional **outbox**; at-least-once; per-key order. Serving `Check` never *is* a consume. | Sagas (`workflow`). Mailbox / chat (`app/`). **Kafka or Pulsar as `core/`**. SES send (`notify`). A root named `messaging/`. |
@@ -1251,6 +1262,9 @@ implementation is gone pending rewrite; no dump resurrection.
 ## Rejected alternatives
 
 - AWS EKS etcd journal as our store.
+- A kubernetes.git port-engine as a hyperscale **operations** requirement.
+  Google runs Borg, Meta Twine, AWS sells EKS without writing kube. Our
+  fleet is `compute/`+`cell/`. Sold `k8s/` wraps **upstream**.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,
