@@ -88,6 +88,14 @@ deliverables:
     description: "Apps are tenants of the cloud. First-party apps consume cloud SKUs only through adapters (same as external tenants). Foundry v1 is the full suite and persists via data/storage/pipeline adapters. Console dumps deleted. Calendar is embeddable. Mailbox vs notify. Messenger Slack+Discord dual. app/drive over storage adapter. Payments lowest v1. Community Blind+Reddit dual. One pack engine; app overlay slices."
     exit_criteria: "No tenant-admin-console dump; no app crate depends on cloud core in-process; D-22 table lists drive; notify is multi-channel send not mailbox; packs schema allows app.<product> slices without a second pack reconciler."
     verified_by: "presubmit"
+  - id: ADR-0719-D24
+    description: "OVERRULE D-23 pack-as-one-file and Pipeline-Builder-to-TAP. Packs: per-cap/app overlay content + thin central install authority. Runtime state is not git plaintext; v1 SQLite adapters then data/storage/on-prem. Cloud pipeline/ is CI/CD only. Mailbox is a port (IMAP/JMAP/SMTP/Connect adapters). One blob port for Drive/Foundry/mail; on-prem storage is an adapter."
+    exit_criteria: "D-23 Foundry settle table does not send Pipeline Builder to pipeline/; packs/ is install authority not overlay novels; app crates persist through ports with a SQLite adapter; Drive/Foundry bytes share one blob port."
+    verified_by: "presubmit"
+  - id: ADR-0719-D25
+    description: "App business logic lives in core; IO only through ports. Cloud is one adapter family. If that adapter is unavailable the app keeps running on a durable local adapter (SQLite v1). Portability is swapping adapters without rewriting core — not a live petabyte cutover."
+    exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; at least SQLite + cloud-client adapters; no path-dep on cloud core/ports."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -1310,8 +1318,8 @@ Founder 2026-08-22: dump **all** console (including application `tenant-admin-co
 | Foundry work | Settles through adapter to |
 |---|---|
 | Object instances, datasets, OLAP, lineage facts | `data/` records engines |
-| Files, attachments, workbook bytes | `storage/` |
-| Pipeline Builder *run this graph* | `pipeline/` TAP execute (not Foundry embedding buck2) |
+| Files, attachments, workbook bytes | **blob port** → `storage/` or on-prem adapter (D-24) |
+| Pipeline Builder *run this graph* | **`data/` dataset jobs** — not `pipeline/` TAP (D-24) |
 | Who | `iam/` (federation; Foundry users are not cloud principals) |
 
 Ontology kernels today under `data/core/` **move** in the Foundry BUILD PR and then call `data/` through the adapter — they do not stay as a cloud ontology engine and they do not become a `foundry/` cap.
@@ -1330,15 +1338,91 @@ Ontology kernels today under `data/core/` **move** in the Foundry BUILD PR and t
 
 **Community.** One dir. Professional = TeamBlind-class. Personal = Reddit-class. Dual-context. No SecureDrop v1.
 
-**Packs (one engine, two overlay kinds).** Cloud owns the pack **engine** (`packs/{us,eu,jp,kr}` + reconciler). A pack is a bundle of **slices** keyed `cloud.<cap>` and `app.<product>` (e.g. `cloud.storage`, `app.payroll`, `app.hr`). Apps **consume** `app.*` slices through a pack adapter; they do not run a second pack reconciler. IaaS-only tenants may install cloud slices only. App data-at-rest still requires a cloud residency slice (app overlay cannot place bytes). Payroll KR filings are `app.payroll` content in `packs/kr`, not a new `app/payroll/packs/` engine.
+**Packs.** OVERRULED by D-24: not one `packs/kr` novel. Overlay **content** per owner; `packs/` is thin **install** authority (pack-id).
 
 **MUST (tenant apps; adapters; one pack engine)**
 
 - **achieves:** first-party apps are customers of the cloud; Foundry is not a backdoor into `data/core`; packs are one CaC plane.
 - **origin:** cloud/app fusion (ontology-in-data, Drive-in-storage, console-as-cap, payroll-law-in-iam).
-- **rule:** `app/` ↔ cloud only via sold facades/adapters; no in-process cloud `core` from apps; Foundry v1 is the full module set and persists via data/storage/pipeline/iam adapters; console dumps gone; calendar embeddable; mailbox ≠ notify; messenger and community each one dual-context dir; `app/drive` over `storage/`; payments last in v1; one pack engine with `cloud.*` and `app.*` slices.
-- **ensure:** new `app/` crates that `path =` a cloud `core/` or `ports/` fail review; tenant-admin-console files stay deleted; pack PRs do not add `app/<p>/packs/` reconcilers.
+- **rule:** `app/` ↔ cloud only via sold facades/adapters; no in-process cloud `core` from apps; Foundry v1 is the full module set and persists via data/blob/iam adapters; Foundry Pipeline Builder is **not** TAP; console dumps gone; calendar embeddable; mailbox ≠ notify; messenger and community each one dual-context dir; `app/drive` over the **blob port**; payments last in v1; packs = thin install authority + per-owner overlay content (D-24).
+- **ensure:** new `app/` crates that `path =` a cloud `core/` or `ports/` fail review; tenant-admin-console files stay deleted; pack PRs do not add a second pack reconciler or a git JSON overlay SSOT.
 - **overturn_when:** a five-field ADR same-wave allows in-process cloud cores for tenant #0 or a second pack engine.
+
+### D-24 — Packs split; SQLite then cloud; TAP ≠ Foundry pipelines; mailbox + blob ports
+
+Founder challenge 2026-08-22. D-23 stood except where this OVERRULES it.
+
+#### Packs: per-capability content, central **install** authority
+
+A single `packs/kr` novel with `cloud.*` and `app.*` slices **recouples** every cap PR (the JSON product we just burned). Per-cap overlays with **no** shared tenant→jurisdiction fact **split-brain** (storage US, payroll KR).
+
+**Decouple.** Overlay **content** lives next to the owner that evaluates it: `storage/` KR residency Cedar, `app/payroll` KR filings, `iam/` proofing. Independent PRs. One overlay **format** (Cedar + typed proto config). Not N DSLs.
+
+**Connect.** Thin cloud cap `packs/` is **install authority only**: tenant T (cell) has pack-id `kr@v3`. Runtime object, not a git census. Caps and apps ask `packs/` (adapter) “what pack is T on?” then load **their** overlay for that id. Default: one pack-id per tenant/cell (split-brain is explicit, not accidental).
+
+IaaS-only tenants install a pack-id whose owners have only `cloud.*` overlays. App data-at-rest still needs the storage owner’s overlay (payroll cannot place bytes).
+
+**Not:** resurrect `governance/capability-registry.json`. **Not:** `app/payroll/packs/` as a second reconciler.
+
+#### Runtime state is not git plaintext
+
+ADRs, README, proto, Cedar **as source** stay git. Instance data (objects, mail, drive files, pack **installs**, ledger rows) does **not**. v1 adapters: **SQLite**. Destination adapters: `data/` (records), blob port (bytes), on-prem. Ports exist on day 1 so SQLite is not a data model. SQLite is not the D-1 serving path (10^8 checks stay RAM snapshots).
+
+#### `pipeline/` is CI/CD only
+
+OVERRULE D-23 “Pipeline Builder → `pipeline/` TAP.” Cloud `pipeline/` = TAP / Cloud Build / automation **of software**. Foundry Pipeline Builder = **dataset transforms** → `data/` job engine. Two English “pipelines”; **one slug** (`pipeline/`) is CI. Foundry does not embed TAP. TAP is not ontology-aware.
+
+#### Mailbox port (not a casual `mail/` root)
+
+`app/mail` is the client (Gmail analog). Store + ingress/egress is a **Mailbox port**: adapters IMAP, JMAP, SMTP, and Connect/protobuf on **one** store. v1 = SQLite mailbox (self-contained). Destination = sell hosting as facade of `data/`+blob+`network/` (MX/spam is the only reason to add a cloud `mail/` engine later). `notify/` stays delivery, not IMAP.
+
+#### One blob port (Drive, Foundry, mail attachments)
+
+On-prem / off-cloud / customer MinIO is **why** the port exists. Drive, Foundry bytes, and mail attachments share **one** blob port. Placement is pack-id + tenant config, not a per-app side door to `storage/core`. Our `storage/` is one adapter.
+
+#### Challenges that did not overturn the rest of D-23
+
+- **Foundry “all in v1”** is a company. Charter stays full-suite; **success** is ports + ontology + Pages/Grid actually persisting through SQLite adapters — not feature-parity Palantir on day one. Workshop/Manager/Pipeline Builder UX may be thin, not absent from the charter.
+- **Calendar embed** must not become `hr` importing `calendar` core. Same adapter rule **between apps** (Connect), or we built a second cloud.
+- **Dual-context** one dir is a lie if professional/personal are two codepaths. Shared engine or two binaries is an implementation choice; one **dir** and one dual-context policy stay.
+- **Notify** is delivery. It does not own messenger threads. A “messenger ping” is notify → messenger adapter.
+- **Payments last** vs payroll payout: v1 payroll may mark paid without a processor. Do not fake Stripe.
+- **SQLite everywhere** is a trap if Check/ReBAC tuples only live there (D-1).
+
+**MUST**
+
+- **achieves:** caps/apps ship overlays without a god pack file; tenant jurisdiction is one fact; apps persist without git; CI ≠ Foundry data jobs; mail/drive can leave our storage.
+- **origin:** D-23 one-file packs; Pipeline Builder mis-settled to TAP; plaintext/JSON as databases; Drive assumed our S3.
+- **rule:** `packs/` = install authority (pack-id); overlay content per owner; runtime state via ports (SQLite v1 → data/blob/on-prem); `pipeline/` is CI/CD; Foundry Pipeline Builder → `data/`; Mailbox port (IMAP/JMAP/SMTP/Connect); one blob port for Drive/Foundry/mail; on-prem is an adapter.
+- **ensure:** D-23 settle table matches this; no git JSON pack SSOT; no `path =` storage core from Drive/Foundry.
+- **overturn_when:** a five-field ADR same-wave restores a monolithic pack file, TAP-as-Foundry-pipelines, or git as the object store.
+
+### D-25 — Clean architecture: app core is portable; cloud is an adapter
+
+Founder 2026-08-22: maximize **business logic** behind ports. Cloud and apps are separate. If **our cloud** fails, the **app must not fail**. It must be **portable** to another adapter (SQLite, on-prem, another provider) without rewriting core.
+
+**Shape (ADR-0562 faces, app edition).**
+
+| Face | Holds | Must not hold |
+|---|---|---|
+| `app/<p>/core` | Domain + use cases (ontology rules, payroll calc, ledger postings, calendar recurrence, mail labels) | SQLite, HTTP, S3, IAM, `storage::`, `data::` |
+| `app/<p>/ports` | Traits: records, blob, mailbox, identity, notify, pack-id, payments, calendar-embed | Adapter impls |
+| `app/<p>/adapters` | SQLite v1; our-cloud Connect client; on-prem blob; Stripe; IMAP | Business rules |
+| `app/<p>/facade` | That product’s UX/API | Cloud SKU implementation |
+
+**One active adapter per port per tenant.** Not dual-write SQLite+cloud (split-brain). Failover = switch adapter to durable local (SQLite v1) or on-prem. Between apps (hr → calendar): **ports**, not `use calendar_core`.
+
+**“Instantly portable” (honest).** Core does not change when the substrate does. v1 proof: Foundry/hr/payroll tests run against SQLite with cloud adapters **unplugged**. Not a promise of zero-downtime petabyte migration, not 10^8 Checks on SQLite (D-1). Features that **are** the cloud (TAP build, live IdP) **degrade**; features that are the **app** continue.
+
+**If our cloud is down:** mailbox/drive/foundry/ledger still read/write the local adapter. Reconnect later is adapter sync, not a core rewrite.
+
+**MUST (portable app cores)**
+
+- **achieves:** tenant #0 is not glued to Oyatie cloud; on-prem/regulatory cutover is an adapter swap.
+- **origin:** in-process cloud cores; “just call storage/”; Foundry would die if CAS/IAM blipped.
+- **rule:** app business logic only in `core`; every IO through a port; SQLite adapter required v1 for each durable port; cloud client is another adapter; no `path =` cloud `core/`/`ports/` from `app/`; between-app composition is ports too.
+- **ensure:** new `app/<p>/core` crate that imports sqlx/reqwest/`storage-*`/`data-*`/`iam-*` fails review; each durable port has a SQLite adapter test with cloud unplugged.
+- **overturn_when:** a five-field ADR same-wave allows in-process cloud cores or drops the SQLite adapter requirement.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
