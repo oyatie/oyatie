@@ -667,8 +667,10 @@ No new `scripts/check.sh` / pre-push product. Rust-first: a three-line git hook 
 - **overturn_when:** a five-field ADR names a different runner that still compiles once and stays hermetic.
 
 Do **not** add one required GitHub check per capability (skipped-check failures, queue
-combinatorics). Lane isolation is **worktrees + non-overlapping paths**, not 24
-contexts. Do not resurrect merge-base **count** baselines as “affected set.”
+combinatorics). **One** protected context: `presubmit`. `merge-admission-required`
+is not a second protected check. Lane isolation is **worktrees + non-overlapping
+paths**, not 24 contexts. Do not resurrect merge-base **count** baselines as
+“affected set.”
 
 New workflow and context names: `presubmit`, `postsubmit`, `nightly`, `weekly`,
 `promotion-predecessor`, `release`. No `oya-` prefix. Today’s `oya-ci-required` is
@@ -783,7 +785,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
 | **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
-| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades. Graph, queue, workers, controller. This monorepo is tenant #0. | GHA as product. JSON check product. `governance/check` fleet. Helm/OpenAPI parity. Desired-state apply (`iac`). A `ci/` root. |
+| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: graph + queue. Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0. | GHA as product. JSON check product. Prow GateRun/Tide as core. Owned worker cluster. `iac/` as CD engine. Second protected check. A `ci/` root. |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
@@ -964,23 +966,33 @@ are not a D-8 unknown-name step **REMOVE**.
 
 ### D-18 — `pipeline/` product vs GHA operator; purge `workflow/`; `.github/scripts` glue
 
-**Product.** One execute engine: graph, queue, workers, controller.
-Analog: Google **TAP** (internal) + **Cloud Build** (sold). Those are
-**two facades of the same engine**, not two codebases.
+**Product.** One execute engine: **graph + queue + schedule**. Analog:
+Google **TAP** (internal) + **Cloud Build** (sold). Two **facades**, not
+two codebases.
 
-- **Internal:** this monorepo is **tenant #0**. Cadences in D-10
-  (presubmit / postsubmit / nightly / weekly / promotion / release) are
-  that tenant’s graph. Same APIs a customer will call.
-- **Sold:** tenant submits a graph; same controller, queue, workers.
-- **Not the product:** `.github/` GHA (disjoint adapter until the engine
-  **runs** tenant #0); Prow/Tide/webhook-gateway as `core/`; JSON check
-  fleets; a directory named `ci/`.
+- **Internal:** this monorepo is **tenant #0**. D-10 cadences are that
+  tenant’s graph. Same APIs a customer will call.
+- **Sold:** tenant submits a graph; same schedule/queue.
+- **Workers:** **`compute/` runs the work** (VM / k8s-on-compute /
+  functions). `pipeline/` does not own a second cluster or a Prow job
+  pool. Functions are one step type, not the only runner.
+- **Promotion / CD:** `pipeline/` **executes** the promotion graph
+  (`dev` → `staging` → `canary` → `production`). `iac/` is desired
+  state. `k8s/` is the cluster product. Images are `build/` artifacts in
+  `storage/`. `cargo build --release` is a **CD graph step**, not
+  presubmit.
+- **Merge:** **one** required context: **presubmit**. GitHub merge queue
+  is GitHub’s, via an adapter, then gone. No `merge-admission-required`
+  as a second protected check. No owned Gerrit/submit-queue in v1.
+- **Not the product:** `.github/` GHA (adapter until the engine **runs**
+  tenant #0 nextest graph); Tide/webhook-gateway as `core/`; Prow
+  `GateRun` as `core/` (**REMOVE** — BUILD a clean graph+queue kernel;
+  do not strangler GateRun into Cloud Build); JSON check fleets; a
+  directory named `ci/`.
 
-Today’s tree under `pipeline/` is **KEEP+WORK**: it is GitHub Jobs +
-census + a Prow-shaped `GateRun` kernel. That is **not** Cloud Build.
-Do not pretend a rename finished the product. BUILD the execute engine
-in `pipeline/core/` (queue + graph + worker). REMOVE census, Tide as
-core, webhook as core. GitHub stays an **adapter**.
+Today’s tree under `pipeline/` is **KEEP+WORK** at the **path** only.
+Contents are not the product. BUILD `pipeline/core/` graph+queue.
+REMOVE census, Tide-as-core, webhook-as-core, GateRun-as-core.
 
 **MUST (one pipeline engine; GHA ≠ product)**
 
@@ -988,9 +1000,12 @@ core, webhook as core. GitHub stays an **adapter**.
   gate farm; internal and sold cannot drift into two pipelines.
 - **origin:** `ci/` mixed census, GHA glue, Prow, and the name of a
   product we did not build.
-- **rule:** capability is `pipeline/`; one execute engine; tenant #0 and
-  customers share it; GHA is a temporary adapter; JSON/census/`governance/check`
-  fleets are not the product; no root named `ci/`.
+- **rule:** capability is `pipeline/`; one execute engine (graph+queue);
+  workers are `compute/`; promotion graphs are `pipeline/` execute, `iac/`
+  desired state, `k8s/` the cluster; one required context `presubmit`;
+  GateRun/Tide are not core; tenant #0 and customers share the engine;
+  GHA is a temporary adapter; JSON/census/`governance/check` fleets are
+  not the product; no root named `ci/`.
 - **ensure:** no new crates under `ci/`; no new GHA glue outside
   `.github/scripts/` and workflow YAML; git mv of dumps does not make
   them `pipeline/core`.
@@ -1100,6 +1115,9 @@ implementation is gone pending rewrite; no dump resurrection.
   optional, not a merge-path pin.
 - Treating `.github/workflows` as the `pipeline/` product, or copying GHA YAML
   into a capability `core/`.
+- A second protected GitHub context (`merge-admission-required`) or per-cap
+  checks. Prow `GateRun` / Tide as `pipeline/core`. A pipeline-owned worker
+  cluster beside `compute/`. `iac/` as the CD engine.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
 - Keeping the slug `messaging/` as a live capability name (collides with

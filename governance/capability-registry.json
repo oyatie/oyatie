@@ -352,7 +352,7 @@
       "substrate_dag_position": {
         "stratum": "S5"
       },
-      "charter": "Productized execute: one graph engine. Internal TAP (this repo as tenant #0) and sold Cloud Build are two facades of the same engine. GitHub Actions is a disjoint operator adapter until the engine runs tenant #0. Not a JSON check product. Not Prow/Tide as core.",
+      "charter": "Productized execute: graph+queue. Internal TAP (tenant #0) and sold Cloud Build are two facades. Workers run on compute/. Promotion graphs execute here; iac/ is desired state; k8s/ is the cluster. One required context presubmit. GHA/Tide/GateRun are not core. Not a JSON check product.",
       "seed_domains": [
         "delivery fabric"
       ],
