@@ -73,16 +73,20 @@ deliverables:
     exit_criteria: "New crates are DO+HAVE-NOT (BUILD) or DO+HAVE (DONE); PRs that add DON'T names or rehome REMOVE dumps fail review."
     verified_by: "presubmit"
   - id: ADR-0719-D20
-    description: "Charter reconciliation (founder default A, 2026-08-22): two compute reconcilers not k8s-on-compute; ontology out of data/core; intelligence is Vertex not copilot; price is marketplace+billing not build/; iam consumes federation; Drive/PACS/Meet out of storage; marketplace plugins+SKU only; gateway is PEP; meters are usage events; port-engine frozen; quota split; DNS/CDN split."
+    description: "Charter reconciliation (founder default A, 2026-08-22): two compute reconcilers not k8s-on-compute; ontology out of data/core; intelligence is Vertex not copilot; price is marketplace+billing not build/; iam consumes federation; Drive/PACS/Meet out of storage (Drive is app/drive over a storage adapter, D-23); marketplace plugins+SKU only; gateway is PEP; meters are usage events; port-engine frozen; quota split; DNS/CDN split."
     exit_criteria: "D-11/D-14/D-15/D-19 and registry charters match D-20; no new crate uses k8s-on-compute, ontology-in-data-core, gateway Cedar engine, or build/ price view."
     verified_by: "presubmit"
   - id: ADR-0719-D21
-    description: "Palantir Foundry is the product (app/foundry). Ontology + Pages + Grid live there, not in data/ and not in intelligence/. Intelligence foundry/RAG is dead. D41 retired notes/slides/sites/office only — docs/sheets are Foundry primitives, not retired."
+    description: "Palantir Foundry is the product (app/foundry). Ontology + Pages + Grid + Workshop + Manager + Pipeline Builder UX live there, not in data/ and not in intelligence/. Intelligence foundry/RAG is dead. D41 retired notes/slides/sites/office only — docs/sheets are Foundry primitives, not retired."
     exit_criteria: "data/ charter has no ontology kernel; no foundry/ capability root; no intelligence foundry surface; D41 list is notes/slides/sites/office/translate only."
     verified_by: "presubmit"
   - id: ADR-0719-D22
     description: "Apps 2x2: one launchpad; Foundry module; v1 People=hr+payroll; v1 Finance=accounting+payments+ledger; community shrunk; messenger dual-context one dir; no SAP ghost dirs."
     exit_criteria: "No empty app dirs for dropped modules or registry ghosts; app/ledger is the posting product not a cap; community has no SecureDrop v1; no app/social."
+    verified_by: "presubmit"
+  - id: ADR-0719-D23
+    description: "Apps are tenants of the cloud. First-party apps consume cloud SKUs only through adapters (same as external tenants). Foundry v1 is the full suite and persists via data/storage/pipeline adapters. Console dumps deleted. Calendar is embeddable. Mailbox vs notify. Messenger Slack+Discord dual. app/drive over storage adapter. Payments lowest v1. Community Blind+Reddit dual. One pack engine; app overlay slices."
+    exit_criteria: "No tenant-admin-console dump; no app crate depends on cloud core in-process; D-22 table lists drive; notify is multi-channel send not mailbox; packs schema allows app.<product> slices without a second pack reconciler."
     verified_by: "presubmit"
 ---
 
@@ -1236,7 +1240,7 @@ No empty `app/foundry/` until the BUILD PR. Ontology crates today under `data/` 
 
 - **achieves:** Palantir Foundry is one product; ontology is its heart; `data/` stays cloud records engines; intelligence Foundry stays dead.
 - **origin:** D5 named Palantir Foundry as the suite spine; D6 parked ontology in `data/`; D-20 parked it in a generic app; founder 2026-08-22 put ontology **in Foundry**, not in `data/`.
-- **rule:** `app/foundry` owns ontology + Pages + Grid; `data/` is sold records **engines** without Foundry; `storage/` is bytes; TAP is `pipeline/` not Foundry pipelines; AIP is `intelligence/` not Foundry; no `foundry/` cap; D41 list is notes/slides/sites/office only.
+- **rule:** `app/foundry` owns ontology + Pages + Grid + Workshop + Manager + Pipeline Builder UX; `data/` is sold records **engines** without Foundry; `storage/` is bytes; TAP is `pipeline/` not Foundry pipelines; AIP is `intelligence/` not Foundry; no `foundry/` cap; D41 list is notes/slides/sites/office only. Apps call those engines through adapters (D-23).
 - **ensure:** new ontology crates land under `app/foundry` (when it exists); PRs that implement ontology in `data/core`, merge `data/` into `storage/`, put Pipeline Builder in `pipeline/`, or revive intelligence foundry fail review.
 - **overturn_when:** a five-field ADR same-wave names a different Foundry home.
 
@@ -1249,16 +1253,17 @@ Founder 2026-08-22: (1) **`app/application`** is the launchpad for the whole sui
 | Dir | Role |
 |---|---|
 | `app/application` | **Shell / launchpad** (move from `oya/application`) |
-| `app/foundry` | Foundry module (ontology + Pages + Grid + Workshop) — D-21 |
+| `app/foundry` | Foundry module **v1 full**: ontology + Pages + Grid + Workshop + Manager + Pipeline Builder **UX** — D-21/D-23 |
 | `app/hr` | People |
 | `app/payroll` | People |
 | `app/accounting` | Finance **UI** (GL/close, statements, AR/AP). |
 | `app/ledger` | Posting **engine** product (universal journal). Not a cap. Not `billing/`. |
-| `app/payments` | Payment **execution**. Not `billing/`. Not a cap. |
-| `app/calendar` | D18/D32 v1 |
-| `app/mail` | Mailbox. `notify/` is send only |
-| `app/messenger` | Chat + meet **inside**. **One dir**, dual work/personal context (D38). Not `app/social`. |
-| `app/community` | Workplace social v1. **No** SecureDrop/whistleblower in v1. |
+| `app/payments` | Processor + execution (Stripe analog). **Lowest v1 priority.** Not `billing/`. Not a cap. |
+| `app/calendar` | Events + availability. **Embeddable** in other modules (PTO, payroll run, …). |
+| `app/mail` | **Mailbox**. Not notify. |
+| `app/messenger` | **One dir**, dual-context: Slack-superset **professional** + Discord/WhatsApp-class **personal**. Meet inside. Not `app/social`. |
+| `app/community` | **One dir**, dual-context: TeamBlind-class **professional** + Reddit-class **personal**. No SecureDrop v1. |
+| `app/drive` | People files/folders/sharing. **Not** `storage/`. Maps to `storage/` via adapter. BUILD. |
 
 **Not v1** (no dirs, not membership ghosts): `app/treasury`, `app/financial-planning`, `app/performance-management`, `app/learning-management`, and every registry SAP ghost (`crm`, `itsm`, `warehouse`, …). D1 can grow them later. **Do not create empty `app/<ghost>/`.**
 
@@ -1290,9 +1295,50 @@ Founder 2026-08-22: (1) **`app/application`** is the launchpad for the whole sui
 
 - **achieves:** one launchpad; Foundry is a module; v1 money/people set is small enough to staff; ledger is not billing and not a cap.
 - **origin:** D23/D35 one shell vs D-16 no console; D1 vs founder drop of four modules; D15/D37 two ledgers; D38 personal messenger; census-like app membership lists.
-- **rule:** `app/application` is the only shell; `app/foundry` is a module in it; v1 People = hr+payroll; v1 Finance = accounting + **ledger** + payments; community v1 has no SecureDrop; messenger is one dir dual-context; no empty ghost dirs; `ledger/` is not a cap.
-- **ensure:** membership `current_dirs` lists only live trees; no `app/ops-console` / `app/social` / empty `app/crm`; Foundry PRs do not replace the launchpad.
+- **rule:** `app/application` is the only shell; `app/foundry` is a module in it; v1 People = hr+payroll (employment + pay-run); v1 Finance = accounting + **ledger** + payments (payments last); community and messenger are each one dir dual-context; `app/drive` is an app; no empty ghost dirs; `ledger/` is not a cap.
+- **ensure:** D-22 table + D-8 `app/` children are the roster (no JSON membership hub); no `console/` / `app/ops-console` / `app/social` / empty `app/crm`; Foundry PRs do not replace the launchpad.
 - **overturn_when:** a five-field ADR same-wave changes the shell, v1 roster, or ledger home.
+
+### D-23 — Apps are tenants; cloud is SKUs behind adapters
+
+Founder 2026-08-22: dump **all** console (including application `tenant-admin-console`). Foundry v1 is the **full** suite. Identity pattern is the template: **cloud provider and tenant are separate**. First-party apps dogfood as tenant #0. They may consume cloud capabilities **only behind an adapter**. In-process `use <cloud>_core` from `app/` is vendor lock-in to ourselves.
+
+**Proposal (adopted).** Every `app/*` is a tenant product. Every cloud cap is a sold SKU (`iam`, `storage`, `data`, `pipeline`, `notify`, `bus`, `secrets`, …). The only coupling is the **public** Connect/proto facade the cloud already sells. Cloud crates do not import `app/`. App crates do not import cloud `core/` / `ports/` as libraries. `app/*/adapters/` talk to cloud facades the way an external tenant would. Substituting an external S3/Stripe/IdP is the same port with a different adapter.
+
+**Foundry (v1 all in).** Ontology, Pages, Grid, Workshop, Ontology Manager, Pipeline Builder **UX** do the product work **inside** `app/foundry`. They **settle** to cloud SKUs:
+
+| Foundry work | Settles through adapter to |
+|---|---|
+| Object instances, datasets, OLAP, lineage facts | `data/` records engines |
+| Files, attachments, workbook bytes | `storage/` |
+| Pipeline Builder *run this graph* | `pipeline/` TAP execute (not Foundry embedding buck2) |
+| Who | `iam/` (federation; Foundry users are not cloud principals) |
+
+Ontology kernels today under `data/core/` **move** in the Foundry BUILD PR and then call `data/` through the adapter — they do not stay as a cloud ontology engine and they do not become a `foundry/` cap.
+
+**Console.** `console/` and tenant-admin-console dumps are **REMOVE**. Tenant policy/roles live in each product + cloud IAM, not an ops-dashboard cap and not a shell “control plane” product.
+
+**Calendar.** `app/calendar` is the suite scheduling engine (events, availability, recurrence). Other modules **embed** it (HR PTO, payroll run calendar, Foundry due dates). They compose `app/calendar` as an app port — not `cell/` TrueTime, not a cloud cap. Meet stays in messenger.
+
+**Mail vs `notify/`.** `app/mail` = **mailbox**. Cloud `notify/` = **notification delivery** (email send, SMS, push, messenger ping). Notify may use mail as a *channel* without being a mailbox. Apps raise notifications through the notify adapter.
+
+**Messenger.** One dir. Professional = Slack-superset. Personal = Discord/WhatsApp-class. Deny-default dual-context (D38). Meet inside.
+
+**Drive.** Cloud `storage/` = buckets/bytes (S3 analog). `app/drive` = people Drive (folders, sharing). Drive **maps** to storage through an adapter. Not a storage dump (`storage/drive` stays deleted). Not Foundry Pages (those are ontology documents).
+
+**Payments (lowest v1).** `app/payments` is the processor + merchant product (Stripe analog) **and** a port for an *external* processor adapter. `billing/` remains cloud SKU invoices. Later: banking-API sync so payroll can payout through payments — still an **app** adapter, not `billing/core`. Do not staff payments ahead of ledger/hr/foundry.
+
+**Community.** One dir. Professional = TeamBlind-class. Personal = Reddit-class. Dual-context. No SecureDrop v1.
+
+**Packs (one engine, two overlay kinds).** Cloud owns the pack **engine** (`packs/{us,eu,jp,kr}` + reconciler). A pack is a bundle of **slices** keyed `cloud.<cap>` and `app.<product>` (e.g. `cloud.storage`, `app.payroll`, `app.hr`). Apps **consume** `app.*` slices through a pack adapter; they do not run a second pack reconciler. IaaS-only tenants may install cloud slices only. App data-at-rest still requires a cloud residency slice (app overlay cannot place bytes). Payroll KR filings are `app.payroll` content in `packs/kr`, not a new `app/payroll/packs/` engine.
+
+**MUST (tenant apps; adapters; one pack engine)**
+
+- **achieves:** first-party apps are customers of the cloud; Foundry is not a backdoor into `data/core`; packs are one CaC plane.
+- **origin:** cloud/app fusion (ontology-in-data, Drive-in-storage, console-as-cap, payroll-law-in-iam).
+- **rule:** `app/` ↔ cloud only via sold facades/adapters; no in-process cloud `core` from apps; Foundry v1 is the full module set and persists via data/storage/pipeline/iam adapters; console dumps gone; calendar embeddable; mailbox ≠ notify; messenger and community each one dual-context dir; `app/drive` over `storage/`; payments last in v1; one pack engine with `cloud.*` and `app.*` slices.
+- **ensure:** new `app/` crates that `path =` a cloud `core/` or `ports/` fail review; tenant-admin-console files stay deleted; pack PRs do not add `app/<p>/packs/` reconcilers.
+- **overturn_when:** a five-field ADR same-wave allows in-process cloud cores for tenant #0 or a second pack engine.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
@@ -1478,12 +1524,11 @@ D-1: Check/IR/tuples are not a broker log. A directory named
 - **overturn_when:** a five-field ADR sells Kafka-protocol as `core/` with
   measured serving-path evidence.
 
-**`notify/` not `comms/`.** `comms/core` is mailbox, Meet, messenger, calendar,
-address book — Workspace/Slack, not a cloud send API. Those are **later `app/`**
-products (dogfood tenant #0). The cloud primitive is transactional **send**
-(SES/SNS/FCM): destination slug **`notify/`**. **Purge** `comms/`. Do not
-strangler mail/meet/messenger into `app/` from this dump. Rewrite `notify/` from
-the send charter.
+**`notify/` not `comms/`.** Mailbox, Meet, messenger, calendar are **`app/`**
+(D-22/D-23). Cloud `notify/` is **notification delivery** (email send, SMS,
+push, messenger ping) — SES/SNS/FCM analog, not a mailbox. Apps raise
+notifications through a notify adapter; mail as a *channel* is not `app/mail`.
+**Purge** `comms/`. Rewrite `notify/` from that charter.
 
 **`workflow/`.** Current tree is n8n/SaaS/bus/forms/tasks, not Step Functions.
 **Purge** (`git rm -r workflow/`). Keep the **registry row** as the rewrite

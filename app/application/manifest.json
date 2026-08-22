@@ -31,11 +31,6 @@
       "name": "tenant-context",
       "description": "Bounded context 'tenant-context' within application (control plane)",
       "crates": []
-    },
-    {
-      "name": "tenant-admin-console",
-      "description": "No-code tenant control plane for roles, Cedar fragments, JIT access, context visibility, and AI enablement per ADR-0218.",
-      "crates": []
     }
   ],
   "layers": [
@@ -51,8 +46,7 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/application/contracts/openapi/application.yaml",
-      "microservices/application/contracts/openapi/tenant-admin-console.yaml"
+      "microservices/application/contracts/openapi/application.yaml"
     ],
     "asyncapi": [
       "microservices/application/contracts/asyncapi/application-events.yaml"
@@ -83,12 +77,6 @@
       "name": "shell-render",
       "file": "microservices/application/capabilities/shell-render.yaml",
       "risk_class": "minimal"
-    },
-    {
-      "tier": "T2",
-      "name": "tenant-admin-console-control",
-      "file": "microservices/application/capabilities/tenant-admin-console-control.yaml",
-      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -213,12 +201,6 @@
       "title": "IP-015: OpenSLO authoring + HG-APP gate registration + branch-protection",
       "acceptance_status": "ga",
       "file": "microservices/application/IP-015-application-openslo-and-hg-app.md"
-    },
-    {
-      "id": "IP-016-tenant-admin-console-control-surface",
-      "title": "IP-016: Tenant Admin Console control surface",
-      "acceptance_status": "ga",
-      "file": "microservices/application/IP-016-tenant-admin-console-control-surface.md"
     }
   ],
   "regulatory_packs": [
@@ -307,20 +289,17 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "canonical_signals": "INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
     "seal_events": [
       "oya.application.module-load",
       "oya.application.session-emit",
-      "oya.application.shell-render",
-      "oya.application.tenant-admin.policy-draft-created",
-      "oya.application.tenant-admin.policy-change-applied",
-      "oya.application.tenant-admin.jit-access-reviewed"
+      "oya.application.shell-render"
     ]
   },
   "secrets_substrate": {
@@ -361,7 +340,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; canonical_signals: INV-FOUR-CANONICAL-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-application",
   "tier_classification": "B2B",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
