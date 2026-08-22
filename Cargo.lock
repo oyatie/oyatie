@@ -3,16 +3,6 @@
 version = 4
 
 [[package]]
-name = "advisory-mirror-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
- "toml 0.8.23",
-]
-
-[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -184,21 +174,6 @@ checksum = "c049c0be4daef0b145cb3555416b3b8ef5b7888a38aea1a3a155801fe7b0810b"
 dependencies = [
  "rustversion",
 ]
-
-[[package]]
-name = "architecture-graph-generator-app"
-version = "0.1.0"
-dependencies = [
- "ci-generated-artifact-freshness",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "arraydeque"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
 name = "arrayref"
@@ -1026,100 +1001,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "check-adr-index"
-version = "0.1.0"
-dependencies = [
- "corpus-doc-parser",
-]
-
-[[package]]
-name = "check-backup-retention-discipline"
-version = "0.1.0"
-dependencies = [
- "shared-backup-kernel",
-]
-
-[[package]]
-name = "check-brand-residue"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-claim-ceiling"
-version = "0.1.0"
-dependencies = [
- "intelligence-catalog-domain",
-]
-
-[[package]]
-name = "check-compliance-evidence-coverage"
-version = "0.1.0"
-dependencies = [
- "shared-compliance-evidence-kernel",
-]
-
-[[package]]
 name = "check-cost-budget"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
 ]
-
-[[package]]
-name = "check-dependency-seam"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "toml 0.8.23",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "check-doc-axis"
-version = "0.1.0"
-dependencies = [
- "governance-adr-shape-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "check-i18n-coverage"
-version = "0.1.0"
-dependencies = [
- "shared-i18n-kernel",
-]
-
-[[package]]
-name = "check-license-policy"
-version = "0.1.0"
-
-[[package]]
-name = "check-no-template-stamping"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
-name = "check-realtime-transport-tier"
-version = "0.1.0"
-dependencies = [
- "shared-realtime-transport-kernel",
-]
-
-[[package]]
-name = "check-saga-shape"
-version = "0.1.0"
-
-[[package]]
-name = "check-slo-coverage"
-version = "0.1.0"
 
 [[package]]
 name = "checkout-guard-app"
@@ -1141,182 +1027,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-affected-target-set"
-version = "0.1.0"
-dependencies = [
- "reqwest 0.13.4",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-automation-language-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "serde_yaml",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-config-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-controller-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "ci-controller-github-adapter",
- "ci-controller-k8s-adapter",
- "ci-controller-kernel",
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-controller-kernel",
- "reqwest 0.13.4",
- "scripted-http-server",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-controller-kernel",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "ci-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-corpus-census-adapters"
-version = "0.1.0"
-dependencies = [
- "ci-config-kernel",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "ci-cross-artifact-agreement"
-version = "0.1.0"
-dependencies = [
- "check-adr-index",
- "ci-path-resolver-adapters",
- "governance-adr-shape-kernel",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
-]
-
-[[package]]
-name = "ci-crypto-backend-policy"
-version = "0.1.0"
-dependencies = [
- "buck-syntax-kernel",
- "ci-corpus-census-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-dependency-automation"
-version = "0.1.0"
-dependencies = [
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-endpoint-authorization-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-gate-contract"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-generated-artifact-freshness"
-version = "0.1.0"
-dependencies = [
- "ci-cross-artifact-agreement",
- "ci-planning-projection",
- "serde_json",
- "toml 0.8.23",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "ci-generated-artifact-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-graphql-usage-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "toml 0.8.23",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "ci-license-policy"
-version = "0.1.0"
-dependencies = [
- "check-license-policy",
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-module-membership"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-path-resolver-adapters"
 version = "0.1.0"
 dependencies = [
@@ -1327,133 +1037,6 @@ dependencies = [
 [[package]]
 name = "ci-path-resolver-ports"
 version = "0.1.0"
-
-[[package]]
-name = "ci-planning-projection"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-repo-root-hygiene"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "ci-rust-toolchain-bump-proposer"
-version = "0.1.0"
-dependencies = [
- "ci-dependency-automation",
- "ci-generated-artifact-freshness",
- "proptest",
-]
-
-[[package]]
-name = "ci-supply-chain-audit"
-version = "0.1.0"
-dependencies = [
- "advisory-mirror-kernel",
- "semver",
- "serde_json",
- "tempfile",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-tide-app"
-version = "0.1.0"
-dependencies = [
- "ci-tide-github-adapter",
- "ci-tide-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-tide-github-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-tide-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-tide-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "ci-webhook-gateway-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "bytes",
- "ci-webhook-gateway-authz-cedar",
- "ci-webhook-gateway-ed25519",
- "ci-webhook-gateway-github",
- "ci-webhook-gateway-ports",
- "ed25519-dalek",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-webhook-gateway-authz-cedar"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "ci-webhook-gateway-kernel",
-]
-
-[[package]]
-name = "ci-webhook-gateway-ed25519"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
- "ed25519-dalek",
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "ci-webhook-gateway-github"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
- "reqwest 0.13.4",
- "scripted-http-server",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-webhook-gateway-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-webhook-gateway-ports"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
-]
 
 [[package]]
 name = "cityhash-rs"
@@ -1964,46 +1547,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
-name = "corpus-core"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "corpus-doc-parser"
-version = "0.1.0"
-dependencies = [
- "sha2",
- "work-area-tree-kernel",
-]
-
-[[package]]
-name = "corpus-extract"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "corpus-core",
- "corpus-yaml-kernel",
- "quote",
- "syn 2.0.119",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "corpus-yaml-kernel"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "corpus-core",
- "saphyr",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2020,20 +1563,6 @@ checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "crate-registrar-app"
-version = "0.1.0"
-dependencies = [
- "crate-registrar-kernel",
- "serde",
- "serde_json",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "crate-registrar-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "crc"
@@ -2478,7 +2007,6 @@ checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
- "rand_core 0.6.4",
  "serde",
  "sha2",
  "subtle",
@@ -2918,12 +2446,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glob"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
-
-[[package]]
 name = "gloo-net"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2970,139 +2492,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "governance-adapter-with-no-importer-app"
-version = "0.1.0"
-dependencies = [
- "governance-adapter-with-no-importer-kernel",
-]
-
-[[package]]
-name = "governance-adapter-with-no-importer-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "governance-adr-shape-app"
-version = "0.1.0"
-dependencies = [
- "governance-adr-shape-kernel",
-]
-
-[[package]]
-name = "governance-adr-shape-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-authoritative-tracked-app"
-version = "0.1.0"
-dependencies = [
- "governance-authoritative-tracked-kernel",
-]
-
-[[package]]
-name = "governance-authoritative-tracked-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-banned-primitives-app"
-version = "0.1.0"
-dependencies = [
- "governance-banned-primitives-kernel",
-]
-
-[[package]]
-name = "governance-banned-primitives-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-bypass-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-claim-ceiling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-cohesion-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "governance-eval-domain"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
 ]
-
-[[package]]
-name = "governance-gate-catalog-domain"
-version = "0.1.0"
-
-[[package]]
-name = "governance-lifecycle-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-portfolio-citation-app"
-version = "0.1.0"
-dependencies = [
- "governance-portfolio-citation-kernel",
-]
-
-[[package]]
-name = "governance-portfolio-citation-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-pr-traceability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-pre-push-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-predictable-naming-app"
-version = "0.1.0"
-dependencies = [
- "governance-predictable-naming-kernel",
-]
-
-[[package]]
-name = "governance-predictable-naming-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-purpose-audit-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "glob",
- "governance-purpose-kernel",
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "governance-purpose-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-quality-lane-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "governance-sunset-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "governance-sunset-lifecycle-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "governance-sunset-lifecycle-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "guardian"
@@ -3162,9 +2556,6 @@ name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
-dependencies = [
- "foldhash 0.2.0",
-]
 
 [[package]]
 name = "hashlink"
@@ -3173,15 +2564,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
 dependencies = [
  "hashbrown 0.15.5",
-]
-
-[[package]]
-name = "hashlink"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32069d97bb81e38fa67eab65e3393bf804bb85969f2bc06bf13f64aef5aba248"
-dependencies = [
- "hashbrown 0.17.1",
 ]
 
 [[package]]
@@ -6775,15 +6157,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordered-float"
-version = "5.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "os-apid-domain"
 version = "0.1.0"
 dependencies = [
@@ -7338,6 +6711,10 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
+
+[[package]]
+name = "pipeline-admission"
+version = "0.1.0"
 
 [[package]]
 name = "pkcs8"
@@ -8434,28 +7811,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "saphyr"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8acd6cfc4803660d26a3fb5bd8f5e47bc0eea5229f4d32f7cb4ee21a733e6961"
-dependencies = [
- "hashlink 0.12.1",
- "ordered-float 5.3.0",
- "saphyr-parser",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "saphyr-parser"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebfd783fcf1b3f6bafd557be0e1427ec54f826f513c3cdd749f9844484df2a13"
-dependencies = [
- "arraydeque",
- "thiserror 2.0.20",
-]
-
-[[package]]
 name = "schannel"
 version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8681,7 +8036,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
 dependencies = [
- "ordered-float 2.10.1",
+ "ordered-float",
  "serde",
 ]
 
@@ -8935,14 +8290,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared-architecture-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
-
-[[package]]
 name = "shared-audit-chain-client-kernel"
 version = "0.1.0"
 
@@ -9006,14 +8353,6 @@ dependencies = [
 [[package]]
 name = "shared-backup-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "shared-bounded-contexts-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
 
 [[package]]
 name = "shared-compliance-evidence-kernel"
@@ -9328,7 +8667,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "hashbrown 0.15.5",
- "hashlink 0.10.0",
+ "hashlink",
  "indexmap 2.14.0",
  "log",
  "memchr",
@@ -10981,18 +10320,6 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
-
-[[package]]
-name = "work-area-rust-parser"
-version = "0.1.0"
-dependencies = [
- "sha2",
- "work-area-tree-kernel",
-]
-
-[[package]]
-name = "work-area-tree-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "workspace-members-kernel"

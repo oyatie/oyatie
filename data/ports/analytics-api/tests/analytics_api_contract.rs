@@ -69,7 +69,7 @@ fn repo_root() -> PathBuf {
             if dir
                 .join("data/analytics/contracts/openapi-v1.yaml")
                 .is_file()
-                && dir.join("specs/root-hub-pointers.json").is_file()
+                && dir.join("AGENTS.md").is_file()
             {
                 return dir;
             }

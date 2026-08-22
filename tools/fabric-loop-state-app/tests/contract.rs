@@ -39,18 +39,18 @@ use fabric_loop_state_app::{
 // ---------------------------------------------------------------------------
 
 /// Walk up from the test's working directory to the repo root (the dir holding
-/// the canonical `specs/root-hub-pointers.json`). Mirrors the sibling gates.
+/// the canonical `AGENTS.md`). Mirrors the sibling gates.
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
+        if dir.join("AGENTS.md").is_file() {
             return dir;
         }
         if !dir.pop() {
             break;
         }
     }
-    panic!("repo root marker specs/root-hub-pointers.json not found");
+    panic!("repo root marker AGENTS.md not found");
 }
 
 /// Unique scratch dir under the OS temp root (no third-party tempdir dep).

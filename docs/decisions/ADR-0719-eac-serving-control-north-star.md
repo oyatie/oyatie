@@ -1324,6 +1324,8 @@ UI is `app/` **after** the apps discussion, as tenant #0, same public APIs.
 
 ### D-17 — Presubmit is the graph, not a JSON product
 
+**Executed (this wave):** `git rm` of `specs/` as a living-law corpus (including `root-hub-pointers.json`, `integ-branch-envelopes.json`, `masterplan.json`, `cedar-policy-schema.json`), `registry/`, `evidence/`, `governance/` (including `capability-registry.json` and `check/`), `ci.toml`, `pipeline/facade` census crates, Tide/GateRun/process-kit/webhook-gateway, and the `libs/check-*` + `libs/governance-*` fitness farm (except library kernels `check-cost-budget` and `governance-eval-domain`). D-8 unknown-root names live in `pipeline/core/admission`. Agent entry is `AGENTS.md` + `CLAUDE.md` + owning ADRs. No replacement JSON hub.
+
 `pipeline/facade/*` (was `ci/facade`) and `governance/check/*` grew a **second
 product**: JSON policy files, frozen path lists, FNV signatures, Helm/OpenAPI
 parity. Hyperscaler TAP is **build + test the graph**. It is not ten crates
@@ -1340,11 +1342,8 @@ hand-edit of generated faces, D-8 unknown root name):
 
 | Step | Why it is not census |
 |---|---|
-| One license/ban engine (`deny.toml` **or** one crate, not both) | Legal. |
-| Generated-face freshness | Generated files are not merge surfaces. |
-| Rust-first (`automation-language-policy`) | Founder invariant. `.github/scripts/` excluded. |
-| D-8 unknown-name (one engine, not two of hygiene + membership + frozen lists) | Closed root set. Fails on **unknown names**, never `expected_total`. |
-| `affected-target-set` | This **is** TAP graph. Belongs in `pipeline/` **core**, not a JSON gate. |
+| One license/ban engine (`deny.toml` + weekly `cargo deny`, not a crate) | Legal. |
+| D-8 unknown-name (`pipeline/core/admission`) | Closed root set. Fails on **unknown names**, never `expected_total`. |
 
 **Not needed** as crates, JSON dirs, or merge predicates: corpus-census,
 planning-projection as a required check, cross-artifact-agreement as a

@@ -45,12 +45,6 @@ members = [
   "tools/*-app",
   "tools/tooling-agent-read",
 
-  # Crates in conforming roots that legitimately sit OUTSIDE the four-layer shape.
-  # `governance/` is a meta root off the runtime ladder (ADR-0615) and the two harness/testing
-  # trees are build-support rather than capability faces. Each is an explicit, reviewed
-  # exception rather than a wildcard that would re-admit the satellite-match problem.
-  "governance/corpus/*",
-  "governance/check/*",
   "intelligence/testing/*",
   "os/harness/*",
 
@@ -70,20 +64,7 @@ members = [
   # the two-segment form serves the ADR's intent and contradicts its literal string; that is a
   # reviewer's call to make knowingly, not one to discover.
   #
-  # Scoped to `build/port-engine/`, never `build/*`: `build/` stays a meta directory that owns zero
-  # CAPABILITY crates (governance/capability-registry.json, `owns_crates: false`), and this glob must
-  # never widen into a licence for one.
   "build/port-engine/*/*",
-
-  # ci product services outside the four-face shape (ADR-0562 NORTH-STAR ci/<service>/).
-  # Literals until a dedicated service-leaf glob is adopted; shrink with face migration if any.
-  "pipeline/tide/app",
-  "pipeline/tide/github-adapter",
-  "pipeline/tide/kernel",
-  "pipeline/controller/app",
-  "pipeline/controller/github-adapter",
-  "pipeline/controller/k8s-adapter",
-  "pipeline/controller/kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
@@ -106,9 +87,6 @@ exclude = [
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
-  "pipeline/facade/harness",
-  # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
-  # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
   "storage/adapters/nativelink",
 ]

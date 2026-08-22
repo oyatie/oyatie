@@ -1,7 +1,0 @@
-{
-  "$schema": "https://docs.oyatie.com/schemas/adr-census-epoch-control-plane.schema.json",
-  "schema_version": 1,
-  "canonical_name": "adr-census-epoch-control-plane",
-  "receipt_path": "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
-  "active_epoch": "P2"
-}

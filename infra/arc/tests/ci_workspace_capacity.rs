@@ -29,7 +29,7 @@ const LIVE_POSTGRES_VOLUME_GIB: u64 = 48;
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
+        if dir.join("AGENTS.md").is_file() {
             return dir;
         }
         assert!(dir.pop(), "failed to locate repository root");

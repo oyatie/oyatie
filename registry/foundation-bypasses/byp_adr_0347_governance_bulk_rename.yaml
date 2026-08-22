@@ -1,8 +1,0 @@
-id: byp_adr_0347_governance_bulk_rename
-pr_ref: gh:jason931225/oyatie#177
-crate_ref: governance-domain
-gate_bypassed: migration
-bypassing_actor: svc_wave15_zf21
-rationale: ADR-0347 doctrine-only propagation opens a time-boxed migration bypass until every governance-* CI lane prefix renames to governance-* in a single bulk-rename PR with residue, vocabulary, and inventory lanes.
-regression_window_days: 30
-created_at_epoch_days: 20594

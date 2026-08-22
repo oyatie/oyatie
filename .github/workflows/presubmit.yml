@@ -101,7 +101,7 @@ jobs:
     # ("Unrecognized named-value: matrix"), so arm64 cannot share this job.
     # Arm64 nextest stays a follow-up workflow (nightly + promotion train);
     # it is not a fan-in input below.
-    name: test (workspace + gates)
+    name: test (workspace)
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -120,8 +120,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          # Full history: gate crates derive facts from git (merge-base, scm faces).
-          fetch-depth: 0
+          fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.98.0"
@@ -142,28 +141,6 @@ jobs:
           # is what kept target/ small enough to be worth storing against the 10 GB per-repo
           # cache budget.
           cache-workspace-crates: "true"
-      # The face materializer shells out to buck2 internally to build its sibling
-      # face tools; the digest-pinned installer is the bridge it has always used.
-      - name: Install pinned buck2 (digest-verified)
-        shell: bash
-        run: infra/ci/install-buck2.sh
-      # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
-      # rustup must finish before buck2 runs or its downloads race (known class).
-      - name: Pre-provision pinned toolchain components
-        shell: bash
-        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
-        # build resolves the triple-named toolchain through rustup; pre-installing everything
-        # makes those rustup calls no-ops and avoids the concurrent-download race.
-        # Buck2 still resolves 1.96.0 (prelude pin) as well as rust-toolchain.toml 1.98.0.
-        # Pre-install both so face materialize does not rustup-download clippy in-band.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.98.0 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.98.0 && rustc --version
-      # Materialize generated faces before tests: several remaining crates consume them.
-      # This is cargo *run* of the materializer, not a product `cargo build --workspace`.
-      # The materializer still shells out to buck2 to build face-tool bins (ADR-0716
-      # leak); product `buck2 build //...` stays on the weekly honesty job / CD train.
-      - name: Materialize generated faces
-        run: cargo run --locked -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-      # Every remaining workspace member (D-17 admission set, not the census fleet) runs here.
       - name: Workspace tests
         # ADR-0718-D3. nextest runs each test in its own process with a work-stealing
         # scheduler — materially faster than libtest's in-process threads at this scale, with
@@ -176,29 +153,8 @@ jobs:
         # This is not an advisory escape: the job still fails if any test fails, unlike
         # `--keep-going` or `|| true`, which the registration gates reject for that reason.
         run: cargo nextest run --locked --workspace --profile ci
-      # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
         run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --no-fail-fast
-      # Live hub-exclusivity admission: rejects a second open PR touching a hub path
-      # declared under specs/integ-branch-envelopes.json#hubs.paths.
-      - name: Live hub-exclusivity admission
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: cargo run --locked -p ci-affected-target-set --bin cloud-ci-hub-exclusivity -- --repo-root . --live-open-prs --repo "$GITHUB_REPOSITORY" --candidate-pr "${{ github.event.pull_request.number }}"
-      # Generated outputs are never contributor merge surfaces: reject non-deletion
-      # edits to tracked generated artifacts (diff streamed to the policy binary).
-      # BASE_REF resolves the merge_group base explicitly. `github.base_ref` is a
-      # pull_request-only context and is EMPTY in a merge group, so this diffed against a
-      # hardcoded `dev` there — correct only while dev is the sole queue target, and silently
-      # the wrong base the moment a queue is enabled on another branch. merge_group.base_ref
-      # arrives fully qualified (`refs/heads/dev`), so the prefix is stripped in place rather
-      # than by adding a step, which would grow the frozen workflow_inline_shell debt.
-      - name: Reject non-deletion generated output edits
-        if: ${{ github.event_name != 'push' }}
-        env:
-          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
-        run: git diff --find-renames --name-status "origin/${BASE_REF#refs/heads/}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)

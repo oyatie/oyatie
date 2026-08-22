@@ -4,12 +4,8 @@ shape: null
 length_cap: 500
 authority_tier: 2
 excludes:
-- path: /specs/root-hub-pointers.json
-  reason: Machine-readable entry-point registry; this contract is discovered through
-    it.
 - path: /specs/master-plan-sequencing.json
-  reason: Historical sequencing sidecar; after masterplan v2 it is provenance-only and
-    not a live plan authority.
+  reason: Historical sequencing sidecar; deleted with the specs/ JSON law product (ADR-0719 D-17).
 - path: docs/DOC-CATALOG.md
   reason: Legacy pre-PHASE-5 projection and trigger taxonomy; non-authoritative migration input only.
 - path: docs/templates/pull-request-template.md
@@ -103,7 +99,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** single enumeration SSOT; prose never re-lists envelope contents.
 - **origin:** duplicated root/hub/freeze lists drifted from policy-as-data.
-- **rule:** every material change declares `docs_touched[]` + `docs_action`; enumerations live ONLY in [`specs/integ-branch-envelopes.json`](../specs/integ-branch-envelopes.json) — cite JSON pointers under `#anti_drift`, `#roots`, `#planes`, `#hubs.paths`, and the other keys listed at `#anti_drift.prose_must_cite_not_enumerate` (do **not** re-list contents); load-bearing doc updates land same-wave with code; unverified tips marked stale.
+- **rule:** load-bearing doc updates land same-wave with code. Enumerations are not a JSON hub; D-8 unknown-root names live in `pipeline/core/admission`. Unverified tips marked stale.
 - **ensure:** Claim packet fields at `#anti_drift.doc_packet_required_fields`; drift-grep via `#anti_drift.drift_grep`; Done-Definition D2 same-PR doc update.
 - **overturn_when:** `#anti_drift.anti_drift_doctrine_version` bumps with a recorded OVERRULE replacing the packet/pointer rules.
 

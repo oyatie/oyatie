@@ -97,7 +97,7 @@ pub fn discover_repo_root(start: &Path) -> Result<PathBuf> {
     };
 
     loop {
-        if cursor.join("specs/root-hub-pointers.json").is_file()
+        if cursor.join("AGENTS.md").is_file()
             && cursor.join(".buckroot").exists()
         {
             return Ok(cursor);

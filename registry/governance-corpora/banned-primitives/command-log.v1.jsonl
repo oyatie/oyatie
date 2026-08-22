@@ -1,3 +1,0 @@
-{"record_id":"clean-001","origin":"session_tool_call_fixture","tool":"bin/oya","args":["git","status","--short"],"redacted":true,"expected":"allow"}
-{"record_id":"clean-002","origin":"session_tool_call_fixture","tool":"oya","args":["vcs","verify","--agent","fd001-command-log"],"redacted":true,"expected":"allow"}
-{"record_id":"clean-003","origin":"session_tool_call_fixture","tool":"oya","args":["vcs","done","--agent","fd001-command-log"],"redacted":true,"expected":"allow"}

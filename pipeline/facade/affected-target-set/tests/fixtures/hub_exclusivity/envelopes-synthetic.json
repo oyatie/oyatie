@@ -1,9 +1,0 @@
-{
-  "hubs": {
-    "sole_owner_per_wave": true,
-    "paths": [
-      "fixture/hub-a",
-      "fixture/hub-b"
-    ]
-  }
-}
