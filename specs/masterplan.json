@@ -5844,12 +5844,9 @@
       "specs/planning-closure-contract.json",
       "specs/cloud-control-plane-canonical.json",
       "specs/api-contract-ssot-canonical.json",
-      "specs/cloud-authorization-target.json",
       "specs/cloud-observability-slo-target.json",
       "specs/cloud-resource-catalog-target.json",
       "specs/cloud-production-quality-kits-target.json",
-      "specs/cloud-strangler-migration-target.json",
-      "specs/cloud-toolchain-target.json",
       "specs/work-area-content-hash-contract.json"
     ],
     "projections": [
@@ -5934,7 +5931,6 @@
         "artifacts": [
           "specs/cloud-control-plane-canonical.json",
           "specs/api-contract-ssot-canonical.json",
-          "specs/cloud-authorization-target.json",
           "specs/cloud-observability-slo-target.json",
           "specs/cloud-resource-catalog-target.json"
         ]
@@ -6020,7 +6016,6 @@
           }
         ],
         "artifacts": [
-          "specs/cloud-toolchain-target.json",
           "specs/bespoke-cloud-toolchain-services.json",
           "specs/work-area-content-hash-contract.json",
           "specs/phase0-ci-enforcement-baseline.json",
@@ -6033,9 +6028,7 @@
         "status": "migration playbook specified (per-service pattern + parallel lanes + DoD + cutover); execution post-substrate",
         "parallel": "yes (one lane per microservice; ~21+ lanes, ~5-6 concurrent on one host, N on the CI farm)",
         "deliverable": "Migrate each cloud-* substrate service + tenant microservice to the ideal target behind contracts; old->contract->new; cut over when green; trunk stays shippable.",
-        "artifacts": [
-          "specs/cloud-strangler-migration-target.json"
-        ]
+        "artifacts": []
       },
       {
         "id": "P-PROD",

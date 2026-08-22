@@ -285,13 +285,6 @@
       "purpose": "Canonical shape of the context bundle a ci_fixer role consumes when diagnosing CI lane failures.",
       "target_path_after_md_retirement": "same"
     },
-    "cloud_authorization_target": {
-      "current_path": "/specs/cloud-authorization-target.json",
-      "kind": "spec",
-      "migration_phase": "p-target",
-      "purpose": "Cloud authorization target (P-TARGET): Cedar as universal gate for the control plane + cloud-* resources (ADR-0243); default-deny; KR/JP/US/EU pack overlays; references cedar-policy/fragment schemas. Target spec; no runtime.",
-      "target_path_after_md_retirement": "same"
-    },
     "cloud_control_plane_canonical": {
       "current_path": "/specs/cloud-control-plane-canonical.json",
       "kind": "spec",
@@ -318,20 +311,6 @@
       "kind": "spec",
       "migration_phase": "p-target",
       "purpose": "Cloud resource catalog target (P-TARGET): per-resource-type architecture for all cloud-* services (IAM/KMS/Secrets/Compute/Storage/Network/Data/Billing/Capacity), each instantiating the control-plane per-resource contract (quota/billing/audit/lifecycle/slo/retention), Cedar-gated + OTel-instrumented + actuated via OpenTofu/operator/Argo. Target spec; metadata-only until P-STRANGLE.",
-      "target_path_after_md_retirement": "same"
-    },
-    "cloud_strangler_migration_target": {
-      "current_path": "/specs/cloud-strangler-migration-target.json",
-      "kind": "spec",
-      "migration_phase": "p-strangle",
-      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed.",
-      "target_path_after_md_retirement": "same"
-    },
-    "cloud_toolchain_target": {
-      "current_path": "/specs/cloud-toolchain-target.json",
-      "kind": "spec",
-      "migration_phase": "p-toolchain",
-      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current shape-neutral successor is /specs/platform-delivery-fabric-productization.json. /specs/bespoke-cloud-toolchain-services.json remains valuable as tenant-isolation and first-party Rust-control-plane source evidence, but its oya-/cloud-prefixed examples are migration aliases, not destination names.",
       "target_path_after_md_retirement": "same"
     },
     "codeview_read_surface": {

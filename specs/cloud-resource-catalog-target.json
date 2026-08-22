@@ -14,7 +14,6 @@
   ],
   "related_specs": [
     "specs/cloud-control-plane-canonical.json",
-    "specs/cloud-authorization-target.json",
     "specs/cloud-observability-slo-target.json",
     "specs/csi-storage-class-canonical.json",
     "specs/schema-registry-canonical.json"
