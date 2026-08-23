@@ -29,8 +29,8 @@ deliverables:
     exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
     verified_by: "presubmit"
   - id: ADR-0719-D8
-    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK or the four owner law files ADR.md PRD.md SPEC.md PLAN.md). Census files and wrap languages are not children."
-    exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking; layout admits exactly those four owner law files on cap and app roots."
+    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK or ADR.md PRD.md SPEC.md PLAN.md on the owner)."
+    exit_criteria: "ADR-0701 Status cites this D-8; layout admits those four owner law files on cap and app roots."
     verified_by: "presubmit"
   - id: ADR-0719-D9
     description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oyatie- prefix. Today's presubmit string is a rename target, not the destination name."
@@ -133,12 +133,12 @@ deliverables:
     exit_criteria: "Agent local verify does not rewrite Cargo.lock or take a shared cargo target lock; cache is content-addressed and trusted-writer; dispatcher consults build graph (buck2) and crate graph (metadata/r-a); no new AST-merge service."
     verified_by: "presubmit"
   - id: ADR-0719-D35
-    description: "Hand-written non-exempt files are at most 300 lines. New or touched files over 300 fail. Existing over-budget files are split in dedicated lanes when that crate is worked, not one repo-wide dump. Exempt: live ADRs, PRD.md, AGENTS/CLAUDE, generated, lockfiles, third-party."
+    description: "Hand-written non-exempt files are at most 300 lines. Exempt: 07xx apex ADRs, owner ADR.md PRD.md SPEC.md PLAN.md, AGENTS/CLAUDE, generated, lockfiles, third-party."
     exit_criteria: "Presubmit pattern check on touched non-exempt paths; no expected_total of file counts; splits stay inside the crate (D-32); generated proto/lock/vendor ignored."
     verified_by: "presubmit"
   - id: ADR-0719-D36
-    description: "Owner law is ADR.md PRD.md SPEC.md PLAN.md on the capability or app path, XML-fenced. This 07xx file is repo-wide north star only and does not grow a new D-n for an owner-scoped change. Sessions amend the occupant."
-    exit_criteria: "Layout admits those four names; session PRs edit the path occupant; no new docs/decisions/ADR-NNNN for an occupied owner."
+    description: "Owner law is exactly ADR.md PRD.md SPEC.md PLAN.md inside each capability dir and each app/<product>/. Agents open those files and search tagged sections. Exempt from the 300-line cap. After human interview, compress landed work that survives in git history. Sessions amend in place."
+    exit_criteria: "Layout admits those four names on cap and app roots; they are D-35 exempt; session PRs edit them; post-interview compress of landed work."
     verified_by: "presubmit"
   - id: ADR-0719-D37
     description: "Shared docs/config/json/yaml/toml are not split like .rs. Keep them minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments. Mechanical fold is one serial step on the receiving branch (pre-commit/merge_group), not per-worktree. Prose ADRs stay single-writer. Cargo.lock is regenerated once after fold, not fragment-merged."
@@ -716,7 +716,7 @@ on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
 A directory or file is allowed only if something that is **not a census gate** loads it,
-or it is `OWNERS` / short `README.md` / `BUCK` / owner law `ADR.md` `PRD.md` `SPEC.md` `PLAN.md`. Git history is
+or it is `OWNERS` / short `README.md` / `BUCK` / owner `ADR.md` `PRD.md` `SPEC.md` `PLAN.md`. Git history is
 the audit log. Do not invent a destination for leftovers; many must **not exist**.
 
 **Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
@@ -755,7 +755,7 @@ service + impls; AWS control-plane vs data-plane as engines, not dump folders.
 | `iac/` | IR the reconciler applies | Helm/Tofu/charts as source |
 | `docs/` | This owner's g3doc (D-27): `README.md`, `concepts/`, `runbooks/`, `design/` | ADR copies, IPs, catalogs, scorecards, customer manuals, `plan/`, `tasks/` |
 | `OWNERS`, short `README.md`, `BUCK` | Yes | — |
-| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | **Exactly those four** on every capability root and every `app/<product>/` (amend in place; D-36) | A second ADR-NNNN, `docs/decisions/` dump, `specs/`, `plan/` |
+| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | Canonical owner law on every capability root and every `app/<product>/` (D-36; D-35 exempt) | Extra novels, `docs/decisions/` dump, `specs/`, `plan/` |
 
 **This shape does not change.** Owner PRs fill these children with content.
 They do **not** add faces, rename faces, insert `plan/`/`tasks/`/`crates/`/
@@ -784,7 +784,7 @@ No nested IPs, catalog.yaml, Helm, `plan/`, `tasks/`. Do not flatten `src/`
 | `docs/concepts/` | How *this* owner works | ADR-07xx copies |
 | `docs/runbooks/` | On-call for *this* owner | Fleet stamped books |
 | `docs/design/` | Owner-local design notes | `plan/`, IPs, ADR forks |
-| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | The four owner law files (cap and app) | Extra novels, ADR copies, IPs |
+| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | Canonical owner law (cap and app) | Extra novels, IPs |
 
 Do not add a fifth face. Do not pre-create empty module dirs.
 
@@ -1888,8 +1888,9 @@ that; **100 is not a gate** — it would explode module count and fight
 RFC 430 (`lib.rs` as the crate root). Count is `wc -l`, no comment-stripping
 cleverness (that becomes a census).
 
-**Exempt (closed).** Live 07xx apex ADRs; owner `ADR.md` `PRD.md` `SPEC.md`
-`PLAN.md`; `AGENTS.md` / `CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
+**Exempt (closed).** Live 07xx apex ADRs; owner `ADR.md`, `PRD.md`,
+`SPEC.md`, `PLAN.md` (D-36; compress after interview); `AGENTS.md` /
+`CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
 (`*.generated.*`, prost/tonic/reindeer output, OpenSLO from IR); vendored
 lock-step snapshots. Not exempt: tests, cedar, owner `docs/`, `*.rs` agents
 write. Do **not** add `specs/` or `plan/` to the exempt list by recreating
@@ -1918,62 +1919,48 @@ over 300.
 - **overturn_when:** a five-field ADR names a different number that still
   fits agent context and does not become a file-count freeze.
 
-### D-36 — Four tagged files on the path; stop growing this D-n catalog
+### D-36 — Four canonical files on the owner path; compress after interview
 
-A D-1…D-n appendix in one global ADR is unmaintainable: it is not loaded
-when someone edits `network/`, so the next session adds D-47. New owner
-law does **not** land as another D-n here.
+A D-n catalog in this global ADR is unmaintainable: it is not loaded on
+`network/`, so the next session adds D-47. Pointers fail: agents do not
+follow “see also.” They **open named files on the path they are editing.**
 
-**Occupants (exactly these names, next to the work):**
+**Occupants** — inside the capability directory or `app/<product>/`:
 
-| File | Role |
+| File | What the agent searches |
 |---|---|
-| `ADR.md` | decisions for that capability or `app/<product>/` |
+| `ADR.md` | decisions in force |
 | `PRD.md` | requirements |
 | `SPEC.md` | behavior / contract |
-| `PLAN.md` | sequenced work |
+| `PLAN.md` | remaining sequenced work |
 
-Repo-wide north star (serving vs control, cadences, layout faces) stays
-in this 07xx file until it has been moved onto an owner path. Sessions
-**amend** the occupant. They do not mint `docs/decisions/ADR-NNNN`.
-
-**Tag fences (LLM-readable).** Tags name the **slot**, not the current
-vendor. Replacing NativeLink is editing `<content_addressable_storage>`,
-not grepping a brand.
-
-Three scopes:
-
-| Scope | Tag | Example |
-|---|---|---|
-| Capability file | `<adr\|prd\|spec\|plan owner="{cap}">` | `<adr owner="network">` in `network/ADR.md` |
-| Application file | same, `owner="{product}"` | `<prd owner="foundry">` in `app/foundry/PRD.md` |
-| Stack / architecture type | `<{slot}>` snake_case type | `<content_addressable_storage>`, `<east_west_identity>` |
-
-```xml
-<adr owner="pipeline">
-<content_addressable_storage>
-<occupant>…the CAS implementation this path uses…</occupant>
-<body>
-…
-</body>
-</content_addressable_storage>
-</adr>
+```
+network/ADR.md   network/PRD.md   network/SPEC.md   network/PLAN.md
+app/foundry/ADR.md  …same four…
 ```
 
-A global 07xx section that binds a stack type uses the same inner tag so
-the model knows which fence to load. One root per owner file. One inner
-tag per stack slot.
+XML tags **inside** each file name slots (`<content_addressable_storage>`,
+`<ontology>`), not vendors. The agent iterates tags in that file.
 
-**MUST (path-local tagged occupants)**
+Those four are **exempt from the 300-line cap** (D-35). Completeness beats
+splitting. They do not grow forever: after a **human interview**, shrink
+them. Work that has landed and survives in git history / changelog is
+compressed or removed. `PLAN.md` is remaining work. `ADR.md` / `SPEC.md`
+/ `PRD.md` are current contract, not archaeology.
 
-- **achieves:** the agent on a path reads four files; one decision per
-  owner; LLMs can extract `<slot>` / `<occupant>` without the 07xx dump.
-- **origin:** global ADR piles; microscopic session ADRs; D-n catalogs
-  nobody opens; banned-vocab lists that keep dead names in context.
-- **rule:** owner law is those four tagged files; amend in place; this
-  apex does not grow a new D-n for an owner-scoped change.
-- **ensure:** layout admits those four names; new session PRs edit the
-  occupant on the path.
+Two agents on `network/` vs `iam/` do not share these files (D-41).
+Two agents on the same owner share a given file — one writer (D-32).
+
+**MUST (canonical owner files)**
+
+- **achieves:** agents find law by filename on the path; N owners commute;
+  checklists stay current because implemented detail is compressed out.
+- **origin:** unread 07xx dumps; pointer-following; append-only novels.
+- **rule:** owner law is those four files on that path; amend in place;
+  interview then compress; this apex does not grow a new D-n for an
+  owner-scoped change.
+- **ensure:** layout admits those four names; they are D-35 exempt;
+  session PRs edit them.
 - **overturn_when:** a five-field amendment of this section names a
   different occupant set.
 
