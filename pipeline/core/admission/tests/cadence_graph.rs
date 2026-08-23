@@ -240,6 +240,23 @@ fn weekly_advisories_are_not_a_license_rerun() {
 }
 
 #[test]
+fn agents_md_does_not_hand_git_hooks_to_beads() {
+    let agents = read("AGENTS.md");
+    assert!(
+        !agents.contains("git config core.hooksPath"),
+        "git runs .git/hooks; do not redirect the hook dir"
+    );
+    assert!(
+        !agents.contains(".beads/hooks"),
+        "beads must not own git hooks"
+    );
+    assert!(
+        agents.contains("git-common-dir)/hooks/"),
+        "pipeline hooks install into native .git/hooks via git-common-dir"
+    );
+}
+
+#[test]
 fn hooks_are_fmt_only() {
     let pre_commit = read(".githooks/pre-commit");
     let pre_push = read(".githooks/pre-push");
