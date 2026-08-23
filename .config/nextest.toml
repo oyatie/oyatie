@@ -11,7 +11,12 @@ path = "junit.xml"
 
 # Live Postgres job only. Workspace nextest uses profile.ci and does not run
 # #[ignore] tests. `--run-ignored only` is required on the CLI as well.
+#
+# Serial because adapter live_* tests DROP SCHEMA CASCADE on the shared
+# identity_scim / tenancy_lifecycle schemas. Parallel nextest processes race
+# CREATE TABLE / CREATE POLICY / FORCE RLS against those drops.
 [profile.live]
 fail-fast = false
 retries = 0
+test-threads = 1
 default-filter = "test(/^live_/)"

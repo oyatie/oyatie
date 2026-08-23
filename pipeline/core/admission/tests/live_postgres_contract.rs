@@ -163,3 +163,21 @@ fn live_crates_have_fail_closed_helpers() {
         );
     }
 }
+
+/// Adapter live_* tests DROP SCHEMA CASCADE on two shared schemas. nextest
+/// profile.live must stay single-threaded or those drops race CREATE TABLE /
+/// CREATE POLICY / FORCE RLS (postsubmit live-postgres on a20b2c808).
+#[test]
+fn live_nextest_profile_is_serialized() {
+    let src = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect(".config/nextest.toml");
+    let live = src
+        .split("[profile.live]")
+        .nth(1)
+        .expect("[profile.live] missing");
+    let live = live.split("[profile.").next().unwrap_or(live);
+    assert!(
+        live.contains("test-threads = 1"),
+        "profile.live must set test-threads = 1 so DROP SCHEMA CASCADE live_* tests cannot race"
+    );
+}
