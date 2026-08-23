@@ -46,9 +46,45 @@ fn job_ids(yaml: &str) -> Vec<String> {
 fn presubmit_jobs_are_the_occupant_set() {
     let y = read(".github/workflows/presubmit.yml");
     assert_eq!(job_ids(&y), PRESUBMIT_JOBS);
-    assert!(y.contains("needs: [lint, test, deny, pg-gate, live-postgres]"));
+    assert!(y.contains("needs: [occupancy, lint, test, deny, pg-gate, live-postgres]"));
+    assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
+    assert!(y.contains("path-occupancy"));
+    assert!(y.contains("OYATIE_PULL_REQUEST"));
+    assert!(y.contains("OYATIE_REPOSITORY"));
+    assert!(
+        !y.contains("gh pr diff"),
+        "gh pr diff 406s when the unified diff exceeds 20k lines"
+    );
+    assert!(
+        !y.contains("/pulls/${1}/files") && !y.contains("/pulls/${n}/files"),
+        "the REST files endpoint silently truncates after 3000 paths"
+    );
+    assert!(
+        !y.contains("--limit 1000"),
+        "open pull request enumeration must not have a silent ceiling"
+    );
+    assert!(
+        !y.contains("openssl base64")
+            && !y.contains("Collect path-sets")
+            && !y.contains("paths_for_pr()"),
+        "correctness-critical collection belongs in Rust"
+    );
+    assert!(
+        !y.contains("path-occupancy --locked --offline"),
+        "occupancy cargo run must reach crates.io on a cold cache"
+    );
+
+    let collector = read("pipeline/core/admission/src/bin/path-occupancy.rs");
+    assert!(collector.contains("Command::new(\"gh\")"));
+    assert!(collector.contains("--paginate"));
+    assert!(collector.contains("refs/pull/{number}/head"));
+    assert!(collector.contains("--name-status"));
+    assert!(collector.contains("\"-z\""));
+    assert!(collector.contains("\"-M\""));
+    assert!(collector.contains("x-access-token"));
+    assert!(!collector.contains("/files"));
 }
 
 #[test]

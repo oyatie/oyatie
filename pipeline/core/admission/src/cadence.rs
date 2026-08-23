@@ -24,6 +24,7 @@ pub const PRESUBMIT_JOBS: &[&str] = &[
     "deny",
     "lint",
     "live-postgres",
+    "occupancy",
     "pg-gate",
     "presubmit",
     "test",
