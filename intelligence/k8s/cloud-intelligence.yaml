@@ -1,0 +1,1291 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: providerbackends.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: providerbackends
+    singular: providerbackend
+    kind: ProviderBackend
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelroutes.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: modelroutes
+    singular: modelroute
+    kind: ModelRoute
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelaliassets.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: modelaliassets
+    singular: modelaliasset
+    kind: ModelAliasSet
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: promptprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: promptprofiles
+    singular: promptprofile
+    kind: PromptProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: thinkingpolicies.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: thinkingpolicies
+    singular: thinkingpolicie
+    kind: ThinkingPolicy
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: subscriptionseats.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: subscriptionseats
+    singular: subscriptionseat
+    kind: SubscriptionSeat
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: wireprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: wireprofiles
+    singular: wireprofile
+    kind: WireProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: toolcompatibilityprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: toolcompatibilityprofiles
+    singular: toolcompatibilityprofile
+    kind: ToolCompatibilityProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gatewaycircuitbreakers.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: gatewaycircuitbreakers
+    singular: gatewaycircuitbreaker
+    kind: GatewayCircuitBreaker
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: capabilityparitybaselines.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: capabilityparitybaselines
+    singular: capabilityparitybaseline
+    kind: CapabilityParityBaseline
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentruntimeprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentruntimeprofiles
+    singular: agentruntimeprofile
+    kind: AgentRuntimeProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentmemorybindings.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentmemorybindings
+    singular: agentmemorybinding
+    kind: AgentMemoryBinding
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentskillbundles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentskillbundles
+    singular: agentskillbundle
+    kind: AgentSkillBundle
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentschedules.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentschedules
+    singular: agentschedule
+    kind: AgentSchedule
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentdelegationpolicies.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentdelegationpolicies
+    singular: agentdelegationpolicy
+    kind: AgentDelegationPolicy
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentworkspacebindings.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: agentworkspacebindings
+    singular: agentworkspacebinding
+    kind: AgentWorkspaceBinding
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: guardraildetectionprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: guardraildetectionprofiles
+    singular: guardraildetectionprofile
+    kind: GuardrailDetectionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: evidenceretentionprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: evidenceretentionprofiles
+    singular: evidenceretentionprofile
+    kind: EvidenceRetentionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: intransitredactionprofiles.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: intransitredactionprofiles
+    singular: intransitredactionprofile
+    kind: InTransitRedactionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: safetysignalpolicies.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: safetysignalpolicies
+    singular: safetysignalpolicy
+    kind: SafetySignalPolicy
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: manualreviewescalations.intelligence-app.oyatie.io
+spec:
+  group: intelligence-app.oyatie.io
+  scope: Namespaced
+  names:
+    plural: manualreviewescalations
+    singular: manualreviewescalation
+    kind: ManualReviewEscalation
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloud-intelligence-control-plane
+  namespace: cloud-intelligence
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cloud-intelligence-control-plane
+  namespace: cloud-intelligence
+rules:
+  - apiGroups: ["intelligence-app.oyatie.io"]
+    resources:
+      - providerbackends
+      - modelroutes
+      - modelaliassets
+      - promptprofiles
+      - thinkingpolicies
+      - subscriptionseats
+      - wireprofiles
+      - toolcompatibilityprofiles
+      - gatewaycircuitbreakers
+      - capabilityparitybaselines
+      - agentruntimeprofiles
+      - agentmemorybindings
+      - agentskillbundles
+      - agentschedules
+      - agentdelegationpolicies
+      - agentworkspacebindings
+      - guardraildetectionprofiles
+      - evidenceretentionprofiles
+      - intransitredactionprofiles
+      - safetysignalpolicies
+      - manualreviewescalations
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["events", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cloud-intelligence-control-plane
+  namespace: cloud-intelligence
+subjects:
+  - kind: ServiceAccount
+    name: cloud-intelligence-control-plane
+    namespace: cloud-intelligence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cloud-intelligence-control-plane
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: intelligence-app-gateway
+  namespace: cloud-intelligence
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: cloud-intelligence
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloud-intelligence-default-deny
+  namespace: cloud-intelligence
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector: {}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: route-controller
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: route-controller } }
+  template:
+    metadata: { labels: { app: route-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: route-controller
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          imagePullPolicy: Always
+          env: [{ name: OYATIE_WORKER_KIND, value: route-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-inventory-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: model-inventory-worker } }
+  template:
+    metadata: { labels: { app: model-inventory-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: model-inventory-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: model-inventory-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credential-refresh-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: credential-refresh-worker } }
+  template:
+    metadata: { labels: { app: credential-refresh-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: credential-refresh-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: credential-refresh-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-metering-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: analytics-metering-worker } }
+  template:
+    metadata: { labels: { app: analytics-metering-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: analytics-metering-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: analytics-metering-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: circuit-breaker-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: circuit-breaker-worker } }
+  template:
+    metadata: { labels: { app: circuit-breaker-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: circuit-breaker-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: circuit-breaker-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-api
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: ops-api } }
+  template:
+    metadata: { labels: { app: ops-api } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: ops-api
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: ops-api }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-runtime-controller
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-runtime-controller } }
+  template:
+    metadata: { labels: { app: agent-runtime-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-runtime-controller
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-runtime-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-scheduler-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-scheduler-worker } }
+  template:
+    metadata: { labels: { app: agent-scheduler-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-scheduler-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-scheduler-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-delegation-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-delegation-worker } }
+  template:
+    metadata: { labels: { app: agent-delegation-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-delegation-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: agent-delegation-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-enforcement-controller
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: safety-enforcement-controller } }
+  template:
+    metadata: { labels: { app: safety-enforcement-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: safety-enforcement-controller
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: safety-enforcement-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guardrail-detection-worker
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: guardrail-detection-worker } }
+  template:
+    metadata: { labels: { app: guardrail-detection-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: guardrail-detection-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: guardrail-detection-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-retention-controller
+  namespace: cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: evidence-retention-controller } }
+  template:
+    metadata: { labels: { app: evidence-retention-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: evidence-retention-controller
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: evidence-retention-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: drift-parity-worker
+  namespace: cloud-intelligence
+spec:
+  schedule: "*/15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: cloud-intelligence-control-plane
+          containers:
+            - name: drift-parity-worker
+              image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+              env: [{ name: OYATIE_WORKER_KIND, value: drift-parity-worker }]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 65532
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: [ALL] }
+                seccompProfile: { type: RuntimeDefault }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: compatibility-worker
+  namespace: cloud-intelligence
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: compatibility-worker
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYATIE_WORKER_KIND, value: compatibility-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+
+# cloud-intelligence K8s deployment manifest — Namespace + ConfigMap +
+# external secret-provider projection + Deployment + Service.
+#
+# Implementation status: kernel + rest adapter + app are 100%-Rust-implemented
+# (crates/cloud-intelligence-{kernel,rest,app}; ~5,600 LOC + 30 tests). This file
+# wires the binary into the cluster.
+#
+# Reads (per crates/cloud-intelligence-rest/src/main.rs):
+#   - $GATEWAY_CONFIG — path to a ConfigMap-mounted JSON file (NO secrets).
+#   - Secret-provider adapter credentials are projected by cloud-secrets/cloud-kms;
+#     cloud-intelligence receives only opaque handles plus realm tokens.
+#   - $ADMIN_TOKEN + $INGRESS_PROXY_KEYS — auth tokens from the same Secret.
+#
+# Provider API keys (OpenAI/Anthropic/Gemini) live behind owned cloud-secrets/
+# cloud-kms handles (`secret-ref://` / `kms-ref://`) and are loaded through the
+# secret-provider adapter at startup + on a periodic refresh.
+#
+# Cell affinity (ADR-0381 D2 preview; soft preference so single-node still
+# schedules): tenant cell (this is a tenant-tier workload, not foundation/ci/
+# storage).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloud-intelligence
+  labels:
+    oya.io/cell: tenant
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
+---
+# Declarative non-secret config. Fill these in from your actual deployment;
+# this is the wire-shape the rest adapter reads.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-intelligence-config
+  namespace: cloud-intelligence
+data:
+  config.json: |
+    {
+      "listen_addr": "0.0.0.0:8080",
+      "secret_provider": {
+        "port": "owned-secret-provider-port",
+        "adapter": "cluster-secret-provider",
+        "handle_scheme": ["secret-ref://", "kms-ref://"]
+      },
+      "key_refresh_secs": 300,
+      "groups": [
+        {
+          "name": "openai",
+          "channel": "openai",
+          "upstream_base_url": "https://api.openai.com",
+          "secret_handle": "secret-ref://cloud-intelligence/openai"
+        },
+        {
+          "name": "anthropic",
+          "channel": "anthropic",
+          "upstream_base_url": "https://api.anthropic.com",
+          "secret_handle": "secret-ref://cloud-intelligence/anthropic",
+          "anthropic_version": "2023-06-01"
+        },
+        {
+          "name": "gemini",
+          "channel": "gemini",
+          "upstream_base_url": "https://generativelanguage.googleapis.com",
+          "secret_handle": "secret-ref://cloud-intelligence/gemini"
+        }
+      ]
+    }
+---
+# ExternalSecret (per ADR-0043) projects adapter bootstrap tokens from the
+# owned cloud-secrets/cloud-kms substrate into a k8s Secret named
+# cloud-intelligence-secrets. Opaque handles are canonical; secret values never
+# appear in this repo.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: cloud-intelligence-secrets
+  namespace: cloud-intelligence
+spec:
+  refreshInterval: "5m"
+  secretStoreRef:
+    name: cloud-secrets-adapter
+    kind: ClusterSecretStore
+  target:
+    name: cloud-intelligence-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: secret-provider-token
+      remoteRef:
+        key: oya/cloud-intelligence/secret-provider-token
+    - secretKey: admin-token
+      remoteRef:
+        key: oya/cloud-intelligence/admin-token
+    - secretKey: ingress-proxy-keys
+      remoteRef:
+        key: oya/cloud-intelligence/ingress-proxy-keys
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intelligence-app-gateway
+  namespace: cloud-intelligence
+  labels:
+    app: cloud-intelligence
+    oya.microservice: cloud-intelligence
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cloud-intelligence
+  template:
+    metadata:
+      labels:
+        app: cloud-intelligence
+    spec:
+      # ADR-0381 D2 soft cell affinity: prefer tenant pool when it exists.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: oya.cell/tenant
+                    operator: In
+                    values: ["true"]
+      containers:
+        - name: cloud-intelligence
+          # Image is built via BuildKit (per ADR-0381 D1); operator runs the
+          # build Job at microservices/cloud-intelligence/k8s/buildkit-build.yaml
+          # (deferred until operator authorization — see microservices/llm-
+          # gateway/k8s/BUILDKIT-JOB-TEMPLATE.md). Before first deploy, the
+          # image must exist in the in-cluster registry.
+          image: registry.registry.svc.cluster.local:5000/cloud-intelligence:dev
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: GATEWAY_CONFIG
+              value: "/etc/cloud-intelligence/config.json"
+            - name: SECRET_PROVIDER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-intelligence-secrets
+                  key: secret-provider-token
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-intelligence-secrets
+                  key: admin-token
+            - name: INGRESS_PROXY_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-intelligence-secrets
+                  key: ingress-proxy-keys
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloud-intelligence
+              readOnly: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532   # distroless:nonroot
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: cloud-intelligence-config
+            items:
+              - key: config.json
+                path: config.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-intelligence
+  namespace: cloud-intelligence
+  labels:
+    app: cloud-intelligence
+spec:
+  selector:
+    app: cloud-intelligence
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloud-intelligence
+  namespace: cloud-intelligence
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: intelligence-app-gateway
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 75
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 4
+          periodSeconds: 30
+      selectPolicy: Max

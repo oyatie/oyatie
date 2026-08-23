@@ -61,14 +61,13 @@ pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str =
     "OYATIE_CLOUD_IAC_MODULE_REGISTRY_BEARER";
 pub const CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV: &str =
     "OYATIE_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
-pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str =
-    "microservices/iac-app/tofu/modules/release-index.json";
+pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str = "iac/tofu/modules/release-index.json";
 pub const CLOUD_IAC_APP_ARTIFACTS_BASE_PATH: &str = "/artifacts/modules/";
 pub const CLOUD_IAC_APP_ARTIFACT_ROUTE_TEMPLATE: &str = "/artifacts/modules/{archive_file}";
 pub const CLOUD_IAC_HEALTH_PATH: &str = "/healthz";
 pub const CLOUD_IAC_LIVENESS_PATH: &str = "/livez";
 
-const CLOUD_IAC_APP_RELEASE_SOURCE_ROOT: &str = "microservices/iac-app/tofu/modules/";
+const CLOUD_IAC_APP_RELEASE_SOURCE_ROOT: &str = "iac/tofu/modules/";
 const CLOUD_IAC_APP_ARCHIVE_FILE_ROOT: &str = "target/iac-app/module-archives/";
 const CLOUD_IAC_APP_ARCHIVE_MEDIA_TYPE: &str = "archive/zip";
 

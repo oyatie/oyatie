@@ -1,0 +1,275 @@
+asyncapi: 3.1.0
+info:
+  title: Oyatie Analytics Event Streams
+  version: 1.0.0
+  description: |
+    AsyncAPI 3.1 contract for analytics µservice event streams.
+    Inbound: tenancy events (onboard/offboard); usage counters; audit events.
+    Outbound: tenant.proof_of_erasure; analytics.tenant_database.created;
+    analytics.audit_chain.emitted; analytics.quota_exceeded.
+    Authority: ADR-0153 outbox, ADR-0154 schema versioning, ADR-0145 inter-µservice communication.
+servers:
+  pulsar-cell:
+    host: pulsar.observability.svc.cluster.local:6650
+    protocol: pulsar+ssl
+    description: Cell-local Pulsar broker (per ADR-0186)
+defaultContentType: application/cloudevents+json; charset=utf-8
+channels:
+  tenancy.tenant.events:
+    address: persistent://public/default/oya.tenancy.tenant.events
+    description: Inbound tenancy lifecycle events
+    messages:
+      tenant_onboarded:
+        $ref: '#/components/messages/TenantOnboarded'
+      tenant_offboarded:
+        $ref: '#/components/messages/TenantOffboarded'
+      tenant_class_changed:
+        $ref: '#/components/messages/TenantClassChanged'
+  events.outbox:
+    address: persistent://public/default/oya.events.outbox
+    description: Canonical per-µservice outbox stream (ADR-0153)
+    messages:
+      workflow_executed:
+        $ref: '#/components/messages/WorkflowExecuted'
+      audit_event:
+        $ref: '#/components/messages/AuditEvent'
+  usage.counters:
+    address: persistent://public/default/oya.usage.counters
+    description: Per-tenant per-resource usage counters
+    messages:
+      usage_counter_incremented:
+        $ref: '#/components/messages/UsageCounterIncremented'
+  analytics.outbound:
+    address: persistent://public/default/oya.analytics.outbound
+    description: Analytics-µservice outbound events
+    messages:
+      tenant_database_created:
+        $ref: '#/components/messages/TenantDatabaseCreated'
+      tenant_database_dropped:
+        $ref: '#/components/messages/TenantDatabaseDropped'
+      tenant_proof_of_erasure:
+        $ref: '#/components/messages/TenantProofOfErasure'
+      tenant_billable_usage:
+        $ref: '#/components/messages/TenantBillableUsage'
+      analytics_quota_exceeded:
+        $ref: '#/components/messages/AnalyticsQuotaExceeded'
+operations:
+  consumeTenantEvents:
+    action: receive
+    channel:
+      $ref: '#/channels/tenancy.tenant.events'
+    summary: Analytics consumes tenant lifecycle events to reconcile per-tenant DB state.
+    messages:
+      - $ref: '#/channels/tenancy.tenant.events/messages/tenant_onboarded'
+      - $ref: '#/channels/tenancy.tenant.events/messages/tenant_offboarded'
+      - $ref: '#/channels/tenancy.tenant.events/messages/tenant_class_changed'
+  consumeOutboxEvents:
+    action: receive
+    channel:
+      $ref: '#/channels/events.outbox'
+    summary: Analytics CDC pipeline consumes the canonical outbox (per IP-004).
+  consumeUsageCounters:
+    action: receive
+    channel:
+      $ref: '#/channels/usage.counters'
+    summary: Billing rollup pipeline consumes usage counters (per IP-009).
+  publishAnalyticsEvents:
+    action: send
+    channel:
+      $ref: '#/channels/analytics.outbound'
+    summary: Analytics emits its own lifecycle + audit events.
+components:
+  messages:
+    TenantOnboarded:
+      name: TenantOnboarded
+      payload:
+        $ref: '#/components/schemas/TenantOnboardedPayload'
+    TenantOffboarded:
+      name: TenantOffboarded
+      payload:
+        $ref: '#/components/schemas/TenantOffboardedPayload'
+    TenantClassChanged:
+      name: TenantClassChanged
+      payload:
+        $ref: '#/components/schemas/TenantClassChangedPayload'
+    WorkflowExecuted:
+      name: WorkflowExecuted
+      payload:
+        $ref: '#/components/schemas/WorkflowExecutedPayload'
+    AuditEvent:
+      name: AuditEvent
+      payload:
+        $ref: '#/components/schemas/AuditEventPayload'
+    UsageCounterIncremented:
+      name: UsageCounterIncremented
+      payload:
+        $ref: '#/components/schemas/UsageCounterIncrementedPayload'
+    TenantDatabaseCreated:
+      name: TenantDatabaseCreated
+      payload:
+        $ref: '#/components/schemas/TenantDatabaseCreatedPayload'
+    TenantDatabaseDropped:
+      name: TenantDatabaseDropped
+      payload:
+        $ref: '#/components/schemas/TenantDatabaseDroppedPayload'
+    TenantProofOfErasure:
+      name: TenantProofOfErasure
+      payload:
+        $ref: '#/components/schemas/TenantProofOfErasurePayload'
+    TenantBillableUsage:
+      name: TenantBillableUsage
+      payload:
+        $ref: '#/components/schemas/TenantBillableUsagePayload'
+    AnalyticsQuotaExceeded:
+      name: AnalyticsQuotaExceeded
+      payload:
+        $ref: '#/components/schemas/AnalyticsQuotaExceededPayload'
+  schemas:
+    CloudEventEnvelope:
+      type: object
+      required: [specversion, type, source, id, time, data]
+      properties:
+        specversion: { type: string, const: '1.0' }
+        type: { type: string }
+        source: { type: string, format: uri }
+        id: { type: string, format: uuid }
+        time: { type: string, format: date-time }
+        data: { type: object, additionalProperties: true }
+    TenantOnboardedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.tenancy.tenant.onboarded.v1' }
+            data:
+              type: object
+              required: [tenant_id, residency_class, tenant_class]
+              properties:
+                tenant_id: { type: string }
+                residency_class: { type: string, enum: [StrictKR, StrictEU, KrWithUsFailover, Global] }
+                tenant_class: { type: string, enum: [demo_trial, paid] }
+    TenantOffboardedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.tenancy.tenant.offboarded.v1' }
+            data:
+              type: object
+              required: [tenant_id]
+              properties:
+                tenant_id: { type: string }
+    TenantClassChangedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.tenancy.tenant.tenant_class_changed.v1' }
+            data:
+              type: object
+              required: [tenant_id, old_tenant_class, new_tenant_class]
+              properties:
+                tenant_id: { type: string }
+                old_tenant_class: { type: string, enum: [demo_trial, paid] }
+                new_tenant_class: { type: string, enum: [demo_trial, paid] }
+    WorkflowExecutedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.workflow.executed.v1' }
+            data:
+              type: object
+              required: [tenant_id, workflow_id, duration_ms, status]
+              properties:
+                tenant_id: { type: string }
+                workflow_id: { type: string }
+                duration_ms: { type: integer }
+                status: { type: string, enum: [succeeded, failed, cancelled] }
+    AuditEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.audit.v1' }
+            data:
+              type: object
+              required: [tenant_id, axis, event_type, principal_id]
+              properties:
+                tenant_id: { type: string }
+                axis: { type: string }
+                event_type: { type: string }
+                principal_id: { type: string }
+                evidence_ref: { type: string }
+    UsageCounterIncrementedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.usage.counter.incremented.v1' }
+            data:
+              type: object
+              required: [tenant_id, resource_type, increment]
+              properties:
+                tenant_id: { type: string }
+                resource_type: { type: string }
+                increment: { type: integer, format: int64 }
+    TenantDatabaseCreatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.analytics.tenant_database.created.v1' }
+            data:
+              type: object
+              required: [tenant_id, cell]
+              properties:
+                tenant_id: { type: string }
+                cell: { type: string }
+    TenantDatabaseDroppedPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.analytics.tenant_database.dropped.v1' }
+    TenantProofOfErasurePayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.analytics.tenant_database.proof_of_erasure.v1' }
+            data:
+              type: object
+              required: [tenant_id, erasure_completed_at, signed_digest]
+              properties:
+                tenant_id: { type: string }
+                erasure_completed_at: { type: string, format: date-time }
+                signed_digest: { type: string, description: cosign-signed SHA-256 of the erasure receipt }
+    TenantBillableUsagePayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.analytics.tenant.billable_usage.v1' }
+            data:
+              type: object
+              required: [tenant_id, month, resource_type, count]
+              properties:
+                tenant_id: { type: string }
+                month: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' }
+                resource_type: { type: string }
+                count: { type: integer, format: int64 }
+    AnalyticsQuotaExceededPayload:
+      allOf:
+        - $ref: '#/components/schemas/CloudEventEnvelope'
+        - type: object
+          properties:
+            type: { const: 'oya.analytics.quota_exceeded.v1' }
+            data:
+              type: object
+              required: [tenant_id, quota_kind, observed, limit]
+              properties:
+                tenant_id: { type: string }
+                quota_kind: { type: string, enum: [queries_per_hour, read_rows_per_hour, insert_rows_per_hour] }
+                observed: { type: integer, format: int64 }
+                limit: { type: integer, format: int64 }

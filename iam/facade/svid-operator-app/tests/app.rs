@@ -37,7 +37,7 @@ fn honors_explicit_namespace_ttl_and_rotation_window() {
         config.desired.spiffe_id,
         "spiffe://oyatie.cell-east-1a/platform/cloud-iam-pdp"
     );
-    assert_eq!(config.desired.secret_namespace, "iam-prod");
+    assert_eq!(config.desired.secret_namespace, "cloud-iam-prod");
     assert_eq!(config.desired.ttl_secs, 7_200);
     assert_eq!(config.desired.rotation_window_secs, 1_800);
 }

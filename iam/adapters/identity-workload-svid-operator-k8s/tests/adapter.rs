@@ -156,7 +156,7 @@ fn secret_manifest_is_kubernetes_io_tls_with_three_data_members() {
     let manifest = secret_manifest("cloud-iam-pdp-svid", "iam", &material);
     assert_eq!(manifest["type"], TLS_SECRET_TYPE);
     assert_eq!(manifest["metadata"]["name"], "cloud-iam-pdp-svid");
-    assert_eq!(manifest["metadata"]["namespace"], "cloud-iam");
+    assert_eq!(manifest["metadata"]["namespace"], "iam");
     // base64 of the three PEM members under the standard keys.
     use base64::Engine as _;
     let b64 = |s: &str| base64::engine::general_purpose::STANDARD.encode(s.as_bytes());

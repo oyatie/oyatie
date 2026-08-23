@@ -44,12 +44,12 @@ use data_analytics_usecase::{
 };
 use shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
 
-/// OpenAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/analytics/contracts/openapi-v1.yaml";
-/// AsyncAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_ASYNCAPI_CONTRACT: &str = "data/analytics/contracts/asyncapi-v1.yaml";
-/// gRPC proto contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_PROTO_CONTRACT: &str = "data/analytics/contracts/analytics.proto";
+/// OpenAPI contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/ports/analytics-api/contracts/openapi-v1.yaml";
+/// AsyncAPI contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_ASYNCAPI_CONTRACT: &str = "data/ports/analytics-api/contracts/asyncapi-v1.yaml";
+/// gRPC proto contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_PROTO_CONTRACT: &str = "data/ports/analytics-api/contracts/analytics.proto";
 
 // =====================================================================
 // API error

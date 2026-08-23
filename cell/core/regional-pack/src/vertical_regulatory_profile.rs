@@ -109,7 +109,7 @@ mod tests {
     fn rejects_invalid_pack_id_prefix() {
         let err = VerticalRegulatoryProfile::new(
             AdVertical::Finance,
-            "pack-kr".to_string(),
+            "kr".to_string(),
             vec!["PIPA".to_string()],
         )
         .expect_err("pack_id without pack- prefix must be rejected");

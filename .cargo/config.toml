@@ -4,4 +4,14 @@
 # platform's stock toolchain. Opt-in mold locally via RUSTFLAGS or an
 # untracked ~/.cargo/config.toml. Do not force -fuse-ld=mold here.
 #
-# Deleted ci/facade, specs/, tools/hooks env bindings. Do not resurrect.
+# Do not resurrect bindings to deleted ci/facade, specs/, or tools/hooks paths.
+#
+# Intelligence-app cargo tests read named fixtures (not process cwd). `relative
+# = true` resolves against this repository; explicit CI/Buck values win.
+[env]
+OYATIE_INTELLIGENCE_HELM_DEPLOYMENT = { value = "intelligence/iac/k8s/helm/templates/deployment.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET = { value = "intelligence/iac/k8s/helm/templates/externalsecret.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_APP_SOURCE = { value = "intelligence/facade/app/src/lib.rs", relative = true, force = false }
+OYATIE_INTELLIGENCE_REST_SOURCE = { value = "intelligence/adapters/rest/src/lib.rs", relative = true, force = false }
+OYATIE_INTELLIGENCE_OPENAPI_CONTRACT = { value = "intelligence/contracts/cloud-intelligence.openapi.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_K8S_MANIFEST = { value = "intelligence/k8s/cloud-intelligence.yaml", relative = true, force = false }

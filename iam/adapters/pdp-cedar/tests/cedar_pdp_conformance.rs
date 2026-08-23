@@ -1494,15 +1494,15 @@ fn crate_local_cedar_seeds_match_canonical() {
     const PAIRS: &[(&str, &str)] = &[
         (
             "cedar/platform.cedarschema",
-            "libs/shared-platform-contracts-kernel/cedar/platform.cedarschema",
+            "iam/core/platform-contracts-kernel/cedar/platform.cedarschema",
         ),
         (
             "cedar/platform-policies.cedar",
-            "libs/shared-platform-contracts-kernel/cedar/platform-policies.cedar",
+            "iam/core/platform-contracts-kernel/cedar/platform-policies.cedar",
         ),
         (
             "cedar/platform-templates.cedar",
-            "libs/shared-platform-contracts-kernel/cedar/platform-templates.cedar",
+            "iam/core/platform-contracts-kernel/cedar/platform-templates.cedar",
         ),
     ];
     let (Some(crate_dir), Some(root)) = (manifest_dir(), repo_root()) else {

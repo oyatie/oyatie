@@ -197,7 +197,7 @@ mod tests {
     fn rejects_invalid_pack_ref() {
         let err = CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "pack-kr".to_string(), // missing "pack-" prefix
+            "kr".to_string(), // missing "pack-" prefix
             PackVersion::Patch {
                 major: 1,
                 minor: 0,

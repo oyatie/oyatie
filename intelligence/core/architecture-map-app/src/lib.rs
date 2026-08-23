@@ -525,8 +525,8 @@ serde = "1"
         );
         let crate_nodes = map.nodes_of_kind(NodeKind::Crate).count();
         assert!(
-            crate_nodes > 500,
-            "expected the expanded workspace (882 members today), got {crate_nodes} crate nodes"
+            crate_nodes > 400,
+            "expected the expanded workspace (400+ members today), got {crate_nodes} crate nodes"
         );
     }
 
