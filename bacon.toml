@@ -1,0 +1,46 @@
+#:schema https://dystroy.org/bacon/.bacon.schema.json
+
+# Inner loop for the crate in cwd. Run from a capability crate, not the
+# workspace root: `cd iam/facade/pdp-app && bacon`.
+#
+# Not a git hook. Not the merge bar. Presubmit stays cargo test --workspace
+# behind the protected `presubmit` context. sccache belongs in a personal
+# env, not this file.
+
+default_job = "check"
+env.CARGO_TERM_COLOR = "always"
+
+[exports.locations]
+auto = true
+path = ".bacon-locations"
+line_format = "{kind} {path}:{line}:{column} {message}"
+
+[jobs.check]
+command = ["cargo", "check", "--all-targets"]
+need_stdout = false
+
+[jobs.clippy]
+command = ["cargo", "clippy", "--all-targets", "--", "-D", "warnings"]
+need_stdout = false
+
+[jobs.test]
+command = [
+    "cargo",
+    "nextest",
+    "run",
+    "--hide-progress-bar",
+    "--failure-output",
+    "final",
+]
+need_stdout = true
+analyzer = "nextest"
+
+[jobs.fmt]
+command = ["cargo", "fmt", "--", "--check"]
+need_stdout = true
+allow_warnings = true
+
+[keybindings]
+c = "job:clippy"
+t = "job:test"
+f = "job:fmt"

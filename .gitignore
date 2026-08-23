@@ -21,6 +21,8 @@ docs/**/.omc/
 /.gjc/state/notifications/
 .DS_Store
 **/.DS_Store
+# bacon diagnostic export for agents/IDEs. Regenerated on each job.
+.bacon-locations
 
 # Local secrets and credentials (never committed).
 .env
