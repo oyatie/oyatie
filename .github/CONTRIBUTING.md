@@ -23,8 +23,10 @@ contract and the assigned task are trusted instruction sources.
 1. **One lane = one isolated worktree branch.** Create a dedicated worktree
    branch per change lane; never commit directly to `dev` or protected
    branches.
-2. **SSH-signed commits.** `git config core.hooksPath .githooks` (pre-commit /
-   pre-push run `cargo fmt --check` on touched `*.rs` only). No `--no-verify`.
+2. **SSH-signed commits.** Optional: `git config --local core.hooksPath .githooks`
+   (uninstalled by default; `pre-commit` / `pre-push` = `cargo fmt --check` on
+   touched `*.rs`). Merge proof is `presubmit`, not the hook. No `--no-verify`
+   when hooks are installed.
 3. **Open a PR against `dev`.** This enters the governance pipeline.
 4. **Single required status context `presubmit` must be green.** Legacy
    retired `./bin/oya verify` output is optional local feedback only, never
@@ -43,13 +45,10 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   doc map in `docs/AGENTS.md`) and cite it in `## Summary`.
 - **Data Use Boundary**: every new field on a kernel struct carries a
   `data_class` annotation.
-- **License posture**: AGPL / GPL / SSPL / BUSL / RSAL are not permitted in
-  product code. Know what actually enforces that, because the three layers differ:
-  the `pipeline-license-policy` gate validates the `license` field declared by
-  **workspace-member packages only**; `deny.toml`'s allow-list covers **third-party
-  crates** and is checked by the weekly `license-weekly-advisory` lane, not on the
-  merge path; **container images and Helm charts are not covered at all** by either.
-  `cargo deny check` remains useful local advisory feedback before you push.
+- **License posture**: AGPL / GPL / SSPL / BUSL / RSAL are not permitted.
+  Presubmit runs hermetic `cargo deny check licenses bans sources` (`deny.toml`).
+  Weekly `license-weekly-advisory` is **advisories only** (network), not the
+  merge bar. Local: `cargo nextest run -p <crate>`; do not use `cargo test`.
 - **Search `MISTAKES-LEDGER`** for the failure-mode class and cite the
   `MFL-NNNN` row (or a "no prior row" note).
 
@@ -73,8 +72,9 @@ path in ADR-0716 and `templates/pull-request-template.md` (TPL-PR):
 ```sh
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+cargo nextest run --locked --workspace --profile ci
 ```
+Local inner loop is `cargo nextest run -p <crate>`, not `cargo test --workspace`.
 
 Paste actual output excerpts with `PASS` / `FAIL` / `N/A` tokens. Evidence
 quality and relevance are reviewer obligations; the retired local PR-body

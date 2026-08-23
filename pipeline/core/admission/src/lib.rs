@@ -5,6 +5,9 @@
 
 use std::collections::BTreeSet;
 
+pub mod fanin;
+pub use fanin::{fan_in_ok, postgres_ok, required_success};
+
 pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "app",
     "audit",
@@ -66,15 +69,7 @@ pub const FORBIDDEN_NAMES: &[&str] = &[
     "console",
 ];
 
-const META_ROOTS: &[&str] = &[
-    "app",
-    "build",
-    "docs",
-    "iac",
-    "observability",
-    "templates",
-    "third-party",
-];
+const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-party"];
 
 fn path_parts(path: &str) -> Vec<&str> {
     path.trim_start_matches("./")
@@ -217,5 +212,19 @@ mod tests {
         assert!(!v.iter().any(|s| s.contains("storage/core")));
         assert!(!v.iter().any(|s| s.contains("foundry/ports")));
         assert!(!v.iter().any(|s| s.contains("docs/decisions")));
+    }
+
+    #[test]
+    fn iac_and_observability_are_caps_not_meta() {
+        let v = layout_violations(&[
+            "iac/src/lib.rs".into(),
+            "iac/core/domain/src/lib.rs".into(),
+            "observability/adapters/tracing/src/lib.rs".into(),
+            "docs/foo.md".into(),
+        ]);
+        assert!(v.iter().any(|s| s.contains("iac/src")));
+        assert!(!v.iter().any(|s| s.contains("iac/core")));
+        assert!(!v.iter().any(|s| s.contains("observability/adapters")));
+        assert!(!v.iter().any(|s| s.contains("docs/foo")));
     }
 }

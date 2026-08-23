@@ -247,35 +247,52 @@ jobs:
           OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_APP_URL }}
         run: cargo nextest run --locked --no-fail-fast -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
+  # Mirrors pipeline_admission::fan_in_ok (tested). lint/test/deny must be
+  # success. pg-gate must be success. Postgres skipped only if live=false.
   presubmit:
     name: presubmit
     runs-on: ubuntu-24.04
     if: always()
-    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
+    needs: [lint, test, deny, pg-gate, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict
+        env:
+          LIVE: ${{ needs.pg-gate.outputs.live }}
         run: |
-          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
-          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
+          req() { [ "$1" = "success" ]; }
+          pg() {
+            if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
+          req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres-adapters.result }}" && pg "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
 
   oya-ci-required:
     name: oya-ci-required
     runs-on: ubuntu-24.04
     if: always()
-    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
+    needs: [lint, test, deny, pg-gate, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Dual-emit until protection flip
+        env:
+          LIVE: ${{ needs.pg-gate.outputs.live }}
         run: |
-          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
-          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
+          req() { [ "$1" = "success" ]; }
+          pg() {
+            if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
+          req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres-adapters.result }}" && pg "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
 
   merge-admission-required:
     name: merge-admission-required
     runs-on: ubuntu-24.04
     if: always()
-    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
+    needs: [lint, test, deny, pg-gate, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Dual-emit until protection flip
+        env:
+          LIVE: ${{ needs.pg-gate.outputs.live }}
         run: |
-          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
-          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
+          req() { [ "$1" = "success" ]; }
+          pg() {
+            if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
+          req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres-adapters.result }}" && pg "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1

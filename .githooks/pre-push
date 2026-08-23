@@ -1,8 +1,16 @@
 #!/bin/sh
-# D-10 / D-43: cargo fmt on touched *.rs vs upstream. Not workspace nextest.
+# D-10 / D-43: cargo fmt on commits not on upstream. Fail closed if no base.
 set -eu
-base=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || echo origin/dev)
-files=$(git diff --name-only --diff-filter=ACMR "$base"...HEAD 2>/dev/null | grep '\.rs$' || true)
-[ -z "$files" ] && exit 0
-# shellcheck disable=SC2086
-cargo fmt --check -- $files
+if base=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null) && [ -n "$base" ]; then
+  :
+elif git rev-parse --verify --quiet origin/dev >/dev/null; then
+  base=origin/dev
+else
+  echo "pre-push: no upstream or origin/dev; refuse to skip fmt" >&2
+  exit 1
+fi
+if ! git diff --name-only --diff-filter=ACMR "$base"...HEAD -- '*.rs' | grep -q .; then
+  exit 0
+fi
+git diff --name-only -z --diff-filter=ACMR "$base"...HEAD -- '*.rs' \
+  | xargs -0 cargo fmt --check --
