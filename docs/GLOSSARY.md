@@ -237,8 +237,7 @@ These are terms we use that don't have a clean industry term, or that we've expl
 | **oYa** | The logo abbreviation. | (brand) | User directive 2026-05-08 |
 | **Bench** | The user-facing app shell that hosts vertical workspaces. Replaces "shell". | "Workspace shell" or "App shell" | ADR-0017 |
 | **Object Graph (OG)** | Oyatie's typed-entity, engine-enforced, cryptographically auditable domain-data layer. | "Domain model store" with audit; closest industry analog is Apache Atlas + DDD aggregate persistence; no direct equivalent. | ADR-0006 |
-| **Foundry** | Oyatie's AI agent runtime + control plane (axis 3). | "Agent platform" / "AI orchestration runtime" / "AI gateway"; closest commercial analog is LangSmith + AWS Bedrock Agents. *Note: ADR-0006 has a "no Palantir vocabulary" clause that some readers interpret as restricting "Foundry"; rename evaluation pending — see DOC user-input questions.* | (Oyatie name) |
-| **Foundry Furnace** | The self-improvement loop within Foundry. | "RLHF + agent self-evaluation pipeline" | (Oyatie name; verify use in code) |
+| **Foundry** | Product at `app/foundry`: ontology, Pages, Grid, Workshop, Manager, Pipeline Builder UX. | Palantir Foundry | ADR-0719 D-21 |
 | **Capability** | A discrete unit of agent-invocable functionality with declared inputs/outputs/policy. | "Tool" (LangChain) / "Function" (OpenAI) / "Skill" (Microsoft Copilot Studio) | ADR-0021 OG-AG |
 | **Capability namespace** | A scoped collection of capabilities a tenant binds to. | "API surface area" or "service catalog scope" | (Oyatie) |
 | **Autonomy ceiling** | Per-tenant maximum tier of agent autonomy (T1..T4). | "Permission tier" / "Agent governance level" | ADR-0022 |
@@ -1030,35 +1029,11 @@ Related terms: workflow; ontology; capability tier; Cedar; audit-event class; co
 
 Authority citation: `specs/microservices/workflow-studio.json`; Workflow Studio PRD and architecture; ADR-0244 tenant-scoped sharing example.
 
-### Foundry (RETIRED)
-
-Status: RETIRED 2026-05-21 per ADR-0335 (Wave 15I). The `foundry` µservice is no longer live authority.
-
-Historical definition (pre-retirement): Foundry was Oyatie's internal platform for agentic development, evaluation, evidence collection, and engineering operations — distinct from the consumer AI product surface.
-
-Retirement: ADR-0136 originally consolidated Foundry as one µservice with internal bounded contexts. ADR-0220 amended the product taxonomy to assign consumer-facing AI capability to Intelligence. ADR-0255 KS#14 (intelligence two-layer AI substrate) then established intelligence as the canonical AI substrate that absorbs Foundry. ADR-0335 (Wave 15I) executes that absorption and retires the Foundry µservice.
-
-Successor: `microservices/intelligence/` — the canonical AI substrate. Layer A covers model routing, providers, guardrails, eval, attribution, audit-tap, credential resolver, assist-draft, and context-aware retrieval. Layer B covers the consumer brand UX surface. Self-modification execution remains under the `oyatie.foundry.*` Cedar principal namespace per ADR-0247 (the Cedar principal namespace persists even though the µservice retires).
-
-retired external agent harness terminology: The "retired external agent harness" brand name for the internal pipeline is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. No replacement is needed; the underlying capability is now "intelligence" (consumer AI) or "oyatie.foundry workflow library inside dev-tools-cell-N" (self-modification).
-
-Crate transition debt: Existing `foundry-*` workspace crates are retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent). New AI substrate code lands under `intelligence-*`.
-
-Related terms: intelligence; ontology; workflow studio; Cedar; audit-event class; capability tier; oyatie.foundry.* (Cedar principal namespace).
-
-Authority citation: ADR-0335 (retirement); ADR-0255 (intelligence two-layer substrate); ADR-0247 (self-modification); ADR-0136 (historical consolidation); ADR-0220 (historical scope clarification); ADR-0239 (historical internal-only amendment).
-
 ### Intelligence
 
 Definition: Intelligence is the canonical Oyatie AI substrate µservice per ADR-0255 KS#14 (intelligence two-layer AI substrate). It provides Layer A (model routing, providers, guardrails, eval, attribution, audit-tap, credential resolver, assist-draft, context-aware retrieval) and Layer B (consumer brand UX surface).
 
-ADR-0220 originally created the Intelligence boundary to separate consumer AI from the internal Foundry pipeline. ADR-0255 KS#14 then named Intelligence as the canonical AI substrate that absorbs Foundry. ADR-0335 (Wave 15I) executes that absorption and retires the Foundry µservice.
-
-Intelligence must respect Cedar, `audience_type`, provider-BYOK, compliance packs, ontology permissions, and audit-event classes. It can use shared substrates, but those shared substrates must be explicit and policy-bound instead of implied by naming overlap.
-
-Named µservices using the term include `intelligence`, `ontology`, `workflow-studio`, `governance`, `cloud-secrets`, and `audit-chain`. Intelligence owns model routing and guardrails, Cloud Secrets resolves provider credentials, and Audit Chain records AI-use evidence.
-
-Related terms: Foundry (RETIRED); ontology; BYOK; Cedar; capability tier; audit-event class; oyatie.foundry.* (Cedar principal namespace for self-modification).
+Intelligence is Vertex / AIP on Foundry objects (`app/foundry`). It respects Cedar, packs, and ontology permissions.
 
 Authority citation: ADR-0255 "Intelligence two-layer AI substrate"; ADR-0335 "Foundry retired absorbed by intelligence"; ADR-0220 "Consumer intelligence substrate" (historical); Intelligence architecture; microservices/intelligence manifest.
 

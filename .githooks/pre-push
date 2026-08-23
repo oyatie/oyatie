@@ -1,6 +1,5 @@
 #!/bin/sh
-# D-10 / D-43: rustfmt --check on commits not on upstream. Fail closed if no base.
-# Use rustfmt (not cargo fmt): `cargo fmt -- files` formats the whole workspace.
+# D-10 / D-43: rustfmt --check the *.rs list vs the push base. Fail closed if no base.
 set -eu
 if base=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null) && [ -n "$base" ]; then
   :

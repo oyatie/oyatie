@@ -1,8 +1,6 @@
-# TAP presubmit (ADR-0719 D-9/D-10). Merge-blocking context: `presubmit`.
-# Local: pre-commit / pre-push = cargo fmt on touched *.rs (.githooks/).
-# Clippy is not a check until -D warnings is green AND it joins this fan-in.
-# Live Postgres is path-gated on pull_request and merge_group; dispatch is always-on.
-# Required context is this job named `presubmit` only. No dual-emit.
+# TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
+# Graph: lint (fmt --all) + deny (licenses bans sources) + test (nextest workspace)
+# + pg-gate + live-postgres (path-gated on pull_request and merge_group).
 name: presubmit
 
 on:

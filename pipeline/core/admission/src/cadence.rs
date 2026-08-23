@@ -19,6 +19,30 @@ pub const LIVE_POSTGRES_CRATES: &[&str] = &[
     "tenancy-tenant-lifecycle-app",
 ];
 
+/// Occupants of the presubmit workflow (sorted).
+pub const PRESUBMIT_JOBS: &[&str] = &[
+    "deny",
+    "lint",
+    "live-postgres",
+    "pg-gate",
+    "presubmit",
+    "test",
+];
+
+/// Occupants of the postsubmit workflow (sorted).
+pub const POSTSUBMIT_JOBS: &[&str] = &["live-postgres", "postsubmit", "test"];
+
+/// Occupants of `.github/workflows/` (sorted).
+pub const WORKFLOW_FILES: &[&str] = &[
+    "buck2-weekly-smoke.yml",
+    "license-weekly-advisory.yml",
+    "live-postgres.yml",
+    "nightly.yml",
+    "postsubmit.yml",
+    "presubmit.yml",
+    "promotion-predecessor.yml",
+];
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CadenceEvent {
     PullRequest,

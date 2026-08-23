@@ -14,9 +14,7 @@ pub fn postgres_ok(result: &str, live: bool) -> bool {
     }
 }
 
-/// Merge-blocking fan-in. One live-postgres job. Clippy is not a member
-/// (it is not a check until it can fail the merge). Dual-emit names are not
-/// members (legacy required contexts are not this function).
+/// Merge-blocking fan-in. Occupants: lint, test, deny, pg-gate, live-postgres.
 pub fn fan_in_ok(
     lint: &str,
     test: &str,

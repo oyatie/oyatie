@@ -1,6 +1,5 @@
 #!/bin/sh
-# D-10: rustfmt --check on staged *.rs only. Not workspace nextest.
-# Use rustfmt (not cargo fmt): `cargo fmt -- files` formats the whole workspace.
+# D-10: rustfmt --check the staged *.rs list. File list in, those files out.
 set -eu
 if ! git diff --cached --name-only --diff-filter=ACMR -- '*.rs' | grep -q .; then
   exit 0

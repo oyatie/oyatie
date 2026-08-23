@@ -8,7 +8,8 @@ use std::collections::BTreeSet;
 pub mod cadence;
 pub mod fanin;
 pub use cadence::{
-    CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, live_postgres_required,
+    CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, POSTSUBMIT_JOBS,
+    PRESUBMIT_JOBS, WORKFLOW_FILES, live_postgres_required,
 };
 pub use fanin::{fan_in_ok, postgres_ok, postsubmit_ok, required_success};
 
@@ -93,7 +94,16 @@ pub fn is_capability_root(root: &str) -> bool {
 pub fn cap_root_file_ok(name: &str) -> bool {
     matches!(
         name,
-        "OWNERS" | "README.md" | "BUCK" | "PRD.md" | "Cargo.toml" | "Cargo.lock" | "LICENSE"
+        "OWNERS"
+            | "README.md"
+            | "BUCK"
+            | "ADR.md"
+            | "PRD.md"
+            | "SPEC.md"
+            | "PLAN.md"
+            | "Cargo.toml"
+            | "Cargo.lock"
+            | "LICENSE"
     )
 }
 
@@ -216,6 +226,22 @@ mod tests {
         assert!(!v.iter().any(|s| s.contains("storage/core")));
         assert!(!v.iter().any(|s| s.contains("foundry/ports")));
         assert!(!v.iter().any(|s| s.contains("docs/decisions")));
+    }
+
+    #[test]
+    fn owner_law_files_are_the_four() {
+        for name in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
+            assert!(cap_root_file_ok(name), "{name}");
+        }
+        assert!(!cap_root_file_ok("ADR-2.md"));
+        let v = layout_violations(&[
+            "network/ADR.md".into(),
+            "app/foundry/PLAN.md".into(),
+            "network/ADR-2.md".into(),
+        ]);
+        assert!(!v.iter().any(|s| s.contains("network/ADR.md")));
+        assert!(!v.iter().any(|s| s.contains("foundry/PLAN.md")));
+        assert!(v.iter().any(|s| s.contains("ADR-2.md")));
     }
 
     #[test]

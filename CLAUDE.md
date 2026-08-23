@@ -12,7 +12,7 @@ Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline 
 
 ## Skill discovery doctrine (runtime-installed)
 
-Lifecycle skills, role prompts, and intent→skill mapping are provided by the installed agent runtime, not by a repo-vendored copy. Codex uses `~/.codex/skills` and `~/.codex/agents` (or explicitly checked-in `.codex/...` overlays when project scope is intentional). The retired `tools/agent-skills/` vendor tree must not be recreated; duplicated local copies create drift and violate the single-source runtime contract.
+Lifecycle skills, role prompts, and intent→skill mapping live in the installed agent runtime (`~/.codex/skills`, `~/.codex/agents`, or a checked-in `.codex/...` overlay when project scope is intentional).
 
 Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) remains the repository authority and overlays runtime skill guidance on conflict per `feedback_bominal_inheritance_precedence`. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
@@ -35,7 +35,6 @@ INV-DOC-9: plan/chat-only doctrine is **not** survived. Binding short form + why
 
 Per-dispatch ritual (Tier 2): [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md)
 (canonical long form; short form is inlined in [`docs/AGENTS.md`](docs/AGENTS.md)).
-`docs/checklists/swarm-agent-ritual.md` does not exist; do not recreate it.
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline

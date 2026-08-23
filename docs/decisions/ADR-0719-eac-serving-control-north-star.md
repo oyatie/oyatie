@@ -29,8 +29,8 @@ deliverables:
     exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
     verified_by: "presubmit"
   - id: ADR-0719-D8
-    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK/app PRD). Census files and wrap languages are not children."
-    exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking without grandfathering catalog.yaml or dual cedar+policy; layout-allowlist PRs match this set."
+    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK or the four owner law files ADR.md PRD.md SPEC.md PLAN.md). Census files and wrap languages are not children."
+    exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking; layout admits exactly those four owner law files on cap and app roots."
     verified_by: "presubmit"
   - id: ADR-0719-D9
     description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oyatie- prefix. Today's presubmit string is a rename target, not the destination name."
@@ -77,8 +77,8 @@ deliverables:
     exit_criteria: "D-11/D-14/D-15/D-19 and registry charters match D-20; no new crate uses k8s-on-compute, ontology-in-data-core, gateway Cedar engine, or build/ price view."
     verified_by: "presubmit"
   - id: ADR-0719-D21
-    description: "Palantir Foundry is the product (app/foundry). Ontology + Pages + Grid + Workshop + Manager + Pipeline Builder UX live there, not in data/ and not in intelligence/. Intelligence foundry/RAG is dead. D41 retired notes/slides/sites/office only — docs/sheets are Foundry primitives, not retired."
-    exit_criteria: "data/ charter has no ontology kernel; no foundry/ capability root; no intelligence foundry surface; D41 list is notes/slides/sites/office/translate only."
+    description: "Foundry is app/foundry: ontology, Pages, Grid, Workshop, Manager, Pipeline Builder UX. data/ is records engines. intelligence/ is Vertex/AIP on those objects."
+    exit_criteria: "Ontology crates land under app/foundry; data/ charter is engines; no foundry/ capability root."
     verified_by: "presubmit"
   - id: ADR-0719-D22
     description: "Apps 2x2: one launchpad; Foundry module; v1 People=hr+payroll; v1 Finance=accounting+payments+ledger; community shrunk; messenger dual-context one dir; no SAP ghost dirs."
@@ -137,8 +137,8 @@ deliverables:
     exit_criteria: "Presubmit pattern check on touched non-exempt paths; no expected_total of file counts; splits stay inside the crate (D-32); generated proto/lock/vendor ignored."
     verified_by: "presubmit"
   - id: ADR-0719-D36
-    description: "Live law is one monolithic ADR per apex topic (this file) plus app PRD.md. That document is the iterating checklist: PRD, spec, decisions, contradictions, staleness. Do not split D-n into files and do not recreate specs/ or plan/ trees."
-    exit_criteria: "No new specs/ or plan/ roots; new decisions amend this ADR or a live 07xx apex in place; PRD.md remains the app-level monolith; owner docs/ stay under the 300-line cap."
+    description: "Owner law is ADR.md PRD.md SPEC.md PLAN.md on the capability or app path, XML-fenced. This 07xx file is repo-wide north star only and does not grow a new D-n for an owner-scoped change. Sessions amend the occupant."
+    exit_criteria: "Layout admits those four names; session PRs edit the path occupant; no new docs/decisions/ADR-NNNN for an occupied owner."
     verified_by: "presubmit"
   - id: ADR-0719-D37
     description: "Shared docs/config/json/yaml/toml are not split like .rs. Keep them minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments. Mechanical fold is one serial step on the receiving branch (pre-commit/merge_group), not per-worktree. Prose ADRs stay single-writer. Cargo.lock is regenerated once after fold, not fragment-merged."
@@ -716,7 +716,7 @@ on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
 A directory or file is allowed only if something that is **not a census gate** loads it,
-or it is `OWNERS` / short `README.md` / `BUCK` / `app/<product>/PRD.md`. Git history is
+or it is `OWNERS` / short `README.md` / `BUCK` / owner law `ADR.md` `PRD.md` `SPEC.md` `PLAN.md`. Git history is
 the audit log. Do not invent a destination for leftovers; many must **not exist**.
 
 **Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
@@ -755,7 +755,7 @@ service + impls; AWS control-plane vs data-plane as engines, not dump folders.
 | `iac/` | IR the reconciler applies | Helm/Tofu/charts as source |
 | `docs/` | This owner's g3doc (D-27): `README.md`, `concepts/`, `runbooks/`, `design/` | ADR copies, IPs, catalogs, scorecards, customer manuals, `plan/`, `tasks/` |
 | `OWNERS`, short `README.md`, `BUCK` | Yes | — |
-| `PRD.md` | **`app/<product>/` only** | Cap roots |
+| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | **Exactly those four** on every capability root and every `app/<product>/` (amend in place; D-36) | A second ADR-NNNN, `docs/decisions/` dump, `specs/`, `plan/` |
 
 **This shape does not change.** Owner PRs fill these children with content.
 They do **not** add faces, rename faces, insert `plan/`/`tasks/`/`crates/`/
@@ -784,7 +784,7 @@ No nested IPs, catalog.yaml, Helm, `plan/`, `tasks/`. Do not flatten `src/`
 | `docs/concepts/` | How *this* owner works | ADR-07xx copies |
 | `docs/runbooks/` | On-call for *this* owner | Fleet stamped books |
 | `docs/design/` | Owner-local design notes | `plan/`, IPs, ADR forks |
-| `PRD.md` | App product requirements only | Cap roots |
+| `ADR.md` `PRD.md` `SPEC.md` `PLAN.md` | The four owner law files (cap and app) | Extra novels, ADR copies, IPs |
 
 Do not add a fifth face. Do not pre-create empty module dirs.
 
@@ -1351,51 +1351,29 @@ Interview on remaining collisions. Unanswered picker; **A** is the recorded defa
 - **ensure:** new crates and registry charters match this section; PRs that reintroduce those phrases fail review.
 - **overturn_when:** a five-field ADR same-wave names a different owner for any row.
 
-### D-21 — Palantir Foundry is the product; ontology lives in Foundry, not in `data/`
+### D-21 — Foundry is `app/foundry`
 
-Founder 2026-08-22: (1) Palantir Foundry ≠ the retired intelligence “foundry.” That intelligence/RAG Foundry is **dead**. (2) Ontology is **implemented in Foundry**, not inside `data/`. (3) Pages/Grid stay; D41 retirees stay dead.
+**Foundry** occupies `app/foundry`: ontology (heart), Pages, Grid, Workshop,
+Ontology Manager, Pipeline Builder UX. It sits on `data/` engines and
+`storage/` bytes. A tenant can buy those engines without Foundry.
 
-**Three names, one live product.**
+| Path | Occupant |
+|---|---|
+| `app/foundry` | Foundry product |
+| `data/` | Records engines (OLTP/OLAP/pipelines) |
+| `storage/` | Bytes |
+| `pipeline/` | TAP / Cloud Build execute |
+| `intelligence/` | Vertex / AIP on Foundry objects |
 
-| Name | What it is | Fate |
-|---|---|---|
-| **Palantir Foundry** | Suite product: Ontology (heart) + Pages + Grid + Workshop/Manager UX. Sits **on** `data/` engines + `storage/` bytes. | **`app/foundry`** (BUILD; no empty scaffold until that PR). Not a cloud cap. Not `foundry/` at repo root. |
-| Retired **`contracts/openapi/foundry`** / intelligence “foundry” | Old AI/RAG HTTP surface. | **Dead.** Do not revive. Not Vertex. Not this product. |
-| Retired **“Foundry engineering platform” axis** | Agent DX vocabulary (ADR-0025 cluster). | **Dead.** Not Palantir Foundry. |
+Further Foundry product law amends `app/foundry/{ADR,PRD,SPEC,PLAN}.md` (D-36).
 
-Palantir’s own docs: Ontology is *the heart of Foundry*, an operational layer **on** datasets/models — objects, properties, links, actions, functions. Ontology Manager is an app **inside** Foundry. AIP binds *to* ontology objects (= our `intelligence/` flag-off, D7) — it is **not** Foundry.
+**MUST (Foundry occupant)**
 
-**OVERRULE (same-wave).**
-
-- Interview **D6** “`data/` is the foundry-class root (datasets + pipelines + lineage + **ontology binding** + analytics); no rename to `foundry/`.” **Ontology binding leaves `data/`.** `data/` keeps datasets/pipelines/lineage/OLAP/OLTP **engines**. Foundry-the-product is `app/foundry`.
-- Interview **D40** “Pages + Grid owned by `data/`.” **Pages + Grid are Foundry primitives**, implemented in `app/foundry`, consuming `data/` engines. Not Google Docs/Sheets as v1 standalone apps (wave 2 surfaces still allowed).
-- D-20 “ontology is a later generic `app/`.” **It is `app/foundry`**, not `app/ontology` as a sibling product.
-
-**D41 did not retire docs/sheets.** Retired: notes, slides, office, sites, translate (D42). `app/sheets` and `oya/docs` are early dumps of Grid/Pages — KEEP+WORK toward Foundry primitives, not D41 kills. Registry “sheets = ontology spine” is **false**: Ontology is the spine; Grid is a view on object-sets.
-
-**Do not mix these five (founder 2026-08-22: `data/` is cloud records persistence, Foundry is the app).**
-
-A tenant **can** buy `storage/` and `data/` **without** Foundry. Foundry **requires** them. Ontology is **not** implemented in `data/`.
-
-| | Layer | Sells | Must not be |
-|---|---|---|---|
-| **`storage/`** | Cloud cap | **Bytes** (S3 / GCS / CAS). Identity = digest. | SQL. Ontology. Drive app. Foundry. |
-| **`data/`** | Cloud cap | **Records infrastructure** (RDS / Spanner / BQ / Dataflow **engines**). Sold as IaaS/PaaS. | Bytes (`storage/`). Ontology kernel. Pages/Grid. Palantir Foundry. TAP (`pipeline/`). |
-| **`app/foundry`** | **App product** | Ontology (heart) + Pages + Grid + Workshop / Ontology Manager. Pipeline Builder **UX** that *calls* `data/` engines. | A cap. A `foundry/` root. `data/core`. Intelligence. TAP. |
-| **`pipeline/`** | Cloud cap | TAP / Cloud Build **execute**. | Foundry Pipeline Builder. Dataflow engine. |
-| **`intelligence/`** | Cloud cap | Vertex invoke (AIP **on** Foundry objects, flag-off). | Foundry. Ontology store. Dead RAG “foundry.” |
-
-Pipeline Builder ≠ `pipeline/`. Object Storage (Foundry) ≠ `storage/`. Google Vertex ≠ Palantir Vertex.
-
-No empty `app/foundry/` until the BUILD PR. Ontology crates today under `data/` **move** in that PR — they do not stay as `data/core` and they do not become a `foundry/` capability.
-
-**MUST (Foundry product, ontology in Foundry)**
-
-- **achieves:** Palantir Foundry is one product; ontology is its heart; `data/` stays cloud records engines; intelligence Foundry stays dead.
-- **origin:** D5 named Palantir Foundry as the suite spine; D6 parked ontology in `data/`; D-20 parked it in a generic app; founder 2026-08-22 put ontology **in Foundry**, not in `data/`.
-- **rule:** `app/foundry` owns ontology + Pages + Grid + Workshop + Manager + Pipeline Builder UX; `data/` is sold records **engines** without Foundry; `storage/` is bytes; TAP is `pipeline/` not Foundry pipelines; AIP is `intelligence/` not Foundry; no `foundry/` cap; D41 list is notes/slides/sites/office only. Apps call those engines through adapters (D-23).
-- **ensure:** new ontology crates land under `app/foundry` (when it exists); PRs that implement ontology in `data/core`, merge `data/` into `storage/`, put Pipeline Builder in `pipeline/`, or revive intelligence foundry fail review.
-- **overturn_when:** a five-field ADR same-wave names a different Foundry home.
+- **achieves:** one product directory; ontology is its heart; engines stay sold without the app.
+- **origin:** ontology was parked in `data/` and in a generic app; founder 2026-08-22 put it in Foundry.
+- **rule:** `app/foundry` owns ontology + Pages + Grid + Workshop + Manager + Pipeline Builder UX; `data/` is records engines; TAP is `pipeline/`; AIP is `intelligence/`.
+- **ensure:** new ontology crates land under `app/foundry`.
+- **overturn_when:** a five-field amendment names a different Foundry home.
 
 ### D-22 — Apps: one shell; v1 People + Finance (shrunk)
 
@@ -1910,8 +1888,8 @@ that; **100 is not a gate** — it would explode module count and fight
 RFC 430 (`lib.rs` as the crate root). Count is `wc -l`, no comment-stripping
 cleverness (that becomes a census).
 
-**Exempt (closed).** Live `docs/decisions/ADR-*.md`; `app/<product>/PRD.md`;
-`AGENTS.md` / `CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
+**Exempt (closed).** Live 07xx apex ADRs; owner `ADR.md` `PRD.md` `SPEC.md`
+`PLAN.md`; `AGENTS.md` / `CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
 (`*.generated.*`, prost/tonic/reindeer output, OpenSLO from IR); vendored
 lock-step snapshots. Not exempt: tests, cedar, owner `docs/`, `*.rs` agents
 write. Do **not** add `specs/` or `plan/` to the exempt list by recreating
@@ -1940,35 +1918,64 @@ over 300.
 - **overturn_when:** a five-field ADR names a different number that still
   fits agent context and does not become a file-count freeze.
 
-### D-36 — Live law is one monolithic checklist document
+### D-36 — Four tagged files on the path; stop growing this D-n catalog
 
-ADR-0719 (and each live 07xx apex) is **one file** on purpose. Splitting
-D-1…D-n into a directory of mini-docs recreates `specs/` drift: N copies,
-stale bullets, no single pass that sees contradictions.
+A D-1…D-n appendix in one global ADR is unmaintainable: it is not loaded
+when someone edits `network/`, so the next session adds D-47. New owner
+law does **not** land as another D-n here.
 
-Iterate **in place** on that monolith: PRD ↔ decisions ↔ owner docs
-pointers. The D-n tables *are* the checklist. Recursive challenge is
-editing this file, not adding `plan/iteration-47.md`.
+**Occupants (exactly these names, next to the work):**
 
-App-level monolith is `PRD.md` (D-8). Owner `docs/` stays short (D-35)
-and points at the ADR/PRD — it is not a second spec farm.
+| File | Role |
+|---|---|
+| `ADR.md` | decisions for that capability or `app/<product>/` |
+| `PRD.md` | requirements |
+| `SPEC.md` | behavior / contract |
+| `PLAN.md` | sequenced work |
 
-**Do not:** recreate `specs/`, `plan/`, `tasks/`; write a parallel “north
-star” markdown; fork this ADR into per-D files.
+Repo-wide north star (serving vs control, cadences, layout faces) stays
+in this 07xx file until it has been moved onto an owner path. Sessions
+**amend** the occupant. They do not mint `docs/decisions/ADR-NNNN`.
 
-**MUST (monolithic live law)**
+**Tag fences (LLM-readable).** Tags name the **slot**, not the current
+vendor. Replacing NativeLink is editing `<content_addressable_storage>`,
+not grepping a brand.
 
-- **achieves:** one place to see contradictions and staleness; PRD and
-  decisions iterate together; no N+1 spec hubs.
-- **origin:** JSON/spec hubs drifted; founder: ADR/plans as one document
-  that behaves like a checklist.
-- **rule:** live 07xx ADRs and app `PRD.md` are the long-form checklists;
-  amend in place; no `specs/`/`plan/` resurrection; owner docs remain
-  under D-35.
-- **ensure:** layout still rejects `specs/` and `plan/`; new law lands in
-  this file or another live apex, not a sidecar novel.
-- **overturn_when:** PHASE-5 promotion of a different operating-contract
-  home moves this monolith atomically with evidence (INV-DOC-9).
+Three scopes:
+
+| Scope | Tag | Example |
+|---|---|---|
+| Capability file | `<adr\|prd\|spec\|plan owner="{cap}">` | `<adr owner="network">` in `network/ADR.md` |
+| Application file | same, `owner="{product}"` | `<prd owner="foundry">` in `app/foundry/PRD.md` |
+| Stack / architecture type | `<{slot}>` snake_case type | `<content_addressable_storage>`, `<east_west_identity>` |
+
+```xml
+<adr owner="pipeline">
+<content_addressable_storage>
+<occupant>…the CAS implementation this path uses…</occupant>
+<body>
+…
+</body>
+</content_addressable_storage>
+</adr>
+```
+
+A global 07xx section that binds a stack type uses the same inner tag so
+the model knows which fence to load. One root per owner file. One inner
+tag per stack slot.
+
+**MUST (path-local tagged occupants)**
+
+- **achieves:** the agent on a path reads four files; one decision per
+  owner; LLMs can extract `<slot>` / `<occupant>` without the 07xx dump.
+- **origin:** global ADR piles; microscopic session ADRs; D-n catalogs
+  nobody opens; banned-vocab lists that keep dead names in context.
+- **rule:** owner law is those four tagged files; amend in place; this
+  apex does not grow a new D-n for an owner-scoped change.
+- **ensure:** layout admits those four names; new session PRs edit the
+  occupant on the path.
+- **overturn_when:** a five-field amendment of this section names a
+  different occupant set.
 
 ### D-37 — Shared docs/config are not 300-line splits; uuid fragments + one fold
 

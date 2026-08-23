@@ -22,6 +22,14 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **ensure:** reviewer audit of five-field presence on new MUST; anti-drift version bump on OVERRULE.
 - **overturn_when:** a recorded challenge shows the five fields false or incomplete AND a replacement rule with five fields lands same-wave.
 
+### Occupied slots
+
+- **achieves:** a name, a CI/git slot, and a law document mean one thing; the next miss is not last week's name with a prime on it.
+- **origin:** each incident added a forbidden token, a `must not X`, or a new ADR-NNNN. Session context still taught X, so X′ appeared (glossary Foundry, Istio-then-Cilium-then-both-Accepted, hook wrappers). Product/stack/arch law sat in a global dump and was not read on the path being edited.
+- **rule:** a MUST names the occupant. Tests assert that set by equality. The previous occupant is deleted or archived (status Superseded, file under `docs/adr-archive/`). Incident names live only in `origin`. Sessions **amend** the occupant: 07xx for repo-wide north star; on each capability and `app/<product>/` exactly `ADR.md`, `PRD.md`, `SPEC.md`, `PLAN.md`. XML fences: `<adr owner="network">` / `<prd owner="foundry">` on those files; inner `<content_addressable_storage>` (stack type, not a vendor). A session does not mint `docs/decisions/ADR-NNNN`.
+- **ensure:** cadence tests compare closed job/workflow sets; layout admits those four owner files; `app/foundry` is Foundry; git hooks are `$(git rev-parse --git-common-dir)/hooks/`.
+- **overturn_when:** a five-field amendment of ADR-0719 D-36 shows a second occupant of the same name or path is required.
+
 ### Observation ≠ APPROVE; role separation
 
 - **achieves:** preserve merge integrity and blast-radius discipline.
@@ -42,7 +50,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. Canonical in-repo copy: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md) (short form is inlined in [`docs/AGENTS.md`](docs/AGENTS.md)). `docs/checklists/swarm-agent-ritual.md` 404s; do not recreate it.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. Canonical in-repo copy: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md) (short form is inlined in [`docs/AGENTS.md`](docs/AGENTS.md)).
 - **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
@@ -58,7 +66,7 @@ automation
 deliverables are Rust, never shell/Python/Node (rust-first automation-hygiene gate); ALL CLI
 surfaces are retirement-marked — new capabilities ship as APIs + declarative state + reconcilers;
 nothing merges except a protected PR against `dev` behind the single required `presubmit`
-context.
+context. **Foundry** is [`app/foundry`](app/foundry/) (Palantir analog: ontology, Pages, Grid, Workshop).
 
 Repository topology and the full operating contract live in
 [`docs/AGENTS.md`](docs/AGENTS.md) (§ Repository topology). Canonical implementation homes follow
@@ -153,7 +161,6 @@ required_sequence:
   - harness-native isolation only (worktree, vendor sandbox, or single
     checkout — the tool's problem, not a shared protocol; ADR-0719 D-42)
   - install .githooks/{pre-commit,pre-push} into $(git rev-parse --git-common-dir)/hooks/
-    # native .git/hooks; must not wrap git hooks unless explicitly asked
   - SSH-signed commit and push on that lane
   - draft PR against origin/dev as soon as the lane has a path (occupancy);
     never merge live lanes into each other or merge origin/dev into a
