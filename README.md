@@ -27,8 +27,7 @@ by the single required status context `presubmit` (ADR-0716):
 
 ```sh
 cargo fmt --all --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+cargo nextest run --locked --workspace --profile ci
 ```
 
 The hermetic [buck2](https://buck2.build) graph remains a **local** hermeticity tool

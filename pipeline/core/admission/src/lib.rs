@@ -5,8 +5,12 @@
 
 use std::collections::BTreeSet;
 
+pub mod cadence;
 pub mod fanin;
-pub use fanin::{fan_in_ok, postgres_ok, required_success};
+pub use cadence::{
+    CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, live_postgres_required,
+};
+pub use fanin::{fan_in_ok, postgres_ok, postsubmit_ok, required_success};
 
 pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "app",

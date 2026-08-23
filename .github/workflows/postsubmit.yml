@@ -1,5 +1,6 @@
-# TAP postsubmit: the merged commit on `dev` re-runs the same graph as presubmit.
-# Not a required context. Merge authority is `presubmit` only (ADR-0719 D-9/D-10).
+# TAP postsubmit: merged SHA on `dev`. Unique proofs only — workspace nextest
+# plus always-on live Postgres. Not a required context.
+# Mirrors pipeline_admission::postsubmit_ok (tested).
 name: postsubmit
 
 on:
@@ -9,8 +10,44 @@ on:
 permissions:
   contents: read
 
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  CARGO_INCREMENTAL: "0"
+
 jobs:
+  test:
+    name: test (workspace)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86
+          cache-workspace-crates: "true"
+      - name: Workspace tests
+        run: cargo nextest run --locked --workspace --profile ci
+
+  live-postgres:
+    uses: ./.github/workflows/live-postgres.yml
+
   postsubmit:
     name: postsubmit
-    uses: ./.github/workflows/presubmit.yml
-    secrets: inherit
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [test, live-postgres]
+    steps:
+      - name: Fan-in verdict
+        run: |
+          req() { [ "$1" = "success" ]; }
+          req "${{ needs.test.result }}" && req "${{ needs.live-postgres.result }}" && exit 0 || exit 1

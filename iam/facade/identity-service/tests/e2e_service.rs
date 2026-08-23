@@ -495,6 +495,17 @@ fn live_enabled() -> bool {
         .unwrap_or(false)
 }
 
+fn require_live_app_url() -> String {
+    assert!(
+        live_enabled(),
+        "live test requires {LIVE_ENV}=1 (nextest --profile live --run-ignored only)"
+    );
+    std::env::var(LIVE_APP_URL_ENV)
+        .ok()
+        .filter(|u| !u.trim().is_empty())
+        .unwrap_or_else(|| panic!("{LIVE_ENV} is set but {LIVE_APP_URL_ENV} is missing or empty"))
+}
+
 /// Boot the service with an explicit SCIM database URL (bypasses env read).
 /// Used by the live durability test to pass the app-role URL without racing the
 /// process-global env with other parallel tests.
@@ -554,34 +565,12 @@ async fn boot_with_url(
 /// RLS-enforceability guard rejects superusers — booting with a superuser URL
 /// would cause `start_with_scim_url` to return `Err(StartError::Store(...))`.
 ///
-/// Skips cleanly with a stderr notice when `OYATIE_BACKBONE_LIVE_POSTGRES` is
-/// unset so the default `buck2 test` stays DB-free. No `env!` macro is used,
-/// so the target always compiles regardless of whether the env is present.
+/// `#[ignore]` so default nextest does not count a skip as a pass. The live
+/// job runs this with `--run-ignored only`. Missing env is a hard failure.
 #[tokio::test(flavor = "multi_thread")]
+#[ignore = "live postgres"]
 async fn live_durable_scim_store_persists_across_service_rebuild() {
-    if !live_enabled() {
-        eprintln!(
-            "SKIP live_durable_scim_store_persists_across_service_rebuild: \
-             set {LIVE_ENV}=1 and {LIVE_APP_URL_ENV}=<app-role pg url> \
-             (non-superuser identity_scim_runtime role, migration applied) \
-             to run the durable tier"
-        );
-        return;
-    }
-    let app_url = match std::env::var(LIVE_APP_URL_ENV)
-        .ok()
-        .filter(|u| !u.trim().is_empty())
-    {
-        Some(u) => u,
-        None => {
-            eprintln!(
-                "SKIP live_durable_scim_store_persists_across_service_rebuild: \
-                 {LIVE_ENV} is set but {LIVE_APP_URL_ENV} is missing or empty — \
-                 set {LIVE_APP_URL_ENV}=<non-superuser identity_scim_runtime role url>"
-            );
-            return;
-        }
-    };
+    let app_url = require_live_app_url();
 
     // ONE signing fixture across both boots so the JWKS is identical: a token
     // minted now must validate against the freshly-rebuilt service.

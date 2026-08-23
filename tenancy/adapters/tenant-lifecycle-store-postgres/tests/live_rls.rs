@@ -19,9 +19,7 @@
 //!    durable effect (ON CONFLICT DO NOTHING).
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use shared_platform_contracts_kernel::tenancy::{
-    IsolationPosture, Tenant, TenantLifecycleState,
-};
+use shared_platform_contracts_kernel::tenancy::{IsolationPosture, Tenant, TenantLifecycleState};
 use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
@@ -44,6 +42,13 @@ fn enabled() -> bool {
             )
         })
         .unwrap_or(false)
+}
+
+fn require_enabled() {
+    assert!(
+        enabled(),
+        "live test requires OYATIE_BACKBONE_LIVE_POSTGRES=1 (nextest --profile live --run-ignored only)"
+    );
 }
 
 async fn pool(url: &str) -> PgPool {
@@ -128,10 +133,9 @@ async fn current_role_flags(p: &PgPool) -> (String, bool, bool) {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_app_role_has_no_bypassrls() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let app = pool(&app_url).await;
     let (name, rolsuper, rolbypassrls) = current_role_flags(&app).await;
@@ -142,10 +146,9 @@ async fn live_app_role_has_no_bypassrls() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_denies_cross_tenant_read_and_write() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -218,10 +221,9 @@ async fn live_rls_denies_cross_tenant_read_and_write() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_idempotency_replay_is_single_effect() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -265,10 +267,9 @@ async fn live_idempotency_replay_is_single_effect() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_denies_cross_tenant_on_applied_and_operations() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -349,10 +350,9 @@ async fn live_rls_denies_cross_tenant_on_applied_and_operations() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_unset_guc_denies_all_access() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -417,23 +417,16 @@ async fn live_rls_unset_guc_denies_all_access() {
 /// Aligns with `live_app_role_has_no_bypassrls` — both prove the same
 /// invariant from different angles (raw pg_roles query vs. the adapter guard).
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_assert_rls_enforceable_rejects_bypass_capable_role() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let setup = pool(&setup_url).await;
     let (setup_role, rolsuper, rolbypassrls) = current_role_flags(&setup).await;
-    if !rolsuper && !rolbypassrls {
-        // The setup role in this environment happens not to be bypass-capable;
-        // skip rather than assert false things about it.
-        eprintln!(
-            "SKIP live_assert_rls_enforceable_rejects_bypass_capable_role: \
-             setup role '{setup_role}' does not carry rolsuper/rolbypassrls in \
-             this environment — test requires a bypass-capable setup role"
-        );
-        return;
-    }
+    assert!(
+        rolsuper || rolbypassrls,
+        "SETUP url must be bypass-capable so this test can prove the reject path (live job uses the postgres superuser); got role {setup_role}"
+    );
     let store = PgTenantLifecycleStore::from_pool(setup);
     let result = store.assert_rls_enforceable().await;
     assert!(
@@ -447,10 +440,9 @@ async fn live_assert_rls_enforceable_rejects_bypass_capable_role() {
 /// Complements `live_assert_rls_enforceable_rejects_bypass_capable_role` by
 /// proving the guard is not a false-positive that rejects all roles.
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_assert_rls_enforceable_passes_for_app_role() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let app = pool(&app_url).await;
     let store = PgTenantLifecycleStore::from_pool(app);

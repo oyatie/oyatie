@@ -79,8 +79,8 @@ Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--
 | Command | Purpose |
 |---|---|
 | `cargo fmt --all --check` | Format gate — same command CI runs |
-| `cargo clippy --workspace --all-targets -- -D warnings` | Lint gate — same command CI runs |
 | `cargo nextest run --locked --workspace --profile ci` | Merge proof (CI). Local: `cargo nextest run -p <crate>` |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Local only until `-D warnings` is clean *and* clippy joins the `presubmit` fan-in. Not a merge context. |
 | `buck2 build //...` / `buck2 test //...` | Local hermeticity only, never merge evidence (weekly CI smoke keeps the graph honest) |
 
 Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is

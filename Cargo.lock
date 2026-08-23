@@ -945,18 +945,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-path-resolver-adapters"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-ports",
- "serde_json",
-]
-
-[[package]]
-name = "ci-path-resolver-ports"
-version = "0.1.0"
-
-[[package]]
 name = "clap"
 version = "4.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

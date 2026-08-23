@@ -971,6 +971,17 @@ fn live_enabled() -> bool {
         .unwrap_or(false)
 }
 
+fn require_live_app_url() -> String {
+    assert!(
+        live_enabled(),
+        "live test requires {LIVE_ENV}=1 (nextest --profile live --run-ignored only)"
+    );
+    std::env::var(LIVE_URL_ENV)
+        .ok()
+        .filter(|u| !u.trim().is_empty())
+        .unwrap_or_else(|| panic!("{LIVE_ENV} is set but {LIVE_URL_ENV} is missing or empty"))
+}
+
 /// Build a fully-authorized DURABLE router over `url`. Panics on a connect
 /// failure (a hard test failure when the live tier is explicitly enabled).
 async fn pg_app(url: &str) -> axum::Router {
@@ -1056,31 +1067,12 @@ async fn build_postgres_router_empty_url_fails_closed() {
 /// (unset-GUC deny-all, cross-tenant INSERT/SELECT) is proven separately in
 /// `tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs`.
 ///
-/// Skips cleanly with a stderr notice when `OYATIE_BACKBONE_LIVE_POSTGRES` is
-/// unset so the default `buck2 test` stays DB-free. The target never reads any
-/// env at compile time (no `env!` macro), so it always compiles regardless of
-/// whether `CARGO_MANIFEST_DIR` is set (as it would be absent in buck2).
+/// `#[ignore]` so default nextest does not count a skip as a pass. The live
+/// job runs this with `--run-ignored only`. Missing env is a hard failure.
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_durable_store_persists_across_router_rebuild() {
-    if !live_enabled() {
-        eprintln!(
-            "SKIP live_durable_store_persists_across_router_rebuild: \
-             set {LIVE_ENV}=1 and {LIVE_URL_ENV}=<disposable pg url> \
-             to run the durable tier"
-        );
-        return;
-    }
-    let url = match std::env::var(LIVE_URL_ENV) {
-        Ok(u) => u,
-        Err(_) => {
-            eprintln!(
-                "SKIP live_durable_store_persists_across_router_rebuild: \
-                 {LIVE_ENV} is set but {LIVE_URL_ENV} is missing — \
-                 set {LIVE_URL_ENV}=<disposable pg url>"
-            );
-            return;
-        }
-    };
+    let url = require_live_app_url();
 
     // A unique tenant id per run so repeated live runs against the same
     // database do not collide on the durable PRIMARY KEY.

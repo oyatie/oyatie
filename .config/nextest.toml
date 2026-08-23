@@ -8,3 +8,10 @@ retries = 0
 
 [profile.ci.junit]
 path = "junit.xml"
+
+# Live Postgres job only. Workspace nextest uses profile.ci and does not run
+# #[ignore] tests. `--run-ignored only` is required on the CLI as well.
+[profile.live]
+fail-fast = false
+retries = 0
+default-filter = "test(/^live_/)"
