@@ -72,11 +72,16 @@ pub const FORBIDDEN_NAMES: &[&str] = &[
     "os",
     "governance",
     "console",
+    "tests",
+    "e2e",
 ];
 
-const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-party"];
+pub const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-party"];
 
-fn path_parts(path: &str) -> Vec<&str> {
+pub mod owners;
+pub use owners::{ROOT_OCCUPANT, owners_occupant};
+
+pub(crate) fn path_parts(path: &str) -> Vec<&str> {
     path.trim_start_matches("./")
         .split(['/', '\\'])
         .filter(|s| !s.is_empty())
@@ -176,39 +181,6 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeSet;
-    use std::path::Path;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../..")
-            .canonicalize()
-            .expect("repo root")
-    }
-
-    #[test]
-    fn unknown_root_dir_is_red() {
-        let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS.iter().copied().collect();
-        let mut unknown = Vec::new();
-        for entry in std::fs::read_dir(repo_root()).expect("read root") {
-            let entry = entry.expect("entry");
-            if !entry.file_type().expect("ft").is_dir() {
-                continue;
-            }
-            let name = entry.file_name();
-            let name = name.to_string_lossy();
-            if name.starts_with('.') || name == "target" {
-                continue;
-            }
-            if !allowed.contains(name.as_ref()) {
-                unknown.push(name.into_owned());
-            }
-        }
-        assert!(
-            unknown.is_empty(),
-            "D-8 unknown root names (not in ALLOWED_ROOT_DIRS): {unknown:?}"
-        );
-    }
 
     #[test]
     fn layout_engine_rejects_dump_and_accepts_faces() {
@@ -242,6 +214,26 @@ mod tests {
         assert!(!v.iter().any(|s| s.contains("network/ADR.md")));
         assert!(!v.iter().any(|s| s.contains("foundry/PLAN.md")));
         assert!(v.iter().any(|s| s.contains("ADR-2.md")));
+    }
+
+    #[test]
+    fn tests_live_in_the_crate_not_a_owner_tests_root() {
+        let v = layout_violations(&[
+            "tests/foo.rs".into(),
+            "e2e/foo.rs".into(),
+            "network/tests/proxy.rs".into(),
+            "app/foundry/tests/e2e.rs".into(),
+            "network/facade/edge/tests/proxy.rs".into(),
+            "network/facade/edge/tests/e2e/main.rs".into(),
+            "iam/adapters/identity-scim-store-postgres/tests/live_rls.rs".into(),
+        ]);
+        assert!(v.iter().any(|s| s.contains("tests/foo.rs")));
+        assert!(v.iter().any(|s| s.contains("e2e/foo.rs")));
+        assert!(v.iter().any(|s| s.contains("network/tests")));
+        assert!(v.iter().any(|s| s.contains("foundry/tests")));
+        assert!(!v.iter().any(|s| s.contains("facade/edge/tests/proxy")));
+        assert!(!v.iter().any(|s| s.contains("tests/e2e/main.rs")));
+        assert!(!v.iter().any(|s| s.contains("live_rls.rs")));
     }
 
     #[test]

@@ -1,22 +1,31 @@
 # Oyatie
 
-Owned hyperscale cloud, written in Rust, plus first-party apps that consume that cloud as tenant #0.
+Oyatie is a cloud (compute, storage, identity, network, data, pipeline) and the first-party apps that use that cloud the same way any other tenant would.
 
-## Law
+This tree is a Cargo workspace. Rust is pinned in `rust-toolchain.toml` (1.98.0). The default branch is `dev`. The repository is proprietary; see [`LICENSE`](LICENSE).
 
-On a capability directory or `app/<product>/`, open `ADR.md`, `PRD.md`, `SPEC.md`, `PLAN.md`. Those four files are the law for that path. Session procedure is [`AGENTS.md`](AGENTS.md).
-
-## Merge
-
-Protected pull request against `dev`. Required context: `presubmit`. Independent reviewer APPROVE, threads resolved, then squash. Observation (logs, CI green) is not APPROVE.
+## Build
 
 ```sh
-cargo fmt --all --check
+git clone git@github.com:oyatie/oyatie.git
+cd oyatie
 cargo nextest run --locked --workspace --profile ci
 ```
 
-Install `.githooks/{pre-commit,pre-push}` into `$(git rev-parse --git-common-dir)/hooks/`.
+Format: `cargo fmt --all --check`. Local hermetic graph (not merge evidence): `buck2 build //...`.
+
+## Tree
+
+| Path | What |
+| --- | --- |
+| `<capability>/` | One cloud engine. Faces: `core/`, `ports/`, `adapters/`, `facade/`. |
+| `app/<product>/` | A first-party product. |
+| `AGENTS.md` | How an agent works in this tree. |
+| [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) | How a human contributes. |
+| [`.github/SECURITY.md`](.github/SECURITY.md) | Vulnerability reports. |
+
+Law for a path is `ADR.md`, `PRD.md`, `SPEC.md`, `PLAN.md` in that owner directory.
 
 ## License
 
-Proprietary. See [`LICENSE`](LICENSE).
+See [`LICENSE`](LICENSE).
