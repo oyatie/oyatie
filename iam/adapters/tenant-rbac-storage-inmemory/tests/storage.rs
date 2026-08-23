@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use iam_tenant_rbac_domain::{
     CloseBoundaryState, CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     GroupRollupInput, IncidentFirstAction, IncidentRemediationRoute, IncidentRollbackInput,
@@ -17,7 +18,6 @@ use iam_tenant_rbac_usecase::{
     prepare_cross_service_workflow_envelope, prepare_incident_rollback_envelope,
     prepare_tenant_rbac_ops_envelope,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn tenant_rbac_storage_records_metadata_without_durable_backend_claim() {

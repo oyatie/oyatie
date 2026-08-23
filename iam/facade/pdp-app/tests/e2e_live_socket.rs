@@ -135,9 +135,7 @@ async fn serves_decisions_over_live_rest_and_grpc_sockets() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn missing_bundle_file_refuses_boot() {
-    let config = config_for(std::path::Path::new(
-        "/nonexistent/iam-pdp/bundle.json",
-    ));
+    let config = config_for(std::path::Path::new("/nonexistent/iam-pdp/bundle.json"));
     let err = server::start(&config)
         .await
         .err()
@@ -202,10 +200,8 @@ async fn empty_trust_anchor_refuses_boot() {
     let bundle = seed_bundle(common::SEED_VERSION, vec![]);
     let inner = serde_json::to_string(&bundle).unwrap();
     let path = temp_bundle_file("red-empty-trust", &signed_bundle_doc(&inner));
-    let empty_trust = std::env::temp_dir().join(format!(
-        "iam-pdp-empty-trust-{}",
-        std::process::id()
-    ));
+    let empty_trust =
+        std::env::temp_dir().join(format!("iam-pdp-empty-trust-{}", std::process::id()));
     std::fs::create_dir_all(&empty_trust).unwrap();
     let config = PdpConfig {
         bundle_path: path.to_string_lossy().into_owned(),

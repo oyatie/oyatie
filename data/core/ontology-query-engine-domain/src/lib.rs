@@ -516,8 +516,8 @@ fn validate_consent_grant_id(grant_id: &str) -> Result<(), KnowledgeGraphQueryEr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
     use data_boundary_kernel::{DataClass, PrivacyDataClass};
+    use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
 
     fn property(name: &str) -> ObjectProperty {
         ObjectProperty::new(

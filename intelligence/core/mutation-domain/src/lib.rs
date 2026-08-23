@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
-use intelligence_capability_domain::{AutonomyTier, Capability};
-use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
 use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use intelligence_capability_domain::{AutonomyTier, Capability};
+use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;
 const MUTATION_ID_PREFIX: &str = "fcm_";
@@ -783,8 +783,8 @@ fn audit<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
-    use intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
     use data_boundary_kernel::SubjectClass;
+    use intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
 
     use super::*;
 

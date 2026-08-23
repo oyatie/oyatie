@@ -7,11 +7,11 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
-use hyper::Request;
 pub use http_runtime_hyper_adapter::HyperHttpsClient;
 use http_runtime_hyper_adapter::{
     build_loopback_http_or_pqc_hybrid_https_client_for_tests, build_pqc_hybrid_https_client,
 };
+use hyper::Request;
 use tracing::{debug, warn};
 
 use crate::token_state::{RefreshFailureKind, SeatTokenState, classify_oauth_error};

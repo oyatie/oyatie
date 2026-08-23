@@ -9,8 +9,8 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use intelligence_collab_runtime_domain::CollabRuntime;
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use intelligence_collab_runtime_domain::CollabRuntime;
 
 const DOCUMENT_EXPORT_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DOCUMENT_EXPORT_PAYLOAD_SCHEMA_VERSION: u32 = 1;
@@ -345,10 +345,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
     use intelligence_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef, CollabSurface,
     };
-    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime() -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {

@@ -158,10 +158,7 @@ fn write_real_mount(
     server_key_pkcs8: &[u8],
     ca_der: &[u8],
 ) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "iam-pdp-boot-{}-{tag}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("iam-pdp-boot-{}-{tag}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("tls.crt"), pem("CERTIFICATE", server_leaf_der)).unwrap();
     std::fs::write(dir.join("tls.key"), pem("PRIVATE KEY", server_key_pkcs8)).unwrap();
@@ -420,10 +417,8 @@ async fn production_boot_fails_closed_on_absent_mount() {
 #[tokio::test(flavor = "multi_thread")]
 async fn production_boot_fails_closed_on_empty_mount_dir() {
     let bundle_path = seed_bundle_file("empty-dir");
-    let empty_dir = std::env::temp_dir().join(format!(
-        "iam-pdp-boot-{}-empty-dir",
-        std::process::id()
-    ));
+    let empty_dir =
+        std::env::temp_dir().join(format!("iam-pdp-boot-{}-empty-dir", std::process::id()));
     std::fs::create_dir_all(&empty_dir).unwrap();
     // Directory exists but carries no tls.crt/tls.key/ca.crt.
 
@@ -480,10 +475,8 @@ fn from_path_missing_tls_key_is_mount_unreadable() {
 #[test]
 fn from_path_empty_ca_crt_is_empty() {
     let (leaf, key, _ca) = real_mount_parts();
-    let dir = std::env::temp_dir().join(format!(
-        "iam-pdp-frompath-{}-empty-ca",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("iam-pdp-frompath-{}-empty-ca", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("tls.crt"), pem("CERTIFICATE", &leaf)).unwrap();
     std::fs::write(dir.join("tls.key"), pem("PRIVATE KEY", &key)).unwrap();
@@ -517,10 +510,7 @@ fn from_path_ca_crt_with_zero_ca_certs_is_no_ca_anchors() {
 #[test]
 fn from_path_garbage_pem_is_malformed() {
     let (leaf, key, _ca) = real_mount_parts();
-    let dir = std::env::temp_dir().join(format!(
-        "iam-pdp-frompath-{}-garbage",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("iam-pdp-frompath-{}-garbage", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("tls.crt"), pem("CERTIFICATE", &leaf)).unwrap();
     std::fs::write(dir.join("tls.key"), pem("PRIVATE KEY", &key)).unwrap();
@@ -568,10 +558,7 @@ impl OperatorClock for FixedOperatorClock {
 
 /// Write the operator-produced PEM members to a mount dir the PDP boots from.
 fn write_operator_mount(tag: &str, material: &SvidSecretMaterial) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "iam-pdp-operator-{}-{tag}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("iam-pdp-operator-{}-{tag}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     // The operator already emits PEM; write it verbatim (the on-mount shape).
     std::fs::write(dir.join("tls.crt"), &material.tls_crt_pem).unwrap();

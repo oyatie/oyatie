@@ -31,7 +31,8 @@ const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const SOURCE_MANIFEST_REF: &str =
     "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
-const SOURCE_ADMISSION_POLICY_REF: &str = "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
+const SOURCE_ADMISSION_POLICY_REF: &str =
+    "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
 const ARTIFACT_REF: &str = "oci-image/fd001-tenant-rbac/all-manifest-workloads-sha256-digest";
 const POLICY_REF_PREFIX: &str = "policy/supply-chain/fd001/";
 const EVIDENCE_REF: &str = "evidence/supply-chain/fd001-tenant-rbac/image-provenance.jsonl";

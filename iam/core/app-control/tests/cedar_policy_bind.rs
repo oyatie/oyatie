@@ -2,6 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use iam_control_app::{
     CLOUD_IAM_CEDAR_POLICY_BIND_SCHEMA_VERSION, CLOUD_IAM_CEDAR_POLICY_BIND_SURFACE,
     CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
@@ -15,7 +16,6 @@ use iam_policy_cedar_domain::{
     AuthorizationQuery, AuthorizationSubject, PolicyEffect, PolicyRuleInput, PolicyScope,
     PolicySet, PolicyVersion,
 };
-use data_boundary_kernel::DataClass;
 use std::collections::BTreeMap;
 
 const TENANT_ID: &str = "ten_alpha";

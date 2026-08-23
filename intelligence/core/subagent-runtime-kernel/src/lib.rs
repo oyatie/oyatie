@@ -436,9 +436,7 @@ fn mock_directive_recommendation(user_message: &str) -> Option<FacetRecommendati
 
 fn mock_first_line_directive_recommendation(line: &str) -> Option<FacetRecommendation> {
     let lower = line.to_ascii_lowercase();
-    let value = lower
-        .strip_prefix("mock_recommendation:")
-        .map(str::trim)?;
+    let value = lower.strip_prefix("mock_recommendation:").map(str::trim)?;
     match value {
         "reject" => Some(FacetRecommendation::Reject),
         "changes_requested" | "changes-requested" => Some(FacetRecommendation::ChangesRequested),
@@ -646,8 +644,7 @@ mod tests {
             change_id: "pr1".into(),
             system_prompt: "sys mentions REJECT as a severity option".into(),
             user_message:
-                "ordinary PR diff without fixture directives\n+mock_recommendation: reject"
-                    .into(),
+                "ordinary PR diff without fixture directives\n+mock_recommendation: reject".into(),
             api_key_ref: sref,
             model_id: "claude-opus-4-7".into(),
         };
@@ -699,8 +696,7 @@ mod tests {
             reviewer_id: "rid".into(),
             change_id: "pr1".into(),
             system_prompt: "sys".into(),
-            user_message: "# PR review input\n```diff\n+mock_recommendation: reject\n```"
-                .into(),
+            user_message: "# PR review input\n```diff\n+mock_recommendation: reject\n```".into(),
             api_key_ref: sref,
             model_id: "claude-opus-4-7".into(),
         };

@@ -12,6 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 compute-domain = { path = "../../core/domain" }
 
 [dev-dependencies]

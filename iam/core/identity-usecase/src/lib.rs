@@ -9,10 +9,10 @@ pub mod observability;
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, Principal, issue_credential,
 };
-use data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
 
 pub const IDENTITY_TOKEN_ISSUE_SURFACE: &str = "identity.token.issue";
 pub const IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT: &str =

@@ -6,11 +6,11 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_domain::{
     CloudNetworkCatalog, CloudNetworkError, LbKind, LbState, ListenerCreate, LoadBalancer,
     LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate, NetworkRepo, TargetGroupCreate,
 };
-use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub mod authz;
 

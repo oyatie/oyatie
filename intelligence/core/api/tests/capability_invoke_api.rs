@@ -2,6 +2,12 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use application_app::{
+    AdversarialKind, AutonomyTier, CapabilityAction, CapabilityRegistration,
+    CostBudgetRegistration, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput,
+    FoundationError, IdentityRegistration, PolicyEffect, PolicyRuleInput, PolicyScope,
+    PolicyVersion, Purpose, SubjectClass, TenantCapabilityGrant, TenantRegistration,
+};
 use intelligence_api::{
     ApiBoundaryContext, CAPABILITY_INVOKE_SURFACE, CapabilityInvocationPrincipal,
     CapabilityInvocationReceipt, CapabilityInvocationRequest, CapabilityInvokeApiError,
@@ -10,12 +16,6 @@ use intelligence_api::{
     CapabilityInvokeApiResponseMetadata, CapabilityInvokeApiStatus,
     CapabilityInvokeApiSuccessResponse, CapabilityInvokeIdempotencyLedger, Foundation,
     invoke_capability_from_api,
-};
-use application_app::{
-    AdversarialKind, AutonomyTier, CapabilityAction, CapabilityRegistration,
-    CostBudgetRegistration, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput,
-    FoundationError, IdentityRegistration, PolicyEffect, PolicyRuleInput, PolicyScope,
-    PolicyVersion, Purpose, SubjectClass, TenantCapabilityGrant, TenantRegistration,
 };
 
 fn request_for(capability_id: &str) -> CapabilityInvocationRequest {

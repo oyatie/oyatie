@@ -8,6 +8,7 @@ license = "Apache-2.0"
 description = "PDP-backed authorization adapter for the tenant-lifecycle delivery surface (AUTH-005 / ADR-0564 D7). Dogfoods the repo's embedded Cedar PDP (iam/adapters/pdp-cedar over shared-pdp-kernel; cloud-iam is the IdP/PDP per ADR-0559): carries the tenancy authz bundle (structural cross-tenant forbid + tenant-operator + platform-admin permits), assembles the PEP entity slice from the verified caller, and maps the PDP decision to the port. Fail-closed, default-deny."
 
 [dependencies]
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
 
 iam-pdp-cedar = { path = "../../../iam/adapters/pdp-cedar" }

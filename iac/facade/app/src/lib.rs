@@ -19,6 +19,12 @@ use std::net::{SocketAddr, TcpListener as StdTcpListener};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
+    HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
+    serve_n_connections_on_std_listener, serve_on_std_listener,
+};
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
@@ -29,12 +35,6 @@ use iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
 use iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
-};
-use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use http_router_kernel::{HttpMethod, Router, RouterError};
-use http_runtime_hyper_adapter::{
-    HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
-    serve_n_connections_on_std_listener, serve_on_std_listener,
 };
 use sha2::{Digest, Sha256};
 
@@ -57,7 +57,8 @@ pub const CLOUD_IAC_APP_PACKAGE_NAME: &str = "iac-app";
 pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYATIE_CLOUD_IAC_BIND_ADDR";
 pub const CLOUD_IAC_APP_DEFAULT_BIND_ADDR: &str = "0.0.0.0:8080";
 pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYATIE_CLOUD_IAC_RELEASE_INDEX_PATH";
-pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str = "OYATIE_CLOUD_IAC_MODULE_REGISTRY_BEARER";
+pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str =
+    "OYATIE_CLOUD_IAC_MODULE_REGISTRY_BEARER";
 pub const CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV: &str =
     "OYATIE_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
 pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str =
@@ -1394,10 +1395,8 @@ pub fn run_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
     // BOOT-FATAL: refuse to serve the supply-chain surface without a verifiable
     // bearer SECRET and a bound principal id (no default-allow; AUTH-005).
     let authz_provider = config.module_registry_authz_provider()?;
-    let service = build_iac_app_service_from_release_index_path(
-        &config.release_index_path,
-        authz_provider,
-    )?;
+    let service =
+        build_iac_app_service_from_release_index_path(&config.release_index_path, authz_provider)?;
     let listener = StdTcpListener::bind(config.bind_addr)
         .map_err(|error| CloudIacAppError::Bind(error.to_string()))?;
     serve_iac_app_on_listener(listener, service)

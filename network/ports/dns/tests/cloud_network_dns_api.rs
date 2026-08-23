@@ -4,6 +4,7 @@
 
 use std::sync::Arc;
 
+use data_boundary_kernel::DataClass;
 use network_dns::{
     CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE, CallerCredential, CloudNetworkDnsApiBoundaryContext,
     CloudNetworkDnsApiError, CloudNetworkDnsApiPrincipal, CloudNetworkDnsAuthzProvider,
@@ -17,7 +18,6 @@ use network_domain::{
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
 };
 use network_residency::ResidencyClass;
-use data_boundary_kernel::DataClass;
 
 const PUBLIC_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:example-com";
 const PRIVATE_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:internal-example";

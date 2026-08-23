@@ -178,10 +178,7 @@ mod tests {
 
     #[test]
     fn stream_key_format() {
-        assert_eq!(
-            stream_key("tenant-a"),
-            "intelligence-app-receipts:tenant-a"
-        );
+        assert_eq!(stream_key("tenant-a"), "intelligence-app-receipts:tenant-a");
     }
 
     #[test]

@@ -2,6 +2,8 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, privacy_data_classes_from};
 use intelligence_adapter_kernel::{
     AdapterError, CostCeiling, InvocationPolicy, PromptEnvelope, ProviderAdapter, ProviderAuth,
     ProviderCallReceipt, ProviderEvent, ProviderFailureKind, ProviderId, ProviderInvocation,
@@ -10,10 +12,6 @@ use intelligence_adapter_kernel::{
     SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
-use check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
-use data_boundary_kernel::{
-    Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
-};
 use secrets_domain::SecretRef;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

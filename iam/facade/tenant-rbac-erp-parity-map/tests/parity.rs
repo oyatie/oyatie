@@ -152,9 +152,9 @@ fn supply_chain_planning_row_references_domain_foundation() {
             .contains(&"specs/microservices/supply-chain-planning.json")
     );
     assert!(
-        advanced_planning.oyatie_destinations.contains(
-            &"microservices/supply-chain-planning/crates/supply-chain-planning-domain"
-        )
+        advanced_planning
+            .oyatie_destinations
+            .contains(&"microservices/supply-chain-planning/crates/supply-chain-planning-domain")
     );
     assert!(
         advanced_planning.evidence_refs.contains(

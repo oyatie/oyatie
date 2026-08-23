@@ -23,8 +23,8 @@ use tonic::transport::server::TcpIncoming;
 use tracing::{error, info};
 
 use iam_pdp_bundle_file::FilePolicyBundleStore;
-use iam_pdp_kernel::{BundleStoreError, PdpConfig, PolicyBundleStore};
 use iam_pdp_cedar::CedarPdp;
+use iam_pdp_kernel::{BundleStoreError, PdpConfig, PolicyBundleStore};
 use shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
 
 use std::path::Path;

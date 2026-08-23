@@ -21,6 +21,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-client-kernel = { path = "../../../data/core/olap-client-kernel" }
 intelligence-kernel = { path = "../../core/kernel" }
 
 

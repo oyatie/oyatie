@@ -6,8 +6,8 @@
 pub mod design_partner_status;
 pub use design_partner_status::{DesignPartnerStatus, DesignPartnerStatusError};
 
-use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 use data_boundary_kernel::{Classified, DataClass};
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {

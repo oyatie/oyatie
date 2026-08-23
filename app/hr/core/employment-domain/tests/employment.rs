@@ -1,9 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use hr_employment_domain::{
     Employee, EmployeeCreate, EmploymentStatus, HrDomainError, HrLifecycleKind, TenantTierSnapshot,
 };
-use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn test_employment_requires_entity_and_audit() {

@@ -745,10 +745,7 @@ async fn empty_bundle_refuses_mtls_boot() {
     let err = MtlsContext::new(empty, vec![server_leaf], server_key)
         .err()
         .expect("empty bundle must be refused");
-    assert_eq!(
-        err,
-        iam_pdp_app::mtls::MtlsBootError::TrustBundleEmpty
-    );
+    assert_eq!(err, iam_pdp_app::mtls::MtlsBootError::TrustBundleEmpty);
 
     // And the start path surfaces it as StartError::Mtls — but MtlsContext::new
     // already guards, so prove the StartError variant via a direct construction

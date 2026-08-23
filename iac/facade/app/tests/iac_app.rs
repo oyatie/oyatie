@@ -8,6 +8,8 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use std::thread;
 
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CloudIacModuleRegistryApiBoundaryContext,
@@ -24,13 +26,10 @@ use iac_app::{
     CLOUD_IAC_APP_PACKAGE_NAME, CLOUD_IAC_APP_RELEASE_INDEX_NON_CLAIM,
     CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV, CLOUD_IAC_APP_REQUEST_AUTH_NON_CLAIM,
     CLOUD_IAC_HEALTH_PATH, CLOUD_IAC_LIVENESS_PATH, CloudIacAppConfig, CloudIacAppConfigError,
-    build_iac_app_service, build_iac_app_service_from_release_index_str,
-    dispatch_iac_app_request, load_release_index_seed_from_str,
-    serve_bounded_iac_app_on_listener,
+    build_iac_app_service, build_iac_app_service_from_release_index_str, dispatch_iac_app_request,
+    load_release_index_seed_from_str, serve_bounded_iac_app_on_listener,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
-use http_middleware_kernel::HttpRequest;
-use http_router_kernel::HttpMethod;
 
 const TEST_BEARER: &str = "local-registry-bearer-fixture";
 const TEST_PRINCIPAL: &str = "sp_iac_app_test_reader";
@@ -233,9 +232,8 @@ fn module_registry_and_artifact_paths_require_verified_bearer_while_health_is_pu
           ]
         }}"#
     );
-    let service =
-        build_iac_app_service_from_release_index_str(&release_index, test_provider())
-            .expect("app service assembles");
+    let service = build_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("app service assembles");
     assert_eq!(service.route_count(), 6);
     // The auth is per-handler (PEP), not a middleware layer.
     assert_eq!(service.middleware_count(), 0);
@@ -339,11 +337,9 @@ fn artifact_route_denies_when_pdp_denies_download_surface() {
         verifier, authorizer,
     ));
 
-    let service = build_iac_app_service_from_release_index_str(
-        &release_index,
-        download_denied_provider,
-    )
-    .expect("app service assembles");
+    let service =
+        build_iac_app_service_from_release_index_str(&release_index, download_denied_provider)
+            .expect("app service assembles");
 
     let denied = dispatch_iac_app_request(
         &service,
@@ -414,8 +410,7 @@ fn bounded_loopback_entrypoint_serves_health_and_discovery_without_deploy_claim(
         .local_addr()
         .expect("loopback listener exposes a local addr");
 
-    let server =
-        thread::spawn(move || serve_bounded_iac_app_on_listener(listener, service, 2));
+    let server = thread::spawn(move || serve_bounded_iac_app_on_listener(listener, service, 2));
 
     // Health is public; discovery requires a verified bearer.
     let requests = [
@@ -465,9 +460,8 @@ fn release_index_loader_builds_registry_for_gate_validated_local_modules() {
         .expect("repo-local gate-validated release index parses");
     assert_eq!(seed.modules().len(), 6);
 
-    let service =
-        build_iac_app_service_from_release_index_str(RELEASE_INDEX_JSON, test_provider())
-            .expect("release-index-backed app service assembles");
+    let service = build_iac_app_service_from_release_index_str(RELEASE_INDEX_JSON, test_provider())
+        .expect("release-index-backed app service assembles");
     assert_eq!(service.route_count(), 6);
 
     let versions = dispatch_iac_app_request(
@@ -526,9 +520,8 @@ fn release_index_backed_app_serves_local_archive_artifact_without_object_store_c
         }}"#
     );
 
-    let service =
-        build_iac_app_service_from_release_index_str(&release_index, test_provider())
-            .expect("release-index-backed app with artifact route assembles");
+    let service = build_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("release-index-backed app with artifact route assembles");
     assert_eq!(service.route_count(), 6);
 
     let download = dispatch_iac_app_request(
@@ -597,10 +590,8 @@ fn release_index_backed_app_returns_s3_or_gcs_object_source_locations_without_li
         }}"#
     );
 
-    let service =
-        build_iac_app_service_from_release_index_str(&release_index, test_provider()).expect(
-            "object-source-backed app service assembles without local object-store runtime",
-        );
+    let service = build_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("object-source-backed app service assembles without local object-store runtime");
     assert_eq!(service.route_count(), 5);
 
     let download = dispatch_iac_app_request(
@@ -792,9 +783,8 @@ fn artifact_route_rejects_local_archive_digest_drift_before_serving_bytes() {
           ]
         }}"#
     );
-    let service =
-        build_iac_app_service_from_release_index_str(&release_index, test_provider())
-            .expect("release-index-backed app with digest-check route assembles");
+    let service = build_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("release-index-backed app with digest-check route assembles");
 
     let artifact = dispatch_iac_app_request(
         &service,
@@ -837,9 +827,8 @@ fn artifact_route_rejects_invalid_unknown_and_missing_local_archive_requests() {
           ]
         }}"#
     );
-    let service =
-        build_iac_app_service_from_release_index_str(&release_index, test_provider())
-            .expect("missing local archive is a request-time 404, not startup failure");
+    let service = build_iac_app_service_from_release_index_str(&release_index, test_provider())
+        .expect("missing local archive is a request-time 404, not startup failure");
 
     let invalid = dispatch_iac_app_request(
         &service,

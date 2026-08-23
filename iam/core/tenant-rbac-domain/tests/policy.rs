@@ -1,10 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use iam_tenant_rbac_domain::{
     ServiceWriteInput, TenantRbacDomainError, TenantRbacService, TenantRbacWriteKind,
     admit_service_write,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn test_services_share_tenant_rbac_policy_gateway() {

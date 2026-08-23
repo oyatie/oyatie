@@ -12,6 +12,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-resource-provider-contract-kernel = { path = "../../../compute/core/resource-provider-contract-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 
 
 tenancy-tenant-lifecycle-domain = { path = "../tenant-lifecycle-domain" }

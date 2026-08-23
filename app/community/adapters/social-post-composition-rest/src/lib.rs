@@ -7,9 +7,7 @@ use community_social_post_composition_api::{
     SocialApiError, SocialPostReceipt,
 };
 use community_social_post_composition_usecase::{SocialUsecaseError, compose_post};
-use shared_hyperscaler_metrics_kernel::{
-    MetricsContext, MetricsError, RequestTelemetryBinding,
-};
+use shared_hyperscaler_metrics_kernel::{MetricsContext, MetricsError, RequestTelemetryBinding};
 use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const PUBLISH_POST_ROUTE: &str = "/posts";
@@ -615,14 +613,8 @@ mod tests {
             "social_request_success_total"
         );
         assert_eq!(binding.responses_total_metric, "social_responses_total");
-        assert_eq!(
-            binding.responses_5xx_metric,
-            "social_responses_5xx_total"
-        );
-        assert_eq!(
-            binding.responses_429_metric,
-            "social_responses_429_total"
-        );
+        assert_eq!(binding.responses_5xx_metric, "social_responses_5xx_total");
+        assert_eq!(binding.responses_429_metric, "social_responses_429_total");
     }
 
     #[test]

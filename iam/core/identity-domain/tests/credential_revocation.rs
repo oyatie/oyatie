@@ -2,12 +2,12 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::Purpose;
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, CredentialStatus, Principal, RevocationError,
     RevocationLedger, RevocationReason, UnknownRevocationReason, issue_credential, issue_token,
     token_fingerprint,
 };
-use data_boundary_kernel::Purpose;
 
 // ── RevocationReason wire round-trip (edge case 9) ───────────────────────────
 

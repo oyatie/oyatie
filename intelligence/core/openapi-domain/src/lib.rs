@@ -5878,10 +5878,7 @@ pub struct TagResponse {
                 schema_bindings(),
                 [
                     runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                    runtime_source(
-                        "crates/intelligence-api/src/lib.rs",
-                        &conditional_runtime
-                    ),
+                    runtime_source("crates/intelligence-api/src/lib.rs", &conditional_runtime),
                 ],
             ),
             Err(OpenApiSourceError::SchemaRequiredMismatch {
@@ -5983,10 +5980,7 @@ pub struct TagResponse {
                     schema_bindings(),
                     [
                         runtime_source("crates/foundation-app/src/lib.rs", RUNTIME_STRUCTS),
-                        runtime_source(
-                            "crates/intelligence-api/src/lib.rs",
-                            &serialized_runtime
-                        ),
+                        runtime_source("crates/intelligence-api/src/lib.rs", &serialized_runtime),
                     ],
                 ),
                 Err(OpenApiSourceError::InvalidRuntimeStruct {
@@ -6169,10 +6163,7 @@ pub struct TagResponse {
                 VALID,
             )],
             [runtime_binding()],
-            [runtime_source(
-                "crates/intelligence-api/src/lib.rs",
-                source,
-            )],
+            [runtime_source("crates/intelligence-api/src/lib.rs", source)],
             [runtime_source(
                 "crates/intelligence-api/tests/capability_invoke_api.rs",
                 RUNTIME_API_TEST,

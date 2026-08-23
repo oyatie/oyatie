@@ -12,6 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hyper" }
 intelligence-account-domain = { path = "../../core/account-domain" }
 intelligence-account-kernel = { path = "../../core/account-kernel" }
 intelligence-oauth-subscription-kernel = { path = "../../core/oauth-subscription-kernel" }

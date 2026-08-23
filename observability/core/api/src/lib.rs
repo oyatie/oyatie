@@ -6,11 +6,11 @@
 //! immutable reads to the Cloud observability kernel.
 
 use audit_chain_domain::Plane;
+use data_boundary_kernel::{OperationalDataClass, Purpose};
 use observability_aggregate::{
     AuditReadRequest, AuditReadScope, CloudAuditOperation, CloudAuditRecord, CloudAuditTopic,
     CloudObservabilityCatalog, CloudObservabilityError,
 };
-use data_boundary_kernel::{OperationalDataClass, Purpose};
 
 pub mod authz;
 

@@ -37,9 +37,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use iam_pdp_cedar::CedarPdp;
-use shared_pdp_kernel::{
-    EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint,
-};
+use shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint};
 use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };

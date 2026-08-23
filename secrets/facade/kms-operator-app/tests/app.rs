@@ -86,10 +86,7 @@ fn state_store_config_requires_explicit_durable_path() {
         "/var/lib/secrets-kms-operator/state.json",
     )])
     .expect("explicit state path should be accepted");
-    assert_eq!(
-        configured.path,
-        "/var/lib/secrets-kms-operator/state.json"
-    );
+    assert_eq!(configured.path, "/var/lib/secrets-kms-operator/state.json");
 }
 
 fn test_operator_config() -> OperatorConfig {

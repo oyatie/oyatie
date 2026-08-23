@@ -29,3 +29,6 @@ doctest = false
 
 [lints]
 workspace = true
+
+[dependencies]
+shared-protocol-parity-kernel = { path = "../../../gateway/core/protocol-parity-kernel" }

@@ -17,8 +17,8 @@ use compute_domain::{
     KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePoolCreate,
 };
 use compute_resource::{InstanceFlavor, K8sFlavor, ResourceId};
-use network_residency::{ResidencyClass, parse_residency_class_label};
 use data_boundary_kernel::{DataClass, parse_data_class_label};
+use network_residency::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
 const DEFAULT_K8S_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;

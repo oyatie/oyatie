@@ -8,6 +8,8 @@ license = "Apache-2.0"
 description = "Composition root: tenant registration/lifecycle REST API (POST /v1/tenants register, GET read state, :provision/:suspend/:resume lifecycle ops, DELETE retire, list) wiring the tenancy lifecycle usecase over the in-memory store. AUTH-005 / G006."
 
 [dependencies]
+shared-resource-provider-contract-kernel = { path = "../../../compute/core/resource-provider-contract-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 tenancy-tenant-lifecycle-usecase = { path = "../../core/tenant-lifecycle-usecase" }
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
 tenancy-tenant-lifecycle-store-inmemory = { path = "../../adapters/tenant-lifecycle-store-inmemory" }

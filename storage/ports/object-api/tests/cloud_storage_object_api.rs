@@ -2,8 +2,8 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use network_residency::ResidencyClass;
 use data_boundary_kernel::DataClass;
+use network_residency::ResidencyClass;
 use storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,

@@ -4,6 +4,7 @@
 
 use std::sync::Arc;
 
+use data_boundary_kernel::DataClass;
 use network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
@@ -20,7 +21,6 @@ use network_lb::{
     LbCreateResource, VerifiedPrincipal, create_cloud_network_load_balancer_from_api,
 };
 use network_residency::ResidencyClass;
-use data_boundary_kernel::DataClass;
 
 const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
 const SUBNET_ID: &str = "oya:cloud:region-home:ten_alpha:subnet:prod-a";

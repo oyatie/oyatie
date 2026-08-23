@@ -1,10 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use hr_employment_app::plan_leave_payroll_impact_envelope;
 use hr_employment_domain::{
     LeaveDecision, LeavePayrollImpactInput, LeaveRoutingMode, PayrollImpactKind,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn leave_payroll_impact_envelope_is_metadata_only() {

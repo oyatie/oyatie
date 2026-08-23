@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use hr_employment_app::{
     OnboardEmployeeCommand, onboard_employee, plan_labor_compliance_workflows,
 };
@@ -7,7 +8,6 @@ use hr_employment_domain::{
     EmployeeCreate, EmploymentStatus, HrLifecycleKind, Jurisdiction, LaborComplianceObligationKind,
     LegalEntityWorkforceSnapshot, TenantTierSnapshot,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn onboarding_emits_metadata_only_audit_event() {

@@ -52,11 +52,11 @@
 use std::path::{Path, PathBuf};
 
 use iam_pdp_kernel::{BundleStoreError, PolicyBundleStore};
+use serde::{Deserialize, Serialize};
 use shared_audit_digest_adapter_awslc::Ed25519ChainVerifier;
 use shared_audit_event_kernel::{ChainVerifier, DigestChainError, decode_hex};
 use shared_pdp_kernel::PolicyBundle;
 use shared_platform_contracts_kernel::pdp::PolicyVersion;
-use serde::{Deserialize, Serialize};
 
 /// One detached signature over a signed policy-bundle envelope's inner bytes.
 ///

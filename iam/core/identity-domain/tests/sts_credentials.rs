@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, DataClassification, Purpose};
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, IdpBinding, Principal, User, UserId,
     issue_credential,
 };
-use data_boundary_kernel::{DataClass, DataClassification, Purpose};
 
 #[test]
 fn sts_credentials_are_short_lived_scope_bound_and_redacted() {

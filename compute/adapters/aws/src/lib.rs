@@ -267,8 +267,8 @@ mod tests {
         ComputeQuotaEnvelope, InstanceCreate, InstanceState,
     };
     use compute_resource::InstanceFlavor;
-    use network_residency::ResidencyClass;
     use data_boundary_kernel::DataClass;
+    use network_residency::ResidencyClass;
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 

@@ -2,6 +2,7 @@
 // `.expect_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use http_router_kernel::HttpMethod;
 use iac_rest::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_REST_ROUTER_NON_CLAIM, CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
@@ -10,7 +11,6 @@ use iac_rest::{
     MODULE_REGISTRY_REST_METHOD, MODULE_REGISTRY_VERSIONS_REST_ROUTE,
     match_module_registry_rest_route, module_registry_rest_router, module_registry_route_surfaces,
 };
-use http_router_kernel::HttpMethod;
 
 #[test]
 fn rest_router_registers_official_opentofu_module_registry_templates() {

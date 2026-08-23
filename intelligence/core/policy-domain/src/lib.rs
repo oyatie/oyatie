@@ -1,7 +1,7 @@
 //! Foundry policy kernel: runtime autonomy ceiling checks.
 
-use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction};
 use data_boundary_kernel::{DataClass, PrivacyDataClass, SubjectClass};
+use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction};
 
 const HEALTH_REGULATED_PACK_MARKERS: &[&str] = &[
     "clinical",

@@ -172,10 +172,7 @@ fn rejects_tax_invoice_format_that_does_not_match_regional_pack() {
 
 #[test]
 fn rejects_unsupported_regional_pack_tax_format_pairs() {
-    let result = generate(request_for_pack(
-        "pack-mars",
-        "kr_electronic_tax_invoice",
-    ));
+    let result = generate(request_for_pack("pack-mars", "kr_electronic_tax_invoice"));
 
     assert_eq!(
         result.status,

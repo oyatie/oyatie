@@ -7,6 +7,9 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use std::thread;
 
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
+use http_runtime_hyper_adapter::serve_one_connection_on_std_listener;
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
@@ -32,9 +35,6 @@ use iac_rest::{
     MODULE_REGISTRY_DISCOVERY_REST_ROUTE, MODULE_REGISTRY_DOWNLOAD_REST_ROUTE,
     MODULE_REGISTRY_VERSIONS_REST_ROUTE,
 };
-use http_middleware_kernel::HttpRequest;
-use http_router_kernel::HttpMethod;
-use http_runtime_hyper_adapter::serve_one_connection_on_std_listener;
 
 const BEARER_SECRET: &str = "break-glass-iac-registry-secret";
 const PRINCIPAL_ID: &str = "sp_iac_app_registry_reader";

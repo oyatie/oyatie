@@ -731,6 +731,7 @@ fn dns_zone_scope_label(kind: network_domain::DnsZoneKind) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use data_boundary_kernel::DataClass;
     use network_domain::{
         BgpSessionCreate, CloudNetworkError, DirectInterconnectCreate, DirectInterconnectState,
         DnsZoneCreate, DnsZoneKind, DnsZoneState, InterconnectPartnerCreate, IpProtocol, Ipv4Cidr,
@@ -743,7 +744,6 @@ mod tests {
         TargetGroupCreate, VpcCreate, VpcState,
     };
     use network_residency::ResidencyClass;
-    use data_boundary_kernel::DataClass;
 
     const COMPARTMENT_REF: &str = "ocid1.compartment.oc1..cloud";
     const REGION: &str = "ap-chuncheon-1";

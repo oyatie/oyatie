@@ -620,7 +620,8 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(residency_error.vm_create_status_code(), 403);
 
     let mut image_request = request("req-compute-vm-image", "idem-compute-vm-image");
-    image_request.body.image = "oci://harbor.region-home.oyatie.io/ten_alpha/app:latest".to_string();
+    image_request.body.image =
+        "oci://harbor.region-home.oyatie.io/ten_alpha/app:latest".to_string();
     let image_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, image_request)
         .expect_err("image refs must be digest pinned");
     assert_eq!(

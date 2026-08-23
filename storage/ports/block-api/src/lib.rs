@@ -6,8 +6,8 @@
 
 use std::collections::BTreeMap;
 
-use network_residency::{ResidencyClass, parse_residency_class_label};
 use data_boundary_kernel::{DataClass, parse_data_class_label};
+use network_residency::{ResidencyClass, parse_residency_class_label};
 use storage_domain::{
     BlockVolume, CloudStorageCatalog, CloudStorageError, EncryptionMode, StorageRepo, VolumeCreate,
     VolumePerformance, VolumeState, VolumeTier,
@@ -72,12 +72,8 @@ impl CloudStorageBlockApiErrorCode {
             Self::PathVolumeIdEmpty => "STORAGE_BLOCK_PATH_VOLUME_ID_EMPTY",
             Self::VolumeIdMismatch => "STORAGE_BLOCK_VOLUME_ID_MISMATCH",
             Self::TenantMismatch => "STORAGE_BLOCK_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => {
-                "STORAGE_BLOCK_AUTHORIZATION_DECISION_ID_EMPTY"
-            }
-            Self::AuthorizationTenantMismatch => {
-                "STORAGE_BLOCK_AUTHORIZATION_TENANT_MISMATCH"
-            }
+            Self::AuthorizationDecisionIdEmpty => "STORAGE_BLOCK_AUTHORIZATION_DECISION_ID_EMPTY",
+            Self::AuthorizationTenantMismatch => "STORAGE_BLOCK_AUTHORIZATION_TENANT_MISMATCH",
             Self::AuthorizationPrincipalMismatch => {
                 "STORAGE_BLOCK_AUTHORIZATION_PRINCIPAL_MISMATCH"
             }

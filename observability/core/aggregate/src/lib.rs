@@ -14,12 +14,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
-use iam_domain::IamRoleId;
-use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
 use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use iam_domain::IamRoleId;
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
 
 const OBSERVABILITY_SCHEMA_VERSION: u32 = 1;
 const AUDIT_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -1643,10 +1643,10 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use audit_chain_domain::Plane;
+    use data_boundary_kernel::{OperationalDataClass, Purpose};
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
-    use data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 

@@ -8,6 +8,7 @@ license = "Apache-2.0"
 description = "File-backed PolicyBundleStore adapter for the iam PDP service (ADR-0559, G004 slice 1): loads a declarative policy-bundle JSON document from a mounted path (ConfigMap transport in K8s) with closed-schema parsing and fail-closed errors. Transitional transport — the policy-bundle CRD + operator distribution fabric replaces this adapter behind the same kernel port (ADR-0550 adapters are deliberately throwaway)."
 
 [dependencies]
+shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
 iam-pdp-kernel = { path = "../../core/pdp-kernel" }
 
 

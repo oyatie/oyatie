@@ -6,8 +6,8 @@
 pub mod merkle_tree;
 pub use merkle_tree::{MerkleTree, Sha256Hash};
 
-use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use data_boundary_kernel::{DataClass, DataClassification, Purpose};
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use sha2::{Digest, Sha256};
 
 const GENESIS_HASH: &str = "GENESIS";

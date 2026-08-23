@@ -114,6 +114,7 @@ dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
+ "data-boundary-kernel",
  "data-ontology-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
@@ -146,6 +147,7 @@ dependencies = [
  "leptos_axum",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -155,6 +157,9 @@ dependencies = [
 [[package]]
 name = "application-surface-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "ar_archive_writer"
@@ -351,6 +356,7 @@ dependencies = [
 name = "audit-chain-domain"
 version = "0.2.0"
 dependencies = [
+ "data-boundary-kernel",
  "ed25519-dalek",
  "sha2",
 ]
@@ -378,6 +384,7 @@ name = "audit-file-adapter"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -434,6 +441,7 @@ name = "audit-usecase"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "messaging-domain",
 ]
 
@@ -583,6 +591,7 @@ name = "billing-accounting-app"
 version = "0.1.0"
 dependencies = [
  "billing-accounting-journal",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -591,6 +600,9 @@ version = "0.1.0"
 dependencies = [
  "billing-accounting-api",
  "billing-accounting-app",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -598,6 +610,9 @@ dependencies = [
 [[package]]
 name = "billing-accounting-journal"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "billing-accounting-storage-inmemory-adapter"
@@ -621,6 +636,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -631,6 +647,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -640,6 +657,7 @@ dependencies = [
  "billing-domain",
  "billing-finops",
  "billing-metering",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -660,6 +678,9 @@ dependencies = [
 [[package]]
 name = "billing-metering"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "billing-metering-pipeline-kernel"
@@ -671,6 +692,7 @@ version = "0.1.0"
 dependencies = [
  "billing-domain",
  "billing-metering",
+ "data-boundary-kernel",
  "tokio",
 ]
 
@@ -684,7 +706,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
 dependencies = [
- "bit-vec",
+ "bit-vec 0.8.0",
 ]
 
 [[package]]
@@ -692,6 +714,15 @@ name = "bit-vec"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
+
+[[package]]
+name = "bit-vec"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b71798fca2c1fe1086445a7258a4bc81e6e49dcd24c8d0dd9a1e57395b603f51"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "bitflags"
@@ -863,6 +894,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -874,6 +906,7 @@ name = "cell-region"
 version = "0.1.0"
 dependencies = [
  "cell-routing",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -889,6 +922,7 @@ dependencies = [
 name = "cell-regional-pack"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
  "serde",
  "serde_json",
@@ -906,6 +940,7 @@ dependencies = [
 name = "cell-routing"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1042,6 +1077,9 @@ dependencies = [
 [[package]]
 name = "community-post-store-api"
 version = "0.1.0"
+dependencies = [
+ "shared-protocol-parity-kernel",
+]
 
 [[package]]
 name = "community-post-store-app"
@@ -1051,11 +1089,15 @@ dependencies = [
  "community-post-store-domain",
  "community-post-store-postgres",
  "community-post-store-usecase",
+ "shared-protocol-parity-kernel",
 ]
 
 [[package]]
 name = "community-post-store-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "community-post-store-grpc"
@@ -1095,15 +1137,22 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
+ "shared-protocol-parity-kernel",
 ]
 
 [[package]]
 name = "community-social-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "community-social-post-composition-api"
 version = "0.1.0"
+dependencies = [
+ "shared-protocol-parity-kernel",
+]
 
 [[package]]
 name = "community-social-post-composition-grpc"
@@ -1137,16 +1186,23 @@ dependencies = [
 [[package]]
 name = "compliance-dlp"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "compliance-dsr"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "compliance-dsr-usecase"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1154,17 +1210,22 @@ name = "compliance-ediscovery"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-retention"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "compliance-retention-dsr"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1172,6 +1233,7 @@ name = "compliance-trust-portal"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1181,6 +1243,7 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1189,6 +1252,7 @@ name = "compute-dcops"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1197,6 +1261,7 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "iam-domain",
  "network-domain",
  "network-residency",
@@ -1208,6 +1273,7 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1217,6 +1283,7 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1226,6 +1293,7 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1234,6 +1302,7 @@ name = "compute-resource"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1243,6 +1312,7 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1474,6 +1544,7 @@ dependencies = [
  "data-analytics-usecase",
  "serde",
  "serde_json",
+ "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -1486,6 +1557,7 @@ dependencies = [
  "data-analytics-usecase",
  "serde",
  "serde_json",
+ "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1495,6 +1567,7 @@ name = "data-analytics-domain"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -1505,6 +1578,7 @@ dependencies = [
  "data-analytics-domain",
  "serde",
  "serde_json",
+ "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1515,7 +1589,12 @@ version = "0.1.0"
 dependencies = [
  "data-analytics-domain",
  "serde",
+ "shared-olap-client-kernel",
 ]
+
+[[package]]
+name = "data-boundary-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "data-encoding"
@@ -1527,6 +1606,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 name = "data-ontology-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-domain",
 ]
 
@@ -1540,11 +1620,15 @@ dependencies = [
 [[package]]
 name = "data-ontology-kernel"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "data-ontology-query-engine-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
 ]
 
@@ -1552,6 +1636,7 @@ dependencies = [
 name = "data-ontology-query-engine-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
  "data-ontology-query-engine-domain",
 ]
@@ -1707,6 +1792,9 @@ dependencies = [
 [[package]]
 name = "docs-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "dotenvy"
@@ -2325,12 +2413,16 @@ dependencies = [
 name = "hr-employment-app"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "hr-employment-domain",
 ]
 
 [[package]]
 name = "hr-employment-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "hr-employment-infrastructure"
@@ -2339,6 +2431,9 @@ dependencies = [
  "hr-employment-api",
  "hr-employment-app",
  "hr-employment-domain",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -2391,10 +2486,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-middleware-kernel"
+version = "0.1.0"
+dependencies = [
+ "http-router-kernel",
+]
+
+[[package]]
 name = "http-range-header"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c"
+
+[[package]]
+name = "http-router-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "http-runtime-hyper-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "rcgen",
+ "rustls",
+ "tokio",
+]
 
 [[package]]
 name = "httparse"
@@ -2510,6 +2632,9 @@ dependencies = [
 name = "iac-app"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-infrastructure",
@@ -2524,6 +2649,9 @@ version = "0.1.0"
 name = "iac-infrastructure"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-rest",
@@ -2532,11 +2660,15 @@ dependencies = [
 [[package]]
 name = "iac-rest"
 version = "0.1.0"
+dependencies = [
+ "http-router-kernel",
+]
 
 [[package]]
 name = "iam-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-domain",
 ]
 
@@ -2548,6 +2680,7 @@ version = "0.1.0"
 name = "iam-control-app"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-domain",
  "iam-policy-cedar-domain",
 ]
@@ -2561,6 +2694,7 @@ name = "iam-domain"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "iam-identity-domain",
 ]
 
@@ -2574,6 +2708,9 @@ dependencies = [
 [[package]]
 name = "iam-identity-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "iam-identity-oidc-issuer-kernel"
@@ -2609,6 +2746,7 @@ dependencies = [
 name = "iam-identity-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-identity-domain",
 ]
 
@@ -2749,6 +2887,7 @@ dependencies = [
  "base64",
  "futures-core",
  "http-body-util",
+ "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "iam-identity-workload-domain",
@@ -2765,6 +2904,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
  "tokio",
  "tokio-rustls",
  "tonic",
@@ -2783,6 +2923,7 @@ dependencies = [
  "iam-pdp-kernel",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -2792,12 +2933,17 @@ dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
  "cedar-policy",
+ "data-boundary-kernel",
  "serde_json",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
 name = "iam-pdp-kernel"
 version = "0.1.0"
+dependencies = [
+ "shared-platform-contracts-kernel",
+]
 
 [[package]]
 name = "iam-policy-cedar-api"
@@ -2832,6 +2978,7 @@ dependencies = [
 name = "iam-tenant-rbac-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
  "serde",
@@ -2842,11 +2989,15 @@ dependencies = [
 name = "iam-tenant-rbac-app"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iam-tenant-rbac-api",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -2887,6 +3038,9 @@ version = "0.1.0"
 [[package]]
 name = "iam-tenant-rbac-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "iam-tenant-rbac-erp-parity-map"
@@ -3027,6 +3181,7 @@ version = "0.1.0"
 name = "iam-tenant-rbac-storage-inmemory"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
 ]
@@ -3125,6 +3280,7 @@ dependencies = [
 name = "iam-tenant-rbac-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
 ]
 
@@ -3332,6 +3488,7 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "secrets-domain",
 ]
@@ -3340,6 +3497,7 @@ dependencies = [
 name = "intelligence-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
+ "http-router-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -3351,6 +3509,7 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
+ "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-domain",
@@ -3596,6 +3755,7 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
+ "shared-protocol-parity-kernel",
  "sqlx",
  "tokio",
 ]
@@ -3604,6 +3764,7 @@ dependencies = [
 name = "intelligence-bypass-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -3614,6 +3775,9 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-capability-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-capability-registry-app"
@@ -3641,6 +3805,9 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-catalog-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-claude-agent-sdk"
@@ -3699,6 +3866,9 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-collab-runtime-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-context-aware-retrieval-adapter"
@@ -3803,6 +3973,7 @@ dependencies = [
 name = "intelligence-document-format-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
 ]
 
@@ -3862,6 +4033,7 @@ version = "0.1.0"
 dependencies = [
  "intelligence-kernel",
  "serde",
+ "shared-olap-client-kernel",
  "tokio",
  "tracing",
 ]
@@ -3880,11 +4052,15 @@ dependencies = [
 [[package]]
 name = "intelligence-evidence-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-evidence-domain",
 ]
 
@@ -3944,6 +4120,7 @@ dependencies = [
 name = "intelligence-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -3978,6 +4155,7 @@ name = "intelligence-mutation-domain"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
 ]
@@ -3993,6 +4171,7 @@ dependencies = [
 name = "intelligence-openai-compat-api"
 version = "0.1.0"
 dependencies = [
+ "http-router-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -4016,6 +4195,9 @@ dependencies = [
 [[package]]
 name = "intelligence-openapi-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-openbao-adapter"
@@ -4045,6 +4227,7 @@ dependencies = [
 name = "intelligence-policy-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
 ]
@@ -4053,6 +4236,7 @@ dependencies = [
 name = "intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4073,6 +4257,8 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
+ "http-middleware-kernel",
+ "http-router-kernel",
  "hyper",
  "hyper-util",
  "intelligence-account-kernel",
@@ -4104,6 +4290,9 @@ dependencies = [
 [[package]]
 name = "intelligence-rag-api"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-rag-endpoint-app"
@@ -4132,6 +4321,7 @@ dependencies = [
 name = "intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4165,6 +4355,7 @@ dependencies = [
 name = "intelligence-run-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4172,6 +4363,7 @@ dependencies = [
 name = "intelligence-run-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-run-domain",
 ]
@@ -4202,11 +4394,15 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-step-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "intelligence-step-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-step-domain",
 ]
 
@@ -5256,6 +5452,7 @@ dependencies = [
  "billing-domain",
  "billing-metering",
  "cell-region",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5307,11 +5504,15 @@ dependencies = [
 [[package]]
 name = "messaging-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "messaging-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "messaging-domain",
 ]
 
@@ -5416,6 +5617,7 @@ checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 name = "network-dns"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5426,6 +5628,7 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -5433,6 +5636,7 @@ dependencies = [
 name = "network-lb"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5441,6 +5645,7 @@ dependencies = [
 name = "network-oci"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5448,11 +5653,15 @@ dependencies = [
 [[package]]
 name = "network-residency"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "network-selfhosted"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5469,6 +5678,7 @@ dependencies = [
 name = "network-vpc"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5563,6 +5773,7 @@ dependencies = [
  "audit-chain-domain",
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "iam-domain",
  "network-residency",
  "observability-domain",
@@ -5573,6 +5784,7 @@ name = "observability-api"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "network-residency",
  "observability-aggregate",
 ]
@@ -5580,6 +5792,9 @@ dependencies = [
 [[package]]
 name = "observability-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "observability-kernel"
@@ -5701,17 +5916,24 @@ dependencies = [
 name = "payroll-run-app"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "payroll-run-domain",
 ]
 
 [[package]]
 name = "payroll-run-domain"
 version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
 
 [[package]]
 name = "payroll-run-infrastructure"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "payroll-run-api",
  "payroll-run-app",
  "serde",
@@ -6127,7 +6349,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b45fcc2344c680f5025fe57779faef368840d0bd1f42f216291f0dc4ace4744"
 dependencies = [
  "bit-set",
- "bit-vec",
+ "bit-vec 0.8.0",
  "bitflags 2.13.1",
  "num-traits",
  "rand 0.9.5",
@@ -6484,6 +6706,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "513962919efc330f829edb2535844d1b912b0fbe2ca165d613e4e8788bb05a5a"
 dependencies = [
  "rand_core 0.9.5",
+]
+
+[[package]]
+name = "rcgen"
+version = "0.14.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57f6d249aad744e274e682777a50283a225a32705394ee6d5fcc01efa25e4055"
+dependencies = [
+ "aws-lc-rs",
+ "pem",
+ "rustls-pki-types",
+ "time",
+ "x509-parser",
+ "yasna",
 ]
 
 [[package]]
@@ -6952,6 +7188,8 @@ dependencies = [
 name = "secrets-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
+ "shared-platform-contracts-kernel",
  "zeroize",
 ]
 
@@ -6967,6 +7205,7 @@ name = "secrets-kms-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
 ]
@@ -6977,6 +7216,7 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -6994,6 +7234,7 @@ dependencies = [
 name = "secrets-kms-oci"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -7002,6 +7243,7 @@ name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
  "zeroize",
@@ -7024,6 +7266,7 @@ dependencies = [
 name = "secrets-kms-operator-k8s"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "futures",
  "k8s-openapi",
  "kube",
@@ -7332,9 +7575,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared-olap-client-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-platform-contracts-kernel"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-protocol-parity-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-resource-provider-contract-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "sheets-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
 ]
 
@@ -7588,6 +7858,7 @@ dependencies = [
 name = "storage-block-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
  "storage-domain",
 ]
@@ -7598,6 +7869,7 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
 ]
@@ -7607,6 +7879,7 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
  "storage-domain",
@@ -7623,6 +7896,7 @@ dependencies = [
 name = "storage-oci-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -7630,6 +7904,7 @@ dependencies = [
 name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -7795,6 +8070,7 @@ version = "0.1.0"
 name = "tenancy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -7842,6 +8118,8 @@ dependencies = [
  "http-body-util",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-authz-pdp",
  "tenancy-tenant-lifecycle-authz-port",
  "tenancy-tenant-lifecycle-kernel",
@@ -7863,6 +8141,7 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
  "tenancy-tenant-lifecycle-authz-port",
 ]
 
@@ -7875,6 +8154,8 @@ name = "tenancy-tenant-lifecycle-domain"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
@@ -7883,12 +8164,16 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
 name = "tenancy-tenant-lifecycle-store-inmemory"
 version = "0.1.0"
 dependencies = [
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
 ]
@@ -7899,6 +8184,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
  "sqlx",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -7909,6 +8195,8 @@ name = "tenancy-tenant-lifecycle-usecase"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-domain",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -9079,6 +9367,16 @@ name = "yansi"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
+
+[[package]]
+name = "yasna"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5f6765e852b9b4dc8e2a76843e4d64d1cea8e79bcde0b6901aea8e7c7f08282"
+dependencies = [
+ "bit-vec 0.9.1",
+ "time",
+]
 
 [[package]]
 name = "yoke"

@@ -11,9 +11,7 @@ use community_post_store_app::{
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
 use community_post_store_usecase::{CommunityUsecaseError, cast_vote, create_post, moderate_post};
-use shared_hyperscaler_metrics_kernel::{
-    MetricsContext, MetricsError, RequestTelemetryBinding,
-};
+use shared_hyperscaler_metrics_kernel::{MetricsContext, MetricsError, RequestTelemetryBinding};
 use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const CREATE_POST_ROUTE: &str = "/spaces/{space_id}/posts";
@@ -731,10 +729,7 @@ mod tests {
                 binding.request_success_metric,
                 "community_request_success_total"
             );
-            assert_eq!(
-                binding.responses_total_metric,
-                "community_responses_total"
-            );
+            assert_eq!(binding.responses_total_metric, "community_responses_total");
             assert_eq!(
                 binding.responses_5xx_metric,
                 "community_responses_5xx_total"

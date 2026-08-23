@@ -5,6 +5,7 @@
 use std::sync::Arc;
 
 use audit_chain_domain::{AuditChain, Plane};
+use data_boundary_kernel::{DataClass, Purpose};
 use network_residency::ResidencyClass;
 use observability_aggregate::{
     CloudAuditEnvelopeCreate, CloudAuditOperation, CloudAuditTopic, CloudObservabilityCatalog,
@@ -19,7 +20,6 @@ use observability_api::{
     CloudObservabilityAuditReadTopicRef, ConfiguredBearerPrincipalVerifier, PrincipalVerifier,
     VerifiedPrincipal, read_cloud_observability_audit_from_api,
 };
-use data_boundary_kernel::{DataClass, Purpose};
 
 const TENANT: &str = "ten_alpha";
 const OTHER_TENANT: &str = "ten_other";
@@ -316,7 +316,10 @@ fn audit_read_api_projects_first_page_and_cursor_metadata() {
     assert!(response.metadata.chain_complete);
     assert_eq!(response.metadata.high_watermark_sequence, Some(2));
     assert_eq!(response.data[0].operation, "resource_created");
-    assert_eq!(response.data[0].topic, "oyatie.audit.cloud_resource_created");
+    assert_eq!(
+        response.data[0].topic,
+        "oyatie.audit.cloud_resource_created"
+    );
     assert_eq!(response.data[0].record_class, "control_plane_mutation");
     assert_eq!(response.data[0].audit_marker, "AUDIT");
     assert_eq!(response.data[0].data_classes_referenced[2].label, "AUDIT");

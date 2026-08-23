@@ -73,10 +73,8 @@ impl QueueName {
     pub fn parse(value: &str) -> Result<Self, QueueError> {
         // Validation is delegated to the substrate name rules so the two
         // surfaces can never drift.
-        TopicName::parse(&format!("queue.{value}")).map_err(|_| {
-            QueueError::InvalidQueueName {
-                value: value.to_owned(),
-            }
+        TopicName::parse(&format!("queue.{value}")).map_err(|_| QueueError::InvalidQueueName {
+            value: value.to_owned(),
         })?;
         Ok(Self(value.to_owned()))
     }
@@ -118,8 +116,7 @@ impl<'a, S: MessagingSubstrate> WorkQueue<'a, S> {
         policy: DeadLetterPolicy,
     ) -> Result<Self, QueueError> {
         let topic = TopicName::parse(&format!("queue.{}", name.as_str()))?;
-        let dead_letter_topic =
-            TopicName::parse(&format!("queue.{}.dead-letter", name.as_str()))?;
+        let dead_letter_topic = TopicName::parse(&format!("queue.{}.dead-letter", name.as_str()))?;
         let subscription = SubscriptionName::parse("workers")?;
         let dead_letter_subscription = SubscriptionName::parse("dead-letter-review")?;
         let spec = TopicSpec {

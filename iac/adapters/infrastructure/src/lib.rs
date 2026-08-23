@@ -10,6 +10,11 @@
 
 use std::sync::Arc;
 
+use http_middleware_kernel::{Handler, HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
+    ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request, handler_to_sync,
+};
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE as API_DISCOVERY_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE as API_DOWNLOAD_SURFACE,
@@ -24,11 +29,6 @@ use iac_rest::{
     CloudIacModuleRegistryRestRoute, MODULE_REGISTRY_DISCOVERY_REST_ROUTE,
     MODULE_REGISTRY_DOWNLOAD_REST_ROUTE, MODULE_REGISTRY_REST_METHOD,
     MODULE_REGISTRY_VERSIONS_REST_ROUTE, match_module_registry_rest_route,
-};
-use http_middleware_kernel::{Handler, HttpRequest, HttpResponse, MiddlewareChain};
-use http_router_kernel::{HttpMethod, Router, RouterError};
-use http_runtime_hyper_adapter::{
-    ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request, handler_to_sync,
 };
 
 pub const CLOUD_IAC_MODULE_REGISTRY_RUNTIME_COMPOSITION_NON_CLAIM: &str =

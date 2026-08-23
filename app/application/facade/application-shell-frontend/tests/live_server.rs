@@ -7,9 +7,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use application_shell_frontend::server::{
-    router_for_package_root, serve_router_until_shutdown,
-};
+use application_shell_frontend::server::{router_for_package_root, serve_router_until_shutdown};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,

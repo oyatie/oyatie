@@ -400,7 +400,10 @@ impl fmt::Display for ConfigError {
                 "OYATIE_POOL_PROVIDER must be one of claude|openai|gemini, got: {value}"
             ),
             Self::InvalidMaxBodyBytes { value } => {
-                write!(f, "OYATIE_POOL_MAX_BODY_BYTES is not a valid usize: {value}")
+                write!(
+                    f,
+                    "OYATIE_POOL_MAX_BODY_BYTES is not a valid usize: {value}"
+                )
             }
         }
     }
@@ -437,7 +440,8 @@ impl AppConfig {
                     value: listen_addr_raw.clone(),
                 })?;
 
-        let tenant_id = std::env::var("OYATIE_POOL_TENANT_ID").unwrap_or_else(|_| "ten_local".into());
+        let tenant_id =
+            std::env::var("OYATIE_POOL_TENANT_ID").unwrap_or_else(|_| "ten_local".into());
         let pool_id = std::env::var("OYATIE_POOL_POOL_ID").unwrap_or_else(|_| "pool_local".into());
 
         let provider_raw =

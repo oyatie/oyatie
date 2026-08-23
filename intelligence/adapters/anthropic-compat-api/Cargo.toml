@@ -12,6 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+http-router-kernel = { path = "../../../gateway/core/http-router-kernel" }
 intelligence-provider-pool-kernel = { path = "../../core/provider-pool-kernel" }
 intelligence-account-kernel = { path = "../../core/account-kernel" }
 

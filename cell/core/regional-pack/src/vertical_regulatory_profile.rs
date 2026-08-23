@@ -119,12 +119,9 @@ mod tests {
 
     #[test]
     fn rejects_empty_controls() {
-        let err = VerticalRegulatoryProfile::new(
-            AdVertical::Retail,
-            "pack-alpha".to_string(),
-            vec![],
-        )
-        .expect_err("empty controls must be rejected");
+        let err =
+            VerticalRegulatoryProfile::new(AdVertical::Retail, "pack-alpha".to_string(), vec![])
+                .expect_err("empty controls must be rejected");
 
         assert_eq!(err, VerticalRegulatoryProfileError::EmptyControls);
     }

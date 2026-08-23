@@ -9,9 +9,7 @@
 //! idempotency keys derived deterministically from (CR uid, generation,
 //! step) so controller restarts replay instead of duplicating.
 
-use shared_platform_contracts_kernel::tenancy::{
-    IsolationPosture, Tenant, TenantLifecycleState,
-};
+use shared_platform_contracts_kernel::tenancy::{IsolationPosture, Tenant, TenantLifecycleState};
 use shared_resource_provider_contract_kernel::{
     OperationResult, ProviderError, ResourceName, ResourceProvider,
 };

@@ -2,8 +2,8 @@
 
 use std::collections::BTreeMap;
 
-use network_residency::{RegionRef, ResidencyClass, residency_class_allows_home_region_label};
 use data_boundary_kernel::{Classified, PrivacyDataClass};
+use network_residency::{RegionRef, ResidencyClass, residency_class_allows_home_region_label};
 
 const CELL_BINDING_SCHEMA_VERSION: u32 = 1;
 

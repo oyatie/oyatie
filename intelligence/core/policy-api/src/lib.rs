@@ -8,12 +8,12 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{
+    AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
+};
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
 use intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
-};
-use data_boundary_kernel::{
-    AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
 
 pub const FOUNDRY_POLICY_AUTONOMY_CEILING_PUBLISH_SURFACE: &str =

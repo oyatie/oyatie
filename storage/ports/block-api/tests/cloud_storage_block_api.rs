@@ -3,11 +3,11 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use storage_block_api::{
-    STORAGE_BLOCK_CREATE_SURFACE, CloudStorageBlockApiAuthorization,
-    CloudStorageBlockApiBoundaryContext, CloudStorageBlockApiError, CloudStorageBlockApiPrincipal,
-    CloudStorageBlockCreateApiStatus, CloudStorageBlockCreateIdempotencyLedger,
-    CloudStorageBlockVolumeCreateApiRequest, CloudStorageBlockVolumeCreateRequest,
-    CloudStorageBlockVolumePerformance, create_cloud_storage_block_volume_from_api,
+    CloudStorageBlockApiAuthorization, CloudStorageBlockApiBoundaryContext,
+    CloudStorageBlockApiError, CloudStorageBlockApiPrincipal, CloudStorageBlockCreateApiStatus,
+    CloudStorageBlockCreateIdempotencyLedger, CloudStorageBlockVolumeCreateApiRequest,
+    CloudStorageBlockVolumeCreateRequest, CloudStorageBlockVolumePerformance,
+    STORAGE_BLOCK_CREATE_SURFACE, create_cloud_storage_block_volume_from_api,
 };
 use storage_domain::{CloudStorageCatalog, CloudStorageError};
 
@@ -77,10 +77,7 @@ fn create_request(
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {
-    assert_eq!(
-        STORAGE_BLOCK_CREATE_SURFACE,
-        "storage.block.create"
-    );
+    assert_eq!(STORAGE_BLOCK_CREATE_SURFACE, "storage.block.create");
     assert_eq!(CloudStorageBlockCreateApiStatus::Created.code(), 201);
     assert_eq!(CloudStorageBlockCreateApiStatus::BadRequest.code(), 400);
     assert_eq!(CloudStorageBlockCreateApiStatus::Forbidden.code(), 403);

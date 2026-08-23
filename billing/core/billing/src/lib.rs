@@ -528,10 +528,9 @@ impl TaxInvoiceFormat {
         match value {
             "pack-electronic-tax" => Ok(Self::ElectronicTaxInvoice),
             "pack-qualified-tax" => Ok(Self::QualifiedTaxInvoice),
-            "pack-country-tax"
-            | "pack-market-tax"
-            | "pack-trade-tax"
-            | "pack-vat-tax" => Ok(Self::CountryEInvoice),
+            "pack-country-tax" | "pack-market-tax" | "pack-trade-tax" | "pack-vat-tax" => {
+                Ok(Self::CountryEInvoice)
+            }
             "pack-gst-tax" => Ok(Self::GstTaxInvoice),
             "pack-fiscal-tax" => Ok(Self::FiscalDocumentInvoice),
             "pack-clearance-tax" => Ok(Self::ClearanceQrInvoice),

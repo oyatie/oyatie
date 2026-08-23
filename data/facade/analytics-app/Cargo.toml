@@ -27,6 +27,7 @@ name = "data-analytics-app"
 path = "src/main.rs"
 
 [dependencies]
+shared-olap-client-kernel = { path = "../../core/olap-client-kernel" }
 data-analytics-api = { path = "../../ports/analytics-api" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
 data-analytics-usecase = { path = "../../core/analytics-usecase" }

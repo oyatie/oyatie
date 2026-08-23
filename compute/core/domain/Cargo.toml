@@ -7,6 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 iam-domain = { path = "../../../iam/core/domain-control" }
 network-domain = { path = "../../../network/core/domain" }
 cell-region = { path = "../../../cell/core/region" }

@@ -7,6 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+http-router-kernel = { path = "../../../gateway/core/http-router-kernel" }
 
 
 [lib]

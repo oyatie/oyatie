@@ -6,6 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 [dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 
 [lib]
 name = "community_post_store_domain"

@@ -712,18 +712,19 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
         ] {
             let capability_id = format!("cap.privacy.{class_label}.{purpose_label}");
             support::seed_passing_eval(&mut foundation, &capability_id);
-            let capability =
-                foundation
-                    .register_capability(CapabilityRegistration {
-                        capability_id,
-                        namespace: "privacy".into(),
-                        action: CapabilityAction::Other,
-                        required_tier: AutonomyTier::T2Advisory,
-                        touched_privacy_data_classes:
-                            application_app::privacy_data_classes_from(&[data_class]).unwrap(),
-                        evidence_topic: "oya.foundry.capability.invoked".into(),
-                    })
-                    .expect("capability is valid");
+            let capability = foundation
+                .register_capability(CapabilityRegistration {
+                    capability_id,
+                    namespace: "privacy".into(),
+                    action: CapabilityAction::Other,
+                    required_tier: AutonomyTier::T2Advisory,
+                    touched_privacy_data_classes: application_app::privacy_data_classes_from(&[
+                        data_class,
+                    ])
+                    .unwrap(),
+                    evidence_topic: "oya.foundry.capability.invoked".into(),
+                })
+                .expect("capability is valid");
             foundation
                 .grant_capability_to_tenant(TenantCapabilityGrant {
                     tenant_id: tenant.id.clone(),

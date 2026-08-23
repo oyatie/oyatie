@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 use intelligence_catalog_domain::{
     ApiStability, CatalogError, CatalogIndex, CatalogRecordInput, CatalogRole, SecurityReview,
     SupplyChainAttestation,
 };
-use data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 
 #[test]
 fn catalog_record_validates_existing_registry_shape() {

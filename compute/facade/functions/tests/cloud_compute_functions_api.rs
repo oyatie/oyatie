@@ -18,8 +18,8 @@ use compute_functions_api::{
     invoke_with_authorization_verifier,
 };
 use compute_resource::FunctionRuntime;
-use network_residency::ResidencyClass;
 use data_boundary_kernel::DataClass;
+use network_residency::ResidencyClass;
 
 const FUNCTION_ID: &str = "oyatie:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -110,7 +110,9 @@ fn function_create() -> FunctionDeploymentCreate {
         cell_id: "cell-region-home-a-001".to_string(),
         runtime: FunctionRuntime::Wasm,
         name: "image-resize".to_string(),
-        bundle: format!("function://harbor.region-home.oyatie.io/ten_alpha/image-resize@sha256:{DIGEST}"),
+        bundle: format!(
+            "function://harbor.region-home.oyatie.io/ten_alpha/image-resize@sha256:{DIGEST}"
+        ),
         cold_start_budget_ms: 750,
         timeout_ms: 30_000,
         memory_mb: 512,

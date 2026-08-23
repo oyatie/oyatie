@@ -23,9 +23,9 @@ use core::future::Future;
 use core::pin::Pin;
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
 use shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
 use shared_resource_provider_contract_kernel::Operation;
-use serde::{Deserialize, Serialize};
 
 /// What a client-UUID idempotency key was first applied to: the dedup record
 /// consulted on every replay (AIP-155 request ids / AWS client tokens).

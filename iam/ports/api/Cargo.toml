@@ -6,6 +6,7 @@ rust-version.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 iam-domain = { path = "../../core/domain-control" }
 
 

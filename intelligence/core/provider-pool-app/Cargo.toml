@@ -18,6 +18,8 @@ description = "Provider-pool composition root (usecase layer per ADR-0105). Wire
 # anthropic/openai compat-api ingress crates to bind a runnable process. These are
 # workspace-internal path-deps, not a new external workspace dependency seam.
 [dependencies]
+http-router-kernel = { path = "../../../gateway/core/http-router-kernel" }
+http-middleware-kernel = { path = "../../../gateway/core/http-middleware-kernel" }
 intelligence-provider-pool-kernel = { path = "../provider-pool-kernel" }
 intelligence-account-kernel = { path = "../account-kernel" }
 

@@ -83,10 +83,8 @@ impl ChannelName {
     /// Returns [`BusError::InvalidChannelName`] when the derived topic
     /// name would not be a canonical slug.
     pub fn parse(value: &str) -> Result<Self, BusError> {
-        TopicName::parse(&format!("bus.{value}")).map_err(|_| {
-            BusError::InvalidChannelName {
-                value: value.to_owned(),
-            }
+        TopicName::parse(&format!("bus.{value}")).map_err(|_| BusError::InvalidChannelName {
+            value: value.to_owned(),
         })?;
         Ok(Self(value.to_owned()))
     }

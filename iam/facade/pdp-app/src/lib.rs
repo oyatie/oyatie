@@ -35,8 +35,8 @@
 
 use std::sync::Arc;
 
-use iam_pdp_kernel::DecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
+use iam_pdp_kernel::DecisionAuditSink;
 use shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
 use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, PolicyVersion,

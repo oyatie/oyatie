@@ -9,6 +9,8 @@ description = "Runnable iam policy-decision-point service (ADR-0559, G004 slice 
 build = "build.rs"
 
 [dependencies]
+shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
+http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hyper" }
 iam-pdp-kernel = { path = "../../core/pdp-kernel" }
 iam-pdp-bundle-file = { path = "../../adapters/pdp-bundle-file" }
 

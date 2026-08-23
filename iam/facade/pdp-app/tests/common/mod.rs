@@ -21,8 +21,8 @@ use std::sync::Arc;
 
 use iam_pdp_app::PdpState;
 use iam_pdp_bundle_file::{BundleSignature, SignedPolicyBundleDoc};
-use iam_pdp_kernel::InMemoryDecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
+use iam_pdp_kernel::InMemoryDecisionAuditSink;
 use shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
 use shared_audit_event_kernel::{ChainSigner, encode_hex};
 use shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
@@ -216,10 +216,7 @@ pub fn seeded_state(links: Vec<TemplateLink>) -> (Arc<PdpState>, Arc<InMemoryDec
 /// in the signed envelope the file-store adapter requires, or pass raw bytes
 /// directly for malformed-envelope RED fixtures.
 pub fn temp_bundle_file(tag: &str, contents: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "iam-pdp-e2e-{}-{tag}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("iam-pdp-e2e-{}-{tag}", std::process::id()));
     std::fs::create_dir_all(&dir).expect("temp dir");
     let path = dir.join("bundle.json");
     std::fs::write(&path, contents).expect("write bundle");

@@ -4,8 +4,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-pub use intelligence_capability_domain::AutonomyTier;
 use data_boundary_kernel::{Classified, DataClass};
+pub use intelligence_capability_domain::AutonomyTier;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum BypassGate {

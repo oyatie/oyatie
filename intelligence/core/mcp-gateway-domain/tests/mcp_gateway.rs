@@ -2,13 +2,13 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, privacy_data_classes_from};
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityMcpContract};
 use intelligence_mcp_gateway_domain::{
     DISCOVER_SCOPE, MCP_PROTOCOL_VERSION, McpAccessTokenClaims, McpAuthorizationChallenge,
     McpGatewayDescriptor, McpGatewayError, McpPrincipal, McpRateLimitPolicy, McpRateLimiter,
     McpTenantEndpoint, authorize_tool_call, validate_access_token,
 };
-use data_boundary_kernel::{DataClass, privacy_data_classes_from};
 
 #[test]
 fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {

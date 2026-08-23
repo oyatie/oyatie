@@ -21,10 +21,10 @@ pub mod authz;
 use std::collections::BTreeMap;
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
-use messaging_domain::{EventingError, Outbox, OutboxRecord};
 use data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
+use messaging_domain::{EventingError, Outbox, OutboxRecord};
 
 use authz::{
     AuditEmitAuthorizationError, AuditEmitAuthzProvider, AuditEmitResource, AuditEmitScope,

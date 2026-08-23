@@ -402,6 +402,7 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use data_boundary_kernel::DataClass;
     use network_domain::{
         CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr,
         NetworkProviderDnsZoneError, NetworkProviderDnsZonePort, NetworkProviderVpcPort,
@@ -409,7 +410,6 @@ mod tests {
         SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
     };
     use network_residency::ResidencyClass;
-    use data_boundary_kernel::DataClass;
 
     const SITE_REF: &str = "kr-seoul-colo-a";
     const CELL_REF: &str = "cell-kr-seoul-a";

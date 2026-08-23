@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BreakGlassQuorum, BypassError, BypassGate, BypassLedger,
     FoundationBypassInput,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn foundation_bypass_records_validate_window_and_public_classification() {

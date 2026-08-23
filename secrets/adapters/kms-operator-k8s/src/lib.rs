@@ -13,6 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use data_boundary_kernel::DataClass;
 use futures::StreamExt;
 use kube::{
     Client,
@@ -21,7 +22,6 @@ use kube::{
     runtime::{Controller, controller::Action as ControllerAction, watcher},
 };
 use network_residency::ResidencyClass;
-use data_boundary_kernel::DataClass;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation as DomainHsmValidation, KeyDestructionReceipt,
     KeyDestructionRequest, KeyRingQuarantineRequest, KeyVersionDemotionRequest, KmsDecryptRequest,

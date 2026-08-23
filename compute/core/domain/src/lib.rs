@@ -15,10 +15,10 @@ use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use iam_domain::IamRoleId;
 use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
@@ -1892,7 +1892,10 @@ mod tests {
 
         assert_eq!(cluster.resource_id.value.kind_label().unwrap(), "k8s");
         assert_eq!(cluster.node_pools.value.len(), 3);
-        assert_eq!(cluster.control_plane_version.value.value, "v1.30.2-oyatie.1");
+        assert_eq!(
+            cluster.control_plane_version.value.value,
+            "v1.30.2-oyatie.1"
+        );
         assert!(cluster.control_plane_private.value);
         assert_eq!(cluster.schema_version.value, COMPUTE_SCHEMA_VERSION);
     }

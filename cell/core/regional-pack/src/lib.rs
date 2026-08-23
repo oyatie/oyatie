@@ -36,8 +36,8 @@ pub use sovereign_deployment::{
     SovereignSloTarget, parse_sovereign_deployment_model_manifest,
 };
 
-use network_residency::{ResidencyClass, parse_residency_class_label};
 use data_boundary_kernel::{Classified, DataClass};
+use network_residency::{ResidencyClass, parse_residency_class_label};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {

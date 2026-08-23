@@ -1,11 +1,11 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use hr_employment_app::prepare_sensitive_hr_read_envelope;
 use hr_employment_domain::{
     SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,
     SensitiveReadLegalBasis, SensitiveReadPurpose,
 };
-use data_boundary_kernel::DataClass;
 
 #[test]
 fn sensitive_read_envelope_is_metadata_only() {

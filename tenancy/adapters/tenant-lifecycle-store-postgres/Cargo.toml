@@ -8,6 +8,7 @@ license = "Apache-2.0"
 description = "Real async sqlx/Postgres TenantLifecycleStore adapter: per-transaction tenant GUC (oyatie.tenant_id) + RLS isolation over a PgPool. Transient adapter behind the owned-shaped kernel port (data is the G003 owned-data cutover); aws-lc-rs TLS only (ADR-0506)."
 
 [dependencies]
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
 
 

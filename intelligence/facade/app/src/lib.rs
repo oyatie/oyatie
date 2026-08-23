@@ -294,7 +294,9 @@ impl AppConfig {
         )?;
         let secret_provider_url =
             std::env::var("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL").map_err(|_| {
-                AppBuildError::Config("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL is required".to_string())
+                AppBuildError::Config(
+                    "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL is required".to_string(),
+                )
             })?;
         let secret_provider_token = std::env::var("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN")
             .map_err(|_| {
@@ -310,7 +312,9 @@ impl AppConfig {
             .unwrap_or_else(|_| "default".to_string());
         let clickhouse_password =
             std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD").map_err(|_| {
-                AppBuildError::Config("OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD is required".to_string())
+                AppBuildError::Config(
+                    "OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD is required".to_string(),
+                )
             })?;
         let valkey_url = std::env::var("OYATIE_CLOUD_INTEL_VALKEY_URL")
             .unwrap_or_else(|_| "redis://valkey.infra.svc:6379".to_string());
@@ -1315,9 +1319,15 @@ mod tests {
                 "http://127.0.0.1:8200",
             ),
             ("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN", "vault-token"),
-            ("OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD", "clickhouse-password"),
+            (
+                "OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
+                "clickhouse-password",
+            ),
             ("OYATIE_CLOUD_INTEL_ENVIRONMENT", "production"),
-            ("OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE", "oauth_subscription"),
+            (
+                "OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
+                "oauth_subscription",
+            ),
             ("OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS", "PENDING"),
         ]);
 

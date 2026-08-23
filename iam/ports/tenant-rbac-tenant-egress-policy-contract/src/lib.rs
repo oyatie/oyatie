@@ -33,7 +33,8 @@ const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const SOURCE_MANIFEST_REF: &str =
     "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
-const SOURCE_ADMISSION_POLICY_REF: &str = "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
+const SOURCE_ADMISSION_POLICY_REF: &str =
+    "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
 const POLICY_REF_PREFIX: &str = "policy/network-egress/fd001/";
 const EXPECTED_EVIDENCE_REF: &str =
     "evidence/network-egress/fd001-tenant-rbac/egress-policy-review.jsonl";

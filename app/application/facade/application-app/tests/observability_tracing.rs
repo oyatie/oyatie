@@ -8,13 +8,13 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 
-use observability_domain::fields;
-use observability_tracing_adapter::TracingCapabilityInvocationObserver;
 use application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, Foundation, FoundationError, IdentityRegistration, Purpose,
     SubjectClass, TenantCapabilityGrant, TenantRegistration,
 };
+use observability_domain::fields;
+use observability_tracing_adapter::TracingCapabilityInvocationObserver;
 use tracing::field::{Field, Visit};
 use tracing::span::{Attributes, Record};
 use tracing::{Event, Id, Subscriber};

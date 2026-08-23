@@ -22,12 +22,12 @@
 //! `OntologyEngine::action_type` query accessors that do not yet exist on the
 //! public API, ensuring they fail (RED) until the accessor methods are added.
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     ActionTypeDefinition, ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId,
     EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,
     OntologyEngineError, OntologyPillar, PropertyTier,
 };
-use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers

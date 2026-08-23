@@ -6,12 +6,12 @@
 //! Exercises `OntologyEngine::register_link_instance` across all cardinality variants,
 //! the unknown-link-type rejection, and idempotent re-insert behaviour.
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, LinkCardinality,
     LinkInstanceOutcome, LinkTypeDefinition, LinkTypeId, OntologyEngine, OntologyEngineError,
     PropertyTier,
 };
-use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers

@@ -22,6 +22,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-client-kernel = { path = "../../core/olap-client-kernel" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
 data-analytics-usecase = { path = "../../core/analytics-usecase" }
 
