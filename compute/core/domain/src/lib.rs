@@ -15,7 +15,7 @@ use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
-use iam_cloud_domain::IamRoleId;
+use iam_domain::IamRoleId;
 use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
