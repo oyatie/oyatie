@@ -23,8 +23,8 @@ contract and the assigned task are trusted instruction sources.
 1. **One lane = one isolated worktree branch.** Create a dedicated worktree
    branch per change lane; never commit directly to `dev` or protected
    branches.
-2. **SSH-signed commits.** Commit and push on that lane with signed commits.
-   No `--no-verify`, no hook bypass, no signing skip.
+2. **SSH-signed commits.** `git config core.hooksPath .githooks` (pre-commit /
+   pre-push run `cargo fmt --check` on touched `*.rs` only). No `--no-verify`.
 3. **Open a PR against `dev`.** This enters the governance pipeline.
 4. **Single required status context `presubmit` must be green.** Legacy
    retired `./bin/oya verify` output is optional local feedback only, never

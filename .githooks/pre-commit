@@ -1,0 +1,7 @@
+#!/bin/sh
+# D-10: cargo fmt --check on staged *.rs only. Not workspace nextest.
+set -eu
+files=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.rs$' || true)
+[ -z "$files" ] && exit 0
+# shellcheck disable=SC2086
+cargo fmt --check -- $files

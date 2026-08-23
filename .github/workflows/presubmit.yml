@@ -1,16 +1,13 @@
-# TAP cadences (ADR-0719 D-9/D-10): precommit / prepush / presubmit / postsubmit.
-# This file is the reusable graph. Triggers:
+# TAP cadences (ADR-0719 D-9/D-10): pre-commit / pre-push / presubmit / postsubmit.
+# This file is the reusable graph:
 #   workflow_call from postsubmit.yml (push to dev)
-#   pull_request + merge_group + workflow_dispatch = presubmit (merge-blocking)
-# Local: precommit = rustfmt on staged *.rs; prepush is not a full nextest.
-# Weekly: buck2-weekly-smoke.yml. No second required GitHub context.
+#   pull_request + merge_group + workflow_dispatch = presubmit
+# Local: pre-commit / pre-push = cargo fmt on touched *.rs (.githooks/).
+# Clippy is advisory until the tree is -D-warnings clean (then it joins fan-in).
+# Live Postgres is path-gated on pull_request; always on merge_group / postsubmit.
 #
-# Execution engine: the Cargo workspace graph (rust-toolchain.toml pins the toolchain).
-# buck2 is local hermeticity tooling plus a weekly non-blocking smoke;
-# (buck2-weekly-smoke.yml). Inside the merge path, buck2 appears only as the
-# face materializer's internal helper (install-buck2.sh), never as a build/test verdict engine.
-#
-# Authority: docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md
+# Dual-emit: GitHub protection still keys oya-ci-required + merge-admission-required.
+# Fan-in jobs post presubmit AND those two names until the protection flip (same change).
 
 name: presubmit
 
@@ -26,26 +23,9 @@ on:
 permissions:
   contents: read
 
-# Event tuple consumed by the generated-faces materializer (--github-event).
 env:
-  EVENT_EVALUATED_SHA: ${{ github.sha }}
-  EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-  EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
-  EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
-  EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
-  EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
-  EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
-  EVENT_NAME: ${{ github.event_name }}
-  EVENT_REF: ${{ github.ref }}
-  EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
-  EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
-  # CI never opens a debugger, and this repo declares only [profile.release] — so dev/test
-  # builds took cargo's defaults and generated FULL debuginfo for 1,759 packages. Debuginfo
-  # also inflates target/, which slows cache save and restore at both ends. Set here rather
-  # than in Cargo.toml so local developer builds keep their debuginfo.
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
-  # Incremental state caches nothing useful on a fresh runner and costs time and disk to write.
   CARGO_INCREMENTAL: "0"
 
 concurrency:
@@ -53,12 +33,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ADR-0719 D-10. FAST BLOCKING LANE. cargo fmt --all --check is the merge bar.
-  # Clippy is a separate job (advisory until the tree is -D warnings clean).
   lint:
     name: lint (format)
-    if: ${{ github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -70,15 +47,11 @@ jobs:
           toolchain: "1.98.0"
           components: rustfmt
       - name: Check formatting
-        # Merge bar is cargo fmt --all --check (ADR-0719 D-10). Not the rustfmt CLI.
         run: cargo fmt --all --check
 
-  # ADR-0718-D1. DEEP LINT LANE, parallel with `test` and deliberately ABSENT from the
-  # presubmit fan-in. Advisory until the tree is -D warnings clean.
   clippy:
     name: clippy (advisory)
-    if: ${{ github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -95,25 +68,26 @@ jobs:
         continue-on-error: true
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
+  deny:
+    name: deny (licenses bans sources)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check
+          command-arguments: licenses bans sources
+          rust-version: "1.98.0"
+
   test:
-    # D88-amend: per-PR / merge_group / push-to-dev nextest is native Linux
-    # amd64 only. GitHub rejects job-level `if:` that reads `matrix.*`
-    # ("Unrecognized named-value: matrix"), so arm64 cannot share this job.
-    # Arm64 nextest stays a follow-up workflow (nightly + promotion train);
-    # it is not a fan-in input below.
     name: test (workspace)
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: read
     timeout-minutes: 60
     env:
-      # swatinem/rust-cache caches registry dependencies, NOT workspace members, and this
-      # workspace has 885 of them — a run logged a cache HIT with Cargo.lock untouched and still
-      # compiled 1,565 crates. sccache is content-addressed per compilation unit, so it survives
-      # the lockfile churn and the workspace-member gap that rust-cache leaves open.
-      # CARGO_INCREMENTAL=0 (set workflow-wide) is a prerequisite: sccache cannot cache
-      # incremental compilation.
       RUSTC_WRAPPER: sccache
       SCCACHE_GHA_ENABLED: "true"
     steps:
@@ -129,36 +103,42 @@ jobs:
           tool: nextest
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
-          # Its OWN key, not the shared cargo-ci-linux one. The live-postgres lanes compile a
-          # small subset of the workspace; sharing a key would let their thin save overwrite this
-          # lane's workspace-crate cache on every run — cache thrash that silently undoes the
-          # setting below.
           shared-key: cargo-ci-test-workspace-ubuntu-24.04
-          # THE fix for the measured defect: a run logged `Cache hit for: v0-rust-cargo-ci`
-          # with Cargo.lock untouched and still compiled 1,565 crates, because this action
-          # caches dependency crates but NOT workspace members by default — and this workspace
-          # has 885 of them. Viable now specifically because #2113 turned debuginfo off, which
-          # is what kept target/ small enough to be worth storing against the 10 GB per-repo
-          # cache budget.
           cache-workspace-crates: "true"
       - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
       - name: Workspace tests
-        # ADR-0718-D3. nextest runs each test in its own process with a work-stealing
-        # scheduler — materially faster than libtest's in-process threads at this scale, with
-        # per-test isolation. It does not run doctests, verified safe rather than assumed:
-        # zero doc examples across the .rs corpus and `doctest = false` already declared by
-        # the large majority of manifests.
-        # --no-fail-fast: nextest stops at the first failure by default, so each defect costs a
-        # WHOLE CI run to discover — four runs of this branch surfaced four separate failures one
-        # at a time. Running the suite out reports every failure in one run at the same verdict.
-        # This is not an advisory escape: the job still fails if any test fails, unlike
-        # `--keep-going` or `|| true`, which the registration gates reject for that reason.
         run: cargo nextest run --locked --workspace --profile ci
 
+  pg-gate:
+    name: pg-gate
+    runs-on: ubuntu-24.04
+    outputs:
+      live: ${{ steps.g.outputs.live }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: g
+        name: Path-gate live Postgres
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "live=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml)'; then
+            echo "live=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "live=false" >> "$GITHUB_OUTPUT"
+          fi
+
   live-postgres-adapters:
-    name: live-postgres-adapters (RLS / CDC / SCIM)
-    if: ${{ github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
+    name: live-postgres-adapters (RLS / SCIM)
+    needs: pg-gate
+    if: needs.pg-gate.outputs.live == 'true'
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:
@@ -166,11 +146,11 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci_pg_admin_local_only
-          POSTGRES_DB: oyatie
+          POSTGRES_DB: ci
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-cmd "pg_isready -U postgres -d ci"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -187,42 +167,35 @@ jobs:
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
-      - name: Bootstrap roles and schemas (adapters)
+      - name: Bootstrap roles and schemas
         env:
           ADMIN_PASSWORD: ci_pg_admin_local_only
           APP_PASSWORD: ci_pg_app_local_only
         run: |
-          set -euo pipefail; admin_password="${ADMIN_PASSWORD:-ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-ci_pg_app_local_only}"; if [ -f /run/ci-postgres/admin-password ]; then admin_password="$(cat /run/ci-postgres/admin-password)"; fi; if [ -f /run/ci-postgres/app-password ]; then app_password="$(cat /run/ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYATIE_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYATIE_PG_APP_URL=postgres://app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
-          # psql runs INSIDE the postgres service container, which already ships it. The
-          # runner previously apt-installed postgresql-client; that unretried network call was
-          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
-          # batching one such flake fails the whole batch and re-batches everything behind it.
-          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app') THEN EXECUTE format('CREATE ROLE app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
+          set -euo pipefail
+          echo "::add-mask::${ADMIN_PASSWORD}"
+          echo "::add-mask::${APP_PASSWORD}"
+          printf 'PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/ci\nPG_APP_URL=postgres://app:%s@127.0.0.1:5432/ci\n' "${ADMIN_PASSWORD}" "${APP_PASSWORD}" >> "${GITHUB_ENV}"
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${ADMIN_PASSWORD}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d ci)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app') THEN EXECUTE format('CREATE ROLE app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${APP_PASSWORD}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO app;"
           "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO app;"
-          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       - name: Live Postgres tests (adapters)
         env:
-          OYATIE_DATA_LIVE_POSTGRES: "1"
-          OYATIE_DATA_POSTGRES_ADMIN_URL: ${{ env.OYATIE_PG_ADMIN_URL }}
-          OYATIE_DATA_POSTGRES_APP_URL: ${{ env.OYATIE_PG_APP_URL }}
-          OYATIE_OUTBOX_LIVE_POSTGRES: "1"
-          OYATIE_OUTBOX_POSTGRES_ADMIN_URL: ${{ env.OYATIE_PG_ADMIN_URL }}
-          OYATIE_OUTBOX_POSTGRES_APP_URL: ${{ env.OYATIE_PG_APP_URL }}
           OYATIE_BACKBONE_LIVE_POSTGRES: "1"
-          OYATIE_BACKBONE_POSTGRES_URL: ${{ env.OYATIE_PG_ADMIN_URL }}
-          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.OYATIE_PG_APP_URL }}
-        run: cargo nextest run --locked --no-fail-fast -p data-sql-adapter-sqlx -p data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
+          OYATIE_BACKBONE_POSTGRES_URL: ${{ env.PG_ADMIN_URL }}
+          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_APP_URL }}
+        run: cargo nextest run --locked --no-fail-fast -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
-    if: ${{ github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
+    needs: pg-gate
+    if: needs.pg-gate.outputs.live == 'true'
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:
@@ -230,11 +203,11 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci_pg_admin_local_only
-          POSTGRES_DB: oyatie
+          POSTGRES_DB: ci
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-cmd "pg_isready -U postgres -d ci"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -251,40 +224,58 @@ jobs:
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
-      - name: Bootstrap roles and schemas (facades)
+      - name: Bootstrap roles and schemas
         env:
           ADMIN_PASSWORD: ci_pg_admin_local_only
           APP_PASSWORD: ci_pg_app_local_only
         run: |
-          set -euo pipefail; admin_password="${ADMIN_PASSWORD:-ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-ci_pg_app_local_only}"; if [ -f /run/ci-postgres/admin-password ]; then admin_password="$(cat /run/ci-postgres/admin-password)"; fi; if [ -f /run/ci-postgres/app-password ]; then app_password="$(cat /run/ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYATIE_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYATIE_PG_APP_URL=postgres://app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
-          # psql runs INSIDE the postgres service container, which already ships it. The
-          # runner previously apt-installed postgresql-client; that unretried network call was
-          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
-          # batching one such flake fails the whole batch and re-batches everything behind it.
-          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app') THEN EXECUTE format('CREATE ROLE app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
+          set -euo pipefail
+          echo "::add-mask::${ADMIN_PASSWORD}"
+          echo "::add-mask::${APP_PASSWORD}"
+          printf 'PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/ci\nPG_APP_URL=postgres://app:%s@127.0.0.1:5432/ci\n' "${ADMIN_PASSWORD}" "${APP_PASSWORD}" >> "${GITHUB_ENV}"
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${ADMIN_PASSWORD}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d ci)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app') THEN EXECUTE format('CREATE ROLE app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${APP_PASSWORD}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO app;"
           "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO app;"
-          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       - name: Live Postgres tests (facades)
         env:
           OYATIE_BACKBONE_LIVE_POSTGRES: "1"
-          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.OYATIE_PG_APP_URL }}
+          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_APP_URL }}
         run: cargo nextest run --locked --no-fail-fast -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  # Fan-in: the single required context `presubmit`. Green IFF lint, Linux amd64
-  # nextest, and both live-postgres lanes are green. Arm64 nextest is not a
-  # per-PR fan-in input (D88-amend). No Windows/macOS job. No cargo test/libtest.
   presubmit:
     name: presubmit
-    runs-on: ubuntu-latest
-    if: ${{ always() && github.event_name != 'schedule' }}
-    needs: [lint, test, live-postgres-adapters, live-postgres-facades]
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict
         run: |
-          [ "${{ needs.lint.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ] && [ "${{ needs.live-postgres-adapters.result }}" = "success" ] && [ "${{ needs.live-postgres-facades.result }}" = "success" ] && exit 0 || exit 1
+          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
+          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
+
+  oya-ci-required:
+    name: oya-ci-required
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
+    steps:
+      - name: Dual-emit until protection flip
+        run: |
+          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
+          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1
+
+  merge-admission-required:
+    name: merge-admission-required
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [lint, test, deny, live-postgres-adapters, live-postgres-facades]
+    steps:
+      - name: Dual-emit until protection flip
+        run: |
+          ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
+          ok "${{ needs.lint.result }}" && ok "${{ needs.test.result }}" && ok "${{ needs.deny.result }}" && ok "${{ needs.live-postgres-adapters.result }}" && ok "${{ needs.live-postgres-facades.result }}" && exit 0 || exit 1

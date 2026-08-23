@@ -1,0 +1,8 @@
+#!/bin/sh
+# D-10 / D-43: cargo fmt on touched *.rs vs upstream. Not workspace nextest.
+set -eu
+base=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || echo origin/dev)
+files=$(git diff --name-only --diff-filter=ACMR "$base"...HEAD 2>/dev/null | grep '\.rs$' || true)
+[ -z "$files" ] && exit 0
+# shellcheck disable=SC2086
+cargo fmt --check -- $files

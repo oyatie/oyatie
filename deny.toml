@@ -1,9 +1,8 @@
-# cargo-deny policy (M01-P14-IP-004).
+# cargo-deny policy.
 #
-# Hyperscaler-grade dependency policy: licenses, advisories, bans, and
-# registry sources are all governed here. `cargo deny check` is wired
-# into `scripts/check.sh` and CI; any change to this file is a policy
-# change and must be reviewed under that lens (security + licensing).
+# Presubmit (hermetic): `cargo deny check licenses bans sources`.
+# Weekly (network): `cargo deny check advisories`.
+# Any change to this file is a policy change.
 
 [licenses]
 version = 2

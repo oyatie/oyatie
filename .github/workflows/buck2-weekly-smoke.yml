@@ -1,7 +1,5 @@
 # Weekly non-blocking honesty check for the local hermetic buck2 graph.
-# Not part of the merge path: merge authority is the `presubmit` context.
-# A red run here means BUCK/reindeer wiring rotted relative to the Cargo workspace;
-# it is a signal to either fix the graph or retire buck2, never a merge blocker.
+# Not part of the merge path. Red means BUCK/reindeer wiring rotted.
 #
 # Authority: docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md
 
@@ -18,15 +16,23 @@ permissions:
 jobs:
   buck2-weekly-smoke:
     name: buck2-weekly-smoke (hermetic graph honesty)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Install pinned buck2 (digest-verified)
-        run: infra/ci/install-buck2.sh
-      - name: Provision pinned Rust toolchain
-        run: rustup toolchain install && rustc --version
+      - name: Install digest-pinned buck2
+        run: |
+          set -euo pipefail
+          ver="2026-07-15"
+          asset="buck2-x86_64-unknown-linux-gnu.zst"
+          sha="ecc3d807dd0b0feff1a423688bd598263b8339d223e685578a87196456c19d95"
+          curl -sSL -o /tmp/buck2.zst "https://github.com/facebook/buck2/releases/download/${ver}/${asset}"
+          echo "${sha}  /tmp/buck2.zst" | sha256sum -c -
+          zstd -d /tmp/buck2.zst -o /tmp/buck2
+          chmod +x /tmp/buck2
+          sudo mv /tmp/buck2 /usr/local/bin/buck2
+          buck2 --version
       - name: Hermetic workspace build
         run: buck2 build //...

@@ -62,10 +62,15 @@ context.
 
 Repository topology and the full operating contract live in
 [`docs/AGENTS.md`](docs/AGENTS.md) (§ Repository topology). Canonical implementation homes follow
-ADR-0562 as amended by ADR-0615: one registered capability per top-level capability directory with
-`core/`, `ports/`, `adapters/`, and `facade/` faces; multi-capability tenant compositions live under
-`app/<product>/`. Existing `{oya,cloud}/...` and `libs/` paths are migration inventory, not the
-destination layout.
+ADR-0562 as amended by ADR-0615 and ADR-0719 D-8: every capability and every
+`app/<product>/` share the **same** closed children (`core/`, `ports/` including
+`ports/draft/`, `adapters/`, `facade/`, `cedar/`, `observability/slos/`, `iac/`,
+`docs/`). Inner face grammar, draft-vs-agreed ports, amendment jurisdiction
+(owner-local content vs shared contract vs repo root), and naming
+(RFC 430/940, AIP-191, directory leaf = last grammar token) are ADR-0719
+D-8 / D-27 / D-28 / D-29 / D-30. Owners fill that shape; they do not change
+it. Existing `{oya,cloud}/...` and `libs/` paths are migration inventory, not
+the destination layout.
 
 ## Build & verify
 
@@ -85,6 +90,14 @@ There is no root Makefile. Cloudflare edge fmt/plan/apply is `tofu -chdir=infra/
 (see [`iac/README.md`](iac/README.md)). Do not treat Make as cargo verify.
 
 ## Coding & testing standards
+
+Hand-written files agents emit are **≤300 lines** except live ADRs, `PRD.md`,
+this file / `CLAUDE.md`, generated output, lockfiles, and `third-party/`
+(ADR-0719 D-35). Live law stays **one** apex ADR plus app PRD — do not
+recreate `specs/` or `plan/` (D-36). Shared toml/json/yaml/root docs are
+**not** split: implement agents add uuid fragments; one serial fold on
+the receiving branch (D-37). Do not in-place edit `Cargo.lock` / root
+`Cargo.toml` / toolchain / this file from a feature lane.
 
 The full battery lives in [`docs/standards/`](docs/standards/INDEX.md). Load-bearing for every
 change: `code-style-rust.md`, `error-handling.md`, `dependency-policy.md` (no ad-hoc
@@ -137,9 +150,13 @@ engine + policy-as-data so any repo/team can adopt it (pipeline-as-product): our
 sanctioned_primitives:
   - git
 required_sequence:
-  - isolated worktree branch per agent lane (one lane = one worktree)
+  - harness-native isolation only (worktree, vendor sandbox, or single
+    checkout — the tool's problem, not a shared protocol; ADR-0719 D-42)
+  - git config core.hooksPath .githooks  # pre-commit / pre-push = cargo fmt on touched *.rs
   - SSH-signed commit and push on that lane
-  - open a PR against dev               # enters the governance pipeline
+  - draft PR against origin/dev as soon as the lane has a path (occupancy);
+    never merge live lanes into each other or merge origin/dev into a
+    still-writing lane (D-38 star; replay/rebase onto trunk)
   - single required status context presubmit green (produced by the pipeline gate apps per ADR-0515)
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
     and the required presubmit context green; then squash merge
@@ -156,7 +173,10 @@ blocker_policy: blockers become dispatcher-ready resolution cards with source co
   blocker class, acceptance criteria, verification path, suggested owner/profile,
   and dependency/conflict notes unless the coordinator is explicitly assigned as worker
 scaffold_protocol:
-  mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
+  mechanism: new work is a new unique file; parent indexes stay stable
+    (D-41); occupancy is a draft PR on origin/dev (D-42); harness chooses
+    worktree/sandbox; integrate star-shaped via merge_group (D-38); no
+    crate/cap lock; no .delta; denylist in-place edits fail at presubmit
   adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 cli_retirement_note: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09. Verification and merge authority live in the pipeline gate apps behind the single required context presubmit; operations ride the console + API. Legacy `dev-cli` invocations are local bridge feedback only, never merge authority; the tracked `bin/oya` PATH shim is retired. Historical note (retired tooling, cited as history only): the `oya git` wrapper and the retired VCS ratchet (claim/verify/done/promote) were retired by ADR-0363, and the pre-cutover CI backbone plus its gate-runner entrypoints were retired by ADR-0515.
 <!-- agent-instructions:end -->

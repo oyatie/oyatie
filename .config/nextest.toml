@@ -1,27 +1,10 @@
-# Nextest configuration.
-#
-# The `ci` profile is referenced by tracked local/pre-push validation and
-# recovery checks (`scripts/agent-pre-push-validate.sh`,
-# `registry/loop-recovery-patterns/missing-nextest-profile-ci.json`, and
-# `specs/score-cards.json`). Without this file, nextest exits 96 with
-# `profile 'ci' not found`.
-#
-# Profile shape: keep tests deterministic — no retries (a flaky test
-# under DENY is a real bug to fix, not a retry candidate), no fail-fast
-# (collect all failures in one run for triage), JUnit output for the CI
-# reporting lane.
+# Nextest configuration. Presubmit invokes `--profile ci`.
 
 [profile.default]
-# Inherit default nextest behavior for local `cargo nextest run`.
 
 [profile.ci]
-# Run the full platform even if a test fails so the CI report shows every
-# failure, not just the first.
 fail-fast = false
-# No retries: under DENY + the ADR-0083 Tier 1 posture, a flaky test is
-# a bug to fix, not a transient to retry past.
 retries = 0
-# Emit JUnit-compatible XML for the CI reporting lane.
 
 [profile.ci.junit]
 path = "junit.xml"
