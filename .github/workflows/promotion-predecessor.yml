@@ -1,6 +1,7 @@
 # Promotion rungs: staging ← dev, canary ← staging, production ← canary.
 # Feature work enters at `dev`. Skipping a rung is born-blocking.
-# uses-only (no inline shell) so rust-first workflow_inline_shell does not grow.
+# Checks that HEAD is a descendant of the predecessor ref, not that the
+# feature-branch *name* equals the predecessor.
 name: promotion-predecessor
 
 on:
@@ -14,24 +15,25 @@ permissions:
 jobs:
   promotion-predecessor:
     name: promotion-predecessor
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - name: Require predecessor rung
-        # github-script v7.0.1 — SHA only; score-card:pre-push:github-action-sha rejects trailing comments.
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          script: |
-            const pred = { staging: "dev", canary: "staging", production: "canary" };
-            const base = context.payload.pull_request.base.ref;
-            const head = context.payload.pull_request.head.ref;
-            const want = pred[base];
-            if (!want) {
-              core.setFailed(`unexpected promotion base '${base}'`);
-              return;
-            }
-            if (head !== want) {
-              core.setFailed(
-                `promote ${base} only from ${want} (head is '${head}'). ` +
-                  `dev is the integration trunk; do not skip rungs.`
-              );
-            }
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Require predecessor rung
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          case "$BASE" in
+            staging) want=dev ;;
+            canary) want=staging ;;
+            production) want=canary ;;
+            *) echo "unexpected promotion base '$BASE'"; exit 1 ;;
+          esac
+          git fetch origin "$want" --depth=1
+          if ! git merge-base --is-ancestor "origin/$want" HEAD; then
+            echo "promote $BASE only from commits already on $want"
+            exit 1
+          fi

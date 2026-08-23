@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   SaaS surface rollouts with per-vertical regulatory-pack awareness.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-cohort-honor
+  - governance-canary-required
+  - governance-cohort-honor
 related_adrs: [ADR-0001, ADR-0033, ADR-0034, ADR-0037, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -36,7 +36,7 @@ SaaS surfaces are tenant-vertical-aware ([ADR-0033](../../decisions/ADR-0033-ver
 2. Trigger DPIA refresh on regulated verticals (per [`playbook-vertical-pack.md`](playbook-vertical-pack.md)).
 3. Honour stable-regulated cohort lag ([`stable-cohort-spec.md`](stable-cohort-spec.md) §3).
 
-A change that affects only `general` skips DPIA; one touching `healthcare` triggers it. `oya-governance-data-class` (existing) gates this.
+A change that affects only `general` skips DPIA; one touching `healthcare` triggers it. `governance-data-class` (existing) gates this.
 
 ## 4. Per-tier semver discipline
 
@@ -48,7 +48,7 @@ Per [ADR-0037](../../decisions/ADR-0037-public-api-stability-tiers-and-deprecati
 | GA | 99.95% | Required | Required for write-side |
 | Stable | 99.99% | Required | Required for write-side |
 
-`oya-governance-api-semver` enforces the tier declaration.
+`governance-api-semver` enforces the tier declaration.
 
 ## 5. Cross-axis contract changes
 
@@ -61,7 +61,7 @@ A/B experiments on SaaS surfaces are gated by cohort:
 - `canary-pioneer` + `canary-eligible` + opted-in `stable-enterprise` are eligible.
 - `stable-regulated` is **never** eligible without per-vertical pack opt-in.
 
-Planned advisory lane: `oya-governance-cohort-honor`.
+Planned advisory lane: `governance-cohort-honor`.
 
 ## 7. Per-tenant smoke (after canary)
 

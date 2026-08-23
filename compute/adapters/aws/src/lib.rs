@@ -267,14 +267,14 @@ mod tests {
         ComputeQuotaEnvelope, InstanceCreate, InstanceState,
     };
     use compute_resource::InstanceFlavor;
+    use data_boundary_kernel::DataClass;
     use network_residency::ResidencyClass;
-    use oya_data_boundary_kernel::DataClass;
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
     fn instance() -> Instance {
         Instance::new(InstanceCreate {
-            resource_id: "oya:cloud:us-east-1:ten_alpha:instance:app-1".to_string(),
+            resource_id: "oyatie:cloud:us-east-1:ten_alpha:instance:app-1".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "us-east-1".to_string(),
             az: "us-east-1-a".to_string(),
@@ -286,10 +286,10 @@ mod tests {
                 gpu_count: 0,
                 local_ssd_gb: 100,
             },
-            image: format!("oci://harbor.us-east-1.oya/ten_alpha/app@sha256:{DIGEST}"),
+            image: format!("oci://harbor.us-east-1.oyatie.io/ten_alpha/app@sha256:{DIGEST}"),
             key_pair: Some("key_prod".to_string()),
-            vpc_id: "oya:cloud:us-east-1:ten_alpha:vpc:prod".to_string(),
-            subnet_id: "oya:cloud:us-east-1:ten_alpha:subnet:prod-a".to_string(),
+            vpc_id: "oyatie:cloud:us-east-1:ten_alpha:vpc:prod".to_string(),
+            subnet_id: "oyatie:cloud:us-east-1:ten_alpha:subnet:prod-a".to_string(),
             security_groups: vec!["sg_web".to_string(), "sg_app".to_string()],
             iam_role: Some("role_app".to_string()),
             user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),

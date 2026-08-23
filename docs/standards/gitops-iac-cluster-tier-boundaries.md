@@ -1,7 +1,7 @@
 # Standard — GitOps + IaC + cluster lifecycle: tier boundaries
 
 > ADR anchor: `docs/decisions/ADR-0709-general-live-apex.md`.
-> Gate anchor: `crates/oya-check-iac-tier-discipline/`.
+> Gate anchor: `crates/check-iac-tier-discipline/`.
 > Authored 2026-05-18.
 
 ## TL;DR
@@ -72,7 +72,7 @@ Under `microservices/cloud-iac/tofu/modules/`:
 
 ## Discipline
 
-- `oya-check-iac-tier-discipline` is the advisory gate. It
+- `check-iac-tier-discipline` is the advisory gate. It
   flips to BLOCKER at T+90d (post-Terraform-migration window).
 
 ## Migration timeline (Terraform → OpenTofu)

@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: oyatie-microservices
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
-    oyatie.com/cargo-package: oya-community
+    oyatie.com/cargo-package: community
     oya.io/tenant-id: fd001-dogfood
     oya.io/cost-center: fd001-backbone
     oya.io/workload-class: app
@@ -45,7 +45,7 @@ spec:
         oyatie.com/audit-chain-event: microservice-deployment
     spec:
       runtimeClassName: runc
-      serviceAccountName: oya-community
+      serviceAccountName: community
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -73,13 +73,13 @@ spec:
             - name: http
               containerPort: 8080
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: community
-            - name: OYA_CARGO_PACKAGE
-              value: oya-community
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_CARGO_PACKAGE
+              value: community
+            - name: OYATIE_OTEL_ENDPOINT
               value: http://otel-collector.observability.svc.cluster.local:4317
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: cosign-required
           readinessProbe:
             httpGet:

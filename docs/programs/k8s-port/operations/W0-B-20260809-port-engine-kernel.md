@@ -102,7 +102,7 @@ buck2 test //build/port-engine/... //ci/facade/layer-dependency-acyclicity/... \
   Tests finished: Pass 12. Fail 0. Timeout 0. Fatal 0. Build failure 0
 ```
 
-The preceding commit's evidence over the wider 18-target set was `Tests finished: Pass 18. Fail 0`, and `oya-ci-required` was SUCCESS on the pre-rebase head.
+The preceding commit's evidence over the wider 18-target set was `Tests finished: Pass 18. Fail 0`, and `presubmit` was SUCCESS on the pre-rebase head.
 
 ## Reproduction
 

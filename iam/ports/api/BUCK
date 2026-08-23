@@ -1,0 +1,24 @@
+rust_library(
+    name = "iam-api",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iam_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/domain-control:iam-domain",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "iam-api-iam-api",
+    srcs = ["tests/iam_api.rs"],
+    crate = "iam_api_iam_api",
+    crate_root = "tests/iam_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iam-api",
+        "//iam/core/domain-control:iam-domain",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
+    ],
+)

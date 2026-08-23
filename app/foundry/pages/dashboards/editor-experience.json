@@ -1,0 +1,95 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "docs",
+    "owner_team": "axis-docs + ops-sre-reliability",
+    "audience": "tenant operator + axis-docs SRE",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "docs-editor-experience",
+  "title": "docs: editor experience (doc-open / cursor-sync / save / CRDT divergence)",
+  "tags": ["docs", "editor", "collab", "crdt", "burn-rate"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(docs_document_open_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Doc-open RPS (cold + warm)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(docs_document_open_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Doc-open p99 (cold) (s)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_document_open_seconds_bucket{cache_kind=\"cold\",pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.3, "color": "yellow"}, {"value": 0.5, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "Doc-open p99 (warm) (s)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_document_open_seconds_bucket{cache_kind=\"warm\",pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.1, "color": "yellow"}, {"value": 0.25, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "Save p99 (s)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_save_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.1, "color": "yellow"}, {"value": 0.3, "color": "red"}]}}}},
+
+    {"id": 5, "type": "timeseries", "title": "Doc-open latency p50/p95/p99 (cold)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(docs_document_open_seconds_bucket{cache_kind=\"cold\",pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(docs_document_open_seconds_bucket{cache_kind=\"cold\",pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_document_open_seconds_bucket{cache_kind=\"cold\",pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Cursor sync p99 by (tenant, doc)",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_collab_cursor_sync_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "cursor-sync p99", "refId": "A"}
+      ]},
+
+    {"id": 7, "type": "stat", "title": "CRDT silent-loss attempts (Sev-1 if > 0)",
+      "gridPos": {"x": 0, "y": 12, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(docs_collab_silent_loss_attempt_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.001, "color": "red"}]}}}},
+
+    {"id": 8, "type": "timeseries", "title": "Conflict surfaced rate (per tenant)",
+      "gridPos": {"x": 6, "y": 12, "w": 18, "h": 4},
+      "targets": [
+        {"expr": "sum by (tenant_id) (rate(docs_collab_conflict_surfaced_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{tenant_id}}", "refId": "A"}
+      ]},
+
+    {"id": 9, "type": "table", "title": "Top-10 tenants by save RPS (last 1h)",
+      "gridPos": {"x": 0, "y": 16, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "topk(10, sum by (tenant_id) (rate(docs_save_total{pack=\"$pack\"}[1h])))", "format": "table", "refId": "A"}
+      ]}
+  ],
+  "annotations": {
+    "list": [
+      {"name": "rollouts", "datasource": "argo-rollouts", "iconColor": "blue", "query": "{microservice=\"docs\"}"},
+      {"name": "policy-changes", "datasource": "prometheus", "iconColor": "purple", "expr": "changes(docs_policy_version[1h]) > 0"}
+    ]
+  }
+}

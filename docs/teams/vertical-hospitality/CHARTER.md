@@ -10,13 +10,13 @@ This team owns the hospitality vertical: Property Management System (PMS), reser
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Hospitality (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-hospitality-kernel` — `Reservation`, `GuestProfile`, `Room`, `Folio`, `HousekeepingTask`, `Rateplan`
-  - `oya-vertical-hospitality-domain-*` — reservation lifecycle, check-in/out, folio management, revenue management
+  - `vertical-hospitality-kernel` — `Reservation`, `GuestProfile`, `Room`, `Folio`, `HousekeepingTask`, `Rateplan`
+  - `vertical-hospitality-domain-*` — reservation lifecycle, check-in/out, folio management, revenue management
   - Products owned: `products/vertical-hospitality/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — folio transactions, guest consent events)
   - `DSR / consent withdrawal cascade` (ack required — guest PII)
-- **Catalog records:** `crates/oya-vertical-hospitality-*`
+- **Catalog records:** `crates/vertical-hospitality-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at activation
 

@@ -48,18 +48,18 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 
 **Mutator allowlist.** Each long-lived branch has exactly one mutator agent identity:
 
-- `origin/dev` ← `dev-promoter` (Cosign identity `oya-intelligence-dev-promoter`).
-- `staging` ← `staging-promoter` (Cosign identity `oya-intelligence-staging-promoter`).
-- `prod` ← `prod-promoter` (Cosign identity `oya-intelligence-prod-promoter`).
+- `origin/dev` ← `dev-promoter` (Cosign identity `intelligence-dev-promoter`).
+- `staging` ← `staging-promoter` (Cosign identity `intelligence-staging-promoter`).
+- `prod` ← `prod-promoter` (Cosign identity `intelligence-prod-promoter`).
 
-Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-governance-no-direct-origin-dev-commit`, `oya-governance-no-direct-staging-commit`, `oya-governance-no-direct-prod-commit`.
+Direct commits forbidden by branch-protection. Planned advisory lanes: `governance-no-direct-origin-dev-commit`, `governance-no-direct-staging-commit`, `governance-no-direct-prod-commit`.
 
 
 **Exception path (Directive 12 carve-out).** Compliance-pack updates and KMS root rotation classes flagged `requires_human_signoff: true` require a Cosign-signed approval commit from `@council-architecture` before `prod-promoter` fires. No other class requires a human button.
 
 **Linear history.** Squash-merge into `origin/dev`; fast-forward into `staging` and `prod`. No merge commits. Bisect always works.
 
-**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-governance-capability-stage-binding` verifies stage matches source branch.
+**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `governance-capability-stage-binding` verifies stage matches source branch.
 
 ---
 

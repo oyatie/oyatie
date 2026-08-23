@@ -1,4 +1,0 @@
-export_file(
-    name = "ci-webhook-gateway.cedar",
-    visibility = ["PUBLIC"],
-)

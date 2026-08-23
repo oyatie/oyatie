@@ -1,12 +1,12 @@
 //! Env-gated LIVE Postgres integration tests for the durable SCIM adapters.
-//! They run ONLY when `OYA_BACKBONE_LIVE_POSTGRES` is truthy AND disposable
+//! They run ONLY when `OYATIE_BACKBONE_LIVE_POSTGRES` is truthy AND disposable
 //! database URLs are supplied; otherwise every test returns cleanly so the
 //! always-on lane stays database-free.
 //!
 //! Required environment when enabled:
-//! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
-//! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
-//! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
+//! - `OYATIE_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
+//! - `OYATIE_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
+//! - `OYATIE_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
 //!   NON-BYPASSRLS role; the adapter's role)
 //!
 //! What they prove against a real database:
@@ -18,13 +18,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use identity_scim_store_postgres::{PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE};
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
-use oya_shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
+use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 
-const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
-const SETUP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
-const APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+const ENABLE_ENV: &str = "OYATIE_BACKBONE_LIVE_POSTGRES";
+const SETUP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_URL";
+const APP_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_APP_URL";
 const RUNTIME_ROLE: &str = "identity_scim_runtime";
 const GROUPS_TABLE: &str = "identity_scim.identity_scim_groups";
 
@@ -37,6 +37,13 @@ fn enabled() -> bool {
             )
         })
         .unwrap_or(false)
+}
+
+fn require_enabled() {
+    assert!(
+        enabled(),
+        "live test requires OYATIE_BACKBONE_LIVE_POSTGRES=1 (nextest --profile live --run-ignored only)"
+    );
 }
 
 async fn pool(url: &str) -> PgPool {
@@ -147,10 +154,9 @@ async fn current_role_flags(p: &PgPool) -> (String, bool, bool) {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_app_role_has_no_bypassrls() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let app = pool(&app_url).await;
     let (name, rolsuper, rolbypassrls) = current_role_flags(&app).await;
@@ -161,10 +167,9 @@ async fn live_app_role_has_no_bypassrls() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_scim_tenant_scoped_crud_and_uniqueness() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -198,10 +203,9 @@ async fn live_scim_tenant_scoped_crud_and_uniqueness() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_denies_cross_tenant_read_and_write() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -244,10 +248,9 @@ async fn live_rls_denies_cross_tenant_read_and_write() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_denies_cross_tenant_on_groups() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;
@@ -291,10 +294,9 @@ async fn live_rls_denies_cross_tenant_on_groups() {
 }
 
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_rls_unset_guc_denies_all_access() {
-    if !enabled() {
-        return;
-    }
+    require_enabled();
     let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
     let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
     let setup = pool(&setup_url).await;

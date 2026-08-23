@@ -36,7 +36,7 @@ Minimum headers:
 
 Native protocol note:
 
-- OpenAPI covers the oya-native API.
+- OpenAPI covers the native API.
 - S3-compatible facade is under `/s3/` and follows AWS SigV4.
 - WebDAV facade is under `/dav/` and follows RFC 4918.
 
@@ -289,7 +289,7 @@ Base URL: `https://drive.{pack}.oyatie.com/v1`.
 
 ## gRPC Methods
 
-Package: `oya.drive.v1`.
+Package: `oyatie.drive.v1`.
 
 ### `FileStore`
 
@@ -461,9 +461,9 @@ ADR-0316 capability tiers control throughput and storage envelopes.
 Rate-limit headers:
 
 - `Retry-After`
-- `oya-throttle-class`
-- `oya-throttle-user-headroom`
-- `oya-throttle-tenant-headroom`
+- `throttle-class`
+- `throttle-user-headroom`
+- `throttle-tenant-headroom`
 - `Upload-Offset` for resumable upload recovery
 
 ## OpenAPI 3.2.0 Schema

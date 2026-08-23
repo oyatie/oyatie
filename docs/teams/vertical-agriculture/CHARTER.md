@@ -10,12 +10,12 @@ This team owns the agriculture vertical: crop/livestock traceability, field mana
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Agriculture (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-agriculture-kernel` — `Farm`, `Field`, `Crop`, `LivestockBatch`, `HarvestRecord`, `TraceabilityLot`, `ChemicalApplication`
-  - `oya-vertical-agriculture-domain-*` — crop lifecycle, traceability chain, chemical-application recording, harvest reporting
+  - `vertical-agriculture-kernel` — `Farm`, `Field`, `Crop`, `LivestockBatch`, `HarvestRecord`, `TraceabilityLot`, `ChemicalApplication`
+  - `vertical-agriculture-domain-*` — crop lifecycle, traceability chain, chemical-application recording, harvest reporting
   - Products owned: `products/vertical-agriculture/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — traceability lot events, chemical application records, food-safety certification events)
-- **Catalog records:** `crates/oya-vertical-agriculture-*`
+- **Catalog records:** `crates/vertical-agriculture-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at activation; KR 농산물이력제 + FSMA compliance ADR
 

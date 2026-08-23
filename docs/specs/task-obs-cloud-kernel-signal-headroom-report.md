@@ -1,6 +1,6 @@
 # Spec: obs-cloud-kernel-signal-headroom-report
 
-**Crate**: `oya-cloud-observability-kernel`  
+**Crate**: `cloud-observability-kernel`  
 **Lane**: observability  
 **Priority**: high  
 **Effort**: S

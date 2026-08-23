@@ -21,19 +21,19 @@ use audit_chain_domain::{
     Plane, append as audit_append,
 };
 use audit_file_adapter::FileAuditLedger;
+use data_boundary_kernel::{DataClass, Purpose};
 use iam_pdp_cedar::{
     AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,
     PdpDecisionAuditChainLogger,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint, TemplateLink,
     TemplateSrc,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, Decision, EntityRef, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::SeededIdGenerator;
+use shared_ulid_id_kernel::SeededIdGenerator;
 
 const SCHEMA_SRC: &str = include_str!("../cedar/platform.cedarschema");
 const POLICIES_SRC: &str = include_str!("../cedar/platform-policies.cedar");
@@ -233,7 +233,7 @@ fn unique_ledger_path(test_name: &str) -> PathBuf {
         .expect("test-side: system clock must be after unix epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "oya-pdp-audit-chain-{test_name}-{}-{now}.ledger",
+        "pdp-audit-chain-{test_name}-{}-{now}.ledger",
         std::process::id()
     ))
 }
@@ -1494,15 +1494,15 @@ fn crate_local_cedar_seeds_match_canonical() {
     const PAIRS: &[(&str, &str)] = &[
         (
             "cedar/platform.cedarschema",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform.cedarschema",
+            "iam/core/platform-contracts-kernel/cedar/platform.cedarschema",
         ),
         (
             "cedar/platform-policies.cedar",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform-policies.cedar",
+            "iam/core/platform-contracts-kernel/cedar/platform-policies.cedar",
         ),
         (
             "cedar/platform-templates.cedar",
-            "libs/oya-shared-platform-contracts-kernel/cedar/platform-templates.cedar",
+            "iam/core/platform-contracts-kernel/cedar/platform-templates.cedar",
         ),
     ];
     let (Some(crate_dir), Some(root)) = (manifest_dir(), repo_root()) else {

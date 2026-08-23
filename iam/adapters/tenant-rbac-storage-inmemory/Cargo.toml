@@ -7,11 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 iam-tenant-rbac-usecase = { path = "../../core/tenant-rbac-usecase" }
 iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 
 [lib]
 name = "iam_tenant_rbac_storage_inmemory"

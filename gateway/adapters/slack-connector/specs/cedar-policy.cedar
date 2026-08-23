@@ -1,5 +1,5 @@
 // Cedar policy template — tenant→Slack adapter access.
-// One policy per tenant; deployed by oya-policy-cedar.
+// One policy per tenant; deployed by policy-cedar.
 
 // Allow ops principals in tenant T to use the slack adapter
 // for conversation + message entity kinds.

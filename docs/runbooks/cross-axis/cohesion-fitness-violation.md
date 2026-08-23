@@ -14,7 +14,7 @@ doc_status: published
 a cross-axis contract change shipped without consumer-axis review
 
 ## Detection
-- Source signal: `oya-governance-cohesion` block; cross-axis review label missing on a contract-touching PR
+- Source signal: `governance-cohesion` block; cross-axis review label missing on a contract-touching PR
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 3 ladder
 
 ## First-response checklist

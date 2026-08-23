@@ -35,7 +35,7 @@ before the policy evaluation result is known and audited.
 sequenceDiagram
   autonumber
   participant Caller as calling microservice
-  participant SDK as oya-shared-policy-client
+  participant SDK as shared-policy-client
   participant Cache as cell-local compiled-policy cache
   participant Cedar as policy evaluator
   participant Registry as fragment registry
@@ -174,12 +174,12 @@ stateDiagram-v2
 - Service: [microservices/compliance/](../../../microservices/compliance/)
 - Service: [microservices/audit-chain/](../../../microservices/audit-chain/)
 - Service: [microservices/observability/](../../../microservices/observability/)
-- Cell ownership: [tenancy §cell-assignment](../../../microservices/tenancy/ARCHITECTURE.md#cell-assignment), [cloud-iac §cell-provisioning](../../../microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning), [observability §cell-health](../../../microservices/observability/ARCHITECTURE.md#cell-health), [api-gateway §cell-aware-routing](../../../microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing), [audit-chain §cell-scoped-audit](../../../microservices/audit-chain/ARCHITECTURE.md#cell-scoped-audit), and [oya-shuffle-sharding](../../../crates/oya-shuffle-sharding/README.md).
+- Cell ownership: [tenancy §cell-assignment](../../../microservices/tenancy/ARCHITECTURE.md#cell-assignment), [cloud-iac §cell-provisioning](../../../microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning), [observability §cell-health](../../../microservices/observability/ARCHITECTURE.md#cell-health), [api-gateway §cell-aware-routing](../../../microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing), [audit-chain §cell-scoped-audit](../../../microservices/audit-chain/ARCHITECTURE.md#cell-scoped-audit), and [shuffle-sharding](../../../crates/shuffle-sharding/README.md).
 - Service: [microservices/feature-flags/](../../../microservices/feature-flags/)
 - Service: [microservices/cloud-secrets/](../../../microservices/cloud-secrets/)
 - Service: [microservices/governance/](../../../microservices/governance/)
-- Crate family: [crates/oya-policy-cedar-domain/](../../../crates/oya-policy-cedar-domain/)
-- Crate family: [crates/oya-policy-cedar-api/](../../../crates/oya-policy-cedar-api/)
+- Crate family: [crates/policy-cedar-domain/](../../../crates/policy-cedar-domain/)
+- Crate family: [crates/policy-cedar-api/](../../../crates/policy-cedar-api/)
 - Standard: [Cedar Policy Authoring](../../standards/cedar-policy-authoring.md)
 - Standard: [Cedar Policy Discipline](../../standards/cedar-policy-discipline.md)
 - Standard: [Regulatory Pack AuthzPolicy Overlays](../../standards/regulatory-pack-authzpolicy-overlays.md)

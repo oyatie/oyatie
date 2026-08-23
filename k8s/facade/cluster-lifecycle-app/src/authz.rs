@@ -6,7 +6,7 @@
 //! ## Why this module exists
 //!
 //! `POST /clusters` previously "authorized" by comparing the caller-supplied
-//! `x-oya-tenant-id` header to the caller-supplied `body.tenant_id` — both are
+//! `x-tenant-id` header to the caller-supplied `body.tenant_id` — both are
 //! forgeable request inputs, so any caller could provision a cluster for ANY
 //! tenant (the AUTH-005 class). This seam replaces that header==body trust with:
 //!

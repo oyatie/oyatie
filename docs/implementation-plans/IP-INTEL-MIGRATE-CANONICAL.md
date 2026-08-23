@@ -3,7 +3,7 @@
 **Status:** Draft (2026-05-28)
 **Authority:** [ADR-0509](../decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md) (canonical), [[hyperscaler-service-pattern]], [[bespoke-over-oss-doctrine]]
 **Owners:** intelligence service maintainers + cloud-foundation anchor
-**Related precedent:** ADR-0476 (`oya-identity` collapse — same pattern, 1 service, ~12 crates → 1 crate + adapter exceptions)
+**Related precedent:** ADR-0476 (`identity` collapse — same pattern, 1 service, ~12 crates → 1 crate + adapter exceptions)
 
 ---
 
@@ -23,7 +23,7 @@
 
 | Metric                                  | Target |
 |-----------------------------------------|--------|
-| Service crate                           | **1** (`oya-intelligence`) |
+| Service crate                           | **1** (`intelligence`) |
 | Justified separate adapter crates       | **≤ 12** (multi-backend + external-protocol exceptions) |
 | Total crates under `intelligence/`      | **≤ 13** |
 | Reduction                               | **≥ 89 %** (121 → 13) |
@@ -43,7 +43,7 @@
 ## 2. Authority + doctrine references
 
 - [ADR-0509](../decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md) — canonical hyperscaler service decomposition pattern (single-crate-per-service + mod subsystems; rejects per-use-case clean-arch sprawl)
-- [ADR-0476](../decisions/ADR-0476-*.md) — `oya-identity` collapse precedent (same target pattern, smaller blast radius)
+- [ADR-0476](../decisions/ADR-0476-*.md) — `identity` collapse precedent (same target pattern, smaller blast radius)
 - [ADR-0220](../decisions/ADR-0220-consumer-intelligence-substrate.md) — intelligence substrate role
 - [ADR-0255](../decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md) — two-layer AI substrate (constrains the subsystem decomposition below)
 - [[hyperscaler-service-pattern]] — operational doctrine + reference points (Google Borg/Spanner, Meta Buck2, Stripe Pay Server, Tailscale/Vector/Pulumi)
@@ -58,67 +58,67 @@
 
 ### 3.1 Bucket A — COLLAPSE: per-use-case clean-arch sprawl (94 crates)
 
-Pure clean-architecture decomposition with no multi-backend justification. Each of these becomes a `pub mod` (or sub-mod) inside `oya-intelligence/src/`.
+Pure clean-architecture decomposition with no multi-backend justification. Each of these becomes a `pub mod` (or sub-mod) inside `intelligence/src/`.
 
 Grouped by use-case subsystem:
 
 | Subsystem (target `src/<mod>/`) | Crates collapsed | Count |
 |---|---|---|
-| `account/` | `oya-intelligence-account-{adapter-inmemory,domain,kernel}` | 3 |
-| `api/` (HTTP/SSE/WS dispatch — internal mods, no separate crates) | `oya-intelligence-api`, `oya-intelligence-api-{rest,sse,websocket}-{adapter,kernel}` | 7 |
-| `architecture_map/` | `oya-intelligence-architecture-map-{app,kernel}` | 2 |
-| `assist_draft/` | `oya-intelligence-assist-draft-{adapter,api,domain,kernel,rest,usecase,worker}` | 7 |
-| `attribution/` | `oya-intelligence-attribution-{adapter,app,domain,kernel,usecase,worker}` | 6 |
-| `audit_tap/` | `oya-intelligence-audit-tap-{adapter,usecase,worker}` | 3 |
-| `autonomy_ceiling/` | `oya-intelligence-autonomy-ceiling-{app,domain,kernel}` | 3 |
-| `backbone/` | `oya-intelligence-backbone-workload-live-app` | 1 |
-| `capability/` | `oya-intelligence-capability-{domain,registry-app,registry-domain,registry-kernel}` | 4 |
-| `context_aware_retrieval/` | `oya-intelligence-context-aware-retrieval-{adapter,domain,kernel,usecase,worker}` | 5 |
-| `credential_resolver/` | `oya-intelligence-credential-resolver-{adapter,domain,usecase}` | 3 |
-| `dashboard/` | `oya-intelligence-dashboard-{api,app,dry-run-kernel,kernel}` | 4 |
-| `dispatch/` | `oya-intelligence-dispatch-usecase` | 1 |
-| `eval/` | `oya-intelligence-eval-{adapter,app,domain,kernel,usecase,worker}` | 6 |
-| `evidence/` | `oya-intelligence-evidence-{domain,file-adapter}` | 2 |
-| `guardrails/` | `oya-intelligence-guardrails-{domain,kernel,usecase}` | 3 |
-| `model_routing/` | `oya-intelligence-model-routing-{domain,kernel,usecase}` + `oya-intelligence-route-policy-kernel` | 4 |
-| `policy/` | `oya-intelligence-policy-{api,domain}` | 2 |
-| `pr_review/` | `oya-intelligence-pr-review-dispatcher-app` | 1 |
-| `provider_pool/` | `oya-intelligence-provider-pool-{app,kernel}` | 2 |
-| `rag/` | `oya-intelligence-rag-{api,endpoint-app,endpoint-domain,endpoint-kernel}` | 4 |
-| `registry/` | `oya-intelligence-registry-api` | 1 |
-| `run/` | `oya-intelligence-run-{domain,file-adapter}` | 2 |
-| `settings/` | `oya-intelligence-settings-template-{adapter,kernel}` | 2 |
-| `step/` | `oya-intelligence-step-{domain,file-adapter}` | 2 |
-| `subagent_runtime/` | `oya-intelligence-subagent-runtime-{app,kernel,usecase}` | 3 |
-| `supervisor/` | `oya-intelligence-supervisor-{app,kernel,security-adapter}`, `oya-intelligence-jsonl-supervisor-adapter` | 4 |
-| `usage_window/` | `oya-intelligence-usage-window-kernel` | 1 |
-| `write_gate/` | `oya-intelligence-write-gate-kernel` | 1 |
-| `bypass/` | `oya-intelligence-bypass-{domain,ledger-kernel}` | 2 |
-| `mcp_gateway/` | `oya-intelligence-mcp-gateway-domain` | 1 |
-| `mdbook/` | `oya-intelligence-mdbook-{domain,kernel}` | 2 |
+| `account/` | `intelligence-account-{adapter-inmemory,domain,kernel}` | 3 |
+| `api/` (HTTP/SSE/WS dispatch — internal mods, no separate crates) | `intelligence-api`, `intelligence-api-{rest,sse,websocket}-{adapter,kernel}` | 7 |
+| `architecture_map/` | `intelligence-architecture-map-{app,kernel}` | 2 |
+| `assist_draft/` | `intelligence-assist-draft-{adapter,api,domain,kernel,rest,usecase,worker}` | 7 |
+| `attribution/` | `intelligence-attribution-{adapter,app,domain,kernel,usecase,worker}` | 6 |
+| `audit_tap/` | `intelligence-audit-tap-{adapter,usecase,worker}` | 3 |
+| `autonomy_ceiling/` | `intelligence-autonomy-ceiling-{app,domain,kernel}` | 3 |
+| `backbone/` | `intelligence-backbone-workload-live-app` | 1 |
+| `capability/` | `intelligence-capability-{domain,registry-app,registry-domain,registry-kernel}` | 4 |
+| `context_aware_retrieval/` | `intelligence-context-aware-retrieval-{adapter,domain,kernel,usecase,worker}` | 5 |
+| `credential_resolver/` | `intelligence-credential-resolver-{adapter,domain,usecase}` | 3 |
+| `dashboard/` | `intelligence-dashboard-{api,app,dry-run-kernel,kernel}` | 4 |
+| `dispatch/` | `intelligence-dispatch-usecase` | 1 |
+| `eval/` | `intelligence-eval-{adapter,app,domain,kernel,usecase,worker}` | 6 |
+| `evidence/` | `intelligence-evidence-{domain,file-adapter}` | 2 |
+| `guardrails/` | `intelligence-guardrails-{domain,kernel,usecase}` | 3 |
+| `model_routing/` | `intelligence-model-routing-{domain,kernel,usecase}` + `intelligence-route-policy-kernel` | 4 |
+| `policy/` | `intelligence-policy-{api,domain}` | 2 |
+| `pr_review/` | `intelligence-pr-review-dispatcher-app` | 1 |
+| `provider_pool/` | `intelligence-provider-pool-{app,kernel}` | 2 |
+| `rag/` | `intelligence-rag-{api,endpoint-app,endpoint-domain,endpoint-kernel}` | 4 |
+| `registry/` | `intelligence-registry-api` | 1 |
+| `run/` | `intelligence-run-{domain,file-adapter}` | 2 |
+| `settings/` | `intelligence-settings-template-{adapter,kernel}` | 2 |
+| `step/` | `intelligence-step-{domain,file-adapter}` | 2 |
+| `subagent_runtime/` | `intelligence-subagent-runtime-{app,kernel,usecase}` | 3 |
+| `supervisor/` | `intelligence-supervisor-{app,kernel,security-adapter}`, `intelligence-jsonl-supervisor-adapter` | 4 |
+| `usage_window/` | `intelligence-usage-window-kernel` | 1 |
+| `write_gate/` | `intelligence-write-gate-kernel` | 1 |
+| `bypass/` | `intelligence-bypass-{domain,ledger-kernel}` | 2 |
+| `mcp_gateway/` | `intelligence-mcp-gateway-domain` | 1 |
+| `mdbook/` | `intelligence-mdbook-{domain,kernel}` | 2 |
 | **Bucket A total** | | **94** |
 
 ### 3.2 Bucket B — KEEP-MULTI-BACKEND: legitimately swappable LLM provider adapters (10 crates)
 
 Multiple genuine production backends exist today (Anthropic, OpenAI, Gemini) × (API key + subscription auth). This is the canonical ADR-0509 exception: pluggable provider adapters behind a single `pub trait LlmProvider` seam.
 
-**Decision:** keep the **`-adapter`** variants as separate crates; **collapse the `-kernel`** companions into `oya-intelligence/src/llm/mod.rs` (the trait + DTOs live with the consumer per ADR-0509 — DTO crates for internal callers are forbidden).
+**Decision:** keep the **`-adapter`** variants as separate crates; **collapse the `-kernel`** companions into `intelligence/src/llm/mod.rs` (the trait + DTOs live with the consumer per ADR-0509 — DTO crates for internal callers are forbidden).
 
 | Crate | Disposition | Justification |
 |---|---|---|
-| `oya-intelligence-adapter-anthropic-api-adapter` | **KEEP** | Backend #1 (Anthropic API-key auth) |
-| `oya-intelligence-adapter-anthropic-subscription-adapter` | **KEEP** | Backend #2 (Anthropic OAuth/subscription auth) |
-| `oya-intelligence-adapter-openai-api-adapter` | **KEEP** | Backend #3 (OpenAI API-key auth) |
-| `oya-intelligence-adapter-openai-subscription-adapter` | **KEEP** | Backend #4 (OpenAI ChatGPT subscription auth) |
-| `oya-intelligence-adapter-gemini-api-adapter` | **KEEP** | Backend #5 (Gemini API-key auth) |
-| `oya-intelligence-adapter-gemini-subscription-adapter` | **KEEP** | Backend #6 (Gemini OAuth/subscription auth) |
-| `oya-intelligence-providers-adapter-openai` | **KEEP (audit)** | Possible duplicate of `openai-api-adapter`; if duplicate → collapse during Phase C |
-| `oya-intelligence-adapter-anthropic-api-kernel` | **COLLAPSE** | Trait/DTO lives with consumer (ADR-0509 §4) |
-| `oya-intelligence-adapter-anthropic-subscription-kernel` | **COLLAPSE** | Same |
-| `oya-intelligence-adapter-openai-api-kernel` | **COLLAPSE** | Same |
-| `oya-intelligence-adapter-openai-subscription-kernel` | **COLLAPSE** | Same |
-| `oya-intelligence-adapter-gemini-api-kernel` | **COLLAPSE** | Same |
-| `oya-intelligence-adapter-gemini-subscription-kernel` | **COLLAPSE** | Same |
+| `intelligence-adapter-anthropic-api-adapter` | **KEEP** | Backend #1 (Anthropic API-key auth) |
+| `intelligence-adapter-anthropic-subscription-adapter` | **KEEP** | Backend #2 (Anthropic OAuth/subscription auth) |
+| `intelligence-adapter-openai-api-adapter` | **KEEP** | Backend #3 (OpenAI API-key auth) |
+| `intelligence-adapter-openai-subscription-adapter` | **KEEP** | Backend #4 (OpenAI ChatGPT subscription auth) |
+| `intelligence-adapter-gemini-api-adapter` | **KEEP** | Backend #5 (Gemini API-key auth) |
+| `intelligence-adapter-gemini-subscription-adapter` | **KEEP** | Backend #6 (Gemini OAuth/subscription auth) |
+| `intelligence-providers-adapter-openai` | **KEEP (audit)** | Possible duplicate of `openai-api-adapter`; if duplicate → collapse during Phase C |
+| `intelligence-adapter-anthropic-api-kernel` | **COLLAPSE** | Trait/DTO lives with consumer (ADR-0509 §4) |
+| `intelligence-adapter-anthropic-subscription-kernel` | **COLLAPSE** | Same |
+| `intelligence-adapter-openai-api-kernel` | **COLLAPSE** | Same |
+| `intelligence-adapter-openai-subscription-kernel` | **COLLAPSE** | Same |
+| `intelligence-adapter-gemini-api-kernel` | **COLLAPSE** | Same |
+| `intelligence-adapter-gemini-subscription-kernel` | **COLLAPSE** | Same |
 
 **Bucket B keeps: 7. Bucket B collapses: 6 (counted under Bucket A's `llm/` mod, not double-counted).**
 
@@ -128,32 +128,32 @@ These expose Anthropic/OpenAI-compatible *wire protocols* outward (we act as a s
 
 | Crate | Disposition | Justification |
 |---|---|---|
-| `oya-intelligence-adapter-anthropic-compat-api` | **KEEP** | Server-side Anthropic-compatible HTTP surface (proxy/gateway role) |
-| `oya-intelligence-adapter-openai-compat-api` | **KEEP** | Server-side OpenAI-compatible HTTP surface |
-| `oya-intelligence-claude-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream Claude.ai (external state machine) |
-| `oya-intelligence-codex-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream OpenAI Codex/ChatGPT |
-| `oya-intelligence-gemini-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream Google AI Studio |
+| `intelligence-adapter-anthropic-compat-api` | **KEEP** | Server-side Anthropic-compatible HTTP surface (proxy/gateway role) |
+| `intelligence-adapter-openai-compat-api` | **KEEP** | Server-side OpenAI-compatible HTTP surface |
+| `intelligence-claude-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream Claude.ai (external state machine) |
+| `intelligence-codex-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream OpenAI Codex/ChatGPT |
+| `intelligence-gemini-account-adapter` | **KEEP** | OAuth/account-state adapter for upstream Google AI Studio |
 
 **Bucket C total: 5.**
 
 ### 3.4 Bucket D — SHARED-KERNEL: cross-subsystem primitives (12 crates)
 
-Service-wide kernel/domain crates with no swappable backend; collapse into `oya-intelligence/src/lib.rs` + a small `kernel/` mod tree.
+Service-wide kernel/domain crates with no swappable backend; collapse into `intelligence/src/lib.rs` + a small `kernel/` mod tree.
 
 | Crate | Target mod |
 |---|---|
-| `oya-intelligence-adapter-domain` | `src/kernel/adapter.rs` |
-| `oya-intelligence-api-semver-domain` | `src/kernel/semver.rs` |
-| `oya-intelligence-cargo-prefix-domain` | `src/kernel/cargo_prefix.rs` |
-| `oya-intelligence-catalog-domain` | `src/kernel/catalog.rs` |
-| `oya-intelligence-cloud-mutation-domain` | `src/kernel/cloud_mutation.rs` |
-| `oya-intelligence-oauth-subscription-kernel` | `src/kernel/oauth_subscription.rs` |
-| `oya-intelligence-openapi-domain` | `src/kernel/openapi.rs` |
-| `oya-intelligence-capability-domain` (also touched in Bucket A) | `src/kernel/capability.rs` |
-| `oya-intelligence-evidence-domain` (also touched in Bucket A) | `src/kernel/evidence.rs` |
-| `oya-intelligence-run-domain` (also touched in Bucket A) | `src/kernel/run.rs` |
-| `oya-intelligence-step-domain` (also touched in Bucket A) | `src/kernel/step.rs` |
-| `oya-intelligence-adapter-anthropic-api-kernel` … (×6) (also touched in Bucket B) | `src/llm/` |
+| `intelligence-adapter-domain` | `src/kernel/adapter.rs` |
+| `intelligence-api-semver-domain` | `src/kernel/semver.rs` |
+| `intelligence-cargo-prefix-domain` | `src/kernel/cargo_prefix.rs` |
+| `intelligence-catalog-domain` | `src/kernel/catalog.rs` |
+| `intelligence-cloud-mutation-domain` | `src/kernel/cloud_mutation.rs` |
+| `intelligence-oauth-subscription-kernel` | `src/kernel/oauth_subscription.rs` |
+| `intelligence-openapi-domain` | `src/kernel/openapi.rs` |
+| `intelligence-capability-domain` (also touched in Bucket A) | `src/kernel/capability.rs` |
+| `intelligence-evidence-domain` (also touched in Bucket A) | `src/kernel/evidence.rs` |
+| `intelligence-run-domain` (also touched in Bucket A) | `src/kernel/run.rs` |
+| `intelligence-step-domain` (also touched in Bucket A) | `src/kernel/step.rs` |
+| `intelligence-adapter-anthropic-api-kernel` … (×6) (also touched in Bucket B) | `src/llm/` |
 
 **Bucket D total (net new collapses, not double-counted): 7** (the 5 marked "also touched" already appear under Buckets A or B).
 
@@ -165,7 +165,7 @@ Service-wide kernel/domain crates with no swappable backend; collapse into `oya-
 | B — KEEP multi-backend (after 6 `-kernel` collapses are counted under A/D) | 7 |
 | C — KEEP external protocol adapter | 5 |
 | D — COLLAPSE shared kernel (net new, not double-counted with A/B) | 7 |
-| **A + D collapses → become `oya-intelligence` single crate** | **101** |
+| **A + D collapses → become `intelligence` single crate** | **101** |
 | **B + C kept as separate adapter crates** | **12** |
 | **Pre-existing `crates/` files outside the workspace (5 = 121 − 116)** | **flagged for Phase D triage** |
 | **Total** | **121** |
@@ -239,18 +239,18 @@ microservices/intelligence/
     observability/                    # tracing/metrics
     telemetry/
   crates/                             # adapter exception allow-list (≤12)
-    oya-intelligence-anthropic-api-adapter/
-    oya-intelligence-anthropic-subscription-adapter/
-    oya-intelligence-openai-api-adapter/
-    oya-intelligence-openai-subscription-adapter/
-    oya-intelligence-gemini-api-adapter/
-    oya-intelligence-gemini-subscription-adapter/
-    oya-intelligence-anthropic-compat-api/
-    oya-intelligence-openai-compat-api/
-    oya-intelligence-claude-account-adapter/
-    oya-intelligence-codex-account-adapter/
-    oya-intelligence-gemini-account-adapter/
-    oya-intelligence-providers-adapter-openai/   # PENDING audit — collapse if dupe
+    intelligence-anthropic-api-adapter/
+    intelligence-anthropic-subscription-adapter/
+    intelligence-openai-api-adapter/
+    intelligence-openai-subscription-adapter/
+    intelligence-gemini-api-adapter/
+    intelligence-gemini-subscription-adapter/
+    intelligence-anthropic-compat-api/
+    intelligence-openai-compat-api/
+    intelligence-claude-account-adapter/
+    intelligence-codex-account-adapter/
+    intelligence-gemini-account-adapter/
+    intelligence-providers-adapter-openai/   # PENDING audit — collapse if dupe
   catalog.yaml
   slos/                               # OpenSLO specs (ADR-0130)
   BUCK                                # Buck2 targets (ADR-0392)
@@ -293,7 +293,7 @@ Single PR (~7 small crates, mechanical).
 
 Single PR.
 - For each Bucket B/C crate, **explicitly justify** against ADR-0509 exception bar in a per-crate `RATIONALE.md` (or top-of-`lib.rs` doc comment).
-- Audit `oya-intelligence-providers-adapter-openai` vs. `oya-intelligence-adapter-openai-api-adapter` — **collapse the duplicate** if confirmed.
+- Audit `intelligence-providers-adapter-openai` vs. `intelligence-adapter-openai-api-adapter` — **collapse the duplicate** if confirmed.
 - Audit account-adapter crates (claude/codex/gemini) for whether they truly need separate crates or could become `src/account/<provider>.rs`. Collapse any that fail the bar.
 - Collapse all 6 `*-kernel` companions of the kept adapters into `src/llm/{anthropic,openai,gemini}.rs`.
 - Establish `pub trait LlmProvider` in `src/llm/mod.rs` as the single seam.
@@ -306,7 +306,7 @@ Single PR.
 - Verify `grep -c 'microservices/intelligence/' Cargo.toml ≤ 13`.
 - Update `microservices/intelligence/README.md` + `ARCHITECTURE.md` to reflect single-crate pattern.
 - Add `microservices/intelligence/Cargo.toml` `[[bin]]` for the single binary.
-- Run full `cargo check --workspace`, `cargo test -p oya-intelligence`, plus the `architecture-boundaries` gate.
+- Run full `cargo check --workspace`, `cargo test -p intelligence`, plus the `architecture-boundaries` gate.
 
 **Total: 7 PRs across 4 phases.**
 
@@ -317,9 +317,9 @@ Single PR.
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
 | 1 | **Regression surface** — 168 `.rs` files / 3.5 M code; subtle behavior changes during the mod rewrite | High | High | Phase-by-phase; intelligence test suite green before merge; differential snapshot tests for LLM provider request/response shapes |
-| 2 | **API contract breakage** — internal callers (other microservices) depend on `oya-intelligence-*-api` crate symbols | Medium | High | Audit `Cargo.toml` reverse deps before each PR; preserve `pub use` re-exports at lib root for one release cycle; document removed paths in CHANGELOG |
+| 2 | **API contract breakage** — internal callers (other microservices) depend on `intelligence-*-api` crate symbols | Medium | High | Audit `Cargo.toml` reverse deps before each PR; preserve `pub use` re-exports at lib root for one release cycle; document removed paths in CHANGELOG |
 | 3 | **In-flight feature lanes** — any active worktree on `feat/intelligence-*` will hit merge conflicts proportional to phase size | High | Medium | Coordinate phase windows with [[parallel-swarm-model]] leader; pause new intelligence worktrees during A1–A4; rebase open PRs after each phase merges |
-| 4 | **Semver / lockfile churn** — 101 crate removals + workspace shuffle will churn `Cargo.lock` significantly; downstream consumers must rebuild | Medium | Medium | Single squash commit per phase; document `cargo update -p oya-intelligence` upgrade path in release notes; coordinate with release gate (ADR-0509 release-notes section) |
+| 4 | **Semver / lockfile churn** — 101 crate removals + workspace shuffle will churn `Cargo.lock` significantly; downstream consumers must rebuild | Medium | Medium | Single squash commit per phase; document `cargo update -p intelligence` upgrade path in release notes; coordinate with release gate (ADR-0509 release-notes section) |
 | 5 | **Build-system migration** — `BUCK` targets must be rewritten when 116 workspace members collapse to 13; Bazel/Buck2 caches invalidated | Medium | Medium | Update `BUCK` in Phase D alongside `Cargo.toml`; warm RBE cache before announcing migration complete; reference [[hyperscaler-cicd-patterns]] for Bazel RBE warm-up doctrine |
 
 ---
@@ -331,14 +331,14 @@ Migration is complete only when **all** of these pass on `dev`:
 - [ ] `ls microservices/intelligence/crates/ | wc -l` → **≤ 12**
 - [ ] `grep -c 'microservices/intelligence/' Cargo.toml` → **≤ 13** (1 service + ≤12 adapter)
 - [ ] `cargo check --workspace` → green
-- [ ] `cargo test -p oya-intelligence` → green; zero suite regressions vs. pre-migration baseline (record baseline at start of Phase A1)
+- [ ] `cargo test -p intelligence` → green; zero suite regressions vs. pre-migration baseline (record baseline at start of Phase A1)
 - [ ] `architecture-boundaries` gate → green
 - [ ] All 12 retained adapter crates carry a `RATIONALE.md` (or `lib.rs` doc) citing the specific ADR-0509 exception they satisfy
 - [ ] `microservices/intelligence/{README.md, ARCHITECTURE.md}` updated to describe single-crate pattern
 - [ ] `BUCK` targets reduced to ≤13
 - [ ] Differential LLM provider snapshot tests (Anthropic / OpenAI / Gemini API + subscription) → byte-identical request shape vs. pre-migration baseline
-- [ ] Release notes entry + CHANGELOG with `cargo update -p oya-intelligence` upgrade path
-- [ ] No `oya-intelligence-*-kernel`, `-domain`, `-usecase`, `-app`, `-worker`, `-rest`, `-api` crate exists *outside* the 12-adapter allow-list
+- [ ] Release notes entry + CHANGELOG with `cargo update -p intelligence` upgrade path
+- [ ] No `intelligence-*-kernel`, `-domain`, `-usecase`, `-app`, `-worker`, `-rest`, `-api` crate exists *outside* the 12-adapter allow-list
 
 ---
 
@@ -364,7 +364,7 @@ Parallel execution per [[parallel-swarm-model]] (one subsystem cluster per workt
 ## 9. Related
 
 - [ADR-0509](../decisions/ADR-0509-hyperscaler-service-decomposition-pattern.md) — canonical pattern (this IP implements it for intelligence)
-- ADR-0476 — `oya-identity` collapse precedent (same shape, smaller scope; cite as proof of concept in PR descriptions)
+- ADR-0476 — `identity` collapse precedent (same shape, smaller scope; cite as proof of concept in PR descriptions)
 - ADR-0220, ADR-0255 — intelligence substrate / two-layer AI substrate (constrains the subsystem decomposition above)
 - ADR-0335, ADR-0363 — foundry/agentic-VCS absorption into intelligence (do not regress these absorptions during the collapse)
 - [[hyperscaler-service-pattern]] — operational doctrine

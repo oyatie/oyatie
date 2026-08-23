@@ -7,7 +7,7 @@ status: 'Proposed'
 date: '2026-05-21'
 authority_tier: '2'
 line_floor: '5000'
-planned_enforcement_ref: 'oya-governance-doc-rigor'
+planned_enforcement_ref: 'governance-doc-rigor'
 purpose: >
   Six long-form day-in-the-life narratives showing the unified ecosystem from different persona perspectives. Every moment demonstrates same passkey identity, explicit tenant context, role projection, shared UX vocabulary, Cedar policy, Workflow Engine, Ontology, audit-chain evidence, and no per-tool training friction.
 related_adrs:

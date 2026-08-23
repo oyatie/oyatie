@@ -1,6 +1,6 @@
 [package]
 # Naming justification:
-#   - BNF v4.1:        oya - foundry - subagent-runtime - usecase
+#   - BNF v4.1:        foundry - subagent-runtime - usecase
 #   - slot-2 µservice: `foundry`.
 #   - bc-tokens:       `subagent-runtime` (per-facet subagent invocation
 #                      orchestration shared by dispatcher apps and the
@@ -16,7 +16,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 vertical = "foundry"
 bounded_context = "subagent-runtime"
 kind = "shared"

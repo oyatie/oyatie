@@ -2,20 +2,20 @@
 
 ## Objective
 
-Introduce `src/observability.rs` in `oya-identity-usecase` that wraps the
+Introduce `src/observability.rs` in `identity-usecase` that wraps the
 `issue_identity_token_from_app` and `rotate_identity_token_from_app` call sites with a stable
 OTel-compatible event/attribute taxonomy. This module is pure data mapping — no issuance logic
 changes, no new crate dependencies.
 
 ## Crate Boundary
 
-Only `oya-identity-usecase` (`crates/oya-identity-usecase/`) is modified. No root `Cargo.toml`
+Only `identity-usecase` (`crates/identity-usecase/`) is modified. No root `Cargo.toml`
 edits. No new workspace members.
 
 ## Mod Layout (flat-clean-arch / ADR-0509)
 
 ```
-crates/oya-identity-usecase/src/
+crates/identity-usecase/src/
   lib.rs              — existing, adds `pub mod observability;`
   observability.rs    — NEW: stable taxonomy types and constructors
 tests/
@@ -36,10 +36,10 @@ tests/
   | `tenant_id_hash`| `u64`             | FNV-1a hash of tenant_id, never raw value      |
   | `data_class`    | `&'static str`    | Always `"AUDIT"` (OperationalDataClass::Audit) |
 
-- SLO: feeds `http_requests_total{service="oya-identity",status=~"2.."}` via outcome label;
-  existing `microservices/oya-identity/slos/availability.openslo.yaml` is not modified.
+- SLO: feeds `http_requests_total{service="identity",status=~"2.."}` via outcome label;
+  existing `microservices/identity/slos/availability.openslo.yaml` is not modified.
 - AUDIT operational class: `data_class = "AUDIT"` marks every event as operational audit data
-  per the `OperationalDataClass::Audit` label in `oya-data-boundary-kernel`.
+  per the `OperationalDataClass::Audit` label in `data-boundary-kernel`.
 
 ## Observability Module API
 
@@ -97,8 +97,8 @@ Integration test file `tests/observability.rs`:
 
 ## SLO / OpenSLO
 
-The existing `microservices/oya-identity/slos/availability.openslo.yaml` references
-`http_requests_total{service="oya-identity",status=~"2.."}`. The `outcome` label from this
+The existing `microservices/identity/slos/availability.openslo.yaml` references
+`http_requests_total{service="identity",status=~"2.."}`. The `outcome` label from this
 taxonomy is the domain-layer evidence that a runtime adapter will eventually project onto
 `http_requests_total`. No SLO file changes in this slice.
 

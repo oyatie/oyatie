@@ -13,6 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use data_boundary_kernel::DataClass;
 use futures::StreamExt;
 use kube::{
     Client,
@@ -21,7 +22,6 @@ use kube::{
     runtime::{Controller, controller::Action as ControllerAction, watcher},
 };
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation as DomainHsmValidation, KeyDestructionReceipt,
     KeyDestructionRequest, KeyRingQuarantineRequest, KeyVersionDemotionRequest, KmsDecryptRequest,
@@ -332,7 +332,7 @@ where
         planned_actions: actions.len(),
         executed_actions,
         wide_event: ReconcileWideEvent {
-            event_name: "cloud_kms_operator_reconcile".to_owned(),
+            event_name: "secrets_kms_operator_reconcile".to_owned(),
             status: "succeeded".to_owned(),
             action_count: actions.len(),
             executed_count: executed_actions,
@@ -617,7 +617,7 @@ pub fn emit_reconcile_wide_event(event: &ReconcileWideEvent, elapsed: Duration) 
         action_count = event.action_count,
         executed_count = event.executed_count,
         error_class = event.error_class.as_deref(),
-        metric_name = "oya_cloud_kms_operator_reconcile_convergence_seconds",
+        metric_name = "secrets_kms_operator_reconcile_convergence_seconds",
         convergence_seconds = elapsed.as_secs_f64(),
         "cloud-kms operator reconcile cycle"
     );
@@ -637,7 +637,7 @@ fn reconcile_failure(
         planned_actions,
         executed_actions,
         wide_event: Box::new(ReconcileWideEvent {
-            event_name: "cloud_kms_operator_reconcile".to_owned(),
+            event_name: "secrets_kms_operator_reconcile".to_owned(),
             status: "failed".to_owned(),
             action_count: planned_actions,
             executed_count: executed_actions,
@@ -2017,7 +2017,7 @@ fn domain_key_id_for_key_ring(key_ring: &KeyRing) -> Result<KmsKeyId, AdapterErr
 
 fn resource_id_for(key_ring: &KeyRing) -> String {
     format!(
-        "oya:cloud:{}:{}:kms-key:{}",
+        "oyatie:cloud:{}:{}:kms-key:{}",
         key_ring.region, key_ring.tenant_id, key_ring.name
     )
 }

@@ -56,7 +56,7 @@ impl Default for ServiceConfig {
             policy_namespace: "data_pipeline".to_owned(),
             audit_topic: "audit.data_pipeline".to_owned(),
             runtime_profile: RuntimeProfile::Local,
-            tenant_header: "x-oya-tenant-id".to_owned(),
+            tenant_header: "x-tenant-id".to_owned(),
             max_ingest_payload_bytes: 128 * 1024,
             enable_lineage_shadow_graph: false,
         }
@@ -66,19 +66,19 @@ impl Default for ServiceConfig {
 impl ServiceConfig {
     pub fn from_env() -> ServiceResult<Self> {
         let mut config = Self::default();
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_BIND_ADDR") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_BIND_ADDR") {
             config.bind_addr = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_GRPC_ADDR") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_GRPC_ADDR") {
             config.grpc_addr = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_TOPIC_PREFIX") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_TOPIC_PREFIX") {
             config.asyncapi_topic_prefix = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_PROFILE") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_PROFILE") {
             config.runtime_profile = RuntimeProfile::parse(&value)?;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_MAX_INGEST_BYTES") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_MAX_INGEST_BYTES") {
             config.max_ingest_payload_bytes =
                 value
                     .parse::<usize>()
@@ -87,7 +87,7 @@ impl ServiceConfig {
                         details: parse_error.to_string(),
                     })?;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_PIPELINE_LINEAGE_SHADOW_GRAPH") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_PIPELINE_LINEAGE_SHADOW_GRAPH") {
             config.enable_lineage_shadow_graph = matches!(value.as_str(), "1" | "true" | "TRUE");
         }
         config.validate()?;

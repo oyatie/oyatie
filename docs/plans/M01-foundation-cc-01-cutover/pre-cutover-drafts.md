@@ -48,9 +48,9 @@ Caused by: Error code 787: Foreign key constraint failed
 vs. with a real indexed code symbol:
 
 ```
-    "crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
+    "crates/cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
 + Granted:
-  > crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus
+  > crates/cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus
 ```
 
 The FK violation looks like a symbol-not-found case being surfaced as a raw sqlite FK error rather than a user-facing "symbol not in index" message. Suggested upstream fix: validate symbol path against the symbols table and return a clean error before attempting the FK insert.
@@ -72,7 +72,7 @@ Scaffold-claim sequence:
 
 ```
      Cargo.toml::workspace_members
-2. <agent creates tools/oya-agent-read/{Cargo.toml, src/lib.rs, src/main.rs}>
+2. <agent creates tools/agent-read/{Cargo.toml, src/lib.rs, src/main.rs}>
 3. <agent edits root Cargo.toml to add the new crate to workspace.members>
 ```
 
@@ -92,10 +92,10 @@ Scaffold-claim sequence:
 ```
 # Terminal 1 (agent-A)
   --intent "demo: rename CloudBillingEventIngestAppStatus to CloudBillingIngestStatus" \
-  "crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
+  "crates/cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
 #         + Granted: ...CloudBillingEventIngestAppStatus
 
-# edit crates/oya-cloud-billing-app/src/lib.rs — rename only that one type
+# edit crates/cloud-billing-app/src/lib.rs — rename only that one type
 # (in real demo: use a no-op edit that just touches the line — keeps the demo replayable)
 cd /Users/jasonlee/oyatie
 # expect: rebase + merge succeeds; lock released
@@ -106,7 +106,7 @@ Run terminal 2 IN PARALLEL with terminal 1:
 ```
 # Terminal 2 (agent-B)
   --intent "demo: tweak doc comment on CloudBillingMeterUnitRecord" \
-  "crates/oya-cloud-billing-app/src/lib.rs::CloudBillingMeterUnitRecord"
+  "crates/cloud-billing-app/src/lib.rs::CloudBillingMeterUnitRecord"
 # expect: + Granted (because agent-A's lock is on a different symbol in the same file)
 
 # edit doc comment on CloudBillingMeterUnitRecord only
@@ -121,7 +121,7 @@ cd /Users/jasonlee/oyatie
 A third agent (`agent-C`) attempts to claim a symbol already locked by `agent-A`. Expect:
 
 ```
-  "crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
+  "crates/cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus"
 # expect: error or queue (depending on flags); use --queue --wait 10 to demonstrate FIFO
 ```
 
@@ -162,14 +162,14 @@ G004-reconciliation-blocker.md) has been moved to
 
 ---
 
-## Draft 5 — `oya-governance-portfolio-citation` lane logic (A1 scaffold)
+## Draft 5 — `governance-portfolio-citation` lane logic (A1 scaffold)
 
 The lane validates two invariants:
 
 1. `oyatie/docs/PRD.md` contains a citation block referencing `bominal/docs/consolidated/PRD.md` as portfolio parent.
 2. `bominal/docs/consolidated/PRD.md` contains a citation block referencing `oyatie/docs/PRD.md` as canonical implementation home.
 
-Pseudo-implementation (Rust, lives at `crates/oya-governance-portfolio-citation-kernel/`):
+Pseudo-implementation (Rust, lives at `crates/governance-portfolio-citation-kernel/`):
 
 ```rust
 //! Foundry portfolio-citation fitness lane.
@@ -216,11 +216,11 @@ pub fn verify(
 }
 ```
 
-Lane runner (out-of-kernel) reads the two PRD files, extracts citation blocks via a small markdown-frontmatter parser, calls `verify`, and exits non-zero on incomplete. Lives at `tools/oya-governance-portfolio-citation/`.
+Lane runner (out-of-kernel) reads the two PRD files, extracts citation blocks via a small markdown-frontmatter parser, calls `verify`, and exits non-zero on incomplete. Lives at `tools/governance-portfolio-citation/`.
 
 ---
 
-## Draft 6 — `oya-governance-banned-primitives` lane logic (A5 scaffold)
+## Draft 6 — `governance-banned-primitives` lane logic (A5 scaffold)
 
 The lane greps agent-instruction sections of these files for banned tokens:
 
@@ -242,7 +242,7 @@ for f in TARGETED_FILES:
 exit_nonzero if any_violation else exit_zero
 ```
 
-Lane lives at `tools/oya-governance-banned-primitives/`; kernel at `crates/oya-governance-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
+Lane lives at `tools/governance-banned-primitives/`; kernel at `crates/governance-banned-primitives-kernel/` for the matcher logic (pure, deterministic).
 
 ---
 

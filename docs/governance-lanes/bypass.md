@@ -6,15 +6,15 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `oya-governance-bypass`.
+- enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `governance-bypass`.
 - adr_citations: ADR-0053 (sanctioned primitives — bypass directives must carry an accepted ADR justification, consistent with the primitive-restriction rationale model)
-- kernel_crate: `oya-intelligence-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
-- runner_path: `tools/oya-governance-bypass`
+- kernel_crate: `intelligence-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
+- runner_path: `tools/governance-bypass`
 - inputs: every source/doc file, registry of allowed bypass directives + justification ADR ids.
 - failure_modes:
   - `#[allow(clippy::all)]` at module level
   - `<!-- fitness-skip:* -->` whose ADR is `proposed`
-- ci_invocation: `cargo run -p oya-governance-bypass`
+- ci_invocation: `cargo run -p governance-bypass`
 - runtime_budget: 700 ms
 - severity: BLOCKER
 - kernel_sketch:

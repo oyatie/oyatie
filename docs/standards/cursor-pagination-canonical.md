@@ -77,7 +77,7 @@ writes; they leak result-set size to attackers.
 ### 5. Trait surface
 
 Every microservice integrates `CursorPaginationKernel` from
-`oya-shared-cursor-pagination-kernel`:
+`shared-cursor-pagination-kernel`:
 
 ```rust
 pub trait CursorPaginationKernel: Send + Sync {
@@ -108,7 +108,7 @@ responses:
 
 ### 7. Validation
 
-The `oya-check-cursor-pagination-coverage` gate enforces that every
+The `check-cursor-pagination-coverage` gate enforces that every
 list endpoint in every microservice declares `cursor` + `page_size`
 parameters and that no path declares an `offset` query parameter.
 

@@ -2,7 +2,7 @@
 
 status: preview-not-deployed
 vertical: b2b
-crate: oya-hr-employment-domain
+crate: hr-employment-domain
 x-oyatie-contract-status: preview-not-deployed
 x-oyatie-non-claims:
   - no deployed HTTP runtime
@@ -13,7 +13,7 @@ x-oyatie-non-claims:
 
 ## Objective
 
-Extend `oya-hr-employment-domain` (flat single-crate per ADR-0509) with a pure-domain
+Extend `hr-employment-domain` (flat single-crate per ADR-0509) with a pure-domain
 leave-balance accrual/deduction evaluator. The evaluator mirrors the existing
 `plan_leave_payroll_impact` pattern: it accepts a validated input envelope, applies
 rulepack-bound business rules, and emits a `Classified` projection with deterministic
@@ -26,9 +26,9 @@ No network I/O, no storage, no workflow dispatch. All computation is pure domain
 | Property         | Value                          |
 |------------------|--------------------------------|
 | vertical         | b2b                            |
-| crate            | oya-hr-employment-domain       |
-| src root         | crates/oya-hr-employment-domain/src/lib.rs |
-| test file        | crates/oya-hr-employment-domain/tests/leave_balance.rs |
+| crate            | hr-employment-domain       |
+| src root         | crates/hr-employment-domain/src/lib.rs |
+| test file        | crates/hr-employment-domain/tests/leave_balance.rs |
 | lane             | feat/task-hr-leave-balance-accrual-ledger-2026-05-28 |
 
 ## Mod layout (flat clean-arch per ADR-0509)
@@ -142,7 +142,7 @@ adapter PR. It is informational for this domain-only spec.
     operationId: evaluateLeaveBalanceAccrual
     summary: Project leave-balance accrual ledger for a payroll period.
     x-oyatie-contract-status: preview-not-deployed
-    x-oyatie-app-function: oya_hr_employment_domain::evaluate_leave_balance_accrual
+    x-oyatie-app-function: hr_employment_domain::evaluate_leave_balance_accrual
     requestBody:
       required: true
       content:
@@ -212,12 +212,12 @@ message LeaveBalanceLedgerProjectionResponse {
 
 ## Testing strategy
 
-File: `crates/oya-hr-employment-domain/tests/leave_balance.rs`
+File: `crates/hr-employment-domain/tests/leave_balance.rs`
 
 Follows the `tests/leave.rs` idiom:
 - `#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]` header
-- `use oya_hr_employment_domain::{...}` imports
-- `use oya_data_boundary_kernel::DataClass;` for financial DataClass assertions
+- `use hr_employment_domain::{...}` imports
+- `use data_boundary_kernel::DataClass;` for financial DataClass assertions
 - Private `valid_input()` helper returning a known-good `LeaveBalanceAccrualInput`
 
 Test matrix:

@@ -12,7 +12,7 @@ use audit_emission_kernel::ChainCoordinate;
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit-chain.audit-event-emit";
 
 /// Outbox topic for emitted audit events per ADR-0145 inter-µservice contract.
-pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";
+pub const AUDIT_EVENT_TOPIC: &str = "oyatie.platform.audit";
 
 /// Producer-side request envelope. Validated by `audit/core/emission-domain`.
 #[derive(Clone, Debug)]

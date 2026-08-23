@@ -17,10 +17,10 @@ purpose: |
   Level 2 provenance attestation. Implements MASTERPLAN Directive 5 (distroless
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-image-discipline
+planned_enforcement_ref: governance-image-discipline
 enforcement_status:
-  oya-governance-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-governance-container-base: F-PENDING-CONTAINER-BASE (crate missing)
+  governance-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  governance-container-base: F-PENDING-CONTAINER-BASE (crate missing)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/security-review.md
@@ -74,7 +74,7 @@ Sources: [distroless support policy](https://github.com/GoogleContainerTools/dis
 | `latest` tag, any image | non-reproducible |
 | Self-hosted FROM scratch with manual cert bundles | distroless ships the cert bundle |
 
-Lane: `oya-governance-container-base` refuses production manifests
+Lane: `governance-container-base` refuses production manifests
 that pull from the forbidden list. Build-stage usage is allowed (multi-
 stage with FROM gcr.io/distroless/... as final stage).
 
@@ -117,13 +117,13 @@ FROM clux/muslrust:${RUST_VERSION}-stable AS builder
 WORKDIR /src
 COPY . .
 RUN cargo build --release --target x86_64-unknown-linux-musl \
-    --package oya-intelligence-runtime-rag
+    --package intelligence-runtime-rag
 
 FROM ${DISTROLESS} AS runtime
 ARG GIT_SHA
 LABEL org.opencontainers.image.source="https://github.com/oyatie/oyatie"
 LABEL org.opencontainers.image.revision="${GIT_SHA}"
-COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/oya-intelligence-runtime-rag \
+COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/intelligence-runtime-rag \
      /usr/local/bin/runtime
 USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/runtime"]
@@ -141,7 +141,7 @@ Required rules:
 
 ## 5. Image-size budget
 
-Per-binary budget planned for advisory enforcement by `oya-governance-image-discipline`:
+Per-binary budget planned for advisory enforcement by `governance-image-discipline`:
 
 | Binary class | Compressed budget | Decompressed budget |
 |---|---|---|
@@ -160,8 +160,8 @@ Per [`security-review.md`](security-review.md) §4:
 
 ```sh
 COSIGN_EXPERIMENTAL=1 cosign sign \
-  --bundle target/cosign/oya-intelligence-runtime-rag.bundle \
-  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
+  --bundle target/cosign/intelligence-runtime-rag.bundle \
+  ghcr.io/oyatie/intelligence-runtime-rag@sha256:...
 ```
 
 - Cosign pin: **≥ v3.0.6** (the `--bundle` form is now mandatory; v2
@@ -173,11 +173,11 @@ COSIGN_EXPERIMENTAL=1 cosign sign \
 ## 7. SBOM (Syft, CycloneDX)
 
 ```sh
-syft ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:... \
+syft ghcr.io/oyatie/intelligence-runtime-rag@sha256:... \
   -o cyclonedx-json=target/sbom/runtime-rag.cdx.json
 cosign attest --predicate target/sbom/runtime-rag.cdx.json \
   --type cyclonedx --bundle target/cosign/runtime-rag.sbom.bundle \
-  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
+  ghcr.io/oyatie/intelligence-runtime-rag@sha256:...
 ```
 
 - Syft produces CycloneDX JSON.
@@ -191,7 +191,7 @@ cosign attest --predicate target/sbom/runtime-rag.cdx.json \
 ```sh
 cosign attest --predicate provenance.json --type slsaprovenance \
   --bundle target/cosign/runtime-rag.provenance.bundle \
-  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
+  ghcr.io/oyatie/intelligence-runtime-rag@sha256:...
 ```
 
 SLSA L2 requires:
@@ -222,7 +222,7 @@ Policy expectation:
 - Image MUST carry SLSA-L2 provenance.
 - Image MUST be pinned by digest (no tags).
 
-Lane: `oya-governance-release-supply-chain` (per DOC-CATALOG.md §4).
+Lane: `governance-release-supply-chain` (per DOC-CATALOG.md §4).
 
 ## 10. Trivy scan gate
 
@@ -232,7 +232,7 @@ HIGH + CRITICAL CVEs block release.
 
 ```sh
 trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress \
-  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
+  ghcr.io/oyatie/intelligence-runtime-rag@sha256:...
 ```
 
 ## 11. Anti-patterns

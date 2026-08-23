@@ -16,13 +16,13 @@ pub struct CloudBillingTaxInvoiceFormatPolicy;
 impl CloudBillingTaxInvoiceFormatPolicy {
     pub fn expected_for_regional_pack(regional_pack: &str) -> Option<&'static str> {
         match regional_pack {
-            "oya-pack-kr" => Some("kr_electronic_tax_invoice"),
-            "oya-pack-jp" => Some("jp_qualified_invoice"),
-            "oya-pack-eu" => Some("eu_country_e_invoice"),
-            "oya-pack-in" => Some("in_gst"),
-            "oya-pack-br" => Some("br_nfe"),
-            "oya-pack-ksa" => Some("ksa_fatoora"),
-            "oya-pack-uae" => Some("uae_vat"),
+            "pack-kr" => Some("kr_electronic_tax_invoice"),
+            "pack-jp" => Some("jp_qualified_invoice"),
+            "pack-eu" => Some("eu_country_e_invoice"),
+            "pack-in" => Some("in_gst"),
+            "pack-br" => Some("br_nfe"),
+            "pack-ksa" => Some("ksa_fatoora"),
+            "pack-uae" => Some("uae_vat"),
             _ => None,
         }
     }

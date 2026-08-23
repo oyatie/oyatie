@@ -32,16 +32,16 @@ This team owns Oyatie's FinOps practice: per-tenant unit economics, cost-anomaly
 - Coordination with `ops-dr-capacity` on capacity scaling cost impact
 
 ## Out-of-scope (anti-scope)
-- Cloud billing infrastructure (→ `axis-cloud` owns `oya-cloud-billing-kernel`)
-- SaaS metering event emission (→ `axis-saas` owns `oya-platform-metering-kernel`)
+- Cloud billing infrastructure (→ `axis-cloud` owns `cloud-billing-kernel`)
+- SaaS metering event emission (→ `axis-saas` owns `platform-metering-kernel`)
 - Product pricing decisions (→ founder + GTM; FinOps provides cost input)
 - Financial accounting / GAAP reporting (→ finance function outside engineering)
 
 ## Key dependencies on other teams
 | Depends on | What we need | Cadence |
 |---|---|---|
-| `axis-cloud` | Cloud billing events from `oya-cloud-billing-kernel` | Daily |
-| `axis-saas` | SaaS metering events from `oya-platform-metering-kernel` | Daily |
+| `axis-cloud` | Cloud billing events from `cloud-billing-kernel` | Daily |
+| `axis-saas` | SaaS metering events from `platform-metering-kernel` | Daily |
 | `axis-ads-analytics` | Ad spend analytics data for FinOps attribution | Monthly |
 | `ops-dr-capacity` | Capacity scaling cost impact for headroom recommendations | Monthly |
 | `ops-sre-reliability` | SLO context for cost-vs-reliability tradeoff decisions | Monthly |

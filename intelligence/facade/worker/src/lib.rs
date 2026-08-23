@@ -25,7 +25,7 @@ pub struct WorkerOwnership {
 pub fn default_worker_ownership() -> Vec<WorkerOwnership> {
     vec![
         WorkerOwnership {
-            name: "cloud-intelligence-gateway",
+            name: "intelligence-app-gateway",
             kind: WorkerKind::GatewayDeployment,
             reconciles: &["cached-route-snapshot", "provider-seat-cache"],
             writes: &["redacted-usage-events"],
@@ -256,7 +256,7 @@ pub struct AgentRuntimeProfileSpec {
     pub thinking_policy_ref: String,            // data_class: INTERNAL_ONLY
     pub tool_compatibility_profile_ref: String, // data_class: INTERNAL_ONLY
     pub sandbox_policy_ref: String,             // data_class: INTERNAL_ONLY
-    pub cloud_intelligence_owned_control_plane: bool,
+    pub intelligence_app_owned_control_plane: bool,
     pub embeds_model_runtime: bool,
     pub installs_cli_or_tui_surface: bool,
 }
@@ -291,7 +291,7 @@ impl AgentRuntimeProfileSpec {
             thinking_policy_ref: thinking_policy_ref.to_string(),
             tool_compatibility_profile_ref: tool_compatibility_profile_ref.to_string(),
             sandbox_policy_ref: sandbox_policy_ref.to_string(),
-            cloud_intelligence_owned_control_plane: true,
+            intelligence_app_owned_control_plane: true,
             embeds_model_runtime: false,
             installs_cli_or_tui_surface: false,
         })
@@ -466,7 +466,7 @@ impl AgentDelegationPolicySpec {
     }
 }
 
-/// Internal coding-agent workflow composed exclusively from cloud-intelligence
+/// Internal coding-agent workflow composed exclusively from intelligence-app
 /// resource refs. Status ownership for the `/admin/v1/agent-runtimes` and
 /// `llm.agent_runtime.v1` read surfaces; execution stays controller-owned.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -485,7 +485,7 @@ pub struct InternalCodingAgentWorkflowPlan {
     pub routing_advisor_scope: &'static str,    // data_class: INTERNAL_ONLY
     pub policy_engine_port: &'static str,       // data_class: INTERNAL_ONLY
     pub evidence_visibility: &'static str,      // data_class: INTERNAL_ONLY
-    pub cloud_intelligence_primitive_only: bool,
+    pub intelligence_app_primitive_only: bool,
     pub requires_policy_engine_decision: bool,
     pub requires_secondary_review_for_critical_blocks: bool,
     pub uses_redacted_evidence_handles: bool,
@@ -537,7 +537,7 @@ impl InternalCodingAgentWorkflowPlan {
             routing_advisor_scope: "routing-decision-only",
             policy_engine_port: "owned-policy-engine-port",
             evidence_visibility: "redacted-structured-evidence",
-            cloud_intelligence_primitive_only: true,
+            intelligence_app_primitive_only: true,
             requires_policy_engine_decision: true,
             requires_secondary_review_for_critical_blocks: true,
             uses_redacted_evidence_handles: true,

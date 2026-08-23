@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every foundry-internal artifact that depends on the salvaged corpus cites a corpus row id.
 - enforces: MASTERPLAN P3.5 — foundry corpus cross-cite.
-- kernel_crate: `oya-governance-foundry-corpus-citation-kernel` — `CorpusCitation { path, line, corpus_id }`, verdict `FoundryCorpusCitationFitnessReport { citations_checked }`.
-- runner_path: `tools/oya-governance-foundry-corpus-citation`
+- kernel_crate: `governance-foundry-corpus-citation-kernel` — `CorpusCitation { path, line, corpus_id }`, verdict `FoundryCorpusCitationFitnessReport { citations_checked }`.
+- runner_path: `tools/governance-foundry-corpus-citation`
 - inputs: `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`, every doc/code marked `corpus-dependent`.
 - failure_modes:
   - missing corpus id citation
   - cited id unresolved
   - duplicate citation collision in same doc
-- ci_invocation: `cargo run -p oya-governance-foundry-corpus-citation`
+- ci_invocation: `cargo run -p governance-foundry-corpus-citation`
 - runtime_budget: 500 ms
 - severity: HIGH
 - kernel_sketch:

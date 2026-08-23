@@ -24,12 +24,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_budget_alert_under_60s_total[5m]))
+              query: sum(rate(data_warehouse_budget_alert_under_60s_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_budget_threshold_crossing_total[5m]))
+              query: sum(rate(data_warehouse_budget_threshold_crossing_total[5m]))
   objectives:
     - displayName: p99 budget-exhaustion alert delivered within 60s of crossing
       target: 0.99

@@ -60,7 +60,7 @@ nodePools:
         nodeClassRef:
           group: karpenter.k8s.aws
           kind: EC2NodeClass
-          name: oya-app-tier
+          name: app-tier
     disruption:
       consolidationPolicy: WhenEmptyOrUnderutilized
       consolidateAfter: 30s
@@ -98,7 +98,7 @@ nodePools:
         nodeClassRef:
           group: karpenter.k8s.aws
           kind: EC2NodeClass
-          name: oya-batch-tier
+          name: batch-tier
     disruption:
       consolidationPolicy: WhenEmptyOrUnderutilized
       consolidateAfter: 60s
@@ -130,7 +130,7 @@ nodePools:
         nodeClassRef:
           group: karpenter.k8s.aws
           kind: EC2NodeClass
-          name: oya-gpu-tier
+          name: gpu-tier
     disruption:
       consolidationPolicy: WhenEmpty  # never consolidate-underutilized for GPU
       consolidateAfter: 5m
@@ -168,7 +168,7 @@ nodePools:
         nodeClassRef:
           group: karpenter.k8s.aws
           kind: EC2NodeClass
-          name: oya-regulatory-tier
+          name: regulatory-tier
     disruption:
       consolidationPolicy: WhenEmpty
       consolidateAfter: 5m
@@ -187,7 +187,7 @@ microservice: cloud-k8s
 boundedContext: node-autoscaling
 tier: M
 plane: control
-partOf: oya-cloud-k8s
+partOf: cloud-k8s
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:
@@ -195,5 +195,5 @@ costAttribution:
   workloadClass: "app"
 
 # ---- canonical helm library ----
-oya-helpers:
+helpers:
   enabled: true

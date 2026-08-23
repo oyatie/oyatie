@@ -26,7 +26,7 @@ Per v6 BLOCKER-1 (memoization) and v5 §B.5 (CI lane), the adapter contributes:
 ### Claude Renderer
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-adapter -- claude_render
+cargo bench -p intelligence-settings-template-adapter -- claude_render
 
 # Metrics:
 # - JSON parse: ~2ms
@@ -38,7 +38,7 @@ cargo bench -p oya-intelligence-settings-template-adapter -- claude_render
 ### Codex Renderer
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-adapter -- codex_render
+cargo bench -p intelligence-settings-template-adapter -- codex_render
 
 # Metrics:
 # - TOML parse: ~2ms
@@ -51,7 +51,7 @@ cargo bench -p oya-intelligence-settings-template-adapter -- codex_render
 ### Gemini Renderer
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-adapter -- gemini_render
+cargo bench -p intelligence-settings-template-adapter -- gemini_render
 
 # Metrics: Same as Claude (~20ms p50, ~45ms p95)
 ```
@@ -59,7 +59,7 @@ cargo bench -p oya-intelligence-settings-template-adapter -- gemini_render
 ## Verify Latency
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-adapter -- verify_latency
+cargo bench -p intelligence-settings-template-adapter -- verify_latency
 
 # Per-account:
 # - Read file: ~2ms
@@ -105,4 +105,4 @@ manifest1.files[].content_blake3 == manifest2.files[].content_blake3
 
 - **v6 Amendments § BLOCKER-1:** Memoization + default-disabled mode
 - **v5 Plan § C.25..C.30:** Acceptance rows
-- **Benchmarks:** `crates/oya-intelligence-settings-template-adapter/benches/`
+- **Benchmarks:** `crates/intelligence-settings-template-adapter/benches/`

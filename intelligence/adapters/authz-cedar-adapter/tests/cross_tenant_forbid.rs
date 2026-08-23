@@ -7,8 +7,8 @@
 //! - subset/superset string matches that must NOT pass
 //!
 //! All MUST yield [`AuthzDecision::Forbid`]. The bundled policy at
-//! `intelligence/policy/cloud-intelligence.cedar` carries an explicit
-//! forbid rule (`cloud-intelligence-forbid-cross-tenant-inference`) that triggers
+//! `intelligence/policy/intelligence-app.cedar` carries an explicit
+//! forbid rule (`intelligence-app-forbid-cross-tenant-inference`) that triggers
 //! whenever `principal.tenant_id != resource.tenant_id`.
 use intelligence_authz_cedar_adapter::CedarAuthzGate;
 use intelligence_kernel::{

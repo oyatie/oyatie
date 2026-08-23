@@ -9,7 +9,8 @@ description = "Workload X.509-SVID trustd adapter (G002 slice-1; ADR-0561): impl
 
 [dependencies]
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
-os-trustd-domain = { path = "../../../os/core/trustd-domain" }
+os-trustd-domain = { path = "../../core/trustd-domain" }
+
 x509-parser = { workspace = true }
 
 [lib]

@@ -276,7 +276,7 @@ This document provides the repeatable QBR agenda, metric list, risk-signal catal
 - Tool: `identity-service`; Action: `identity:ReadTenantPrincipals`; QBR use: active users, admin roles, and access lifecycle.
 - Tool: `finops-portal`; Action: `finops-portal:ReadTenantCostCenter`; QBR use: cost-center and usage-cost review.
 - Tool: `support-service`; Action: `support:ReadTenantTickets`; QBR use: support case trend and response quality.
-- Tool: `migration-validate-service`; Action: `oya.migration.validate`; QBR use: migration completeness and exception status.
+- Tool: `migration-validate-service`; Action: `oyatie.migration.validate`; QBR use: migration completeness and exception status.
 - Tool: `foundry-capability-service`; Action: `foundry-capability:ReadCapabilityUsage`; QBR use: capability usage and expansion signal.
 - Tool: `platform-tenant-service`; Action: `platform-tenant:GetTenant`; QBR use: tenant state, package, cell, and compliance snapshot.
 

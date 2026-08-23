@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-compliance + council-privacy + ops-security
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0240, ADR-0244 §D-3, ADR-0251 §D-8, ADR-0248 §D-6, ADR-0049
 
 ---
@@ -23,7 +23,7 @@ Specific triggers:
 - **Audit-chain cross-cell-coordination event to disallowed region** — `CrossCellCoordinationEvent` in audit stream references a destination cell in a jurisdiction not in `data_residency_allowed`.
 - **Tenant or regulator complaint** — tenant reports their data appeared in an unexpected region; a regulator requests an explanation of data flows.
 - **Cross-border replication alert** — ADR-0049 replication health monitor detects data-class-tagged rows being replicated to a region not in `data_residency_allowed`.
-- **Sovereignty audit finding** — `oya gate validate tenant-pack-cell-pinning` CI lane reports a tenant is placed in a cell outside their pack's `cell_eligibility.minimum_certification_level_set`.
+- **Sovereignty audit finding** — `presubmit` (retired CLI `gate validate tenant-pack-cell-pinning`) CI lane reports a tenant is placed in a cell outside their pack's `cell_eligibility.minimum_certification_level_set`.
 
 ---
 
@@ -143,7 +143,7 @@ Determine why the violation occurred by tracing to the specific system failure:
 
 ```
 # Check if the tenant's cell assignment violates pack pinning (ADR-0251 §D-5):
-oya gate validate tenant-pack-cell-pinning --tenant-id <TENANT_ID>
+presubmit (retired CLI gate validate) tenant-pack-cell-pinning --tenant-id <TENANT_ID>
 
 # Check if cross-region replication was misconfigured (ADR-0049):
 psql -c "SELECT replication_targets, data_class_filter
@@ -265,7 +265,7 @@ audit-chain-cli query \
 
 2. **Tenant cell placement complies with pack pinning:**
    ```
-   oya gate validate tenant-pack-cell-pinning --tenant-id <TENANT_ID>
+   presubmit (retired CLI gate validate) tenant-pack-cell-pinning --tenant-id <TENANT_ID>
    ```
 
 3. **Replication configuration excludes non-allowed regions.**
@@ -290,7 +290,7 @@ The egress quarantine is a protective measure and should not be rolled back unti
 1. Root-cause documentation filed in `evidence/incidents/<INCIDENT_ID>/`.
 2. Update the tenant's `data_residency_allowed` declaration if the violation revealed it was misconfigured (vs. a system bug).
 3. File MFL row if the violation was caused by a platform system bug (cedar fragment, replication config, cell assignment service).
-4. Assess whether the `oya gate validate tenant-pack-cell-pinning` CI lane would have caught this earlier — if not, improve the lane.
+4. Assess whether the `presubmit` (retired CLI `gate validate tenant-pack-cell-pinning`) CI lane would have caught this earlier — if not, improve the lane.
 5. If the violation involves EU GDPR Article 46 mechanisms (SCCs, etc.), ensure agreement lifecycle is updated.
 6. Post-mortem within 72h.
 

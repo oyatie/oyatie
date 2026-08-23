@@ -1,7 +1,7 @@
 # Spec: ontology-query-engine-domain — traversal-bounds
 
 **Vertical:** ontology  
-**Crate:** `oya-ontology-query-engine-domain`  
+**Crate:** `ontology-query-engine-domain`  
 **ADR surface:** in-memory domain; no external protocol changes in this slice  
 **Status:** SPEC
 
@@ -209,7 +209,7 @@ integration-test crate is introduced (single-crate lane rule).
 
 ## Boundaries
 
-- Operate ONLY in `crates/oya-ontology-query-engine-domain/`.
+- Operate ONLY in `crates/ontology-query-engine-domain/`.
 - NEVER edit root `Cargo.toml` or any other crate.
 - No new abstractions for single-use logic.
 - `data_class` annotations preserved on every touched field.

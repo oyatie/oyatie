@@ -109,7 +109,7 @@ const PRINCIPAL_LIFECYCLE_PATTERN: &str = "/principals/{id_and_verb}";
 // BOTH a verified UNFORGEABLE caller credential (failure-class (b)) AND a
 // fail-closed PDP authorization decision scoped to the TARGET principal's real
 // tenant (failure-class (d)). Both are clean PORTS owned by this boundary crate;
-// the concrete cloud-iam PDP client + credential store are adapters outside it
+// the concrete iam PDP client + credential store are adapters outside it
 // (owned-W5 shape). The guard is enforced at the in-crate choke point
 // [`lifecycle_transition`], not only at the HTTP edge (failure-class (c)).
 
@@ -223,7 +223,7 @@ impl AuthzFault {
 /// maps both `Ok(false)` and `Err(_)` to `403` (fail-closed; failure-class (e)).
 /// Cross-tenant requests MUST be denied regardless of how many allow rules match
 /// (deny is authoritative at the service boundary). A production adapter is the
-/// cloud-iam Cedar PDP client.
+/// iam Cedar PDP client.
 ///
 /// # Adapter contract (MUST be upheld by every implementation)
 ///
@@ -281,7 +281,7 @@ pub struct DecisionAuthzRequest<'a> {
 /// `Err(_)` to `403` (fail-closed; a PDP outage never allows and never 5xx).
 /// Cross-tenant requests MUST be denied regardless of how many allow rules match
 /// (deny is authoritative at the boundary). The reference adapter is a
-/// same-tenant check in the composition root; a richer cloud-iam Cedar PDP swaps
+/// same-tenant check in the composition root; a richer iam Cedar PDP swaps
 /// in behind this port without touching the delivery surfaces.
 ///
 /// The trait-level adapter contract of [`LifecycleAuthorizer`] (fault mapping, no
@@ -311,7 +311,7 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 
 /// Reference [`CallerVerifier`] adapter: a single configured bearer token bound
 /// to one caller identity + tenant, compared in constant time. Production swaps
-/// in an mTLS/SPIFFE or cloud-iam credential-store adapter behind the same port.
+/// in an mTLS/SPIFFE or iam credential-store adapter behind the same port.
 /// An empty/unset configured token verifies NOTHING (every caller is `401`):
 /// there is no allow-all path.
 #[derive(Clone, Debug)]

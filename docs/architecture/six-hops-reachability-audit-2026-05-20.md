@@ -2145,7 +2145,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/calendar/runbooks/tzdb-rollback.md` | C1398 | 1 | 0 | 0 | weak component C1398 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/calendar/sdk-plan.md` | C1399 | 1 | 0 | 0 | weak component C1399 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/calendar/threat-model.md` | C1400 | 1 | 0 | 0 | weak component C1400 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C1401 | 1 | 0 | 0 | retired cell microservice rows collapsed; reachability now belongs to tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/oya-shuffle-sharding` |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C1401 | 1 | 0 | 0 | retired cell microservice rows collapsed; reachability now belongs to tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/shuffle-sharding` |
 | `microservices/cloud-iac/ARCHITECTURE.md` | C1454 | 1 | 0 | 0 | weak component C1454 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md` | C1455 | 16 | 1 | 1 | weak component C1455 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/cloud-iac/IP-002-layer-a-opentofu-iac.md` | C1455 | 16 | 2 | 1 | weak component C1455 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
@@ -2442,7 +2442,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/community/IP-010-foundry-guardrails-moderation-bridge.md` | C1716 | 1 | 0 | 0 | weak component C1716 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-011-cedar-policy-fragments.md` | C1717 | 1 | 0 | 0 | weak component C1717 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-012-openslo-grafana-dashboards.md` | C1718 | 1 | 0 | 0 | weak component C1718 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/community/IP-013-oya-vcs-promotion-readiness.md` | C1719 | 1 | 0 | 0 | weak component C1719 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/community/IP-013-retired-vcs-ratchet` | C1719 | 1 | 0 | 0 | weak component C1719 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-014-hyperscaler-maturity-gate.md` | C1720 | 1 | 0 | 0 | weak component C1720 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-015-capacity-cost-chaos-drill.md` | C1721 | 1 | 0 | 0 | weak component C1721 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-N-anonymous-fold-extraction.md` | C1722 | 1 | 0 | 0 | weak component C1722 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -5386,7 +5386,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/observability/IP-009-slo-engine-app.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-010-promotion-eligibility-ledger.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-011-per-component-release-pointers.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/observability/IP-012-retired-vcs-ratchet` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-013-event-driven-promote-workflows.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-014-automated-rollback-primitive.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-015-canary-cohort-weighting.md` | C4345 | 16 | 2 | 0 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
@@ -7206,31 +7206,31 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/workflow-studio/runbooks/session-storm-throttle.md` | C5819 | 1 | 0 | 0 | weak component C5819 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workflow-studio/runbooks/template-marketplace-quarantine.md` | C5820 | 1 | 0 | 0 | weak component C5820 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workflow-studio/sdk-plan.md` | C5821 | 1 | 0 | 0 | weak component C5821 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-asset-issuance.md` | C5822 | 1 | 0 | 0 | weak component C5822 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-asset-return-offboarding.md` | C5823 | 1 | 0 | 0 | weak component C5823 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-bed-availability-prediction.md` | C5824 | 1 | 0 | 0 | weak component C5824 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-comp-band-refresh.md` | C5825 | 1 | 0 | 0 | weak component C5825 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-discharge-planning.md` | C5826 | 1 | 0 | 0 | weak component C5826 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-equity-vesting-tax-event.md` | C5827 | 1 | 0 | 0 | weak component C5827 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-interview-kit-scheduling.md` | C5828 | 1 | 0 | 0 | weak component C5828 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-involuntary-termination.md` | C5829 | 1 | 0 | 0 | weak component C5829 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-joint-commission-prep.md` | C5830 | 1 | 0 | 0 | weak component C5830 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-lateral-transfer.md` | C5831 | 1 | 0 | 0 | weak component C5831 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-layoff-bench-severance.md` | C5832 | 1 | 0 | 0 | weak component C5832 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-month-end-close.md` | C5833 | 1 | 0 | 0 | weak component C5833 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-monthly-pay-run.md` | C5834 | 1 | 0 | 0 | weak component C5834 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-new-hire-onboarding.md` | C5835 | 1 | 0 | 0 | weak component C5835 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-offer-esign-onboarding-handoff.md` | C5836 | 1 | 0 | 0 | weak component C5836 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-patient-admission.md` | C5837 | 1 | 0 | 0 | weak component C5837 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-performance-improvement-plan.md` | C5838 | 1 | 0 | 0 | weak component C5838 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-procure-to-pay.md` | C5839 | 1 | 0 | 0 | weak component C5839 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-promotion-comp-change.md` | C5840 | 1 | 0 | 0 | weak component C5840 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-quarterly-variance-narrative.md` | C5841 | 1 | 0 | 0 | weak component C5841 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-req-approval-posting-sourcing.md` | C5842 | 1 | 0 | 0 | weak component C5842 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-vendor-onboarding.md` | C5843 | 1 | 0 | 0 | weak component C5843 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-vendor-renewal.md` | C5844 | 1 | 0 | 0 | weak component C5844 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-voluntary-exit-offboarding.md` | C5845 | 1 | 0 | 0 | weak component C5845 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-year-end-w2-1099.md` | C5846 | 1 | 0 | 0 | weak component C5846 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-asset-issuance.md` | C5822 | 1 | 0 | 0 | weak component C5822 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-asset-return-offboarding.md` | C5823 | 1 | 0 | 0 | weak component C5823 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-bed-availability-prediction.md` | C5824 | 1 | 0 | 0 | weak component C5824 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-comp-band-refresh.md` | C5825 | 1 | 0 | 0 | weak component C5825 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-discharge-planning.md` | C5826 | 1 | 0 | 0 | weak component C5826 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-equity-vesting-tax-event.md` | C5827 | 1 | 0 | 0 | weak component C5827 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-interview-kit-scheduling.md` | C5828 | 1 | 0 | 0 | weak component C5828 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-involuntary-termination.md` | C5829 | 1 | 0 | 0 | weak component C5829 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-joint-commission-prep.md` | C5830 | 1 | 0 | 0 | weak component C5830 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-lateral-transfer.md` | C5831 | 1 | 0 | 0 | weak component C5831 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-layoff-bench-severance.md` | C5832 | 1 | 0 | 0 | weak component C5832 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-month-end-close.md` | C5833 | 1 | 0 | 0 | weak component C5833 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-monthly-pay-run.md` | C5834 | 1 | 0 | 0 | weak component C5834 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-new-hire-onboarding.md` | C5835 | 1 | 0 | 0 | weak component C5835 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-offer-esign-onboarding-handoff.md` | C5836 | 1 | 0 | 0 | weak component C5836 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-patient-admission.md` | C5837 | 1 | 0 | 0 | weak component C5837 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-performance-improvement-plan.md` | C5838 | 1 | 0 | 0 | weak component C5838 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-procure-to-pay.md` | C5839 | 1 | 0 | 0 | weak component C5839 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-promotion-comp-change.md` | C5840 | 1 | 0 | 0 | weak component C5840 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-quarterly-variance-narrative.md` | C5841 | 1 | 0 | 0 | weak component C5841 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-req-approval-posting-sourcing.md` | C5842 | 1 | 0 | 0 | weak component C5842 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-vendor-onboarding.md` | C5843 | 1 | 0 | 0 | weak component C5843 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-vendor-renewal.md` | C5844 | 1 | 0 | 0 | weak component C5844 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-voluntary-exit-offboarding.md` | C5845 | 1 | 0 | 0 | weak component C5845 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/workflow-studio/templates/explainers/workflow-studio-template-year-end-w2-1099.md` | C5846 | 1 | 0 | 0 | weak component C5846 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workflow-studio/threat-model.md` | C5847 | 1 | 0 | 0 | weak component C5847 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workflow-studio/tutorials/build-customer-onboarding-flow.md` | C5848 | 1 | 0 | 0 | weak component C5848 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/workplace-integration/ARCHITECTURE.md` | C5849 | 1 | 0 | 0 | weak component C5849 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -7545,7 +7545,7 @@ The corpus fails because at least one Markdown node is unreachable from `docs/RE
 | raw_links | 8279 |
 | resolved_edges | 3856 |
 
-### Oya VCS Checkpoint
+### retired VCS ratchet Checkpoint
 
 Required evidence string for verify/done/promote:
 
@@ -7555,4 +7555,4 @@ Checkpoint status at authoring time: claim accepted for `docs/architecture`; aud
 
 ### Stop Condition
 
-Stop after this file exists, line count is >=1500, Oya VCS verify/done/promote run with the evidence counts above, and final response reports verdict plus topline counts plus the 10 highest-leverage remediation targets.
+Stop after this file exists, line count is >=1500, retired VCS ratchet verify/done/promote run with the evidence counts above, and final response reports verdict plus topline counts plus the 10 highest-leverage remediation targets.

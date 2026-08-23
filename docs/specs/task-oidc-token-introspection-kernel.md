@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-identity-oidc-issuer-kernel` with a pure RFC 7662 OAuth 2.0
+Extend `identity-oidc-issuer-kernel` with a pure RFC 7662 OAuth 2.0
 Token Introspection response surface. The addition consists of three
 tightly-scoped pieces added to `src/lib.rs`:
 
@@ -24,8 +24,8 @@ edit.
 ## Vertical and crate
 
 - Lane: `foundation`
-- Crate: `oya-identity-oidc-issuer-kernel`
-  (`crates/oya-identity-oidc-issuer-kernel/`)
+- Crate: `identity-oidc-issuer-kernel`
+  (`crates/identity-oidc-issuer-kernel/`)
 - ADR alignment:
   - ADR-0083 Tier 3 panic-free invariant
   - ADR-0131 per-microservice flat layout
@@ -186,7 +186,7 @@ Disclosed claim mapping (active branch only):
 
 ## Module layout (flat clean-arch, single file)
 
-All additions land in `crates/oya-identity-oidc-issuer-kernel/src/lib.rs`.
+All additions land in `crates/identity-oidc-issuer-kernel/src/lib.rs`.
 No new files, no new modules. Insertion order in `lib.rs`:
 
 ```
@@ -233,7 +233,7 @@ All tests use a fixed `now_epoch_seconds` value to remain deterministic.
 
 ## Boundaries
 
-- Modify ONLY `crates/oya-identity-oidc-issuer-kernel/src/lib.rs`.
+- Modify ONLY `crates/identity-oidc-issuer-kernel/src/lib.rs`.
 - Do NOT edit root `Cargo.toml`.
 - Do NOT add any new crate or new source file.
 - Do NOT re-implement expiry math; delegate entirely to

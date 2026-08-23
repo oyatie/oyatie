@@ -1,9 +1,0 @@
-{
-  "subcheck_id": "seam-imports",
-  "fixture_kind": "failing",
-  "case_id": "seam-imports-failing-semantic-fixture",
-  "expected_diagnostics": [
-    "SEAM_IMPORT_OUTSIDE_ISOLATED_CRATE"
-  ],
-  "description": "Semantic failing fixture manifest for seam-imports"
-}

@@ -8,7 +8,7 @@ metadata:
     "helm.sh/hook-weight": "5"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
-    oya.adr: "0194"
+    oyatie.adr: "0194"
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 3600

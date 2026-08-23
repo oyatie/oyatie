@@ -10,10 +10,10 @@ rust_library(
 )
 
 rust_test(
-    name = "iac-api-cloud-iac-api",
-    srcs = ["tests/cloud_iac_api.rs"],
-    crate = "iac_api_cloud_iac_api",
-    crate_root = "tests/cloud_iac_api.rs",
+    name = "iac-api-iac-app-api",
+    srcs = ["tests/iac_app_api.rs"],
+    crate = "iac_api_iac_app_api",
+    crate_root = "tests/iac_app_api.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":iac-api",

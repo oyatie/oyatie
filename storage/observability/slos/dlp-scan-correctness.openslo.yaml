@@ -29,9 +29,9 @@ spec:
           spec:
             query: |
               1.0 - (
-                sum(rate(oya_drive_scan_correctness_violation_total[5m]))
+                sum(rate(drive_scan_correctness_violation_total[5m]))
                 /
-                sum(rate(oya_drive_file_upload_completed_total[5m]))
+                sum(rate(drive_file_upload_completed_total[5m]))
               )
   timeWindow:
     - duration: 30d

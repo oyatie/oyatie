@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 oncall:
   image:
     tag: "v1.8.0"
@@ -8,7 +8,7 @@ oncall:
     auth:
       existingSecret: "openbao://secret/observability/oncall/postgres"
   externalGrafana:
-    url: http://oya-observability-grafana.observability.svc/
+    url: http://observability-grafana.observability.svc/
   base_url: "https://oncall-${PACK}.oyatie.dev"
   secrets:
     secretKey: "openbao://secret/observability/oncall/secret-key"

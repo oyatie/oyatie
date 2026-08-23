@@ -199,14 +199,14 @@ curl -o /dev/null -s -w "TTFB: %{time_starttransfer}s\n" \
 # Expected Scenario A (cached): < 10ms from Berlin (edge cache hit on second request)
 
 # Verify edge Cedar bundle is cached at POP
-oya gate benchmark edge-cedar-eval \
+retired CLI benchmark edge-cedar-eval \
   --pop cloudflare-fra \
   --fragment-count 100 \
   --scenario warm-bundle-cached
 # Expected: p99 < 5ms
 
 # Run full first-byte latency suite
-oya gate validate edge-first-byte-latency \
+presubmit (retired CLI gate validate) edge-first-byte-latency \
   --locations berlin,seoul,sao-paulo,sydney \
   --scenarios A,B \
   --duration 300s

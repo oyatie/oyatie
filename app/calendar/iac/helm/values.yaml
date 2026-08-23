@@ -1,4 +1,4 @@
-# Default values for oya-calendar Helm chart.
+# Default values for calendar Helm chart.
 # Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned versions) +
 # ADR-CAL-0001 (CalDAV backend selection) + ADR-CAL-0002 (rrule-rs 0.13.x
 # engine) + ADR-CAL-0004 (tzdb refresh policy).
@@ -21,7 +21,7 @@ global:
 eventStore:
   replicaCount: 3
   image:
-    repository: registry.oyatie.dev/oya-calendar-event-store-app
+    repository: registry.oyatie.dev/calendar-event-store-app
     tag: "1.0.0"                       # match Cargo.toml workspace version
   resources:
     requests: {cpu: 500m, memory: 512Mi}
@@ -33,7 +33,7 @@ eventStore:
 recurrenceEngine:
   replicaCount: 2
   image:
-    repository: registry.oyatie.dev/oya-calendar-recurrence-engine-app
+    repository: registry.oyatie.dev/calendar-recurrence-engine-app
     tag: "1.0.0"
   resources:
     requests: {cpu: 250m, memory: 256Mi}
@@ -44,7 +44,7 @@ recurrenceEngine:
 availabilityResolver:
   replicaCount: 3
   image:
-    repository: registry.oyatie.dev/oya-calendar-availability-resolver-app
+    repository: registry.oyatie.dev/calendar-availability-resolver-app
     tag: "1.0.0"
   resources:
     requests: {cpu: 500m, memory: 512Mi}
@@ -52,13 +52,13 @@ availabilityResolver:
   port: 9003
   cache:
     backend: valkey
-    valkeyAddr: oya-calendar-valkey:6379
+    valkeyAddr: calendar-valkey:6379
     ttlSeconds: 300
 
 roomBooking:
   replicaCount: 2
   image:
-    repository: registry.oyatie.dev/oya-calendar-room-booking-app
+    repository: registry.oyatie.dev/calendar-room-booking-app
     tag: "1.0.0"
   resources:
     requests: {cpu: 250m, memory: 256Mi}
@@ -68,18 +68,18 @@ roomBooking:
 invitationFlow:
   replicaCount: 2
   image:
-    repository: registry.oyatie.dev/oya-calendar-invitation-flow-app
+    repository: registry.oyatie.dev/calendar-invitation-flow-app
     tag: "1.0.0"
   resources:
     requests: {cpu: 250m, memory: 256Mi}
     limits:   {cpu: 1,    memory: 512Mi}
   port: 9005
-  mailBridgeEndpoint: oya-mail-outbound-smtp-app.mail.svc.cluster.local:9000
+  mailBridgeEndpoint: mail-outbound-smtp-app.mail.svc.cluster.local:9000
 
 icsImportExport:
   replicaCount: 2
   image:
-    repository: registry.oyatie.dev/oya-calendar-ics-import-export-app
+    repository: registry.oyatie.dev/calendar-ics-import-export-app
     tag: "1.0.0"
   resources:
     requests: {cpu: 500m, memory: 512Mi}
@@ -93,7 +93,7 @@ icsImportExport:
 tzdbRefreshWorker:
   enabled: true
   image:
-    repository: registry.oyatie.dev/oya-calendar-tzdb-refresh-worker
+    repository: registry.oyatie.dev/calendar-tzdb-refresh-worker
     tag: "1.0.0"
   schedule: "0 */24 * * *"             # every 24h
   ianaReleaseUrl: "https://data.iana.org/time-zones/releases/"
@@ -111,7 +111,7 @@ radicale:
     tag: "3.2.3"                       # LTS pinned per ADR-CAL-0001
   storage:
     backend: postgres
-    postgresAddr: oya-calendar-postgres:5432
+    postgresAddr: calendar-postgres:5432
     postgresDbRef: "${openbao:secret/calendar/{tenant}/postgres}"
   tls:
     enabled: true

@@ -10,22 +10,22 @@ This team owns Oyatie's cloud provider axis: compute, storage, network, IAM, bil
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cloud provider (Axis 5)
 - **Surfaces:**
-  - `oya-cloud-resource-kernel` — `ResourceType`, `ResourceId`, `ResourceSpec`, `ResourceState`
-  - `oya-cloud-region-kernel` — `RegionCode`, `AzId`, `CellId`, `ResidencyClass`
-  - `oya-cloud-iam-kernel` — `IamPolicy`, `StsToken`, `RoleArn`, `SsoProvider` (cloud-customer-facing)
-  - `oya-cloud-compute-*` — managed k8s, functions, VM, bare-metal lease, GPU
-  - `oya-cloud-storage-*` — object, block, KMS-shred, archive, backup
-  - `oya-cloud-network-*` — VPC, LB, DNS, CDN, interconnect, DDoS, mesh
-  - `oya-cloud-billing-kernel` — `BillingEvent`, `ResourceUsageMeter`, `TaxInvoiceFormat`
-  - `oya-cloud-observability-*` — audit log, SLO dashboards, distributed tracing
-  - `oya-cloud-iam-*` — Cedar + SSO + STS (cloud-customer surface; seam co-owned with `platform-tenancy-identity`)
+  - `cloud-resource-kernel` — `ResourceType`, `ResourceId`, `ResourceSpec`, `ResourceState`
+  - `cloud-region-kernel` — `RegionCode`, `AzId`, `CellId`, `ResidencyClass`
+  - `cloud-iam-kernel` — `IamPolicy`, `StsToken`, `RoleArn`, `SsoProvider` (cloud-customer-facing)
+  - `cloud-compute-*` — managed k8s, functions, VM, bare-metal lease, GPU
+  - `cloud-storage-*` — object, block, KMS-shred, archive, backup
+  - `cloud-network-*` — VPC, LB, DNS, CDN, interconnect, DDoS, mesh
+  - `cloud-billing-kernel` — `BillingEvent`, `ResourceUsageMeter`, `TaxInvoiceFormat`
+  - `cloud-observability-*` — audit log, SLO dashboards, distributed tracing
+  - `cloud-iam-*` — Cedar + SSO + STS (cloud-customer surface; seam co-owned with `platform-tenancy-identity`)
   - Products owned: `products/cloud/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Cloud resource type` (owner) — cloud customers, tenant resource lifecycle, billing
   - `Region / AZ / Cell` (owner) — all axes read tenant residency from this
   - `IAM / SSO / SAML / OIDC IdP` (co-owner with `platform-tenancy-identity` for SaaS-facing IAM)
   - `Billing event` (co-owner with `axis-saas` metering and SaaS billing rail)
-- **Catalog records:** `crates/oya-cloud-*`
+- **Catalog records:** `crates/cloud-*`
 - **Runbooks:** `runbooks/region-failover.md`, `runbooks/cell-isolation-breach.md`, `runbooks/iam-key-rotation.md`, `runbooks/kcmvp-hsm-incident.md`
 - **ADRs:** ADR-0044 (data residency — co-author), regional-pack cloud sections
 

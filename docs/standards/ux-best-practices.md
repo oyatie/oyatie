@@ -87,9 +87,9 @@ prescriptive, testable, and CI-enforceable.
 This document operationalizes:
 
 - **ADR-0207** (Accessibility, WCAG 2.2 AA; AAA on regulated surfaces) — every
-  rule in §3 is mandatory; CI gate `oya-check-a11y-discipline` enforces.
+  rule in §3 is mandatory; CI gate `check-a11y-discipline` enforces.
 - **ADR-0206** (i18n substrate: Fluent source + ICU MessageFormat surface) —
-  every rule in §5 is mandatory; CI gate `oya-check-i18n-coverage` enforces.
+  every rule in §5 is mandatory; CI gate `check-i18n-coverage` enforces.
 - **ADR-0219** (No-code-first UX with optional AI assist) — §22 and the
   primary-UX rules across this document derive from this ADR.
 - **ADR-0218** (Tenant Granular Control Surface) — §20 (branding/white-label),
@@ -122,11 +122,11 @@ Every µservice ships a `clients/manifest.json` declaring:
 
 CI lanes (advisory in M01–M02; BLOCKER from M03 onward):
 
-- `oya-check-a11y-discipline` — axe-core + pa11y + native runners.
-- `oya-check-i18n-coverage` — Fluent → catalog generators + locale coverage.
-- `oya-check-design-token-conformance` — token usage; no hard-coded color/spacing literals.
-- `oya-check-motion-budget` — animation frame-budget audit (transform/opacity only).
-- `oya-check-touch-target-size` — minimum 44×44pt (iOS) / 48×48dp (Android).
+- `check-a11y-discipline` — axe-core + pa11y + native runners.
+- `check-i18n-coverage` — Fluent → catalog generators + locale coverage.
+- `check-design-token-conformance` — token usage; no hard-coded color/spacing literals.
+- `check-motion-budget` — animation frame-budget audit (transform/opacity only).
+- `check-touch-target-size` — minimum 44×44pt (iOS) / 48×48dp (Android).
 
 ### 1.4 Strive / Avoid model
 
@@ -146,7 +146,7 @@ reviewers a single-axis pass/fail for code review.
 Design tokens are the contract between design and engineering. Every visual
 property in oyatie MUST resolve to a token. Hard-coded color, spacing, radius,
 or shadow literals are forbidden and CI-gated by
-`oya-check-design-token-conformance`.
+`check-design-token-conformance`.
 
 Tokens live at:
 
@@ -645,7 +645,7 @@ region (including invisible padding) meets the minimum.
 }
 ```
 
-CI gate `oya-check-touch-target-size` snapshots interactive element bounds
+CI gate `check-touch-target-size` snapshots interactive element bounds
 at the breakpoint matrix and fails when any falls below the threshold.
 
 ### 3.7 Form labels
@@ -1274,7 +1274,7 @@ If an animation doesn't satisfy one of the above, delete it.
 
 ### 9.2 Reduced-motion respected
 
-Per §3.5. CI gate `oya-check-motion-budget` asserts every animation has a
+Per §3.5. CI gate `check-motion-budget` asserts every animation has a
 reduced-motion fallback.
 
 ### 9.3 Performance budget
@@ -2371,7 +2371,7 @@ For high-risk surfaces:
 - Citations / sources where applicable ("Drawn from: 3 sources").
 - "I don't know" surfaced instead of fabricated answer.
 - Refusal banners on Annex III refusal cases per
-  `oya-check-eu-ai-act-annex-iii-refusal`.
+  `check-eu-ai-act-annex-iii-refusal`.
 
 ### 22.7 No surprises
 

@@ -20,14 +20,14 @@ mod integration_tests {
     use billing_service::invoicing::{
         GenerateInvoiceRequest, InMemoryInvoiceService, InvoiceApplicationError,
     };
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     fn request() -> GenerateInvoiceRequest {
         let account = BillingAccount::new(BillingAccountCreate {
             id: "ba_ten_alpha".to_owned(),
             tenant_id: "ten_alpha".to_owned(),
             region: "region-alpha".to_owned(),
-            regional_pack: "oya-pack-electronic-tax".to_owned(),
+            regional_pack: "pack-electronic-tax".to_owned(),
             payment_method: "pm_card_001".to_owned(),
             credit_balance: Money::new("OYC", 10_000).expect("money fixture valid"),
             state: BillingAccountState::Active,
@@ -42,12 +42,12 @@ mod integration_tests {
                 id: "inv_alpha_202605_001".to_owned(),
                 billing_account_id: "ba_ten_alpha".to_owned(),
                 tenant_id: "ten_alpha".to_owned(),
-                regional_pack: "oya-pack-electronic-tax".to_owned(),
+                regional_pack: "pack-electronic-tax".to_owned(),
                 period: BillingPeriod::new(1_700_000_000, 1_700_086_400)
                     .expect("period fixture valid"),
                 line_items: vec![InvoiceLineItemCreate {
                     id: "ili_compute_001".to_owned(),
-                    resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_owned(),
+                    resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_owned(),
                     description: "instance api-001 resource seconds".to_owned(),
                     units: vec![
                         MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)

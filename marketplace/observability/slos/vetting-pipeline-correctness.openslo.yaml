@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-plugin-app-store-vetting-pipeline-correctness
-  displayName: "oya-plugin-app-store-vetting-pipeline-correctness"
+  name: plugin-app-store-vetting-pipeline-correctness
+  displayName: "plugin-app-store-vetting-pipeline-correctness"
   labels:
     microservice: plugin-app-store
     bounded_context: vetting-pipeline
     tier: external-facing
     plane: data
 spec:
-  service: oya-plugin-app-store-vetting-pipeline-correctness
+  service: plugin-app-store-vetting-pipeline-correctness
   description: |
     100% vetting decisions correct (no false-approves)
   indicator:
     metadata:
-      name: oya-plugin-app-store-vetting-pipeline-correctness-sli
+      name: plugin-app-store-vetting-pipeline-correctness-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(oya_plugin_app_store_vetting_decision_total[24h])))'
+              query: '1 - (sum(rate(plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(plugin_app_store_vetting_decision_total[24h])))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: '1 - (sum(rate(oya_plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(oya_plugin_app_store_vetting_decision_total[24h])))'
+              query: '1 - (sum(rate(plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(plugin_app_store_vetting_decision_total[24h])))'
   objectives:
     - target: 1.0
       displayName: "1.0 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-plugin-app-store-vetting-pipeline-correctness-fast-burn-1h
+        name: plugin-app-store-vetting-pipeline-correctness-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-plugin-app-store-vetting-pipeline-correctness-slow-burn-6h
+        name: plugin-app-store-vetting-pipeline-correctness-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

@@ -2,7 +2,7 @@
 
 **Vertical**: messenger
 **Task slug**: `messenger-thread-lifecycle-kernel`
-**Crate**: `oya-messenger-domain` (`crates/oya-messenger-domain`)
+**Crate**: `messenger-domain` (`crates/messenger-domain`)
 **Modules**: `src/thread_lifecycle.rs` (new file, re-exported from `lib.rs`)
 **Stage created**: SPEC
 **Date**: 2026-05-29
@@ -11,7 +11,7 @@
 
 ## Objective
 
-Extend the `oya-messenger-domain` crate with a thread-lifecycle state machine.
+Extend the `messenger-domain` crate with a thread-lifecycle state machine.
 The kernel owns:
 
 1. A typed `ThreadState` enum (`Open`, `Locked`, `Resolved`, `Archived`) with a
@@ -32,14 +32,14 @@ usecase or adapter dependencies.
 
 | Layer | Location |
 |-------|----------|
-| Domain kernel (this task) | `crates/oya-messenger-domain/src/thread_lifecycle.rs` |
-| Usecase (future) | `crates/oya-messenger-message-stream-usecase` (out of scope) |
-| REST adapter (future) | `crates/oya-messenger-message-stream-rest` (out of scope) |
-| Persistence (future) | `crates/oya-messenger-message-stream-adapter-postgres` (out of scope) |
+| Domain kernel (this task) | `crates/messenger-domain/src/thread_lifecycle.rs` |
+| Usecase (future) | `crates/messenger-message-stream-usecase` (out of scope) |
+| REST adapter (future) | `crates/messenger-message-stream-rest` (out of scope) |
+| Persistence (future) | `crates/messenger-message-stream-adapter-postgres` (out of scope) |
 
 The thread-lifecycle kernel is a pure domain module. It imports only
-`oya-data-boundary-kernel` (already a declared `[dependencies]` entry in
-`crates/oya-messenger-domain/Cargo.toml`) and `std`. No new workspace member.
+`data-boundary-kernel` (already a declared `[dependencies]` entry in
+`crates/messenger-domain/Cargo.toml`) and `std`. No new workspace member.
 Root `Cargo.toml` is untouched.
 
 ---
@@ -47,7 +47,7 @@ Root `Cargo.toml` is untouched.
 ## Module Layout (flat clean-arch, ADR-0509)
 
 ```
-crates/oya-messenger-domain/
+crates/messenger-domain/
   src/
     lib.rs               ← adds `pub mod thread_lifecycle;` + `pub use thread_lifecycle::*;`
     delivery_class.rs    ← unchanged
@@ -183,7 +183,7 @@ consistent with the dual-context isolation policy in
 
 ## Data-Class Tagging
 
-Consistent with existing kernel (`oya-data-boundary-kernel`, ADR-0083):
+Consistent with existing kernel (`data-boundary-kernel`, ADR-0083):
 
 | Field | `DataClass` / `PrivacyDataClass` |
 |-------|----------------------------------|
@@ -291,8 +291,8 @@ integration test files. Pattern matches sibling modules (`reaction.rs`,
 ## Boundaries
 
 - This task touches ONLY:
-  - `crates/oya-messenger-domain/src/thread_lifecycle.rs` (new)
-  - `crates/oya-messenger-domain/src/lib.rs` (add mod + re-export + 2 ChatError variants)
+  - `crates/messenger-domain/src/thread_lifecycle.rs` (new)
+  - `crates/messenger-domain/src/lib.rs` (add mod + re-export + 2 ChatError variants)
   - `docs/specs/task-messenger-thread-lifecycle-kernel.md` (this file)
   - `tasks/messenger-thread-lifecycle-kernel-plan.md`
 - Root `Cargo.toml` is untouched; no new workspace member.

@@ -22,8 +22,8 @@ inbound_citations:
   - docs/onboarding/intern-day-one.md
   - docs/onboarding/intern-week-one.md
 enforced_by:
-  - oya-governance-doc-rigor
-  - oya-governance-doc-graph-6hops
+  - governance-doc-rigor
+  - governance-doc-graph-6hops
 ---
 
 # Product Manager Month-One Onboarding
@@ -130,7 +130,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 
 1. docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/README.md
    - Artifact: write a four-sentence note explaining what this playground proves for product manager, capability and migration product lane.
-2. microservices/workflow-studio/templates/definitions/operations/oya-workflow-studio-template-vendor-onboarding.json
+2. microservices/workflow-studio/templates/definitions/operations/workflow-studio-template-vendor-onboarding.json
    - Artifact: write a four-sentence note explaining what this playground proves for product manager, capability and migration product lane.
 3. registry/capability-tiers/checkpoint.json
    - Artifact: write a four-sentence note explaining what this playground proves for product manager, capability and migration product lane.

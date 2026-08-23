@@ -144,7 +144,7 @@ fn temp_secret_path(label: &str) -> PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "oya-secret-store-{label}-{}-{nanos}.log",
+        "secret-store-{label}-{}-{nanos}.log",
         std::process::id()
     ))
 }

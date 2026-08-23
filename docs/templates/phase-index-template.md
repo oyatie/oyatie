@@ -4,7 +4,7 @@ template_id: TPL-PHASE
 status: Accepted
 date: 2026-05-12
 purpose: |
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md
@@ -55,7 +55,7 @@ One sentence stating what this phase delivers in present tense.
 
 ## Symbols touched (high level)
 
-- `crates/oya-<context>-<role>/` family
+- `crates/oyatie-<context>-<role>/` family
 - `contracts/<surface>.<format>`
 - `docs/<canonical-doc>.md` (per `docs/DOC-CATALOG.md` trigger)
 

@@ -17,7 +17,7 @@ purpose: |
   error-budget-policy chapter. Resolves the `standards/on-call.md`
   forward-reference sentinel in `docs/AGENTS.md` canonical doc map.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-runbook-index-resolves
+planned_enforcement_ref: governance-runbook-index-resolves
 companion_docs:
   - docs/INCIDENT-MANAGEMENT.md
   - docs/SLO-CATALOG.md
@@ -76,7 +76,7 @@ Rules:
 1. Every public surface in `docs/SPEC.md` has an SLO entry (lane:
    `slo-surface-coverage`).
 2. Every paging alert resolves to **exactly one runbook URL** in the alert
-   body. Lane: `oya-governance-alert-runbook-link`.
+   body. Lane: `governance-alert-runbook-link`.
 3. Suppressed alerts MUST have an expiry timestamp; auto-renewal is
    forbidden. Suppression > 7 days requires team-lead approval logged
 4. The **error-budget policy** is in
@@ -116,10 +116,10 @@ Required runbook shape (per `templates/runbook-template.md`):
 
 Lanes:
 
-- `oya-governance-runbook-discoverability` — every runbook indexed.
-- `oya-governance-runbook-orphan-check` — no runbook references a
+- `governance-runbook-discoverability` — every runbook indexed.
+- `governance-runbook-orphan-check` — no runbook references a
   deleted SLO or capability.
-- `oya-governance-runbook-freshness` — `Last verified` within cadence.
+- `governance-runbook-freshness` — `Last verified` within cadence.
 
 ## 4. Escalation paths
 

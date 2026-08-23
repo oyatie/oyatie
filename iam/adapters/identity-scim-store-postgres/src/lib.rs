@@ -25,7 +25,7 @@
 //!
 //! Always-on tests are hermetic plan-shape tests (assert generated SQL + that
 //! the GUC-set statement precedes tenant-scoped statements; no database). Live
-//! RLS integration tests live behind `OYA_BACKBONE_LIVE_POSTGRES` (see `tests/`).
+//! RLS integration tests live behind `OYATIE_BACKBONE_LIVE_POSTGRES` (see `tests/`).
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -34,9 +34,9 @@
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_postgres_command_adapter_sqlx::assert_rls_enforceable as assert_rls_enforceable_shared;
-use oya_shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
-use oya_shared_scim_server_kernel::{
+use shared_postgres_command_adapter_sqlx::assert_rls_enforceable as assert_rls_enforceable_shared;
+use shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
+use shared_scim_server_kernel::{
     Group, GroupStore, ScimId, ScimStoreError, TenantId, User, UserStore,
 };
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
@@ -95,7 +95,7 @@ pub enum PgScimConnectError {
     /// Note: this guard is necessary but not sufficient for full tenant
     /// isolation. Full isolation additionally requires that `RUNTIME_ROLE`
     /// exists provisioned with NOBYPASSRLS (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres
     /// and tenant-lifecycle-store-postgres).
     RlsUnenforceable { role: String },
     /// The connected role is neither the RLS policy-subject role
@@ -221,7 +221,7 @@ pub async fn connect_pool(database_url: &str) -> Result<PgPool, PgScimConnectErr
 /// This guard is necessary but not sufficient for full tenant isolation. Full
 /// isolation additionally requires that [`RUNTIME_ROLE`] exists in the database,
 /// provisioned with `NOBYPASSRLS` (the deferred `0000_runtime_role.sql`
-/// follow-up, mirroring oya-data-outbox-adapter-postgres / tenant-lifecycle).
+/// follow-up, mirroring data-outbox-adapter-postgres / tenant-lifecycle).
 ///
 /// # Errors
 /// - [`PgScimConnectError::RlsUnenforceable`] if the current role carries
@@ -746,7 +746,7 @@ mod tests {
 
     // --- RlsEnforceabilityError -> PgScimConnectError mapping -----------------
     // The DB-free role/forced predicate decisions now live in the shared kernel
-    // (oya-shared-postgres-command-kernel); this adapter keeps only the THIN
+    // (shared-postgres-command-kernel); this adapter keeps only the THIN
     // mapping that preserves its fail-closed connect-error contract.
 
     #[test]
@@ -823,7 +823,7 @@ mod tests {
         // at boot. Asserting the SAME list the guard passes EXACTLY equals the
         // migration's FORCE'd-table set makes that drift impossible. DB-free —
         // pure string comparison, runs in the always-on unit lane.
-        use oya_shared_postgres_command_kernel::force_rls_tables;
+        use shared_postgres_command_kernel::force_rls_tables;
         let migration = include_str!("../migrations/0001_identity_scim_store.sql");
         let mut from_migration = force_rls_tables(migration);
         from_migration.sort();

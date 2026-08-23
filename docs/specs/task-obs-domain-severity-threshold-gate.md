@@ -2,7 +2,7 @@
 
 ## Objective
 
-The `oya-observability-domain` crate provides the stable telemetry
+The `observability-domain` crate provides the stable telemetry
 severity vocabulary used across all Oyatie services. Today `Severity`
 exposes `as_otel_int` (one-way, lossy) but has no inverse; a downstream
 adapter that receives a raw OTel `SeverityNumber` integer cannot map back
@@ -25,8 +25,8 @@ Both are pure, no-alloc, no-I/O, and carry no new dependencies.
 ## Vertical and crate
 
 - Lane: `observability`
-- Crate: `oya-observability-domain`
-  (`crates/oya-observability-domain/`)
+- Crate: `observability-domain`
+  (`crates/observability-domain/`)
 - ADR alignment: ADR-0131 per-microservice flat layout; ADR-0509
   single-crate-per-service with mod-based subsystems
 
@@ -83,7 +83,7 @@ pub use severity::should_emit;
 ## Module layout (flat clean-arch)
 
 ```
-crates/oya-observability-domain/
+crates/observability-domain/
   src/
     lib.rs          -- re-exports Severity, UnknownSeverityLabel,
                        should_emit; hosts data-class telemetry vocab

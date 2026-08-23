@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Catalogue of progressive-delivery + SLO-burn-rate-rollback architecture for oyatie.
   Maps each artefact to its lift target, the standard(s) it updates, and the lane(s) that enforce it.
-planned_enforcement_ref: oya-governance-orphan-detection
+planned_enforcement_ref: governance-orphan-detection
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published
@@ -52,12 +52,12 @@ doc_status: published
 
 ## New kernel crates introduced (6)
 
-1. `oya-platform-slo-burn-rate-kernel` — provider-agnostic SLO burn-rate computation.
-2. `oya-platform-tenant-cohort-kernel` — per-tenant cohort assignment + intersection.
-3. `oya-intelligence-shadow-diff-kernel` — shadow-output diff classifier.
-4. `oya-platform-rollout-controller-kernel` — Flagger / Argo Rollouts adapter core.
-5. `oya-platform-traffic-mirror-kernel` — mesh-mirror primitive (Istio / Envoy / App Mesh adapters).
-6. `oya-platform-traffic-shift-kernel` — atomic traffic-shift for blue/green cutover.
+1. `platform-slo-burn-rate-kernel` — provider-agnostic SLO burn-rate computation.
+2. `platform-tenant-cohort-kernel` — per-tenant cohort assignment + intersection.
+3. `intelligence-shadow-diff-kernel` — shadow-output diff classifier.
+4. `platform-rollout-controller-kernel` — Flagger / Argo Rollouts adapter core.
+5. `platform-traffic-mirror-kernel` — mesh-mirror primitive (Istio / Envoy / App Mesh adapters).
+6. `platform-traffic-shift-kernel` — atomic traffic-shift for blue/green cutover.
 
 (Plus adapter crates per [Directive 4](../../plans/MASTERPLAN.md); not counted as kernels.)
 

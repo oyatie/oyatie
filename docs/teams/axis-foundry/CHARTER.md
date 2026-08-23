@@ -12,27 +12,27 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 ## Owned axes / surfaces / contracts
 
 ### Agent Runtime (Foundry — Axis 3)
-- `oya-intelligence-capability-kernel` — `Capability`, `CapabilityId`, `CapabilitySpec`, `AutonomyTier`
-- `oya-intelligence-evidence-kernel` — `EvidenceRecord`, `EvidenceChainRef`, `StepTrace`
-- `oya-intelligence-policy-kernel` — `AutonomyCeilingPolicy`, `BreakGlass`, `PolicySet`
-- `oya-intelligence-domain-*` — capability lifecycle, run orchestration, autonomy-ceiling enforcement use-cases
-- `oya-intelligence-adapter-codex` — Codex provider adapter (isolated `CODEX_HOME` per run)
-- `oya-intelligence-adapter-claude` — Claude provider adapter (isolated `CLAUDE_CONFIG_DIR` per run)
-- `oya-foundation-app` — bootstrap capability invocation REST contract source (`contracts/openapi/foundry/capability-v1.yaml`); future `oya-intelligence-api` owns the deployable REST/gRPC surface
-- `oya-intelligence-registry` — capability registry projection (reads from `registry/catalog/`)
-- `oya-intelligence-rag` — RAG endpoint (Foundry + Search cross-axis contract)
-- `oya-intelligence-runtime-*` — planned flat agent-daemon composition roots and hardening work (#1266 hook_bus, #1267 credential shadowing, #1268 shutdown checkpoint)
+- `intelligence-capability-kernel` — `Capability`, `CapabilityId`, `CapabilitySpec`, `AutonomyTier`
+- `intelligence-evidence-kernel` — `EvidenceRecord`, `EvidenceChainRef`, `StepTrace`
+- `intelligence-policy-kernel` — `AutonomyCeilingPolicy`, `BreakGlass`, `PolicySet`
+- `intelligence-domain-*` — capability lifecycle, run orchestration, autonomy-ceiling enforcement use-cases
+- `intelligence-adapter-codex` — Codex provider adapter (isolated `CODEX_HOME` per run)
+- `intelligence-adapter-claude` — Claude provider adapter (isolated `CLAUDE_CONFIG_DIR` per run)
+- `foundation-app` — bootstrap capability invocation REST contract source (`contracts/openapi/foundry/capability-v1.yaml`); future `intelligence-api` owns the deployable REST/gRPC surface
+- `intelligence-registry` — capability registry projection (reads from `registry/catalog/`)
+- `intelligence-rag` — RAG endpoint (Foundry + Search cross-axis contract)
+- `intelligence-runtime-*` — planned flat agent-daemon composition roots and hardening work (#1266 hook_bus, #1267 credential shadowing, #1268 shutdown checkpoint)
 - Provider authentication: subscription mode (Claude Pro / OpenAI Plus / Gemini Advanced) + API mode (Anthropic API / OpenAI API / Google Gemini API)
 - PTY/process launch backend: direct `openpty`/`forkpty` per spawned provider (not tmux for production; tmux optional for developer-attached debug only)
 - SecretProvider / KMS integration (Issue #1315 — P0 blocker for live-provider execution)
 - Smoke lane: live provider smoke tests (Issue #1316, env-flag gated)
 
 ### Foundry (Axis 4 — consolidated into Foundry)
-- `oya-intelligence-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
-- `oya-governance-gate-kernel` — `Gate`, `ClaimCeiling`, `Bypass`, `BypassExpiry`
-- `oya-governance-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
-- `oya-governance-scorecard-*` — quality scorecard rollup surfaces
-- `oya-tooling-cli-dev-runtime` — current `repoctl` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` per ADR-0015/ROADMAP
+- `intelligence-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
+- `governance-gate-kernel` — `Gate`, `ClaimCeiling`, `Bypass`, `BypassExpiry`
+- `governance-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
+- `governance-scorecard-*` — quality scorecard rollup surfaces
+- `tooling-cli-dev-runtime` — current `repoctl` compatibility binary; persona split planned under `crates/tooling-cli-*` per ADR-0015/ROADMAP
 - `registry/catalog/` — live catalog path; any future relocation requires a catalog protocol update
 - Plane-gated CI lanes (every PR class is routed to the correct lane)
 - ADR templates (`decisions/_template.md`)
@@ -58,7 +58,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
   - `Plane class` (owner) — all surfaces declare plane via `registry/catalog/<crate>.yaml: plane:`
   - `Marketplace listing` (co-owner with `axis-saas`) — plugin signing/sandbox gate is Foundry
   - `RAG endpoint` (owner) — Foundry + Search cross-axis contract
-- **Catalog records:** `crates/oya-foundry-*`, `crates/oya-tooling-cli-dev-runtime`, `registry/catalog/`
+- **Catalog records:** `crates/foundry-*`, `crates/tooling-cli-dev-runtime`, `registry/catalog/`
 - **Runbooks:** `runbooks/foundry-agent-daemon.md`, `runbooks/autonomy-ceiling-breach-response.md`, `runbooks/capability-rollback.md`, `runbooks/claim-ceiling-bypass-expiry.md`, `runbooks/supply-chain-trivy-alert.md`
 - **ADRs:** ADR-0015 (repo structure), ADR-0015 (flat crates), ADR-0050 (AI/ML governance + autonomy ceiling), ADR-0001 (foundry gates), ADR-0039 (supply-chain: Trivy + Cosign)
 
@@ -72,7 +72,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - Daemon hardening: hook_bus stale anchor (#1266), credential shadowing (#1267), shutdown checkpoint (#1268)
 - AutonomyCeiling policy enforcement (#1279): Cedar policy evaluation per capability invocation
 - Capability registry: read from `registry/catalog/`, serve to all axes, maintain projection
-- Evidence chain emission: every agent step emits via `oya-intelligence-evidence` → `platform-audit-evidence` chain
+- Evidence chain emission: every agent step emits via `intelligence-evidence` → `platform-audit-evidence` chain
 - RAG endpoint: expose search to Foundry; per-class consent gate (Data Use Boundary)
 - Live provider smoke lane (Issue #1316): env-flag gated CI lane for real provider tests
 - Multi-provider authentication: subscription-mode handshake (Claude Pro / OpenAI Plus / Gemini Advanced); API-mode key management (Anthropic API, OpenAI API, Google Gemini API)
@@ -85,7 +85,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - Claim-ceiling validator: ratchet WARN→BLOCK per wave (PRD §4.1 target: ≥ 1 block per 100 PRs → every wave promotes one WARN→BLOCK)
 - Foundation-bypass ledger: every bypass has owner, expiry, rationale; 100% retire within declared expiry (PRD §4.2)
 - Plane-gated CI lanes: every PR class (`rust-*`, `typescript-*`, `database-*`, `security-*`, `cross-axis-*`) routes to the correct lane
-- Fitness functions: author and maintain all `oya-governance-*` crates; hard-fail on violations
+- Fitness functions: author and maintain all `governance-*` crates; hard-fail on violations
 - Scorecards: per-axis quality rollup, per-crate health score
 - Branch-protection-as-code: every branch rule is code, not console click
 - Signed commits: enforce GPG / SSH signing (#1299)
@@ -127,10 +127,10 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 | `axis-search` | Capability invocation for index-lifecycle agent ops; fitness function gates | Every PR + index lifecycle |
 | `axis-ads-analytics` | Capability invocation for smart-bidding ML loops (autonomy-ceiling-gated); catalog gate | Every PR + auction loop |
 | All vertical teams | Capability invocation for regulatory-evidence collection; fitness functions; catalog records | Every PR + vertical onboard |
-| `platform-tenancy-identity` | Fitness function `oya-governance-tenant-shape` | Every Tenant-shape PR |
-| `platform-audit-evidence` | Fitness function `oya-governance-audit-emission` | Every regulated surface PR |
-| `platform-privacy-dub` | Fitness function `oya-governance-data-use-boundary` | Every data-class PR |
-| `platform-eventing-og` | Fitness function `oya-governance-eventing-topic` | Every topic-shape PR |
+| `platform-tenancy-identity` | Fitness function `governance-tenant-shape` | Every Tenant-shape PR |
+| `platform-audit-evidence` | Fitness function `governance-audit-emission` | Every regulated surface PR |
+| `platform-privacy-dub` | Fitness function `governance-data-use-boundary` | Every data-class PR |
+| `platform-eventing-og` | Fitness function `governance-eventing-topic` | Every topic-shape PR |
 | `platform-api-sdk` | API stability gate (ADR-0040 fitness function) | Every public API PR |
 | `ops-sre-reliability` | repoctl `pre-push`, `release-verify`; CI lane routing | Every pre-push + release |
 | `ops-security` | Supply-chain SARIF upload, Cosign attestation | Every release |
@@ -185,4 +185,4 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 | Claim-ceiling bypass becomes permanent | Medium | 100% expiry SLA enforced by automated ledger monitor; alert at 80% of expiry window |
 
 ## Sources scanned
-PRD.md §3.1 (W-Foundry-Preview, W-Foundry-Preview gates), §4.1 (Foundry metrics), §4.2 (structural metrics), DESIGN.md §3 (Foundry-as-accelerator, internal sequencing), §4 (bounded context), §10 (capability invocation, autonomy ceiling, capability registry, plane class, marketplace, RAG endpoint rows), ADR-0015, ADR-0050, ADR-0001, ADR-0039, products/foundry/PRD.md (draft), flat `crates/oya-foundry-*` and `crates/oya-tooling-cli-dev-runtime/` implementation surfaces.
+PRD.md §3.1 (W-Foundry-Preview, W-Foundry-Preview gates), §4.1 (Foundry metrics), §4.2 (structural metrics), DESIGN.md §3 (Foundry-as-accelerator, internal sequencing), §4 (bounded context), §10 (capability invocation, autonomy ceiling, capability registry, plane class, marketplace, RAG endpoint rows), ADR-0015, ADR-0050, ADR-0001, ADR-0039, products/foundry/PRD.md (draft), flat `crates/foundry-*` and `crates/tooling-cli-dev-runtime/` implementation surfaces.

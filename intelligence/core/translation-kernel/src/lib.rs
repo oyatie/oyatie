@@ -309,7 +309,7 @@ pub fn gemini_generate_content_response_to_openai_chat_response(
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
     serde_json::json!({
-        "id": "chatcmpl-oya-gemini",
+        "id": "chatcmpl-gemini",
         "object": "chat.completion",
         "model": model,
         "choices": [{
@@ -339,7 +339,7 @@ pub fn gemini_generate_content_response_to_anthropic_message_response(
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
     serde_json::json!({
-        "id": "msg_oya_gemini",
+        "id": "msg_gemini",
         "type": "message",
         "role": "assistant",
         "model": model,

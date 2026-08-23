@@ -5,12 +5,12 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Workload-identity REST+gRPC delivery surface: mounts oya-identity-workload-app use-cases behind axum HTTP routes and tonic WorkloadAuthorizer/WorkloadTokenValidator services with identical fail-closed PEP semantics (deny=DECISION_EFFECT_DENY, token-fail typed error, store-unavailable=Unavailable) and one immutable audit record per authorize + token-validation."
+description = "Workload-identity REST+gRPC delivery surface: mounts identity-workload-app use-cases behind axum HTTP routes and tonic WorkloadAuthorizer/WorkloadTokenValidator services with identical fail-closed PEP semantics (deny=DECISION_EFFECT_DENY, token-fail typed error, store-unavailable=Unavailable) and one immutable audit record per authorize + token-validation."
 build = "build.rs"
 
 # Delivery layer (ADR-0105 Layer 5 / ADR-0509 single-crate-per-service extended).
-# I/O-bearing crate that composes the inward use-case core (oya-identity-workload-app)
-# + the API DTO contract (oya-identity-workload-api) + the pure domain.
+# I/O-bearing crate that composes the inward use-case core (identity-workload-app)
+# + the API DTO contract (identity-workload-api) + the pure domain.
 # gRPC surface added under src/grpc/ mirrors the REST surface; both share one
 # use-case core with no logic drift. tonic/prost deps are in dep-seam ReportOnly
 # scope per ADR-0092 (seam default, lib.rs:63) — see tasks/id-workload-grpc-surface-plan.md.
@@ -30,14 +30,14 @@ tracing = { workspace = true }
 # gRPC delivery surface — tonic 0.14 server-side only.
 # router + transport features required to serve RPCs in-process for tests.
 # NOTE: dep-seam allowed_crates for tonic/prost/tonic-prost does not yet include
-# oya-identity-workload-rest; seam gate defaults to ReportOnly (ADR-0092, lib.rs:63)
+# identity-workload-rest; seam gate defaults to ReportOnly (ADR-0092, lib.rs:63)
 # so this does NOT block gate-run-all. Registry update tracked separately.
 prost.workspace = true
 tonic = { workspace = true, features = ["router", "transport"] }
 tonic-prost.workspace = true
 
 [build-dependencies]
-# Proto codegen — mirrors oya-shared-backbone-grpc-generated-adapter/build.rs pattern.
+# Proto codegen — mirrors shared-backbone-grpc-generated-adapter/build.rs pattern.
 protoc-bin-vendored.workspace = true
 tonic-prost-build.workspace = true
 

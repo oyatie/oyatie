@@ -3,7 +3,7 @@
 //! A faithful, ordered-keyed implementation of the kernel storage port over
 //! plain `BTreeMap`s: point get/put/remove, an ascending-key range scan, the
 //! idempotency dedup table, and the monotonic operation-ledger ordinal. This
-//! is the valid ports/adapters realization of the OWNED oya-data store shape
+//! is the valid ports/adapters realization of the OWNED data store shape
 //! for single-node bring-up and acceptance tests; the G03 persistent
 //! (sqlx/Postgres) adapter plugs in behind the SAME port with no usecase
 //! change.
@@ -20,7 +20,7 @@ use core::future::Future;
 use core::pin::Pin;
 use std::collections::BTreeMap;
 
-use oya_shared_platform_contracts_kernel::tenancy::Tenant;
+use shared_platform_contracts_kernel::tenancy::Tenant;
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
 };
@@ -209,10 +209,10 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
 #[cfg(test)]
 mod tests {
-    use oya_shared_platform_contracts_kernel::tenancy::{
+    use shared_platform_contracts_kernel::tenancy::{
         IsolationPosture, TenantLifecycleOperation, TenantLifecycleState,
     };
-    use oya_shared_resource_provider_contract_kernel::{
+    use shared_resource_provider_contract_kernel::{
         CancellationMetadata, CompensationMetadata, Operation, OperationLedgerEntry,
         OperationPhase, OperationState, RetryPolicy,
     };

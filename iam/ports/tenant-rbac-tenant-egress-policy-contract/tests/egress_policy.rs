@@ -118,10 +118,10 @@ fn tenant_egress_policy_contract_preserves_network_policy_refs_and_scope() {
                 .starts_with("evidence/network-egress/fd001-tenant-rbac/")
             && rule
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && rule
                 .source_admission_policy_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-admission-policy/")
+                .starts_with("crates/tenant-rbac-tenant-admission-policy/")
             && rule.applies_to_all_manifest_workloads
             && !rule.runtime_enforcement_attached
     }));

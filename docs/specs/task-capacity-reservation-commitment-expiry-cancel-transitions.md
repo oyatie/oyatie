@@ -2,7 +2,7 @@
 
 ## Crate
 
-`oya-cloud-capacity-domain`
+`cloud-capacity-domain`
 
 ## Problem
 

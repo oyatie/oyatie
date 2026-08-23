@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
-        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
+        "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
         "//data/core/analytics-domain:data-analytics-domain",
         "third-party//:clap",
         "third-party//:serde",
@@ -23,8 +23,8 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//data/facade/analytics-tenant-bootstrap:data-analytics-tenant-bootstrap",
-        "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
-        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
+        "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
         "//data/core/analytics-domain:data-analytics-domain",
         "third-party//:clap",
         "third-party//:serde",
@@ -41,8 +41,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
-        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
+        "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
         "//data/core/analytics-domain:data-analytics-domain",
         "third-party//:clap",
         "third-party//:serde",

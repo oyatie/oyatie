@@ -1,8 +1,8 @@
 ---
 doc_class: PRD
 template_id: TPL-PRD
-prd_id: PRD-cloud-intelligence
-microservice: cloud-intelligence
+prd_id: PRD-intelligence-app
+microservice: intelligence-app
 status: Draft
 date: 2026-05-26
 owner_team: council-foundry
@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0373
   - ADR-0373
   - ADR-0373
-research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
+research_brief: microservices/intelligence-app/design/hyperscaler-best-practice-brief.md
 ---
 
 # Cloud Intelligence service — Product Requirements Document
@@ -23,19 +23,19 @@ research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practic
 **Owner:** council-foundry
 **Layout:** Flat per ADR-0131
 **Backbone:** hyper canonical HTTP per ADR-0090; layered kernel/rest per ADR-0105
-**Research foundation:** `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (10-domain cited brief, 2026-05-26)
+**Research foundation:** `microservices/intelligence-app/design/hyperscaler-best-practice-brief.md` (10-domain cited brief, 2026-05-26)
 
 > This PRD is the convergent product spec. Every recommended-design decision below is grounded in the hyperscaler best-practice brief and cites the brief's domain (e.g. "brief §1 Architecture") and the upstream vendor evidence the brief drew from (Azure APIM, AWS Bedrock, Cloudflare AI Gateway, Kong AI Proxy, LiteLLM, Apigee, GCP Model Armor, OpenAI, OWASP). The brief's full source list is at brief §"Sources".
 
 ## 1. Purpose
 
-The cloud-intelligence µservice is the single egress chokepoint between the Oyatie AI-agent fleet (and, later, tenant workloads) and the external frontier-model providers — OpenAI/Codex, Anthropic Claude, and Google Gemini. It exists so that **no agent, microservice, or tenant ever holds a raw provider API key**, so that provider spend is metered and budgeted per tenant, and so that a single failing or rate-limited provider key cannot stall the fleet.
+The intelligence-app µservice is the single egress chokepoint between the Oyatie AI-agent fleet (and, later, tenant workloads) and the external frontier-model providers — OpenAI/Codex, Anthropic Claude, and Google Gemini. It exists so that **no agent, microservice, or tenant ever holds a raw provider API key**, so that provider spend is metered and budgeted per tenant, and so that a single failing or rate-limited provider key cannot stall the fleet.
 
 It is a **multi-provider reverse proxy** that:
 
 - presents **one canonical OpenAI-compatible wire surface** (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) so every caller uses an off-the-shelf OpenAI SDK with zero custom client code (brief §2 REST API contract; de-facto standard mirrored by Azure APIM importing OpenAI/Anthropic-Messages surfaces and Kong `llm/v1/*`);
 - abstracts each provider behind an **adapter trait** that injects the right auth header and base URL, and **passes SSE bytes straight through** (brief §1 Architecture — Kong `response_streaming` passthrough; re-serialize only the non-stream path);
-- runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/oya-cloud-intelligence-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
+- runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/intelligence-app-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
 - enforces **per-tenant key pools + concurrent token budgets** as the isolation and FinOps unit (brief §6 Multi-tenant isolation, brief §8 Cost/FinOps; LiteLLM virtual-key budgets, Azure `llm-token-limit`);
 - sources provider keys **only through owned cloud-secrets/cloud-kms handles** (`secret-ref://` / `kms-ref://`), with transient backing adapters hidden behind the secret-provider port, in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock-style handle-only key pattern);
 - emits a **Bedrock-shaped immutable audit record** plus low-PII usage metering, with prompt/completion body logging **default-OFF** (brief §3 Async events, brief §9 Audit evidence).
@@ -44,9 +44,9 @@ It is a **multi-provider reverse proxy** that:
 
 This µservice is intentionally distinct from:
 
-- **cloud-kms / cloud-secrets** µservices — they own the secret-provider/KMS substrate, backing adapters, and HSM-backed encryption-at-rest. cloud-intelligence is a *consumer* of opaque secret handles and resolved short-lived credentials, never a secrets store. (`depends_on_microservices: [cloud-kms, cloud-secrets]`.)
-- The generic **oya-http-router-kernel / oya-http-runtime-hyper-adapter** backbone — those provide the HTTP plumbing (ADR-0090); cloud-intelligence is the LLM-specific application layered on top.
-- A future **model-eval / prompt-registry** surface — cloud-intelligence brokers inference traffic; it does not own prompt templates, eval harnesses, or fine-tune jobs.
+- **cloud-kms / cloud-secrets** µservices — they own the secret-provider/KMS substrate, backing adapters, and HSM-backed encryption-at-rest. intelligence-app is a *consumer* of opaque secret handles and resolved short-lived credentials, never a secrets store. (`depends_on_microservices: [cloud-kms, cloud-secrets]`.)
+- The generic **http-router-kernel / http-runtime-hyper-adapter** backbone — those provide the HTTP plumbing (ADR-0090); intelligence-app is the LLM-specific application layered on top.
+- A future **model-eval / prompt-registry** surface — intelligence-app brokers inference traffic; it does not own prompt templates, eval harnesses, or fine-tune jobs.
 
 The split gives blast-radius isolation (a provider-key storm cannot starve KMS), spend isolation (per-tenant budgets live here, not in every calling service), and a single auditable place where every external model call is recorded.
 
@@ -80,7 +80,7 @@ The split gives blast-radius isolation (a provider-key storm cannot starve KMS),
 - **Not a model host.** No inference runs in-process; the gateway never owns weights, GPUs, or a model runtime. (Inference is the upstream provider's.)
 - **Not a prompt/eval registry.** No prompt-template storage, no eval harness, no fine-tune orchestration.
 - **Not a semantic cache (v1).** Exact-match response caching is opt-in and explicitly out of MVP; SSE responses are treated as **non-cacheable** when caching does land (brief §1 — Cloudflare treats text/image only as cacheable). Semantic caching (Azure `llm-semantic-cache-*`, Apigee `SemanticCache*`) is a deferred follow-on.
-- **Not a replacement for tenant/application safety.** cloud-intelligence enforces the platform safety floor and emits policy signals, but product-specific moderation, workflow-specific business rules, and user-facing remediation live at the product layer.
+- **Not a replacement for tenant/application safety.** intelligence-app enforces the platform safety floor and emits policy signals, but product-specific moderation, workflow-specific business rules, and user-facing remediation live at the product layer.
 - **Not an OLTP/analytics store.** Metering and audit are *emitted* to the event substrate; the gateway holds no durable tenant data beyond an in-memory key-pool cache.
 - **No raw body storage by default.** Prompts and completions are streamed byte-for-byte and not persisted; in-transit redaction/safety classifiers may inspect data only to enforce policy. Raw payload evidence exists only behind a guardrail-triggered encrypted handle with TTL and audited break-glass access.
 
@@ -137,7 +137,7 @@ Prompt/completion bodies are **never** in these events by default. Normal-path r
 
 ### 4.7 Safety floor, evidence handles, and in-transit redaction
 
-cloud-intelligence owns a reusable platform safety floor for tenants:
+intelligence-app owns a reusable platform safety floor for tenants:
 
 - **Deterministic enforcement first.** Critical categories fail closed with block/quarantine before any model call: prompt injection/jailbreak, data exfiltration, credential probing, sandbox escape/destructive action, self-harm, harm to others, privacy violation, tenant/context boundary violation, unsafe delegated/scheduled execution, child-safety/abuse, fraud, fault, anomaly, and hostile-pattern signals.
 - **Mandatory second pass.** Every critical block triggers a secondary internal agentic review. That review may enrich classification and prepare the manual-review packet, but it cannot unblock a platform-critical block.
@@ -172,7 +172,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 - AC-1.2 With `"stream": true`, the response is `Content-Type: text/event-stream`, each chunk is `data: `-prefixed, and the stream terminates with exactly one `data: [DONE]` line.
 - AC-1.3 `POST /v1/embeddings` and `GET /v1/models` return OpenAI-shaped bodies.
 - AC-1.4 Every error response is the OpenAI envelope `{"error":{"message","type","param","code"}}`; gateway failures carry a distinguishing `type` (`gateway_key_exhausted`, `gateway_provider_unavailable`, `budget_exceeded`).
-- AC-1.5 The contract at `contracts/cloud-intelligence.openapi.yaml` is OpenAPI **3.2.0** and validates; it documents the `[DONE]` sentinel and both security schemes.
+- AC-1.5 The contract at `contracts/intelligence-app.openapi.yaml` is OpenAPI **3.2.0** and validates; it documents the `[DONE]` sentinel and both security schemes.
 
 ### AC-2 — Provider abstraction + SSE passthrough (brief §1)
 - AC-2.1 The same canonical request reaches OpenAI, Anthropic, and Gemini with the correct per-provider auth header injected.
@@ -193,14 +193,14 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 - AC-4.4 Billing meters on actual returned tokens (including the streamed usage chunk); admission uses an estimate.
 
 ### AC-5 — Secret-provider-only secrets + constant-time auth (brief §5, §7)
-- AC-5.1 No provider key is read from a plaintext file or env var; cloud-intelligence receives only opaque secret-provider/KMS handles plus realm tokens. Backing-store bootstrap credentials belong to cloud-secrets/cloud-kms adapters, not this service contract. (Asserted in `manifest.json` non-claims and enforced by code review.)
+- AC-5.1 No provider key is read from a plaintext file or env var; intelligence-app receives only opaque secret-provider/KMS handles plus realm tokens. Backing-store bootstrap credentials belong to cloud-secrets/cloud-kms adapters, not this service contract. (Asserted in `manifest.json` non-claims and enforced by code review.)
 - AC-5.2 Admin and ingress token comparison is constant-time (`subtle`); a wrong-length token does not leak via timing.
 - AC-5.3 No raw key, `Authorization` header, prompt, or completion appears in any log line; keys appear only as fingerprints.
 - AC-5.4 The owned policy-engine port denies cross-realm and cross-tenant access by default; the current Cedar policy file is a transient adapter fixture for that port.
 
 ### AC-6 — Audit + metering (brief §3, §9)
 - AC-6.1 Every invocation emits one `llm.audit.v1` record with the Bedrock-shaped fields (schema_version, timestamp, tenant_id, request_id, provider, model_id, operation, hashed token/key refs, token counts, status, latency_ms, ttft_ms, cost, residency_region).
-- AC-6.2 `llm.usage.v1` and `llm.audit.v1` share the envelope (correlationId, tenant, timestamp, schemaVersion) per `contracts/cloud-intelligence.asyncapi.yaml` (AsyncAPI **3.1.0**).
+- AC-6.2 `llm.usage.v1` and `llm.audit.v1` share the envelope (correlationId, tenant, timestamp, schemaVersion) per `contracts/intelligence-app.asyncapi.yaml` (AsyncAPI **3.1.0**).
 - AC-6.3 Prompt/completion bodies are absent from both events on the normal path. Guardrail-triggered incidents may create encrypted evidence handles with fixed TTL; default reviewer views are redacted, and raw access requires audited break-glass.
 - AC-6.4 The audit record is hash-chained into `evidence/audit-chain.jsonl`; disabling emission raises a tamper alert.
 
@@ -219,7 +219,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 
 ```
                  ┌──────────────────────────────────────────────┐
-   agent/tenant  │  oya-cloud-intelligence-rest  (ADR-0105 rest layer)   │
+   agent/tenant  │  intelligence-app-rest  (ADR-0105 rest layer)   │
    OpenAI SDK    │                                                │
   ───bearer────▶ │  ingress auth (constant-time)                  │
                  │     │                                          │     cloud-secrets / cloud-kms
@@ -227,7 +227,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
                  │  per-tenant budget admission (estimate)        │◀── key refresh
                  │     │                                          │
                  │     ▼            ┌───────────────────────┐     │
-                 │  KeyPool.select ─┤ oya-cloud-intelligence-kernel │     │
+                 │  KeyPool.select ─┤ intelligence-app-kernel │     │
                  │     │            │  (ADR-0105 kernel,     │     │
                  │     ▼            │   pure state machine)  │     │
                  │  provider adapter└───────────────────────┘     │     OpenAI
@@ -243,8 +243,8 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
    admin realm: GET pool status · POST key refresh   (separate security scheme)
 ```
 
-- **oya-cloud-intelligence-kernel** (`kernel` layer, ADR-0105) — pure key-pool state machine, no I/O. Already implemented (`crates/oya-cloud-intelligence-kernel/src/lib.rs`).
-- **oya-cloud-intelligence-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, owned secret-provider port consumption, metering/audit emission, OTel, admin ops.
+- **intelligence-app-kernel** (`kernel` layer, ADR-0105) — pure key-pool state machine, no I/O. Already implemented (`crates/intelligence-app-kernel/src/lib.rs`).
+- **intelligence-app-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, owned secret-provider port consumption, metering/audit emission, OTel, admin ops.
 
 ## 8. Non-Functional Requirements
 
@@ -259,16 +259,16 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 
 1. **Provider-fallback semantics across dialects.** When falling back OpenAI→Anthropic mid-failure, do we translate the in-flight canonical request or fail closed? — Default for MVP: fallback only within same-dialect pools; cross-dialect fallback requires request re-translation and is deferred.
 2. **Tenant budget source of truth.** Does the per-tenant budget config live in this µservice's config or in a central billing/tenancy µservice? — Default: gateway reads tenant budget tiers from declarative config plus owned secret-provider handles for MVP; central tenancy integration is a follow-on.
-3. **Body-spill retention authority.** Who owns the residency-pinned prompt/completion bucket lifecycle and TTL? — Default: cloud-secrets/cloud-iac owns the bucket; gateway writes with a per-tenant TTL label.
+3. **Body-spill retention authority.** Who owns the residency-pinned prompt/completion bucket lifecycle and TTL? — Default: cloud-secrets/iac-app owns the bucket; gateway writes with a per-tenant TTL label.
 
 ## 10. Implementation plan
 
-See `microservices/cloud-intelligence/IP-001-cloud-intelligence-design.md`.
+See `microservices/intelligence-app/IP-001-intelligence-app-design.md`.
 
 ## 11. References
 
-- Research brief: `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain throughout).
+- Research brief: `microservices/intelligence-app/design/hyperscaler-best-practice-brief.md` (cited per domain throughout).
 - ADRs: ADR-0090 (hyper backbone), ADR-0105 (layered architecture), ADR-0131 (flat layout), ADR-0373 (gateway-specific — see `manifest.json`).
 - Design dossier: `design/threat-model.md`, `design/failure-modes.md`, `design/data-residency.md`, `design/cost-finops.md`, `design/audit-evidence-emission.md`, `design/tenant-isolation.md`, `design/operational-boundaries.md`.
-- Contracts: `contracts/cloud-intelligence.openapi.yaml`, `contracts/cloud-intelligence.asyncapi.yaml`, `contracts/cloud-intelligence.proto`.
+- Contracts: `contracts/intelligence-app.openapi.yaml`, `contracts/intelligence-app.asyncapi.yaml`, `contracts/intelligence-app.proto`.
 - OWASP Top 10 for LLM Applications 2025; AWS Bedrock model-invocation logging + Guardrails; Azure APIM AI gateway + llm-token-limit/llm-emit-token-metric; Cloudflare AI Gateway; Kong AI Proxy + AI-RLA; LiteLLM reliability/virtual_keys; Apigee API-management-for-AI; GCP Model Armor; OpenAI error codes. (Full URLs in the brief's source list.)

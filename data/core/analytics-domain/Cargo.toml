@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 description = "Pure analytics domain: TenantDashboardQuery, AuditLogSearch, BillingRollup, DataExport aggregate roots + value objects. No I/O, no async, std+serde only. ADR-0083 Tier-3."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics"
 layer = "domain"
@@ -22,7 +22,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
+shared-olap-client-kernel = { path = "../olap-client-kernel" }
+
 serde = { workspace = true }
 
 [lints]

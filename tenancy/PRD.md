@@ -49,11 +49,11 @@ The `tenancy` microservice is oyatie's load-bearing substrate for multi-tenant i
 - Resolve per-tenant cell assignment (which Citus shard + which cloud-cell holds the tenant's data).
 - Execute the DSR cascade (Art. 17 right-to-erasure / KR PIPA Art. 36 / DPDPA §12 / LGPD Art. 18) across every µservice.
 
-Every other oyatie µservice depends on `tenancy`. No µservice holds its own tenant-isolation logic; they delegate entirely to tenancy substrate primitives via the `oya-tenancy-kernel` port traits.
+Every other oyatie µservice depends on `tenancy`. No µservice holds its own tenant-isolation logic; they delegate entirely to tenancy substrate primitives via the `tenancy-kernel` port traits.
 
 This µservice is **shared substrate**, not a hero product. Its compromise has the largest blast radius in the system: a tenancy isolation breach is simultaneously a breach of every tenant. Authored at the SOC 2 / ISO 27001 / GDPR DPA scrutiny bar that posture demands.
 
-Inherits Bominal ADR-0018 (tenancy + RLS posture) 1:1 per `feedback_bominal_inheritance_precedence.md`. The `platform` naming in Bominal is translated to `shared` per oyatie glossary (`feedback_glossary_shared_not_platform.md`). Crate prefix: `oya-tenancy-*`.
+Inherits Bominal ADR-0018 (tenancy + RLS posture) 1:1 per `feedback_bominal_inheritance_precedence.md`. The `platform` naming in Bominal is translated to `shared` per oyatie glossary (`feedback_glossary_shared_not_platform.md`). Crate prefix: `tenancy-*`.
 
 ## Tenant Value
 
@@ -63,13 +63,13 @@ Tenancy is internal substrate; the "tenant" here is every other µservice + ever
 - **Tenant Outcome 2 — Sub-5-minute self-serve onboarding.** Tenant activation in p99 ≤ 5min (ADR-0118 target): schema migration + RLS policy install + cell assignment + JWT-issuer key fingerprint distribution + observability registration all automated, no DBA intervention.
 - **Tenant Outcome 3 — Cell assignment + blast-radius bounding.** Each new tenant assigned to the least-loaded cell in their jurisdiction region (Citus shard within pack-pinned cluster); blast-radius bounded per ADR-0009. Sub-2ms cell-lookup p99.
 - **Tenant Outcome 4 — Provable erasure on DSR.** Tenant deletion triggers a compliant cross-µservice cascade (Workflow event consumed by every µservice with tenant-scoped data); each handler emits an erasure-receipt sealed by audit-chain; cumulative receipts comprise machine-verifiable proof-of-erasure presented to regulators on demand.
-- **Internal Outcome 5 — Single authority for every tenant decision.** Eliminates per-µservice divergence in how "this is tenant X's row" is determined; `oya-tenancy-kernel::TenantContext` is the only valid representation of tenant identity in oyatie code; non-conformance rejected at CI by `lean-a3-port-location` lane.
+- **Internal Outcome 5 — Single authority for every tenant decision.** Eliminates per-µservice divergence in how "this is tenant X's row" is determined; `tenancy-kernel::TenantContext` is the only valid representation of tenant identity in oyatie code; non-conformance rejected at CI by `lean-a3-port-location` lane.
 
 ## Functional Requirements
 
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
-| FR-01 | µservice request handler | to validate `tenant_id` from JWT against `oya-tenancy-kernel::TenantContext` | requests are rejected at the kernel boundary before reaching business logic | `tenant-lifecycle` | Must |
+| FR-01 | µservice request handler | to validate `tenant_id` from JWT against `tenancy-kernel::TenantContext` | requests are rejected at the kernel boundary before reaching business logic | `tenant-lifecycle` | Must |
 | FR-02 | µservice infrastructure layer | to obtain the Postgres `SET LOCAL app.current_tenant_id = $1` statement for the current request | row-level isolation is automatic via RLS; no per-query filter needed | `isolation-policy` | Must |
 | FR-03 | provisioning agent | to create + activate a new tenant in ≤ 5min (schema migration + RLS install + cell assignment + jurisdiction pin) | self-serve SaaS onboarding SLA met (ADR-0118) | `tenant-lifecycle` | Must |
 | FR-04 | platform operator | to suspend a tenant (block new requests; preserve data) | non-paying / policy-violating tenants isolated without data loss | `tenant-lifecycle` | Must |
@@ -111,7 +111,7 @@ Tenancy is internal substrate; the "tenant" here is every other µservice + ever
 ### Audit + Compliance
 
 - Every lifecycle event (`TenantCreated`, `TenantActivated`, `TenantSuspended`, `TenantResumed`, `TenantDeletionRequested`, `TenantDeletionCompleted`) Ed25519-sealed per Bominal ADR-0028.
-- `data_class` annotations on every kernel struct field per `oya-check-data-class` lane.
+- `data_class` annotations on every kernel struct field per `check-data-class` lane.
 - Audit-chain emission within ≤ 1s of any lifecycle transition or RLS-policy change.
 - Audit log retention ≥ 1y default; ≥ 3y for KR-FSS-regulated tenants; ≥ 6y for HIPAA pack-us-healthcare tenants per §164.316(b)(2); ≥ 5y for KR commercial code; ≥ 10y where insurance regulation applies.
 - DSR cascade: every receipt audit-chain-sealed; cumulative proof-of-erasure carries Merkle root + leaf paths for each per-µservice receipt.
@@ -178,15 +178,15 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`usecase` for new cra
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `tenant-lifecycle` | `oya-tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Tenant CRUD; activation (schema migration + RLS install); suspension; resumption; deletion (workflow trigger); status read; jurisdiction pin | `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `TenantClass` |
-| `isolation-policy` | `oya-tenancy-isolation-policy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` | RLS policy generation + install; JWT issuance + verification; key-fingerprint distribution; SET LOCAL helper; tenant-bound-table registry | `RlsPolicy`, `JwtClaim`, `SigningKeyFingerprint`, `TenantBoundTable` |
-| `cell-assignment` | `oya-tenancy-cell-assignment-{kernel,domain,usecase,api,adapter,adapter-citus,worker,app}` | Citus shard-key derivation; cell health monitoring; least-loaded cell selection; rebalance orchestration; cross-cell routing table | `CellId`, `ShardKey`, `CellAssignment`, `CellHealth`, `RebalanceTask` |
-| `dsr-cascade` | `oya-tenancy-dsr-cascade-{kernel,domain,usecase,api,adapter,rest,worker,app}` | DSR request ingestion; cross-µservice erasure-event fan-out; per-µservice receipt aggregation; proof-of-erasure certificate generation | `DsrRequest`, `ErasureReceipt`, `ProofOfErasure`, `DsrCascadeStatus` |
+| `tenant-lifecycle` | `tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Tenant CRUD; activation (schema migration + RLS install); suspension; resumption; deletion (workflow trigger); status read; jurisdiction pin | `Tenant`, `TenantId`, `TenantStatus`, `JurisdictionCode`, `TenantClass` |
+| `isolation-policy` | `tenancy-isolation-policy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` | RLS policy generation + install; JWT issuance + verification; key-fingerprint distribution; SET LOCAL helper; tenant-bound-table registry | `RlsPolicy`, `JwtClaim`, `SigningKeyFingerprint`, `TenantBoundTable` |
+| `cell-assignment` | `tenancy-cell-assignment-{kernel,domain,usecase,api,adapter,adapter-citus,worker,app}` | Citus shard-key derivation; cell health monitoring; least-loaded cell selection; rebalance orchestration; cross-cell routing table | `CellId`, `ShardKey`, `CellAssignment`, `CellHealth`, `RebalanceTask` |
+| `dsr-cascade` | `tenancy-dsr-cascade-{kernel,domain,usecase,api,adapter,rest,worker,app}` | DSR request ingestion; cross-µservice erasure-event fan-out; per-µservice receipt aggregation; proof-of-erasure certificate generation | `DsrRequest`, `ErasureReceipt`, `ProofOfErasure`, `DsrCascadeStatus` |
 
 Naming justification — `tenant-lifecycle`:
 
 ```
-NAME: oya-tenancy-tenant-lifecycle-<layer>
+NAME: tenancy-tenant-lifecycle-<layer>
 JUSTIFICATION:
 - microservice = tenancy: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice
   folder. No shared|vertical bisection ("tenancy" IS the µservice name; see
@@ -197,7 +197,7 @@ JUSTIFICATION:
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port-trait + sealed-trait + entity types (Tenant, TenantId,
     TenantStatus, JurisdictionCode, TenantClass). Zero I/O. data_class annotated
-    per Bominal ADR-0028 + oya-check-data-class lane.
+    per Bominal ADR-0028 + check-data-class lane.
   - domain: lifecycle state-machine (Created -> Activated -> Suspended/Resumed
     -> DeletionRequested -> DeletionCompleted), invariants, tenant_class rules.
   - usecase (per ADR-0106; replaces legacy 'application'): orchestrators reading
@@ -223,7 +223,7 @@ JUSTIFICATION:
 Naming justification — `isolation-policy`:
 
 ```
-NAME: oya-tenancy-isolation-policy-<layer>
+NAME: tenancy-isolation-policy-<layer>
 JUSTIFICATION:
 - microservice = tenancy.
 - bc-tokens = isolation-policy: BC for RLS policy generation + JWT issuance +
@@ -251,7 +251,7 @@ JUSTIFICATION:
 Naming justification — `cell-assignment`:
 
 ```
-NAME: oya-tenancy-cell-assignment-<layer>
+NAME: tenancy-cell-assignment-<layer>
 JUSTIFICATION:
 - microservice = tenancy.
 - bc-tokens = cell-assignment: BC for tenant-to-cell mapping (Citus shard +
@@ -276,7 +276,7 @@ JUSTIFICATION:
 Naming justification — `dsr-cascade`:
 
 ```
-NAME: oya-tenancy-dsr-cascade-<layer>
+NAME: tenancy-dsr-cascade-<layer>
 JUSTIFICATION:
 - microservice = tenancy.
 - bc-tokens = dsr-cascade: BC for DSR (Data Subject Request) fan-out across
@@ -301,46 +301,46 @@ Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0
 
 | BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-citus | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `tenant-lifecycle` | `oya-tenancy-tenant-lifecycle-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | `-adapter-postgres` | — | `-rest` | `-worker` | `-sdk` | `-app` |
-| `isolation-policy` | `oya-tenancy-isolation-policy-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | `-adapter-postgres` | — | `-rest` | `-worker` | — | `-app` |
-| `cell-assignment` | `oya-tenancy-cell-assignment-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | — | `-adapter-citus` | — | `-worker` | — | `-app` |
-| `dsr-cascade` | `oya-tenancy-dsr-cascade-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | — | — | `-rest` | `-worker` | — | `-app` |
+| `tenant-lifecycle` | `tenancy-tenant-lifecycle-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | `-adapter-postgres` | — | `-rest` | `-worker` | `-sdk` | `-app` |
+| `isolation-policy` | `tenancy-isolation-policy-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | `-adapter-postgres` | — | `-rest` | `-worker` | — | `-app` |
+| `cell-assignment` | `tenancy-cell-assignment-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | — | `-adapter-citus` | — | `-worker` | — | `-app` |
+| `dsr-cascade` | `tenancy-dsr-cascade-kernel` | `-domain` | `-usecase` | `-api` | `-adapter` | — | — | `-rest` | `-worker` | — | `-app` |
 
-Total crates introduced by this µservice: **35** (10 in tenant-lifecycle + 9 in isolation-policy + 8 in cell-assignment + 8 in dsr-cascade). Note: the migration of existing `crates/oya-tenancy-{kernel,domain,api}` is owned by a separate IP (IP-015 in this phase pack); the count above is the end-state.
+Total crates introduced by this µservice: **35** (10 in tenant-lifecycle + 9 in isolation-policy + 8 in cell-assignment + 8 in dsr-cascade). Note: the migration of existing `crates/tenancy-{kernel,domain,api}` is owned by a separate IP (IP-015 in this phase pack); the count above is the end-state.
 
 Port traits declared in each kernel (zero business logic; zero I/O; `data_class` annotated per Bominal ADR-0028):
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `TenantRepository` | `oya-tenancy-tenant-lifecycle-kernel` | `-adapter-postgres` | `SENSITIVE_PIPA_ART23`, `BEHAVIORAL_TENANT_PRODUCT`, `AUDIT` |
-| `TenantContext` | `oya-tenancy-tenant-lifecycle-kernel` | (consumed by every µservice; resolved per-request) | `SENSITIVE_PIPA_ART23` |
-| `RlsPolicyGenerator` | `oya-tenancy-isolation-policy-kernel` | `-adapter-postgres` | `INTERNAL_ONLY` (policy text) |
-| `JwtIssuer` | `oya-tenancy-isolation-policy-kernel` | `-adapter` (Ed25519 over OpenBao-backed key) | `SECRET` (signing key), `SENSITIVE_PIPA_ART23` (claim contents) |
-| `JwtVerifier` | `oya-tenancy-isolation-policy-kernel` | `-adapter` (local pubkey cache) | `SENSITIVE_PIPA_ART23` |
-| `SigningKeyStore` | `oya-tenancy-isolation-policy-kernel` | `-adapter` (OpenBao client) | `SECRET` |
-| `CellAssignmentStore` | `oya-tenancy-cell-assignment-kernel` | `-adapter` (Valkey) + `-adapter-citus` (Citus pg_dist_*) | `BEHAVIORAL_TENANT_PRODUCT` |
-| `CellHealthProbe` | `oya-tenancy-cell-assignment-kernel` | `-adapter` (HTTP probe) | `INTERNAL_ONLY` |
-| `RebalanceOrchestrator` | `oya-tenancy-cell-assignment-kernel` | `-adapter-citus` | `AUDIT`, `BEHAVIORAL_TENANT_PRODUCT` |
-| `DsrRequestStore` | `oya-tenancy-dsr-cascade-kernel` | `-adapter` (Postgres-backed) | `AUDIT`, `SENSITIVE_PIPA_ART23` |
-| `ErasureReceiptAggregator` | `oya-tenancy-dsr-cascade-kernel` | `-adapter` | `AUDIT` |
-| `ProofOfErasureSigner` | `oya-tenancy-dsr-cascade-kernel` | `-adapter` (audit-chain integration) | `AUDIT`, `SECRET` |
+| `TenantRepository` | `tenancy-tenant-lifecycle-kernel` | `-adapter-postgres` | `SENSITIVE_PIPA_ART23`, `BEHAVIORAL_TENANT_PRODUCT`, `AUDIT` |
+| `TenantContext` | `tenancy-tenant-lifecycle-kernel` | (consumed by every µservice; resolved per-request) | `SENSITIVE_PIPA_ART23` |
+| `RlsPolicyGenerator` | `tenancy-isolation-policy-kernel` | `-adapter-postgres` | `INTERNAL_ONLY` (policy text) |
+| `JwtIssuer` | `tenancy-isolation-policy-kernel` | `-adapter` (Ed25519 over OpenBao-backed key) | `SECRET` (signing key), `SENSITIVE_PIPA_ART23` (claim contents) |
+| `JwtVerifier` | `tenancy-isolation-policy-kernel` | `-adapter` (local pubkey cache) | `SENSITIVE_PIPA_ART23` |
+| `SigningKeyStore` | `tenancy-isolation-policy-kernel` | `-adapter` (OpenBao client) | `SECRET` |
+| `CellAssignmentStore` | `tenancy-cell-assignment-kernel` | `-adapter` (Valkey) + `-adapter-citus` (Citus pg_dist_*) | `BEHAVIORAL_TENANT_PRODUCT` |
+| `CellHealthProbe` | `tenancy-cell-assignment-kernel` | `-adapter` (HTTP probe) | `INTERNAL_ONLY` |
+| `RebalanceOrchestrator` | `tenancy-cell-assignment-kernel` | `-adapter-citus` | `AUDIT`, `BEHAVIORAL_TENANT_PRODUCT` |
+| `DsrRequestStore` | `tenancy-dsr-cascade-kernel` | `-adapter` (Postgres-backed) | `AUDIT`, `SENSITIVE_PIPA_ART23` |
+| `ErasureReceiptAggregator` | `tenancy-dsr-cascade-kernel` | `-adapter` | `AUDIT` |
+| `ProofOfErasureSigner` | `tenancy-dsr-cascade-kernel` | `-adapter` (audit-chain integration) | `AUDIT`, `SECRET` |
 
-Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
+Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
 
 Cross-product rule: `tenancy` MUST NOT import any other product µservice crate at any layer. All cross-product flows go through Workflow (events) or Ontology (entity reads/writes). LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
 
-- `oya gate validate lean-a1 --microservice tenancy` — dependency-direction
-- `oya gate validate lean-a2 --microservice tenancy` — cross-product-refusal
-- `oya gate validate port-location --microservice tenancy` — ports in kernel
-- `oya gate validate layer-correctness --microservice tenancy`
-- `oya gate validate per-microservice-layout --microservice tenancy` — ADR-0131 conformance
-- `oya gate validate statelessness --microservice tenancy` (read path; write path uses `postgres` strategy)
-- `oya gate validate shardability --microservice tenancy`
-- `oya gate validate rls-no-superuser-bypass --microservice tenancy` — NEW; refuses superuser-bypass code paths
-- `oya gate validate rls-force-on-tenant-tables --microservice tenancy` — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
-- `oya gate validate jwt-key-fingerprint-advertised --microservice tenancy` — NEW; refuses key rotation without fingerprint Workflow event
+- `presubmit` (retired CLI `gate validate lean-a1 --microservice tenancy`) — dependency-direction
+- `presubmit` (retired CLI `gate validate lean-a2 --microservice tenancy`) — cross-product-refusal
+- `presubmit` (retired CLI `gate validate port-location --microservice tenancy`) — ports in kernel
+- `presubmit` (retired CLI `gate validate layer-correctness --microservice tenancy`)
+- `presubmit` (retired CLI `gate validate per-microservice-layout --microservice tenancy`) — ADR-0131 conformance
+- `presubmit` (retired CLI `gate validate statelessness --microservice tenancy`) (read path; write path uses `postgres` strategy)
+- `presubmit` (retired CLI `gate validate shardability --microservice tenancy`)
+- `presubmit` (retired CLI `gate validate rls-no-superuser-bypass --microservice tenancy`) — NEW; refuses superuser-bypass code paths
+- `presubmit` (retired CLI `gate validate rls-force-on-tenant-tables --microservice tenancy`) — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
+- `presubmit` (retired CLI `gate validate jwt-key-fingerprint-advertised --microservice tenancy`) — NEW; refuses key rotation without fingerprint Workflow event
 
 ## Integration via Workflow + Ontology
 
@@ -467,25 +467,25 @@ Cross-region story:
 Sharding:
 - Tenant data partitioned by `tenant_id` (consistent-hash → Citus shard).
 - Cell-assignment table fully replicated within-pack (small; ~ 10⁶ rows max).
-- `oya-check-shardability` lane verifies partition key presence on every tenant-bound table.
+- `check-shardability` lane verifies partition key presence on every tenant-bound table.
 
 ## Acceptance Criteria
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | Tenant activation completes in ≤ 5 min p99; RLS policy active post-activation; cell assigned; events emitted | `cargo nextest run -p oya-tenancy-tenant-lifecycle-worker --test activation_end_to_end` |
-| AC-02 | Cross-tenant query returns zero rows under RLS (no superuser bypass; no role bypass) | `cargo nextest run -p oya-tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` |
+| AC-01 | Tenant activation completes in ≤ 5 min p99; RLS policy active post-activation; cell assigned; events emitted | `cargo nextest run -p tenancy-tenant-lifecycle-worker --test activation_end_to_end` |
+| AC-02 | Cross-tenant query returns zero rows under RLS (no superuser bypass; no role bypass) | `cargo nextest run -p tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` |
 | AC-03 | `TenantContext::validate` p99 ≤ 5 ms at 100k RPS sustained (Valkey cache hit) | k6 load test `tests/load/tenant-validate-100krps.js` |
 | AC-04 | `TenantActivated` event delivered + consumed by all enabled µservices within 2 s | integration test `tests/integration/tenant_activated_workflow.rs` |
-| AC-05 | DSR cascade end-to-end: every µservice emits `ErasureReceipt`; `ProofOfErasure` certificate signed; tenant data unreachable | `cargo nextest run -p oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof` |
-| AC-06 | Cell assignment routes new tenant to least-loaded cell in correct jurisdiction; rebalance within 2 s of cell-unhealthy signal | `cargo nextest run -p oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy` |
-| AC-07 | JWT signing key rotation: `JwtSigningKeyRotated` event delivered; verifier pubkey cache refreshed; old key valid for 30d grace | `cargo nextest run -p oya-tenancy-isolation-policy-worker --test jwt_rotation` |
-| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `oya gate validate lean-a2 --microservice tenancy` exit 0 |
-| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `oya gate validate rls-no-superuser-bypass --microservice tenancy` exit 0 |
-| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `oya gate validate rls-force-on-tenant-tables --microservice tenancy` exit 0 |
-| AC-11 | per-microservice-layout lane green | `oya gate validate per-microservice-layout --microservice tenancy` exit 0 |
-| AC-12 | authority-cohesion lane green; HG-TEN registered | `oya gate validate authority-cohesion` exit 0 |
-| AC-13 | Citus rebalance preserves tenant data integrity (checksum before/after) | `cargo nextest run -p oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity` |
+| AC-05 | DSR cascade end-to-end: every µservice emits `ErasureReceipt`; `ProofOfErasure` certificate signed; tenant data unreachable | `cargo nextest run -p tenancy-dsr-cascade-worker --test dsr_cascade_proof` |
+| AC-06 | Cell assignment routes new tenant to least-loaded cell in correct jurisdiction; rebalance within 2 s of cell-unhealthy signal | `cargo nextest run -p tenancy-cell-assignment-worker --test rebalance_on_unhealthy` |
+| AC-07 | JWT signing key rotation: `JwtSigningKeyRotated` event delivered; verifier pubkey cache refreshed; old key valid for 30d grace | `cargo nextest run -p tenancy-isolation-policy-worker --test jwt_rotation` |
+| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `presubmit` (retired CLI `gate validate lean-a2 --microservice tenancy`) exit 0 |
+| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `presubmit` (retired CLI `gate validate rls-no-superuser-bypass --microservice tenancy`) exit 0 |
+| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `presubmit` (retired CLI `gate validate rls-force-on-tenant-tables --microservice tenancy`) exit 0 |
+| AC-11 | per-microservice-layout lane green | `presubmit` (retired CLI `gate validate per-microservice-layout --microservice tenancy`) exit 0 |
+| AC-12 | authority-cohesion lane green; HG-TEN registered | `presubmit` (retired CLI `gate validate authority-cohesion`) exit 0 |
+| AC-13 | Citus rebalance preserves tenant data integrity (checksum before/after) | `cargo nextest run -p tenancy-cell-assignment-adapter-citus --test rebalance_integrity` |
 | AC-14 | Patroni HA failover: tenant validate hot path stays available with ≤ 10s blip during primary loss | `tests/load/patroni-failover-availability.sh` |
 
 ## Open Questions
@@ -545,7 +545,7 @@ Per ADR-0163 (2026-05-18), every tenant has three environment tiers: `test` / `s
 ### Destructive-operation acknowledgment (prod tier only)
 
 - Cedar condition `prod_destructive_acknowledged: true`.
-- Request header `x-oya-prod-destructive-ack: true`.
+- Request header `x-prod-destructive-ack: true`.
 - UI confirmation dialog before send.
 - Audit-chain seal captures (who, when, what).
 
@@ -553,7 +553,7 @@ Operations covered: DSR delete; tenant offboarding; bulk delete > 100 rows; cell
 
 ### CI lane (new)
 
-`oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+`presubmit` (retired CLI `gate validate tenant-environment-tier`) enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
 
 ### New endpoints (tenancy µservice)
 
@@ -571,10 +571,10 @@ See `multi-region.md` for the full disposition statement and `/specs/multi-regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 — the retired `./bin/oya verify --ci-required` path is historical/provenance-only; merge authority is the `presubmit` context; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `tenancy` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

@@ -16,19 +16,19 @@ resources:
   - service-monitors.yaml
 
 helmCharts:
-  - name: oya-tenancy-postgres
+  - name: tenancy-postgres
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: postgres
     namespace: tenancy
-  - name: oya-tenancy-citus
+  - name: tenancy-citus
     valuesFile: ../../helm/citus/values.yaml
     releaseName: citus
     namespace: tenancy
-  - name: oya-tenancy-patroni
+  - name: tenancy-patroni
     valuesFile: ../../helm/patroni/values.yaml
     releaseName: patroni
     namespace: tenancy
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-tenancy
+  app.kubernetes.io/part-of: tenancy
   oyatie/microservice: tenancy

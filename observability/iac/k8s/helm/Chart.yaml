@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-observability
+name: observability
 description: Oyatie observability ArgoCD/dev-cell umbrella chart; production fails closed until storage and tenant policy are overridden.
 type: application
 version: 0.1.0

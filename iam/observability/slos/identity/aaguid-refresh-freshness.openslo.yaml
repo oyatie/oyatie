@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-aaguid-refresh-freshness
+  name: identity-aaguid-refresh-freshness
   displayName: "identity: AAGUID allowlist freshness ≤ 48h"
   labels:
     microservice: identity
@@ -24,16 +24,16 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_aaguid_refresh_total{stale="false"}[5m]))
+                sum(rate(identity_aaguid_refresh_total{stale="false"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_identity_aaguid_refresh_total[5m]))
+                sum(rate(identity_aaguid_refresh_total[5m]))
   objectives:
     - target: 0.999
       displayName: "AAGUID allowlist fresh ≥ 99.9% over 30d"
   timeWindow: [{ duration: 30d, isRolling: true }]
   budgetingMethod: Occurrences
-  alertPolicies: [{ alertPolicyRef: oya-canonical-burn-rate-multi-window }]
+  alertPolicies: [{ alertPolicyRef: canonical-burn-rate-multi-window }]

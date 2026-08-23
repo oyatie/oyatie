@@ -2,14 +2,14 @@
 
 **Task slug**: `cloud-iac-plan-diff-domain`  
 **Vertical**: infra  
-**Crate**: `oya-cloud-iac-domain` (`crates/oya-cloud-iac-domain`)  
+**Crate**: `cloud-iac-domain` (`crates/cloud-iac-domain`)  
 **Status**: SPEC
 
 ---
 
 ## Objective
 
-Add a pure, deterministic IaC plan-diff surface to `oya-cloud-iac-domain` alongside
+Add a pure, deterministic IaC plan-diff surface to `cloud-iac-domain` alongside
 the existing `reconcile_gitops_drift` function.  Given a *desired* topology (what the
 declarative pipeline intends) and an *observed* topology (what was last successfully
 applied), produce a per-resource diff keyed by `(module_ref, cell_id)` and an
@@ -22,8 +22,8 @@ or Kubernetes client.  The function is a pure Rust `fn` with no side effects.
 
 ## Scope
 
-- Extends `crates/oya-cloud-iac-domain/src/lib.rs`
-- Adds `crates/oya-cloud-iac-domain/tests/iac_plan_diff.rs`
+- Extends `crates/cloud-iac-domain/src/lib.rs`
+- Adds `crates/cloud-iac-domain/tests/iac_plan_diff.rs`
 - No new workspace members; no new `[dependencies]`
 
 ---

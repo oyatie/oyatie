@@ -7,11 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+shared-hyperscaler-metrics-kernel = { path = "../../../../observability/core/metrics-kernel" }
+shared-postgres-command-kernel = { path = "../../../../data/core/postgres-command-kernel" }
+
 community-social-app = { path = "../../facade/social-app" }
 community-social-post-composition-api = { path = "../../ports/social-post-composition-api" }
 community-social-post-composition-usecase = { path = "../../core/social-post-composition-usecase" }
-oya-shared-hyperscaler-metrics-kernel = { path = "../../../../libs/oya-shared-hyperscaler-metrics-kernel" }
+
 
 [lib]
 name = "community_social_post_composition_rest"

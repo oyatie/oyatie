@@ -1,0 +1,41 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the application cluster, applied identically per-pack with
+# pack-specific overlays for: ingress hostname suffix, OpenBao secret URIs,
+# Postgres replication mode (single-region vs DR-pair), Cloudflare overlay
+# enablement, replica scaling tier.
+# Per ADR-0121 + ADR-0131 + multi-region.md DR posture.
+
+namespace: application
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+  - service-mesh-tenant-headers.yaml
+  - network-policy-default-deny.yaml
+  - cedar-policy-configmap.yaml
+
+helmCharts:
+  - name: application-shell-app
+    valuesFile: ../../helm/shell-app/values.yaml
+    releaseName: shell-app
+    namespace: application
+  - name: application-cdn-controller
+    valuesFile: ../../helm/cdn-controller/values.yaml
+    releaseName: cdn-controller
+    namespace: application
+  - name: application-postgres
+    valuesFile: ../../helm/postgres/values.yaml
+    releaseName: postgres
+    namespace: application
+  - name: valkey
+    valuesFile: ../../helm/valkey/values.yaml
+    releaseName: valkey
+    namespace: application
+
+commonLabels:
+  app.kubernetes.io/part-of: application
+  oyatie/microservice: application
+  oyatie/managed-by: kustomize-helm

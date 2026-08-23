@@ -12,7 +12,7 @@ purpose: |
   reviewer-APPROVE + CI green) → staging (autonomous promotion + canary cohort) →
   prod (5-gate verification). New fitness lane binds stage to source branch.
 planned_enforcement_ref:
-  - oya-governance-capability-stage-binding
+  - governance-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024]
 doc_status: published
 ---
@@ -58,7 +58,7 @@ stage_history:                              # append-only audit log
   # ... staging, prod
 ```
 
-Fitness lane `oya-governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
+Fitness lane `governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
 
 - `stage: dev-draft` ⇔ exists only in agent worktree / local-dev clone.
 - `stage: dev` ⇔ exists in `origin/dev` capability registry.
@@ -120,7 +120,7 @@ Demotion semantics. A capability that fails its staging eval-harness sweep is **
 
 When a capability change crosses an axis boundary (per [ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)), all affected axes must promote in lockstep:
 
-- Local-dev → origin/dev gate runs the cross-axis contract diff (`oya-contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
+- Local-dev → origin/dev gate runs the cross-axis contract diff (`contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
 - Origin/dev → staging is autonomous; lockstep is preserved because origin/dev → staging is one mechanical fast-forward per axis.
 - Staging → prod gate runs the cross-axis canary check: all consumer axes must observe canary-clean SLO on the new capability shape for ≥ M hours.
 

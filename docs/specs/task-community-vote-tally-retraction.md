@@ -15,7 +15,7 @@ Extend the community post-store domain crate with vote-retraction, net-score tal
 
 ## Vertical Context
 
-The `community` vertical owns the post-store service (`oya-community-post-store-*` crate family). The domain crate (`community-post-store-domain`) holds all business invariants as pure Rust: `CommunityPost`, `VoteLedger`, `VoteReceipt`, `ModerationAction`, and `CommunityError`.
+The `community` vertical owns the post-store service (`community-post-store-*` crate family). The domain crate (`community-post-store-domain`) holds all business invariants as pure Rust: `CommunityPost`, `VoteLedger`, `VoteReceipt`, `ModerationAction`, and `CommunityError`.
 
 ---
 
@@ -132,7 +132,7 @@ The `let _ = action;` discard is removed. The function branches on `action` and 
 | `Remove` / `Hide`   | `DataClass::Audit`    | Evidence ref is an audit record requiring audit-class tagging |
 | `Allow`             | `DataClass::InternalOnly` | Policy ref is internal metadata, not audit evidence |
 
-Both `DataClass::Audit` and `DataClass::InternalOnly` are existing variants in `oya-data-boundary-kernel`. `DataClass::Audit` converts to `DataClassification::Operational(OperationalDataClass::Audit)` via `DataClassification::from_data_class`.
+Both `DataClass::Audit` and `DataClass::InternalOnly` are existing variants in `data-boundary-kernel`. `DataClass::Audit` converts to `DataClassification::Operational(OperationalDataClass::Audit)` via `DataClassification::from_data_class`.
 
 ---
 

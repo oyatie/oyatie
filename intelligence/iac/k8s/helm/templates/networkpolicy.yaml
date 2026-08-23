@@ -1,7 +1,7 @@
-# Cell-boundary NetworkPolicy for cloud-intelligence
+# Cell-boundary NetworkPolicy for intelligence-app
 # Ingress: allow only from istio-ingress namespace (Istio ambient gateway)
 # Egress: upstream AI providers (anthropic, openai, gemini) + owned secret-provider adapter + DNS
-# Binding ADRs: ADR-0384 (cloud-intelligence path-b), ADR-0254 (kubernetes-everywhere)
+# Binding ADRs: ADR-0384 (intelligence-app path-b), ADR-0254 (kubernetes-everywhere)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
     app.kubernetes.io/part-of: oyatie-microservices
     oyatie.com/adr-0349: argocd-managed
-    oyatie.com/adr-0384: cloud-intelligence-path-b
+    oyatie.com/adr-0384: intelligence-app-path-b
 spec:
   podSelector:
     matchLabels:

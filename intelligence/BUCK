@@ -2,7 +2,7 @@
 # Live crates live under intelligence/{core,adapters,facade,testing} with their
 # own package BUCKs, and intelligence/{contracts,policy} already package their
 # own YAML. This package owns the residual service docs, manifests, contracts,
-# and OpenSLO YAML rehomed from cloud/cloud-intelligence and oya/detection
+# and OpenSLO YAML rehomed from cloud/intelligence-app and intelligence/detection
 # (wave 26) so they remain in the Buck2 corpus graph (ADR-0541).
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")

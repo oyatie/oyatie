@@ -85,11 +85,11 @@ Tightening expressed in per-pack Cedar policy overlay; OpenAPI base still declar
 
 ## Verification
 
-CI lane `lean-a15-step-up-acr-coverage` runs `oya-check-step-up-auth-coverage` against every µservice's OpenAPI spec; reports findings advisory-mode for 60 days, then blocker.
+CI lane `lean-a15-step-up-acr-coverage` runs `check-step-up-auth-coverage` against every µservice's OpenAPI spec; reports findings advisory-mode for 60 days, then blocker.
 
 ## Cross-references
 
 - ADR-0189 (step-up ACR classes)
 - ADR-0183 (Cedar policy engine separation)
 - ADR-0145 (inter-µservice OIDC bearer)
-- `crates/oya-check-step-up-auth-coverage`
+- `crates/check-step-up-auth-coverage`

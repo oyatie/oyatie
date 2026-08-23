@@ -3,12 +3,12 @@
 //!
 //! Grounded in the locked G001 contracts: the tenant aggregate, lifecycle
 //! state machine, and isolation posture come from
-//! `oya-shared-platform-contracts-kernel`; the resource/operation/idempotency
-//! shapes come from `oya-shared-resource-provider-contract-kernel`. This
+//! `shared-platform-contracts-kernel`; the resource/operation/idempotency
+//! shapes come from `shared-resource-provider-contract-kernel`. This
 //! crate never re-invents either — it only defines what the lifecycle
 //! control plane persists and the port it persists through.
 //!
-//! The port models the OWNED destination store (oya-data: ordered keyed
+//! The port models the OWNED destination store (data: ordered keyed
 //! records with point get/put and range scans — the multi-Raft
 //! leader-per-range KV shape). Transient adapters (sqlx/Postgres from the
 //! G03 lane, in-memory test fixtures) absorb all impedance behind it; the
@@ -23,9 +23,9 @@ use core::future::Future;
 use core::pin::Pin;
 use std::fmt;
 
-use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
-use oya_shared_resource_provider_contract_kernel::Operation;
 use serde::{Deserialize, Serialize};
+use shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
+use shared_resource_provider_contract_kernel::Operation;
 
 /// What a client-UUID idempotency key was first applied to: the dedup record
 /// consulted on every replay (AIP-155 request ids / AWS client tokens).
@@ -85,7 +85,7 @@ pub type TenantScanFuture<'a> =
     Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>>;
 
 /// The lifecycle control plane's storage port: ordered keyed records with
-/// point get/put/remove and an ordered range scan (the owned oya-data
+/// point get/put/remove and an ordered range scan (the owned data
 /// shape). Async (the durable backend performs real I/O) but IO-free at this
 /// layer; adapters own transport. Async is modelled with a return-position
 /// boxed future — `core::future::Future` + `core::pin::Pin` + `Box::pin`, no
@@ -171,8 +171,8 @@ pub trait TenantLifecycleStore {
 
 #[cfg(test)]
 mod tests {
-    use oya_shared_platform_contracts_kernel::tenancy::{IsolationPosture, TenantLifecycleState};
-    use oya_shared_resource_provider_contract_kernel::{
+    use shared_platform_contracts_kernel::tenancy::{IsolationPosture, TenantLifecycleState};
+    use shared_resource_provider_contract_kernel::{
         CancellationMetadata, CompensationMetadata, OperationLedgerEntry, OperationPhase,
         OperationState, RetryPolicy,
     };

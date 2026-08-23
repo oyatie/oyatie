@@ -1,6 +1,6 @@
 microservice:
   id: audit-chain
-  cargoPackage: oya-audit-chain-emission-api
+  cargoPackage: audit-chain-emission-api
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-audit-chain
+  name: audit-chain
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-audit-chain
+  repository: audit-chain
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-audit-chain-cedar
+  policyConfigMapName: audit-chain-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(

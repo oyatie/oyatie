@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every release artifact carries a valid Cosign signature using the platform root key.
 - enforces: hyperscaler-best-practices spec — every artifact Cosign-signed.
-- kernel_crate: `oya-governance-cosign-signature-kernel` — `SignedArtifact { artifact, signature_path, issuer, verified }`, verdict `CosignSignatureFitnessReport { artifacts_checked }`.
-- runner_path: `tools/oya-governance-cosign-signature`
+- kernel_crate: `governance-cosign-signature-kernel` — `SignedArtifact { artifact, signature_path, issuer, verified }`, verdict `CosignSignatureFitnessReport { artifacts_checked }`.
+- runner_path: `tools/governance-cosign-signature`
 - inputs: cosign verify report JSON, root-key fingerprint.
 - failure_modes:
   - artifact without `.sig`
   - signature issuer mismatch
   - cosign verify returned false
-- ci_invocation: `cargo run -p oya-governance-cosign-signature`
+- ci_invocation: `cargo run -p governance-cosign-signature`
 - runtime_budget: 1800 ms
 - severity: BLOCKER
 - kernel_sketch:

@@ -22,11 +22,11 @@ spec:
           good:
             metricSource:
               type: prometheus
-              spec: 'sum(rate(oya_ontology_read_path_library_freshness_lag_seconds_bucket{freshness_floor="TIGHT", le="2"}[5m]))'
+              spec: 'sum(rate(ontology_read_path_library_freshness_lag_seconds_bucket{freshness_floor="TIGHT", le="2"}[5m]))'
           total:
             metricSource:
               type: prometheus
-              spec: 'sum(rate(oya_ontology_read_path_library_lookup_total{freshness_floor="TIGHT"}[5m]))'
+              spec: 'sum(rate(ontology_read_path_library_lookup_total{freshness_floor="TIGHT"}[5m]))'
   alertPolicy:
     burnRate:
       - threshold: 14

@@ -1,7 +1,7 @@
 {
   "_schema": {
     "version": "0.1",
-    "description": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-governance-glossary CI lane to enforce term-usage consistency across consolidated docs.",
+    "description": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by governance-glossary CI lane to enforce term-usage consistency across consolidated docs.",
     "owner_team": "council-architecture"
   },
   "_metadata": {
@@ -366,7 +366,7 @@
       },
       {
         "old": "oyatie-* (Cargo prefix)",
-        "new": "oya-*",
+        "new": "oyatie-*",
         "retirement_date": "2026-05-08"
       },
       {
@@ -426,6 +426,6 @@
   },
   "korean_english_pairs": "see GLOSSARY.md \u00a79 for full table",
   "acronym_index": "see GLOSSARY.md \u00a710 for full table",
-  "validation_lane": "oya-governance-glossary",
-  "purpose": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-governance-glossary CI lane to enforce term-usage consistency across consolidated docs."
+  "validation_lane": "governance-glossary",
+  "purpose": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by governance-glossary CI lane to enforce term-usage consistency across consolidated docs."
 }

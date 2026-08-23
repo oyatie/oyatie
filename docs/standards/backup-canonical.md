@@ -44,12 +44,12 @@ operational contract every µservice must honor:
 
 | Surface                        | Prong              | Tool             | Storage target                    |
 |--------------------------------|--------------------|------------------|-----------------------------------|
-| Kubernetes manifests + CRDs    | K8s state          | Velero 1.18      | `oya-velero-backup-shared-<env>` |
+| Kubernetes manifests + CRDs    | K8s state          | Velero 1.18      | `velero-backup-shared-<env>` |
 | Persistent volumes             | K8s state          | Velero + kopia   | (same bucket as Velero)           |
-| Postgres database state        | Postgres PITR      | pgBackRest 2.58  | `oya-backup-postgres-shared-<env>`|
+| Postgres database state        | Postgres PITR      | pgBackRest 2.58  | `backup-postgres-shared-<env>`|
 | Postgres WAL archive           | Postgres PITR      | pgBackRest 2.58  | (same bucket)                     |
-| Non-K8s host state (bastions)  | Filesystem         | Restic 0.18      | `oya-backup-filesystem-shared-<env>` |
-| Audit-chain archival           | Object replication | SeaweedFS GEO    | `oya-audit-chain-archive-shared-<env>` |
+| Non-K8s host state (bastions)  | Filesystem         | Restic 0.18      | `backup-filesystem-shared-<env>` |
+| Audit-chain archival           | Object replication | SeaweedFS GEO    | `audit-chain-archive-shared-<env>` |
 
 ## RPO / RTO per workload class (per ADR-0152)
 
@@ -74,7 +74,7 @@ annual**. Regulatory packs raise the floor — never lower it.
 | us-financial     | 7 y annual                             | SOX                             |
 | us-public-sector | 7 y annual + 2 cross-region replicas   | FedRAMP                         |
 
-The check `oya-check-backup-retention-discipline` validates that the
+The check `check-backup-retention-discipline` validates that the
 declared retention on every µservice meets-or-exceeds its regulatory pack
 floor.
 
@@ -112,8 +112,8 @@ All backup payloads are age-encrypted before write per ADR-0197 D-3:
 
 | Gate                                       | Lane mode          | Behavior                                  |
 |--------------------------------------------|--------------------|-------------------------------------------|
-| `oya-check-backup-retention-discipline`    | advisory           | scans manifests; reports retention < pack floor |
-| `oya-check-tenant-cost-labels-coverage`    | advisory           | scans helm output; backup buckets must carry the tenant label block |
+| `check-backup-retention-discipline`    | advisory           | scans manifests; reports retention < pack floor |
+| `check-tenant-cost-labels-coverage`    | advisory           | scans helm output; backup buckets must carry the tenant label block |
 
 ## Open questions parked here for follow-up
 

@@ -18,10 +18,10 @@ use compute_functions_api::{
     invoke_with_authorization_verifier,
 };
 use compute_resource::FunctionRuntime;
+use data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
 
-const FUNCTION_ID: &str = "oya:cloud:region-home:ten_alpha:function:image-resize";
+const FUNCTION_ID: &str = "oyatie:cloud:region-home:ten_alpha:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const FUNCTIONS_AUTHZ_EVALUATION_EPOCH_SECONDS: u64 = 1_700_100_040;
 
@@ -110,7 +110,9 @@ fn function_create() -> FunctionDeploymentCreate {
         cell_id: "cell-region-home-a-001".to_string(),
         runtime: FunctionRuntime::Wasm,
         name: "image-resize".to_string(),
-        bundle: format!("function://harbor.region-home.oya/ten_alpha/image-resize@sha256:{DIGEST}"),
+        bundle: format!(
+            "function://harbor.region-home.oyatie.io/ten_alpha/image-resize@sha256:{DIGEST}"
+        ),
         cold_start_budget_ms: 750,
         timeout_ms: 30_000,
         memory_mb: 512,
@@ -266,7 +268,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
         "idem-functions-drift-001",
         "fninv_drift",
     );
-    request.body.function_id = "oya:cloud:region-home:ten_alpha:function:other".to_string();
+    request.body.function_id = "oyatie:cloud:region-home:ten_alpha:function:other".to_string();
 
     let error = invoke_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("path/body function drift is rejected");
@@ -275,7 +277,7 @@ fn functions_invoke_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeFunctionsApiError::FunctionIdMismatch {
             path_function_id: FUNCTION_ID.to_string(),
-            body_function_id: "oya:cloud:region-home:ten_alpha:function:other".to_string(),
+            body_function_id: "oyatie:cloud:region-home:ten_alpha:function:other".to_string(),
         }
     );
     assert_eq!(error.invoke_status_code(), 400);

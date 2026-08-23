@@ -2,13 +2,13 @@
 
 ## Objective
 
-Add a pure, deterministic invoice-total aggregator to `oya-cloud-billing-kernel`.
+Add a pure, deterministic invoice-total aggregator to `cloud-billing-kernel`.
 The function accepts a slice of `LineItem` and a tax rate in basis points, and returns
 the combined `subtotal_micros`, `tax_micros`, and `total_micros` for that invoice.
 
 ## Crate boundary
 
-Crate: `oya-cloud-billing-kernel` (path: `crates/oya-cloud-billing-kernel`).
+Crate: `cloud-billing-kernel` (path: `crates/cloud-billing-kernel`).
 No new workspace members. No new dependencies. No I/O.
 
 ## Flat clean-arch mod layout (ADR-0509)

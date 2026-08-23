@@ -39,7 +39,7 @@ impl std::fmt::Display for OperatorStartupConfigError {
         match self {
             Self::MissingStatePath => write!(
                 f,
-                "OYA_KMS_OPERATOR_STATE_PATH must point to durable operator state"
+                "OYATIE_KMS_OPERATOR_STATE_PATH must point to durable operator state"
             ),
         }
     }
@@ -64,7 +64,7 @@ impl OperatorStateStoreConfig {
         I: IntoIterator<Item = (K, V)>,
     {
         for (key, value) in pairs {
-            if key.as_ref() == "OYA_KMS_OPERATOR_STATE_PATH" {
+            if key.as_ref() == "OYATIE_KMS_OPERATOR_STATE_PATH" {
                 let path = value.as_ref().trim();
                 if !path.is_empty() {
                     return Ok(Self {

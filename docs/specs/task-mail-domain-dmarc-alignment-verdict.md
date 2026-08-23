@@ -2,8 +2,8 @@
 
 **Task slug:** mail-domain-dmarc-alignment-verdict  
 **Vertical:** mail  
-**Crate:** oya-mail-domain  
-**Module:** crates/oya-mail-domain/src/governance.rs  
+**Crate:** mail-domain  
+**Module:** crates/mail-domain/src/governance.rs  
 **RFC authority:** RFC 7489 §3 (DMARC), RFC 7208 (SPF alignment), RFC 6376 (DKIM alignment)  
 
 ---
@@ -22,7 +22,7 @@ This spec defines the alignment-aware extension:
 ## Vertical and Module Layout
 
 ```
-crates/oya-mail-domain/
+crates/mail-domain/
   src/
     lib.rs                         # pub mod governance; pub use governance::*;
     governance.rs                  # ONLY file modified by this task
@@ -128,7 +128,7 @@ All tests live in the `#[cfg(test)] mod tests` block at the bottom of `governanc
 ## Boundaries and Constraints
 
 - **No new crate.** This task extends one module in one existing crate.
-- **No root `Cargo.toml` edit.** `oya-mail-domain` depends only on `oya-data-boundary-kernel`.
+- **No root `Cargo.toml` edit.** `mail-domain` depends only on `data-boundary-kernel`.
 - **No new dependency.** All logic is pure domain computation.
 - **Backward compatibility.** `DmarcVerdict::new` signature is preserved; callers do not break.
 - **No adapter/REST/gRPC layer.** This is pure domain logic; no HTTP/proto changes in scope.
@@ -146,5 +146,5 @@ All tests live in the `#[cfg(test)] mod tests` block at the bottom of `governanc
 - RFC 7489 §3.1 — Identifier Alignment
 - RFC 7208 §2.6 — SPF Result Codes
 - RFC 6376 §3.5 — DKIM `d=` tag
-- `crates/oya-mail-domain/src/governance.rs` — current implementation
+- `crates/mail-domain/src/governance.rs` — current implementation
 - `docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md` — SLO gate (no SLO change this task)

@@ -9,14 +9,14 @@ doc_status: published
 - purpose: Verify no provider-specific code (AWS, GCP, Azure SDK calls / brand strings) leaks outside designated adapter crates.
 - enforces: Directive 4 (MASTERPLAN) — provider-agnostic kernel.
 - adr_citations: ADR-0053 (sanctioned primitives — provider SDK calls are a form of unsanctioned direct invocation; only adapter crates may call provider SDKs)
-- kernel_crate: `oya-governance-provider-agnostic-kernel` — `ProviderToken { path, line, token, in_adapter_crate }`, verdict `ProviderAgnosticFitnessReport { tokens_checked }`.
-- runner_path: `tools/oya-governance-provider-agnostic`
+- kernel_crate: `governance-provider-agnostic-kernel` — `ProviderToken { path, line, token, in_adapter_crate }`, verdict `ProviderAgnosticFitnessReport { tokens_checked }`.
+- runner_path: `tools/governance-provider-agnostic`
 - inputs: source tree, adapter-crate allowlist, provider-token registry.
 - failure_modes:
   - `aws_sdk_s3::Client` used in `*-kernel` crate
   - GCP project id literal in kernel
   - Azure SDK use in api crate
-- ci_invocation: `cargo run -p oya-governance-provider-agnostic`
+- ci_invocation: `cargo run -p governance-provider-agnostic`
 - runtime_budget: 900 ms
 - severity: BLOCKER
 - kernel_sketch:

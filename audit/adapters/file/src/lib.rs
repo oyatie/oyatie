@@ -11,7 +11,7 @@ use audit_chain_domain::{
     AuditChain, AuditEvent, Ed25519Signature, Ed25519VerificationKeySet, MerkleRoot, Plane,
     TenantShardId,
 };
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     DataClass, Purpose, parse_data_class_pascal_label, parse_purpose_pascal_label,
 };
 

@@ -1,1 +1,1 @@
-cloud-ci-platform
+pipeline-platform

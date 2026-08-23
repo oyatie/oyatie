@@ -123,7 +123,7 @@
         "saas",
         "vertical-healthcare"
       ],
-      "resolution": "Replace header-derivation with token-bound tenant resolution; gate via oya-governance-tenant-isolation",
+      "resolution": "Replace header-derivation with token-bound tenant resolution; gate via governance-tenant-isolation",
       "status": "OPEN",
       "owner": "platform-tenancy-identity+vertical-healthcare"
     },
@@ -280,6 +280,6 @@
     }
   ],
   "med_low": "48 entries from rename-and-contradiction.md MEDIUM (33) + LOW (20) tiers; resolved en bloc via brand-rename + contradiction-resolution batches in v2 plan",
-  "auto_emission": "EVT-CROSS-AXIS-CONTRADICTION-FOUND emitted on detection by oya-governance-cohesion or manual flagging via gh issue with kind:contradiction",
+  "auto_emission": "EVT-CROSS-AXIS-CONTRADICTION-FOUND emitted on detection by governance-cohesion or manual flagging via gh issue with kind:contradiction",
   "purpose": "Machine-readable mirror of CONTRADICTION-LEDGER.md. Tracks every cross-axis or contract contradiction with status / owner / resolution path. Generated; do not hand-edit."
 }

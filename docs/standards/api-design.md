@@ -106,7 +106,7 @@ Per [DESIGN.md §9](../DESIGN.md):
 - Header-based minor versions: `Api-Version: 2.5` (optional)
 - Stability tiers per ADR-0037: preview / stable / GA
 - Deprecation: 12 months for GA per-endpoint telemetry; 6 months for stable; preview no commitment
-- Per-deprecation event emission to `oya.platform.api.deprecated`
+- Per-deprecation event emission to `oyatie.platform.api.deprecated`
 
 ## 9. Rate limiting
 

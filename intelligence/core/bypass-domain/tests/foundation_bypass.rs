@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::DataClass;
 use intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BreakGlassQuorum, BypassError, BypassGate, BypassLedger,
     FoundationBypassInput,
 };
-use oya_data_boundary_kernel::DataClass;
 
 #[test]
 fn foundation_bypass_records_validate_window_and_public_classification() {
@@ -158,7 +158,7 @@ fn valid_bypass(id: &str, regression_window_days: u32) -> FoundationBypassInput 
     FoundationBypassInput {
         id: id.into(),
         pr_ref: "gh:oyatie/oyatie#123".into(),
-        crate_ref: "oya-intelligence-capability-kernel".into(),
+        crate_ref: "intelligence-capability-kernel".into(),
         gate_bypassed: "architecture".into(),
         bypassing_actor: "usr_architect".into(),
         rationale: "temporary foundation sequencing gap".into(),

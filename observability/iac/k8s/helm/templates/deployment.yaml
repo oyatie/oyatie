@@ -44,13 +44,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
           readinessProbe:
             httpGet:

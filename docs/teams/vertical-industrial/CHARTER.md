@@ -10,15 +10,15 @@ This team owns the industrial vertical: Manufacturing Execution Systems (MES), O
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Industrial (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-industrial-kernel` — `WorkOrder`, `ProductionLot`, `Equipment`, `OeeRecord`, `AlarmEvent`, `Shift`
-  - `oya-vertical-industrial-domain-*` — MES execution, OEE calculation, work-order lifecycle, alarm management
-  - `oya-vertical-industrial-adapter-opcua` — OPC UA server/client adapter (read-only by default; write requires autonomy ceiling approval)
-  - `oya-vertical-industrial-adapter-isa95` — ISA-95 production hierarchy, B2MML mapping
+  - `vertical-industrial-kernel` — `WorkOrder`, `ProductionLot`, `Equipment`, `OeeRecord`, `AlarmEvent`, `Shift`
+  - `vertical-industrial-domain-*` — MES execution, OEE calculation, work-order lifecycle, alarm management
+  - `vertical-industrial-adapter-opcua` — OPC UA server/client adapter (read-only by default; write requires autonomy ceiling approval)
+  - `vertical-industrial-adapter-isa95` — ISA-95 production hierarchy, B2MML mapping
   - Products owned: `products/vertical-industrial/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — work-order completion, alarm events, OT write-commands)
   - `Autonomy ceiling policy` (consumer — OT write commands require explicit ceiling approval)
-- **Catalog records:** `crates/oya-vertical-industrial-*`
+- **Catalog records:** `crates/vertical-industrial-*`
 - **Runbooks:** `runbooks/industrial-ot-write-emergency-stop.md`, `runbooks/opcua-adapter-disconnect.md`
 - **ADRs:** ADR-0033 (industrial OT/IT boundary)
 

@@ -7,7 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+
 compliance-dsr = { path = "../dsr" }
 network-residency = { path = "../../../network/core/residency" }
 

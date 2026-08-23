@@ -11,7 +11,7 @@ spec:
     ja4plus_enabled: true
     http2_frame_pattern: true
     http3_qpack_pattern: true
-    score_header: "X-Oya-Bot-Score"
+    score_header: "X-Oyatie-Bot-Score"
   rate_limits:
     per_ip:
       auth_routes: { rpm: 30,  burst: 10 }

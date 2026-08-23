@@ -618,4 +618,4 @@ It does not edit ADRs.
 It does not edit microservices.
 It does not edit other packs.
 It must be line-count verified with the rest of KR-PACK-1.
-It must be lifecycle-verified with Oya VCS after all six docs exist.
+It must be lifecycle-verified with retired VCS ratchet after all six docs exist.

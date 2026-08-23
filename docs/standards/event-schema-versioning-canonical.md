@@ -32,7 +32,7 @@ NATS, Kafka), MUST include:
 ```json
 {
   "event_id": "<ulid>",
-  "event_kind": "<oya.<microservice>.<verb>.<aggregate>>",
+  "event_kind": "<oyatie.<microservice>.<verb>.<aggregate>>",
   "version": "1.2.0",
   "tenant_id": "<ulid>",
   "occurred_at": "<rfc3339>",
@@ -94,7 +94,7 @@ registry µservice (planned; ADR-0155) will index versions at runtime.
 
 ### 6. Validation
 
-The `oya-check-event-schema-versioning` gate enforces that every
+The `check-event-schema-versioning` gate enforces that every
 AsyncAPI 3.1.0 schema in every µservice declares the canonical
 `version` header.
 

@@ -1,7 +1,7 @@
 //! Cedar RBAC adapter for managed-K8s tenant quota.
 //!
 //! This adapter wires RBAC authorization for quota admin operations using the
-//! EXISTING `oya-identity-workload-authz-cedar-adapter` crate. It does NOT
+//! EXISTING `identity-workload-authz-cedar-adapter` crate. It does NOT
 //! reinvent Cedar wiring — it reuses `CedarWorkloadAuthorizer` directly.
 //!
 //! ## Design (ADR-0376 / ADR-0183 / ADR-0007)

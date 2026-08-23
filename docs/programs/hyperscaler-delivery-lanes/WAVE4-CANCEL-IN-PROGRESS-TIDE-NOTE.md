@@ -3,7 +3,7 @@ doc_class: Program-Design-Note
 doc_status: published
 authority_tier: 3
 purpose: |
-  Wave4 design note: live oya-ci-required cancel-in-progress (ADR-0639 D6)
+  Wave4 design note: live presubmit cancel-in-progress (ADR-0639 D6)
   + Tide/merge_group isolation for scarce-runner queue hygiene.
 ---
 # Wave4 design note: cancel-in-progress + Tide / merge_group
@@ -63,7 +63,7 @@ From ADR-0639 on `agent/adr-0639-ci-path-tier-20260805`:
 
 > **D6 — Cancel-in-progress.** The workflow MAY use a per-PR concurrency group with `cancel-in-progress: true` so superseded heads do not hold scarce runners. Cancel of a superseded attempt is not a merge-green substitute for a later successful run on the current head.
 
-Related algebra (**D4**): a leg `cancelled` reddens unless it is explicit whole-run supersession; admission still requires **SUCCESS** of `oya-ci-required` on the **current** head SHA.
+Related algebra (**D4**): a leg `cancelled` reddens unless it is explicit whole-run supersession; admission still requires **SUCCESS** of `presubmit` on the **current** head SHA.
 
 ---
 
@@ -73,10 +73,10 @@ Related algebra (**D4**): a leg `cancelled` reddens unless it is explicit whole-
 
 | Event | Typical `github.ref` | Concurrency group | `cancel-in-progress` | Notes |
 |-------|----------------------|-------------------|----------------------|-------|
-| `pull_request` (opened/reopened/synchronize) | `refs/pull/N/merge` | `oya-ci-required-<PR#>` | **true** | Newer head cancels older in-progress/queued for same PR |
-| `push` to `dev` | `refs/heads/dev` | `oya-ci-required-<sha>` | false | Each trunk commit own group (#1509) |
-| `merge_group` (`checks_requested`) | merge-queue temp ref | `oya-ci-required-<sha>` | false | Tide validation never cancelled by PR pushes |
-| `workflow_dispatch` | dispatch ref | `oya-ci-required-<sha>` | false | Manual re-run isolation |
+| `pull_request` (opened/reopened/synchronize) | `refs/pull/N/merge` | `presubmit-<PR#>` | **true** | Newer head cancels older in-progress/queued for same PR |
+| `push` to `dev` | `refs/heads/dev` | `presubmit-<sha>` | false | Each trunk commit own group (#1509) |
+| `merge_group` (`checks_requested`) | merge-queue temp ref | `presubmit-<sha>` | false | Tide validation never cancelled by PR pushes |
+| `workflow_dispatch` | dispatch ref | `presubmit-<sha>` | false | Manual re-run isolation |
 
 ### 4.2 Why PR push cannot cancel Tide (and vice versa)
 
@@ -103,7 +103,7 @@ Even with `cancel-in-progress: false`, GitHub admits at most one RUNNING + one P
 | Outcome on a SHA | Admission effect |
 |------------------|------------------|
 | Superseded run `cancelled` | No effect on later head |
-| Current head `oya-ci-required` SUCCESS | Eligible for merge (with other BP rules) |
+| Current head `presubmit` SUCCESS | Eligible for merge (with other BP rules) |
 | Current head cancelled / failure | Blocks |
 
 Agents must not treat cancelled check-runs as “CI red logic failure” without checking whether a newer head already re-ran.
@@ -146,7 +146,7 @@ Prefer merge **#1569 before or with #1570** so trunk comments cite an ADR alread
 - [x] Workflow change = comments only; jobs/path-filters untouched  
 - [x] Draft PR #1570 open  
 - [x] Dual-critic APPROVE (evidence on branch; head pin commits after workflow tip)  
-- [ ] Merge when #1569 policy + oya-ci-required green on exact head (prefer after #1569)  
+- [ ] Merge when #1569 policy + presubmit green on exact head (prefer after #1569)  
 
 ---
 

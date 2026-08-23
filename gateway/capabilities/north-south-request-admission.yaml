@@ -1,9 +1,0 @@
-id: cap.api_gateway.north_south_request_admission
-tier: T0
-owner_team: axis-network
-summary: Admit, deny, and audit external requests before workload routing.
-policy_refs:
-  - microservices/api-gateway/policy/tenant-scope.cedar
-contracts:
-  - microservices/api-gateway/contracts/api-gateway.openapi.yaml
-  - microservices/api-gateway/contracts/api_gateway.proto

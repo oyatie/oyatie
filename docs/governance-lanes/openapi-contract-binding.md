@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every public API has an OpenAPI spec + schema-bindings crate + runtime-bindings crate that compile against the same revision.
 - enforces: STANDARD/api-contract-binding.
-- kernel_crate: `oya-governance-openapi-contract-binding-kernel` — `ApiContract { api_id, openapi_path, schema_crate, runtime_crate, schema_revision, runtime_revision }`, verdict `OpenApiContractBindingFitnessReport { apis_checked }`.
-- runner_path: `tools/oya-governance-openapi-contract-binding`
+- kernel_crate: `governance-openapi-contract-binding-kernel` — `ApiContract { api_id, openapi_path, schema_crate, runtime_crate, schema_revision, runtime_revision }`, verdict `OpenApiContractBindingFitnessReport { apis_checked }`.
+- runner_path: `tools/governance-openapi-contract-binding`
 - inputs: API registry, OpenAPI specs, crate dependency tree.
 - failure_modes:
   - openapi spec missing
   - schema-bindings crate missing
   - schema/runtime revisions out of sync
-- ci_invocation: `cargo run -p oya-governance-openapi-contract-binding`
+- ci_invocation: `cargo run -p governance-openapi-contract-binding`
 - runtime_budget: 1200 ms
 - severity: BLOCKER
 - kernel_sketch:

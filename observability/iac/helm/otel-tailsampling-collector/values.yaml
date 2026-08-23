@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (per ADR-0064)
 # OTel Collector Tail Sampling tier per ADR-0210.
 
 opentelemetry-collector:
@@ -52,7 +52,7 @@ opentelemetry-collector:
           - name: slo-burn
             type: string_attribute
             string_attribute:
-              key: oya.slo.burn_window_active
+              key: oyatie.slo.burn_window_active
               values: ["true"]
               enabled_regex_matching: false
               invert_match: false
@@ -60,7 +60,7 @@ opentelemetry-collector:
           - name: audit-event
             type: string_attribute
             string_attribute:
-              key: oya.audit.event_id_prefix
+              key: oyatie.audit.event_id_prefix
               values: ["EVT-"]
               enabled_regex_matching: true
               invert_match: false
@@ -69,7 +69,7 @@ opentelemetry-collector:
           - name: new-endpoint-warmup
             type: string_attribute
             string_attribute:
-              key: oya.endpoint.in_warmup_window
+              key: oyatie.endpoint.in_warmup_window
               values: ["true"]
               enabled_regex_matching: false
               invert_match: false
@@ -86,17 +86,17 @@ opentelemetry-collector:
       # Resource enrichment — cell-id + tenant-id + SPIFFE-ID per ADR-0186 Stage 1.
       resource:
         attributes:
-          - key: oya.cell.id
+          - key: oyatie.cell.id
             from_attribute: cell.id
             action: insert
-          - key: oya.tenant.id
+          - key: oyatie.tenant.id
             from_attribute: tenant.id
             action: insert
 
     exporters:
       # Tempo gateway (per ADR-0186 Stage 2 trace storage).
       otlp/tempo:
-        endpoint: oya-observability-tempo-distributor.observability.svc:4317
+        endpoint: observability-tempo-distributor.observability.svc:4317
         tls: { insecure: true }   # in-cluster; mTLS handled by service mesh (per ADR-0148)
 
     service:

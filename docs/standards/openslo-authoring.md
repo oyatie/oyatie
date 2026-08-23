@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0250
   - ADR-0263
 enforced_by:
-  - oya-governance-openslo-conformance
-  - oya-governance-openslo-promql-feasibility
-  - oya-governance-agentic-slo-gated-promotion
+  - governance-openslo-conformance
+  - governance-openslo-promql-feasibility
+  - governance-agentic-slo-gated-promotion
 canonical_paths:
   - docs/standards/observability-slo.md
   - microservices/*/slos/*.openslo.yaml
@@ -280,13 +280,13 @@ This passes when retries are idempotent and counters use stable labels.
 Primary command:
 
 ```bash
-oya gate validate openslo-conformance --scope microservices
+presubmit (retired CLI gate validate) openslo-conformance --scope microservices
 ```
 
 Companion command:
 
 ```bash
-oya gate validate openslo-promql-feasibility --scope microservices
+presubmit (retired CLI gate validate) openslo-promql-feasibility --scope microservices
 ```
 
 The checker MUST parse every `*.openslo.yaml`.
@@ -600,26 +600,26 @@ spec:
 
 | ID | Object | Required Oyatie fields | Example path | Checker |
 |---|---|---|---|---|
-| SLO-MAT-001 | Service | owner and description | `docs/slos/workflow-engine.openslo.yaml` | `oya-check-openslo-authoring` |
-| SLO-MAT-002 | SLI | Prometheus query and unit | `docs/slos/workflow-engine.openslo.yaml` | `oya-check-sli-query` |
-| SLO-MAT-003 | SLO | target and window | `docs/slos/workflow-engine.openslo.yaml` | `oya-check-slo-window` |
-| SLO-MAT-004 | AlertPolicy | burn-rate condition | `docs/slos/workflow-engine.openslo.yaml` | `oya-check-burn-rate-alerts` |
-| SLO-MAT-005 | Annotation | data class | `oyatie.com/data-class` | `oya-check-data-class` |
-| SLO-MAT-006 | Annotation | ADR reference | `oyatie.com/adr` | `oya-check-adr-links` |
-| SLO-MAT-007 | Annotation | runbook path | `oyatie.com/runbook` | `oya-check-runbook-linkage` |
-| SLO-MAT-008 | Annotation | pack overlay | `oyatie.com/regulatory-pack` | `oya-check-pack-overlay` |
-| SLO-MAT-009 | Query | tenant-safe labels | PromQL | `oya-check-metric-label-safety` |
-| SLO-MAT-010 | Query | no high-cardinality actor label | PromQL | `oya-check-metric-cardinality` |
-| SLO-MAT-011 | Window | rolling or calendar declared | SLO object | `oya-check-slo-window` |
-| SLO-MAT-012 | Target | decimal target | SLO objective | `oya-check-slo-target` |
-| SLO-MAT-013 | Budget | budgeting method declared | SLO object | `oya-check-error-budget-method` |
-| SLO-MAT-014 | Dashboard | panel id linked | dashboard annotation | `oya-check-dashboard-linkage` |
-| SLO-MAT-015 | Runbook | severity path linked | runbook annotation | `oya-check-runbook-linkage` |
-| SLO-MAT-016 | Ownership | service owner exists | service catalog | `oya-check-service-owner` |
-| SLO-MAT-017 | Release | rollback signal declared | release manifest | `oya-check-rollback-signal` |
-| SLO-MAT-018 | Audit | SLO change event emitted | audit chain | `oya-check-audit-emission` |
-| SLO-MAT-019 | Pack | regulated target override explicit | pack overlay | `oya-check-pack-slo-overlay` |
-| SLO-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| SLO-MAT-001 | Service | owner and description | `docs/slos/workflow-engine.openslo.yaml` | `check-openslo-authoring` |
+| SLO-MAT-002 | SLI | Prometheus query and unit | `docs/slos/workflow-engine.openslo.yaml` | `check-sli-query` |
+| SLO-MAT-003 | SLO | target and window | `docs/slos/workflow-engine.openslo.yaml` | `check-slo-window` |
+| SLO-MAT-004 | AlertPolicy | burn-rate condition | `docs/slos/workflow-engine.openslo.yaml` | `check-burn-rate-alerts` |
+| SLO-MAT-005 | Annotation | data class | `oyatie.com/data-class` | `check-data-class` |
+| SLO-MAT-006 | Annotation | ADR reference | `oyatie.com/adr` | `check-adr-links` |
+| SLO-MAT-007 | Annotation | runbook path | `oyatie.com/runbook` | `check-runbook-linkage` |
+| SLO-MAT-008 | Annotation | pack overlay | `oyatie.com/regulatory-pack` | `check-pack-overlay` |
+| SLO-MAT-009 | Query | tenant-safe labels | PromQL | `check-metric-label-safety` |
+| SLO-MAT-010 | Query | no high-cardinality actor label | PromQL | `check-metric-cardinality` |
+| SLO-MAT-011 | Window | rolling or calendar declared | SLO object | `check-slo-window` |
+| SLO-MAT-012 | Target | decimal target | SLO objective | `check-slo-target` |
+| SLO-MAT-013 | Budget | budgeting method declared | SLO object | `check-error-budget-method` |
+| SLO-MAT-014 | Dashboard | panel id linked | dashboard annotation | `check-dashboard-linkage` |
+| SLO-MAT-015 | Runbook | severity path linked | runbook annotation | `check-runbook-linkage` |
+| SLO-MAT-016 | Ownership | service owner exists | service catalog | `check-service-owner` |
+| SLO-MAT-017 | Release | rollback signal declared | release manifest | `check-rollback-signal` |
+| SLO-MAT-018 | Audit | SLO change event emitted | audit chain | `check-audit-emission` |
+| SLO-MAT-019 | Pack | regulated target override explicit | pack overlay | `check-pack-slo-overlay` |
+| SLO-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended SLO Evidence Ledger
 

@@ -9,7 +9,7 @@ spec:
     provider: in-house-equivalent
     ja4_enabled: true
     ja4plus_enabled: true
-    score_header: "X-Oya-Bot-Score"
+    score_header: "X-Oyatie-Bot-Score"
   rate_limits:
     per_ip:
       signup_routes: { rpm: 5, burst: 2 }

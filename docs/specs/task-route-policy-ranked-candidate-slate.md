@@ -1,6 +1,6 @@
 # Spec: Route Policy Ranked Candidate Slate
 
-**Crate**: `oya-intelligence-route-policy-kernel`
+**Crate**: `intelligence-route-policy-kernel`
 **Slice**: `route-policy-ranked-candidate-slate`
 **Priority**: high | **Effort**: M | **Lane**: intelligence
 
@@ -85,6 +85,6 @@ No I/O and no µservice promotion triggered. No new SLO file required. Existing 
 
 ## Crate Boundary
 
-- ONLY `oya-intelligence-route-policy-kernel/src/lib.rs` is modified.
+- ONLY `intelligence-route-policy-kernel/src/lib.rs` is modified.
 - No new workspace member, no root `Cargo.toml` changes, no cross-crate edits.
-- No new dependencies beyond the already-declared `oya-intelligence-account-domain`.
+- No new dependencies beyond the already-declared `intelligence-account-domain`.

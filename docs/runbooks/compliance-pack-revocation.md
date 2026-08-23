@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-compliance + ops-security + council-security
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0251 §D-2, ADR-0251 §D-4, ADR-0251 §D-8, ADR-0243 §D-5, ADR-0243 §D-10
 
 ---
@@ -17,7 +17,7 @@ doc_status: published
 
 Initiate this runbook when **any** of the following occur for a published Compliance Pack:
 
-- **Signing-key compromise** — the oya-compliance-office Ed25519 key (or a co-signer key) is suspected or confirmed compromised.
+- **Signing-key compromise** — the compliance-office Ed25519 key (or a co-signer key) is suspected or confirmed compromised.
 - **Cosign attestation chain break** — Sigstore Rekor record for the pack's `attestation_blob_ref` is found invalid, tampered, or duplicated.
 - **Critical legal interpretation error** — the pack's `REGULATORY-MAPPING.md` is found to contain materially incorrect regulatory citations with regulatory or legal exposure.
 - **Regulator directive** — a regulator authority directly instructs oyatie to withdraw the pack from active use.
@@ -89,7 +89,7 @@ For each pack version being revoked, invalidate its Sigstore Rekor entry. Rekor 
 
 ```
 cosign attest --predicate revocation-predicate.json \
-  --key /hsm/oya-compliance-revocation-key \
+  --key /hsm/compliance-revocation-key \
   <PACK_ARTIFACT_DIGEST>
 ```
 

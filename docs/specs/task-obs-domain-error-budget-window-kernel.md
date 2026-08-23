@@ -1,6 +1,6 @@
 # Spec: obs-domain-error-budget-window-kernel
 
-**Crate**: `oya-observability-domain`  
+**Crate**: `observability-domain`  
 **Module**: `slo::budget`  
 **Lane**: observability  
 **Priority**: high  
@@ -9,7 +9,7 @@
 ## Purpose
 
 Provide a pure, allocation-free error-budget/burn-rate computation kernel
-inside `oya-observability-domain` that converts raw good/bad event counts
+inside `observability-domain` that converts raw good/bad event counts
 plus an `SLOObjective` into the inputs that `classify_burn_rate` consumes,
 and a one-call helper that drives the full alert-decision pipeline.
 

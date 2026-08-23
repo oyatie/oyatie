@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-ontology-kernel` with stronger structural validation for
+Extend `ontology-kernel` with stronger structural validation for
 `LinkTypeDefinition` and `ActionTypeDefinition` at `OntologyEngine` registration
 time. The three concrete goals are:
 
@@ -22,13 +22,13 @@ service dependency, no REST/gRPC/event surface, and no new crate.
 ## Vertical and crate scope
 
 - **Vertical**: ontology
-- **Sole crate**: `crates/oya-ontology-kernel`
+- **Sole crate**: `crates/ontology-kernel`
 - **Branch**: `feat/task-ontology-kernel-link-action-validation-2026-05-28`
 - **No root `Cargo.toml` edit**: this task extends an existing crate only.
 
 ## External contract surface
 
-`oya-ontology-kernel` is a pure in-memory kernel library. It exposes no HTTP
+`ontology-kernel` is a pure in-memory kernel library. It exposes no HTTP
 endpoints, no gRPC service definitions, and no event topics. There is therefore
 no OpenAPI 3.2.0, AsyncAPI 3.1.0, or proto3 contract surface for this task.
 
@@ -47,7 +47,7 @@ The public Rust API surface that is extended:
 ## Mod layout (flat clean-arch inside `src/`)
 
 ```
-crates/oya-ontology-kernel/src/
+crates/ontology-kernel/src/
   lib.rs          — module doc, re-exports, OntologyEngine, all type definitions
   pillar.rs       — OntologyPillar, UnknownPillarLabel (unchanged public contract)
 ```
@@ -154,16 +154,16 @@ to pass unchanged.
 
 ## Boundaries
 
-- **In scope**: `crates/oya-ontology-kernel/src/lib.rs`, `tasks/ontology-kernel-link-action-validation-plan.md`, `docs/specs/task-ontology-kernel-link-action-validation.md`.
-- **Out of scope**: `crates/oya-ontology-kernel/src/pillar.rs` (public contract frozen), all other crates, root `Cargo.toml`, `Cargo.lock`.
+- **In scope**: `crates/ontology-kernel/src/lib.rs`, `tasks/ontology-kernel-link-action-validation-plan.md`, `docs/specs/task-ontology-kernel-link-action-validation.md`.
+- **Out of scope**: `crates/ontology-kernel/src/pillar.rs` (public contract frozen), all other crates, root `Cargo.toml`, `Cargo.lock`.
 - **No runtime dependency changes**: no new entries in `[dependencies]`.
-- **No SLO file**: `oya-ontology-kernel` is a kernel library, not a deployable microservice; OpenSLO is not applicable.
+- **No SLO file**: `ontology-kernel` is a kernel library, not a deployable microservice; OpenSLO is not applicable.
 
 ## Acceptance summary
 
 | Gate | Command | Expected |
 |------|---------|----------|
-| Compile clean | `cargo check -p oya-ontology-kernel --all-targets` | Zero errors, zero new clippy denials |
-| Tests pass | `cargo nextest run -p oya-ontology-kernel` | All tests green |
-| Rustdoc | `cargo doc -p oya-ontology-kernel --no-deps` | Compiles, no broken intra-doc links |
+| Compile clean | `cargo check -p ontology-kernel --all-targets` | Zero errors, zero new clippy denials |
+| Tests pass | `cargo nextest run -p ontology-kernel` | All tests green |
+| Rustdoc | `cargo doc -p ontology-kernel --no-deps` | Compiles, no broken intra-doc links |
 | Lane docs exist | `ls tasks/ontology-kernel-link-action-validation-plan.md docs/specs/task-ontology-kernel-link-action-validation.md` | Both files present |

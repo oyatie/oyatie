@@ -1,0 +1,8 @@
+#!/bin/sh
+# D-10: rustfmt --check the staged *.rs list. File list in, those files out.
+set -eu
+if ! git diff --cached --name-only --diff-filter=ACMR -- '*.rs' | grep -q .; then
+  exit 0
+fi
+git diff --cached --name-only -z --diff-filter=ACMR -- '*.rs' \
+  | xargs -0 rustfmt --check --config-path rustfmt.toml --

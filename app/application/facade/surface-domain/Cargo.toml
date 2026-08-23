@@ -1,0 +1,19 @@
+[package]
+name = "application-surface-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+
+
+[lib]
+name = "application_surface_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

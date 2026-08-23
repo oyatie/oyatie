@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `WorkflowSpec::validate()` in `oya-workflow-studio-dsl-emitter-domain` with
+Extend `WorkflowSpec::validate()` in `workflow-studio-dsl-emitter-domain` with
 three new **pure, deterministic** node-typology semantic checks that fire strictly
 after all existing structural, graph-integrity, and edge-condition checks.
 
@@ -68,7 +68,7 @@ edge-condition (DuplicateEdgeCondition → AmbiguousDefaultEdge)
 
 ## Testing Strategy
 
-Integration test file: `crates/oya-workflow-studio-dsl-emitter-domain/tests/node_typology.rs`
+Integration test file: `crates/workflow-studio-dsl-emitter-domain/tests/node_typology.rs`
 
 ### Acceptance tests (TDD — RED then GREEN)
 
@@ -92,6 +92,6 @@ owns runtime SLOs.
 
 ## Crate Boundary
 
-- Only `crates/oya-workflow-studio-dsl-emitter-domain/` is modified.
+- Only `crates/workflow-studio-dsl-emitter-domain/` is modified.
 - No workspace-level `Cargo.toml` changes.
 - No other crate is touched.

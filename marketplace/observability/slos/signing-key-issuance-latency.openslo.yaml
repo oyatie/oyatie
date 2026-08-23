@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-developer-sdk-signing-key-issuance-latency
-  displayName: "oya-developer-sdk-signing-key-issuance-latency"
+  name: developer-sdk-signing-key-issuance-latency
+  displayName: "developer-sdk-signing-key-issuance-latency"
   labels:
     microservice: developer-sdk
     bounded_context: signing-key-issuance
     tier: external-facing
     plane: data
 spec:
-  service: oya-developer-sdk-signing-key-issuance-latency
+  service: developer-sdk-signing-key-issuance-latency
   description: |
     99% signing keys issued ≤ 1s
   indicator:
     metadata:
-      name: oya-developer-sdk-signing-key-issuance-latency-sli
+      name: developer-sdk-signing-key-issuance-latency-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: 'histogram_quantile(0.99, rate(oya_developer_sdk_signing_key_issuance_seconds_bucket[5m]))'
+              query: 'histogram_quantile(0.99, rate(developer_sdk_signing_key_issuance_seconds_bucket[5m]))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: 'histogram_quantile(0.99, rate(oya_developer_sdk_signing_key_issuance_seconds_bucket[5m]))'
+              query: 'histogram_quantile(0.99, rate(developer_sdk_signing_key_issuance_seconds_bucket[5m]))'
   objectives:
     - target: 0.99
       displayName: "0.99 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-signing-key-issuance-latency-fast-burn-1h
+        name: developer-sdk-signing-key-issuance-latency-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-signing-key-issuance-latency-slow-burn-6h
+        name: developer-sdk-signing-key-issuance-latency-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

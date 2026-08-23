@@ -1,6 +1,6 @@
 {{- if .Values.gateway.enabled }}
-# HTTPRoute: routes /anthropic/*, /openai/*, /gemini/* to the cloud-intelligence Service
-# Binding ADRs: ADR-0349 (argocd-application-source), ADR-0384 (cloud-intelligence path-b)
+# HTTPRoute: routes /anthropic/*, /openai/*, /gemini/* to the intelligence-app Service
+# Binding ADRs: ADR-0349 (argocd-application-source), ADR-0384 (intelligence-app path-b)
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: oyatie-microservices
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
-    oyatie.com/adr-0384: cloud-intelligence-path-b
+    oyatie.com/adr-0384: intelligence-app-path-b
     oyatie.com/gateway-api: httproute-v1
     oyatie.com/tenant-class: {{ .Values.microservice.tenantClass | quote }}
   annotations:

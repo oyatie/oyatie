@@ -97,7 +97,7 @@ gate wants it present, carrying a value nobody measured, is the defect this work
 **Naming.** File is exactly `<root>/manifest.json` — lowercase, no prefix, no suffix.
 `collect_named_files` compares `file_name() == "manifest.json"` **exactly**, so
 `service-manifest.json`, `client-manifest.json` and `archive-manifest.json` are invisible to the
-gate. `microservice` is the bare root name (`"cell"`, not `"oya-cell"`, not `"cell-capability"`).
+gate. `microservice` is the bare root name (`"cell"`, not `"cell"`, not `"cell-capability"`).
 
 **Ownership.** `owner` is the literal single token from `<root>/OWNERS`. All five roots already have
 their own `OWNERS`, each far under `[owners] max_paths_per_owners_file = 2000`
@@ -112,9 +112,9 @@ new one needs an **EXACT-path** row in `specs/reachability-registry.json`
 would over-claim the crate and observability subtrees that carry their own separate reasons.
 
 **Anchor text.** The registry anchor names the **CONSUMING GATE**, never the file. "This file
-exists" is not an anchor. Correct form: *"…which `cloud-ci-tier-field-coverage` classifies as a
+exists" is not an anchor. Correct form: *"…which `pipeline-tier-field-coverage` classifies as a
 top-level service manifest and reads tier / tier_subtype / dr_tier / substrate_dag_position /
-sharding_automation / OpenSLO coverage from, and which `cloud-ci-product-protocol-policy` counts in
+sharding_automation / OpenSLO coverage from, and which `pipeline-product-protocol-policy` counts in
 its equality-pinned inventory."*
 
 **ADR references.** `adrs[]` entries carry `id`, `title`, `scope` — **and no `file` key**. See
@@ -221,7 +221,7 @@ name**; round-tripping through JSON reformats the whole file.
 **T9 — Born accounting fires ON THE NEW FILE, and it fires late.** The five manifests are not
 crate-resident, so ADR-0555 accounting reports them `unreachable`, and `unreachable` implies
 `unjustified` — **ten regressions from five files.** This reached CI as a RED
-`cloud-ci-firewall` on PR #1629 before it was caught locally. Two doors are offered and only one is
+`pipeline-firewall` on PR #1629 before it was caught locally. Two doors are offered and only one is
 true: REGISTER (these files are genuinely read by two gates) rather than RAISE THE BASELINE (which
 would be a silent exemption dressed as a fix). Run the firewall locally, before the push.
 
@@ -254,7 +254,7 @@ A reviewer holding only the diff can apply every line of this.
    sentence saying why that is the true state.
 7. **Gate evidence in the commit message, literal buck2 output including the `Commands:` line**, for:
    `ci/facade/service-tier-metadata`, `ci/facade/product-protocol-policy`,
-   `governance/check/adr-citation-closure`, and the `cloud-ci-firewall` born-accounting leg.
+   `governance/check/adr-citation-closure`, and the `pipeline-firewall` born-accounting leg.
    A green count alone is not evidence — for anything that MOVES a file, diff the failing set at the
    untouched base against the failing set at head.
 8. **Commit with a pathspec**: `git commit -- <paths>`. Never `git add` then `git commit` — the index

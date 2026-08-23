@@ -10,7 +10,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const REGION_REF_SCHEMA_VERSION: u32 = 1;
 const REGULATOR_OVERLAY_SCHEMA_VERSION: u32 = 1;
@@ -726,7 +726,7 @@ fn validate_tenant_id(tenant_id: &str) -> Result<(), ResidencyError> {
 }
 
 fn validate_pack_id(pack_id: &str) -> Result<(), ResidencyError> {
-    if pack_id.starts_with("oya-pack-") && pack_id.len() > "oya-pack-".len() {
+    if pack_id.starts_with("pack-") && pack_id.len() > "pack-".len() {
         Ok(())
     } else {
         Err(ResidencyError::InvalidPackId)
@@ -812,7 +812,7 @@ mod tests {
             tenant_id: "ten_1".to_string(),
             primary_region: kr_primary(),
             residency_class: ResidencyClass::HomeWithRecoveryFailover,
-            regional_pack_id: "oya-pack-alpha".to_string(),
+            regional_pack_id: "pack-alpha".to_string(),
             evidence_ref: "residency/binding/ten_1".to_string(),
             bound_at_epoch_seconds: 100,
         }
@@ -840,7 +840,7 @@ mod tests {
     #[test]
     fn regional_pack_default_must_be_in_allowed_residency_classes() {
         let default = RegionalPackResidencyDefault::new(RegionalPackResidencyDefaultCreate {
-            pack_id: "oya-pack-alpha".to_string(),
+            pack_id: "pack-alpha".to_string(),
             home_region: kr_primary(),
             default_residency_class: ResidencyClass::StrictHomeRegion,
             allowed_residency_classes: vec![
@@ -851,10 +851,10 @@ mod tests {
             evidence_ref: "regional-pack/alpha/residency".to_string(),
         })
         .expect("default class is allowed");
-        assert_eq!(default.pack_id.value, "oya-pack-alpha");
+        assert_eq!(default.pack_id.value, "pack-alpha");
 
         let error = RegionalPackResidencyDefault::new(RegionalPackResidencyDefaultCreate {
-            pack_id: "oya-pack-alpha".to_string(),
+            pack_id: "pack-alpha".to_string(),
             home_region: kr_primary(),
             default_residency_class: ResidencyClass::Global,
             allowed_residency_classes: vec![ResidencyClass::StrictHomeRegion],

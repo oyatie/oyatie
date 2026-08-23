@@ -17,7 +17,7 @@ use billing_metering::{
 };
 use cell_region::{CellId, RegionCode};
 use compute_resource::InstanceFlavor;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const CAPACITY_SCHEMA_VERSION: u32 = 1;
 pub const CLOUD_OPS_FOUNDATION_SCHEMA_VERSION: u32 = 1;

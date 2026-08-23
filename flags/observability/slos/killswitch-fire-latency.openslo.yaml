@@ -37,13 +37,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_killswitch_propagation_duration_seconds_bucket{le="1.0"}[5m]))
+                sum(rate(feature_flag_killswitch_propagation_duration_seconds_bucket{le="1.0"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_killswitch_propagation_duration_seconds_count[5m]))
+                sum(rate(feature_flag_killswitch_propagation_duration_seconds_count[5m]))
   alerting:
     burnRateAlerts:
       - shortWindow: 1m

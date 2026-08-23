@@ -167,13 +167,13 @@ This document supports presales POCs, onboarding migrations, expansion migration
 ### Migration Stage 3: Extract
 
 - Stage 3 Exit Gate M3-G1: source extract is complete, versioned, classified, and protected.
-- Step 3.01: CS-IC executes `oya.migration.discover`.
+- Step 3.01: CS-IC executes `oyatie.migration.discover`.
 - Step 3.02: CS-IC records discovery run id.
 - Step 3.03: CS-IC reviews object inventory.
 - Step 3.04: CS-IC reviews source warnings.
 - Step 3.05: CS-IC reviews rate-limit warnings.
 - Step 3.06: CS-IC reviews permission warnings.
-- Step 3.07: CS-IC executes `oya.migration.export`.
+- Step 3.07: CS-IC executes `oyatie.migration.export`.
 - Step 3.08: CS-IC records export run id.
 - Step 3.09: CS-IC records object counts.
 - Step 3.10: CS-IC records skipped objects.
@@ -201,7 +201,7 @@ This document supports presales POCs, onboarding migrations, expansion migration
 ### Migration Stage 4: Map
 
 - Stage 4 Exit Gate M4-G1: source objects are mapped to target objects with validation criteria and exception handling.
-- Step 4.01: CS-IC executes `oya.migration.transform` in dry-run mode.
+- Step 4.01: CS-IC executes `oyatie.migration.transform` in dry-run mode.
 - Step 4.02: CS-IC records transform run id.
 - Step 4.03: Data Analyst reviews field mapping.
 - Step 4.04: Data Analyst reviews enum mapping.
@@ -235,7 +235,7 @@ This document supports presales POCs, onboarding migrations, expansion migration
 ### Migration Stage 5: Dry Run and Import
 
 - Stage 5 Exit Gate M5-G1: dry-run import passes validation or exceptions are explicitly accepted.
-- Step 5.01: CS-IC executes `oya.migration.import` in dry-run target.
+- Step 5.01: CS-IC executes `oyatie.migration.import` in dry-run target.
 - Step 5.02: CS-IC records import run id.
 - Step 5.03: CS-IC records imported object counts.
 - Step 5.04: CS-IC records failed object counts.
@@ -245,7 +245,7 @@ This document supports presales POCs, onboarding migrations, expansion migration
 - Step 5.08: CS-IC records identity import result.
 - Step 5.09: CS-IC records workflow import result.
 - Step 5.10: CS-IC records audit import result.
-- Step 5.11: CS-IC executes `oya.migration.validate`.
+- Step 5.11: CS-IC executes `oyatie.migration.validate`.
 - Step 5.12: CS-IC records validation run id.
 - Step 5.13: Data Analyst reviews count validation.
 - Step 5.14: Data Analyst reviews field validation.
@@ -404,12 +404,12 @@ This document supports presales POCs, onboarding migrations, expansion migration
 
 ### Migration Tools
 
-- Tool: `migration-discovery-service`; Action: `oya.migration.discover`; Use: enumerate source systems, objects, counts, and constraints.
-- Tool: `migration-export-service`; Action: `oya.migration.export`; Use: extract approved source data.
-- Tool: `migration-transform-service`; Action: `oya.migration.transform`; Use: map source objects to Oyatie target model.
-- Tool: `migration-import-service`; Action: `oya.migration.import`; Use: import mapped data into target tenant.
-- Tool: `migration-validate-service`; Action: `oya.migration.validate`; Use: validate counts, fields, samples, permissions, and workflow fit.
-- Tool: `migration-cutover-service`; Action: `oya.migration.cutover`; Use: manage cutover, delta import, and rollback window.
+- Tool: `migration-discovery-service`; Action: `oyatie.migration.discover`; Use: enumerate source systems, objects, counts, and constraints.
+- Tool: `migration-export-service`; Action: `oyatie.migration.export`; Use: extract approved source data.
+- Tool: `migration-transform-service`; Action: `oyatie.migration.transform`; Use: map source objects to Oyatie target model.
+- Tool: `migration-import-service`; Action: `oyatie.migration.import`; Use: import mapped data into target tenant.
+- Tool: `migration-validate-service`; Action: `oyatie.migration.validate`; Use: validate counts, fields, samples, permissions, and workflow fit.
+- Tool: `migration-cutover-service`; Action: `oyatie.migration.cutover`; Use: manage cutover, delta import, and rollback window.
 - Tool: `platform-tenant-service`; Action: `platform-tenant:GetTenant`; Use: verify target tenant state, cell, jurisdiction, and regulatory packs.
 - Tool: `identity-service`; Action: `identity:BindTenantPrincipal`; Use: bind migration operators, customer validators, and auditors.
 - Tool: `platform-policy-cedar-service`; Action: `platform-policy:publishCedarPolicy`; Use: publish migration permit set.
@@ -422,9 +422,9 @@ This document supports presales POCs, onboarding migrations, expansion migration
 
 ### Migration Cedar Permits
 
-- Cedar Permit: `cedar.migration.discovery.operator`; Allows `oya.migration.discover` for named source and tenant.
-- Cedar Permit: `cedar.migration.export.operator`; Allows `oya.migration.export` only for approved source objects.
-- Cedar Permit: `cedar.migration.transform.operator`; Allows `oya.migration.transform` for approved mapping version.
+- Cedar Permit: `cedar.migration.discovery.operator`; Allows `oyatie.migration.discover` for named source and tenant.
+- Cedar Permit: `cedar.migration.export.operator`; Allows `oyatie.migration.export` only for approved source objects.
+- Cedar Permit: `cedar.migration.transform.operator`; Allows `oyatie.migration.transform` for approved mapping version.
 - Cedar Permit: `cedar.migration.import.dry_run_operator`; Allows dry-run import to non-production target.
 - Cedar Permit: `cedar.migration.import.final_operator`; Allows final import only after pre-flight and dry-run gates pass.
 - Cedar Permit: `cedar.migration.validate.operator`; Allows validation reads on source extract and target tenant.

@@ -29,8 +29,8 @@ streaming-capable proxy with three orthogonal capabilities:
 
 ```
 intelligence-provider-pool-app   ← this crate (usecase / composition root)
-  ├── [inward] oya-intelligence-provider-pool-kernel  (pure routing kernel)
-  └── [inward] oya-intelligence-account-kernel        (value types)
+  ├── [inward] intelligence-provider-pool-kernel  (pure routing kernel)
+  └── [inward] intelligence-account-kernel        (value types)
 ```
 
 All new ports (`SecretResolution`, `MetricsSink`) and extended ports
@@ -329,7 +329,7 @@ global mutable state; deterministic.
 2. ADR-0083 Tier-3: zero `unwrap` / `expect` / `panic` outside `#[cfg(test)]`.
 3. No new external workspace dependency beyond `tokio / futures-util / bytes / tracing`.
 4. No new workspace member; no root `Cargo.toml` edits.
-5. Path-deps inward only: `oya-intelligence-provider-pool-kernel` + `oya-intelligence-account-kernel`.
+5. Path-deps inward only: `intelligence-provider-pool-kernel` + `intelligence-account-kernel`.
 6. `ProviderCredential` raw value never written to any log, trace, or error display string.
 7. `SecretReference` path components never echoed in error `detail` strings.
 8. `dispatch_to_pool` (unary) must remain backward-compatible in observable behavior for all existing acceptance tests.

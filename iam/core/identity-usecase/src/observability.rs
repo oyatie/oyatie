@@ -18,12 +18,12 @@
 //! | `data_class`     | `&'static str`       | Always `"AUDIT"`                   |
 //!
 //! The `data_class` field is always `"AUDIT"` per `OperationalDataClass::Audit`
-//! in `oya-data-boundary-kernel`, marking every event as operational audit data.
+//! in `data-boundary-kernel`, marking every event as operational audit data.
 //!
 //! The `tenant_id_hash` is a low-cardinality FNV-1a 64-bit hash of the raw
 //! tenant identifier. The raw value is never stored in the event.
 
-use oya_data_boundary_kernel::parse_purpose_pascal_label;
+use data_boundary_kernel::parse_purpose_pascal_label;
 
 use crate::{
     IdentityTokenIssueApiError, IdentityTokenIssueApiRequest, IdentityTokenRotationRequest,
@@ -134,7 +134,7 @@ pub fn identity_token_rotate_event_for_error(
 
 /// Stable label for the operational audit data class.
 ///
-/// Matches `OperationalDataClass::Audit.label()` from `oya-data-boundary-kernel`
+/// Matches `OperationalDataClass::Audit.label()` from `data-boundary-kernel`
 /// without importing the crate at the observability module level.
 const AUDIT_LABEL: &str = "AUDIT";
 

@@ -8,7 +8,7 @@ sales_segment: Enterprise
 tier: B2B
 milestone_first_ship: M03-first-paying-tenant
 bominal_source:
-  - ADR-0120  # platform-finance library (translated: oya-finance-library-*)
+  - ADR-0120  # platform-finance library (translated: finance-library-*)
   - ADR-0018  # tenancy RLS posture
   - ADR-0028  # audit chain Merkle/Ed25519
   - ADR-0119  # data tier assignment matrix
@@ -27,7 +27,7 @@ from Payroll, Procurement, and other µservices via Workflow; maintains the
 chart of accounts; produces financial statements; and supports period-end closing.
 
 Inherits from Bominal ADR-0120 (platform-finance library), translated to oyatie
-glossary: `platform → shared`; the finance library becomes `oya-finance-library-*`
+glossary: `platform → shared`; the finance library becomes `finance-library-*`
 (shared substrate) consumed by the Accounting µservice's infrastructure layer.
 No Bominal overrides beyond glossary translation.
 
@@ -92,13 +92,13 @@ No Bominal overrides beyond glossary translation.
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `chart-of-accounts` | `oya-accounting-chart-{domain,application,infrastructure,rest}` | COA definition; K-GAAP hierarchy; account code registry | `Account`, `AccountClass` |
-| `ledger` | `oya-accounting-ledger-{domain,application,infrastructure,rest}` | Double-entry journal entries; trial balance; general ledger | `JournalEntry`, `JournalLine` |
-| `period-close` | `oya-accounting-period-close-{domain,application,infrastructure}` | Period opening/closing; lock enforcement; reversing entries | `FiscalPeriod`, `PeriodLock` |
-| `reporting` | `oya-accounting-reporting-{domain,application,infrastructure,rest}` | Financial statement generation; export formats | `FinancialStatement` |
+| `chart-of-accounts` | `accounting-chart-{domain,application,infrastructure,rest}` | COA definition; K-GAAP hierarchy; account code registry | `Account`, `AccountClass` |
+| `ledger` | `accounting-ledger-{domain,application,infrastructure,rest}` | Double-entry journal entries; trial balance; general ledger | `JournalEntry`, `JournalLine` |
+| `period-close` | `accounting-period-close-{domain,application,infrastructure}` | Period opening/closing; lock enforcement; reversing entries | `FiscalPeriod`, `PeriodLock` |
+| `reporting` | `accounting-reporting-{domain,application,infrastructure,rest}` | Financial statement generation; export formats | `FinancialStatement` |
 
 ```
-NAME: oya-accounting-ledger-domain
+NAME: accounting-ledger-domain
 JUSTIFICATION:
 - microservice = accounting: Accounting µservice; flat catalog; ADR-0056 v4.1
 - bc-tokens = ledger: accounting has multiple BCs (chart-of-accounts/ledger/period-close/reporting); ledger BC owns JournalEntry entity + double-entry validation rules; ADR-0056 v4.1 BC-optionality
@@ -108,7 +108,7 @@ JUSTIFICATION:
 
 Shared finance library dependency:
 ```
-NAME: oya-finance-library-domain  (shared substrate consumed by accounting infrastructure)
+NAME: finance-library-domain  (shared substrate consumed by accounting infrastructure)
 JUSTIFICATION:
 - microservice = finance-library: shared substrate for monetary types, currency arithmetic,
   rounding rules; consumed by accounting + payroll + payments; flat catalog; ADR-0056 v4.1
@@ -207,13 +207,13 @@ Cross-region: M03 KR only.
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | Double-entry invariant holds: all journal entries balance; imbalanced entry rejected | `cargo nextest run -p oya-accounting-ledger-domain --test double_entry_invariant` |
+| AC-01 | Double-entry invariant holds: all journal entries balance; imbalanced entry rejected | `cargo nextest run -p accounting-ledger-domain --test double_entry_invariant` |
 | AC-02 | Auto-journal from `PayrollRunCompleted` event; entries posted correctly | integration test `test_payroll_to_accounting_journal` |
-| AC-03 | Period-close locks prior period; backdated entry rejected after close | `cargo nextest run -p oya-accounting-period-close-domain` |
-| AC-04 | Income statement and balance sheet generated for closed period | `cargo nextest run -p oya-accounting-reporting-domain` |
-| AC-05 | LEAN-A2: no direct imports from payroll/hr/procurement | `oya gate validate lean-a2 --ms accounting` exits 0 |
+| AC-03 | Period-close locks prior period; backdated entry rejected after close | `cargo nextest run -p accounting-period-close-domain` |
+| AC-04 | Income statement and balance sheet generated for closed period | `cargo nextest run -p accounting-reporting-domain` |
+| AC-05 | LEAN-A2: no direct imports from payroll/hr/procurement | `presubmit` (retired CLI `gate validate lean-a2 --ms accounting`) exits 0 |
 | AC-06 | Trial balance query p99 ≤500 ms at 1k RPS | k6 smoke; `http_req_duration{p(99)}<500` |
-| AC-07 | Audit chain sealed per (tenant, fiscal_period) | `oya gate validate audit-chain --ms accounting` |
+| AC-07 | Audit chain sealed per (tenant, fiscal_period) | `presubmit` (retired CLI `gate validate audit-chain --ms accounting`) |
 
 ---
 
@@ -230,7 +230,7 @@ Cross-region: M03 KR only.
 
 | ADR | Title | Relation |
 |---|---|---|
-| Bominal ADR-0120 | Platform-finance library | inherited — translated to `oya-finance-library-*` |
+| Bominal ADR-0120 | Platform-finance library | inherited — translated to `finance-library-*` |
 | Bominal ADR-0018 | Tenancy RLS posture | inherited |
 | Bominal ADR-0028 | Audit chain Merkle/Ed25519 | inherited |
 | Bominal ADR-0119 | Data tier assignment matrix | inherited |

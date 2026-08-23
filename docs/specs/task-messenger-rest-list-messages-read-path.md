@@ -2,14 +2,14 @@
 
 status: spec
 vertical: messenger
-crate: oya-messenger-message-stream-rest
+crate: messenger-message-stream-rest
 task_id: messenger-rest-list-messages-read-path
 branch: feat/task-messenger-rest-list-messages-read-path-2026-05-28
 
 ## Objective
 
 Promote the GET /channels/{channel_id}/messages REST route in
-`oya-messenger-message-stream-rest` from `RouteHandlerStatus::ContractOnly` to
+`messenger-message-stream-rest` from `RouteHandlerStatus::ContractOnly` to
 `RouteHandlerStatus::Implemented`. Introduce typed request/response structs and
 a `list_messages` handler that mirrors the framework-free contract style of the
 existing `post_message` path. No DB I/O; the read path returns a deterministic
@@ -100,7 +100,7 @@ Test matrix:
 
 ## Boundaries
 
-- Single file modified: `crates/oya-messenger-message-stream-rest/src/lib.rs`.
+- Single file modified: `crates/messenger-message-stream-rest/src/lib.rs`.
 - OPENAPI_ROUTES length stays at 26; no route is added or removed.
 - No new crates, no root Cargo.toml edits, no other task's files.
 - No async, no I/O, no external dependencies added.

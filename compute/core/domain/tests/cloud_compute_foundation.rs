@@ -8,17 +8,17 @@ fn guardrail_create() -> ComputeTenantCellGuardrailCreate {
         tenant_id: "ten_alpha".to_string(),
         region: "region-alpha".to_string(),
         primary_cell_id: "cell-region-alpha-a-001".to_string(),
-        vm_instance_id: "oya:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
+        vm_instance_id: "oyatie:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
         vm_iam_role: "role_app".to_string(),
         vm_runtime_isolation: ComputeWorkloadIsolation::HardwareVirtualizedVm,
-        k8s_cluster_id: "oya:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
+        k8s_cluster_id: "oyatie:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
         k8s_service_account_ref: "ksa/ten_alpha/cell-region-alpha-a-001/workload-runtime"
             .to_string(),
         k8s_private_control_plane: true,
         k8s_pod_security_restricted: true,
         k8s_topology_spread_required: true,
         k8s_runtime_isolation: ComputeWorkloadIsolation::KataMicroVm,
-        function_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+        function_id: "oyatie:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
         function_service_account_ref:
             "function-sa/ten_alpha/cell-region-alpha-a-001/image-resize-runtime".to_string(),
         function_runtime_isolation: ComputeWorkloadIsolation::FirecrackerMicroVm,
@@ -165,21 +165,21 @@ fn rejects_secret_like_evidence_refs() {
 #[test]
 fn rejects_cross_tenant_or_cross_region_compute_resource_drift() {
     let foreign_vm = ComputeTenantCellGuardrail::new(ComputeTenantCellGuardrailCreate {
-        vm_instance_id: "oya:cloud:region-alpha:ten_other:instance:app-1".to_string(),
+        vm_instance_id: "oyatie:cloud:region-alpha:ten_other:instance:app-1".to_string(),
         ..guardrail_create()
     })
     .expect_err("VM instance id must match guardrail tenant");
     assert_eq!(foreign_vm, CloudComputeError::ResourceTenantMismatch);
 
     let foreign_k8s = ComputeTenantCellGuardrail::new(ComputeTenantCellGuardrailCreate {
-        k8s_cluster_id: "oya:cloud:region-beta:ten_alpha:k8s:prod".to_string(),
+        k8s_cluster_id: "oyatie:cloud:region-beta:ten_alpha:k8s:prod".to_string(),
         ..guardrail_create()
     })
     .expect_err("Kubernetes cluster id must match guardrail region");
     assert_eq!(foreign_k8s, CloudComputeError::ResourceRegionMismatch);
 
     let wrong_kind = ComputeTenantCellGuardrail::new(ComputeTenantCellGuardrailCreate {
-        function_id: "oya:cloud:region-alpha:ten_alpha:instance:not-a-function".to_string(),
+        function_id: "oyatie:cloud:region-alpha:ten_alpha:instance:not-a-function".to_string(),
         ..guardrail_create()
     })
     .expect_err("function guardrail resource must be a function id");

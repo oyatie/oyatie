@@ -1,3 +1,0 @@
-legacy-ipv4	legacy-interface	eth1	2.3.4.5	kind=vip;link=eth1;require_up=true;route_metric=1024;skip_hostname=false;client=none;duid=;layer=configuration
-legacy-vlan-ipv4	legacy-vlan	eth2	5.5.4.4	kind=vip;link=eth2.26;require_up=true;route_metric=1024;skip_hostname=false;client=none;duid=;layer=configuration
-layer2-ipv6	layer2-doc	eth5	fd7a:115c:a1e0:ab12:4843:cd96:6277:2302	kind=vip;link=eth5;require_up=true;route_metric=1024;skip_hostname=false;client=none;duid=;layer=configuration

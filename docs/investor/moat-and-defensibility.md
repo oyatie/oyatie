@@ -25,7 +25,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - The eighth primitive is compliance-pack overlays.
 - The ninth primitive is per-tenant quota enforcement.
 - The tenth primitive is cell-based deployment.
-- The eleventh primitive is agentic development governance through Oya VCS and Foundry.
+- The eleventh primitive is agentic development governance through retired VCS ratchet and Foundry.
 - The moat grows when many product categories share the same primitives.
 - The moat weakens if product teams fork primitives per category.
 - The moat weakens if buyer packaging becomes too abstract.
@@ -110,7 +110,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - The audit chain supports DSR and proof-of-erasure.
 - The audit chain supports compliance-pack evidence.
 - The audit chain supports AI action accountability.
-- The audit chain supports development workflow evidence through Oya VCS.
+- The audit chain supports development workflow evidence through retired VCS ratchet.
 - The audit chain becomes a switching cost when customer evidence workflows rely on it.
 - Competitor evidence tools include AuditBoard, Drata, Vanta, Archer, OneTrust, and ServiceNow GRC.
 - These competitors often manage evidence as compliance workflow.
@@ -172,7 +172,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Microservice breadth also increases test and deployment burden.
 - The moat improves when microservices share substrates.
 - The moat degrades when microservices duplicate primitives.
-- Oya VCS and admission gates are intended to manage breadth.
+- retired VCS ratchet and admission gates are intended to manage breadth.
 - Hyperscaler invariants are intended to manage operational rigor.
 - Capability-tier schema is intended to manage product packaging.
 - Pack-overlay schema is intended to manage compliance variation.
@@ -272,7 +272,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Agentic governance is a future-facing moat.
 - Enterprise AI agents need policy, audit, cost, and rollback controls.
 - Foundry is the internal agentic pipeline and capability runtime surface.
-- Oya VCS controls claim, verify, done, and promote.
+- retired VCS ratchet controls claim, verify, done, and promote.
 - Capability records can declare autonomy requirements.
 - Cedar can enforce autonomy ceilings.
 - Audit-chain can record agent actions.
@@ -559,7 +559,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 | Microservice depth | 78 directories, 70 local catalogs | Medium | Medium | Operational complexity |
 | Compliance packs | ADR-0251 and schemas | Low-medium | Medium | Certification burden |
 | Ontology | schemas and microservice | Medium | High | Data migration |
-| Agentic governance | Foundry and Oya VCS doctrine | Medium | High | AI hype and cost |
+| Agentic governance | Foundry and retired VCS ratchet doctrine | Medium | High | AI hype and cost |
 | Deployment portability | specs and tier matrices | Medium | Medium | Margin impact |
 | Customer switching cost | Not yet proven | Low | Medium | Pilot depth |
 | Data compounding | Not yet proven | Low | Medium | Privacy constraints |

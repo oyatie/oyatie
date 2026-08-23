@@ -1,6 +1,6 @@
 microservice:
   id: observability
-  cargoPackage: oya-observability-domain
+  cargoPackage: observability-domain
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: oya-observability
+  name: observability
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-observability
+  repository: observability
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -45,7 +45,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-observability-cedar
+  policyConfigMapName: observability-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(
@@ -258,7 +258,7 @@ grafana:
   devBootstrapSecret:
     enabled: true
     adminUser: "admin"
-    adminPassword: "oya-dev-bootstrap-changeme"
+    adminPassword: "dev-bootstrap-changeme"
   persistence:
     enabled: true
     type: pvc

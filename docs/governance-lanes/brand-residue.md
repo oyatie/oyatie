@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify retired brand/product names (e.g., legacy "Foundry-Classic", "OYABrand-v0") do not appear in active docs/code outside archived paths.
-- enforces: STANDARD/brand-hygiene; AGENTS.md fitness-lane `oya-governance-brand-residue`.
-- kernel_crate: `oya-governance-brand-residue-kernel` (EXISTING) — `BrandOccurrence { token, path, line, archived }`, verdict `BrandResidueFitnessReport { tokens_checked, occurrences }`.
-- runner_path: `tools/oya-governance-brand-residue`
+- enforces: STANDARD/brand-hygiene; AGENTS.md fitness-lane `governance-brand-residue`.
+- kernel_crate: `governance-brand-residue-kernel` (EXISTING) — `BrandOccurrence { token, path, line, archived }`, verdict `BrandResidueFitnessReport { tokens_checked, occurrences }`.
+- runner_path: `tools/governance-brand-residue`
 - inputs: `docs/**/*`, `crates/**/*.rs`, retired-brand list `docs/standards/retired-brands.md`.
 - failure_modes:
   - retired token in non-archive doc
   - retired token in active source file
   - case-variant of retired token
-- ci_invocation: `cargo run -p oya-governance-brand-residue`
+- ci_invocation: `cargo run -p governance-brand-residue`
 - runtime_budget: 900 ms
 - severity: HIGH
 - kernel_sketch:

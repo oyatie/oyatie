@@ -547,14 +547,14 @@ The checkpoint label is `us-localization-pack-w1-2026-05-20`.
 - XREF-009: `specs/microservices/manifests-index.json` lists candidate microservices activated by pack deltas.
 - XREF-010: `registry/audit-chain/shards/foundation-demo.log` demonstrates audit-chain event style but is not modified by this pack.
 - XREF-011: `docs/standards/logging-tracing.md` provides trace and audit context fields relevant to regulated events.
-- XREF-012: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future gate candidate for pack evidence.
-- XREF-013: `registry/catalog/oya-check-cedar-fragment-coverage.yaml` is a future gate candidate for executable Cedar fragment coverage.
-- XREF-014: `registry/catalog/oya-check-data-class.yaml` is a future gate candidate for data-class enforcement.
-- XREF-015: `registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml` is a future gate candidate for high-risk AI decisions.
-- XREF-016: `registry/catalog/oya-check-a11y-discipline.yaml` is a future gate candidate for ADA-related accessibility evidence.
-- XREF-017: `registry/catalog/oya-check-slsa-l3-evidence-grounded.yaml` supports control evidence and provenance posture for NIST and FedRAMP overlays.
-- XREF-018: `registry/catalog/oya-check-audit-chain-seal-coverage.yaml` supports regulated event sealing.
-- XREF-019: `docs/decisions/ADR-0709-general-live-apex.md` remains the Oya VCS coordination reference.
+- XREF-012: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future gate candidate for pack evidence.
+- XREF-013: `registry/catalog/check-cedar-fragment-coverage.yaml` is a future gate candidate for executable Cedar fragment coverage.
+- XREF-014: `registry/catalog/check-data-class.yaml` is a future gate candidate for data-class enforcement.
+- XREF-015: `registry/catalog/check-high-risk-auto-decision-refusal.yaml` is a future gate candidate for high-risk AI decisions.
+- XREF-016: `registry/catalog/check-a11y-discipline.yaml` is a future gate candidate for ADA-related accessibility evidence.
+- XREF-017: `registry/catalog/check-slsa-l3-evidence-grounded.yaml` supports control evidence and provenance posture for NIST and FedRAMP overlays.
+- XREF-018: `registry/catalog/check-audit-chain-seal-coverage.yaml` supports regulated event sealing.
+- XREF-019: `docs/decisions/ADR-0709-general-live-apex.md` remains the retired VCS ratchet coordination reference.
 - XREF-020: `docs/decisions/ADR-0708-platform-foundations-live-apex.md` is cited by the existing CN pack and remains a likely future compliance-pack primitive reference.
 
 ## Pack Checkpoint

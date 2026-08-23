@@ -12,8 +12,8 @@ use compute_domain::{
     ImageRefKind, Instance, InstanceCreate, InstanceState,
 };
 use compute_resource::{InstanceFlavor, ResourceId};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_VM_CREATE_SURFACE: &str = "cloud.compute.vm.create";
 const DEFAULT_VM_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;
@@ -614,7 +614,7 @@ impl CloudComputeVmApiError {
             Self::EmptyPathInstanceId => vec![detail("path.instance_id", "must be non-empty")],
             Self::InvalidInstanceId { .. } => vec![detail(
                 "path.instance_id",
-                "must be a canonical oya:cloud instance resource id",
+                "must be a canonical oyatie:cloud instance resource id",
             )],
             Self::InstanceKindMismatch { .. } => {
                 vec![detail("path.instance_id", "resource kind must be instance")]

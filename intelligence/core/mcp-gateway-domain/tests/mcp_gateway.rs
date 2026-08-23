@@ -2,13 +2,13 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, privacy_data_classes_from};
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityMcpContract};
 use intelligence_mcp_gateway_domain::{
     DISCOVER_SCOPE, MCP_PROTOCOL_VERSION, McpAccessTokenClaims, McpAuthorizationChallenge,
     McpGatewayDescriptor, McpGatewayError, McpPrincipal, McpRateLimitPolicy, McpRateLimiter,
     McpTenantEndpoint, authorize_tool_call, validate_access_token,
 };
-use oya_data_boundary_kernel::{DataClass, privacy_data_classes_from};
 
 #[test]
 fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
@@ -107,7 +107,7 @@ fn gateway_projects_capability_authored_agent_description_and_schemas() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         privacy_data_classes_from(&[DataClass::InternalOnly]).unwrap(),
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         CapabilityMcpContract::new(
             "Use this only for authored readiness evidence.".into(),
             "Operator-facing readiness evidence tool.".into(),
@@ -346,7 +346,7 @@ fn capability_with_data_classes(
         "demo".into(),
         tier,
         privacy_data_classes_from(data_classes).expect("test fixture uses privacy data classes"),
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
     )
     .unwrap()
 }

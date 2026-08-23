@@ -15,7 +15,7 @@ use billing_domain::{CurrencyCode, Money, RateCardRef};
 use billing_metering::{AxisId, MeterEvent, MeterEventId, MeterUnitKind};
 use cell_region::RegionCode;
 use compute_resource::{CloudResourceError, ResourceId};
-use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 
 const FINOPS_SCHEMA_VERSION: u32 = 1;
 const MILLION_MICROUNITS: u128 = 1_000_000;
@@ -1197,7 +1197,7 @@ mod tests {
 
     const TENANT: &str = "ten_alpha";
     const REGION: &str = "region-alpha1";
-    const RESOURCE: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
+    const RESOURCE: &str = "oyatie:cloud:region-alpha1:ten_alpha:instance:vm-a";
     const RATE_CARD: &str = "rate/standard";
 
     fn period() -> FinopsPeriod {
@@ -1416,7 +1416,7 @@ mod tests {
         assert_eq!(
             ledger
                 .record_allocation(CostAllocationCreate {
-                    resource_id: "oya:cloud:region-alpha1:ten_other:instance:vm-a".to_string(),
+                    resource_id: "oyatie:cloud:region-alpha1:ten_other:instance:vm-a".to_string(),
                     ..allocation(
                         "fca_bad_tenant",
                         meter_event("mtr_bad_tenant", AxisId::Cloud, 1_000_000, 1_500),

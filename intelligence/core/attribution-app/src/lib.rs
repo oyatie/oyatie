@@ -1,7 +1,7 @@
 //! Attribution service core (composition / usecase layer per ADR-0105).
 //!
 //! This crate is the *application* that wires the pure attribution kernel
-//! (`oya-intelligence-attribution-kernel::plan_attribution`) through the
+//! (`intelligence-attribution-kernel::plan_attribution`) through the
 //! domain policy-binding layer, the idempotent + audit-event usecase layer,
 //! the job-lifecycle worker layer, and the citation-renderer envelope adapter
 //! into an end-to-end dispatch pipeline described by

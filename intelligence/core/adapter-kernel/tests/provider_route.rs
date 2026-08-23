@@ -2,6 +2,8 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, privacy_data_classes_from};
 use intelligence_adapter_kernel::{
     AdapterError, CostCeiling, InvocationPolicy, PromptEnvelope, ProviderAdapter, ProviderAuth,
     ProviderCallReceipt, ProviderEvent, ProviderFailureKind, ProviderId, ProviderInvocation,
@@ -10,10 +12,6 @@ use intelligence_adapter_kernel::{
     SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
-use oya_check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
-use oya_data_boundary_kernel::{
-    Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
-};
 use secrets_domain::SecretRef;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -114,7 +112,7 @@ fn route_for_profiles(capability_id: &str, profiles: &[ProviderProfile]) -> Prov
         "demo".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     resolve_route(ProviderRouteRequest {
@@ -371,7 +369,7 @@ fn route_resolution_filters_by_cost_capability_auth_and_data_class() {
         "demo".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let api_secret = SecretRef::new(
@@ -477,7 +475,7 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
         "demo".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::Phi]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let profile = ProviderProfile::new(
@@ -620,7 +618,7 @@ fn route_resolution_rejects_profiles_outside_required_region() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let profile = ProviderProfile::new(
@@ -689,7 +687,7 @@ fn route_resolution_requires_active_subscription_binding_for_tenant_attribution(
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let provider_id = ProviderId::new("openai-subscription".into()).unwrap();
@@ -762,7 +760,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
         "demo".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let profile = ProviderProfile::new(
@@ -849,7 +847,7 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let route = ProviderRoute {
@@ -921,7 +919,7 @@ fn provider_call_receipt_rejects_region_that_does_not_match_resolved_route() {
         "demo".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "oya.foundry.provider.invoked".into(),
+        "oyatie.foundry.provider.invoked".into(),
     )
     .expect("capability is valid");
     let profile = ProviderProfile::new(

@@ -1,4 +1,0 @@
-# COMPLIANCE-MATRIX per-regulator release evidence-pack manifest.
-# release_version: pre-release
-# empty_scope_rationale: No regulator-facing release evidence packs have been generated before a release candidate; this declaration must be replaced by published per-regulator rows before release.
-regulator	region	pack_id	release_version	audit_cycle	coverage_window_start	coverage_window_end	owner_team	evidence_pack_ref	cosign_attestation_ref	audit_event_id	requested_at_epoch_minutes	regenerated_at_epoch_minutes	controls_mapped	evidence_links	trust_portal_mirror_regenerated	regulator_notification_sent	status

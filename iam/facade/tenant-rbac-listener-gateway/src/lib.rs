@@ -15,8 +15,8 @@ use iam_tenant_rbac_auth_app::{
     TenantRbacAuthRoutePolicy, tenant_rbac_auth_runtime_policy,
     validate_tenant_rbac_auth_runtime_policy,
 };
-use iam_tenant_rbac_cloud_deployment_manifest::{
-    tenant_rbac_cloud_deployment_manifest, validate_cloud_deployment_manifest,
+use iam_tenant_rbac_deployment_manifest::{
+    tenant_rbac_deployment_manifest, validate_cloud_deployment_manifest,
 };
 use iam_tenant_rbac_local_runtime_composition::{
     TenantRbacLocalRuntimeRoute, tenant_rbac_local_runtime_composition,
@@ -113,7 +113,7 @@ pub enum TenantRbacListenerGatewayError {
 pub fn tenant_rbac_listener_gateway_plan() -> TenantRbacListenerGatewayPlan {
     let composition = tenant_rbac_local_runtime_composition();
     let auth_policy = tenant_rbac_auth_runtime_policy();
-    let deployment_manifest = tenant_rbac_cloud_deployment_manifest();
+    let deployment_manifest = tenant_rbac_deployment_manifest();
     let auth_by_route = auth_route_policy_map(&auth_policy.route_policies);
     let routes = composition
         .routes
@@ -273,7 +273,7 @@ fn validate_gateway_refs(
 fn validate_ports(
     plan: &TenantRbacListenerGatewayPlan,
 ) -> Result<(), TenantRbacListenerGatewayError> {
-    let deployment_manifest = tenant_rbac_cloud_deployment_manifest();
+    let deployment_manifest = tenant_rbac_deployment_manifest();
     validate_cloud_deployment_manifest(&deployment_manifest)
         .map_err(|_| TenantRbacListenerGatewayError::InvalidPlan)?;
     if plan.gateway_listener_port != 443

@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-revenue-share-accuracy
+  name: marketplace-revenue-share-accuracy
   displayName: Marketplace Revenue Share Accuracy
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-revenue-share-accuracy-sli
+      name: marketplace-revenue-share-accuracy-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_mediation_open_success_total[5m]))
+              query: sum(rate(marketplace_mediation_open_success_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_mediation_open_total[5m]))
+              query: sum(rate(marketplace_mediation_open_total[5m]))
   objectives:
     - displayName: Revenue Share Accuracy
       target: 0.9999

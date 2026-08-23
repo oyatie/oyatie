@@ -1,0 +1,23 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+# Kustomize base — shared resources referenced by all pack overlays.
+# Per ADR-0131 (per-µservice flat layout).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: docs
+
+commonLabels:
+  microservice: docs
+  app.kubernetes.io/part-of: oyatie
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+
+helmCharts:
+  - name: docs
+    repo: oci://registry.oyatie.dev/charts
+    version: 1.0.0
+    releaseName: docs
+    namespace: docs
+    valuesFile: ../../helm/values.yaml

@@ -105,9 +105,9 @@ Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
   - Admission/build hygiene gates aligned with 0515/capability-first monorepo
 - **ADR-546** — Canonical-JSON determinism gate
   - Admission/build hygiene gates aligned with 0515/capability-first monorepo
-- **ADR-549** — oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
+- **ADR-549** — buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
   - Admission/build hygiene gates aligned with 0515/capability-first monorepo
-- **ADR-553** — Commission the oya-identity runnable workload-identity service (G005 slice 1)
+- **ADR-553** — Commission the identity runnable workload-identity service (G005 slice 1)
   - False freeze Reject; aligns with live stack / hyperscaler design
 - **ADR-559** — Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service
   - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
@@ -208,8 +208,8 @@ Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
 - **ADR-54** — ADR-0054-grit-scaffold-claim-pattern
   - Grit/icm coordination pattern retired with external agent tooling (0363/0619 lineage)
 - **ADR-111** — ADR-0111-merge-queue-projected-state-fix-at-any-stage
-  - Merge-queue projected-state model superseded by live 0515 cloud-ci/Tide admission
-- **ADR-347** — Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + cr
+  - Merge-queue projected-state model superseded by live 0515 pipeline Tide admission
+- **ADR-347** — Foundry-fitness to governance bulk rename (doctrine-only; all governance-fitness-* CI lanes + cr
   - Stale tooling path, superseded admission model, or conflicts live law
 
 ## 4. Needs review (no auto-flip)
@@ -296,7 +296,7 @@ Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
   - No automatic disposition; needs human skim of body vs live Accepted set
 - **ADR-567** — Commission auth durable stores with Postgres + RLS (tenant-lifecycle-store-postgres and identity-sci
   - No automatic disposition; needs human skim of body vs live Accepted set
-- **ADR-569** — Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres)
+- **ADR-569** — Commission the data outbox CDC change-stream Postgres adapter (data-outbox-adapter-postgres)
   - No automatic disposition; needs human skim of body vs live Accepted set
 - **ADR-571** — Home the connect address-book domain into the comms capability and commission the contact-management
   - No automatic disposition; needs human skim of body vs live Accepted set

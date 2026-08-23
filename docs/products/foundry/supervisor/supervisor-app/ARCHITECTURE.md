@@ -11,15 +11,15 @@ doc_status: published
 ## 12-Layer Placement
 
 ```
-L1: Kernel           ← oya-intelligence-supervisor-kernel (port traits)
+L1: Kernel           ← intelligence-supervisor-kernel (port traits)
 
 L2-L3: (reserved)
 
-L4: Adapter          ← oya-intelligence-jsonl-supervisor-adapter (InboxStore, OutboxSink)
-     ← oya-intelligence-settings-template-adapter (SettingsRenderer)
-     ← oya-intelligence-account-adapter-{claude,codex,gemini} (SessionDriver)
+L4: Adapter          ← intelligence-jsonl-supervisor-adapter (InboxStore, OutboxSink)
+     ← intelligence-settings-template-adapter (SettingsRenderer)
+     ← intelligence-account-adapter-{claude,codex,gemini} (SessionDriver)
 
-L5: Application      ← oya-intelligence-supervisor-app (THIS CRATE)
+L5: Application      ← intelligence-supervisor-app (THIS CRATE)
      ├─ SupervisorApp (daemon orchestrator)
      ├─ tick_once() (call chain, 17 steps)
      ├─ build_router() (hyper webhook)

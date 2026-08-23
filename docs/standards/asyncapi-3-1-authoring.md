@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0154
   - ADR-0263
 enforced_by:
-  - oya-governance-asyncapi-3-1-authoring
-  - oya-governance-event-schema-versioning
-  - oya-governance-audit-emission
+  - governance-asyncapi-3-1-authoring
+  - governance-event-schema-versioning
+  - governance-audit-emission
 canonical_paths:
   - microservices/*/contracts/*.asyncapi.yaml
   - docs/standards/event-schema-versioning-canonical.md
@@ -260,7 +260,7 @@ This passes because ontology dependency is explicit.
 Primary command:
 
 ```bash
-oya gate validate asyncapi-3-1-authoring --scope microservices
+presubmit (retired CLI gate validate) asyncapi-3-1-authoring --scope microservices
 ```
 
 The checker MUST parse all `*.asyncapi.yaml`.
@@ -589,26 +589,26 @@ components:
 
 | ID | Concern | Requirement | Example | Checker |
 |---|---|---|---|---|
-| ASYNC-MAT-001 | Version | `asyncapi: 3.1.0` | root field | `oya-check-asyncapi-version` |
-| ASYNC-MAT-002 | Info | standard link | `x-oyatie-standard` | `oya-check-contract-links` |
-| ASYNC-MAT-003 | Info | ADR links | `x-oyatie-adrs` | `oya-check-adr-links` |
-| ASYNC-MAT-004 | Channel | stable address | `workflow.execution.requested.v1` | `oya-check-channel-names` |
-| ASYNC-MAT-005 | Operation | action declared | `send` | `oya-check-asyncapi-operation` |
-| ASYNC-MAT-006 | Message | name versioned | `WorkflowExecutionRequestedV1` | `oya-check-message-names` |
-| ASYNC-MAT-007 | Trait | envelope reused | `OyatieEventEnvelopeV1` | `oya-check-event-envelope` |
-| ASYNC-MAT-008 | Header | event id | `event_id` | `oya-check-event-id` |
-| ASYNC-MAT-009 | Header | tenant id | `tenant_id` | `oya-check-tenant-boundary` |
-| ASYNC-MAT-010 | Header | trace id | `trace_id` | `oya-check-trace-context` |
-| ASYNC-MAT-011 | Header | data class | `data_class` | `oya-check-data-class` |
-| ASYNC-MAT-012 | Header | schema version | `schema_version` | `oya-check-schema-version` |
-| ASYNC-MAT-013 | Payload | required idempotency key | `idempotency_key` | `oya-check-idempotency` |
-| ASYNC-MAT-014 | Payload | no raw provider blob | payload schema | `oya-check-provider-blob-boundary` |
-| ASYNC-MAT-015 | Compatibility | additive changes only in v1 | schema diff | `oya-check-event-compatibility` |
-| ASYNC-MAT-016 | Consumer | consumer fixture exists | fixtures | `oya-check-consumer-fixtures` |
-| ASYNC-MAT-017 | Replay | event is replay-safe | event metadata | `oya-check-replay-safety` |
-| ASYNC-MAT-018 | Projection | projection links named | projection manifest | `oya-check-projection-linkage` |
-| ASYNC-MAT-019 | Broker | no broker-specific extension as authority | extensions | `oya-check-broker-portability` |
-| ASYNC-MAT-020 | Promote | evidence includes checker output | VCS bundle | `oya-vcs-admission` |
+| ASYNC-MAT-001 | Version | `asyncapi: 3.1.0` | root field | `check-asyncapi-version` |
+| ASYNC-MAT-002 | Info | standard link | `x-oyatie-standard` | `check-contract-links` |
+| ASYNC-MAT-003 | Info | ADR links | `x-oyatie-adrs` | `check-adr-links` |
+| ASYNC-MAT-004 | Channel | stable address | `workflow.execution.requested.v1` | `check-channel-names` |
+| ASYNC-MAT-005 | Operation | action declared | `send` | `check-asyncapi-operation` |
+| ASYNC-MAT-006 | Message | name versioned | `WorkflowExecutionRequestedV1` | `check-message-names` |
+| ASYNC-MAT-007 | Trait | envelope reused | `OyatieEventEnvelopeV1` | `check-event-envelope` |
+| ASYNC-MAT-008 | Header | event id | `event_id` | `check-event-id` |
+| ASYNC-MAT-009 | Header | tenant id | `tenant_id` | `check-tenant-boundary` |
+| ASYNC-MAT-010 | Header | trace id | `trace_id` | `check-trace-context` |
+| ASYNC-MAT-011 | Header | data class | `data_class` | `check-data-class` |
+| ASYNC-MAT-012 | Header | schema version | `schema_version` | `check-schema-version` |
+| ASYNC-MAT-013 | Payload | required idempotency key | `idempotency_key` | `check-idempotency` |
+| ASYNC-MAT-014 | Payload | no raw provider blob | payload schema | `check-provider-blob-boundary` |
+| ASYNC-MAT-015 | Compatibility | additive changes only in v1 | schema diff | `check-event-compatibility` |
+| ASYNC-MAT-016 | Consumer | consumer fixture exists | fixtures | `check-consumer-fixtures` |
+| ASYNC-MAT-017 | Replay | event is replay-safe | event metadata | `check-replay-safety` |
+| ASYNC-MAT-018 | Projection | projection links named | projection manifest | `check-projection-linkage` |
+| ASYNC-MAT-019 | Broker | no broker-specific extension as authority | extensions | `check-broker-portability` |
+| ASYNC-MAT-020 | Promote | evidence includes checker output | VCS bundle | `retired VCS ratchet` |
 
 ## Extended AsyncAPI Evidence Ledger
 

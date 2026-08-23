@@ -9,7 +9,7 @@ Total ADRs: **448**
 ## Policy
 - **Do not mass-Accept** Proposed ADRs. Proposed is not implement authority.
 - Mechanical fixes OK: status case, missing successor pointers when successor is known.
-- Accept/Supersede/Amend substance requires dual-critic + oya-ci-required PR (and founder when planning_impact).
+- Accept/Supersede/Amend substance requires dual-critic + presubmit PR (and founder when planning_impact).
 
 ## Disposition histogram
 
@@ -43,7 +43,7 @@ Total ADRs: **448**
 
 ### 2. Superseded without successor
 - **ADR-0057**: ADR-0057: Cutover Mechanics — Rename Plan v4 (Hybrid C)
-- **ADR-0097**: Rename oya-intelligence-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter
+- **ADR-0097**: Rename intelligence-account-adapter-{claude-code,codex-cli,gemini-cli} → foundry-{claude,codex,gemini}-account-adapter
 - **ADR-0101**: Foundry Supervisor Mountpoint (Direct Hyper)
 - **ADR-0102**: Foundry Settings Template Canonical Rendering
 - **ADR-0138**: ADR-0138: Foundry six-path deprecation — Strangler migration

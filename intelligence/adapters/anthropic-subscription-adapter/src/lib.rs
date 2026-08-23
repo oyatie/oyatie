@@ -8,7 +8,7 @@
 //! - `RefreshPolicy::ExpiresLead` background ticker (BinaryHeap min-heap of next_due).
 //! - Terminal-vs-transient error classification; `OperatorAlertPort` on terminal.
 //! - `Authorization: Bearer` (not x-api-key) + `anthropic-version` + `anthropic-beta` on outbound.
-//! - PKCE enrollment path via `oya-intelligence-oauth-subscription-kernel`.
+//! - PKCE enrollment path via `intelligence-oauth-subscription-kernel`.
 //!
 //! No raw secrets appear in any `Debug` output or tracing span.
 //!

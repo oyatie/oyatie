@@ -26,10 +26,10 @@ via SideroLink.
 |---|---|---|
 | Infra | OpenTofu + Helm | Omni stack (docker provider), libvirt NAT net + SideroLink-booting VMs, Cloudflare tunnel/access |
 | Cluster | omnictl cluster template (git YAML) | Omni-managed cluster: 3 dedicated CPs, `cni:none`, certSANs, `kubernetes.manifests` → Cilium 1.19.4 + Argo CD |
-| Apps | Argo CD + declarative app-of-apps | app-of-apps GitOps (all in-cluster): **GitHub** `infra/gitops/vcs-substrate.yaml` (SCM + merge gate; infra/forge consolidated into infra/gitops per ADR-0515 D3), **oya-ci** + signed agents + SeaweedFS + cargo mirror `infra/ci/` (CI), **OpenBao** `infra/kms/` (KMS), **observability** `microservices/observability/`, **Kyverno** (admission + cosign verify), **Istio Ambient** (L7, with worker pools), workloads |
+| Apps | Argo CD + declarative app-of-apps | app-of-apps GitOps (all in-cluster): **GitHub** `infra/gitops/vcs-substrate.yaml` (SCM + merge gate; infra/forge consolidated into infra/gitops per ADR-0515 D3), **ci** + signed agents + SeaweedFS + cargo mirror `infra/ci/` (CI), **OpenBao** `infra/kms/` (KMS), **observability** `microservices/observability/`, **Kyverno** (admission + cosign verify), **Istio Ambient** (L7, with worker pools), workloads |
 
-**Substrate trio (ADR-0363: git + oya-ci + GitHub)** lives entirely inside the Omni-managed cluster
-as Argo CD apps. oya-ci = CI (build/test → posts required-status contexts to GitHub's merge gate);
+**Substrate trio (ADR-0363: git + ci + GitHub)** lives entirely inside the Omni-managed cluster
+as Argo CD apps. ci = CI (build/test → posts required-status contexts to GitHub's merge gate);
 GitHub = SCM + merge gate; distinct from the Argo CD CD loop. The single
 bootstrap only stands up **Omni → cluster → Cilium → Argo CD**; Argo CD pulls everything else.
 
@@ -37,7 +37,7 @@ bootstrap only stands up **Omni → cluster → Cilium → Argo CD**; Argo CD pu
 (in-cluster, Argo CD-managed workload per `infra/gitops/vcs-argocd-app.yaml`) becomes primary only
 after a deliberate post-bootstrap cutover (ADR-0247). This avoids the "Argo CD needs GitHub which
 needs Argo CD" deadlock — GitHub is just another managed app; GitHub bootstraps the loop. GitHub's
-primary role is the CI merge-gate substrate (oya-ci required-status → merge gate, ADR-0363), not the
+primary role is the CI merge-gate substrate (ci required-status → merge gate, ADR-0363), not the
 CD loop itself.
 | Orchestration | one bootstrap entrypoint | sequences all; wraps the 2 imperative seams |
 
@@ -76,8 +76,8 @@ A dedicated CP tier cannot host the platform stack — so the cluster is CP tier
 | Node group | Runtime / image | Runs |
 |---|---|---|
 | **control-plane** (3, dedicated, tainted) | vanilla Talos, runc | apiserver/etcd/scheduler/controller-manager + tolerating DaemonSets only (Cilium agent, node-exporter/otel DaemonSet, CSI node). Nothing else. |
-| **worker `system`** (trusted) | vanilla, runc | Argo CD, GitHub, oya-ci controller, OpenBao, observability backends, Kyverno, cert-manager, ingress/Gateway, istiod |
-| **worker `ci`** (semi-trusted) | vanilla (Kata for untrusted PR exec) | oya-ci agents (ephemeral) |
+| **worker `system`** (trusted) | vanilla, runc | Argo CD, GitHub, ci controller, OpenBao, observability backends, Kyverno, cert-manager, ingress/Gateway, istiod |
+| **worker `ci`** (semi-trusted) | vanilla (Kata for untrusted PR exec) | ci agents (ephemeral) |
 | **worker `tenant`** (untrusted) | Kata/CLH baked image, nested virt, `kata=enabled:NoSchedule` | tenant workloads (Tier-3, ADR-0147/0338) + ztunnel + waypoints |
 
 Cilium runs on every node; ztunnel (Ambient) only on workload nodes. The Omni cluster template
@@ -85,7 +85,7 @@ declares ControlPlane + one `Workers` doc per pool (Kata extension/labels/taints
 
 ### Capacity reality (single 30 GiB host)
 The full platform does NOT fit on one 30 GiB box (3 HA CPs ~9 GiB + observability 8–16 GiB +
-GitHub/oya-ci/OpenBao/ArgoCD). The **topology** is faithful; **capacity** is not. On one host run a
+GitHub/ci/OpenBao/ArgoCD). The **topology** is faithful; **capacity** is not. On one host run a
 scaled-down shape (e.g. 3 small CPs + 1 system worker, minimal replicas, trimmed observability) and
 grow horizontally by having **Omni add nodes/clusters** to the fleet. DECISION OPEN: scaled-down-shape
 vs fewer-CPs-to-fit-more.

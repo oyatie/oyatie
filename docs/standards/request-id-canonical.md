@@ -75,11 +75,11 @@ It MAY appear as:
 Every µservice MUST integrate a `RequestIdMiddleware` at the
 inbound HTTP edge and `RequestIdClientInterceptor` at every outbound
 client (gRPC + HTTP). The implementation lives in
-`crates/oya-shared-request-id-kernel`.
+`crates/shared-request-id-kernel`.
 
 ### 6. Validation
 
-The `oya-check-request-id-propagation` gate (planned; see
+The `check-request-id-propagation` gate (planned; see
 adr-follow-ups.yaml) audits that:
 - every µservice REST adapter declares the
   `X-Request-Id` middleware.

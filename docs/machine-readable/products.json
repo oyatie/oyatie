@@ -68,7 +68,7 @@
           ]
         },
         {
-          "provider": "oya-internal",
+          "provider": "internal",
           "modes": [
             "api"
           ],
@@ -119,7 +119,7 @@
       "prd_path": "docs/products/vertical-corporate/PRD.md",
       "wave_first_pilot": "W-Vertical-Pilot",
       "regulatory_packs": [
-        "oya-pack-kr.labor",
+        "pack-kr.labor",
         "global.labor-statutes"
       ],
       "anchor_region": "KR"
@@ -130,7 +130,7 @@
       "status": "draft (deep)",
       "prd_path": "docs/products/vertical-healthcare/PRD.md",
       "regulatory_packs": [
-        "oya-pack-kr.MFDS",
+        "pack-kr.MFDS",
         "global.HIPAA",
         "global.FHIR-R4",
         "global.HL7-v2"
@@ -225,62 +225,62 @@
   ],
   "regional_packs": [
     {
-      "id": "oya-pack-kr",
+      "id": "pack-kr",
       "region": "South Korea",
       "status": "draft (full content)",
       "pack_path": "packs/kr/sovereignty/manifest.json",
       "wave_first_onboarding": "W-Cloud-Preview"
     },
     {
-      "id": "oya-pack-jp",
+      "id": "pack-jp",
       "region": "Japan",
       "status": "skeleton (template only)",
       "wave_first_onboarding": "W-Cloud-Preview"
     },
     {
-      "id": "oya-pack-us",
+      "id": "pack-us",
       "region": "United States",
       "status": "skeleton (template only)",
       "wave_first_onboarding": "W-Cloud-Preview"
     },
     {
-      "id": "oya-pack-eu",
+      "id": "pack-eu",
       "region": "European Union",
       "status": "skeleton (template only)",
       "wave_first_onboarding": "W-Cloud-Preview"
     },
     {
-      "id": "oya-pack-in",
+      "id": "pack-in",
       "region": "India",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 1"
     },
     {
-      "id": "oya-pack-br",
+      "id": "pack-br",
       "region": "Brazil",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 1"
     },
     {
-      "id": "oya-pack-ksa",
+      "id": "pack-ksa",
       "region": "Saudi Arabia",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"
     },
     {
-      "id": "oya-pack-ae",
+      "id": "pack-ae",
       "region": "UAE",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"
     },
     {
-      "id": "oya-pack-au",
+      "id": "pack-au",
       "region": "Australia + NZ",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"
     },
     {
-      "id": "oya-pack-sg",
+      "id": "pack-sg",
       "region": "Singapore",
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"

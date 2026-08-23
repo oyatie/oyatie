@@ -77,12 +77,12 @@ Per `templates/migration-runbook-template.md` (planned):
 ## 4. Foundry-driven importer
 
 Per [DESIGN §3](../DESIGN.md) Foundry-as-accelerator:
-- `oya.migration.discover` capability inventories source
-- `oya.migration.export` per-source connector
-- `oya.migration.transform` per-class annotation + format-shift
-- `oya.migration.import` per-Oyatie-axis ingest
-- `oya.migration.validate` per-record audit + count
-- `oya.migration.cutover` orchestration
+- `oyatie.migration.discover` capability inventories source
+- `oyatie.migration.export` per-source connector
+- `oyatie.migration.transform` per-class annotation + format-shift
+- `oyatie.migration.import` per-Oyatie-axis ingest
+- `oyatie.migration.validate` per-record audit + count
+- `oyatie.migration.cutover` orchestration
 
 ## 5. Per-vertical migration regulatory considerations
 

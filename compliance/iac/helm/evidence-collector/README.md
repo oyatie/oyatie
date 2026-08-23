@@ -1,4 +1,4 @@
-# oya-compliance-evidence-collector
+# compliance-evidence-collector
 
 Compliance evidence collector tier per ADR-0209. In-house pipeline replacing Drata / Vanta /
 Tugboat Logic / AuditBoard / ServiceNow GRC.
@@ -20,7 +20,7 @@ Per `values.yaml`:
 - `backupRestoreDrillReceipt` (quarterly)
 - `vulnScanReport` (event-driven from Trivy)
 - `penTestReport` (manual upload, annual)
-- `dsarCompletionRecord` (event-driven from oya-dsr-usecase)
+- `dsarCompletionRecord` (event-driven from dsr-usecase)
 - `baaInventoryEntry` (quarterly)
 - `minimumNecessaryAccessLog` (continuous)
 

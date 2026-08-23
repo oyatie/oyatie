@@ -1,6 +1,6 @@
 # Spec: managed-k8s-cluster-lifecycle-provisioning-state-machine
 
-**Crate**: `oya-managed-k8s-cluster-lifecycle-kernel`
+**Crate**: `managed-k8s-cluster-lifecycle-kernel`
 **ADR**: ADR-0376 managed-Kubernetes product surface
 **Layer**: kernel (pure value objects; no I/O, no async)
 
@@ -9,7 +9,7 @@
 ## Purpose
 
 Add a pure, deterministic cluster-level provisioning lifecycle state machine to the
-`oya-managed-k8s-cluster-lifecycle-kernel` crate. The existing crate holds request/validation
+`managed-k8s-cluster-lifecycle-kernel` crate. The existing crate holds request/validation
 value objects (`LifecycleRequest`, `NodePoolOpRequest`, `evaluate_drain_admission`). This slice
 adds the cluster-phase state machine, expressed as a `ClusterLifecycleState` enum with typed
 transition enforcement.
@@ -161,15 +161,15 @@ Callers invoke this before calling `state.transition(ClusterLifecycleState::Read
 - No async, no I/O, no HTTP stack, no persistence.
 - No embedding of resource counts inside `ClusterLifecycleState`.
 - No modification to the existing `ControlPlaneStatus` state machine in
-  `oya-managed-k8s-control-plane-host-kernel`; these are distinct kernels.
+  `managed-k8s-control-plane-host-kernel`; these are distinct kernels.
 - No new workspace members or root `Cargo.toml` changes.
 
 ---
 
 ## Acceptance Criteria
 
-1. `cargo check -p oya-managed-k8s-cluster-lifecycle-kernel --all-targets` exits 0.
-2. `cargo nextest run -p oya-managed-k8s-cluster-lifecycle-kernel` exits 0; all 17 new tests
+1. `cargo check -p managed-k8s-cluster-lifecycle-kernel --all-targets` exits 0.
+2. `cargo nextest run -p managed-k8s-cluster-lifecycle-kernel` exits 0; all 17 new tests
    plus all existing tests pass.
-3. All changes confined to `microservices/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/`.
+3. All changes confined to `microservices/managed-k8s-cluster-lifecycle/crates/managed-k8s-cluster-lifecycle-kernel/`.
 4. No `unsafe`, no `unwrap`/`expect`/`panic` outside `#[cfg(test)]`.

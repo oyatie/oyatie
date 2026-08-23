@@ -6,10 +6,8 @@ body:
   - type: markdown
     attributes:
       value: >-
-        Read the canonical authority for the change class first
-        (`docs/AGENTS.md` §Canonical doc map). Features that introduce new
-        dependencies must clear the dependency policy — AGPL / GPL / SSPL /
-        BUSL / RSAL are not permitted in product code.
+        On the owner directory, open ADR.md, PRD.md, SPEC.md, PLAN.md first.
+        AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code.
   - type: textarea
     id: problem
     attributes:

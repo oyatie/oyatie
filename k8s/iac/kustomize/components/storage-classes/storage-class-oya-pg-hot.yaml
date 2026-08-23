@@ -1,9 +1,9 @@
-# Canonical StorageClass: oya-pg-hot
+# Canonical StorageClass: pg-hot
 # Per ADR-0161. NVMe-class block storage for PostgreSQL primary / Valkey primary /
 # audit-chain leaf storage. Sub-millisecond IOPS expected; expensive.
 #
 # This file is the canonical SKELETON. Per-pack overlays in
-# ../pack-{name}/storage-class-oya-pg-hot.patch.yaml MUST patch:
+# ../pack-{name}/storage-class-pg-hot.patch.yaml MUST patch:
 #   - `provisioner` — concrete CSI driver name
 #   - `parameters` — pack-specific (sku, encrypted, kmsKeyId, fsType, etc.)
 #
@@ -22,7 +22,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: oya-pg-hot
+  name: pg-hot
   labels:
     oyatie.io/canonical: "true"
     oyatie.io/adr: "ADR-0161"

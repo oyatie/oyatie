@@ -9,8 +9,8 @@ purpose: |
   Flagger as the K8s-native canary controller; Argo Rollouts as the second sanctioned option.
   Metric-gated promotion at 1% → 5% → 25% → 50% → 100% with SLO-burn-rate-bounded hold durations.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - cloud-ci-slo-coverage
+  - governance-canary-required
+  - pipeline-slo-coverage
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -25,7 +25,7 @@ doc_status: published
 
 **Secondary:** [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — CNCF Graduated, richer analysis-templates, used where cross-axis lockstep promotion or BG primitives are needed.
 
-Both adapted behind `oya-platform-rollout-controller-kernel` (NEW) + adapter crates.
+Both adapted behind `platform-rollout-controller-kernel` (NEW) + adapter crates.
 
 ## 2. Stage progression (default)
 
@@ -47,10 +47,10 @@ Per [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) §5, cana
 apiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
-  name: oya-<axis>-<service>
+  name: oyatie-<axis>-<service>
 spec:
   provider: istio
-  targetRef: { apiVersion: apps/v1, kind: Deployment, name: oya-<axis>-<service> }
+  targetRef: { apiVersion: apps/v1, kind: Deployment, name: oyatie-<axis>-<service> }
   analysis:
     interval: 1m
     threshold: 5            # ≤ 5 failed checks before rollback
@@ -67,9 +67,9 @@ spec:
         interval: 5m
     webhooks:
       - name: cohort-honor-check
-        url: http://oya-platform-tenant-cohort-kernel:8080/canary/intersect
+        url: http://platform-tenant-cohort-kernel:8080/canary/intersect
       - name: rollback-evidence-emit
-        url: http://oya-intelligence-evidence-kernel:8080/d14/emit
+        url: http://intelligence-evidence-kernel:8080/d14/emit
 ```
 
 ## 4. Argo Rollouts Rollout (when needed)
@@ -78,19 +78,19 @@ Used when: cross-axis lockstep promotion required; BG primitives needed; per-cel
 
 ## 5. Per-cell scope
 
-Each Canary/Rollout is scoped to one cell. Cross-cell promotion is orchestrated by `oya-platform-rollout-controller-kernel`, which honours per-region phasing (primary cell → primary region secondaries → secondary region → global) per ADR-0040.
+Each Canary/Rollout is scoped to one cell. Cross-cell promotion is orchestrated by `platform-rollout-controller-kernel`, which honours per-region phasing (primary cell → primary region secondaries → secondary region → global) per ADR-0040.
 
 ## 6. Analysis sources
 
 - Prometheus 3.11+ (current mainline) — primary metric store.
 - VictoriaMetrics — long-retention fallback (per [ADR-0042](../../decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md)).
-- Datadog / Honeycomb — accessed via `oya-platform-metric-source-adapter-<provider>` if a tenant brings their own.
+- Datadog / Honeycomb — accessed via `platform-metric-source-adapter-<provider>` if a tenant brings their own.
 
-Provider-neutral query is `oya-platform-slo-burn-rate-kernel` (NEW; see [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md)).
+Provider-neutral query is `platform-slo-burn-rate-kernel` (NEW; see [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md)).
 
 ## 7. Auto-rollback
 
-On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts fires `Abort`. Both emit a D14 rollback record via webhook. Per-cell on-call paged within 60 s (Sev-1 path) or 5 min (Sev-2 path) per `oya-governance-rollback-evidence`.
+On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts fires `Abort`. Both emit a D14 rollback record via webhook. Per-cell on-call paged within 60 s (Sev-1 path) or 5 min (Sev-2 path) per `governance-rollback-evidence`.
 
 ## 8. Pre-rollout gates (inherits from ADR-0040)
 
@@ -105,8 +105,8 @@ AWS CodeDeploy "Canary 10/45" + "Linear 10/3min"; Microsoft Azure Deployment Rin
 
 ## 10. Compliance gates
 
-- `oya-governance-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
-- `cloud-ci-slo-coverage` (existing; extended).
+- `governance-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
+- `pipeline-slo-coverage` (existing; extended).
 
 ## 11. ADR citations
 

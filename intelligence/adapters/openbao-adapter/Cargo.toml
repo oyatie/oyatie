@@ -6,7 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Real OpenBao Transit envelope-encryption adapter for the cloud-intelligence OAuth
+# Real OpenBao Transit envelope-encryption adapter for the intelligence-app OAuth
 # subscription pool (ADR-0384 Path B, Stage-7 D8 production seam).
 #
 # Implements `OpenBaoSecretStore` from `intelligence-rest` via
@@ -33,12 +33,13 @@ reqwest = { version = "0.13", default-features = false, features = ["json", "rus
 tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
+scripted-http-server = { path = "../scripted-http-server" }
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
 futures = "0.3"
 # First-party scripted HTTP test server. Replaces `httpmock`, which ADR-0709 D-6
 # Rule 2 fails on what it DRAGS IN (async-std, hyper 0.14, http 0.2, winapi 0.3.9,
 # syn 1.0.109) rather than on the crate itself.
-scripted-http-server = { path = "../../testing/scripted-http-server" }
+
 serde_json.workspace = true
 
 [lints]

@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers — helpers via {{ include "oyatie.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 {{/*
 Per-tenancy default-deny + mesh-ingress + scoped-egress NetworkPolicy (Sweep-E in-pass fix).
 
@@ -12,7 +12,7 @@ Per ADR-0131 per-µservice flat layout.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-tenancy-default-deny
+  name: tenancy-default-deny
   namespace: tenancy
 spec:
   podSelector: {}
@@ -21,7 +21,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-tenancy-allow-mesh-ingress
+  name: tenancy-allow-mesh-ingress
   namespace: tenancy
 spec:
   podSelector:
@@ -40,7 +40,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-tenancy-allow-egress
+  name: tenancy-allow-egress
   namespace: tenancy
 spec:
   podSelector:

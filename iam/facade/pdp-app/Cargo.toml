@@ -1,0 +1,87 @@
+[package]
+name = "iam-pdp-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Runnable iam policy-decision-point service (ADR-0559, G004 slice 1): composes the shared embedded Cedar PDP (iam/adapters/pdp-cedar) behind gRPC + REST authorization-decision endpoints with health/readiness, fail-closed boot (policy-load failure = boot refusal), structured decision-audit emission behind the kernel DecisionAuditSink port, and deny-by-default on every surface. API-only service: no CLI, declarative policy bundles are the management surface (cli_surface_policy)."
+build = "build.rs"
+
+[dependencies]
+shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-awslc" }
+shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
+os-trustd-domain = { path = "../../core/trustd-domain" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
+shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
+http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hyper" }
+iam-pdp-kernel = { path = "../../core/pdp-kernel" }
+iam-pdp-bundle-file = { path = "../../adapters/pdp-bundle-file" }
+
+iam-pdp-cedar = { path = "../../adapters/pdp-cedar" }
+
+
+iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
+iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
+iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
+
+
+x509-parser = { workspace = true }
+aws-lc-rs = "1.17.0"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "signal"] }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# gRPC delivery surface — tonic 0.14 server-side (client stubs generated too,
+# for the in-repo E2E suite and later PEP-pointing slices).
+prost.workspace = true
+tonic = { workspace = true, features = ["router", "transport"] }
+tonic-prost.workspace = true
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "prefer-post-quantum", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["aws-lc-rs", "tls12"] }
+hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", default-features = false, features = ["server-auto", "server-graceful", "service", "tokio"] }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+futures-core = { version = "0.3", default-features = false }
+async-stream = "0.3"
+
+[build-dependencies]
+# Proto codegen — mirrors the identity-workload-rest build.rs pattern.
+protoc-bin-vendored.workspace = true
+tonic-prost-build.workspace = true
+
+[dev-dependencies]
+# E2E: drive the live REST socket with reqwest and the live gRPC socket with
+# the generated tonic client. Dev-only — NOT library dependencies.
+reqwest = { workspace = true }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+http-body-util = { version = "0.1", default-features = false }
+# Keystone closure E2E (slice-1b-iii-c): drive the LIVE SVID-delivery operator's
+# issuance→Secret path so the PDP boots from OPERATOR-PRODUCED mTLS material (not
+# test-written), proving the operator closes the cert-delivery dimension. Dev-only.
+iam-identity-workload-svid-operator-k8s = { path = "../../adapters/identity-workload-svid-operator-k8s" }
+iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
+# Production-path closure E2E (slice-1b-iii): serialize real CA/leaf DER into the
+# operator-shaped kubernetes.io/tls PEM mount the production boot parses. Dev-only.
+base64 = { version = "0.22", default-features = false, features = ["std"] }
+# G004 bundle-signing slice: the TEST-SIDE Ed25519 signer + envelope types to
+# write signed bundle fixtures and trust-anchor dirs (production key custody is a
+# deferred founder-gated slice). Dev-only — the lib never signs.
+
+
+
+[lib]
+name = "iam_pdp_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "iam-pdp-app"
+path = "src/main.rs"
+
+[lints]
+workspace = true

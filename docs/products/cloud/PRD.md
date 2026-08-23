@@ -41,7 +41,7 @@ doc_status: published
 > **Readiness claim boundary:** target/non-claim until fresh CI, SLO, security, SBOM, rollback/DR, owner/RACI, and product-pain evidence are attached to a promotion packet.
 > **Owning team:** [`teams/axis-cloud/CHARTER.md`](../../teams/axis-cloud/CHARTER.md)
 > **Owning axis:** cloud
-> **Catalog reference:** `registry/catalog/oya-cloud-*.yaml`
+> **Catalog reference:** `registry/catalog/cloud-*.yaml`
 > **Last updated:** 2026-05-09 by Architecture Council
 
 ---
@@ -70,7 +70,7 @@ A standalone "Oyatie Cloud" sale (per-resource-hour IaaS) is a real commercial p
 
 | Wave | Capabilities | Surfaces exposed |
 |---|---|---|
-| **W-Foundation** | `Resource`, `Region`, `AZ`, `Cell`, `IAM`, `BillingAccount` kernels (`oya-cloud-*-kernel`); cell-isolation primitive; per-cell metadata service (IMDSv2-only per greenfield A11); region/AZ/cell taxonomy; OpenTofu IaC profile (ADR-0050) | None public — kernels and IaC plumbing |
+| **W-Foundation** | `Resource`, `Region`, `AZ`, `Cell`, `IAM`, `BillingAccount` kernels (`cloud-*-kernel`); cell-isolation primitive; per-cell metadata service (IMDSv2-only per greenfield A11); region/AZ/cell taxonomy; OpenTofu IaC profile (ADR-0050) | None public — kernels and IaC plumbing |
 | **W-Substrate** | Foundry binding for cloud control-plane mutators; capability registry projection; Foundry-callable IAM publish, region register, capacity rebalance under autonomy ceiling; audit-chain emit on every mutation | Internal `Cloud Console` v0 (read-only resource browser); IaC pipelines |
 | **W-Cloud-Preview** | VM service (KVM / Firecracker tenant compute), Kubernetes-as-a-service (managed), serverless / functions (limited language set), bare-metal lease, GPU fleet (per ADR-0044 hybrid), edge compute (limited PoP); Object store (S3-class), Block store (EBS-class), File store (EFS-class), Archive (Glacier-class), managed Postgres / Citus / pgvector / Redis / Kafka / ClickHouse; VPC + subnets, load balancers (L4 + L7), DNS (authoritative + recursive), CDN, direct interconnect, DDoS protection, service mesh integration; IAM + Account (Cedar policies, SAML/OIDC, STS, identity federation, MFA, audit); per-region per-AZ per-cell taxonomy; encryption-BYOK/HYOK KMS; per-resource-hour metering + per-region tax-invoice format; per-cell observability dataplane (audit log + SLO dashboards) — **all running canonical-architecture + first regional packs (KR-Seoul, JP-Tokyo, US-Virginia, EU-Frankfurt) in parallel** | `Cloud API v1` (control-plane REST + gRPC), `Cloud Console v1` (Leptos web), `Resource browser`, `IAM editor`, `Billing dashboard`, `Foundry capability surface` (cloud.compute.provision, cloud.iam.publish, cloud.region.register, etc.), KR CSAP path documented, audit-log export |
 | **W-Cloud-Stable** | Public cloud-provider GA: marketplace, ISV onboarding, multi-AZ failover automation, FinOps surfaces, KR CSAP + K-ISMS-P + KCMVP HSM in production; reserved instance / committed-use; spot / preemptible; cross-region replication under explicit residency policy; managed-service catalog expansion (Cassandra gated ADR-0045, Iceberg gated ADR-0045, Milvus gated ADR-0047, Temporal gated ADR-0035) | Public Cloud API v1 frozen; SLA committed (99.99% data plane); Marketplace; ISV portal |
@@ -82,7 +82,7 @@ A standalone "Oyatie Cloud" sale (per-resource-hour IaaS) is a real commercial p
 - Hardware / chip / data-center construction. (Cloud axis runs on **leased racks + colo**; bare-metal is a *product offering* not an *internal capability*. Per [PRD.md §1.3](../../PRD.md#non-goals).)
 - US-hyperscaler-style consumer / retail surfaces (Amazon-style retail, Google-Workspace-style SaaS) — those belong to other axes (SaaS) or are out of scope entirely.
 - Cryptocurrency / blockchain mining as a managed service. (Compute is general-purpose; specific blockchain workloads are tenant responsibility.)
-- Per-tenant bespoke compliance attestation outside the regional-pack model. Every regulatory binding rides through `oya-platform-regulatory-kernel`; a tenant cannot ask for a bespoke regulator beyond the pack roster.
+- Per-tenant bespoke compliance attestation outside the regional-pack model. Every regulatory binding rides through `platform-regulatory-kernel`; a tenant cannot ask for a bespoke regulator beyond the pack roster.
 - IPv4-only deployments after W-Public-GA. IPv6 is required from day 1; IPv4 is preserved for legacy.
 - Any cloud-customer onboarding without explicit `region`, `residency`, `regulatory_packs` declaration up front.
 - Forking the canonical eventing backbone for cloud-internal events. Cloud uses the same Outbox + Kafka per ADR-0046.
@@ -93,9 +93,9 @@ A standalone "Oyatie Cloud" sale (per-resource-hour IaaS) is a real commercial p
 
 The Cloud axis owns the **`cloud` bounded context** per [DESIGN.md §1](../../DESIGN.md). Crate prefix:
 
-- `crates/oya-cloud-{compute,storage,network,iam,billing,observability,region,resource}-*`
+- `crates/cloud-{compute,storage,network,iam,billing,observability,region,resource}-*`
 
-Per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`.
+Per ADR-0015 §1: `oyatie-<context>-<role>[-<capability>]`.
 
 ### 4.2 Layered structure (clean architecture inside the bounded context)
 
@@ -111,53 +111,53 @@ runtime   — composition root (binary)
 
 | Crate | Role | One-line role |
 |---|---|---|
-| `oya-cloud-resource-kernel` | kernel | Generic Resource aggregate (id, type, region, owner, state, metering tag) |
-| `oya-cloud-region-kernel` | kernel | Region / AZ / Cell taxonomy; residency class binding |
-| `oya-cloud-region-domain` | domain | Region register / decommission, AZ failover, cell-rebalance |
-| `oya-cloud-region-api` | api | Region / AZ listing REST API |
-| `oya-cloud-cell-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M02-P18) Tenant cell-binding REST surface |
-| `oya-cloud-iam-kernel` | kernel | IAM principal, role, policy (Cedar-based), STS session, federation |
-| `oya-cloud-iam-domain` | domain | Identity federation, role assumption, key issuance |
-| `oya-cloud-iam-adapter` | adapter | OIDC, SAML, OAuth, regional-pack IdP impls (Login.gov, eIDAS, Aadhaar, etc.) |
-| `oya-cloud-iam-api` | api | IAM REST API v1, STS endpoint |
-| `oya-cloud-kms-api` | api | KMS encrypt/decrypt authorization receipt REST API |
-| `oya-cloud-compute-kernel` | kernel | Instance, ImageRef, Flavor, KeyPair, Snapshot, AutoScalingGroup |
-| `oya-cloud-compute-domain` | domain | Provision / start / stop / snapshot / live-migrate / live-recover |
-| `oya-cloud-compute-adapter-kvm` | adapter | KVM hypervisor + libvirt binding |
-| `oya-cloud-compute-adapter-firecracker` | adapter | Firecracker microVM (function workloads) |
-| `oya-cloud-compute-adapter-k8s` | adapter | Kubernetes-as-a-service control loop |
-| `oya-cloud-compute-api` | api | Compute REST + gRPC API |
-| `oya-cloud-compute-vm-api` | api | VM create REST API |
-| `oya-cloud-compute-k8s-api` | api | Kubernetes cluster create REST API |
-| `oya-cloud-compute-functions-api` | api | Function invocation REST API |
-| `oya-cloud-storage-kernel` | kernel | Bucket, Object, Volume, Filesystem, Snapshot, ArchiveTier |
-| `oya-cloud-storage-object-api` | api | Object metadata PUT/GET REST API |
-| `oya-cloud-storage-adapter-s3` | adapter | S3-compatible object backend (Ceph / SeaweedFS / MinIO frontend) |
-| `oya-cloud-storage-adapter-block` | adapter | iSCSI / NBD / Ceph RBD block backend |
-| `oya-cloud-storage-adapter-file` | adapter | NFSv4 / SMB file backend (CephFS) |
-| `oya-cloud-storage-block-api` | api | Block volume create REST API |
-| `oya-cloud-storage-api` | api | Storage REST + S3-compatibility API |
-| `oya-cloud-network-kernel` | kernel | VPC, Subnet, RouteTable, NIC, SecurityGroup, LoadBalancer, DnsZone |
-| `oya-cloud-network-adapter` | adapter | OVN / OVS / BGP / FRR / CoreDNS |
-| `oya-cloud-network-adapter-selfhosted` | adapter | Self-hosted/colo VPC + DNS request-contract adapter for OVN / OVS / BGP / FRR-backed tenant network segments and CoreDNS/authoritative-zone control |
-| `oya-cloud-network-vpc-api` | api | VPC create REST API |
-| `oya-cloud-network-lb-api` | api | Load balancer create REST API |
-| `oya-cloud-network-dns-api` | api | DNS zone create REST API |
-| `oya-cloud-network-api` | api | Network REST API |
-| `oya-cloud-billing-kernel` | kernel | BillingAccount, MeterEvent, Invoice, Discount, BudgetAlert |
-| `oya-cloud-billing-domain` | domain | Aggregation, rate-card application, tax-invoice issuance per regional pack |
-| `oya-cloud-billing-adapter` | adapter | Postgres + ClickHouse billing aggregation; per-pack tax formatter |
-| `oya-cloud-billing-api` | api | Billing REST API + invoice surfaces |
-| `oya-cloud-billing-app` | app | Cloud billing event ingest CloudEvents/Protobuf surface + outbox publication |
-| `oya-cloud-billing-tax-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M03 cloud-billing) Regional tax invoice generation REST surface |
-| `oya-cloud-observability-kernel` | kernel | Metric, LogStream, Trace, Alert, Dashboard |
-| `oya-cloud-observability-adapter` | adapter | VictoriaMetrics → Mimir (ADR-0045, ADR-0042); Loki; Tempo; OTel collector |
-| `oya-cloud-observability-api` | api | Observability REST API |
-| `oya-cloud-supply-chain-app` | app | Cosign / Trivy / SBOM attestation per ADR-0039 |
-| `oya-cloud-marketplace-kernel` | kernel | ISV listing for cloud-native apps |
-| `oya-cloud-marketplace-adapter` | adapter | Tied to `oya-saas-marketplace-kernel` for cross-axis listing |
-| `oya-cloud-finops-api` | api | Per-tenant cost analytics report API, budget anomaly surfacing, FinOps recommendations |
-| `oya-cloud-resource-runtime` | runtime | Composition root |
+| `cloud-resource-kernel` | kernel | Generic Resource aggregate (id, type, region, owner, state, metering tag) |
+| `cloud-region-kernel` | kernel | Region / AZ / Cell taxonomy; residency class binding |
+| `cloud-region-domain` | domain | Region register / decommission, AZ failover, cell-rebalance |
+| `cloud-region-api` | api | Region / AZ listing REST API |
+| `cloud-cell-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M02-P18) Tenant cell-binding REST surface |
+| `cloud-iam-kernel` | kernel | IAM principal, role, policy (Cedar-based), STS session, federation |
+| `cloud-iam-domain` | domain | Identity federation, role assumption, key issuance |
+| `cloud-iam-adapter` | adapter | OIDC, SAML, OAuth, regional-pack IdP impls (Login.gov, eIDAS, Aadhaar, etc.) |
+| `cloud-iam-api` | api | IAM REST API v1, STS endpoint |
+| `cloud-kms-api` | api | KMS encrypt/decrypt authorization receipt REST API |
+| `cloud-compute-kernel` | kernel | Instance, ImageRef, Flavor, KeyPair, Snapshot, AutoScalingGroup |
+| `cloud-compute-domain` | domain | Provision / start / stop / snapshot / live-migrate / live-recover |
+| `cloud-compute-adapter-kvm` | adapter | KVM hypervisor + libvirt binding |
+| `cloud-compute-adapter-firecracker` | adapter | Firecracker microVM (function workloads) |
+| `cloud-compute-adapter-k8s` | adapter | Kubernetes-as-a-service control loop |
+| `cloud-compute-api` | api | Compute REST + gRPC API |
+| `cloud-compute-vm-api` | api | VM create REST API |
+| `cloud-compute-k8s-api` | api | Kubernetes cluster create REST API |
+| `cloud-compute-functions-api` | api | Function invocation REST API |
+| `cloud-storage-kernel` | kernel | Bucket, Object, Volume, Filesystem, Snapshot, ArchiveTier |
+| `cloud-storage-object-api` | api | Object metadata PUT/GET REST API |
+| `cloud-storage-adapter-s3` | adapter | S3-compatible object backend (Ceph / SeaweedFS / MinIO frontend) |
+| `cloud-storage-adapter-block` | adapter | iSCSI / NBD / Ceph RBD block backend |
+| `cloud-storage-adapter-file` | adapter | NFSv4 / SMB file backend (CephFS) |
+| `cloud-storage-block-api` | api | Block volume create REST API |
+| `cloud-storage-api` | api | Storage REST + S3-compatibility API |
+| `cloud-network-kernel` | kernel | VPC, Subnet, RouteTable, NIC, SecurityGroup, LoadBalancer, DnsZone |
+| `cloud-network-adapter` | adapter | OVN / OVS / BGP / FRR / CoreDNS |
+| `cloud-network-adapter-selfhosted` | adapter | Self-hosted/colo VPC + DNS request-contract adapter for OVN / OVS / BGP / FRR-backed tenant network segments and CoreDNS/authoritative-zone control |
+| `cloud-network-vpc-api` | api | VPC create REST API |
+| `cloud-network-lb-api` | api | Load balancer create REST API |
+| `cloud-network-dns-api` | api | DNS zone create REST API |
+| `cloud-network-api` | api | Network REST API |
+| `cloud-billing-kernel` | kernel | BillingAccount, MeterEvent, Invoice, Discount, BudgetAlert |
+| `cloud-billing-domain` | domain | Aggregation, rate-card application, tax-invoice issuance per regional pack |
+| `cloud-billing-adapter` | adapter | Postgres + ClickHouse billing aggregation; per-pack tax formatter |
+| `cloud-billing-api` | api | Billing REST API + invoice surfaces |
+| `cloud-billing-app` | app | Cloud billing event ingest CloudEvents/Protobuf surface + outbox publication |
+| `cloud-billing-tax-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M03 cloud-billing) Regional tax invoice generation REST surface |
+| `cloud-observability-kernel` | kernel | Metric, LogStream, Trace, Alert, Dashboard |
+| `cloud-observability-adapter` | adapter | VictoriaMetrics → Mimir (ADR-0045, ADR-0042); Loki; Tempo; OTel collector |
+| `cloud-observability-api` | api | Observability REST API |
+| `cloud-supply-chain-app` | app | Cosign / Trivy / SBOM attestation per ADR-0039 |
+| `cloud-marketplace-kernel` | kernel | ISV listing for cloud-native apps |
+| `cloud-marketplace-adapter` | adapter | Tied to `saas-marketplace-kernel` for cross-axis listing |
+| `cloud-finops-api` | api | Per-tenant cost analytics report API, budget anomaly surfacing, FinOps recommendations |
+| `cloud-resource-runtime` | runtime | Composition root |
 
 ### 4.3 External-facing surfaces
 
@@ -183,7 +183,7 @@ runtime   — composition root (binary)
 | `Observability API` (logs / metrics / traces / dashboards / audit read) | `contracts/openapi/cloud/cloud-observability-audit-v1.yaml` | analytics | per-stream class SLO; p99 ≤ 500 ms audit-read projection |
 | `Marketplace API` (cloud-app listing) | `contracts/cloud-marketplace-v1.openapi.yaml` | control | 99.9% |
 | `Foundry capability surface` (cloud.* mutators) | `registry/capability-templates/cloud.*.yaml` | control + audit | p99 ≤ 500 ms; every call audit-emits |
-| `Cloud Console (web)` | `apps/oya-cloud-console/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
+| `Cloud Console (web)` | `apps/cloud-console/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
 | `Direct interconnect` | physical port + BGP | network | per-link SLA; 99.99% |
 | `Audit log export` | per-tenant signed S3 stream | audit | 100% emission completeness |
 
@@ -191,37 +191,37 @@ runtime   — composition root (binary)
 
 | Seam | Trait / interface name | Consumer products |
 |---|---|---|
-| Resource lifecycle | `Resource`, `ResourceKind`, `ResourceRepo` in `oya-cloud-resource-kernel` | All Oyatie axes that consume cloud (SaaS, Search, Ads, Foundry, Vertical) |
-| Region / AZ / Cell | `RegionCode`, `AzCode`, `CellId`, `Cell::route_for(tenant)` in `oya-cloud-region-kernel` | All axes (residency-aware) |
-| IAM / STS | `IamRole`, `Sts::assume(...)` in `oya-cloud-iam-kernel` | All axes |
-| Billing event | `CloudBillingEvent`, `CloudBillingLedger::ingest(...)`, and `oya-cloud-billing-app` event boundary | SaaS (per-tenant cost), FinOps, Marketplace, Tax |
+| Resource lifecycle | `Resource`, `ResourceKind`, `ResourceRepo` in `cloud-resource-kernel` | All Oyatie axes that consume cloud (SaaS, Search, Ads, Foundry, Vertical) |
+| Region / AZ / Cell | `RegionCode`, `AzCode`, `CellId`, `Cell::route_for(tenant)` in `cloud-region-kernel` | All axes (residency-aware) |
+| IAM / STS | `IamRole`, `Sts::assume(...)` in `cloud-iam-kernel` | All axes |
+| Billing event | `CloudBillingEvent`, `CloudBillingLedger::ingest(...)`, and `cloud-billing-app` event boundary | SaaS (per-tenant cost), FinOps, Marketplace, Tax |
 | Observability dataplane | `MetricStream`, `LogStream`, `TraceStream` | All axes |
 | Foundry mutator surface | `cloud.compute.provision` / `cloud.iam.publish` / `cloud.region.register` / `cloud.capacity.rebalance` capabilities | Foundry |
-| Object store | `Bucket`, `ObjectRepo` in `oya-cloud-storage-kernel` | Search (corpus), Ads (impression archive), SaaS (tenant-asset), Vertical (clinical-image archive) |
+| Object store | `Bucket`, `ObjectRepo` in `cloud-storage-kernel` | Search (corpus), Ads (impression archive), SaaS (tenant-asset), Vertical (clinical-image archive) |
 
 ### 4.5 Dependencies on other axes (cross-axis contracts)
 
 | Contract consumed | Owner axis | Where it lives | Change-review class |
 |---|---|---|---|
-| Tenant kernel | SaaS | `oya-platform-tenant-kernel` | Cross-axis (mandatory all-axis review) |
-| Identity / Cedar policy | SaaS | `oya-platform-identity-kernel` | Two-ADR lockstep with `oya-cloud-iam-kernel` |
-| Audit-chain event | SaaS / Audit subsystem | `oya-platform-audit-chain-kernel` | Audit + downstream-consumer review |
-| Eventing backbone | SaaS | `oya-platform-eventing-kernel` | Cross-axis on topic shape |
+| Tenant kernel | SaaS | `platform-tenant-kernel` | Cross-axis (mandatory all-axis review) |
+| Identity / Cedar policy | SaaS | `platform-identity-kernel` | Two-ADR lockstep with `cloud-iam-kernel` |
+| Audit-chain event | SaaS / Audit subsystem | `platform-audit-chain-kernel` | Audit + downstream-consumer review |
+| Eventing backbone | SaaS | `platform-eventing-kernel` | Cross-axis on topic shape |
 | Capability invocation | Foundry | `contracts/foundry-capability.openapi.yaml` | Cross-axis (foundry + cloud) |
-| Autonomy ceiling | Foundry | `oya-intelligence-policy-kernel` | Governance + security |
-| Regulatory pack | SaaS / Vertical | `oya-platform-regulatory-kernel` | Vertical + regulatory review |
-| Metering kernel | SaaS | `oya-platform-metering-kernel` | Billing + tax review |
+| Autonomy ceiling | Foundry | `intelligence-policy-kernel` | Governance + security |
+| Regulatory pack | SaaS / Vertical | `platform-regulatory-kernel` | Vertical + regulatory review |
+| Metering kernel | SaaS | `platform-metering-kernel` | Billing + tax review |
 
 (Mirror in [DESIGN.md §10](../../DESIGN.md).)
 
 ## 5. Data structures (required) — *the slice-level domain model*
 
-### 5.1 Kernel entities (in `crates/oya-cloud-*-kernel`)
+### 5.1 Kernel entities (in `crates/cloud-*-kernel`)
 
 ```rust
-// oya-cloud-resource-kernel
+// cloud-resource-kernel
 pub struct Resource {
-    pub id: ResourceId,                        // ulid; arn-style "oya:cloud:<region>:<tenant>:<kind>:<name>"
+    pub id: ResourceId,                        // ulid; arn-style "oyatie:cloud:<region>:<tenant>:<kind>:<name>"
     pub tenant_id: TenantId,                   // every record carries tenant
     pub region: RegionCode,                    // KR-Seoul1, JP-Tokyo1, US-Virginia1, EU-Frankfurt1, ...
     pub az: Option<AzCode>,                    // KR-Seoul1-a/b/c
@@ -267,7 +267,7 @@ pub enum ResourceKind {
 ```
 
 ```rust
-// oya-cloud-region-kernel
+// cloud-region-kernel
 pub struct Region {
     pub code: RegionCode,                      // KR-Seoul1, JP-Tokyo1, ...
     pub display_name: String,                  // "Korea (Seoul)"
@@ -309,7 +309,7 @@ pub struct Cell {
 ```
 
 ```rust
-// oya-cloud-iam-kernel
+// cloud-iam-kernel
 pub struct IamPrincipal {
     pub id: IamPrincipalId,
     pub tenant_id: TenantId,
@@ -354,7 +354,7 @@ pub struct StsSession {
 ```
 
 ```rust
-// oya-cloud-compute-kernel
+// cloud-compute-kernel
 pub struct Instance {
     pub resource_id: ResourceId,
     pub tenant_id: TenantId,
@@ -378,7 +378,7 @@ pub struct Instance {
 ```
 
 ```rust
-// oya-cloud-storage-kernel
+// cloud-storage-kernel
 pub struct Bucket {
     pub resource_id: ResourceId,
     pub tenant_id: TenantId,
@@ -414,7 +414,7 @@ pub struct StoredObject {
 ```
 
 ```rust
-// oya-cloud-network-kernel
+// cloud-network-kernel
 pub struct Vpc {
     pub resource_id: ResourceId,
     pub tenant_id: TenantId,
@@ -446,7 +446,7 @@ pub struct LoadBalancer {
 ```
 
 ```rust
-// oya-cloud-billing-kernel
+// cloud-billing-kernel
 pub struct BillingAccount {
     pub id: BillingAccountId,
     pub tenant_id: TenantId,
@@ -514,27 +514,27 @@ All events go through the canonical eventing backbone per ADR-0050/0174 + outbox
 
 | Event name | Topic | Schema location | Consumer aggregates | Retention | Idempotency key |
 |---|---|---|---|---|---|
-| `cloud.billing.event.ingest.v1` | `oya.cloud.billing` | `contracts/asyncapi/cloud/cloud-billing-events-v1.yaml`; `contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` | SaaS billing, FinOps, Marketplace, Tax, platform metering | 7y | `idempotency_key` |
-| `cloud.resource_created.v1` | `oya.cloud.resource` | `contracts/events/cloud.resource_created.v1.avsc` | Billing (start meter), Audit, FinOps, SaaS metering | 90 d | `(tenant_id, resource_id)` |
-| `cloud.resource_terminated.v1` | `oya.cloud.resource` | `contracts/events/cloud.resource_terminated.v1.avsc` | Billing (stop meter), Audit, FinOps | 90 d | `(tenant_id, resource_id)` |
-| `cloud.iam_role_assumed.v1` | `oya.cloud.iam` | `contracts/events/cloud.iam_role_assumed.v1.avsc` | Audit (per-assume record), Foundry (capability bind) | 90 d | `sts_session_id` |
-| `cloud.iam_policy_changed.v1` | `oya.cloud.iam` | `contracts/events/cloud.iam_policy_changed.v1.avsc` | Audit, Cedar evaluator cache invalidate, Foundry policy projection | indefinite | `(tenant_id, policy_id, version)` |
-| `cloud.region_registered.v1` | `oya.cloud.region` | `contracts/events/cloud.region_registered.v1.avsc` | All axes (residency-aware), regulatory pack binding, marketplace | indefinite | `region_code` |
-| `cloud.cell_rebalanced.v1` | `oya.cloud.region` | `contracts/events/cloud.cell_rebalanced.v1.avsc` | Audit, FinOps, observability | 90 d | `(cell_id, rebalance_seq)` |
-| `cloud.invoice_issued.v1` | `oya.cloud.billing` | `contracts/events/cloud.invoice_issued.v1.avsc` | SaaS billing-account update, Tax (regional pack), Tenant trust portal | 7y | `invoice_id` |
-| `cloud.budget_alert.v1` | `oya.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, (notification) | 30 d | `(billing_account_id, alert_seq)` |
-| `cloud.bucket_replication_lag.v1` | `oya.cloud.storage` | `contracts/events/cloud.bucket_replication_lag.v1.avsc` | Observability, Foundry remediation capability | 14 d | `(bucket_id, ts)` |
-| `cloud.object_lifecycle_transitioned.v1` | `oya.cloud.storage` | `contracts/events/cloud.object_lifecycle_transitioned.v1.avsc` | Audit, FinOps, Search re-index hint | 90 d | `(bucket_id, key, transition_seq)` |
-| `cloud.network_flow_anomaly.v1` | `oya.cloud.network` | `contracts/events/cloud.network_flow_anomaly.v1.avsc` | Security review, Foundry remediation, Audit | 90 d | `(vpc_id, anomaly_id)` |
-| `cloud.kms_key_used.v1` | `oya.cloud.iam` | `contracts/events/cloud.kms_key_used.v1.avsc` | Audit (per-decrypt record per ADR-0003 properties) | indefinite | `(key_id, use_seq)` |
+| `cloud.billing.event.ingest.v1` | `oyatie.cloud.billing` | `contracts/asyncapi/cloud/cloud-billing-events-v1.yaml`; `contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` | SaaS billing, FinOps, Marketplace, Tax, platform metering | 7y | `idempotency_key` |
+| `cloud.resource_created.v1` | `oyatie.cloud.resource` | `contracts/events/cloud.resource_created.v1.avsc` | Billing (start meter), Audit, FinOps, SaaS metering | 90 d | `(tenant_id, resource_id)` |
+| `cloud.resource_terminated.v1` | `oyatie.cloud.resource` | `contracts/events/cloud.resource_terminated.v1.avsc` | Billing (stop meter), Audit, FinOps | 90 d | `(tenant_id, resource_id)` |
+| `cloud.iam_role_assumed.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.iam_role_assumed.v1.avsc` | Audit (per-assume record), Foundry (capability bind) | 90 d | `sts_session_id` |
+| `cloud.iam_policy_changed.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.iam_policy_changed.v1.avsc` | Audit, Cedar evaluator cache invalidate, Foundry policy projection | indefinite | `(tenant_id, policy_id, version)` |
+| `cloud.region_registered.v1` | `oyatie.cloud.region` | `contracts/events/cloud.region_registered.v1.avsc` | All axes (residency-aware), regulatory pack binding, marketplace | indefinite | `region_code` |
+| `cloud.cell_rebalanced.v1` | `oyatie.cloud.region` | `contracts/events/cloud.cell_rebalanced.v1.avsc` | Audit, FinOps, observability | 90 d | `(cell_id, rebalance_seq)` |
+| `cloud.invoice_issued.v1` | `oyatie.cloud.billing` | `contracts/events/cloud.invoice_issued.v1.avsc` | SaaS billing-account update, Tax (regional pack), Tenant trust portal | 7y | `invoice_id` |
+| `cloud.budget_alert.v1` | `oyatie.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, (notification) | 30 d | `(billing_account_id, alert_seq)` |
+| `cloud.bucket_replication_lag.v1` | `oyatie.cloud.storage` | `contracts/events/cloud.bucket_replication_lag.v1.avsc` | Observability, Foundry remediation capability | 14 d | `(bucket_id, ts)` |
+| `cloud.object_lifecycle_transitioned.v1` | `oyatie.cloud.storage` | `contracts/events/cloud.object_lifecycle_transitioned.v1.avsc` | Audit, FinOps, Search re-index hint | 90 d | `(bucket_id, key, transition_seq)` |
+| `cloud.network_flow_anomaly.v1` | `oyatie.cloud.network` | `contracts/events/cloud.network_flow_anomaly.v1.avsc` | Security review, Foundry remediation, Audit | 90 d | `(vpc_id, anomaly_id)` |
+| `cloud.kms_key_used.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.kms_key_used.v1.avsc` | Audit (per-decrypt record per ADR-0003 properties) | indefinite | `(key_id, use_seq)` |
 
 ### 5.5 Index / search-index touchpoints
 
 | Entity field | Index | Class allowed (per consent tier) | Cascade-on-DSR? |
 |---|---|---|---|
-| `Resource.tags` (when public-attribute) | `oya-search-cloud-resource-public` | `PUBLIC` only | Yes |
-| `Marketplace listing` (cloud-app) | `oya-search-marketplace-public` | `PUBLIC` | Yes |
-| `Region.display_name + capabilities` | `oya-search-cloud-region-public` | `PUBLIC` | n/a |
+| `Resource.tags` (when public-attribute) | `search-cloud-resource-public` | `PUBLIC` only | Yes |
+| `Marketplace listing` (cloud-app) | `search-marketplace-public` | `PUBLIC` | Yes |
+| `Region.display_name + capabilities` | `search-cloud-region-public` | `PUBLIC` | n/a |
 
 (Cloud is primarily a control + data plane; the search-index fan-out is light. Most cloud data is per-tenant private and never indexed cross-tenant.)
 
@@ -544,29 +544,29 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 
 | Operation | Emits topic | Required fields |
 |---|---|---|
-| Resource created | `oya.audit.cloud_resource_created` | `tenant_id`, `region`, `cell_id`, `kind`, `actor`, `iam_role`, `timestamp`, `prev_hash` |
-| Resource terminated | `oya.audit.cloud_resource_terminated` | `tenant_id`, `resource_id`, `actor`, `reason`, `timestamp`, `prev_hash` |
-| IAM role assumed | `oya.audit.cloud_iam_assume` | `tenant_id`, `role_id`, `assumed_by`, `external_id`, `scopes`, `timestamp`, `prev_hash` |
-| IAM policy changed | `oya.audit.cloud_iam_policy` | `tenant_id`, `policy_id`, `before_hash`, `after_hash`, `actor`, `timestamp`, `prev_hash` |
-| Region registered | `oya.audit.cloud_region_register` | `region_code`, `regulatory_packs`, `actor`, `attestation_refs`, `timestamp`, `prev_hash` |
-| KMS key used (decrypt) | `oya.audit.cloud_kms_use` | `tenant_id`, `key_id`, `purpose`, `actor`, `data_class_referenced`, `timestamp`, `prev_hash` |
-| Cross-region replication | `oya.audit.cloud_replication` | `tenant_id`, `bucket_id`, `src_region`, `dst_region`, `data_classes_present`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
-| Network flow anomaly | `oya.audit.cloud_flow_anomaly` | `tenant_id`, `vpc_id`, `flow_pattern`, `severity`, `disposition`, `timestamp`, `prev_hash` |
-| Invoice issued | `oya.audit.cloud_invoice` | `tenant_id`, `billing_account_id`, `invoice_id`, `total`, `tax_invoice_format`, `regional_pack`, `timestamp`, `prev_hash` |
-| Direct interconnect provisioned | `oya.audit.cloud_interconnect` | `tenant_id`, `interconnect_id`, `bandwidth`, `peer_asn`, `peering_location`, `actor`, `timestamp`, `prev_hash` |
+| Resource created | `oyatie.audit.cloud_resource_created` | `tenant_id`, `region`, `cell_id`, `kind`, `actor`, `iam_role`, `timestamp`, `prev_hash` |
+| Resource terminated | `oyatie.audit.cloud_resource_terminated` | `tenant_id`, `resource_id`, `actor`, `reason`, `timestamp`, `prev_hash` |
+| IAM role assumed | `oyatie.audit.cloud_iam_assume` | `tenant_id`, `role_id`, `assumed_by`, `external_id`, `scopes`, `timestamp`, `prev_hash` |
+| IAM policy changed | `oyatie.audit.cloud_iam_policy` | `tenant_id`, `policy_id`, `before_hash`, `after_hash`, `actor`, `timestamp`, `prev_hash` |
+| Region registered | `oyatie.audit.cloud_region_register` | `region_code`, `regulatory_packs`, `actor`, `attestation_refs`, `timestamp`, `prev_hash` |
+| KMS key used (decrypt) | `oyatie.audit.cloud_kms_use` | `tenant_id`, `key_id`, `purpose`, `actor`, `data_class_referenced`, `timestamp`, `prev_hash` |
+| Cross-region replication | `oyatie.audit.cloud_replication` | `tenant_id`, `bucket_id`, `src_region`, `dst_region`, `data_classes_present`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
+| Network flow anomaly | `oyatie.audit.cloud_flow_anomaly` | `tenant_id`, `vpc_id`, `flow_pattern`, `severity`, `disposition`, `timestamp`, `prev_hash` |
+| Invoice issued | `oyatie.audit.cloud_invoice` | `tenant_id`, `billing_account_id`, `invoice_id`, `total`, `tax_invoice_format`, `regional_pack`, `timestamp`, `prev_hash` |
+| Direct interconnect provisioned | `oyatie.audit.cloud_interconnect` | `tenant_id`, `interconnect_id`, `bandwidth`, `peer_asn`, `peering_location`, `actor`, `timestamp`, `prev_hash` |
 
 ### 5.7 Schema migration policy
 
 - **Versioning**: `schema_version: u32` per kernel entity; monotonic per region.
 - **Reversibility**: every migration ships up + down DDL; per-region rollout via Argo Rollouts (ADR-0050) with automated metric-gated rollback.
-- **Dry-run gate**: Foundry fitness function `oya-governance-migration` runs against synthetic 10k-resource per-region tenant before merge.
+- **Dry-run gate**: Foundry fitness function `governance-migration` runs against synthetic 10k-resource per-region tenant before merge.
 - **Region-pack-conditional migrations**: regional packs declare migrations independently; canonical core never depends on a pack-specific column.
 
 ## 6. Optimization practices (required) — *slice-level*
 
 | Practice | Implementation choice |
 |---|---|
-| Cell routing | `Tenant.region` + tenant density class chooses cell; Envoy header `x-oya-cell` routes resource API to cell-local Postgres + control-plane services |
+| Cell routing | `Tenant.region` + tenant density class chooses cell; Envoy header `x-cell` routes resource API to cell-local Postgres + control-plane services |
 | Sharding strategy | Per-region Postgres clusters; Citus (ADR-0045) per-tenant within cell; ClickHouse per-region per-day for billing + observability; object backend erasure-coded across AZs |
 | Caching tier | In-memory (moka) for hot Region + Cell + Cedar policy; Redis for IAM session + STS short-circuit; CDN for static control-plane assets and Cloud Console |
 | Bulk endpoint contract | `BatchCreateResources`, `BulkAttachIam`, `BulkObjectDelete`, `BulkSnapshotPolicy`; max batch 1 000 resources or 100 000 objects |
@@ -574,10 +574,10 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 | Idempotency | `Idempotency-Key` header on every mutating REST + gRPC call; outbox dedupes 24 h; cloud-init runs are deduped on `instance_id` |
 | Batch dispatch | Capacity-rebalance batches every 5 s; billing aggregation batches every 60 s; observability ingest batches every 1 s or 256 events |
 | Backpressure | Capacity-bound rejection at cell with `429`+`Retry-After`; observability ingest sheds to dead-letter at 95% lag; LB control loop slows under metric pressure |
-| Hot-path benchmarks | STS issuance (`p99 ≤ 100 ms`), Cedar evaluation (`p99 ≤ 5 ms`), object GET (`p99 ≤ 100 ms`), instance `provision-to-running` (`p95 ≤ 60 s`) — wired to `oya-governance-bench` |
+| Hot-path benchmarks | STS issuance (`p99 ≤ 100 ms`), Cedar evaluation (`p99 ≤ 5 ms`), object GET (`p99 ≤ 100 ms`), instance `provision-to-running` (`p95 ≤ 60 s`) — wired to `governance-bench` |
 | Agent-driven optimization loops | Foundry capability `cloud.capacity.rebalance` (autonomy ≤ T2): proposes cell rebalance from utilization metrics; `cloud.cost.recommend` (≤ T1): identifies idle resources, recommends down-sizing; `cloud.iam.audit-narrow` (≤ T2): proposes least-privilege role narrowing from access logs; human approves before execution at T2 |
 | FinOps unit-economics | Per-tenant cost = sum(`MeterEvent.units` × per-region rate-card); per-resource breakdown in `Cloud Console FinOps`; target gross-margin per region ≥ 50% at GA |
-| Build-cache and CI affected-graph | `oya-cloud-*` is the largest per-region change subgraph; ADR-0015 flat boundaries keep change-radius bounded; per-region IaC profile (OpenTofu, ADR-0050) is run-once per affected region |
+| Build-cache and CI affected-graph | `cloud-*` is the largest per-region change subgraph; ADR-0015 flat boundaries keep change-radius bounded; per-region IaC profile (OpenTofu, ADR-0050) is run-once per affected region |
 
 ## 7. Regional pack interactions (required) — *which seams this product plugs into*
 
@@ -585,15 +585,15 @@ Per [DESIGN.md §12](../../DESIGN.md):
 
 | Seam | Trait | Per-pack impl needed? | Tested with which packs? |
 |---|---|---|---|
-| Region → regulatory binding | `RegulatoryPack` in `oya-platform-regulatory-kernel` | yes | KR (PIPA/CSAP/K-ISMS-P/KCMVP/KISA); JP (APPI/ISMAP); US (HIPAA/CCPA/SOX/FedRAMP); EU (GDPR/DORA/GAIA-X); IN (DPDP/MeitY); BR (LGPD); KSA (PDPL/NDMO/SDAIA); UAE (TDRA/ADGM); ANZ (Privacy Act/IRAP); SG (PDPA-SG/MAS) |
-| Identity provider (cloud customer SSO) | `IdentityProvider` in `oya-platform-identity-kernel` | yes | KR (본인확인서비스, Kakao, Naver), JP (マイナンバー), US (Login.gov), EU (eIDAS), IN (Aadhaar), BR (gov.br), KSA (Absher), UAE (UAE-PASS), ANZ (myGovID) |
-| Tax-invoice formatter | `TaxInvoiceFormatter` in `oya-platform-billing-tax-kernel` | yes | KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA |
-| Address validator (interconnect site, cloud customer billing) | `AddressValidator` in `oya-platform-address-kernel` | yes | every pack |
-| Payment rail (cloud-customer-side) | `PaymentRail` in `oya-saas-billing-rail-kernel` (shared) | yes | KR (Toss/계좌이체), JP (口座振替), US (ACH/Wire), EU (SEPA), IN (UPI), BR (Pix), KSA (SADAD/Mada) |
-| Per-region HSM/KMS | `HsmAdapter` in `oya-cloud-iam-kernel` | yes | KR (KCMVP-certified HSM), JP (CRYPTREC), US (FIPS-140-3), EU (Common Criteria EAL-4+), KSA (NCA-NCS) |
-| Per-region attestation surface | `AttestationProvider` in `oya-cloud-supply-chain-app` | yes | KR (CSAP / K-ISMS-P), JP (ISMAP), US (FedRAMP / SOC-2 / ISO-27001), EU (C5 / GAIA-X), KSA (ECC), UAE (TRA / ADGM) |
-| Per-region observability data residency | `ObservabilityResidency` in `oya-cloud-observability-kernel` | yes | every pack (logs/metrics/traces stay in-region by default) |
-| Direct interconnect peering | `InterconnectPartner` in `oya-cloud-network-kernel` | yes | KR (KIX/KINX), JP (JPIX/BBIX), US (Equinix/Megaport), EU (DE-CIX/AMS-IX), SG (SGIX) |
+| Region → regulatory binding | `RegulatoryPack` in `platform-regulatory-kernel` | yes | KR (PIPA/CSAP/K-ISMS-P/KCMVP/KISA); JP (APPI/ISMAP); US (HIPAA/CCPA/SOX/FedRAMP); EU (GDPR/DORA/GAIA-X); IN (DPDP/MeitY); BR (LGPD); KSA (PDPL/NDMO/SDAIA); UAE (TDRA/ADGM); ANZ (Privacy Act/IRAP); SG (PDPA-SG/MAS) |
+| Identity provider (cloud customer SSO) | `IdentityProvider` in `platform-identity-kernel` | yes | KR (본인확인서비스, Kakao, Naver), JP (マイナンバー), US (Login.gov), EU (eIDAS), IN (Aadhaar), BR (gov.br), KSA (Absher), UAE (UAE-PASS), ANZ (myGovID) |
+| Tax-invoice formatter | `TaxInvoiceFormatter` in `platform-billing-tax-kernel` | yes | KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA |
+| Address validator (interconnect site, cloud customer billing) | `AddressValidator` in `platform-address-kernel` | yes | every pack |
+| Payment rail (cloud-customer-side) | `PaymentRail` in `saas-billing-rail-kernel` (shared) | yes | KR (Toss/계좌이체), JP (口座振替), US (ACH/Wire), EU (SEPA), IN (UPI), BR (Pix), KSA (SADAD/Mada) |
+| Per-region HSM/KMS | `HsmAdapter` in `cloud-iam-kernel` | yes | KR (KCMVP-certified HSM), JP (CRYPTREC), US (FIPS-140-3), EU (Common Criteria EAL-4+), KSA (NCA-NCS) |
+| Per-region attestation surface | `AttestationProvider` in `cloud-supply-chain-app` | yes | KR (CSAP / K-ISMS-P), JP (ISMAP), US (FedRAMP / SOC-2 / ISO-27001), EU (C5 / GAIA-X), KSA (ECC), UAE (TRA / ADGM) |
+| Per-region observability data residency | `ObservabilityResidency` in `cloud-observability-kernel` | yes | every pack (logs/metrics/traces stay in-region by default) |
+| Direct interconnect peering | `InterconnectPartner` in `cloud-network-kernel` | yes | KR (KIX/KINX), JP (JPIX/BBIX), US (Equinix/Megaport), EU (DE-CIX/AMS-IX), SG (SGIX) |
 
 ## 8. In-house vs external dependency posture (required)
 
@@ -618,7 +618,7 @@ Per [DESIGN.md §12](../../DESIGN.md):
 | `Apache Kafka` | secondary | Apache-2 | own event bus — rejected; outbox is day-1 | adopt gated (ADR-0046) |
 | `ClickHouse` | secondary | Apache-2 | own OLAP — rejected | adopt (ADR-0045) |
 
-License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is governed by ADR-0039 and planned advisory lane `oya-governance-license`.
+License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is governed by ADR-0039 and planned advisory lane `governance-license`.
 
 ## 9. Success metrics (required)
 
@@ -646,7 +646,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Object backend (Ceph/Seaweed) durability claim does not survive AZ loss | Catastrophic | EC 3+1 across AZs by default; per-bucket scrub schedule; quarterly forced AZ-isolation drill | Cloud-storage team |
 | Cross-region replication leaks under residency-strict policy | Catastrophic | Per-bucket `allowed_data_classes` × residency policy enforced at replication ingress; audit-chain on every cross-region ship | Cloud + Privacy |
 | KVM / hypervisor escape | Catastrophic | Firecracker for high-blast-radius workloads; per-cell host hardening; CVE-driven restart-policy; supply-chain attestation per host image (ADR-0039) | Cloud + Security |
-| AGPL backend (MinIO) accidentally adopted | High | License-policy gate (`oya-governance-license`) hard-fails any MinIO link or vendoring | Cloud + Foundry |
+| AGPL backend (MinIO) accidentally adopted | High | License-policy gate (`governance-license`) hard-fails any MinIO link or vendoring | Cloud + Foundry |
 | Foundry mutator misuse (e.g. `cloud.iam.publish` over-broad) | High | Autonomy-ceiling-bound; T3 required for IAM mutation by default; per-mutator scoped capability schema; audit-chain on every invocation | Cloud + Foundry + Governance |
 | KR CSAP attestation slipping past target | High | Parallel KR-pack workstream; contract with KR auditor signed pre-W-Cloud-Preview; controls evidenced via Foundry agents (HIPAA/KISA pattern per DESIGN §3) | Cloud-KR-pack team |
 | Multi-AZ failover not actually exercised | High | Argo Rollouts (ADR-0050) progressive delivery + monthly forced AZ-failover drill; metric-gated rollback validated quarterly | Cloud + SRE |
@@ -685,7 +685,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 2. **encryption-BYOK / HYOK at preview**: tenant-key escrow with KCMVP HSM as default for KR-pack; deferred for non-KR packs until W-Cloud-Stable. Confirm at council.
 3. **Bare-metal lease**: managed (Oyatie operates the bare-metal as a service) or unmanaged (tenant gets root)? Default proposed: managed-by-default with unmanaged opt-in.
 4. **Air-gapped sovereign cell** (per ADR-0050 air-gap-first profile): which packs include it from preview (KR public sector? JP government? UAE ADGM?) vs. defer to GA. Council pending.
-5. **Marketplace ISV onboarding**: same gate as `oya-saas-marketplace-kernel` (Plugin trust tiers ADR-0036), or separate cloud-app trust ladder?
+5. **Marketplace ISV onboarding**: same gate as `saas-marketplace-kernel` (Plugin trust tiers ADR-0036), or separate cloud-app trust ladder?
 
 ## 12. Decision log
 
@@ -724,19 +724,19 @@ Score honesty note: this section is a design benchmark. `Strong` requires a name
 
 | Pattern | Where it lives in this PRD | Hyperscaler reference |
 |---|---|---|
-| **Cell isolation / blast radius** | §4.2 `Cell` aggregate; `tenant_density: TenantDensityClass`; per-cell Postgres cluster; cell-local Envoy header `x-oya-cell`; per-cell chaos drills monthly (§10) | AWS shuffle-sharding + cell-based failure isolation; Azure mission-critical zone segmentation |
+| **Cell isolation / blast radius** | §4.2 `Cell` aggregate; `tenant_density: TenantDensityClass`; per-cell Postgres cluster; cell-local Envoy header `x-cell`; per-cell chaos drills monthly (§10) | AWS shuffle-sharding + cell-based failure isolation; Azure mission-critical zone segmentation |
 | **Multi-region active / active** | §3.1 W-Cloud-Preview: KR-Seoul1 + JP-Tokyo1 + US-Virginia1 + EU-Frankfurt1 in parallel; §5.3 streaming replication 3-AZ + cross-region read-only mirror | AWS multi-AZ + multi-region; Azure reliability pillar — zone + region redundancy |
 | **Capacity reservation** | §6 `cloud.capacity.rebalance` Foundry capability (≤ T2 autonomy); per-cell utilization struct; batch rebalance every 5 s | AWS Reserved Instances / capacity reservations pattern; GCP committed-use contracts |
 | **IAM least-privilege** | §4.2 Cedar policies; §5.1 `IamRole.max_session_duration_sec`; `cloud.iam.audit-narrow` capability proposes narrowing from access logs; per-mutator scoped capability schema; default-deny cross-cell IAM | AWS IAM least-privilege pillar; Azure zero-trust IAM |
-| **FinOps: cost reporting + right-sizing** | §4.2 `oya-cloud-finops-api`; `cloud.cost.recommend` (≤ T1) identifies idle resources; per-tenant cost breakdown in Cloud Console; per-region gross-margin gate ≥ 50% at GA | AWS Cost Explorer + Trusted Advisor; Azure Cost Management + Advisor |
-| **4 golden signals observability** | §4.2 `oya-cloud-observability-kernel` + `MetricStream`, `LogStream`, `TraceStream`; §4.3 SLO targets on every API surface (latency p99 + availability %); §6 hot-path benchmarks for STS / Cedar / object GET | Google SRE 4 golden signals: latency + traffic + errors + saturation |
+| **FinOps: cost reporting + right-sizing** | §4.2 `cloud-finops-api`; `cloud.cost.recommend` (≤ T1) identifies idle resources; per-tenant cost breakdown in Cloud Console; per-region gross-margin gate ≥ 50% at GA | AWS Cost Explorer + Trusted Advisor; Azure Cost Management + Advisor |
+| **4 golden signals observability** | §4.2 `cloud-observability-kernel` + `MetricStream`, `LogStream`, `TraceStream`; §4.3 SLO targets on every API surface (latency p99 + availability %); §6 hot-path benchmarks for STS / Cedar / object GET | Google SRE 4 golden signals: latency + traffic + errors + saturation |
 | **Data perimeter / residency** | §5.1 `ResidencyClass` on every `Resource` + `Bucket`; per-bucket `allowed_data_classes`; per-cell `allowed_residency`; cross-region replication blocked unless residency policy explicitly permits | AWS data-perimeter controls; Azure data residency commitments |
-| **KMS / encryption-BYOK / HYOK** | §3.1 W-Cloud-Preview encryption-BYOK/HYOK KMS; §4.2 `oya-cloud-kms-api`; `EncryptionMode: sse | sse-kms | byok | hyok`; per-pack HSM (KCMVP / FIPS-140-3 / Common Criteria EAL-4+); `cloud.kms_key_used.v1` audit event (indefinite retention) | AWS KMS + CloudHSM; Azure Key Vault + Managed HSM; GCP Cloud KMS + Cloud HSM |
-| **Supply-chain attestation** | §4.2 `oya-cloud-supply-chain-app` (Cosign + Trivy + SBOM per ADR-0039); `oya-governance-license` hard-gate; per-host image supply-chain attestation (§10) | AWS SLSA / Sigstore; Google Binary Authorization; Azure Defender for DevOps |
+| **KMS / encryption-BYOK / HYOK** | §3.1 W-Cloud-Preview encryption-BYOK/HYOK KMS; §4.2 `cloud-kms-api`; `EncryptionMode: sse | sse-kms | byok | hyok`; per-pack HSM (KCMVP / FIPS-140-3 / Common Criteria EAL-4+); `cloud.kms_key_used.v1` audit event (indefinite retention) | AWS KMS + CloudHSM; Azure Key Vault + Managed HSM; GCP Cloud KMS + Cloud HSM |
+| **Supply-chain attestation** | §4.2 `cloud-supply-chain-app` (Cosign + Trivy + SBOM per ADR-0039); `governance-license` hard-gate; per-host image supply-chain attestation (§10) | AWS SLSA / Sigstore; Google Binary Authorization; Azure Defender for DevOps |
 | **Idempotency on every mutation** | §6 `Idempotency-Key` header on every mutating REST + gRPC; outbox deduplication 24 h; cloud-init deduped on `instance_id`; `idempotency_key` on every billing event | AWS SDK retry-with-idempotency; Temporal idempotent activities |
 | **Backpressure / rate limiting** | §6 capacity-bound 429 + `Retry-After` at cell; observability ingest sheds at 95% lag; LB control loop slows under metric pressure | AWS throttling + token-bucket; Azure APIM throttling; Google SRE saturation signal |
 | **Audit chain on every mutation** | §5.6 full audit-chain emission contract (10 regulated operations); `prev_hash` chained; per-tenant signed S3 stream; indefinite KMS-use retention | AWS CloudTrail immutable logs; Azure Monitor audit logs; GCP Cloud Audit Logs |
-| **Vendor lock-in avoidance** | §8 every external dep behind adapter trait (`KVM`, `Firecracker`, `Ceph/SeaweedFS`, `OVN`, `FRR`, `OpenTofu`) — never imported directly into product crates; `oya-governance-license` enforces boundaries | AWS portability via IaC; Azure WAF vendor-neutrality |
+| **Vendor lock-in avoidance** | §8 every external dep behind adapter trait (`KVM`, `Firecracker`, `Ceph/SeaweedFS`, `OVN`, `FRR`, `OpenTofu`) — never imported directly into product crates; `governance-license` enforces boundaries | AWS portability via IaC; Azure WAF vendor-neutrality |
 | **Fallback-as-failover (not silent fallback)** | §6 Argo Rollouts metric-gated rollback; Istio Ambient with Linkerd as exercised fallback (ADR-0044) — both paths continuously exercised | AWS Builders Library: avoid fallback; convert to failover via continuous exercise |
 
 ### 14.2 Anti-patterns explicitly avoided
@@ -758,7 +758,7 @@ The following patterns from hyperscaler frameworks are partially or entirely abs
 
 | Gap | Severity | Recommended addition | Reference |
 |---|---|---|---|
-| **Explicit error-budget policy** | High | Add an error-budget burn-rate alert contract: per-SLO burn-rate thresholds (fast burn: 5× in 1 h triggers page; slow burn: 1× in 6 h triggers ticket); link to `oya-cloud-observability-kernel` | Google SRE error-budget burn-rate alerting |
+| **Explicit error-budget policy** | High | Add an error-budget burn-rate alert contract: per-SLO burn-rate thresholds (fast burn: 5× in 1 h triggers page; slow burn: 1× in 6 h triggers ticket); link to `cloud-observability-kernel` | Google SRE error-budget burn-rate alerting |
 | **Hot-key / hot-partition resilience** | High | Add per-tenant request-rate quotas at the cell-routing layer (not just bulk endpoint caps); add shuffle-sharding on `(tenant_id, resource_kind)` for IAM STS hot paths | AWS shuffle-sharding; DynamoDB adaptive capacity |
 | **Structured chaos engineering programme** | Medium | §10 mentions "monthly AZ-isolation drill" and "quarterly forced AZ-failover" but does not specify the blast-radius assertion framework. Add: per-cell chaos manifests (Gremlin / Chaos Mesh) with automated green/red verdicts before GA | AWS GameDay / FIS; Google DiRT |
 | **Capacity pre-warming SOP** | Medium | Add documented pre-warming runbook for new cell bring-up: `cloud.capacity.rebalance` should warm N% head-room before a region goes public-preview; tie to `cloud.region.register` mutator sequence | AWS capacity reservations pre-warm pattern |
@@ -804,7 +804,7 @@ When this PRD is created or updated, also update:
 
 ## Validation checks
 
-`oya-governance-product-prd` runs:
+`governance-product-prd` runs:
 - All required sections present
 - Every flat-crates target referenced exists in `Cargo.toml` or planned roadmap
 - Every entity field has a `data_class` annotation
@@ -2517,10 +2517,10 @@ Pass: imported credentials are secret references only.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 full-mirror semantics are migration input only: Cloud Provider acceptance must be evidenced by current cloud-ci/oya-ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
-- ADR-0347 binds Cloud governance and CI-lane authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds Region, AZ, Cell, tenant placement, capacity rebalance, and shard-count automation to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/oya-ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
+- ADR-0346 full-mirror semantics are migration input only: Cloud Provider acceptance must be evidenced by current presubmit Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
+- ADR-0347 binds Cloud governance and CI-lane authoring to the `governance-*` lane vocabulary after the `governance-*` bulk rename. Enforced-by cross-reference: `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, `governance-rename-inventory-presence`.
+- ADR-0348 binds Region, AZ, Cell, tenant placement, capacity rebalance, and shard-count automation to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, `governance-tenant-migration-reversibility`.
+- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from presubmit gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
 
 ## References
 
@@ -2555,12 +2555,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| CLOUD-PRD-AC-001 | The Cloud PRD is used as a planning contract and region, cell, resource, IAM/KMS, audit, billing, and observability contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Cloud region/cell/resource acceptance is linked to test and evidence paths instead of generic prose | CLOUD-PRD-GATE-001 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| CLOUD-PRD-AC-002 | cloud-provider preview, stable, or GA readiness is evaluated | Readiness evidence is evaluated | fresh CI, SLO, security, SBOM, rollback/DR, cost, audit, billing, and product-pain evidence is required outside this PRD | CLOUD-PRD-GATE-002 | `cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| CLOUD-PRD-AC-001 | The Cloud PRD is used as a planning contract and region, cell, resource, IAM/KMS, audit, billing, and observability contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Cloud region/cell/resource acceptance is linked to test and evidence paths instead of generic prose | CLOUD-PRD-GATE-001 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| CLOUD-PRD-AC-002 | cloud-provider preview, stable, or GA readiness is evaluated | Readiness evidence is evaluated | fresh CI, SLO, security, SBOM, rollback/DR, cost, audit, billing, and product-pain evidence is required outside this PRD | CLOUD-PRD-GATE-002 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| Cloud region/cell/resource/audit/billing planning maturity | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | At least one Cloud row names region, cell, resource, audit, billing, and SLO/security obligations | `oya-ci-required` |
-| Cloud product-ready and hyperscaler-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app:oya-cloud-ci-planned-maturity-app-gate` | A Cloud promotion packet cannot treat this PRD as hyperscaler-ready evidence without fresh CI/SLO/security/SBOM/DR proof | `oya-ci-required` |
+| Cloud region/cell/resource/audit/billing planning maturity | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | At least one Cloud row names region, cell, resource, audit, billing, and SLO/security obligations | `presubmit` |
+| Cloud product-ready and hyperscaler-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | A Cloud promotion packet cannot treat this PRD as hyperscaler-ready evidence without fresh CI/SLO/security/SBOM/DR proof | `presubmit` |

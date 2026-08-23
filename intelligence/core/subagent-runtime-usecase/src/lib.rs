@@ -1,4 +1,4 @@
-//! `oya-intelligence-subagent-runtime-usecase` — shared orchestration surface for
+//! `intelligence-subagent-runtime-usecase` — shared orchestration surface for
 //! the per-facet subagent runtime.
 //!
 //! This crate intentionally has no binary and no concrete external adapter. It

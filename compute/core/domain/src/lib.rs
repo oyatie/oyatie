@@ -15,10 +15,10 @@ use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
-use iam_cloud_domain::IamRoleId;
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use iam_domain::IamRoleId;
 use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
@@ -1668,16 +1668,16 @@ mod tests {
     }
 
     fn image() -> String {
-        format!("oci://harbor.region-alpha.oya/ten_alpha/app@sha256:{DIGEST}")
+        format!("oci://harbor.region-alpha.oyatie.io/ten_alpha/app@sha256:{DIGEST}")
     }
 
     fn function_bundle() -> String {
-        format!("function://harbor.region-alpha.oya/ten_alpha/image-resize@sha256:{DIGEST}")
+        format!("function://harbor.region-alpha.oyatie.io/ten_alpha/image-resize@sha256:{DIGEST}")
     }
 
     fn instance_create() -> InstanceCreate {
         InstanceCreate {
-            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha".to_string(),
             az: "region-alpha-a".to_string(),
@@ -1685,8 +1685,8 @@ mod tests {
             flavor: flavor(),
             image: image(),
             key_pair: Some("key_prod".to_string()),
-            vpc_id: "oya:cloud:region-alpha:ten_alpha:vpc:prod".to_string(),
-            subnet_id: "oya:cloud:region-alpha:ten_alpha:subnet:prod-a".to_string(),
+            vpc_id: "oyatie:cloud:region-alpha:ten_alpha:vpc:prod".to_string(),
+            subnet_id: "oyatie:cloud:region-alpha:ten_alpha:subnet:prod-a".to_string(),
             security_groups: vec!["sg_web".to_string()],
             iam_role: Some("role_app".to_string()),
             user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
@@ -1714,27 +1714,27 @@ mod tests {
 
     fn k8s_create() -> KubernetesClusterCreate {
         KubernetesClusterCreate {
-            resource_id: "oya:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha".to_string(),
             flavor: K8sFlavor::HighAvailability,
-            control_plane_version: "v1.30.2-oya.1".to_string(),
+            control_plane_version: "v1.30.2-oyatie.1".to_string(),
             control_plane_private: true,
             node_pools: vec![
                 node_pool(
                     "np_a",
                     "region-alpha-a",
-                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-a",
+                    "oyatie:cloud:region-alpha:ten_alpha:subnet:prod-a",
                 ),
                 node_pool(
                     "np_b",
                     "region-alpha-b",
-                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-b",
+                    "oyatie:cloud:region-alpha:ten_alpha:subnet:prod-b",
                 ),
                 node_pool(
                     "np_c",
                     "region-alpha-c",
-                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-c",
+                    "oyatie:cloud:region-alpha:ten_alpha:subnet:prod-c",
                 ),
             ],
             quota: quota(),
@@ -1747,7 +1747,7 @@ mod tests {
 
     fn function_create() -> FunctionDeploymentCreate {
         FunctionDeploymentCreate {
-            resource_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha".to_string(),
             az: "region-alpha-a".to_string(),
@@ -1771,7 +1771,7 @@ mod tests {
         FunctionInvocationRequest {
             invocation_id: id.to_string(),
             tenant_id: "ten_alpha".to_string(),
-            function_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+            function_id: "oyatie:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
             region: "region-alpha".to_string(),
             payload_data_class: data_class,
             idempotency_key: format!("idem-{id}-0123456789"),
@@ -1872,7 +1872,7 @@ mod tests {
         assert_eq!(quota_error, CloudComputeError::QuotaExceeded);
 
         let image_error = Instance::new(InstanceCreate {
-            image: "oci://harbor.region-alpha.oya/ten_alpha/app:latest".to_string(),
+            image: "oci://harbor.region-alpha.oyatie.io/ten_alpha/app:latest".to_string(),
             ..instance_create()
         })
         .expect_err("image refs must be digest pinned");
@@ -1892,7 +1892,10 @@ mod tests {
 
         assert_eq!(cluster.resource_id.value.kind_label().unwrap(), "k8s");
         assert_eq!(cluster.node_pools.value.len(), 3);
-        assert_eq!(cluster.control_plane_version.value.value, "v1.30.2-oya.1");
+        assert_eq!(
+            cluster.control_plane_version.value.value,
+            "v1.30.2-oyatie.1"
+        );
         assert!(cluster.control_plane_private.value);
         assert_eq!(cluster.schema_version.value, COMPUTE_SCHEMA_VERSION);
     }
@@ -1903,7 +1906,7 @@ mod tests {
             node_pools: vec![node_pool(
                 "np_a",
                 "region-alpha-a",
-                "oya:cloud:region-alpha:ten_alpha:subnet:prod-a",
+                "oyatie:cloud:region-alpha:ten_alpha:subnet:prod-a",
             )],
             ..k8s_create()
         })

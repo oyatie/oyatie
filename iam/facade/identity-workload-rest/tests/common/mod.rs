@@ -32,7 +32,7 @@ use iam_identity_workload_rest::{
 };
 
 pub const ISSUER: &str = "https://idp.oyatie.com";
-pub const AUDIENCE: &str = "oya-cloud-kms";
+pub const AUDIENCE: &str = "cloud-kms";
 pub const KID: &str = "kid-grpc-1";
 pub const NOW: i64 = 1_700_000_000;
 

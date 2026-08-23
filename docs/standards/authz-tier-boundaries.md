@@ -11,7 +11,7 @@ related_lanes: [lean-a17-authz-tier-discipline]
 
 # Authz Tier Boundaries — Standard
 
-Per ADR-0191, oyatie enforces authorisation in TWO STRICTLY DISJOINT tiers. This document is the canonical boundary table. Cedar policies and Envoy filters MUST conform; the `oya-check-authz-tier-discipline` gate refuses violations.
+Per ADR-0191, oyatie enforces authorisation in TWO STRICTLY DISJOINT tiers. This document is the canonical boundary table. Cedar policies and Envoy filters MUST conform; the `check-authz-tier-discipline` gate refuses violations.
 
 ## Tier definitions
 
@@ -84,7 +84,7 @@ If you genuinely need an edge concern in Cedar (e.g., a debug-time exemption for
 
 ## Verification
 
-CI lane `lean-a17-authz-tier-discipline` runs `oya-check-authz-tier-discipline`:
+CI lane `lean-a17-authz-tier-discipline` runs `check-authz-tier-discipline`:
 - scans every `.cedar` file for forbidden edge needles.
 - scans every Envoy filter YAML for forbidden origin needles.
 - reports findings advisory-mode for 60 days, then blocker.
@@ -95,4 +95,4 @@ CI lane `lean-a17-authz-tier-discipline` runs `oya-check-authz-tier-discipline`:
 - ADR-0157 (gateway tier)
 - ADR-0182 (north-south vs east-west)
 - ADR-0183 (Cedar vs Kyverno separation)
-- `crates/oya-check-authz-tier-discipline`
+- `crates/check-authz-tier-discipline`

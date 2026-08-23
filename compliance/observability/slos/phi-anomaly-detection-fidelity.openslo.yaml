@@ -18,13 +18,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_phi_anomaly_detected_total[28d]))
+                sum(rate(compliance_phi_anomaly_detected_total[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_phi_anomaly_injected_total[28d]))
+                sum(rate(compliance_phi_anomaly_injected_total[28d]))
   objectives:
     - displayName: ≥ 99% of injected anomalies caught
       target: 0.99

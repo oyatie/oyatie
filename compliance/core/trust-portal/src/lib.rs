@@ -14,8 +14,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use compliance_dsr::{
     DsrAction, DsrAxis, DsrCompletionRecord, DsrRequest, DsrSlaStatus, DsrStoreKind, ErasureProof,
 };
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const TRUST_PORTAL_SECTION_SCHEMA_VERSION: u32 = 1;
 const TRUST_PORTAL_LINEAGE_SCHEMA_VERSION: u32 = 1;

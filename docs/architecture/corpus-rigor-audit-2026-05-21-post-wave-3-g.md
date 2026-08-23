@@ -3069,7 +3069,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | 28 | P1 | anti-pattern corpus | OpenAPI below 3.2.0 prose/config: 22 hits | `docs/architecture/ip-corpus-line-audit-2026-05-21.md:220` | 3-J |
 | 29 | P1 | anti-pattern corpus | React client-stack drift: 131 hits | `docs/decisions/ADR-0709-general-live-apex.md:39` | 3-J |
 | 30 | P1 | anti-pattern corpus | foundry-fitness stale lane: 856 hits | `docs/MISTAKES-LEDGER.md:45` | 3-J |
-| 31 | P1 | anti-pattern corpus | retired external tooling (grit/rtk/icm/oya vcs): 2369 hits | `docs/CHANGELOG.md:238` | 3-J |
+| 31 | P1 | anti-pattern corpus | retired external tooling (grit/rtk/icm/retired VCS ratchet): 2369 hits | `docs/CHANGELOG.md:238` | 3-J |
 | 32 | P1 | api-gateway | P1 PRD below rigor floor: 117 lines, 0 US stories, 0/10 A-J sections | `microservices/api-gateway/README.md:1` | 3-H |
 | 33 | P1 | api-gateway | P1 compliance anchors 14/15 | `microservices/api-gateway/README.md:1` | 3-J |
 | 34 | P1 | api-gateway | P1 stale contract versions openapi=1, asyncapi=1, proto=0 | `microservices/api-gateway/README.md:1` | 3-H |
@@ -3110,7 +3110,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | Pattern | Hits | Sample citations |
 | --- | --- | --- |
 | placeholder marker and code-only deferral | 1708 | docs/COMPLIANCE-MATRIX.md:178; docs/PRD.md:140; docs/DOC-CATALOG.md:338; docs/ADR-CONSOLIDATION-PLAN.md:30; docs/FINOPS-PLAN.md:38 |
-| retired external tooling (grit/rtk/icm/oya vcs) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; retired bootstrap doc line 164 |
+| retired external tooling (grit/rtk/icm/retired VCS ratchet) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; retired bootstrap doc line 164 |
 | Object Graph retired term | 327 | docs/PRD.md:65; docs/DOC-CATALOG.md:134; docs/ADR-CONSOLIDATION-PLAN.md:59; docs/CHANGELOG.md:85; docs/GLOSSARY.md:230 |
 | foundry-fitness stale lane | 856 | docs/MISTAKES-LEDGER.md:45; docs/ADR-CONSOLIDATION-PLAN.md:34; docs/CHANGELOG.md:44; docs/VENDOR-PARTNER-LEDGER.md:97; docs/ADR-LEGACY-REGRESSION-MAPPING.md:143 |
 | OpenAPI below 3.2.0 prose/config | 22 | docs/architecture/ip-corpus-line-audit-2026-05-21.md:220; docs/architecture/adr-corpus-line-audit-2026-05-21.md:323; docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117; docs/automation/openapi-pipeline.md:58; microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22 |
@@ -3129,10 +3129,10 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/PRIVACY-PROGRAM.md:357` — `- `/Users/jasonlee/oyatie/docs/raw/rename-and-contradiction.md` H1, H2, H3, H17, H18, [wave name placeholder marker per PRD §3.1]0, [wave name placeholder marker per PRD §3.1]1 (Data Use Boundary group)`
 
 ### §11.2 foundry-fitness stale lane
-- `docs/MISTAKES-LEDGER.md:45` — `| MFL-0001 | 2026-05-09 | Legacy ADRs cited in active consolidated docs after pack consolidation | No CI gate enforcing only-new-pack-citations | `oya-governance-adr-citation``
-- `docs/ADR-CONSOLIDATION-PLAN.md:34` — `5. **Doc-catalog validator** `oya-governance-adr-citation` warns on bare ADR-#### refs without a status annotation.`
-- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.`
-- `docs/VENDOR-PARTNER-LEDGER.md:97` — `- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `oya-governance-vendor-contract-recency``
+- `docs/MISTAKES-LEDGER.md:45` — `| MFL-0001 | 2026-05-09 | Legacy ADRs cited in active consolidated docs after pack consolidation | No CI gate enforcing only-new-pack-citations | `governance-adr-citation``
+- `docs/ADR-CONSOLIDATION-PLAN.md:34` — `5. **Doc-catalog validator** `governance-adr-citation` warns on bare ADR-#### refs without a status annotation.`
+- `docs/CHANGELOG.md:44` — `- Removed the pre-grit archive payload, `governance-archive-orphan-kernel`, `governance-archive-orphan-app`, workspace members, and catalog entries.`
+- `docs/VENDOR-PARTNER-LEDGER.md:97` — `- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `governance-vendor-contract-recency``
 - `docs/ADR-LEGACY-REGRESSION-MAPPING.md:143` — `| ADR-0201 | Native phone/tablet CI quality bar (Android Compose + iOS SwiftUI) | Proposed | native mobile CI quality bar | ADR-0051 mobile-and-native-client-strategy | FULL | Mobi`
 - `docs/CONTRADICTION-LEDGER.md:51` — `| `LEDG-009` | `gap-docs-project.md` J-001 | Client-supplied tenant auth in Emergency / Medical / Records services (X-Tenant-ID header) is a tenant isolation breach | SaaS + Vertic`
 - `docs/plans/rename-plan-2026-05-12.md:31` — `> locked **Policy B** (collapse foundry-fitness under a `fitness` umbrella),`
@@ -3151,21 +3151,21 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 ### §11.4 12-layer drift
 - `docs/DOC-CATALOG.md:81` — `| `doc.spec_oyatie_doctrine` | `/specs/oyatie-doctrine.json` | `council-architecture` | repository_layout / BNF / 12-layer enum change | quarterly | DESIGN.md, ADR-INDEX.md | `auth`
 - `docs/ADR-INDEX.md:77` — `| ADR-0056 | Accepted | Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum | council-architecture | [`ADR-0056-rust-clean-architecture-bnf.md`](decisions/`
-- `docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22` — `fold_state: 12-layer-canonical + 4-lean-check-codification + 3-slot-BNF `oya-<shared|vertical>-<bc>-<layer>` (single-token verticals, Option A per ADR-0056 §"Vertical naming policy`
+- `docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22` — `fold_state: 12-layer-canonical + 4-lean-check-codification + 3-slot-BNF `oyatie-<shared|vertical>-<bc>-<layer>` (single-token verticals, Option A per ADR-0056 §"Vertical naming policy`
 - `docs/machine-readable/decisions.json:665` — `"title": "Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum",`
 - `docs/decisions/ADR-0700-ci-admission-live-apex.md:3089` — `- `feedback_clean_architecture_requirements` — 12-layer enum +`
 - `docs/decisions/ADR-0709-general-live-apex.md:50` — `## Naming justification (BNF + 12-layer-enum conformance)`
 - `docs/decisions/ADR-0700-ci-admission-live-apex.md:167` — `- ADR-0056 (rust-clean-architecture-bnf) — defines the 12-layer enum`
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1861` — `- `feedback_naming_justification` — every primitive justified per v4 BNF + 12-layer-enum`
 
-### §11.5 retired external tooling (grit/rtk/icm/oya vcs)
+### §11.5 retired external tooling (grit/rtk/icm/retired VCS ratchet)
 - `docs/CHANGELOG.md:238` — `- Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-REC`
-- `docs/GLOSSARY.md:568` — `| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.`
+- `docs/GLOSSARY.md:568` — `| **retired VCS ratchet ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.`
 - `docs/DOC-COVERAGE.md:206` — `Required sections per Impl-Plan: `## Concrete File Targets`, `## Code Shape`, `## Acceptance Gates`, `## Load test`, `## Grit Claim Symbols`, `## ICM Rows to Emit`.`
-- `docs/MASTERPLAN.md:96` — `5. Promote only through Oya VCS claim, verify, done, and promote transitions with evidence.`
-- `retired bootstrap doc line 164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
+- `docs/MASTERPLAN.md:96` — `5. Promote only through retired VCS ratchet claim, verify, done, and promote transitions with evidence.`
+- `retired bootstrap doc line 164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; retired VCS ratchet for policy-ratchet compatibility)`
 - `docs/AGENT-INSTRUCTION-SOURCES.md:12` — `This inventory enumerates repo-local files that contain exact `agent-instructions` fences after M01-P08-IP-007. It is the P5 audit surface for the banned-primitives lane; out-of-re`
-- `docs/DESIGN.md:499` — `- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/oya-vcs-admission/` under `infra/kyverno/oya-vcs-ad`
+- `docs/DESIGN.md:499` — `- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/retired VCS ratchet/` under `infra/kyverno/retired VCS ratchet-ad`
 - `docs/AGENTS.md:58` — `Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-rev`
 
 ### §11.6 React client-stack drift
@@ -3182,7 +3182,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102` — `2. Validates every spec path exists and is syntactically valid (OpenAPI 3 / Protobuf / AsyncAPI 2.6 / Cedar / JSON Schema).`
 - `docs/decisions/ADR-0709-general-live-apex.md — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
 - `docs/user-stories/b2c-consumer-surfaces.md:2240` — `- **AsyncAPI 3.0 (event contracts).**`
-- `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
+- `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, retired VCS ratchet, governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
 - `docs/architecture/adr-corpus-line-audit-2026-05-21.md:334` — `#### AsyncAPI 2.x / 3.0.0 (canonical: 3.1.0)`
 - `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117` — `- H2: repair hard contract conformance blockers: stale OpenAPI 3.1.0 / AsyncAPI 3.0.0 files in api-gateway, connect, and feature-flags before expanding new coverage.`
 - `docs/architecture/keystone-bundle-2026-05-20-synthesis.md:324` — `| 5 IPs reference OpenAPI 3.1 / AsyncAPI 3.0 / 2.x | **TRUE P0** — Phase-2 action: pin to 3.2.0 / 3.1.0. |`
@@ -3320,7 +3320,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/application/contracts/openapi/tenant-admin-console.yaml | OpenAPI | PASS |
 | microservices/application/contracts/openapi/application.yaml | OpenAPI | PASS |
 | microservices/consent-graph/contracts/openapi/consent-graph.yaml | OpenAPI | PASS |
-| microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml | OpenAPI | PASS |
+| microservices/developer-sdk/contracts/openapi/ecosystem.yaml | OpenAPI | PASS |
 | microservices/developer-sdk/contracts/openapi/developer-sdk.yaml | OpenAPI | PASS |
 | microservices/governance/contracts/openapi/governance.yaml | OpenAPI | PASS |
 | microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml | OpenAPI | PASS |

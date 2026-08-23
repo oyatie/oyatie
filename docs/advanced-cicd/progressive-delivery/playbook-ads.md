@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Ads-axis rollouts with privacy-gate; Connect-no-ads cohort honoured per LEDG-021.
 planned_enforcement_ref:
-  - oya-governance-cohort-honor
-  - oya-governance-data-class
-  - oya-governance-canary-required
+  - governance-cohort-honor
+  - governance-data-class
+  - governance-canary-required
 related_adrs: [ADR-0031, ADR-0038, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published
@@ -42,7 +42,7 @@ The `connect-no-ads` cohort ([`stable-cohort-spec.md`](stable-cohort-spec.md) §
 2. No canary stage routes no-ads traffic to ad-serving code paths.
 3. No experiment targets no-ads tenants (even when sample-size pressure tempts it).
 
-Planned advisory lane: `oya-governance-cohort-honor` as a planned blocker for Ads-axis PRs. Violation = ledger entry + Sev-1.
+Planned advisory lane: `governance-cohort-honor` as a planned blocker for Ads-axis PRs. Violation = ledger entry + Sev-1.
 
 ## 4. Privacy gates
 
@@ -54,7 +54,7 @@ Every Ads change MUST declare:
 4. Differential-privacy budget consumption (if applicable).
 5. Cohort exclusion list — at minimum `connect-no-ads`, `stable-regulated-healthcare`, `stable-regulated-fintech`.
 
-`oya-governance-data-class` (existing) verifies the declaration.
+`governance-data-class` (existing) verifies the declaration.
 
 ## 5. Attribution model swap (blue/green)
 

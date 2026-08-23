@@ -6,8 +6,8 @@
 pub mod merkle_tree;
 pub use merkle_tree::{MerkleTree, Sha256Hash};
 
+use data_boundary_kernel::{DataClass, DataClassification, Purpose};
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
-use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
 use sha2::{Digest, Sha256};
 
 const GENESIS_HASH: &str = "GENESIS";
@@ -761,7 +761,7 @@ fn hex_value(byte: u8) -> Result<u8, AuditChainError> {
 
 #[cfg(test)]
 mod tests {
-    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     use super::*;
 

@@ -7,9 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 compute-domain = { path = "../../core/domain" }
 compute-resource = { path = "../../core/resource" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

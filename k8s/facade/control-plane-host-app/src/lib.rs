@@ -21,7 +21,7 @@
 //! The kube-rs adapter talks ONLY to Oyatie's MANAGEMENT cluster; this service
 //! never runs tenant workloads and never holds a tenant-cluster kubeconfig. The
 //! production [`run`] path is **fail-closed**: it reads the management
-//! kubeconfig path from `$OYA_MGMT_KUBECONFIG` and returns a typed
+//! kubeconfig path from `$OYATIE_MGMT_KUBECONFIG` and returns a typed
 //! [`BootError::MissingMgmtKubeconfig`] if absent — it never silently falls back
 //! to the in-memory fake in production.
 //!
@@ -209,7 +209,7 @@ impl From<AuthzProviderConfigError> for BootError {
 }
 
 /// The env var carrying the management-cluster kubeconfig path.
-pub const MGMT_KUBECONFIG_ENV: &str = "OYA_MGMT_KUBECONFIG";
+pub const MGMT_KUBECONFIG_ENV: &str = "OYATIE_MGMT_KUBECONFIG";
 
 // =====================================================================
 // API DTOs
@@ -508,7 +508,7 @@ pub async fn serve(listen_addr: &str, router: Router) -> Result<(), BootError> {
 /// fail-closed.
 ///
 /// # Errors
-/// Returns [`BootError::MissingMgmtKubeconfig`] if `$OYA_MGMT_KUBECONFIG` is
+/// Returns [`BootError::MissingMgmtKubeconfig`] if `$OYATIE_MGMT_KUBECONFIG` is
 /// absent or empty. This is the production fail-closed boot guard — the service
 /// never silently falls back to the in-memory fake.
 pub fn mgmt_kubeconfig_path_from_env() -> Result<String, BootError> {
@@ -542,7 +542,7 @@ mod tests {
         // The production boot guard reads exactly this var; pin the name so a
         // rename is a conscious, reviewed change (the deploy manifest depends
         // on it).
-        assert_eq!(MGMT_KUBECONFIG_ENV, "OYA_MGMT_KUBECONFIG");
+        assert_eq!(MGMT_KUBECONFIG_ENV, "OYATIE_MGMT_KUBECONFIG");
     }
 
     fn test_authz() -> ControlPlaneAuthzProvider {

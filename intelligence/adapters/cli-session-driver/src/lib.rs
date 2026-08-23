@@ -2,7 +2,7 @@
 //!
 //! ONE `SessionDriver` implementation for every provider whose account is driven by spawning a
 //! vendor CLI as a subprocess. This crate replaces the three crates
-//! `oya-intelligence-{claude,codex,gemini}-account-adapter`, whose sources were identical apart
+//! `intelligence-{claude,codex,gemini}-account-adapter`, whose sources were identical apart
 //! from the five values now carried by [`CliDriverSpec`] — a triplication that made every future
 //! change to the spawn path a three-place edit and that a straight capability relocation would
 //! have carried into the new capability root unchanged.

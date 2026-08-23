@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-intelligence-autonomy-ceiling-kernel` with a per-surface tenant ceiling
+Extend `intelligence-autonomy-ceiling-kernel` with a per-surface tenant ceiling
 policy: a `TenantCeiling` value type carrying per-surface max tiers, plus a pure
 `resolve(requested_tier, surface, ceiling) -> TenantCeilingVerdict` function with
 variants `Permitted | Clamped(AutonomyTier) | Denied`.
@@ -12,7 +12,7 @@ a given surface.
 
 ## Crate boundary
 
-Only `oya-intelligence-autonomy-ceiling-kernel` is modified. No workspace-level
+Only `intelligence-autonomy-ceiling-kernel` is modified. No workspace-level
 changes. No new crates.
 
 ## Flat clean-arch mod layout (ADR-0509)
@@ -92,5 +92,5 @@ attribute.
 
 ## Acceptance evidence
 
-`cargo nextest run -p oya-intelligence-autonomy-ceiling-kernel` must pass with all
+`cargo nextest run -p intelligence-autonomy-ceiling-kernel` must pass with all
 tests green, including the 10 new tests and the 7 existing tests.

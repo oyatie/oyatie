@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every schema migration file has matching forward + rollback steps and is referenced from the migration index.
-- enforces: STANDARD/schema-migration; AGENTS.md fitness-lane `oya-governance-schema-migration`.
-- kernel_crate: `oya-governance-schema-migration-kernel` — `MigrationFile { id, has_forward, has_rollback, indexed }`, verdict `SchemaMigrationFitnessReport { migrations_checked }`.
-- runner_path: `tools/oya-governance-schema-migration`
+- enforces: STANDARD/schema-migration; AGENTS.md fitness-lane `governance-schema-migration`.
+- kernel_crate: `governance-schema-migration-kernel` — `MigrationFile { id, has_forward, has_rollback, indexed }`, verdict `SchemaMigrationFitnessReport { migrations_checked }`.
+- runner_path: `tools/governance-schema-migration`
 - inputs: `db/migrations/**/*`, `db/migrations/INDEX.md`.
 - failure_modes:
   - migration file lacks rollback section
   - migration not referenced in INDEX
   - duplicate migration id
-- ci_invocation: `cargo run -p oya-governance-schema-migration`
+- ci_invocation: `cargo run -p governance-schema-migration`
 - runtime_budget: 200 ms
 - severity: BLOCKER
 - kernel_sketch:

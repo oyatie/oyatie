@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-18
 purpose: |
   Canonical locale-routing precedence: per-tenant default → per-user override → Accept-Language →
-  source-locale fallback. Drives oya-shared-i18n-kernel runtime resolution + per-pack overlays.
+  source-locale fallback. Drives shared-i18n-kernel runtime resolution + per-pack overlays.
 canonical_authority: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 related_adrs:
   - ADR-0064

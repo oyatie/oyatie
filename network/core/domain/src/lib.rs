@@ -15,8 +15,8 @@ use std::str::FromStr;
 
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const NETWORK_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -3639,7 +3639,7 @@ mod tests {
 
     fn vpc_create() -> VpcCreate {
         VpcCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             cidr_v4: "10.42.0.0/16".to_string(),
@@ -3656,9 +3656,9 @@ mod tests {
 
     fn subnet_create() -> SubnetCreate {
         SubnetCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            vpc_id: "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             region: "region-alpha1".to_string(),
             az: "region-alpha1-a".to_string(),
             cidr_v4: "10.42.1.0/24".to_string(),
@@ -3672,9 +3672,9 @@ mod tests {
 
     fn lb_create() -> LoadBalancerCreate {
         LoadBalancerCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            vpc_id: "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             region: "region-alpha1".to_string(),
             kind: LbKind::L7Grpc,
             listeners: vec![ListenerCreate {
@@ -3684,7 +3684,7 @@ mod tests {
             }],
             target_groups: vec![TargetGroupCreate {
                 id: "tg_api".to_string(),
-                subnet_ids: vec!["oya:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string()],
+                subnet_ids: vec!["oyatie:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string()],
                 health_check_path: Some("/healthz".to_string()),
             }],
             mtls: Some(MtlsConfigCreate {
@@ -3700,7 +3700,7 @@ mod tests {
 
     fn public_dns_create() -> DnsZoneCreate {
         DnsZoneCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             name: "example.com".to_string(),
@@ -3728,12 +3728,13 @@ mod tests {
 
     fn cdn_create() -> CdnDistributionCreate {
         CdnDistributionCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:console".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:cdn-distribution:console"
+                .to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             hostnames: vec!["console.oyatie.example".to_string()],
             origins: vec![CdnOriginCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
                 kind: CdnOriginKind::LoadBalancer,
             }],
             tls_certificate: "cert/region-alpha1/ten_alpha/console-edge".to_string(),
@@ -3767,8 +3768,9 @@ mod tests {
 
     fn direct_interconnect_create() -> DirectInterconnectCreate {
         DirectInterconnectCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
-                .to_string(),
+            resource_id:
+                "oyatie:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
+                    .to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             partner_id: "ixp_alpha".to_string(),
@@ -3800,7 +3802,7 @@ mod tests {
     -> NetworkProviderDirectInterconnectCreateRequest {
         NetworkProviderDirectInterconnectCreateRequest {
             request_id: "networkprov_req_interconnect_create_001".to_string(),
-            provider_virtual_circuit_ref: "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary".to_string(),
+            provider_virtual_circuit_ref: "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary".to_string(),
             interconnect_partners: interconnect_partner_creates(),
             direct_interconnect: direct_interconnect_create(),
             actor: "sp_network".to_string(),
@@ -3811,12 +3813,13 @@ mod tests {
 
     fn ddos_create() -> DdosProtectionCreate {
         DdosProtectionCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:ddos-protection:frontdoor".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:ddos-protection:frontdoor"
+                .to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             protected_resource_ids: vec![
-                "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
-                "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:console".to_string(),
+                "oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+                "oyatie:cloud:region-alpha1:ten_alpha:cdn-distribution:console".to_string(),
             ],
             scrubbing_regions: vec!["region-alpha1".to_string(), "region-beta1".to_string()],
             line_rate_scrubbing: true,
@@ -3835,7 +3838,7 @@ mod tests {
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             cell_id: "cell-region-alpha1-a-001".to_string(),
-            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            vpc_id: "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             namespace: "mesh-cell-region-alpha1-a-001".to_string(),
             mode: ServiceMeshMode::IstioAmbient,
             edge_gateway: MeshGatewayKind::Envoy,
@@ -3855,7 +3858,7 @@ mod tests {
     fn provider_vpc_create_request() -> NetworkProviderVpcCreateRequest {
         NetworkProviderVpcCreateRequest {
             request_id: "networkprov_req_vpc_create_001".to_string(),
-            provider_vcn_ref: "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            provider_vcn_ref: "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             vpc: vpc_create(),
             actor: "sp_network".to_string(),
             idempotency_key: "idem-network-vpc-create".to_string(),
@@ -3866,7 +3869,7 @@ mod tests {
     fn provider_load_balancer_create_request() -> NetworkProviderLoadBalancerCreateRequest {
         NetworkProviderLoadBalancerCreateRequest {
             request_id: "networkprov_req_lb_create_001".to_string(),
-            provider_load_balancer_ref: "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+            provider_load_balancer_ref: "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
             vpc: vpc_create(),
             subnets: vec![subnet_create()],
             load_balancer: lb_create(),
@@ -3879,7 +3882,7 @@ mod tests {
     fn provider_dns_zone_create_request() -> NetworkProviderDnsZoneCreateRequest {
         NetworkProviderDnsZoneCreateRequest {
             request_id: "networkprov_req_dns_create_001".to_string(),
-            provider_dns_zone_ref: "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+            provider_dns_zone_ref: "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
             vpc: None,
             dns_zone: public_dns_create(),
             actor: "sp_network".to_string(),
@@ -3969,7 +3972,7 @@ mod tests {
             NetworkProviderKind::OciVcn,
             provider_vpc_create_request(),
             "oci-vcn-1700000000-networkprov_req_vpc_create_001",
-            "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:vpc:prod/networkprov_req_vpc_create_001",
+            "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:vpc:prod/networkprov_req_vpc_create_001",
         )
         .expect("VPC receipt keeps provider references only");
 
@@ -3977,7 +3980,7 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_vpc");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:region-alpha1:ten_alpha:vpc:prod"
+            "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod"
         );
         assert_eq!(receipt.cidr_v4, "10.42.0.0/16");
         assert_eq!(receipt.cidr_v6, "2001:db8:42::/56");
@@ -4022,7 +4025,7 @@ mod tests {
             NetworkProviderKind::OciLoadBalancer,
             provider_load_balancer_create_request(),
             "oci-lb-1700000000-networkprov_req_lb_create_001",
-            "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor/networkprov_req_lb_create_001",
+            "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor/networkprov_req_lb_create_001",
         )
         .expect("load balancer receipt keeps provider references only");
 
@@ -4030,9 +4033,12 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_load_balancer");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor"
+            "oyatie:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor"
         );
-        assert_eq!(receipt.vpc_id, "oya:cloud:region-alpha1:ten_alpha:vpc:prod");
+        assert_eq!(
+            receipt.vpc_id,
+            "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod"
+        );
         assert_eq!(receipt.kind, LbKind::L7Grpc);
         assert_eq!(receipt.listener_count, 1);
         assert_eq!(receipt.target_group_count, 1);
@@ -4077,7 +4083,7 @@ mod tests {
             NetworkProviderKind::OciDnsZone,
             provider_dns_zone_create_request(),
             "oci-dns-zone-1700000000-networkprov_req_dns_create_001",
-            "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001",
+            "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001",
         )
         .expect("DNS zone receipt keeps provider references only");
 
@@ -4085,7 +4091,7 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_dns_zone");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
+            "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
         );
         assert_eq!(receipt.name, "example.com");
         assert_eq!(receipt.kind, DnsZoneKind::Public);
@@ -4131,7 +4137,7 @@ mod tests {
             NetworkProviderKind::OciFastConnect,
             provider_direct_interconnect_create_request(),
             "oci-fast-connect-1700000000-networkprov_req_interconnect_create_001",
-            "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001",
+            "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oyatie:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001",
         )
         .expect("direct interconnect receipt keeps provider references only");
 
@@ -4139,7 +4145,7 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_direct_interconnect");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
+            "oyatie:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
         );
         assert_eq!(receipt.partner_id, "ixp_alpha");
         assert_eq!(receipt.peering_location, "region-alpha1-fabric-a");
@@ -4187,7 +4193,8 @@ mod tests {
         let zone_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
+                    .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
@@ -4241,7 +4248,8 @@ mod tests {
 
         let overlap = catalog
             .add_subnet(SubnetCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-a-overlap".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:subnet:prod-a-overlap"
+                    .to_string(),
                 cidr_v4: "10.42.1.128/25".to_string(),
                 cidr_v6: "2001:db8:42:1::/65".to_string(),
                 ..subnet_create()
@@ -4251,7 +4259,7 @@ mod tests {
 
         let adjacent = catalog
             .add_subnet(SubnetCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-b".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:subnet:prod-b".to_string(),
                 az: "region-alpha1-b".to_string(),
                 cidr_v4: "10.42.2.0/24".to_string(),
                 cidr_v6: "2001:db8:42:2::/64".to_string(),
@@ -4319,7 +4327,7 @@ mod tests {
                 target_groups: vec![TargetGroupCreate {
                     id: "tg_api".to_string(),
                     subnet_ids: vec![
-                        "oya:cloud:region-alpha1:ten_alpha:subnet:missing".to_string(),
+                        "oyatie:cloud:region-alpha1:ten_alpha:subnet:missing".to_string(),
                     ],
                     health_check_path: Some("/healthz".to_string()),
                 }],
@@ -4335,7 +4343,8 @@ mod tests {
         catalog.create_vpc(vpc_create()).expect("vpc create");
         let public = catalog
             .create_dns_zone(DnsZoneCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
+                    .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
@@ -4351,13 +4360,13 @@ mod tests {
 
         let private = catalog
             .create_dns_zone(DnsZoneCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:internal-example"
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:internal-example"
                     .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-alpha1".to_string(),
                 name: "internal.example".to_string(),
                 kind: DnsZoneKind::Private,
-                vpc_id: Some("oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string()),
+                vpc_id: Some("oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string()),
                 dnssec_key_ref: None,
                 state: DnsZoneState::Creating,
                 data_class: DataClass::Public,
@@ -4372,7 +4381,8 @@ mod tests {
         let dnssec_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
+                    .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
@@ -4390,7 +4400,7 @@ mod tests {
         let private_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:internal".to_string(),
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:dns-zone:internal".to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-alpha1".to_string(),
                 name: "internal.example".to_string(),
@@ -4413,7 +4423,7 @@ mod tests {
         let event = catalog
             .record_flow_anomaly(
                 "flowanom_001".to_string(),
-                "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+                "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
                 FlowAnomalySeverity::High,
                 "egress spike to undeclared cidr".to_string(),
                 1_700_000_040,
@@ -4425,7 +4435,7 @@ mod tests {
         let duplicate = catalog
             .record_flow_anomaly(
                 "flowanom_001".to_string(),
-                "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+                "oyatie:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
                 FlowAnomalySeverity::Critical,
                 "duplicate evidence id".to_string(),
                 1_700_000_041,
@@ -4460,7 +4470,7 @@ mod tests {
 
         let duplicate_hostname = catalog
             .create_cdn_distribution(CdnDistributionCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:dup-host"
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:cdn-distribution:dup-host"
                     .to_string(),
                 hostnames: vec![
                     "console.oyatie.example".to_string(),
@@ -4495,7 +4505,7 @@ mod tests {
         let origin_error = catalog
             .create_cdn_distribution(CdnDistributionCreate {
                 origins: vec![CdnOriginCreate {
-                    resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:missing".to_string(),
+                    resource_id: "oyatie:cloud:region-alpha1:ten_alpha:lb-v7:missing".to_string(),
                     kind: CdnOriginKind::LoadBalancer,
                 }],
                 ..cdn_create()
@@ -4621,7 +4631,7 @@ mod tests {
         let resource_error = catalog
             .create_ddos_protection(DdosProtectionCreate {
                 protected_resource_ids: vec![
-                    "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:missing".to_string(),
+                    "oyatie:cloud:region-alpha1:ten_alpha:cdn-distribution:missing".to_string(),
                 ],
                 ..ddos_create()
             })

@@ -136,7 +136,7 @@ impl CapabilityRegistry {
 }
 
 /// Parse a capability seed JSON file. Accepts ONLY the schema produced by
-/// `registry/capabilities/foundry-internal.json`:
+/// `intelligence/core/capability-registry-app/foundry-internal.json`:
 ///
 /// ```json
 /// [
@@ -446,22 +446,14 @@ mod tests {
 
     #[test]
     fn seed_file_publishes_at_least_50_capabilities() {
-        // Integration: load registry/capabilities/foundry-internal.json from
-        // the workspace root (CARGO_MANIFEST_DIR points at this crate).
-        // Ascend from this crate's manifest dir to the workspace root and locate
-        // the seed by presence — nesting depth varies (ADR-0357 moved this crate
-        // under microservices/intelligence/crates/), so don't hard-code `../..`.
+        // Integration: load the crate-local seed. The historical
+        // `registry/capabilities/foundry-internal.json` root file is gone; this
+        // crate owns the seed that the parser still accepts.
         let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-        let path = manifest_dir
-            .ancestors()
-            .map(|dir| dir.join("registry/capabilities/foundry-internal.json"))
-            .find(|candidate| candidate.exists())
-            .unwrap_or_else(|| {
-                panic!(
-                    "foundry-internal.json not found ascending from {}",
-                    manifest_dir.display()
-                )
-            });
+        let path = manifest_dir.join("foundry-internal.json");
+        if !path.exists() {
+            panic!("foundry-internal.json not found at {}", path.display());
+        }
         let src = std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("read {}: {}", path.display(), e));
         let caps = parse_seed_json(&src).expect("parse seed json");

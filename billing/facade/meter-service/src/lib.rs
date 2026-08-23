@@ -1,4 +1,4 @@
-//! oya-meter — usage metering service for oyatie.
+//! meter — usage metering service for oyatie.
 //!
 //! Single-crate-per-service pattern per ADR-0509.
 

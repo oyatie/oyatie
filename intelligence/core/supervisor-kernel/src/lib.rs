@@ -34,7 +34,7 @@ pub struct WindowId(pub String);
 
 /// data_class: INTERNAL_ONLY
 /// Supervisor-specific view of a provider account, including its secret reference.
-/// (ADR-0100: avoids changing oya-intelligence-account-domain).
+/// (ADR-0100: avoids changing intelligence-account-domain).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SupervisorAccount {
     // data_class: INTERNAL_ONLY
@@ -87,10 +87,10 @@ pub struct EnforcementProjection {
 pub struct SessionTicket {
     // data_class: INTERNAL_ONLY
     pub account_id: AccountId, // data_class: INTERNAL_ONLY
-    /// Re-exported from oya-intelligence-account-kernel.
+    /// Re-exported from intelligence-account-kernel.
     // data_class: INTERNAL_ONLY
     pub provider_family: ProviderFamily, // data_class: INTERNAL_ONLY
-    /// Re-exported from oya-intelligence-autonomy-ceiling-kernel.
+    /// Re-exported from intelligence-autonomy-ceiling-kernel.
     // data_class: INTERNAL_ONLY
     pub autonomy_tier: AutonomyTier, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY

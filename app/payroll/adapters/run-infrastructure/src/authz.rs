@@ -12,7 +12,7 @@
 //! caller-supplied `tenant_id` carried in the request BODY — so a caller posts a
 //! trial-close or journal draft for ANY tenant they name. This is the AUTH-005
 //! unauthenticated / caller-supplied-authz class on a money surface (the money
-//! CRITICAL finding for `oya-payroll-run`).
+//! CRITICAL finding for `payroll-run`).
 //!
 //! This module closes that gap by mirroring the proven fail-closed doctrine that
 //! landed for the Cloud KMS crypto control plane (`secrets/ports/kms-api` /
@@ -53,7 +53,7 @@
 
 use std::sync::Arc;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
 
 /// Request header the bearer credential is presented in.
 pub const AUTHORIZATION_HEADER: &str = "authorization";

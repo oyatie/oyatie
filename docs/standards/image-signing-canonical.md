@@ -66,7 +66,7 @@ oyatie GitHub Actions OIDC identity.
 
 ### 5. Validation
 
-The `oya-check-image-signing-discipline` gate enforces that:
+The `check-image-signing-discipline` gate enforces that:
 
 - Every µservice that publishes a container image has a cosign
   signature reference in `microservices/<ms>/iac/helm/<chart>/values.yaml`.
@@ -78,7 +78,7 @@ The `oya-check-image-signing-discipline` gate enforces that:
 ### 6. Existing supply-chain gates
 
 This standard layers on top of the existing
-`oya-check-supply-chain` gate. The image-signing gate adds the
+`check-supply-chain` gate. The image-signing gate adds the
 container-image axis; the supply-chain gate covers Cargo + npm
 dependency provenance.
 

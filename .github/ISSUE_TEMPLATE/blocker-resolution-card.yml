@@ -52,7 +52,7 @@ body:
     attributes:
       label: Suggested owner / profile
       description: Team handle from .github/CODEOWNERS or worker profile.
-      placeholder: "@teams/council-architecture"
+      placeholder: "@jason931225"
     validations:
       required: true
   - type: textarea

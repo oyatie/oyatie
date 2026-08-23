@@ -15,9 +15,9 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_api_gateway_request_duration_bucket{le="0.005"}[5m]))
+              query: sum(rate(api_gateway_request_duration_bucket{le="0.005"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_api_gateway_request_duration_count[5m]))
+              query: sum(rate(api_gateway_request_duration_count[5m]))

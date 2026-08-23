@@ -105,7 +105,7 @@ doc_status: published
 
 ## 4. Per-surface SLO row source of truth
 
-Each surface has a `slo:` field in its catalog record (`registry/catalog/<crate>.yaml`). This doc is generated from the catalog. CI lane `cloud-ci-slo-coverage` checks every public surface has a row.
+Each surface has a `slo:` field in its catalog record (`registry/catalog/<crate>.yaml`). This doc is generated from the catalog. CI lane `pipeline-slo-coverage` checks every public surface has a row.
 
 ## 5. Sources scanned
 Google SRE workbook (4-window burn rate); per-product PRD §9 metrics; ADR-0050 (Argo Rollouts); ADR-0045 (VictoriaMetrics + Grafana); CLAUDE.md.

@@ -8,14 +8,14 @@ date: 2026-05-12
 purpose: |
   Define the per-doc-class staleness budget for every Oyatie doc, auto-PR
   generator when a threshold is crossed, and the
-  `oya-governance-doc-freshness` lane that enforces it: BLOCKER for
+  `governance-doc-freshness` lane that enforces it: BLOCKER for
   Constitutional + Operating-Contract; HIGH for Reference; Decision-Record is
   never-stale; Working-Draft has 30-day budget.
-planned_enforcement_ref: oya-governance-doc-freshness
+planned_enforcement_ref: governance-doc-freshness
 extends_crates:
-  - oya-governance-runbook-freshness-kernel
-  - oya-governance-doc-catalog-kernel
-  - oya-governance-documentation-system-kernel
+  - governance-runbook-freshness-kernel
+  - governance-doc-catalog-kernel
+  - governance-documentation-system-kernel
 companion_docs:
   - INDEX.md
   - runbook-freshness-pipeline.md
@@ -29,7 +29,7 @@ doc_status: published
 
 ## 1. Purpose
 
-The `oya-governance-runbook-freshness-kernel` proves the freshness pattern; this discipline extends it to every doc class. No Tier-1 / Tier-2 doc may rot silently. Per-doc-class budgets enforce a cadence; threshold crossings auto-generate refresh PRs; the lane fails merges that introduce stale-doc references.
+The `governance-runbook-freshness-kernel` proves the freshness pattern; this discipline extends it to every doc class. No Tier-1 / Tier-2 doc may rot silently. Per-doc-class budgets enforce a cadence; threshold crossings auto-generate refresh PRs; the lane fails merges that introduce stale-doc references.
 
 ## 2. Doc-class taxonomy (per `docs/DOC-CATALOG.md` + `docs/standards/doc-style.md`)
 
@@ -76,7 +76,7 @@ Decision-Record docs are exempt from `last_verified:` / `next_review:` requireme
 - mdbook chapter `docs/site/src/operations/doc-health.md` (per-doc-class freshness landscape).
 - Auto-generated refresh PRs (one per breached doc) using `docs/templates/doc-refresh-pr.md`.
 
-## 7. Validation gates (`oya-governance-doc-freshness`)
+## 7. Validation gates (`governance-doc-freshness`)
 
 1. **Frontmatter completeness.** Every Tier-1/Tier-2 doc has `doc_class:`, `last_verified:`, `next_review:`, `owner:` (BLOCKER).
 2. **Class validity.** `doc_class:` ∈ the five allowed values (BLOCKER).

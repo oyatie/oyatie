@@ -6,15 +6,15 @@ direct observation while building + measuring the local CI farm (2026-05-25)._
 
 ## Problem Statement
 How might we cut PR time-to-green and wasted compute — without weakening the
-governance gates — given that the current `oya verify` over-builds massively and
+governance gates — given that the current retired `./bin/oya verify` over-builds massively and
 re-runs work the lane already did?
 
 ## Evidence (observed this session)
 - A diff of ~1342 files that is **mostly `evidence/`/`registry/`/`specs/` YAML**
-  (near-zero Rust source change) flagged **551 "affected" crates**; `oya verify`
+  (near-zero Rust source change) flagged **551 "affected" crates**; retired `./bin/oya verify`
   then spent **7+ minutes** in the cargo/nextest test mirror. Affected-target
   selection is path-coarse and over-selects.
-- `oya verify` **re-compiled the dev-cli test binaries a second time** — a full
+- retired `./bin/oya verify` **re-compiled the dev-cli test binaries a second time** — a full
   cargo pass layered on top of whatever the lane already built (double-cargo).
 - Cross-agent sccache reuse is real (**100% compile-hit over a 150-crate graph**,
   measured), but **dependency *downloads* dominated wall-time** — sccache caches
@@ -27,8 +27,8 @@ re-runs work the lane already did?
    only reverse-deps of changed crates. Interim: `cargo metadata` rdeps now;
    target: Bazel `rdeps(//…, changed)` (Google TAP). _Biggest latency+cost win,
    available before the Bazel migration._
-2. **Kill the double-cargo.** Make `oya verify` the governance-only overlay
-   (ADR-0346 `oya_overlay`): consume the lane's nextest results, run only the
+2. **Kill the double-cargo.** Make retired `./bin/oya verify` the governance-only overlay
+   (ADR-0346 `overlay`): consume the lane's nextest results, run only the
    bespoke gates — never re-run the build/tests.
 3. **Trunk-warmed cache + cached registry.** Trunk/merge-queue builds populate
    the canonical sccache (RW); PR lanes read-through ⇒ warm from first run. Add a

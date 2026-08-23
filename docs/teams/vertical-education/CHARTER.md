@@ -10,13 +10,13 @@ This team owns the education vertical: Learning Management System (LMS), course 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Education (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-education-kernel` — `Course`, `Enrollment`, `LearnerRecord`, `Credential`, `ContentItem`
-  - `oya-vertical-education-domain-*` — LMS lifecycle, course authoring, progress tracking, credential issuance
+  - `vertical-education-kernel` — `Course`, `Enrollment`, `LearnerRecord`, `Credential`, `ContentItem`
+  - `vertical-education-domain-*` — LMS lifecycle, course authoring, progress tracking, credential issuance
   - Products owned: `products/vertical-education/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — credential issuance, assessment results)
   - `Search index lifecycle` (consumer — course catalog search via tenant-private index)
-- **Catalog records:** `crates/oya-vertical-education-*`
+- **Catalog records:** `crates/vertical-education-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD; FERPA/청소년보호법 compliance ADR at activation
 

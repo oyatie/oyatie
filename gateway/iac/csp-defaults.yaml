@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-api-gateway-security-headers
+  name: api-gateway-security-headers
   namespace: api-gateway
 data:
   # Default CSP (overridden per route)

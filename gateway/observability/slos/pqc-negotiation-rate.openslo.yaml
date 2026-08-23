@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-api-gateway-pqc-negotiation-rate
+  name: api-gateway-pqc-negotiation-rate
   displayName: "api-gateway: PQC hybrid negotiation rate (advisory)"
   labels:
     microservice: api-gateway
@@ -25,13 +25,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_tls_handshake_total{kem_group="X25519MLKEM768"}[5m]))
+                sum(rate(api_gateway_tls_handshake_total{kem_group="X25519MLKEM768"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_tls_handshake_total{status="success"}[5m]))
+                sum(rate(api_gateway_tls_handshake_total{status="success"}[5m]))
   objectives:
     - target: 0.1
       displayName: "Advisory: PQC hybrid offered to 10%+ of handshakes (adoption tracking)"

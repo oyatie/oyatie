@@ -14,7 +14,7 @@ doc_status: published
 a tracked Foundation Bypass has reached its expiry date and the underlying foundation gate is still failing
 
 ## Detection
-- Source signal: `bypass-expiry-monitor` background job; `oya-governance-bypass` block on PRs touching the bypass scope
+- Source signal: `bypass-expiry-monitor` background job; `governance-bypass` block on PRs touching the bypass scope
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 3 ladder
 
 ## First-response checklist

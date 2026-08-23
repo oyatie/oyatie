@@ -60,8 +60,8 @@
     "tenant-identity-kernel": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-platform-tenant-kernel/",
-        "crates/oya-platform-identity-kernel/"
+        "crates/platform-tenant-kernel/",
+        "crates/platform-identity-kernel/"
       ],
       "depends_on": [
         "data-use-boundary"
@@ -71,7 +71,7 @@
     "audit-chain-impl": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-platform-audit-chain-*"
+        "crates/platform-audit-chain-*"
       ],
       "depends_on": [
         "tenant-identity-kernel"
@@ -81,7 +81,7 @@
     "eventing-backbone": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-platform-eventing-*"
+        "crates/platform-eventing-*"
       ],
       "depends_on": [],
       "wave": "W-Foundation"
@@ -89,7 +89,7 @@
     "cedar-policy-substrate": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-platform-policy-cedar-*"
+        "crates/platform-policy-cedar-*"
       ],
       "depends_on": [
         "tenant-identity-kernel"
@@ -100,7 +100,7 @@
       "fanout": 1,
       "shared_writes": [
         "decisions/ADR-0009-cell-architecture-per-tenant-per-region.md",
-        "crates/oya-platform-cell-*"
+        "crates/platform-cell-*"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -111,7 +111,7 @@
       "fanout": 1,
       "shared_writes": [
         "decisions/ADR-0010-regional-pack-architecture.md",
-        "crates/oya-platform-regional-pack-kernel"
+        "crates/platform-regional-pack-kernel"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -144,7 +144,7 @@
     "foundry-mvp-chain": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-*"
+        "crates/foundry-*"
       ],
       "depends_on": [
         "data-use-boundary",
@@ -157,7 +157,7 @@
     "provider-adapter-anthropic-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-anthropic-api-*"
+        "crates/intelligence-adapter-anthropic-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -167,7 +167,7 @@
     "provider-adapter-anthropic-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-anthropic-subscription-*"
+        "crates/intelligence-adapter-anthropic-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -177,7 +177,7 @@
     "provider-adapter-openai-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-openai-api-*"
+        "crates/intelligence-adapter-openai-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -187,7 +187,7 @@
     "provider-adapter-openai-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-openai-subscription-*"
+        "crates/intelligence-adapter-openai-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -197,7 +197,7 @@
     "provider-adapter-gemini-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-gemini-api-*"
+        "crates/intelligence-adapter-gemini-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -207,7 +207,7 @@
     "provider-adapter-gemini-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-adapter-gemini-subscription-*"
+        "crates/intelligence-adapter-gemini-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -217,7 +217,7 @@
     "foundry-engineering-platform": {
       "fanout": 10,
       "shared_writes": [
-        "crates/oya-foundry-{catalog,repoctl,gates,scorecard,fitness,marketplace,*}-*"
+        "crates/foundry-{catalog,repoctl,gates,scorecard,fitness,marketplace,*}-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -227,7 +227,7 @@
     "foundry-mcp-server": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-intelligence-mcp-server-*"
+        "crates/intelligence-mcp-server-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -237,7 +237,7 @@
     "cloud-iam": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-cloud-iam-*"
+        "crates/cloud-iam-*"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -247,7 +247,7 @@
     "cloud-compute-vm": {
       "fanout": 5,
       "shared_writes": [
-        "crates/oya-cloud-compute-vm-*"
+        "crates/cloud-compute-vm-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -257,7 +257,7 @@
     "cloud-compute-k8s": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-cloud-compute-k8s-*"
+        "crates/cloud-compute-k8s-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -267,7 +267,7 @@
     "cloud-compute-functions": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-compute-functions-*"
+        "crates/cloud-compute-functions-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -277,7 +277,7 @@
     "cloud-storage-object": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-cloud-storage-object-*"
+        "crates/cloud-storage-object-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -287,7 +287,7 @@
     "cloud-storage-block": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-storage-block-*"
+        "crates/cloud-storage-block-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -297,7 +297,7 @@
     "cloud-network-vpc": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-cloud-network-vpc-*"
+        "crates/cloud-network-vpc-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -307,7 +307,7 @@
     "cloud-network-lb": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-network-lb-*"
+        "crates/cloud-network-lb-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -317,7 +317,7 @@
     "cloud-network-dns": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-network-dns-*"
+        "crates/cloud-network-dns-*"
       ],
       "depends_on": [
         "cloud-iam"
@@ -327,7 +327,7 @@
     "cloud-billing-metering": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-cloud-billing-*"
+        "crates/cloud-billing-*"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -337,7 +337,7 @@
     "cloud-billing-tax": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-billing-tax-*"
+        "crates/cloud-billing-tax-*"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -347,7 +347,7 @@
     "cloud-observability": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-cloud-observability-*"
+        "crates/cloud-observability-*"
       ],
       "depends_on": [],
       "wave": "W-Cloud-Preview"
@@ -355,7 +355,7 @@
     "cloud-finops": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-cloud-finops-*"
+        "crates/cloud-finops-*"
       ],
       "depends_on": [
         "cloud-billing-metering"
@@ -365,7 +365,7 @@
     "cloud-dcops": {
       "fanout": 10,
       "shared_writes": [
-        "crates/oya-cloud-dcops-*"
+        "crates/cloud-dcops-*"
       ],
       "depends_on": [],
       "wave": "W-DataCenter-Operations"
@@ -373,7 +373,7 @@
     "search-crawler": {
       "fanout": 5,
       "shared_writes": [
-        "crates/oya-search-crawler-*"
+        "crates/search-crawler-*"
       ],
       "depends_on": [
         "data-use-boundary"
@@ -383,7 +383,7 @@
     "search-parser": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-search-parser-*"
+        "crates/search-parser-*"
       ],
       "depends_on": [
         "search-crawler"
@@ -393,7 +393,7 @@
     "search-index-inverted": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-search-index-inverted-*"
+        "crates/search-index-inverted-*"
       ],
       "depends_on": [
         "search-parser"
@@ -403,7 +403,7 @@
     "search-index-vector": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-search-index-vector-*"
+        "crates/search-index-vector-*"
       ],
       "depends_on": [
         "search-parser"
@@ -413,7 +413,7 @@
     "search-rank": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-search-rank-*"
+        "crates/search-rank-*"
       ],
       "depends_on": [
         "search-index-inverted",
@@ -424,7 +424,7 @@
     "search-qu": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-search-query-*"
+        "crates/search-query-*"
       ],
       "depends_on": [
         "search-rank"
@@ -434,7 +434,7 @@
     "search-serp": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-search-serp-*"
+        "crates/search-serp-*"
       ],
       "depends_on": [
         "search-qu"
@@ -444,7 +444,7 @@
     "search-rag": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-search-rag-*"
+        "crates/search-rag-*"
       ],
       "depends_on": [
         "search-index-inverted",
@@ -455,7 +455,7 @@
     "ads-auction": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-ads-auction-*"
+        "crates/ads-auction-*"
       ],
       "depends_on": [
         "data-use-boundary",
@@ -466,7 +466,7 @@
     "ads-targeting": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-ads-targeting-*"
+        "crates/ads-targeting-*"
       ],
       "depends_on": [
         "data-use-boundary"
@@ -476,7 +476,7 @@
     "ads-attribution": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-ads-attribution-*"
+        "crates/ads-attribution-*"
       ],
       "depends_on": [
         "analytics-substrate"
@@ -486,7 +486,7 @@
     "ads-console": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-ads-console-*"
+        "crates/ads-console-*"
       ],
       "depends_on": [
         "ads-auction",
@@ -497,7 +497,7 @@
     "analytics-event": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-analytics-event-*"
+        "crates/analytics-event-*"
       ],
       "depends_on": [
         "data-use-boundary"
@@ -507,7 +507,7 @@
     "analytics-warehouse": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-analytics-warehouse-*"
+        "crates/analytics-warehouse-*"
       ],
       "depends_on": [
         "analytics-event"
@@ -517,7 +517,7 @@
     "analytics-dp": {
       "fanout": 2,
       "shared_writes": [
-        "crates/oya-analytics-dp-*"
+        "crates/analytics-dp-*"
       ],
       "depends_on": [
         "analytics-event"
@@ -527,7 +527,7 @@
     "vertical-corporate": {
       "fanout": 8,
       "shared_writes": [
-        "crates/oya-vertical-corporate-*"
+        "crates/vertical-corporate-*"
       ],
       "depends_on": [
         "foundry-mvp-chain",
@@ -538,7 +538,7 @@
     "vertical-healthcare": {
       "fanout": 8,
       "shared_writes": [
-        "crates/oya-vertical-healthcare-*"
+        "crates/vertical-healthcare-*"
       ],
       "depends_on": [
         "data-use-boundary"
@@ -548,7 +548,7 @@
     "vertical-industrial": {
       "fanout": 8,
       "shared_writes": [
-        "crates/oya-vertical-industrial-*"
+        "crates/vertical-industrial-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -558,7 +558,7 @@
     "vertical-logistics": {
       "fanout": 8,
       "shared_writes": [
-        "crates/oya-vertical-logistics-*"
+        "crates/vertical-logistics-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -568,7 +568,7 @@
     "vertical-fintech": {
       "fanout": 8,
       "shared_writes": [
-        "crates/oya-vertical-fintech-*"
+        "crates/vertical-fintech-*"
       ],
       "depends_on": [
         "data-use-boundary",
@@ -580,7 +580,7 @@
     "vertical-legal": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-vertical-legal-*"
+        "crates/vertical-legal-*"
       ],
       "depends_on": [],
       "wave": "W-Vertical-Fan-Out"
@@ -588,7 +588,7 @@
     "workspace-mail": {
       "fanout": 5,
       "shared_writes": [
-        "crates/oya-workspace-mail-*"
+        "crates/workspace-mail-*"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -598,7 +598,7 @@
     "workspace-calendar": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-workspace-calendar-*"
+        "crates/workspace-calendar-*"
       ],
       "depends_on": [
         "foundation-adrs"
@@ -608,7 +608,7 @@
     "workspace-drive": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-workspace-drive-*"
+        "crates/workspace-drive-*"
       ],
       "depends_on": [
         "cloud-storage-object"
@@ -618,7 +618,7 @@
     "workspace-docs": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-workspace-docs-*"
+        "crates/workspace-docs-*"
       ],
       "depends_on": [],
       "wave": "W-Workspace-Preview"
@@ -626,7 +626,7 @@
     "workspace-meet": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-workspace-meet-*"
+        "crates/workspace-meet-*"
       ],
       "depends_on": [
         "cloud-network-vpc"
@@ -743,7 +743,7 @@
     "ai-model-substrate-train": {
       "fanout": 5,
       "shared_writes": [
-        "crates/oya-intelligence-model-train-*"
+        "crates/intelligence-model-train-*"
       ],
       "depends_on": [
         "cloud-compute-vm"
@@ -753,7 +753,7 @@
     "ai-model-substrate-serve": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-intelligence-model-serve-*"
+        "crates/intelligence-model-serve-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -763,7 +763,7 @@
     "ai-model-substrate-vision": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-intelligence-model-vision-*"
+        "crates/intelligence-model-vision-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -773,7 +773,7 @@
     "ai-model-substrate-speech": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-intelligence-model-speech-*"
+        "crates/intelligence-model-speech-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -783,8 +783,8 @@
     "ai-robotics-control": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-intelligence-robotics-control-*",
-        "crates/oya-vertical-industrial-robotics-*"
+        "crates/intelligence-robotics-control-*",
+        "crates/vertical-industrial-robotics-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"

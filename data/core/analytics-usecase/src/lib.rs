@@ -34,7 +34,7 @@ use std::fmt;
 use data_analytics_domain::{
     AuditLogSearch, BillingRollup, DataExport, DomainError, TenantDashboardQuery, TenantId,
 };
-use oya_shared_olap_client_kernel::{KernelError, OlapClient, Row};
+use shared_olap_client_kernel::{KernelError, OlapClient, Row};
 
 // =====================================================================
 // Use-case error
@@ -201,7 +201,7 @@ mod tests {
     use data_analytics_domain::{
         AuditLogFilter, DashboardMetric, ExportFormat, ExportScope, Pagination, TimeRange,
     };
-    use oya_shared_olap_client_kernel::{
+    use shared_olap_client_kernel::{
         ColumnDef, ColumnType, KernelError, QualifiedTable, TableEngine, TableName, TableSchema,
         memory_adapter::InMemoryOlapClient,
     };

@@ -1,7 +1,7 @@
 //! KR acceptance-evidence types for M07/P08 closure.
 //!
 //! Pure domain types — no I/O, no serde, no external deps beyond the crate's
-//! existing `oya-data-boundary-kernel` transitive surface.
+//! existing `data-boundary-kernel` transitive surface.
 
 /// Classifies the category of an acceptance test included in a KR evidence bundle.
 ///

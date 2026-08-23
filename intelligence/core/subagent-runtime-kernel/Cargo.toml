@@ -1,6 +1,6 @@
 [package]
 # Naming justification (per feedback_naming_justification):
-#   - BNF v4.1:        oya - foundry - subagent-runtime - kernel
+#   - BNF v4.1:        foundry - subagent-runtime - kernel
 #   - slot-2 µservice: `foundry` (registered; internal engineering platform).
 #   - bc-tokens:       `subagent-runtime` (kebab tokens; bounded context is
 #                      the per-facet subagent invocation substrate — the
@@ -10,7 +10,7 @@
 #                      usecase, app, adapter, infrastructure, cli, rest,
 #                      grpc, worker, sdk, api} per ADR-0056 amended by
 #                      ADR-0105+ADR-0106+ADR-0565. ✓
-#   - Sibling pattern: every other `oya-foundry-*-kernel` crate (the
+#   - Sibling pattern: every other `foundry-*-kernel` crate (the
 #                      port-in-kernel substrate; adapter impls live
 #                      one ring out, binary entrypoints two rings out).
 #   - Introducing IP:  M01-P17-IP-009 (subagent runtime).
@@ -32,7 +32,7 @@ intelligence-account-kernel = { path = "../account-kernel" }
 [lints]
 workspace = true
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 context     = "foundry"
 role        = "kernel"
 feature     = "subagent-runtime"
@@ -40,6 +40,6 @@ capability  = ""
 layer       = "kernel"
 audit_chain = true
 
-[package.metadata.oya.lifecycle]
+[package.metadata.oyatie.lifecycle]
 stage = "scaffolded"
 introducing_ip = "M01-P17-IP-009"

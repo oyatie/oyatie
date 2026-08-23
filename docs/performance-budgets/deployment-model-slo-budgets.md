@@ -178,7 +178,7 @@ An intern can verify the deployment-model SLO compliance:
 
 ```bash
 # Shared-cloud: verify read p99 < 200ms end-to-end (Scenario B equivalent)
-oya gate benchmark deployment-slo \
+retired CLI benchmark deployment-slo \
   --model shared-cloud \
   --operation read \
   --cell <cell-id> \
@@ -186,7 +186,7 @@ oya gate benchmark deployment-slo \
 # Expected: p99 < 200ms; p999 < 500ms
 
 # Shared-cloud: verify write p99 < 500ms
-oya gate benchmark deployment-slo \
+retired CLI benchmark deployment-slo \
   --model shared-cloud \
   --operation write \
   --cell <cell-id> \
@@ -194,13 +194,13 @@ oya gate benchmark deployment-slo \
 # Expected: p99 < 500ms; p999 < 1000ms
 
 # Hybrid: verify BYO substrate RTT (must be < 100ms p99)
-oya gate validate byo-substrate-latency \
+presubmit (retired CLI gate validate) byo-substrate-latency \
   --tenant <tenant-id> \
   --connection-type privatelink
 # Expected: RTT p99 < 100ms
 
 # Check SLSA L3 provenance (no latency requirement; verify presence)
-oya gate verify artifact-bundle \
+retired CLI verify artifact-bundle \
   --bundle <bundle-path>.oab \
   --require-slsa-level 3
 # Expected: SLSA L3 provenance verified; cosign attestation valid

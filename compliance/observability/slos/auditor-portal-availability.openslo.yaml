@@ -16,13 +16,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_auditor_portal_request_success_total[28d]))
+                sum(rate(compliance_auditor_portal_request_success_total[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_auditor_portal_request_total[28d]))
+                sum(rate(compliance_auditor_portal_request_total[28d]))
   objectives:
     - displayName: Auditor portal availability ≥ 99.95% during engagements
       target: 0.9995

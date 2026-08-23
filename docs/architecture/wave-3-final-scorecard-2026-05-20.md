@@ -1364,7 +1364,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 42 refs / 241 lines = 17.43 per 100 lines
 - artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
-### ADR-0223 — ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md
+### ADR-0223 — ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md
 - status: Accepted
 - depth: C-partial; lines=102; substance_markers=3
 - cross-ref-density: 14 refs / 102 lines = 13.73 per 100 lines
@@ -4676,35 +4676,35 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - Expected scaffold count: 8
 - Expected implementation count: 4
 - Implementation-grade crates by audit heuristic: 0
-### Crate `oya-governance-audit-event-emission`
+### Crate `governance-audit-event-emission`
 - scaffold status: present; files=4; rust_files=2; lines=114
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-byok-disambiguation`
+### Crate `governance-byok-disambiguation`
 - scaffold status: present; files=7; rust_files=3; lines=674
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-capability-tier-coverage`
+### Crate `governance-capability-tier-coverage`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-cedar-coverage`
+### Crate `governance-cedar-coverage`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-naming-justifications`
+### Crate `governance-naming-justifications`
 - scaffold status: present; files=7; rust_files=3; lines=712
 - implementation status: partial-implementation; cli=False; test_markers=7
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-no-template-stamping`
+### Crate `governance-no-template-stamping`
 - scaffold status: present; files=11; rust_files=3; lines=683
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-pack-overlay-completeness`
+### Crate `governance-pack-overlay-completeness`
 - scaffold status: present; files=4; rust_files=2; lines=113
 - implementation status: scaffold; cli=False; test_markers=4
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
-### Crate `oya-governance-substance-bar`
+### Crate `governance-substance-bar`
 - scaffold status: present; files=7; rust_files=3; lines=662
 - implementation status: partial-implementation; cli=False; test_markers=8
 - named gaps: not implementation-grade by line/CLI/test heuristic; no CLI surface detected
@@ -4869,7 +4869,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 25. owner: Product Education Owner; ETA: 2026-06-01; deliverable: Normalize tutorials/onboarding to include prerequisites, expected outputs, and failure recovery; verification: update relevant manifest/spec and rerun corpus scorecard delta.
 26. owner: Investor Narrative Owner; ETA: 2026-06-01; deliverable: Tie investor materials to quantified coverage evidence instead of broad platform claims; verification: update relevant manifest/spec and rerun corpus scorecard delta.
 27. owner: Evidence Automation Owner; ETA: 2026-06-02; deliverable: Add a reproducible scorecard generator or manifest so future audits are not manual-only; verification: update relevant manifest/spec and rerun corpus scorecard delta.
-28. owner: VCS Governance Owner; ETA: 2026-06-02; deliverable: Wire scorecard line-count evidence into Oya VCS promote bundles; verification: update relevant manifest/spec and rerun corpus scorecard delta.
+28. owner: VCS Governance Owner; ETA: 2026-06-02; deliverable: Wire scorecard line-count evidence into retired VCS ratchet promote bundles; verification: update relevant manifest/spec and rerun corpus scorecard delta.
 29. owner: Review Owner; ETA: 2026-06-03; deliverable: Run adversarial review of the Wave-4 patch set against this scorecard gaps list; verification: update relevant manifest/spec and rerun corpus scorecard delta.
 30. owner: Release Gate Owner; ETA: 2026-06-05; deliverable: Declare Wave-4 PASS only after ADR, service registry, policy, threat, and test gaps hit zero or named waivers; verification: update relevant manifest/spec and rerun corpus scorecard delta.
 
@@ -4877,7 +4877,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - Verdict: NEEDS-WAVE-4
 - Blocked?: no hard blocker to remediation; corpus is auditable and promotable as a scorecard artifact
 - PASS criteria not yet met because: 57 ADR numeric slots missing from ADR-0001..ADR-0321; live microservice count is 78, not requested 79; capability tier registry still declares/targets a 70-service matrix while live services differ; only 0 governance crates are implementation-grade by audit heuristic, below requested 4; 6 services lack threat-model markers
-- Clean halt condition: after Oya VCS verify/done/promote evidence succeeds with this file line count
+- Clean halt condition: after retired VCS ratchet verify/done/promote evidence succeeds with this file line count
 
 Named evidence samples for highest-risk gaps:
 - Missing ADR slots: ADR-0012, ADR-0033, ADR-0068, ADR-0070, ADR-0071, ADR-0072, ADR-0073, ADR-0074, ADR-0075, ADR-0076, ADR-0077, ADR-0078, ADR-0079, ADR-0080, ADR-0081, ADR-0082, ADR-0084, ADR-0085, ADR-0086, ADR-0087, ADR-0088, ADR-0089, ADR-0125, ADR-0126, ADR-0127, ADR-0224, ADR-0225, ADR-0226, ADR-0227, ADR-0228, ADR-0229, ADR-0230, ADR-0231, ADR-0232, ADR-0233, ADR-0256, ADR-0259, ADR-0260, ADR-0261, ADR-0262, ADR-0264, ADR-0265, ADR-0266, ADR-0267, ADR-0268, ADR-0269, ADR-0270, ADR-0271, ADR-0274, ADR-0275, ADR-0277, ADR-0278, ADR-0279, ADR-0281, ADR-0282, ADR-0283, ADR-0285, ADR-0286, ADR-0287, ADR-0288, ADR-0289, ADR-0290, ADR-0291

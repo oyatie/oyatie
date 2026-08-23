@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every canonical doc has a row in `docs/CATALOG.md` with declared doc-class, owner, last-reviewed, and that no orphan doc-class rows exist.
-- enforces: STANDARD/doc-catalog; AGENTS.md fitness-lane `oya-governance-doc-catalog`.
-- kernel_crate: `oya-intelligence-catalog-kernel` (EXISTING; extend with verdict) — `CatalogRow { path, doc_class, owner_axis, last_reviewed }`, verdict `DocCatalogFitnessReport { rows_checked, docs_checked }`.
-- runner_path: `tools/oya-governance-doc-catalog`
+- enforces: STANDARD/doc-catalog; AGENTS.md fitness-lane `governance-doc-catalog`.
+- kernel_crate: `intelligence-catalog-kernel` (EXISTING; extend with verdict) — `CatalogRow { path, doc_class, owner_axis, last_reviewed }`, verdict `DocCatalogFitnessReport { rows_checked, docs_checked }`.
+- runner_path: `tools/governance-doc-catalog`
 - inputs: `docs/CATALOG.md`, `docs/**/*.md`.
 - failure_modes:
   - canonical doc exists but no catalog row
   - catalog row references missing file
   - row has unknown doc_class value
-- ci_invocation: `cargo run -p oya-governance-doc-catalog`
+- ci_invocation: `cargo run -p governance-doc-catalog`
 - runtime_budget: 400 ms
 - severity: BLOCKER
 - kernel_sketch:

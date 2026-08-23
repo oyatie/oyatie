@@ -16,7 +16,7 @@ pub use credential_revocation::{
 
 use std::fmt;
 
-use oya_data_boundary_kernel::{Classified, DataClass, Purpose};
+use data_boundary_kernel::{Classified, DataClass, Purpose};
 
 pub const MAX_TOKEN_TTL_SECONDS: u64 = 60 * 60;
 pub const USER_SCHEMA_VERSION: u32 = 1;
@@ -332,7 +332,7 @@ fn validate_user_id(user_id: &str) -> Result<(), IdentityError> {
 }
 
 fn validate_region_pack(region_pack: &str) -> Result<(), IdentityError> {
-    if region_pack.starts_with("oya-pack-") && region_pack.len() > "oya-pack-".len() {
+    if region_pack.starts_with("pack-") && region_pack.len() > "pack-".len() {
         Ok(())
     } else {
         Err(IdentityError::InvalidRegionPack)

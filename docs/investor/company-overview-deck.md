@@ -107,7 +107,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Regional and compliance packs adapt behavior to jurisdictions.
 - Per-tenant quotas limit noisy-neighbor risk.
 - Per-cell deployment limits blast radius.
-- Oya VCS governs agentic development and promotion workflow.
+- retired VCS ratchet governs agentic development and promotion workflow.
 - The same primitives serve internal platform work and customer-facing workloads.
 - This makes "Oyatie as a tenant" a doctrine, not a metaphor.
 - The product is sold as a unified ecosystem with governed activation.
@@ -154,7 +154,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - HR users see identity-linked employee journeys, learning, workforce tasks, and policy approvals.
 - SRE users see ops-dashboard-control-center, incident management, release evidence, and golden signals.
 - Compliance users see audit-chain evidence, data lineage, retention, DSR, and pack status.
-- Developers see API contracts, capability registry, SDKs, and Oya VCS workflow.
+- Developers see API contracts, capability registry, SDKs, and retired VCS ratchet workflow.
 - AI agents see grantable capabilities, autonomy ceilings, cost ceilings, and Cedar decisions.
 - Every consequential action can be tied to tenant, principal, policy, capability, data class, and audit event.
 - The UX should feel like one product even when many microservices contribute.
@@ -243,7 +243,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - The repository contains `specs/ontology-projection-schema.json`.
 - The repository contains `microservices/intelligence/capability-tiers/tier-matrix.md`.
 - The repository contains per-tenant resource quota standards.
-- The repository contains governance around Oya VCS claim, verify, done, and promote.
+- The repository contains governance around retired VCS ratchet claim, verify, done, and promote.
 - This is an unusually deep pre-product artifact base.
 - The investor diligence caveat is that artifact depth must convert into running customer value.
 - The next proof point is executable pilot workflow, not more prose.
@@ -342,7 +342,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Moat factor 7: ADR-driven discipline and explicit claim gates.
 - Moat factor 8: per-tenant quotas and cell-level isolation.
 - Moat factor 9: ontology-backed projections and lineage.
-- Moat factor 10: Oya VCS as governed autonomous development workflow.
+- Moat factor 10: retired VCS ratchet as governed autonomous development workflow.
 - Moat factor 11: compliance packs and cell certification levels.
 - Moat factor 12: Kubernetes-first deployment portability.
 - Moat factor 13: internal-use doctrine where Oyatie itself is a tenant.
@@ -366,7 +366,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Authorization and policy evaluation use Cedar fragments.
 - Kubernetes is the default server workload runtime target.
 - Cloud Hypervisor appears in tier matrices for controlled execution environments.
-- Oya VCS governs claim, verify, done, and promote workflow.
+- retired VCS ratchet governs claim, verify, done, and promote workflow.
 - The platform supports dev, staging, and prod tenant environment tiers.
 - Per-tenant resource quotas cover request rate, concurrent requests, memory, storage, and connections.
 - Audit-chain doctrine uses append-only hash-chained events.
@@ -506,7 +506,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Claim 9: Oyatie's compliance-pack concept maps regulation to executable behavior.
 - Claim 10: Oyatie's ontology projection approach avoids copying product data models per app.
 - Claim 11: Oyatie's per-cell model gives a natural path to regulated deployments.
-- Claim 12: Oyatie's Oya VCS path is a product and engineering differentiator for agentic software development.
+- Claim 12: Oyatie's retired VCS ratchet path is a product and engineering differentiator for agentic software development.
 - Claim 13: Oyatie's 78 microservice directory base suggests breadth, but not yet commercial completeness.
 - Claim 14: Oyatie's 575 Cedar files suggest policy depth, but runtime enforcement must be proven.
 - Claim 15: Oyatie's 61 tier matrices suggest packaging depth, but buyer packaging must be simplified.

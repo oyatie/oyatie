@@ -52,7 +52,7 @@ components:
   - ../components/storage-classes
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-cloud-k8s
+  app.kubernetes.io/part-of: cloud-k8s
   oyatie/microservice: cloud-k8s
 
 configurations:

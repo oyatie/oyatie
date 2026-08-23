@@ -16,7 +16,7 @@ use network_vpc::{
     VpcCreateAuthorizer, VpcCreateResource, create_cloud_network_vpc_from_api,
 };
 
-const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
+const VPC_ID: &str = "oyatie:cloud:region-home:ten_alpha:vpc:prod";
 const PRINCIPAL_ID: &str = "sp_network_admin";
 const TENANT_ID: &str = "ten_alpha";
 const BEARER_SECRET: &str = "break-glass-network-vpc-secret";
@@ -349,7 +349,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
     let mut ledger = CloudNetworkVpcCreateIdempotencyLedger::default();
     let provider = allow_all_provider();
     let mut request = create_request("req-network-vpc-drift", "idem-network-vpc-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:vpc:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:vpc:other".to_string();
 
     let error = create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, &provider, request)
         .expect_err("path/body VPC drift is rejected");
@@ -358,7 +358,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
         error,
         CloudNetworkVpcApiError::VpcIdMismatch {
             path_vpc_id: VPC_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:vpc:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:vpc:other".to_string(),
         }
     );
     assert_eq!(error.vpc_create_status_code(), 400);

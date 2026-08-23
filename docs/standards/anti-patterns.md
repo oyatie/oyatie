@@ -11,7 +11,7 @@ purpose: |
   contributors MUST avoid. This document converts real Wave-3-G failures into
   reviewable, CI-addressable, and incident-aware contribution rules.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json + docs/standards/documentation-rigor.md
-planned_enforcement_ref: oya-governance-anti-pattern-catalogue
+planned_enforcement_ref: governance-anti-pattern-catalogue
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/standards/doc-style.md
@@ -66,7 +66,7 @@ depending on fragile memory.
 
 This document covers Markdown, JSON specs, ADRs, PRDs, microservice docs,
 implementation plans, policy fragments, generated-adjacent artifacts,
-review-thread handling, and Oya VCS lifecycle work.
+review-thread handling, and retired VCS ratchet lifecycle work.
 
 It does not replace documentation-rigor.md.
 
@@ -157,7 +157,7 @@ Examples: repeated headings, missing frontmatter, wrong CLI primitive strings,
 broken links, unresolved ADR identifiers, absent tenant_id fields, forbidden
 retired tool names, and line-count floors not paired with required anchors.
 
-Those belong in oya-governance-* lanes.
+Those belong in governance-* lanes.
 
 Some anti-patterns are review-caught.
 
@@ -173,7 +173,7 @@ CI lanes MUST report the exact anti-pattern ID when possible.
 
 Review comments SHOULD use the same IDs.
 
-Oya VCS evidence SHOULD include the number of pattern IDs checked when a
+retired VCS ratchet evidence SHOULD include the number of pattern IDs checked when a
 change claims this standard.
 
 ### §1.5 Catalogue Entry Shape
@@ -206,7 +206,7 @@ Reviewers MUST check a canonical doc change against §2 and §5.
 
 Reviewers MUST check architecture and microservice changes against §3.
 
-Reviewers MUST check Oya VCS, PR, evidence, and lifecycle work against §4.
+Reviewers MUST check retired VCS ratchet, PR, evidence, and lifecycle work against §4.
 
 Reviewers SHOULD quote the pattern ID in review comments.
 
@@ -854,7 +854,7 @@ stated.
 
 CI candidate: length-cap exception requires maintenance section.
 
-Review cue: ask who edits this when ADR-0145 or Oya VCS changes.
+Review cue: ask who edits this when ADR-0145 or retired VCS ratchet changes.
 
 Safer replacement: add clear owner, enforcement lane, update protocol, and
 cross-reference set.
@@ -1051,7 +1051,7 @@ mapping drifts.
 Detection: `audit_event_class` values not present in registry or ADR-0263
 reverse references.
 
-CI candidate: `oya gate validate audit-event-class-registered`.
+CI candidate: `presubmit` (retired CLI `gate validate audit-event-class-registered`).
 
 Review cue: ask where schema, retention, cardinality, and emission target are
 registered.
@@ -1533,7 +1533,7 @@ GitOps/VCS replacement cutover.
 
 Detection: unclaimed edits under a path already held by another agent.
 
-CI candidate: oya-vcs-admission concurrent-safe-paths gate.
+CI candidate: retired VCS ratchet concurrent-safe-paths gate.
 
 Review cue: ask which changeset owns the path.
 
@@ -1662,7 +1662,7 @@ leader.
 
 Anchor: docs/AGENTS.md scaffold_protocol.
 
-### AP-C07 Oya VCS CLI Parser Nuance Drift
+### AP-C07 retired VCS ratchet CLI Parser Nuance Drift
 
 Pattern ID: AP-C07.
 
@@ -1706,7 +1706,7 @@ CI candidate: forbidden primitive string scan with allowed prose exceptions.
 Review cue: ask whether the primitive changes repo state or merely provides
 read/provenance context.
 
-Safer replacement: oya vcs for claim/verify/done/promote; oya git for git
+Safer replacement: retired VCS ratchet for claim/verify/done/promote; oya git for git
 drop-in surface.
 
 Anchor: docs/decisions/ADR-0709-general-live-apex.md.
@@ -1730,7 +1730,7 @@ Review cue: ask which validation ran before the transition.
 
 Safer replacement: collect evidence, verify, done, then promote.
 
-Anchor: Oya VCS required sequence in docs/AGENTS.md.
+Anchor: retired VCS ratchet required sequence in docs/AGENTS.md.
 
 ### AP-C10 Writer And Reviewer Lens Collapse
 
@@ -1772,7 +1772,7 @@ Safer replacement: claim the narrowest scope that protects the edit.
 Boundary: a standards-directory claim can be appropriate when the command
 requires `docs/standards` and the edit is a new standard file.
 
-Anchor: Oya VCS claim lifecycle.
+Anchor: retired VCS ratchet claim lifecycle.
 
 ### AP-C12 Status Transition Without Bundle
 
@@ -1802,18 +1802,18 @@ Pattern ID: AP-C13.
 Severity: P0 when used for repo state transition.
 
 Failure: direct git or gh commands are used as the authoritative state
-transition while Oya VCS owns that lifecycle.
+transition while retired VCS ratchet owns that lifecycle.
 
 Why it harms Oyatie: admission, evidence, claim locks, and promotion metadata
 are bypassed.
 
-Detection: branch/PR/merge state changes without Oya VCS ledger events.
+Detection: branch/PR/merge state changes without retired VCS ratchet ledger events.
 
 CI candidate: admission gate checks changeset evidence.
 
 Review cue: distinguish local inspection from authoritative transition.
 
-Safer replacement: Oya VCS lifecycle first; git commands only inside sanctioned
+Safer replacement: retired VCS ratchet lifecycle first; git commands only inside sanctioned
 or drop-in surfaces.
 
 Anchor: ADR-0116.
@@ -1906,7 +1906,7 @@ Review cue: ask whether any filesystem or external state changed.
 Safer replacement: call it audit-only only when no writes occur; otherwise
 claim scope and run lifecycle.
 
-Anchor: Oya VCS transition rules.
+Anchor: retired VCS ratchet transition rules.
 
 ### AP-C18 Destructive Cleanup Of User Changes
 
@@ -2061,7 +2061,7 @@ CI candidate: command-block primitive lint.
 
 Review cue: distinguish prose history from current instruction.
 
-Safer replacement: `oya vcs` for lifecycle; `oya git` for git drop-in.
+Safer replacement: `retired VCS ratchet` for lifecycle; `oya git` for git drop-in.
 
 Anchor: ADR-0116.
 
@@ -2135,7 +2135,7 @@ Pattern ID: AP-L10.
 
 Severity: P1; P0 for lifecycle closeout.
 
-Failure: "done" is used without saying whether code, docs, tests, Oya VCS
+Failure: "done" is used without saying whether code, docs, tests, retired VCS ratchet
 done, or promotion is meant.
 
 Why it harms Oyatie: the word done spans local edit state and official
@@ -2147,10 +2147,10 @@ CI candidate: final evidence schema.
 
 Review cue: ask "done in which state machine?"
 
-Safer replacement: say "file authored", "tests passed", "oya vcs done
+Safer replacement: say "file authored", "tests passed", "retired VCS ratchet done
 accepted", or "promoted to dev."
 
-Anchor: Oya VCS lifecycle contract.
+Anchor: retired VCS ratchet lifecycle contract.
 
 ### AP-L11 Optional Language In Mandatory Lane
 
@@ -2289,7 +2289,7 @@ Anchor: ADR-0131 per-microservice flat layout.
 The enforcement goal is prevention, not punishment.
 
 Every anti-pattern that can be detected mechanically SHOULD become an
-oya-governance-* lane.
+governance-* lane.
 
 Every lane SHOULD report the anti-pattern ID.
 
@@ -2305,7 +2305,7 @@ The absence of a lane is not permission to repeat a known incident.
 
 ### §6.2 Candidate Lanes
 
-`oya-governance-template-stamp-detect` detects AP-A01, AP-A08, and AP-A09.
+`governance-template-stamp-detect` detects AP-A01, AP-A08, and AP-A09.
 
 It compares repeated sections after normalizing entity names, IDs, tiers, and
 service slugs.
@@ -2313,103 +2313,103 @@ service slugs.
 It reports similarity clusters and asks for either bespoke deltas or explicit
 scaffold tagging.
 
-`oya-governance-clause-loop-detect` detects AP-A02 and AP-A07.
+`governance-clause-loop-detect` detects AP-A02 and AP-A07.
 
 It counts repeated clause labels and unique paragraph bodies.
 
 It fails when the ratio of labels to unique bodies crosses a configured
 threshold.
 
-`oya-governance-doc-density` detects AP-A03, AP-A15, and AP-A16.
+`governance-doc-density` detects AP-A03, AP-A15, and AP-A16.
 
 It maps doc class to required anchors from documentation-rigor.md §2.
 
 It refuses line-floor claims without density anchors.
 
-`oya-governance-generated-provenance` detects AP-A04 and AP-A23.
+`governance-generated-provenance` detects AP-A04 and AP-A23.
 
 It requires generated files to declare generator, input manifest, and promotion
 status.
 
 It refuses generated placeholders from serving as canonical accepted doctrine.
 
-`oya-governance-reference-resolve` detects AP-A06, AP-A14, AP-L03, and AP-L04.
+`governance-reference-resolve` detects AP-A06, AP-A14, AP-L03, and AP-L04.
 
 It resolves ADR IDs, companion docs, spec refs, and Markdown links.
 
 It emits broken edge reports for six-hop traversal.
 
-`oya-governance-vague-verb-lint` detects AP-A05 and AP-L01.
+`governance-vague-verb-lint` detects AP-A05 and AP-L01.
 
 It flags high-risk verbs unless nearby text names owner, object, action,
 policy, event, and contract.
 
-`oya-governance-future-work-owned` detects AP-A24 and AP-L12.
+`governance-future-work-owned` detects AP-A24 and AP-L12.
 
 It requires future-work rows to include owner, target artifact, status, and
 blocking condition.
 
-`oya-governance-adr-status-coherence` detects AP-A12.
+`governance-adr-status-coherence` detects AP-A12.
 
 It cross-checks frontmatter status with synthesis reports, promotion ledgers,
 and accepted enum values.
 
-`oya-governance-interservice-contract` detects AP-R01, AP-R02, AP-R06, AP-R13,
+`governance-interservice-contract` detects AP-R01, AP-R02, AP-R06, AP-R13,
 AP-R16, and AP-R17.
 
 It validates contracts, audit emission owner, trace propagation, and Workflow
 or Ontology reasons.
 
-`oya-governance-cedar-fragment-discipline` detects AP-R03 and AP-R05.
+`governance-cedar-fragment-discipline` detects AP-R03 and AP-R05.
 
 It checks Cedar fragment count, schema registration, and audit-event class
 registration.
 
-`oya-governance-tenant-scope-propagation` detects AP-R08, AP-L15, and related
+`governance-tenant-scope-propagation` detects AP-R08, AP-L15, and related
 schema drift.
 
 It checks tenant_id and sub_scope_path in tenant-bearing persistence,
 telemetry, events, and policy context.
 
-`oya-governance-byok-terminology` detects AP-R09 and AP-L14.
+`governance-byok-terminology` detects AP-R09 and AP-L14.
 
 It refuses unqualified BYOK in canonical docs and schemas.
 
-`oya-governance-consistency-tier` detects AP-R07 and AP-R20.
+`governance-consistency-tier` detects AP-R07 and AP-R20.
 
 It requires every multi-region replicated state primitive to choose HLC default
 or TrueTime tier.
 
-`oya-governance-vcs-lifecycle` detects AP-C01, AP-C02, AP-C06, AP-C09,
+`governance-vcs-lifecycle` detects AP-C01, AP-C02, AP-C06, AP-C09,
 AP-C11, and AP-C12.
 
 It checks claim scope, changed files, verify evidence, done state, promotion
 bundle, and environment.
 
-`oya-governance-retired-primitive-lint` detects AP-C08 and AP-L06.
+`governance-retired-primitive-lint` detects AP-C08 and AP-L06.
 
 It flags retired command primitives in actionable command blocks.
 
-`oya-governance-review-thread-discipline` detects AP-C04 and AP-C16.
+`governance-review-thread-discipline` detects AP-C04 and AP-C16.
 
 It refuses bulk-resolution and requires per-thread disposition.
 
-`oya-governance-self-merge-contract` detects AP-C05.
+`governance-self-merge-contract` detects AP-C05.
 
 It requires review evidence, reviewer-agent verdict, Code Review
 section, and admission gate green before self-merge.
 
-`oya-governance-frontmatter-authority` detects AP-A20, AP-A21, and AP-L08.
+`governance-frontmatter-authority` detects AP-A20, AP-A21, and AP-L08.
 
 It requires enforcement fields, authority chain, companion docs, and maintenance
 metadata.
 
-`oya-governance-version-specificity` detects AP-L02.
+`governance-version-specificity` detects AP-L02.
 
 It checks known protocol and regulation tokens for version or effective-date
 qualifiers.
 
-`oya-governance-glossary-vocabulary` detects AP-L05, AP-L07, AP-L15, and
+`governance-glossary-vocabulary` detects AP-L05, AP-L07, AP-L15, and
 AP-L16.
 
 It compares canonical terms to glossary and vocabulary warning registries.
@@ -2764,7 +2764,7 @@ Question 7: Does it mention multi-region or global state?
 
 If yes, check AP-R07, AP-R20, and AP-R21.
 
-Question 8: Does it use Oya VCS or repo lifecycle commands?
+Question 8: Does it use retired VCS ratchet or repo lifecycle commands?
 
 If yes, check AP-C01, AP-C02, AP-C06, AP-C07, AP-C08, AP-C09, AP-C12, and
 AP-C13.
@@ -2937,6 +2937,6 @@ The file includes detection and CI enforcement guidance.
 
 The file includes a quick-reference decision tree.
 
-The Oya VCS claim, verify, done, and promote lifecycle closes with evidence.
+The retired VCS ratchet claim, verify, done, and promote lifecycle closes with evidence.
 
 No other canonical standards file is modified by this changeset.

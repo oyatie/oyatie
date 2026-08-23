@@ -1,4 +1,4 @@
-//! oya-cost — cost attribution + cost-as-SLI service for oyatie.
+//! cost — cost attribution + cost-as-SLI service for oyatie.
 //! Single-crate-per-service pattern per ADR-0509.
 
 #![forbid(unsafe_code)]

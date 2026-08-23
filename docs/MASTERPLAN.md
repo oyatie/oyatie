@@ -41,7 +41,7 @@ This file is a human compatibility projection only. It is not a live plan author
 
 - Canonical plan authority: `/specs/masterplan.json`
 - Canonical fragment for this consolidation: `/specs/masterplan.json#masterplan_v2`
-- Live work-item ID namespace: `MPV2-####`, validated by the cloud-ci cross-artifact agreement masterplan-v2 authority check.
+- Live work-item ID namespace: `MPV2-####`, validated by the pipeline cross-artifact agreement masterplan-v2 authority check.
 - Former plan surfaces (`/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, `docs/ROADMAP.md`, and legacy agent-harness runtime artifacts) are absorbed provenance or runtime data, not live plan authorities.
 
 Historical `.omc`/`.omx` planning prompts and local runtime stores may be forensically read only when a gate or masterplan v2 evidence reference asks for them. They never override `/specs/masterplan.json`.

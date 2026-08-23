@@ -4,7 +4,7 @@
 |-------|-------|
 | Vertical | cloud |
 | Task slug | `cloud-kms-api-version-negotiation` |
-| Crate | `oya-cloud-kms-api` |
+| Crate | `cloud-kms-api` |
 | Branch | `feat/task-cloud-kms-api-version-negotiation-2026-05-28` |
 | ADR authority | ADR-0509 (flat single-crate-per-service), ADR-0131 (per-microservice flat layout) |
 | Status | SPEC |
@@ -13,7 +13,7 @@
 
 ## Objective
 
-Extend `oya-cloud-kms-api/src/lib.rs` with a public API-version negotiation
+Extend `cloud-kms-api/src/lib.rs` with a public API-version negotiation
 function that is callable by any adapter layer (REST handler, gRPC interceptor)
 before a full request is dispatched. The function resolves an optional raw
 `Oyatie-Version` header value to either:
@@ -107,7 +107,7 @@ established by this crate. No new modules or files are introduced. The
 `#[cfg(test)]` block is appended at the bottom of `src/lib.rs`.
 
 ```
-crates/oya-cloud-kms-api/
+crates/cloud-kms-api/
   src/
     lib.rs          ← negotiate_cloud_kms_api_version + updated metadata struct + tests
   tests/
@@ -187,8 +187,8 @@ direct equality assertions via `assert_eq!`).
 
 ## Boundaries
 
-- **In scope**: `crates/oya-cloud-kms-api/src/lib.rs` only
-- **Out of scope**: `oya-cloud-kms-domain`, `oya-cloud-region-domain`, `oya-data-boundary-kernel`; no new crates; no root `Cargo.toml` edits; no async runtime; no new error variants (reuse existing `MissingPublicApiVersion` / `UnsupportedPublicApiVersion`)
+- **In scope**: `crates/cloud-kms-api/src/lib.rs` only
+- **Out of scope**: `cloud-kms-domain`, `cloud-region-domain`, `data-boundary-kernel`; no new crates; no root `Cargo.toml` edits; no async runtime; no new error variants (reuse existing `MissingPublicApiVersion` / `UnsupportedPublicApiVersion`)
 - **Signature freeze**: `authorize_cloud_kms_encrypt_from_api` and `authorize_cloud_kms_decrypt_from_api` parameter lists are unchanged
 
 ---
@@ -197,8 +197,8 @@ direct equality assertions via `assert_eq!`).
 
 | # | Criterion | Command |
 |---|-----------|---------|
-| 1 | Crate compiles clean with all targets | `cargo check -p oya-cloud-kms-api --all-targets` |
-| 2 | ≥ 4 new unit tests pass | `cargo nextest run -p oya-cloud-kms-api` |
+| 1 | Crate compiles clean with all targets | `cargo check -p cloud-kms-api --all-targets` |
+| 2 | ≥ 4 new unit tests pass | `cargo nextest run -p cloud-kms-api` |
 | 3 | `negotiate_cloud_kms_api_version(None)` returns default version | unit test |
 | 4 | Each entry in `CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS` echoed | unit test |
 | 5 | Unknown version → `UnsupportedPublicApiVersion` with status 400 | unit test |

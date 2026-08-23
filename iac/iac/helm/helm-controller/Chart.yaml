@@ -1,13 +1,13 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-iac-helm-controller
+name: iac-app-helm-controller
 description: Flux Helm-controller per ADR-0139 Layer-A; k8s-native Helm releases
 type: application
 version: 0.1.0
 appVersion: "v1.0.1"  # Flux helm-controller LTS pin
 maintainers:
-  - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.com
+  - name: axis-iac-app
+    email: axis-iac-app@oyatie.com
 dependencies:
   - name: helm-controller
     version: "^1.0.0"

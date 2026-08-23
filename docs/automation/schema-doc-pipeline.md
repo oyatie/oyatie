@@ -11,10 +11,10 @@ purpose: |
   plus the field's `///` doc-comment and emits the canonical data-class
   catalogue doc. The doc is the system-of-record for which fields hold which
   privacy class.
-planned_enforcement_ref: oya-governance-data-class
+planned_enforcement_ref: governance-data-class
 extends_crates:
-  - oya-governance-data-class-fitness-kernel
-  - oya-governance-glossary-coverage-kernel
+  - governance-data-class-fitness-kernel
+  - governance-glossary-coverage-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/PRIVACY-PROGRAM.md
@@ -28,7 +28,7 @@ doc_status: published
 
 ## 1. Purpose
 
-ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY`, `CUSTOMER_CONFIDENTIAL`, `PII_CUSTOMER`, `PII_REGULATED`. Today fields are annotated in source (visible in `oya-governance-runbook-freshness-kernel/src/lib.rs`: `pub path: String, // data_class: INTERNAL_ONLY`). The existing `oya-governance-data-class-fitness-kernel` validates coverage. This pipeline emits the catalogue doc that humans + agents consult.
+ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY`, `CUSTOMER_CONFIDENTIAL`, `PII_CUSTOMER`, `PII_REGULATED`. Today fields are annotated in source (visible in `governance-runbook-freshness-kernel/src/lib.rs`: `pub path: String, // data_class: INTERNAL_ONLY`). The existing `governance-data-class-fitness-kernel` validates coverage. This pipeline emits the catalogue doc that humans + agents consult.
 
 ## 2. Inputs
 
@@ -39,7 +39,7 @@ ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY
 ## 3. Outputs
 
 - `docs/data-class-catalogue.md` — single-file catalogue grouped by data class, then by crate, then by struct, then by field. Each row: `crate :: struct :: field | type | data_class | description (from doc-comment)`.
-- `docs/machine-readable/data-classes.json` — same data, machine-readable, consumed by `oya-governance-privacy-class-taxonomy-coverage`.
+- `docs/machine-readable/data-classes.json` — same data, machine-readable, consumed by `governance-privacy-class-taxonomy-coverage`.
 - Per-data-class mdbook chapter `docs/site/src/data/<data-class>.md`.
 
 ## 4. Annotation grammar (the source-of-truth syntax)
@@ -57,7 +57,7 @@ pub struct AuditEvent {
 }
 ```
 
-Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER | PII_REGULATED`. Unknown class → BLOCKER from `oya-governance-data-class`.
+Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER | PII_REGULATED`. Unknown class → BLOCKER from `governance-data-class`.
 
 ## 5. Trigger matrix
 
@@ -67,7 +67,7 @@ Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER 
 | Nightly | Full sweep; cross-link verification (every class referenced exists in ADR-0008 taxonomy). |
 | On `docs/adr-archive/ADR-0008-data-use-boundary.md change | Re-validate every annotation against the new taxonomy. |
 
-## 6. Validation gates (extending `oya-governance-data-class`)
+## 6. Validation gates (extending `governance-data-class`)
 
 1. **Field coverage.** Every `pub` field in every kernel crate has a data-class annotation OR inherits one via `data_class_default` (BLOCKER on omission).
 2. **Class validity.** Annotation value ∈ the five allowed classes (BLOCKER).
@@ -77,10 +77,10 @@ Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER 
 
 ## 7. Glossary integration
 
-Every data-class label is a glossary term; `oya-governance-glossary-coverage-kernel` cross-validates that `docs/GLOSSARY.md` defines each class with link back to ADR-0008. See also `glossary-pipeline.md`.
+Every data-class label is a glossary term; `governance-glossary-coverage-kernel` cross-validates that `docs/GLOSSARY.md` defines each class with link back to ADR-0008. See also `glossary-pipeline.md`.
 
 ## 8. Out-of-scope
 
-- Runtime PII redaction enforcement (covered by `oya-intelligence-policy-kernel` Cedar layer).
+- Runtime PII redaction enforcement (covered by `intelligence-policy-kernel` Cedar layer).
 - Egress filtering (covered by the data-use-boundary runtime; ADR-0008 §Implementation).
 - Synthetic-data class for test fixtures (separate `synthetic-data-pipeline.md`, not in this batch).

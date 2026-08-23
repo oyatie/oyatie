@@ -33,7 +33,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Template | Path | Used when | Required sections | Validator |
 |---|---|---|---|---|
-| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / `## Code Review` | Local validator retired; merge contract requires `oya-ci-required` plus independent reviewer approval (`F-PR5-06` bounds cloud enforcement) |
+| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / `## Code Review` | Local validator retired; merge contract requires `presubmit` plus independent reviewer approval (`F-PR5-06` bounds cloud enforcement) |
 | ADR | [`templates/adr-template.md`](templates/adr-template.md) | New decision | Status / Supersedes / Superseded-by / Context / Decision / Consequences / Alternatives / Open-questions / References | `adr-template-coverage` CI lane |
 | Capability record | [`templates/capability-record-template.yaml`](templates/capability-record-template.yaml) | Foundry capability publish | id / namespace / inputs / outputs / autonomy_tier / data_classes / evidence_topic / regulatory_packs / cost_profile / sunset | `capability-schema-validator` |
 | Catalog record (per crate) | [`templates/catalog-record-template.yaml`](templates/catalog-record-template.yaml) | Every flat-crate | name (=package) / role / context / plane / contracts_consumed / contracts_exposed / regulatory_packs_consumed / lifecycle.state / traceability.github_issue / allowed_dependency_edges | `oya catalog validate` |
@@ -55,8 +55,8 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
-| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
+| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | retired `./bin/oya verify` |
+| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `presubmit` (retired CLI `gate validate`) |
 | Wave-gate passing | [`../templates/checklists/wave-gate.md`](../templates/checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
 | Vertical onboarding | [`../templates/checklists/vertical-onboarding.md`](../templates/checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
 | Regional-pack onboarding | [`../templates/checklists/regional-pack-onboarding.md`](../templates/checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
@@ -69,7 +69,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 | ADR promotion | [`../templates/checklists/adr-promotion.md`](../templates/checklists/adr-promotion.md) | Proposed → Accepted | `crew-adr-promotion` | `adr-supersession-graph` |
 | Foundation-bypass renewal | [`../templates/checklists/foundation-bypass-renewal.md`](../templates/checklists/foundation-bypass-renewal.md) | Per bypass expiry | per-bypass owner | `bypass-expiry-monitor` |
 | Cross-axis contract change | [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) | Any DESIGN §10 row change | All affected axis teams | `design-contracts-mirror` |
-| License-tier review | [`../templates/checklists/license-tier-review.md`](../templates/checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `oya-governance-license` |
+| License-tier review | [`../templates/checklists/license-tier-review.md`](../templates/checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `governance-license` |
 | Build-vs-buy decision | [`../templates/checklists/build-vs-buy.md`](../templates/checklists/build-vs-buy.md) | New surface authored | Owning axis + `council-architecture` | `build-vs-buy-decision-validator` |
 | Tenant onboarding | [`../templates/checklists/tenant-onboarding.md`](../templates/checklists/tenant-onboarding.md) | New tenant | `gtm-customer-success` + per-vertical | `tenant-onboarding-evidence` |
 | Trust-portal publish | [`../templates/checklists/trust-portal-publish.md`](../templates/checklists/trust-portal-publish.md) | Audit-evidence regen | `ops-compliance` + `gtm-marketing` | trust-portal verification |
@@ -83,18 +83,18 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | Hook | Event | Purpose | Path |
 |---|---|---|---|
 | `pre-commit-license` | git pre-commit | Refuses commits that add an external dep without a license-ledger entry | `scripts/hooks/pre-commit-license.sh` |
-| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `oya gate validate architecture-boundaries` |
+| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `presubmit` (retired CLI `gate validate architecture-boundaries`) |
 | `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
 | `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
 | `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |
-| `pre-push` | git pre-push | Runs `oya verify` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
+| `pre-push` | git pre-push | Runs retired `./bin/oya verify` (cargo fmt --check, cargo clippy, cargo nextest, presubmit (retired CLI gate validate), arch-boundary) | `.git/hooks/pre-push` |
 | `pre-tool-use-foundry-evidence` | Claude Code PreToolUse | Stamps every Foundry capability invocation with an evidence-emission event before tool runs | `.claude/hooks/pre-tool-use-foundry-evidence.sh` |
 | `post-tool-use-cohesion-fitness` | Claude Code PostToolUse | Runs cross-axis contract drift detection after edits | `.claude/hooks/post-tool-use-cohesion.sh` |
 | `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
 | `user-prompt-submit-skill-routing` | Claude Code UserPromptSubmit | Routes magic-keyword prompts to the right skill | `.claude/hooks/user-prompt-submit-skill-routing.sh` |
 | `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
-| `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-intelligence-evidence-*` |
-| `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
+| `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/intelligence-evidence-*` |
+| `cohesion-fitness-on-pr` | CI | Runs `governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
 | `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |
 
 ---
@@ -105,20 +105,20 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 
 | Skill | Path | Purpose | Persona-CLI alias |
 |---|---|---|---|
-| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
-| `oya-adr-author` | `.claude/skills/oya-adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
-| `oya-adr-promote` | `.claude/skills/oya-adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
-| `oya-intelligence-capability-author` | `.claude/skills/oya-intelligence-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
-| `oya-regional-pack-author` | `.claude/skills/oya-regional-pack-author/SKILL.md` | Scaffold a new regional pack with all 14 sections | `oya pack new` |
-| `oya-vertical-onboard` | `.claude/skills/oya-vertical-onboard/SKILL.md` | Onboard a new vertical end-to-end | (orchestrates several) |
-| `oya-runbook-author` | `.claude/skills/oya-runbook-author/SKILL.md` | Scaffold a new runbook | `oya ops runbook new` |
-| `oya-postmortem-extractor` | `.claude/skills/oya-postmortem-extractor/SKILL.md` | Extract postmortem from incident-management timeline | `oya ops incident postmortem` |
-| `oya-glossary-extractor` | `.claude/skills/oya-glossary-extractor/SKILL.md` | Find new domain terms in PRs and propose GLOSSARY rows | (auto on PR) |
-| `oya-rustdoc-fixer` | `.claude/skills/oya-rustdoc-fixer/SKILL.md` | Propose rustdoc fixes when CI flags missing/stale doc comments | (auto on PR) |
-| `oya-translation-drafter` | `.claude/skills/oya-translation-drafter/SKILL.md` | Draft per-pack translations | `oya pack translate` |
-| `oya-cohesion-fitness-fix` | `.claude/skills/oya-cohesion-fitness-fix/SKILL.md` | Propose fixes for cohesion-fitness violations | (auto on PR) |
-| `oya-evidence-pack-regenerator` | `.claude/skills/oya-evidence-pack-regenerator/SKILL.md` | Regenerate per-regulator evidence pack | `oya admin compliance regenerate` |
-| `oya-dsr-cascade-runner` | `.claude/skills/oya-dsr-cascade-runner/SKILL.md` | Execute a DSR cascade end-to-end | `oya admin privacy dsr` |
+| `dev-check` | `.claude/skills/dev-check/SKILL.md` | Run pre-push checks | retired `./bin/oya verify` |
+| `adr-author` | `.claude/skills/adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
+| `adr-promote` | `.claude/skills/adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
+| `intelligence-capability-author` | `.claude/skills/intelligence-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
+| `regional-pack-author` | `.claude/skills/regional-pack-author/SKILL.md` | Scaffold a new regional pack with all 14 sections | `oya pack new` |
+| `vertical-onboard` | `.claude/skills/vertical-onboard/SKILL.md` | Onboard a new vertical end-to-end | (orchestrates several) |
+| `runbook-author` | `.claude/skills/runbook-author/SKILL.md` | Scaffold a new runbook | `oya ops runbook new` |
+| `postmortem-extractor` | `.claude/skills/postmortem-extractor/SKILL.md` | Extract postmortem from incident-management timeline | `oya ops incident postmortem` |
+| `glossary-extractor` | `.claude/skills/glossary-extractor/SKILL.md` | Find new domain terms in PRs and propose GLOSSARY rows | (auto on PR) |
+| `rustdoc-fixer` | `.claude/skills/rustdoc-fixer/SKILL.md` | Propose rustdoc fixes when CI flags missing/stale doc comments | (auto on PR) |
+| `translation-drafter` | `.claude/skills/translation-drafter/SKILL.md` | Draft per-pack translations | `oya pack translate` |
+| `cohesion-fitness-fix` | `.claude/skills/cohesion-fitness-fix/SKILL.md` | Propose fixes for cohesion-fitness violations | (auto on PR) |
+| `evidence-pack-regenerator` | `.claude/skills/evidence-pack-regenerator/SKILL.md` | Regenerate per-regulator evidence pack | `oya admin compliance regenerate` |
+| `dsr-cascade-runner` | `.claude/skills/dsr-cascade-runner/SKILL.md` | Execute a DSR cascade end-to-end | `oya admin privacy dsr` |
 
 ---
 
@@ -134,9 +134,9 @@ The 8 persona-CLIs:
 - `oya ops` — SRE/Ops
 - `oya pack` — regional pack maintainer
 - `oya catalog` — catalog + capability authoring
-- `oya gate` — gates + bypasses + claim-ceiling
+- retired CLI — gates + bypasses + claim-ceiling
 
-Plus the agent-discoverable equivalent: `oya-mcp-server` exposing every CLI subcommand as an MCP tool (per [TOOLCHAIN §4.A](TOOLCHAIN.md)).
+Plus the agent-discoverable equivalent: `mcp-server` exposing every CLI subcommand as an MCP tool (per [TOOLCHAIN §4.A](TOOLCHAIN.md)).
 
 ---
 
@@ -216,7 +216,7 @@ When you start a new piece of work:
 3. Find the matching checklist; do every step
 4. If you hit a hook block, fix it (don't `--no-verify`)
 5. Output the artifact in the canonical location with the canonical structure
-6. The `oya verify` and CI lanes will validate
+6. The retired `./bin/oya verify` and CI lanes will validate
 
 This is the *contract*: zero bespoke artifacts. Standardization-first.
 

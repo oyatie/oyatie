@@ -1,6 +1,6 @@
 //! REST subsystem: the service router.
 //!
-//! Mounts the workload-identity router from `oya-identity-workload-rest`
+//! Mounts the workload-identity router from `identity-workload-rest`
 //! (single decision core — no logic re-implemented here) and adds the
 //! K8s-native health surface (`/healthz` liveness, `/readyz` readiness).
 

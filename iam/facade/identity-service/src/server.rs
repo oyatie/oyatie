@@ -23,7 +23,7 @@ use iam_identity_workload_rest::{BearerCallerVerifier, WorkloadAuthzState};
 use identity_scim_store_postgres::{
     PgScimGroupStore, PgScimUserStore, assert_rls_enforceable, connect_pool,
 };
-use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
+use shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
 
 use crate::AppState;
 use crate::config::Config;
@@ -58,7 +58,7 @@ pub enum StartError {
         source: std::io::Error,
     },
     /// The durable SCIM store could not be composed: empty/invalid
-    /// `OYA_BACKBONE_POSTGRES_URL`, an sqlx connect failure, or the
+    /// `OYATIE_BACKBONE_POSTGRES_URL`, an sqlx connect failure, or the
     /// RLS-enforceability guard fired (connected role carries
     /// `rolsuper`/`rolbypassrls`, or is not a member of the
     /// `identity_scim_runtime` policy-subject role). The service REFUSES to serve
@@ -68,7 +68,7 @@ pub enum StartError {
     /// Note: the guard is necessary but not sufficient for full tenant
     /// isolation; full isolation additionally requires that
     /// `identity_scim_runtime` exists provisioned with NOBYPASSRLS (deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox /
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox /
     /// tenant-lifecycle).
     Store(String),
 }
@@ -105,11 +105,11 @@ pub enum ScimStoreSelection {
     InMemory,
 }
 
-/// `OYA_BACKBONE_POSTGRES_URL` — the durable SCIM store DSN (the SAME env name
+/// `OYATIE_BACKBONE_POSTGRES_URL` — the durable SCIM store DSN (the SAME env name
 /// the tenancy facade reads for its store, so the backbone has one source of
 /// truth). Present + non-empty selects the durable Postgres SCIM stores; absent
 /// or empty selects the in-memory dev stores.
-pub const ENV_SCIM_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
+pub const ENV_SCIM_DATABASE_URL: &str = "OYATIE_BACKBONE_POSTGRES_URL";
 
 /// Pure SCIM store-selection function: maps the raw (pre-normalized) database URL
 /// option onto a [`ScimStoreSelection`]. `None`, empty, or whitespace-only
@@ -262,8 +262,8 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
 }
 
 /// Like [`start`] but accepts the SCIM database URL directly (bypassing the
-/// `OYA_BACKBONE_POSTGRES_URL` env read). Used by live E2E tests so they can
-/// pass the app-role URL (`OYA_BACKBONE_POSTGRES_APP_URL`) without writing to
+/// `OYATIE_BACKBONE_POSTGRES_URL` env read). Used by live E2E tests so they can
+/// pass the app-role URL (`OYATIE_BACKBONE_POSTGRES_APP_URL`) without writing to
 /// the process-global env and racing other parallel tokio tests.
 ///
 /// # Errors
@@ -279,7 +279,7 @@ pub async fn start_with_scim_url(
     // as the authorize path, scim.manage scope required (fail-closed guard).
     //
     // Store selection (12-factor composition-root config, NOT a CLI surface):
-    //   - OYA_BACKBONE_POSTGRES_URL present + non-empty -> the DURABLE Postgres
+    //   - OYATIE_BACKBONE_POSTGRES_URL present + non-empty -> the DURABLE Postgres
     //     SCIM stores are composed. If the connection fails or the
     //     RLS-enforceability guard fires (bypass-capable role, or role not a
     //     member of identity_scim_runtime), the service REFUSES to serve
@@ -392,7 +392,7 @@ pub async fn start_with_scim_url(
         rest = %rest_addr,
         grpc = %grpc_addr,
         scim_store = scim_store_kind,
-        "oya-identity serving"
+        "identity serving"
     );
     Ok(ServiceHandle {
         rest_addr,
@@ -434,7 +434,7 @@ mod tests {
 
     #[test]
     fn select_scim_store_kind_empty_string_picks_inmemory() {
-        // An empty OYA_BACKBONE_POSTGRES_URL is treated as "not configured" —
+        // An empty OYATIE_BACKBONE_POSTGRES_URL is treated as "not configured" —
         // the dev in-memory path, not a fail-closed error.
         assert_eq!(
             select_scim_store_kind(Some(String::new())),

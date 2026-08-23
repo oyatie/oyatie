@@ -17,7 +17,7 @@ purpose: |
   Operates downstream of `docs/RELEASE-MANAGEMENT.md` (program-level mechanics)
   and supplies the per-PR / per-release authoring rules.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-flag-debt
+planned_enforcement_ref: governance-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
   - docs/SLO-CATALOG.md
@@ -49,11 +49,11 @@ and Google / Microsoft consensus:
 - Protected integration branch is `dev` per the current operating contract. All work happens on **short-lived branches**
   (target ≤ 24 h, MUST NOT exceed 7 days without a re-base or an ADR
   exemption).
-- Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
+- Lane `governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
   partial merges to `dev` do not ship to users.
 - Branch protection: one author-distinct reviewer-agent APPROVE on the exact
-  PR head, resolved review threads, and green `oya-ci-required` are required.
+  PR head, resolved review threads, and green `presubmit` are required.
 - Force-push to protected integration/release branches is forbidden per
   [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 
@@ -67,7 +67,7 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
 - One logical change per PR; related tests included; reviewer can hold it
   in their head.
 - Target median review latency: **< 24 hours**. Surfaced via
-  `oya-governance-review-latency` (advisory).
+  `governance-review-latency` (advisory).
 - Refactors and renames are separate PRs from behavior changes.
 - "Code health > correctness alone" — a PR that lands correct behavior but
   worsens the codebase health is REQUEST CHANGES.
@@ -77,20 +77,20 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
 ### 3.1 Feature-flag substrate
 
 - Per ADR-REL-001 (pending), the workspace adopts a feature-flag library
-  (default: in-tree `oya-platform-flags-kernel`; fallback: Unleash OSS).
+  (default: in-tree `platform-flags-kernel`; fallback: Unleash OSS).
 - Every behavior-changing PR ships **behind a flag** with:
   - **Owner**: a team-charter ID.
   - **Created**: ISO date.
   - **Retire-by**: ISO date ≤ 30 days from creation (the **flag-debt SLO**).
   - **Rollout strategy**: percentage / tenant cohort / capability binding.
-- Once implemented, the advisory lane `oya-governance-flag-debt` opens a blocking PR check at
+- Once implemented, the advisory lane `governance-flag-debt` opens a blocking PR check at
   retire-by + 1d.
 - Stale flags are an anti-pattern: lifetime > 30 d without renewal
   triggers `EVT-FLAG-OVERDUE` and a team-lead escalation.
 
 ### 3.2 Canary rollout
 
-Default rollout shape for an `oya-*-runtime-*` deploy:
+Default rollout shape for an `oyatie-*-runtime-*` deploy:
 
 1. **Stage 0** (1% traffic, stable cohort): hold ≥ 30 min; require
    burn rate ≤ 1× across all golden signals.
@@ -128,7 +128,7 @@ Per [`on-call.md`](on-call.md) §2:
 ### 3.5 Post-merge product-completion gate
 
 A squash merge proves merge admission, not product completion. Product-complete
-requires a post-merge packet with promoted SHA + `oya-ci-required` status URL,
+requires a post-merge packet with promoted SHA + `presubmit` status URL,
 rollout verification, rollback note, observability/golden-signal check,
 browser UX/user-story evidence, and release-governance/release-note impact
 (Release Please only when repo config proves it).
@@ -149,7 +149,7 @@ Every schema migration ships:
 4. **Per-tenant**: tenant-scoped batching.
 5. **Per-cell rollback**: cell-by-cell revert procedure.
 
-Lane: `oya-governance-schema-migration` (per AGENTS.md D14).
+Lane: `governance-schema-migration` (per AGENTS.md D14).
 
 ## 5. Sigstore-signed releases
 
@@ -169,7 +169,7 @@ Per [`security-review.md`](security-review.md) §4 and
 - Image pin: **never `latest`**; always `sha256:` digest.
 - Trivy scan: ≥ **v0.70.0**; HIGH/CRITICAL CVEs block release.
 
-Lane: `oya-governance-release-supply-chain` per DOC-CATALOG.md §4.
+Lane: `governance-release-supply-chain` per DOC-CATALOG.md §4.
 
 ## 6. Error-budget release gate
 

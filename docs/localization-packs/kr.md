@@ -87,18 +87,18 @@ Substrate (tenancy / identity / audit-chain / etc.), Workflow, Ontology, Cloud, 
 
 Pack overlays per ADR-0064 §1 — naming options:
 
-- BC-inside-µservice: `oya-payroll-kr-edi-adapter`, `oya-medical-kr-hira-domain`, `oya-pharmacy-kr-dur-adapter`
-- Discrete pack crate: `oya-pack-kr-payroll-statutory-domain`, `oya-pack-kr-accounting-kgaap-domain`
+- BC-inside-µservice: `payroll-kr-edi-adapter`, `medical-kr-hira-domain`, `pharmacy-kr-dur-adapter`
+- Discrete pack crate: `pack-kr-payroll-statutory-domain`, `pack-kr-accounting-kgaap-domain`
 
 Both forms valid. Use BC-inside when overlay is small (≤2 BCs); use discrete pack crate when overlay spans 3+ BCs coherently.
 
 ### 3.3 Policy fragments
 
-`crates/oya-policy-kr-*` — Cedar policy fragments enforcing PIPA, 의료법, 보험업법, etc.
+`crates/policy-kr-*` — Cedar policy fragments enforcing PIPA, 의료법, 보험업법, etc.
 
 ### 3.4 Workflow Studio templates
 
-`crates/oya-workflow-templates-kr-*` — 10 canonical templates per M03 launch:
+`crates/workflow-templates-kr-*` — 10 canonical templates per M03 launch:
 
 1. KR payroll-run cycle (gross-to-net + 4대보험 EDI + 연말정산 trigger)
 2. KR HR onboarding (employee hire + 4대보험 취득 + 근로계약서)
@@ -113,7 +113,7 @@ Both forms valid. Use BC-inside when overlay is small (≤2 BCs); use discrete p
 
 ### 3.5 Typst document templates
 
-`crates/oya-document-templates-kr-*`:
+`crates/document-templates-kr-*`:
 
 - 급여명세서 (payslip) — per `급여실태조사` format
 - 4대보험 취득 / 상실 / 변경 신고서

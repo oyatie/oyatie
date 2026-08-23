@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify no `<!-- forward-reference: wave-N -->` sentinels remain at the wave gate.
 - enforces: STANDARD/wave-gates.
-- kernel_crate: `oya-governance-forward-reference-resolved-kernel` — `Sentinel { path, line, wave_id }`, verdict `ForwardReferenceResolvedFitnessReport { sentinels_checked }`.
-- runner_path: `tools/oya-governance-forward-reference-resolved`
+- kernel_crate: `governance-forward-reference-resolved-kernel` — `Sentinel { path, line, wave_id }`, verdict `ForwardReferenceResolvedFitnessReport { sentinels_checked }`.
+- runner_path: `tools/governance-forward-reference-resolved`
 - inputs: doc/source tree, current wave id.
 - failure_modes:
   - sentinel for current wave still present
   - sentinel for past wave present (always unresolved)
   - sentinel has no wave id
-- ci_invocation: `cargo run -p oya-governance-forward-reference-resolved`
+- ci_invocation: `cargo run -p governance-forward-reference-resolved`
 - runtime_budget: 500 ms
 - severity: BLOCKER
 - kernel_sketch:

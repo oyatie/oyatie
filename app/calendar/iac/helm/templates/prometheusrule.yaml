@@ -7,7 +7,7 @@ slos/*.openslo.yaml alertPolicyRef bindings.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: oya-calendar-slo-burn-rules
+  name: calendar-slo-burn-rules
   namespace: calendar
   labels:
     microservice: calendar
@@ -20,9 +20,9 @@ spec:
         - alert: calendar-agenda-render-fast-burn-1h-14x
           expr: |
             (1 - (
-              sum(rate(oya_calendar_agenda_render_seconds_bucket{le="0.25"}[1h]))
+              sum(rate(calendar_agenda_render_seconds_bucket{le="0.25"}[1h]))
               /
-              sum(rate(oya_calendar_agenda_render_seconds_count[1h]))
+              sum(rate(calendar_agenda_render_seconds_count[1h]))
             )) > 14 * (1 - 0.99)
           for: 2m
           labels: {severity: page, slo: agenda-render-latency, burn: fast-1h-14x}
@@ -32,9 +32,9 @@ spec:
         - alert: calendar-agenda-render-slow-burn-6h-6x
           expr: |
             (1 - (
-              sum(rate(oya_calendar_agenda_render_seconds_bucket{le="0.25"}[6h]))
+              sum(rate(calendar_agenda_render_seconds_bucket{le="0.25"}[6h]))
               /
-              sum(rate(oya_calendar_agenda_render_seconds_count[6h]))
+              sum(rate(calendar_agenda_render_seconds_count[6h]))
             )) > 6 * (1 - 0.99)
           for: 15m
           labels: {severity: ticket, slo: agenda-render-latency, burn: slow-6h-6x}
@@ -45,9 +45,9 @@ spec:
         - alert: calendar-caldav-fast-burn-1h-14x
           expr: |
             (
-              sum(rate(oya_calendar_caldav_request_total{status_class!~"2..|4.."}[1h]))
+              sum(rate(calendar_caldav_request_total{status_class!~"2..|4.."}[1h]))
               /
-              sum(rate(oya_calendar_caldav_request_total[1h]))
+              sum(rate(calendar_caldav_request_total[1h]))
             ) > 14 * (1 - 0.9995)
           for: 2m
           labels: {severity: page, slo: caldav-availability, burn: fast-1h-14x}
@@ -60,7 +60,7 @@ spec:
       rules:
         - alert: calendar-room-conflict-any-leak-page
           expr: |
-            sum(rate(oya_calendar_room_double_booking_admitted_total[5m])) > 0
+            sum(rate(calendar_room_double_booking_admitted_total[5m])) > 0
           for: 1m
           labels: {severity: page, slo: room-conflict-detection-correctness, slo_target: 1.0}
           annotations:
@@ -72,7 +72,7 @@ spec:
       rules:
         - alert: calendar-tzdb-staleness-exceedance-page
           expr: |
-            max(oya_calendar_tzdb_cluster_default_staleness_days) > 30
+            max(calendar_tzdb_cluster_default_staleness_days) > 30
           for: 1h
           labels: {severity: page, slo: tzdb-staleness-bound}
           annotations:
@@ -85,9 +85,9 @@ spec:
         - alert: calendar-rsvp-fast-burn-1h-14x
           expr: |
             (1 - (
-              sum(rate(oya_calendar_rsvp_fanout_seconds_bucket{le="0.5"}[1h]))
+              sum(rate(calendar_rsvp_fanout_seconds_bucket{le="0.5"}[1h]))
               /
-              sum(rate(oya_calendar_rsvp_fanout_seconds_count[1h]))
+              sum(rate(calendar_rsvp_fanout_seconds_count[1h]))
             )) > 14 * (1 - 0.99)
           for: 2m
           labels: {severity: page, slo: rsvp-fanout-latency, burn: fast-1h-14x}

@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify retired terms ("M0", "M3", "MVP") never appear in active canonical docs (only in archives + retired-vocab notes).
 - enforces: STANDARD/vocabulary-retirement.
-- kernel_crate: `oya-governance-glossary-vocabulary-kernel` — `RetiredTermOccurrence { token, path, line, archived }`, verdict `GlossaryVocabularyFitnessReport { occurrences_checked }`.
-- runner_path: `tools/oya-governance-glossary-vocabulary`
+- kernel_crate: `governance-glossary-vocabulary-kernel` — `RetiredTermOccurrence { token, path, line, archived }`, verdict `GlossaryVocabularyFitnessReport { occurrences_checked }`.
+- runner_path: `tools/governance-glossary-vocabulary`
 - inputs: docs tree, retired-vocab registry.
 - failure_modes:
   - "M0" appears in live PRD
   - "MVP" used in active doc title
   - "M3" appears in standard or runbook
-- ci_invocation: `cargo run -p oya-governance-glossary-vocabulary`
+- ci_invocation: `cargo run -p governance-glossary-vocabulary`
 - runtime_budget: 500 ms
 - severity: HIGH
 - kernel_sketch:

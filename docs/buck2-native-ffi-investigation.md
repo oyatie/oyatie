@@ -12,10 +12,10 @@ ring v0.17.14
 
 aws-lc-rs v1.17.0
   ← rustls v0.23 ← (same chain)
-  ← oya-identity-workload-oidc-adapter
+  ← identity-workload-oidc-adapter
 
 openssl-sys v0.9.116
-  ← openssl v0.10.80 ← webauthn-rs ← oya-identity
+  ← openssl v0.10.80 ← webauthn-rs ← identity
 ```
 
 ## Pre-existing bug: getrandom-0.2 bogus buildscript
@@ -84,7 +84,7 @@ buildscript_run action. Action timeout may be a concern for CI.
 - `links = "openssl"`
 - `build = "build/main.rs"` — looks for system OpenSSL via pkg-config or OPENSSL_DIR
 - System OpenSSL@3 is at `/opt/homebrew/opt/openssl@3` (libcrypto.a + libssl.a present)
-- Used only by webauthn-rs chain → oya-identity
+- Used only by webauthn-rs chain → identity
 - **Current state**: BUCK has no buildscript — pure Rust check passes but link will fail
   because the `links = "openssl"` declaration means Cargo expects the build script to
   emit `cargo:rustc-link-lib=ssl` etc.
@@ -111,7 +111,7 @@ library rule. For env injection, use `[buildscript.env]` section.
 3. Add aws-lc-sys fixup (`run = true`) → re-buckify → verify
 4. Add aws-lc-rs fixup (`run = true`) → re-buckify → verify
 5. Add openssl-sys fixup (`run = true` + OPENSSL_DIR env) → re-buckify → verify
-6. Prove with a first-party target that uses TLS (e.g. oya-identity or a minimal probe binary)
+6. Prove with a first-party target that uses TLS (e.g. identity or a minimal probe binary)
 
 ## Estimated remaining work for full `buck2 build //...`
 

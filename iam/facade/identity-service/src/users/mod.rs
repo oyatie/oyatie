@@ -1,5 +1,5 @@
 //! Users subsystem: SCIM 2.0 provisioning surface (RFC 7644) over
-//! `oya-shared-scim-server-kernel`.
+//! `shared-scim-server-kernel`.
 //!
 //! Tenant-scoped base path `/scim/v2/{tenant}` (the Zitadel/Okta provisioning
 //! pattern; the kernel's `meta.location` URLs use the same shape). The kernel
@@ -35,7 +35,7 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post, put};
 
-use oya_shared_scim_server_kernel::{
+use shared_scim_server_kernel::{
     CounterIdGen, GroupStore, ListQuery, NewGroup, NewUser, PatchOp, ReferenceScimServer,
     ScimError, ScimId, ScimServer, TenantId, UserStore,
 };
@@ -642,7 +642,7 @@ mod tests {
     use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
     use base64::Engine as _;
     use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-    use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
+    use shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
     use tower::ServiceExt as _;
 
     use iam_identity_workload_app::{
@@ -658,7 +658,7 @@ mod tests {
     use crate::lifecycle_authz::TenantScopedLifecycleAuthorizer;
 
     const ISSUER: &str = "https://idp.oyatie.com";
-    const AUDIENCE: &str = "oya-identity-scim";
+    const AUDIENCE: &str = "identity-scim";
     const KID: &str = "kid-scim-1";
     const NOW: i64 = 1_700_000_000;
 

@@ -18,7 +18,7 @@ purpose: |
   `doc-catalog.md` + the post-2026-05-15 doctrinal substrate, `docs/AGENTS.md` canonical doc map, and
   `docs/README.md`.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-doc-style
+planned_enforcement_ref: governance-doc-style
 companion_docs:
   - docs/DOC-CATALOG.md
   - docs/STANDARDS-AND-TEMPLATES.md
@@ -55,7 +55,7 @@ A canonical doc MUST declare its quadrant in frontmatter `doc_class:` (one of
 `Tutorial`, `HowTo`, `Reference`, `Explanation`) OR a `doc_class` from the
 catalog (e.g., `Standard`, `Operating-Contract`, `Constitution`, `RunbookIndex`)
 that maps unambiguously to one quadrant. The lane
-`oya-governance-doc-class-diataxis` rejects pages whose body shape
+`governance-doc-class-diataxis` rejects pages whose body shape
 contradicts the declared quadrant (e.g., a `Reference` doc with a tutorial
 preamble).
 
@@ -97,7 +97,7 @@ The mechanical contract:
   intent without the fenced commands).
   -->` blocks call the same primitive through their harness.
 
-The lane `oya-governance-dual-audience` checks that every fenced block has
+The lane `governance-dual-audience` checks that every fenced block has
 adjacent plain-English prose of ≥ 2 sentences explaining the intent.
 
 ## 4. Frontmatter shape per doc-class
@@ -135,7 +135,7 @@ Per-doc-class additions:
 - **ADRs**: `adr_id:`, `status: <Proposed|Accepted|Superseded|Retired>`,
   `supersedes:`, `superseded_by:`, `decision_drivers:`, `consequences:`.
 
-The planned lane `oya-governance-frontmatter-shape` will validate
+The planned lane `governance-frontmatter-shape` will validate
 per-doc-class required keys once wired as an active workflow and quality lane.
 
 ## 5. Heading hierarchy
@@ -161,7 +161,7 @@ per-doc-class required keys once wired as an active workflow and quality lane.
 - **Code blocks**: SHOULD wrap at 100 cols; long shell pipelines MAY use
   backslash continuation.
 
-The `oya-governance-line-length` lane is **advisory** (warn-only) — it
+The `governance-line-length` lane is **advisory** (warn-only) — it
 surfaces violations as PR comments but does not block merge.
 
 ## 7. Voice and tone

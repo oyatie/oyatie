@@ -106,7 +106,7 @@ Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.97.1"`
 | Node.js | 20 (per docs/AGENTS.md Codex appendix) | 24 Active LTS (22 Maintenance) | One major behind LTS line | MED — Node 20 enters Maintenance Oct 2025; move to 22 or 24. |
 | Python | not pinned in repo | 3.14.5 / 3.13.13 maintained | n/a | LOW (no Python product code in workspace currently). |
 | Go | not pinned in repo | 1.26.3 | n/a | LOW (no Go service in workspace). |
-| TypeScript | not pinned at repo root | 6.0 stable | unknown | MED — Foundry-workspace kernel (`oya-governance-typescript-workspace-kernel`) should declare a TS floor. |
+| TypeScript | not pinned at repo root | 6.0 stable | unknown | MED — Foundry-workspace kernel (`governance-typescript-workspace-kernel`) should declare a TS floor. |
 | PostgreSQL | not pinned (no migrations yet) | 18.3 | n/a | LOW. |
 | ClickHouse | not pinned | 26.3 LTS | n/a | LOW. |
 | Redis | not pinned | 8.6.3 (tri-license) | n/a | **HIGH if adopted** — RSALv2/SSPLv1/AGPLv3 fails `deny.toml`. Use Valkey or Redis ≤7.2 if needed. |
@@ -119,7 +119,7 @@ Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.97.1"`
 | Trivy | not pinned | v0.70.0 | n/a | MED — `D11` (`cargo deny check`) covers Rust but no container-image scan gate yet. |
 | cargo-deny | invoked via `cargo deny check` (D11); version not pinned | 0.19.5 | n/a | MED — MSRV is compatible with Rust 1.97.1, but the tool version still needs a durable pin. |
 | Anthropic / OpenAI / Gemini SDKs | not declared in any kernel Cargo.toml (RAG kernel exists but no provider crate) | see Provider SDKs table | n/a | MED — multi-provider adapter design must pick HTTP-direct vs community crate. |
-| OpenBao | not yet integrated (`oya-platform-secrets-kernel` exists) | v2.5.3 | n/a | MED — kernel exists but no upstream binary contract yet. |
+| OpenBao | not yet integrated (`platform-secrets-kernel` exists) | v2.5.3 | n/a | MED — kernel exists but no upstream binary contract yet. |
 
 ---
 

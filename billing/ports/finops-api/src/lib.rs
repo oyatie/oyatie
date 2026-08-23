@@ -29,7 +29,7 @@ use billing_finops::{
     RecommendationKind, ResourceCostBreakdown,
 };
 use billing_metering::AxisId;
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_FINOPS_REPORT_SURFACE: &str = "cloud.finops.report";
 

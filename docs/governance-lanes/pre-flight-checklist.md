@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every PR includes a pre-flight checklist with every item marked checked or N/A (no unchecked rows).
 - enforces: CHECKLIST/pre-flight.
-- kernel_crate: `oya-governance-pre-flight-checklist-kernel` — `PreFlightChecklist { pr_id, items }`, `ChecklistItem { id, state }`, verdict `PreFlightChecklistFitnessReport { pr_count }`.
-- runner_path: `tools/oya-governance-pre-flight-checklist`
+- kernel_crate: `governance-pre-flight-checklist-kernel` — `PreFlightChecklist { pr_id, items }`, `ChecklistItem { id, state }`, verdict `PreFlightChecklistFitnessReport { pr_count }`.
+- runner_path: `tools/governance-pre-flight-checklist`
 - inputs: PR body, canonical pre-flight checklist template.
 - failure_modes:
   - any row left unchecked
   - row state value invalid (not in {checked, n/a, blocked})
   - missing required row
-- ci_invocation: `cargo run -p oya-governance-pre-flight-checklist`
+- ci_invocation: `cargo run -p governance-pre-flight-checklist`
 - runtime_budget: 200 ms
 - severity: BLOCKER
 - kernel_sketch:

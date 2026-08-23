@@ -21,13 +21,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_connector_action_total{result="success"}[5m]))
+                sum(rate(connector_action_total{result="success"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_connector_action_total[5m]))
+                sum(rate(connector_action_total[5m]))
   timeWindow:
     - count: 30
       isRolling: true

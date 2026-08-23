@@ -6,7 +6,7 @@
 //!
 //! These types are the merge-variant landing of two contracts from
 //! `.omc/plans/milestones/M02b-substrate/phases/P06-secrets/impl-plan.md`
-//! into the existing `oya-secrets-domain` crate (kept per
+//! into the existing `secrets-domain` crate (kept per
 //! `F-M02B-PLAN-LIVE-CRATE-RECONCILIATION`). They are additive — sibling
 //! types `SecretRef`, `SecretMaterial`, `SecretVersion`, `SecretLease`,
 //! `SecretError`, `SecretVault` are unchanged.

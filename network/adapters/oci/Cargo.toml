@@ -12,10 +12,11 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 network-domain = { path = "../../core/domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 network-residency = { path = "../../core/residency" }
 
 [lints]

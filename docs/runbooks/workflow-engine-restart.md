@@ -17,7 +17,7 @@ Use [`docs/runbooks/saas/workflow-engine-deadlock.md`](saas/workflow-engine-dead
 ## Guardrails
 
 - Do not execute an alternate recovery flow from this page.
-- Do not treat workstation checks as production authority; the canonical procedure requires cloud control-plane status, sealed audit evidence, and `oya-ci-required` evidence where merge readiness is involved.
+- Do not treat workstation checks as production authority; the canonical procedure requires cloud control-plane status, sealed audit evidence, and `presubmit` evidence where merge readiness is involved.
 - If the canonical procedure and this link page diverge, the canonical SaaS procedure wins.
 
 ## Sources

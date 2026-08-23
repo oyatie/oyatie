@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_vector_search_under_50ms_total[5m]))
+              query: sum(rate(data_warehouse_vector_search_under_50ms_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_vector_search_total[5m]))
+              query: sum(rate(data_warehouse_vector_search_total[5m]))
   objectives:
     - displayName: p99 vector top-10 search on 1M-vector index under 50ms
       target: 0.99

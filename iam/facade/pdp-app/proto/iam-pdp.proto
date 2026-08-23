@@ -1,0 +1,108 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+// Cloud IAM PDP decision surface (ADR-0559, G004 slice 1).
+//
+// Mirrors the locked PDP contract family in
+// libs/shared-platform-contracts-kernel/src/pdp.rs (PARC request,
+// attributable response, zookie policy-version echo). The PEP assembles and
+// sends the entity slice with every request: the PDP evaluates against
+// EXACTLY that slice and never dials a PIP at decision time (ADR-0536 D-2).
+//
+// Refusals (invalid request, stale zookie pin, unknown action) are gRPC
+// status errors, NEVER decision responses; a Deny IS a decision response.
+// PEPs MUST treat any status error as deny (fail-closed).
+//
+// Attribute values model exactly what the Cedar engine adapter accepts
+// (string / bool / long); anything else is unrepresentable by construction.
+syntax = "proto3";
+
+package iam.pdp.v1;
+
+// A typed reference to an entity in the authorization model.
+message EntityRef {
+  // Namespaced entity type, e.g. "OyaPlatform::TenantResource".
+  string entity_type = 1;
+  string entity_id = 2;
+}
+
+// One ABAC-visible attribute value (the Cedar-mappable scalar set).
+message AttributeValue {
+  oneof value {
+    string string_value = 1;
+    bool bool_value = 2;
+    int64 long_value = 3;
+  }
+}
+
+// One entity in the per-request PIP slice.
+message EntityRecord {
+  EntityRef uid = 1;
+  // Attribute map exposed to ABAC conditions.
+  map<string, AttributeValue> attributes = 2;
+  // Parent entity edges (group membership, tenant containment).
+  repeated EntityRef parents = 3;
+}
+
+// A PARC-shaped authorization request plus the PEP-assembled entity slice.
+message AuthorizeRequest {
+  // Caller-supplied correlation id, echoed on the response.
+  string request_id = 1;
+  string tenant_id = 2;
+  EntityRef principal = 3;
+  // Action id within the platform action namespace (slug form).
+  string action = 4;
+  EntityRef resource = 5;
+  // ABAC context exposed to attribute conditions.
+  map<string, AttributeValue> context = 6;
+  // Zookie-style freshness floor: when non-empty, the PDP MUST evaluate
+  // against exactly this policy-store version or refuse
+  // (FAILED_PRECONDITION), never answer against stale policy.
+  string min_policy_version = 7;
+  // The entity slice this request is evaluated against.
+  repeated EntityRecord entities = 8;
+}
+
+// The decision. There is no "not applicable": absence of a permit IS a deny.
+enum DecisionEffect {
+  DECISION_EFFECT_UNSPECIFIED = 0;
+  DECISION_EFFECT_ALLOW = 1;
+  DECISION_EFFECT_DENY = 2;
+}
+
+// An obligation attached to an allow. PEPs MUST enforce obligations or fail
+// closed.
+message Obligation {
+  string obligation_id = 1;
+  map<string, string> parameters = 2;
+}
+
+// The attributable decision: decision id (audit-chain key), the decision,
+// and the policy-store version evaluated against (zookie echo — callers can
+// pin it back as min_policy_version for read-your-writes freshness).
+message AuthorizeResponse {
+  string decision_id = 1;
+  string request_id = 2;
+  DecisionEffect decision = 3;
+  string policy_version = 4;
+  // Ids of the policies that determined the outcome. An ALLOW always names
+  // at least one permit policy — every allow is attributable.
+  repeated string determining_policy_ids = 5;
+  repeated Obligation obligations = 6;
+}
+
+message GetLoadedPolicyVersionRequest {}
+
+message GetLoadedPolicyVersionResponse {
+  string policy_version = 1;
+}
+
+// The iam authorization-decision service. Deterministic and
+// side-effect-free per request (a PDP, not a PEP): same request + same
+// loaded bundle => same decision content.
+service CloudIamPdp {
+  // Decide one PARC request against the supplied entity slice.
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+  // The policy-store version token of the currently serving bundle.
+  rpc GetLoadedPolicyVersion(GetLoadedPolicyVersionRequest) returns (GetLoadedPolicyVersionResponse);
+}

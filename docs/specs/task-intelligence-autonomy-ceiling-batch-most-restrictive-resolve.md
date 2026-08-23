@@ -1,6 +1,6 @@
 # Spec: intelligence-autonomy-ceiling-batch-most-restrictive-resolve
 
-**Crate**: `oya-intelligence-autonomy-ceiling-kernel`
+**Crate**: `intelligence-autonomy-ceiling-kernel`
 **Lane**: intelligence
 **Priority**: high
 **Effort**: M

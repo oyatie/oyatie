@@ -11,9 +11,9 @@ purpose: |
   (autonomous origin/dev → staging fast-forward), prod-promoter (5-gate staging → prod).
   Plus staging-fixer (canary/SLO-regression worker) and the reviewer-agent dispatch table.
 planned_enforcement_ref:
-  - oya-governance-no-direct-origin-dev-commit
-  - oya-governance-no-direct-staging-commit
-  - oya-governance-no-direct-prod-commit
+  - governance-no-direct-origin-dev-commit
+  - governance-no-direct-staging-commit
+  - governance-no-direct-prod-commit
 related_adrs: [ADR-0022, ADR-0039, ADR-0041, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -31,11 +31,11 @@ doc_status: published
 
 **Action.** Orchestrates the **3-gate verification** (per [`branch-pipeline-architecture.md`](branch-pipeline-architecture.md) §4):
 
-1. PR shape — invokes `oya-tooling-agent-read` to fetch PR body; verifies five-H2 conformance.
-3. CI clearance — polls fitness-lane outcomes via `oya-intelligence-ci-state-store`; requires every lane GREEN on the PR HEAD.
+1. PR shape — invokes `tooling-agent-read` to fetch PR body; verifies five-H2 conformance.
+3. CI clearance — polls fitness-lane outcomes via `intelligence-ci-state-store`; requires every lane GREEN on the PR HEAD.
 
 
-**Authority.** May invoke reviewer agents via Skill; may invoke `oya-tooling-agent-read` for PR-shape inspection; may invoke `gh pr merge --squash`. Cannot modify code.
+**Authority.** May invoke reviewer agents via Skill; may invoke `tooling-agent-read` for PR-shape inspection; may invoke `gh pr merge --squash`. Cannot modify code.
 
 **Concurrency.** Per-PR single-flight (one promotion evaluation per PR at a time). Multiple PRs evaluated in parallel.
 
@@ -55,7 +55,7 @@ doc_status: published
 
 **Failure mode.** On any gate red, emits `EVT-DEV-PROMOTION-BLOCKED` with the specific gate that failed. The originating agent (or `staging-fixer` for Mode-B intervention) picks up and addresses.
 
-**Image.** `gcr.io/distroless/static-debian12`; binary `oya-intelligence-dev-promoter`.
+**Image.** `gcr.io/distroless/static-debian12`; binary `intelligence-dev-promoter`.
 
 ## 3. `staging-promoter` agent
 
@@ -128,7 +128,7 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 | Error-handling change | `silent-failure-hunter` | Verifies no silent failures | no |
 | API or contract change (`contracts/**`) | `doc-updater` | Verifies doc updated | no |
 | Doc-only change (`docs/**/*.md`) | `doc-style-reviewer` | Approve / Request-Changes | no |
-| Capability publish (`crates/oya-intelligence-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
+| Capability publish (`crates/intelligence-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | Performance change (benchmarks / hot path) | `perf-reviewer` | Approve / Request-Changes | **yes** (uses post-canary perf data) |
 
 

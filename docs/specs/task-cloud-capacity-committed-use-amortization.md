@@ -1,7 +1,7 @@
 # Spec: cloud-capacity-committed-use-amortization
 
 ## Crate
-`oya-cloud-capacity-kernel`
+`cloud-capacity-kernel`
 
 ## Module
 `committed_use`

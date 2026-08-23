@@ -95,7 +95,7 @@ Tenants do not consume `cloud-k8s` directly. Tenant value is **indirect, structu
 
 - Every `ClusterBootstrapped`, `NodeJoined`, `NodeDrained`, `NetworkPolicyApplied`, `IstioPolicyChanged`, `KubeadmUpgraded` event emits an audit-chain record (Merkle / Ed25519 per Bominal ADR-0028).
 - Audit-chain seal latency ≤ 1 s per event.
-- CIS Kubernetes Benchmark v1.9 compliance verified continuously by `oya-check-cis-k8s-benchmark` CI lane.
+- CIS Kubernetes Benchmark v1.9 compliance verified continuously by `check-cis-k8s-benchmark` CI lane.
 - Kubernetes API audit log: forwarded to `audit-chain` µservice; retention ≥ 6 y for pack-us-healthcare (HIPAA §164.316(b)(2)), ≥ 5 y for pack-kr (KR commercial code), ≥ 2 y default.
 
 ### Availability + SLO
@@ -119,7 +119,7 @@ Tenants do not consume `cloud-k8s` directly. Tenant value is **indirect, structu
 ### Capacity model (ADR-0340)
 
 - Per-tenant baseline: D-2 has not populated `capacity_model`; the current PRD uses substrate envelope values instead: cluster bootstrap <= 30 minutes, node join p99 <= 5 minutes, 10 baseline nodes for launch clusters, and up to 5,000 nodes per cluster once Karpenter NodePools are active.
-- Scaling dimension: `per_capability` for cluster bootstrap, node lifecycle, network policy, service mesh, ingress, CSI, and kubernetes-api-proxy; the Karpenter IP adds workload-class NodePools (`oya-app`, `oya-batch`, `oya-gpu`, `oya-regulatory`) as the runtime scaling primitive.
+- Scaling dimension: `per_capability` for cluster bootstrap, node lifecycle, network policy, service mesh, ingress, CSI, and kubernetes-api-proxy; the Karpenter IP adds workload-class NodePools (`app`, `batch`, `gpu`, `regulatory`) as the runtime scaling primitive.
 - Cell placement class: Tier-2, matching the manifest's `criticality_tier: T2`, because cloud-k8s is shared substrate with tenant workload placement responsibility but not the canonical commercial, identity, or key ledger.
 - Autoscaling boundaries: controller HA starts at two replicas for Karpenter, control plane targets three nodes after HA promotion, NodePools expand by workload class, and regulatory NodePools remain sovereign-region pinned/on-demand only.
 - WHY: capacity tracks cluster and node churn, not application request rate; the model keeps pack clusters available for every µservice while preserving regulatory placement constraints.
@@ -145,18 +145,18 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `cluster-bootstrap` | `oya-cloud-k8s-cluster-bootstrap-{kernel,domain,usecase,api,adapter,adapter-kubeadm,rest,worker,sdk,app}` | kubeadm init + join orchestration; cluster lifecycle; minor-version upgrade | `Cluster`, `ControlPlaneNode`, `KubeadmConfig`, `EtcdSnapshot`, `BootstrapEvidence` |
-| `node-lifecycle` | `oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase,api,adapter,rest,worker,app}` | node add / cordon / drain / remove; node health attestation; node taint+toleration management | `Node`, `NodeRole`, `NodeAttestation`, `CordonReason`, `DrainPlan` |
-| `network-policy` | `oya-cloud-k8s-network-policy-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Cedar-derived NetworkPolicy + AuthorizationPolicy emission; per-tenant namespace policy ; cross-pack federation policy | `NetworkPolicy`, `AuthorizationPolicy`, `PeerSelector`, `TenantNamespace` |
-| `service-mesh-control-plane` | `oya-cloud-k8s-service-mesh-control-plane-{kernel,domain,usecase,api,adapter,adapter-istio,rest,worker,app}` | Istio control-plane install / upgrade / configuration; istiod lifecycle; multi-cluster mesh federation | `IstioRevision`, `MeshConfig`, `Telemetry`, `ProxyConfig`, `MultiClusterPeer` |
-| `ingress-controller` | `oya-cloud-k8s-ingress-controller-{kernel,domain,usecase,api,adapter,adapter-envoy,rest,worker,app}` | Envoy Gateway / VirtualService / DestinationRule / TLS termination; public ingress; SNI routing | `Gateway`, `VirtualService`, `DestinationRule`, `TlsCertificate`, `SniRoute` |
-| `csi-storage-driver` | `oya-cloud-k8s-csi-storage-driver-{kernel,domain,usecase,api,adapter,adapter-block,adapter-object,adapter-file,rest,worker,app}` | per-backend CSI driver shims (block-volume, object, file); per-pack PV provisioning; QoS-class enforcement | `StorageClass`, `PersistentVolume`, `PersistentVolumeClaim`, `VolumeSnapshot`, `CsiBackend` |
-| `kubernetes-api-proxy` | `oya-cloud-k8s-kubernetes-api-proxy-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Cedar-policy + audit-chain wrapper around kube-apiserver; operator + agent + CI access gateway | `ApiCall`, `CallerPrincipal`, `PolicyDecision`, `AuditRecord` |
+| `cluster-bootstrap` | `cloud-k8s-cluster-bootstrap-{kernel,domain,usecase,api,adapter,adapter-kubeadm,rest,worker,sdk,app}` | kubeadm init + join orchestration; cluster lifecycle; minor-version upgrade | `Cluster`, `ControlPlaneNode`, `KubeadmConfig`, `EtcdSnapshot`, `BootstrapEvidence` |
+| `node-lifecycle` | `cloud-k8s-node-lifecycle-{kernel,domain,usecase,api,adapter,rest,worker,app}` | node add / cordon / drain / remove; node health attestation; node taint+toleration management | `Node`, `NodeRole`, `NodeAttestation`, `CordonReason`, `DrainPlan` |
+| `network-policy` | `cloud-k8s-network-policy-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Cedar-derived NetworkPolicy + AuthorizationPolicy emission; per-tenant namespace policy ; cross-pack federation policy | `NetworkPolicy`, `AuthorizationPolicy`, `PeerSelector`, `TenantNamespace` |
+| `service-mesh-control-plane` | `cloud-k8s-service-mesh-control-plane-{kernel,domain,usecase,api,adapter,adapter-istio,rest,worker,app}` | Istio control-plane install / upgrade / configuration; istiod lifecycle; multi-cluster mesh federation | `IstioRevision`, `MeshConfig`, `Telemetry`, `ProxyConfig`, `MultiClusterPeer` |
+| `ingress-controller` | `cloud-k8s-ingress-controller-{kernel,domain,usecase,api,adapter,adapter-envoy,rest,worker,app}` | Envoy Gateway / VirtualService / DestinationRule / TLS termination; public ingress; SNI routing | `Gateway`, `VirtualService`, `DestinationRule`, `TlsCertificate`, `SniRoute` |
+| `csi-storage-driver` | `cloud-k8s-csi-storage-driver-{kernel,domain,usecase,api,adapter,adapter-block,adapter-object,adapter-file,rest,worker,app}` | per-backend CSI driver shims (block-volume, object, file); per-pack PV provisioning; QoS-class enforcement | `StorageClass`, `PersistentVolume`, `PersistentVolumeClaim`, `VolumeSnapshot`, `CsiBackend` |
+| `kubernetes-api-proxy` | `cloud-k8s-kubernetes-api-proxy-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Cedar-policy + audit-chain wrapper around kube-apiserver; operator + agent + CI access gateway | `ApiCall`, `CallerPrincipal`, `PolicyDecision`, `AuditRecord` |
 
 Naming justification — `cluster-bootstrap`:
 
 ```
-NAME: oya-cloud-k8s-cluster-bootstrap-<layer>
+NAME: cloud-k8s-cluster-bootstrap-<layer>
 JUSTIFICATION:
 - microservice = cloud-k8s: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice folder.
 - bc-tokens = cluster-bootstrap: primary BC; cluster lifecycle (init → join → upgrade → reset).
@@ -184,7 +184,7 @@ JUSTIFICATION:
 Naming justification — `service-mesh-control-plane`:
 
 ```
-NAME: oya-cloud-k8s-service-mesh-control-plane-<layer>
+NAME: cloud-k8s-service-mesh-control-plane-<layer>
 JUSTIFICATION:
 - microservice = cloud-k8s.
 - bc-tokens = service-mesh-control-plane: explicit BC token; sibling BC ingress-controller
@@ -197,7 +197,7 @@ JUSTIFICATION:
 Naming justification — `csi-storage-driver`:
 
 ```
-NAME: oya-cloud-k8s-csi-storage-driver-<layer>
+NAME: cloud-k8s-csi-storage-driver-<layer>
 JUSTIFICATION:
 - microservice = cloud-k8s.
 - bc-tokens = csi-storage-driver.
@@ -228,18 +228,18 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `KubeadmCommander` | `oya-cloud-k8s-cluster-bootstrap-kernel` | `-adapter-kubeadm` (shell-out to kubeadm CLI with bounded scope) | `AUDIT` (kubeadm config + node-join token) |
-| `EtcdSnapshotter` | `oya-cloud-k8s-cluster-bootstrap-kernel` | `-adapter` (etcdctl wrapper) | `AUDIT` (etcd state snapshot) |
-| `NodeRegistry` | `oya-cloud-k8s-node-lifecycle-kernel` | `-adapter` (kube-apiserver client; bounded RBAC) | `INTERNAL_ONLY` (node names + labels) |
-| `NodeDrainer` | `oya-cloud-k8s-node-lifecycle-kernel` | `-adapter` (eviction API; PDB-aware) | `INTERNAL_ONLY` |
-| `NetworkPolicyEmitter` | `oya-cloud-k8s-network-policy-kernel` | `-adapter` (kube-apiserver client) | `BEHAVIORAL_TENANT_PRODUCT` (tenant-namespace identifier) |
-| `AuthorizationPolicyEmitter` | `oya-cloud-k8s-network-policy-kernel` | `-adapter` (Istio AuthorizationPolicy CR write) | `BEHAVIORAL_TENANT_PRODUCT` |
-| `IstioCommander` | `oya-cloud-k8s-service-mesh-control-plane-kernel` | `-adapter-istio` (istioctl + IstioOperator CR) | `INTERNAL_ONLY` |
-| `EnvoyConfigurer` | `oya-cloud-k8s-ingress-controller-kernel` | `-adapter-envoy` (Gateway / VirtualService CR) | `INTERNAL_ONLY` |
-| `CsiProvisioner` | `oya-cloud-k8s-csi-storage-driver-kernel` | `-adapter-block`, `-adapter-object`, `-adapter-file` | `BEHAVIORAL_TENANT_PRODUCT` (PVC owner) |
-| `ApiCallMediator` | `oya-cloud-k8s-kubernetes-api-proxy-kernel` | `-adapter` (HTTP reverse-proxy with Cedar + audit-chain) | `AUDIT` (every API call) |
+| `KubeadmCommander` | `cloud-k8s-cluster-bootstrap-kernel` | `-adapter-kubeadm` (shell-out to kubeadm CLI with bounded scope) | `AUDIT` (kubeadm config + node-join token) |
+| `EtcdSnapshotter` | `cloud-k8s-cluster-bootstrap-kernel` | `-adapter` (etcdctl wrapper) | `AUDIT` (etcd state snapshot) |
+| `NodeRegistry` | `cloud-k8s-node-lifecycle-kernel` | `-adapter` (kube-apiserver client; bounded RBAC) | `INTERNAL_ONLY` (node names + labels) |
+| `NodeDrainer` | `cloud-k8s-node-lifecycle-kernel` | `-adapter` (eviction API; PDB-aware) | `INTERNAL_ONLY` |
+| `NetworkPolicyEmitter` | `cloud-k8s-network-policy-kernel` | `-adapter` (kube-apiserver client) | `BEHAVIORAL_TENANT_PRODUCT` (tenant-namespace identifier) |
+| `AuthorizationPolicyEmitter` | `cloud-k8s-network-policy-kernel` | `-adapter` (Istio AuthorizationPolicy CR write) | `BEHAVIORAL_TENANT_PRODUCT` |
+| `IstioCommander` | `cloud-k8s-service-mesh-control-plane-kernel` | `-adapter-istio` (istioctl + IstioOperator CR) | `INTERNAL_ONLY` |
+| `EnvoyConfigurer` | `cloud-k8s-ingress-controller-kernel` | `-adapter-envoy` (Gateway / VirtualService CR) | `INTERNAL_ONLY` |
+| `CsiProvisioner` | `cloud-k8s-csi-storage-driver-kernel` | `-adapter-block`, `-adapter-object`, `-adapter-file` | `BEHAVIORAL_TENANT_PRODUCT` (PVC owner) |
+| `ApiCallMediator` | `cloud-k8s-kubernetes-api-proxy-kernel` | `-adapter` (HTTP reverse-proxy with Cedar + audit-chain) | `AUDIT` (every API call) |
 
-Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time.
+Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `check-data-class` LEAN lane refuses unannotated fields at PR-time.
 
 Cross-product rule: `cloud-k8s` MUST NOT import any other product µservice crate at any layer. Workload events flow through Workflow events (`ClusterBootstrapped`, `NodeJoined`, `NetworkPolicyApplied`, `IstioPolicyChanged`); reads happen through Ontology (`Cluster`, `Node`, `NetworkPolicy` object types). `cloud-iac` and `cell` are explicit sibling cloud-* µservices and exchange data only through Workflow + Ontology. LEAN-A2 CI lane enforces.
 
@@ -334,7 +334,7 @@ Key oyatie differentiators (NOT in any competitor):
 
 Error budget:
 - Monthly error budget for control-plane availability: 0.01 % (≈ 4.3 min/month) at 99.99 % target.
-- Burn-rate alarms on Mimir aggregations (`oya_cloud_k8s_control_plane_*`) with 14.4× burn / 1h fast-page.
+- Burn-rate alarms on Mimir aggregations (`cloud_k8s_control_plane_*`) with 14.4× burn / 1h fast-page.
 
 ## Horizontal Scalability
 
@@ -365,7 +365,7 @@ Cross-region story:
 
 Sharding:
 - Cluster identity sharded by `pack`; intra-cluster sharding by `namespace` (tenant ownership).
-- `oya-check-shardability-cli` CI lane verifies partition key presence.
+- `check-shardability-cli` CI lane verifies partition key presence.
 
 ## Acceptance Criteria
 
@@ -377,10 +377,10 @@ Sharding:
 | AC-04 | Istio control-plane canary upgrade (`istioctl upgrade`) completes with zero data-plane downtime | e2e drill with synthetic mTLS traffic during upgrade |
 | AC-05 | Cosign-unsigned image is refused at admission | admission-webhook integration test |
 | AC-06 | Direct kube-apiserver access (port 6443) is refused; kubernetes-api-proxy is the only path | NetworkPolicy + e2e probe |
-| AC-07 | `oya-check-cis-k8s-benchmark` lane passes against bootstrapped cluster | LEAN lane exit 0 |
-| AC-08 | All IaC manifests (Helm + OpenTofu + Kustomize) deploy clean against a kind cluster | CI lane `oya-cloud-k8s-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-K8S registered |
+| AC-07 | `check-cis-k8s-benchmark` lane passes against bootstrapped cluster | LEAN lane exit 0 |
+| AC-08 | All IaC manifests (Helm + OpenTofu + Kustomize) deploy clean against a kind cluster | CI lane `cloud-k8s-iac-smoke` |
+| AC-09 | `cargo run -p dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s` exit 0 | ADR-0131 lane |
+| AC-10 | `cargo run -p dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-K8S registered |
 
 ## Open Questions
 
@@ -427,7 +427,7 @@ CI lane `oya gate validate air-gap-overlay` enforces sovereign-pack containment.
 
 Per ADR-0161 (2026-05-18), this µservice ships the canonical StorageClass catalog at `iac/kustomize/components/storage-classes/` and the per-pack overlay surface at `iac/kustomize/components/pack-{name}/`.
 
-Canonical names workload µservices reference: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-valkey-hot`, `oya-s3-warm`, `oya-s3-cold`. Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`.
+Canonical names workload µservices reference: `pg-hot`, `pg-warm`, `pg-cold`, `valkey-hot`, `s3-warm`, `s3-cold`. Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`.
 
 CI lane `oya gate validate storage-class-canonical` enforces (a) every workload µservice chart references only canonical names, (b) every active pack populates the full matrix.
 
@@ -437,10 +437,10 @@ Per ADR-0158 (2026-05-18), the cloud-k8s µservice's cluster control-plane is de
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-k8s` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

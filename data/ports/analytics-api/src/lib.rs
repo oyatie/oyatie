@@ -42,14 +42,14 @@ use data_analytics_usecase::{
     CreateDataExportUseCase, GetDashboardUseCase, RunBillingRollupUseCase, SearchAuditLogUseCase,
     UseCaseError,
 };
-use oya_shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
+use shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
 
-/// OpenAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/analytics/contracts/openapi-v1.yaml";
-/// AsyncAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_ASYNCAPI_CONTRACT: &str = "data/analytics/contracts/asyncapi-v1.yaml";
-/// gRPC proto contract path (SSOT: `data/analytics/catalog/contracts.json`).
-pub const ANALYTICS_PROTO_CONTRACT: &str = "data/analytics/contracts/analytics.proto";
+/// OpenAPI contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/ports/analytics-api/contracts/openapi-v1.yaml";
+/// AsyncAPI contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_ASYNCAPI_CONTRACT: &str = "data/ports/analytics-api/contracts/asyncapi-v1.yaml";
+/// gRPC proto contract path (SSOT: `data/ports/analytics-api/contracts/contracts.json`).
+pub const ANALYTICS_PROTO_CONTRACT: &str = "data/ports/analytics-api/contracts/analytics.proto";
 
 // =====================================================================
 // API error
@@ -326,7 +326,7 @@ pub fn handle_data_export(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_olap_client_kernel::{
+    use shared_olap_client_kernel::{
         ColumnDef, ColumnType, QualifiedTable, TableEngine, TableName, TableSchema,
         memory_adapter::InMemoryOlapClient,
     };

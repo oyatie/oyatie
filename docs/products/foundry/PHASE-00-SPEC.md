@@ -193,7 +193,7 @@ Acceptance:
   - All crates in workspace [members] glob
 
 Validation command:
-  bash oya gate validate architecture-boundaries crates/oya-intelligence-account-*
+  bash presubmit (retired CLI gate validate) architecture-boundaries crates/intelligence-account-*
 ```
 
 **P00-02: Domain types + application commands + ports**
@@ -206,7 +206,7 @@ Acceptance:
   - 40+ unit tests covering all value types and state invariants
 
 Validation command:
-  cargo test -p oya-intelligence-account-kernel -p oya-intelligence-account-domain -p oya-intelligence-account-app
+  cargo test -p intelligence-account-kernel -p intelligence-account-domain -p intelligence-account-app
 ```
 
 **P00-03: Secret persistence — SecretStorePort adapter with local OpenBao default**
@@ -222,9 +222,9 @@ Acceptance:
   - Persistence roundtrip: store and retrieve SecretReference without exposing secret material
 
 Validation command:
-  cargo test -p oya-intelligence-account-adapter-openbao --test integration_local
-  cargo test -p oya-intelligence-account-adapter-openbao --test fake_in_memory
-  node scripts/hooks/guard-secrets.mjs --scan crates/oya-intelligence-account-*
+  cargo test -p intelligence-account-adapter-openbao --test integration_local
+  cargo test -p intelligence-account-adapter-openbao --test fake_in_memory
+  node scripts/hooks/guard-secrets.mjs --scan crates/intelligence-account-*
 ```
 
 **P00-04: Provider adapters and provider-gateway parity**
@@ -257,14 +257,14 @@ Acceptance:
   - Imported session inherits account quota, usage window constraints
 
 Validation command:
-  cargo test -p oya-intelligence-account-app --test regular_session_import
+  cargo test -p intelligence-account-app --test regular_session_import
 ```
 
 **P00-08: Phase E2E and CI gate**
 ```
 Acceptance:
   - Rust-owned `oya lint foundry-phase00-evidence` validation passes
-  - Local fast: `cargo test --locked -p oya-intelligence-account-*`
+  - Local fast: `cargo test --locked -p intelligence-account-*`
   - GitHub Actions Foundry lane: `cargo test --workspace`, secret scans, architecture boundary checks
   - Evidence bundle: account-auth slice delivered or exact gaps honestly stated
   - No stubs, placeholders, fake paths, TODO/TBD markers in acceptance paths

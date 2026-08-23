@@ -11,12 +11,12 @@ metadata:
     app.kubernetes.io/part-of: oyatie-microservices
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
-    oyatie.com/adr-0384: cloud-intelligence-path-b
+    oyatie.com/adr-0384: intelligence-app-path-b
     oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
-    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
-    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
-    oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
-    oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+    oyatie.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oyatie.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+    oyatie.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+    oyatie.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
     oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
     oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
 spec:
@@ -31,10 +31,10 @@ spec:
         app.kubernetes.io/part-of: oyatie-microservices
         istio.io/dataplane-mode: ambient
         oyatie.com/tenant-class: {{ .Values.microservice.tenantClass | quote }}
-        oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
-        oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
-        oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
-        oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+        oyatie.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+        oyatie.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+        oyatie.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+        oyatie.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
         oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
         oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
       annotations:
@@ -47,7 +47,7 @@ spec:
         # Kyverno ClusterPolicy verify-image-signatures validates cosign.sigstore.dev/required="true"
         # and that the image digest matches a valid cosign signature in the Sigstore transparency log.
         oyatie.com/cosign-keyless-issuer: "https://accounts.google.com"
-        oyatie.com/cosign-keyless-subject-regexp: "^sa-cloud-intelligence@oyatie\\.iam\\.gserviceaccount\\.com$"
+        oyatie.com/cosign-keyless-subject-regexp: "^sa-intelligence-app@oyatie\\.iam\\.gserviceaccount\\.com$"
     spec:
       runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
@@ -63,69 +63,69 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: OYA_CLOUD_INTEL_LISTEN_ADDR
+            - name: OYATIE_CLOUD_INTEL_LISTEN_ADDR
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
-            - name: OYA_CLOUD_INTEL_TENANT_ID
+            - name: OYATIE_CLOUD_INTEL_TENANT_ID
               value: {{ .Values.config.tenantId | quote }}
-            - name: OYA_CLOUD_INTEL_ENVIRONMENT
+            - name: OYATIE_CLOUD_INTEL_ENVIRONMENT
               value: {{ .Values.config.environment | quote }}
-            - name: OYA_CLOUD_INTEL_INITIAL_SEATS
+            - name: OYATIE_CLOUD_INTEL_INITIAL_SEATS
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: initial_seats
                   optional: true
-            - name: OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS
+            - name: OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: tenant_provider_pools
                   optional: true
-            - name: OYA_CLOUD_INTEL_SECRET_PROVIDER_URL
+            - name: OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL
               value: {{ .Values.secretProvider.url | quote }}
-            - name: OYA_MICROSERVICE
+            - name: OYATIE_MICROSERVICE
               value: {{ .Values.microservice.id | quote }}
-            - name: OYA_CARGO_PACKAGE
+            - name: OYATIE_CARGO_PACKAGE
               value: {{ .Values.microservice.cargoPackage | quote }}
-            - name: OYA_IMAGE_PROMOTION_POLICY
+            - name: OYATIE_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
             {{- if .Values.otel.enabled }}
-            - name: OYA_OTEL_ENDPOINT
+            - name: OYATIE_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
             {{- end }}
-            - name: OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: secret_provider_token
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_URL
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_URL
               value: {{ .Values.clickhouse.url | quote }}
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_USER
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_USER
               value: {{ .Values.clickhouse.user | quote }}
-            - name: OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD
+            - name: OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: clickhouse_password
-            - name: OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_ADMIN_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: admin_bearer_token
                   optional: true
-            - name: OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN
+            - name: OYATIE_CLOUD_INTEL_INGRESS_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secret.secretName | quote }}
                   key: ingress_bearer_token
                   optional: true
-            - name: OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
+            - name: OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
               value: {{ .Values.providerCompliance.anthropic.authMode | quote }}
-            - name: OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS
+            - name: OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS
               value: {{ .Values.providerCompliance.anthropic.oauthStatus | quote }}
-            - name: OYA_CLOUD_INTEL_CODEX_AUTH_MODE
+            - name: OYATIE_CLOUD_INTEL_CODEX_AUTH_MODE
               value: {{ .Values.providerCompliance.codex.authMode | quote }}
-            - name: OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS
+            - name: OYATIE_CLOUD_INTEL_CODEX_OAUTH_STATUS
               value: {{ .Values.providerCompliance.codex.oauthStatus | quote }}
           startupProbe:
             httpGet:

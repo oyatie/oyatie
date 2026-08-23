@@ -208,7 +208,7 @@ The outbox can be drained by:
 
 - **lean-doc-coverage** — all 26 docs present + registered in DOC-CATALOG
 - **lean-settings-drift** — drift detection passes on 3-provider fixture
-- **oya-governance-*** — naming, dependency, schema, algorithm checks
+- **governance-*** — naming, dependency, schema, algorithm checks
 - **performance** — latency budgets enforced; no regressions
 
 ## References

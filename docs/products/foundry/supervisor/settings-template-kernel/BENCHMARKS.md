@@ -15,7 +15,7 @@ doc_status: published
 Loading a TOML template file:
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-kernel -- load_template
+cargo bench -p intelligence-settings-template-kernel -- load_template
 
 # Expected: parse + deserialize in <5ms
 ```
@@ -29,7 +29,7 @@ cargo bench -p oya-intelligence-settings-template-kernel -- load_template
 Cloning a `SettingsTemplate` (in-memory):
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-kernel -- template_clone
+cargo bench -p intelligence-settings-template-kernel -- template_clone
 
 # Expected: <100µs (owned values, no allocation on modern CPUs)
 ```
@@ -45,7 +45,7 @@ cargo bench -p oya-intelligence-settings-template-kernel -- template_clone
 Per-account verify operation (compare on-disk files to manifest):
 
 ```bash
-cargo bench -p oya-intelligence-settings-template-kernel -- verify_latency
+cargo bench -p intelligence-settings-template-kernel -- verify_latency
 
 # Expected: <50ms per account
 ```
@@ -85,4 +85,4 @@ pub struct CachedSettingsRenderer {
 ## References
 
 - **v6 Amendments § BLOCKER-1:** SettingsRenderer verify memoization
-- **Benchmarks:** `crates/oya-intelligence-settings-template-kernel/benches/`
+- **Benchmarks:** `crates/intelligence-settings-template-kernel/benches/`

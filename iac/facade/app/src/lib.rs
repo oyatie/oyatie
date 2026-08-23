@@ -19,6 +19,12 @@ use std::net::{SocketAddr, TcpListener as StdTcpListener};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
+    HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
+    serve_n_connections_on_std_listener, serve_on_std_listener,
+};
 use iac_api::{
     CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
@@ -29,12 +35,6 @@ use iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
 use iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
-};
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
-    HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
-    serve_n_connections_on_std_listener, serve_on_std_listener,
 };
 use sha2::{Digest, Sha256};
 
@@ -52,23 +52,23 @@ pub const CLOUD_IAC_APP_OBJECT_SOURCE_NON_CLAIM: &str =
     "opentofu-s3-gcs-source-location-no-live-object-store-no-upload";
 pub const CLOUD_IAC_APP_OBJECT_PINNING_NON_CLAIM: &str =
     "object-source-metadata-pin-no-live-object-store-preconditions";
-pub const CLOUD_IAC_APP_BINARY_NAME: &str = "oya-cloud-iac";
-pub const CLOUD_IAC_APP_PACKAGE_NAME: &str = "oya-cloud-iac-app";
-pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYA_CLOUD_IAC_BIND_ADDR";
+pub const CLOUD_IAC_APP_BINARY_NAME: &str = "iac-app";
+pub const CLOUD_IAC_APP_PACKAGE_NAME: &str = "iac-app";
+pub const CLOUD_IAC_APP_BIND_ADDR_ENV: &str = "OYATIE_CLOUD_IAC_BIND_ADDR";
 pub const CLOUD_IAC_APP_DEFAULT_BIND_ADDR: &str = "0.0.0.0:8080";
-pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYA_CLOUD_IAC_RELEASE_INDEX_PATH";
-pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str = "OYA_CLOUD_IAC_MODULE_REGISTRY_BEARER";
+pub const CLOUD_IAC_APP_RELEASE_INDEX_PATH_ENV: &str = "OYATIE_CLOUD_IAC_RELEASE_INDEX_PATH";
+pub const CLOUD_IAC_APP_MODULE_REGISTRY_BEARER_ENV: &str =
+    "OYATIE_CLOUD_IAC_MODULE_REGISTRY_BEARER";
 pub const CLOUD_IAC_APP_MODULE_REGISTRY_PRINCIPAL_ENV: &str =
-    "OYA_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
-pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str =
-    "microservices/cloud-iac/tofu/modules/release-index.json";
+    "OYATIE_CLOUD_IAC_MODULE_REGISTRY_PRINCIPAL";
+pub const CLOUD_IAC_APP_DEFAULT_RELEASE_INDEX_PATH: &str = "iac/tofu/modules/release-index.json";
 pub const CLOUD_IAC_APP_ARTIFACTS_BASE_PATH: &str = "/artifacts/modules/";
 pub const CLOUD_IAC_APP_ARTIFACT_ROUTE_TEMPLATE: &str = "/artifacts/modules/{archive_file}";
 pub const CLOUD_IAC_HEALTH_PATH: &str = "/healthz";
 pub const CLOUD_IAC_LIVENESS_PATH: &str = "/livez";
 
-const CLOUD_IAC_APP_RELEASE_SOURCE_ROOT: &str = "microservices/cloud-iac/tofu/modules/";
-const CLOUD_IAC_APP_ARCHIVE_FILE_ROOT: &str = "target/oya-cloud-iac/module-archives/";
+const CLOUD_IAC_APP_RELEASE_SOURCE_ROOT: &str = "iac/tofu/modules/";
+const CLOUD_IAC_APP_ARCHIVE_FILE_ROOT: &str = "target/iac-app/module-archives/";
 const CLOUD_IAC_APP_ARCHIVE_MEDIA_TYPE: &str = "archive/zip";
 
 #[derive(Clone, Eq, PartialEq)]
@@ -1113,16 +1113,16 @@ pub enum CloudIacAppError {
 impl std::fmt::Display for CloudIacAppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Config(error) => write!(f, "cloud-iac app config failed: {error:?}"),
-            Self::Bind(reason) => write!(f, "cloud-iac app bind failed: {reason}"),
+            Self::Config(error) => write!(f, "iac-app app config failed: {error:?}"),
+            Self::Bind(reason) => write!(f, "iac-app app bind failed: {reason}"),
             Self::ReleaseIndex(error) => {
-                write!(f, "cloud-iac release-index load failed: {error:?}")
+                write!(f, "iac-app release-index load failed: {error:?}")
             }
             Self::RegistryService(error) => {
-                write!(f, "cloud-iac module registry assembly failed: {error:?}")
+                write!(f, "iac-app module registry assembly failed: {error:?}")
             }
-            Self::Router(error) => write!(f, "cloud-iac app route registration failed: {error:?}"),
-            Self::Hyper(error) => write!(f, "cloud-iac hyper runtime failed: {error}"),
+            Self::Router(error) => write!(f, "iac-app app route registration failed: {error:?}"),
+            Self::Hyper(error) => write!(f, "iac-app hyper runtime failed: {error}"),
         }
     }
 }
@@ -1159,51 +1159,51 @@ impl From<HyperRuntimeError> for CloudIacAppError {
     }
 }
 
-pub fn build_cloud_iac_app_service_from_release_index_path(
+pub fn build_iac_app_service_from_release_index_path(
     path: impl AsRef<Path>,
     authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let seed = load_release_index_seed_from_path(path)?;
-    build_cloud_iac_app_service_from_release_index_seed(&seed, authz_provider)
+    build_iac_app_service_from_release_index_seed(&seed, authz_provider)
 }
 
-pub fn build_cloud_iac_app_service_from_release_index_str(
+pub fn build_iac_app_service_from_release_index_str(
     input: &str,
     authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let seed = load_release_index_seed_from_str(input)?;
-    build_cloud_iac_app_service_from_release_index_seed(&seed, authz_provider)
+    build_iac_app_service_from_release_index_seed(&seed, authz_provider)
 }
 
-pub fn build_cloud_iac_app_service_from_release_index_seed(
+pub fn build_iac_app_service_from_release_index_seed(
     seed: &CloudIacReleaseIndexSeed,
     authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
     let registry = build_module_registry_from_release_index_seed(seed)?;
     let artifacts = archive_artifacts_from_seed(seed)?;
-    build_cloud_iac_app_service_with_artifacts(
+    build_iac_app_service_with_artifacts(
         registry,
-        cloud_iac_app_bootstrap_boundary(),
+        iac_app_bootstrap_boundary(),
         authz_provider,
         artifacts,
     )
 }
 
-fn cloud_iac_app_bootstrap_boundary() -> CloudIacModuleRegistryApiBoundaryContext {
+fn iac_app_bootstrap_boundary() -> CloudIacModuleRegistryApiBoundaryContext {
     CloudIacModuleRegistryApiBoundaryContext {
-        request_id: "req_cloud_iac_app_bootstrap_local_001".to_string(),
+        request_id: "req_iac_app_bootstrap_local_001".to_string(),
     }
 }
 
-pub fn build_cloud_iac_app_service(
+pub fn build_iac_app_service(
     registry: ModuleRegistry,
     boundary: CloudIacModuleRegistryApiBoundaryContext,
     authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
 ) -> Result<CloudIacAppService, CloudIacAppError> {
-    build_cloud_iac_app_service_with_artifacts(registry, boundary, authz_provider, BTreeMap::new())
+    build_iac_app_service_with_artifacts(registry, boundary, authz_provider, BTreeMap::new())
 }
 
-fn build_cloud_iac_app_service_with_artifacts(
+fn build_iac_app_service_with_artifacts(
     registry: ModuleRegistry,
     boundary: CloudIacModuleRegistryApiBoundaryContext,
     authz_provider: Arc<CloudIacModuleRegistryAuthzProvider>,
@@ -1318,12 +1318,12 @@ fn register_health_routes(router: &mut Router<SyncHandler>) -> Result<(), Router
     router.route(
         HttpMethod::Get,
         CLOUD_IAC_HEALTH_PATH,
-        fixed_json_handler(r#"{"status":"ok","service":"cloud-iac","check":"healthz"}"#),
+        fixed_json_handler(r#"{"status":"ok","service":"iac-app","check":"healthz"}"#),
     )?;
     router.route(
         HttpMethod::Get,
         CLOUD_IAC_LIVENESS_PATH,
-        fixed_json_handler(r#"{"status":"ok","service":"cloud-iac","check":"livez"}"#),
+        fixed_json_handler(r#"{"status":"ok","service":"iac-app","check":"livez"}"#),
     )?;
     Ok(())
 }
@@ -1353,14 +1353,14 @@ fn fixed_json_handler(body: &'static str) -> SyncHandler {
     })
 }
 
-pub fn dispatch_cloud_iac_app_request(
+pub fn dispatch_iac_app_request(
     service: &CloudIacAppService,
     request: HttpRequest,
 ) -> HttpResponse {
     dispatch_hyper_adapter_request(request, &service.router, &service.middleware)
 }
 
-pub fn serve_cloud_iac_app_on_listener(
+pub fn serve_iac_app_on_listener(
     listener: StdTcpListener,
     service: CloudIacAppService,
 ) -> Result<(), CloudIacAppError> {
@@ -1374,7 +1374,7 @@ pub fn serve_cloud_iac_app_on_listener(
     Ok(())
 }
 
-pub fn serve_bounded_cloud_iac_app_on_listener(
+pub fn serve_bounded_iac_app_on_listener(
     listener: StdTcpListener,
     service: CloudIacAppService,
     max_connections: usize,
@@ -1390,20 +1390,18 @@ pub fn serve_bounded_cloud_iac_app_on_listener(
     Ok(())
 }
 
-pub fn run_cloud_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
+pub fn run_iac_app(config: CloudIacAppConfig) -> Result<(), CloudIacAppError> {
     // BOOT-FATAL: refuse to serve the supply-chain surface without a verifiable
     // bearer SECRET and a bound principal id (no default-allow; AUTH-005).
     let authz_provider = config.module_registry_authz_provider()?;
-    let service = build_cloud_iac_app_service_from_release_index_path(
-        &config.release_index_path,
-        authz_provider,
-    )?;
+    let service =
+        build_iac_app_service_from_release_index_path(&config.release_index_path, authz_provider)?;
     let listener = StdTcpListener::bind(config.bind_addr)
         .map_err(|error| CloudIacAppError::Bind(error.to_string()))?;
-    serve_cloud_iac_app_on_listener(listener, service)
+    serve_iac_app_on_listener(listener, service)
 }
 
-pub fn run_cloud_iac_app_from_env() -> Result<(), CloudIacAppError> {
+pub fn run_iac_app_from_env() -> Result<(), CloudIacAppError> {
     let config = CloudIacAppConfig::from_env_pairs(std::env::vars())?;
-    run_cloud_iac_app(config)
+    run_iac_app(config)
 }

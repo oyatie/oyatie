@@ -15,7 +15,7 @@ related_adrs:
   - ADR-0185
   - ADR-0204
   - ADR-0207
-enforced_by: oya-check-a11y-discipline
+enforced_by: check-a11y-discipline
 ---
 
 # Accessibility (a11y) Canonical Standard
@@ -60,7 +60,7 @@ This standard implements ADR-0207. WCAG 2.2 AA is the production minimum. Regula
 
 ## Coverage gate
 
-`oya-check-a11y-discipline` scans every µservice's `client-manifest.json` for declared test
+`check-a11y-discipline` scans every µservice's `client-manifest.json` for declared test
 runners per active stack. Missing or unknown runners are flagged as advisory gaps.
 
 ## Canvas / drag-and-drop a11y

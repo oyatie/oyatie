@@ -26,9 +26,9 @@
 0023 | protocol_warning | per-microservice ADR batches A-F were not verified.
 0024 | governance | read specs/root-hub-pointers.json before repo work.
 0025 | governance | read docs/AGENTS.md before repo work.
-0026 | governance | Oya VCS claim required before editing.
+0026 | governance | retired VCS ratchet claim required before editing.
 0027 | governance | claim command executed before this file was added.
-0028 | governance_claim | ./bin/oya vcs claim --agent codex-deliverable-verification-audit --intent deliverable-verification-audit docs/architecture.
+0028 | governance_claim | ./bin/retired VCS ratchet claim --agent codex-deliverable-verification-audit --intent deliverable-verification-audit docs/architecture.
 0029 | governance_claim_result | accepted.
 0030 | governance_claim_result | action=claim-lock.
 0031 | governance_claim_result | scopes=1.
@@ -2049,7 +2049,7 @@
 1992 | checkpoint | audited source files were not edited.
 1993 | checkpoint | workstreams audited: 10.
 1994 | checkpoint | aggregate verdict: NEEDS-REMEDIATION.
-1995 | checkpoint | next action after this document is Oya VCS verify.
+1995 | checkpoint | next action after this document is retired VCS ratchet verify.
 1996 | checkpoint | verify evidence should include workstreams_audited:10.
 1997 | checkpoint | verify evidence should include final audit_lines count.
 1998 | checkpoint | done evidence should include workstreams_audited:10.
@@ -2178,7 +2178,7 @@
 2119 | finding | Re-audit should add new random samples after fixes.
 2120 | finding | Re-audit should preserve failing-sample history.
 2121 | finding | Re-audit should verify no unrelated source edits were made by audit.
-2122 | finding | Re-audit should verify Oya VCS lifecycle evidence.
+2122 | finding | Re-audit should verify retired VCS ratchet lifecycle evidence.
 2123 | finding | Re-audit should include line count and content sampling.
 2124 | finding | Re-audit should not rely on agent self-report.
 2125 | finding | Re-audit should compare claimed artifacts to filesystem.
@@ -2235,12 +2235,12 @@
 2174 | note | The task requested aggregate verdict.
 2175 | note | The task requested top-30 remediation list.
 2176 | note | The task requested audit-only source behavior.
-2177 | note | The task requested Oya VCS lifecycle commands.
+2177 | note | The task requested retired VCS ratchet lifecycle commands.
 2178 | note | The task requested clean halt and checkpoint.
 2179 | note | The checkpoint is recorded above.
-2180 | note | The Oya VCS verify command must run after final line count.
-2181 | note | The Oya VCS done command must run after verify.
-2182 | note | The Oya VCS promote command must run after done.
+2180 | note | The retired VCS ratchet verify command must run after final line count.
+2181 | note | The retired VCS ratchet done command must run after verify.
+2182 | note | The retired VCS ratchet promote command must run after done.
 2183 | note | If Oya promote fails, report failure without editing source artifacts.
 2184 | note | If Oya verify fails, report failure and keep audit document as checkpoint.
 2185 | note | If Oya done fails, report failure and keep audit document as checkpoint.
@@ -2268,9 +2268,9 @@
 2205 | stop | top-30 remediation queue is explicit.
 2206 | stop | checkpoint is explicit.
 2207 | stop | source files remain unmodified.
-2208 | stop | Oya VCS verify has been attempted.
-2209 | stop | Oya VCS done has been attempted after verify.
-2210 | stop | Oya VCS promote has been attempted after done.
+2208 | stop | retired VCS ratchet verify has been attempted.
+2209 | stop | retired VCS ratchet done has been attempted after verify.
+2210 | stop | retired VCS ratchet promote has been attempted after done.
 2211 | stop | final response reports command results.
 2212 | stop | final response reports audit path.
 2213 | stop | final response reports line count.
@@ -2522,9 +2522,9 @@
 2445 | assertion | The clear aggregate result is NEEDS-REMEDIATION.
 
 ## Verification Placeholder
-2446 | lifecycle | After final wc -l, run Oya VCS verify with audit_lines.
-2447 | lifecycle | After verify, run Oya VCS done.
-2448 | lifecycle | After done, run Oya VCS promote.
+2446 | lifecycle | After final wc -l, run retired VCS ratchet verify with audit_lines.
+2447 | lifecycle | After verify, run retired VCS ratchet done.
+2448 | lifecycle | After done, run retired VCS ratchet promote.
 2449 | lifecycle | If commands fail, preserve this document as checkpoint.
 2450 | lifecycle | If commands succeed, final answer should report success.
 
@@ -2550,10 +2550,10 @@
 2469 | terminal | Workstream I remains failed.
 2470 | terminal | Workstream J remains partial.
 2471 | terminal | Aggregate remains needs remediation.
-2472 | terminal | Oya VCS claim was accepted before edit.
-2473 | terminal | Oya VCS verify is the next lifecycle command.
-2474 | terminal | Oya VCS done follows verify.
-2475 | terminal | Oya VCS promote follows done.
+2472 | terminal | retired VCS ratchet claim was accepted before edit.
+2473 | terminal | retired VCS ratchet verify is the next lifecycle command.
+2474 | terminal | retired VCS ratchet done follows verify.
+2475 | terminal | retired VCS ratchet promote follows done.
 2476 | terminal | The bundle name is deliverable-verification-audit-2026-05-20.
 2477 | terminal | The environment is dev.
 2478 | terminal | The evidence key is workstreams_audited:10.

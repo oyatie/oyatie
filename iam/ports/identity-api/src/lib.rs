@@ -473,7 +473,7 @@ impl IdentityUserUpsertApiError {
             Self::AuthorizationDenied { .. } => {
                 "Authorization decision does not allow the requested identity user upsert surface"
             }
-            Self::InvalidRegionPack { .. } => "Region pack must be an oya-pack-* identifier",
+            Self::InvalidRegionPack { .. } => "Region pack must be an pack-* identifier",
             Self::InvalidIdentityProvider { .. } => {
                 "Identity provider id must be an idp_* identifier"
             }
@@ -527,7 +527,7 @@ impl IdentityUserUpsertApiError {
                 "must include the requested identity.user.upsert surface",
             )],
             Self::InvalidRegionPack { .. } => {
-                vec![detail("body.region_pack", "must start with oya-pack-")]
+                vec![detail("body.region_pack", "must start with pack-")]
             }
             Self::InvalidIdentityProvider { .. } => {
                 vec![detail("body.identity_provider_id", "must start with idp_")]
@@ -738,7 +738,7 @@ fn validate_authorization(
 fn validate_idp_binding(
     body: &IdentityUserUpsertRequest,
 ) -> Result<(), IdentityUserUpsertApiError> {
-    if !body.region_pack.starts_with("oya-pack-") || body.region_pack.len() <= "oya-pack-".len() {
+    if !body.region_pack.starts_with("pack-") || body.region_pack.len() <= "pack-".len() {
         return Err(IdentityUserUpsertApiError::InvalidRegionPack {
             region_pack: body.region_pack.clone(),
         });
@@ -919,7 +919,7 @@ fn identity_error_message(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "Tenant id must be a ten_ identifier",
         IdentityError::InvalidUserId => "User id must be a usr_ identifier",
-        IdentityError::InvalidRegionPack => "Region pack must be an oya-pack-* identifier",
+        IdentityError::InvalidRegionPack => "Region pack must be an pack-* identifier",
         IdentityError::InvalidIdentityProviderId => {
             "Identity provider id must be an idp_* identifier"
         }
@@ -940,7 +940,7 @@ fn identity_error_issue(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "tenant_id must start with ten_",
         IdentityError::InvalidUserId => "user_id must start with usr_",
-        IdentityError::InvalidRegionPack => "region_pack must start with oya-pack-",
+        IdentityError::InvalidRegionPack => "region_pack must start with pack-",
         IdentityError::InvalidIdentityProviderId => "identity_provider_id must start with idp_",
         IdentityError::InvalidServicePrincipalId => "service_principal_id must start with sp_",
         IdentityError::InvalidCapabilityId => "owning_capability_id must start with cap.",

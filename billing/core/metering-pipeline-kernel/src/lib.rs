@@ -5,7 +5,7 @@
 //! and operational databases are never aggregated at query time.
 //!
 //! This kernel owns the pipeline doctrine; the ingest EVENT vocabulary
-//! stays in `oya-metering-domain` (cloud-billing) and adapters map events
+//! stays in `metering-domain` (cloud-billing) and adapters map events
 //! into [`UsageRecord`]s at the pipeline edge:
 //!
 //! - **The dedup key** is `(tenant, resource, dimension, usage_hour)` —
@@ -27,7 +27,7 @@
 //!   (rejected anti-pattern, ADR-0536 D-14).
 //!
 //! The [`MeteringSink`] port is the never-lose idempotent sink; the
-//! durable implementation arrives via the G03 `oya-data` port, and the
+//! durable implementation arrives via the G03 `data` port, and the
 //! conformance harness in [`conformance`] holds every implementation to
 //! this one specification.
 //!
@@ -59,7 +59,7 @@ pub const MAX_ID_LEN: usize = 255;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MeteringPipelineError {
     /// Tenant id is not `ten_`-prefixed (vocabulary shared with
-    /// `oya-metering-domain`).
+    /// `metering-domain`).
     InvalidTenantId { value: String },
     /// Cell id is not a canonical slug.
     InvalidCellId { value: String },
@@ -165,7 +165,7 @@ fn valid_slug(value: &str) -> bool {
         && !value.ends_with(['-', '.'])
 }
 
-/// Tenant identity, `ten_`-prefixed (the `oya-metering-domain` /
+/// Tenant identity, `ten_`-prefixed (the `metering-domain` /
 /// platform-contracts tenant vocabulary).
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct TenantId(String);
@@ -472,7 +472,7 @@ pub struct BatchIngestResult {
 /// The never-lose idempotent metering sink (ADR-0536 D-14). One record
 /// per [`DedupKey`]; replays are duplicates; conflicting replays are
 /// errors; lateness is enforced HERE so no implementation can forget it.
-/// The durable implementation arrives via the G03 `oya-data` port; the
+/// The durable implementation arrives via the G03 `data` port; the
 /// reference implementation lives in [`crate::reference`].
 pub trait MeteringSink {
     /// The sink's lateness policy.
@@ -568,7 +568,7 @@ mod tests {
         let record = UsageRecord {
             tenant: TenantId::parse("ten_a").unwrap(),
             cell: CellId::parse("cell-kr-1").unwrap(),
-            resource: ResourceId::parse("oya-meter").unwrap(),
+            resource: ResourceId::parse("meter").unwrap(),
             dimension: Dimension::parse("requests").unwrap(),
             usage_hour: UsageHour::from_epoch_seconds(7200),
             consumed_quantity_microunits: 5_000_000,

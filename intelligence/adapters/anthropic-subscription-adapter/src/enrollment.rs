@@ -1,6 +1,6 @@
 //! Seat enrollment via PKCE OAuth flow.
 //!
-//! Wires the pure `oya-intelligence-oauth-subscription-kernel` PKCE primitives
+//! Wires the pure `intelligence-oauth-subscription-kernel` PKCE primitives
 //! into a runtime path. Two variants:
 //!
 //!   - `EnrollmentPath::LocalhostCallback` — binds a Tokio TCP listener on the

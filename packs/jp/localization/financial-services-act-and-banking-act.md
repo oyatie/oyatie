@@ -720,4 +720,4 @@ CrossRef-136: JP financial workflows must not permit unchecked customer disclosu
 CrossRef-137: JP financial workflows must not permit unchecked regulator notice closure.
 CrossRef-138: JP financial workflows must not permit unchecked feature flag exposure to Japan.
 CrossRef-139: JP financial workflows must not permit documentation-only compliance without Cedar policy, data model, API, audit, and failure mode hooks.
-CrossRef-140: Checkpoint: this document is complete when line count is at least 600, required headings are present, all authority URLs are represented in frontmatter, and Oya VCS verify/done/promote has accepted `jp_pack_docs:6`.
+CrossRef-140: Checkpoint: this document is complete when line count is at least 600, required headings are present, all authority URLs are represented in frontmatter, and retired VCS ratchet verify/done/promote has accepted `jp_pack_docs:6`.

@@ -1,4 +1,4 @@
-//! Cost tracking — pure-kernel spend accounting for the cloud-intelligence
+//! Cost tracking — pure-kernel spend accounting for the intelligence-app
 //! subscription pool (feeds the D6 EventSink / ClickHouse spend sink).
 //!
 //! Three pure capabilities, zero I/O:

@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0257
   - ADR-0316
 enforced_by:
-  - oya-governance-ontology-projection-pin
-  - oya-governance-capability-tier-ontology-projection-pin
-  - oya-governance-cross-microservice-latency-budget
+  - governance-ontology-projection-pin
+  - governance-capability-tier-ontology-projection-pin
+  - governance-cross-microservice-latency-budget
 canonical_paths:
   - specs/products/ontology.json
   - microservices/ontology/
@@ -262,7 +262,7 @@ The action is policy-gated, workflow-backed, and auditable.
 Primary command:
 
 ```bash
-oya gate validate ontology-projection-pin --scope microservices
+presubmit (retired CLI gate validate) ontology-projection-pin --scope microservices
 ```
 
 The checker MUST parse `specs/products/ontology.json`.
@@ -563,7 +563,7 @@ fields:
     data_class: internal
     source: TenantCapabilityTierChangedV1.tier
 rebuild:
-  command: cargo run -p oya-projection-rebuild -- tenant-access-context-v1
+  command: cargo run -p projection-rebuild -- tenant-access-context-v1
   checkpoint_store: projections.tenant_access_context_checkpoint
   replay_order: event_time_then_sequence
 ```
@@ -572,36 +572,36 @@ rebuild:
 
 | ID | Projection concern | Requirement | Example path | Checker |
 |---|---|---|---|---|
-| ONT-MAT-001 | Authority | Projection cites owning aggregate | `TenantAccount` | `oya-check-projection-authority` |
-| ONT-MAT-002 | Authority | Projection cites event stream | `tenant.scope.updated.v1` | `oya-check-event-source-linkage` |
-| ONT-MAT-003 | Authority | Projection rejects direct writes | repository adapter | `oya-check-projection-write-paths` |
-| ONT-MAT-004 | Schema | Every field has data class | projection YAML | `oya-check-data-class` |
-| ONT-MAT-005 | Schema | Every field has source event | projection YAML | `oya-check-projection-field-source` |
-| ONT-MAT-006 | Schema | Every derived enum has version | projection YAML | `oya-check-projection-versioning` |
-| ONT-MAT-007 | Replay | Rebuild command is declared | projection manifest | `oya-check-projection-rebuild` |
-| ONT-MAT-008 | Replay | Checkpoint store is declared | projection manifest | `oya-check-projection-checkpoint` |
-| ONT-MAT-009 | Replay | Replay order is deterministic | projection manifest | `oya-check-projection-replay-order` |
-| ONT-MAT-010 | Consistency | Lag SLO is declared | OpenSLO file | `oya-check-projection-slo` |
-| ONT-MAT-011 | Consistency | Stale reads are labeled | API response | `oya-check-staleness-label` |
-| ONT-MAT-012 | Consistency | Strong-read fallback is explicit | direct gRPC rubric | `oya-check-direct-read-rubric` |
-| ONT-MAT-013 | Policy | Cedar schema imports projection shape | `policy/schema.cedarschema` | `oya-check-cedar-projection` |
-| ONT-MAT-014 | Policy | Policy denies stale regulated fields | Cedar policy | `oya-check-stale-policy-deny` |
-| ONT-MAT-015 | Search | Search indexes derived fields only when allowed | search mapping | `oya-check-search-data-class` |
-| ONT-MAT-016 | Billing | Billing projection cites tariff authority | billing manifest | `oya-check-billing-projection` |
-| ONT-MAT-017 | Workflow | Workflow reads projection through port | usecase port | `oya-check-workflow-projection-port` |
-| ONT-MAT-018 | Observability | Projection lag metric is emitted | metric name | `oya-check-projection-metrics` |
-| ONT-MAT-019 | Audit | Rebuild emits audit event | `EVT-PROJECTION-REBUILT` | `oya-check-audit-emission` |
-| ONT-MAT-020 | Migration | Breaking shape change bumps version | projection id | `oya-check-projection-versioning` |
-| ONT-MAT-021 | Fixture | Fixture includes source events | fixtures path | `oya-check-projection-fixtures` |
-| ONT-MAT-022 | Test | Replay test covers reordering | test module | `oya-check-projection-tests` |
-| ONT-MAT-023 | Docs | Cross-reference cites standard | ADR/PRD | `oya-check-doc-links` |
-| ONT-MAT-024 | Rollback | Old projection is retained during migration | deployment plan | `oya-check-projection-rollback` |
-| ONT-MAT-025 | Retention | Projection retention matches source data class | retention file | `oya-check-retention-parity` |
-| ONT-MAT-026 | Residency | Projection storage region matches source | cell manifest | `oya-check-residency-parity` |
-| ONT-MAT-027 | Tenant | Tenant id is mandatory on tenant projections | schema | `oya-check-tenant-boundary` |
-| ONT-MAT-028 | Pack | Pack overlays are explicit | projection manifest | `oya-check-pack-overlay` |
-| ONT-MAT-029 | Consumer | Consumer compatibility is tested | contract test | `oya-check-consumer-compat` |
-| ONT-MAT-030 | Promote | Evidence names changed projections | VCS bundle | `oya-vcs-admission` |
+| ONT-MAT-001 | Authority | Projection cites owning aggregate | `TenantAccount` | `check-projection-authority` |
+| ONT-MAT-002 | Authority | Projection cites event stream | `tenant.scope.updated.v1` | `check-event-source-linkage` |
+| ONT-MAT-003 | Authority | Projection rejects direct writes | repository adapter | `check-projection-write-paths` |
+| ONT-MAT-004 | Schema | Every field has data class | projection YAML | `check-data-class` |
+| ONT-MAT-005 | Schema | Every field has source event | projection YAML | `check-projection-field-source` |
+| ONT-MAT-006 | Schema | Every derived enum has version | projection YAML | `check-projection-versioning` |
+| ONT-MAT-007 | Replay | Rebuild command is declared | projection manifest | `check-projection-rebuild` |
+| ONT-MAT-008 | Replay | Checkpoint store is declared | projection manifest | `check-projection-checkpoint` |
+| ONT-MAT-009 | Replay | Replay order is deterministic | projection manifest | `check-projection-replay-order` |
+| ONT-MAT-010 | Consistency | Lag SLO is declared | OpenSLO file | `check-projection-slo` |
+| ONT-MAT-011 | Consistency | Stale reads are labeled | API response | `check-staleness-label` |
+| ONT-MAT-012 | Consistency | Strong-read fallback is explicit | direct gRPC rubric | `check-direct-read-rubric` |
+| ONT-MAT-013 | Policy | Cedar schema imports projection shape | `policy/schema.cedarschema` | `check-cedar-projection` |
+| ONT-MAT-014 | Policy | Policy denies stale regulated fields | Cedar policy | `check-stale-policy-deny` |
+| ONT-MAT-015 | Search | Search indexes derived fields only when allowed | search mapping | `check-search-data-class` |
+| ONT-MAT-016 | Billing | Billing projection cites tariff authority | billing manifest | `check-billing-projection` |
+| ONT-MAT-017 | Workflow | Workflow reads projection through port | usecase port | `check-workflow-projection-port` |
+| ONT-MAT-018 | Observability | Projection lag metric is emitted | metric name | `check-projection-metrics` |
+| ONT-MAT-019 | Audit | Rebuild emits audit event | `EVT-PROJECTION-REBUILT` | `check-audit-emission` |
+| ONT-MAT-020 | Migration | Breaking shape change bumps version | projection id | `check-projection-versioning` |
+| ONT-MAT-021 | Fixture | Fixture includes source events | fixtures path | `check-projection-fixtures` |
+| ONT-MAT-022 | Test | Replay test covers reordering | test module | `check-projection-tests` |
+| ONT-MAT-023 | Docs | Cross-reference cites standard | ADR/PRD | `check-doc-links` |
+| ONT-MAT-024 | Rollback | Old projection is retained during migration | deployment plan | `check-projection-rollback` |
+| ONT-MAT-025 | Retention | Projection retention matches source data class | retention file | `check-retention-parity` |
+| ONT-MAT-026 | Residency | Projection storage region matches source | cell manifest | `check-residency-parity` |
+| ONT-MAT-027 | Tenant | Tenant id is mandatory on tenant projections | schema | `check-tenant-boundary` |
+| ONT-MAT-028 | Pack | Pack overlays are explicit | projection manifest | `check-pack-overlay` |
+| ONT-MAT-029 | Consumer | Consumer compatibility is tested | contract test | `check-consumer-compat` |
+| ONT-MAT-030 | Promote | Evidence names changed projections | VCS bundle | `retired VCS ratchet` |
 
 ## Extended Review Questions
 

@@ -1,4 +1,4 @@
-- 2026-08-11 — Phase0 merge-admission-required + domain green / path_ownership cite (SSOT absorb); bead oyatie-dxz docs-governance.
+- 2026-08-11 — Phase0 presubmit + domain green / path_ownership cite (SSOT absorb); bead oyatie-dxz docs-governance.
 ---
 purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
@@ -43,7 +43,7 @@ doc_status: published
   the validator and dispatcher.
 - Aligned current contributor, PR-template, checklist, decision-rights, and
   lane-catalog surfaces with the four-section PR body, independent reviewer
-  approval, and protected `oya-ci-required` context.
+  approval, and protected `presubmit` context.
 - Added a fail-closed registration test that rejects active, planned, or
   catalog-only revival of the retired local validator.
 
@@ -96,7 +96,7 @@ doc_status: published
 
 ## 2026-08-11 — Custom ARC runner fleets retired
 
-- Declared **ARC overflow RETIRED**: `oya-arm64` / `oya-live-postgres-arm64` tip
+- Declared **ARC overflow RETIRED**: `arm64` / `live-postgres-arm64` tip
   `maxRunners: 0`; soft multi-arch remains GitHub-hosted; lab CAS = founder laptop
   (sibling CAS track). Idea update:
   [`docs/ideas/hosted-ci-lab-cas-agent-fleet.md`](ideas/hosted-ci-lab-cas-agent-fleet.md).
@@ -169,18 +169,18 @@ doc_status: published
 - Accepted ADR-0636 as the narrow interim authority for the already-promoted cross-run baseline consumer without closing #1504.
 - Scoped Actions read permission to the affected-set job and bound reusable artifacts to run, attempt, head, producer, immutable artifact IDs, and SHA-256 digests.
 - Made duplicate/malformed provenance a refusal and retained the clean cold build/test fallback when any binding or durable outcome telemetry is unavailable.
-- Added workflow conformance coverage; typed cloud-ci retrieval or licensed remote AC/CAS remains the mandatory deletion trigger.
+- Added workflow conformance coverage; typed pipeline retrieval or licensed remote AC/CAS remains the mandatory deletion trigger.
 
 ## 2026-08-04 — Dedicated ephemeral ARC PostgreSQL test cell
 
 - Moved both required live-PostgreSQL jobs from hosted service containers to the
-  architecture-pinned `oya-live-postgres-arm64` ARC label without changing their migrations,
+  architecture-pinned `live-postgres-arm64` ARC label without changing their migrations,
   serialized test targets, or required-context fan-in.
 - Added a digest-pinned PostgreSQL 16 native sidecar with startup ordering, memory-backed
   per-Pod data and generated credentials, masked workflow loading, and cross-Pod ingress denial.
 - Removed shared database administrative credentials from the general-purpose runner values;
   neither runner scale set projects a CNPG Secret or shared database hostname, and a Cilium
-  egress-deny blocks both candidate-runner cell labels from the shared `oya-data` namespace.
+  egress-deny blocks both candidate-runner cell labels from the shared `data` namespace.
 - Capped the dedicated set at one runner and accounted for the measured ~30Gi workspace with a
   32Gi request/34Gi limit; that cap serializes the two required PostgreSQL jobs. Issue #1504
   remains a live-deployment prerequisite because the current runner node is under DiskPressure;
@@ -258,7 +258,7 @@ doc_status: published
     PARKED exclusion, landed-plan filtering, multi-active failure, and zero-active
     canonical-empty behavior to the authoritative codemod.
   - Related lanes: `ci-crate-registration`, `ci-inventory-registry-drift`,
-    `oya-reorg-codemod-app`.
+    `reorg-codemod-app`.
   - Protected admission and post-merge product-completion evidence remain pending.
 
 ## 2026-07-24 — ADR-0624 Accepted immutable ADR census epoch transition
@@ -277,7 +277,7 @@ doc_status: published
   - Authors: `@jason931225`
   - ADRs cited: ADR-0515, ADR-0525, ADR-0552, ADR-0595, ADR-0597, ADR-0613,
     ADR-0619, ADR-0623, ADR-0624
-  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+  - Related lanes: `check-adr-index`, `governance-adr-shape`,
     `ci-cross-artifact-agreement`, `ci-scm-facts-snapshot`
   - Protected admission and post-merge product-completion evidence remain
     pending and will be recorded in the PR evidence packet.
@@ -290,10 +290,10 @@ doc_status: published
   `HOLD(Planning)` and keeping the historical executable prototype only in Git history.
   - Authors: `@jason931225`
   - ADRs cited: ADR-0623
-  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+  - Related lanes: `check-adr-index`, `governance-adr-shape`,
     `ci-cross-artifact-agreement`
   - PR: #1364; exact-head admission, protected squash/merge,
-    `oya-ci-required`, and post-merge evidence remain pending and will be
+    `presubmit`, and post-merge evidence remain pending and will be
     recorded in the PR evidence packet.
 
 ## 2026-07-24 — ADR-0622 Proposed FixupTask v2 successor foundation
@@ -303,10 +303,10 @@ doc_status: published
   prototype out of the current authority tree and preserving `HOLD(Planning)`.
   - Authors: `@jason931225`
   - ADRs cited: ADR-0622
-  - Related lanes: `oya-check-adr-index`, `oya-governance-adr-shape`,
+  - Related lanes: `check-adr-index`, `governance-adr-shape`,
     `ci-cross-artifact-agreement`
   - PR: #1363; exact-head admission, protected squash/merge,
-    `oya-ci-required`, and post-merge evidence remain pending and will be
+    `presubmit`, and post-merge evidence remain pending and will be
     recorded in the PR evidence packet.
 
 ## 2026-07-13 — Pre-planning authority consolidation
@@ -330,7 +330,7 @@ doc_status: published
 ## 2026-07-01 — Data Use Boundary policy-gate ownership
 
 - Recorded the first Data Use Boundary policy-gate implementation surface and
-  council-privacy ownership seed for `libs/oya-data-boundary-kernel`.
+  council-privacy ownership seed for `libs/data-boundary-kernel`.
 
 ## 2026-07-01 — Cloud-native infrastructure automation standard
 
@@ -350,7 +350,7 @@ doc_status: published
 - Discarded old cloud KMS and managed-K8s quota runtime crate resurrection from this lane because those crates are absent from current `origin/dev`; their security intent is recorded on the Kanban handoff for follow-up on current destination surfaces.
 ## 2026-07-01 — WORKSPACE-DRIFT-FOLLOWUP-C docs/procedure reconciliation
 
-- Ported the still-valid docs/procedure subset from the preserved dirty workspace: explicit PHASE-5 promotion evidence wording, ADR-0515 `oya-ci-required` merge authority, and release-governance/release-note impact language.
+- Ported the still-valid docs/procedure subset from the preserved dirty workspace: explicit PHASE-5 promotion evidence wording, ADR-0515 `presubmit` merge authority, and release-governance/release-note impact language.
 - Discarded stale dirty changes that would reintroduce retired multispectrum evidence files, local `oya` or legacy CI merge authority, unreviewed PR-template rewrites, or absent generated-face helper paths.
 
 ## 2026-06-30 — DEVFLOW-003 post-merge product-completion gate
@@ -358,30 +358,30 @@ doc_status: published
 - Added post-merge product-completion packet requirements to root agent guidance,
   the operating contract, done-definition/pre-merge/review checklists, PR templates,
   and release standards.
-- Product-complete now requires promoted-sha `oya-ci-required`, rollout verification,
+- Product-complete now requires promoted-sha `presubmit`, rollout verification,
   rollback note, observability check, browser/user-story evidence, and
   release-governance/release-note impact after squash merge; Release Please is
   only mandatory when a live repo config/workflow exists.
 
 ## 2026-06-30 — ADR-0536 substrate-to-port matrix
 
-- Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oya-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
+- Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oyatie-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
 
-## 2026-06-30 — Review/fix evidence packet for oya-ci-required
+## 2026-06-30 — Review/fix evidence packet for presubmit
 
-- Updated the PR templates, PR review checklist, done-definition checklist, pre-merge checklist, and code-review standard so merge-ready PR evidence records `oya-ci-required` status, exact failing/fixed checks, review-thread resolution, and reviewer approval state on the current PR head.
+- Updated the PR templates, PR review checklist, done-definition checklist, pre-merge checklist, and code-review standard so merge-ready PR evidence records `presubmit` status, exact failing/fixed checks, review-thread resolution, and reviewer approval state on the current PR head.
 - Clarified that local CLI or hook output is shift-left evidence only, never merge authority, and that generated faces must be producer-materialized rather than hand-edited.
 - Added REVIEW-001 review-lens closure language: worker-completed implementation cards need a protected PR URL plus independent reviewer evidence, reviewer approvals must match the current head SHA, and SEC-001 threat-model coverage must be linked or marked `N/A` with rationale.
 
 ## 2026-06-30 — AUTHZ-004 dead Cedar ConfigMap deletion
 
 - Deleted the unused `oya/analytics` Helm Cedar ConfigMap template, which still carried the legacy action-agnostic blanket Cedar permit but was not mounted by the chart Deployment.
-- Removed that path from the `cloud-ci-cedar-deploy-parity` shrink-only baseline and added a regression proving AUTHZ-004-deleted dead ConfigMaps are neither baseline-grandfathered nor collected as deployed ConfigMaps.
+- Removed that path from the `pipeline-cedar-deploy-parity` shrink-only baseline and added a regression proving AUTHZ-004-deleted dead ConfigMaps are neither baseline-grandfathered nor collected as deployed ConfigMaps.
 
 ## 2026-06-29 — Live Postgres sublanes for GH #901
 
 - Split the required live-Postgres bridge into independent adapter and facade jobs, each with its own Postgres service/bootstrap, so safe groups can run in parallel without sharing database state.
-- Added fan-in self-test coverage proving both split sublanes are required by `oya-ci-required` and the retired monolithic live-postgres dependency cannot silently remain.
+- Added fan-in self-test coverage proving both split sublanes are required by `presubmit` and the retired monolithic live-postgres dependency cannot silently remain.
 
 ## 2026-06-29 — Cache-hit report fail-closed guard for GH #900
 
@@ -395,35 +395,35 @@ doc_status: published
 
 ## 2026-06-29 — Cloud Cedar blanket disarm for GH #987
 
-- Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `cloud-ci-cedar-deploy-parity` shrink-only blanket baseline.
+- Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `pipeline-cedar-deploy-parity` shrink-only blanket baseline.
 - Added a gate regression proving the Cloud templates are no longer baseline-grandfathered and that every deployed Cloud permit constrains action plus resource/scope before subset parity is evaluated.
 - Tightened the mirrored Cloud IAC and tenancy policy fragments by removing executable default-deny forbids, broadening ApplyJob negative guardrails across all mutating actions, and splitting tenancy/auditor permits by principal, action, and resource type.
 
-## 2026-06-29 — PR metadata admission packet wired into oya-ci
+## 2026-06-29 — PR metadata admission packet wired into ci
 
-- Added a Rust PR metadata packet to `oya-ci-required` so blocked/pending-review PR title or body markers and missing `## Code Review` evidence fail before merge without claiming the F-PR5-06 live review-producer gap is closed.
-- Marked quality-lane `check_command` rows as local/transitional bridge feedback only; protected-branch authority remains the single `oya-ci-required` fan-in plus cloud-ci/Rust gate packets.
+- Added a Rust PR metadata packet to `presubmit` so blocked/pending-review PR title or body markers and missing `## Code Review` evidence fail before merge without claiming the F-PR5-06 live review-producer gap is closed.
+- Marked quality-lane `check_command` rows as local/transitional bridge feedback only; protected-branch authority remains the single `presubmit` fan-in plus pipeline Rust gate packets.
 
 ## 2026-06-29 — OpenBao ESO scope and transport gate hardened
 
-- Extended the existing operator-secret-bootstrap gate instead of adding a new cloud-ci surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
+- Extended the existing operator-secret-bootstrap gate instead of adding a new pipeline surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
 - Split the cloud-k8s CSI and cloud-iam SVID-operator ExternalSecrets onto dedicated OpenBao role/store contracts, documented the matching OpenBao policy/role bootstrap, and fenced the OpenBao listener with a committed NetworkPolicy.
 
 ## 2026-06-29 — Supply-chain admission proof wired into active gate
 
 - Replaced the in-cluster registry static-key Cosign admission policy with keyless Sigstore/Rekor plus SLSA provenance and CycloneDX SBOM attestation checks; secondary Kyverno/Kubewarden policy fixtures, signed-image dev CLI defaults, and the dev CLI supply-chain verifier now use owned `jason931225/oyatie` subject/repo scope plus live `cloud/cloud-iac` paths.
-- Retired `cargo-vet` from live readiness authority until maintained inputs exist, updated the governance-lane index to point SBOM/Cosign/SLSA at the active supply-chain gate, and added a `cloud-ci-supply-chain-audit` self-test proving the active `oya-ci-required` path covers signature/provenance/SBOM/dependency posture.
+- Retired `cargo-vet` from live readiness authority until maintained inputs exist, updated the governance-lane index to point SBOM/Cosign/SLSA at the active supply-chain gate, and added a `pipeline-supply-chain-audit` self-test proving the active `presubmit` path covers signature/provenance/SBOM/dependency posture.
 
 ## 2026-06-10 — ADR-0544 friction-ledger closed-loop accounting gate authored
 
-- Added ADR-0544 and the `cloud-ci-friction-accounting` meta-gate: every friction-ledger row must
+- Added ADR-0544 and the `pipeline-friction-accounting` meta-gate: every friction-ledger row must
   terminate in a gate, an automation, or an explicit accepted-risk entry, enforced so unconverted,
   undisposed, or unevidenced frictions block merges like code debt (Google SRE postmortem
   action-item model, Rust-native).
 - The gate is born pack-shaped: ledger path, free-text status taxonomy, and evidence rules are DATA
   in `friction-accounting-policy.json` (the row field-name schema is the engine's contract); the Rust
   kernel is neutral and runs on any repo. It is a standalone born-blocking buck2 self-test with its
-  own reviewed (review-visible, shrink-only) baseline + ceilings, documented in the oya-ci gate
+  own reviewed (review-visible, shrink-only) baseline + ceilings, documented in the ci gate
   catalog. A merge-base shrink-only meta-check (FRIC-1781112000) and per-row owner/aging enforcement
   are named follow-ups.
 
@@ -435,16 +435,16 @@ doc_status: published
 
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 
-- Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
+- Added `pipeline-enforcement-liveness` to make tracked hook scripts mechanically live across
   Claude and Codex project hook wiring, while preserving marked compatibility stubs.
 - Documented the `enforcement_liveness` producer face and frozen-empty hook liveness codes in the
-  oya-ci gate catalog.
+  ci gate catalog.
 
 ## 2026-06-10 — ADR-0540 target-parity gate authored
 
-- Added ADR-0540 and documented the `cloud-ci-target-parity` gate for Cargo workspace member
+- Added ADR-0540 and documented the `pipeline-target-parity` gate for Cargo workspace member
   BUCK-file and `rust_test` target parity.
-- Updated the oya-ci gate catalog with the `target_parity` producer face, frozen-empty
+- Updated the ci gate catalog with the `target_parity` producer face, frozen-empty
   `member_missing_buck` code, and baseline-block-on-new test-target debt code.
 
 ## 2026-05-20 — ADR-0320 transient program identity doctrine authored
@@ -485,21 +485,21 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-16 — archive-orphan lane retired after M01-P18 cutover
 
 - Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M01-P18) as the canonical VCS substrate.
-- Removed the pre-grit archive payload, `oya-governance-archive-orphan-kernel`, `oya-governance-archive-orphan-app`, workspace members, and catalog entries.
+- Removed the pre-grit archive payload, `governance-archive-orphan-kernel`, `governance-archive-orphan-app`, workspace members, and catalog entries.
 - Naming justification: `archive-orphan` remains only as a historical lane id because IP-008 used that exact cutover-boundary name.
 
-## 2026-05-15 — Fitness lane `oya-governance-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
+## 2026-05-15 — Fitness lane `governance-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
 
-- Added `crates/oya-governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
+- Added `crates/governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oyatie.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
 - Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
-- Workspace members updated (`crates/oya-governance-sunset-lifecycle-kernel`, `tools/oya-governance-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
+- Workspace members updated (`crates/governance-sunset-lifecycle-kernel`, `tools/governance-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
 - ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
-## 2026-05-15 — Fitness lane `oya-governance-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
+## 2026-05-15 — Fitness lane `governance-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
 
-- Added `crates/oya-governance-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-governance-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
+- Added `crates/governance-adapter-with-no-importer-kernel` (I/O-free check) and `tools/governance-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
 - Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
-- Workspace members updated (`crates/oya-governance-adapter-with-no-importer-kernel`, `tools/oya-governance-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Workspace members updated (`crates/governance-adapter-with-no-importer-kernel`, `tools/governance-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
 - Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
@@ -556,7 +556,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-14 — M01-P03-IP-001 audit-chain Merkle + Ed25519 kernel
 
-- Added SHA-256 Merkle prefix roots and Ed25519 signature types/sign/verify support to `oya-audit-chain-domain` under the Rust 1.95.0 / edition 2024 / rustfmt 2024 stance.
+- Added SHA-256 Merkle prefix roots and Ed25519 signature types/sign/verify support to `audit-chain-domain` under the Rust 1.95.0 / edition 2024 / rustfmt 2024 stance.
 - Enforced per-tenant-shard append semantics and added regressions for hash-chain tamper, Merkle-root tamper, signature tamper, and missing-signature verification.
 - Updated the file ledger to persist v2 audit records carrying tenant shard, SHA-256 Merkle root, and optional Ed25519 signature fields, with malformed UTF-8 length prefixes rejected as parse errors.
 - Recorded `ed25519-dalek` 2.x stable and `sha2` 0.10.x as the new direct dependencies for the real Ed25519 + SHA-256 kernel; ed25519-dalek 3.x remains prerelease.
@@ -564,7 +564,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-14 — M01-P02 foundation complete
 
 - Completed the identity/Cedar phase: identity user upsert, STS issue/rotation, and Cedar policy publish all have current crate/runtime evidence.
-- Added `oya-platform-policy-cedar-api` to the Rust 1.95.0 / edition 2024 workspace and aligned it to the current `oya-policy-cedar-domain` crate.
+- Added `platform-policy-cedar-api` to the Rust 1.95.0 / edition 2024 workspace and aligned it to the current `policy-cedar-domain` crate.
 - Strengthened Cedar policy versions with strict semver, tenant/global scope, same-scope older-version supersession, chain lookup, idempotent publish, and active-only authorization.
 - Recorded M01-P02 evidence for IP-001, IP-002, and IP-003; `scripts/check.sh` remains blocked by the pre-existing missing stage0 prereq script.
 
@@ -576,21 +576,21 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-14 — M01-P02-IP-001 identity kernel
 
-- Promoted the identity user kernel to current flat-crate surfaces: `oya-identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
+- Promoted the identity user kernel to current flat-crate surfaces: `identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
 - Added domain regressions for tenant/user/idp binding validation and kept STS service-principal issuance compatible while preserving ≤1h token gates.
-- Brought `oya-platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression set.
+- Brought `platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression set.
 - Aligned SPEC and machine-readable contract mirrors to the current identity crates, with repo-root rustfmt `style_edition = "2024"` retained.
 
 ## 2026-05-14 — M01-P01 foundation complete
 
 - Closed IP-003 by locking the DSR cascade preview SLA to 30 days with a regression that accepts exactly 30d and rejects `30d + 1s`.
 - Added API-boundary coverage proving `dsr.cascade.execute` emits proof-of-erasure ids for each affected store and rejects completed store acknowledgements missing proof fields.
-- Aligned SPEC and machine-readable contract rows to the current clean-architecture DSR crates: `oya-dsr-domain` and `oya-dsr-application`.
+- Aligned SPEC and machine-readable contract rows to the current clean-architecture DSR crates: `dsr-domain` and `dsr-application`.
 - Marked M01-P01 complete with evidence, masterplan parity, repo-root `rustfmt.toml` style-edition 2024, and final code-review `APPROVE` / `CLEAR`.
 
 ## 2026-05-14 — M01-P01-IP-002 tenancy kernel contracts
 
-- Added `oya-tenancy-kernel` as the final-shape tenancy kernel with `TenantId`, immutable `RegionBinding`, `ResidencyClass`, `TenantContext`, and `TenantScopedRecord` row-level isolation guard.
+- Added `tenancy-kernel` as the final-shape tenancy kernel with `TenantId`, immutable `RegionBinding`, `ResidencyClass`, `TenantContext`, and `TenantScopedRecord` row-level isolation guard.
 - Registered the kernel in the workspace under Rust 1.95.0 / edition 2024, with rustfmt style edition 2024 inherited from repo config.
 - Aligned the data-boundary public privacy label for KR financial data to canonical `FINANCIAL_KR` while retaining the legacy `FINANCIAL_KR_신용정보` parser alias.
 
@@ -609,7 +609,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-14 — M01-P08-IP-012 authoritative-tracked lane
 
-- Added `oya-governance-authoritative-tracked-kernel` and `tools/oya-governance-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
+- Added `governance-authoritative-tracked-kernel` and `tools/governance-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
 - The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
 - Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
 - Updated the IP-012 good-taste row with the single typed-list behavior.
@@ -629,7 +629,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-14 — M01-P08-IP-008 archive-orphan lane and Bominal ultragoal archive
 
 - Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
-- Added `oya-governance-archive-orphan-kernel` and `tools/oya-governance-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
+- Added `governance-archive-orphan-kernel` and `tools/governance-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
 - Refined inventory checklist samples so they no longer cite a real archived Bominal runtime path as an active example.
 
 ## 2026-05-12 — Lifted 5 reference docs (deep-dive ×2, hyperscaler, LTS-versions, cutover-amendments) to canonical docs/{specs,research,plans}/ tree
@@ -661,7 +661,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054
-  - Related lanes: oya-governance-plan-hierarchy, oya-governance-pr-shape, oya-governance-capability-publish, oya-governance-inventory-tracker, guard-pr-merge-review.mjs
+  - Related lanes: governance-plan-hierarchy, governance-pr-shape, governance-capability-publish, governance-inventory-tracker, guard-pr-merge-review.mjs
   - Commit: Stage-1-Wave-2-templates-checklists
 
 ## 2026-05-12 — Stage 1 Wave 2: automation pipeline + visualization + discipline specs landed (19 files)
@@ -669,7 +669,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - **doc.automation-index** (Tier 2): 19 automation specs lifted from `.omc/automation/` to `docs/automation/`; covers 8 auto-doc-generation pipelines (rustdoc, openapi, adr-index, runbook-freshness, fitness-lane-reports, schema-doc, changelog, glossary), 7 architecture-visualization specs (architecture-map-kernel, product-map, service-map, tech-stack-map, roadmap-visualization, dependency-graph, audit-chain-map), and 3 discipline specs (doc-freshness, orphan-detection, cross-reference-index). Status set to Accepted; `lift_target:` removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file. Kernel crates (architecture-map, doc-freshness, orphan-detection) land in Stage 3.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054
-  - Related lanes: oya-governance-doc-freshness, oya-governance-orphan-detection, oya-governance-cross-reference-index
+  - Related lanes: governance-doc-freshness, governance-orphan-detection, governance-cross-reference-index
   - Commit: Stage-1-Wave-2
 
 ## 2026-05-12 — Stage 1 Wave 3: ai-slop-defense lifted to docs/quality/ai-slop-defense/ (7 files)
@@ -696,11 +696,11 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - All internal milestone/phase/IP links updated to `docs/plans/milestones/...` canonical paths.
 - `docs/README.md` updated: MASTERPLAN.md added to Tier-1 documents section and root document index table (`doc.masterplan`, tier 0).
 
-## 2026-05-12 — ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives
+## 2026-05-12 — ADR-0053: grit + icm + tooling-agent-read as sole sanctioned primitives
 
 - Authored `docs/decisions/ADR-0709-general-live-apex.md` (Accepted).
-- Fixes the agent-callable coordination/state-transition primitive set at `{grit, icm, oya-tooling-agent-read}`; direct `git`/`gh` permitted only with documented rationale per Directive 12.
-- Historical planned enforcement: `oya-governance-banned-primitives` lane was defined for P4/P5 merge-boundary work.
+- Fixes the agent-callable coordination/state-transition primitive set at `{grit, icm, tooling-agent-read}`; direct `git`/`gh` permitted only with documented rationale per Directive 12.
+- Historical planned enforcement: `governance-banned-primitives` lane was defined for P4/P5 merge-boundary work.
 - Consensus reached iter-2 via Planner+Architect+Critic; operational driver: `.omc/plans/ralplan-oyatie-sst-consolidation.md`.
 - Sibling ADRs landing in parallel: ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern).
 
@@ -713,129 +713,129 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — Foundry RAG retrieve API contract
 
-- Added the stable `foundry.rag.retrieve` REST boundary via `oya-intelligence-rag-api`, enforcing tenant/index namespace binding, Foundry authorization evidence, idempotent retrieval semantics, privacy-program data-class allowlists, and purpose-bound consent receipts before citation return.
+- Added the stable `foundry.rag.retrieve` REST boundary via `intelligence-rag-api`, enforcing tenant/index namespace binding, Foundry authorization evidence, idempotent retrieval semantics, privacy-program data-class allowlists, and purpose-bound consent receipts before citation return.
 - Registered `contracts/openapi/foundry/rag-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Foundry capability publish API contract
 
-- Added the stable `foundry.capability.publish` REST boundary via `oya-intelligence-registry-api`, enforcing path/body capability binding, Cedar authorization evidence, idempotent publish semantics, typed capability schema projection, provider/cost validation, and signed passing eval gates.
+- Added the stable `foundry.capability.publish` REST boundary via `intelligence-registry-api`, enforcing path/body capability binding, Cedar authorization evidence, idempotent publish semantics, typed capability schema projection, provider/cost validation, and signed passing eval gates.
 - Registered `contracts/openapi/foundry/registry-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Foundry autonomy ceiling policy publish API contract
 
-- Added the stable `foundry.policy.autonomy-ceiling.publish` REST boundary over `oya-intelligence-policy-kernel`, including idempotent publish semantics, Cedar policy refs, autonomy decision evidence, and OpenAPI runtime/schema parity.
+- Added the stable `foundry.policy.autonomy-ceiling.publish` REST boundary over `intelligence-policy-kernel`, including idempotent publish semantics, Cedar policy refs, autonomy decision evidence, and OpenAPI runtime/schema parity.
 - Registered `contracts/openapi/foundry/policy-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Platform DSR cascade execute API contract
 
-- Added `dsr.cascade.execute` OpenAPI/runtime/schema/catalog parity via `oya-platform-dsr-app`.
+- Added `dsr.cascade.execute` OpenAPI/runtime/schema/catalog parity via `platform-dsr-app`.
 - Bound idempotent DSR cascade execution to tenant privacy-officer authorization, path/body DSR identity, cross-axis store scope, terminal acknowledgements, proof-of-erasure coverage, SLA status projection, and stable error envelopes.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Workspace Forms submission ingest API contract
 
-- Added `workspace.forms.submission.ingest` OpenAPI/runtime/schema/catalog parity via `oya-workspace-forms-api`.
+- Added `workspace.forms.submission.ingest` OpenAPI/runtime/schema/catalog parity via `workspace-forms-api`.
 - Bound idempotent Forms submission ingest to tenant form schemas, submitter-principal validation, required-answer enforcement, Object Graph route projection, privacy-program data-class labels, and stable error envelopes.
 - Mirrored the contract in SPEC, Workspace PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Workspace Chat message send API contract
 
-- Added `workspace.chat.message.send` OpenAPI/runtime/schema/catalog parity via `oya-workspace-chat-api`.
+- Added `workspace.chat.message.send` OpenAPI/runtime/schema/catalog parity via `workspace-chat-api`.
 - Bound idempotent Chat message sends to tenant channel membership, sender-principal validation, parent-thread existence, privacy-program data-class labels, and stable error envelopes.
 - Mirrored the contract in SPEC, Workspace PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Workspace Meet session start API contract
 
-- Added `workspace.meet.session.start` OpenAPI/runtime/schema/catalog parity via `oya-workspace-meet-api`.
+- Added `workspace.meet.session.start` OpenAPI/runtime/schema/catalog parity via `workspace-meet-api`.
 - Bound idempotent Meet session starts to tenant cell/SFU placement, host participant validation, privacy-program data-class labels, and stable error envelopes.
 - Mirrored the contract in SPEC, Workspace PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Workspace Drive object API contract
 
-- Added `workspace.drive.put` and `workspace.drive.get` OpenAPI/runtime/schema/catalog parity via `oya-workspace-drive-api`.
+- Added `workspace.drive.put` and `workspace.drive.get` OpenAPI/runtime/schema/catalog parity via `workspace-drive-api`.
 - Bound idempotent Drive object metadata writes and ACL-checked reads to the Workspace Drive kernel, preserving KMS-shred object bindings and tenant-scoped data-class labels.
 - Mirrored the contract in SPEC, Workspace PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Foundry eval run API contract
 
-- Added `foundry.eval.run` OpenAPI/runtime/schema/catalog parity via `oya-intelligence-eval-app`.
+- Added `foundry.eval.run` OpenAPI/runtime/schema/catalog parity via `intelligence-eval-app`.
 - Bound authenticated, idempotent eval-run recording to signed eval sets, mandatory adversarial + linguistic cohorts, pass-threshold enforcement, and stable error envelopes.
 - Mirrored the contract in SPEC, Foundry PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform regulatory pack bind API contract
 
-- Added `regulatory-pack.bind` OpenAPI/runtime/schema/catalog parity via `oya-platform-regulatory-pack-api`.
+- Added `regulatory-pack.bind` OpenAPI/runtime/schema/catalog parity via `platform-regulatory-pack-api`.
 - Bound authenticated, idempotent tenant pack binding to regional-pack validation, immutable tenant residency binding, multi-pack record projection, and authorization evidence.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform Object Graph entity upsert API contract
 
-- Added `object-graph.entity.upsert` OpenAPI/runtime/schema/catalog parity via `oya-platform-object-graph-api`.
+- Added `object-graph.entity.upsert` OpenAPI/runtime/schema/catalog parity via `platform-object-graph-api`.
 - Bound authenticated, idempotent entity upsert to tenant row-isolation, property tier labels, privacy-program data-class labels, and mutation-event evidence.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform Cedar policy publish API contract
 
-- Added `cedar.policy.publish` OpenAPI/runtime/schema/catalog parity via `oya-platform-policy-cedar-api`.
+- Added `cedar.policy.publish` OpenAPI/runtime/schema/catalog parity via `platform-policy-cedar-api`.
 - Bound authenticated, idempotent policy publication to path/body policy version, principal authorization evidence, semver supersession, and tenant/global Cedar scope.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform identity user upsert API contract
 
-- Added `identity.user.upsert` OpenAPI/runtime/schema/catalog parity via `oya-platform-identity-api`.
+- Added `identity.user.upsert` OpenAPI/runtime/schema/catalog parity via `platform-identity-api`.
 - Bound authenticated, idempotent user upsert to path/body tenant and user identity, principal authorization evidence, per-tenant primary-identifier uniqueness, and regional IdP binding.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform tenant create API contract
 
-- Added `tenant.create` OpenAPI/runtime/schema/catalog parity via `oya-platform-tenant-api`.
+- Added `tenant.create` OpenAPI/runtime/schema/catalog parity via `platform-tenant-api`.
 - Bound authenticated, idempotent tenant creation to path/body tenant identity, operator authorization evidence, global tenant-id uniqueness, and the tenant/residency kernels.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform identity token issue API contract
 
-- Added `identity.token.issue` OpenAPI/runtime/schema/catalog parity via `oya-platform-identity-app`.
+- Added `identity.token.issue` OpenAPI/runtime/schema/catalog parity via `platform-identity-app`.
 - Bound authenticated, purpose-parsed, idempotent STS token issue to the platform identity kernel while forbidding long-lived API keys.
 - Mirrored the contract in SPEC, SaaS Platform PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Platform audit event emit contract
 
-- Added `audit.event.emit` AsyncAPI/Protobuf/runtime/catalog parity via `oya-platform-audit-chain-app`.
+- Added `audit.event.emit` AsyncAPI/Protobuf/runtime/catalog parity via `platform-audit-chain-app`.
 - Bound CloudEvents envelope validation, producer authorization, privacy-program data-class parsing, hash-chain append, and eventing outbox publication in typed tests.
 
 ## 2026-05-12 — Platform metering event ingest contract
 
-- Added `metering.event.ingest` AsyncAPI/Protobuf/runtime/catalog parity via `oya-platform-metering-app`.
+- Added `metering.event.ingest` AsyncAPI/Protobuf/runtime/catalog parity via `platform-metering-app`.
 - Bound CloudEvents envelope validation, producer authorization, plane/axis/unit/data-class parsing, metering kernel recording, and eventing outbox publication in typed tests.
 - Mirrored the event contract in SPEC, SaaS Platform PRD, machine-readable contracts, and API semver metadata.
 
 ## 2026-05-12 — Platform eventing outbox publish contract
 
-- Added `eventing.outbox.publish` AsyncAPI/Protobuf/runtime/catalog parity via `oya-platform-eventing-app`.
+- Added `eventing.outbox.publish` AsyncAPI/Protobuf/runtime/catalog parity via `platform-eventing-app`.
 - Bound CloudEvents envelope validation, producer authorization, privacy-program data classes, regulatory packs, and idempotent outbox publication in typed tests.
 - Mirrored the event contract in SPEC, SaaS Platform PRD, machine-readable contracts, and API semver metadata.
 
 ## 2026-05-12 — Cloud billing event ingest contract
 
-- Added `cloud.billing.event.ingest` AsyncAPI/Protobuf/runtime/catalog parity via `oya-cloud-billing-app`.
+- Added `cloud.billing.event.ingest` AsyncAPI/Protobuf/runtime/catalog parity via `cloud-billing-app`.
 - Bound CloudEvents envelope, producer authorization, idempotency fingerprinting, billing kernel ingest, platform metering, and eventing outbox publication in typed tests.
 - Mirrored the event contract in SPEC, Cloud PRD, machine-readable contracts, and API semver metadata.
 
 ## 2026-05-12 — Cloud cell binding API contract
 
-- Added `cloud.cell.bind` OpenAPI/runtime/schema/catalog parity via `oya-cloud-cell-app`.
+- Added `cloud.cell.bind` OpenAPI/runtime/schema/catalog parity via `cloud-cell-app`.
 - Bound authenticated, idempotent tenant cell assignment to tenant/principal/authorization evidence before `CloudRegionCatalog::bind_route_for_tenant`.
 - Mirrored the contract in SPEC, Cloud PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Cloud FinOps report API contract
 
-- Added `cloud.finops.report` OpenAPI/runtime/schema/catalog parity via `oya-cloud-finops-api`.
+- Added `cloud.finops.report` OpenAPI/runtime/schema/catalog parity via `cloud-finops-api`.
 - Bound authenticated, idempotent report generation to tenant/principal/authorization evidence before `CloudFinopsLedger::generate_report`.
 - Mirrored the contract in SPEC, Cloud PRD, machine-readable contracts, and OpenAPI registries.
 
 ## 2026-05-12 — Cloud observability audit read API contract
 
-- Added `cloud.observability.audit.read` OpenAPI/runtime/schema/catalog parity via `oya-cloud-observability-api`.
+- Added `cloud.observability.audit.read` OpenAPI/runtime/schema/catalog parity via `cloud-observability-api`.
 - Bound the authenticated audit-read request to tenant/principal/authorization evidence before kernel projection and exposed cursor/chain metadata in the success envelope.
 - Mirrored the contract in SPEC, Cloud PRD, machine-readable contracts, and OpenAPI registries.
 
@@ -848,22 +848,22 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ## 2026-05-12 — Cloud billing invoice API contract
 
 ### Updated
-- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.billing.invoice.generate` to `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` and `oya-cloud-billing-tax-app`.
+- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.billing.invoice.generate` to `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` and `cloud-billing-tax-app`.
 
 ## 2026-05-12 — Cloud network load balancer API contract
 
 ### Updated
-- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.lb.create` to `contracts/openapi/cloud/cloud-network-lb-v1.yaml` and `oya-cloud-network-lb-api`.
+- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.lb.create` to `contracts/openapi/cloud/cloud-network-lb-v1.yaml` and `cloud-network-lb-api`.
 
 ## 2026-05-12 — Cloud network DNS API contract
 
 ### Updated
-- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.dns.zone.create` to `contracts/openapi/cloud/cloud-network-dns-v1.yaml` and `oya-cloud-network-dns-api`.
+- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.dns.zone.create` to `contracts/openapi/cloud/cloud-network-dns-v1.yaml` and `cloud-network-dns-api`.
 
 ## 2026-05-12 — Cloud network VPC API contract
 
 ### Updated
-- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.vpc.create` to `contracts/openapi/cloud/cloud-network-vpc-v1.yaml` and `oya-cloud-network-vpc-api`.
+- **SPEC.md**, **products/cloud/PRD.md**, and **machine-readable/contracts.json** — bound `cloud.network.vpc.create` to `contracts/openapi/cloud/cloud-network-vpc-v1.yaml` and `cloud-network-vpc-api`.
 
 ## 2026-05-12 — Foundry capability record schema gate
 
@@ -881,7 +881,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ### Updated
 - **ADR-0015**, **ADR-INDEX.md**, and **machine-readable/decisions.json** — promoted architectural flattening to Accepted and aligned CI lane names with the live flat-crates guard.
 - **DESIGN.md**, **ROADMAP.md**, **STANDARDS-AND-TEMPLATES.md**, **TOOLCHAIN.md**, **AGENTS.md**, and **teams/axis-foundry/CHARTER.md** — separated live 64-crate flat baseline from historical 89/91 split planning and retired legacy-root wording.
-- **products/foundry/PRD.md**, **ADR-0020**, and **ADR-0022** — replaced current `services/agent/daemon` / `tools/repoctl` references with flat `crates/oya-*` and `crates/oya-tooling-cli-dev-runtime` bindings.
+- **products/foundry/PRD.md**, **ADR-0020**, and **ADR-0022** — replaced current `services/agent/daemon` / `tools/repoctl` references with flat `crates/oyatie-*` and `crates/tooling-cli-dev-runtime` bindings.
 - **PRIVACY-PROGRAM.md**, **ADR-0008**, **ADR-0019**, **ADR-0025**, **GLOSSARY.md**, **checklists/pre-push.md**, and **templates/capability-record-template.yaml** — aligned lane names and catalog paths with the live flat-crates governance model.
 - **CONSTITUTION.md**, **README.md**, **DOC-CATALOG.md**, **DOCUMENTATION.md**, ADR references, product PRDs, templates, and machine-readable batches — normalized canonical doc-tree references from retired consolidated-tree paths to the live `docs/` tree.
 
@@ -937,14 +937,14 @@ This is the founding consolidation, authored in one session as the project repos
 - `decisions/ADR-0013-product-license-policy.md` — defines product license policy; AGPL/GPL forbidden in product code (Apache-2/MIT/BSD/MPL-2 allowed)
 
 ### Direction changes integrated
-1. Brand standardized as Oyatie (`oya-*` Cargo prefix)
+1. Brand standardized as Oyatie (`oyatie-*` Cargo prefix)
 2. 7 axes (SaaS / Workspace NEW / Vertical / Foundry / Cloud / Search / Ads)
 3. Foundry consolidates Foundry engineering platform (originally separate axis)
 4. Multi-provider Foundry: Anthropic Claude / OpenAI / Google Gemini × subscription + API
 5. Canonical + regional-pack architecture (parallel global launch)
 6. Multi-year structural cost-of-deferral horizon
 7. In-house build preference + license-conscious posture
-8. Architectural flattening (`crates/oya-<context>-<role>`)
+8. Architectural flattening (`crates/oyatie-<context>-<role>`)
 9. M0/M1/M2/M3/MVP vocab retired → wave-named phases
 10. Repoctl persona-split (`oya dev/admin/build/agent/ops/pack/catalog/gate`)
 11. MCP gateway for agent-discoverable CLI
@@ -965,4 +965,4 @@ This is the founding consolidation, authored in one session as the project repos
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-05-21 transition):** References to `governance-*` in this historical document are intentional — they describe past state. New work uses `governance-*` per the 2026-05-21 transition directive.

@@ -10,7 +10,7 @@ purpose: |
   Define LTS support window, EOL signaling, and per-major-version end-of-life
   process for oyatie. 12 months from major release; 90-day pre-EOL warning;
   EOL-LEDGER as the single source of truth for support status.
-planned_enforcement_ref: oya-governance-version-eol-warning
+planned_enforcement_ref: governance-version-eol-warning
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -43,21 +43,21 @@ One row per major version. The file is append-only; rows are never deleted.
 ```markdown
 | Major | Tag | Released   | Active until | Maintenance until | Pre-EOL warning | EOL date    | Status        |
 |-------|-----|------------|--------------|-------------------|-----------------|-------------|---------------|
-| 3.0   | oya-v3.0.0 | 2026-01-15 | 2026-07-15   | 2026-10-15        | 2026-10-15      | 2027-01-15  | Active        |
-| 2.0   | oya-v2.0.0 | 2025-05-01 | 2025-11-01   | 2026-02-01        | 2026-02-01      | 2026-05-01  | EOL'd 2026-05-01 |
+| 3.0   | v3.0.0 | 2026-01-15 | 2026-07-15   | 2026-10-15        | 2026-10-15      | 2027-01-15  | Active        |
+| 2.0   | v2.0.0 | 2025-05-01 | 2025-11-01   | 2026-02-01        | 2026-02-01      | 2026-05-01  | EOL'd 2026-05-01 |
 ```
 
 The ledger is the source of truth read by the fitness lane and by the
-`oya-api-deprecation` response header on running services.
+`api-deprecation` response header on running services.
 
 ## 3. EOL signaling (90-day notice)
 
-`oya-governance-version-eol-warning` (HIGH severity) emits
+`governance-version-eol-warning` (HIGH severity) emits
 `EVT-VERSION-EOL-APPROACHING` exactly 90 days before EOL. The event triggers:
 
 1. PR comment on every active PR targeting the EOL'ing release branch.
 2. Customer-comms artifact dropped under `docs/release/notices/EOL-<major>.md`.
-3. Response header on the running API: `oya-api-deprecation: <eol-date>`.
+3. Response header on the running API: `api-deprecation: <eol-date>`.
 4. Per-axis playbook owner is paged via the configured notification channel.
 5. Migration guide auto-stub: `docs/release/migrate-vX-to-vX+1.md`.
 
@@ -66,10 +66,10 @@ The ledger is the source of truth read by the fitness lane and by the
 On the EOL date:
 
 1. `release/X.Y` branch protection switches to read-only.
-2. Final patch tag is minted with the marker: `oya-vX.Y.<final>-eol`.
+2. Final patch tag is minted with the marker: `vX.Y.<final>-eol`.
 3. `EOL-LEDGER.md` row status flips to `EOL'd YYYY-MM-DD`.
 4. `release-cherry-pick` agent refuses all further cherry-picks targeting `X.Y`.
-5. Service operators see `oya-api-deprecation: <today>` and a 410 Gone trap
+5. Service operators see `api-deprecation: <today>` and a 410 Gone trap
    for any service path with `x-sunset <= today`.
 6. `EVT-VERSION-EOL` emitted to D14.
 
@@ -80,7 +80,7 @@ the standard cherry-pick path. Outside the window:
 
 - Extended-support contract holders MAY request a backport via the
   break-glass ADR.
-- The agent will mint `oya-vX.Y.<final+1>-security` ONLY with an approved
+- The agent will mint `vX.Y.<final+1>-security` ONLY with an approved
   ADR + signed-off operator.
 - All extended-support patches are logged in `docs/release/EXTENDED-SUPPORT.md`.
 
@@ -114,13 +114,13 @@ Independent from product EOL but on the same 12-month rhythm:
 
 Three customer-facing channels signal EOL:
 
-1. `oya-api-deprecation` response header (per Kubernetes pattern).
+1. `api-deprecation` response header (per Kubernetes pattern).
 2. `docs/release/notices/EOL-<major>.md` (markdown release notes).
-3. `oya-governance-eol-feed` (RSS/Atom feed at `/foundry/v1/eol-feed`).
+3. `governance-eol-feed` (RSS/Atom feed at `/foundry/v1/eol-feed`).
 
 Customers and downstream operators subscribe to the feed for advance notice.
 
-## 9. Enforcement (`oya-governance-version-eol-warning`)
+## 9. Enforcement (`governance-version-eol-warning`)
 
 Severity: HIGH (escalates to BLOCKER on EOL day for PRs targeting an EOL'd
 branch).

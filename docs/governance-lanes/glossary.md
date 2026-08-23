@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every domain term used in canonical docs has a glossary entry.
-- enforces: STANDARD/glossary-required-terms; AGENTS.md fitness-lane `oya-governance-glossary`.
-- kernel_crate: `oya-governance-glossary-kernel` — `TermOccurrence { term, document_path, line }`, `GlossaryEntry { term, definition_present }`, verdict `GlossaryFitnessReport { terms_checked, documents_checked }`.
-- runner_path: `tools/oya-governance-glossary`
+- enforces: STANDARD/glossary-required-terms; AGENTS.md fitness-lane `governance-glossary`.
+- kernel_crate: `governance-glossary-kernel` — `TermOccurrence { term, document_path, line }`, `GlossaryEntry { term, definition_present }`, verdict `GlossaryFitnessReport { terms_checked, documents_checked }`.
+- runner_path: `tools/governance-glossary`
 - inputs: `docs/glossary.md`, every `docs/**/*.md` canonical doc, registry of required-defined terms.
 - failure_modes:
   - capitalized term `TenantId` appears in standard but no glossary row exists
   - glossary row exists but has empty definition
   - duplicate glossary rows
-- ci_invocation: `cargo run -p oya-governance-glossary`
+- ci_invocation: `cargo run -p governance-glossary`
 - runtime_budget: 700 ms
 - severity: HIGH
 - kernel_sketch:

@@ -10,16 +10,16 @@ This team owns the legal vertical: regulated legal corpus management, contract l
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Legal (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-legal-kernel` — `LegalDocument`, `Contract`, `Clause`, `Matter`, `SignatureEvent`, `CorpusEntry`
-  - `oya-vertical-legal-domain-*` — contract lifecycle, clause library management, matter tracking, corpus ingestion
-  - `oya-vertical-legal-adapter-esign` — e-signature integration (DocuSign, 전자서명법 KR compliance)
+  - `vertical-legal-kernel` — `LegalDocument`, `Contract`, `Clause`, `Matter`, `SignatureEvent`, `CorpusEntry`
+  - `vertical-legal-domain-*` — contract lifecycle, clause library management, matter tracking, corpus ingestion
+  - `vertical-legal-adapter-esign` — e-signature integration (DocuSign, 전자서명법 KR compliance)
   - Per-region corpus extensions: KR (민법, 상법, 근로기준법, 개인정보보호법 corpus); US (UCC, federal contract templates); EU (EU AI Act compliance templates)
   - Products owned: `products/vertical-legal/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — every contract version, signature event, clause change)
   - `Autonomy ceiling policy` (consumer — legal AI clause recommendations require human-in-the-loop)
   - `Search index lifecycle` (consumer — regulated corpus search via tenant-private index)
-- **Catalog records:** `crates/oya-vertical-legal-*`
+- **Catalog records:** `crates/vertical-legal-*`
 - **Runbooks:** `runbooks/legal-corpus-update.md`, `runbooks/esign-failure.md`
 - **ADRs:** ADR-0033 (legal corpus schema)
 

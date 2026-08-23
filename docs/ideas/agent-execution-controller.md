@@ -1,12 +1,12 @@
 # Agent-Execution Controller (pod-runner + work-item + evidence-bundle)
 
-> Extracted from `/Users/jasonlee/Developer/oya-code/docs/source-distillation-cloud-intelligence.md`
+> Extracted from `/Users/jasonlee/Developer/code/docs/source-distillation-cloud-intelligence.md`
 > (a now-superseded harness distillation). Everything else in that doc was a thinner,
 > partly-stale restatement of artifacts that already exist in source
 > (`cloud/cloud-intelligence` PRD/IP-001, `oya/intelligence/*`, ADR-0255/0263/0296/0392/0408).
 > **This is the one concept source did not already cover.**
 
-> **STATUS: DECLINED — D-AEC-DECLINE (founder, 2026-06-07; door:one-way).** This layer is **NOT built**. ADR-0116 (retire external agent-coordination tooling) + ADR-0363 (retire the agentic-VCS layer) — both Accepted — deliberately killed the adjacent coordination layer; the missing area is **missing on purpose** (Linus-taste: don't add what isn't load-bearing). The `oya-code` harness repo lapses; ADR-0116/0363 stand unamended. The body below is retained as the **recorded rationale for the decline** (current-truth = declined), not as an open proposal. (Supersedes the open-question framing + the smaller capture in the disjoint `dev`-branch PR #605, which is stale and should be closed.)
+> **STATUS: DECLINED — D-AEC-DECLINE (founder, 2026-06-07; door:one-way).** This layer is **NOT built**. ADR-0116 (retire external agent-coordination tooling) + ADR-0363 (retire the agentic-VCS layer) — both Accepted — deliberately killed the adjacent coordination layer; the missing area is **missing on purpose** (Linus-taste: don't add what isn't load-bearing). The `code` harness repo lapses; ADR-0116/0363 stand unamended. The body below is retained as the **recorded rationale for the decline** (current-truth = declined), not as an open proposal. (Supersedes the open-question framing + the smaller capture in the disjoint `dev`-branch PR #605, which is stale and should be closed.)
 
 ## Problem Statement
 
@@ -33,7 +33,7 @@ A flat, single-concern controller (per ADR-0131/0132 — **not** folded into clo
 ## Key Assumptions to Validate
 
 - [ ] **Is this layer wanted at all, or retired on purpose?** ADR-0116 (retire external agent-coordination tooling) and ADR-0363 (retire agentic VCS foundry) deliberately killed the adjacent coordination layer. This idea must either (a) be reconciled as a *net-new, narrower* concern that those ADRs did not intend to forbid, or (b) be explicitly declined. **Resolve this before any code.** *Decision owner: founder.*
-- [ ] **Boundary holds.** It is a new flat `oya-*` (or `cloud-*`) service, single-concern, consuming cloud-intelligence for inference and `oya/intelligence` for substrate/guardrails — never duplicating either. *Test: `depends_on` graph has zero new inference/guardrail logic.*
+- [ ] **Boundary holds.** It is a new flat `oyatie-*` (or `cloud-*`) service, single-concern, consuming cloud-intelligence for inference and `oya/intelligence` for substrate/guardrails — never duplicating either. *Test: `depends_on` graph has zero new inference/guardrail logic.*
 - [ ] **Credential handles only.** Task/launch contracts carry `credential_ref` handles (ADR-0296 sidecar / OpenBao response-wrapping), never secret material; runner emits redacted dispatch events only.
 - [ ] **Talos-native split.** Workloads via K8s Job/Pod; node/cluster lifecycle via Talos API. No host-shell.
 - [ ] **Evidence is the only handoff.** Controllers consume `evidence-bundle.v1`, never bespoke runner status files.
@@ -45,4 +45,4 @@ A flat, single-concern controller (per ADR-0131/0132 — **not** folded into clo
 
 ## Provenance
 
-Source harness repo: `/Users/jasonlee/Developer/oya-code` (Rust pod-runner/swarm-controller prototype + `examples/work-items/`). If this idea is accepted, audit that repo's `crates/` for salvageable working code before re-authoring. If declined, record the decline here and let the harness repo lapse.
+Source harness repo: `/Users/jasonlee/Developer/code` (Rust pod-runner/swarm-controller prototype + `examples/work-items/`). If this idea is accepted, audit that repo's `crates/` for salvageable working code before re-authoring. If declined, record the decline here and let the harness repo lapse.

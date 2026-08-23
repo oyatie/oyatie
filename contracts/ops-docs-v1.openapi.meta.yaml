@@ -1,7 +1,0 @@
-tier: preview
-owner_team: council-architecture
-version: 1.0.0
-sunset: none
-related_adrs:
-  - ADR-0066
-  - ADR-0069

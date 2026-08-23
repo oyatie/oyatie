@@ -1,0 +1,28 @@
+[package]
+name = "iam-identity-workload-svid-operator-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "SVID-delivery operator composition root (G002 slice-1b-iii-c; ADR-0561): the deployable that wires the pure operator-kernel reconcile decision, the transient kube-rs Secret-projection adapter, and the trustd EcdsaP256 issuance backend into a reconcile loop. Owns runtime wiring only — env-driven desired-state config with fail-closed validation (cell-id/namespace/ttl/rotation-window; non-zero exit on invalid config), and the bin iam-svid-operator that produces the cloud-iam-pdp-svid Secret in-cluster. API-only: no CLI, declarative env config is the management surface."
+
+[lib]
+name = "iam_identity_workload_svid_operator_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "iam-svid-operator"
+path = "src/main.rs"
+
+[dependencies]
+iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
+iam-identity-workload-svid-operator-k8s = { path = "../../adapters/identity-workload-svid-operator-k8s" }
+kube = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

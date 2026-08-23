@@ -14,7 +14,7 @@ rfc_2119_active: true
 ---
 
 <!-- Author-owned: fill the 4 sections below before review. Reviewer evidence is captured in `## Code Review`.
-Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a trusted server-side/cloud-ci producer. -->
+Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a trusted server-side/pipeline producer. -->
 
 ## Issue
 
@@ -28,7 +28,7 @@ Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes 
 ## Verification
 
 - Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
-- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
+- `presubmit` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
 

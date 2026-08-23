@@ -7,8 +7,8 @@ rust_library(
     deps = [
         "//tenancy/core/tenant-lifecycle-domain:tenancy-tenant-lifecycle-domain",
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//libs/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -22,8 +22,8 @@ rust_test(
     deps = [
         "//tenancy/core/tenant-lifecycle-domain:tenancy-tenant-lifecycle-domain",
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//libs/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -38,8 +38,8 @@ rust_test(
         ":tenancy-tenant-lifecycle-usecase",
         "//tenancy/core/tenant-lifecycle-domain:tenancy-tenant-lifecycle-domain",
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//libs/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde_json",
         "third-party//:tokio",
     ],
@@ -55,8 +55,8 @@ rust_test(
         ":tenancy-tenant-lifecycle-usecase",
         "//tenancy/core/tenant-lifecycle-domain:tenancy-tenant-lifecycle-domain",
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//libs/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde_json",
         "third-party//:tokio",
     ],

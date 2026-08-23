@@ -1,6 +1,6 @@
 # Spec: tenant-quota-inmemory-five-axis-impl
 
-**Crate**: `oya-shared-tenant-quota-kernel`  
+**Crate**: `shared-tenant-quota-kernel`  
 **ADR**: ADR-0155  
 **Priority**: high | **Effort**: M | **Lane**: foundation
 

@@ -10,9 +10,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 ed25519-dalek = "2"
 sha2 = "0.10"
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 
 [lib]
 name = "audit_chain_domain"

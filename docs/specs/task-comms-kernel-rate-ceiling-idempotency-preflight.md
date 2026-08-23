@@ -1,7 +1,7 @@
 # Spec: comms-kernel-rate-ceiling-idempotency-preflight
 
 **Vertical:** mail  
-**Crate:** `oya-shared-email-comms-kernel`  
+**Crate:** `shared-email-comms-kernel`  
 **ADRs:** ADR-0149 (idempotency), ADR-0201 (uniform per-tenant rate ceilings)  
 **Stage:** SPEC → IMPL → VERIFY
 
@@ -21,7 +21,7 @@ invariants at pre-flight.
 
 ## Vertical context
 
-`oya-shared-email-comms-kernel` is the port-in-kernel (ADR-0056) shared by
+`shared-email-comms-kernel` is the port-in-kernel (ADR-0056) shared by
 every email-sending µservice. It deliberately carries zero runtime
 dependencies so that any layer can import it without pulling in provider SDKs.
 The kernel exposes the `EmailComms` trait; real provider SDK wiring lives in
@@ -157,7 +157,7 @@ All existing `preflight_*` tests are updated to pass the new parameters as
 
 ## Boundaries
 
-- Modify: `crates/oya-shared-email-comms-kernel/src/lib.rs` only.
+- Modify: `crates/shared-email-comms-kernel/src/lib.rs` only.
 - Do not touch: root `Cargo.toml`, any other crate, any other file.
 - Do not add any dependency to `Cargo.toml [dependencies]`.
 
@@ -165,8 +165,8 @@ All existing `preflight_*` tests are updated to pass the new parameters as
 
 ## Definition of done
 
-1. `cargo check -p oya-shared-email-comms-kernel --all-targets` → clean.
-2. `cargo nextest run -p oya-shared-email-comms-kernel` → all tests pass.
+1. `cargo check -p shared-email-comms-kernel --all-targets` → clean.
+2. `cargo nextest run -p shared-email-comms-kernel` → all tests pass.
 3. `Cargo.toml [dependencies]` is empty.
 4. `RateCeilingExceeded` and `IdempotencyConflict` variants are reachable from
    production code paths (no longer dead variants).

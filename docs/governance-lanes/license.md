@@ -8,15 +8,15 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every workspace crate declares an SPDX-valid `Apache-2.0` license.
 - repository_default_boundary: Root [`/LICENSE`](../../LICENSE) is the repository-default proprietary IP posture; this lane verifies crate/package metadata and dependency-policy compatibility only, and does not grant a repository-wide open-source license.
-- enforces: STANDARD/repo-license-policy; AGENTS.md fitness-lane `oya-governance-license`.
-- kernel_crate: `oya-governance-license-kernel` — `CrateLicense { crate_id, license_expression, manifest_path }`, verdict `LicenseFitnessReport { crates_checked, missing, invalid }`.
-- runner_path: `tools/oya-governance-license`
+- enforces: STANDARD/repo-license-policy; AGENTS.md fitness-lane `governance-license`.
+- kernel_crate: `governance-license-kernel` — `CrateLicense { crate_id, license_expression, manifest_path }`, verdict `LicenseFitnessReport { crates_checked, missing, invalid }`.
+- runner_path: `tools/governance-license`
 - inputs: workspace `Cargo.toml`, every crate `Cargo.toml`, SPDX allowlist.
 - failure_modes:
   - crate omits `license` key
   - crate uses `MIT OR Apache-2.0` dual-license without allowance
   - non-SPDX string (e.g., "Proprietary")
-- ci_invocation: `cargo run -p oya-governance-license`
+- ci_invocation: `cargo run -p governance-license`
 - runtime_budget: 200 ms
 - severity: BLOCKER
 - kernel_sketch:

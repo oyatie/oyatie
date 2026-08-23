@@ -222,7 +222,7 @@ fn validate_manifest_shape(
     require_non_empty("pack.name", &manifest.pack.name)?;
     // De-branded id scheme: the id is the jurisdiction code itself or a
     // `<code>-<region>` id (e.g. `kr-seoul`), consistent with the canonical
-    // `packs/<code>/` manifests. This also rejects any legacy `oya-pack-`
+    // `packs/<code>/` manifests. This also rejects any legacy `pack-`
     // prefix, which no longer starts with the pack code.
     let code = manifest.pack.code.as_str();
     if manifest.pack.id != code && !manifest.pack.id.starts_with(&format!("{code}-")) {

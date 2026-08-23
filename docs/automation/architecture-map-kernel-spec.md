@@ -6,16 +6,16 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Specify the pure value-object kernel `oya-intelligence-architecture-map-kernel`
+  Specify the pure value-object kernel `intelligence-architecture-map-kernel`
   that walks the Cargo workspace + `contracts/` + `docs/products/` and emits
   three renderings of the system architecture: Mermaid (inline mdbook), D2
   (richer service maps via terrastruct/d2), Graphviz (DAG fallback / SVG fidelity).
-  Same shape as the existing `oya-governance-cohesion-fitness-kernel`.
-planned_enforcement_ref: oya-governance-architecture-map-freshness
+  Same shape as the existing `governance-cohesion-fitness-kernel`.
+planned_enforcement_ref: governance-architecture-map-freshness
 extends_crates:
-  - oya-governance-cohesion-fitness-kernel
-  - oya-intelligence-mdbook-kernel
-  - oya-intelligence-catalog-kernel
+  - governance-cohesion-fitness-kernel
+  - intelligence-mdbook-kernel
+  - intelligence-catalog-kernel
 companion_docs:
   - INDEX.md
   - product-map-spec.md
@@ -23,15 +23,15 @@ companion_docs:
 doc_status: published
 ---
 
-# Visualization spec: `oya-intelligence-architecture-map-kernel`
+# Visualization spec: `intelligence-architecture-map-kernel`
 
 > **ADRs:** ADR-0052, ADR-0053, ADR-0054.
 
 ## 1. Purpose
 
-Directive 11 (visualization-as-code, Foundry-owned, auto-updated) is the architectural principle; this kernel is the executor. Same shape as `oya-governance-cohesion-fitness-kernel`: pure value-object kernel, no I/O, deterministic transformation from inputs to outputs.
+Directive 11 (visualization-as-code, Foundry-owned, auto-updated) is the architectural principle; this kernel is the executor. Same shape as `governance-cohesion-fitness-kernel`: pure value-object kernel, no I/O, deterministic transformation from inputs to outputs.
 
-## 2. Crate shape (mirroring `oya-governance-cohesion-fitness-kernel`)
+## 2. Crate shape (mirroring `governance-cohesion-fitness-kernel`)
 
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -119,12 +119,12 @@ The kernel emits `mdbook_chapter_markdown` containing all three renders side-by-
 
 Same `ArchitectureSource` → same output bytes. Ordering is canonicalized (BTreeMap/BTreeSet, as in the existing kernels). Cycles in cross-axis contracts return `CycleDetected` to force explicit ADR-tracked resolution.
 
-## 7. Validation lane (`oya-governance-architecture-map-freshness`)
+## 7. Validation lane (`governance-architecture-map-freshness`)
 
 1. **Source-up-to-date.** Every workspace crate is represented; orphan crate (in workspace but not in source) → BLOCKER.
 2. **Render-up-to-date.** Committed `docs/site/src/visualization/architecture/*.md` matches re-rendered output (BLOCKER).
 3. **SVG presence.** Every rendered diagram has its CI-produced SVG sibling (HIGH).
-4. **Contract referential integrity.** Every cross-axis contract edge resolves to a contract in `contracts/` and a record in the catalog (BLOCKER; reuses `oya-governance-cohesion-fitness-kernel`'s ImplementedSourceMissingCatalog rule).
+4. **Contract referential integrity.** Every cross-axis contract edge resolves to a contract in `contracts/` and a record in the catalog (BLOCKER; reuses `governance-cohesion-fitness-kernel`'s ImplementedSourceMissingCatalog rule).
 5. **Cycle ban.** Any cycle in cross-axis contract graph → BLOCKER absent ADR-tracked exception.
 
 ## 8. Trigger matrix

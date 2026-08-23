@@ -1,9 +1,9 @@
 [package]
 # Naming justification (per feedback_naming_justification memory):
-#   - BNF v4.1 grammar:   oya - foundry - pr-review-dispatcher - app
+#   - BNF v4.1 grammar:   foundry - pr-review-dispatcher - app
 #   - slot-2 µservice:    `foundry` (registered; this is internal engineering
 #                         platform tooling — same family as the other
-#                         `oya-foundry-*` fitness/gate apps in tools/).
+#                         `foundry-*` fitness/gate apps in tools/).
 #   - bc-tokens:          `pr-review-dispatcher` (3 kebab tokens; describes
 #                         the bounded-context concept — the dispatcher that
 #                         fans out the multispectrum review panel on PR).
@@ -16,11 +16,11 @@
 #   - 12-layer-enum conformance: `app` ∈ {kernel, domain, usecase, app,
 #                         adapter, infrastructure, cli, rest, grpc,
 #                         worker, sdk, api}. ✓
-#   - Sibling pattern:    matches every other tools/oya-foundry-*-app crate
+#   - Sibling pattern:    matches every other tools/foundry-*-app crate
 #                         (banned-primitives, adr-shape, authoritative-tracked,
 #                         supply-chain gates, etc.; archive-orphan retired by ADR-0118).
 #
-# IP plan symbol-claims listed `tools/oya-pr-review-dispatcher` literally
+# IP plan symbol-claims listed `tools/pr-review-dispatcher` literally
 # (.omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/
 # IP-004-reviewer-agent-auto-dispatch.md §"Symbols to grit-claim"). That
 # literal predates the BNF v4.1 finalization and would fail constraint 1
@@ -54,7 +54,7 @@ tempfile = { workspace = true }
 [lints]
 workspace = true
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 context     = "foundry"
 role        = "app"
 feature     = "pr-review-dispatcher"

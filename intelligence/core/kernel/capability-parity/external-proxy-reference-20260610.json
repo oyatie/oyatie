@@ -16,7 +16,7 @@
     "no_cli_tui_targets": true,
     "secret_resolution_boundary": "owned-secret-provider-port",
     "authorization_boundary": "owned-policy-engine-port",
-    "adapter_policy": "Concrete policy and secret engines are adapter implementations only; cloud-intelligence targets owned ports and cloud substrate services.",
+    "adapter_policy": "Concrete policy and secret engines are adapter implementations only; intelligence-app targets owned ports and cloud substrate services.",
     "gateway_deployment_target": "Kubernetes gateway Deployment handles hot-path request routing.",
     "worker_controller_target": "Workers/controllers reconcile routes, inventory, credentials, analytics, circuit breakers, parity, drift, and compatibility canaries."
   },

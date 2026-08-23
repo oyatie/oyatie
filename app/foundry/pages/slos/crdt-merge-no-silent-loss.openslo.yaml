@@ -1,0 +1,57 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: docs-crdt-merge-no-silent-loss
+  displayName: docs Collab — No silent loss (correctness invariant)
+  labels:
+    microservice: docs
+    bounded_context: collab-crdt
+    sli_kind: correctness
+    tier: external-facing
+    plane: data
+spec:
+  service: docs-collab-crdt-worker
+  description: |
+    Correctness SLI: zero silent CRDT op losses. AC-06 load-bearing invariant
+    (mirrors workflow-studio AC-06 per ADR-DOCS-0001 + ADR-WS-0001 cross-µservice
+    CRDT alignment). The "good" metric is total ops minus silent_loss_attempt_total;
+    target is 100%.
+  indicator:
+    metadata:
+      name: docs-crdt-no-silent-loss-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(docs_collab_op_published_total[5m])) - sum(rate(docs_collab_silent_loss_attempt_total[5m]))'
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(docs_collab_op_published_total[5m]))'
+  objectives:
+    - target: 1.0  # 100% — any silent loss is Sev-1
+      displayName: 100% of CRDT ops merge without silent loss (AC-06 invariant)
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - kind: AlertPolicy
+      metadata:
+        name: docs-collab-silent-loss-detected
+      spec:
+        description: ANY silent loss event → immediate Sev-1 page
+        notificationTargets:
+          - target: grafana-oncall:docs-sev1
+        conditions:
+          - kind: AlertCondition
+            spec:
+              op: gte
+              threshold: 1
+              lookbackWindow: 5m
+              alertAfter: 0m

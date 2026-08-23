@@ -27,7 +27,7 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-gateway
+              kubernetes.io/metadata.name: gateway
       ports:
         - protocol: TCP
           port: 8080

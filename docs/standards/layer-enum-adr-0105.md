@@ -11,14 +11,14 @@ related_oyatie_adrs:
   - ADR-0115
   - ADR-0131
 enforced_by:
-  - oya-governance-layered-architecture
-  - oya-governance-layer-enum
-  - oya-governance-naming-convention
+  - governance-layered-architecture
+  - governance-layer-enum
+  - governance-naming-convention
 canonical_paths:
   - docs/decisions/ADR-0709-general-live-apex.md
   - docs/standards/clean-architecture.md
   - docs/standards/crate-naming-convention.md
-  - crates/oya-dev-cli/src/layered_architecture_gates.rs
+  - crates/dev-cli/src/layered_architecture_gates.rs
 ---
 
 # ADR-0105 Layer Enum Standard
@@ -34,7 +34,7 @@ as described in RFC 2119 and RFC 8174 when they appear in all capitals.
 
 ## Scope
 
-This standard applies to every `oya-*` crate.
+This standard applies to every `oyatie-*` crate.
 
 It applies to every `registry/catalog/*.yaml` layer declaration.
 
@@ -85,7 +85,7 @@ L-011. `cli` is a terminal or automation command surface.
 
 L-012. `sdk` is a generated or hand-authored consumer client surface.
 
-L-013. `check` is the governance checker family layer used only by `oya-check-*` crates.
+L-013. `check` is the governance checker family layer used only by `check-*` crates.
 
 The enum is closed.
 
@@ -268,21 +268,21 @@ R-080. A public client package MUST be `sdk`.
 Valid crate:
 
 ```text
-crates/oya-workflow-engine-state-machine-domain
+crates/workflow-engine-state-machine-domain
 ```
 
 It may depend on:
 
 ```text
-oya-workflow-engine-state-machine-kernel
+workflow-engine-state-machine-kernel
 ```
 
 It may not depend on:
 
 ```text
-oya-workflow-engine-state-machine-rest
-oya-workflow-engine-state-machine-adapter-postgres
-oya-workflow-engine-state-machine-app
+workflow-engine-state-machine-rest
+workflow-engine-state-machine-adapter-postgres
+workflow-engine-state-machine-app
 ```
 
 The domain crate owns state transition invariants.
@@ -296,7 +296,7 @@ The adapter crate owns persistence.
 Valid crate:
 
 ```text
-crates/oya-tenancy-sub-scope-registry-adapter-postgres
+crates/tenancy-sub-scope-registry-adapter-postgres
 ```
 
 It implements a kernel or domain port.
@@ -312,7 +312,7 @@ It must not export `sqlx::Pool` through the port interface.
 Valid files:
 
 ```text
-crates/oya-cloud-compute-vm-rest
+crates/cloud-compute-vm-rest
 contracts/cloud-compute-vm-v1.openapi.yaml
 ```
 
@@ -329,7 +329,7 @@ The adapter owns cloud-provider calls.
 Valid worker:
 
 ```text
-crates/oya-workflow-engine-deadline-worker
+crates/workflow-engine-deadline-worker
 ```
 
 Required declarations:
@@ -348,7 +348,7 @@ The worker is inbound because a timer enters the system.
 Valid checker:
 
 ```text
-crates/oya-check-layered-architecture
+crates/check-layered-architecture
 ```
 
 It may read manifests.
@@ -364,15 +364,15 @@ It must produce deterministic diagnostics.
 Primary command:
 
 ```bash
-oya gate validate layered-architecture --scope crates
+presubmit (retired CLI gate validate) layered-architecture --scope crates
 ```
 
 Additional commands:
 
 ```bash
-oya gate validate naming-convention --scope crates
-oya gate validate flat-crates --scope crates
-oya gate validate catalog-id-discipline --scope registry
+presubmit (retired CLI gate validate) naming-convention --scope crates
+presubmit (retired CLI gate validate) flat-crates --scope crates
+presubmit (retired CLI gate validate) catalog-id-discipline --scope registry
 ```
 
 The layer checker MUST parse `cargo metadata --no-deps`.
@@ -473,7 +473,7 @@ Suppressing a layer finding without an ADR is an anti-pattern.
 
 `registry/catalog/` records machine-readable crate ownership.
 
-`crates/oya-dev-cli/src/layered_architecture_gates.rs` is the local checker path.
+`crates/dev-cli/src/layered_architecture_gates.rs` is the local checker path.
 
 ## Substance Bar Compliance Checklist
 
@@ -557,25 +557,25 @@ LAY-SB-039. Require remediation hint for obvious split.
 
 LAY-SB-040. Require advisory classification for tolerated legacy row.
 
-LAY-SB-041. Check `oya-workflow-engine-state-machine-domain`.
+LAY-SB-041. Check `workflow-engine-state-machine-domain`.
 
-LAY-SB-042. Check `oya-workflow-engine-state-machine-rest`.
+LAY-SB-042. Check `workflow-engine-state-machine-rest`.
 
-LAY-SB-043. Check `oya-workflow-engine-deadline-worker`.
+LAY-SB-043. Check `workflow-engine-deadline-worker`.
 
-LAY-SB-044. Check `oya-tenancy-sub-scope-registry-kernel`.
+LAY-SB-044. Check `tenancy-sub-scope-registry-kernel`.
 
-LAY-SB-045. Check `oya-tenancy-sub-scope-registry-adapter-postgres`.
+LAY-SB-045. Check `tenancy-sub-scope-registry-adapter-postgres`.
 
-LAY-SB-046. Check `oya-policy-cedar-domain`.
+LAY-SB-046. Check `policy-cedar-domain`.
 
-LAY-SB-047. Check `oya-policy-cedar-api`.
+LAY-SB-047. Check `policy-cedar-api`.
 
-LAY-SB-048. Check `oya-cloud-compute-vm-api`.
+LAY-SB-048. Check `cloud-compute-vm-api`.
 
-LAY-SB-049. Check `oya-cloud-kms-domain`.
+LAY-SB-049. Check `cloud-kms-domain`.
 
-LAY-SB-050. Check `oya-intelligence-evidence-domain`.
+LAY-SB-050. Check `intelligence-evidence-domain`.
 
 LAY-SB-051. Verify generated REST stubs classify as `rest`.
 
@@ -645,36 +645,36 @@ higher-volatility layer in the wrong direction.
 
 ```text
 crates/
-  oya-workflow-cancel-kernel/
+  workflow-cancel-kernel/
     src/
       cancellation_state.rs
       cancellation_rule.rs
       cancellation_reason.rs
       mod.rs
-  oya-workflow-cancel-domain/
+  workflow-cancel-domain/
     src/
       aggregate.rs
       command.rs
       event.rs
       error.rs
       mod.rs
-  oya-workflow-cancel-usecase/
+  workflow-cancel-usecase/
     src/
       cancel_workflow.rs
       ports.rs
       policy.rs
       mod.rs
-  oya-workflow-cancel-adapter-postgres/
+  workflow-cancel-adapter-postgres/
     src/
       repository.rs
       outbox.rs
       mod.rs
-  oya-workflow-cancel-adapter-cedar/
+  workflow-cancel-adapter-cedar/
     src/
       authorizer.rs
       schema.rs
       mod.rs
-  oya-workflow-cancel-runtime/
+  workflow-cancel-runtime/
     src/
       main.rs
       config.rs
@@ -775,9 +775,9 @@ pub async fn main_runtime() -> anyhow::Result<()> {
 
 LAY-REV-001. Run `cargo metadata` and confirm every `kernel` crate is dependency-light.
 
-LAY-REV-002. Run `cargo run -p oya-check-layer-enum --quiet`.
+LAY-REV-002. Run `cargo run -p check-layer-enum --quiet`.
 
-LAY-REV-003. Run `cargo run -p oya-check-flat-crate-boundaries --quiet`.
+LAY-REV-003. Run `cargo run -p check-flat-crate-boundaries --quiet`.
 
 LAY-REV-004. Confirm every `domain` crate exposes typed errors.
 

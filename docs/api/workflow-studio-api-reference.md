@@ -22,7 +22,7 @@ sessions, and editor-to-runtime handoff.
 Contract status legend:
 
 - `contract-bound`: implemented in the current OpenAPI, AsyncAPI, or proto3 file.
-- `reference-planned`: canonical planning-closed API surface derived from the SaaS PRD and architecture notes; live readiness remains `target_non_claim` until promoted into contracts and proven by `oya-ci-required`.
+- `reference-planned`: canonical planning-closed API surface derived from the SaaS PRD and architecture notes; live readiness remains `target_non_claim` until promoted into contracts and proven by `presubmit`.
 
 ## Quick Start
 

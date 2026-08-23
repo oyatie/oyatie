@@ -1,6 +1,6 @@
 microservice:
   id: calendar
-  cargoPackage: oya-calendar
+  cargoPackage: calendar
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: runc
 
 serviceAccount:
-  name: oya-calendar
+  name: calendar
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-calendar
+  repository: calendar
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-calendar-cedar
+  policyConfigMapName: calendar-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     // Deployed Cedar for calendar is FAIL-CLOSED DEFAULT-DENY: it ships no permit statements,

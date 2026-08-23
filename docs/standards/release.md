@@ -18,7 +18,7 @@ doc_status: published
 
 ## 2. Pre-release verification
 
-Per `/oya-release-verify` (formerly `/oya-release-verify`):
+Per `/release-verify` (formerly `/release-verify`):
 
 1. ☐ All CI lanes green on the release tag SHA per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md)
 2. ☐ SBOM generated + Cosign-signed + Rekor-anchored per ADR-0039
@@ -58,7 +58,7 @@ Per `/oya-release-verify` (formerly `/oya-release-verify`):
 
 - Per-merge changelog row auto-emit through current release-governance automation or author closeout
 - Per-release notes drafted by current release-governance automation or author closeout; Release Please applies only when repo config proves it
-- Per-merge product-completion packet recorded: promoted SHA `oya-ci-required`,
+- Per-merge product-completion packet recorded: promoted SHA `presubmit`,
   rollout verification, rollback note, observability check, browser UX/user-story
   evidence, and release-governance/release-note impact (Release Please only when repo config proves it)
 - Trust-portal updated for regulator-impact releases

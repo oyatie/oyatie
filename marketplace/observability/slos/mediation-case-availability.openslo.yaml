@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-mediation-case-availability
+  name: marketplace-mediation-case-availability
   displayName: Marketplace Mediation Case Availability
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-mediation-case-availability-sli
+      name: marketplace-mediation-case-availability-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_deal_offer_create_success_total[5m]))
+              query: sum(rate(marketplace_deal_offer_create_success_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_deal_offer_create_total[5m]))
+              query: sum(rate(marketplace_deal_offer_create_total[5m]))
   objectives:
     - displayName: Mediation Case Availability
       target: 0.999

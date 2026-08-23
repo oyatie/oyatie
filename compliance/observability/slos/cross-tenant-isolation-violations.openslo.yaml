@@ -20,14 +20,14 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_request_total{microservice="compliance"}[28d])) -
-                sum(rate(oya_compliance_cross_tenant_violation_total{microservice="compliance"}[28d]))
+                sum(rate(compliance_request_total{microservice="compliance"}[28d])) -
+                sum(rate(compliance_cross_tenant_violation_total{microservice="compliance"}[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_request_total{microservice="compliance"}[28d]))
+                sum(rate(compliance_request_total{microservice="compliance"}[28d]))
   objectives:
     - displayName: Zero cross-tenant isolation violations
       target: 1.0

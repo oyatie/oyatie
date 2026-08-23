@@ -3,13 +3,13 @@
 ## Objective
 
 Add a pure, deterministic verification-key selector for the rotation grace overlap
-window to the `oya-identity-oidc-issuer-kernel` crate. The function complements the
+window to the `identity-oidc-issuer-kernel` crate. The function complements the
 existing `current_signing_key` (Active-only signer selector) by covering the RP-side
 verify-only overlap the `lib.rs:345` doc describes but does not implement.
 
 ## Crate Boundary
 
-**Single crate**: `crates/oya-identity-oidc-issuer-kernel`. No new workspace members.
+**Single crate**: `crates/identity-oidc-issuer-kernel`. No new workspace members.
 No new dependencies. Zero I/O. Caller-supplied clock.
 
 ## Contracts

@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every standard cites the constitutional principle it derives from.
-- enforces: STANDARD/constitution-derivation; existing crate `oya-governance-constitution-cite-kernel` (EXISTING).
-- kernel_crate: `oya-governance-constitution-cite-kernel` (EXISTING) — `StandardCite { standard_id, principle_id }`, verdict `ConstitutionCiteFitnessReport { citations_checked }`.
-- runner_path: `tools/oya-governance-constitution-cite`
+- enforces: STANDARD/constitution-derivation; existing crate `governance-constitution-cite-kernel` (EXISTING).
+- kernel_crate: `governance-constitution-cite-kernel` (EXISTING) — `StandardCite { standard_id, principle_id }`, verdict `ConstitutionCiteFitnessReport { citations_checked }`.
+- runner_path: `tools/governance-constitution-cite`
 - inputs: `docs/standards/**/*.md` front-matter `derives_from:`, constitution principle registry.
 - failure_modes:
   - standard with no `derives_from:`
   - principle id unresolved
   - principle id retracted
-- ci_invocation: `cargo run -p oya-governance-constitution-cite`
+- ci_invocation: `cargo run -p governance-constitution-cite`
 - runtime_budget: 350 ms
 - severity: HIGH
 - kernel_sketch:

@@ -2,21 +2,21 @@
 
 ## Objective
 
-Add a tonic gRPC delivery surface to `crates/oya-identity-workload-rest` that
+Add a tonic gRPC delivery surface to `crates/identity-workload-rest` that
 implements the already-specified proto3 `WorkloadAuthorizer`
 (AuthorizeWithToken / Authorize / AuthorizeBatch) and `WorkloadTokenValidator`
 (ValidateToken) services from
 `microservices/identity/contracts/proto/workload.proto`
-(package `oya.identity.workload.v1`).
+(package `oyatie.identity.workload.v1`).
 
-The gRPC surface mounts the SAME inward `oya-identity-workload-app` use-cases
+The gRPC surface mounts the SAME inward `identity-workload-app` use-cases
 the axum REST surface already mounts, proving that REST and gRPC share one
 use-case core with no logic drift.  This unblocks mesh-native PEP (Envoy
 ext_authz at the waypoint, sidecars, api-gateway) and de-risks the service.
 
 ## Vertical
 
-`identity` lane.  Crate touched: `crates/oya-identity-workload-rest` (the ONLY
+`identity` lane.  Crate touched: `crates/identity-workload-rest` (the ONLY
 crate this lane may touch).
 
 ## Architecture doctrine decision
@@ -32,7 +32,7 @@ and `*-authz-cedar-adapter` siblings into a single crate; the grpc/ mod already
 lives in the right place for that target shape.
 
 The established repo pattern places gRPC delivery in separate `*-grpc` crates
-(oya-shared-backbone-grpc-*, oya-payments-charge-grpc).  The divergence here is
+(shared-backbone-grpc-*, payments-charge-grpc).  The divergence here is
 intentional: those crates are standalone services; the identity workload service
 already spans 6 crates in legacy clean-arch style, and ADR-0509 mandates
 convergence not further sprawl.
@@ -48,22 +48,22 @@ No other file defines `WorkloadAuthorizer` / `WorkloadTokenValidator`.
 
 ### Proto (server-side only)
 
-Package `oya.identity.workload.v1` — see
+Package `oyatie.identity.workload.v1` — see
 `microservices/identity/contracts/proto/workload.proto`.
 
 Services implemented:
 
 | Service                   | RPC                 | Shared core                                   |
 |---------------------------|---------------------|-----------------------------------------------|
-| WorkloadAuthorizer        | AuthorizeWithToken  | `oya_identity_workload_app::authorize_with_token` |
+| WorkloadAuthorizer        | AuthorizeWithToken  | `identity_workload_app::authorize_with_token` |
 | WorkloadAuthorizer        | Authorize           | `build_active_principal` (crate fn) + `authorizer.authorize` |
-| WorkloadAuthorizer        | AuthorizeBatch      | `oya_identity_workload_app::authorize_with_token` (per item) |
-| WorkloadTokenValidator    | ValidateToken       | `oya_identity_workload_oidc_adapter::validate_workload_token` |
+| WorkloadAuthorizer        | AuthorizeBatch      | `identity_workload_app::authorize_with_token` (per item) |
+| WorkloadTokenValidator    | ValidateToken       | `identity_workload_oidc_adapter::validate_workload_token` |
 
 Note: the `Authorize` path uses `build_active_principal` (a crate-private fn in
 `src/lib.rs`) rather than the `-app` use-case, mirroring the REST `/authorize`
 handler exactly.  This is NOT a logic duplication — it IS the shared core for
-this path.  The blanket "all three authorizer RPCs delegate to oya-identity-workload-app"
+this path.  The blanket "all three authorizer RPCs delegate to identity-workload-app"
 claim in earlier plan drafts was only true for AuthorizeWithToken/Batch; Authorize
 was always this path.
 
@@ -75,7 +75,7 @@ surface not modified).
 ## Module layout (flat-clean-arch)
 
 ```
-crates/oya-identity-workload-rest/
+crates/identity-workload-rest/
   src/
     lib.rs          — REST handlers (axum), shared state, audit types
     grpc/
@@ -138,10 +138,10 @@ assertions required by T3 are covered:
 
 The five deps added by this slice (prost, tonic, tonic-prost, tonic-prost-build,
 protoc-bin-vendored) are listed in `registry/dependency-rationales.json`
-`allowed_crates` for `oya-identity-workload-rest` as a deliberate scoped
+`allowed_crates` for `identity-workload-rest` as a deliberate scoped
 out-of-lane edit committed alongside the spec (commit b547b9e4).  The dep-seam
 gate defaults to `ReportOnly` (ADR-0092,
-`crates/oya-check-dependency-seam/src/lib.rs:63`) so the edit is additive and
+`crates/check-dependency-seam/src/lib.rs:63`) so the edit is additive and
 does NOT block `gate-run-all`.  The registry edit is acknowledged as crossing
 the lane's strict disjointness boundary; no concurrent lane touches those five
 rows.
@@ -156,8 +156,8 @@ Existing SLOs in `microservices/identity/slos/`:
   shared use-case core means gRPC decisions are subject to the same objective.
 
 Neither SLO currently has metric instrumentation wired in the crate
-(`oya_identity_workload_authorize_duration_seconds_bucket` and
-`oya_identity_workload_golden_decision_total` are not yet emitted by any
+(`identity_workload_authorize_duration_seconds_bucket` and
+`identity_workload_golden_decision_total` are not yet emitted by any
 surface).  This is a pre-existing gap that predates this slice; instrumenting
 those counters/histograms is a separate follow-on for both REST and gRPC.
 
@@ -168,7 +168,7 @@ budget), add a new SLO entry at that time.
 
 ## Acceptance
 
-- `cargo nextest run -p oya-identity-workload-rest` green (19 tests: 12 REST + 7 gRPC).
-- `cargo check -p oya-identity-workload-rest --all-targets` clean.
+- `cargo nextest run -p identity-workload-rest` green (19 tests: 12 REST + 7 gRPC).
+- `cargo check -p identity-workload-rest --all-targets` clean.
 - Root `Cargo.toml` unchanged (no new workspace member).
 - `aws-lc-rs` default-features unchanged (ADR-0506 not regressed).

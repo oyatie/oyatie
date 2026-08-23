@@ -1,0 +1,20 @@
+[package]
+name = "shared-transactional-outbox-adapter-sqlx"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+shared-postgres-command-kernel = { path = "../../core/postgres-command-kernel" }
+shared-transactional-outbox-kernel = { path = "../../core/transactional-outbox-kernel" }
+sqlx.workspace = true
+
+[lib]
+name = "shared_transactional_outbox_adapter_sqlx"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

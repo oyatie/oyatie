@@ -1,13 +1,13 @@
 # Spec: workload-identity-decision-precedence-evaluator
 
 **Slug**: `workload-identity-decision-precedence-evaluator`  
-**Crate**: `oya-identity-workload-domain`  
+**Crate**: `identity-workload-domain`  
 **Lane**: foundation | **Priority**: high | **Effort**: M
 
 ## Summary
 
 Add a pure, deterministic authorization decision-precedence evaluator that
-extends the existing PARC types in `oya-identity-workload-domain`. The new
+extends the existing PARC types in `identity-workload-domain`. The new
 total function `evaluate_decision` takes a `&WorkloadPrincipal` plus an ordered
 slice of candidate `PolicyOutcome` values (Effect + matched policy_id) and
 folds them into a single `AuthorizationDecision`, enforcing Cedar-compatible
@@ -57,8 +57,8 @@ pub fn evaluate_decision(
   - Permit-only → Allow with first permit policy_id.
   - Empty outcomes → DefaultDeny.
   - Forbid-with-no-permit → ExplicitForbid (not DefaultDeny).
-- [ ] `cargo check -p oya-identity-workload-domain --all-targets` → green.
-- [ ] `cargo nextest run -p oya-identity-workload-domain` → all tests pass.
+- [ ] `cargo check -p identity-workload-domain --all-targets` → green.
+- [ ] `cargo nextest run -p identity-workload-domain` → all tests pass.
 
 ## Implementation Notes
 

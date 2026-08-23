@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-policy-cedar-domain` with Cedar-style policy **obligations** and **advice**
+Extend `policy-cedar-domain` with Cedar-style policy **obligations** and **advice**
 annotations.  Annotations are key/value pairs attached to `PolicyRule` records at
 authoring time and collected onto `AuthorizationDecision` at evaluation time — but only
 for Allow decisions.  A Deny win unconditionally clears the annotation list (PDP safety
@@ -10,14 +10,14 @@ invariant: a PEP must never act on obligations from a suppressed allow).
 
 ## Crate boundary
 
-Sole crate: `crates/oya-policy-cedar-domain`.  No new workspace members.  No external
+Sole crate: `crates/policy-cedar-domain`.  No new workspace members.  No external
 runtime deps added.  All new types live in `src/obligations.rs` and are re-exported via
 `lib.rs`.
 
 ## Mod layout (flat-clean-arch, ADR-0509)
 
 ```
-crates/oya-policy-cedar-domain/src/
+crates/policy-cedar-domain/src/
   lib.rs           ← existing; gains `pub mod obligations;` + re-exports + field additions
   obligations.rs   ← NEW: AnnotationKind, PolicyAnnotation, annotation-collection pass
 ```

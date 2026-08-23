@@ -20,7 +20,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-tenancy-kernel + crates/oya-tenancy-domain + contracts/openapi/platform/platform-tenant-v1.yaml",
+      "location": "crates/tenancy-kernel + crates/tenancy-domain + contracts/openapi/platform/platform-tenant-v1.yaml",
       "change_review": "all-axis"
     },
     {
@@ -29,7 +29,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-identity-domain + crates/oya-identity-application + contracts/openapi/platform/platform-identity-token-v1.yaml + crates/oya-platform-identity-api + contracts/openapi/platform/platform-identity-user-v1.yaml + crates/oya-policy-cedar-domain + crates/oya-platform-policy-cedar-api + contracts/openapi/platform/platform-policy-cedar-v1.yaml",
+      "location": "crates/identity-domain + crates/identity-application + contracts/openapi/platform/platform-identity-token-v1.yaml + crates/platform-identity-api + contracts/openapi/platform/platform-identity-user-v1.yaml + crates/policy-cedar-domain + crates/platform-policy-cedar-api + contracts/openapi/platform/platform-policy-cedar-v1.yaml",
       "change_review": "cross-axis + security"
     },
     {
@@ -56,7 +56,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-audit-chain-domain + crates/oya-audit-chain-application + crates/oya-audit-chain-file-adapter + contracts/proto/platform/audit/v1/audit-event-v1.proto + ADR-0003",
+      "location": "crates/audit-chain-domain + crates/audit-chain-application + crates/audit-chain-file-adapter + contracts/proto/platform/audit/v1/audit-event-v1.proto + ADR-0003",
       "change_review": "audit + downstream"
     },
     {
@@ -85,7 +85,7 @@
         "tenant-resource-lifecycle",
         "billing"
       ],
-      "location": "crates/oya-cloud-resource-kernel",
+      "location": "crates/cloud-resource-kernel",
       "change_review": "cloud + billing"
     },
     {
@@ -94,7 +94,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-cloud-region-kernel + contracts/openapi/cloud/cloud-region-v1.yaml",
+      "location": "crates/cloud-region-kernel + contracts/openapi/cloud/cloud-region-v1.yaml",
       "change_review": "multi-axis (residency)"
     },
     {
@@ -103,7 +103,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-cloud-iam-kernel + crates/oya-identity-domain + contracts/openapi/cloud/cloud-iam-v1.yaml",
+      "location": "crates/cloud-iam-kernel + crates/identity-domain + contracts/openapi/cloud/cloud-iam-v1.yaml",
       "change_review": "two-ADR-lockstep"
     },
     {
@@ -114,7 +114,7 @@
         "vertical",
         "ads"
       ],
-      "location": "crates/oya-ontology-domain + ADR-0006..0112 + contracts/openapi/platform/platform-object-graph-v1.yaml",
+      "location": "crates/ontology-domain + ADR-0006..0112 + contracts/openapi/platform/platform-object-graph-v1.yaml",
       "change_review": "ontology + Data-Use-Boundary"
     },
     {
@@ -125,7 +125,7 @@
         "saas",
         "ads"
       ],
-      "location": "crates/oya-search-index-kernel",
+      "location": "crates/search-index-kernel",
       "change_review": "search + downstream"
     },
     {
@@ -136,7 +136,7 @@
         "saas",
         "vertical"
       ],
-      "location": "crates/oya-ads-slot-kernel",
+      "location": "crates/ads-slot-kernel",
       "change_review": "ads + surface-owner"
     },
     {
@@ -147,7 +147,7 @@
         "tax",
         "marketplace"
       ],
-      "location": "crates/oya-platform-metering-kernel + crates/oya-platform-metering-app + crates/oya-cloud-billing-kernel + crates/oya-cloud-billing-app",
+      "location": "crates/platform-metering-kernel + crates/platform-metering-app + crates/cloud-billing-kernel + crates/cloud-billing-app",
       "change_review": "billing + tax + downstream-event-consumers"
     },
     {
@@ -156,7 +156,7 @@
       "consumer_axes": [
         "all-data-touching"
       ],
-      "location": "crates/oya-dsr-domain + crates/oya-dsr-application + contracts/openapi/platform/platform-dsr-v1.yaml",
+      "location": "crates/dsr-domain + crates/dsr-application + contracts/openapi/platform/platform-dsr-v1.yaml",
       "change_review": "all-data-touching axes"
     },
     {
@@ -166,7 +166,7 @@
         "external",
         "ISVs"
       ],
-      "location": "crates/oya-platform-webhook-kernel + ADR-0037",
+      "location": "crates/platform-webhook-kernel + ADR-0037",
       "change_review": "API stability gate"
     },
     {
@@ -186,7 +186,7 @@
         "plugin-runtime",
         "ads"
       ],
-      "location": "crates/oya-saas-marketplace-kernel",
+      "location": "crates/saas-marketplace-kernel",
       "change_review": "marketplace + plugin signing/sandbox"
     },
     {
@@ -195,7 +195,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-eventing-domain + crates/oya-eventing-file-adapter (note: `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M01-P04)",
+      "location": "crates/eventing-domain + crates/eventing-file-adapter (note: `eventing-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M01-P04)",
       "change_review": "cross-axis on topic shape"
     },
     {
@@ -204,7 +204,7 @@
       "consumer_axes": [
         "search-shard-placement"
       ],
-      "location": "crates/oya-cloud-capacity-kernel + crates/oya-search-shard-placement",
+      "location": "crates/cloud-capacity-kernel + crates/search-shard-placement",
       "change_review": "cloud + search + privacy"
     },
     {
@@ -213,7 +213,7 @@
       "consumer_axes": [
         "sponsored-results"
       ],
-      "location": "crates/oya-search-serp-kernel + crates/oya-ads-eligibility-kernel",
+      "location": "crates/search-serp-kernel + crates/ads-eligibility-kernel",
       "change_review": "search + ads + privacy"
     },
     {
@@ -240,7 +240,7 @@
       "consumer_axes": [
         "all-tenant-data"
       ],
-      "location": "crates/oya-platform-ads-eligibility-kernel + per-vertical override pack",
+      "location": "crates/platform-ads-eligibility-kernel + per-vertical override pack",
       "change_review": "saas + vertical + ads + privacy"
     },
     {
@@ -250,7 +250,7 @@
         "billing",
         "tax"
       ],
-      "location": "crates/oya-platform-billing-kernel + per-pack tax adapter",
+      "location": "crates/platform-billing-kernel + per-pack tax adapter",
       "change_review": "billing + tax + per-pack"
     },
     {
@@ -278,7 +278,7 @@
     "preview": "search + ads-analytics + Foundry model substrate (long-horizon)",
     "GA": "post W-Cloud-Stable + W-Search-Stable + W-Ads-Stable"
   },
-  "validation_lane": "oya-governance-spec-coverage + design-contracts-mirror",
+  "validation_lane": "governance-spec-coverage + design-contracts-mirror",
   "per_axis_surfaces": [
     {
       "id": "tenant.create",
@@ -290,7 +290,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-tenant-v1.yaml",
       "operation_id": "createPlatformTenant",
-      "runtime_crate": "oya-tenancy-kernel"
+      "runtime_crate": "tenancy-kernel"
     },
     {
       "id": "identity.user.upsert",
@@ -302,7 +302,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-identity-user-v1.yaml",
       "operation_id": "upsertPlatformIdentityUser",
-      "runtime_crate": "oya-platform-identity-api"
+      "runtime_crate": "platform-identity-api"
     },
     {
       "id": "cedar.policy.publish",
@@ -314,7 +314,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-policy-cedar-v1.yaml",
       "operation_id": "publishCedarPolicy",
-      "runtime_crate": "oya-platform-policy-cedar-api"
+      "runtime_crate": "platform-policy-cedar-api"
     },
     {
       "id": "object-graph.entity.upsert",
@@ -326,7 +326,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-object-graph-v1.yaml",
       "operation_id": "upsertObjectGraphEntity",
-      "runtime_crate": "oya-ontology-domain"
+      "runtime_crate": "ontology-domain"
     },
     {
       "id": "dsr.cascade.execute",
@@ -338,7 +338,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-dsr-v1.yaml",
       "operation_id": "executeDsrCascade",
-      "runtime_crate": "oya-dsr-application"
+      "runtime_crate": "dsr-application"
     },
     {
       "id": "audit.event.emit",
@@ -351,7 +351,7 @@
       "contract_path": "contracts/asyncapi/platform/audit-events-v1.yaml",
       "message_id": "audit.event.emit.v1",
       "payload_schema": "contracts/proto/platform/audit/v1/audit-event-v1.proto",
-      "runtime_crate": "oya-audit-chain-application"
+      "runtime_crate": "audit-chain-application"
     },
     {
       "id": "eventing.outbox.publish",
@@ -364,7 +364,7 @@
       "contract_path": "contracts/asyncapi/platform/eventing-outbox-v1.yaml",
       "message_id": "eventing.outbox.publish.v1",
       "payload_schema": "contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto",
-      "runtime_crate": "oya-eventing-domain (superseded: oya-eventing-application stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical -app scaffold pending M01-P04)"
+      "runtime_crate": "eventing-domain (superseded: eventing-application stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical -app scaffold pending M01-P04)"
     },
     {
       "id": "metering.event.ingest",
@@ -377,7 +377,7 @@
       "contract_path": "contracts/asyncapi/platform/metering-events-v1.yaml",
       "message_id": "metering.event.ingest.v1",
       "payload_schema": "contracts/proto/platform/metering/v1/metering-event-v1.proto",
-      "runtime_crate": "oya-platform-metering-app"
+      "runtime_crate": "platform-metering-app"
     },
     {
       "id": "identity.token.issue",
@@ -389,7 +389,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-identity-token-v1.yaml",
       "operation_id": "issuePlatformIdentityToken",
-      "runtime_crate": "oya-identity-application"
+      "runtime_crate": "identity-application"
     },
     {
       "id": "regulatory-pack.bind",
@@ -401,7 +401,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-regulatory-pack-v1.yaml",
       "operation_id": "bindRegulatoryPack",
-      "runtime_crate": "oya-platform-regulatory-pack-api"
+      "runtime_crate": "platform-regulatory-pack-api"
     },
     {
       "id": "foundry.capability.publish",
@@ -449,7 +449,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-drive-v1.yaml",
       "operation_id": "putWorkspaceDriveObject",
-      "runtime_crate": "oya-workspace-drive-api"
+      "runtime_crate": "workspace-drive-api"
     },
     {
       "id": "workspace.drive.get",
@@ -461,7 +461,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-drive-v1.yaml",
       "operation_id": "getWorkspaceDriveObject",
-      "runtime_crate": "oya-workspace-drive-api"
+      "runtime_crate": "workspace-drive-api"
     },
     {
       "id": "workspace.meet.session.start",
@@ -473,7 +473,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-meet-v1.yaml",
       "operation_id": "startWorkspaceMeetSession",
-      "runtime_crate": "oya-workspace-meet-api"
+      "runtime_crate": "workspace-meet-api"
     },
     {
       "id": "workspace.chat.message.send",
@@ -485,7 +485,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-chat-v1.yaml",
       "operation_id": "sendWorkspaceChatMessage",
-      "runtime_crate": "oya-workspace-chat-api"
+      "runtime_crate": "workspace-chat-api"
     },
     {
       "id": "workspace.forms.submission.ingest",
@@ -497,7 +497,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-forms-v1.yaml",
       "operation_id": "ingestWorkspaceFormsSubmission",
-      "runtime_crate": "oya-workspace-forms-api"
+      "runtime_crate": "workspace-forms-api"
     },
     {
       "id": "cloud.iam.role.create",
@@ -509,7 +509,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-iam-v1.yaml",
       "operation_id": "createCloudIamRole",
-      "runtime_crate": "oya-cloud-iam-api"
+      "runtime_crate": "cloud-iam-api"
     },
     {
       "id": "cloud.iam.sts.token",
@@ -521,7 +521,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-iam-v1.yaml",
       "operation_id": "issueCloudIamStsToken",
-      "runtime_crate": "oya-cloud-iam-api"
+      "runtime_crate": "cloud-iam-api"
     },
     {
       "id": "cloud.kms.encrypt",
@@ -533,7 +533,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-kms-v1.yaml",
       "operation_id": "authorizeCloudKmsEncrypt",
-      "runtime_crate": "oya-cloud-kms-api"
+      "runtime_crate": "cloud-kms-api"
     },
     {
       "id": "cloud.kms.decrypt",
@@ -545,7 +545,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-kms-v1.yaml",
       "operation_id": "authorizeCloudKmsDecrypt",
-      "runtime_crate": "oya-cloud-kms-api"
+      "runtime_crate": "cloud-kms-api"
     },
     {
       "id": "cloud.region.list",
@@ -557,7 +557,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-region-v1.yaml",
       "operation_id": "listCloudRegions",
-      "runtime_crate": "oya-cloud-region-api"
+      "runtime_crate": "cloud-region-api"
     },
     {
       "id": "cloud.az.list",
@@ -569,7 +569,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-region-v1.yaml",
       "operation_id": "listCloudAzs",
-      "runtime_crate": "oya-cloud-region-api"
+      "runtime_crate": "cloud-region-api"
     },
     {
       "id": "cloud.cell.bind",
@@ -581,7 +581,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-cell-bind-v1.yaml",
       "operation_id": "bindCloudCell",
-      "runtime_crate": "oya-cloud-cell-app"
+      "runtime_crate": "cloud-cell-app"
     },
     {
       "id": "cloud.compute.vm.create",
@@ -593,7 +593,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-compute-vm-v1.yaml",
       "operation_id": "createCloudComputeVm",
-      "runtime_crate": "oya-cloud-compute-vm-api"
+      "runtime_crate": "cloud-compute-vm-api"
     },
     {
       "id": "cloud.compute.k8s.cluster.create",
@@ -605,7 +605,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-compute-k8s-v1.yaml",
       "operation_id": "createCloudComputeK8sCluster",
-      "runtime_crate": "oya-cloud-compute-k8s-api"
+      "runtime_crate": "cloud-compute-k8s-api"
     },
     {
       "id": "cloud.compute.functions.invoke",
@@ -617,7 +617,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-compute-functions-v1.yaml",
       "operation_id": "invokeCloudComputeFunction",
-      "runtime_crate": "oya-cloud-compute-functions-api"
+      "runtime_crate": "cloud-compute-functions-api"
     },
     {
       "id": "cloud.storage.block.create",
@@ -629,7 +629,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-storage-block-v1.yaml",
       "operation_id": "createCloudStorageBlockVolume",
-      "runtime_crate": "oya-cloud-storage-block-api"
+      "runtime_crate": "cloud-storage-block-api"
     },
     {
       "id": "cloud.storage.object.put",
@@ -641,7 +641,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
       "operation_id": "putCloudStorageObject",
-      "runtime_crate": "oya-cloud-storage-object-api"
+      "runtime_crate": "cloud-storage-object-api"
     },
     {
       "id": "cloud.storage.object.get",
@@ -653,7 +653,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
       "operation_id": "getCloudStorageObject",
-      "runtime_crate": "oya-cloud-storage-object-api"
+      "runtime_crate": "cloud-storage-object-api"
     },
     {
       "id": "cloud.network.vpc.create",
@@ -665,7 +665,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-network-vpc-v1.yaml",
       "operation_id": "createCloudNetworkVpc",
-      "runtime_crate": "oya-cloud-network-vpc-api"
+      "runtime_crate": "cloud-network-vpc-api"
     },
     {
       "id": "cloud.network.lb.create",
@@ -677,7 +677,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-network-lb-v1.yaml",
       "operation_id": "createCloudNetworkLoadBalancer",
-      "runtime_crate": "oya-cloud-network-lb-api"
+      "runtime_crate": "cloud-network-lb-api"
     },
     {
       "id": "cloud.network.dns.zone.create",
@@ -689,7 +689,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-network-dns-v1.yaml",
       "operation_id": "createCloudNetworkDnsZone",
-      "runtime_crate": "oya-cloud-network-dns-api"
+      "runtime_crate": "cloud-network-dns-api"
     },
     {
       "id": "cloud.billing.event.ingest",
@@ -702,7 +702,7 @@
       "contract_path": "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml",
       "message_id": "cloud.billing.event.ingest.v1",
       "payload_schema": "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
-      "runtime_crate": "oya-cloud-billing-app"
+      "runtime_crate": "cloud-billing-app"
     },
     {
       "id": "cloud.billing.invoice.generate",
@@ -714,7 +714,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml",
       "operation_id": "generateCloudBillingInvoice",
-      "runtime_crate": "oya-cloud-billing-tax-app"
+      "runtime_crate": "cloud-billing-tax-app"
     },
     {
       "id": "cloud.observability.audit.read",
@@ -726,7 +726,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-observability-audit-v1.yaml",
       "operation_id": "readCloudObservabilityAudit",
-      "runtime_crate": "oya-cloud-observability-api"
+      "runtime_crate": "cloud-observability-api"
     },
     {
       "id": "cloud.finops.report",
@@ -738,7 +738,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/cloud/cloud-finops-report-v1.yaml",
       "operation_id": "generateCloudFinopsReport",
-      "runtime_crate": "oya-cloud-finops-api"
+      "runtime_crate": "cloud-finops-api"
     },
     {
       "id": "foundry.policy.autonomy-ceiling.publish",

@@ -4,7 +4,7 @@ doc_status: published
 
 # Oyatie Runbook — Workflow Engine Deadlock
 
-> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `presubmit` are green.
 > **Owner:** `axis-saas`
 > **Severity scope:** Sev 2 by default; escalate to Sev 1 for cross-cell, regulated-pack, or revenue-impacting workflow stalls.
 > **Authority:** ADR-0035 workflow engine semantics, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.

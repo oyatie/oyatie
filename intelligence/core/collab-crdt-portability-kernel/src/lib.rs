@@ -7,8 +7,8 @@
 //! validator can resolve the `seam_adapter_trait` reference.
 //!
 //! Adapter implementations live in sibling crates:
-//! - `oya-collab-crdt-loro-adapter` — Loro 1.x adapter (queued).
-//! - `oya-collab-crdt-yrs-adapter`  — Yrs Rust port (queued per ADR-0142).
+//! - `collab-crdt-loro-adapter` — Loro 1.x adapter (queued).
+//! - `collab-crdt-yrs-adapter`  — Yrs Rust port (queued per ADR-0142).
 //!
 //! Kernel-tier per ADR-0083: zero production deps. Tests use stdlib only.
 
@@ -19,7 +19,7 @@ use std::fmt;
 /// Opaque document identifier the host µservice attaches to every CRDT doc.
 ///
 /// The adapter does NOT mint these — the host coordinates ULID minting via
-/// `oya-shared-ulid-id-kernel`. Kernel holds only the by-value handle.
+/// `shared-ulid-id-kernel`. Kernel holds only the by-value handle.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct CrdtDocId(pub String); // data_class: INTERNAL_ONLY
 

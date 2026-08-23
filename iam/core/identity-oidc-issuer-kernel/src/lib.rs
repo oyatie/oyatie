@@ -2,8 +2,8 @@
 //!
 //! This crate is the canonical pure-domain core of the **OIDC issuer** side of
 //! the identity microservice (IP-002), as distinct from the relying-party
-//! verifier (`oya-shared-oidc-client-kernel`, IP-002 RP half) and the
-//! workload-identity surface (`oya-identity-workload-domain`).
+//! verifier (`shared-oidc-client-kernel`, IP-002 RP half) and the
+//! workload-identity surface (`identity-workload-domain`).
 //!
 //! Scope (per IP-002, surface only what the IP specifies):
 //!
@@ -70,7 +70,7 @@ pub const MAX_CLOCK_SKEW_SECONDS: i64 = 300;
 pub const VERIFICATION_GRACE_SECONDS: i64 = 86_400;
 
 /// Recommended ID-token lifetime ceiling (1 hour). Mirrors the
-/// `MAX_TOKEN_TTL_SECONDS` ceiling in `oya-identity-domain` for symmetry.
+/// `MAX_TOKEN_TTL_SECONDS` ceiling in `identity-domain` for symmetry.
 pub const MAX_ID_TOKEN_TTL_SECONDS: i64 = 60 * 60;
 
 /// Recommended access-token lifetime ceiling (1 hour).
@@ -289,7 +289,7 @@ pub trait JwsSigner: Send + Sync {
 }
 
 /// ACR class enum per ADR-0189. Re-stated here (rather than importing
-/// `oya-shared-oidc-client-kernel`) so this kernel keeps its zero-dependency
+/// `shared-oidc-client-kernel`) so this kernel keeps its zero-dependency
 /// invariant; the two enums are intentionally identical in surface.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum AcrLevel {
@@ -1552,7 +1552,7 @@ mod tests {
     #[test]
     fn id_token_claims_round_trip() {
         let issuer = IssuerUrl::new("https://identity-kr.oyatie.com").expect("ok");
-        let audience = Audience::single("oya-application").expect("ok");
+        let audience = Audience::single("application").expect("ok");
         let subject = Subject::new("usr_abc").expect("ok");
         let claims = build_id_token_claims(IdTokenSpec {
             issuer,
@@ -1568,7 +1568,7 @@ mod tests {
         })
         .expect("build ok");
         assert_eq!(claims.iss, "https://identity-kr.oyatie.com");
-        assert_eq!(claims.aud, vec!["oya-application".to_owned()]);
+        assert_eq!(claims.aud, vec!["application".to_owned()]);
         assert_eq!(claims.sub, "usr_abc");
         assert_eq!(claims.tenant_id, "ten_acme");
         assert_eq!(claims.acr, "elevated");
@@ -1580,7 +1580,7 @@ mod tests {
     #[test]
     fn id_token_rejects_missing_nonce_and_tenant() {
         let issuer = IssuerUrl::new("https://identity-kr.oyatie.com").expect("ok");
-        let audience = Audience::single("oya-application").expect("ok");
+        let audience = Audience::single("application").expect("ok");
         let subject = Subject::new("usr_abc").expect("ok");
         let spec = IdTokenSpec {
             issuer: issuer.clone(),
@@ -1830,7 +1830,7 @@ mod tests {
     fn introspection_response_active_carries_disclosed_claims() {
         let resp = IntrospectionResponse::active(ActiveIntrospectionClaims {
             sub: "usr_abc".to_owned(),
-            aud: vec!["oya-api".to_owned()],
+            aud: vec!["api".to_owned()],
             exp: 1_700_003_600,
             iat: 1_700_000_000,
             scope: Some("openid email".to_owned()),
@@ -1840,7 +1840,7 @@ mod tests {
         });
         assert!(resp.active);
         assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
-        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.aud.as_deref(), Some(["api".to_owned()].as_slice()));
         assert_eq!(resp.exp, Some(1_700_003_600));
         assert_eq!(resp.iat, Some(1_700_000_000));
         assert_eq!(resp.scope.as_deref(), Some("openid email"));
@@ -1854,7 +1854,7 @@ mod tests {
     fn sample_access_token_claims(iat: i64, nbf: i64, exp: i64) -> AccessTokenClaims {
         AccessTokenClaims {
             iss: "https://identity-kr.oyatie.com".to_owned(),
-            aud: vec!["oya-api".to_owned()],
+            aud: vec!["api".to_owned()],
             sub: "usr_abc".to_owned(),
             iat,
             exp,
@@ -1875,7 +1875,7 @@ mod tests {
         let resp = build_introspection_response(&claims, now, skew).expect("ok");
         assert!(resp.active);
         assert_eq!(resp.sub.as_deref(), Some("usr_abc"));
-        assert_eq!(resp.aud.as_deref(), Some(["oya-api".to_owned()].as_slice()));
+        assert_eq!(resp.aud.as_deref(), Some(["api".to_owned()].as_slice()));
         assert_eq!(resp.exp, Some(1_700_003_600));
         assert_eq!(resp.iat, Some(1_700_000_000));
         assert_eq!(resp.scope.as_deref(), Some("openid email"));

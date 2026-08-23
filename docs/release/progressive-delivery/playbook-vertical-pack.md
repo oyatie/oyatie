@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Vertical-pack updates (healthcare/fintech/etc.) with DPIA refresh per pack.
 planned_enforcement_ref:
-  - oya-governance-data-class
-  - oya-governance-cohort-honor
+  - governance-data-class
+  - governance-cohort-honor
 related_adrs: [ADR-0033, ADR-0034, ADR-0038, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -46,7 +46,7 @@ Every regulated-pack update triggers a DPIA refresh:
 4. Tenant DPA amendment (or notice-only update for non-material changes).
 5. DPIA artefact stored as D14 evidence; trust portal updated ([ADR-0038](../../decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
 
-`oya-governance-data-class` (existing) verifies DPIA presence.
+`governance-data-class` (existing) verifies DPIA presence.
 
 ## 4. Cohort gating (regulated-only)
 
@@ -64,7 +64,7 @@ Sequence:
 
 ## 5. Per-vertical pack approval
 
-Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. Planned advisory lane `oya-governance-data-class` records approver-field gaps until the PR-blocking workflow exists.
+Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. Planned advisory lane `governance-data-class` records approver-field gaps until the PR-blocking workflow exists.
 
 ## 6. Rollback
 

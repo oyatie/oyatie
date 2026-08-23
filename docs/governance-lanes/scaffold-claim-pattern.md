@@ -7,13 +7,13 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - enforces: ADR-0054 — scaffold claim pattern.
-- kernel_crate: `oya-governance-scaffold-claim-pattern-kernel` — `ScaffoldClaim { crate_id, claim_id, completion_stamp }`, verdict `ScaffoldClaimPatternFitnessReport { claims_checked }`.
-- runner_path: `tools/oya-governance-scaffold-claim-pattern`
+- kernel_crate: `governance-scaffold-claim-pattern-kernel` — `ScaffoldClaim { crate_id, claim_id, completion_stamp }`, verdict `ScaffoldClaimPatternFitnessReport { claims_checked }`.
+- runner_path: `tools/governance-scaffold-claim-pattern`
 - failure_modes:
   - new crate added with no claim_id
   - claim never stamped complete
   - two crates share same claim_id
-- ci_invocation: `cargo run -p oya-governance-scaffold-claim-pattern`
+- ci_invocation: `cargo run -p governance-scaffold-claim-pattern`
 - runtime_budget: 400 ms
 - severity: HIGH
 - kernel_sketch:

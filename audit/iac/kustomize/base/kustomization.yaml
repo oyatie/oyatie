@@ -16,19 +16,19 @@ resources:
   - retention-matrix-configmap.yaml
 
 helmCharts:
-  - name: oya-audit-chain-postgres
+  - name: audit-chain-postgres
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: postgres
     namespace: audit-chain
-  - name: oya-audit-chain-audit-storage
+  - name: audit-chain-audit-storage
     valuesFile: ../../helm/audit-storage/values.yaml
     releaseName: audit-storage
     namespace: audit-chain
-  - name: oya-audit-chain-hsm-operator
+  - name: audit-chain-hsm-operator
     valuesFile: ../../helm/hsm-operator/values.yaml
     releaseName: hsm-operator
     namespace: audit-chain
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-audit-chain
+  app.kubernetes.io/part-of: audit-chain
   oyatie/microservice: audit-chain

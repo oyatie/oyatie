@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=settings-template; layer=kernel (12-layer-enum L1).
 #         Justification: pure-kernel value types for foundry settings template lane
 #         (v5 delta, M02-P06). Holds SettingsTemplate, SettingsRenderer trait,

@@ -24,7 +24,7 @@ const SERVICE_NAME: &str = "tenant-rbac";
 const SCHEMA_NAME: &str = "tenant_rbac";
 const RUNTIME_ROLE: &str = "tenant_rbac_runtime";
 const TENANT_CONTEXT_SETTING: &str = "app.tenant_id";
-const SOURCE_WRITE_CONTRACT_REF: &str = "crates/oya-tenant-rbac-postgres-rls-write-contract/src/lib.rs::tenant_rbac_postgres_rls_write_contract";
+const SOURCE_WRITE_CONTRACT_REF: &str = "crates/tenant-rbac-postgres-rls-write-contract/src/lib.rs::tenant_rbac_postgres_rls_write_contract";
 
 const BEGIN_DOC_URL: &str = "https://www.postgresql.org/docs/current/sql-begin.html";
 const COMMIT_DOC_URL: &str = "https://www.postgresql.org/docs/current/sql-commit.html";
@@ -483,7 +483,7 @@ fn validate_transaction_plan(
     }
     validate_prefixed_ref(
         plan.source_write_contract_ref,
-        "crates/oya-tenant-rbac-postgres-rls-write-contract/",
+        "crates/tenant-rbac-postgres-rls-write-contract/",
         TenantRbacPostgresRlsTransactionContractError::InvalidSourceWriteContractRef,
     )?;
     for control in [
@@ -550,7 +550,7 @@ fn validate_steps(
         validate_doc_url(step.official_doc_url)?;
         validate_prefixed_ref(
             step.source_write_contract_ref,
-            "crates/oya-tenant-rbac-postgres-rls-write-contract/",
+            "crates/tenant-rbac-postgres-rls-write-contract/",
             TenantRbacPostgresRlsTransactionContractError::InvalidSourceWriteContractRef,
         )?;
         validate_step_contract(step, plan)?;

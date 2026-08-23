@@ -1,4 +1,4 @@
-//! Code-backed safety, evidence, and redaction primitives for cloud-intelligence.
+//! Code-backed safety, evidence, and redaction primitives for intelligence-app.
 //!
 //! This module is deliberately pure kernel code: it defines platform-invariant
 //! policy decisions without binding to any concrete policy engine, secret

@@ -6,14 +6,14 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- enforces: STANDARD/claim-ceiling; existing crate `oya-governance-claim-ceiling-kernel` (EXISTING).
-- kernel_crate: `oya-governance-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
-- runner_path: `tools/oya-governance-claim-ceiling`
+- enforces: STANDARD/claim-ceiling; existing crate `governance-claim-ceiling-kernel` (EXISTING).
+- kernel_crate: `governance-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
+- runner_path: `tools/governance-claim-ceiling`
 - failure_modes:
   - agent holds claims above ceiling
   - claim with no expiry
   - duplicate claim id
-- ci_invocation: `cargo run -p oya-governance-claim-ceiling`
+- ci_invocation: `cargo run -p governance-claim-ceiling`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

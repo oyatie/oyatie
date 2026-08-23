@@ -1,12 +1,12 @@
 // Cedar policy fragments for calendar.
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
-// D-CICD-AUTHORITY purpose: branch-protected oya-ci-required is the live cloud CI merge authority; local verifier output is transition evidence only.
+// D-CICD-AUTHORITY purpose: branch-protected presubmit is the live cloud CI merge authority; local verifier output is transition evidence only.
 // D-CLOUD-NATIVE purpose: do not revive local or dev CLI authority; re-home sound checks into cloud-native Rust gate and pipeline surfaces.
 // D-GOVERNANCE-CENTRAL purpose: central governance vocabulary supersedes scattered lane naming in active authority surfaces.
 // Current governance evidence: central PaC/CaC/PDP/evidence pipeline acceptance.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
-// ADR-0348 enforcement evidence is attached through central governance and the branch-protected oya-ci-required gate.
-// D-CICD-AUTHORITY cutover: owned oya-ci is the same canonical pipeline migrated after cutover, not a parallel shadow authority.
+// ADR-0348 enforcement evidence is attached through central governance and the branch-protected presubmit gate.
+// D-CICD-AUTHORITY cutover: owned ci is the same canonical pipeline migrated after cutover, not a parallel shadow authority.
 // D-GOVERNANCE-CENTRAL purpose: central PaC/CaC/PDP/evidence pipelines own governance authority, not scattered local gates.
 
 permit(
@@ -49,13 +49,13 @@ forbid(
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.github-actions.oya-ci-required",
+  principal == ServicePrincipal::"oyatie.github-actions.presubmit",
   action == Action::"RunCloudCiRequired",
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "calendar" &&
   context.doctrine.d_cicd_authority == true &&
-  context.required_context == "oya-ci-required" &&
+  context.required_context == "presubmit" &&
   context.branch_protection_enforced == true &&
   context.shared_rust_gate_logic == true &&
   context.local_cli_authority == false &&
@@ -64,26 +64,26 @@ permit(
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.oya-ci.cutover",
+  principal == ServicePrincipal::"oyatie.ci.cutover",
   action == Action::"RunOwnedCiAfterCutover",
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "calendar" &&
   context.doctrine.d_cicd_authority == true &&
-  context.required_context == "oya-ci-required" &&
+  context.required_context == "presubmit" &&
   context.owned_runner_cutover == true &&
   context.not_parallel_shadow == true &&
   context.audit_chain_emit == true
 };
 
 forbid(
-  (principal == ServicePrincipal::"oyatie.github-actions.oya-ci-required" || principal == ServicePrincipal::"oyatie.oya-ci.cutover"),
+  (principal == ServicePrincipal::"oyatie.github-actions.presubmit" || principal == ServicePrincipal::"oyatie.ci.cutover"),
   action in [Action::"RunCloudCiRequired", Action::"RunOwnedCiAfterCutover"],
   resource is ServiceCiSurface
 ) when {
   resource.microservice == "calendar" &&
   (
-    context.required_context != "oya-ci-required" ||
+    context.required_context != "presubmit" ||
     context.local_cli_authority == true ||
     context.branch_protection_enforced == false
   )

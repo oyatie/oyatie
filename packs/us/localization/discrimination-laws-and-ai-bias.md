@@ -488,9 +488,9 @@ The document requires employment counsel, civil-rights counsel, and local-law re
 - BIAS-XREF-009: `specs/microservices/identity.json` may host protected-class audit boundary and candidate identity.
 - BIAS-XREF-010: `specs/microservices/governance.json` is the likely host for authority routing and regulator export.
 - BIAS-XREF-011: `specs/microservices/audit-chain` registry entries are future hosts for bias audit events.
-- BIAS-XREF-012: `registry/catalog/oya-check-high-risk-auto-decision-refusal.yaml` is a future gate for high-risk AI refusal.
-- BIAS-XREF-013: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future gate for bias evidence completeness.
-- BIAS-XREF-014: `registry/catalog/oya-check-data-class.yaml` is a future gate for protected-class and sensitive-data boundaries.
+- BIAS-XREF-012: `registry/catalog/check-high-risk-auto-decision-refusal.yaml` is a future gate for high-risk AI refusal.
+- BIAS-XREF-013: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future gate for bias evidence completeness.
+- BIAS-XREF-014: `registry/catalog/check-data-class.yaml` is a future gate for protected-class and sensitive-data boundaries.
 - BIAS-XREF-015: EEOC UGESP and Title VII sources remain primary for employee-selection and discrimination interpretation.
 - BIAS-XREF-016: EEOC ADA sources remain primary for accommodation and disability inquiry interpretation.
 - BIAS-XREF-017: NYC DCWP pages and rules remain primary for Local Law 144 AEDT interpretation.

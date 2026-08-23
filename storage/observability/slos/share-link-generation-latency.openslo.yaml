@@ -27,7 +27,7 @@ spec:
           type: Prometheus
           spec:
             query: |
-              histogram_quantile(0.99, sum(rate(oya_drive_share_link_mint_seconds_bucket[5m])) by (le))
+              histogram_quantile(0.99, sum(rate(drive_share_link_mint_seconds_bucket[5m])) by (le))
   timeWindow:
     - duration: 30d
       isRolling: true

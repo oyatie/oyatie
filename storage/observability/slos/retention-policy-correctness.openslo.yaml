@@ -40,13 +40,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_retention_applied_total{result="correct"}[30d]))
+                sum(rate(recordings_retention_applied_total{result="correct"}[30d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_retention_applied_total[30d]))
+                sum(rate(recordings_retention_applied_total[30d]))
   timeWindow:
     - duration: 30d
       isRolling: true

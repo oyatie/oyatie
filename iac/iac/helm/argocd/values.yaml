@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 argo-cd:
   global:
     image:
@@ -35,8 +35,8 @@ argo-cd:
       oidc.config: |
         name: oyatie-oidc
         issuer: "${OIDC_ISSUER}"
-        clientID: "${openbao:secret/cloud-iac/argocd/oidc-client-id}"
-        clientSecret: "${openbao:secret/cloud-iac/argocd/oidc-client-secret}"
+        clientID: "${openbao:secret/iac-app/argocd/oidc-client-id}"
+        clientSecret: "${openbao:secret/iac-app/argocd/oidc-client-secret}"
     rbacConfig:
       policy.default: ""  # default deny; per-µservice policy via ApplicationSet
   applicationSet:

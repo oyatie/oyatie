@@ -17,12 +17,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_audit_emission_lag_good_total[5m]))
+              query: sum(rate(data_warehouse_audit_emission_lag_good_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_audit_emission_lag_total[5m]))
+              query: sum(rate(data_warehouse_audit_emission_lag_total[5m]))
   objectives:
     - displayName: Data Warehouse audit-emission-lag
       target: 0.999

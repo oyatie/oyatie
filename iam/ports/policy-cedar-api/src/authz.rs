@@ -13,8 +13,8 @@
 //!
 //! This module closes that gap by mirroring the proven fail-closed doctrine in
 //! `intelligence/adapters/rest/src/lib.rs` (`constant_time_eq` bearer compare +
-//! a PDP `decide` port) and the cloud-iam PDP caller-authn precedent
-//! (`iam/facade/cloud-pdp-app/src/mtls.rs`, ADR-0561 / #38):
+//! a PDP `decide` port) and the iam PDP caller-authn precedent
+//! (`iam/facade/pdp-app/src/mtls.rs`, ADR-0561 / #38):
 //!
 //! 1. A real principal is VERIFIED from a credential the caller cannot forge —
 //!    a bearer token compared in constant time against a configured secret (the
@@ -31,7 +31,7 @@
 //! ## Clean architecture (ADR-0131 / ports-for-owned-stack doctrine)
 //!
 //! [`PrincipalVerifier`] and [`PublishAuthorizer`] are PORTS owned by this
-//! boundary crate.  The concrete cloud-iam PDP client and the bearer/SVID
+//! boundary crate.  The concrete iam PDP client and the bearer/SVID
 //! credential store are ADAPTERS that live OUTSIDE this crate (the owned W5
 //! destination).  The port shapes model that destination so they do not change
 //! at cutover; transient infra is absorbed by the adapter.
@@ -183,7 +183,7 @@ pub struct PublishResource {
 /// PORT: verify a caller credential into a [`VerifiedPrincipal`].
 ///
 /// Adapters: a configured-bearer verifier (this crate's
-/// [`ConfiguredBearerPrincipalVerifier`]) or a cloud-iam mTLS/SPIFFE peer-SVID
+/// [`ConfiguredBearerPrincipalVerifier`]) or a iam mTLS/SPIFFE peer-SVID
 /// verifier (the W5 destination, ADR-0561). The verifier — not the headers — is
 /// the source of truth for caller identity.
 pub trait PrincipalVerifier: Send + Sync {
@@ -201,7 +201,7 @@ pub trait PrincipalVerifier: Send + Sync {
 /// PORT: decide whether `principal` may publish `resource`.
 ///
 /// The decision is `decide(principal, action = cedar.policy.publish, resource)`.
-/// Adapter: the cloud-iam PDP client (the owned W5 destination). The default
+/// Adapter: the iam PDP client (the owned W5 destination). The default
 /// posture is deny; any refusal is treated as deny (fail-closed).
 ///
 /// ## Adapter implementation contract (MUST follow; enforcement is by convention)
@@ -342,12 +342,12 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// a distinct credential bound to their own tenant — a single shared secret
 /// cannot distinguish them, so all callers would be granted the same identity.
 ///
-/// The production W5 adapter is the cloud-iam mTLS/SPIFFE peer-SVID verifier
+/// The production W5 adapter is the iam mTLS/SPIFFE peer-SVID verifier
 /// (ADR-0561), which derives the principal and tenant from the verified peer
 /// certificate, not from a configured mapping.
 ///
 /// Construction REFUSES an empty bearer secret so a provider that cannot prove
-/// a credential root can never authenticate a caller (mirrors the cloud-pdp
+/// a credential root can never authenticate a caller (mirrors the pdp
 /// boot-refusal doctrine).
 pub struct ConfiguredBearerPrincipalVerifier {
     bearer_secret: String,      // data_class: SECRET
@@ -405,7 +405,7 @@ impl PrincipalVerifier for ConfiguredBearerPrincipalVerifier {
 }
 
 /// Why the authz provider refused construction. Boot-fatal: the composition root
-/// MUST refuse to serve, mirroring the cloud-pdp `build_state` boot-refusal.
+/// MUST refuse to serve, mirroring the pdp `build_state` boot-refusal.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AuthzProviderConfigError {
     /// The bearer secret was empty/whitespace (no provable credential root).

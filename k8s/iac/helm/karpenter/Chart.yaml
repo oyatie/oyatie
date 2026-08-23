@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-k8s-karpenter
+name: cloud-k8s-karpenter
 description: |
   Karpenter Kubernetes node autoscaler per ADR-0198. Replaces Cluster
   Autoscaler with sub-minute scale-up, bin-packing optimization, and native

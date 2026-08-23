@@ -924,28 +924,28 @@
     },
     {
       "num": 476,
-      "file": "ADR-0476-oya-identity-bespoke-human-identity.md",
-      "title": "oya-identity: bespoke Rust human identity substrate"
+      "file": "ADR-0476-identity-bespoke-human-identity.md",
+      "title": "identity: bespoke Rust human identity substrate"
     },
     {
       "num": 478,
-      "file": "ADR-0478-oya-billing-bespoke-billing-engine.md",
-      "title": "oya-billing \u2014 bespoke Rust billing engine superseding Lago"
+      "file": "ADR-0478-billing-bespoke-billing-engine.md",
+      "title": "billing \u2014 bespoke Rust billing engine superseding Lago"
     },
     {
       "num": 479,
-      "file": "ADR-0479-oya-meter-bespoke-usage-metering.md",
-      "title": "oya-meter \u2014 bespoke Rust usage metering substrate"
+      "file": "ADR-0479-meter-bespoke-usage-metering.md",
+      "title": "meter \u2014 bespoke Rust usage metering substrate"
     },
     {
       "num": 480,
-      "file": "ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
-      "title": "oya-cost: bespoke Rust K8s cost allocation substrate"
+      "file": "ADR-0480-cost-bespoke-k8s-cost-allocation.md",
+      "title": "cost: bespoke Rust K8s cost allocation substrate"
     },
     {
       "num": 481,
-      "file": "ADR-0481-oya-flags-bespoke-feature-flag-server.md",
-      "title": "oya-flags: bespoke Rust feature flag server superseding flagd"
+      "file": "ADR-0481-flags-bespoke-feature-flag-server.md",
+      "title": "flags: bespoke Rust feature flag server superseding flagd"
     },
     {
       "num": 482,
@@ -980,7 +980,7 @@
     {
       "num": 515,
       "file": "ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-      "title": "Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture \u2014 oya-ci-required is the single GitHub-Actions"
+      "title": "Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture \u2014 presubmit is the single GitHub-Actions"
     },
     {
       "num": 516,
@@ -1029,18 +1029,18 @@
     },
     {
       "num": 525,
-      "file": "ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-      "title": "oya-ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + "
+      "file": "ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md",
+      "title": "ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + "
     },
     {
       "num": 526,
-      "file": "ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
-      "title": "oya-ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour"
+      "file": "ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md",
+      "title": "ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour"
     },
     {
       "num": 527,
-      "file": "ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
-      "title": "oya-ci conformance FLOOR as a config-driven portable engine: engine-vs-policy seam + closed-schema oya-ci.toml loader + "
+      "file": "ADR-0527-ci-conformance-floor-config-driven-engine.md",
+      "title": "ci conformance FLOOR as a config-driven portable engine: engine-vs-policy seam + closed-schema ci.toml loader + "
     },
     {
       "num": 528,
@@ -1059,8 +1059,8 @@
     },
     {
       "num": 531,
-      "file": "ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
-      "title": "Auto-remediation delivery + safety model: the oya-bot-autofix PROPOSE-only fleet member, shrink-only burn-down, HMAC web"
+      "file": "ADR-0531-auto-remediation-delivery-bot-autofix.md",
+      "title": "Auto-remediation delivery + safety model: the bot-autofix PROPOSE-only fleet member, shrink-only burn-down, HMAC web"
     },
     {
       "num": 532,
@@ -1094,7 +1094,7 @@
     },
     {
       "num": 539,
-      "file": "ADR-0539-cloud-ci-freshness-gate.md",
+      "file": "ADR-0539-pipeline-freshness-gate.md",
       "title": "Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity"
     },
     {
@@ -1169,13 +1169,13 @@
     },
     {
       "num": 595,
-      "file": "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
-      "title": "De-commit the pure-derivation cloud-ci accounting faces \u2014 derive-on-demand + gate teaching"
+      "file": "ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
+      "title": "De-commit the pure-derivation pipeline accounting faces \u2014 derive-on-demand + gate teaching"
     },
     {
       "num": 597,
-      "file": "ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
-      "title": "oya-ci-materializer-kernel (E1): universal generated-artifact lifecycle \u2014 pure planner kernel"
+      "file": "ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+      "title": "ci-materializer-kernel (E1): universal generated-artifact lifecycle \u2014 pure planner kernel"
     },
     {
       "num": 604,
@@ -1200,7 +1200,7 @@
     {
       "num": 609,
       "file": "ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md",
-      "title": "Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required)"
+      "title": "Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into presubmit)"
     },
     {
       "num": 613,
@@ -1279,8 +1279,8 @@
     },
     {
       "num": 639,
-      "file": "ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
-      "title": "Path- and event-conditional constituents under the single oya-ci-required fan-in"
+      "file": "ADR-0639-path-event-optional-legs-under-presubmit.md",
+      "title": "Path- and event-conditional constituents under the single presubmit fan-in"
     }
   ]
 }

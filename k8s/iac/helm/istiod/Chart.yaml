@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-k8s-istiod
+name: cloud-k8s-istiod
 description: Istio control plane (istiod) with PeerAuthentication STRICT mesh-wide per ADR-0044 + ADR-0121
 type: application
 version: 0.1.0

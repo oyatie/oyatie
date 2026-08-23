@@ -1,0 +1,355 @@
+{
+  "pack": "sheets",
+  "scope_tier": "mature",
+  "scanned_files": 102,
+  "excluded_files": 3,
+  "violations": {
+    "valkey_engine": {
+      "severity": "hard",
+      "file_hits": [
+        {
+          "file": "app/sheets/backfill-replay.md",
+          "hits": [
+            {
+              "line": 48,
+              "excerpt": "- Integration test: seed Postgres + Valkey + S3 with synthetic workbook; reconstruct via backfill; verify reconstructed cell graph == original cell graph."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/PRD.md",
+          "hits": [
+            {
+              "line": 137,
+              "excerpt": "- Workbook metadata, cell storage, edit buffer, collab CRDT state, AI-formula prompts, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey + Arrow/"
+            },
+            {
+              "line": 498,
+              "excerpt": "**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WebSocket gateway pod owns active sessions for a given workbook; lease-coordinated"
+            },
+            {
+              "line": 513,
+              "excerpt": "- WebSocket gateway: stateful per active editor session; lease-coordinated via Valkey; HPA on WS connection count; min 3 replicas; max 100."
+            }
+          ],
+          "hits_total": 5
+        },
+        {
+          "file": "app/sheets/dpia.md",
+          "hits": [
+            {
+              "line": 50,
+              "excerpt": "**Where:** Per-pack region-pinned Sheets clusters; each pack has its own Postgres + Valkey + S3 + Arrow/Parquet substrate; CDN is global edge with per-pack cache keys."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/capacity-model.md",
+          "hits": [
+            {
+              "line": 23,
+              "excerpt": "Sizing formulas + reference-architecture baseline numbers for every Layer-A (CDN + WAF + Postgres + Valkey + WebSocket gateway + Arrow/Parquet OCI Object Storage + S3) and Layer-B (cell-grid-rest + col"
+            },
+            {
+              "line": 141,
+              "excerpt": "- **VPA**: vertical-pod-autoscaler for Postgres workers + Valkey."
+            },
+            {
+              "line": 142,
+              "excerpt": "- **Burst absorbing**: 60s of session-open backlog absorbed by Valkey ephemeral queue before back-pressure."
+            }
+          ],
+          "hits_total": 6
+        },
+        {
+          "file": "app/sheets/IP-001-iac-bootstrap.md",
+          "hits": [
+            {
+              "line": 16,
+              "excerpt": "# IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars"
+            },
+            {
+              "line": 20,
+              "excerpt": "Author Helm + Kustomize manifests for the sheets Layer-A substrate: OCI CDN (per-pack edge), OCI WAF, Postgres + Citus (workbook + cell + sharing-ACL + license + comments + version-pointers), Valkey (e"
+            },
+            {
+              "line": 141,
+              "excerpt": "- Valkey Sentinel docs \u2014 `valkey.io/topics/sentinel/`."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "app/sheets/threat-model.md",
+          "hits": [
+            {
+              "line": 50,
+              "excerpt": "| Valkey (ephemeral CRDT collab state + WebSocket lease coordination + recalc-progress streaming) | `sheets-formatting-*` |"
+            },
+            {
+              "line": 119,
+              "excerpt": "\u2502  \u250c\u2500 Valkey (ephemeral CRDT + recalc-progress) \u2500\u2510 \u250c\u2500 S3 (snapshots + history) \u2500\u2510\u2502"
+            },
+            {
+              "line": 129,
+              "excerpt": "\u2502  \u2502  - one WS pod owns one (tenant, workbook_id) lease via Valkey         \u2502     \u2502"
+            }
+          ],
+          "hits_total": 12
+        },
+        {
+          "file": "app/sheets/multi-region.md",
+          "hits": [
+            {
+              "line": 58,
+              "excerpt": "\u2502  \u2502  - WS lease in Valkey     \u2502            \u2502  - cold; warmed at FO    \u2502      \u2502"
+            },
+            {
+              "line": 70,
+              "excerpt": "\u2502  \u2502 Valkey Sentinel (active)  \u2502            \u2502 Valkey Sentinel (warm)    \u2502      \u2502"
+            },
+            {
+              "line": 95,
+              "excerpt": "| Valkey Sentinel | Async cross-AZ within region; cross-region on demand at failover | CRDT state regenerable from Postgres | intra-pack only |"
+            }
+          ],
+          "hits_total": 6
+        },
+        {
+          "file": "app/sheets/compliance.md",
+          "hits": [
+            {
+              "line": 178,
+              "excerpt": "| Encryption (at rest) | KMS-SSE for Postgres + Valkey AOF + S3 + Arrow/Parquet OCI Object Storage |"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/cost-budget.md",
+          "hits": [
+            {
+              "line": 31,
+              "excerpt": "| Block storage (PV) | Postgres editor + cell store; Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |"
+            },
+            {
+              "line": 51,
+              "excerpt": "| Valkey Sentinel HA (ephemeral CRDT) | 3 \u00d7 VM.Standard.E4 2-core | $108 | $20 PV (AOF) | $128 |"
+            },
+            {
+              "line": 139,
+              "excerpt": "| Valkey memory cap per tenant | 5% Valkey cost | Tenant disruption on overage |"
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "app/sheets/PHASE-01-SHEETS-FOUNDATION.md",
+          "hits": [
+            {
+              "line": 10,
+              "excerpt": "\u00b5service (CDN + WebSocket gateway + Postgres + Valkey + S3 + Arrow/Parquet via OCI Object Storage);"
+            },
+            {
+              "line": 86,
+              "excerpt": "| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (Citus), Valkey (ephemeral CRDT), WebSocket gateway, S3 (snapshots), OCI Object Storage (Ar"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "app/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md",
+          "hits": [
+            {
+              "line": 78,
+              "excerpt": "- Valkey lease test reveals split-brain \u2014 STOP."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/runbooks/collab-conflict-resolution-crdt.md",
+          "hits": [
+            {
+              "line": 44,
+              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n sheets exec <valkey-pod> -- valkey-cli HGETALL \"lease:tenant:<tenant_hash>:wb:<workbook_id>\"`."
+            },
+            {
+              "line": 75,
+              "excerpt": "| 2 | Reconstruct CRDT op stream from Postgres cell-edit-seal-deltas + Valkey ephemeral state: `cargo run -p sheets-collab-crdt-domain --bin reconstruct -- --tenant <h> --workbook <w>`. |"
+            },
+            {
+              "line": 83,
+              "excerpt": "## Recovery Path D \u2014 Valkey lease split-brain"
+            }
+          ],
+          "hits_total": 5
+        },
+        {
+          "file": "app/sheets/runbooks/recalc-storm-throttle.md",
+          "hits": [
+            {
+              "line": 21,
+              "excerpt": "Sheets runs a per-cell recalc-engine + WS gateway + Postgres + Valkey cluster sized for `100K active workbook sessions per region` and `1M-cell recalc p95 \u2264 10s`. A hot formula dependency chain (shared"
+            },
+            {
+              "line": 54,
+              "excerpt": "4. Verify Valkey memory."
+            },
+            {
+              "line": 91,
+              "excerpt": "| 4 | Verify Postgres + Valkey headroom. |"
+            }
+          ],
+          "hits_total": 4
+        },
+        {
+          "file": "app/sheets/decisions/ADR-SHEETS-0004-recalc-engine-architecture.md",
+          "hits": [
+            {
+              "line": 56,
+              "excerpt": "- Stored in Valkey hot for active sessions; reconstructable from Postgres `cells_hot.formula` field."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/decisions/ADR-SHEETS-0001-crdt-library-selection.md",
+          "hits": [
+            {
+              "line": 49,
+              "excerpt": "- Ephemeral CRDT state in Valkey (PRD \u00a7\"Horizontal Scalability\" mixed-state strategy); reconstructable from Postgres on cold-start."
+            },
+            {
+              "line": 64,
+              "excerpt": "- The same Layer-A Valkey substrate per pack (cell cluster)."
+            },
+            {
+              "line": 88,
+              "excerpt": "6. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`)."
+            }
+          ],
+          "hits_total": 4
+        },
+        {
+          "file": "app/sheets/policy/editor-isolation.md",
+          "hits": [
+            {
+              "line": 31,
+              "excerpt": "1. **Workbook metadata + cell rows** \u2014 Postgres + Valkey tagged by tenant_id; Arrow/Parquet large-sheet blocks per-(tenant, workbook, sheet) key."
+            },
+            {
+              "line": 50,
+              "excerpt": "| WebSocket gateway lease | Per (tenant_id, workbook_id) lease via Valkey | WS upgrade rejected; audit `sheets_ws_lease_cross_tenant` |"
+            },
+            {
+              "line": 161,
+              "excerpt": "**No tenant workbook content is EVER cached at CDN edge.** Workbook state lives in Postgres + Valkey + S3 + Arrow/Parquet only; CDN serves only tenant-agnostic assets."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "app/sheets/policy/data-residency.md",
+          "hits": [
+            {
+              "line": 65,
+              "excerpt": "- Valkey ephemeral CRDT: per-cell; not cross-region replicated (regenerable from Postgres)."
+            },
+            {
+              "line": 139,
+              "excerpt": "3. Postgres + Valkey + S3 + Arrow/Parquet + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after."
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "app/sheets/capabilities/T2-auto.yaml",
+          "hits": [
+            {
+              "line": 131,
+              "excerpt": "- Valkey read+write (per CRDT op: 0.5ms)"
+            },
+            {
+              "line": 177,
+              "excerpt": "Every Postgres + Valkey + S3 + Arrow/Parquet write tenant_id-scoped."
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "app/sheets/contracts/openapi/sheets.yaml",
+          "hits": [
+            {
+              "line": 878,
+              "excerpt": "summary: Readiness probe (Postgres + Valkey + cell SDK + foundry-runtime SDK reachable)"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/manifest.json",
+          "hits": [
+            {
+              "line": 130,
+              "excerpt": "\"title\": \"IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars\","
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "app/sheets/dashboards/collab-and-fanout.json",
+          "hits": [
+            {
+              "line": 131,
+              "excerpt": "\"title\": \"Valkey lease state (split-brain detection)\","
+            }
+          ],
+          "hits_total": 1
+        }
+      ],
+      "match_count": 65
+    }
+  },
+  "ip_files_thin": [
+    {
+      "file": "app/sheets/IP-014-observability-slo-manifests-9-openslo.md",
+      "lines": 68
+    },
+    {
+      "file": "app/sheets/IP-008-formatting-pivot-charts-data-validation.md",
+      "lines": 83
+    },
+    {
+      "file": "app/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md",
+      "lines": 79
+    },
+    {
+      "file": "app/sheets/IP-003-formula-engine-kernel-domain-400-functions.md",
+      "lines": 98
+    },
+    {
+      "file": "app/sheets/IP-010-sharing-acl-named-range-cedar.md",
+      "lines": 72
+    },
+    {
+      "file": "app/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md",
+      "lines": 65
+    },
+    {
+      "file": "app/sheets/IP-004-recalc-engine-dep-graph-parallel.md",
+      "lines": 90
+    },
+    {
+      "file": "app/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md",
+      "lines": 91
+    },
+    {
+      "file": "app/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md",
+      "lines": 85
+    }
+  ],
+  "verdict": "HARD_VIOLATIONS"
+}

@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Rollout strategy for Foundry capability publishes — eval-set + canary + cohort + audit-chain + Cosign-signed.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-shadow-diff
-  - oya-governance-rollback-evidence
+  - governance-canary-required
+  - governance-shadow-diff
+  - governance-rollback-evidence
 related_adrs: [ADR-0020, ADR-0021, ADR-0024, ADR-0039, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)).
+Foundry capability publishes through `intelligence-capability-kernel` + `intelligence-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)).
 
 ## 2. Default rail
 
@@ -52,7 +52,7 @@ If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemi
 
 ## 6. Rollback
 
-Per-cell rollback default. Capability-publish rollback re-emits a D14 entry naming the prior published version. The MCP gateway re-routes to the prior version atomically via `oya-intelligence-mcp-gateway-kernel` traffic-shift.
+Per-cell rollback default. Capability-publish rollback re-emits a D14 entry naming the prior published version. The MCP gateway re-routes to the prior version atomically via `intelligence-mcp-gateway-kernel` traffic-shift.
 
 For **replay-affecting** capability changes (output schema, tool-call signature), blue/green is mandatory; rollback re-shifts traffic to the prior version's MCP endpoint.
 
@@ -68,10 +68,10 @@ Per publish, emit:
 
 ## 8. Anti-patterns
 
-- Publishing without eval-set baseline → blocked by `oya-governance-cohesion`.
+- Publishing without eval-set baseline → blocked by `governance-cohesion`.
 - Publishing without Cosign signature → blocked by supply-chain lane.
-- Skipping dark-launch on replay-affecting capability → blocked by `oya-governance-shadow-diff`.
-- Canary against a single provider when capability has multiple adapters → blocked by lane (`oya-governance-canary-required`).
+- Skipping dark-launch on replay-affecting capability → blocked by `governance-shadow-diff`.
+- Canary against a single provider when capability has multiple adapters → blocked by lane (`governance-canary-required`).
 
 ## 9. Hyperscaler equivalent
 

@@ -1,7 +1,7 @@
 # Spec: cloud-obs-cardinality-budget-rollup
 
 **Vertical:** observability  
-**Crate:** `oya-cloud-observability-kernel`  
+**Crate:** `cloud-observability-kernel`  
 **ADR references:** ADR-0130 (agentic SLO-gated promotion), ADR-0131 (per-microservice flat layout)  
 **Stage:** SPEC
 
@@ -26,7 +26,7 @@ no external dependencies.
 ```
 microservices/observability/
   crates/
-    oya-cloud-observability-kernel/   <-- sole crate touched by this task
+    cloud-observability-kernel/   <-- sole crate touched by this task
       src/lib.rs
       Cargo.toml
 ```
@@ -132,8 +132,8 @@ pattern in this crate.
 ### Verification command
 
 ```
-cargo check -p oya-cloud-observability-kernel --all-targets
-cargo nextest run -p oya-cloud-observability-kernel
+cargo check -p cloud-observability-kernel --all-targets
+cargo nextest run -p cloud-observability-kernel
 ```
 
 ---
@@ -142,7 +142,7 @@ cargo nextest run -p oya-cloud-observability-kernel
 
 | Constraint | Rule |
 |---|---|
-| Crate scope | Only `crates/oya-cloud-observability-kernel/src/lib.rs` |
+| Crate scope | Only `crates/cloud-observability-kernel/src/lib.rs` |
 | Root `Cargo.toml` | Never edited |
 | New crates | None |
 | External deps | None added |

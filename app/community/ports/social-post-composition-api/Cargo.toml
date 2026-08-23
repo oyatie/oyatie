@@ -7,7 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-shared-protocol-parity-kernel = { path = "../../../../libs/oya-shared-protocol-parity-kernel" }
+shared-protocol-parity-kernel = { path = "../../../../gateway/core/protocol-parity-kernel" }
+
 
 [lib]
 name = "community_social_post_composition_api"

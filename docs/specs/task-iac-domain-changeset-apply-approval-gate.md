@@ -3,12 +3,12 @@
 ## Objective
 
 Introduce a pure, deterministic apply-approval gating kernel inside
-`oya-cloud-iac-domain` that classifies a `PlanChangeset` into one of three
+`cloud-iac-domain` that classifies a `PlanChangeset` into one of three
 approval tiers before any `tofu apply` execution.
 
 ## Crate boundary
 
-Crate: `oya-cloud-iac-domain` (flat / single-file: `src/lib.rs`).
+Crate: `cloud-iac-domain` (flat / single-file: `src/lib.rs`).
 No new workspace member. No external crate dependencies.
 
 ## Contracts
@@ -79,7 +79,7 @@ Coverage:
 
 ## Observability / SLO
 
-`oya-cloud-iac-domain` is a pure domain crate with no SLO authoring required
+`cloud-iac-domain` is a pure domain crate with no SLO authoring required
 (no network/HTTP surface). Upstream adapters are responsible for emitting OTel
 spans and recording the `ApplyApprovalVerdict` as a span attribute.
 

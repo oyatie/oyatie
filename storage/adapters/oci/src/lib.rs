@@ -437,7 +437,7 @@ const fn encryption_label(mode: EncryptionMode) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
     use storage_domain::{
         CloudStorageError, ResidencyClass, StorageProviderBlockCreateVolumeRequest,
         VolumePerformance,
@@ -445,11 +445,11 @@ mod tests {
 
     const NAMESPACE: &str = "axdotp9iv3ua";
     const BUCKET: &str = "oyatie-audit-cold-backup";
-    const BUCKET_ID: &str = "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets";
+    const BUCKET_ID: &str = "oyatie:cloud:alpha-region:ten_alpha:bucket:tenant-assets";
     const OBJECT_KEY: &str = "workspace/report.pdf";
     const COMPARTMENT_REF: &str = "ocid1.compartment.oc1..cloud";
     const AVAILABILITY_DOMAIN: &str = "alpha-region-a";
-    const VOLUME_ID: &str = "oya:cloud:alpha-region:ten_alpha:volume:db-primary";
+    const VOLUME_ID: &str = "oyatie:cloud:alpha-region:ten_alpha:volume:db-primary";
 
     fn adapter() -> OciObjectStorageAdapter {
         OciObjectStorageAdapter::new(
@@ -630,7 +630,7 @@ mod tests {
                 .body_canonical
                 .contains("availability_domain=alpha-region-a")
         );
-        assert!(command.body_canonical.contains("volume_id=oya:cloud:"));
+        assert!(command.body_canonical.contains("volume_id=oyatie:cloud:"));
         assert!(command.body_canonical.contains("tier=provisioned_iops_ssd"));
         assert!(command.body_canonical.contains("encryption=byok"));
         assert!(
@@ -680,7 +680,7 @@ mod tests {
         ));
 
         let mut bad_bucket = put_request();
-        bad_bucket.bucket_id = "oya:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
+        bad_bucket.bucket_id = "oyatie:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
         assert_eq!(
             bad_bucket.validate(),
             Err(StorageProviderObjectError::InvalidRequestShape(
@@ -699,7 +699,7 @@ mod tests {
         ));
 
         let mut bad_volume = block_create_request();
-        bad_volume.volume_id = "oya:cloud:alpha-region:ten_alpha:bucket:not-volume".to_string();
+        bad_volume.volume_id = "oyatie:cloud:alpha-region:ten_alpha:bucket:not-volume".to_string();
         assert_eq!(
             bad_volume.validate(),
             Err(StorageProviderBlockError::InvalidRequestShape(

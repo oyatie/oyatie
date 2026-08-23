@@ -3,7 +3,7 @@
 ## Objective
 
 Add a REST control-plane edge for the `cedar.policy.publish` surface inside the existing
-`oya-policy-cedar-api` crate. A new `src/rest/` module exposes an axum router that:
+`policy-cedar-api` crate. A new `src/rest/` module exposes an axum router that:
 
 1. Accepts `POST /policies/{policy_id}/versions/{version}` with JSON request body.
 2. Extracts boundary headers (`X-Request-Id`, `X-Tenant-Id`, `Idempotency-Key`), principal fields
@@ -17,14 +17,14 @@ Add a REST control-plane edge for the `cedar.policy.publish` surface inside the 
 
 ## Crate Boundary
 
-- Crate: `oya-policy-cedar-api` (path: `crates/oya-policy-cedar-api/`).
+- Crate: `policy-cedar-api` (path: `crates/policy-cedar-api/`).
 - No new workspace member; no edits to root `Cargo.toml`.
 - ADR-0509 flat-clean-architecture: clean-arch layers are mods in `src/`.
 
 ## Module Layout (flat clean arch)
 
 ```
-crates/oya-policy-cedar-api/
+crates/policy-cedar-api/
   src/
     lib.rs          <- existing; add `pub mod rest;`
     rest/
@@ -149,12 +149,12 @@ crates/oya-policy-cedar-api/
 
 ## SLO / ADR-0130
 
-No new OpenSLO file required: `oya-policy-cedar-api` is a library crate (no independently
+No new OpenSLO file required: `policy-cedar-api` is a library crate (no independently
 deployable µservice). SLO authoring requirement applies to µservice promotions.
 
 ## Disjointness Gate
 
 `git diff --stat origin/dev` must touch ONLY:
-- `crates/oya-policy-cedar-api/**`
+- `crates/policy-cedar-api/**`
 - `docs/specs/task-cedar-policy-publish-rest-edge.md`
 - `tasks/cedar-policy-publish-rest-edge-plan.md`

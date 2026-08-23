@@ -24,7 +24,7 @@ const PLAN_NAME: &str = "tenant-rbac-identity-provider-runtime-evidence-plan";
 const SERVICE_NAME: &str = "tenant-rbac";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
-const SOURCE_PLAN_REF: &str = "crates/oya-tenant-rbac-identity-provider-verification/src/lib.rs::tenant_rbac_identity_provider_verification_plan";
+const SOURCE_PLAN_REF: &str = "crates/tenant-rbac-identity-provider-verification/src/lib.rs::tenant_rbac_identity_provider_verification_plan";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum IdentityProviderRuntimeEvidenceRequirementKind {
@@ -582,7 +582,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_plan_ref,
-        "crates/oya-tenant-rbac-identity-provider-verification/",
+        "crates/tenant-rbac-identity-provider-verification/",
         TenantRbacIdentityProviderRuntimeEvidenceError::InvalidSourcePlanRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

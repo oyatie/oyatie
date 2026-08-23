@@ -89,7 +89,7 @@ doc_status: published
 | Axis | Choice | Strongest precedent |
 |---|---|---|
 | Crate / SDK | SemVer 2.0.0 with workspace lockstep → independent at GA | Rust + AWS SDK + Google libraries |
-| Product | SemVer-derived `oya-vX.Y.Z`, MAJOR bump on external break | Kubernetes `v1.30.0` |
+| Product | SemVer-derived `vX.Y.Z`, MAJOR bump on external break | Kubernetes `v1.30.0` |
 | External API | Hybrid: `v1` path + `?api-version=YYYY-MM-DD` query | Google AIP-180 + Microsoft Azure |
 | Release branch | `release/X.Y` | Git Flow + Atlassian extension |
 | Cadence | Per-axis (continuous for Foundry/Search; bi-weekly elsewhere) | Mix of AWS continuous + Azure monthly BOM |

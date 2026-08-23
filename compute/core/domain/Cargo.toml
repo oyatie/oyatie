@@ -7,11 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-iam-cloud-domain = { path = "../../../iam/core/cloud-domain" }
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+iam-domain = { path = "../../../iam/core/domain-control" }
 network-domain = { path = "../../../network/core/domain" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../resource" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

@@ -18,7 +18,7 @@ This team owns site reliability engineering across all Oyatie axes: SLO catalog 
   - Error-budget dashboards (per-surface)
   - PagerDuty / alerting configuration
 - **Cross-axis contracts (DESIGN §10):** (consumer of all surfaces' SLO declarations; no contract ownership)
-- **Catalog records:** SRE tooling crates (under `oya-governance-*` in coordination with `axis-foundry`)
+- **Catalog records:** SRE tooling crates (under `governance-*` in coordination with `axis-foundry`)
 - **Runbooks:** `runbooks/sev1-incident-response.md`, `runbooks/error-budget-exhaustion.md`, `runbooks/on-call-handover.md`, `runbooks/release-rollback.md`
 - **ADRs:** ADR-0050 (release management), ADR-0040 (launch readiness)
 

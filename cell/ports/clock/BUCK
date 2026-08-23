@@ -1,0 +1,19 @@
+rust_library(
+    name = "cell-clock-api",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "cell_clock_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "cell-clock-api-clock-port",
+    srcs = ["tests/clock_port.rs"],
+    crate = "cell_clock_api_clock_port",
+    crate_root = "tests/clock_port.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cell-clock-api",
+    ],
+)

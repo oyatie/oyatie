@@ -1,7 +1,7 @@
 //! The in-memory reference sink — the executable specification of the
 //! D-14 idempotent metering sink, proven by [`crate::conformance`] in
 //! this crate's tests. NOT a production store: no durability across
-//! process restart — the durable sink arrives via the G03 `oya-data`
+//! process restart — the durable sink arrives via the G03 `data`
 //! port behind the same trait.
 
 use std::collections::BTreeMap;

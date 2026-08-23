@@ -1,4 +1,4 @@
-# Canonical StorageClass: oya-s3-cold
+# Canonical StorageClass: s3-cold
 # Per ADR-0161. S3-compatible object storage, archive tier (S3 Glacier Instant
 # Retrieval / GCS Coldline / Azure Archive class). For long-term audit-chain
 # anchors, tenant exports, backups.
@@ -6,7 +6,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: oya-s3-cold
+  name: s3-cold
   labels:
     oyatie.io/canonical: "true"
     oyatie.io/adr: "ADR-0161"

@@ -2,35 +2,35 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-iac-autosharding-hot-split-latency
-  displayName: "cloud-iac autosharding HOT-SPLIT p99 latency"
+  name: iac-app-autosharding-hot-split-latency
+  displayName: "iac-app autosharding HOT-SPLIT p99 latency"
   labels:
-    microservice: cloud-iac
+    microservice: iac-app
     doctrine_wave: wave-15-zf-15
     adr_0346: superseded-local-verifier-retired
     adr_0347: retired-fitness-to-governance-bulk-rename
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
-    adr_0349: superseded-ci-github-actions-oya-ci-required-argocd-gitops
+    adr_0349: superseded-ci-github-actions-presubmit-argocd-gitops
     automation_mode: dynamic_sharding
     automation_event: hot_split
-    enforced_by: oya-governance-dynamic-sharding-threshold-coverage
+    enforced_by: governance-dynamic-sharding-threshold-coverage
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_purpose: "Retired local oya verifier/gate/check wrappers are not active authority; oya-ci-required is the required CI authority."
-    adr_0347_enforced_by: "oya-governance-lane-prefix-vocabulary"
-    adr_0348_enforced_by: "oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events"
-    adr_0349_enforced_by: "oya-ci-required; oya-governance-argocd-application-cosign-verified"
+    adr_0346_purpose: "Retired local verifier/gate/check wrappers are not active authority; presubmit is the required CI authority."
+    adr_0347_enforced_by: "governance-lane-prefix-vocabulary"
+    adr_0348_enforced_by: "governance-dynamic-sharding-threshold-coverage; governance-audit-chain-emit-on-automation-events"
+    adr_0349_enforced_by: "presubmit; governance-argocd-application-cosign-verified"
 spec:
-  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds cloud-iac hot-split latency and requires audit-chain emission under ADR-0348, governance lane vocabulary under ADR-0347, cloud-ci/oya-ci required validation, and ArgoCD GitOps CD evidence."
+  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds iac-app hot-split latency and requires audit-chain emission under ADR-0348, governance lane vocabulary under ADR-0347, ci required validation, and ArgoCD GitOps CD evidence."
   indicator:
     metadata:
-      name: cloud-iac-autosharding-hot-split-latency-indicator
+      name: iac-app-autosharding-hot-split-latency-indicator
     spec:
       thresholdMetric:
         metricSource:
           type: Prometheus
           spec:
-            query: 'histogram_quantile(0.99, sum(rate(oya_autosharding_hot_split_duration_seconds_bucket{microservice="cloud-iac",automation_event="hot_split"}[5m])) by (le))'
+            query: 'histogram_quantile(0.99, sum(rate(autosharding_hot_split_duration_seconds_bucket{microservice="iac-app",automation_event="hot_split"}[5m])) by (le))'
   objectives:
     - displayName: "99% of HOT-SPLIT events complete within 300s over 30d"
       target: 0.99
@@ -44,35 +44,35 @@ spec:
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-iac-autosharding-rebalance-migration-time
-  displayName: "cloud-iac AUTO-REBALANCE migration p99 duration"
+  name: iac-app-autosharding-rebalance-migration-time
+  displayName: "iac-app AUTO-REBALANCE migration p99 duration"
   labels:
-    microservice: cloud-iac
+    microservice: iac-app
     doctrine_wave: wave-15-zf-15
     adr_0346: superseded-local-verifier-retired
     adr_0347: retired-fitness-to-governance-bulk-rename
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
-    adr_0349: superseded-ci-github-actions-oya-ci-required-argocd-gitops
+    adr_0349: superseded-ci-github-actions-presubmit-argocd-gitops
     automation_mode: auto_rebalance
     automation_event: tenant_migration
-    enforced_by: oya-governance-auto-rebalance-residency-honored
+    enforced_by: governance-auto-rebalance-residency-honored
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_enforced_by: "oya-ci-required; cloud-ci shared Rust gate logic; local-authority-enforcer"
-    adr_0347_enforced_by: "retired-fitness-residue-detection; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
-    adr_0348_enforced_by: "oya-governance-auto-rebalance-residency-honored; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility"
-    adr_0349_purpose: "GitHub Actions produces oya-ci-required until owned oya-ci cutover; ArgoCD is the canonical GitOps CD orchestrator."
+    adr_0346_enforced_by: "presubmit; ci shared Rust gate logic; local-authority-enforcer"
+    adr_0347_enforced_by: "retired-fitness-residue-detection; governance-lane-prefix-vocabulary; governance-rename-inventory-presence"
+    adr_0348_enforced_by: "governance-auto-rebalance-residency-honored; governance-audit-chain-emit-on-automation-events; governance-tenant-migration-reversibility"
+    adr_0349_purpose: "GitHub Actions produces presubmit until owned ci cutover; ArgoCD is the canonical GitOps CD orchestrator."
 spec:
-  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds cloud-iac rebalance migration time and requires observable, reversible, audit-chain-emitting automation enforced with governance vocabulary, cloud-ci/oya-ci required validation, and ArgoCD GitOps CD evidence."
+  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds iac-app rebalance migration time and requires observable, reversible, audit-chain-emitting automation enforced with governance vocabulary, ci required validation, and ArgoCD GitOps CD evidence."
   indicator:
     metadata:
-      name: cloud-iac-autosharding-rebalance-migration-time-indicator
+      name: iac-app-autosharding-rebalance-migration-time-indicator
     spec:
       thresholdMetric:
         metricSource:
           type: Prometheus
           spec:
-            query: 'histogram_quantile(0.99, sum(rate(oya_autosharding_rebalance_migration_duration_seconds_bucket{microservice="cloud-iac",automation_event="tenant_migration"}[5m])) by (le, migration_distance))'
+            query: 'histogram_quantile(0.99, sum(rate(autosharding_rebalance_migration_duration_seconds_bucket{microservice="iac-app",automation_event="tenant_migration"}[5m])) by (le, migration_distance))'
   objectives:
     - displayName: "99% of intra-region AUTO-REBALANCE migrations complete within 600s over 30d"
       target: 0.99

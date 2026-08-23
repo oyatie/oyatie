@@ -17,7 +17,7 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
     let map = default_worker_ownership();
     assert!(
         map.iter()
-            .any(|worker| worker.name == "cloud-intelligence-gateway"
+            .any(|worker| worker.name == "intelligence-app-gateway"
                 && worker.kind == WorkerKind::GatewayDeployment)
     );
     assert!(map.iter().any(|worker| worker.name == "route-controller"));
@@ -32,7 +32,7 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
     assert!(map.iter().any(|worker| worker.kind == WorkerKind::CronJob));
     assert!(
         map.iter()
-            .all(|worker| !worker.hot_path || worker.name == "cloud-intelligence-gateway")
+            .all(|worker| !worker.hot_path || worker.name == "intelligence-app-gateway")
     );
     assert!(
         map.iter()
@@ -49,7 +49,7 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
 /// with a non-forcing `relative = true` entry in `.cargo/config.toml`. An unbound or non-regular
 /// resource fails closed instead of silently reading the wrong bytes.
 fn manifest() -> String {
-    const BINDING: &str = "OYA_INTELLIGENCE_K8S_MANIFEST";
+    const BINDING: &str = "OYATIE_INTELLIGENCE_K8S_MANIFEST";
     let path = std::env::var_os(BINDING)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| panic!("FAIL-CLOSED: declared manifest binding {BINDING} is unset"));
@@ -72,33 +72,33 @@ fn assert_manifest_contains(manifest: &str, needle: &str) {
 fn k8s_manifest_declares_crds_workers_canaries_and_hardening() {
     let manifest = manifest();
     for crd in [
-        "providerbackends.cloud-intelligence.oya.io",
-        "modelroutes.cloud-intelligence.oya.io",
-        "modelaliassets.cloud-intelligence.oya.io",
-        "promptprofiles.cloud-intelligence.oya.io",
-        "thinkingpolicies.cloud-intelligence.oya.io",
-        "subscriptionseats.cloud-intelligence.oya.io",
-        "wireprofiles.cloud-intelligence.oya.io",
-        "toolcompatibilityprofiles.cloud-intelligence.oya.io",
-        "gatewaycircuitbreakers.cloud-intelligence.oya.io",
-        "capabilityparitybaselines.cloud-intelligence.oya.io",
-        "agentruntimeprofiles.cloud-intelligence.oya.io",
-        "agentmemorybindings.cloud-intelligence.oya.io",
-        "agentskillbundles.cloud-intelligence.oya.io",
-        "agentschedules.cloud-intelligence.oya.io",
-        "agentdelegationpolicies.cloud-intelligence.oya.io",
-        "agentworkspacebindings.cloud-intelligence.oya.io",
-        "guardraildetectionprofiles.cloud-intelligence.oya.io",
-        "evidenceretentionprofiles.cloud-intelligence.oya.io",
-        "intransitredactionprofiles.cloud-intelligence.oya.io",
-        "safetysignalpolicies.cloud-intelligence.oya.io",
-        "manualreviewescalations.cloud-intelligence.oya.io",
+        "providerbackends.intelligence-app.oyatie.io",
+        "modelroutes.intelligence-app.oyatie.io",
+        "modelaliassets.intelligence-app.oyatie.io",
+        "promptprofiles.intelligence-app.oyatie.io",
+        "thinkingpolicies.intelligence-app.oyatie.io",
+        "subscriptionseats.intelligence-app.oyatie.io",
+        "wireprofiles.intelligence-app.oyatie.io",
+        "toolcompatibilityprofiles.intelligence-app.oyatie.io",
+        "gatewaycircuitbreakers.intelligence-app.oyatie.io",
+        "capabilityparitybaselines.intelligence-app.oyatie.io",
+        "agentruntimeprofiles.intelligence-app.oyatie.io",
+        "agentmemorybindings.intelligence-app.oyatie.io",
+        "agentskillbundles.intelligence-app.oyatie.io",
+        "agentschedules.intelligence-app.oyatie.io",
+        "agentdelegationpolicies.intelligence-app.oyatie.io",
+        "agentworkspacebindings.intelligence-app.oyatie.io",
+        "guardraildetectionprofiles.intelligence-app.oyatie.io",
+        "evidenceretentionprofiles.intelligence-app.oyatie.io",
+        "intransitredactionprofiles.intelligence-app.oyatie.io",
+        "safetysignalpolicies.intelligence-app.oyatie.io",
+        "manualreviewescalations.intelligence-app.oyatie.io",
     ] {
         assert_manifest_contains(&manifest, crd);
     }
 
     for deployment in [
-        "name: cloud-intelligence-gateway",
+        "name: intelligence-app-gateway",
         "name: route-controller",
         "name: model-inventory-worker",
         "name: credential-refresh-worker",
@@ -145,7 +145,7 @@ fn agent_runtime_resources_are_first_class_but_durable_state_uses_refs() {
     )
     .expect("first-class runtime profile");
     assert_eq!(runtime.kind, "AgentRuntimeProfile");
-    assert!(runtime.cloud_intelligence_owned_control_plane);
+    assert!(runtime.intelligence_app_owned_control_plane);
     assert!(!runtime.embeds_model_runtime);
     assert!(!runtime.installs_cli_or_tui_surface);
 
@@ -551,7 +551,7 @@ fn xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans() {
 }
 
 #[test]
-fn internal_coding_agent_workflow_composes_cloud_intelligence_resources_only() {
+fn internal_coding_agent_workflow_composes_intelligence_app_resources_only() {
     let workflow = InternalCodingAgentWorkflowPlan::dogfood_default(
         "tenant-a",
         "oyatie-internal-coding-agent",
@@ -570,7 +570,7 @@ fn internal_coding_agent_workflow_composes_cloud_intelligence_resources_only() {
         workflow.schedule_ref,
         "schedule-ref://tenant-a/nightly-drift-check"
     );
-    assert!(workflow.cloud_intelligence_primitive_only);
+    assert!(workflow.intelligence_app_primitive_only);
     assert!(workflow.requires_policy_engine_decision);
     assert!(workflow.requires_secondary_review_for_critical_blocks);
     assert!(workflow.uses_redacted_evidence_handles);

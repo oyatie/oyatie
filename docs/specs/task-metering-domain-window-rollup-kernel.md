@@ -2,14 +2,14 @@
 
 ## Objective
 
-Extend `oya-metering-domain` with a deterministic, I/O-free window rollup kernel.
+Extend `metering-domain` with a deterministic, I/O-free window rollup kernel.
 Given a populated `Meter` and a closed time-window `[start, end]` (Unix epoch seconds),
 produce a stable-ordered aggregate mapping `(tenant_id, capability_id, MeterUnitKind) →
 total_quantity_microunits`.
 
 ## Crate Boundary
 
-All changes are confined to `crates/oya-metering-domain/src/lib.rs`.
+All changes are confined to `crates/metering-domain/src/lib.rs`.
 No new workspace members. No new crate dependencies.
 
 ## Flat Clean-Architecture Mod Layout

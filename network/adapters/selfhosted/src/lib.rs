@@ -402,6 +402,7 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use data_boundary_kernel::DataClass;
     use network_domain::{
         CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr,
         NetworkProviderDnsZoneError, NetworkProviderDnsZonePort, NetworkProviderVpcPort,
@@ -409,13 +410,12 @@ mod tests {
         SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
     };
     use network_residency::ResidencyClass;
-    use oya_data_boundary_kernel::DataClass;
 
     const SITE_REF: &str = "kr-seoul-colo-a";
     const CELL_REF: &str = "cell-kr-seoul-a";
     const FABRIC_REF: &str = "fabric-ovn-frr-a";
-    const VPC_ID: &str = "oya:cloud:alpha-region:ten_alpha:vpc:prod";
-    const DNS_ZONE_ID: &str = "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com";
+    const VPC_ID: &str = "oyatie:cloud:alpha-region:ten_alpha:vpc:prod";
+    const DNS_ZONE_ID: &str = "oyatie:cloud:alpha-region:ten_alpha:dns-zone:example-com";
 
     fn adapter() -> SelfHostedColoVpcAdapter {
         SelfHostedColoVpcAdapter::new(

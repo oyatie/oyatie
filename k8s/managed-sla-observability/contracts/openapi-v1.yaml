@@ -1,6 +1,0 @@
-openapi: 3.2.0
-info:
-  title: managed-k8s-sla-observability
-  version: 0.1.0
-  description: Placeholder OpenAPI surface for the managed-k8s-sla-observability microservice; live REST surfaces tracked in ADR-0376 follow-on lanes.
-paths: {}

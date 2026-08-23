@@ -21,10 +21,10 @@ pub mod authz;
 use std::collections::BTreeMap;
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
-use messaging_domain::{EventingError, Outbox, OutboxRecord};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
+use messaging_domain::{EventingError, Outbox, OutboxRecord};
 
 use authz::{
     AuditEmitAuthorizationError, AuditEmitAuthzProvider, AuditEmitResource, AuditEmitScope,
@@ -32,7 +32,7 @@ use authz::{
 };
 
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit.event.emit";
-pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";
+pub const AUDIT_EVENT_TOPIC: &str = "oyatie.platform.audit";
 pub const AUDIT_EVENT_EMIT_SCHEMA: &str = "audit.event.emit.v1";
 pub const AUDIT_EVENT_EMIT_SOURCE: &str = "oyatie://platform/audit-chain";
 pub const AUDIT_EVENT_ASYNCAPI_CONTRACT: &str = "contracts/asyncapi/platform/audit-events-v1.yaml";

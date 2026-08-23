@@ -6,14 +6,14 @@ doc_status: published
 
 ## Mission
 
-Own the per-locale regional packs that plug into Oyatie's canonical architecture per ADR-0010 regional-pack-architecture. Each pack supplies regulatory binding, i18n / morphology, currency / calendar, tax-invoice, identity providers, payment rails, address book, ecosystem partners, content safety, ad-policy gates, industry data-model extensions, and vendor partners. Do NOT own the canonical seams (those live in `oya-platform-*` kernels); pack maintainers ship the impls.
+Own the per-locale regional packs that plug into Oyatie's canonical architecture per ADR-0010 regional-pack-architecture. Each pack supplies regulatory binding, i18n / morphology, currency / calendar, tax-invoice, identity providers, payment rails, address book, ecosystem partners, content safety, ad-policy gates, industry data-model extensions, and vendor partners. Do NOT own the canonical seams (those live in `platform-*` kernels); pack maintainers ship the impls.
 
 ## Owned axes / surfaces / contracts
 
 - **Axis(es):** cross-cutting; pack architecture per ADR-0010
 - **Per-product PRDs:** none directly (packs are infrastructure); per-pack content at [`regional-packs/<pack-id>/PACK.md`](../../regional-packs/)
 - **Cross-axis contracts owned/co-owned:** per-pack regulatory binding, per-pack tax / payment / identity adapters, per-pack content + ad-policy gates
-- **Catalog records:** `registry/catalog/regional-packs/oya-pack-<region>.yaml`
+- **Catalog records:** `registry/catalog/regional-packs/pack-<region>.yaml`
 - **Runbooks owned:** `cross-axis/regional-pack-regulator-update.md`
 - **ADRs authored / co-authored:** ADR-0010 (regional-pack-architecture), ADR-0048 (Korean morphology + multilingual tokenization), ADR-0049 (cross-region replication + residency)
 
@@ -31,7 +31,7 @@ Own the per-locale regional packs that plug into Oyatie's canonical architecture
 
 - Authoring vertical-axis kernels (those live with per-vertical teams; per ADR-0033)
 - Authoring axis-foundry code (those live with per-axis teams)
-- Authoring cross-axis canonical seams (those live in `oya-platform-*`; this team consumes via trait impls)
+- Authoring cross-axis canonical seams (those live in `platform-*`; this team consumes via trait impls)
 - Per-customer integration (handled by `gtm-customer-success`)
 
 ## Key dependencies on other teams
@@ -73,7 +73,7 @@ Own the per-locale regional packs that plug into Oyatie's canonical architecture
 | Cross-pack contract violations | 0 per quarter |
 
 Org-level metrics this rolls up to:
-- `oya-governance-regional-pack` lane pass rate
+- `governance-regional-pack` lane pass rate
 - Per-region tenant onboarding velocity
 - Per-region regulator-incident count
 
@@ -104,7 +104,7 @@ Org-level metrics this rolls up to:
 - Per-pack maintainer is the regulator-relations primary contact
 - Per-pack ADR amendments authored by pack maintainer + reviewed by `council-privacy` + `council-architecture`
 - Per-pack regulator-watch lane fires on regulatory feed updates (e.g. KISA / PIPC announcements)
-- Per-PR `oya-governance-regional-pack` lane validates seam-impl coverage
+- Per-PR `governance-regional-pack` lane validates seam-impl coverage
 - Cosign signing required per release per ADR-0039
 
 ## Slice of risk register
@@ -121,7 +121,7 @@ Org-level metrics this rolls up to:
 
 - ADR-0010 (regional-pack architecture), ADR-0048, ADR-0049
 - [`docs/regional-packs/_TEMPLATE.md`](../../regional-packs/_TEMPLATE.md)
-- [`docs/regional-packs/oya-pack-kr/PACK.md`](../../regional-packs/oya-pack-kr/PACK.md)
+- [`docs/regional-packs/pack-kr/PACK.md`](../../regional-packs/pack-kr/PACK.md)
 - [DESIGN.md §12](../../DESIGN.md)
 - [INTERNATIONALIZATION.md](../../INTERNATIONALIZATION.md)
 - [COMPLIANCE-MATRIX.md](../../COMPLIANCE-MATRIX.md)

@@ -44,7 +44,7 @@ pub enum ArchitecturePlane {
     Integration,
     /// Plane 6 — OTel traces + metrics on all µservice boundaries (ADR-0229).
     Observability,
-    /// Plane 7 — Secrets via `oya-secrets-kernel`; no plaintext credentials (ADR-0230).
+    /// Plane 7 — Secrets via `secrets-kernel`; no plaintext credentials (ADR-0230).
     Security,
     /// Plane 8 — Statelessness + shardability + cell architecture (ADR-0231).
     Scalability,

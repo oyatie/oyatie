@@ -1459,7 +1459,7 @@ Per the fixuptasks.jsonl entry F-KS-GATE-5-13, this audit document constitutes t
 
 This audit uses file-count proxies for several grading dimensions. Proxy metrics have known limitations:
 
-1. **Axis B (ADR adherence):** File-count of ADR references is a lower-bound proxy. A file referencing many ADRs superficially is counted the same as one with deep conformance analysis. A follow-on mechanical audit using `oya gate validate` sub-checks would yield higher-fidelity scores.
+1. **Axis B (ADR adherence):** File-count of ADR references is a lower-bound proxy. A file referencing many ADRs superficially is counted the same as one with deep conformance analysis. A follow-on mechanical audit using `presubmit` (retired CLI `gate validate`) sub-checks would yield higher-fidelity scores.
 
 2. **Axis C (Engineering rigor):** The six dimensions weight presence of directories (slos/, contracts/) and reference density (Cedar, tenant_id), not content quality. A µservice with a single-line SLO file scores the same as one with fully-specified OpenSLO targets.
 

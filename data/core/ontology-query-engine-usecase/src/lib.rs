@@ -340,9 +340,9 @@ fn canonical_evidence_refs(input: &OntologyQueryExecutionInput) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use data_boundary_kernel::{DataClass, PrivacyDataClass};
     use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
     use data_ontology_query_engine_domain::KnowledgeGraphLinkInstance;
-    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
     fn property(name: &str) -> ObjectProperty {
         ObjectProperty::new(

@@ -39,7 +39,7 @@ doc_status: published
 
 ## Keyword discipline
 
-Always include: (a) the area/crate/module (e.g. `oya-platform-tenant-kernel`, `foundry-eval-harness`); (b) the canonical IDs (`<MNN-PNN>`, `<IP-NNN>`, `<ADR-####>`, `<EVT-NNNN>`, `<MFL-NNNN>`, `<RM-NN>`) the row relates to. Lowercase, comma-separated, no spaces.
+Always include: (a) the area/crate/module (e.g. `platform-tenant-kernel`, `foundry-eval-harness`); (b) the canonical IDs (`<MNN-PNN>`, `<IP-NNN>`, `<ADR-####>`, `<EVT-NNNN>`, `<MFL-NNNN>`, `<RM-NN>`) the row relates to. Lowercase, comma-separated, no spaces.
 
 ## What NOT to store
 

@@ -34,13 +34,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_experiment_result_computation_lag_seconds_bucket{le="60.0"}[5m]))
+                sum(rate(experiment_result_computation_lag_seconds_bucket{le="60.0"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_experiment_result_computation_lag_seconds_count[5m]))
+                sum(rate(experiment_result_computation_lag_seconds_count[5m]))
   alerting:
     burnRateAlerts:
       - shortWindow: 15m

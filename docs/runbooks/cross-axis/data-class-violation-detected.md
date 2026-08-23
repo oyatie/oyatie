@@ -14,7 +14,7 @@ doc_status: published
 a record with a forbidden data_class crossed an axis boundary it should not have crossed
 
 ## Detection
-- Source signal: `oya-governance-data-class` runtime guard; per-class compile-time annotation diff; auction-side schema rejection log
+- Source signal: `governance-data-class` runtime guard; per-class compile-time annotation diff; auction-side schema rejection log
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 2 ladder
 
 ## First-response checklist
@@ -28,7 +28,7 @@ a record with a forbidden data_class crossed an axis boundary it should not have
 Block the offending caller; quarantine the affected destination index/store; capture the call trace + the schema diff
 
 ## Diagnosis
-Walk the call chain to find the source service; verify the source service is in the singleton allowlist (oya-platform-ads-gate / oya-platform-analytics-router); check for missing schema annotation
+Walk the call chain to find the source service; verify the source service is in the singleton allowlist (platform-ads-gate / platform-analytics-router); check for missing schema annotation
 
 ## Recovery
 Add the missing schema annotation OR remove the offending call site; verify with replay; emit MFL row + ship a fitness lane catch

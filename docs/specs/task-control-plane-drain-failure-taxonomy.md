@@ -4,13 +4,13 @@
 |-------|-------|
 | Task slug | `control-plane-drain-failure-taxonomy` |
 | Vertical | infra |
-| Crate | `oya-managed-k8s-control-plane-host-kernel` |
+| Crate | `managed-k8s-control-plane-host-kernel` |
 | Branch | `feat/cd-control-plane-drain-failure-taxonomy` |
 | Stage | SPEC |
 
 ## Objective
 
-Extend the pure-domain `oya-managed-k8s-control-plane-host-kernel` crate
+Extend the pure-domain `managed-k8s-control-plane-host-kernel` crate
 (ADR-0376) with:
 
 1. A typed **`FailureReason`** taxonomy — machine-readable codes attached to
@@ -30,7 +30,7 @@ No port signatures, no I/O, no HTTP, no async.
 
 ## Crate Context
 
-`oya-managed-k8s-control-plane-host-kernel` already owns:
+`managed-k8s-control-plane-host-kernel` already owns:
 
 - `ControlPlaneTier` — `HostedKamaji` | `DedicatedTalosSpoke`
 - `DatastoreClass` — `EtcdPerTenant` | `PooledRelational`
@@ -186,4 +186,4 @@ correlation keys.
 - Dev-deps: `serde_json` (workspace, already present). No new dev-deps.
 - No new workspace members.
 - Root `Cargo.toml` not touched.
-- `ControlPlaneProvisioning` port signature (in `oya-managed-k8s-control-plane-host-api`) not changed.
+- `ControlPlaneProvisioning` port signature (in `managed-k8s-control-plane-host-api`) not changed.

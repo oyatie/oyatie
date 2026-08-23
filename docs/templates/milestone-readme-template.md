@@ -10,7 +10,7 @@ purpose: |
   and agent-navigability pointer. An autonomous executor reading this
   README can enter the milestone and locate the first open phase without
   escalation.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md
@@ -37,7 +37,7 @@ entry_gate: |
   Name the prior milestone ID + its exit criterion, or "none" for M01.
 exit_gate: |
   Exact condition that declares M0X complete. Must name at least:
-  - Buck2/cloud-ci command or required context evidence
+  - Buck2/pipeline command or required context evidence
   - a product-level outcome (e.g., "1 KR paying tenant live")
 owner_team: <team-id>
 bominal_adrs_inherited:
@@ -75,7 +75,7 @@ If M01: "none — first milestone."
 
 Exact, measurable conditions that declare this milestone complete:
 
-1. `<Buck2 / cloud-ci command>` exits 0 across all milestone-scope targets.
+1. `<Buck2 / pipeline command>` exits 0 across all milestone-scope targets.
 3. `<product outcome>`: e.g., "1 KR group paying tenant live; 4대보험 EDI green."
 4. `<fitness lane>`: all LEAN lanes exit 0 for milestone-scope crates.
 

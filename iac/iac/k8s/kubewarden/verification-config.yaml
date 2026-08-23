@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-kubewarden-image-verification-config
+  name: kubewarden-image-verification-config
   namespace: kubewarden
   labels:
-    app.kubernetes.io/name: oya-kubewarden-image-verification-config
-    app.kubernetes.io/part-of: oya-cloud-iac
+    app.kubernetes.io/name: kubewarden-image-verification-config
+    app.kubernetes.io/part-of: iac-app
     oyatie.com/admission-default: kubewarden
   annotations:
     oyatie.com/change-id: CS-CLOUD-IAC-KUBEWARDEN-ADMISSION-POLICY-GATE-001

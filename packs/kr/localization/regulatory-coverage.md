@@ -812,4 +812,4 @@ This file is scoped to `/packs/kr-localization/`.
 It does not edit ADRs.
 It does not edit microservices.
 It does not edit other packs.
-It must be verified with line count, required heading presence, and Oya VCS lifecycle commands.
+It must be verified with line count, required heading presence, and retired VCS ratchet lifecycle commands.

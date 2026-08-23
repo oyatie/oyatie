@@ -221,8 +221,8 @@ The following scope tensions were detected during charter authorship and are fla
 **Recommendation:** Define a `TraceabilityHandoff` contract owned by `council-architecture` in DESIGN §10. Both vertical teams implement the handoff; the council owns the schema.
 
 ### 7.4 `axis-cloud` IAM vs. `platform-tenancy-identity` IAM
-**Tension:** Two IAM surfaces exist: `oya-cloud-iam-kernel` (cloud-customer-facing) and `oya-platform-identity-kernel` (SaaS-facing). DESIGN §10 notes these are "two ADRs in lockstep." The lockstep requirement is a coordination burden that could drift.
-**Recommendation:** Monthly IAM sync between `axis-cloud` and `platform-tenancy-identity` is already in both charters. Additionally, add a fitness function `oya-governance-iam-lockstep` that verifies the two IAM kernel shape versions are compatible after any IAM change. This is better than a process-only mitigation.
+**Tension:** Two IAM surfaces exist: `cloud-iam-kernel` (cloud-customer-facing) and `platform-identity-kernel` (SaaS-facing). DESIGN §10 notes these are "two ADRs in lockstep." The lockstep requirement is a coordination burden that could drift.
+**Recommendation:** Monthly IAM sync between `axis-cloud` and `platform-tenancy-identity` is already in both charters. Additionally, add a fitness function `governance-iam-lockstep` that verifies the two IAM kernel shape versions are compatible after any IAM change. This is better than a process-only mitigation.
 
 ### 7.5 `council-privacy` secretariat vs. `platform-privacy-dub` team
 **Tension:** `platform-privacy-dub` is the secretariat of `council-privacy`, meaning the team that drafts ADRs also manages the governance process that ratifies them. This is a soft conflict of interest.

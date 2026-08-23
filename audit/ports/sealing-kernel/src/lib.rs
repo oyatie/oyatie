@@ -37,7 +37,7 @@ pub enum SealStatus {
     Retained,
 }
 
-/// Seal record summary; persisted by `oya-audit-chain-sealing-adapter-postgres`.
+/// Seal record summary; persisted by `audit-chain-sealing-adapter-postgres`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SealRecord {
     pub pack: String,               // data_class: PUBLIC

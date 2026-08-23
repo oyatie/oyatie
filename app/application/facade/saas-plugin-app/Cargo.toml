@@ -1,0 +1,18 @@
+[package]
+name = "saas-plugin-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+marketplace-plugin-kernel = { path = "../../../../marketplace/core/plugin-kernel" }
+
+[lib]
+name = "saas_plugin_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

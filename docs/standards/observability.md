@@ -18,7 +18,7 @@ purpose: |
   defaults. Operates within `decision-principles.json` DP-08 (audit-chain
   emission on every cross-axis flow).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-otel-emit
+planned_enforcement_ref: governance-otel-emit
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/on-call.md
@@ -43,7 +43,7 @@ defect, not an optimization. This standard names the three pillars
 
 ## 1. OpenTelemetry mandatory
 
-Every `oya-*` service binary emits telemetry via the **OpenTelemetry SDK**
+Every `oyatie-*` service binary emits telemetry via the **OpenTelemetry SDK**
 (Rust crate family: `opentelemetry`, `opentelemetry-otlp`, `tracing-opentelemetry`,
 `opentelemetry_sdk`). OTLP (gRPC or HTTP) is the wire format.
 
@@ -57,7 +57,7 @@ Every `oya-*` service binary emits telemetry via the **OpenTelemetry SDK**
   - Honeycomb for high-cardinality query.
   - Datadog only when the regional pack mandates a vendor SaaS.
 
-Lane: `oya-governance-otel-emit` validates every service has an OTLP
+Lane: `governance-otel-emit` validates every service has an OTLP
 exporter wired and emits the three pillars.
 
 Sources: [OpenTelemetry Collector docs](https://opentelemetry.io/docs/collector/),
@@ -108,7 +108,7 @@ Every log line carries:
 |---|---|---|---|
 | `timestamp` | ISO-8601 UTC | YES | nanosecond precision |
 | `severity` | string | YES | `ERROR`/`WARN`/`INFO`/`DEBUG`/`TRACE` |
-| `service` | string | YES | crate package name (`oya-intelligence-runtime-rag`) |
+| `service` | string | YES | crate package name (`intelligence-runtime-rag`) |
 | `version` | string | YES | git SHA short |
 | `trace_id` | hex | when in span | W3C trace context |
 | `span_id` | hex | when in span | W3C span context |
@@ -121,7 +121,7 @@ Every log line carries:
 | `audit.evt_id` | ULID | on audit emission | `EVT-*` correlation |
 
 No secrets in `message` or any field; redacted by the `tracing-subscriber`
-filter layer at edge. Lane: `oya-governance-log-schema` validates
+filter layer at edge. Lane: `governance-log-schema` validates
 the JSON shape on golden fixtures.
 
 ## 4. Audit-chain `EVT-*` emission contract
@@ -151,7 +151,7 @@ Every `EVT-*` record carries `evt_id` (ULID), `timestamp`, `service`,
 `tenant_id` (if applicable), `actor_id`, `trace_id`, and a topic-specific
 payload. Records are JSON, hash-chained, persisted under audit shards.
 
-Lane: `oya-governance-audit-emission` validates that every
+Lane: `governance-audit-emission` validates that every
 cross-pillar code path emits the required topic.
 
 ## 5. Exemplars (trace ↔ metric correlation)
@@ -165,7 +165,7 @@ Per Honeycomb-style observability:
 - Cost: low if cardinality is bounded; high if trace_id is leaked into
   label sets (do NOT label-on-trace-id).
 
-The lane `oya-governance-exemplar-coverage` checks that latency
+The lane `governance-exemplar-coverage` checks that latency
 histograms on hot paths emit exemplars.
 
 ## 6. Retention defaults

@@ -1,6 +1,6 @@
 # Spec: ulid-crockford-timestamp-validation-hardening
 
-**Crate**: `oya-shared-ulid-id-kernel`
+**Crate**: `shared-ulid-id-kernel`
 **Lane**: foundation
 **Priority**: med
 **Effort**: S

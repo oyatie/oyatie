@@ -9,7 +9,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const METER_EVENT_SCHEMA_VERSION: u32 = 1;
 const METER_EVENT_ID_PREFIX: &str = "mtr_";

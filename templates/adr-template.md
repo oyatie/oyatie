@@ -6,7 +6,7 @@ purpose: |
   Canonical ADR shape with autogen-friendly frontmatter (id, owners, supersedes, superseded_by) suitable for ADR-INDEX rendering and supersession-graph validation. Aligns to hyperscaler convergent ADR practice (AWS / Google / Microsoft / Oracle) and oyatie's existing pack convention (`docs/decisions/ADR-NNNN-<slug>.md`).
 lift_target: oyatie/docs/templates/adr-template.md
 supersedes: docs/templates/adr-template.md
-enforcing_fitness_lane: oya-governance-adr-shape
+enforcing_fitness_lane: governance-adr-shape
 owner_team: crew-adr-promotion
 related:
   - docs/ADR-INDEX.md
@@ -77,7 +77,7 @@ Map the decision back to: (a) spec acceptance criteria it satisfies; (b) Master 
 
 ## Compounding principles incorporated by reference
 
-Optional but **RECOMMENDED**. List the Master Plan principles (1-12) this ADR explicitly inherits, with one-line justification each. Used by `oya-governance-adr-shape` to verify principle coverage on cross-cutting ADRs.
+Optional but **RECOMMENDED**. List the Master Plan principles (1-12) this ADR explicitly inherits, with one-line justification each. Used by `governance-adr-shape` to verify principle coverage on cross-cutting ADRs.
 
 ## Follow-ups
 

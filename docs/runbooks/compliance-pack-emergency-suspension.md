@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-compliance + council-legal + council-privacy
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0251 §D-2, ADR-0251 §D-3, ADR-0251 §D-8, ADR-0243
 
 ---
@@ -168,7 +168,7 @@ The migration workflow:
 For tenants that cannot upgrade (e.g., they do not meet the new version's `cell_eligibility` requirements):
 - Identify via:
   ```
-  oya gate validate tenant-pack-cell-pinning --pack-id <PACK_ID> --version <NEW_VERSION> --tenant-ids <TENANT_IDS>
+  presubmit (retired CLI gate validate) tenant-pack-cell-pinning --pack-id <PACK_ID> --version <NEW_VERSION> --tenant-ids <TENANT_IDS>
   ```
 - Escalate blockers to `ops-compliance` for case-by-case resolution.
 
@@ -234,7 +234,7 @@ Once the grace period ends:
 
 3. **Replacement version published and passing cell-pinning validation:**
    ```
-   oya gate validate compliance-pack-schema --pack-id <PACK_ID> --version <NEW_VERSION>
+   presubmit (retired CLI gate validate) compliance-pack-schema --pack-id <PACK_ID> --version <NEW_VERSION>
    ```
 
 4. **After grace period: zero tenants on old version** (§C Step 6 check).

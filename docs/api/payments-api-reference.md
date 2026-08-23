@@ -489,9 +489,9 @@ ADR-0316 payments tiers map to payment transaction and API envelopes.
 Rate-limit headers:
 
 - `Retry-After`
-- `oya-throttle-class`
-- `oya-throttle-user-headroom`
-- `oya-throttle-tenant-headroom`
+- `throttle-class`
+- `throttle-user-headroom`
+- `throttle-tenant-headroom`
 - Provider-specific retry hints, preserved under `details.provider_retry_after`
 
 ## OpenAPI 3.2.0 Schema

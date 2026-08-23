@@ -6,12 +6,12 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, Vpc, VpcCreate, VpcState,
 };
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub mod authz;
 

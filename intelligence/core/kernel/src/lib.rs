@@ -1,4 +1,4 @@
-//! cloud-intelligence kernel — pure-Rust contracts for the OAuth subscription pool
+//! intelligence-app kernel — pure-Rust contracts for the OAuth subscription pool
 //! (ADR-0384 Path B).
 //!
 //! Kernel scope:
@@ -51,7 +51,7 @@ pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
 // ---------------------------------------------------------------------------
 
 /// Opaque tenant identifier. Per oyatie-dogfood-tenancy, Oyatie itself runs as
-/// a tenant of its own cloud-intelligence; there is no internal bypass.
+/// a tenant of its own intelligence-app; there is no internal bypass.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TenantId(String); // data_class: INTERNAL_ONLY
 
@@ -125,7 +125,7 @@ impl SubscriptionId {
     }
 }
 
-/// Provider enum for cloud-intelligence gateway pools.
+/// Provider enum for intelligence-app gateway pools.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Provider {
     Anthropic,
@@ -536,7 +536,7 @@ pub trait AuthzGate {
 // Event-emission seam (D6)
 // ---------------------------------------------------------------------------
 
-/// D6 event shape — every cloud-intelligence request emits one of these to the
+/// D6 event shape — every intelligence-app request emits one of these to the
 /// configured sink. ClickHouse OLAP (ADR-0193) and Valkey Stream consume the
 /// same shape via separate adapter crates.
 #[derive(Clone, Debug, Eq, PartialEq)]

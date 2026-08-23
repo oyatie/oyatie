@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every doc matches its declared Diataxis class shape (tutorial, how-to, reference, explanation).
 - enforces: Directive 10 (MASTERPLAN) — docs match their declared class shape.
-- kernel_crate: `oya-governance-diataxis-doc-class-kernel` — `ClassifiedDoc { path, declared_class, has_required_sections }`, verdict `DiataxisDocClassFitnessReport { docs_checked }`.
-- runner_path: `tools/oya-governance-diataxis-doc-class`
+- kernel_crate: `governance-diataxis-doc-class-kernel` — `ClassifiedDoc { path, declared_class, has_required_sections }`, verdict `DiataxisDocClassFitnessReport { docs_checked }`.
+- runner_path: `tools/governance-diataxis-doc-class`
 - inputs: catalog rows with `doc_class`, doc parse, per-class section schema.
 - failure_modes:
   - declared `tutorial` but no `Steps` section
   - `reference` doc contains opinion/narrative
   - declared class unknown
-- ci_invocation: `cargo run -p oya-governance-diataxis-doc-class`
+- ci_invocation: `cargo run -p governance-diataxis-doc-class`
 - runtime_budget: 700 ms
 - severity: MED
 - kernel_sketch:

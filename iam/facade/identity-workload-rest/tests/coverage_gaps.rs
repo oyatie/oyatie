@@ -1,4 +1,4 @@
-//! Coverage-gap tests for oya-identity-workload-rest.
+//! Coverage-gap tests for identity-workload-rest.
 //!
 //! Fills the paths not exercised by rest_endpoints.rs and grpc_authorize_deny.rs:
 //!

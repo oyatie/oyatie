@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-audit-chain-merkle-chain-verification-latency
+  name: audit-chain-merkle-chain-verification-latency
   displayName: "audit-chain: Merkle chain verification latency p95 ≤ 200ms per batch"
   labels:
     microservice: audit-chain
@@ -30,13 +30,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_audit_chain_merkle_verify_duration_seconds_bucket{le="0.2"}[5m]))
+                sum(rate(audit_chain_merkle_verify_duration_seconds_bucket{le="0.2"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_audit_chain_merkle_verify_duration_seconds_count[5m]))
+                sum(rate(audit_chain_merkle_verify_duration_seconds_count[5m]))
   objectives:
     - target: 0.95
       displayName: "p95 ≤ 200ms per 10k-leaf batch for 95% of 5min windows over 30d"
@@ -45,4 +45,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

@@ -24,7 +24,7 @@ use compute_k8s_api::{
     delete_cluster_with_authorization_verifier,
 };
 
-const CLUSTER_ID: &str = "oya:cloud:region-home:ten_alpha:k8s:prod";
+const CLUSTER_ID: &str = "oyatie:cloud:region-home:ten_alpha:k8s:prod";
 const K8S_AUTHZ_EVALUATION_EPOCH_SECONDS: u64 = 1_700_099_500;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeK8sApiBoundaryContext {
@@ -131,23 +131,23 @@ fn body(resource_id: &str) -> CloudComputeK8sClusterCreateRequest {
         tenant_id: "ten_alpha".to_string(),
         region: "region-home".to_string(),
         flavor: "high_availability".to_string(),
-        control_plane_version: "v1.30.2-oya.1".to_string(),
+        control_plane_version: "v1.30.2-oyatie.1".to_string(),
         control_plane_private: true,
         node_pools: vec![
             node_pool(
                 "np_a",
                 "region-home-a",
-                "oya:cloud:region-home:ten_alpha:subnet:prod-a",
+                "oyatie:cloud:region-home:ten_alpha:subnet:prod-a",
             ),
             node_pool(
                 "np_b",
                 "region-home-b",
-                "oya:cloud:region-home:ten_alpha:subnet:prod-b",
+                "oyatie:cloud:region-home:ten_alpha:subnet:prod-b",
             ),
             node_pool(
                 "np_c",
                 "region-home-c",
-                "oya:cloud:region-home:ten_alpha:subnet:prod-c",
+                "oyatie:cloud:region-home:ten_alpha:subnet:prod-c",
             ),
         ],
         quota: quota(),
@@ -245,7 +245,7 @@ fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.flavor, "high_availability");
-    assert_eq!(first.data.control_plane_version, "v1.30.2-oya.1");
+    assert_eq!(first.data.control_plane_version, "v1.30.2-oyatie.1");
     assert!(first.data.control_plane_private);
     assert_eq!(first.data.node_pool_count, 3);
     assert_eq!(first.data.residency, "strict_home_region");
@@ -278,7 +278,7 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
     let mut request = request("req-compute-k8s-drift", "idem-compute-k8s-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:k8s:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:k8s:other".to_string();
 
     let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body cluster drift is rejected");
@@ -287,7 +287,7 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeK8sApiError::ClusterIdMismatch {
             path_cluster_id: CLUSTER_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:k8s:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:k8s:other".to_string(),
         }
     );
     assert_eq!(error.cluster_create_status_code(), 400);
@@ -528,7 +528,7 @@ fn k8s_create_api_rejects_reused_idempotency_key_with_new_fingerprint() {
         .expect("initial create succeeds");
 
     let mut drifted = request;
-    drifted.body.control_plane_version = "v1.31.0-oya.1".to_string();
+    drifted.body.control_plane_version = "v1.31.0-oyatie.1".to_string();
     assert_eq!(
         create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, drifted),
         Err(CloudComputeK8sApiError::IdempotencyKeyReused {
@@ -1017,7 +1017,7 @@ fn k8s_delete_api_rejects_reused_key_for_different_cluster() {
     .expect("initial delete succeeds");
 
     let mut drifted = delete_request("req-del-reuse-2", "idem-del-reuse");
-    drifted.path_cluster_id = "oya:cloud:region-home:ten_alpha:k8s:other".to_string();
+    drifted.path_cluster_id = "oyatie:cloud:region-home:ten_alpha:k8s:other".to_string();
 
     let error = delete_cloud_compute_k8s_cluster_from_api(&catalog, &mut delete_ledger, drifted)
         .expect_err("same key different cluster_id is rejected");
@@ -1067,7 +1067,7 @@ fn k8s_create_idempotency_ledger_enforces_bounded_retention() {
     )
     .expect("first create succeeds");
     let mut second = request("req-k8s-bound-2", "idem-k8s-bound-2");
-    second.path_cluster_id = "oya:cloud:region-home:ten_alpha:k8s:prod-bound-2".to_string();
+    second.path_cluster_id = "oyatie:cloud:region-home:ten_alpha:k8s:prod-bound-2".to_string();
     second.body.resource_id = second.path_cluster_id.clone();
     create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, second)
         .expect("second create succeeds");

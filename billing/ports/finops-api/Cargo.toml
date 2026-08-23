@@ -7,9 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 billing-domain = { path = "../../core/billing" }
 billing-finops = { path = "../../core/finops" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 billing-metering = { path = "../../core/metering" }
 
 [lib]

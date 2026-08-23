@@ -26,14 +26,14 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_playback_start_duration_seconds_bucket{cdn_state="warm",le="0.4"}[5m]))
-                + sum(rate(oya_recordings_playback_start_duration_seconds_bucket{cdn_state="cold",le="1.0"}[5m]))
+                sum(rate(recordings_playback_start_duration_seconds_bucket{cdn_state="warm",le="0.4"}[5m]))
+                + sum(rate(recordings_playback_start_duration_seconds_bucket{cdn_state="cold",le="1.0"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_playback_start_duration_seconds_count[5m]))
+                sum(rate(recordings_playback_start_duration_seconds_count[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

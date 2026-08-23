@@ -22,8 +22,8 @@ inbound_citations:
   - docs/onboarding/intern-day-one.md
   - docs/onboarding/intern-week-one.md
 enforced_by:
-  - oya-governance-doc-rigor
-  - oya-governance-doc-graph-6hops
+  - governance-doc-rigor
+  - governance-doc-graph-6hops
 ---
 
 # Security Engineer Month-One Onboarding
@@ -110,8 +110,8 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 7. microservices/messenger/decisions/ADR-MSG-001-mls-e2ee-key-delivery-architecture.md
 8. microservices/messenger/runbooks/e2e-encryption-key-rotation.md
 9. docs/decisions/ADR-0702-identity-authz-live-apex.md
-10. crates/oya-secrets-domain/src/lib.rs
-11. crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+10. crates/secrets-domain/src/lib.rs
+11. crates/secrets-file-adapter/tests/file_secret_store.rs
 12. docs/runbooks/per-cell-hsm-rotation.md
 13. docs/runbooks/security-incident-response.md
 14. docs/runbooks/provider-credential-leak-response.md
@@ -129,9 +129,9 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 
 ### Named playgrounds
 
-1. crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs
+1. crates/policy-cedar-api/tests/cedar_policy_publish_api.rs
    - Artifact: write a four-sentence note explaining what this playground proves for security engineer, platform security and tenant trust.
-2. crates/oya-secrets-domain/tests/secret_vault.rs
+2. crates/secrets-domain/tests/secret_vault.rs
    - Artifact: write a four-sentence note explaining what this playground proves for security engineer, platform security and tenant trust.
 3. microservices/messenger/runbooks/e2e-encryption-key-rotation.md
    - Artifact: write a four-sentence note explaining what this playground proves for security engineer, platform security and tenant trust.
@@ -463,7 +463,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-009 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-010: provider credential leak
-- Read: crates/oya-secrets-domain/src/lib.rs
+- Read: crates/secrets-domain/src/lib.rs
 - Connects to: regulated data constraints under KR, EU, CN, FedRAMP, and IL5/6 packs
 - Build or inspect: a minimal artifact that proves provider credential leak without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for provider credential leak.
@@ -473,7 +473,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-010 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-011: break-glass evidence
-- Read: crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+- Read: crates/secrets-file-adapter/tests/file_secret_store.rs
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves break-glass evidence without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for break-glass evidence.
@@ -613,7 +613,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-024 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-025: per-cell HSM rotation
-- Read: crates/oya-secrets-domain/src/lib.rs
+- Read: crates/secrets-domain/src/lib.rs
 - Connects to: SPIFFE bootstrap identity and kill-switch semantics
 - Build or inspect: a minimal artifact that proves per-cell HSM rotation without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for per-cell HSM rotation.
@@ -623,7 +623,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-025 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-026: SPIFFE kill switch
-- Read: crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+- Read: crates/secrets-file-adapter/tests/file_secret_store.rs
 - Connects to: tenant secret custody, rotation, and shredding
 - Build or inspect: a minimal artifact that proves SPIFFE kill switch without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for SPIFFE kill switch.
@@ -763,7 +763,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-039 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-040: MLS epoch mismatch
-- Read: crates/oya-secrets-domain/src/lib.rs
+- Read: crates/secrets-domain/src/lib.rs
 - Connects to: regulated data constraints under KR, EU, CN, FedRAMP, and IL5/6 packs
 - Build or inspect: a minimal artifact that proves MLS epoch mismatch without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for MLS epoch mismatch.
@@ -773,7 +773,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-040 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-041: MLS recipient compromise
-- Read: crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+- Read: crates/secrets-file-adapter/tests/file_secret_store.rs
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves MLS recipient compromise without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for MLS recipient compromise.
@@ -913,7 +913,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-054 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-055: Cedar hot-reload TOCTOU
-- Read: crates/oya-secrets-domain/src/lib.rs
+- Read: crates/secrets-domain/src/lib.rs
 - Connects to: SPIFFE bootstrap identity and kill-switch semantics
 - Build or inspect: a minimal artifact that proves Cedar hot-reload TOCTOU without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar hot-reload TOCTOU.
@@ -923,7 +923,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-055 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-056: fragment soak anomaly
-- Read: crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+- Read: crates/secrets-file-adapter/tests/file_secret_store.rs
 - Connects to: tenant secret custody, rotation, and shredding
 - Build or inspect: a minimal artifact that proves fragment soak anomaly without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for fragment soak anomaly.
@@ -1063,7 +1063,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-069 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-070: security incident tabletop
-- Read: crates/oya-secrets-domain/src/lib.rs
+- Read: crates/secrets-domain/src/lib.rs
 - Connects to: regulated data constraints under KR, EU, CN, FedRAMP, and IL5/6 packs
 - Build or inspect: a minimal artifact that proves security incident tabletop without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for security incident tabletop.
@@ -1073,7 +1073,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-070 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-071: threat model STRIDE row
-- Read: crates/oya-secrets-file-adapter/tests/file_secret_store.rs
+- Read: crates/secrets-file-adapter/tests/file_secret_store.rs
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves threat model STRIDE row without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for threat model STRIDE row.

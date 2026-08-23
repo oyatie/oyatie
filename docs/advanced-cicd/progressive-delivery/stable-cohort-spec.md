@@ -7,10 +7,10 @@ status: Accepted
 date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
-  Per-tenant stable cohorts that never see canary. Cohort assignment via oya-platform-tenant-cohort-kernel.
+  Per-tenant stable cohorts that never see canary. Cohort assignment via platform-tenant-cohort-kernel.
   Integrates with autonomy-ceiling and per-vertical regulatory packs.
 planned_enforcement_ref:
-  - oya-governance-cohort-honor
+  - governance-cohort-honor
 related_adrs: [ADR-0040, ADR-0022, ADR-0034, ADR-0049]
 doc_status: published
 ---
@@ -25,11 +25,11 @@ Some tenants pay (or are legally required) for **release-train stability**: they
 
 This is the Google SRE "frozen baseline" pattern, the AWS Outposts pattern, and the Oracle Government Cloud pattern.
 
-## 2. The kernel: `oya-platform-tenant-cohort-kernel` (NEW)
+## 2. The kernel: `platform-tenant-cohort-kernel` (NEW)
 
 Single source of truth for tenant cohort assignment. Inputs: tenant-id, axis, change-class. Outputs: cohort decision (`stable` | `canary-eligible` | `experiment-eligible`), evidence chain.
 
-Co-located with `oya-platform-tenant-kernel` (existing). Cohort decisions are persisted per-tenant with a signed audit trail.
+Co-located with `platform-tenant-kernel` (existing). Cohort decisions are persisted per-tenant with a signed audit trail.
 
 ## 3. Cohort taxonomy
 
@@ -51,7 +51,7 @@ Every rollout decision is intersected with cohort at three points:
 2. **Canary traffic split** ([`canary-rail-spec.md`](canary-rail-spec.md) §3) — Flagger webhook calls cohort kernel; stable tenants are pinned to baseline.
 3. **Blue/green cutover** ([`blue-green-spec.md`](blue-green-spec.md) §6) — stable cohorts stay on blue until per-vertical pack approves green.
 
-Bypassing intersection = lane failure (`oya-governance-cohort-honor`).
+Bypassing intersection = lane failure (`governance-cohort-honor`).
 
 ## 5. Integration with autonomy ceiling
 
@@ -74,7 +74,7 @@ All changes emit D14 audit-chain records ([ADR-0003](../../../docs/decisions/ADR
 
 ## 8. Connect-no-ads cohort (LEDG-021 honour)
 
-Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Planned advisory lane: `oya-governance-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
+Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Planned advisory lane: `governance-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
 
 ## 9. Visibility
 
@@ -82,8 +82,8 @@ Per-tenant trust portal ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-l
 
 ## 10. Compliance gates
 
-- `oya-governance-cohort-honor` (NEW; HIGH) — verifies regulated/no-ads cohorts honoured at every rollout cut.
-- `oya-governance-audit-emit` (existing; extended).
+- `governance-cohort-honor` (NEW; HIGH) — verifies regulated/no-ads cohorts honoured at every rollout cut.
+- `governance-audit-emit` (existing; extended).
 
 ## 11. Lift target
 

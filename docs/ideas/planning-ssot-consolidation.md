@@ -141,7 +141,7 @@ research flagged). Instead:
    `exit_criteria`/`milestone`. Forces the discipline without manual policing.
 3. **Backfill** the planning-impact ADRs to the template (only `planning_impact`, not all ~300).
 4. **`oya gen masterplan`** generator (ADRs + status-ledger/CI → roadmap projection).
-5. **Masterplan drift gate** (committed == regenerated), wired into `oya gate run-all`.
+5. **Masterplan drift gate** (committed == regenerated), wired into `presubmit`.
 6. **Contract-traceability + compatibility gate** (registry entry → ratifying ADR; breaking →
    migration deliverable).
 7. Retire tasks/, archive docs/plans/, deprecate docs/MASTERPLAN.md, add CODEOWNERS + freshness gate.
@@ -157,7 +157,7 @@ vs ADRs); "spec-saturated, code-starved" governance; pack over-fragmentation. (S
 ONE canonical convention for every governance identifier — gates, lanes, specs, plans, docs, registries
 (crate names already governed by the ADR-0105 BNF). Names describe **function**, best-practice / Google
 AIP descriptive-identifier style — `kebab-case`, verb-noun, self-explanatory at a glance.
-- **Good**: `oya gate validate contract-traceability`, `masterplan-drift`, `docs-folder-discipline`,
+- **Good**: `presubmit` (retired CLI `gate validate contract-traceability`), `masterplan-drift`, `docs-folder-discipline`,
   `adr-planning-completeness` (here `adr` = the artifact type, not a number).
 - **FORBIDDEN** (the antipattern): a name that encodes *provenance* instead of *function* —
   ADR-number-keyed (`adr-0244-*`, `adr0145-gates`, lane purposes that read "per ADR-0110"),

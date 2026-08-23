@@ -33,7 +33,7 @@ uses ADR-0330's canonical `tenant_class` model:
 
 ## Top-of-mind facts
 
-- The 1,030-line Rust kernel at `crates/oya-cloud-billing-domain/src/lib.rs` is the substance truth.
+- The 1,030-line Rust kernel at `crates/cloud-billing-domain/src/lib.rs` is the substance truth.
 - The `tenant_class` enum has exactly 2 values: `demo_trial` and `paid`. No third value is permitted without superseding ADR-0330.
 - `billing_components` is meaningful only when `tenant_class == paid`. The 8 valid subsets are documented in §7 of `PRD.md`.
 - `demo_trial → paid` is a one-way transition. `paid → demo_trial` is forbidden.
@@ -46,7 +46,7 @@ uses ADR-0330's canonical `tenant_class` model:
 ### Read tenant class
 
 ```rust
-use oya_cloud_billing_sdk::Client;
+use cloud_billing_sdk::Client;
 
 let client = Client::new("https://cloud-billing.internal.oyatie.dev:50051")?;
 let status = client.get_tenant_class("ten_acme").await?;
@@ -56,8 +56,8 @@ println!("tenant_class={:?}, billing_components={:?}", status.tenant_class, stat
 ### Emit a usage event
 
 ```rust
-use oya_cloud_billing_domain::{CloudBillingEventCreate, CloudBillingEventKind};
-use oya_data_boundary_kernel::DataClass;
+use cloud_billing_domain::{CloudBillingEventCreate, CloudBillingEventKind};
+use data_boundary_kernel::DataClass;
 
 let event = CloudBillingEventCreate {
     id: "cbill_pod_minute_42".to_string(),
@@ -348,14 +348,14 @@ See `implementation-plans/IP-001` through `implementation-plans/IP-015` for the 
 
 ```bash
 # Kernel tests (existing 1,030-line kernel)
-cargo test -p oya-cloud-billing-domain
+cargo test -p cloud-billing-domain
 
 # Integration tests (cross-µservice tax handoff)
-cargo test -p oya-cloud-billing-tax-app
+cargo test -p cloud-billing-tax-app
 
 # Wave 15B new tests
-cargo test -p oya-cloud-billing-app
-cargo test -p oya-cloud-billing-worker
+cargo test -p cloud-billing-app
+cargo test -p cloud-billing-worker
 ```
 
 Dual-fixture tests are required per ADR-0330 §B.9.3. The CI lane `ci-tenant-class-adoption-check` rejects single-fixture tests.
@@ -400,7 +400,7 @@ Production deployment is always container-image-based; .pkg / Homebrew are devel
 
 ## Substance bar
 
-This µservice is authored under ADR-0322 substance-bar requirement. The 1,030-line Rust kernel at `crates/oya-cloud-billing-domain/src/lib.rs` is the substance truth; the Wave 15B spec authoring (PRD + ARCHITECTURE + contracts + SLOs + Cedar + IaC + OS manifest) documents the kernel + extensions per ADR-0330.
+This µservice is authored under ADR-0322 substance-bar requirement. The 1,030-line Rust kernel at `crates/cloud-billing-domain/src/lib.rs` is the substance truth; the Wave 15B spec authoring (PRD + ARCHITECTURE + contracts + SLOs + Cedar + IaC + OS manifest) documents the kernel + extensions per ADR-0330.
 
 A cold-start intern engineer should be able to build cloud-billing using only:
 
@@ -431,7 +431,7 @@ Inherited from oyatie root.
 
 ## Doctrine references
 
-- [ADR-0346](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- [ADR-0347](../../docs/decisions/ADR-0709-general-live-apex.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- [ADR-0348](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- [ADR-0349](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- [ADR-0346](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace` are the local verify path and MUST locally mirror the merge-blocking `presubmit` matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- [ADR-0347](../../docs/decisions/ADR-0709-general-live-apex.md): Every `governance-*` CI lane prefix RENAMES to `governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- [ADR-0348](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- [ADR-0349](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.

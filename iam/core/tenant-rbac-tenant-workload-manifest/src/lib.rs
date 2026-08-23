@@ -137,8 +137,8 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 Fd001TenantWorkloadKind::TenantRbac,
                 "tenant-rbac-runtime",
                 "tenant-rbac",
-                "oya-tenant-rbac-app",
-                "crates/oya-tenant-rbac-app",
+                "tenant-rbac-app",
+                "crates/tenant-rbac-app",
                 "evidence/multispectrum/cs-ent-platform-runtime-adapter-foundation-1779537600.json",
             ),
             workload(
@@ -161,8 +161,8 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 Fd001TenantWorkloadKind::AccountingJournal,
                 "accounting-journal-runtime",
                 "accounting-journal",
-                "oya-accounting-journal-infrastructure",
-                "crates/oya-accounting-journal-infrastructure",
+                "accounting-journal-infrastructure",
+                "crates/accounting-journal-infrastructure",
                 "evidence/multispectrum/cs-ent-accounting-runtime-adapter-foundation-1779537000.json",
             ),
         ],
@@ -321,8 +321,8 @@ fn workload(
         tenant_cell_id: TENANT_CELL_ID,
         residency_region: RESIDENCY_REGION,
         runtime_package_ref,
-        route_scope_ref: "crates/oya-tenant-rbac-local-runtime-composition/src/lib.rs::tenant_rbac_local_runtime_composition",
-        deployment_manifest_ref: "crates/oya-tenant-rbac-cloud-deployment-manifest/src/lib.rs::tenant_rbac_cloud_deployment_manifest",
+        route_scope_ref: "crates/tenant-rbac-local-runtime-composition/src/lib.rs::tenant_rbac_local_runtime_composition",
+        deployment_manifest_ref: "crates/tenant-rbac-deployment-manifest/src/lib.rs::tenant_rbac_deployment_manifest",
         resource_quota_ref: "deploy/oyatie-cloud/fd001-tenant-rbac/resource-quota.yaml",
         network_policy_ref: "deploy/oyatie-cloud/fd001-tenant-rbac/network-policy.yaml",
         service_account_ref: "serviceaccount/fd001-tenant-rbac-workload",
@@ -388,12 +388,12 @@ fn validate_workload(
     }
     validate_prefixed_ref(
         workload.route_scope_ref,
-        "crates/oya-tenant-rbac-local-runtime-composition/",
+        "crates/tenant-rbac-local-runtime-composition/",
         Fd001TenantWorkloadManifestError::InvalidRouteScopeRef,
     )?;
     validate_prefixed_ref(
         workload.deployment_manifest_ref,
-        "crates/oya-tenant-rbac-cloud-deployment-manifest/",
+        "crates/tenant-rbac-deployment-manifest/",
         Fd001TenantWorkloadManifestError::InvalidDeploymentManifestRef,
     )?;
     validate_prefixed_ref(

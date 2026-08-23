@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//libs/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//app/community/facade/social-app:community-social-app",
         "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
         "//app/community/core/social-post-composition-usecase:community-social-post-composition-usecase",
@@ -20,8 +20,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//libs/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//app/community/facade/social-app:community-social-app",
         "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
         "//app/community/core/social-post-composition-usecase:community-social-post-composition-usecase",

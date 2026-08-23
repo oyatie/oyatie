@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify `docs/decisions/INDEX.md` enumerates every ADR file and rejects gaps in the numbering sequence.
-- enforces: STANDARD/adr-index; existing crate `oya-governance-adr-index-kernel` (EXISTING; extend with verdict).
-- kernel_crate: `oya-governance-adr-index-kernel` (EXISTING) — `AdrIndexRow { adr_id, path, status }`, verdict `AdrIndexFitnessReport { adrs_checked }`.
-- runner_path: `tools/oya-governance-adr-index`
+- enforces: STANDARD/adr-index; existing crate `governance-adr-index-kernel` (EXISTING; extend with verdict).
+- kernel_crate: `governance-adr-index-kernel` (EXISTING) — `AdrIndexRow { adr_id, path, status }`, verdict `AdrIndexFitnessReport { adrs_checked }`.
+- runner_path: `tools/governance-adr-index`
 - inputs: `docs/decisions/INDEX.md`, `docs/decisions/ADR-*.md`.
 - failure_modes:
   - ADR file present but no index row
   - index row points at missing file
   - numbering gap (ADR-0050 -> ADR-0052)
-- ci_invocation: `cargo run -p oya-governance-adr-index`
+- ci_invocation: `cargo run -p governance-adr-index`
 - runtime_budget: 250 ms
 - severity: HIGH
 - kernel_sketch:

@@ -2,7 +2,7 @@
 //!
 //! This crate intentionally contains no service runtime, storage adapter, or
 //! network client. It is the pure algorithmic surface that `tenancy` can call
-//! during tenant provisioning while `cloud-iac` and `observability` own the
+//! during tenant provisioning while `iac-app` and `observability` own the
 //! mutable cell topology and live health inputs.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
@@ -11,7 +11,7 @@ use std::collections::BTreeSet;
 /// A cell candidate supplied by the caller.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CellCandidate {
-    /// Stable cell identifier from the cloud-iac cell registry.
+    /// Stable cell identifier from the iac-app cell registry.
     pub cell_id: String,
     /// Regional pack label used to keep assignments residency-safe.
     pub pack: String,
@@ -34,7 +34,7 @@ pub struct ShuffleShardRequest {
     pub required_pack: Option<String>,
     /// Optional region constraint; when set, only matching candidates are eligible.
     pub required_region: Option<String>,
-    /// Candidate cells read from the cloud-iac-owned registry.
+    /// Candidate cells read from the iac-app-owned registry.
     pub candidates: Vec<CellCandidate>,
 }
 

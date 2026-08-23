@@ -1,7 +1,0 @@
-val	0	always
-val	1	better
-val	2	failure
-parse	always	0
-parse	better	1
-parse	failure	2
-parse	__nope__	ERR

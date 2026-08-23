@@ -10,13 +10,13 @@ This team owns the real estate vertical: property listing management, leasing wo
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Real Estate (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-real-estate-kernel` — `Property`, `Listing`, `Lease`, `TenantRecord`, `MaintenanceRequest`, `RentPayment`
-  - `oya-vertical-real-estate-domain-*` — listing lifecycle, lease workflow, maintenance dispatch, rent collection
+  - `vertical-real-estate-kernel` — `Property`, `Listing`, `Lease`, `TenantRecord`, `MaintenanceRequest`, `RentPayment`
+  - `vertical-real-estate-domain-*` — listing lifecycle, lease workflow, maintenance dispatch, rent collection
   - Products owned: `products/vertical-real-estate/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — lease execution, rent payment, deposit handling)
   - `DSR / consent withdrawal cascade` (ack required — tenant PII in lease records)
-- **Catalog records:** `crates/oya-vertical-real-estate-*`
+- **Catalog records:** `crates/vertical-real-estate-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at activation; KR 임대차보호법 compliance ADR
 

@@ -14,8 +14,8 @@ use billing_accounting_http_adapter::{
     ConfiguredBearerPrincipalVerifier, VerifiedPrincipal, accounting_runtime_routes,
     accounting_server_config, dispatch_accounting_request,
 };
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 
 /// Break-glass bearer secret bound to the test principal/tenant (ten_acme).
 const BEARER: &str = "accounting-test-secret";

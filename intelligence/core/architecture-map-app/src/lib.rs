@@ -54,7 +54,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     // already use, so the node set matches what Cargo itself resolves.
     let cargo_toml = root.join("Cargo.toml");
     let _ = read(&cargo_toml)?;
-    let expanded = oya_workspace_members_kernel::scan_member_dirs(root)
+    let expanded = workspace_members_kernel::scan_member_dirs(root)
         .map(|scan| scan.member_dirs)
         .unwrap_or_default();
     for crate_path in expanded {
@@ -525,8 +525,8 @@ serde = "1"
         );
         let crate_nodes = map.nodes_of_kind(NodeKind::Crate).count();
         assert!(
-            crate_nodes > 500,
-            "expected the expanded workspace (882 members today), got {crate_nodes} crate nodes"
+            crate_nodes > 400,
+            "expected the expanded workspace (400+ members today), got {crate_nodes} crate nodes"
         );
     }
 
@@ -534,7 +534,7 @@ serde = "1"
     fn build_map_handles_missing_files() {
         // Build map against a tempdir with NO files — should produce an empty
         // map without panicking. (Cargo.toml is required, so we create just that.)
-        let tmpdir = std::env::temp_dir().join(format!("oya-arch-map-test-{}", std::process::id()));
+        let tmpdir = std::env::temp_dir().join(format!("arch-map-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmpdir);
         fs::create_dir_all(&tmpdir).unwrap();
         fs::write(tmpdir.join("Cargo.toml"), "[workspace]\nmembers = []\n").unwrap();
@@ -547,7 +547,7 @@ serde = "1"
     #[test]
     fn build_map_populates_crate_nodes() {
         let tmpdir =
-            std::env::temp_dir().join(format!("oya-arch-map-test-crates-{}", std::process::id()));
+            std::env::temp_dir().join(format!("arch-map-test-crates-{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmpdir);
         fs::create_dir_all(&tmpdir).unwrap();
         fs::write(
@@ -575,7 +575,7 @@ serde = "1"
     #[test]
     fn emit_json_writes_file() {
         let tmpdir =
-            std::env::temp_dir().join(format!("oya-arch-map-test-emit-{}", std::process::id()));
+            std::env::temp_dir().join(format!("arch-map-test-emit-{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmpdir);
         fs::create_dir_all(&tmpdir).unwrap();
         let mut map = ArchitectureMap::new();

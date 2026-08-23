@@ -11,7 +11,7 @@ repository = "https://github.com/oyatie/oyatie"
 keywords = ["oyatie", "data-pipeline", "microservice"]
 categories = ["development-tools"]
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "data-pipeline"
 bounded_context = "lineage-replay"
 architecture_layers = "ADR-0105-12-layer-enum-with-ADR-0106-usecase"

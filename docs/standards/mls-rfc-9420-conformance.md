@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0251
   - ADR-0253
 enforced_by:
-  - oya-governance-mls-rfc-9420-conformance
-  - oya-governance-dual-context-isolation
-  - oya-governance-crypto-test-vectors
+  - governance-mls-rfc-9420-conformance
+  - governance-dual-context-isolation
+  - governance-crypto-test-vectors
 canonical_paths:
   - docs/standards/messenger-e2e-encryption-mls.md
   - microservices/messenger/
@@ -251,7 +251,7 @@ This passes because only ciphertext is stored.
 Primary command:
 
 ```bash
-oya gate validate mls-rfc-9420-conformance --microservice messenger
+presubmit (retired CLI gate validate) mls-rfc-9420-conformance --microservice messenger
 ```
 
 The checker MUST run RFC 9420 positive vectors.
@@ -549,34 +549,34 @@ audit_events:
   - EVT-MLS-COMMIT-ACCEPTED
   - EVT-MLS-WELCOME-DELIVERED
 verification:
-  - cargo test -p oya-messenger-mls-rfc9420 -- test_group_create_transcript
-  - cargo run -p oya-check-mls-rfc9420-conformance --quiet
+  - cargo test -p messenger-mls-rfc9420 -- test_group_create_transcript
+  - cargo run -p check-mls-rfc9420-conformance --quiet
 ```
 
 ## Extended MLS Conformance Matrix
 
 | ID | RFC 9420 concern | Oyatie requirement | Test fixture | Checker |
 |---|---|---|---|---|
-| MLS-MAT-001 | Protocol version | MLS 1.0 only until upgrade ADR | `mls/version` | `oya-check-mls-version` |
-| MLS-MAT-002 | Cipher suite | Approved suite registry | `mls/cipher-suite` | `oya-check-mls-cipher-suite` |
-| MLS-MAT-003 | Credential | Credential type declared | `mls/credential` | `oya-check-mls-credential` |
-| MLS-MAT-004 | Key package | One-time use enforced | `mls/key-package` | `oya-check-mls-key-package` |
-| MLS-MAT-005 | Welcome | Welcome encrypted to joiner | `mls/welcome` | `oya-check-mls-welcome` |
-| MLS-MAT-006 | Commit | Commit validates tree hash | `mls/commit` | `oya-check-mls-commit` |
-| MLS-MAT-007 | Proposal | Proposal type allowlisted | `mls/proposal` | `oya-check-mls-proposal` |
-| MLS-MAT-008 | Ratchet tree | Tree hash stored as opaque | `mls/ratchet-tree` | `oya-check-mls-ratchet-tree` |
-| MLS-MAT-009 | Epoch | Epoch monotonic per group | `mls/epoch` | `oya-check-mls-epoch` |
-| MLS-MAT-010 | Exporter | Exporter secret never server-visible | `mls/exporter` | `oya-check-mls-secret-boundary` |
-| MLS-MAT-011 | Resumption | PSK use declared | `mls/psk` | `oya-check-mls-psk` |
-| MLS-MAT-012 | Application message | Server stores ciphertext only | `mls/application` | `oya-check-mls-ciphertext-only` |
-| MLS-MAT-013 | Framing | Sender data protected | `mls/framing` | `oya-check-mls-framing` |
-| MLS-MAT-014 | Authentication | Signature verified | `mls/signature` | `oya-check-mls-signature` |
-| MLS-MAT-015 | Membership | Remove commits revoke sender | `mls/remove` | `oya-check-mls-removal` |
-| MLS-MAT-016 | External sender | External sender policy explicit | `mls/external-sender` | `oya-check-mls-external-sender` |
-| MLS-MAT-017 | Extensions | Required capabilities enforced | `mls/extensions` | `oya-check-mls-extensions` |
-| MLS-MAT-018 | Delivery | Duplicate commit rejected | `mls/delivery` | `oya-check-mls-replay` |
-| MLS-MAT-019 | Backup | Backup payload encrypted client-side | `mls/backup` | `oya-check-mls-backup` |
-| MLS-MAT-020 | Upgrade | Library upgrade requires security review | `mls/upgrade` | `oya-check-mls-upgrade` |
+| MLS-MAT-001 | Protocol version | MLS 1.0 only until upgrade ADR | `mls/version` | `check-mls-version` |
+| MLS-MAT-002 | Cipher suite | Approved suite registry | `mls/cipher-suite` | `check-mls-cipher-suite` |
+| MLS-MAT-003 | Credential | Credential type declared | `mls/credential` | `check-mls-credential` |
+| MLS-MAT-004 | Key package | One-time use enforced | `mls/key-package` | `check-mls-key-package` |
+| MLS-MAT-005 | Welcome | Welcome encrypted to joiner | `mls/welcome` | `check-mls-welcome` |
+| MLS-MAT-006 | Commit | Commit validates tree hash | `mls/commit` | `check-mls-commit` |
+| MLS-MAT-007 | Proposal | Proposal type allowlisted | `mls/proposal` | `check-mls-proposal` |
+| MLS-MAT-008 | Ratchet tree | Tree hash stored as opaque | `mls/ratchet-tree` | `check-mls-ratchet-tree` |
+| MLS-MAT-009 | Epoch | Epoch monotonic per group | `mls/epoch` | `check-mls-epoch` |
+| MLS-MAT-010 | Exporter | Exporter secret never server-visible | `mls/exporter` | `check-mls-secret-boundary` |
+| MLS-MAT-011 | Resumption | PSK use declared | `mls/psk` | `check-mls-psk` |
+| MLS-MAT-012 | Application message | Server stores ciphertext only | `mls/application` | `check-mls-ciphertext-only` |
+| MLS-MAT-013 | Framing | Sender data protected | `mls/framing` | `check-mls-framing` |
+| MLS-MAT-014 | Authentication | Signature verified | `mls/signature` | `check-mls-signature` |
+| MLS-MAT-015 | Membership | Remove commits revoke sender | `mls/remove` | `check-mls-removal` |
+| MLS-MAT-016 | External sender | External sender policy explicit | `mls/external-sender` | `check-mls-external-sender` |
+| MLS-MAT-017 | Extensions | Required capabilities enforced | `mls/extensions` | `check-mls-extensions` |
+| MLS-MAT-018 | Delivery | Duplicate commit rejected | `mls/delivery` | `check-mls-replay` |
+| MLS-MAT-019 | Backup | Backup payload encrypted client-side | `mls/backup` | `check-mls-backup` |
+| MLS-MAT-020 | Upgrade | Library upgrade requires security review | `mls/upgrade` | `check-mls-upgrade` |
 
 ## Extended Security Review Questions
 
@@ -618,7 +618,7 @@ MLS-REV-018. Does every failed commit produce a typed error?
 
 MLS-REV-019. Does every unsupported extension fail closed?
 
-MLS-REV-020. Does promote evidence cite `oya-check-mls-rfc9420-conformance`?
+MLS-REV-020. Does promote evidence cite `check-mls-rfc9420-conformance`?
 
 ## Extended MLS Evidence Ledger
 

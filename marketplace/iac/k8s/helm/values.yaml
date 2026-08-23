@@ -1,6 +1,6 @@
 microservice:
   id: marketplace
-  cargoPackage: oya-marketplace-doc-set-scaffold
+  cargoPackage: marketplace-doc-set-scaffold
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: runc
 
 serviceAccount:
-  name: oya-marketplace
+  name: marketplace
 
 image:
   registry: registry.oyatie.dev
-  repository: oya-marketplace
+  repository: marketplace
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: oya-marketplace-cedar
+  policyConfigMapName: marketplace-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     permit(

@@ -24,7 +24,7 @@ This preflight freezes the safe import manifest for the 5 sibling snapshots plus
 |---|---:|---|---|
 | `office` | `9920b3a327b3` | `oya/office/` | `MERGE_RENAME_CONFORM` |
 | `codex` | `0cf13018b26c` | `oya/intelligence/ provider/account adapter family by default` | `MERGE_BY_PROVIDER_FAMILY; keep cloud/cloud-intelligence only for runtime/gateway-boundary code` |
-| `claude` | `483649d6a108` | `oya/intelligence/crates/oya-intelligence-claude-agent-sdk` | `CREATE_CRATE_UNDER_EXISTING_INTELLIGENCE_HOME` |
+| `claude` | `483649d6a108` | `oya/intelligence/crates/intelligence-claude-agent-sdk` | `CREATE_CRATE_UNDER_EXISTING_INTELLIGENCE_HOME` |
 | `oyago` | `8eeb4139feec` | `transpiler tooling area TBD` | `BLOCK_RAW_IMPORT_UNTIL_SINGLE_HOME_DECISION` |
 | `oyapy` | `e7d1b80aac6c` | `transpiler tooling area TBD` | `BLOCK_RAW_IMPORT_UNTIL_SINGLE_HOME_DECISION` |
 | `kubernetes` | `26173992778a` | `cloud/cloud-k8s/ plus managed-k8s service homes by boundary` | `MERGE_BY_BOUNDARY; do not dump runtime code into retired/read-only platform docs if managed-k8s owns service logic` |
@@ -37,7 +37,7 @@ Full machine-readable manifest: [`../../evidence/consolidation/task20-import-man
 
 ## Destination decisions
 
-- `office` lands in existing `oya/office/`; rename `oyaoffice-*` to `oya-office-*` and reconcile deltas.
+- `office` lands in existing `oya/office/`; rename `oyaoffice-*` to `office-*` and reconcile deltas.
 - `claude` and `codex` land in existing `oya/intelligence/` by provider/account/process-protocol family. `cloud/cloud-intelligence` remains a runtime/gateway boundary, not a duplicate SDK root.
 - `kubernetes` uses existing `cloud/cloud-k8s/` for platform-level material and existing `cloud/managed-k8s-*` surfaces for service runtime material.
 - `db-data` uses existing `cloud/cloud-data/` as product context, but imports only specs/renumbered ADRs from the snapshot; no runtime DB code is claimed.
@@ -98,4 +98,4 @@ Required for this preflight PR:
 - Accounting-registry producer + `registry-drift`, or any generated face delta is committed and explained.
 - Targeted `manifest-hygiene` and `total-accounting` gates where feasible.
 
-Full workspace/buck2/provider/deploy gates are intentionally not local prerequisites for this manifest-only preflight; the PR still requires the canonical remote `oya-ci-required` gate.
+Full workspace/buck2/provider/deploy gates are intentionally not local prerequisites for this manifest-only preflight; the PR still requires the canonical remote `presubmit` gate.

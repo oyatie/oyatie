@@ -1,7 +1,7 @@
 # Spec: cloud-network-security-rule-evaluation
 
 **Vertical**: cloud  
-**Crate**: `oya-cloud-network-domain`  
+**Crate**: `cloud-network-domain`  
 **Task slug**: `cloud-network-security-rule-evaluation`  
 **ADR authority**: ADR-0509 (single-crate-per-service, mod-based subsystems)  
 **Layout authority**: ADR-0131 (per-microservice flat layout)
@@ -10,9 +10,9 @@
 
 ## Objective
 
-Extend `oya-cloud-network-domain` with deterministic, adapter-free security-group rule
+Extend `cloud-network-domain` with deterministic, adapter-free security-group rule
 evaluation and conflict/shadow detection. The implementation is a pure in-crate domain
-extension of `crates/oya-cloud-network-domain/src/lib.rs` — no new workspace member, no
+extension of `crates/cloud-network-domain/src/lib.rs` — no new workspace member, no
 OVN/Envoy adapter work, no root `Cargo.toml` edit.
 
 ---
@@ -206,8 +206,8 @@ Clippy exemption `#![cfg_attr(test, allow(clippy::unwrap_used, ...))]` is alread
 ## Acceptance gate
 
 ```bash
-cargo check -p oya-cloud-network-domain --all-targets
-cargo nextest run -p oya-cloud-network-domain
+cargo check -p cloud-network-domain --all-targets
+cargo nextest run -p cloud-network-domain
 ```
 
 Both must exit 0 with zero errors and all tests green.

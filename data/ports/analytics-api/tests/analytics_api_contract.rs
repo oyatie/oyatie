@@ -8,7 +8,7 @@ use data_analytics_api::{
     ANALYTICS_ASYNCAPI_CONTRACT, ANALYTICS_OPENAPI_CONTRACT, ANALYTICS_PROTO_CONTRACT, ApiError,
 };
 use data_analytics_usecase::UseCaseError;
-use oya_shared_olap_client_kernel::KernelError;
+use shared_olap_client_kernel::KernelError;
 
 /// The runtime constants must equal the paths the CATALOG declares, not a second copy of
 /// them written here. Hard-coding the expected strings made this test vacuous against the
@@ -17,7 +17,7 @@ use oya_shared_olap_client_kernel::KernelError;
 /// location. Reading the catalog is what makes a retarget fail here.
 #[test]
 fn analytics_api_contract_runtime_constants_match_the_catalog() {
-    let catalog_path = repo_root().join("data/analytics/catalog/contracts.json");
+    let catalog_path = repo_root().join("data/ports/analytics-api/contracts/contracts.json");
     let catalog = std::fs::read_to_string(&catalog_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", catalog_path.display()));
 
@@ -67,9 +67,9 @@ fn repo_root() -> PathBuf {
         let mut dir = start;
         for _ in 0..12 {
             if dir
-                .join("data/analytics/contracts/openapi-v1.yaml")
+                .join("data/ports/analytics-api/contracts/openapi-v1.yaml")
                 .is_file()
-                && dir.join("specs/root-hub-pointers.json").is_file()
+                && dir.join("AGENTS.md").is_file()
             {
                 return dir;
             }
@@ -78,7 +78,7 @@ fn repo_root() -> PathBuf {
             }
         }
     }
-    panic!("could not locate repo root containing data/analytics contracts");
+    panic!("could not locate repo root containing data/ports/analytics-api contracts");
 }
 
 /// Resolve one declared contract.
@@ -110,7 +110,7 @@ fn analytics_api_contract_files_exist_under_data_root() {
         // The declared path must still be the data/ capability root spelling, so a Buck binding
         // cannot quietly satisfy this test with a contract from the retired location.
         assert!(
-            rel.starts_with("data/analytics/contracts/"),
+            rel.starts_with("data/ports/analytics-api/contracts/"),
             "contract constant must name the data/ capability root: {rel}"
         );
     }

@@ -74,8 +74,8 @@ For Toss-class PG operating millions of transactions per day: **Level 1 SP, RoC 
 
 Oyatie's posture: **maximum scope reduction**. Default architecture is:
 1. Oyatie does NOT capture PAN directly. Payment capture goes through a partner PG (KICC / NICE / Toss / Stripe / Adyen) with PCI L1 certification.
-2. Oyatie's tokenization-vault (`crates/oya-vertical-fintech-tokenvault-*`) holds tokens only; never raw PAN post-authorization.
-3. CDE = `crates/oya-vertical-fintech-cde-*` flat-crate set, deployed to a dedicated cell with per-cell HSM-backed KMS, separated VLAN, no shared infra with non-CDE.
+2. Oyatie's tokenization-vault (`crates/vertical-fintech-tokenvault-*`) holds tokens only; never raw PAN post-authorization.
+3. CDE = `crates/vertical-fintech-cde-*` flat-crate set, deployed to a dedicated cell with per-cell HSM-backed KMS, separated VLAN, no shared infra with non-CDE.
 4. Foundry, Search, Ads, Workspace, and SaaS axes are **OUT OF SCOPE** for PCI-DSS by construction — they cannot read CDE.
 5. Per-tenant CDE isolation: each fintech tenant is its own CDE cell.
 
@@ -133,7 +133,7 @@ Primary law for PG / e-money / digital banks / wallets. Key provisions:
 Detailed operational rules issued by KR FSC. Key:
 
 - **망분리** (network separation): financial sector requires logical and/or physical separation of internet-facing and CDE networks. For Oyatie cloud: separated VLANs + air-gapped CDE per tenant; egress allowlist enforced.
-- **데이터센터 위치** (data-center location): KR FSS may require KR-resident DC for some surfaces; per-tenant residency declaration in `oya-platform-tenant-kernel.residency`.
+- **데이터센터 위치** (data-center location): KR FSS may require KR-resident DC for some surfaces; per-tenant residency declaration in `platform-tenant-kernel.residency`.
 - **암호 모듈 KCMVP**: cryptographic modules must be KCMVP-validated (not just FIPS-validated).
 - **분기별 보안취약점 점검** (quarterly security vulnerability assessment): submit to FSS.
 - **연간 정보보호공시** (annual InfoSec disclosure): public report.
@@ -374,13 +374,13 @@ Fintech-specific stronger version vs general 망분리:
 
 ## 5. Cross-jurisdictional architectural implications for Oyatie fintech
 
-The fintech vertical lives at `crates/oya-vertical-fintech-*`. Per [DESIGN.md §4](../DESIGN.md), the per-pack regulatory binding plugs into seams. Specific implications:
+The fintech vertical lives at `crates/vertical-fintech-*`. Per [DESIGN.md §4](../DESIGN.md), the per-pack regulatory binding plugs into seams. Specific implications:
 
 1. **CDE per fintech tenant per region.** Each fintech tenant onboarded in each region gets its own dedicated CDE cell with per-cell HSM partition. No multi-tenant CDE.
-2. **Per-region payment-rails adapter** at `crates/oya-vertical-fintech-rail-{kr,jp,us,eu,in,br,ksa,ae,au,sg}-*`. Each implements `PaymentRail` trait (per regional pack §12.2 seam).
-3. **Per-region identity-verification adapter** at `crates/oya-vertical-fintech-identity-{kr,jp,us,eu,in,...}-*` plugging into `IdentityProvider` seam.
-4. **Per-region AML adapter** at `crates/oya-vertical-fintech-aml-{kr,...}-*` for KoFIU / FinCEN / KoFIU / etc.
-5. **Tokenization vault** at `crates/oya-vertical-fintech-tokenvault-*` shared across regions but per-tenant per-cell.
+2. **Per-region payment-rails adapter** at `crates/vertical-fintech-rail-{kr,jp,us,eu,in,br,ksa,ae,au,sg}-*`. Each implements `PaymentRail` trait (per regional pack §12.2 seam).
+3. **Per-region identity-verification adapter** at `crates/vertical-fintech-identity-{kr,jp,us,eu,in,...}-*` plugging into `IdentityProvider` seam.
+4. **Per-region AML adapter** at `crates/vertical-fintech-aml-{kr,...}-*` for KoFIU / FinCEN / KoFIU / etc.
+5. **Tokenization vault** at `crates/vertical-fintech-tokenvault-*` shared across regions but per-tenant per-cell.
 6. **Audit chain** per ADR-0003 emission for every CDE access, every settlement, every KYC, every AML alert, every regulator notification.
 7. **Per-region license registry** at `regional-packs/<pack>/fintech-licenses.yaml` declaring which postures the pack supports.
 8. **Workspace integration**: any Workspace surface that touches CDE (e.g. Mail attachment containing PAN) is treated as in-scope; DLP must redact PAN automatically.
@@ -397,7 +397,7 @@ The fintech vertical lives at `crates/oya-vertical-fintech-*`. Per [DESIGN.md §
 2. ☐ Confirm region(s) → load relevant pack(s)
 3. ☐ Issue per-tenant CDE cell + HSM partition
 4. ☐ Bind per-region payment-rails / identity / AML adapters
-5. ☐ Verify license evidence (per-jurisdiction license number recorded in `oya-platform-tenant-kernel.regulatory_packs`)
+5. ☐ Verify license evidence (per-jurisdiction license number recorded in `platform-tenant-kernel.regulatory_packs`)
 6. ☐ Run per-jurisdiction onboarding-evidence pack
 7. ☐ Activate per-class HARD_DENY (PCI, FINANCIAL_KR_신용정보)
 8. ☐ Bind autonomy-ceiling cap (T2 max for regulated capabilities)

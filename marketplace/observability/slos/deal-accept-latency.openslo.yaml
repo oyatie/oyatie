@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-deal-accept-latency
+  name: marketplace-deal-accept-latency
   displayName: Marketplace Deal Accept Latency
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-deal-accept-latency-sli
+      name: marketplace-deal-accept-latency-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_escrow_reserve_success_total[5m]))
+              query: sum(rate(marketplace_escrow_reserve_success_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_escrow_reserve_total[5m]))
+              query: sum(rate(marketplace_escrow_reserve_total[5m]))
   objectives:
     - displayName: Deal Accept Latency
       target: 0.995

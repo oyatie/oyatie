@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_catalog_resolve_under_30ms_total[5m]))
+              query: sum(rate(data_warehouse_catalog_resolve_under_30ms_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_catalog_resolve_total[5m]))
+              query: sum(rate(data_warehouse_catalog_resolve_total[5m]))
   objectives:
     - displayName: p99 catalog.schema.object resolve under 30ms
       target: 0.99

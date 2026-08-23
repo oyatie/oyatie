@@ -1,4 +1,4 @@
-# oya-observability-axe-pa11y-runner
+# observability-axe-pa11y-runner
 
 WCAG 2.2 AA accessibility CI runner per ADR-0207.
 

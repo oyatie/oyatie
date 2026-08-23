@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # OAuth subscription-pool kernel (ADR-0384 Path B). Parallels the legacy
-# static-API-key kernel at crates/oya-cloud-intelligence-kernel/ until the OAuth pool
+# static-API-key kernel at crates/intelligence-app-kernel/ until the OAuth pool
 # reaches parity; a follow-up cleanup PR retires the legacy crates and
 # promotes this crate to the canonical name.
 

@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-audit-chain-chain-of-custody-integrity-correctness
+  name: audit-chain-chain-of-custody-integrity-correctness
   displayName: "audit-chain: chain-of-custody integrity correctness (100% — load-bearing)"
   labels:
     microservice: audit-chain
@@ -34,13 +34,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_audit_chain_custody_verify_total{outcome="intact"}[5m]))
+                sum(rate(audit_chain_custody_verify_total{outcome="intact"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_audit_chain_custody_verify_total[5m]))
+                sum(rate(audit_chain_custody_verify_total[5m]))
   objectives:
     - target: 1.0
       displayName: "100% chain-of-custody integrity (no error budget; any tamper is Sev-1)"
@@ -49,4 +49,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

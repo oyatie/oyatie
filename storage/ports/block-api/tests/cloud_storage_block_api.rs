@@ -3,15 +3,15 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use storage_block_api::{
-    CLOUD_STORAGE_BLOCK_CREATE_SURFACE, CloudStorageBlockApiAuthorization,
-    CloudStorageBlockApiBoundaryContext, CloudStorageBlockApiError, CloudStorageBlockApiPrincipal,
-    CloudStorageBlockCreateApiStatus, CloudStorageBlockCreateIdempotencyLedger,
-    CloudStorageBlockVolumeCreateApiRequest, CloudStorageBlockVolumeCreateRequest,
-    CloudStorageBlockVolumePerformance, create_cloud_storage_block_volume_from_api,
+    CloudStorageBlockApiAuthorization, CloudStorageBlockApiBoundaryContext,
+    CloudStorageBlockApiError, CloudStorageBlockApiPrincipal, CloudStorageBlockCreateApiStatus,
+    CloudStorageBlockCreateIdempotencyLedger, CloudStorageBlockVolumeCreateApiRequest,
+    CloudStorageBlockVolumeCreateRequest, CloudStorageBlockVolumePerformance,
+    STORAGE_BLOCK_CREATE_SURFACE, create_cloud_storage_block_volume_from_api,
 };
 use storage_domain::{CloudStorageCatalog, CloudStorageError};
 
-const VOLUME_ID: &str = "oya:cloud:region-home:ten_alpha:volume:db-primary";
+const VOLUME_ID: &str = "oyatie:cloud:region-home:ten_alpha:volume:db-primary";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudStorageBlockApiBoundaryContext {
     CloudStorageBlockApiBoundaryContext {
@@ -70,17 +70,14 @@ fn create_request(
         path_volume_id: VOLUME_ID.to_string(),
         boundary: boundary_for(request_id, idempotency_key),
         principal: principal_for("sp_storage_admin"),
-        authorization: authorization_for("sp_storage_admin", &[CLOUD_STORAGE_BLOCK_CREATE_SURFACE]),
+        authorization: authorization_for("sp_storage_admin", &[STORAGE_BLOCK_CREATE_SURFACE]),
         body: create_body(VOLUME_ID),
     }
 }
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {
-    assert_eq!(
-        CLOUD_STORAGE_BLOCK_CREATE_SURFACE,
-        "cloud.storage.block.create"
-    );
+    assert_eq!(STORAGE_BLOCK_CREATE_SURFACE, "storage.block.create");
     assert_eq!(CloudStorageBlockCreateApiStatus::Created.code(), 201);
     assert_eq!(CloudStorageBlockCreateApiStatus::BadRequest.code(), 400);
     assert_eq!(CloudStorageBlockCreateApiStatus::Forbidden.code(), 403);
@@ -131,7 +128,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
     let mut catalog = CloudStorageCatalog::default();
     let mut ledger = CloudStorageBlockCreateIdempotencyLedger::default();
     let mut request = create_request("req-storage-block-drift", "idem-storage-block-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:volume:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:volume:other".to_string();
 
     let error = create_cloud_storage_block_volume_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body volume drift is rejected");
@@ -140,7 +137,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
         error,
         CloudStorageBlockApiError::VolumeIdMismatch {
             path_volume_id: VOLUME_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:volume:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:volume:other".to_string(),
         }
     );
     assert_eq!(error.block_create_status_code(), 400);
@@ -189,7 +186,7 @@ fn block_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
     assert_eq!(
         error,
         CloudStorageBlockApiError::AuthorizationDenied {
-            surface: CLOUD_STORAGE_BLOCK_CREATE_SURFACE.to_string(),
+            surface: STORAGE_BLOCK_CREATE_SURFACE.to_string(),
         }
     );
     assert_eq!(error.block_create_status_code(), 403);

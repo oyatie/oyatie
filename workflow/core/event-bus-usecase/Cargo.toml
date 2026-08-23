@@ -1,9 +1,0 @@
-[package]
-name = "workflow-event-bus-usecase"
-version = "0.1.0"
-edition = "2021"
-license = "Apache-2.0"
-description = "Source-level workflow-engine event-bus usecase foundation for preview-only tenant workload integration."
-
-[dependencies]
-workflow-event-bus-domain = { path = "../event-bus-domain" }

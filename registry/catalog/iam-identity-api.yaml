@@ -1,9 +1,0 @@
-context: platform
-role: api
-capability: identity-user
-plane: control
-slo: stable-control-plane
-data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, PII_QUASI_IDENTIFIER]
-api_stability: preview
-security_review: unreviewed
-supply_chain: source-only

@@ -3,7 +3,7 @@
 ## Summary
 
 Add a pure deterministic multi-window-multi-burn-rate (MWMB) evaluator to the
-`oya-shared-hyperscaler-metrics-kernel` crate, implementing the canonical Google SRE alert pattern
+`shared-hyperscaler-metrics-kernel` crate, implementing the canonical Google SRE alert pattern
 referenced in the PrometheusRule doc-comments.
 
 ## Motivation

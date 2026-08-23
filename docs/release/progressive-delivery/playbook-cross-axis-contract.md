@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Cross-axis contract changes; require all consumer axes to canary in lockstep.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-rollback-evidence
+  - governance-canary-required
+  - governance-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -59,7 +59,7 @@ Removing a contract field / version:
 3. Block removal if any consumer still calls the deprecated field with > 0 calls in last 7 d.
 4. After zero-call window, remove via separate release.
 
-`oya-governance-api-semver` (existing) gates this.
+`governance-api-semver` (existing) gates this.
 
 ## 6. Consumer-axis canary independence
 

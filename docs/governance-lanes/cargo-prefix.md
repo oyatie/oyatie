@@ -6,16 +6,16 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every crate id follows the canonical `oya-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
-- enforces: STANDARD/cargo-prefix; existing crate `oya-governance-cargo-prefix-kernel` (EXISTING; extend with verdict).
-- kernel_crate: `oya-governance-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-governance-cargo-prefix`
+- purpose: Verify every crate id follows the canonical `oyatie-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
+- enforces: STANDARD/cargo-prefix; existing crate `governance-cargo-prefix-kernel` (EXISTING; extend with verdict).
+- kernel_crate: `governance-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
+- runner_path: `tools/governance-cargo-prefix`
 - inputs: workspace `Cargo.toml` member list, layer/axis/shape registries.
 - failure_modes:
-  - crate id `oya-frobnicate` (no axis)
+  - crate id `frobnicate` (no axis)
   - shape token not in {kernel, api, app, sdk, fitness}
   - crate id contains uppercase
-- ci_invocation: `cargo run -p oya-governance-cargo-prefix`
+- ci_invocation: `cargo run -p governance-cargo-prefix`
 - runtime_budget: 150 ms
 - severity: BLOCKER
 - kernel_sketch:

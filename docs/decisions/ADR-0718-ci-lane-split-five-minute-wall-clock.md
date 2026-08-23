@@ -17,21 +17,21 @@ related: [ADR-0554, ADR-0700]
 milestone: W0
 deliverables:
   - id: ADR-0718-D1
-    description: "Split the required lint job into a fast blocking format lane and a separate advisory clippy job that runs in parallel and is absent from the oya-ci-required fan-in."
+    description: "Split the required lint job into a fast blocking format lane and a separate advisory clippy job that runs in parallel and is absent from the presubmit fan-in."
     exit_criteria: "The lint job runs rustfmt --check only, installs no cargo cache, and reports in under two minutes; clippy runs as its own job, keeps continue-on-error, and does not appear in the fan-in needs list; the fan-in verdict is unchanged in meaning because clippy was already continue-on-error and could never fail a merge."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0718-D2
     description: "Authorize the workflow inline-shell baseline replacement window required by D1, because the baseline is keyed <file>::<job>::<step> and moving a step between jobs is a remove plus an add rather than a shrink."
     exit_criteria: "The baseline declares a replacement_window with a bumped schema_version, a reason, and this ADR; the key count does not increase; validate_replacement_window_authorization admits the window and a window missing reason or ADR still fails closed."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0718-D3
     description: "Run the workspace and kernel suites under cargo-nextest, and update the two gates that encode the literal cargo test invocation so they assert the property rather than the spelling."
     exit_criteria: "rust_first_automation_hygiene accepts either runner while still requiring --locked --workspace; gate-self-conformance derives workflow_registered from either runner so no gate crate is unregistered by the swap; doctest coverage is unaffected, evidenced by zero doc examples across the .rs corpus and doctest = false already declared by the large majority of manifests."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0718-D4
     description: "Amend ADR-0716-D1's warm wall-clock exit criterion from under fifteen minutes to under five minutes, and require that the figure be measured on two consecutive warm runs rather than asserted."
-    exit_criteria: "Two consecutive green post-merge runs on dev report a warm wall clock under five minutes for the oya-ci-required fan-in; if the constant-factor work in D1-D3 plus the smoke retirement does not reach it, the measurement is recorded and D5 opens."
-    verified_by: "oya-ci-required"
+    exit_criteria: "Two consecutive green post-merge runs on dev report a warm wall clock under five minutes for the presubmit fan-in; if the constant-factor work in D1-D3 plus the smoke retirement does not reach it, the measurement is recorded and D5 opens."
+    verified_by: "presubmit"
   - id: ADR-0718-D5
     description: "Conditional, and deliberately not pre-authorized: if D4's measurement shows the full-workspace compile is itself the floor, re-introduce affected-set selection on the cargo graph rather than on buck2, reversing the narrow clause of ADR-0716-D1 that removed affected-set baselines."
     exit_criteria: "Opened only with D4's recorded measurement attached. Any such change must preserve ADR-0554's fail-closed property: a derivation failure escalates to the full workspace run and never skips."
@@ -85,7 +85,7 @@ itself the wall.
 
 1. **The blocking lane must not wait on an advisory one.** The required `lint` job runs the
    differential format check alone. Clippy moves to its own job, keeps `continue-on-error`,
-   runs in parallel with `test`, and is absent from the `oya-ci-required` fan-in. This removes
+   runs in parallel with `test`, and is absent from the `presubmit` fan-in. This removes
    no enforcement: a `continue-on-error` job could never fail a merge, so its absence from the
    fan-in changes the verdict's meaning not at all.
 

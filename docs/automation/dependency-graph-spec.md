@@ -10,9 +10,9 @@ purpose: |
   milestone/phase/IP frontmatter. Source: every `.omc/plans/milestones/**` file's
   `parent:` and `depends_on:` frontmatter. Lift to
   `docs/visualization/dependency-graph.md` as Graphviz dot (SVG fidelity).
-planned_enforcement_ref: oya-governance-dep-graph
+planned_enforcement_ref: governance-dep-graph
 extends_crates:
-  - oya-intelligence-architecture-map-kernel
+  - intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
   - roadmap-visualization-spec.md
@@ -94,7 +94,7 @@ Each IP node embeds an SVG `<title>` element with:
 - Estimated parallelism
 - Linked ADRs
 
-## 5. Validation gates (`oya-governance-dep-graph`)
+## 5. Validation gates (`governance-dep-graph`)
 
 1. **Parent referential integrity.** Every `parent:` resolves to an existing file (BLOCKER).
 2. **depends_on referential integrity.** Every `depends_on:` entry resolves to an existing IP/phase/milestone file (BLOCKER).

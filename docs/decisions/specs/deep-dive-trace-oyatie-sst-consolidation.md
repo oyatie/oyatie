@@ -45,7 +45,7 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
   - `G004-reconciliation-blocker.md` → does not exist under grit (no objective-state to mismatch)
   - `PAUSE.md` → not a grit verb; agent halts via `release` or TTL expiry
   - `.codex/worktree_init.sh` → `grit worktree` primitive
-- Inspection of seven suspect `oya-foundry-*-kernel` crates (`claim-ceiling`, `authority-cohesion`, `bypass`, `pr-traceability`, `pre-push`, `quality-lane`, `cohesion-fitness`) shows they are **product-quality fitness/policy kernels**, not agent-coordination kernels — they survive the grit pivot. The "over-engineered" surface is the orchestration glue layer in `bominal/agents/` and the codex/omx wrappers, not the in-tree foundry crates.
+- Inspection of seven suspect `foundry-*-kernel` crates (`claim-ceiling`, `authority-cohesion`, `bypass`, `pr-traceability`, `pre-push`, `quality-lane`, `cohesion-fitness`) shows they are **product-quality fitness/policy kernels**, not agent-coordination kernels — they survive the grit pivot. The "over-engineered" surface is the orchestration glue layer in `bominal/agents/` and the codex/omx wrappers, not the in-tree foundry crates.
 
 ### Hypothesis 2 — Contradiction / stale-premise
 - `CONTRADICTION-LEDGER.md` carries 77 contradictions across BLOCKER/HIGH/MED/LOW with explicit owners and resolution batches. `MISTAKES-LEDGER.md` carries 13 active mistakes each backed by a CI fitness lane.
@@ -66,12 +66,12 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 ## Evidence Against / Missing Evidence
 
 ### Against Hypothesis 1
-- Both repos declare matching authority chains (validated by `oya-governance-authority-cohesion` lane per `oyatie/docs/CONSTITUTION.md:114`). Authority is not in conflict, only un-cross-referenced.
+- Both repos declare matching authority chains (validated by `governance-authority-cohesion` lane per `oyatie/docs/CONSTITUTION.md:114`). Authority is not in conflict, only un-cross-referenced.
 - `RACI-OWNERSHIP.md` exists in oyatie and explicitly maps ownership — the boundary is not undefined, only weakly cross-cited.
 - The "ownership leak" Lane 2 flagged (oyatie/docs/PRD.md not existing) was incorrect — Lane 1 verified the file exists and contains the canonical flat-catalog definition.
 
 ### Against Hypothesis 2
-- Contradictions are tracked. Auto-emit machinery exists (`oya-governance-cohesion` cross-microservice drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
+- Contradictions are tracked. Auto-emit machinery exists (`governance-cohesion` cross-microservice drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
 - 4 of 6 newly-discovered contradictions are mechanical/known; 2 are honest gaps in documentation completeness, not logical contradictions.
 - Q-NEW pattern explicitly marks unresolved questions; the corpus acknowledges what it doesn't know.
 

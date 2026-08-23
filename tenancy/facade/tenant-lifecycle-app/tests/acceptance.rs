@@ -12,7 +12,7 @@
 //!   - platform-admin bearer (`PLATFORM_TOKEN`) → may register + list (no
 //!     tenant scope; per-tenant ops still deny);
 //!   - tenant-operator bearer (`OPERATOR_TOKEN`) → administers ONLY the tenants
-//!     the SERVER-SIDE membership resolver assigns it; the `x-oya-tenant` header
+//!     the SERVER-SIDE membership resolver assigns it; the `x-tenant` header
 //!     may SELECT among the assigned set but NEVER grant an unassigned tenant
 //!     (the C7 fix — a self-attested header confers no authority);
 //!   - no/invalid bearer → 401 on every route.
@@ -38,7 +38,7 @@ const ACME_OPERATOR_TOKEN: &str = "test-acme-operator-secret";
 /// operator bearer to (the membership key).
 const OPERATOR_PRINCIPAL: &str = "tenant-operator";
 /// A tenant the operator is NEVER assigned to — the C7 victim. The operator can
-/// hold the shared bearer and assert `x-oya-tenant: VICTIM_TENANT`, but the
+/// hold the shared bearer and assert `x-tenant: VICTIM_TENANT`, but the
 /// server-side membership resolver denies it (no proven authority).
 const VICTIM_TENANT: &str = "victim";
 
@@ -84,7 +84,7 @@ fn app() -> axum::Router {
 
 /// Build a router with a tenant-bound operator credential. This is the #771
 /// retirement path: the verified credential carries the tenant axis, so the
-/// caller does not need to provide a self-asserted `x-oya-tenant` selector.
+/// caller does not need to provide a self-asserted `x-tenant` selector.
 fn app_with_tenant_bound_operator_token() -> axum::Router {
     build_inmemory_router_with_tenant_bound_operator_tokens(
         membership(),
@@ -135,7 +135,7 @@ async fn register(app: &axum::Router, tenant_id: &str, idem: &str) -> axum::http
 }
 
 /// Drive a per-tenant lifecycle verb as the tenant operator scoped to
-/// `tenant_id` (the `x-oya-tenant` axis equals the target id).
+/// `tenant_id` (the `x-tenant` axis equals the target id).
 async fn lifecycle(
     app: &axum::Router,
     tenant_id: &str,
@@ -149,7 +149,7 @@ async fn lifecycle(
                 .uri(format!("/v1/tenants/{tenant_id}/{verb}"))
                 .header("idempotency-key", idem)
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", tenant_id)
+                .header("x-tenant", tenant_id)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -166,7 +166,7 @@ async fn get_state(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde_js
                 .method(Method::GET)
                 .uri(format!("/v1/tenants/{tenant_id}"))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", tenant_id)
+                .header("x-tenant", tenant_id)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -257,7 +257,7 @@ async fn full_lifecycle_transitions_over_http() {
                 .uri("/v1/tenants/globex")
                 .header("idempotency-key", key(5))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "globex")
+                .header("x-tenant", "globex")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -554,7 +554,7 @@ async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
                 .uri("/v1/tenants/globex/suspend")
                 .header("idempotency-key", key(4))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "acme")
+                .header("x-tenant", "acme")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -575,7 +575,7 @@ async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
                 .uri("/v1/tenants/globex")
                 .header("idempotency-key", key(5))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "acme")
+                .header("x-tenant", "acme")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -606,7 +606,7 @@ async fn tenant_operator_cannot_register() {
                 .header("content-type", "application/json")
                 .header("idempotency-key", key(1))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "acme")
+                .header("x-tenant", "acme")
                 .body(Body::from(
                     serde_json::to_vec(&register_body("acme")).unwrap(),
                 ))
@@ -628,7 +628,7 @@ async fn tenant_operator_cannot_list() {
                 .method(Method::GET)
                 .uri("/v1/tenants")
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "acme")
+                .header("x-tenant", "acme")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -637,7 +637,7 @@ async fn tenant_operator_cannot_list() {
     assert_eq!(resp.status(), StatusCode::FORBIDDEN);
 }
 
-/// An operator assigned MULTIPLE tenants that omits the `x-oya-tenant` selection
+/// An operator assigned MULTIPLE tenants that omits the `x-tenant` selection
 /// header cannot bind a tenant scope (the bearer alone never picks a tenant): the
 /// request is a 400 `TENANT_SELECTION_REQUIRED`. The selection is still
 /// constrained to the server-side assigned set — it never grants authority.
@@ -660,7 +660,7 @@ async fn operator_without_tenant_axis_must_select() {
 }
 
 /// THE HEADLINE C7 FIX: an operator holding the SHARED operator bearer asserts
-/// `x-oya-tenant: victim` on the victim's URL — a self-attested header for a
+/// `x-tenant: victim` on the victim's URL — a self-attested header for a
 /// tenant the operator is NOT a member of. Pre-fix this self-attestation granted
 /// the axis and the PDP saw axis == target ⇒ ALLOW (any operator could administer
 /// ANY tenant). Now the SERVER-SIDE membership resolver denies it: the operator
@@ -697,7 +697,7 @@ async fn operator_cannot_select_unassigned_victim_tenant() {
                     .uri(&uri)
                     .header("idempotency-key", key(2))
                     .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                    .header("x-oya-tenant", VICTIM_TENANT)
+                    .header("x-tenant", VICTIM_TENANT)
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -746,7 +746,7 @@ async fn operator_can_select_assigned_tenant() {
 
 /// #771 W2-S2 retirement path: a tenant-bound credential carries a verified
 /// tenant claim (`acme`), so the caller can operate on `acme` without any
-/// `x-oya-tenant` header. If the caller sends a conflicting header, the request
+/// `x-tenant` header. If the caller sends a conflicting header, the request
 /// fails closed before the PDP can ever see a forged axis.
 #[tokio::test]
 async fn tenant_bound_operator_token_does_not_need_self_asserted_tenant_axis() {
@@ -772,7 +772,7 @@ async fn tenant_bound_operator_token_does_not_need_self_asserted_tenant_axis() {
     assert_eq!(
         resp.status(),
         StatusCode::OK,
-        "tenant-bound credential must not require x-oya-tenant"
+        "tenant-bound credential must not require x-tenant"
     );
 
     let resp = app
@@ -783,7 +783,7 @@ async fn tenant_bound_operator_token_does_not_need_self_asserted_tenant_axis() {
                 .uri("/v1/tenants/globex/suspend")
                 .header("idempotency-key", key(3))
                 .header("authorization", format!("Bearer {ACME_OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "globex")
+                .header("x-tenant", "globex")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -802,7 +802,7 @@ async fn tenant_bound_operator_token_does_not_need_self_asserted_tenant_axis() {
                 .uri("/v1/tenants/acme/suspend")
                 .header("idempotency-key", key(4))
                 .header("authorization", format!("Bearer {ACME_OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "globex")
+                .header("x-tenant", "globex")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -827,7 +827,7 @@ async fn wrong_bearer_is_401() {
                 .uri("/v1/tenants/acme")
                 .header("idempotency-key", key(1))
                 .header("authorization", "Bearer not-the-real-token")
-                .header("x-oya-tenant", "acme")
+                .header("x-tenant", "acme")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -950,14 +950,14 @@ async fn register_same_key_different_tenant_is_independent() {
 /// Env that turns the live-Postgres tier ON (mirrors the durable adapter's
 /// `tests/live_rls.rs` gate). Default `buck2 test` leaves it unset, so the live
 /// test below skips cleanly (the DB-free lane stays the default).
-const LIVE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
+const LIVE_ENV: &str = "OYATIE_BACKBONE_LIVE_POSTGRES";
 /// The runtime Postgres URL the durable router boots against. This MUST be the
 /// APP (non-superuser, NON-BYPASSRLS) role URL, NOT the SETUP superuser URL:
 /// `build_postgres_router` runs `assert_rls_enforceable`, which REJECTS a
 /// bypass-capable role with `PgStoreConnectError::RlsUnenforceable` (so a
 /// superuser URL would make `pg_app(...).expect(...)` panic, not skip). Mirrors
-/// the SCIM #799 fix and the adapter live tests' `OYA_BACKBONE_POSTGRES_APP_URL`.
-const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+/// the SCIM #799 fix and the adapter live tests' `OYATIE_BACKBONE_POSTGRES_APP_URL`.
+const LIVE_URL_ENV: &str = "OYATIE_BACKBONE_POSTGRES_APP_URL";
 
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
@@ -969,6 +969,17 @@ fn live_enabled() -> bool {
             )
         })
         .unwrap_or(false)
+}
+
+fn require_live_app_url() -> String {
+    assert!(
+        live_enabled(),
+        "live test requires {LIVE_ENV}=1 (nextest --profile live --run-ignored only)"
+    );
+    std::env::var(LIVE_URL_ENV)
+        .ok()
+        .filter(|u| !u.trim().is_empty())
+        .unwrap_or_else(|| panic!("{LIVE_ENV} is set but {LIVE_URL_ENV} is missing or empty"))
 }
 
 /// Build a fully-authorized DURABLE router over `url`. Panics on a connect
@@ -1014,7 +1025,7 @@ async fn get_state_on(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde
                 .method(Method::GET)
                 .uri(format!("/v1/tenants/{tenant_id}"))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", tenant_id)
+                .header("x-tenant", tenant_id)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -1050,37 +1061,18 @@ async fn build_postgres_router_empty_url_fails_closed() {
 /// on a durable router, then build a FRESH router over the SAME url and GET the
 /// tenant back — proving the write survived a router rebuild (the property the
 /// in-memory store CANNOT provide). Also asserts the real facade-layer PEP
-/// cross-tenant deny: a verified operator whose `x-oya-tenant` axis does NOT
+/// cross-tenant deny: a verified operator whose `x-tenant` axis does NOT
 /// match the target id receives **403 FORBIDDEN**, not 404 — the PEP denies
 /// it before the store is ever consulted. Store-layer RLS cross-tenant denial
 /// (unset-GUC deny-all, cross-tenant INSERT/SELECT) is proven separately in
 /// `tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs`.
 ///
-/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is
-/// unset so the default `buck2 test` stays DB-free. The target never reads any
-/// env at compile time (no `env!` macro), so it always compiles regardless of
-/// whether `CARGO_MANIFEST_DIR` is set (as it would be absent in buck2).
+/// `#[ignore]` so default nextest does not count a skip as a pass. The live
+/// job runs this with `--run-ignored only`. Missing env is a hard failure.
 #[tokio::test]
+#[ignore = "live postgres"]
 async fn live_durable_store_persists_across_router_rebuild() {
-    if !live_enabled() {
-        eprintln!(
-            "SKIP live_durable_store_persists_across_router_rebuild: \
-             set {LIVE_ENV}=1 and {LIVE_URL_ENV}=<disposable pg url> \
-             to run the durable tier"
-        );
-        return;
-    }
-    let url = match std::env::var(LIVE_URL_ENV) {
-        Ok(u) => u,
-        Err(_) => {
-            eprintln!(
-                "SKIP live_durable_store_persists_across_router_rebuild: \
-                 {LIVE_ENV} is set but {LIVE_URL_ENV} is missing — \
-                 set {LIVE_URL_ENV}=<disposable pg url>"
-            );
-            return;
-        }
-    };
+    let url = require_live_app_url();
 
     // A unique tenant id per run so repeated live runs against the same
     // database do not collide on the durable PRIMARY KEY.
@@ -1125,7 +1117,7 @@ async fn live_durable_store_persists_across_router_rebuild() {
     assert_eq!(view["state"], "provisioning");
 
     // Facade-layer PEP cross-tenant deny (the C7 membership-bound axis): issue
-    // GET /v1/tenants/{tenant_id} with OPERATOR_TOKEN but `x-oya-tenant` set to a
+    // GET /v1/tenants/{tenant_id} with OPERATOR_TOKEN but `x-tenant` set to a
     // DIFFERENT tenant the operator is NOT assigned (`some-other-tenant`). The
     // server-side membership resolver assigned the operator ONLY `tenant_id`, so
     // selecting an unassigned tenant is denied at authn → 403 FORBIDDEN, BEFORE
@@ -1139,7 +1131,7 @@ async fn live_durable_store_persists_across_router_rebuild() {
                 .method(axum::http::Method::GET)
                 .uri(format!("/v1/tenants/{tenant_id}"))
                 .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
-                .header("x-oya-tenant", "some-other-tenant")
+                .header("x-tenant", "some-other-tenant")
                 .body(axum::body::Body::empty())
                 .unwrap(),
         )
@@ -1148,6 +1140,6 @@ async fn live_durable_store_persists_across_router_rebuild() {
     assert_eq!(
         cross_resp.status(),
         StatusCode::FORBIDDEN,
-        "operator selecting an UNASSIGNED x-oya-tenant must be denied 403 by the membership-bound PEP"
+        "operator selecting an UNASSIGNED x-tenant must be denied 403 by the membership-bound PEP"
     );
 }

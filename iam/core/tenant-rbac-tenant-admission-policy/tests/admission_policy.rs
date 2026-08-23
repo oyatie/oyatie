@@ -122,7 +122,7 @@ fn tenant_admission_policy_contract_preserves_fail_closed_deny_controls() {
                 .starts_with("evidence/tenant-admission/fd001-tenant-rbac/")
             && rule
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && rule.applies_to_all_manifest_workloads
             && !rule.runtime_enforcement_attached
     }));

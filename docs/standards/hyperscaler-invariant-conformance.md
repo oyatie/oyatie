@@ -51,13 +51,13 @@ Every microservice in `microservices/<ms>/` MUST:
 1. **Emit metrics under the canonical naming convention.** See
    `microservices/observability/contracts/metric-naming-convention.md`.
    Specifically, every microservice MUST emit:
-   - `oya_<ms>_capability_circuit_state` (gauge, with `state` label)
-   - `oya_<ms>_capability_retry_budget_exhausted_total` (counter)
-   - `oya_<ms>_responses_429_total` (counter, with `tenant_id` label)
-   - `oya_<ms>_responses_5xx_total` (counter)
-   - `oya_<ms>_responses_total` (counter)
-   - `oya_<ms>_request_success_total` (counter)
-   - `oya_<ms>_request_total` (counter)
+   - `<ms>_capability_circuit_state` (gauge, with `state` label)
+   - `<ms>_capability_retry_budget_exhausted_total` (counter)
+   - `<ms>_responses_429_total` (counter, with `tenant_id` label)
+   - `<ms>_responses_5xx_total` (counter)
+   - `<ms>_responses_total` (counter)
+   - `<ms>_request_success_total` (counter)
+   - `<ms>_request_total` (counter)
 
    All metrics MUST carry the `microservice=<ms>` label so the canonical
    PrometheusRule can resolve the offending microservice in alert
@@ -107,8 +107,8 @@ shared resources.
 `OyaCapabilityRetryBudgetExhausted` (page).
 
 **Per-microservice surface**: emit
-`oya_<ms>_capability_circuit_state{state="open"}` and
-`oya_<ms>_capability_retry_budget_exhausted_total`; declare
+`<ms>_capability_circuit_state{state="open"}` and
+`<ms>_capability_retry_budget_exhausted_total`; declare
 `circuit_breaker_threshold` + `max_retry_budget` per capability tier in
 `microservices/<ms>/capabilities/*.yaml`.
 
@@ -126,7 +126,7 @@ header computed from the bucket's refill rate.
 `OyaTenantRateLimit429Surge` (ticket).
 
 **Per-microservice surface**: emit
-`oya_<ms>_responses_429_total{tenant_id=...}`; route tenant-to-cell
+`<ms>_responses_429_total{tenant_id=...}`; route tenant-to-cell
 assignment through the shared shuffle-sharding function (AWS Builders
 Library "Workload isolation using shuffle-sharding").
 
@@ -145,8 +145,8 @@ is materially observable.
 `OyaErrors5xxRateSpike` (page; 5xx > 1% / 5m),
 `OyaTrafficDrop90pct` (page; RPS drop > 90% vs prior-hour baseline).
 
-**Per-microservice surface**: emit `oya_<ms>_responses_total`,
-`oya_<ms>_responses_5xx_total`; carry the
+**Per-microservice surface**: emit `<ms>_responses_total`,
+`<ms>_responses_5xx_total`; carry the
 `app.kubernetes.io/name=<ms>` Kubernetes label on every pod;
 panel all three signals in every dashboard under
 `microservices/<ms>/dashboards/`.
@@ -171,7 +171,7 @@ halt-the-release signal.
 canonical aggregate alerts above provide the `inv:INV-SLO-ERROR-BUDGET`
 label so the conformance gate can audit by label query without scanning
 every per-SLO alert. Microservices also MUST emit
-`oya_<ms>_request_success_total` + `oya_<ms>_request_total` so the
+`<ms>_request_success_total` + `<ms>_request_total` so the
 aggregate canonical alerts compute a meaningful burn rate.
 
 ## Verification
@@ -201,7 +201,7 @@ for m in glob.glob('microservices/*/manifest.json'):
 print('ok' if ok else 'FAIL')"
 
 # 4. Per-microservice HG gate registration
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
+cargo run -p dev-cli -- gate validate hyperscaler-maturity-claims
 ```
 
 ## Authority

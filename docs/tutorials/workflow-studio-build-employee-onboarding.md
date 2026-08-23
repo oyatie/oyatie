@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-WF-ONBOARD-003
+tutorial_id: TUT-OYATIE-WF-ONBOARD-003
 persona: "Mila Santos, HR operations manager at Acme Robotics"
 prerequisite_packs:
   - canonical-base

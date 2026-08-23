@@ -67,7 +67,7 @@ but the criterion is the real bar). Kernel stays PURE (no deps; confirmed ✓).
   key-hash-for-logs): prefer **`ring`** (hyperscaler-grade, blessed, already in-tree from the identity
   build-plan) for `constant_time` + SHA-256; drop `subtle`/`sha2`/`hmac` if `ring` covers it (don't pull
   both RustCrypto *and* ring).
-- **Metrics: reuse `oya-shared-hyperscaler-metrics-adapter-prometheus`** (the existing seam) or emit
+- **Metrics: reuse `shared-hyperscaler-metrics-adapter-prometheus`** (the existing seam) or emit
   **OTel** (ADR-0130) — do NOT add a raw `prometheus` dep per service (a hyperscaler reuses the shared
   metrics lib).
 Net new deps after QC: ideally **zero** beyond the blessed set + `ring` (if not already in-tree).
@@ -90,7 +90,7 @@ uneven + rebalance churn); (c) control-plane/xDS service. **Decision: (a)** — 
 - **reqwest → hyper client** (drops the reqwest + aws-lc-rs tree; hyper already in-tree; reqwest 0.13 was nonexistent).
 - **Drop `aes-gcm` + `pbkdf2`** + the unwired `LocalEncryptedKeyStore` — OpenBao owns crypto-at-rest.
 - **Consolidate `sha2`/`hmac`/`subtle` on `ring`** (constant-time + SHA) — one crypto base, not RustCrypto+ring.
-- **`prometheus` → reuse `oya-shared-hyperscaler-metrics-adapter-prometheus` / OTel** (don't add a per-service metrics dep).
+- **`prometheus` → reuse `shared-hyperscaler-metrics-adapter-prometheus` / OTel** (don't add a per-service metrics dep).
 - Add `dependency-rationales` rows for any remaining new dep; **fix the dep-seam gate blindness** (read per-crate
   deps, not just `[workspace.dependencies]`) + a hyperscaler-allowlist subcheck → promote off report-only (separate task).
 - Workspace-wide: **replace `serde_yaml`** (archived); move `ed25519-dalek`+`sha2` out of the `*-domain` (kernel-pure) crate.

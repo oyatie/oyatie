@@ -12,7 +12,7 @@ credentialsSecret:
 controller:
   replicas: 2
   image:
-    repository: ghcr.io/oyatie/oya-cloud-k8s-csi-object
+    repository: ghcr.io/oyatie/cloud-k8s-csi-object
     tag: "0.1.0"
     pullPolicy: IfNotPresent
   resources:

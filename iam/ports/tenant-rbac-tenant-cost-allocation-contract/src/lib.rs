@@ -32,9 +32,10 @@ const PROGRAM_NAME: &str = "fd-001-tenant-rbac-generic";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const SOURCE_MANIFEST_REF: &str =
-    "crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
-const SOURCE_ADMISSION_POLICY_REF: &str = "crates/oya-tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
-const SOURCE_FINOPS_REF: &str = "crates/oya-cloud-finops-kernel/src/lib.rs::CostReport";
+    "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
+const SOURCE_ADMISSION_POLICY_REF: &str =
+    "crates/tenant-rbac-tenant-admission-policy/src/lib.rs::fd001_tenant_admission_policy_contract";
+const SOURCE_FINOPS_REF: &str = "crates/cloud-finops-kernel/src/lib.rs::CostReport";
 const POLICY_REF_PREFIX: &str = "policy/cost-allocation/fd001/";
 const EXPECTED_EVIDENCE_REF: &str =
     "evidence/cost-allocation/fd001-tenant-rbac/cost-allocation-contract-review.jsonl";
@@ -256,7 +257,7 @@ pub fn validate_fd001_tenant_cost_allocation_contract(
     }
     validate_prefixed_ref(
         contract.finops_kernel_ref,
-        "crates/oya-cloud-finops-kernel/",
+        "crates/cloud-finops-kernel/",
         Fd001TenantCostAllocationError::InvalidFinopsKernelRef,
     )?;
     if contract.requirements.len() < MIN_REQUIREMENT_COUNT
@@ -587,17 +588,17 @@ fn validate_requirement(
     validate_doc_url(requirement.official_doc_url)?;
     validate_prefixed_ref(
         requirement.source_manifest_ref,
-        "crates/oya-tenant-rbac-tenant-workload-manifest/",
+        "crates/tenant-rbac-tenant-workload-manifest/",
         Fd001TenantCostAllocationError::InvalidSourceManifestRef,
     )?;
     validate_prefixed_ref(
         requirement.source_admission_policy_ref,
-        "crates/oya-tenant-rbac-tenant-admission-policy/",
+        "crates/tenant-rbac-tenant-admission-policy/",
         Fd001TenantCostAllocationError::InvalidSourceAdmissionPolicyRef,
     )?;
     validate_prefixed_ref(
         requirement.source_finops_ref,
-        "crates/oya-cloud-finops-kernel/",
+        "crates/cloud-finops-kernel/",
         Fd001TenantCostAllocationError::InvalidSourceFinopsRef,
     )?;
     if !requirement.applies_to_all_manifest_workloads {

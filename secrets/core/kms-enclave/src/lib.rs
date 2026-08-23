@@ -2,9 +2,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-//! Crypto-enclave kernel for oya-kms (story G002, ADR-0536 D-8).
+//! Crypto-enclave kernel for kms (story G002, ADR-0536 D-8).
 //!
-//! This crate is the in-process core of the oya-kms crypto enclave: the
+//! This crate is the in-process core of the kms crypto enclave: the
 //! type-system one-way door for key material, per the AWS KMS domain model
 //! (keys live inside the crypto boundary and key material never leaves it).
 //! The separate enclave *process* boundary ships as the `[[bin]]` wrapper in a

@@ -39,7 +39,7 @@ related_adrs:
   - ADR-0295
   - ADR-0296
   - ADR-0297
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/architecture/corpus-rigor-audit-2026-05-20.md
@@ -90,7 +90,7 @@ The four Slice-8 reference PRDs used as the quality bar throughout this audit:
 - REVISE-PENDING count: `grep -c "REVISE-PENDING\|ANCHOR-INJECTED"` per ARCHITECTURE.md.
 - ADR citations: unique `ADR-NNNN` pattern count per file.
 - manifest.json fields: Python `json.load` + key inspection.
-- Retired citations: `grep` for `ADR-0145`, `oya-vcs`, `grit claim`, `rtk proxy`.
+- Retired citations: `grep` for `ADR-0145`, `retired VCS ratchet`, `grit claim`, `rtk proxy`.
 - Hard-coded strings: `grep` for `"oyatie"`, `oyatie.com` in substantive sections.
 - placeholder markers: `grep -ci "placeholder marker\|placeholder marker\|placeholder marker\|placeholder marker\|code-only deferral"`.
 
@@ -197,7 +197,7 @@ structure.
 Line count passes (1545 ≥ 1500). However, zero `### US-` story anchors exist.
 The PRD has a `## 6. User Stories (20+, step-by-step)` section with narrative
 prose but stories are not formatted with the required `### US-NNN` prefix
-parseable by `oya-governance-doc-rigor`. The section structure uses numbered
+parseable by `governance-doc-rigor`. The section structure uses numbered
 headings (1–16) not §A–§J. Missing §D (Functional requirements) and §E
 (Non-functional requirements) canonical section names. The PRD also lacks the
 6-dimension matrix (§1.2) in any named §E. Recommendation: reformat 20+ stories
@@ -380,7 +380,7 @@ The same boilerplate pattern applies to all 14 injected sections for the 32
 all-boilerplate ARCHITECTURE.md files. The `§transport` boilerplate declares
 "defaults to HTTP/3 + QUIC per ADR-0253" with no IaC file paths; the
 `§intelligence-dispatch` boilerplate declares "library-first via
-`oya-shared-intelligence-dispatch`" with no actual call sites; the
+`shared-intelligence-dispatch`" with no actual call sites; the
 `§ontology-read-path` boilerplate declares a `freshness_floor` "in the
 read-path configuration" without specifying any value.
 
@@ -718,7 +718,7 @@ The `regulatory_packs` → `compliance_packs` rename is not just cosmetic: the
 old field uses short-form pack names (e.g., `kr-pipa`, `gdpr-eu`) while the
 required `compliance_packs` field uses the canonical registry ids
 (e.g., `pack-kr`, `pack-eu`, `pack-pci-dss-l1-v4`). The CI lane
-`oya-governance-cross-consistency` reads `compliance_packs`; it will not
+`governance-cross-consistency` reads `compliance_packs`; it will not
 find `regulatory_packs`.
 
 ### §5.5 `cell_eligibility` type inconsistency
@@ -733,7 +733,7 @@ ADR-0248 §D-1 defines `cell_eligibility` as an enum with values
 `Tier 0` / `Tier 1` / `Tier 2` / `Tier 3`. None of the three present
 implementations uses this enum. The `feature-flags` implementation
 (structured object) is the richest but is an ad-hoc extension not aligned to
-the canonical enum. The `oya-governance-cross-consistency` lane invariant 5
+the canonical enum. The `governance-cross-consistency` lane invariant 5
 check will fail for all three.
 
 ### §5.6 `naming_justifications` coverage
@@ -822,7 +822,7 @@ canonical enum (`Tier 0` / `Tier 1` / `Tier 2` / `Tier 3`) is used by zero
 
 The central pack registry (ADR-0251) is the canonical source. No µservice
 references the central registry path explicitly in their compliance.md or
-manifest. The CI lane `oya-governance-cross-consistency` invariant 6 check
+manifest. The CI lane `governance-cross-consistency` invariant 6 check
 reads `compliance_packs[]` from manifests — 44 manifests have no such field,
 and the 2 that have related fields (`feature-flags` via `sovereign_packs`,
 `payments` via old `regulatory_packs` field) use different id formats. This
@@ -920,12 +920,12 @@ the higher priority — they affect runtime reasoning. The PRD frontmatter
 citations are lower priority but still fail the completeness invariant
 ("every retired doc is retired explicitly").
 
-#### §7.1.2 `oya-vcs` / external-agent-coordination tool citations
+#### §7.1.2 `retired VCS ratchet` / external-agent-coordination tool citations
 
 Per `feedback_deprecate_external_agent_coord_tooling` (2026-05-16): raw
 git/gh canonical; external-agent-coordination tooling retired. The string
-`oya-vcs` appears in compliance.md boilerplate blocks referencing "coordination
-via oya-vcs claim/work/done cycle" in at least 23 compliance.md files (the same
+`retired VCS ratchet` appears in compliance.md boilerplate blocks referencing "coordination
+via retired VCS ratchet claim/work/done cycle" in at least 23 compliance.md files (the same
 set with the ADR-0145 citation above). These compliance.md files were scaffolded
 before the 2026-05-16 deprecation and retain the stale reference.
 
@@ -954,7 +954,7 @@ the indirection-audit section and represent genuine ADR-0284 violations:
 - `intelligence/ARCHITECTURE.md` — 1 occurrence in audience tag example
 
 All 5 must be replaced with the platform-owner indirection primitive before
-the `oya-governance-cross-consistency` lane goes BLOCKER.
+the `governance-cross-consistency` lane goes BLOCKER.
 
 ### §7.3 placeholder marker / placeholder marker / placeholder marker / placeholder marker / "code-only deferral" occurrences
 
@@ -978,7 +978,7 @@ Per completeness invariant 7: zero such occurrences in canonical doc bodies.
 | mail | 1 | compliance.md | placeholder marker in `§email-deliverability` |
 | **Total** | **68** | — | All violations of completeness invariant 7 |
 
-All 68 occurrences trigger `oya-governance-doc-link-resolves` (BLOCKER
+All 68 occurrences trigger `governance-doc-link-resolves` (BLOCKER
 from 2026-07-16). The `tasks` compliance.md placeholder marker count (13) is particularly
 problematic — the compliance document's key security sections are unfinished.
 
@@ -1098,7 +1098,7 @@ the file is known-incomplete and is queued for Wave-3-D rewrite.
 
 Notable: `analytics/PRD.md` has no `doc_class` frontmatter field — it is a
 bare markdown file without YAML frontmatter, which means it fails the
-`oya-governance-doc-link-resolves` frontmatter validation entirely.
+`governance-doc-link-resolves` frontmatter validation entirely.
 `ops-dashboard-control-center/PRD.md` uses `doc_class: Product-Requirements`
 (non-canonical; canonical is `PRD`) and `status: accepted-design-anchor`
 (non-canonical; canonical is `Proposed`).
@@ -1137,7 +1137,7 @@ multiple µservices in a single pass and unblock per-µservice authoring work.
 | B1 | **manifest.json schema migration** — migrate all 39 old-schema manifests to documentation-rigor.md §1 schema (add `tier`, `audience_type`, `layer_enum_conformance`, `cell_eligibility`, `substrate_dependencies`, `compliance_packs`, `naming_justifications`) | 39 | 1 PR, mechanical | manifest.json field coverage jumps from 0/46 PASS to potentially 39/46 PASS |
 | B2 | **compliance.md `§ml-model-lifecycle` + `§detection-fairness-audit` sweep** — add both missing anchors with substantive content to all 34 compliance.md files missing them | 34 | 1 PR, 68 new sections | compliance.md REVISE count drops from 34 to ≤5 |
 | B3 | **ARCHITECTURE.md `§intelligence-dispatch` + `§ontology-read-path` sweep** — add both missing anchors (explicit negative declaration or substantive content) to the 11 ARCHITECTURE.md files missing them | 11 | 1 PR, 22 new sections | Required-14 present jumps to 14/14 for all 46 µservices |
-| B4 | **Retired-tool citation sweep** — replace `oya-vcs claim/work/done` boilerplate blocks with plain `git`/`gh` references; add ADR-0145 retirement note to all 31 PRDs and 23 compliance.md files citing it | 54 | 1 PR, sed-replaceable | Staleness findings §7.1.1 and §7.1.2 cleared |
+| B4 | **Retired-tool citation sweep** — replace `retired VCS ratchet claim/work/done` boilerplate blocks with plain `git`/`gh` references; add ADR-0145 retirement note to all 31 PRDs and 23 compliance.md files citing it | 54 | 1 PR, sed-replaceable | Staleness findings §7.1.1 and §7.1.2 cleared |
 | B5 | **placeholder markers removal** — resolve or remove all 68 occurrences across 14 µservices | 14 | 1 PR, per-item resolution | Completeness invariant 7 cleared for 14 µservices |
 | B6 | **`doc_status` frontmatter sweep** — add `doc_status: draft` to 32 boilerplate ARCHITECTURE.md; `doc_status: stub` + `stub_rewrite_target: wave-3-d` to 39 stub PRDs | 71 | 1 PR, mechanical | CI lane correctly reports draft/stub state; docs stop falsely appearing published |
 
@@ -1592,7 +1592,7 @@ included §H in the default template alongside §A/§C/§F/§I.
     ops-dashboard-control-center), or
 (c) short-form feature-spec layout without user-story anchors (comms-email).
 
-None of these six are parseable by `oya-governance-doc-rigor`. The CI
+None of these six are parseable by `governance-doc-rigor`. The CI
 lane cannot find stories, sections, or metrics. All six require complete
 structural rewrites, not incremental additions.
 
@@ -1733,7 +1733,7 @@ convention:
 | Versioned full-form | `pack-pci-dss-l1-v4`, `pack-eu-psd2-sca`, `pack-kr-fss` | `payments`, `mail`, `identity` compliance.md |
 
 All three conventions co-exist in the corpus. The CI lane
-`oya-governance-cross-consistency` invariant 6 check requires canonical
+`governance-cross-consistency` invariant 6 check requires canonical
 pack-ids from the ADR-0251 registry. The `regulatory_packs` field in old-schema
 manifests (used by 39 µservices) uses yet another form (`kr-pipa`, `gdpr-eu`
 without the `pack-` prefix). The manifest schema migration (§10.1 batch action
@@ -1873,10 +1873,10 @@ Two CI lanes enforce documentation quality across the corpus:
 
 | Lane | Current state | BLOCKER date | What it checks |
 |---|---|---|---|
-| `oya-governance-doc-rigor` | ADVISORY (warnings only) | 2026-07-16 | PRD line floor, story count, §A–§J presence, ARCHITECTURE.md anchor count, compliance.md anchor count, manifest field presence |
-| `oya-governance-doc-link-resolves` | ADVISORY (warnings only) | 2026-07-16 | placeholder markers occurrences, dead cross-references, missing frontmatter fields |
-| `oya-governance-cross-consistency` | ADVISORY (warnings only) | 2026-07-16 | Invariants 1–10 from §3.2.2 |
-| `oya-governance-doc-coverage` | ADVISORY (warnings only) | 2026-07-16 | Per-µservice doc set completeness (all 4 file classes present) |
+| `governance-doc-rigor` | ADVISORY (warnings only) | 2026-07-16 | PRD line floor, story count, §A–§J presence, ARCHITECTURE.md anchor count, compliance.md anchor count, manifest field presence |
+| `governance-doc-link-resolves` | ADVISORY (warnings only) | 2026-07-16 | placeholder markers occurrences, dead cross-references, missing frontmatter fields |
+| `governance-cross-consistency` | ADVISORY (warnings only) | 2026-07-16 | Invariants 1–10 from §3.2.2 |
+| `governance-doc-coverage` | ADVISORY (warnings only) | 2026-07-16 | Per-µservice doc set completeness (all 4 file classes present) |
 
 All four lanes transition to BLOCKER on 2026-07-16. From that date, any PR
 touching a µservice that fails any of the four checks will be blocked from

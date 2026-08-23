@@ -2,7 +2,7 @@
 
 **Task slug:** mail-spf-dkim-signing-input-domain  
 **Vertical:** mail  
-**Crate:** oya-mail-domain  
+**Crate:** mail-domain  
 **RFC authority:** RFC 7208 §2.6 (SPF), RFC 6376 §3.4/§3.5/§3.7 (DKIM canonicalization + signing-input)  
 **Existing guard extended:** `sending_domain_authentication.rs` (SPF/DMARC/DKIM posture admission)  
 
@@ -23,7 +23,7 @@ No new crate, no new dependency, no DNS lookup, no OpenBao read, no actual signi
 ## Vertical and Module Layout (flat clean-arch)
 
 ```
-crates/oya-mail-domain/
+crates/mail-domain/
   src/
     lib.rs                             # pub mod + pub use re-exports (extended)
     governance.rs                      # existing — organizational_domain() reused by spf_alignment
@@ -311,8 +311,8 @@ All tests live in `#[cfg(test)] mod tests` blocks at the bottom of each new modu
 
 ## Boundaries and Non-Claims
 
-- **No new crate.** All logic extends one existing crate (`oya-mail-domain`).
-- **No root `Cargo.toml` edit.** Crate depends only on `oya-data-boundary-kernel`.
+- **No new crate.** All logic extends one existing crate (`mail-domain`).
+- **No root `Cargo.toml` edit.** Crate depends only on `data-boundary-kernel`.
 - **No new dependency.** All logic is pure domain computation.
 - **No signing.** `build_dkim_signing_input` returns a string template; the `b=` value is left empty. The adapter passes `canonical_signed_headers` and `canonical_body` to `aws-lc-rs` (ADR-0506).
 - **No DNS lookup.** Alignment evaluation is purely over already-resolved domain strings.
@@ -336,7 +336,7 @@ The SPF alignment verdict and DKIM signing-input material are domain aggregates,
 - RFC 6376 §3.5 — DKIM-Signature Header Field
 - RFC 6376 §3.7 — Computing the Signature
 - RFC 6376 §5.4 — Last-occurrence rule for signed headers
-- `crates/oya-mail-domain/src/sending_domain_authentication.rs` — `DkimSigningAlgorithm`, `NON_CLAIM`, `normalized_domain()`
-- `crates/oya-mail-domain/src/governance.rs` — `organizational_domain()`, `int()` helper pattern
+- `crates/mail-domain/src/sending_domain_authentication.rs` — `DkimSigningAlgorithm`, `NON_CLAIM`, `normalized_domain()`
+- `crates/mail-domain/src/governance.rs` — `organizational_domain()`, `int()` helper pattern
 - `docs/adr-archive/ADR-0506-aws-lc-rs-canonical-crypto-provider.md` — cryptographic signing library (out of scope for this task; referenced for adapter contract)
 - `docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md` — SLO gate (no SLO change this task)

@@ -115,14 +115,14 @@ Ontology is internal substrate; value manifests through every product built on i
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `entity` | `oya-ontology-entity-{kernel,domain,application,infrastructure}` | Object Type CRUD; tenant-isolated rows; audit seal | `ObjectInstance` |
-| `link` | `oya-ontology-link-{kernel,domain,application,infrastructure}` | Link Type registry + traversal; graph edges | `LinkInstance` |
-| `action` | `oya-ontology-action-{kernel,domain,application,infrastructure}` | Action Type registry; invocation; Cedar gate; audit | `ActionInvocation` |
-| `function` | `oya-ontology-function-{kernel,domain,application,infrastructure}` | Function registry; query evaluation; caching | `FunctionResult` |
-| `schema-registry` | `oya-ontology-schema-registry-{domain,application,infrastructure,rest}` | Object/Link/Action/Function type registration; pillar + property schema | `ObjectTypeSchema` |
-| `agent-gateway` | `oya-ontology-agent-gateway-{domain,application,rest}` | LLM tool-call ingress; Function dispatch; Cedar gate | `AgentToolCall` |
-| `audit-chain` | `oya-ontology-audit-chain-{domain,application,infrastructure}` | Merkle tree per (tenant, period); Ed25519 sealing | `AuditSegment` |
-| `pillar` | `oya-ontology-pillar-{kernel,domain}` | Org-pillar / person-pillar property-tier + DUB enforcement | `PillarContext` |
+| `entity` | `ontology-entity-{kernel,domain,application,infrastructure}` | Object Type CRUD; tenant-isolated rows; audit seal | `ObjectInstance` |
+| `link` | `ontology-link-{kernel,domain,application,infrastructure}` | Link Type registry + traversal; graph edges | `LinkInstance` |
+| `action` | `ontology-action-{kernel,domain,application,infrastructure}` | Action Type registry; invocation; Cedar gate; audit | `ActionInvocation` |
+| `function` | `ontology-function-{kernel,domain,application,infrastructure}` | Function registry; query evaluation; caching | `FunctionResult` |
+| `schema-registry` | `ontology-schema-registry-{domain,application,infrastructure,rest}` | Object/Link/Action/Function type registration; pillar + property schema | `ObjectTypeSchema` |
+| `agent-gateway` | `ontology-agent-gateway-{domain,application,rest}` | LLM tool-call ingress; Function dispatch; Cedar gate | `AgentToolCall` |
+| `audit-chain` | `ontology-audit-chain-{domain,application,infrastructure}` | Merkle tree per (tenant, period); Ed25519 sealing | `AuditSegment` |
+| `pillar` | `ontology-pillar-{kernel,domain}` | Org-pillar / person-pillar property-tier + DUB enforcement | `PillarContext` |
 
 ### Clean Architecture Layer Map
 
@@ -149,12 +149,12 @@ Dependency direction: strictly inward-only. Per `feedback_clean_architecture_req
 Port traits in kernel — ZERO business logic, ZERO I/O:
 
 ```rust
-// oya-ontology-entity-kernel/src/ports.rs
+// ontology-entity-kernel/src/ports.rs
 
 #[doc(hidden)]
 mod sealed { pub trait Sealed {} }
 
-/// Object Type persistence port — implemented in oya-ontology-entity-adapter
+/// Object Type persistence port — implemented in ontology-entity-adapter
 #[async_trait::async_trait]
 pub trait ObjectTypeStore: Send + Sync + sealed::Sealed {
     async fn write(&self, tenant: &TenantId, obj: &ObjectInstance)
@@ -165,7 +165,7 @@ pub trait ObjectTypeStore: Send + Sync + sealed::Sealed {
         -> Result<Vec<ObjectInstance>, StoreError>;
 }
 
-// oya-ontology-link-kernel/src/ports.rs
+// ontology-link-kernel/src/ports.rs
 #[async_trait::async_trait]
 pub trait LinkTypeStore: Send + Sync + sealed::Sealed {
     async fn write(&self, tenant: &TenantId, link: &LinkInstance)
@@ -174,21 +174,21 @@ pub trait LinkTypeStore: Send + Sync + sealed::Sealed {
         -> Result<Vec<ObjectId>, StoreError>;
 }
 
-// oya-ontology-action-kernel/src/ports.rs
+// ontology-action-kernel/src/ports.rs
 #[async_trait::async_trait]
 pub trait ActionTypeStore: Send + Sync + sealed::Sealed {
     async fn invoke(&self, tenant: &TenantId, action: &ActionInvocation)
         -> Result<ActionResult, ActionError>;
 }
 
-// oya-ontology-function-kernel/src/ports.rs
+// ontology-function-kernel/src/ports.rs
 #[async_trait::async_trait]
 pub trait FunctionEvaluator: Send + Sync + sealed::Sealed {
     async fn evaluate(&self, tenant: &TenantId, func: &FunctionCall)
         -> Result<FunctionResult, EvalError>;
 }
 
-// oya-ontology-audit-chain-kernel/src/ports.rs
+// ontology-audit-chain-kernel/src/ports.rs
 #[async_trait::async_trait]
 pub trait AuditChainStore: Send + Sync + sealed::Sealed {
     async fn append(&self, tenant: &TenantId, entry: &AuditEntry)
@@ -198,13 +198,13 @@ pub trait AuditChainStore: Send + Sync + sealed::Sealed {
 }
 ```
 
-Implementations in `oya-ontology-entity-adapter` (Postgres + Citus + RLS),
-`oya-ontology-function-adapter` (query engine; ClickHouse replica),
-`oya-ontology-audit-chain-adapter` (Merkle tree + Ed25519).
+Implementations in `ontology-entity-adapter` (Postgres + Citus + RLS),
+`ontology-function-adapter` (query engine; ClickHouse replica),
+`ontology-audit-chain-adapter` (Merkle tree + Ed25519).
 Domain calls through ports; domain never imports adapters.
 
 ```
-NAME: oya-ontology-entity-kernel
+NAME: ontology-entity-kernel
 JUSTIFICATION:
 - microservice = ontology: Ontology shared substrate µservice; flat catalog; ADR-0056 v4.1; "Ontology" not "Object Graph" per oyatie override
 - bc-tokens = entity: ontology has multiple BCs (entity/link/action/function/schema-registry/agent-gateway/audit-chain/pillar); entity BC owns ObjectInstance; ADR-0056 v4.1 BC-optionality
@@ -294,13 +294,13 @@ Object Types (Medical, Payments, Audit chain).
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | Object Type write → Function read round-trip; tenant isolation holds | `cargo nextest run -p oya-ontology-entity-domain --test rls_isolation` |
+| AC-01 | Object Type write → Function read round-trip; tenant isolation holds | `cargo nextest run -p ontology-entity-domain --test rls_isolation` |
 | AC-02 | Function read p99 ≤50 ms at 10k RPS | k6 smoke; `http_req_duration{p(99)}<50` |
-| AC-03 | Action invocation: Cedar policy block returns 403; permitted returns 200 + audit sealed | `cargo nextest run -p oya-ontology-action-domain --test cedar_gate` |
+| AC-03 | Action invocation: Cedar policy block returns 403; permitted returns 200 + audit sealed | `cargo nextest run -p ontology-action-domain --test cedar_gate` |
 | AC-04 | Agent gateway: LLM tool-call dispatched to Function; result returned in ≤200 ms | integration test `test_agent_gateway_function_call` |
-| AC-05 | Pillar enforcement: org-pillar Object Type unreachable via person-pillar context | `cargo nextest run -p oya-ontology-pillar-domain --test pillar_isolation` |
-| AC-06 | Audit chain: Merkle root verifiable; tamper = verification failure | `oya gate validate audit-chain --ms ontology` |
-| AC-07 | LEAN-A2: ontology crates have no µservice-specific imports | `oya gate validate lean-a2 --ms ontology` exits 0 |
+| AC-05 | Pillar enforcement: org-pillar Object Type unreachable via person-pillar context | `cargo nextest run -p ontology-pillar-domain --test pillar_isolation` |
+| AC-06 | Audit chain: Merkle root verifiable; tamper = verification failure | `presubmit` (retired CLI `gate validate audit-chain --ms ontology`) |
+| AC-07 | LEAN-A2: ontology crates have no µservice-specific imports | `presubmit` (retired CLI `gate validate lean-a2 --ms ontology`) exits 0 |
 
 ---
 

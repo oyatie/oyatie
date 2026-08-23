@@ -1,4 +1,4 @@
-//! OIDC issuer delivery surface over `oya-identity-oidc-issuer-kernel`.
+//! OIDC issuer delivery surface over `identity-oidc-issuer-kernel`.
 //!
 //! RFC 7517 JWKS publication (`/oauth/v2/keys`, the kernel's canonical
 //! `jwks_uri` path) + an RFC 9068 access-token mint use-case. The kernel owns
@@ -267,7 +267,7 @@ mod tests {
     use axum::http::StatusCode;
 
     const ISSUER: &str = "https://idp.oyatie.com";
-    const KID: &str = "oya-identity-k1";
+    const KID: &str = "identity-k1";
 
     fn test_signer() -> Es256FileSigner {
         let rng = SystemRandom::new();
@@ -322,7 +322,7 @@ mod tests {
             .mint_access_token(
                 "wl_secrets_sync",
                 "ten_acme",
-                "oya-cloud-kms",
+                "cloud-kms",
                 vec!["cloud.kms.decrypt".into()],
                 DEFAULT_ACCESS_TOKEN_TTL_SECONDS,
             )

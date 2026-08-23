@@ -1,6 +1,6 @@
 //! OAuth subscription-pool app crate (ADR-0384 Path B).
 //!
-//! This is the composition layer for the cloud-intelligence
+//! This is the composition layer for the intelligence-app
 //! µservice. It wires:
 //!
 //! - [`intelligence_kernel`] — pure-Rust pool + trait seams.
@@ -38,7 +38,7 @@ use intelligence_rest::{
     ConfiguredBearerMapIngressAuthenticator, EventSinkFanout, IngressPrincipalAuthenticator,
     PoolRegistry, RestAdapterError, SecretProviderFuture, SecretProviderStore,
 };
-use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
+use shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
 
 // ---------------------------------------------------------------------------
@@ -125,19 +125,19 @@ impl ProviderComplianceConfig {
         let defaults = Self::default();
         Ok(Self {
             anthropic_auth_mode: read_credential_mode_env(
-                "OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
+                "OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
                 defaults.anthropic_auth_mode,
             )?,
             anthropic_oauth_status: read_provider_status_env(
-                "OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS",
+                "OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS",
                 defaults.anthropic_oauth_status,
             )?,
             codex_auth_mode: read_credential_mode_env(
-                "OYA_CLOUD_INTEL_CODEX_AUTH_MODE",
+                "OYATIE_CLOUD_INTEL_CODEX_AUTH_MODE",
                 defaults.codex_auth_mode,
             )?,
             codex_oauth_status: read_provider_status_env(
-                "OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS",
+                "OYATIE_CLOUD_INTEL_CODEX_OAUTH_STATUS",
                 defaults.codex_oauth_status,
             )?,
         })
@@ -217,7 +217,7 @@ pub struct AppConfig {
     /// Secret-provider adapter base URL for handle resolution (D8).
     /// e.g. `https://cloud-secrets-adapter.infra.svc:8200`
     pub secret_provider_url: String, // data_class: INTERNAL_ONLY
-    /// Secret-provider adapter token. Sourced from `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`.
+    /// Secret-provider adapter token. Sourced from `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`.
     pub secret_provider_token: String, // data_class: SECRET
     /// Transit key name used for envelope-encryption of refresh tokens.
     pub transit_key_name: String, // data_class: INTERNAL_ONLY
@@ -226,7 +226,7 @@ pub struct AppConfig {
     pub clickhouse_url: String, // data_class: INTERNAL_ONLY
     /// ClickHouse user.
     pub clickhouse_user: String, // data_class: INTERNAL_ONLY
-    /// ClickHouse password. Sourced from `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD`.
+    /// ClickHouse password. Sourced from `OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD`.
     pub clickhouse_password: String, // data_class: SECRET
     /// Valkey/Redis URL for stream event sink (D6).
     /// e.g. `redis://valkey.infra.svc:6379` or `rediss://...` for TLS.
@@ -255,73 +255,77 @@ impl AppConfig {
     ///
     /// | Env var                              | Default                          |
     /// |--------------------------------------|----------------------------------|
-    /// | `OYA_CLOUD_INTEL_LISTEN_ADDR`        | `0.0.0.0:8080`                   |
-    /// | `OYA_CLOUD_INTEL_TENANT_ID`          | *(required)*                     |
-    /// | `OYA_CLOUD_INTEL_ANTHROPIC_URL`      | `https://api.anthropic.com`      |
-    /// | `OYA_CLOUD_INTEL_INITIAL_SEATS`      | *(empty)*                        |
-    /// | `OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS`| *(empty)*                      |
-    /// | `OYA_CLOUD_INTEL_SECRET_PROVIDER_URL`        | *(required)*                     |
-    /// | `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`      | *(required)*                     |
-    /// | `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `cloud-intelligence-rt`                 |
-    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_URL`     | `http://clickhouse.analytics.svc:8123` |
-    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_USER`    | `default`                        |
-    /// | `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD`| *(required)*                     |
-    /// | `OYA_CLOUD_INTEL_VALKEY_URL`         | `redis://valkey.infra.svc:6379`  |
-    /// | `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN` | *(unset: admin routes 401)*      |
-    /// | `OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN` | *(unset: data-plane routes 401)* |
-    /// | `OYA_CLOUD_INTEL_INGRESS_BEARER_MAP` | *(empty; `tenant\|token;...` multi-tenant)* |
-    /// | `OYA_CLOUD_INTEL_ENVIRONMENT`        | `development`                    |
-    /// | `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE`| `oauth_subscription`             |
-    /// | `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS`| `PENDING`                     |
-    /// | `OYA_CLOUD_INTEL_CODEX_AUTH_MODE`    | `api_key`                        |
-    /// | `OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS` | `API_ONLY`                       |
+    /// | `OYATIE_CLOUD_INTEL_LISTEN_ADDR`        | `0.0.0.0:8080`                   |
+    /// | `OYATIE_CLOUD_INTEL_TENANT_ID`          | *(required)*                     |
+    /// | `OYATIE_CLOUD_INTEL_ANTHROPIC_URL`      | `https://api.anthropic.com`      |
+    /// | `OYATIE_CLOUD_INTEL_INITIAL_SEATS`      | *(empty)*                        |
+    /// | `OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS`| *(empty)*                      |
+    /// | `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL`        | *(required)*                     |
+    /// | `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`      | *(required)*                     |
+    /// | `OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `intelligence-app-rt`                 |
+    /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_URL`     | `http://clickhouse.analytics.svc:8123` |
+    /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_USER`    | `default`                        |
+    /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD`| *(required)*                     |
+    /// | `OYATIE_CLOUD_INTEL_VALKEY_URL`         | `redis://valkey.infra.svc:6379`  |
+    /// | `OYATIE_CLOUD_INTEL_ADMIN_BEARER_TOKEN` | *(unset: admin routes 401)*      |
+    /// | `OYATIE_CLOUD_INTEL_INGRESS_BEARER_TOKEN` | *(unset: data-plane routes 401)* |
+    /// | `OYATIE_CLOUD_INTEL_INGRESS_BEARER_MAP` | *(empty; `tenant\|token;...` multi-tenant)* |
+    /// | `OYATIE_CLOUD_INTEL_ENVIRONMENT`        | `development`                    |
+    /// | `OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE`| `oauth_subscription`             |
+    /// | `OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS`| `PENDING`                     |
+    /// | `OYATIE_CLOUD_INTEL_CODEX_AUTH_MODE`    | `api_key`                        |
+    /// | `OYATIE_CLOUD_INTEL_CODEX_OAUTH_STATUS` | `API_ONLY`                       |
     pub fn from_env() -> Result<Self, AppBuildError> {
-        let listen_addr = std::env::var("OYA_CLOUD_INTEL_LISTEN_ADDR")
+        let listen_addr = std::env::var("OYATIE_CLOUD_INTEL_LISTEN_ADDR")
             .unwrap_or_else(|_| "0.0.0.0:8080".to_string());
-        let environment = std::env::var("OYA_CLOUD_INTEL_ENVIRONMENT")
+        let environment = std::env::var("OYATIE_CLOUD_INTEL_ENVIRONMENT")
             .unwrap_or_else(|_| "development".to_string());
         let provider_compliance = ProviderComplianceConfig::from_env()?;
-        let tenant_id = std::env::var("OYA_CLOUD_INTEL_TENANT_ID").map_err(|_| {
-            AppBuildError::Config("OYA_CLOUD_INTEL_TENANT_ID is required".to_string())
+        let tenant_id = std::env::var("OYATIE_CLOUD_INTEL_TENANT_ID").map_err(|_| {
+            AppBuildError::Config("OYATIE_CLOUD_INTEL_TENANT_ID is required".to_string())
         })?;
-        let anthropic_base_url = std::env::var("OYA_CLOUD_INTEL_ANTHROPIC_URL")
+        let anthropic_base_url = std::env::var("OYATIE_CLOUD_INTEL_ANTHROPIC_URL")
             .unwrap_or_else(|_| "https://api.anthropic.com".to_string());
         let initial_seats = parse_initial_seats(
-            &std::env::var("OYA_CLOUD_INTEL_INITIAL_SEATS").unwrap_or_default(),
+            &std::env::var("OYATIE_CLOUD_INTEL_INITIAL_SEATS").unwrap_or_default(),
         )?;
         let tenant_provider_pools = parse_tenant_provider_pools(
-            &std::env::var("OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS").unwrap_or_default(),
+            &std::env::var("OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS").unwrap_or_default(),
         )?;
         let secret_provider_url =
-            std::env::var("OYA_CLOUD_INTEL_SECRET_PROVIDER_URL").map_err(|_| {
-                AppBuildError::Config("OYA_CLOUD_INTEL_SECRET_PROVIDER_URL is required".to_string())
-            })?;
-        let secret_provider_token = std::env::var("OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN")
-            .map_err(|_| {
+            std::env::var("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL").map_err(|_| {
                 AppBuildError::Config(
-                    "OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN is required".to_string(),
+                    "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL is required".to_string(),
                 )
             })?;
-        let transit_key_name = std::env::var("OYA_CLOUD_INTEL_TRANSIT_KEY_NAME")
-            .unwrap_or_else(|_| "cloud-intelligence-rt".to_string());
-        let clickhouse_url = std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_URL")
+        let secret_provider_token = std::env::var("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN")
+            .map_err(|_| {
+                AppBuildError::Config(
+                    "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN is required".to_string(),
+                )
+            })?;
+        let transit_key_name = std::env::var("OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME")
+            .unwrap_or_else(|_| "intelligence-app-rt".to_string());
+        let clickhouse_url = std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_URL")
             .unwrap_or_else(|_| "http://clickhouse.analytics.svc:8123".to_string());
-        let clickhouse_user = std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_USER")
+        let clickhouse_user = std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_USER")
             .unwrap_or_else(|_| "default".to_string());
         let clickhouse_password =
-            std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD").map_err(|_| {
-                AppBuildError::Config("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD is required".to_string())
+            std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD").map_err(|_| {
+                AppBuildError::Config(
+                    "OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD is required".to_string(),
+                )
             })?;
-        let valkey_url = std::env::var("OYA_CLOUD_INTEL_VALKEY_URL")
+        let valkey_url = std::env::var("OYATIE_CLOUD_INTEL_VALKEY_URL")
             .unwrap_or_else(|_| "redis://valkey.infra.svc:6379".to_string());
-        let admin_bearer_token = std::env::var("OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN")
+        let admin_bearer_token = std::env::var("OYATIE_CLOUD_INTEL_ADMIN_BEARER_TOKEN")
             .ok()
             .filter(|token| !token.trim().is_empty());
-        let ingress_bearer_token = std::env::var("OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN")
+        let ingress_bearer_token = std::env::var("OYATIE_CLOUD_INTEL_INGRESS_BEARER_TOKEN")
             .ok()
             .filter(|token| !token.trim().is_empty());
         let ingress_bearer_map = parse_ingress_bearer_map(
-            &std::env::var("OYA_CLOUD_INTEL_INGRESS_BEARER_MAP").unwrap_or_default(),
+            &std::env::var("OYATIE_CLOUD_INTEL_INGRESS_BEARER_MAP").unwrap_or_default(),
         )?;
         let config = Self {
             listen_addr,
@@ -425,7 +429,7 @@ fn parse_initial_seats(raw: &str) -> Result<Vec<(String, String)>, AppBuildError
         .collect()
 }
 
-/// Parse `OYA_CLOUD_INTEL_INGRESS_BEARER_MAP` (AUTH-005 increment-3): ';'-separated
+/// Parse `OYATIE_CLOUD_INTEL_INGRESS_BEARER_MAP` (AUTH-005 increment-3): ';'-separated
 /// entries, each `tenant|token`. Mirrors [`parse_tenant_provider_pools`]. An empty
 /// input yields an empty map (single-tenant behavior unchanged). Each tenant is
 /// validated into a [`TenantId`]; an empty token is rejected (a token that can
@@ -443,7 +447,7 @@ fn parse_ingress_bearer_map(raw: &str) -> Result<Vec<(TenantId, String)>, AppBui
         let parts = entry.split('|').map(str::trim).collect::<Vec<_>>();
         if parts.len() != 2 {
             return Err(AppBuildError::Config(format!(
-                "OYA_CLOUD_INTEL_INGRESS_BEARER_MAP entry must have 2 fields (tenant|token): {entry}"
+                "OYATIE_CLOUD_INTEL_INGRESS_BEARER_MAP entry must have 2 fields (tenant|token): {entry}"
             )));
         }
         let tenant = TenantId::new(parts[0]).map_err(|_| {
@@ -461,7 +465,7 @@ fn parse_ingress_bearer_map(raw: &str) -> Result<Vec<(TenantId, String)>, AppBui
         // legitimate credential rotation.) ponytail: O(n^2) over a tiny tenant-count binding set.
         if bindings.iter().any(|(_, existing)| existing == &token) {
             return Err(AppBuildError::Config(
-                "OYA_CLOUD_INTEL_INGRESS_BEARER_MAP has a duplicate token shared across entries \
+                "OYATIE_CLOUD_INTEL_INGRESS_BEARER_MAP has a duplicate token shared across entries \
                  (would silently bind to the wrong tenant)"
                     .to_string(),
             ));
@@ -485,7 +489,7 @@ fn parse_tenant_provider_pools(raw: &str) -> Result<Vec<TenantProviderPoolConfig
         let parts = entry.split('|').map(str::trim).collect::<Vec<_>>();
         if parts.len() != 6 {
             return Err(AppBuildError::Config(format!(
-                "OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS entry must have 6 fields: {entry}"
+                "OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS entry must have 6 fields: {entry}"
             )));
         }
         let tenant_id = parts[0].to_string();
@@ -496,7 +500,7 @@ fn parse_tenant_provider_pools(raw: &str) -> Result<Vec<TenantProviderPoolConfig
         }
         let provider = parse_provider(parts[1])?;
         let credential_mode =
-            CredentialMode::from_env_value(parts[2], "OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS")?;
+            CredentialMode::from_env_value(parts[2], "OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS")?;
         let strategy = parse_selection_strategy(parts[3])?;
         let seat_id = parts[4].to_string();
         if seat_id.is_empty() {
@@ -642,7 +646,7 @@ impl InProcessSecretStore {
     }
 
     /// Pre-load a handle → plaintext pair (used at startup when
-    /// `OYA_CLOUD_INTEL_INITIAL_SEATS` is set).
+    /// `OYATIE_CLOUD_INTEL_INITIAL_SEATS` is set).
     pub fn preload(&self, handle: &str, token: &str) {
         if let Ok(mut m) = self.map.lock() {
             m.insert(handle.to_string(), token.to_string());
@@ -699,7 +703,7 @@ impl EventSink for InProcessEventSink {
             provider   = %event.provider,
             status     = ?event.status,
             ms_latency = event.ms_latency,
-            "cloud-intelligence event"
+            "intelligence-app event"
         );
     }
 }
@@ -765,10 +769,10 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
 
     // AUTH-005 / ADR-0573 data-plane ingress authn/authz: the verified principal
     // tenant binding defaults to this service's own tenant.
-    // OYA_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT overrides it so a cross-tenant
+    // OYATIE_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT overrides it so a cross-tenant
     // authz test is expressible. An empty/unset bearer => every data-plane
     // request 401 (fail-closed; the authenticator mints nothing).
-    let ingress_principal_tenant = std::env::var("OYA_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT")
+    let ingress_principal_tenant = std::env::var("OYATIE_CLOUD_INTEL_INGRESS_PRINCIPAL_TENANT")
         .ok()
         .filter(|tenant| !tenant.trim().is_empty())
         .unwrap_or_else(|| config.tenant_id.clone());
@@ -1074,7 +1078,7 @@ mod tests {
             // These fields are not used by build_app_for_tests (in-process mocks).
             secret_provider_url: "http://127.0.0.1:1".to_string(),
             secret_provider_token: "test-token".to_string(),
-            transit_key_name: "cloud-intelligence-rt".to_string(),
+            transit_key_name: "intelligence-app-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
             clickhouse_password: "test".to_string(),
@@ -1139,7 +1143,7 @@ mod tests {
             initial_seats: vec![],
             secret_provider_url: "http://127.0.0.1:1".to_string(),
             secret_provider_token: "test-token".to_string(),
-            transit_key_name: "cloud-intelligence-rt".to_string(),
+            transit_key_name: "intelligence-app-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
             clickhouse_password: "test".to_string(),
@@ -1303,22 +1307,28 @@ mod tests {
     fn production_oauth_subscription_without_provider_approval_fails_closed() {
         let _guard = ENV_LOCK.lock().unwrap();
         let _env = EnvOverride::set(&[
-            ("OYA_CLOUD_INTEL_LISTEN_ADDR", "127.0.0.1:0"),
-            ("OYA_CLOUD_INTEL_TENANT_ID", "tenant-a"),
-            ("OYA_CLOUD_INTEL_ANTHROPIC_URL", "http://127.0.0.1:1"),
+            ("OYATIE_CLOUD_INTEL_LISTEN_ADDR", "127.0.0.1:0"),
+            ("OYATIE_CLOUD_INTEL_TENANT_ID", "tenant-a"),
+            ("OYATIE_CLOUD_INTEL_ANTHROPIC_URL", "http://127.0.0.1:1"),
             (
-                "OYA_CLOUD_INTEL_INITIAL_SEATS",
+                "OYATIE_CLOUD_INTEL_INITIAL_SEATS",
                 "seat-a:secret-ref://tenant-a/anthropic/seat-a",
             ),
             (
-                "OYA_CLOUD_INTEL_SECRET_PROVIDER_URL",
+                "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL",
                 "http://127.0.0.1:8200",
             ),
-            ("OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN", "vault-token"),
-            ("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD", "clickhouse-password"),
-            ("OYA_CLOUD_INTEL_ENVIRONMENT", "production"),
-            ("OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE", "oauth_subscription"),
-            ("OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS", "PENDING"),
+            ("OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN", "vault-token"),
+            (
+                "OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
+                "clickhouse-password",
+            ),
+            ("OYATIE_CLOUD_INTEL_ENVIRONMENT", "production"),
+            (
+                "OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
+                "oauth_subscription",
+            ),
+            ("OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS", "PENDING"),
         ]);
 
         let err = AppConfig::from_env().expect_err("production OAuth must fail closed");
@@ -1415,22 +1425,22 @@ mod tests {
 
     #[test]
     fn helm_template_declares_all_boot_required_env_vars() {
-        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let deployment_template = read_declared_fixture("OYATIE_INTELLIGENCE_HELM_DEPLOYMENT");
         for expected in [
-            "OYA_CLOUD_INTEL_LISTEN_ADDR",
-            "OYA_CLOUD_INTEL_TENANT_ID",
-            "OYA_CLOUD_INTEL_ENVIRONMENT",
-            "OYA_CLOUD_INTEL_INITIAL_SEATS",
-            "OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS",
-            "OYA_CLOUD_INTEL_SECRET_PROVIDER_URL",
-            "OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN",
-            "OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
-            "OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN",
-            "OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN",
-            "OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
-            "OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS",
-            "OYA_CLOUD_INTEL_CODEX_AUTH_MODE",
-            "OYA_CLOUD_INTEL_CODEX_OAUTH_STATUS",
+            "OYATIE_CLOUD_INTEL_LISTEN_ADDR",
+            "OYATIE_CLOUD_INTEL_TENANT_ID",
+            "OYATIE_CLOUD_INTEL_ENVIRONMENT",
+            "OYATIE_CLOUD_INTEL_INITIAL_SEATS",
+            "OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS",
+            "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL",
+            "OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN",
+            "OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
+            "OYATIE_CLOUD_INTEL_ADMIN_BEARER_TOKEN",
+            "OYATIE_CLOUD_INTEL_INGRESS_BEARER_TOKEN",
+            "OYATIE_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
+            "OYATIE_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS",
+            "OYATIE_CLOUD_INTEL_CODEX_AUTH_MODE",
+            "OYATIE_CLOUD_INTEL_CODEX_OAUTH_STATUS",
         ] {
             assert!(
                 deployment_template.contains(expected),
@@ -1441,13 +1451,13 @@ mod tests {
 
     #[test]
     fn core_boundaries_use_owned_secret_provider_port_not_transient_adapter_names() {
-        let app_source = read_declared_fixture("OYA_INTELLIGENCE_APP_SOURCE");
-        let rest_source = read_declared_fixture("OYA_INTELLIGENCE_REST_SOURCE");
-        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let app_source = read_declared_fixture("OYATIE_INTELLIGENCE_APP_SOURCE");
+        let rest_source = read_declared_fixture("OYATIE_INTELLIGENCE_REST_SOURCE");
+        let deployment_template = read_declared_fixture("OYATIE_INTELLIGENCE_HELM_DEPLOYMENT");
 
         assert!(
             app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
-            "core cloud-intelligence Rust boundary should expose the owned secret-provider port"
+            "core intelligence-app Rust boundary should expose the owned secret-provider port"
         );
         assert!(
             deployment_template.contains("SECRET_PROVIDER"),
@@ -1455,23 +1465,23 @@ mod tests {
         );
         let forbidden = [
             ["OpenBao", "SecretStore"].concat(),
-            ["OYA_CLOUD_INTEL_", "OPEN", "BAO", "_URL"].concat(),
-            ["OYA_CLOUD_INTEL_", "OPEN", "BAO", "_TOKEN"].concat(),
+            ["OYATIE_CLOUD_INTEL_", "OPEN", "BAO", "_URL"].concat(),
+            ["OYATIE_CLOUD_INTEL_", "OPEN", "BAO", "_TOKEN"].concat(),
         ];
         for forbidden in forbidden {
             assert!(
                 !app_source.contains(&forbidden)
                     && !rest_source.contains(&forbidden)
                     && !deployment_template.contains(&forbidden),
-                "core cloud-intelligence boundary leaked transient adapter identifier {forbidden}"
+                "core intelligence-app boundary leaked transient adapter identifier {forbidden}"
             );
         }
     }
 
     #[test]
     fn probe_paths_are_consistent_between_helm_and_openapi() {
-        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
-        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
+        let deployment_template = read_declared_fixture("OYATIE_INTELLIGENCE_HELM_DEPLOYMENT");
+        let openapi_contract = read_declared_fixture("OYATIE_INTELLIGENCE_OPENAPI_CONTRACT");
         for path in ["/healthz", "/livez", "/readyz"] {
             assert!(
                 deployment_template.contains(&format!("path: {path}"))
@@ -1487,7 +1497,7 @@ mod tests {
 
     #[test]
     fn tenant_subscription_openapi_matches_runtime_registration_semantics() {
-        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
+        let openapi_contract = read_declared_fixture("OYATIE_INTELLIGENCE_OPENAPI_CONTRACT");
         let operation_start = openapi_contract
             .find("  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:\n")
             .expect("tenant subscription admin path missing from OpenAPI");
@@ -1531,7 +1541,7 @@ mod tests {
     #[test]
     fn external_secret_exposes_handles_not_raw_provider_credentials() {
         let external_secret_template =
-            read_declared_fixture("OYA_INTELLIGENCE_HELM_EXTERNALSECRET");
+            read_declared_fixture("OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET");
         for forbidden in [
             "anthropic_refresh_token",
             "openai_api_key",

@@ -11,8 +11,8 @@
 //! ## Doctrine: transient adapter behind an owned-shaped port
 //!
 //! The kernel port [`TenantLifecycleStore`] is the OWNED-destination contract
-//! (the oya-data ordered-keyed KV shape). Postgres is a TRANSIENT adapter
-//! behind it; the owned data substrate (G003/oya-data) cuts over later WITHOUT
+//! (the data ordered-keyed KV shape). Postgres is a TRANSIENT adapter
+//! behind it; the owned data substrate (G003/data) cuts over later WITHOUT
 //! changing the port. TLS is aws-lc-rs rustls only (ADR-0506; `ring` is
 //! forbidden) — wired through the workspace `sqlx` feature
 //! `tls-rustls-aws-lc-rs`.
@@ -29,7 +29,7 @@
 //! The always-on tests are hermetic plan-shape tests: they assert the generated
 //! SQL and that the GUC-set statement precedes every tenant-scoped statement
 //! (no database needed). Live RLS/idempotency integration tests live behind the
-//! `OYA_BACKBONE_LIVE_POSTGRES` env gate (see `tests/`).
+//! `OYATIE_BACKBONE_LIVE_POSTGRES` env gate (see `tests/`).
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -38,9 +38,9 @@
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleState};
-use oya_shared_postgres_command_adapter_sqlx::assert_rls_enforceable;
-use oya_shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
+use shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleState};
+use shared_postgres_command_adapter_sqlx::assert_rls_enforceable;
+use shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
@@ -105,7 +105,7 @@ pub enum PgStoreConnectError {
     /// Note: this guard is necessary but not sufficient for full tenant
     /// isolation. Full isolation additionally requires that `RUNTIME_ROLE`
     /// exists provisioned with NOBYPASSRLS (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres).
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres).
     RlsUnenforceable { role: String },
     /// The connected role is neither the RLS policy-subject role
     /// (`RUNTIME_ROLE`) nor a member of it. Under FORCE RLS the tenant-isolation
@@ -268,7 +268,7 @@ impl PgTenantLifecycleStore {
     /// This guard is necessary but not sufficient for full tenant isolation.
     /// Full isolation additionally requires that `RUNTIME_ROLE` exists in the
     /// database, provisioned with `NOBYPASSRLS` (the deferred
-    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres).
+    /// `0000_runtime_role.sql` follow-up, mirroring data-outbox-adapter-postgres).
     ///
     /// # Errors
     /// - [`PgStoreConnectError::RlsUnenforceable`] if the current role carries
@@ -734,7 +734,7 @@ mod tests {
 
     // --- RlsEnforceabilityError -> PgStoreConnectError mapping ----------------
     // The DB-free role/forced predicate decisions now live in the shared kernel
-    // (oya-shared-postgres-command-kernel); this adapter keeps only the THIN
+    // (shared-postgres-command-kernel); this adapter keeps only the THIN
     // mapping that preserves its fail-closed connect-error contract.
 
     #[test]
@@ -825,7 +825,7 @@ mod tests {
         // at boot. Asserting the SAME list the guard passes EXACTLY equals the
         // migration's FORCE'd-table set makes that drift impossible. DB-free —
         // pure string comparison, runs in the always-on unit lane.
-        use oya_shared_postgres_command_kernel::force_rls_tables;
+        use shared_postgres_command_kernel::force_rls_tables;
         let migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
         let mut from_migration = force_rls_tables(migration);
         from_migration.sort();

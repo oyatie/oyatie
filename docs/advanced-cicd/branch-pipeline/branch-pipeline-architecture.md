@@ -12,9 +12,9 @@ purpose: |
   origin/dev → staging promotion, and 5-gate staging → prod promotion. No human-button
   at any transition. Supersedes ADR-0041 trunk-based posture.
 planned_enforcement_ref:
-  - oya-governance-promotion-gate-local-dev-to-origin-dev
-  - oya-governance-promotion-gate-staging-to-prod
-  - oya-governance-no-direct-origin-dev-commit
+  - governance-promotion-gate-local-dev-to-origin-dev
+  - governance-promotion-gate-staging-to-prod
+  - governance-no-direct-origin-dev-commit
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 supersedes: [ADR-0041]
 doc_status: published
@@ -72,8 +72,8 @@ flowchart LR
 
 Target design: `dev-promoter` agent (per [`agent-roles-spec.md`](agent-roles-spec.md) §2) orchestrates. **All three must be green** for auto-merge after the planned lanes below are wired as active required contexts; until then, promotion is limited to current branch-protection checks plus recorded review evidence:
 
-1. **PR shape conforms.** Five H2 sections per the project PR template; planned advisory lane: `oya-governance-pr-shape` (planned blocker).
-3. **CI cleared.** Every fitness lane on PR HEAD is GREEN. Planned advisory lane: `oya-governance-promotion-gate-local-dev-to-origin-dev` (planned blocker, gate-class).
+1. **PR shape conforms.** Five H2 sections per the project PR template; planned advisory lane: `governance-pr-shape` (planned blocker).
+3. **CI cleared.** Every fitness lane on PR HEAD is GREEN. Planned advisory lane: `governance-promotion-gate-local-dev-to-origin-dev` (planned blocker, gate-class).
 
 Promotion mechanic: squash-merge into `origin/dev` (PR's merge commit). Linear history preserved; no merge commits.
 
@@ -83,10 +83,10 @@ No human button is the target automation contract. The PR opens automatically wh
 
 Target promotion fires automatically when **all five** are green on `staging` HEAD after the planned lanes are active; until then, this section is a design contract, not a claim that the missing lanes block production:
 
-1. **All reviewer-agent comments resolved.** Every comment from the local-dev → origin/dev review thread carries `resolved: true` annotation OR a follow-up commit referencing the comment id (the follow-up went through the standard local-dev → origin/dev → staging path). Planned advisory lane: `oya-governance-pr-comment-resolution`.
-2. **All CI fixed and green.** Every fitness lane GREEN on `staging` HEAD for ≥ **N consecutive runs** (default N=3; configurable per change class). Planned advisory lane: `oya-governance-promotion-gate-staging-to-prod`.
+1. **All reviewer-agent comments resolved.** Every comment from the local-dev → origin/dev review thread carries `resolved: true` annotation OR a follow-up commit referencing the comment id (the follow-up went through the standard local-dev → origin/dev → staging path). Planned advisory lane: `governance-pr-comment-resolution`.
+2. **All CI fixed and green.** Every fitness lane GREEN on `staging` HEAD for ≥ **N consecutive runs** (default N=3; configurable per change class). Planned advisory lane: `governance-promotion-gate-staging-to-prod`.
 3. **Progressive-delivery canary at 100% on staging deployment for ≥ M hours.** Default M=24h non-regulated, 7d regulated (per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) + `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`).
-4. **Zero open `slo-burn-rate-fast` alerts.** SLO catalog freshness ≤ 5 min; planned verification lane: `oya-governance-slo-burn-rate-fast`.
+4. **Zero open `slo-burn-rate-fast` alerts.** SLO catalog freshness ≤ 5 min; planned verification lane: `governance-slo-burn-rate-fast`.
 5. **(Optional, per change class) Reviewer-agent re-affirms verdict after canary observations.** Triggered for: `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `capability-reviewer`, `perf-reviewer` classes. Re-affirmation uses post-canary SLO + audit-chain evidence as input.
 
 Promotion mechanic: `prod-promoter` agent fast-forwards `prod` to `staging` HEAD. Linear history preserved; Cosign-signed commit per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md); SLSA L2+ provenance bundle attached.

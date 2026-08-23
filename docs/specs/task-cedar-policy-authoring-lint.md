@@ -1,12 +1,12 @@
 # Spec: cedar-policy-authoring-lint
 
 vertical: foundation
-crate: oya-policy-cedar-domain
+crate: policy-cedar-domain
 task-slug: cedar-policy-authoring-lint
 
 ## Objective
 
-Extend `oya-policy-cedar-domain` with a static authoring-time lint pass that
+Extend `policy-cedar-domain` with a static authoring-time lint pass that
 detects structural defects in a `PolicyVersion` **before** it is published to a
 `PolicySet`. The lint pass is pure (no I/O, no Cedar runtime, no network) and
 returns a structured `PolicyLintReport` that callers can gate on before invoking
@@ -19,7 +19,7 @@ semantic conflicts between rules within the same version.
 ## Vertical and Crate
 
 - **Vertical**: foundation
-- **Crate**: `oya-policy-cedar-domain` (`crates/oya-policy-cedar-domain/`)
+- **Crate**: `policy-cedar-domain` (`crates/policy-cedar-domain/`)
 - **Flat-clean-arch layout**: new types and function land directly in `src/lib.rs`
   as a contiguous `// ── lint ──` section, matching the existing single-file
   convention for this crate. No new `mod`, no new crate.

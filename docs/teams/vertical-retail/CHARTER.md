@@ -10,13 +10,13 @@ This team owns the retail vertical: point-of-sale (POS), inventory management, p
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Retail (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-retail-kernel` — `Product`, `SKU`, `PosTransaction`, `InventoryRecord`, `Promotion`, `LoyaltyAccount`
-  - `oya-vertical-retail-domain-*` — POS transaction lifecycle, inventory replenishment, promotions engine
+  - `vertical-retail-kernel` — `Product`, `SKU`, `PosTransaction`, `InventoryRecord`, `Promotion`, `LoyaltyAccount`
+  - `vertical-retail-domain-*` — POS transaction lifecycle, inventory replenishment, promotions engine
   - Products owned: `products/vertical-retail/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — POS transactions, inventory adjustments)
   - `Ad slot inventory` (consumer — in-app promotional ad slots)
-- **Catalog records:** `crates/oya-vertical-retail-*`
+- **Catalog records:** `crates/vertical-retail-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at W-Vertical-Fan-Out
 

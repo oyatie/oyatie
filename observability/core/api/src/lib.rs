@@ -6,11 +6,11 @@
 //! immutable reads to the Cloud observability kernel.
 
 use audit_chain_domain::Plane;
+use data_boundary_kernel::{OperationalDataClass, Purpose};
 use observability_aggregate::{
     AuditReadRequest, AuditReadScope, CloudAuditOperation, CloudAuditRecord, CloudAuditTopic,
     CloudObservabilityCatalog, CloudObservabilityError,
 };
-use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
 pub mod authz;
 
@@ -712,17 +712,17 @@ fn parse_audit_scope(value: &str) -> Result<AuditReadScope, CloudObservabilityAp
 
 fn parse_audit_topic(value: &str) -> Result<CloudAuditTopic, CloudObservabilityApiError> {
     match value.trim() {
-        "oya.audit.cloud_resource_created" => Ok(CloudAuditTopic::CloudResourceCreated),
-        "oya.audit.cloud_resource_terminated" => Ok(CloudAuditTopic::CloudResourceTerminated),
-        "oya.audit.cloud_iam_assume" => Ok(CloudAuditTopic::CloudIamAssume),
-        "oya.audit.cloud_iam_policy" => Ok(CloudAuditTopic::CloudIamPolicy),
-        "oya.audit.cloud_region_register" => Ok(CloudAuditTopic::CloudRegionRegister),
-        "oya.audit.cloud_kms_use" => Ok(CloudAuditTopic::CloudKmsUse),
-        "oya.audit.cloud_replication" => Ok(CloudAuditTopic::CloudReplication),
-        "oya.audit.cloud_flow_anomaly" => Ok(CloudAuditTopic::CloudFlowAnomaly),
-        "oya.audit.cloud_invoice" => Ok(CloudAuditTopic::CloudInvoice),
-        "oya.audit.cloud_interconnect" => Ok(CloudAuditTopic::CloudInterconnect),
-        "oya.audit.cloud_cell_rebalanced" => Ok(CloudAuditTopic::CloudCellRebalanced),
+        "oyatie.audit.cloud_resource_created" => Ok(CloudAuditTopic::CloudResourceCreated),
+        "oyatie.audit.cloud_resource_terminated" => Ok(CloudAuditTopic::CloudResourceTerminated),
+        "oyatie.audit.cloud_iam_assume" => Ok(CloudAuditTopic::CloudIamAssume),
+        "oyatie.audit.cloud_iam_policy" => Ok(CloudAuditTopic::CloudIamPolicy),
+        "oyatie.audit.cloud_region_register" => Ok(CloudAuditTopic::CloudRegionRegister),
+        "oyatie.audit.cloud_kms_use" => Ok(CloudAuditTopic::CloudKmsUse),
+        "oyatie.audit.cloud_replication" => Ok(CloudAuditTopic::CloudReplication),
+        "oyatie.audit.cloud_flow_anomaly" => Ok(CloudAuditTopic::CloudFlowAnomaly),
+        "oyatie.audit.cloud_invoice" => Ok(CloudAuditTopic::CloudInvoice),
+        "oyatie.audit.cloud_interconnect" => Ok(CloudAuditTopic::CloudInterconnect),
+        "oyatie.audit.cloud_cell_rebalanced" => Ok(CloudAuditTopic::CloudCellRebalanced),
         _ => Err(CloudObservabilityApiError::InvalidAuditTopicLabel {
             topic: value.to_string(),
         }),

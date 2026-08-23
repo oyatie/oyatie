@@ -3,7 +3,7 @@
 ## Objective
 
 Add a pure, time-injected delivery-replay/dedup guard (idempotency) to the
-trustless webhook receiver `oya-ci-webhook-gateway-app`, wired AFTER ed25519
+trustless webhook receiver `ci-webhook-gateway-app`, wired AFTER ed25519
 verify + Cedar authz + event parse/route (Steps 2-4) but BEFORE Jenkins dispatch
 (Step 5), so a first delivery dispatches normally and an identical replay within
 the TTL returns a benign idempotent acknowledgement (200 OK, no second Jenkins
@@ -16,17 +16,17 @@ ADR-0387 (ci-webhook-gateway GitHub-to-Jenkins commit-status).
 
 `ci-webhook-gateway` (substituted for the on-dev-absent llm-gateway vertical).
 
-Crate scope: `microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app`
+Crate scope: `microservices/ci-webhook-gateway/crates/ci-webhook-gateway-app`
 only. This is the root-workspace member (root Cargo.toml line 705) containing
 the full Steps 1-8 pipeline with ed25519 verify + Cedar authz + Jenkins dispatch.
 
 ### Canonical implementation note
 
-There are two packages with the same name `oya-ci-webhook-gateway-app` on
+There are two packages with the same name `ci-webhook-gateway-app` on
 `origin/dev`:
 
 1. **Root-workspace member** (this slice's target):
-   `microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/`
+   `microservices/ci-webhook-gateway/crates/ci-webhook-gateway-app/`
    — ed25519 verify, Cedar authz, Steps 1-8, `state.jenkins.trigger`.
 
 2. **Standalone flat twin** (out of scope):
@@ -68,7 +68,7 @@ else
 ```
 
 The fallback uses `action_disc: u8` (stable discriminant) because
-`oya_ci_webhook_gateway_kernel::CiAction` does not implement `Hash`; we avoid
+`ci_webhook_gateway_kernel::CiAction` does not implement `Hash`; we avoid
 touching the kernel crate.
 
 The sentinel `"unknown"` is the value the handler injects via
@@ -116,7 +116,7 @@ is an open question, named alongside task #62 as an explicit follow-up.
 ## Module layout (flat-clean-arch per ADR-0509)
 
 ```
-microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/
+microservices/ci-webhook-gateway/crates/ci-webhook-gateway-app/
   src/
     lib.rs        # AppState + handler — guard wired at Step 4.5
     replay.rs     # [NEW] DeliveryGuard, DeliveryKey, Verdict, prune, tests
@@ -163,8 +163,8 @@ added to `AppState`.
 
 ## Acceptance criteria
 
-- `cargo check -p oya-ci-webhook-gateway-app --all-targets` passes.
-- `cargo nextest run -p oya-ci-webhook-gateway-app` green (7/7).
+- `cargo check -p ci-webhook-gateway-app --all-targets` passes.
+- `cargo nextest run -p ci-webhook-gateway-app` green (7/7).
 - `git diff` shows root `Cargo.toml` unchanged and no new dependency added.
 - Code shows guard placed after Step 4 route and before Step 5 trigger.
 - A replayed delivery returns the idempotent ack and does NOT call

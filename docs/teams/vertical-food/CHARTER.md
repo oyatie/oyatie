@@ -10,12 +10,12 @@ This team owns the food vertical: food manufacturing/processing supply-chain com
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Food (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-food-kernel` — `FoodProduct`, `Recipe`, `Ingredient`, `AllergenDeclaration`, `NutritionFact`, `HaccpPlan`, `ProcessingLot`
-  - `oya-vertical-food-domain-*` — recipe lifecycle, allergen control, nutritional label generation, HACCP management, processing lot traceability
+  - `vertical-food-kernel` — `FoodProduct`, `Recipe`, `Ingredient`, `AllergenDeclaration`, `NutritionFact`, `HaccpPlan`, `ProcessingLot`
+  - `vertical-food-domain-*` — recipe lifecycle, allergen control, nutritional label generation, HACCP management, processing lot traceability
   - Products owned: `products/vertical-food/PRD.md` (skeleton)
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — processing lot events, HACCP corrective actions, recall events)
-- **Catalog records:** `crates/oya-vertical-food-*`
+- **Catalog records:** `crates/vertical-food-*`
 - **Runbooks:** TBD at W-Vertical-Fan-Out
 - **ADRs:** TBD at activation; KR 식품위생법 + FDA FSMA + EU food-law compliance ADR
 

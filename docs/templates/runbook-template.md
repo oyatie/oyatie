@@ -80,7 +80,7 @@ After this runbook is invoked, update:
 
 ## Audit-chain emission
 
-Per ADR-0003, every runbook invocation emits to `oya.ops.runbook.invoked` with:
+Per ADR-0003, every runbook invocation emits to `oyatie.ops.runbook.invoked` with:
 - runbook-id
 - invoker-id
 - timestamp

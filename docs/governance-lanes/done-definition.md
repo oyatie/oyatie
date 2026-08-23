@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every PR proves all D-items (D1..D15) are checked, marked N/A with rationale, or deferred to an issue id.
 - enforces: CHECKLIST/definition-of-done.
-- kernel_crate: `oya-governance-done-definition-kernel` — `DoneDefinition { pr_id, items }`, `DItem { id, state, deferred_issue }`, verdict `DoneDefinitionFitnessReport { pr_count }`.
-- runner_path: `tools/oya-governance-done-definition`
+- kernel_crate: `governance-done-definition-kernel` — `DoneDefinition { pr_id, items }`, `DItem { id, state, deferred_issue }`, verdict `DoneDefinitionFitnessReport { pr_count }`.
+- runner_path: `tools/governance-done-definition`
 - inputs: PR body, definition-of-done schema (D1..D15).
 - failure_modes:
   - D-item left unchecked
   - N/A row without rationale
   - deferred row without issue id
-- ci_invocation: `cargo run -p oya-governance-done-definition`
+- ci_invocation: `cargo run -p governance-done-definition`
 - runtime_budget: 250 ms
 - severity: BLOCKER
 - kernel_sketch:

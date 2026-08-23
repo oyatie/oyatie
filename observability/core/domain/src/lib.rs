@@ -19,7 +19,7 @@ pub use slo::{
 
 use std::fmt;
 
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
 };
 
@@ -48,7 +48,7 @@ pub const CAPABILITY_INVOCATION_SPAN_NAME: &str = "foundry.capability.invoke";
 pub const CAPABILITY_INVOCATION_OPERATION_NAME: &str = "capability_invocation";
 
 /// Stable provider label for Oyatie's Foundry runtime.
-pub const FOUNDRY_PROVIDER_NAME: &str = "oya-foundry";
+pub const FOUNDRY_PROVIDER_NAME: &str = "foundry";
 
 /// App-produced value object describing a capability invocation trace.
 ///
@@ -350,7 +350,7 @@ mod tests {
         legacy_telemetry_data_classes_label, log_exposure_for_classification,
         redact_classification_for_telemetry, telemetry_data_classifications_label,
     };
-    use oya_data_boundary_kernel::{
+    use data_boundary_kernel::{
         DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
     };
 
@@ -358,7 +358,7 @@ mod tests {
     fn noop_invocation_trace_observer_accepts_app_trace_calls() {
         let observer = NoopCapabilityInvocationTraceObserver;
         let context = CapabilityInvocationTraceContext {
-            service_name: "oya-foundation-app".to_string(),
+            service_name: "foundation-app".to_string(),
             tenant_id: "ten_noop".to_string(),
             tenant_region: "region-alpha1".to_string(),
             cell_id: Some("cell-noop".to_string()),

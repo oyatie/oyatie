@@ -924,7 +924,7 @@ fn regional_pack_error_code(error: &RegionalPackError) -> RegulatoryPackBindApiE
 
 fn regional_pack_error_message(error: &RegionalPackError) -> &'static str {
     match error {
-        RegionalPackError::InvalidPackId => "Regional pack id must use the oya-pack- prefix",
+        RegionalPackError::InvalidPackId => "Regional pack id must use the pack- prefix",
         RegionalPackError::EmptyRegion => "Regional pack region is required",
         RegionalPackError::EmptyResidencyClass => "Regional pack residency_class is required",
         RegionalPackError::InvalidResidencyClass => {
@@ -936,7 +936,7 @@ fn regional_pack_error_message(error: &RegionalPackError) -> &'static str {
 
 fn regional_pack_error_issue(error: &RegionalPackError) -> &'static str {
     match error {
-        RegionalPackError::InvalidPackId => "pack_id must start with oya-pack-",
+        RegionalPackError::InvalidPackId => "pack_id must start with pack-",
         RegionalPackError::EmptyRegion => "region must be non-empty",
         RegionalPackError::EmptyResidencyClass => "residency_class must be non-empty",
         RegionalPackError::InvalidResidencyClass => {
@@ -986,7 +986,7 @@ fn residency_error_issue(error: &ResidencyError) -> &'static str {
         ResidencyError::InvalidTenantId => "tenant_id must be a valid tenant identifier",
         ResidencyError::InvalidRegionId => "home_region must be non-empty",
         ResidencyError::InvalidCellGroupRef => "cell_group_ref must be non-empty",
-        ResidencyError::InvalidPackId => "primary_pack_id must be a valid oya-pack id",
+        ResidencyError::InvalidPackId => "primary_pack_id must be a valid pack id",
         ResidencyError::InvalidEvidenceRef => "evidence_ref must be non-empty",
         ResidencyError::ResidencyAlreadyBound => "tenant binding is immutable post-bind",
         _ => "residency class must allow the requested home region and binding inputs",

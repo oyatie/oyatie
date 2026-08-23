@@ -16,11 +16,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_shared_platform_contracts_kernel::tenancy::{
-    TenantLifecycleOperation, TenantLifecycleState,
-};
-use oya_shared_resource_provider_contract_kernel::{ContractShapeError, IdempotencyKey};
 use serde::{Deserialize, Serialize};
+use shared_platform_contracts_kernel::tenancy::{TenantLifecycleOperation, TenantLifecycleState};
+use shared_resource_provider_contract_kernel::{ContractShapeError, IdempotencyKey};
 
 /// The lifecycle state a tenant CR may DECLARE as desired. `Provisioning`
 /// is deliberately absent: it is the birth state, never a goal state.

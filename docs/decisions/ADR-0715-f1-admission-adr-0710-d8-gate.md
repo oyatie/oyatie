@@ -20,11 +20,11 @@ deliverables:
   - id: ADR-0715-D1
     description: "F1 Admission package / founder dependency edge: ADR-0710 MUST NOT be Accepted until D-8's conjunction evidence is answered (tenant-vs-tenant sharing AND tenant-vs-operator Tier-0 surfaces). F1(d) MAY alternatively resolve as explicit Reject of ADR-0710 when hosted topology self-fails D-8, under a dated timebox trigger. Until Accept or Reject, live admission law remains ADR-0701's carried ADR-0379/0338 gist."
     exit_criteria: "Either (1) D-8 evidence packet published answering both boundary questions and founder Accepts or Rejects ADR-0710 explicitly, OR (2) timebox fires and founder records explicit Reject of ADR-0710 because D-8 self-fails in hosted topology. Accepting ADR-0710 without the packet is forbidden."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0715-D2
     description: "While ADR-0710 stays Proposed, runtime-tier admission remains an isolation control (not merely placement hygiene). Tier remap proposals (ADR-0714) raise the bar rather than assume ADR-0710 law."
     exit_criteria: "No encode PR treats ADR-0710 as Accepted substrate; citation-closure / live-resolution rules continue to rank Proposed as non-authority."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0715: F1 Admission package — ADR-0710 Accept/Reject blocked on D-8
 
@@ -136,7 +136,7 @@ Not applicable — founder Accept/Reject gating decision.
 ### Operational
 
 - Reviewers refuse 0710-as-Accepted citations on authority surfaces (already gated).
-- CI: `oya-ci-required`; no authority-surface citation while Proposed.
+- CI: `presubmit`; no authority-surface citation while Proposed.
 
 ## Clean Architecture Impact
 

@@ -1,13 +1,13 @@
 //! Managed-Kubernetes control-plane-host binary — composition root (ADR-0376).
 //!
 //! Fail-closed boot:
-//! 1. Read the MANAGEMENT-cluster kubeconfig path from `$OYA_MGMT_KUBECONFIG`.
+//! 1. Read the MANAGEMENT-cluster kubeconfig path from `$OYATIE_MGMT_KUBECONFIG`.
 //!    If absent/empty -> typed [`BootError::MissingMgmtKubeconfig`] and a
 //!    non-zero exit (NEVER a silent fall-back to the in-memory fake).
 //! 2. Build the kube-rs CAPI adapter from that kubeconfig (kube-rs stays
 //!    isolated to the adapter crate).
 //! 3. Compose [`AppState`] over the adapter and serve the axum admin/status
-//!    API on `$OYA_LISTEN_ADDR` (default `0.0.0.0:8080`).
+//!    API on `$OYATIE_LISTEN_ADDR` (default `0.0.0.0:8080`).
 //!
 //! The live Kamaji/Talos CRD reconcile is honest-deferred inside the adapter:
 //! provision/status/teardown return HTTP 501 with a typed boundary until the
@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let router = build_router(state);
 
     let listen_addr =
-        std::env::var("OYA_LISTEN_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
+        std::env::var("OYATIE_LISTEN_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
     serve(&listen_addr, router).await?;
     Ok(())
 }

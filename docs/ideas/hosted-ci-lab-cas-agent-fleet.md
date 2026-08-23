@@ -14,13 +14,13 @@ related_adrs: [ADR-0515, ADR-0560, ADR-0630]
 
 How might we give a multi-agent fleet **merge-ready CI without self-hosted babysitting**, **multi-platform portability signal**, **non-zero cache reuse**, and **public-ready secrets**—using GitHub-hosted multi-arch workers as the ephemeral plane and a **lab NativeLink** as the durable cache plane?
 
-## Is `oya-arm64` the best choice?
+## Is `arm64` the best choice?
 
 **No — and the label is RETIRED.** Custom ARC is not merge authority and is no longer lab overflow.
 
 | Option | Role | Verdict |
 |--------|------|---------|
-| **Lab ARC `oya-arm64` (RETIRED)** | — | **Retired 2026-08-11.** Tip `maxRunners: 0`; remove Argo apps after drain. Do not resurrect. |
+| **Lab ARC `arm64` (RETIRED)** | — | **Retired 2026-08-11.** Tip `maxRunners: 0`; remove Argo apps after drain. Do not resurrect. |
 | **`ubuntu-latest` (linux/amd64)** | **Binding merge plane** | **Yes.** Standard hosted unit, widest package support, private-repo default. |
 | **`ubuntu-24.04-arm` (linux/arm64)** | Soft platform smoke | **Yes as soft.** Hosted arm without babysitting; may be plan-gated on private. |
 | **`windows-latest`** | Soft platform smoke | **Yes as soft.** Unlocks cfg(windows) / MSVC reality; minutes cost. |
@@ -44,7 +44,7 @@ How might we give a multi-agent fleet **merge-ready CI without self-hosted babys
 | **T0 binding** | `ubuntu-latest` | producer, buck2, affected-set, freshness, drift, firewall, live-postgres, fan-in | Required green |
 | **T1 soft smoke** | `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` | `gate` matrix only | Soft red does not block |
 | **T2 promote later** | windows-11-arm, macos-intel, larger runners | when product needs them | After T1 green history |
-| **Lab overflow** | ~~ARC `oya-arm64` / live-postgres~~ **RETIRED** | — | Soft multi-arch = hosted only; lab CAS = laptop |
+| **Lab overflow** | ~~ARC `arm64` / live-postgres~~ **RETIRED** | — | Soft multi-arch = hosted only; lab CAS = laptop |
 
 Promote a soft platform to binding only when: (a) green for N consecutive PR days, (b) product ships that OS/arch, (c) minute budget accepted.
 
@@ -67,7 +67,7 @@ Promote a soft platform to binding only when: (a) green for N consecutive PR day
 - [x] ARC mTLS client mount + env paths (**historical** — ARC retired)
 - [x] This one-pager (multi-arch decision recorded)
 - [x] ARC overflow retired in tip (`maxRunners: 0` + workflow path-filter strip)
-- [ ] Founder live ops: sync scale-to-zero → drain Pods/PVCs → remove Argo apps; clear forced `oya-arm64` / `oya-live-postgres-arm64` labels (see `infra/arc/README.md`)
+- [ ] Founder live ops: sync scale-to-zero → drain Pods/PVCs → remove Argo apps; clear forced `arm64` / `live-postgres-arm64` labels (see `infra/arc/README.md`)
 
 ## Not Doing (and Why)
 
@@ -95,7 +95,7 @@ ARC runner mounts are retired with the scale sets. Laptop CAS trust uses Cloudfl
 
 ## Lessons from [asterinas/asterinas Actions](https://github.com/asterinas/asterinas/actions)
 
-Public open-source OS project; heavy free-tier GHA use; multi-arch test surface. Distilled for Oyatie (cloud monorepo, single required merge context `oya-ci-required`, Buck2, lab CAS).
+Public open-source OS project; heavy free-tier GHA use; multi-arch test surface. Distilled for Oyatie (cloud monorepo, single required merge context `presubmit`, Buck2, lab CAS).
 
 ### What they do well (copy the pattern, not the product)
 
@@ -119,20 +119,20 @@ Public open-source OS project; heavy free-tier GHA use; multi-arch test surface.
 - Trailing spaces in workflow `name:` (`"Test x86-64  "`).  
 - Unpinned `actions/checkout@master` in licenses workflow.  
 - Putting **all** arches on every PR as hard required without tiering (they can afford OS-kernel scope; we must FinOps-tier a monorepo).  
-- Renaming the **required status context** casually — ours is ADR-0515 **`oya-ci-required`** and must stay the single branch-protection key until an explicit ADR changes it.
+- Renaming the **required status context** casually — ours is ADR-0515 **`presubmit`** and must stay the single branch-protection key until an explicit ADR changes it.
 
 ### Once the repo is public (human flip only)
 
 Free linux-arm64 hosted runners and higher free concurrency become real. Sequence:
 
-1. **Day 0 public** — binding remains `Test linux-amd64` plane inside `oya-ci-required`; soft multi-arch stays soft until green streak.  
+1. **Day 0 public** — binding remains `Test linux-amd64` plane inside `presubmit`; soft multi-arch stays soft until green streak.  
 2. **Day 0+** — free `ubuntu-24.04-arm` no longer “maybe plan-gated”; promote **linux-arm64 smoke → binding** only after N green PR days.  
 3. **Fork PRs** — no lab CAS secrets, no writer identity, warm license fail-closed (same as now).  
 4. **Optional split workflows** (Asterinas-style Actions board):
 
    | Workflow file | Display name | Binding? |
    |---------------|--------------|----------|
-   | `oya-ci-required.yml` | **Required** (fan-in; keep machine name) | Yes — protected context |
+   | `presubmit.yml` | **Required** (fan-in; keep machine name) | Yes — protected context |
    | `test_linux_amd64.yml` | Test linux-amd64 | Later extract from mega file if needed |
    | `test_linux_arm64.yml` | Test linux-arm64 | Soft → binding |
    | `test_windows_amd64.yml` | Test windows-amd64 | Soft |
@@ -152,7 +152,7 @@ Free linux-arm64 hosted runners and higher free concurrency become real. Sequenc
 
 | Layer | Rule | Example |
 |-------|------|---------|
-| **Protected context** | Stable, singular, product-owned | `oya-ci-required` (do not rename without ADR) |
+| **Protected context** | Stable, singular, product-owned | `presubmit` (do not rename without ADR) |
 | **Workflow `name:` (UI)** | `Verb [object] [platform]` Title Case | `Test linux-amd64`, `Check docs graph`, `Publish container images`, `Benchmark cache hit` |
 | **Workflow file** | `snake_case` `{verb}_{object}.yml` | `test_linux_amd64.yml`, `check_docs_graph.yml` |
 | **Job `id`** | kebab-case role | `workspace-buck2`, `live-postgres-adapters` |
@@ -174,13 +174,13 @@ Free linux-arm64 hosted runners and higher free concurrency become real. Sequenc
 ### Platform tokens (explicit, no slang)
 
 Use: `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`, `macos-arm64`, `macos-amd64`.  
-Avoid: `x64` alone, `arm` alone, `oya-arm64` in **public** check titles (label **retired** — do not reintroduce).
+Avoid: `x64` alone, `arm` alone, `arm64` in **public** check titles (label **retired** — do not reintroduce).
 
 ### Current → target mapping (incremental; no big-bang rename)
 
 | Today | Target display name | Note |
 |-------|---------------------|------|
-| `oya-ci-required` | **Required** (keep workflow `name` / context id) | Fan-in machine name stays |
+| `presubmit` | **Required** (keep workflow `name` / context id) | Fan-in machine name stays |
 | job `buck2` | `test · workspace (linux-amd64)` | Display only when safe |
 | job `gate-affected-target-set` | `test · affected-set (linux-amd64)` | |
 | job `gate-generated-artifact-freshness` | `check · freshness` | |
@@ -188,7 +188,7 @@ Avoid: `x64` alone, `arm` alone, `oya-arm64` in **public** check titles (label *
 | `cache-integrity-canary` | `cache · integrity canary` | |
 | soft matrix labels | already `gate · platform smoke (… soft)` | Asterinas-aligned |
 
-Rename **check titles** before **workflow filenames**; filenames last (history + links). Never break `required_status_checks: [oya-ci-required]`.
+Rename **check titles** before **workflow filenames**; filenames last (history + links). Never break `required_status_checks: [presubmit]`.
 
 ## Open Questions
 
@@ -205,6 +205,6 @@ Rename **check titles** before **workflow filenames**; filenames last (history +
 3. **Tier platforms** — don’t tax every PR with every OS.  
 4. **Measure before RE / before soft→binding.**  
 5. **Lab = one AZ**, not the global fleet.  
-6. **Question every runs-on** — “is oya-arm64 best?” → no; **retired**. Soft multi-arch stays hosted.  
+6. **Question every runs-on** — “is arm64 best?” → no; **retired**. Soft multi-arch stays hosted.  
 7. **Name for operators** — verb + platform + concern; one stable admission context.  
 8. **Public free tier is a product** — disk hygiene, cancel-in-progress, fork fail-closed.

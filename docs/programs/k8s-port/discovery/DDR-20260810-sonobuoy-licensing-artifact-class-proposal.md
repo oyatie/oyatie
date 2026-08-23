@@ -36,7 +36,7 @@ This record **MUST NOT** be read as:
 
 - an edit to `specs/k8s-port/licensing.json` `artifact_classes` (no live flip);
 - admission of any Sonobuoy binary, digest, SBOM, or signature;
-- authority to place full CNCF/Sonobuoy suites inside `oya-ci-required`;
+- authority to place full CNCF/Sonobuoy suites inside `presubmit`;
 - acceptance of any F1 founder ADR.
 
 E0/F1 authorize **proposal text only**. Live encode of a named `artifact_class` requires an explicit follow-on PR after founder Accept and with complete admission fields.
@@ -49,7 +49,7 @@ Today `licensing.json` enumerates:
 
 `bootstrap_extractor`, `kubernetes_source`, `ginkgo`, `conformance_test_artifact`, `rule_seed`, `other_external_input`.
 
-Promotion/release gate law (Round-2) requires **full CNCF + Sonobuoy on the promoted commit**, outside `oya-ci-required`. Without a named class + owner, Sonobuoy falls to `other_external_input` (ownerless) and cannot be admitted fail-closed.
+Promotion/release gate law (Round-2) requires **full CNCF + Sonobuoy on the promoted commit**, outside `presubmit`. Without a named class + owner, Sonobuoy falls to `other_external_input` (ownerless) and cannot be admitted fail-closed.
 
 **Proposal (not applied):** add named class `sonobuoy` (or `sonobuoy_conformance_suite`) with required admission fields identical to other external artifacts (`source`, `version`, `digest`, `license`, `SBOM`, `signature`, `provenance_verification`, `sandbox_policy`, `owner`).
 
@@ -57,7 +57,7 @@ Promotion/release gate law (Round-2) requires **full CNCF + Sonobuoy on the prom
 
 | Gate class | Suite | Home |
 |---|---|---|
-| PR (`oya-ci-required`) | Pinned hermetic conformance **smoke subset** only | Must not absorb multi-hour Sonobuoy |
+| PR (`presubmit`) | Pinned hermetic conformance **smoke subset** only | Must not absorb multi-hour Sonobuoy |
 | Promotion / release | Full CNCF + Sonobuoy on **promoted commit** | After named class admission |
 
 ### J3 — Companion licensing notes (proposal only)
@@ -77,7 +77,7 @@ Encodes Round-2 / Round-1 amendment: Sonobuoy/CNCF as promotion gate; named `art
 |---|---|
 | Live-flip `licensing.json` now | Requires founder/W0 path; E0 forbids tip encode of policy flips without Accept |
 | Keep Sonobuoy under `other_external_input` | Ownerless; fails closed admission forever |
-| Put full Sonobuoy in `oya-ci-required` | Multi-hour suite must not sit in the protected PR context |
+| Put full Sonobuoy in `presubmit` | Multi-hour suite must not sit in the protected PR context |
 
 ## Downstream blockers
 

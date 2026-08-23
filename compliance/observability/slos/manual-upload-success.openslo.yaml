@@ -16,13 +16,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_manual_upload_success_total[28d]))
+                sum(rate(compliance_manual_upload_success_total[28d]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_compliance_manual_upload_total[28d]))
+                sum(rate(compliance_manual_upload_total[28d]))
   objectives:
     - displayName: Manual upload success rate ≥ 99% (over 28-day window)
       target: 0.99

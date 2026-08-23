@@ -1,7 +1,7 @@
 //! Workload X.509-SVID kernel — PURE (no I/O, no clock, no crypto).
 //!
 //! This crate is the canonical value-and-port core for SPIFFE-style X.509-SVID
-//! caller authentication (G002 slice-1; ADR-0561). It gives the cloud-iam Cedar
+//! caller authentication (G002 slice-1; ADR-0561). It gives the iam Cedar
 //! PDP a way to derive the *authorized* tenant of a caller from a
 //! cryptographically-verified peer SVID, closing the gap where the PDP trusts a
 //! caller-body `tenant_id` verbatim.
@@ -10,7 +10,7 @@
 //!
 //! A platform service (the PDP) serves *all* tenants and is owned by *none*, so
 //! the legacy tenant-rooted model (`spiffe://<tenant>` in
-//! `oya-identity-workload-domain::TrustDomain`) cannot name it. This kernel
+//! `identity-workload-domain::TrustDomain`) cannot name it. This kernel
 //! adopts the cell-rooted authority + tenant-in-path scheme already used by the
 //! api-gateway / SPIRE precedent (ADR-0295):
 //!
@@ -19,7 +19,7 @@
 //!
 //! This kernel is ADDITIVE: it does NOT touch the existing tenant-rooted
 //! `TrustDomain` (ADR-0561 schedules that convergence as a tracked follow-up).
-//! It reuses `oya-identity-workload-domain::TenantId` for the bound tenant.
+//! It reuses `identity-workload-domain::TenantId` for the bound tenant.
 //!
 //! ## Fail-closed
 //!

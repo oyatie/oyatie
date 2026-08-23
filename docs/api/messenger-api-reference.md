@@ -291,7 +291,7 @@ operation returns a typed object directly. All error responses use `{ "error": .
 
 ## gRPC Methods
 
-Package: `oya.messenger.v1`.
+Package: `oyatie.messenger.v1`.
 
 ### `ChannelStore`
 
@@ -369,7 +369,7 @@ Inbound webhook handlers verify HMAC or mTLS identity before conversion to inter
 
 ## SDK Quick Reference
 
-Rust crate names are planned around `oya-messenger-*-sdk` layer crates.
+Rust crate names are planned around `messenger-*-sdk` layer crates.
 
 Rust:
 
@@ -455,9 +455,9 @@ ADR-0316 tier names map to tenant-visible capability tiers, not separate service
 Rate-limit headers:
 
 - `Retry-After`
-- `oya-throttle-class`
-- `oya-throttle-user-headroom`
-- `oya-throttle-tenant-headroom`
+- `throttle-class`
+- `throttle-user-headroom`
+- `throttle-tenant-headroom`
 
 ## OpenAPI 3.2.0 Schema
 

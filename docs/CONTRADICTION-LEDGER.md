@@ -6,7 +6,7 @@ status: historical
 
 # Contradiction ledger — closed
 
-**Historical / closed** as of 2026-08-17. Draft v0.1 (2026-05-09) tracked May Foundry/Cloud-axis cohesion items through a retired `oya-governance-cohesion` auto-emit path. It is not a live tracker.
+**Historical / closed** as of 2026-08-17. Draft v0.1 (2026-05-09) tracked May Foundry/Cloud-axis cohesion items through a retired `governance-cohesion` auto-emit path. It is not a live tracker.
 
 ## Re-home
 

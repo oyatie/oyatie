@@ -10,16 +10,16 @@ This team owns the healthcare vertical: clinical workflows, ambulatory care, HL7
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Healthcare (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-healthcare-kernel` — `Patient`, `Encounter`, `Observation`, `MedicationStatement`, `AllergyIntolerance`, `Condition`, `Claim`
-  - `oya-vertical-healthcare-domain-*` — clinical lifecycle, FHIR resource management, break-glass, e-prescribing, claims adjudication
-  - `oya-vertical-healthcare-adapter-fhir` — FHIR R4/R5 adapter; KR EDI 보건의료 adapter
-  - Per-region extensions: `oya-pack-kr` → `KrPatientId`, `KrNhisPayer`, `KrRRN`; `oya-pack-us` → HIPAA/HITECH controls, FDA adapter; `oya-pack-eu` → EMA adapter, GDPR Art-9 health data
+  - `vertical-healthcare-kernel` — `Patient`, `Encounter`, `Observation`, `MedicationStatement`, `AllergyIntolerance`, `Condition`, `Claim`
+  - `vertical-healthcare-domain-*` — clinical lifecycle, FHIR resource management, break-glass, e-prescribing, claims adjudication
+  - `vertical-healthcare-adapter-fhir` — FHIR R4/R5 adapter; KR EDI 보건의료 adapter
+  - Per-region extensions: `pack-kr` → `KrPatientId`, `KrNhisPayer`, `KrRRN`; `pack-us` → HIPAA/HITECH controls, FDA adapter; `pack-eu` → EMA adapter, GDPR Art-9 health data
   - Products owned: `products/vertical-healthcare/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — break-glass invocations, clinical events, de-id proofs)
   - `DSR / consent withdrawal cascade` (ack required — highest sensitivity)
   - All PHI fields forced to `ad_targetable_blocked` and `internal_only` (Data Use Boundary vertical override)
-- **Catalog records:** `crates/oya-vertical-healthcare-*`
+- **Catalog records:** `crates/vertical-healthcare-*`
 - **Runbooks:** `runbooks/healthcare-break-glass.md`, `runbooks/fhir-resource-dsr.md`, `runbooks/clinical-audit-replay.md`
 - **ADRs:** ADR-0016 (FHIR schema), ADR-0033 (clinical AI constraints), MFDS compliance ADR
 

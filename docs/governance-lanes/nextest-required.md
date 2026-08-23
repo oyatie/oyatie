@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify `cargo nextest run` is the test driver in CI and that every crate has at least one nextest-discovered test.
 - enforces: hyperscaler-best-practices spec — Rust `cargo nextest` mandatory.
-- kernel_crate: `oya-governance-nextest-required-kernel` — `NextestRun { crate_id, test_count, used_nextest }`, verdict `NextestRequiredFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-governance-nextest-required`
+- kernel_crate: `governance-nextest-required-kernel` — `NextestRun { crate_id, test_count, used_nextest }`, verdict `NextestRequiredFitnessReport { crates_checked }`.
+- runner_path: `tools/governance-nextest-required`
 - inputs: `cargo nextest list --message-format=json`, CI workflow file.
 - failure_modes:
   - CI job uses `cargo test` instead of `cargo nextest`
   - crate has zero tests
   - nextest binary missing from toolchain
-- ci_invocation: `cargo run -p oya-governance-nextest-required`
+- ci_invocation: `cargo run -p governance-nextest-required`
 - runtime_budget: 1700 ms
 - severity: HIGH
 - kernel_sketch:

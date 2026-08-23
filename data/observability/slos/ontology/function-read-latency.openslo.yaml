@@ -27,14 +27,14 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_ontology_function_evaluation_duration_seconds_bucket{le="0.050"}[1m]))
+                sum(rate(ontology_function_evaluation_duration_seconds_bucket{le="0.050"}[1m]))
         total:
           metricSource:
             metricSourceRef: prometheus
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_ontology_function_evaluation_duration_seconds_count[1m]))
+                sum(rate(ontology_function_evaluation_duration_seconds_count[1m]))
   objectives:
     - displayName: 99 % of Function reads ≤ 50 ms
       target: 0.99
@@ -44,5 +44,5 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - oya-burn-rate-fast-1h
-    - oya-burn-rate-slow-6h
+    - burn-rate-fast-1h
+    - burn-rate-slow-6h

@@ -101,7 +101,7 @@ impl CapabilityInvocationTraceSpan for TracingCapabilityInvocationSpan {
         if let Some(error_type) = result.error_type {
             self.span.record(fields::ERROR_TYPE, error_type);
             tracing::event!(
-                target: "oya_application_app::observability",
+                target: "application_app::observability",
                 tracing::Level::WARN,
                 {
                     "oyatie.invocation.result" = result.result,
@@ -110,7 +110,7 @@ impl CapabilityInvocationTraceSpan for TracingCapabilityInvocationSpan {
             );
         } else {
             tracing::event!(
-                target: "oya_application_app::observability",
+                target: "application_app::observability",
                 tracing::Level::INFO,
                 {
                     "oyatie.invocation.result" = result.result,
@@ -220,7 +220,7 @@ impl SloBreachTraceObserver for TracingSloBreachTraceObserver {
         // Emit an info event inside the span so the JSON formatter writes a
         // record carrying all current-span fields (with_current_span(true)).
         tracing::info!(
-            target: "oya_observability::slo_breach",
+            target: "observability::slo_breach",
             "slo breach evaluated"
         );
         // `entered` drops here, exiting the span.

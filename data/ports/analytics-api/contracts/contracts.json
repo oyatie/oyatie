@@ -1,0 +1,19 @@
+{
+  "entity_group": "contracts-analytics",
+  "bnf_v4_1_template": {
+    "product": "oya",
+    "layer": "contract",
+    "concern": "analytics",
+    "kind": "interface-contract"
+  },
+  "twelve_layer_enum_position": "contract",
+  "justification": "Canonical interface contracts. SDK generation reads from these; CI lane oya-governance-api-contract-stability denies breaking changes.",
+  "owner": "council-analytics + axis-developer-experience",
+  "adr_anchors": ["ADR-0007", "ADR-0150", "ADR-0151", "ADR-0154", "ADR-0157", "ADR-0193"],
+  "contracts": [
+    {"kind": "rest", "spec_version": "OpenAPI 3.2.0", "path": "data/ports/analytics-api/contracts/openapi-v1.yaml"},
+    {"kind": "async", "spec_version": "AsyncAPI 3.1.0", "path": "data/ports/analytics-api/contracts/asyncapi-v1.yaml"},
+    {"kind": "grpc", "spec_version": "proto3", "path": "data/ports/analytics-api/contracts/analytics.proto"}
+  ],
+  "status": "planned"
+}

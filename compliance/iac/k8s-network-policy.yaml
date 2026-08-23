@@ -4,7 +4,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: compliance-default-deny
-  namespace: oya-compliance
+  namespace: compliance
 spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
@@ -15,7 +15,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: compliance-allow-substrate
-  namespace: oya-compliance
+  namespace: compliance
 spec:
   podSelector:
     matchLabels:
@@ -38,13 +38,13 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-observability
+              kubernetes.io/metadata.name: observability
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-audit-chain
+              kubernetes.io/metadata.name: audit-chain
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: oya-cloud-secrets
+              kubernetes.io/metadata.name: cloud-secrets
       ports:
         - protocol: TCP
           port: 443

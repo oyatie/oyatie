@@ -27,7 +27,7 @@ Replace the in-memory mock `AnthropicSubscriptionAdapter` (which synthesizes fak
 
 ## Contracts
 
-- **Port**: `ProviderAuthPort` (from `oya-intelligence-adapter-anthropic-subscription-kernel`)
+- **Port**: `ProviderAuthPort` (from `intelligence-adapter-anthropic-subscription-kernel`)
 - **Credential port**: `CredentialStorePort` (new port in this crate) — `store(sref, token_bytes)`,
   `load(sref) -> Option<TokenBytes>`, `delete(sref)`
 - **Alert port**: `OperatorAlertPort` (new port in this crate) — `alert(SeatId, AlertKind)`
@@ -100,7 +100,7 @@ Only `intelligence-anthropic-subscription-adapter` is modified. No new workspace
 - `serde_json` (workspace)
 - `tracing` (workspace)
 - `bytes` (workspace)
-- `oya-intelligence-oauth-subscription-kernel` (path dep, for PKCE types)
+- `intelligence-oauth-subscription-kernel` (path dep, for PKCE types)
 
 Dev-deps gain:
 - `tokio` (rt-multi-thread, macros, time, net, sync)

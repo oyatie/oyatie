@@ -24,7 +24,7 @@
 /// ## Folded rationale
 ///
 /// This module is folded inline (not a separate `authz.rs` file) so the
-/// cloud-ci born-accounting gate counts one file rather than two — a new
+/// presubmit born-accounting gate counts one file rather than two — a new
 /// file would require an `--allow-new` grandfather pass. The module
 /// boundary is the same logical seam as in the siblings; only the file
 /// colocation differs.
@@ -32,9 +32,9 @@ mod authz {
     use std::collections::BTreeMap;
     use std::sync::Arc;
 
-    use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
-    use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyDecisionPoint};
-    use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, Decision, EntityRef};
+    use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+    use shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyDecisionPoint};
+    use shared_platform_contracts_kernel::pdp::{AuthorizationRequest, Decision, EntityRef};
 
     /// Request header the bearer credential is presented in.
     pub const AUTHORIZATION_HEADER: &str = "authorization";
@@ -166,7 +166,7 @@ mod authz {
     /// PORT: verify a caller credential into a [`VerifiedPrincipal`].
     ///
     /// Adapters: [`ConfiguredBearerPrincipalVerifier`] (break-glass) or the
-    /// cloud-iam mTLS/SPIFFE peer-SVID verifier (W5 destination, ADR-0561).
+    /// iam mTLS/SPIFFE peer-SVID verifier (W5 destination, ADR-0561).
     pub trait PrincipalVerifier: Send + Sync {
         /// # Errors
         /// [`PrincipalVerificationError`] when no credential is presented or
@@ -414,12 +414,12 @@ mod authz {
     /// ## ⚠ BREAK-GLASS ONLY — NOT multi-tenant production
     ///
     /// Binds ONE static `(principal_id, tenant_id)` pair to a single shared
-    /// secret. The production W5 adapter is the cloud-iam mTLS/SPIFFE
+    /// secret. The production W5 adapter is the iam mTLS/SPIFFE
     /// peer-SVID verifier (ADR-0561).
     ///
     /// Construction REFUSES an empty secret or empty bound identity so a
     /// process that cannot prove a credential root can never authenticate
-    /// a caller (mirrors the cloud-pdp boot-refusal doctrine).
+    /// a caller (mirrors the pdp boot-refusal doctrine).
     pub struct ConfiguredBearerPrincipalVerifier {
         bearer_secret: String,      // data_class: SECRET
         bound_principal_id: String, // data_class: INTERNAL_ONLY
@@ -801,6 +801,11 @@ pub use authz::{
 
 use std::time::Duration;
 
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
+    ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
+};
 use iam_tenant_rbac_api::{
     ApiErrorEnvelope, CrossServiceWorkflowPlanRequest, GroupCloseRollupRequest,
     IncidentRollbackPlanRequest, ServiceWriteAdmissionRequest, TenantRbacOpsCommandRequest,
@@ -812,11 +817,6 @@ use iam_tenant_rbac_domain::{
 use iam_tenant_rbac_usecase::{
     TenantRbacApplicationError, prepare_cross_service_workflow_envelope,
     prepare_incident_rollback_envelope, prepare_tenant_rbac_ops_envelope,
-};
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
-    ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
 };
 use serde::Serialize;
 
@@ -1055,7 +1055,7 @@ struct IncidentRollbackHandler;
 struct OpsCommandHandler;
 struct HealthHandler;
 
-impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+impl http_middleware_kernel::Handler for PolicyAdmissionHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1075,7 +1075,7 @@ impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for GroupCloseRollupHandler {
+impl http_middleware_kernel::Handler for GroupCloseRollupHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1099,7 +1099,7 @@ impl oya_http_middleware_kernel::Handler for GroupCloseRollupHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for CrossServiceWorkflowHandler {
+impl http_middleware_kernel::Handler for CrossServiceWorkflowHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1121,7 +1121,7 @@ impl oya_http_middleware_kernel::Handler for CrossServiceWorkflowHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for IncidentRollbackHandler {
+impl http_middleware_kernel::Handler for IncidentRollbackHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1142,7 +1142,7 @@ impl oya_http_middleware_kernel::Handler for IncidentRollbackHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for OpsCommandHandler {
+impl http_middleware_kernel::Handler for OpsCommandHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1163,7 +1163,7 @@ impl oya_http_middleware_kernel::Handler for OpsCommandHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for HealthHandler {
+impl http_middleware_kernel::Handler for HealthHandler {
     type Error = HttpResponse;
 
     fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -1237,7 +1237,7 @@ mod tests {
     use std::collections::BTreeMap;
     use std::sync::Arc;
 
-    use oya_http_router_kernel::HttpMethod;
+    use http_router_kernel::HttpMethod;
 
     const BEARER_SECRET: &str = "tenant-rbac-break-glass";
     const BOUND_TENANT: &str = "ten_acme";

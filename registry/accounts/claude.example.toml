@@ -1,6 +1,0 @@
-[[account]]
-id = "claude-example"
-provider_family = "Claude"
-subscription_id = "sub-123"
-state = "Active"
-secret_ref = "sref://openbao/foundry/claude/example-key"

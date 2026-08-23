@@ -711,10 +711,7 @@ fn status_patches_project_demote_and_quarantine_actions() {
 
 #[test]
 fn persistent_domain_repo_reloads_operator_mutations_from_state_path() {
-    let path = std::env::temp_dir().join(format!(
-        "oya-kms-operator-state-{}.json",
-        std::process::id()
-    ));
+    let path = std::env::temp_dir().join(format!("kms-operator-state-{}.json", std::process::id()));
     let _ = std::fs::remove_file(&path);
     {
         let mut actuator = DomainKmsOperatorActuator::new(
@@ -805,7 +802,10 @@ fn reconcile_cycle_executes_actions_and_emits_one_wide_event() {
     assert_eq!(actuator.actions.len(), 2);
     assert_eq!(report.planned_actions, 2);
     assert_eq!(report.executed_actions, 2);
-    assert_eq!(report.wide_event.event_name, "cloud_kms_operator_reconcile");
+    assert_eq!(
+        report.wide_event.event_name,
+        "secrets_kms_operator_reconcile"
+    );
     assert_eq!(report.wide_event.action_count, 2);
 }
 

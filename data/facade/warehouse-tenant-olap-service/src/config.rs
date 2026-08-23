@@ -56,7 +56,7 @@ impl Default for ServiceConfig {
             policy_namespace: "data_warehouse".to_owned(),
             audit_topic: "audit.data_warehouse".to_owned(),
             runtime_profile: RuntimeProfile::Local,
-            tenant_header: "x-oya-tenant-id".to_owned(),
+            tenant_header: "x-tenant-id".to_owned(),
             max_query_payload_bytes: 256 * 1024,
             enable_shadow_lineage_eval: false,
         }
@@ -66,19 +66,19 @@ impl Default for ServiceConfig {
 impl ServiceConfig {
     pub fn from_env() -> ServiceResult<Self> {
         let mut config = Self::default();
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_BIND_ADDR") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_BIND_ADDR") {
             config.bind_addr = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_GRPC_ADDR") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_GRPC_ADDR") {
             config.grpc_addr = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_TOPIC_PREFIX") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_TOPIC_PREFIX") {
             config.asyncapi_topic_prefix = value;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_PROFILE") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_PROFILE") {
             config.runtime_profile = RuntimeProfile::parse(&value)?;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_MAX_QUERY_BYTES") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_MAX_QUERY_BYTES") {
             config.max_query_payload_bytes =
                 value
                     .parse::<usize>()
@@ -87,7 +87,7 @@ impl ServiceConfig {
                         details: parse_error.to_string(),
                     })?;
         }
-        if let Ok(value) = std::env::var("OYA_DATA_WAREHOUSE_SHADOW_LINEAGE") {
+        if let Ok(value) = std::env::var("OYATIE_DATA_WAREHOUSE_SHADOW_LINEAGE") {
             config.enable_shadow_lineage_eval = matches!(value.as_str(), "1" | "true" | "TRUE");
         }
         config.validate()?;

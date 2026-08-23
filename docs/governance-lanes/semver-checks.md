@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify public APIs across `*-api` crates pass `cargo-semver-checks` against the last released minor.
 - enforces: hyperscaler-best-practices spec — Rust `cargo-semver-checks` on public APIs.
-- kernel_crate: `oya-intelligence-api-semver-kernel` (EXISTING; extend with verdict) — `SemverDelta { crate_id, breaking, change_class }`, verdict `SemverChecksFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-governance-semver-checks`
+- kernel_crate: `intelligence-api-semver-kernel` (EXISTING; extend with verdict) — `SemverDelta { crate_id, breaking, change_class }`, verdict `SemverChecksFitnessReport { crates_checked }`.
+- runner_path: `tools/governance-semver-checks`
 - inputs: `cargo semver-checks` JSON report, version-bump policy.
 - failure_modes:
   - breaking change without major bump
   - removed item without deprecation cycle
   - added required trait method
-- ci_invocation: `cargo run -p oya-governance-semver-checks`
+- ci_invocation: `cargo run -p governance-semver-checks`
 - runtime_budget: 2500 ms
 - severity: BLOCKER
 - kernel_sketch:

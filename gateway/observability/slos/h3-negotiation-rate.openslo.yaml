@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-api-gateway-h3-negotiation-rate
+  name: api-gateway-h3-negotiation-rate
   displayName: "api-gateway: HTTP/3 negotiation rate ≥ 80%"
   labels:
     microservice: api-gateway
@@ -25,13 +25,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_alpn_negotiated_total{alpn="h3"}[5m]))
+                sum(rate(api_gateway_alpn_negotiated_total{alpn="h3"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_alpn_negotiated_total[5m]))
+                sum(rate(api_gateway_alpn_negotiated_total[5m]))
   objectives:
     - target: 0.8
       displayName: "30d rolling h3 negotiation rate ≥ 80%"

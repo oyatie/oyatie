@@ -55,7 +55,7 @@ fn record(
     Ok(UsageRecord {
         tenant: TenantId::parse(&format!("ten_{ordinal:04}")).map_err(fail)?,
         cell: CellId::parse("cell-kr-1").map_err(fail)?,
-        resource: ResourceId::parse("oya-meter").map_err(fail)?,
+        resource: ResourceId::parse("meter").map_err(fail)?,
         dimension: Dimension::parse("requests").map_err(fail)?,
         usage_hour,
         consumed_quantity_microunits: quantity_microunits,

@@ -2,15 +2,15 @@
 
 ## Objective
 
-Extend `oya-intelligence-usage-window-kernel` with a pure deterministic
+Extend `intelligence-usage-window-kernel` with a pure deterministic
 burn-rate forecasting API. No I/O. No new crates. No new workspace members.
 
 ## Crate boundary
 
-**Only crate modified**: `microservices/intelligence/crates/oya-intelligence-usage-window-kernel`
+**Only crate modified**: `microservices/intelligence/crates/intelligence-usage-window-kernel`
 
 The crate already re-exports `UsageWindow` / `UsageWindowKind` / `UsageWindowError`
-from `oya-intelligence-account-domain` and owns `UsageEnforcement`. The new
+from `intelligence-account-domain` and owns `UsageEnforcement`. The new
 API is an additive `impl UsageEnforcement` method.
 
 ## Mod layout (flat-clean-arch, ADR-0509)
@@ -113,6 +113,6 @@ with no network surface. OTel instrumentation is the caller's concern
 
 ## Crate boundary enforcement
 
-No new `[dependencies]` added. `oya-intelligence-account-domain` already
+No new `[dependencies]` added. `intelligence-account-domain` already
 provides `UsageWindow`, `UsageWindowKind`, `UsageWindowError`. All new types
 (`ExhaustionForecast`, `UsageForecast`) live in the kernel crate.

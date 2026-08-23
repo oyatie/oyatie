@@ -1,8 +1,8 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers — helpers via {{ include "oyatie.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: oya-hyperscaler-invariants-canonical
+  name: hyperscaler-invariants-canonical
   namespace: observability
   labels:
     app.kubernetes.io/name: observability
@@ -14,7 +14,7 @@ metadata:
     # ADR-0064 canonical-base-and-localization-packs: this PrometheusRule is the
     # ONE canonical source for the four hyperscaler architecture invariants. It
     # fires alerts across ALL oyatie microservices via label query against the
-    # `oya_<microservice>_*` metric naming convention (see
+    # `<microservice>_*` metric naming convention (see
     # microservices/observability/contracts/metric-naming-convention.md).
     #
     # No per-microservice prometheusrule.yaml may re-declare these four INV
@@ -33,16 +33,16 @@ spec:
     # =========================================================================
     # INV-CIRCUIT-BREAKER-BULKHEAD — LLM/capability circuit-breaker
     # =========================================================================
-    - name: oya-hyperscaler-canonical-circuit-breaker
+    - name: hyperscaler-canonical-circuit-breaker
       interval: 60s
       rules:
-        # Fires for ANY microservice whose `oya_<ms>_capability_circuit_state`
+        # Fires for ANY microservice whose `<ms>_capability_circuit_state`
         # gauge reports a circuit in the open state. The {{$labels.microservice}}
         # interpolation surfaces which µservice tripped.
         - alert: OyaCapabilityCircuitOpen
           expr: |
             max by (microservice, capability_id) (
-              {__name__=~"oya_.+_capability_circuit_state", state="open"}
+              {__name__=~".+_capability_circuit_state", state="open"}
             ) > 0
           for: 1m
           labels:
@@ -61,7 +61,7 @@ spec:
         - alert: OyaCapabilityRetryBudgetExhausted
           expr: |
             sum by (microservice, capability_id) (
-              increase({__name__=~"oya_.+_capability_retry_budget_exhausted_total"}[5m])
+              increase({__name__=~".+_capability_retry_budget_exhausted_total"}[5m])
             ) > 0
           for: 1m
           labels:
@@ -79,13 +79,13 @@ spec:
     # =========================================================================
     # INV-SHUFFLE-SHARDING — Per-tenant rate-limit (429 surge detection)
     # =========================================================================
-    - name: oya-hyperscaler-canonical-tenant-rate-limit
+    - name: hyperscaler-canonical-tenant-rate-limit
       interval: 60s
       rules:
         - alert: OyaTenantRateLimit429Surge
           expr: |
             sum by (microservice, tenant_id) (
-              rate({__name__=~"oya_.+_responses_429_total"}[5m])
+              rate({__name__=~".+_responses_429_total"}[5m])
             ) > 50
           for: 5m
           labels:
@@ -106,7 +106,7 @@ spec:
     # (Latency is covered by per-SLO burn-rate alerts; the trio below ensures
     #  the OTHER three reference signals are materially observable for every µservice.)
     # =========================================================================
-    - name: oya-hyperscaler-canonical-reference-signals
+    - name: hyperscaler-canonical-reference-signals
       interval: 60s
       rules:
         - alert: OyaSaturationCpuOver70pct
@@ -136,9 +136,9 @@ spec:
         - alert: OyaErrors5xxRateSpike
           expr: |
             (
-              sum by (microservice) (rate({__name__=~"oya_.+_responses_5xx_total"}[5m]))
+              sum by (microservice) (rate({__name__=~".+_responses_5xx_total"}[5m]))
               /
-              sum by (microservice) (rate({__name__=~"oya_.+_responses_total"}[5m]))
+              sum by (microservice) (rate({__name__=~".+_responses_total"}[5m]))
             ) > 0.01
           for: 5m
           labels:
@@ -156,9 +156,9 @@ spec:
         - alert: OyaTrafficDrop90pct
           expr: |
             (
-              sum by (microservice) (rate({__name__=~"oya_.+_responses_total"}[5m]))
+              sum by (microservice) (rate({__name__=~".+_responses_total"}[5m]))
               /
-              sum by (microservice) (rate({__name__=~"oya_.+_responses_total"}[1h] offset 1h))
+              sum by (microservice) (rate({__name__=~".+_responses_total"}[1h] offset 1h))
             ) < 0.1
           for: 10m
           labels:
@@ -203,16 +203,16 @@ spec:
     # are the canonical INV-SLO-ERROR-BUDGET label carriers, not the
     # per-µservice page authorities.
     # =========================================================================
-    - name: oya-hyperscaler-canonical-error-budget-burn
+    - name: hyperscaler-canonical-error-budget-burn
       interval: 60s
       rules:
         - alert: OyaErrorBudgetFastBurn1h14x
           expr: |
             (
               1 - (
-                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[1h]))
+                sum by (microservice) (rate({__name__=~".+_request_success_total"}[1h]))
                 /
-                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[1h]))
+                sum by (microservice) (rate({__name__=~".+_request_total"}[1h]))
               )
             ) > 14.4 * (1 - 0.999)
           for: 5m
@@ -236,9 +236,9 @@ spec:
           expr: |
             (
               1 - (
-                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[6h]))
+                sum by (microservice) (rate({__name__=~".+_request_success_total"}[6h]))
                 /
-                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[6h]))
+                sum by (microservice) (rate({__name__=~".+_request_total"}[6h]))
               )
             ) > 6 * (1 - 0.999)
           for: 15m
@@ -261,9 +261,9 @@ spec:
           expr: |
             (
               1 - (
-                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[1d]))
+                sum by (microservice) (rate({__name__=~".+_request_success_total"}[1d]))
                 /
-                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[1d]))
+                sum by (microservice) (rate({__name__=~".+_request_total"}[1d]))
               )
             ) > 3 * (1 - 0.999)
           for: 1h
@@ -286,9 +286,9 @@ spec:
           expr: |
             (
               1 - (
-                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[3d]))
+                sum by (microservice) (rate({__name__=~".+_request_success_total"}[3d]))
                 /
-                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[3d]))
+                sum by (microservice) (rate({__name__=~".+_request_total"}[3d]))
               )
             ) > 1 * (1 - 0.999)
           for: 3h

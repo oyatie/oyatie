@@ -33,13 +33,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_eval_duration_seconds_bucket{le="0.001",job="oya-feature-flags-evaluator-rest"}[5m]))
+                sum(rate(feature_flag_eval_duration_seconds_bucket{le="0.001",job="feature-flags-evaluator-rest"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_eval_duration_seconds_count{job="oya-feature-flags-evaluator-rest"}[5m]))
+                sum(rate(feature_flag_eval_duration_seconds_count{job="feature-flags-evaluator-rest"}[5m]))
   alerting:
     burnRateAlerts:
       - shortWindow: 5m

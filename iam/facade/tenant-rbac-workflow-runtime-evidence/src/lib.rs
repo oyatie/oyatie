@@ -23,7 +23,7 @@ const SERVICE_NAME: &str = "tenant-rbac";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const WORKFLOW_QUEUE_ADAPTER: &str = "in-memory-workflow-reference";
-const SOURCE_PLAN_REF: &str = "crates/oya-tenant-rbac-workflow-adapter-inmemory/src/lib.rs::tenant_rbac_workflow_queue_capabilities";
+const SOURCE_PLAN_REF: &str = "crates/tenant-rbac-workflow-adapter-inmemory/src/lib.rs::tenant_rbac_workflow_queue_capabilities";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum WorkflowRuntimeEvidenceRequirementKind {
@@ -555,7 +555,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_plan_ref,
-        "crates/oya-tenant-rbac-workflow-adapter-inmemory/",
+        "crates/tenant-rbac-workflow-adapter-inmemory/",
         TenantRbacWorkflowRuntimeEvidenceError::InvalidSourcePlanRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

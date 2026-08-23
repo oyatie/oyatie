@@ -91,7 +91,7 @@ fn workflow_runtime_evidence_plan_preserves_ref_boundaries_and_inmemory_source_c
             .starts_with("evidence/workflow-runtime/tenant-rbac/")
             && requirement
                 .source_plan_ref
-                .starts_with("crates/oya-tenant-rbac-workflow-adapter-inmemory/")
+                .starts_with("crates/tenant-rbac-workflow-adapter-inmemory/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.workflow_queue_adapter == "in-memory-workflow-reference"
             && !requirement.runtime_evidence_attached

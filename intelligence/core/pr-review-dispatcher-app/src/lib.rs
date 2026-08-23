@@ -4,7 +4,7 @@
 //! ## What this crate does
 //!
 //! On `workflow_run` completion of every required-check workflow
-//! (currently `pr-tests` and `oya-governance-supply-chain`, both with
+//! (currently `pr-tests` and `governance-supply-chain`, both with
 //! `conclusion: success`), `.github/workflows/pr-review.yml` invokes this
 //! binary which:
 //!

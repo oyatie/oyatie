@@ -21,7 +21,7 @@ purpose: |
   infrastructure behavior, and to steer work toward Rust, APIs, config,
   idempotency, observability, and deployment-compatible controllers/gates.
 canonical_authority: docs/decisions/ADR-0700-ci-admission-live-apex.md
-enforced_by: oya-ci-required/gate-rust-first-automation-hygiene
+enforced_by: presubmit/gate-rust-first-automation-hygiene
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/api-design.md
@@ -72,7 +72,7 @@ Core infrastructure behavior MUST be one of these shapes:
    engine, controller, or GitOps reconciler.
 3. A Kubernetes-native controller/CRD/reconciler that exposes desired state,
    observed state, conditions, and events.
-4. A cloud-ci/`oya-ci-required` gate packet backed by Rust logic and policy as
+4. A pipeline/`presubmit` gate packet backed by Rust logic and policy as
    data, not by a CLI invocation transcript.
 5. A documented API contract: OpenAPI, proto, AsyncAPI, JSON Schema, CRD schema,
    or equivalent typed contract that callers and reviewers can inspect.
@@ -108,7 +108,7 @@ Adding such a bridge still needs an explicit review rationale.
 
 The implementation SHOULD be Rust-first. It MUST expose a typed boundary rather
 than a sequence of process calls. Acceptable boundaries include Rust traits,
-OpenAPI/proto surfaces, CRD schemas, JSON Schema policy packets, or cloud-ci gate
+OpenAPI/proto surfaces, CRD schemas, JSON Schema policy packets, or pipeline gate
 packet schemas.
 
 ### 4.2 Configuration-driven behavior
@@ -144,7 +144,7 @@ MUST be part of the same API/config/controller contract.
 ### 5.1 Add a CI policy
 
 Acceptable: a Rust gate binary reads a JSON policy fixture and emits a gate
-packet consumed by `oya-ci-required`.
+packet consumed by `presubmit`.
 
 Unacceptable: `scripts/check-policy.sh` exits 0/1 and becomes the only required
 check.
@@ -190,7 +190,7 @@ Reject or request redesign when any answer is "yes":
 2. Is the behavior only described as ordered imperative steps instead of an API,
    controller, gate, or declarative manifest?
 3. Can the workflow produce merge, deploy, rollback, evidence, or governance
-   authority outside `oya-ci-required`, cloud-ci gate packets, or the API/control
+   authority outside `presubmit`, pipeline gate packets, or the API/control
    plane?
 4. Does retrying the operation risk duplicate resources, duplicate events,
    partial rollback, or inconsistent state?
@@ -208,18 +208,18 @@ retires or deliberately leaves untouched.
 
 ## 7. Automated enforcement
 
-The blocking CI backstop is the `oya-ci-required` matrix leg
+The blocking CI backstop is the `presubmit` matrix leg
 `gate · rust-first automation hygiene`, backed by the Buck2-native
-`//cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app` gate.
+`//cloud/cloud-ci/gates/pipeline-rust-first-automation-hygiene-app` gate.
 The gate fails on unregistered non-Rust automation files, new GitHub workflow
 inline shell beyond the frozen baseline, forbidden workflow action bridges,
 Rust code that spawns retired interpreters, and new cloud/infra/tooling Cargo
 packages shaped as `*-cli`.
 
 Exceptions are data, not tribal knowledge: add them only in
-`cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json`
+`cloud/cloud-ci/gates/pipeline-rust-first-automation-hygiene-app/rust-first-automation-policy.json`
 with `reason`, `replacement`, and `status`. The replacement MUST point toward a
-Rust Buck2/cloud-ci gate, Kubernetes/GitOps/controller path, or equivalent
+Rust Buck2/pipeline gate, Kubernetes/GitOps/controller path, or equivalent
 API-shaped cloud-native surface, and stale exceptions must be removed with the
 same change that retires the legacy file or workflow step.
 

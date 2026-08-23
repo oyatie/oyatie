@@ -20,11 +20,11 @@ deliverables:
   - id: ADR-0714-D1
     description: "Rename RuntimeClass / tier mechanism names to isolation-property nouns shared-kernel / private-kernel / private-kernel-attested. Keep trust classification 0..3 as a separate axis. Restore Tier-3 edge/perf placement as an orthogonal placement axis. Publish deterministic pod_runtime_tier → axes migration table."
     exit_criteria: "Founder Accept; ADR-0338 remains archived — only ADR-0701 is amendable. ADR-0710's statement that the tier MODEL stands and only the mechanism changes is preserved. Migration table is complete for live 0..3 values."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0714-D2
-    description: "Migration sequencing: Kyverno→VAP (or live admission substrate) enforcement re-home MUST land BEFORE the rename. Legacy class names including live kata-cloud-hypervisor ride as deprecated aliases for exactly one wave. oya-governance-runtime-class-allowlist lane updates in the same rename PR or fail closed."
+    description: "Migration sequencing: Kyverno→VAP (or live admission substrate) enforcement re-home MUST land BEFORE the rename. Legacy class names including live kata-cloud-hypervisor ride as deprecated aliases for exactly one wave. governance-runtime-class-allowlist lane updates in the same rename PR or fail closed."
     exit_criteria: "Accept records the sequencing invariant and one-wave alias law for kata-cloud-hypervisor; any rename PR without prior enforcement re-home is refused by review/gates."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0714: Isolation-property RuntimeClass names with orthogonal placement axis
 
@@ -139,9 +139,9 @@ On Accept, encode MUST follow this order:
    lifetime. Lifetime contract is also recorded on
    `masterplan_v2.work_items[MPV2-0055].runtimeclass_alias_lifetime` (planning field while
    Proposed). The blocking alias-lifetime evaluator is **not** claimed as live while this ADR
-   is Proposed; it MUST be implemented and wired into `oya-ci-required` in the Accept-encode PR
+   is Proposed; it MUST be implemented and wired into `presubmit` in the Accept-encode PR
    that introduces the alias — recording a prospective evaluator name alone is insufficient.
-4. **`oya-governance-runtime-class-allowlist`** lane update lands in the **same PR** as the
+4. **`governance-runtime-class-allowlist`** lane update lands in the **same PR** as the
    rename, or the PR fails closed.
 
 No ban on unbranded names that already exist; the cost is migration + allowlist, not a strawman
@@ -155,7 +155,7 @@ rebrand fight.
 |---|---|---|
 | RuntimeClass manifests / Helm `runtimeClassName` | update | One-wave rename + `kata-cloud-hypervisor` alias |
 | `*/manifest.json` `pod_runtime_tier` consumers | update | Apply D-1a; add isolation + placement fields as sequenced |
-| `oya-governance-runtime-class-allowlist` | update | Same PR as rename |
+| `governance-runtime-class-allowlist` | update | Same PR as rename |
 | Admission VAP / Kyverno policies | update | Re-home before rename |
 
 ### Integration via Workflow + Ontology
@@ -175,7 +175,7 @@ after Accept.
 ### Operational
 
 - Fail-closed if allowlist drifts from renamed classes.
-- CI: `oya-ci-required`; no authority-surface citation while Proposed.
+- CI: `presubmit`; no authority-surface citation while Proposed.
 
 ## Clean Architecture Impact
 

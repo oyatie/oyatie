@@ -1,0 +1,59 @@
+apiVersion: v2
+name: docs
+description: |
+  Helm chart for the oyatie docs µservice. Bundles the per-BC Deployments +
+  Services + HPAs + PDBs + NetworkPolicies + ServiceMonitors +
+  PrometheusRules. Pulls dependency charts for Postgres (document-metadata),
+  Valkey (collab presence + CRDT op spool), ClamAV (attachment scanner;
+  default), OPSWAT MetaDefender (pack-us-healthcare overlay), gVisor pool
+  (export workers per ADR-DOCS-0003).
+
+  Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned versions) +
+  ADR-DOCS-0001 (Loro CRDT; runtime substrate) + ADR-DOCS-0003 (Pandoc +
+  WeasyPrint + Chromium-headless backends inside gVisor) + ADR-DOCS-0004
+  (per-block ACL) + ADR-DOCS-0006 (DOCX import fidelity).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-docs
+    email: docs@oyatie.com
+keywords:
+  - docs
+  - collaborative-document
+  - crdt
+  - loro
+  - block-based
+  - per-block-acl
+  - export
+  - pdfa
+  - wcag
+home: https://oyatie.com/microservices/docs
+sources:
+  - https://github.com/oyatie/oyatie/tree/main/microservices/docs
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: "Initial docs µservice Helm chart (M03 ship surface)"
+  artifacthub.io/license: Internal-Use
+dependencies:
+  - name: postgres
+    version: "16.4.0"   # CloudNativePG LTS per docs/standards/observability-slo.md
+    repository: "oci://registry.oyatie.dev/charts/cloudnative-pg"
+    condition: postgres.enabled
+  - name: valkey
+    version: "7.4.0"    # LTS per docs/standards/observability-slo.md
+    repository: "oci://registry.oyatie.dev/charts/valkey-cluster"
+    condition: valkey.enabled
+  - name: clamav
+    version: "1.3.0"    # LTS attachment scanner default
+    repository: "oci://registry.oyatie.dev/charts/clamav"
+    condition: clamav.enabled
+  - name: opswat-metadefender
+    version: "5.6.0"    # pack-us-healthcare HIPAA-grade alternative
+    repository: "oci://registry.oyatie.dev/charts/opswat-metadefender"
+    condition: opswat.enabled
+  - name: gvisor-runtime
+    version: "2024.10.0"  # LTS gVisor runtime per ADR-DOCS-0003
+    repository: "oci://registry.oyatie.dev/charts/gvisor-runtime"
+    condition: gvisor.enabled

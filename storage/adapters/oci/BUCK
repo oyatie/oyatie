@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//storage/core/domain:storage-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -18,6 +18,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//storage/core/domain:storage-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
     ],
 )

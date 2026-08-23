@@ -1,0 +1,96 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "docs",
+    "owner_team": "axis-docs + ops-sre-reliability",
+    "audience": "axis-docs SRE + council-architecture",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID",
+    "cross_microservice_alignment": "mirrors workflow-studio dashboards/collab-health.json shape per ADR-DOCS-0001 + ADR-WS-0001"
+  },
+  "uid": "docs-collab-health",
+  "title": "docs: collab health (concurrent editors / merge / conflict / sync lag)",
+  "tags": ["docs", "collab", "crdt", "loro", "cross-microservice"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(docs_ws_lease_count{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Active editor sessions (WS leases)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(docs_ws_lease_count{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Concurrent editors per doc (max)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "max(docs_collab_concurrent_editors_per_doc{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 10, "color": "yellow"}, {"value": 50, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "CRDT merge p99 (ms)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_collab_crdt_merge_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))) * 1000", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 100, "color": "yellow"}, {"value": 250, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "Sync lag p99 (s)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(docs_collab_sync_lag_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.5, "color": "yellow"}, {"value": 2, "color": "red"}]}}}},
+
+    {"id": 5, "type": "timeseries", "title": "CRDT op publish rate (per tenant)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (tenant_id) (rate(docs_collab_op_published_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{tenant_id}}", "refId": "A"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Conflict surfaced + conflict resolved by branch",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(docs_collab_conflict_surfaced_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "surfaced", "refId": "A"},
+        {"expr": "sum by (branch_chosen) (rate(docs_collab_conflict_resolved_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "resolved-{{branch_chosen}}", "refId": "B"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "Silent-loss-attempts (load-bearing AC-06; must stay 0)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(docs_collab_silent_loss_attempt_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "silent-loss-attempt", "refId": "A"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "Cross-microservice CRDT consistency (vs workflow-studio)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(docs_crdt_envelope_schema_mismatch_total[5m]))", "legendFormat": "docs envelope schema mismatch (should be 0)", "refId": "A"}
+      ]},
+
+    {"id": 9, "type": "table", "title": "Top-10 docs by concurrent editor count",
+      "gridPos": {"x": 0, "y": 20, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "topk(10, docs_collab_concurrent_editors_per_doc{pack=\"$pack\",tenant_id=\"$tenant\"})", "format": "table", "refId": "A"}
+      ]}
+  ],
+  "annotations": {
+    "list": [
+      {"name": "rollouts", "datasource": "argo-rollouts", "iconColor": "blue", "query": "{microservice=\"docs\"}"},
+      {"name": "loro-upgrades", "datasource": "prometheus", "iconColor": "orange", "expr": "changes(docs_loro_version[1h]) > 0"}
+    ]
+  }
+}

@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every artifact has a declared purpose (front-matter `purpose:` or catalog row) and is reachable from a registered entry point.
 - enforces: Directive 10 (MASTERPLAN) — every artifact has declared purpose.
-- kernel_crate: `oya-governance-orphan-detection-kernel` — `Artifact { path, has_purpose, reachable }`, verdict `OrphanDetectionFitnessReport { artifacts_checked }`.
-- runner_path: `tools/oya-governance-orphan-detection`
+- kernel_crate: `governance-orphan-detection-kernel` — `Artifact { path, has_purpose, reachable }`, verdict `OrphanDetectionFitnessReport { artifacts_checked }`.
+- runner_path: `tools/governance-orphan-detection`
 - inputs: artifact list, registered entry points, ref-graph snapshot.
 - failure_modes:
   - doc with no `purpose:` front-matter
   - artifact present but not reachable from any entry point
   - dead crate (no rdeps, no entry)
-- ci_invocation: `cargo run -p oya-governance-orphan-detection`
+- ci_invocation: `cargo run -p governance-orphan-detection`
 - runtime_budget: 1100 ms
 - severity: HIGH
 - kernel_sketch:

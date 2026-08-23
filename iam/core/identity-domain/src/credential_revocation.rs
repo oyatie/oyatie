@@ -5,7 +5,7 @@
 //! Credential and token revocation state machine.
 //!
 //! This mod is the `credential_revocation` flat extension of the
-//! `oya-identity-domain` crate (additive, ADR-0509 flat clean-arch). It
+//! `identity-domain` crate (additive, ADR-0509 flat clean-arch). It
 //! composes the existing TTL-expiry invariant (`MAX_TOKEN_TTL_SECONDS`,
 //! `expires_at_epoch_seconds`) with explicit, reason-tagged revocation into a
 //! single `now_epoch_seconds`-driven verdict that obeys **deny-precedence**:
@@ -413,7 +413,7 @@ mod tests {
     use crate::{
         CredentialRequest, CredentialRequestKind, Principal, issue_credential, issue_token,
     };
-    use oya_data_boundary_kernel::Purpose;
+    use data_boundary_kernel::Purpose;
 
     // ── RevocationReason ────────────────────────────────────────────────────
 

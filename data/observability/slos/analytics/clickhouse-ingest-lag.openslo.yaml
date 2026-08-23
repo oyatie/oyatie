@@ -24,13 +24,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_mv_lag_seconds_bucket{le="5"}[5m])) by (cluster)
+                sum(rate(analytics_mv_lag_seconds_bucket{le="5"}[5m])) by (cluster)
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_mv_lag_seconds_count[5m])) by (cluster)
+                sum(rate(analytics_mv_lag_seconds_count[5m])) by (cluster)
   timeWindow:
     - duration: 30d
       isRolling: true

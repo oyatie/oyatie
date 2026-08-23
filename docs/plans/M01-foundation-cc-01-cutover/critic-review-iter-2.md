@@ -17,7 +17,7 @@ Materialized from agent message (Critic constraint prohibits direct file write).
 ---
 
 ## Verdict (1 paragraph)
-**APPROVE.** All 12 iter-1 MUST-LAND revisions landed (8 in plan body during iter-2, 4 in ADR draft via orchestrator's post-iter-2-Architect direct edit confirmed at mtime 2026-05-12 20:20:38 — after both the plan edit at 20:14:07 and the iter-2 Architect review at 20:17:20); helper-rename is clean (zero `oya-agent-read` orphans in either canonical file); ADR scope discipline is preserved (the new §"Compounding principles incorporated by reference" cites Master Plan §Principles and Master Plan §Cross-cutting workstreams as upstream owners, not invented in this ADR); Follow-ups list is unified into a single 6-item list inside the ADR (plan §3 is now pointer-only, no duplicate list); all 10 acceptance criteria walk GREEN; no new principle violations introduced by the orchestrator's direct edits.
+**APPROVE.** All 12 iter-1 MUST-LAND revisions landed (8 in plan body during iter-2, 4 in ADR draft via orchestrator's post-iter-2-Architect direct edit confirmed at mtime 2026-05-12 20:20:38 — after both the plan edit at 20:14:07 and the iter-2 Architect review at 20:17:20); helper-rename is clean (zero `agent-read` orphans in either canonical file); ADR scope discipline is preserved (the new §"Compounding principles incorporated by reference" cites Master Plan §Principles and Master Plan §Cross-cutting workstreams as upstream owners, not invented in this ADR); Follow-ups list is unified into a single 6-item list inside the ADR (plan §3 is now pointer-only, no duplicate list); all 10 acceptance criteria walk GREEN; no new principle violations introduced by the orchestrator's direct edits.
 
 ## Revision landing re-checklist
 
@@ -35,7 +35,7 @@ Materialized from agent message (Critic constraint prohibits direct file write).
 | Arch #7 P5/P10 data-shape | Y (plan body) | n/a | Y |
 | Arch #8 §3 ADR block deleted | Y (plan body) | n/a | Y |
 | Critic #1 ADR-source unified | N (claim-only) | ADR Follow-ups now 6 unified items; plan §3 has zero inline duplicate Follow-ups list | Y |
-| Critic #2 oya-tooling-agent-read rename | PARTIAL (plan body only; ADR had 5 occurrences of `oya-agent-read`) | ADR now: 15 occurrences of `oya-tooling-agent-read`, 0 occurrences of `oya-agent-read` | Y |
+| Critic #2 tooling-agent-read rename | PARTIAL (plan body only; ADR had 5 occurrences of `agent-read`) | ADR now: 15 occurrences of `tooling-agent-read`, 0 occurrences of `agent-read` | Y |
 | Critic #3 A6 enumeration deliverable | Y (plan body) | n/a | Y |
 | Critic #4 A9 attestation explicit | Y (plan body) | n/a | Y |
 
@@ -45,12 +45,12 @@ The cutover ADR-0053 correctly stays scoped to the agentic-pipeline shift. The f
 
 ## Helper rename verification
 
-- `oya-tooling-agent-read` occurrences in canonical plan: **18**.
-- `oya-tooling-agent-read` occurrences in updated ADR draft: **15**.
-- `oya-agent-read` orphans in canonical plan: **0**.
-- `oya-agent-read` orphans in updated ADR draft: **0**.
+- `tooling-agent-read` occurrences in canonical plan: **18**.
+- `tooling-agent-read` occurrences in updated ADR draft: **15**.
+- `agent-read` orphans in canonical plan: **0**.
+- `agent-read` orphans in updated ADR draft: **0**.
 
-Clean. Prior-review files retain historical `oya-agent-read` references, which is correct.
+Clean. Prior-review files retain historical `agent-read` references, which is correct.
 
 ## Verification matrix walk
 
@@ -59,7 +59,7 @@ Clean. Prior-review files retain historical `oya-agent-read` references, which i
 | A1 — Bidirectional PRD citation + foundry cross-cite | **GREEN** |
 | A2 — Inventory ledger committed | **GREEN** |
 | A3 — Archive + delete | **GREEN** |
-| A4 — `oya-tooling-agent-read` shipped | **GREEN** |
+| A4 — `tooling-agent-read` shipped | **GREEN** |
 | A5 — Agent memory rewritten + lane active | **GREEN** |
 | A6 — Hook + skill audit | **GREEN** |
 | A7 — Parallel-claim demo single-file | **GREEN** |

@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-DAYONE-001
+tutorial_id: TUT-OYATIE-DAYONE-001
 persona: "Nadia Park, first-day employee joining Acme Robotics"
 prerequisite_packs:
   - canonical-base

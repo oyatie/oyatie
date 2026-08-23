@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify workspace `Cargo.toml` has a `[workspace.lints]` table and every member crate inherits via `lints.workspace = true`.
 - enforces: hyperscaler-best-practices spec — workspace lints inherited.
-- kernel_crate: `oya-governance-workspace-lints-kernel` — `MemberManifest { crate_id, inherits_lints }`, verdict `WorkspaceLintsFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-governance-workspace-lints`
+- kernel_crate: `governance-workspace-lints-kernel` — `MemberManifest { crate_id, inherits_lints }`, verdict `WorkspaceLintsFitnessReport { crates_checked }`.
+- runner_path: `tools/governance-workspace-lints`
 - inputs: workspace + crate `Cargo.toml`s.
 - failure_modes:
   - workspace lacks `[workspace.lints]`
   - member crate sets its own `[lints]` instead of inheriting
   - inherited table empty
-- ci_invocation: `cargo run -p oya-governance-workspace-lints`
+- ci_invocation: `cargo run -p governance-workspace-lints`
 - runtime_budget: 250 ms
 - severity: HIGH
 - kernel_sketch:

@@ -1,92 +1,18 @@
 # Linker policy — hermetic / portable-by-default, fast-by-opt-in.
 #
-# DEFAULT (committed): NO linker override. A clean checkout builds with the platform's stock
-# toolchain (cc/ld on Linux; clang->lld is the rustc default on macOS since 1.74) and needs NO
-# extra tool installed. This satisfies the just-works / hermetic doctrine: `git clone && cargo
-# build` MUST succeed on a fresh box and on CI runners with zero manual steps. (The Buck2 graph
-# is the hermetic build-of-record; this cargo config is the developer / accounting-gate
-# convenience layer.)
+# DEFAULT (committed): NO linker override. A clean checkout builds with the
+# platform's stock toolchain. Opt-in mold locally via RUSTFLAGS or an
+# untracked ~/.cargo/config.toml. Do not force -fuse-ld=mold here.
 #
-# OPT-IN FAST LINKER (local dev): `mold` gives much faster Linux link times. Enable it WITHOUT
-# making it a hard build dependency — install mold, then either:
-#     export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
-# or drop an un-tracked personal override (e.g. ~/.cargo/config.toml) with:
-#     [target.x86_64-unknown-linux-gnu]
-#     linker = "clang"
-#     rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+# Do not resurrect bindings to deleted ci/facade, specs/, or tools/hooks paths.
 #
-# Rationale (supersedes the prior unconditional-mold config, ADR-0488): forcing
-# `-fuse-ld=mold` in the committed config breaks every box / CI runner that lacks mold
-# (`clang: error: invalid linker name in argument '-fuse-ld=mold'`) — a hermeticity defect that
-# a warm dev tree (mold pre-installed) silently masks. Portable-by-default fixes the clean-
-# checkout build; opt-in keeps the fast local link path for those who provision mold.
-
-# Cargo-native test resources for the inventory-backed gate fleet (ADR-0716).
-#
-# Buck binds the accounting producer as a declared test resource. Cargo has no stable
-# cross-package `CARGO_BIN_EXE_*` propagation, so the package-local integration target builds the
-# inventory binaries and this repository config names them as logical Cargo test resources. At
-# runtime the test plumbing resolves each `cargo-test-binary:` name beside its own executable;
-# this remains correct for a fresh clone, target triples, and any `CARGO_TARGET_DIR` without
-# committing a machine- or worktree-specific path. The adapter materializes a missing SCM snapshot
-# through the existing Rust emitter, then delegates to the unchanged producer. It is not an
-# admission or operator CLI.
-#
-# `force` deliberately stays false (Cargo's default). CI's explicit, materializer-backed
-# OYA_CI_PRODUCER_BIN therefore wins, while a plain `cargo test --workspace` receives the adapter.
+# Intelligence-app cargo tests read named fixtures (not process cwd). `relative
+# = true` resolves against this repository; explicit CI/Buck values win.
 [env]
-OYA_CI_PRODUCER_BIN = "cargo-test-binary:oya-cloud-ci-cargo-test-producer-adapter"
-OYA_CI_CARGO_TEST_PRODUCER_BIN = "cargo-test-binary:oya-cloud-ci-accounting-registry-app"
-OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN = "cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app"
-OYA_CI_CARGO_TEST_REORG_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
-OYA_CI_EMITTER_BIN = "cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app"
-OYA_CI_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
-OYA_ADR_INDEX_PRODUCER_BIN = { value = "cargo-test-binary:oya", force = false }
-OYA_HISTORY_ONLY_RETIREMENT_FACTS = { value = "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json", force = false }
-OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER = { value = "cargo-test-binary:oya-cloud-ci-accounting-registry-app", force = false }
-OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS = { value = "tools/hooks/registration/claude-settings.json", relative = true }
-OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS = { value = "tools/hooks/registration/codex-hooks.json", relative = true }
-OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR = { value = "tools/hooks", relative = true }
-
-# Committed-file resources declared by the product-protocol Buck test. Cargo resolves each
-# repo-relative value against this repository's `.cargo/config.toml`; explicit CI/Buck values win.
-OYA_API_CONTRACT_SSOT = { value = "specs/api-contract-ssot-canonical.json", relative = true, force = false }
-OYA_ENDPOINT_TRANSPORT_PROFILE = { value = "network/ports/transport-profile/endpoint-transport-profile.contract.json", relative = true, force = false }
-OYA_MASTER_PLAN_SEQUENCING = { value = "specs/master-plan-sequencing.json", relative = true, force = false }
-OYA_MICROSERVICE_MANIFEST_SCHEMA = { value = "specs/microservices/manifest-schema.json", relative = true, force = false }
-OYA_PRODUCT_PROTOCOL_CONTRACT = { value = "specs/product-protocol-contract.json", relative = true, force = false }
-OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES = { value = "ci/facade/product-protocol-policy/fixtures/negative-cases.json", relative = true, force = false }
-OYA_PRODUCT_PROTOCOL_POLICY = { value = "ci/facade/product-protocol-policy/product-protocol-policy.json", relative = true, force = false }
-OYA_ROOT_HUB_POINTERS = { value = "specs/root-hub-pointers.json", relative = true, force = false }
-OYA_ADR_0632 = { value = "docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md", relative = true, force = false }
-OYA_ADR_0157 = { value = "docs/adr-archive/ADR-0157-api-gateway-tier.md", relative = true, force = false }
-OYA_ADR_0167 = { value = "docs/adr-archive/ADR-0167-tenant-cli.md", relative = true, force = false }
-OYA_ADR_0176 = { value = "docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md", relative = true, force = false }
-OYA_ADR_0182 = { value = "docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md", relative = true, force = false }
-OYA_ADR_0246 = { value = "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md", relative = true, force = false }
-OYA_ADR_0258 = { value = "docs/adr-archive/ADR-0258-api-versioning-model.md", relative = true, force = false }
-
-# Committed-file resources declared by the reset-eligibility Buck test. Binary and
-# history-generated resources intentionally do not belong to this adapter.
-OYA_RESET_POLICY = { value = "ci/facade/reset-eligibility-policy/reset-eligibility-policy.json", relative = true, force = false }
-OYA_RESET_SCHEMA = { value = "specs/reset-eligibility.schema.json", relative = true, force = false }
-OYA_RESET_ARTIFACT = { value = "registry/reset-eligibility/w0-d-20260801.json", relative = true, force = false }
-OYA_ROOT_MARKER = { value = "specs/root-hub-pointers.json", relative = true, force = false }
-
-# Committed-file resources declared by the intelligence-app Buck test. These reads used bare
-# repo-relative paths resolved against the process cwd, which only lands correctly under Buck's
-# sandbox root; `cargo test` runs each binary from its own package directory, so every one of
-# them missed. Naming the resource removes the guess on both paths.
-OYA_INTELLIGENCE_HELM_DEPLOYMENT = { value = "intelligence/iac/k8s/helm/templates/deployment.yaml", relative = true, force = false }
-OYA_INTELLIGENCE_HELM_EXTERNALSECRET = { value = "intelligence/iac/k8s/helm/templates/externalsecret.yaml", relative = true, force = false }
-OYA_INTELLIGENCE_APP_SOURCE = { value = "intelligence/facade/app/src/lib.rs", relative = true, force = false }
-OYA_INTELLIGENCE_REST_SOURCE = { value = "intelligence/adapters/rest/src/lib.rs", relative = true, force = false }
-OYA_INTELLIGENCE_OPENAPI_CONTRACT = { value = "intelligence/contracts/cloud-intelligence.openapi.yaml", relative = true, force = false }
-OYA_INTELLIGENCE_K8S_MANIFEST = { value = "intelligence/k8s/cloud-intelligence.yaml", relative = true, force = false }
-
-# Committed contract declared by the payroll run-api test (same cwd-relative defect).
-OYA_PAYROLL_OPENAPI_CONTRACT = { value = "app/payroll/contracts/openapi-v1.yaml", relative = true, force = false }
-
-# Committed face declared by the marketplace dev-cli active-artifact-contract gate. Its previous
-# fallback counted parent directories and overshot the repository root entirely.
-OYA_ARTIFACT_PROFILE_DEFAULTS = { value = "specs/artifact-profile-defaults.json", relative = true, force = false }
+OYATIE_INTELLIGENCE_HELM_DEPLOYMENT = { value = "intelligence/iac/k8s/helm/templates/deployment.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET = { value = "intelligence/iac/k8s/helm/templates/externalsecret.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_APP_SOURCE = { value = "intelligence/facade/app/src/lib.rs", relative = true, force = false }
+OYATIE_INTELLIGENCE_REST_SOURCE = { value = "intelligence/adapters/rest/src/lib.rs", relative = true, force = false }
+OYATIE_INTELLIGENCE_OPENAPI_CONTRACT = { value = "intelligence/contracts/cloud-intelligence.openapi.yaml", relative = true, force = false }
+OYATIE_INTELLIGENCE_K8S_MANIFEST = { value = "intelligence/k8s/cloud-intelligence.yaml", relative = true, force = false }
+OYATIE_PAYROLL_OPENAPI_CONTRACT = { value = "app/payroll/contracts/openapi-v1.yaml", relative = true, force = false }

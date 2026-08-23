@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_ingest_streams_meeting_throughput_total[5m]))
+              query: sum(rate(data_warehouse_ingest_streams_meeting_throughput_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_ingest_streams_total[5m]))
+              query: sum(rate(data_warehouse_ingest_streams_total[5m]))
   objectives:
     - displayName: per-stream ingest throughput ≥ 1M events/s
       target: 0.99

@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-workload-authorize-latency-p99
+  name: identity-workload-authorize-latency-p99
   displayName: "identity/workload: PDP authorize p99 ≤ 10ms (hot path)"
   labels:
     microservice: identity
@@ -30,7 +30,7 @@ spec:
           spec:
             query: |
               histogram_quantile(0.99, sum(rate(
-                oya_identity_workload_authorize_duration_seconds_bucket[5m]
+                identity_workload_authorize_duration_seconds_bucket[5m]
               )) by (le))
   objectives:
     - displayName: "p99 ≤ 0.010s"
@@ -42,4 +42,4 @@ spec:
       isRolling: true
   budgetingMethod: Occurrences
   alertPolicies:
-    - alertPolicyRef: oya-canonical-burn-rate-multi-window
+    - alertPolicyRef: canonical-burn-rate-multi-window

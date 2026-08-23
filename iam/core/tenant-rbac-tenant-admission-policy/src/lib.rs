@@ -25,7 +25,7 @@ const PROGRAM_NAME: &str = "fd-001-tenant-rbac-generic";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const SOURCE_MANIFEST_REF: &str =
-    "crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
+    "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
 const POLICY_API_KIND: &str = "ValidatingAdmissionPolicy";
 const BINDING_API_KIND: &str = "ValidatingAdmissionPolicyBinding";
 const FAILURE_POLICY: &str = "Fail";
@@ -513,7 +513,7 @@ fn validate_rule(rule: &Fd001TenantAdmissionRule) -> Result<(), Fd001TenantAdmis
     validate_doc_url(rule.official_doc_url)?;
     validate_prefixed_ref(
         rule.source_manifest_ref,
-        "crates/oya-tenant-rbac-tenant-workload-manifest/",
+        "crates/tenant-rbac-tenant-workload-manifest/",
         Fd001TenantAdmissionPolicyError::InvalidSourceManifestRef,
     )?;
     if !rule.applies_to_all_manifest_workloads {

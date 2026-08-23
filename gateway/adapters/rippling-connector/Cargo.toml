@@ -12,7 +12,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-shared-connector-kernel = { path = "../../../libs/oya-shared-connector-kernel" }
+shared-connector-kernel = { path = "../../core/connector-kernel" }
+
 
 [lints]
 workspace = true

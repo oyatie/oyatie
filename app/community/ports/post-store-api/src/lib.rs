@@ -1,6 +1,6 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_shared_protocol_parity_kernel::{
+use shared_protocol_parity_kernel::{
     ProtocolEventEnvelope, ProtocolParityBinding, ProtocolParityBindingSpec, ProtocolParityError,
     require_receipt_event_type,
 };

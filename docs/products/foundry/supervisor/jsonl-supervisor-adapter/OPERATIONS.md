@@ -73,7 +73,7 @@ done
 Run via cron:
 
 ```bash
-# /etc/cron.d/oya-supervisor-cleanup
+# /etc/cron.d/supervisor-cleanup
 0 * * * * /opt/oya/bin/cleanup-locks.sh
 ```
 

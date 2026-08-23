@@ -34,7 +34,7 @@ cargo clippy --workspace --all-features --all-targets -- -D warnings
 cargo deny check
 
 # Emit audit chain row
-oya-tooling-agent-read audit-emit --event <EVT-id> --payload '<json>'
+tooling-agent-read audit-emit --event <EVT-id> --payload '<json>'
 
 # Ship
 
@@ -44,8 +44,8 @@ oya-tooling-agent-read audit-emit --event <EVT-id> --payload '<json>'
 ## The 5 lookups
 
 ```
-oya-tooling-agent-read pr-view <n>                  # PR state without gh
-oya-tooling-agent-read log --range A..B --paths P   # history without git
+tooling-agent-read pr-view <n>                  # PR state without gh
+tooling-agent-read log --range A..B --paths P   # history without git
 ```
 
 ## The 3 emergency-halt patterns

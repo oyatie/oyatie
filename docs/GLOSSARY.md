@@ -22,7 +22,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 5. **Renamed terms** carry a "Replaces:" line listing prior Oyatie names (e.g. Bench replaces "shell" — ADR-0017).
 6. **Deprecated terms** are kept in §11 with their replacement, never removed.
 
-The fitness-function `oya-governance-glossary` walks every consolidated doc and flags any term with > 1 spelling, any uncited acronym, any synonym used inconsistently.
+The fitness-function `governance-glossary` walks every consolidated doc and flags any term with > 1 spelling, any uncited acronym, any synonym used inconsistently.
 
 ---
 
@@ -124,8 +124,8 @@ The fitness-function `oya-governance-glossary` walks every consolidated doc and 
 | **Apache Polaris** | Open-source Iceberg REST Catalog reference implementation; Snowflake-authored, donated to ASF as incubating 2024-07-23; canonical for self-managed and OCI-guest contexts per ADR-0337. |
 | **BigLake** | Google Cloud's managed Iceberg REST Catalog endpoint (GA 2025-01-15); canonical for GCP-guest context per ADR-0337. |
 | **Delta UniForm** | Databricks-authored Delta variant that emits Iceberg metadata pointing at Delta data; read-accepted by Oyatie's Iceberg read path per ADR-0337 §D-2.4. |
-| **Apache Delta Lake** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Delta-formatted data are served by `oya-<ms>-adapter-delta-ingest-to-iceberg`. |
-| **Apache Hudi** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Hudi-formatted data are served by `oya-<ms>-adapter-hudi-ingest-to-iceberg`. |
+| **Apache Delta Lake** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Delta-formatted data are served by `oyatie-<ms>-adapter-delta-ingest-to-iceberg`. |
+| **Apache Hudi** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Hudi-formatted data are served by `oyatie-<ms>-adapter-hudi-ingest-to-iceberg`. |
 | **k-anonymity** | A record is indistinguishable from at least k-1 others on the QID columns. |
 | **Differential Privacy (DP)** | Bounded ε-budget noise injection that limits individual disclosure. |
 | **PII / PHI / PCI** | Personally Identifiable / Protected Health / Payment Card data. |
@@ -237,8 +237,7 @@ These are terms we use that don't have a clean industry term, or that we've expl
 | **oYa** | The logo abbreviation. | (brand) | User directive 2026-05-08 |
 | **Bench** | The user-facing app shell that hosts vertical workspaces. Replaces "shell". | "Workspace shell" or "App shell" | ADR-0017 |
 | **Object Graph (OG)** | Oyatie's typed-entity, engine-enforced, cryptographically auditable domain-data layer. | "Domain model store" with audit; closest industry analog is Apache Atlas + DDD aggregate persistence; no direct equivalent. | ADR-0006 |
-| **Foundry** | Oyatie's AI agent runtime + control plane (axis 3). | "Agent platform" / "AI orchestration runtime" / "AI gateway"; closest commercial analog is LangSmith + AWS Bedrock Agents. *Note: ADR-0006 has a "no Palantir vocabulary" clause that some readers interpret as restricting "Foundry"; rename evaluation pending — see DOC user-input questions.* | (Oyatie name) |
-| **Foundry Furnace** | The self-improvement loop within Foundry. | "RLHF + agent self-evaluation pipeline" | (Oyatie name; verify use in code) |
+| **Foundry** | Product at `app/foundry`: ontology, Pages, Grid, Workshop, Manager, Pipeline Builder UX. | Palantir Foundry | ADR-0719 D-21 |
 | **Capability** | A discrete unit of agent-invocable functionality with declared inputs/outputs/policy. | "Tool" (LangChain) / "Function" (OpenAI) / "Skill" (Microsoft Copilot Studio) | ADR-0021 OG-AG |
 | **Capability namespace** | A scoped collection of capabilities a tenant binds to. | "API surface area" or "service catalog scope" | (Oyatie) |
 | **Autonomy ceiling** | Per-tenant maximum tier of agent autonomy (T1..T4). | "Permission tier" / "Agent governance level" | ADR-0022 |
@@ -250,11 +249,11 @@ These are terms we use that don't have a clean industry term, or that we've expl
 | **Milestone (M0..M3)** *(RETIRED 2026-05-09)* | Legacy commercial-launch gates dropped during drawing-board re-framing. Replaced by descriptive wave names — see [PRD.md §3.1](PRD.md). Listed here for forensic reference only. | "Milestone" (PMI/PMBOK) | ADR-0050 / Issue #1219 / ADR-0040 (legacy refs) |
 | **Band (P0..P20)** | Backlog priority tiers; P0 highest. | "Priority tier" | This consolidation; v1 plan |
 | **Team** | A coordinated multi-worker work bundle with a shared brief; standing or tactical. *(The legacy "CUG / Closed-User-Group" terminology was retired 2026-05-09 and superseded by "Team" everywhere.)* | "Cross-functional team" / "Pod" / "Squad" | CLAUDE.md "Team Worker Brief Standards"; per-team charters under [`teams/`](teams/) |
-| **Claim ceiling** | Mechanical block preventing a preview slice from claiming a foundation guarantee that the foundation hasn't shipped. | "Capability gating" / "Feature flag with provenance" | (Oyatie); validator in `crates/oya-governance-claim-ceiling-kernel` |
+| **Claim ceiling** | Mechanical block preventing a preview slice from claiming a foundation guarantee that the foundation hasn't shipped. | "Capability gating" / "Feature flag with provenance" | (Oyatie); validator in `crates/governance-claim-ceiling-kernel` |
 | **Foundation bypass** | Tracked, expirable carve-out from a foundation gate. | "Tech-debt waiver" / "Exception ticket" | `registry/foundation-bypasses/` |
 | **Catalog record** | The YAML manifest describing a flat-crate. | "Service catalog entry" (Backstage) | `registry/catalog/` per ADR-0015/0222 |
 | **Capability record** | The YAML manifest declaring an agent capability. | "Tool manifest" / "Function spec" | `registry/capability-templates/` |
-| **Repoctl** | The internal CLI for everyday engineering tasks (check, push, validate, etc.). | "Developer CLI" | `crates/oya-tooling-cli-dev-runtime/` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` |
+| **Repoctl** | The internal CLI for everyday engineering tasks (check, push, validate, etc.). | "Developer CLI" | `crates/tooling-cli-dev-runtime/` compatibility binary; persona split planned under `crates/tooling-cli-*` |
 | **Ecosystem-as-a-Service (EaaS)** | The thesis that Oyatie's 7 axes form one cohesive product. | (industry uses "Platform-as-a-Service" / "Vertical SaaS"; EaaS is Oyatie's framing) | PRD §1 |
 
 ## 9. Korean ↔ English term parity (canonical pairs)
@@ -493,7 +492,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | Old | New | Reason |
 |---|---|---|
 | Pre-directive brand aliases | Oyatie | Brand standardization per ADR-0017 (user directive 2026-05-08) |
-| oyatie-* (Cargo prefix) | oya-* | ADR-0017 |
+| oyatie-* (Cargo prefix) | oyatie-* | ADR-0017 |
 | shell (UI) | Bench | ADR-0017 |
 | Caddy (gateway) | Envoy | ADR-0013 (supersedes ADR-0004) |
 | WireGuard (bastion) | OCI Bastion | ADR-0045 (supersedes earlier WireGuard plan) |
@@ -504,14 +503,14 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | Redis 7.4+ (RSAL/SSPL — Redis Inc. dual-license since 2024-03-20) | **Valkey** (BSD-3-Clause — Linux Foundation fork) | ADR-0013 / ADR-0045 / **ADR-0336** (canonical authority — DragonflyDB removed because BSL-1.1 is on the forbidden-license list) |
 | MVP / Milestone (M0..M3) | Wave per PRD §3.1 (W-Foundation, W-Foundry-Preview, ...) | Drawing-board reframing on 2026-05-09 |
 | postmortem long-form | mistakes-and-fixes-ledger entry | Per `docs/MISTAKES-LEDGER.md` and CLAUDE.md |
-| `oya verify` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
+| retired `./bin/oya verify` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
 | Foundry engineering platform axis (separate) | Foundry (consolidated; ADR-0025 foundry-as-engineering-platform) | Foundry axis consolidation on 2026-05-09 |
 
 ## 12. Conventions
 
 ### 12.1 Crate naming
 
-Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `oya-platform-tenant-kernel`, `oya-identity-usecase`, `oya-intelligence-policy-app`, `oya-cloud-iam-rest`.
+Per ADR-0105 + ADR-0106 + ADR-0565: `oyatie-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `platform-tenant-kernel`, `identity-usecase`, `intelligence-policy-app`, `cloud-iam-rest`.
 
 ### 12.2 ADR naming
 
@@ -603,7 +602,7 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **Tenant membership** | Relationship between one identity and one tenant with scoped roles. | [ADR-0244](decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Okta group membership | role projection |
 | **Transient identity** | Time-boxed identity projection for apprentice, intern, resident, fellow, or extern roles. | [ADR-0320](decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | temporary access group | persona |
 | **Meta-trust-root** | Root of trust attesting agentic self-modification and Foundry authority. | [ADR-0293](decisions/ADR-0293-governance-meta-trust-root.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | SLSA provenance root | audit-chain |
-| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
+| **retired VCS ratchet ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
 | **ChangeBundle** | Promotion package grouping verified ChangeSets for controller-owned movement. | [ADR-0110](decisions/ADR-0110-changeset-state-machine.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | merge queue batch | ChangeSet |
 | **Cell tier** | Deployment class controlling blast radius, compliance eligibility, and workload isolation. | [ADR-0248](decisions/ADR-0248-amazon-shape-cellular-architecture.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS cellular architecture | shuffle sharding |
 | **Sovereign cell** | Cell operating under jurisdiction-specific legal, data, and operational constraints. | [ADR-0240](decisions/ADR-0240-sovereign-cloud-per-regional-pack.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Azure sovereign cloud | pack overlay |
@@ -954,7 +953,7 @@ ADR-0252 chooses a dual time-coordination tier: HLC everywhere by default, TrueT
 
 HLC combines physical time with a logical counter so event ordering survives skew without treating wall-clock time as authority. TrueTime adds an uncertainty interval around clock reads, which lets qualified storage or coordination paths wait out uncertainty before committing externally visible order.
 
-Named µservices using the term include `audit-chain`, `identity`, `workflow-engine`, `observability`, `cloud-iac`, and the shared `oya-shared-time-kernel` crate. Audit Chain uses HLC ordering for tamper-evident emissions, while infrastructure exposes TrueTime provider wiring only for eligible cells.
+Named µservices using the term include `audit-chain`, `identity`, `workflow-engine`, `observability`, `cloud-iac`, and the shared `shared-time-kernel` crate. Audit Chain uses HLC ordering for tamper-evident emissions, while infrastructure exposes TrueTime provider wiring only for eligible cells.
 
 Related terms: audit-event class; cell; replay safety; observability; time coordination tier; sovereign cell.
 
@@ -986,7 +985,7 @@ Named µservices using the term include `cloud-secrets`, `intelligence`, `networ
 
 Related terms: SecretReference; compliance pack; Cedar; `audience_type`; cloud secrets; provider credential; encryption key.
 
-Authority citation: ADR-0255 D-4 and ADR-0251 D-10 BYOK disambiguation; `oya-governance-byok-disambiguation` crate; BYOK rotation runbooks.
+Authority citation: ADR-0255 D-4 and ADR-0251 D-10 BYOK disambiguation; `governance-byok-disambiguation` crate; BYOK rotation runbooks.
 
 ### Cell
 
@@ -1030,35 +1029,11 @@ Related terms: workflow; ontology; capability tier; Cedar; audit-event class; co
 
 Authority citation: `specs/microservices/workflow-studio.json`; Workflow Studio PRD and architecture; ADR-0244 tenant-scoped sharing example.
 
-### Foundry (RETIRED)
-
-Status: RETIRED 2026-05-21 per ADR-0335 (Wave 15I). The `foundry` µservice is no longer live authority.
-
-Historical definition (pre-retirement): Foundry was Oyatie's internal platform for agentic development, evaluation, evidence collection, and engineering operations — distinct from the consumer AI product surface.
-
-Retirement: ADR-0136 originally consolidated Foundry as one µservice with internal bounded contexts. ADR-0220 amended the product taxonomy to assign consumer-facing AI capability to Intelligence. ADR-0255 KS#14 (intelligence two-layer AI substrate) then established intelligence as the canonical AI substrate that absorbs Foundry. ADR-0335 (Wave 15I) executes that absorption and retires the Foundry µservice.
-
-Successor: `microservices/intelligence/` — the canonical AI substrate. Layer A covers model routing, providers, guardrails, eval, attribution, audit-tap, credential resolver, assist-draft, and context-aware retrieval. Layer B covers the consumer brand UX surface. Self-modification execution remains under the `oyatie.foundry.*` Cedar principal namespace per ADR-0247 (the Cedar principal namespace persists even though the µservice retires).
-
-retired external agent harness terminology: The "retired external agent harness" brand name for the internal pipeline is RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. No replacement is needed; the underlying capability is now "intelligence" (consumer AI) or "oyatie.foundry workflow library inside dev-tools-cell-N" (self-modification).
-
-Crate transition debt: Existing `oya-foundry-*` workspace crates are retained as transition debt per ADR-0335 D-37..D-50 (following the ADR-0333 D-59 precedent). New AI substrate code lands under `oya-intelligence-*`.
-
-Related terms: intelligence; ontology; workflow studio; Cedar; audit-event class; capability tier; oyatie.foundry.* (Cedar principal namespace).
-
-Authority citation: ADR-0335 (retirement); ADR-0255 (intelligence two-layer substrate); ADR-0247 (self-modification); ADR-0136 (historical consolidation); ADR-0220 (historical scope clarification); ADR-0239 (historical internal-only amendment).
-
 ### Intelligence
 
 Definition: Intelligence is the canonical Oyatie AI substrate µservice per ADR-0255 KS#14 (intelligence two-layer AI substrate). It provides Layer A (model routing, providers, guardrails, eval, attribution, audit-tap, credential resolver, assist-draft, context-aware retrieval) and Layer B (consumer brand UX surface).
 
-ADR-0220 originally created the Intelligence boundary to separate consumer AI from the internal Foundry pipeline. ADR-0255 KS#14 then named Intelligence as the canonical AI substrate that absorbs Foundry. ADR-0335 (Wave 15I) executes that absorption and retires the Foundry µservice.
-
-Intelligence must respect Cedar, `audience_type`, provider-BYOK, compliance packs, ontology permissions, and audit-event classes. It can use shared substrates, but those shared substrates must be explicit and policy-bound instead of implied by naming overlap.
-
-Named µservices using the term include `intelligence`, `ontology`, `workflow-studio`, `governance`, `cloud-secrets`, and `audit-chain`. Intelligence owns model routing and guardrails, Cloud Secrets resolves provider credentials, and Audit Chain records AI-use evidence.
-
-Related terms: Foundry (RETIRED); ontology; BYOK; Cedar; capability tier; audit-event class; oyatie.foundry.* (Cedar principal namespace for self-modification).
+Intelligence is Vertex / AIP on Foundry objects (`app/foundry`). It respects Cedar, packs, and ontology permissions.
 
 Authority citation: ADR-0255 "Intelligence two-layer AI substrate"; ADR-0335 "Foundry retired absorbed by intelligence"; ADR-0220 "Consumer intelligence substrate" (historical); Intelligence architecture; microservices/intelligence manifest.
 
@@ -1092,17 +1067,17 @@ Authority citation: ADR-0263 "Observability emission contract"; Audit Chain arch
 
 ### Claim / work / verify / done / promote primitives
 
-Definition: Claim, work, verify, done, and promote are the Oya VCS lifecycle primitives used to reserve scope, perform edits, attach evidence, close a changeset, and advance a verified bundle.
+Definition: Claim, work, verify, done, and promote are the retired VCS ratchet lifecycle primitives used to reserve scope, perform edits, attach evidence, close a changeset, and advance a verified bundle.
 
 `claim` reserves the intended scope before editing so concurrent agents can detect collisions. `work` is the edit phase under the claim, even when no separate command is required. `verify` attaches concrete evidence that the change satisfied its checks.
 
 `done` marks the claimed slice complete with evidence, and `promote` advances the verified changeset or bundle toward an environment or merge queue. These verbs make agent work auditable without depending on retired external coordination tools.
 
-Named µservices and surfaces using the terms include `foundry`, `governance`, `audit-chain`, `developer-sdk`, `ci`, and the repository `bin/oya vcs` control surface. The lifecycle is especially important for documentation, policy, and master-plan slices where concurrency safety matters.
+Named µservices and surfaces using the terms include `foundry`, `governance`, `audit-chain`, `developer-sdk`, `ci`, and the repository `bin/retired VCS ratchet` control surface. The lifecycle is especially important for documentation, policy, and master-plan slices where concurrency safety matters.
 
-Related terms: Oya VCS ChangeSet; ChangeBundle; claim ceiling; merge queue; audit-event class; Foundry.
+Related terms: retired VCS ratchet ChangeSet; ChangeBundle; claim ceiling; merge queue; audit-event class; Foundry.
 
-Authority citation: ADR-0116 external tooling retirement; ADR-0110 ChangeSet state machine; project AGENTS required sequence for Oya VCS.
+Authority citation: ADR-0116 external tooling retirement; ADR-0110 ChangeSet state machine; project AGENTS required sequence for retired VCS ratchet.
 
 ### Valkey
 
@@ -1112,7 +1087,7 @@ Valkey preserves the RESP3 wire protocol, command surface, cluster slot mapping,
 
 Hyperscaler-managed offerings: AWS ElastiCache for Valkey (GA 2024-11-04, 20% lower instance pricing than ElastiCache for Redis OSS at equivalent instance class); Google Memorystore for Valkey (GA 2024-09-24); Oracle Cloud Cache with Valkey (GA 2025-01-21, integrated with OCI Always Free perpetual tier).
 
-Crate naming: `oya-<microservice>-adapter-valkey[-<topology>]` per ADR-0336 §D-1. IaC modules at `iac/<context>/valkey/` per ADR-0336 §D-2. Environment variables `VALKEY_URL`, `VALKEY_CLUSTER_ENDPOINTS`, `VALKEY_TLS_CERT_PATH`, etc., per ADR-0336 §D-5. Cedar entity types `ValkeyCluster::"<id>"`, `ValkeyKey::"<pattern>"`, `ValkeyChannel::"<name>"`, `ValkeyStream::"<name>"` per ADR-0336 §D-8. Audit-chain event classes `valkey.*` per ADR-0336 §D-10. Metric label `substrate="valkey"` per ADR-0336 §D-9.
+Crate naming: `oyatie-<microservice>-adapter-valkey[-<topology>]` per ADR-0336 §D-1. IaC modules at `iac/<context>/valkey/` per ADR-0336 §D-2. Environment variables `VALKEY_URL`, `VALKEY_CLUSTER_ENDPOINTS`, `VALKEY_TLS_CERT_PATH`, etc., per ADR-0336 §D-5. Cedar entity types `ValkeyCluster::"<id>"`, `ValkeyKey::"<pattern>"`, `ValkeyChannel::"<name>"`, `ValkeyStream::"<name>"` per ADR-0336 §D-8. Audit-chain event classes `valkey.*` per ADR-0336 §D-10. Metric label `substrate="valkey"` per ADR-0336 §D-9.
 
 Counterpart-fact preservation: factual references to Redis-based external products (e.g., "Discord uses Redis Cluster for session state", "Twitch uses Redis for chat fanout") remain preserved quote-bound per ADR-0336 §D-11; these are NOT migrated to Valkey because the counterpart product factually uses Redis.
 

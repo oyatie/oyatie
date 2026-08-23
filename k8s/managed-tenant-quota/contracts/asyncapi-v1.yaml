@@ -1,7 +1,0 @@
-asyncapi: 3.1.0
-info:
-  title: managed-k8s-tenant-quota
-  version: 0.1.0
-  description: Placeholder AsyncAPI surface for the managed-k8s-tenant-quota microservice; live event surfaces tracked in ADR-0376 follow-on lanes.
-channels: {}
-operations: {}

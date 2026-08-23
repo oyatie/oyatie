@@ -1,6 +1,6 @@
 # Spec: tenant-quota-kernel-pressure-band-classifier
 
-**Crate**: `oya-managed-k8s-tenant-quota-kernel`  
+**Crate**: `managed-k8s-tenant-quota-kernel`  
 **ADR**: ADR-0376 (Tier-3 pure kernel), ADR-0130 (SLO/alert inputs)  
 **Status**: Accepted
 
@@ -71,6 +71,6 @@ deterministic, panic-free, O(1), no allocations.
 3. Tie-break determinism: equal utilization across all dimensions returns `Clusters`.
 4. Serde round-trip for `QuotaPressure` and `ConstrainedDimension`.
 5. `classify_pressure` called on real `QuotaHeadroom` produced by `project_headroom`.
-6. `cargo nextest run -p oya-managed-k8s-tenant-quota-kernel` passes green.
+6. `cargo nextest run -p managed-k8s-tenant-quota-kernel` passes green.
 7. `clippy::panic` and `clippy::unwrap_used` still denied in production code paths.
 8. No new workspace member, no root `Cargo.toml` edit, no new dependencies.

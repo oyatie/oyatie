@@ -3,7 +3,7 @@
 // These tests were authored BEFORE (or concurrent with) the implementation
 // to specify all behavioral contracts of `reconcile_gitops_drift`,
 // `GitOpsDriftVerdict`, and `GitOpsDriftReport` that are NOT covered by the
-// existing `cloud_iac_foundation` integration test suite.
+// existing `iac_app_foundation` integration test suite.
 //
 // Coverage added here:
 //   - All non-Healthy health status variants trigger DegradedHealth
@@ -78,7 +78,7 @@ fn converged_pair() -> (GitOpsEvidence, GitOpsEvidence) {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -88,7 +88,7 @@ fn converged_pair() -> (GitOpsEvidence, GitOpsEvidence) {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -107,7 +107,7 @@ fn drift_progressing_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -117,7 +117,7 @@ fn drift_progressing_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Progressing,
@@ -139,7 +139,7 @@ fn drift_missing_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -149,7 +149,7 @@ fn drift_missing_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Missing,
@@ -168,7 +168,7 @@ fn drift_unknown_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -178,7 +178,7 @@ fn drift_unknown_health_status_yields_degraded_health_verdict() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Unknown,
@@ -202,7 +202,7 @@ fn drift_commit_beats_sync_status_drift_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -212,7 +212,7 @@ fn drift_commit_beats_sync_status_drift_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_B,                       // commit mismatch
         GitOpsSyncStatus::OutOfSync, // also out-of-sync
         GitOpsHealthStatus::Healthy,
@@ -233,7 +233,7 @@ fn drift_commit_beats_degraded_health_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -243,7 +243,7 @@ fn drift_commit_beats_degraded_health_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_B, // commit mismatch
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Degraded, // also degraded
@@ -267,7 +267,7 @@ fn drift_sync_status_beats_degraded_health_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -277,7 +277,7 @@ fn drift_sync_status_beats_degraded_health_when_both_present() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::OutOfSync,  // sync drift
         GitOpsHealthStatus::Degraded, // also degraded
@@ -301,7 +301,7 @@ fn drift_identity_mismatch_on_tenant_id() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -311,7 +311,7 @@ fn drift_identity_mismatch_on_tenant_id() {
         GitOpsController::ArgoCd,
         "ten_beta", // different tenant
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -331,7 +331,7 @@ fn drift_identity_mismatch_on_cell_id() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -341,7 +341,7 @@ fn drift_identity_mismatch_on_cell_id() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-002", // different cell
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -371,7 +371,7 @@ fn drift_report_carries_observed_identity_fields_when_in_sync() {
     assert_eq!(report.controller, GitOpsController::ArgoCd);
     assert_eq!(report.tenant_id, "ten_alpha");
     assert_eq!(report.cell_id, "cell-kr-seoul-1-a-001");
-    assert_eq!(report.application_name, "cloud-iac-foundation");
+    assert_eq!(report.application_name, "iac-app-foundation");
     assert_eq!(report.observed_commit_sha, SHA_A);
     assert_eq!(report.observed_sync_status, GitOpsSyncStatus::Synced);
     assert_eq!(report.observed_health_status, GitOpsHealthStatus::Healthy);
@@ -426,7 +426,7 @@ fn drift_report_derives_clone_debug_eq_partial_eq() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -436,7 +436,7 @@ fn drift_report_derives_clone_debug_eq_partial_eq() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_B,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -478,7 +478,7 @@ fn drift_reconcile_is_deterministic_pure_function() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
         GitOpsHealthStatus::Healthy,
@@ -488,7 +488,7 @@ fn drift_reconcile_is_deterministic_pure_function() {
         GitOpsController::ArgoCd,
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
-        "cloud-iac-foundation",
+        "iac-app-foundation",
         SHA_B,
         GitOpsSyncStatus::OutOfSync,
         GitOpsHealthStatus::Degraded,

@@ -28,7 +28,7 @@ Oyatie already meets or exceeds the hyperscaler bar on several axes — RFC-2119
 
 The three highest-impact gaps to close are: (1) **provenance + signing of build artifacts** — no SLSA L2+/Cosign keyless signing/SBOM emission in the current toolchain, which is now the floor for shippable software at every hyperscaler; (2) **progressive-delivery rails** — feature-flag + canary + automated-rollback infrastructure is absent from `RELEASE-MANAGEMENT.md`, so changes are atomic rather than progressive; (3) **`cargo-vet` supply-chain audit trail** — `cargo-deny` covers license/advisory but does not capture the human review chain that AWS/Mozilla now treat as table-stakes for sensitive code paths.
 
-Top-3 immediate-adoption items: **(A)** turn on Cosign keyless OIDC signing + Syft SBOM + SLSA provenance attestation on every CI artifact emit, gated by a new `oya-governance-supply-chain` lane; **(B)** stand up a feature-flag + canary rail with stable cohorts, automated SLO-burn-rate analysis, and automated rollback, mapped into `RELEASE-MANAGEMENT.md`; **(C)** adopt `cargo-vet` alongside existing `cargo-deny`/`cargo-audit` and pin `rust-toolchain.toml` workspace-wide to remove "stable drift" as a build hazard.
+Top-3 immediate-adoption items: **(A)** turn on Cosign keyless OIDC signing + Syft SBOM + SLSA provenance attestation on every CI artifact emit, gated by a new `governance-supply-chain` lane; **(B)** stand up a feature-flag + canary rail with stable cohorts, automated SLO-burn-rate analysis, and automated rollback, mapped into `RELEASE-MANAGEMENT.md`; **(C)** adopt `cargo-vet` alongside existing `cargo-deny`/`cargo-audit` and pin `rust-toolchain.toml` workspace-wide to remove "stable drift" as a build hazard.
 
 The rest of this document captures the canonical sources for each practice and the per-domain adoption ranking.
 
@@ -201,7 +201,7 @@ GitHub OIDC + Fulcio + Cosign + Rekor delivers SLSA L2 in weeks. ([Wiz — SLSA 
 
 ### Dependency management
 
-Dependency updates: ADR-0535 supersedes earlier external-bot recommendations for Oyatie. The active path is the owned `oya-deps.toml` contract plus an in-house Rust bump-bot that emits scm-facts ChangeSets and runs supply-chain gates before merge.
+Dependency updates: ADR-0535 supersedes earlier external-bot recommendations for Oyatie. The active path is the owned `deps.toml` contract plus an in-house Rust bump-bot that emits scm-facts ChangeSets and runs supply-chain gates before merge.
 
 ### Secret management
 
@@ -268,9 +268,9 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 
 | # | Practice | Effort | Impact |
 |---|---|---|---|
-| 1 | **Cosign keyless OIDC + Syft SBOM + SLSA L2 provenance attestation on every artifact emit** — new `oya-governance-supply-chain` lane; cluster-side Kyverno verification at admission | medium | critical |
+| 1 | **Cosign keyless OIDC + Syft SBOM + SLSA L2 provenance attestation on every artifact emit** — new `governance-supply-chain` lane; cluster-side Kyverno verification at admission | medium | critical |
 | 2 | **Chainguard/Wolfi or distroless-static base images for every container** — `chainguard/static` + statically-linked musl binary; ban Debian/Alpine bases in product crates | medium | high |
-| 3 | **Owned dependency bump-bot over external bots** — `oya-deps.toml` drives a Rust actuator with grouped updates, license/advisory/version gates, and scm-facts ChangeSets | low | high |
+| 3 | **Owned dependency bump-bot over external bots** — `deps.toml` drives a Rust actuator with grouped updates, license/advisory/version gates, and scm-facts ChangeSets | low | high |
 | 4 | **OpenTelemetry collector deployed agent + gateway** — standardize OTLP emission, single ingestion fabric; route to chosen backend (Grafana stack or Honeycomb) via env-config so the choice is reversible | medium | high |
 | 5 | **`SecretProvider` trait + OpenBao primary** — keep AWS Secrets Manager / GSM / Azure KV as injection-only adapters; the source of truth lives in OpenBao | medium | high |
 
@@ -301,26 +301,26 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 
 | Practice | Milestone / Workstream | CI lane / process gate | ADR target |
 |---|---|---|---|
-| PRFAQ template + mandate | M01-P14 Hyperscaler-Practice Adoption | `oya-governance-prfaq-on-new-axis` | ADR-PM-001 Adopt PRFAQ for new-axis intake |
-| Tenets per axis | M01-P14 | `oya-governance-tenets-cite` (axis design docs cite tenets) | ADR-PM-002 Tenet structure + cardinality |
-| STL semantics formalized | M01-P14 | `oya-governance-stl-decl` (RACI declares STL per axis) | ADR-PM-003 STL per axis |
-| Postmortem replay-as-eval | M01-P14 Engineering-excellence rollout | `oya-governance-mistakes-ledger-replay` (every `mechanical` prevention has a replay harness) | ADR-EE-001 Replay-as-eval discipline |
-| SRE error-budget release gate | M01-P14 | `oya-governance-error-budget-gate` | ADR-EE-002 SLO-derived release gate |
-| Median-review-latency SLO | M01-P17 | `oya-governance-review-latency` | (extend `standards/code-review.md`) |
-| Coverage-guided fuzzing | M01-P17 Test-evidence floor | `oya-governance-fuzz-coverage` (parser/serializer/FFI surfaces) | ADR-TST-001 Fuzz-on-boundary |
-| Feature flags + canary rail | M01-P17 Progressive delivery | `oya-governance-flag-debt` + canary automation in RELEASE-MANAGEMENT | ADR-REL-001 Feature-flag substrate |
-| Trunk-based branch SLO | M01-P17 | `oya-governance-branch-age` | (extend `standards/commit-message.md`) |
-| Diátaxis content types | M01-P09 Doc auto-generation + freshness | `oya-governance-doc-class-diataxis` | (extend `standards/doc-style.md`) |
-| `cargo-vet` adoption | M01-P15 Supply-chain security | `oya-governance-cargo-vet` | ADR-SUP-001 cargo-vet baseline |
-| `rust-toolchain.toml` pin + 2024 edition | M01-P15 | `oya-governance-toolchain-pin` | ADR-RST-001 Toolchain pin policy |
-| Workspace lint inheritance (clippy::pedantic warn + ban-list) | M01-P15 | `oya-governance-workspace-lints-inherit` | ADR-RST-002 Workspace-lint policy |
-| Kani for unsafe verification | M01-P15 | `oya-governance-unsafe-kani` (every `unsafe` block in kernel crates has a Kani harness or `SAFETY:` rationale of a documented class) | ADR-RST-003 Unsafe verification policy |
-| thiserror/anyhow boundary rule | M01-P15 | `oya-governance-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
-| Cosign + Syft + SLSA L2 | M01-P15 | `oya-governance-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
-| Chainguard/distroless-static images | M01-P13 Distroless + image discipline | `oya-governance-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
-| Owned dependency automation | M01-P15 | `cloud-ci-dependency-automation` (`oya-deps.toml` closed-schema policy + Rust bump-bot contract) | ADR-0535 / P7 bump-bot |
-| OTel collector agent+gateway | M01-P17 Pipeline maturity glue | `oya-governance-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
-| `SecretProvider` trait + OpenBao primary | M01-P15 | `oya-governance-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
+| PRFAQ template + mandate | M01-P14 Hyperscaler-Practice Adoption | `governance-prfaq-on-new-axis` | ADR-PM-001 Adopt PRFAQ for new-axis intake |
+| Tenets per axis | M01-P14 | `governance-tenets-cite` (axis design docs cite tenets) | ADR-PM-002 Tenet structure + cardinality |
+| STL semantics formalized | M01-P14 | `governance-stl-decl` (RACI declares STL per axis) | ADR-PM-003 STL per axis |
+| Postmortem replay-as-eval | M01-P14 Engineering-excellence rollout | `governance-mistakes-ledger-replay` (every `mechanical` prevention has a replay harness) | ADR-EE-001 Replay-as-eval discipline |
+| SRE error-budget release gate | M01-P14 | `governance-error-budget-gate` | ADR-EE-002 SLO-derived release gate |
+| Median-review-latency SLO | M01-P17 | `governance-review-latency` | (extend `standards/code-review.md`) |
+| Coverage-guided fuzzing | M01-P17 Test-evidence floor | `governance-fuzz-coverage` (parser/serializer/FFI surfaces) | ADR-TST-001 Fuzz-on-boundary |
+| Feature flags + canary rail | M01-P17 Progressive delivery | `governance-flag-debt` + canary automation in RELEASE-MANAGEMENT | ADR-REL-001 Feature-flag substrate |
+| Trunk-based branch SLO | M01-P17 | `governance-branch-age` | (extend `standards/commit-message.md`) |
+| Diátaxis content types | M01-P09 Doc auto-generation + freshness | `governance-doc-class-diataxis` | (extend `standards/doc-style.md`) |
+| `cargo-vet` adoption | M01-P15 Supply-chain security | `governance-cargo-vet` | ADR-SUP-001 cargo-vet baseline |
+| `rust-toolchain.toml` pin + 2024 edition | M01-P15 | `governance-toolchain-pin` | ADR-RST-001 Toolchain pin policy |
+| Workspace lint inheritance (clippy::pedantic warn + ban-list) | M01-P15 | `governance-workspace-lints-inherit` | ADR-RST-002 Workspace-lint policy |
+| Kani for unsafe verification | M01-P15 | `governance-unsafe-kani` (every `unsafe` block in kernel crates has a Kani harness or `SAFETY:` rationale of a documented class) | ADR-RST-003 Unsafe verification policy |
+| thiserror/anyhow boundary rule | M01-P15 | `governance-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
+| Cosign + Syft + SLSA L2 | M01-P15 | `governance-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
+| Chainguard/distroless-static images | M01-P13 Distroless + image discipline | `governance-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
+| Owned dependency automation | M01-P15 | `pipeline-dependency-automation` (`deps.toml` closed-schema policy + Rust bump-bot contract) | ADR-0535 / P7 bump-bot |
+| OTel collector agent+gateway | M01-P17 Pipeline maturity glue | `governance-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
+| `SecretProvider` trait + OpenBao primary | M01-P15 | `governance-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
 
 ---
 
@@ -330,4 +330,4 @@ Hyperscaler engineering practice in 2026 has converged across AWS, Google, Micro
 
 Oyatie already meets or exceeds the hyperscaler bar on several axes — RFC-2119 normative-language discipline, doc-class taxonomy, the mistake-ledger doctrine, mechanical-prevention-over-process culture, mandatory `cargo nextest` + `cargo clippy -D warnings` + `cargo deny check` evidence gates, the capability-tier autonomy ceiling, and audit-chain emission on cross-axis data flow. These map cleanly to Google's blameless-postmortem culture, Amazon's tenet-driven decisions, and Microsoft's 1ES quality-gate philosophy. The three top-rank gaps are: (1) no build-artifact signing / SBOM / SLSA provenance — every hyperscaler now treats this as the shippable-software floor; (2) no progressive-delivery rail — releases are atomic rather than flag-and-canary; (3) no `cargo-vet` human-audit trail layered atop the existing license-and-advisory checks.
 
-**Top-3 immediate-adoption items:** (A) turn on Cosign keyless OIDC signing + Syft SBOM + SLSA L2 provenance attestation on every CI artifact emit, gated by a new `oya-governance-supply-chain` lane; (B) stand up a feature-flag + canary rail with stable cohorts, automated SLO-burn-rate analysis, and automated rollback, encoded into `RELEASE-MANAGEMENT.md`; (C) adopt `cargo-vet` alongside `cargo-deny`/`cargo-audit` and pin `rust-toolchain.toml` workspace-wide to remove "stable drift" as a CI failure class.
+**Top-3 immediate-adoption items:** (A) turn on Cosign keyless OIDC signing + Syft SBOM + SLSA L2 provenance attestation on every CI artifact emit, gated by a new `governance-supply-chain` lane; (B) stand up a feature-flag + canary rail with stable cohorts, automated SLO-burn-rate analysis, and automated rollback, encoded into `RELEASE-MANAGEMENT.md`; (C) adopt `cargo-vet` alongside `cargo-deny`/`cargo-audit` and pin `rust-toolchain.toml` workspace-wide to remove "stable drift" as a CI failure class.

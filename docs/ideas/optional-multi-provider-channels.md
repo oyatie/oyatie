@@ -63,7 +63,7 @@ live plan under the Swarm Delivery Law programme (session plan path — not a tr
 ## Rules
 
 - Channel output is **advisory** — never merge authority, never a substitute for green
-  `oya-ci-required` / merge-admission.
+  `presubmit` / merge-admission.
 - Prefer Task `model:` slugs for implement/scout/plan/critic inside agent dispatches.
 - Prefer side panel when usable; use tmux when attach/interact is needed.
 - Worker lanes must not treat bare `gjc` / `omc` / `omx` / `hermes` as merge-authority stand-ins.

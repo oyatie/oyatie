@@ -313,14 +313,14 @@ mod tests {
 
     #[test]
     fn hook_command_path_accepts_absolute_clean() {
-        let p = HookCommandPath::new("/usr/local/bin/oya-hook".to_owned()).unwrap();
-        assert_eq!(p.as_str(), "/usr/local/bin/oya-hook");
+        let p = HookCommandPath::new("/usr/local/bin/hook".to_owned()).unwrap();
+        assert_eq!(p.as_str(), "/usr/local/bin/hook");
     }
 
     #[test]
     fn hook_command_path_accepts_path_with_dots() {
-        let p = HookCommandPath::new("/usr/local/bin/oya.hook-v2".to_owned()).unwrap();
-        assert_eq!(p.as_str(), "/usr/local/bin/oya.hook-v2");
+        let p = HookCommandPath::new("/usr/local/bin/oyatie.hook-v2".to_owned()).unwrap();
+        assert_eq!(p.as_str(), "/usr/local/bin/oyatie.hook-v2");
     }
 
     // HookEvent closed enum

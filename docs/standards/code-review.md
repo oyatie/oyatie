@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `council-architecture`.
 > **Companion:** CLAUDE.md / docs/AGENTS.md Code Review rules. `F-PR5-06`
-> tracks the trusted server-side/cloud-ci review-producer gap; it does not
+> tracks the trusted server-side/pipeline review-producer gap; it does not
 > waive the repository contract for one author-distinct reviewer approval.
 
 ## 1. Per-change-class reviewer agent
@@ -40,12 +40,12 @@ The reviewer verdict binds the exact PR head. One author-distinct reviewer-agent
 APPROVE is sufficient; no human approval or reviewer quorum is required. Green
 CI is separate evidence and never substitutes for approval. `F-PR5-06` records
 the gap between this repository contract and current cloud enforcement.
-Until a trusted server-side/cloud-ci review producer closes that gap,
+Until a trusted server-side/pipeline review producer closes that gap,
 repository-local hooks are advisory only and cannot attest approval.
 
 ## 2.1 Merge-hold preflight packet (GH #902)
 
-The merge-hold source of truth is `oya-governance-pr-merge-gate-kernel`'s
+The merge-hold source of truth is `governance-pr-merge-gate-kernel`'s
 `evaluate_merge_hold` packet contract. Adapters normalize SCM/API observations
 into that pure kernel; no adapter may decide readiness from prose, branch names,
 or eventual CI completion.
@@ -77,14 +77,14 @@ post-merge product-completion packet.
 
 Worker-completed implementation cards are not complete from a local diff, local
 test output, or pushed branch alone. Completion evidence MUST name a protected
-PR against `dev`, current-head `oya-ci-required` evidence, independent reviewer
+PR against `dev`, current-head `presubmit` evidence, independent reviewer
 approval evidence, and zero unresolved review threads before downstream cards
 unblock.
 
 The existing PR records all facts below on the same head SHA:
 
 - isolated worktree/branch, pushed commit SHA, and PR target `dev`;
-- `oya-ci-required` status, check/status URL, and observation timestamp;
+- `presubmit` status, check/status URL, and observation timestamp;
 - exact failing checks before each fix and exact checks fixed by subsequent
   commits;
 - review-thread resolution, including resolved/unresolved counts and thread IDs
@@ -92,7 +92,7 @@ The existing PR records all facts below on the same head SHA:
 - reviewer approval state, reviewer identity, verdict, review URL, approved head
   SHA, and timestamp; the approved head SHA MUST match the packet head SHA;
 - local CLI merge authority: `none`; local commands/hooks are advisory
-  shift-left evidence only and do not supersede `oya-ci-required`;
+  shift-left evidence only and do not supersede `presubmit`;
 - generated-face status: either none touched or producer-materialized only; hand
   edits to `*.generated.json` remain forbidden;
 - SEC-001 threat-model addendum: for public-input, agentic/runtime, plugin,

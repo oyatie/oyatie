@@ -43,7 +43,7 @@ member only via the `governance/check/*` glob in root `Cargo.toml:46`, and no lo
 `check-apex-gist-integrity`, do NOT commit the extra drift — report it in `refused`**, because an
 unattributed lock movement is indistinguishable from a dependency change nobody reviewed. Then
 re-materialize both faces (T19). Reason it is alone: it is the entire red-to-green step for
-`oya-ci-required`, which is a pure fan-in — bundling it behind repair work keeps the PR red for no
+`presubmit`, which is a pure fan-in — bundling it behind repair work keeps the PR red for no
 reason.
 
 **D2 — wire the gate with `synthetic_dependencies` seeds; do NOT touch `inert_selection_classes`.**
@@ -295,7 +295,7 @@ serializer reformats the whole file and buries the one changed value.
 
 **Ownership.** `governance/check/apex-gist-integrity/OWNERS` already exists (`council-architecture`).
 There is no `governance/OWNERS` or `governance/check/OWNERS`, and the root OWNERS is past the
-`[owners] max_paths_per_owners_file = 2000` cap in `oya-ci.toml`, which fails CLOSED with no
+`[owners] max_paths_per_owners_file = 2000` cap in `ci.toml`, which fails CLOSED with no
 fall-through. Any new directory must ship its own OWNERS or it is unowned.
 
 **Document home.** This document sits in `docs/decisions/_disposition/` for three reasons, each
@@ -476,7 +476,7 @@ affected-set gate, not merely edit its policy.
 **T19 — generated faces go stale the instant you commit.** They are generated from the tree, so a
 face materialized before your commit describes the tree BEFORE it. Re-materialize after every commit
 you intend to measure, with BOTH invocations:
-`buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .`
+`buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin -- --repo-root .`
 then the same with `--historical-merge-base $(git rev-parse HEAD)`. **The flag is misnamed:** despite
 its name it demands HEAD EXACTLY — passing the real merge-base sha exits 1 AFTER writing only
 scm-facts, leaving every other face stale, which inside a chained command silently leaves you
@@ -496,7 +496,7 @@ reviewer loses track of what the diff was for. Report it.
 the same claim by varying one spelling. Any pattern this branch relies on is written out literally
 (D6) with its measured file and line counts and its positive control, or it is not relied on.
 
-**T23 — `oya-ci-required` is a fan-in with no independent cause.** It prints one line per constituent
+**T23 — `presubmit` is a fan-in with no independent cause.** It prints one line per constituent
 lane and exits 1 if any is not green. Never debug it directly; read the lane it names. Two red checks
 here were one defect.
 

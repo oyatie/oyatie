@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 opentofu:
   image:
     registry: docker.io
@@ -16,17 +16,17 @@ opentofu:
     encryption:
       enabled: true
       provider: kms
-      kms_key_id: "${openbao:secret/cloud-iac/opentofu/kms-key-id}"
+      kms_key_id: "${openbao:secret/iac-app/opentofu/kms-key-id}"
     s3:
       endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"
-      bucket_name: "cloud-iac-state-${PACK}"
-      access_key_id: "${openbao:secret/cloud-iac/opentofu/s3-access-key}"
-      secret_access_key: "${openbao:secret/cloud-iac/opentofu/s3-secret-key}"
+      bucket_name: "iac-app-state-${PACK}"
+      access_key_id: "${openbao:secret/iac-app/opentofu/s3-access-key}"
+      secret_access_key: "${openbao:secret/iac-app/opentofu/s3-secret-key}"
       versioning: enabled
       object_lock_mode: compliance  # WORM
   lock:
     backend: postgres
-    connection_string: "${openbao:secret/cloud-iac/opentofu/state-lock-pg-dsn}"
+    connection_string: "${openbao:secret/iac-app/opentofu/state-lock-pg-dsn}"
     timeout_seconds: 600  # per failure-modes.md FM-04
   plan:
     timeout_seconds: 600  # 10min p99 budget

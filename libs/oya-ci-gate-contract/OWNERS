@@ -1,3 +1,0 @@
-# Owner of the first-party semver'd oya-ci gate contract surface (ADR-0528).
-# The crate defines the pure detection/remediation contract consumed by the cloud-ci gate fleet.
-cloud-ci-platform

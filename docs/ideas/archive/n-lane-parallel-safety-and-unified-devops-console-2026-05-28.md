@@ -31,7 +31,7 @@ This idea-pager proposes: (a) a formal N-lane parallel safety proof layer, and (
 
 The lane model (ADR-0388 + parallel-swarm memory) already requires disjoint file paths per lane. The missing piece is automated verification at PR time.
 
-**Proposed gate: `oya gate validate lane-overlap`**
+**Proposed gate: `presubmit` (retired CLI `gate validate lane-overlap`)**
 
 ```
 For each open PR in the current merge batch:
@@ -68,7 +68,7 @@ The console is a microservice (`microservices/devops-console/`) — a SolidJS fr
 1. **Subscription admin panel**: list tenants, per-tenant seat pool state (Active/Reserved/Cooldown/Blacklisted count), 5h/weekly token window utilization bars, last-refresh timestamp per seat.
 2. **Lane progress board**: open PRs per lane (GitHub API), their CI status (Jenkins API), claimed deliverables (masterplan claim refs), merge-queue position.
 3. **Proof harness results**: last Loom run pass/fail + interleaving count, last proptest run shrink log, last chaos run fault-injection summary.
-4. **Audit chain health**: `oya_cloud_intelligence_p7_audit_lag_seconds` gauge, chain depth, last Sigstore attestation timestamp.
+4. **Audit chain health**: `cloud_intelligence_p7_audit_lag_seconds` gauge, chain depth, last Sigstore attestation timestamp.
 5. **Gateway health**: P0 in-flight requests, P3 upstream error rate by provider, P6 response status distribution (last 5 min).
 
 **Architecture**:

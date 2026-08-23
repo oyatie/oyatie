@@ -1,6 +1,0 @@
-[[account]]
-id = "codex-example"
-provider_family = "OpenAIOrCodex"
-subscription_id = "sub-456"
-state = "Active"
-secret_ref = "sref://openbao/foundry/codex/example-key"

@@ -116,10 +116,10 @@ fn tenant_image_provenance_contract_preserves_refs_and_all_workload_scope() {
                 .starts_with("evidence/supply-chain/fd001-tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && requirement
                 .source_admission_policy_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-admission-policy/")
+                .starts_with("crates/tenant-rbac-tenant-admission-policy/")
             && requirement.applies_to_all_manifest_workloads
             && !requirement.runtime_verification_attached
     }));

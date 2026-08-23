@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//iam/core/tenant-rbac-auth-app:iam-tenant-rbac-auth-app",
-        "//iam/core/tenant-rbac-cloud-deployment-manifest:iam-tenant-rbac-cloud-deployment-manifest",
+        "//iam/core/tenant-rbac-deployment-manifest:iam-tenant-rbac-deployment-manifest",
         "//iam/facade/tenant-rbac-local-runtime-composition:iam-tenant-rbac-local-runtime-composition",
     ],
 )
@@ -20,7 +20,7 @@ rust_test(
     deps = [
         ":iam-tenant-rbac-listener-gateway",
         "//iam/core/tenant-rbac-auth-app:iam-tenant-rbac-auth-app",
-        "//iam/core/tenant-rbac-cloud-deployment-manifest:iam-tenant-rbac-cloud-deployment-manifest",
+        "//iam/core/tenant-rbac-deployment-manifest:iam-tenant-rbac-deployment-manifest",
         "//iam/facade/tenant-rbac-local-runtime-composition:iam-tenant-rbac-local-runtime-composition",
     ],
 )

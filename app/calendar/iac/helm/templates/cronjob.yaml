@@ -9,7 +9,7 @@ matrix before promotion.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: oya-calendar-tzdb-refresh-worker
+  name: calendar-tzdb-refresh-worker
   namespace: calendar
   labels:
     microservice: calendar
@@ -27,7 +27,7 @@ spec:
             microservice: calendar
             component: tzdb-refresh
         spec:
-          serviceAccountName: oya-calendar
+          serviceAccountName: calendar
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532

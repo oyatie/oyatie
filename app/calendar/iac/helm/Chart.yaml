@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-calendar
+name: calendar
 description: |
   Helm chart for the oyatie calendar µservice. Bundles the per-BC
   Deployments + Services + HPAs + PDBs + NetworkPolicies +

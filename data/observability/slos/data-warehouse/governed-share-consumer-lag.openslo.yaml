@@ -24,12 +24,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_share_consumer_lag_under_1s_total[5m]))
+              query: sum(rate(data_warehouse_share_consumer_lag_under_1s_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_share_consumer_read_total[5m]))
+              query: sum(rate(data_warehouse_share_consumer_read_total[5m]))
   objectives:
     - displayName: p99 share consumer lag under 1s
       target: 0.99

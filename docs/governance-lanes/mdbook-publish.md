@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every canonical standard/template/checklist appears in the mdbook `SUMMARY.md` and that mdbook build is green.
 - enforces: STANDARD/doc-publish.
-- kernel_crate: `oya-governance-mdbook-publish-kernel` — `SummaryEntry { doc_path }`, `BuildStatus { ok, broken_links }`, verdict `MdbookPublishFitnessReport { entries_checked }`.
-- runner_path: `tools/oya-governance-mdbook-publish`
+- kernel_crate: `governance-mdbook-publish-kernel` — `SummaryEntry { doc_path }`, `BuildStatus { ok, broken_links }`, verdict `MdbookPublishFitnessReport { entries_checked }`.
+- runner_path: `tools/governance-mdbook-publish`
 - inputs: `book/SUMMARY.md`, mdbook build report, canonical-doc list.
 - failure_modes:
   - canonical doc not in SUMMARY
   - SUMMARY row points to missing doc
   - mdbook build reports broken link
-- ci_invocation: `cargo run -p oya-governance-mdbook-publish`
+- ci_invocation: `cargo run -p governance-mdbook-publish`
 - runtime_budget: 1100 ms
 - severity: HIGH
 - kernel_sketch:

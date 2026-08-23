@@ -25,7 +25,7 @@ authorities_cited:
 Every public µservice RPC (HTTP + gRPC + AsyncAPI) emits:
 
 ```
-oya-degradation-class: nominal|degraded|brownout|outage
+degradation-class: nominal|degraded|brownout|outage
 ```
 
 Absent header = `nominal` (default). The header is supplemental — the
@@ -43,7 +43,7 @@ HTTP status code is unchanged.
 ## Prometheus gauge
 
 ```
-oya_degradation_class{microservice="<name>", cell_id="<uuid>"}
+degradation_class{microservice="<name>", cell_id="<uuid>"}
   # 0 = nominal, 1 = degraded, 2 = brownout, 3 = outage
 ```
 
@@ -117,5 +117,5 @@ Foundry runtime µservice in cell `c-9876`:
 - Required dependency `observability` reports `degraded`.
 
 Class computation: `max(brownout, degraded, degraded) = brownout`.
-Header emitted: `oya-degradation-class: brownout`. Mesh sidecars
+Header emitted: `degradation-class: brownout`. Mesh sidecars
 upstream reduce retry budget to 0.1×.

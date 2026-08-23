@@ -4,7 +4,7 @@ doc_status: archived
 
 # PR #1574 post-merge product-completion packet (DRAFT)
 
-Status: **DRAFT — fill when tip `oya-ci-required` is green and squash-merge completes.**
+Status: **DRAFT — fill when tip `presubmit` is green and squash-merge completes.**
 
 ## Identity
 - PR: https://github.com/jason931225/oyatie/pull/1574
@@ -13,14 +13,14 @@ Status: **DRAFT — fill when tip `oya-ci-required` is green and squash-merge co
 - Scope: ADR disposition mechanical end-state (apex ADR-0700..0709, archive, redirect, planning rebind)
 
 ## Merge admission (pre-fill)
-- [ ] `oya-ci-required` green on tip SHA: ________
-- [ ] Reviewer APPROVE (if required by process; branch protection contexts: `oya-ci-required`)
+- [ ] `presubmit` green on tip SHA: ________
+- [ ] Reviewer APPROVE (if required by process; branch protection contexts: `presubmit`)
 - [ ] Mergeable, no conflicts, threads resolved
 - [ ] Dual-critic packet present under `docs/decisions/_disposition/evidence/`
 
 ## Post-merge product gate
 - [ ] **Promoted commit** SHA on `dev`: ________
-- [ ] **oya-ci-required** green on promoted commit (or merge-queue equivalent)
+- [ ] **presubmit** green on promoted commit (or merge-queue equivalent)
 - [ ] **Rollout verification**: agents resolve live law via `docs/decisions/ADR-0700`…`0709` + `_disposition/adr-redirect.v1.json`; archive is non-authority
 - [ ] **Rollback note**: revert tip commit(s) or restore archived decision paths only with founder-approved recovery; do not re-open dual CI authority
 - [ ] **Observability check**: no new gate SLO regressions from disposition; materialize/board-sync projections regenerate with ≥1 deliverable per planning_impact apex

@@ -7,14 +7,14 @@ kind: Component
 # to concrete CSI drivers (per-pack CSI matrix in ADR-0161).
 #
 # Canonical names (oya-<kind>-<tier>):
-#   oya-pg-hot     — PostgreSQL block storage, NVMe-class, sub-ms IOPS
-#   oya-pg-warm    — PostgreSQL block storage, SSD-class
-#   oya-pg-cold    — PostgreSQL block storage, HDD/archive-class
-#   oya-valkey-hot — Valkey block storage, NVMe-class
-#   oya-s3-warm    — S3-compatible object storage, standard tier
-#   oya-s3-cold    — S3-compatible object storage, archive tier
-#   oya-object-warm — alias for oya-s3-warm in non-S3 contexts
-#   oya-object-cold — alias for oya-s3-cold in non-S3 contexts
+#   pg-hot     — PostgreSQL block storage, NVMe-class, sub-ms IOPS
+#   pg-warm    — PostgreSQL block storage, SSD-class
+#   pg-cold    — PostgreSQL block storage, HDD/archive-class
+#   valkey-hot — Valkey block storage, NVMe-class
+#   s3-warm    — S3-compatible object storage, standard tier
+#   s3-cold    — S3-compatible object storage, archive tier
+#   object-warm — alias for s3-warm in non-S3 contexts
+#   object-cold — alias for s3-cold in non-S3 contexts
 #
 # Each per-pack overlay MUST populate ALL canonical names. CI lane
 # `oya gate validate storage-class-canonical` enforces.
@@ -26,12 +26,12 @@ kind: Component
 # `cold` tier permits `Delete` for ephemeral backups.
 
 resources:
-  - storage-class-oya-pg-hot.yaml
-  - storage-class-oya-pg-warm.yaml
-  - storage-class-oya-pg-cold.yaml
-  - storage-class-oya-valkey-hot.yaml
-  - storage-class-oya-s3-warm.yaml
-  - storage-class-oya-s3-cold.yaml
+  - storage-class-pg-hot.yaml
+  - storage-class-pg-warm.yaml
+  - storage-class-pg-cold.yaml
+  - storage-class-valkey-hot.yaml
+  - storage-class-s3-warm.yaml
+  - storage-class-s3-cold.yaml
 
 commonLabels:
   oyatie.io/adr: "ADR-0161"

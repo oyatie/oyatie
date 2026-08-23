@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 description = "Analytics use-case orchestration: GetWorkflowExecutionDashboardUseCase, SearchAuditLogUseCase, RunBillingRollupUseCase, CreateRegulatorExportUseCase. Wires domain to kernel port. ADR-0083 layer 6."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics"
 layer = "usecase"
@@ -22,8 +22,9 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-client-kernel = { path = "../olap-client-kernel" }
 data-analytics-domain = { path = "../analytics-domain" }
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
+
 serde = { workspace = true }
 
 [lints]

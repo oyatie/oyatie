@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-workflow-engine-state-machine-domain` with a pure deterministic
+Extend `workflow-engine-state-machine-domain` with a pure deterministic
 `evaluate_domain_transition_batch` function that folds an ordered sequence of
 `WorkflowStateMachineDomainRequest` values, threading state between steps, and
 returns a single `DomainTransitionDecision` representing the aggregate outcome.
@@ -22,7 +22,7 @@ returns a single `DomainTransitionDecision` representing the aggregate outcome.
 
 ## Mod layout (flat-clean-arch)
 
-All logic lives in `crates/oya-workflow-engine-state-machine-domain/src/lib.rs`.
+All logic lives in `crates/workflow-engine-state-machine-domain/src/lib.rs`.
 No new modules, no new files, no new crates.
 
 ## Implementation contract
@@ -84,6 +84,6 @@ Existing `audit_refs` accumulation provides the auditability surface.
 ## Crate boundary
 
 Changes are confined to:
-- `crates/oya-workflow-engine-state-machine-domain/src/lib.rs`
+- `crates/workflow-engine-state-machine-domain/src/lib.rs`
 
 No other crates are modified.

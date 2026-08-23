@@ -175,7 +175,7 @@ kubectl -n policy-engine get pod -l app=cedar-evaluator -o jsonpath='{.items[0].
 # Must contain: ambient.istio.io/redirection: enabled (or Cilium equivalent)
 
 # 4. Run hot-path benchmark (assumption T-04, T-08, T-09, T-10)
-oya gate benchmark cedar-hot-path \
+retired CLI benchmark cedar-hot-path \
   --cell <cell-id> \
   --qps 5000 \
   --duration 60s \

@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityCostProfile, CapabilityError, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn tenant_discovery_filters_by_license_mcp_visibility_and_autonomy_ceiling() {
@@ -70,7 +70,7 @@ fn capability_rejects_operational_or_subject_markers_as_touched_privacy_classes(
                 "demo".into(),
                 AutonomyTier::T1ViewOnly,
                 vec![data_class],
-                "oya.foundry.capability.invoked".into(),
+                "oyatie.foundry.capability.invoked".into(),
             ),
             Err(CapabilityError::NonPrivacyDataClass)
         );
@@ -111,7 +111,7 @@ fn capability_cost_profile_declares_cost_ceiling_and_ordered_provider_preference
         "demo".into(),
         AutonomyTier::T2Advisory,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         profile.clone(),
     )
     .unwrap();
@@ -159,7 +159,7 @@ fn capability_mcp_contract_carries_authored_descriptions_and_schemas() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         contract.clone(),
     )
     .unwrap();
@@ -213,7 +213,7 @@ fn capability(id: &str, tier: AutonomyTier) -> Capability {
         "demo".into(),
         tier,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
     )
     .unwrap()
 }

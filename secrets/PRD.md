@@ -23,7 +23,7 @@ The `cloud-secrets` microservice is oyatie's secret-manager substrate. It owns t
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice that needs a secret (provider credentials, API keys, signing keys, encryption keys, OTel tokens, mTLS material) and emits to `audit-chain` on every access. Its existence is the precondition for every other µservice meeting the security posture in `feedback_quality_performance_scalability_bar.md` and the residency posture in `microservices/observability/policy/data-residency.md` §"Per-Pack Overlay Sections".
 
-Per ADR-0131 Cloud split, the umbrella `microservices/cloud/` is dissolved into focused µservices; `cloud-secrets` owns the OpenBao operator + SecretReference contract. Sibling cloud µservices (`cloud-iac`, `cloud-k8s`, `cloud-mesh`, `cloud-cdn`, `cloud-edge`) consume this substrate but do not duplicate its responsibilities.
+Per ADR-0131 Cloud split, the umbrella `microservices/cloud/` is dissolved into focused µservices; `cloud-secrets` owns the OpenBao operator + SecretReference contract. Sibling cloud µservices (`iac-app`, `cloud-k8s`, `cloud-mesh`, `cloud-cdn`, `cloud-edge`) consume this substrate but do not duplicate its responsibilities.
 
 This µservice has no Bominal equivalent; it originates in oyatie.
 
@@ -33,7 +33,7 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 - **Tenant Outcome 2 — Auditable secret access.** Every secret read, rotation, revocation, and access attempt is sealed in the `audit-chain` µservice within ≤1s; tenants receive `secret_access_audit_export` per pack legal cadence.
 - **Tenant Outcome 3 — Per-pack residency for secrets.** Each pack runs its own OpenBao instance + HSM partition; cross-pack secret replication is forbidden, satisfying KR PIPA Art. 28, GDPR Art. 44, HIPAA §164.312(a)(2)(iv), DPDPA §10.
 - **Tenant Outcome 4 — encryption-BYOK + HSM signing.** Tenants in regulated packs can bring their own KEK or pin DEKs to a hardware HSM partition (OCI Cloud-HSM or Thales Luna); `cloud-secrets` orchestrates rotation, attestation, and emergency-revoke.
-- **Internal Outcome 5 — SecretReference uniformity.** Every internal µservice consumes secrets via the SDK; no µservice ever sees a raw secret in code paths; the LEAN-A11 `oya-check-raw-secret-emission` lane refuses any commit that emits a credential-shaped string.
+- **Internal Outcome 5 — SecretReference uniformity.** Every internal µservice consumes secrets via the SDK; no µservice ever sees a raw secret in code paths; the LEAN-A11 `check-raw-secret-emission` lane refuses any commit that emits a credential-shaped string.
 
 ## Functional Requirements
 
@@ -65,7 +65,7 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 
 ### Security
 
-- **No raw secrets in repo/chat/checkpoints.** Mechanically enforced by the LEAN-A11 `oya-check-raw-secret-emission` lane (gitleaks + tartufo + custom oyatie patterns). PR-time BLOCKER.
+- **No raw secrets in repo/chat/checkpoints.** Mechanically enforced by the LEAN-A11 `check-raw-secret-emission` lane (gitleaks + tartufo + custom oyatie patterns). PR-time BLOCKER.
 - **SecretReference contract** is the only sanctioned mode of consuming a secret. Form: `${openbao:secret/<path>}`. The SDK resolves at runtime, holds in memory for the consumer's process lifetime only, and never logs the resolved value.
 - **mTLS required** for every OpenBao client; per-µservice SPIFFE identity bound to a tenant-scoped policy.
 - **HSM-backed KEK** for every pack in `regulated` posture (pack-kr, pack-eu, pack-us-healthcare, pack-ksa, pack-ae); software-only KEK only in non-regulated sandbox.
@@ -127,17 +127,17 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`usecase` rename), la
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `secret-reference-resolver` | `oya-cloud-secrets-secret-reference-resolver-{kernel,domain,usecase,api,adapter,adapter-openbao,rest,sdk,app}` | parse `${openbao:secret/<path>}` references; resolve via OpenBao; in-process cache; revocation push consumer | `SecretReference`, `ResolvedSecret`, `CacheEntry`, `RevocationEvent` |
-| `openbao-operator` | `oya-cloud-secrets-openbao-operator-{kernel,domain,usecase,api,adapter,app}` | Kubernetes operator pattern; manages OpenBao cluster lifecycle (deploy/unseal/upgrade/HA) | `OpenBaoCluster`, `UnsealState`, `RaftPeer`, `UpgradePlan` |
-| `key-rotation-scheduler` | `oya-cloud-secrets-key-rotation-scheduler-{kernel,domain,usecase,api,adapter,worker,app}` | cron-driven rotation; cascade rotation; rotation-stuck detection | `RotationPolicy`, `RotationJob`, `CascadeDependency` |
-| `hsm-integration` | `oya-cloud-secrets-hsm-integration-{kernel,usecase,api,adapter-hsm,app}` | PKCS#11 + KMIP integration with OCI Cloud-HSM / Thales Luna; KEK signing operations | `HsmPartition`, `KekHandle`, `AttestationReport` |
-| `per-tenant-namespace-controller` | `oya-cloud-secrets-per-tenant-namespace-controller-{kernel,domain,usecase,api,adapter,app}` | OpenBao namespace per tenant; per-µservice scope policies; namespace lifecycle | `TenantNamespace`, `MicroserviceScope`, `NamespacePolicy` |
-| `audit-emitter` | `oya-cloud-secrets-audit-emitter-{kernel,usecase,api,adapter-audit-chain-bridge,app}` | bridge OpenBao audit log → `audit-chain` µservice (Ed25519 seal) | `SecretAuditEvent`, `AuditChainBridgeMessage` |
+| `secret-reference-resolver` | `cloud-secrets-secret-reference-resolver-{kernel,domain,usecase,api,adapter,adapter-openbao,rest,sdk,app}` | parse `${openbao:secret/<path>}` references; resolve via OpenBao; in-process cache; revocation push consumer | `SecretReference`, `ResolvedSecret`, `CacheEntry`, `RevocationEvent` |
+| `openbao-operator` | `cloud-secrets-openbao-operator-{kernel,domain,usecase,api,adapter,app}` | Kubernetes operator pattern; manages OpenBao cluster lifecycle (deploy/unseal/upgrade/HA) | `OpenBaoCluster`, `UnsealState`, `RaftPeer`, `UpgradePlan` |
+| `key-rotation-scheduler` | `cloud-secrets-key-rotation-scheduler-{kernel,domain,usecase,api,adapter,worker,app}` | cron-driven rotation; cascade rotation; rotation-stuck detection | `RotationPolicy`, `RotationJob`, `CascadeDependency` |
+| `hsm-integration` | `cloud-secrets-hsm-integration-{kernel,usecase,api,adapter-hsm,app}` | PKCS#11 + KMIP integration with OCI Cloud-HSM / Thales Luna; KEK signing operations | `HsmPartition`, `KekHandle`, `AttestationReport` |
+| `per-tenant-namespace-controller` | `cloud-secrets-per-tenant-namespace-controller-{kernel,domain,usecase,api,adapter,app}` | OpenBao namespace per tenant; per-µservice scope policies; namespace lifecycle | `TenantNamespace`, `MicroserviceScope`, `NamespacePolicy` |
+| `audit-emitter` | `cloud-secrets-audit-emitter-{kernel,usecase,api,adapter-audit-chain-bridge,app}` | bridge OpenBao audit log → `audit-chain` µservice (Ed25519 seal) | `SecretAuditEvent`, `AuditChainBridgeMessage` |
 
 Naming justification — `secret-reference-resolver`:
 
 ```
-NAME: oya-cloud-secrets-secret-reference-resolver-<layer>
+NAME: cloud-secrets-secret-reference-resolver-<layer>
 JUSTIFICATION:
 - microservice = cloud-secrets: per ADR-0131 Cloud split.
 - bc-tokens = secret-reference-resolver: primary BC; the SDK's lookup engine.
@@ -147,7 +147,7 @@ JUSTIFICATION:
 - layer = <layer>: one crate per layer per ADR-0105 13-value enum.
   - kernel: port-trait + sealed-trait + entity types (SecretReference,
     ResolvedSecret, CacheEntry, RevocationEvent). Zero I/O. Carries
-    data_class annotations on every field (Bominal ADR-0028 + oya-check-data-class).
+    data_class annotations on every field (Bominal ADR-0028 + check-data-class).
   - domain: pure SecretReference URI parsing, cache-TTL arithmetic, revocation
     invalidation logic.
   - usecase (per ADR-0106): orchestrators resolving a reference (parse → policy-eval →
@@ -166,7 +166,7 @@ JUSTIFICATION:
 Naming justification — `openbao-operator`:
 
 ```
-NAME: oya-cloud-secrets-openbao-operator-<layer>
+NAME: cloud-secrets-openbao-operator-<layer>
 JUSTIFICATION:
 - microservice = cloud-secrets.
 - bc-tokens = openbao-operator: sibling BC for cluster lifecycle.
@@ -200,31 +200,31 @@ Port traits (zero business logic; zero I/O; `data_class` annotated per Bominal A
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `OpenBaoClient` | `oya-cloud-secrets-secret-reference-resolver-kernel` | `-adapter-openbao` | `SECRET` (raw value at the moment of resolve only) |
-| `SecretCache` | `oya-cloud-secrets-secret-reference-resolver-kernel` | `-adapter` (in-process LRU + TTL) | `SECRET` (transient in-memory) |
-| `RevocationConsumer` | `oya-cloud-secrets-secret-reference-resolver-kernel` | `-adapter` (server-sent-events from OpenBao) | `AUDIT` (revocation events) |
-| `OpenBaoClusterRepository` | `oya-cloud-secrets-openbao-operator-kernel` | `-adapter` (kube-rs CRD) | `INTERNAL_ONLY` |
-| `RotationPolicyRepository` | `oya-cloud-secrets-key-rotation-scheduler-kernel` | `-adapter` | `INTERNAL_ONLY` |
-| `RotationExecutor` | `oya-cloud-secrets-key-rotation-scheduler-kernel` | `-usecase` (uses `OpenBaoClient` + `HsmPartitionClient`) | `SECRET` |
-| `HsmPartitionClient` | `oya-cloud-secrets-hsm-integration-kernel` | `-adapter-hsm` (PKCS#11 / KMIP) | `SECRET` (KEK never leaves HSM; signing op crosses port) |
-| `NamespaceProvisioner` | `oya-cloud-secrets-per-tenant-namespace-controller-kernel` | `-usecase` | `BEHAVIORAL_TENANT_PRODUCT` (tenant identifiers) |
-| `AuditChainBridgeClient` | `oya-cloud-secrets-audit-emitter-kernel` | `-adapter-audit-chain-bridge` | `AUDIT` |
+| `OpenBaoClient` | `cloud-secrets-secret-reference-resolver-kernel` | `-adapter-openbao` | `SECRET` (raw value at the moment of resolve only) |
+| `SecretCache` | `cloud-secrets-secret-reference-resolver-kernel` | `-adapter` (in-process LRU + TTL) | `SECRET` (transient in-memory) |
+| `RevocationConsumer` | `cloud-secrets-secret-reference-resolver-kernel` | `-adapter` (server-sent-events from OpenBao) | `AUDIT` (revocation events) |
+| `OpenBaoClusterRepository` | `cloud-secrets-openbao-operator-kernel` | `-adapter` (kube-rs CRD) | `INTERNAL_ONLY` |
+| `RotationPolicyRepository` | `cloud-secrets-key-rotation-scheduler-kernel` | `-adapter` | `INTERNAL_ONLY` |
+| `RotationExecutor` | `cloud-secrets-key-rotation-scheduler-kernel` | `-usecase` (uses `OpenBaoClient` + `HsmPartitionClient`) | `SECRET` |
+| `HsmPartitionClient` | `cloud-secrets-hsm-integration-kernel` | `-adapter-hsm` (PKCS#11 / KMIP) | `SECRET` (KEK never leaves HSM; signing op crosses port) |
+| `NamespaceProvisioner` | `cloud-secrets-per-tenant-namespace-controller-kernel` | `-usecase` | `BEHAVIORAL_TENANT_PRODUCT` (tenant identifiers) |
+| `AuditChainBridgeClient` | `cloud-secrets-audit-emitter-kernel` | `-adapter-audit-chain-bridge` | `AUDIT` |
 
-Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `oya-check-data-class` LEAN lane refuses unannotated fields at PR-time.
+Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `check-data-class` LEAN lane refuses unannotated fields at PR-time.
 
 Cross-product rule: `cloud-secrets` MUST NOT import any other product µservice crate at any layer. Cross-µservice flows go through Workflow (events) or Ontology (entity reads). `audit-emitter` writes to `audit-chain` via the `audit-chain-bridge` port (not a direct crate import). LEAN-A2 enforces.
 
 CI lanes that must green:
 
-- Branch-protected `oya-ci-required` gate packet `lean-a1` — dependency-direction
-- Branch-protected `oya-ci-required` gate packet `lean-a2` — cross-product-refusal
-- Branch-protected `oya-ci-required` gate packet `lean-a11` — raw-secret-emission (BLOCKER)
-- Branch-protected `oya-ci-required` gate packet `port-location`
-- Branch-protected `oya-ci-required` gate packet `layer-correctness`
-- Branch-protected `oya-ci-required` gate packet `per-microservice-layout`
-- Branch-protected `oya-ci-required` gate packet `statelessness` (resolver only; operator is stateful by design)
-- Branch-protected `oya-ci-required` gate packet `shardability`
-- Branch-protected `oya-ci-required` gate packet `authority-cohesion` — HG-CLOUD-SECRETS registers here
+- Branch-protected `presubmit` gate packet `lean-a1` — dependency-direction
+- Branch-protected `presubmit` gate packet `lean-a2` — cross-product-refusal
+- Branch-protected `presubmit` gate packet `lean-a11` — raw-secret-emission (BLOCKER)
+- Branch-protected `presubmit` gate packet `port-location`
+- Branch-protected `presubmit` gate packet `layer-correctness`
+- Branch-protected `presubmit` gate packet `per-microservice-layout`
+- Branch-protected `presubmit` gate packet `statelessness` (resolver only; operator is stateful by design)
+- Branch-protected `presubmit` gate packet `shardability`
+- Branch-protected `presubmit` gate packet `authority-cohesion` — HG-CLOUD-SECRETS registers here
 
 ## Integration via Workflow + Ontology
 
@@ -332,7 +332,7 @@ Cross-region story:
 Sharding:
 - OpenBao namespaces partition by tenant.
 - HSM partitions partition by pack.
-- `oya-check-shardability-cli` lane verifies partition-key presence.
+- `check-shardability-cli` lane verifies partition-key presence.
 
 ## Acceptance Criteria
 
@@ -341,13 +341,13 @@ Sharding:
 | AC-01 | A `${openbao:secret/<path>}` reference resolves to the live value via the SDK within p99 ≤25ms | bench under `microservices/cloud-secrets/tests/bench/resolution-latency.rs` |
 | AC-02 | A rotated secret invalidates every consumer's cache within p99 ≤2s | drill under `tests/e2e/cascade-rotation.rs` |
 | AC-03 | A revoked secret is unresolvable from every consumer within p99 ≤5s | drill under `tests/e2e/emergency-revoke.rs` |
-| AC-04 | The LEAN-A11 raw-secret-emission packet refuses a PR introducing a credential-shaped string | Branch-protected `oya-ci-required` evidence shows the `lean-a11` fixture check exits non-zero for a credential-shaped fixture |
+| AC-04 | The LEAN-A11 raw-secret-emission packet refuses a PR introducing a credential-shaped string | Branch-protected `presubmit` evidence shows the `lean-a11` fixture check exits non-zero for a credential-shaped fixture |
 | AC-05 | An HSM-signing operation completes within p99 ≤50ms | bench against OCI Cloud-HSM in pack-kr |
 | AC-06 | A new tenant's namespace provisions within p99 ≤10s on `TenantRegistered` | event-driven e2e test |
 | AC-07 | Every `SecretAccessed` event seals in `audit-chain` within p99 ≤1s | end-to-end audit emission drill |
-| AC-08 | `helm install` of pack-kr overlay reaches `Ready` on a kind cluster within 10 min | CI lane `oya-cloud-secrets-iac-smoke` |
-| AC-09 | Branch-protected `oya-ci-required` evidence shows the `per-microservice-layout` packet passes for `cloud-secrets` | ADR-0131 lane |
-| AC-10 | Branch-protected `oya-ci-required` evidence shows the `authority-cohesion` packet passes with HG-CLOUD-SECRETS registered | ADR-0123 lane; HG-CLOUD-SECRETS registered |
+| AC-08 | `helm install` of pack-kr overlay reaches `Ready` on a kind cluster within 10 min | CI lane `cloud-secrets-iac-smoke` |
+| AC-09 | Branch-protected `presubmit` evidence shows the `per-microservice-layout` packet passes for `cloud-secrets` | ADR-0131 lane |
+| AC-10 | Branch-protected `presubmit` evidence shows the `authority-cohesion` packet passes with HG-CLOUD-SECRETS registered | ADR-0123 lane; HG-CLOUD-SECRETS registered |
 | AC-11 | Emergency-revoke drill propagates revocation across 100 consumers within p99 ≤5s end-to-end | timed chaos drill |
 | AC-12 | A KEK attestation report is produced every 24h and sealed in audit-chain | attestation cron evidence |
 
@@ -375,7 +375,7 @@ Sharding:
 | ADR-0132 | Industry-vertical unbundle policy | sibling cloud µservices |
 | ADR-0133 | (Cloud split formalisation) | this µservice scaffolds under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-SECRETS registers here |
-| ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives throughout |
+| ADR-0116 | Retire external agent-coordination tooling | retired vcs primitives throughout |
 
 ## ADR-0164 Update — Sovereign Cloud / Air-Gapped Deployment Variant
 
@@ -387,7 +387,7 @@ Highlights:
 - **key-custody-BYOK + sovereign-tenant key custody** — sovereign tenant may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under cell KEK-of-KEKs. encryption-BYOK material is HSM-stored; never exported.
 - **In-cell HSM partition** — per-pack: Thales Luna (KSA / EU-sovereign), financial-grade HSM (KR FSC), FIPS 140-3 L4 (US-Gov).
 
-Branch-protected `oya-ci-required` gate packet `air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) encryption-BYOK paths use HSM-wrapped material only.
+Branch-protected `presubmit` gate packet `air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) encryption-BYOK paths use HSM-wrapped material only.
 
 ## ADR-0158 Update — Single-Region Disposition
 
@@ -400,10 +400,10 @@ Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_regio
   `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
   `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
 - Merge/gate authority: branch-protected GitHub Actions required context
-  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  `presubmit` is the live blocker until the owned `ci` cutover reuses
   the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
   checks, shell scripts, and legacy build-server mirrors are
-  non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
+  non-authoritative unless explicitly re-homed through the ci pipeline.
 - Delivery authority: Kubernetes/cloud-native services, controllers, APIs, and
   declarative manifests are canonical. ArgoCD/GitOps consumes signed
   declarative state; manual `kubectl apply`, Helm CLI deploys, and local
@@ -413,14 +413,14 @@ Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-secrets`; the branch-protected `oya-ci-required` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `oya-ci` rather than revived as local CLI authority.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-secrets`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
+- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-secrets`; the branch-protected `presubmit` context is the live required gate, and reusable Rust gate logic must be re-homed into owned `ci` rather than revived as local CLI authority.
+- ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-retired-vocab-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-secrets`; GitHub Actions `presubmit` remains the live required context until owned `ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-secrets` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
-- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `cloud-secrets` owns primitive selection and tenant-scoped variables.
+- ADR-0339 adoption keeps reusable HCL in `microservices/iac-app/modules/<context>/<primitive>/`; `cloud-secrets` owns primitive selection and tenant-scoped variables.
 - Manifest contract: `iac_module_invocations` declares 6 module pin(s) across 4 context(s).
 - Scaling input: `per_request` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
 - Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.

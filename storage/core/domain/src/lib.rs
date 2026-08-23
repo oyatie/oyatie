@@ -1,7 +1,7 @@
 //! Cloud storage aggregate kernel.
 //!
 //! This crate owns the Cloud storage product surface named by the Cloud PRD and
-//! SPEC (`cloud.storage.object.put` / `.get`, `cloud.storage.block.create`, and
+//! SPEC (`cloud.storage.object.put` / `.get`, `storage.block.create`, and
 //! the file/archive metadata surfaces). It is intentionally adapter-free: object
 //! bodies, block devices, and file shares live behind later infrastructure
 //! adapters, while this kernel keeps the typed control/data-plane invariants for
@@ -16,9 +16,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use cell_region::{AzCode, CellId, RegionCode};
 pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 pub use network_residency::ResidencyClass;
 use network_residency::residency_class_allows_home_region_label;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use secrets_kms_domain::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,
@@ -1966,7 +1966,7 @@ mod tests {
 
     fn bucket_create() -> BucketCreate {
         BucketCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "tenant-assets".to_string(),
             region: "region-alpha1".to_string(),
@@ -2009,7 +2009,7 @@ mod tests {
         StorageProviderObjectPutRequest {
             request_id: "storageprov_req_put_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oyatie:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             object_body_ref: "objbody/ten_alpha/workspace/report".to_string(),
@@ -2028,7 +2028,7 @@ mod tests {
         StorageProviderObjectGetRequest {
             request_id: "storageprov_req_get_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oyatie:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             result_body_ref: "objbody/ten_alpha/workspace/report-read".to_string(),
@@ -2039,7 +2039,7 @@ mod tests {
 
     fn volume_create() -> VolumeCreate {
         VolumeCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "db-primary".to_string(),
             region: "region-alpha1".to_string(),
@@ -2124,7 +2124,7 @@ mod tests {
         );
         assert_eq!(
             ArchiveVault::new(ArchiveVaultCreate {
-                resource_id: "oya:cloud:region-alpha1:ten_alpha:archive-vault:state-test"
+                resource_id: "oyatie:cloud:region-alpha1:ten_alpha:archive-vault:state-test"
                     .to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 name: "state-test".to_string(),
@@ -2145,7 +2145,7 @@ mod tests {
     #[test]
     fn rejects_bucket_identity_encryption_and_object_lock_drift() {
         let wrong_kind = Bucket::new(BucketCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:volume:tenant-assets".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:volume:tenant-assets".to_string(),
             ..bucket_create()
         })
         .expect_err("resource id kind must match bucket");
@@ -2315,7 +2315,7 @@ mod tests {
 
         let mut bad_bucket_kind = provider_put_request();
         bad_bucket_kind.bucket_id =
-            "oya:cloud:region-alpha1:ten_alpha:volume:not-bucket".to_string();
+            "oyatie:cloud:region-alpha1:ten_alpha:volume:not-bucket".to_string();
         assert_eq!(
             bad_bucket_kind.validate(),
             Err(StorageProviderObjectError::InvalidRequestShape(
@@ -2390,7 +2390,7 @@ mod tests {
 
         let mut bad_volume_kind = provider_block_create_volume_request();
         bad_volume_kind.volume_id =
-            "oya:cloud:region-alpha1:ten_alpha:bucket:not-volume".to_string();
+            "oyatie:cloud:region-alpha1:ten_alpha:bucket:not-volume".to_string();
         assert_eq!(
             bad_volume_kind.validate(),
             Err(StorageProviderBlockError::InvalidRequestShape(
@@ -2424,7 +2424,7 @@ mod tests {
         );
         assert_eq!(
             receipt.volume_id,
-            "oya:cloud:region-alpha1:ten_alpha:volume:db-primary"
+            "oyatie:cloud:region-alpha1:ten_alpha:volume:db-primary"
         );
         assert_eq!(receipt.size_gib, 512);
         assert_eq!(receipt.performance.iops, 12_000);
@@ -2552,7 +2552,7 @@ mod tests {
     #[test]
     fn creates_filesystem_and_archive_vault_surfaces() {
         let filesystem = CloudFilesystem::new(FilesystemCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:filesystem:shared-docs".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:filesystem:shared-docs".to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "shared-docs".to_string(),
             region: "region-alpha1".to_string(),
@@ -2575,7 +2575,8 @@ mod tests {
         );
 
         let vault = ArchiveVault::new(ArchiveVaultCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:archive-vault:cold-records".to_string(),
+            resource_id: "oyatie:cloud:region-alpha1:ten_alpha:archive-vault:cold-records"
+                .to_string(),
             tenant_id: "ten_alpha".to_string(),
             name: "cold-records".to_string(),
             region: "region-alpha1".to_string(),

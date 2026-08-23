@@ -3,13 +3,13 @@
 ## Objective
 
 Add a pure, deterministic `mention_fanout` module to the
-`oya-messenger-message-stream-usecase` crate that derives a deduped, sorted notification
+`messenger-message-stream-usecase` crate that derives a deduped, sorted notification
 target set from explicit mention tokens in a message body intersected against a
 caller-supplied channel-membership roster.
 
 ## Crate boundary
 
-**Only crate modified:** `oya-messenger-message-stream-usecase`
+**Only crate modified:** `messenger-message-stream-usecase`
 No new workspace member. No root `Cargo.toml` edit. No async / I/O.
 
 ## Mod layout (flat clean architecture per ADR-0509)
@@ -93,6 +93,6 @@ All tests in `#[cfg(test)]` mod inside `mention_fanout.rs`. Hermetic unit tests 
 - [ ] Invalid ctx → `Api(e)`
 - [ ] Wrong author → `PrincipalMismatch`
 - [ ] Full `#[cfg(test)]` coverage
-- [ ] `cargo nextest run -p oya-messenger-message-stream-usecase` green
+- [ ] `cargo nextest run -p messenger-message-stream-usecase` green
 - [ ] No new workspace member / root Cargo.toml edit
 - [ ] No async / I/O

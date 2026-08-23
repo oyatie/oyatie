@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every binary's distroless image stays within the declared size budget.
 - enforces: Directive 5 (MASTERPLAN) — image size budget.
-- kernel_crate: `oya-governance-image-size-budget-kernel` — `ImageMeasurement { binary, image_mb, budget_mb }`, verdict `ImageSizeBudgetFitnessReport { images_checked }`.
-- runner_path: `tools/oya-governance-image-size-budget`
+- kernel_crate: `governance-image-size-budget-kernel` — `ImageMeasurement { binary, image_mb, budget_mb }`, verdict `ImageSizeBudgetFitnessReport { images_checked }`.
+- runner_path: `tools/governance-image-size-budget`
 - inputs: image inspection (`docker inspect` JSON dump), `images-budget.toml`.
 - failure_modes:
   - image grew > budget
   - image not in budget registry
   - budget not declared
-- ci_invocation: `cargo run -p oya-governance-image-size-budget`
+- ci_invocation: `cargo run -p governance-image-size-budget`
 - runtime_budget: 2000 ms
 - severity: HIGH
 - kernel_sketch:

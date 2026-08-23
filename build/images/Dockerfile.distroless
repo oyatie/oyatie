@@ -8,12 +8,12 @@
 #
 # Build:
 #   docker build \
-#     --build-arg BIN_NAME=oya-intelligence-runtime \
+#     --build-arg BIN_NAME=intelligence-runtime \
 #     --build-arg TARGET=x86_64-unknown-linux-musl \
-#     -f build/images/Dockerfile.distroless -t oya-intelligence-runtime:dev .
+#     -f build/images/Dockerfile.distroless -t intelligence-runtime:dev .
 
 ARG TARGET=x86_64-unknown-linux-musl
-ARG BIN_NAME=oya-intelligence-runtime
+ARG BIN_NAME=intelligence-runtime
 ARG RUST_VERSION=1.97.1
 
 # --- Stage 1: musl builder ------------------------------------------------
@@ -39,7 +39,7 @@ RUN cargo build --release --target ${TARGET} --bin ${BIN_NAME} && \
 # --- Stage 2: distroless final --------------------------------------------
 # gcr.io/distroless/static-debian12 has no shell, no package manager, no
 # libc — only ca-certs + tzdata + the binary we ship. Matches the
-# allowlist in `oya-governance-image-discipline-kernel`.
+# allowlist in `governance-image-discipline-kernel`.
 FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
 # Minimal labels: build metadata for SBOM / supply-chain lanes.
@@ -50,6 +50,6 @@ LABEL org.opencontainers.image.description="Static musl-linked Oya workspace bin
 # Run as the distroless nonroot user (UID/GID 65532).
 USER nonroot:nonroot
 
-COPY --from=builder /build/release-binary /usr/local/bin/oya-binary
+COPY --from=builder /build/release-binary /usr/local/bin/binary
 
-ENTRYPOINT ["/usr/local/bin/oya-binary"]
+ENTRYPOINT ["/usr/local/bin/binary"]

@@ -7,9 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 intelligence-capability-domain = { path = "../../core/capability-domain" }
 intelligence-run-domain = { path = "../../core/run-domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
 
 [lib]
 name = "intelligence_run_file_adapter"

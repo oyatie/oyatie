@@ -2,25 +2,25 @@
 doc_status: published
 ---
 
-# Regional Pack: oya-pack-<region>
+# Regional Pack: pack-<region>
 
 > Template for every regional pack under [`regional-packs/`](.). Copy verbatim, then fill in. Status moves through `draft → preview → stable → GA` per ADR-0010-regional-pack-architecture.
 
 ## 0. Pack metadata
 
-- **Pack id:** `oya-pack-<region-code>` (e.g. `oya-pack-kr`, `oya-pack-jp`, `oya-pack-us`, `oya-pack-eu`, `oya-pack-in`, `oya-pack-br`, `oya-pack-ksa`, `oya-pack-ae`, `oya-pack-au`, `oya-pack-sg`, ...)
+- **Pack id:** `pack-<region-code>` (e.g. `pack-kr`, `pack-jp`, `pack-us`, `pack-eu`, `pack-in`, `pack-br`, `pack-ksa`, `pack-ae`, `pack-au`, `pack-sg`, ...)
 - **Region:** <full region name + scope>
 - **Locale codes:** <e.g. ko-KR, en-KR>
 - **Status:** draft / preview / stable / GA
 - **Owning team:** [`teams/regional-packs/`](../teams/regional-packs/)
 - **Per-pack maintainer:** TBD (per-pack hire)
-- **Catalog record:** `registry/catalog/regional-packs/oya-pack-<region>.yaml`
+- **Catalog record:** `registry/catalog/regional-packs/pack-<region>.yaml`
 
 ## 1. Regulatory binding
 
 | Regulator | Statute / framework | Implementing trait impl | Cadence | Evidence |
 |---|---|---|---|---|
-| (per-region regulator 1) | (statute) | `oya-platform-regulatory-kernel::RegulatoryPack` impl | (cadence) | (where evidence emits) |
+| (per-region regulator 1) | (statute) | `platform-regulatory-kernel::RegulatoryPack` impl | (cadence) | (where evidence emits) |
 | ... | | | | |
 
 ## 2. Compliance packs (per vertical)
@@ -63,13 +63,13 @@ doc_status: published
 
 - **Tax-invoice format:** <e.g. KR 전자세금계산서 / JP 適格請求書 / IN GST e-invoicing / BR NF-e / KSA FATOORA / EU per-country>
 - **Tax-id format:** <e.g. KR 사업자등록번호 / US EIN / EU VAT / IN GSTIN / BR CNPJ>
-- **Tax-engine adapter:** `oya-platform-billing-tax-kernel::TaxInvoiceFormatter` impl
+- **Tax-engine adapter:** `platform-billing-tax-kernel::TaxInvoiceFormatter` impl
 
 ## 7. Identity providers
 
 | Provider | Use case | Implementing trait impl |
 |---|---|---|
-| (e.g. KR 본인확인서비스 / NICE / KCB / SCI Plus) | Real-name verification | `oya-platform-identity-kernel::IdentityProvider` impl |
+| (e.g. KR 본인확인서비스 / NICE / KCB / SCI Plus) | Real-name verification | `platform-identity-kernel::IdentityProvider` impl |
 | (e.g. JP マイナンバーカード) | National ID | (impl) |
 | (e.g. US Login.gov / SAML / OIDC) | SSO | (impl) |
 | (e.g. EU eIDAS) | National ID + cross-border | (impl) |
@@ -80,14 +80,14 @@ doc_status: published
 
 | Rail | Use case | Implementing trait impl |
 |---|---|---|
-| (e.g. KR 카카오페이 / 네이버페이 / 토스 / 계좌이체 / 신용카드) | Tenant payment | `oya-saas-billing-rail-kernel::PaymentRail` impl |
+| (e.g. KR 카카오페이 / 네이버페이 / 토스 / 계좌이체 / 신용카드) | Tenant payment | `saas-billing-rail-kernel::PaymentRail` impl |
 | (e.g. JP 振込 / Pay-easy) | Tenant payment | (impl) |
 | (e.g. US ACH / Wire / RTP / FedNow / card) | Tenant payment | (impl) |
 | ... | | |
 
 ## 9. Address book
 
-- **Address-validation impl:** `oya-platform-address-kernel::AddressValidator`
+- **Address-validation impl:** `platform-address-kernel::AddressValidator`
 - **Postal-code format:** <per-region>
 - **Geocoding source:** <e.g. KR road-name + 지번; JP 〒 + 都道府県市区町村; US USPS; ...>
 
@@ -100,12 +100,12 @@ doc_status: published
 ## 11. Content safety
 
 - **Local content moderation rules:** <per-region>
-- **Implementing trait impl:** `oya-platform-content-safety-kernel::ContentSafetyRules`
+- **Implementing trait impl:** `platform-content-safety-kernel::ContentSafetyRules`
 
 ## 12. Ad-policy gate
 
 - **Local ad review workflows:** <per-region>
-- **Implementing trait impl:** `oya-ads-policy-kernel::LocalAdPolicy`
+- **Implementing trait impl:** `ads-policy-kernel::LocalAdPolicy`
 
 ## 13. Industry data models
 

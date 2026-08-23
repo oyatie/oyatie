@@ -1,0 +1,133 @@
+# TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
+# Graph: lint (fmt --all) + deny (licenses bans sources) + test (nextest workspace)
+# + pg-gate + live-postgres (path-gated on pull_request and merge_group).
+name: presubmit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [dev]
+    types: [opened, reopened, synchronize]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  CARGO_INCREMENTAL: "0"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: lint (format)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+  deny:
+    name: deny (licenses bans sources)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check
+          command-arguments: licenses bans sources
+          rust-version: "1.98.0"
+
+  test:
+    name: test (workspace)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86
+          cache-workspace-crates: "true"
+      - name: Workspace tests
+        run: cargo nextest run --locked --workspace --profile ci
+
+  pg-gate:
+    name: pg-gate
+    runs-on: ubuntu-24.04
+    outputs:
+      live: ${{ steps.g.outputs.live }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: g
+        name: Path-gate live Postgres
+        run: |
+          set -euo pipefail
+          event="${{ github.event_name }}"
+          case "$event" in
+            pull_request)
+              range="${{ github.event.pull_request.base.sha }}...HEAD"
+              ;;
+            merge_group)
+              range="${{ github.event.merge_group.base_sha }}...${{ github.event.merge_group.head_sha }}"
+              ;;
+            *)
+              echo "live=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+          if git diff --name-only "$range" | grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)'; then
+            echo "live=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "live=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  live-postgres:
+    needs: pg-gate
+    if: needs.pg-gate.outputs.live == 'true'
+    uses: ./.github/workflows/live-postgres.yml
+
+  # Mirrors pipeline_admission::fan_in_ok (tested).
+  presubmit:
+    name: presubmit
+    runs-on: ubuntu-24.04
+    if: always()
+    needs: [lint, test, deny, pg-gate, live-postgres]
+    steps:
+      - name: Fan-in verdict
+        env:
+          LIVE: ${{ needs.pg-gate.outputs.live }}
+        run: |
+          req() { [ "$1" = "success" ]; }
+          pg() {
+            if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
+          req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1

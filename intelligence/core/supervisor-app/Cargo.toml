@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=supervisor; layer=app (12-layer-enum L5).
 #         Justification: daemon binary — composes supervisor-kernel port traits with
 #         jsonl-supervisor-adapter I/O seam; exposes hyper webhook endpoint; owns

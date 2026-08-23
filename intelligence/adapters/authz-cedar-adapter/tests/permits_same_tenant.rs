@@ -1,7 +1,7 @@
 //! D7 — positive cases: same-tenant SelectSeat permits.
 //!
 //! These tests confirm the Cedar adapter does NOT default-deny EVERY request —
-//! the same-tenant permit rule (`cloud-intelligence-ingress-chat-same-tenant`) must
+//! the same-tenant permit rule (`intelligence-app-ingress-chat-same-tenant`) must
 //! fire when principal_tenant == resource_tenant and the principal is in the
 //! IngressRealm (which v1 hardcodes for `AuthzAction::SelectSeat`).
 use intelligence_authz_cedar_adapter::CedarAuthzGate;

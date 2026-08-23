@@ -1,7 +1,7 @@
 //! Ads auction kernel — `Auction` + `Bid` internal-tenant types.
 //!
 //! Per M06-P01-IP-001. Merge-variant delta-1: smallest net-new type surface
-//! added into the existing `oya-saas-plugin-marketplace-kernel` crate
+//! added into the existing `saas-plugin-marketplace-kernel` crate
 //! (merge-into-existing-crates, decided_by=user-directive-option-2, 2026-05-17).
 //!
 //! An [`Auction`] is a single-round, internal-tenant-only ad slot contest.

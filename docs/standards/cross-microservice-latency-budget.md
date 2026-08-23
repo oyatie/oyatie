@@ -223,7 +223,7 @@ Notes:
 
 ## CI enforcement
 
-A future `oya-check-cross-microservice-latency-budget` lane will assert
+A future `check-cross-microservice-latency-budget` lane will assert
 that every per-hop budget in this document is reflected in the matching
 `microservices/<ms>/slos/<sli>.openslo.yaml#objective.target`. Until
 that lane lands, the budget is enforced by code review against this

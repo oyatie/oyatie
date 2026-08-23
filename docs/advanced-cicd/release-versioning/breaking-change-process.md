@@ -11,7 +11,7 @@ purpose: |
   template, 180-day sunset entry in SUNSET-LEDGER, dual reviewer-agent gate
   (change-class-reviewer + api-stability-reviewer), and major-version bump on
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
-planned_enforcement_ref: oya-governance-deprecation-notice, oya-governance-api-version-stability
+planned_enforcement_ref: governance-deprecation-notice, governance-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -61,7 +61,7 @@ migration_guide: docs/release/migrate-foundry-v1-to-v2.md
 ```
 
 Missing or inconsistent frontmatter → CI fails via
-`oya-governance-deprecation-notice` (BLOCKER).
+`governance-deprecation-notice` (BLOCKER).
 
 ## 4. ADR template (`/templates/ADR-BREAKING-CHANGE.md`)
 
@@ -89,11 +89,11 @@ Append-only, one row per deprecation:
 | Deprecated on | Sunset on  | Removed on | Surface | Successor | ADR  | Status   |
 |---------------|------------|------------|---------|-----------|------|----------|
 | 2026-05-12    | 2026-11-12 | 2026-11-12 | /foundry/v1/capability.legacy_field | capability.canonical_field | 0073 | Active   |
-| 2025-09-01    | 2026-03-01 | 2026-03-01 | sdk: oya-cloud-sdk::ComputeBuilder::with_legacy_size | ::with_size_v2 | 0061 | Removed  |
+| 2025-09-01    | 2026-03-01 | 2026-03-01 | sdk: cloud-sdk::ComputeBuilder::with_legacy_size | ::with_size_v2 | 0061 | Removed  |
 ```
 
 The ledger is read by the fitness lane and by the API server (to inject
-`oya-api-deprecation` response headers).
+`api-deprecation` response headers).
 
 ## 6. Dual-reviewer gate
 
@@ -129,7 +129,7 @@ Pattern 1 is the default; the ADR must justify deviation.
 For 180 days after `deprecated_on`:
 
 - Old surface continues to work, unchanged.
-- Response header carries `oya-api-deprecation: <sunset_date>`.
+- Response header carries `api-deprecation: <sunset_date>`.
 - SDK emits a runtime warning at first use.
 - D14 evidence row counts requests per old surface; if usage doesn't trend
   toward zero, sunset is extended in 90-day increments (with ADR amendment).

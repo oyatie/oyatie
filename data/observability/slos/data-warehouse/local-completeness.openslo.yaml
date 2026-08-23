@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_completeness_good_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_warehouse_completeness_good_total[30d])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_completeness_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_warehouse_completeness_total[30d])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Warehouse partitions complete against source totals
       target: 0.999

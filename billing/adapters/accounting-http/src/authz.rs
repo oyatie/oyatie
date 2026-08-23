@@ -53,7 +53,7 @@
 
 use std::sync::Arc;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
 
 /// Request header the bearer credential is presented in.
 pub const AUTHORIZATION_HEADER: &str = "authorization";

@@ -161,7 +161,7 @@ Template-class and non-Standard files included for completeness (they are exempt
 - Diátaxis quadrant declaration (reference / tutorial / how-to / explanation)
 - RFC-2119 normative discipline throughout
 - Frontmatter shape with `doc_class:` key (same as above)
-- Enforcement lane `oya-governance-doc-style` (or `oya-governance-doc-style` post-ADR-0132)
+- Enforcement lane `governance-doc-style` (or `governance-doc-style` post-ADR-0132)
 
 ### 1.3 Key canonical decisions applicable to this audit
 
@@ -171,7 +171,7 @@ The following memory and ADR directives are the primary drift anchors checked in
 |---|---|---|
 | 13-layer enum is canonical | ADR-0105 | Any file citing "12-layer enum" or referencing ADR-0056 for the layer enum is drift |
 | grit / icm / rtk / vox retired | ADR-0116 (2026-05-16) | Any file referencing these tools is stale contamination |
-| `oya git` is canonical VCS primitive | feedback_oya_git_canonical_2026_05_18 | `oya vcs` references are drift |
+| `oya git` is canonical VCS primitive | feedback_git_canonical_2026_05_18 | `retired VCS ratchet` references are drift |
 | Multispectrum review v2.4.0-cadence.md is operative | multispectrum-review-v2.4.0-cadence.md | v2.1/v2.2/v2.3 references are stale |
 | Cedar v4.2 LTS is canonical | observability-slo.md (Accepted 2026-05-17) | Cedar 3.x or 4.9.x references are drift |
 | ADR-0145 retired ADR-0141 and ADR-0140 | ADR-0145 | Citations to ADR-0141 as authority are drift |
@@ -366,14 +366,14 @@ Findings where the content has drifted from canonical decisions recorded in ADRs
 
 **Remediation for `crate-naming-convention.md`:** Add the 13th layer value to the BNF `layer` production rule. Add `ADR-0105` to `related_adrs`. Remove the `ADR-0056 12-layer` citation or annotate it as superseded.
 
-### 3.2 Retired VCS primitive drift — `oya vcs` superseded by `oya git`
+### 3.2 Retired VCS primitive drift — `retired VCS ratchet` superseded by `oya git`
 
-**Canonical directive:** `oya git` is the canonical agent VCS primitive (feedback_oya_git_canonical_2026_05_18, 2026-05-18). `oya vcs` is permanently superseded.
+**Canonical directive:** `oya git` is the canonical agent VCS primitive (feedback_git_canonical_2026_05_18, 2026-05-18). `retired VCS ratchet` is permanently superseded.
 
 | File | Location | Drift evidence | Severity |
 |---|---|---|---|
-| `agentic-dev-team-optimization.md` | Throughout | Uses `oya vcs claim` in every workflow step | P1 |
-| `git-workflow.md` | §1 framing | Entire §1 is built around the superseded `oya vcs` triad; the canonical flow describes `oya vcs` as the primary surface | P1 |
+| `agentic-dev-team-optimization.md` | Throughout | Uses retired VCS ratchet in every workflow step | P1 |
+| `git-workflow.md` | §1 framing | Entire §1 is built around the superseded `retired VCS ratchet` triad; the canonical flow describes `retired VCS ratchet` as the primary surface | P1 |
 
 ### 3.3 Retired external-agent-tooling drift — grit / icm / rtk / vox per ADR-0116
 
@@ -499,18 +499,18 @@ While minor, version strings in standards are consumed by CI generators. An inco
 
 ### 3.13 Enforcement-lane prefix drift
 
-**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `oya-governance-*`. Existing `oya-governance-*` lanes are retained until each is individually renamed in its own migration IP.
+**Canonical directive:** Per ADR-0132, new governance CI lane names carry the prefix `governance-*`. Existing `governance-*` lanes are retained until each is individually renamed in its own migration IP.
 
-The following files reference `oya-governance-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
+The following files reference `governance-*` lanes that appear to have been authored or substantially revised after the ADR-0132 cutoff date and may need the newer prefix:
 
 | File | Lane name referenced | Note |
 |---|---|---|
-| `multispectrum-review-v2.4.0-cadence.md` | `oya-governance-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
-| `testing.md` | `oya-governance-test-evidence` | Date 2026-05-12 |
-| `observability.md` | `oya-governance-otel-emit` | Older |
+| `multispectrum-review-v2.4.0-cadence.md` | `governance-multispectrum-*` | Accepted 2026-05-20, after ADR-0132 |
+| `testing.md` | `governance-test-evidence` | Date 2026-05-12 |
+| `observability.md` | `governance-otel-emit` | Older |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` | Pre-ADR-0132 |
-| `on-call.md` | `oya-governance-runbook-index-resolves` | Older |
-| `security-review.md` | `oya-governance-supply-chain` | Older |
+| `on-call.md` | `governance-runbook-index-resolves` | Older |
+| `security-review.md` | `governance-supply-chain` | Older |
 
 **Note:** This is informational only (P3). ADR-0132 explicitly states existing lanes are retained until migrated. No action required until the migration IP for each lane runs.
 
@@ -562,8 +562,8 @@ An Accepted standard MUST NOT contain placeholder marker fields, PENDING enforce
 | `error-handling.md` | `F-PENDING-SILENT-FAILURE` enforcement | P2 |
 | `fintech-compliance.md` | "Open questions" section with explicit placeholder marker items | P2 |
 | `image-discipline.md` | `F-PENDING-IMAGE-DISCIPLINE` and `F-PENDING-CONTAINER-BASE` | P2 |
-| `on-call.md` | `planned_enforcement_ref: oya-governance-runbook-index-resolves` with no shipping timeline | P2 |
-| `release-management.md` | `planned_enforcement_ref: oya-governance-flag-debt` | P2 |
+| `on-call.md` | `planned_enforcement_ref: governance-runbook-index-resolves` with no shipping timeline | P2 |
+| `release-management.md` | `planned_enforcement_ref: governance-flag-debt` | P2 |
 
 ### 4.5 Superseded references without markers
 
@@ -572,7 +572,7 @@ A superseded or retired standard MUST carry a visible "SUPERSEDED — see [repla
 | File | Missing marker | Severity |
 |---|---|---|
 | `multispectrum-review.md` | No "SUPERSEDED — see v2.4.0-cadence.md" marker; still presents as the operative standard | P1 |
-| `git-workflow.md` | §1 `oya vcs` framing is superseded; no marker | P1 |
+| `git-workflow.md` | §1 `retired VCS ratchet` framing is superseded; no marker | P1 |
 | `multi-agent-tool-map.md` | §3 grit/icm/rtk table is superseded; no marker | P1 |
 | `lts-versions-verified.md` | Agent-tooling section superseded; no marker | P1 |
 | `hyperscaler-best-practices.md` | Agent-tooling section superseded; no marker | P1 |
@@ -588,7 +588,7 @@ A superseded or retired standard MUST carry a visible "SUPERSEDED — see [repla
 | `release.md` | `STANDARDS-AND-TEMPLATES.md` | Very likely does not exist (same broken reference pattern) | P2 |
 | `migration-playbook.md` | `templates/migration-runbook-template.md` | Explicitly noted as "planned, non-existent" in body | P2 |
 | `fips-hsm-substrate-root-signing.md` | `ADR-NNNN-foundry-meta-trust-root` | Placeholder ADR number; real ADR not yet authored | P2 |
-| `timescaledb-adoption.md` | `crates/oya-shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
+| `timescaledb-adoption.md` | `crates/shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
 | `testing.md` | `docs/QA-TEST-STRATEGY.md` | Not confirmed in this audit | P3 |
 | `testing.md` | `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` | Scratch file; not a durable normative reference | P3 |
 
@@ -768,7 +768,7 @@ This is invalid YAML. Every key uses `**bold:**` markdown syntax rather than pla
 | `release.md` | `STANDARDS-AND-TEMPLATES.md` | Does not exist in `docs/` | P2 |
 | `migration-playbook.md` | `templates/migration-runbook-template.md` | Explicitly "planned, non-existent" per body text | P2 |
 | `fips-hsm-substrate-root-signing.md` | `ADR-NNNN-foundry-meta-trust-root` | Placeholder; real ADR not authored | P2 |
-| `timescaledb-adoption.md` | `crates/oya-shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
+| `timescaledb-adoption.md` | `crates/shared-timescale-policy-worker/` | Phase-2 follow-on; not yet authored | P3 |
 | `testing.md` | `docs/QA-TEST-STRATEGY.md` | Not confirmed; not in standards corpus scope | P3 |
 | `testing.md` | `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` | Scratch file; not a durable reference | P3 |
 
@@ -840,7 +840,7 @@ The following list is based on cross-references found in other standards' `relat
 | `a11y-canonical.md` | 4+ | 82 lines (severely under-250); no enforcement | HIGH |
 | `api-design.md` | 4+ | Draft status; no enforcement; under-250 | HIGH |
 | `cedar-policy-discipline.md` | 3+ | No frontmatter; Cedar 3.x drift | HIGH |
-| `git-workflow.md` | 3+ | Double-frontmatter; grit/icm contamination; oya vcs drift | HIGH |
+| `git-workflow.md` | 3+ | Double-frontmatter; grit/icm contamination; retired VCS ratchet drift | HIGH |
 | `lts-versions-verified.md` | 3+ | Agent-tooling section with deprecated tools; Grafana conflict | HIGH |
 | `ci-lanes.md` | 3+ | Minimal frontmatter; no doc_class; no enforcement | MEDIUM |
 
@@ -907,7 +907,7 @@ Owner recommendation: lane-governance
 
 **R-P0-04 | Rewrite `git-workflow.md` §1 around `oya git`; merge double-frontmatter**
 
-§1 "sanctioned-primitive triad" is the key superseded element. Rewrite to describe `oya git` as the canonical primitive per feedback_oya_git_canonical_2026_05_18. Remove `oya vcs claim`/`oya vcs work`/`oya vcs done` from all workflow steps. Remove `icm-store` rationale contracts. Remove ADR-0052/0053/0054 from related_adrs. Merge the two frontmatter blocks into one.
+§1 "sanctioned-primitive triad" is the key superseded element. Rewrite to describe `oya git` as the canonical primitive per feedback_git_canonical_2026_05_18. Remove retired VCS ratchet/retired VCS ratchet/retired VCS ratchet from all workflow steps. Remove `icm-store` rationale contracts. Remove ADR-0052/0053/0054 from related_adrs. Merge the two frontmatter blocks into one.
 
 Affected: `git-workflow.md`
 Owner recommendation: lane-governance
@@ -1084,7 +1084,7 @@ After R-P0-01, update INDEX.md to reflect the tombstone. Remove ADR-0052/0053/00
 
 **R-P1-18 | Update `agentic-dev-team-optimization.md` for `oya git`**
 
-Replace all `oya vcs claim` / `oya vcs work` / `oya vcs done` references with `oya git` equivalents. Resolve placeholder marker gates.
+Replace all retired VCS ratchet / retired VCS ratchet / retired VCS ratchet references with `oya git` equivalents. Resolve placeholder marker gates.
 
 **R-P1-19 | Split `multispectrum-review-v2.4.0-cadence.md` to ≤600 lines**
 
@@ -1199,7 +1199,7 @@ Referenced by `testing.md` as a companion doc. Confirm the file exists and is no
 
 **R-P3-03 | Audit enforcement-lane prefix post-ADR-0132**
 
-When migrating existing `oya-governance-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
+When migrating existing `governance-*` lanes per ADR-0132 migration IPs, update the `enforced_by:` fields in the corresponding Standard files at the same time.
 
 **R-P3-04 | Normalize `hyperscaler-invariant-conformance.md` doc_class**
 
@@ -1207,7 +1207,7 @@ Change `Hyperscaler-Invariant-Conformance-Standard` to `Standard`. If a named sh
 
 **R-P3-05 | Add "Phase-2, not yet authored" notice to `timescaledb-adoption.md`**
 
-The reference to `crates/oya-shared-timescale-policy-worker/` should carry an explicit "Phase-2 follow-on; not yet created" note to prevent implementers from wasting time looking for the crate.
+The reference to `crates/shared-timescale-policy-worker/` should carry an explicit "Phase-2 follow-on; not yet created" note to prevent implementers from wasting time looking for the crate.
 
 **R-P3-06 | Add conditional caveat to `ux-best-practices.md` §20 brand-voice reference**
 
@@ -1280,7 +1280,7 @@ The following table gives a one-row summary for every file audited, enabling tri
 |---|---|---|---|---|---|---|---|---|
 | `a11y-canonical.md` | ~82 | Standard | Accepted | 0 | 2 | 1 | 0 | Under-250; no enforcement |
 | `agent-instructions-discipline.md` | ~231 | Standard | Accepted | 1 | 2 | 1 | 0 | Grit/icm contamination; ADR-0052 |
-| `agentic-dev-team-optimization.md` | ~148 | Standard | Accepted | 0 | 2 | 2 | 0 | `oya vcs` drift; placeholder marker gates; under-250 |
+| `agentic-dev-team-optimization.md` | ~148 | Standard | Accepted | 0 | 2 | 2 | 0 | `retired VCS ratchet` drift; placeholder marker gates; under-250 |
 | `api-design.md` | ~159 | Standard | Draft | 0 | 3 | 1 | 1 | Draft; no enforcement; under-250; OpenAPI version |
 | `api-surface-separation.md` | ~106 | contract: | — | 0 | 4 | 0 | 0 | `contract:` key; no MUST; no anti-patterns; under-250 |
 | `authz-tier-boundaries.md` | ~99 | Standard | Accepted | 0 | 3 | 0 | 0 | Under-250; no anti-patterns; no MUST |
@@ -1313,7 +1313,7 @@ The following table gives a one-row summary for every file audited, enabling tri
 | `finops-cost-attribution.md` | ~165 | contract: | — | 0 | 3 | 1 | 0 | `contract:` key; under-250; supersession unclear |
 | `fintech-compliance.md` | ~448 | Standard | Draft | 0 | 2 | 1 | 0 | Draft; placeholder marker items; no enforcement |
 | `fips-hsm-substrate-root-signing.md` | ~704 | Standard | Accepted | 0 | 1 | 1 | 0 | Over-600 by 1.2×; placeholder ADR number |
-| `git-workflow.md` | ~224 | Standard | Accepted | 2 | 3 | 1 | 0 | Grit/icm; oya vcs drift; double-frontmatter |
+| `git-workflow.md` | ~224 | Standard | Accepted | 2 | 3 | 1 | 0 | Grit/icm; retired VCS ratchet drift; double-frontmatter |
 | `gitops-iac-cluster-tier-boundaries.md` | ~99 | — | — | 1 | 0 | 0 | 0 | No frontmatter; under-250 |
 | `graceful-shutdown-canonical.md` | ~90 | Standard | Accepted | 0 | 2 | 0 | 0 | Under-250; no enforcement |
 | `helm-chart-convention.md` | ~95 | — | — | 1 | 0 | 0 | 0 | No frontmatter; under-250 |
@@ -1378,7 +1378,7 @@ In wave-gate order (actions that block all subsequent gates if not resolved):
 |---|---|---|---|
 | 1 | R-P0-01 | Delete/tombstone `claude-code-harness.md` | Actively misleads every new agent implementer reading onboarding docs |
 | 2 | R-P0-03 | Strip grit/icm from `agent-instructions-discipline.md` | Core agent discipline doc propagates deprecated workflow to every new agent |
-| 3 | R-P0-04 | Rewrite `git-workflow.md` §1 for `oya git` | Primary VCS onboarding doc; oya vcs drift + grit contamination |
+| 3 | R-P0-04 | Rewrite `git-workflow.md` §1 for `oya git` | Primary VCS onboarding doc; retired VCS ratchet drift + grit contamination |
 | 4 | R-P0-10 + R-P0-11 | Author `brand-voice.md` + `incident-severity.md` | Complete stubs; normatively referenced from other standards |
 | 5 | R-P1-02 | Resolve SLSA L2 vs L3 conflict | Active security posture contradiction between two Accepted standards; CI may enforce the wrong level |
 | 6 | R-P1-03 | Align Cedar to v4.2.0 LTS | `cedar-policy-discipline.md` at 3.x; `regulatory-pack-authzpolicy-overlays.md` at 4.9.1; authz behavior undefined without this |
@@ -1413,7 +1413,7 @@ This appendix translates the findings above into a practical sprint allocation, 
 
 **Sprint 1 total estimate:** ~15 hours across 2 engineers (1 sprint each)
 
-**Success criterion:** `grep -r "grit\|icm\|oya vcs" docs/standards/` returns zero results except for ADR-0116 supersession notices.
+**Success criterion:** `grep -r "grit\|icm\|retired VCS ratchet" docs/standards/` returns zero results except for ADR-0116 supersession notices.
 
 ### D.2 Sprint 2 — Frontmatter normalization
 
@@ -1431,7 +1431,7 @@ This appendix translates the findings above into a practical sprint allocation, 
 
 **Sprint 2 total estimate:** ~14 hours across 2 engineers
 
-**Success criterion:** A YAML-linting CI gate (`oya-governance-doc-frontmatter-lint`) passes on all 89 files with zero errors. Every file has `doc_class:`, `status:`, `date:`.
+**Success criterion:** A YAML-linting CI gate (`governance-doc-frontmatter-lint`) passes on all 89 files with zero errors. Every file has `doc_class:`, `status:`, `date:`.
 
 ### D.3 Sprint 3 — Layer-enum drift + SLSA/Cedar conflict resolution
 
@@ -1556,7 +1556,7 @@ purpose: |
   One paragraph explaining what this standard governs, who it applies to,
   and what problem it solves.
 canonical_authority: docs/decisions/template ADR-name.md
-enforced_by: oya-governance-<lane-name>
+enforced_by: governance-<lane-name>
 related_adrs:
   - template ADR
   - concrete superseded ADR
@@ -1595,13 +1595,13 @@ Based on the findings in this audit, the following automated checks SHOULD be ad
 | AC-05 | Standard-class files must have `enforced_by:` or `planned_enforcement_ref:` | Field presence check | BLOCKER |
 | AC-06 | Standard-class files must be ≥ 250 lines (unless `shape: thin-pointer-gateway`) | Line count | ADVISORY (sprint 7 goal: BLOCKER) |
 | AC-07 | Standard-class files must be ≤ 600 lines | Line count | BLOCKER |
-| AC-08 | No Standard-class file may contain the strings `grit `, `icm `, `rtk `, `oya vcs ` | Grep | BLOCKER |
+| AC-08 | No Standard-class file may contain the strings `grit `, `icm `, `rtk `, `retired VCS ratchet ` | Grep | BLOCKER |
 | AC-09 | No Standard-class file may reference `ADR-0052`, `ADR-0053`, `ADR-0054` without "(superseded by ADR-0116)" annotation | Grep + annotation check | ADVISORY |
 | AC-10 | No Standard-class file may reference "12-layer enum" or "12-value.*layer" | Grep | ADVISORY (sprint 3 goal: BLOCKER) |
 | AC-11 | Every referenced file path must resolve (no broken links) | Link checker | ADVISORY |
 | AC-12 | `date:` field must be a valid ISO 8601 date | Date parse | BLOCKER |
 
-These checks can be implemented as a single `oya-governance-doc-frontmatter-lint` CI job using a small Rust binary that walks `docs/standards/`, parses each frontmatter block, and reports violations. Estimated implementation: 1 sprint.
+These checks can be implemented as a single `governance-doc-frontmatter-lint` CI job using a small Rust binary that walks `docs/standards/`, parses each frontmatter block, and reports violations. Estimated implementation: 1 sprint.
 
 ---
 

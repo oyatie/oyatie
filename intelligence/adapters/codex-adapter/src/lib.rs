@@ -1,4 +1,4 @@
-//! cloud-intelligence Codex adapter — OpenAI Codex OAuth subscription pool (ADR-0384 Path B, v1).
+//! intelligence-app Codex adapter — OpenAI Codex OAuth subscription pool (ADR-0384 Path B, v1).
 //!
 //! Targets the OpenAI Codex Sign-in-with-ChatGPT OAuth flow + data endpoint.
 //! Wire format is reverse-engineered from auth2api / CLIProxyAPI (Stage-6 gap #11).

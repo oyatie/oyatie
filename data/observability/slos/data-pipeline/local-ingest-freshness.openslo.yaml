@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_ingest_freshness_good_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_ingest_freshness_good_total[30d])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_ingest_freshness_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_ingest_freshness_total[30d])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Ingest batches available inside freshness objective
       target: 0.995

@@ -1,1 +1,0 @@
-cedar/admin-action-authorization.cedar

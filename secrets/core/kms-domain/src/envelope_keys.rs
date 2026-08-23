@@ -3,7 +3,7 @@
 //! `KekId` and `DekId` are the foundational identifiers for the P08-kms envelope
 //! encryption substrate (AES-256-GCM, per-tenant DEK isolation). These types
 //! live here — adjacent to `KmsKeyId` — as the merge-variant delta-1 backport
-//! from the P08 impl-plan into the existing live `oya-cloud-kms-domain` crate.
+//! from the P08 impl-plan into the existing live `cloud-kms-domain` crate.
 //!
 //! Format invariants (enforced at construction):
 //! - `KekId`: `"kek/"` prefix followed by a non-empty, `/`-free slug; e.g. `"kek/ten_abc123"`

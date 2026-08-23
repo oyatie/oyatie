@@ -14,7 +14,7 @@ doc_status: published
 evidence that PHI may have leaked to a non-PHI surface (search index, ad target, analytics, log)
 
 ## Detection
-- Source signal: Audit-chain PHI-class anomaly; `oya-governance-data-class` runtime block on PHI cross-axis call; tenant report
+- Source signal: Audit-chain PHI-class anomaly; `governance-data-class` runtime block on PHI cross-axis call; tenant report
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 1 ladder
 
 ## First-response checklist

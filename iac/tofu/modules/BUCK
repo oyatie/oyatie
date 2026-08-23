@@ -1,4 +1,0 @@
-export_file(
-    name = "release-index.json",
-    visibility = ["PUBLIC"],
-)

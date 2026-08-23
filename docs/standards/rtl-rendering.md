@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-18
 purpose: |
   Canonical RTL (right-to-left) rendering rules. Locale-driven bidi flag from
-  oya-shared-i18n-kernel determines per-surface direction.
+  shared-i18n-kernel determines per-surface direction.
 canonical_authority: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 related_adrs:
   - ADR-0064
@@ -20,7 +20,7 @@ related_adrs:
 ## Authority
 
 This standard implements the RTL bidi rules called out in ADR-0206. Locale tags carry an
-`is_rtl` flag (closed CLDR allowlist) via the `oya-shared-i18n-kernel::LocaleTag` type.
+`is_rtl` flag (closed CLDR allowlist) via the `shared-i18n-kernel::LocaleTag` type.
 
 ## RTL locales (closed allowlist)
 

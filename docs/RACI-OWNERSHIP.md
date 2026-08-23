@@ -53,20 +53,20 @@ doc_status: published
 Pointer: `.github/CODEOWNERS` is the per-file truth. Sample mapping:
 
 ```
-crates/oya-platform-tenant-*/        @teams/platform-tenancy-identity
-crates/oya-platform-identity-*/      @teams/platform-tenancy-identity
-crates/oya-platform-audit-chain-*/   @teams/platform-audit-evidence
-crates/oya-platform-eventing-*/      @teams/platform-eventing-og
-crates/oya-platform-object-graph-*/  @teams/platform-eventing-og
-crates/oya-foundry-*/                @teams/axis-foundry
-crates/oya-cloud-*/                  @teams/axis-cloud
-crates/oya-saas-*/                   @teams/axis-saas
-crates/oya-workspace-*/              @teams/axis-workspace
-crates/oya-search-*/                 @teams/axis-search
-crates/oya-ads-*/                    @teams/axis-ads-analytics
-crates/oya-analytics-*/              @teams/axis-ads-analytics
-crates/oya-vertical-healthcare-*/    @teams/vertical-healthcare
-crates/oya-vertical-corporate-*/     @teams/vertical-corporate
+crates/platform-tenant-*/        @teams/platform-tenancy-identity
+crates/platform-identity-*/      @teams/platform-tenancy-identity
+crates/platform-audit-chain-*/   @teams/platform-audit-evidence
+crates/platform-eventing-*/      @teams/platform-eventing-og
+crates/platform-object-graph-*/  @teams/platform-eventing-og
+crates/foundry-*/                @teams/axis-foundry
+crates/cloud-*/                  @teams/axis-cloud
+crates/saas-*/                   @teams/axis-saas
+crates/workspace-*/              @teams/axis-workspace
+crates/search-*/                 @teams/axis-search
+crates/ads-*/                    @teams/axis-ads-analytics
+crates/analytics-*/              @teams/axis-ads-analytics
+crates/vertical-healthcare-*/    @teams/vertical-healthcare
+crates/vertical-corporate-*/     @teams/vertical-corporate
 ... (per vertical + per regional pack)
 
 decisions/                           @teams/crew-adr-promotion @teams/council-architecture
@@ -81,7 +81,7 @@ regional-packs/<pack>/                @teams/regional-packs
 
 ### 3.1 Team charter coverage
 
-This table is generated from `docs/teams/*/CHARTER.md` and validated by `oya gate validate raci-team-coverage`. Every team charter MUST have a RACI row and a direct CODEOWNERS owner handle.
+This table is generated from `docs/teams/*/CHARTER.md` and validated by `presubmit` (retired CLI `gate validate raci-team-coverage`). Every team charter MUST have a RACI row and a direct CODEOWNERS owner handle.
 
 | team_id | charter | owning_handle | CODEOWNERS requirement |
 |---|---|---|---|

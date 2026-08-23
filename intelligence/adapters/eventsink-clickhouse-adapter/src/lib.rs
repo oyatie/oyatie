@@ -1,17 +1,17 @@
-//! ClickHouse EventSink adapter for the cloud-intelligence OAuth subscription pool
+//! ClickHouse EventSink adapter for the intelligence-app OAuth subscription pool
 //! (ADR-0384 Path B, Stage-7 D6 production seam).
 //!
 //! Implements [`EventSink`] from `intelligence-kernel` by
-//! INSERTing [`LlmGatewayEvent`] rows into the `cloud_intelligence_receipts`
+//! INSERTing [`LlmGatewayEvent`] rows into the `intelligence_app_receipts`
 //! table in the caller's per-tenant ClickHouse database via the shared
-//! [`oya_shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
+//! [`shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
 //!
 //! ## Insert shape
 //!
 //! Each [`LlmGatewayEvent`] maps to one row:
 //!
 //! ```text
-//! INSERT INTO tenant_{tenant_id}.cloud_intelligence_receipts
+//! INSERT INTO tenant_{tenant_id}.intelligence_app_receipts
 //!   (request_id, tenant_id, agent_id, seat_id, provider, model,
 //!    prompt_tokens, completion_tokens, ms_latency, status, timestamp_unix_ms)
 //! VALUES (...)
@@ -22,7 +22,7 @@
 //! - emit is best-effort: failures are logged via `tracing::warn` but never
 //!   propagate to the caller (D6 non-fatal contract).
 //! - no batching / coalescing (Stage-8 follow-up).
-//! - no DDL bootstrap: the `cloud_intelligence_receipts` table must exist
+//! - no DDL bootstrap: the `intelligence_app_receipts` table must exist
 //!   before the adapter is used (Stage-7 admin runbook item).
 //! - no retry: transient ClickHouse errors are logged and dropped.
 //!
@@ -34,8 +34,8 @@ use std::fmt;
 use std::sync::Mutex;
 
 use intelligence_kernel::{EventSink, LlmGatewayEvent};
-use oya_shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
-use oya_shared_olap_client_kernel::{
+use shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
+use shared_olap_client_kernel::{
     InsertBatch, OlapClient, QualifiedTable, TableName, TenantId, Value,
 };
 use tracing::warn;
@@ -44,7 +44,7 @@ use tracing::warn;
 // Table constant
 // ---------------------------------------------------------------------------
 
-const TABLE: &str = "cloud_intelligence_receipts";
+const TABLE: &str = "intelligence_app_receipts";
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -233,7 +233,7 @@ mod tests {
         // Force an invalid tenant_id by constructing a kernel TenantId we
         // can't create with an empty string, so we patch via a wrapper:
         // instead build an event with a valid kernel TenantId but inject a
-        // tenant whose oya-shared-olap-client-kernel TenantId::try_new would
+        // tenant whose shared-olap-client-kernel TenantId::try_new would
         // reject (the olap kernel disallows chars beyond alphanumeric/-/_).
         event.tenant_id = KernelTenantId::new("tenant a").unwrap(); // space is invalid for olap kernel
         let result = sink.try_emit(&event);

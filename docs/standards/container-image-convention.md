@@ -24,7 +24,7 @@ ENTRYPOINT ["/app"]
 
 | Directive | Required value | Validator |
 | --- | --- | --- |
-| Final-stage `FROM` | `gcr.io/distroless/static-debian12:nonroot` | `oya gate validate container-base-image` |
+| Final-stage `FROM` | `gcr.io/distroless/static-debian12:nonroot` | `presubmit` (retired CLI `gate validate container-base-image`) |
 | `USER` | `65532:65532` (or bare `65532`) | same |
 
 The `:debug-nonroot` variant is the only other accepted final-stage
@@ -39,7 +39,7 @@ builds may declare it; production images must not.
    `<bin>` token with the µservice's binary name.
 2. Wire the build target into the µservice's CI workflow under
    `.github/workflows/<ms>-build.yml` (when the workflow exists).
-3. Re-run `oya gate validate container-base-image` locally to confirm
+3. Re-run `presubmit` (retired CLI `gate validate container-base-image`) locally to confirm
    the lane passes before opening the PR.
 
 ## How to migrate an existing µservice
@@ -49,7 +49,7 @@ builds may declare it; production images must not.
 3. Ensure the binary is built with
    `cargo build --release --target x86_64-unknown-linux-musl` so it
    does not link against glibc.
-4. Run `oya gate validate container-base-image` and address any
+4. Run `presubmit` (retired CLI `gate validate container-base-image`) and address any
    reported violations.
 
 ## Why distroless and not scratch
@@ -68,7 +68,7 @@ smallest defensible surface.
 
 ## CI lane
 
-The pre-merge `oya gate validate container-base-image` lane scans every
+The pre-merge `presubmit` (retired CLI `gate validate container-base-image`) lane scans every
 `microservices/*/iac/build/Dockerfile*` plus any Helm `values.yaml`
 image stanzas. Violations are surfaced as `NonCanonicalBase`,
 `MissingUser`, or `NonCanonicalUser`.

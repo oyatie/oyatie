@@ -43,12 +43,12 @@ pub(crate) fn mint_ed25519_token(claims_json: &str, kid: &str) -> (String, Jwk) 
 }
 
 fn config() -> ValidationConfig {
-    ValidationConfig::new("https://idp.oyatie.com", "oya-cloud-kms")
+    ValidationConfig::new("https://idp.oyatie.com", "cloud-kms")
 }
 
 fn valid_claims(now: i64) -> String {
     format!(
-        r#"{{"iss":"https://idp.oyatie.com","aud":"oya-cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
+        r#"{{"iss":"https://idp.oyatie.com","aud":"cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
         now + 300,
         now
     )

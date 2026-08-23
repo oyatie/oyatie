@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify projected per-cell unit-cost stays within the declared cost budget (FinOps signal).
-- enforces: STANDARD/cost-budget; existing crate `oya-intelligence-cost-budget-kernel` (EXISTING).
-- kernel_crate: `oya-intelligence-cost-budget-kernel` (EXISTING) — `CostProjection { cell_id, unit_cost, currency }`, verdict `CostBudgetFitnessReport { cells_checked }`.
-- runner_path: `tools/oya-governance-cost-budget`
+- enforces: STANDARD/cost-budget; existing crate `intelligence-cost-budget-kernel` (EXISTING).
+- kernel_crate: `intelligence-cost-budget-kernel` (EXISTING) — `CostProjection { cell_id, unit_cost, currency }`, verdict `CostBudgetFitnessReport { cells_checked }`.
+- runner_path: `tools/governance-cost-budget`
 - inputs: cost-model output JSON, per-cell budget registry.
 - failure_modes:
   - cell projection > budget
   - currency mismatch
   - missing projection for declared cell
-- ci_invocation: `cargo run -p oya-governance-cost-budget`
+- ci_invocation: `cargo run -p governance-cost-budget`
 - runtime_budget: 600 ms
 - severity: MED
 - kernel_sketch:

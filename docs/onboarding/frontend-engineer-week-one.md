@@ -23,8 +23,8 @@ inbound_citations:
   - docs/onboarding/intern-day-one.md
   - docs/onboarding/intern-week-one.md
 enforced_by:
-  - oya-governance-doc-rigor
-  - oya-governance-doc-graph-6hops
+  - governance-doc-rigor
+  - governance-doc-graph-6hops
 ---
 
 # Frontend Engineer Week-One Onboarding
@@ -129,9 +129,9 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 
 ### Named playgrounds
 
-1. microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-new-hire-onboarding.fixture.json
+1. microservices/workflow-studio/templates/fixtures/workflow-studio-template-new-hire-onboarding.fixture.json
    - Artifact: write a four-sentence note explaining what this playground proves for SPA and web engineer, Workflow Studio and web surfaces.
-2. microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-new-hire-onboarding.md
+2. microservices/workflow-studio/templates/explainers/workflow-studio-template-new-hire-onboarding.md
    - Artifact: write a four-sentence note explaining what this playground proves for SPA and web engineer, Workflow Studio and web surfaces.
 3. microservices/workflow-studio/clients/web-sveltekit/src/templates/catalog.spec.ts
    - Artifact: write a four-sentence note explaining what this playground proves for SPA and web engineer, Workflow Studio and web surfaces.
@@ -239,8 +239,8 @@ By the end of month one, you should own repeatable work rather than single isola
 Month two moves from operating the checklist to explaining why the checklist exists.
 1. SvelteKit web phase and Leptos phase-two trigger
    - Study artifact: one note that names precedent, failure modes, capacity or timing boundary, observability hook, rollback, multi-region behavior, sovereign-cell behavior, and versioning impact for SvelteKit web phase and Leptos phase-two trigger.
-2. svelte-flow adapter boundary and oya-canvas future
-   - Study artifact: one note that names precedent, failure modes, capacity or timing boundary, observability hook, rollback, multi-region behavior, sovereign-cell behavior, and versioning impact for svelte-flow adapter boundary and oya-canvas future.
+2. svelte-flow adapter boundary and canvas future
+   - Study artifact: one note that names precedent, failure modes, capacity or timing boundary, observability hook, rollback, multi-region behavior, sovereign-cell behavior, and versioning impact for svelte-flow adapter boundary and canvas future.
 3. Yjs collaborative editing semantics and CRDT conflict resolution
    - Study artifact: one note that names precedent, failure modes, capacity or timing boundary, observability hook, rollback, multi-region behavior, sovereign-cell behavior, and versioning impact for Yjs collaborative editing semantics and CRDT conflict resolution.
 4. ADR-0142 portability trait and alternate adapter compile gate
@@ -382,7 +382,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-002: Yjs merge replay
 - Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves Yjs merge replay without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Yjs merge replay.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show Yjs merge replay is working.
@@ -482,7 +482,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-012: template catalog load state
 - Read: microservices/workflow-studio/clients/web-sveltekit/packages/i18n-source/source.ftl
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves template catalog load state without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for template catalog load state.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show template catalog load state is working.
@@ -582,7 +582,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-022: ko-KR locale overlay
 - Read: microservices/workflow-studio/ARCHITECTURE.md
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves ko-KR locale overlay without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for ko-KR locale overlay.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show ko-KR locale overlay is working.
@@ -682,7 +682,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-032: svelte-flow adapter boundary
 - Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves svelte-flow adapter boundary without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for svelte-flow adapter boundary.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show svelte-flow adapter boundary is working.
@@ -782,7 +782,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-042: canvas 1000-node pan budget
 - Read: microservices/workflow-studio/clients/web-sveltekit/packages/i18n-source/source.ftl
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves canvas 1000-node pan budget without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for canvas 1000-node pan budget.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show canvas 1000-node pan budget is working.
@@ -882,7 +882,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-052: visual regression screenshot
 - Read: microservices/workflow-studio/ARCHITECTURE.md
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves visual regression screenshot without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for visual regression screenshot.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show visual regression screenshot is working.
@@ -982,7 +982,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-062: Cedar-denied UI state
 - Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves Cedar-denied UI state without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar-denied UI state.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show Cedar-denied UI state is working.
@@ -1082,7 +1082,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 
 ### Drill FE-072: wide-desktop minimap layout
 - Read: microservices/workflow-studio/clients/web-sveltekit/packages/i18n-source/source.ftl
-- Connects to: svelte-flow adapter boundary and oya-canvas future
+- Connects to: svelte-flow adapter boundary and canvas future
 - Build or inspect: a minimal artifact that proves wide-desktop minimap layout without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for wide-desktop minimap layout.
 - Observability: name the metric, trace, log, audit event, dashboard, evidence file, or customer artifact that would show wide-desktop minimap layout is working.

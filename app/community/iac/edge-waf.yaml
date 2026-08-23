@@ -116,5 +116,5 @@ spec:
 
   tenant_visibility:
     dashboard_path: dashboards/abuse-defence-outcomes.json
-    false_positive_metric: oya_community_abuse_defence_false_positive_rate
-    blocked_bot_metric: oya_community_abuse_defence_blocked_total
+    false_positive_metric: community_abuse_defence_false_positive_rate
+    blocked_bot_metric: community_abuse_defence_blocked_total

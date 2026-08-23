@@ -6,10 +6,8 @@ use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 
-use oya_shared_platform_contracts_kernel::tenancy::{
-    IsolationPosture, Tenant, TenantLifecycleState,
-};
-use oya_shared_resource_provider_contract_kernel::{ProviderError, ResourceName, ResourceProvider};
+use shared_platform_contracts_kernel::tenancy::{IsolationPosture, Tenant, TenantLifecycleState};
+use shared_resource_provider_contract_kernel::{ProviderError, ResourceName, ResourceProvider};
 use tenancy_tenant_lifecycle_domain::DesiredTenantState;
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
