@@ -264,7 +264,11 @@ fn hooks_are_fmt_only() {
         ("pre-commit", pre_commit.as_str()),
         ("pre-push", pre_push.as_str()),
     ] {
-        assert!(body.contains("cargo fmt --check"), "{name} runs rustfmt");
+        assert!(body.contains("rustfmt --check"), "{name} runs rustfmt");
+        assert!(
+            !body.contains("cargo fmt"),
+            "{name} must not call cargo fmt (that formats the whole workspace)"
+        );
         assert!(
             !body.contains("cargo nextest"),
             "{name} must not run nextest"
