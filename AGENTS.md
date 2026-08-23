@@ -153,7 +153,7 @@ required_sequence:
   - harness-native isolation only (worktree, vendor sandbox, or single
     checkout — the tool's problem, not a shared protocol; ADR-0719 D-42)
   - install .githooks/{pre-commit,pre-push} into $(git rev-parse --git-common-dir)/hooks/
-    # native .git/hooks; beads must not own or wrap git hooks
+    # native .git/hooks; must not wrap git hooks unless explicitly asked
   - SSH-signed commit and push on that lane
   - draft PR against origin/dev as soon as the lane has a path (occupancy);
     never merge live lanes into each other or merge origin/dev into a
