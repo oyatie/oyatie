@@ -24,6 +24,7 @@ hydrate = ["dep:wasm-bindgen", "leptos/hydrate"]
 ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
 
 [dependencies]
+shared-oidc-client-kernel = { path = "../../../../iam/core/oidc-client-kernel" }
 shared-platform-contracts-kernel = { path = "../../../../iam/core/platform-contracts-kernel" }
 leptos = { version = "=0.8.19", default-features = false }
 

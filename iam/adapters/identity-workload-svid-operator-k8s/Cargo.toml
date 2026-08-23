@@ -18,6 +18,7 @@ doctest = false
 [dependencies]
 iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
+os-trustd-domain = { path = "../../core/trustd-domain" }
 
 base64 = { version = "0.22", default-features = false, features = ["std"] }
 futures = "0.3"

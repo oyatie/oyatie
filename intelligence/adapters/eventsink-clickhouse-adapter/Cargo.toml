@@ -21,6 +21,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-clickhouse-adapter = { path = "../../../data/adapters/olap-clickhouse" }
 shared-olap-client-kernel = { path = "../../../data/core/olap-client-kernel" }
 intelligence-kernel = { path = "../../core/kernel" }
 

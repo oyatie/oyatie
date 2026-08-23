@@ -33,6 +33,7 @@ reqwest = { version = "0.13", default-features = false, features = ["json", "rus
 tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
+scripted-http-server = { path = "../scripted-http-server" }
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
 futures = "0.3"
 # First-party scripted HTTP test server. Replaces `httpmock`, which ADR-0709 D-6

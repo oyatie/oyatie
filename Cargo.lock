@@ -114,8 +114,10 @@ dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
+ "check-cost-budget",
  "data-boundary-kernel",
  "data-ontology-domain",
+ "governance-eval-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
  "intelligence-adapter-kernel",
@@ -147,6 +149,7 @@ dependencies = [
  "leptos_axum",
  "serde",
  "serde_json",
+ "shared-oidc-client-kernel",
  "shared-platform-contracts-kernel",
  "tokio",
  "wasm-bindgen",
@@ -779,6 +782,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bstr"
+version = "1.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bb31b46c14244e20ee9984b11bf5c992b91fb6939fea616e3512c8baecdbe5f"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -968,6 +980,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-cost-budget"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -978,6 +997,12 @@ dependencies = [
  "serde",
  "windows-link",
 ]
+
+[[package]]
+name = "cityhash-rs"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93a719913643003b84bd13022b4b7e703c09342cd03b679c4641c7d2e50dc34d"
 
 [[package]]
 name = "clap"
@@ -1027,6 +1052,43 @@ name = "clap_lex"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
+
+[[package]]
+name = "clickhouse"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a9a81a1dffadd762ee662635ce409232258ce9beebd7cc0fa227df0b5e7efc0"
+dependencies = [
+ "bstr",
+ "bytes",
+ "cityhash-rs",
+ "clickhouse-derive",
+ "futures",
+ "futures-channel",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "lz4_flex",
+ "replace_with",
+ "sealed",
+ "serde",
+ "static_assertions",
+ "thiserror 1.0.69",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "clickhouse-derive"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d70f3e2893f7d3e017eeacdc9a708fbc29a10488e3ebca21f9df6a5d2b616dbb"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.119",
+]
 
 [[package]]
 name = "cmake"
@@ -1089,7 +1151,10 @@ dependencies = [
  "community-post-store-domain",
  "community-post-store-postgres",
  "community-post-store-usecase",
+ "shared-postgres-command-kernel",
  "shared-protocol-parity-kernel",
+ "shared-protocol-transport-kernel",
+ "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
@@ -1106,11 +1171,16 @@ dependencies = [
  "community-post-store-api",
  "community-post-store-app",
  "community-post-store-domain",
+ "shared-postgres-command-kernel",
+ "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-post-store-postgres"
 version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+]
 
 [[package]]
 name = "community-post-store-rest"
@@ -1120,6 +1190,8 @@ dependencies = [
  "community-post-store-app",
  "community-post-store-domain",
  "community-post-store-usecase",
+ "shared-hyperscaler-metrics-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -1137,7 +1209,10 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
+ "shared-postgres-command-kernel",
  "shared-protocol-parity-kernel",
+ "shared-protocol-transport-kernel",
+ "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
@@ -1160,11 +1235,16 @@ version = "0.1.0"
 dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
+ "shared-postgres-command-kernel",
+ "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-social-post-composition-postgres"
 version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+]
 
 [[package]]
 name = "community-social-post-composition-rest"
@@ -1173,6 +1253,8 @@ dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
  "community-social-post-composition-usecase",
+ "shared-hyperscaler-metrics-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -1325,8 +1407,8 @@ dependencies = [
  "convert_case 0.6.0",
  "pathdiff",
  "serde_core",
- "toml",
- "winnow",
+ "toml 1.1.4+spec-1.1.0",
+ "winnow 1.0.4",
 ]
 
 [[package]]
@@ -1578,6 +1660,7 @@ dependencies = [
  "data-analytics-domain",
  "serde",
  "serde_json",
+ "shared-olap-clickhouse-adapter",
  "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
@@ -2149,42 +2232,72 @@ dependencies = [
 [[package]]
 name = "gateway-adp-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-epic-fhir-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-gusto-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-netsuite-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-quickbooks-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-rippling-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-salesforce-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-slack-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-teams-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "gateway-workday-connector"
 version = "0.1.0"
+dependencies = [
+ "shared-connector-kernel",
+]
 
 [[package]]
 name = "generic-array"
@@ -2279,6 +2392,13 @@ dependencies = [
  "serde_json",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "governance-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2519,6 +2639,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-sse-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2733,6 +2857,7 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tonic",
@@ -2849,6 +2974,7 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "kube-runtime",
+ "os-trustd-domain",
  "serde_json",
  "tokio",
  "tracing",
@@ -2867,6 +2993,7 @@ name = "iam-identity-workload-svid-trustd"
 version = "0.1.0"
 dependencies = [
  "iam-identity-workload-svid-kernel",
+ "os-trustd-domain",
  "x509-parser",
 ]
 
@@ -2898,13 +3025,18 @@ dependencies = [
  "iam-pdp-bundle-file",
  "iam-pdp-cedar",
  "iam-pdp-kernel",
+ "os-trustd-domain",
  "prost",
  "protoc-bin-vendored",
  "reqwest 0.13.4",
  "rustls",
  "serde",
  "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
  "tokio",
  "tokio-rustls",
  "tonic",
@@ -2923,6 +3055,9 @@ dependencies = [
  "iam-pdp-kernel",
  "serde",
  "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
 ]
 
@@ -2935,13 +3070,16 @@ dependencies = [
  "cedar-policy",
  "data-boundary-kernel",
  "serde_json",
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
 ]
 
 [[package]]
 name = "iam-pdp-kernel"
 version = "0.1.0"
 dependencies = [
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
 ]
 
@@ -2997,6 +3135,7 @@ dependencies = [
  "iam-tenant-rbac-usecase",
  "serde",
  "serde_json",
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
 ]
 
@@ -3417,6 +3556,9 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
+ "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tracing",
@@ -3488,6 +3630,7 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
+ "check-cost-budget",
  "data-boundary-kernel",
  "intelligence-capability-domain",
  "secrets-domain",
@@ -3498,6 +3641,7 @@ name = "intelligence-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
  "http-router-kernel",
+ "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -3586,6 +3730,7 @@ dependencies = [
  "intelligence-rest",
  "reqwest 0.13.4",
  "serde",
+ "shared-olap-clickhouse-adapter",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3596,6 +3741,7 @@ name = "intelligence-architecture-map-app"
 version = "0.1.0"
 dependencies = [
  "intelligence-architecture-map-kernel",
+ "workspace-members-kernel",
 ]
 
 [[package]]
@@ -3755,7 +3901,11 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
  "shared-protocol-parity-kernel",
+ "shared-transactional-outbox-adapter-sqlx",
+ "shared-transactional-outbox-kernel",
  "sqlx",
  "tokio",
 ]
@@ -3843,6 +3993,7 @@ dependencies = [
  "futures-util",
  "intelligence-kernel",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -4033,6 +4184,7 @@ version = "0.1.0"
 dependencies = [
  "intelligence-kernel",
  "serde",
+ "shared-olap-clickhouse-adapter",
  "shared-olap-client-kernel",
  "tokio",
  "tracing",
@@ -4172,6 +4324,7 @@ name = "intelligence-openai-compat-api"
 version = "0.1.0"
 dependencies = [
  "http-router-kernel",
+ "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -4209,6 +4362,7 @@ dependencies = [
  "intelligence-kernel",
  "intelligence-rest",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -4259,6 +4413,7 @@ dependencies = [
  "http-body-util",
  "http-middleware-kernel",
  "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-kernel",
@@ -4322,6 +4477,7 @@ name = "intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",
+ "governance-eval-domain",
  "intelligence-capability-domain",
 ]
 
@@ -4337,6 +4493,7 @@ dependencies = [
  "intelligence-gemini-adapter",
  "intelligence-kernel",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -5419,6 +5576,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
+name = "lz4_flex"
+version = "0.11.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "373f5eceeeab7925e0c1098212f2fbc4d416adec9d35051a6ab251e824c1854a"
+
+[[package]]
 name = "manyhow"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5859,6 +6022,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "os-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "os-trustd-domain"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "os-kernel",
+ "rcgen",
+ "time",
+ "x509-parser",
 ]
 
 [[package]]
@@ -6866,6 +7044,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
+name = "replace_with"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51743d3e274e2b18df81c4dc6caf8a5b8e15dbe799e0dca05c7617380094e884"
+
+[[package]]
 name = "reqwest"
 version = "0.12.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7176,6 +7360,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "scripted-http-server"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "reqwest 0.13.4",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "sealed"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22f968c5ea23d555e670b449c1c5e7b2fc399fdaec1d304a17cd48e288abc107"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "secrecy"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7366,6 +7571,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_derive_internals"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "serde_json"
 version = "1.0.151"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7399,6 +7615,15 @@ dependencies = [
  "percent-encoding",
  "serde",
  "thiserror 2.0.20",
+]
+
+[[package]]
+name = "serde_spanned"
+version = "0.6.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -7575,8 +7800,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared-audit-digest-adapter-awslc"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "shared-audit-event-kernel",
+]
+
+[[package]]
+name = "shared-audit-event-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-connector-kernel"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "shared-hyperscaler-metrics-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-oidc-client-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-olap-clickhouse-adapter"
+version = "0.1.0"
+dependencies = [
+ "clickhouse",
+ "serde",
+ "serde_json",
+ "shared-olap-client-kernel",
+]
+
+[[package]]
 name = "shared-olap-client-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "shared-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+]
 
 [[package]]
 name = "shared-platform-contracts-kernel"
@@ -7588,8 +7867,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared-postgres-command-adapter-sqlx"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
+name = "shared-postgres-command-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "shared-protocol-parity-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "shared-protocol-transport-kernel"
+version = "0.1.0"
+dependencies = [
+ "shared-protocol-parity-kernel",
+]
 
 [[package]]
 name = "shared-resource-provider-contract-kernel"
@@ -7599,6 +7898,36 @@ dependencies = [
  "serde_json",
  "tokio",
 ]
+
+[[package]]
+name = "shared-scim-server-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "shared-transactional-outbox-adapter-sqlx"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "shared-transactional-outbox-kernel",
+ "sqlx",
+]
+
+[[package]]
+name = "shared-transactional-outbox-kernel"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "shared-protocol-parity-kernel",
+]
+
+[[package]]
+name = "shared-ulid-id-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "sheets-domain"
@@ -7853,6 +8182,12 @@ dependencies = [
  "psm",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "storage-block-api"
@@ -8141,7 +8476,9 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "shared-pdp-kernel",
  "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
  "tenancy-tenant-lifecycle-authz-port",
 ]
 
@@ -8185,6 +8522,8 @@ dependencies = [
  "serde",
  "serde_json",
  "shared-platform-contracts-kernel",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
  "sqlx",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -8417,15 +8756,36 @@ dependencies = [
 
 [[package]]
 name = "toml"
+version = "0.8.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
+dependencies = [
+ "serde",
+ "serde_spanned 0.6.9",
+ "toml_datetime 0.6.11",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml"
 version = "1.1.4+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3aace63f4bbcdfc2c965b059de67119c89c4017a70d633be6c104910f67056f5"
 dependencies = [
  "serde_core",
- "serde_spanned",
- "toml_datetime",
+ "serde_spanned 1.1.1",
+ "toml_datetime 1.1.1+spec-1.1.0",
  "toml_parser",
- "winnow",
+ "winnow 1.0.4",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -8438,13 +8798,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_edit"
+version = "0.22.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
+dependencies = [
+ "indexmap 2.14.0",
+ "serde",
+ "serde_spanned 0.6.9",
+ "toml_datetime 0.6.11",
+ "toml_write",
+ "winnow 0.7.15",
+]
+
+[[package]]
 name = "toml_parser"
 version = "1.1.3+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d38ac1cf9b95face32296c0a3ede1fdc270627c9d9c02a7274dd6d960dc4d56"
 dependencies = [
- "winnow",
+ "winnow 1.0.4",
 ]
+
+[[package]]
+name = "toml_write"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "tonic"
@@ -9319,6 +9699,15 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
+version = "0.7.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
@@ -9331,6 +9720,14 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
+
+[[package]]
+name = "workspace-members-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "toml 0.8.23",
+]
 
 [[package]]
 name = "writeable"

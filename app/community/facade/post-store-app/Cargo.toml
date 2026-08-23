@@ -7,6 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+shared-transactional-outbox-kernel = { path = "../../../../data/core/transactional-outbox-kernel" }
+shared-protocol-transport-kernel = { path = "../../../../gateway/core/protocol-transport-kernel" }
+shared-postgres-command-kernel = { path = "../../../../data/core/postgres-command-kernel" }
 shared-protocol-parity-kernel = { path = "../../../../gateway/core/protocol-parity-kernel" }
 community-post-store-postgres = { path = "../../adapters/post-store-postgres" }
 community-post-store-api = { path = "../../ports/post-store-api" }

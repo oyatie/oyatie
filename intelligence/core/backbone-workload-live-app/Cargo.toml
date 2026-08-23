@@ -31,4 +31,8 @@ doctest = false
 workspace = true
 
 [dependencies]
+shared-transactional-outbox-adapter-sqlx = { path = "../../../data/adapters/outbox-sqlx" }
+shared-transactional-outbox-kernel = { path = "../../../data/core/transactional-outbox-kernel" }
+shared-postgres-command-adapter-sqlx = { path = "../../../data/adapters/postgres-command-sqlx" }
+shared-postgres-command-kernel = { path = "../../../data/core/postgres-command-kernel" }
 shared-protocol-parity-kernel = { path = "../../../gateway/core/protocol-parity-kernel" }

@@ -7,6 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+governance-eval-domain = { path = "../../../../pipeline/core/eval-domain" }
+check-cost-budget = { path = "../../../../billing/core/check-cost-budget" }
 data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
 intelligence-adapter-kernel = { path = "../../../../intelligence/core/adapter-kernel" }
 intelligence-bypass-domain = { path = "../../../../intelligence/core/bypass-domain" }

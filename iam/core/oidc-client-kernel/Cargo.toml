@@ -1,0 +1,27 @@
+[package]
+name = "shared-oidc-client-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "OIDC relying-party client kernel: trait + reference verifier impl for the bespoke iam-identity-service issuer. Verifies JWT, fetches JWKS, validates audience/expiry/issuer, parses oyatie custom claims (tenant_id, acr, purpose, data_class). Authority: ADR-0145, ADR-0476, ADR-0189."
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+serde_json = "1.0"
+
+[lib]
+name = "shared_oidc_client_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[[test]]
+name = "oidc_client_kernel"
+path = "tests/oidc_client_kernel.rs"
+
+[lints]
+workspace = true

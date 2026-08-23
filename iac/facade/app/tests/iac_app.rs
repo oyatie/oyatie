@@ -78,7 +78,7 @@ fn test_provider() -> Arc<CloudIacModuleRegistryAuthzProvider> {
     ))
 }
 
-const RELEASE_INDEX_JSON: &str = include_str!("../../../tofu/modules/release-index.json");
+const RELEASE_INDEX_JSON: &str = include_str!("release-index.json");
 const TEST_ARTIFACT_ARCHIVE: &str = "oyatie-unit-artifact-opentofu-0.1.0.zip";
 const TEST_ARTIFACT_PATH: &str =
     "target/iac-app/module-archives/oyatie-unit-artifact-opentofu-0.1.0.zip";

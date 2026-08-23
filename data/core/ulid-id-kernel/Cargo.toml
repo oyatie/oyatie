@@ -1,0 +1,21 @@
+[package]
+name = "shared-ulid-id-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Tier-A hyperscaler pattern (extends ADR-0053).
+# Authored 2026-05-18. Canonical ULID generator trait — every event/message/
+# job/outbox id across the 33 µservices comes from this surface.
+
+[dependencies]
+
+[lib]
+name = "shared_ulid_id_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,0 +1,22 @@
+[package]
+name = "shared-postgres-command-adapter-sqlx"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+shared-postgres-command-kernel = { path = "../../core/postgres-command-kernel" }
+sqlx.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lib]
+name = "shared_postgres_command_adapter_sqlx"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

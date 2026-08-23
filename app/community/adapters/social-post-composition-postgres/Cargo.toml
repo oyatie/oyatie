@@ -7,6 +7,7 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
+shared-postgres-command-kernel = { path = "../../../../data/core/postgres-command-kernel" }
 
 
 [lib]

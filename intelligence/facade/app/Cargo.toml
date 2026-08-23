@@ -24,6 +24,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-clickhouse-adapter = { path = "../../../data/adapters/olap-clickhouse" }
 intelligence-kernel = { path = "../../core/kernel" }
 intelligence-rest = { path = "../../adapters/rest" }
 intelligence-authz-cedar-adapter = { path = "../../adapters/authz-cedar-adapter" }

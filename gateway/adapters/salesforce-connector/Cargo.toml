@@ -12,6 +12,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-connector-kernel = { path = "../../core/connector-kernel" }
 
 
 [lints]

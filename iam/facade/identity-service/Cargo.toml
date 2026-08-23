@@ -16,6 +16,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-scim-server-kernel = { path = "../../core/scim-server-kernel" }
 iam-identity-oidc-issuer-kernel = { path = "../../core/identity-oidc-issuer-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-app = { path = "../identity-workload-app" }

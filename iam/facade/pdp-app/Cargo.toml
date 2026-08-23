@@ -9,6 +9,11 @@ description = "Runnable iam policy-decision-point service (ADR-0559, G004 slice 
 build = "build.rs"
 
 [dependencies]
+shared-audit-digest-adapter-awslc = { path = "../../../audit/adapters/digest-awslc" }
+shared-audit-event-kernel = { path = "../../../audit/core/event-kernel" }
+os-trustd-domain = { path = "../../core/trustd-domain" }
+shared-ulid-id-kernel = { path = "../../../data/core/ulid-id-kernel" }
+shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
 shared-platform-contracts-kernel = { path = "../../core/platform-contracts-kernel" }
 http-runtime-hyper-adapter = { path = "../../../gateway/adapters/http-runtime-hyper" }
 iam-pdp-kernel = { path = "../../core/pdp-kernel" }

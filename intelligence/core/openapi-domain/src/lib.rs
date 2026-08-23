@@ -6184,10 +6184,7 @@ pub struct TagResponse {
         format!("{}{}{}", &VALID[..start], replacement, &VALID[end..])
     }
 
-    const VALID: &str = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../../contracts/openapi/foundry/capability-v1.yaml"
-    ));
+    const VALID: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/capability-v1.yaml"));
 
     fn query_operation_document() -> String {
         r#"openapi: 3.2.0

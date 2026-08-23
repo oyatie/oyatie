@@ -41,7 +41,7 @@ use crate::{
 
 // Include tonic-generated stubs for identity.workload.v1.
 pub mod proto {
-    tonic::include_proto!("identity.workload.v1");
+    tonic::include_proto!("oya.identity.workload.v1");
 }
 
 pub use proto::workload_authorizer_server::WorkloadAuthorizerServer;

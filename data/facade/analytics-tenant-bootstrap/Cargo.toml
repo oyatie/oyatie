@@ -27,6 +27,7 @@ name = "data-analytics-tenant-bootstrap"
 path = "src/main.rs"
 
 [dependencies]
+shared-olap-clickhouse-adapter = { path = "../../adapters/olap-clickhouse" }
 shared-olap-client-kernel = { path = "../../core/olap-client-kernel" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
 

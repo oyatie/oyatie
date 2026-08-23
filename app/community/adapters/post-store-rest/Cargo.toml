@@ -7,6 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+shared-hyperscaler-metrics-kernel = { path = "../../../../observability/core/metrics-kernel" }
+shared-postgres-command-kernel = { path = "../../../../data/core/postgres-command-kernel" }
 community-post-store-app = { path = "../../facade/post-store-app" }
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-domain = { path = "../../core/post-store-domain" }

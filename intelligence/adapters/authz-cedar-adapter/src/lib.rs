@@ -31,8 +31,7 @@ use intelligence_kernel::{AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, P
 
 /// Default policy text bundled with the µservice. Compiled into the crate so
 /// the adapter is self-contained at runtime — no file I/O on the request path.
-pub const DEFAULT_POLICY_TEXT: &str =
-    include_str!("../../../../intelligence/policy/intelligence-app.cedar");
+pub const DEFAULT_POLICY_TEXT: &str = include_str!("../../../cedar/cloud-intelligence.cedar");
 
 /// Adapter errors raised at construction time. The request path itself is
 /// total: any error during entity/request translation maps to a fail-closed

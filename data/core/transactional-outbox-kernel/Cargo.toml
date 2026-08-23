@@ -1,0 +1,19 @@
+[package]
+name = "shared-transactional-outbox-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+shared-postgres-command-kernel = { path = "../postgres-command-kernel" }
+shared-protocol-parity-kernel = { path = "../../../gateway/core/protocol-parity-kernel" }
+
+[lib]
+name = "shared_transactional_outbox_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
