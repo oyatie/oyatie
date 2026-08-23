@@ -7,11 +7,16 @@ use std::collections::BTreeSet;
 
 pub mod cadence;
 pub mod fanin;
+pub mod occupancy;
 pub use cadence::{
     CadenceEvent, LIVE_POSTGRES_CRATES, LIVE_POSTGRES_PATH_PREFIXES, POSTSUBMIT_JOBS,
     PRESUBMIT_JOBS, WORKFLOW_FILES, live_postgres_required,
 };
-pub use fanin::{fan_in_ok, postgres_ok, postsubmit_ok, required_success};
+pub use fanin::{FanIn, fan_in_ok, occupancy_ok, postgres_ok, postsubmit_ok, required_success};
+pub use occupancy::{
+    OYATIE_HUB_PREFIXES, OYATIE_HUBS, OccupancyRefused, OccupiedSet, PathSetParseError, admit,
+    hits_hub, paths_from_name_status_z,
+};
 
 pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "app",
