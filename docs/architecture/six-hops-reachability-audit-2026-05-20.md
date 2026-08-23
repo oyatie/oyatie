@@ -2442,7 +2442,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/community/IP-010-foundry-guardrails-moderation-bridge.md` | C1716 | 1 | 0 | 0 | weak component C1716 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-011-cedar-policy-fragments.md` | C1717 | 1 | 0 | 0 | weak component C1717 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-012-openslo-grafana-dashboards.md` | C1718 | 1 | 0 | 0 | weak component C1718 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `microservices/community/IP-013-oya-vcs-promotion-readiness.md` | C1719 | 1 | 0 | 0 | weak component C1719 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `microservices/community/IP-013-retired-vcs-ratchet` | C1719 | 1 | 0 | 0 | weak component C1719 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-014-hyperscaler-maturity-gate.md` | C1720 | 1 | 0 | 0 | weak component C1720 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-015-capacity-cost-chaos-drill.md` | C1721 | 1 | 0 | 0 | weak component C1721 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/community/IP-N-anonymous-fold-extraction.md` | C1722 | 1 | 0 | 0 | weak component C1722 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -5386,7 +5386,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/observability/IP-009-slo-engine-app.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-010-promotion-eligibility-ledger.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-011-per-component-release-pointers.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
-| `microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
+| `microservices/observability/IP-012-retired-vcs-ratchet` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-013-event-driven-promote-workflows.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-014-automated-rollback-primitive.md` | C4345 | 16 | 2 | 1 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/observability/IP-015-canary-cohort-weighting.md` | C4345 | 16 | 2 | 0 | weak component C4345 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
@@ -7545,7 +7545,7 @@ The corpus fails because at least one Markdown node is unreachable from `docs/RE
 | raw_links | 8279 |
 | resolved_edges | 3856 |
 
-### Oya VCS Checkpoint
+### retired VCS ratchet Checkpoint
 
 Required evidence string for verify/done/promote:
 
@@ -7555,4 +7555,4 @@ Checkpoint status at authoring time: claim accepted for `docs/architecture`; aud
 
 ### Stop Condition
 
-Stop after this file exists, line count is >=1500, Oya VCS verify/done/promote run with the evidence counts above, and final response reports verdict plus topline counts plus the 10 highest-leverage remediation targets.
+Stop after this file exists, line count is >=1500, retired VCS ratchet verify/done/promote run with the evidence counts above, and final response reports verdict plus topline counts plus the 10 highest-leverage remediation targets.

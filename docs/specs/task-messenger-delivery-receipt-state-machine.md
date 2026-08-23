@@ -163,7 +163,7 @@ responses:
 
 ```proto
 syntax = "proto3";
-package oya.messenger.v1;
+package oyatie.messenger.v1;
 
 enum DeliveryStatus {
   DELIVERY_STATUS_SENT = 0;

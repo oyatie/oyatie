@@ -12,7 +12,7 @@
 //! [`InMemoryAccountHealthStore`]) and the in-memory mock transport.
 //!
 //! Lifts the `AppConfig::from_env -> build_app -> serve` shape from
-//! `microservices/cloud-intelligence/crates/cloud-intelligence-app/main.rs`
+//! `microservices/intelligence-app/crates/intelligence-app/main.rs`
 //! (which serves an axum router — this binary serves the doctrine-compliant
 //! bespoke hyper backbone instead, no axum, no reqwest).
 //!

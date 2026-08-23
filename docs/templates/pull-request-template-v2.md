@@ -26,7 +26,7 @@ doc_status: published
 
 <!-- Compatibility copy. Prefer docs/templates/pull-request-template.md for new edits.
 Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a
-trusted server-side/cloud-ci producer. -->
+trusted server-side/pipeline producer. -->
 
 ## Issue
 

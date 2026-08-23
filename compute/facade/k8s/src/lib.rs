@@ -661,7 +661,7 @@ impl CloudComputeK8sApiError {
             Self::EmptyPathClusterId => vec![detail("path.cluster_id", "must be non-empty")],
             Self::InvalidClusterId { .. } => vec![detail(
                 "path.cluster_id",
-                "must be a canonical oya:cloud k8s resource id",
+                "must be a canonical oyatie:cloud k8s resource id",
             )],
             Self::ClusterKindMismatch { .. } => {
                 vec![detail("path.cluster_id", "resource kind must be k8s")]

@@ -37,7 +37,7 @@ const EVIDENCE_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review";
 const TEMPLATES_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review/facets";
 const ROLLUP_PATH: &str = "evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json";
 const ADMISSION_LOG: &str = "registry/merge-queue-admission-log.json";
-const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oya/foundry/anthropic-api-key";
+const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oyatie/foundry/anthropic-api-key";
 const DEFAULT_MODEL_ID: &str = "claude-opus-4-7";
 
 fn main() -> ExitCode {
@@ -488,7 +488,7 @@ fn render_rollup_json(
     buf.push_str("  \"audit_trail\": {\n");
     buf.push_str("    \"plan_ref\": \".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md\",\n");
     buf.push_str("    \"audit_ref\": \"evidence/audits/pipeline-maturity-audit-2026-05-15.md\",\n");
-    buf.push_str("    \"upstream_kernel\": \"oya-vcs-review-mergequeue-kernel\",\n");
+    buf.push_str("    \"upstream_kernel\": \"vcs-review-mergequeue-kernel\",\n");
     buf.push_str("    \"subagent_runtime_ref\": \"M01-P17-IP-009 — `intelligence-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
     buf.push_str("  }\n");
     buf.push_str("}\n");

@@ -318,7 +318,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 | thiserror/anyhow boundary rule | M01-P15 | `governance-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
 | Cosign + Syft + SLSA L2 | M01-P15 | `governance-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
 | Chainguard/distroless-static images | M01-P13 Distroless + image discipline | `governance-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
-| Owned dependency automation | M01-P15 | `cloud-ci-dependency-automation` (`deps.toml` closed-schema policy + Rust bump-bot contract) | ADR-0535 / P7 bump-bot |
+| Owned dependency automation | M01-P15 | `pipeline-dependency-automation` (`deps.toml` closed-schema policy + Rust bump-bot contract) | ADR-0535 / P7 bump-bot |
 | OTel collector agent+gateway | M01-P17 Pipeline maturity glue | `governance-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
 | `SecretProvider` trait + OpenBao primary | M01-P15 | `governance-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
 

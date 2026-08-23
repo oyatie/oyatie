@@ -35,8 +35,8 @@ severities_supported: [Sev-1, Sev-2, Sev-3, Sev-4]
 owner_team: <team-id>
 last_verified: YYYY-MM-DD
 last_drilled: YYYY-MM-DD
-slo_topic: <oya.<axis>.<slo-name>>
-audit_emission_topic: oya.ops.runbook.invoked
+slo_topic: <oyatie.<axis>.<slo-name>>
+audit_emission_topic: oyatie.ops.runbook.invoked
 related_runbooks: [RB-..., RB-...]
 related_adrs: [ADR-####, ...]
 diataxis_class: how-to
@@ -56,7 +56,7 @@ The exact alert(s) or symptom(s) that should cause an operator (or agent) to ope
 
 ## SLO impact
 
-- SLO affected: `<oya.<axis>.<slo-name>>` (per `docs/SLO-CATALOG.md`).
+- SLO affected: `<oyatie.<axis>.<slo-name>>` (per `docs/SLO-CATALOG.md`).
 - Error budget burn rate at trigger: `<1x|3x|14x>` → severity mapping per `docs/RELEASE-MANAGEMENT.md`.
 
 ## Pre-checks (5 minutes max)
@@ -134,7 +134,7 @@ What to undo if mitigation made things worse. Always reversible. Name the exact 
 
 ## Audit-chain emission
 
-Every runbook invocation emits to `oya.ops.runbook.invoked` per ADR-0003 with: `runbook-id`, `invoker-id`, `timestamp`, `outcome (resolved|escalated|unresolved)`, `affected tenant(s)/surface(s)`, `audit-chain emission ID`.
+Every runbook invocation emits to `oyatie.ops.runbook.invoked` per ADR-0003 with: `runbook-id`, `invoker-id`, `timestamp`, `outcome (resolved|escalated|unresolved)`, `affected tenant(s)/surface(s)`, `audit-chain emission ID`.
 
 ## Sources
 

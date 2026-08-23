@@ -366,7 +366,7 @@
       },
       {
         "old": "oyatie-* (Cargo prefix)",
-        "new": "oya-*",
+        "new": "oyatie-*",
         "retirement_date": "2026-05-08"
       },
       {

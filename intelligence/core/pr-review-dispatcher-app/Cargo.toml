@@ -1,6 +1,6 @@
 [package]
 # Naming justification (per feedback_naming_justification memory):
-#   - BNF v4.1 grammar:   oya - foundry - pr-review-dispatcher - app
+#   - BNF v4.1 grammar:   foundry - pr-review-dispatcher - app
 #   - slot-2 µservice:    `foundry` (registered; this is internal engineering
 #                         platform tooling — same family as the other
 #                         `foundry-*` fitness/gate apps in tools/).
@@ -54,7 +54,7 @@ tempfile = { workspace = true }
 [lints]
 workspace = true
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 context     = "foundry"
 role        = "app"
 feature     = "pr-review-dispatcher"

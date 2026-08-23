@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability
-    oya.adr: "0186,0193"
+    oyatie.adr: "0186,0193"
 spec:
   selector:
     matchLabels:

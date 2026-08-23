@@ -6,7 +6,7 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every crate id follows the canonical `oya-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
+- purpose: Verify every crate id follows the canonical `oyatie-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
 - enforces: STANDARD/cargo-prefix; existing crate `governance-cargo-prefix-kernel` (EXISTING; extend with verdict).
 - kernel_crate: `governance-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
 - runner_path: `tools/governance-cargo-prefix`

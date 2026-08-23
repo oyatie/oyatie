@@ -188,8 +188,8 @@ Per ADR-0042 (gen_ai semconv):
 let span = tracing::info_span!("foundry.supervisor.tick",
     gen_ai.system = "claude",
     gen_ai.request.model = "claude-3-opus",
-    oya.foundry.capability = "foundry.supervisor.tick_once",
-    oya.tenant.id = "tenant-uuid"
+    oyatie.foundry.capability = "foundry.supervisor.tick_once",
+    oyatie.tenant.id = "tenant-uuid"
 );
 // Records gen_ai.usage.input_tokens, output_tokens after SpendRecord
 ```

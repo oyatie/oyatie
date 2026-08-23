@@ -102,7 +102,7 @@ Ontology integration follows `feedback_workflow_objectgraph_adapter_layer (retir
 ```
 NAME: hr-employee-domain
 JUSTIFICATION:
-- microservice = hr: Human Resources µservice; flat catalog; registered in [workspace.metadata.oya.microservices]; ADR-0056 v4.1
+- microservice = hr: Human Resources µservice; flat catalog; registered in [workspace.metadata.oyatie.microservices]; ADR-0056 v4.1
 - bc-tokens = employee: HR has multiple BCs (employee / employment / organization / offboarding); employee BC owns Employee entity + PersonProfile; ADR-0056 v4.1 BC-optionality rule
 - layer = domain: pure business logic; Employee entity + invariants + EmployeeRepository port-trait; no I/O; ADR-0056 §"Layer semantics"
 - exemptions: none
@@ -200,10 +200,10 @@ Cross-region: M03 KR only; post-M03 expansion documented in `docs/ROADMAP.md`.
 | AC-01 | Employee CRUD round-trip; audit event emitted | `cargo nextest run -p hr-employee-domain` |
 | AC-02 | ADR-0126 all 8 employment classes accepted; invalid class rejected | unit test `test_employment_class_validation` |
 | AC-03 | `EmployeeHired` event routed by Workflow to payroll consumer | integration test `test_employee_hired_workflow` |
-| AC-04 | Ontology `Employee` Object Type queryable by payroll µservice | `oya gate validate ontology-type-registry --ms hr` |
-| AC-05 | LEAN-A2: no direct imports from payroll/connect/accounting | `oya gate validate lean-a2 --ms hr` exits 0 |
+| AC-04 | Ontology `Employee` Object Type queryable by payroll µservice | `presubmit` (retired CLI `gate validate ontology-type-registry --ms hr`) |
+| AC-05 | LEAN-A2: no direct imports from payroll/connect/accounting | `presubmit` (retired CLI `gate validate lean-a2 --ms hr`) exits 0 |
 | AC-06 | p99 employee read ≤50 ms at 1k RPS | k6 smoke test; threshold `http_req_duration{p(99)}<50` |
-| AC-07 | KR jurisdiction overlay applied; `jurisdiction_code=KR` on all records | `oya gate validate jurisdiction-overlay --ms hr` |
+| AC-07 | KR jurisdiction overlay applied; `jurisdiction_code=KR` on all records | `presubmit` (retired CLI `gate validate jurisdiction-overlay --ms hr`) |
 
 ---
 

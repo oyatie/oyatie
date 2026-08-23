@@ -3,7 +3,7 @@
 //! The self-referential CI gates hardcode their own file self-locations (e.g. the firewall's
 //! `ratchet-policy.json`, the scm-facts faces). A capability-first strangler move (ADR-0562)
 //! relocates those files, which breaks the gate two opposite ways depending on WHICH tree the
-//! read is against (OYA-CI keystone unblock):
+//! read is against (pipeline keystone unblock):
 //!
 //!  * a CANDIDATE (working-tree) read/write needs the file's CURRENT location (post-move = NEW);
 //!  * the ONE merge-base read (the firewall's frozen reference, ADR-0551/FRIC-1781280000) needs

@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers — helpers via {{ include "helpers.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,4 +85,4 @@ spec:
               port: http
             periodSeconds: 5
           securityContext:
-            {{- include "oya.securityContext.restrictedContainer" $ | nindent 12 }}
+            {{- include "helpers.securityContext.restrictedContainer" $ | nindent 12 }}

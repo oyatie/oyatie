@@ -1812,7 +1812,7 @@ fn command_center_workbench(envelope: TenantRenderEnvelope) -> impl IntoView {
                         } else {
                             "workbench-row"
                         };
-                        let receipt = format!("REC-OYA-2026-05-{index:02}");
+                        let receipt = format!("REC-OYATIE-2026-05-{index:02}");
                         view! {
                             <article
                                 class=row_class
@@ -6182,7 +6182,7 @@ fn catalog_code_for(name: &str) -> String {
         .map(|part| part.to_ascii_uppercase())
         .collect::<Vec<_>>()
         .join("-");
-    format!("OYA-{code}")
+    format!("OYATIE-{code}")
 }
 
 #[expect(

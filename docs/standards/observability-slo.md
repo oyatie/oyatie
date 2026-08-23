@@ -204,9 +204,9 @@ The `governance-openslo-conformance` lane (BLOCKER) refuses:
    - council-architecture (review for cross-µservice consistency)
 4. CI lanes that MUST green:
    - `cargo fmt --check`
-   - `oya gate validate openslo-conformance`
-   - `oya gate validate data-class-coverage` (the manifest's labels match the µservice's declared data classes)
-   - `oya gate validate openslo-promql-feasibility` (the PromQL expression returns non-empty data against representative Mimir snapshot)
+   - `presubmit` (retired CLI `gate validate openslo-conformance`)
+   - `presubmit` (retired CLI `gate validate data-class-coverage`) (the manifest's labels match the µservice's declared data classes)
+   - `presubmit` (retired CLI `gate validate openslo-promql-feasibility`) (the PromQL expression returns non-empty data against representative Mimir snapshot)
 5. Merge advances `microservices/<ms>/slos/*.openslo.yaml` through git PR; `slo-engine-worker` consumes the `OpenSloManifestUpdated` event (per `microservices/observability/contracts/asyncapi/eligibility-events.yaml`) and hot-reloads.
 
 ## SLI Type-Specific Guidance

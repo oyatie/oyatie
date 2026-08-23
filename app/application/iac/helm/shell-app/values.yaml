@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers (SWEEP-I Slice 2 per ADR-0064)
 # Application Shell composition-root binaries
 # Values for the application µservice per ADR-0131 + ADR-0121 + ADR-0123.
 

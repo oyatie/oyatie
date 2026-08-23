@@ -1,6 +1,6 @@
 // Cedar policy fragments for sheets.
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
-// ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
+// ADR-0346 purpose: presubmit is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 // ADR-0346 enforced_by: governance-verify-ci-mirror-coverage; governance-verify-ci-step-exit-semantics; governance-verify-skip-flag-allowlist; governance-submit-calls-verify; governance-verify-exit-code-contract.
 // ADR-0347 purpose: every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
 // ADR-0347 enforced_by: governance-no-foundry-fitness-residue; governance-lane-prefix-vocabulary; governance-rename-inventory-presence.

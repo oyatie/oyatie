@@ -6,7 +6,7 @@ metadata:
   name: clickhouse-keeper-template
   namespace: {{ .Release.Namespace }}
   labels:
-    oya.adr: "0193"
+    oyatie.adr: "0193"
 spec:
   configuration:
     settings:

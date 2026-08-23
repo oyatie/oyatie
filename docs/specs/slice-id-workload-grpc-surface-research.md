@@ -43,11 +43,11 @@ not a manual `include!` with an `OUT_DIR` path.  The macro expands to
 version-portable way to pull in codegen output.
 
 **MUST**: The argument is the proto *package* name (dots preserved), not the
-file name.  For `package oya.identity.workload.v1` the argument is
-`"oya.identity.workload.v1"`.
+file name.  For `package oyatie.identity.workload.v1` the argument is
+`"oyatie.identity.workload.v1"`.
 
 **Pitfall**: Using `include_proto!("workload")` (file stem) instead of
-`include_proto!("oya.identity.workload.v1")` (package name) causes a compile-time
+`include_proto!("oyatie.identity.workload.v1")` (package name) causes a compile-time
 `include!` expansion failure because the generated file is named after the
 package, not the source file.
 
@@ -411,7 +411,7 @@ Source: `microservices/identity/workload-identity/PRD.md` §3.3 (AC-W-13);
 |---|---|---|
 | M-01 | `#[tonic::async_trait]` on every service impl block | Compiler |
 | M-02 | All type params on server struct: `Send + Sync + 'static` | Compiler |
-| M-03 | `tonic::include_proto!("oya.identity.workload.v1")` (package name, not file stem) | Compiler |
+| M-03 | `tonic::include_proto!("oyatie.identity.workload.v1")` (package name, not file stem) | Compiler |
 | M-04 | Proto enum fields set as `EnumVariant as i32` | Compiler |
 | M-05 | Deny always `Ok(Response)` with DECISION_EFFECT_DENY, never `Err(Status)` | Test (b) |
 | M-06 | Store/JWKS unavailable (unary): `Err(Status::unavailable(...))` | Test (d) |

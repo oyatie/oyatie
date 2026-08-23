@@ -267,7 +267,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/contact-center/contracts/asyncapi-v1.yaml` to bind `ContactCenterActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0002 — `contact-center` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -279,7 +279,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/contact-center/contracts/contact-center-v1.proto` to bind `ContactCenterActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0003 — `contact-center` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -291,7 +291,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/contact-center/contracts/local-asyncapi-v1.yaml` to bind `ContactCenterDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0004 — `contact-center` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -303,7 +303,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/contact-center/contracts/local-asyncapi-v1.yaml` to bind `ContactCenterSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0005 — `contact-center` — `REST POST /contact-center/v1/interactions/{resource_id}/policy-check`
 - Priority: `P0`
@@ -315,7 +315,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contact-center/contracts/local-openapi-v1.yaml` to bind `ContactCenterInteractionPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterInteractionPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterInteractionPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0006 — `contact-center` — `REST POST /contact-center/v1/interactions/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -327,7 +327,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contact-center/contracts/local-openapi-v1.yaml` to bind `ContactCenterInteractionOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterInteractionOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterInteractionOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0007 — `contact-center` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -339,7 +339,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/contact-center/contracts/local-operations-v1.proto` to bind `ContactCenterLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0008 — `contact-center` — `REST POST /contact-center/actions/{action_id}`
 - Priority: `P0`
@@ -351,7 +351,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contact-center/contracts/openapi-v1.yaml` to bind `ContactCenterActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContactCenterActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContactCenterActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0009 — `contract-lifecycle-management` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -363,7 +363,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/asyncapi-v1.yaml` to bind `ContractLifecycleManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0010 — `contract-lifecycle-management` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -375,7 +375,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/contract-lifecycle-management-v1.proto` to bind `ContractLifecycleManagementActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0011 — `contract-lifecycle-management` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -387,7 +387,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/local-asyncapi-v1.yaml` to bind `ContractLifecycleManagementDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0012 — `contract-lifecycle-management` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -399,7 +399,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/local-asyncapi-v1.yaml` to bind `ContractLifecycleManagementSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0013 — `contract-lifecycle-management` — `REST POST /contract-lifecycle-management/v1/contract-workspaces/{resource_id}/policy-check`
 - Priority: `P0`
@@ -411,7 +411,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/local-openapi-v1.yaml` to bind `ContractLifecycleManagementContractWorkspacePolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementContractWorkspacePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementContractWorkspacePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0014 — `contract-lifecycle-management` — `REST POST /contract-lifecycle-management/v1/contract-workspaces/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -423,7 +423,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/local-openapi-v1.yaml` to bind `ContractLifecycleManagementContractWorkspaceOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementContractWorkspaceOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementContractWorkspaceOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0015 — `contract-lifecycle-management` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -435,7 +435,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/local-operations-v1.proto` to bind `ContractLifecycleManagementLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0016 — `contract-lifecycle-management` — `REST POST /contract-lifecycle-management/actions/{action_id}`
 - Priority: `P0`
@@ -447,7 +447,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/contract-lifecycle-management/contracts/openapi-v1.yaml` to bind `ContractLifecycleManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ContractLifecycleManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0017 — `data-pipeline` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -459,7 +459,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/data-pipeline/contracts/asyncapi-v1.yaml` to bind `DataPipelineActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0018 — `data-pipeline` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -471,7 +471,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/data-pipeline/contracts/data-pipeline-v1.proto` to bind `DataPipelineActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0019 — `data-pipeline` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -483,7 +483,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/data-pipeline/contracts/local-asyncapi-v1.yaml` to bind `DataPipelineDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0020 — `data-pipeline` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -495,7 +495,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/data-pipeline/contracts/local-asyncapi-v1.yaml` to bind `DataPipelineSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0021 — `data-pipeline` — `REST POST /data-pipeline/v1/pipeline-runs/{resource_id}/policy-check`
 - Priority: `P0`
@@ -507,7 +507,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-pipeline/contracts/local-openapi-v1.yaml` to bind `DataPipelinePipelineRunPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelinePipelineRunPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelinePipelineRunPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0022 — `data-pipeline` — `REST POST /data-pipeline/v1/pipeline-runs/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -519,7 +519,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-pipeline/contracts/local-openapi-v1.yaml` to bind `DataPipelinePipelineRunOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelinePipelineRunOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelinePipelineRunOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0023 — `data-pipeline` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -531,7 +531,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/data-pipeline/contracts/local-operations-v1.proto` to bind `DataPipelineLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0024 — `data-pipeline` — `REST POST /data-pipeline/actions/{action_id}`
 - Priority: `P0`
@@ -543,7 +543,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-pipeline/contracts/openapi-v1.yaml` to bind `DataPipelineActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataPipelineActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataPipelineActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0025 — `data-warehouse` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -555,7 +555,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/data-warehouse/contracts/asyncapi-v1.yaml` to bind `DataWarehouseActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0026 — `data-warehouse` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -567,7 +567,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/data-warehouse/contracts/data-warehouse-v1.proto` to bind `DataWarehouseActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0027 — `data-warehouse` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -579,7 +579,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/data-warehouse/contracts/local-asyncapi-v1.yaml` to bind `DataWarehouseDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0028 — `data-warehouse` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -591,7 +591,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/data-warehouse/contracts/local-asyncapi-v1.yaml` to bind `DataWarehouseSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0029 — `data-warehouse` — `REST POST /data-warehouse/v1/warehouse-datasets/{resource_id}/policy-check`
 - Priority: `P0`
@@ -603,7 +603,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-warehouse/contracts/local-openapi-v1.yaml` to bind `DataWarehouseWarehouseDatasetPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseWarehouseDatasetPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseWarehouseDatasetPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0030 — `data-warehouse` — `REST POST /data-warehouse/v1/warehouse-datasets/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -615,7 +615,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-warehouse/contracts/local-openapi-v1.yaml` to bind `DataWarehouseWarehouseDatasetOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseWarehouseDatasetOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseWarehouseDatasetOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0031 — `data-warehouse` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -627,7 +627,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/data-warehouse/contracts/local-operations-v1.proto` to bind `DataWarehouseLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0032 — `data-warehouse` — `REST POST /data-warehouse/actions/{action_id}`
 - Priority: `P0`
@@ -639,7 +639,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/data-warehouse/contracts/openapi-v1.yaml` to bind `DataWarehouseActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DataWarehouseActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DataWarehouseActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0033 — `design-collaboration` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -651,7 +651,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/design-collaboration/contracts/asyncapi-v1.yaml` to bind `DesignCollaborationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0034 — `design-collaboration` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -663,7 +663,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/design-collaboration/contracts/design-collaboration-v1.proto` to bind `DesignCollaborationActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0035 — `design-collaboration` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -675,7 +675,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/design-collaboration/contracts/local-asyncapi-v1.yaml` to bind `DesignCollaborationDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0036 — `design-collaboration` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -687,7 +687,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/design-collaboration/contracts/local-asyncapi-v1.yaml` to bind `DesignCollaborationSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0037 — `design-collaboration` — `REST POST /design-collaboration/v1/design-files/{resource_id}/policy-check`
 - Priority: `P0`
@@ -699,7 +699,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/design-collaboration/contracts/local-openapi-v1.yaml` to bind `DesignCollaborationDesignFilePolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationDesignFilePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationDesignFilePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0038 — `design-collaboration` — `REST POST /design-collaboration/v1/design-files/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -711,7 +711,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/design-collaboration/contracts/local-openapi-v1.yaml` to bind `DesignCollaborationDesignFileOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationDesignFileOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationDesignFileOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0039 — `design-collaboration` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -723,7 +723,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/design-collaboration/contracts/local-operations-v1.proto` to bind `DesignCollaborationLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0040 — `design-collaboration` — `REST POST /design-collaboration/actions/{action_id}`
 - Priority: `P0`
@@ -735,7 +735,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/design-collaboration/contracts/openapi-v1.yaml` to bind `DesignCollaborationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `DesignCollaborationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0041 — `financial-planning` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -747,7 +747,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/financial-planning/contracts/asyncapi-v1.yaml` to bind `FinancialPlanningActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0042 — `financial-planning` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -759,7 +759,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/financial-planning/contracts/financial-planning-v1.proto` to bind `FinancialPlanningActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0043 — `financial-planning` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -771,7 +771,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/financial-planning/contracts/local-asyncapi-v1.yaml` to bind `FinancialPlanningDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0044 — `financial-planning` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -783,7 +783,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/financial-planning/contracts/local-asyncapi-v1.yaml` to bind `FinancialPlanningSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0045 — `financial-planning` — `REST POST /financial-planning/v1/planning-cycles/{resource_id}/policy-check`
 - Priority: `P0`
@@ -795,7 +795,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/financial-planning/contracts/local-openapi-v1.yaml` to bind `FinancialPlanningPlanningCyclePolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningPlanningCyclePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningPlanningCyclePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0046 — `financial-planning` — `REST POST /financial-planning/v1/planning-cycles/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -807,7 +807,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/financial-planning/contracts/local-openapi-v1.yaml` to bind `FinancialPlanningPlanningCycleOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningPlanningCycleOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningPlanningCycleOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0047 — `financial-planning` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -819,7 +819,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/financial-planning/contracts/local-operations-v1.proto` to bind `FinancialPlanningLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0048 — `financial-planning` — `REST POST /financial-planning/actions/{action_id}`
 - Priority: `P0`
@@ -831,7 +831,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/financial-planning/contracts/openapi-v1.yaml` to bind `FinancialPlanningActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `FinancialPlanningActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0049 — `healthcare-integration` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -843,7 +843,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `HealthcareIntegrationActionAccepted`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/healthcare-integration/contracts/asyncapi-v1.yaml` to bind `HealthcareIntegrationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0050 — `healthcare-integration` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -855,7 +855,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/healthcare-integration/contracts/healthcare-integration-v1.proto` to bind `HealthcareIntegrationActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0051 — `healthcare-integration` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -867,7 +867,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/healthcare-integration/contracts/local-asyncapi-v1.yaml` to bind `HealthcareIntegrationDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0052 — `healthcare-integration` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -879,7 +879,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/healthcare-integration/contracts/local-asyncapi-v1.yaml` to bind `HealthcareIntegrationSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0053 — `healthcare-integration` — `REST POST /healthcare-integration/v1/clinical-exchanges/{resource_id}/policy-check`
 - Priority: `P0`
@@ -891,7 +891,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/healthcare-integration/contracts/local-openapi-v1.yaml` to bind `HealthcareIntegrationClinicalExchangePolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationClinicalExchangePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationClinicalExchangePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0054 — `healthcare-integration` — `REST POST /healthcare-integration/v1/clinical-exchanges/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -903,7 +903,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/healthcare-integration/contracts/local-openapi-v1.yaml` to bind `HealthcareIntegrationClinicalExchangeOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationClinicalExchangeOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationClinicalExchangeOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0055 — `healthcare-integration` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -915,7 +915,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/healthcare-integration/contracts/local-operations-v1.proto` to bind `HealthcareIntegrationLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0056 — `healthcare-integration` — `REST POST /healthcare-integration/actions/{action_id}`
 - Priority: `P0`
@@ -927,7 +927,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `HealthcareIntegrationActionAccepted`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/healthcare-integration/contracts/openapi-v1.yaml` to bind `HealthcareIntegrationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `HealthcareIntegrationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0057 — `incident-management` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -939,7 +939,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/incident-management/contracts/asyncapi-v1.yaml` to bind `IncidentManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0058 — `incident-management` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -951,7 +951,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/incident-management/contracts/incident-management-v1.proto` to bind `IncidentManagementActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0059 — `incident-management` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -963,7 +963,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/incident-management/contracts/local-asyncapi-v1.yaml` to bind `IncidentManagementDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0060 — `incident-management` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -975,7 +975,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/incident-management/contracts/local-asyncapi-v1.yaml` to bind `IncidentManagementSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0061 — `incident-management` — `REST POST /incident-management/v1/incident-commands/{resource_id}/policy-check`
 - Priority: `P0`
@@ -987,7 +987,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/incident-management/contracts/local-openapi-v1.yaml` to bind `IncidentManagementIncidentCommandPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementIncidentCommandPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementIncidentCommandPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0062 — `incident-management` — `REST POST /incident-management/v1/incident-commands/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -999,7 +999,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/incident-management/contracts/local-openapi-v1.yaml` to bind `IncidentManagementIncidentCommandOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementIncidentCommandOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementIncidentCommandOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0063 — `incident-management` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1011,7 +1011,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/incident-management/contracts/local-operations-v1.proto` to bind `IncidentManagementLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0064 — `incident-management` — `REST POST /incident-management/actions/{action_id}`
 - Priority: `P0`
@@ -1023,7 +1023,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/incident-management/contracts/openapi-v1.yaml` to bind `IncidentManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `IncidentManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `IncidentManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0065 — `itsm` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -1035,7 +1035,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `ItsmActionAccepted`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/itsm/contracts/asyncapi-v1.yaml` to bind `ItsmActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ItsmActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ItsmActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0066 — `itsm` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -1047,7 +1047,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/itsm/contracts/itsm-v1.proto` to bind `ITSMActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ITSMActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ITSMActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0067 — `itsm` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -1059,7 +1059,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/itsm/contracts/local-asyncapi-v1.yaml` to bind `ItsmDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ItsmDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ItsmDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0068 — `itsm` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -1071,7 +1071,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/itsm/contracts/local-asyncapi-v1.yaml` to bind `ItsmSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ItsmSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ItsmSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0069 — `itsm` — `REST POST /itsm/v1/service-records/{resource_id}/policy-check`
 - Priority: `P0`
@@ -1083,7 +1083,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/itsm/contracts/local-openapi-v1.yaml` to bind `ITSMServiceRecordPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ITSMServiceRecordPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ITSMServiceRecordPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0070 — `itsm` — `REST POST /itsm/v1/service-records/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -1095,7 +1095,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/itsm/contracts/local-openapi-v1.yaml` to bind `ITSMServiceRecordOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ITSMServiceRecordOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ITSMServiceRecordOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0071 — `itsm` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1107,7 +1107,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/itsm/contracts/local-operations-v1.proto` to bind `ITSMLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ITSMLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ITSMLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0072 — `itsm` — `REST POST /itsm/actions/{action_id}`
 - Priority: `P0`
@@ -1119,7 +1119,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/itsm/contracts/openapi-v1.yaml` to bind `ITSMActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `ITSMActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `ITSMActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0073 — `learning-management` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -1131,7 +1131,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/learning-management/contracts/asyncapi-v1.yaml` to bind `LearningManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0074 — `learning-management` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -1143,7 +1143,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/learning-management/contracts/learning-management-v1.proto` to bind `LearningManagementActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0075 — `learning-management` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -1155,7 +1155,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/learning-management/contracts/local-asyncapi-v1.yaml` to bind `LearningManagementDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0076 — `learning-management` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -1167,7 +1167,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/learning-management/contracts/local-asyncapi-v1.yaml` to bind `LearningManagementSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0077 — `learning-management` — `REST POST /learning-management/v1/learning-cohorts/{resource_id}/policy-check`
 - Priority: `P0`
@@ -1179,7 +1179,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/learning-management/contracts/local-openapi-v1.yaml` to bind `LearningManagementLearningCohortPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementLearningCohortPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementLearningCohortPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0078 — `learning-management` — `REST POST /learning-management/v1/learning-cohorts/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -1191,7 +1191,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/learning-management/contracts/local-openapi-v1.yaml` to bind `LearningManagementLearningCohortOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementLearningCohortOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementLearningCohortOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0079 — `learning-management` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1203,7 +1203,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/learning-management/contracts/local-operations-v1.proto` to bind `LearningManagementLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0080 — `learning-management` — `REST POST /learning-management/actions/{action_id}`
 - Priority: `P0`
@@ -1215,7 +1215,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/learning-management/contracts/openapi-v1.yaml` to bind `LearningManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `LearningManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `LearningManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0081 — `marketing-automation` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -1227,7 +1227,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/marketing-automation/contracts/asyncapi-v1.yaml` to bind `MarketingAutomationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0082 — `marketing-automation` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -1239,7 +1239,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/marketing-automation/contracts/local-asyncapi-v1.yaml` to bind `MarketingAutomationDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0083 — `marketing-automation` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -1251,7 +1251,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/marketing-automation/contracts/local-asyncapi-v1.yaml` to bind `MarketingAutomationSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0084 — `marketing-automation` — `REST POST /marketing-automation/v1/campaign-journeys/{resource_id}/policy-check`
 - Priority: `P0`
@@ -1263,7 +1263,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/marketing-automation/contracts/local-openapi-v1.yaml` to bind `MarketingAutomationCampaignJourneyPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationCampaignJourneyPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationCampaignJourneyPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0085 — `marketing-automation` — `REST POST /marketing-automation/v1/campaign-journeys/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -1275,7 +1275,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/marketing-automation/contracts/local-openapi-v1.yaml` to bind `MarketingAutomationCampaignJourneyOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationCampaignJourneyOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationCampaignJourneyOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0086 — `marketing-automation` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1287,7 +1287,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/marketing-automation/contracts/local-operations-v1.proto` to bind `MarketingAutomationLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0087 — `marketing-automation` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -1299,7 +1299,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/marketing-automation/contracts/marketing-automation-v1.proto` to bind `MarketingAutomationActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0088 — `marketing-automation` — `REST POST /marketing-automation/actions/{action_id}`
 - Priority: `P0`
@@ -1311,7 +1311,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/marketing-automation/contracts/openapi-v1.yaml` to bind `MarketingAutomationActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketingAutomationActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0089 — `marketplace` — `ASYNC SEND publishMarketplaceDealOffered`
 - Priority: `P1`
@@ -1323,7 +1323,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceDealOffered`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0090 — `marketplace` — `ASYNC SEND publishMarketplaceDealAccepted`
 - Priority: `P1`
@@ -1335,7 +1335,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealAccepted`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceDealAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDealAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDealAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0091 — `marketplace` — `ASYNC SEND publishMarketplaceEscrowReserved`
 - Priority: `P1`
@@ -1347,7 +1347,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceEscrowReserved`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceEscrowReserved`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReserved`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReserved`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0092 — `marketplace` — `ASYNC SEND publishMarketplaceEscrowReleased`
 - Priority: `P1`
@@ -1359,7 +1359,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceEscrowReleased`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceEscrowReleased`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReleased`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReleased`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0093 — `marketplace` — `ASYNC SEND publishMarketplaceDisputeOpened`
 - Priority: `P1`
@@ -1371,7 +1371,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDisputeOpened`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceDisputeOpened`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDisputeOpened`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDisputeOpened`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0094 — `marketplace` — `ASYNC SEND publishMarketplaceRevenueShareAccrued`
 - Priority: `P1`
@@ -1383,7 +1383,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceRevenueShareAccrued`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceRevenueShareAccrued`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceRevenueShareAccrued`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceRevenueShareAccrued`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0095 — `marketplace` — `ASYNC SEND publishMarketplaceOrderExported`
 - Priority: `P1`
@@ -1395,7 +1395,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceOrderExported`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/marketplace/contracts/asyncapi-v1.yaml` to bind `MarketplaceOrderExported`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceOrderExported`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceOrderExported`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0096 — `marketplace` — `GRPC RPC SubmitDealSet`
 - Priority: `P0`
@@ -1407,7 +1407,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/marketplace/contracts/marketplace-v1.proto` to bind `MarketplaceDealOffered`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0097 — `marketplace` — `REST POST /marketplace/deal-sets`
 - Priority: `P1`
@@ -1419,7 +1419,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceDealOffered`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDealOffered`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0098 — `marketplace` — `REST POST /marketplace/deal-sets/{deal_set_id}/accept`
 - Priority: `P0`
@@ -1431,7 +1431,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealAccepted,MarketplaceDealOffered`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceDealAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDealAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDealAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0099 — `marketplace` — `REST POST /marketplace/deal-sets/{deal_set_id}/settle`
 - Priority: `P0`
@@ -1443,7 +1443,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered,MarketplaceEscrowReleased`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceEscrowReleased`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReleased`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReleased`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0100 — `marketplace` — `REST POST /marketplace/listings`
 - Priority: `P0`
@@ -1455,7 +1455,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceListingPublished`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceListingPublished`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceListingPublished`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0101 — `marketplace` — `REST POST /marketplace/escrow/holds`
 - Priority: `P0`
@@ -1467,7 +1467,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered,MarketplaceEscrowReserved`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceEscrowReserved`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReserved`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceEscrowReserved`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0102 — `marketplace` — `REST POST /marketplace/disputes`
 - Priority: `P0`
@@ -1479,7 +1479,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered,MarketplaceDisputeOpened`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceDisputeOpened`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceDisputeOpened`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceDisputeOpened`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0103 — `marketplace` — `REST POST /marketplace/revenue-shares`
 - Priority: `P0`
@@ -1491,7 +1491,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `MarketplaceDealOffered,MarketplaceRevenueShareAccrued`
 - Contract details: x-audit-event=MarketplaceDealOffered
 - Recommended fix: update `microservices/marketplace/contracts/openapi-v1.yaml` to bind `MarketplaceRevenueShareAccrued`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `MarketplaceRevenueShareAccrued`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `MarketplaceRevenueShareAccrued`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0104 — `performance-management` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -1503,7 +1503,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/performance-management/contracts/asyncapi-v1.yaml` to bind `PerformanceManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0105 — `performance-management` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -1515,7 +1515,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/performance-management/contracts/local-asyncapi-v1.yaml` to bind `PerformanceManagementDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0106 — `performance-management` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -1527,7 +1527,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/performance-management/contracts/local-asyncapi-v1.yaml` to bind `PerformanceManagementSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0107 — `performance-management` — `REST POST /performance-management/v1/review-cycles/{resource_id}/policy-check`
 - Priority: `P0`
@@ -1539,7 +1539,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/performance-management/contracts/local-openapi-v1.yaml` to bind `PerformanceManagementReviewCyclePolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementReviewCyclePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementReviewCyclePolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0108 — `performance-management` — `REST POST /performance-management/v1/review-cycles/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -1551,7 +1551,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/performance-management/contracts/local-openapi-v1.yaml` to bind `PerformanceManagementReviewCycleOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementReviewCycleOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementReviewCycleOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0109 — `performance-management` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1563,7 +1563,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/performance-management/contracts/local-operations-v1.proto` to bind `PerformanceManagementLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0110 — `performance-management` — `REST POST /performance-management/actions/{action_id}`
 - Priority: `P0`
@@ -1575,7 +1575,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/performance-management/contracts/openapi-v1.yaml` to bind `PerformanceManagementActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0111 — `performance-management` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -1587,7 +1587,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/performance-management/contracts/performance-management-v1.proto` to bind `PerformanceManagementActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `PerformanceManagementActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0112 — `whiteboard` — `ASYNC SEND publishActionAccepted`
 - Priority: `P1`
@@ -1599,7 +1599,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WhiteboardActionAccepted`
 - Contract details: audit_event_class present but unconstrained; required=tenant_id,principal_id,audit_event_class,event_time,deal_set_id
 - Recommended fix: update `microservices/whiteboard/contracts/asyncapi-v1.yaml` to bind `WhiteboardActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0113 — `whiteboard` — `ASYNC SEND publishDomainEvent`
 - Priority: `P1`
@@ -1611,7 +1611,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: audit_event_id present; required=tenant_id,event_name,resource_id,data_class,audit_event_id,occurred_at
 - Recommended fix: update `microservices/whiteboard/contracts/local-asyncapi-v1.yaml` to bind `WhiteboardDomainEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardDomainEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardDomainEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0114 — `whiteboard` — `ASYNC SEND publishSloBurnEvent`
 - Priority: `P1`
@@ -1623,7 +1623,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: required=tenant_id,service,slo_name,burn_rate,objective,window,first_domain_event
 - Recommended fix: update `microservices/whiteboard/contracts/local-asyncapi-v1.yaml` to bind `WhiteboardSloBurnEvent`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardSloBurnEvent`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0115 — `whiteboard` — `REST POST /whiteboard/v1/whiteboard-sessions/{resource_id}/policy-check`
 - Priority: `P0`
@@ -1635,7 +1635,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/whiteboard/contracts/local-openapi-v1.yaml` to bind `WhiteboardSessionPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardSessionPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardSessionPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0116 — `whiteboard` — `REST POST /whiteboard/v1/whiteboard-sessions/{resource_id}/operator-remediation`
 - Priority: `P0`
@@ -1647,7 +1647,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/whiteboard/contracts/local-openapi-v1.yaml` to bind `WhiteboardSessionOperatorRemediationApplied`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardSessionOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardSessionOperatorRemediationApplied`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0117 — `whiteboard` — `GRPC RPC CheckLocalPolicy`
 - Priority: `P0`
@@ -1659,7 +1659,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/whiteboard/contracts/local-operations-v1.proto` to bind `WhiteboardLocalPolicyDecisionRecorded`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardLocalPolicyDecisionRecorded`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0118 — `whiteboard` — `REST POST /whiteboard/actions/{action_id}`
 - Priority: `P0`
@@ -1671,7 +1671,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WhiteboardActionAccepted`
 - Contract details: no x-audit-event class
 - Recommended fix: update `microservices/whiteboard/contracts/openapi-v1.yaml` to bind `WhiteboardActionAccepted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardActionAccepted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardActionAccepted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0119 — `whiteboard` — `GRPC RPC InvokeAction`
 - Priority: `P0`
@@ -1683,7 +1683,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `none`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/whiteboard/contracts/whiteboard-v1.proto` to bind `WhiteboardActionInvoked`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WhiteboardActionInvoked`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WhiteboardActionInvoked`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0120 — `workplace-integration` — `ASYNC SEND publishWorkplaceESignSessionCreated`
 - Priority: `P1`
@@ -1695,7 +1695,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceESignSessionCreated`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceESignSessionCreated`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceESignSessionCreated`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceESignSessionCreated`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0121 — `workplace-integration` — `ASYNC SEND publishWorkplaceSignatureCaptured`
 - Priority: `P1`
@@ -1707,7 +1707,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceSignatureCaptured`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceSignatureCaptured`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceSignatureCaptured`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceSignatureCaptured`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0122 — `workplace-integration` — `ASYNC SEND publishWorkplaceOfferGenerated`
 - Priority: `P1`
@@ -1719,7 +1719,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceOfferGenerated`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceOfferGenerated`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceOfferGenerated`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceOfferGenerated`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0123 — `workplace-integration` — `ASYNC SEND publishWorkplaceAgreementBound`
 - Priority: `P1`
@@ -1731,7 +1731,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceAgreementBound`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceAgreementBound`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0124 — `workplace-integration` — `ASYNC SEND publishWorkplaceRosterBindingGranted`
 - Priority: `P1`
@@ -1743,7 +1743,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceRosterBindingGranted`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceRosterBindingGranted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceRosterBindingGranted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceRosterBindingGranted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0125 — `workplace-integration` — `ASYNC SEND publishWorkplaceClockEventAttested`
 - Priority: `P1`
@@ -1755,7 +1755,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceClockEventAttested`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceClockEventAttested`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceClockEventAttested`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceClockEventAttested`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0126 — `workplace-integration` — `ASYNC SEND publishWorkplaceDlpTraceSealed`
 - Priority: `P1`
@@ -1767,7 +1767,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceDlpTraceSealed`
 - Contract details: audit_chain_ref present; required=tenant_id,sub_scope_path,event_id,occurred_at,audit_chain_ref
 - Recommended fix: update `microservices/workplace-integration/contracts/asyncapi-v1.yaml` to bind `WorkplaceDlpTraceSealed`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceDlpTraceSealed`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceDlpTraceSealed`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0127 — `workplace-integration` — `REST POST /workplace/esign/sessions`
 - Priority: `P1`
@@ -1779,7 +1779,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceESignSessionCreated`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceESignSessionCreated`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceESignSessionCreated`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceESignSessionCreated`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0128 — `workplace-integration` — `REST POST /workplace/esign/sessions/{session_id}/sign`
 - Priority: `P0`
@@ -1791,7 +1791,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceESignSessionCreated,WorkplaceSignatureCaptured`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceSignatureCaptured`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceSignatureCaptured`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceSignatureCaptured`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0129 — `workplace-integration` — `REST POST /workplace/offer-letters`
 - Priority: `P0`
@@ -1803,7 +1803,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceESignSessionCreated,WorkplaceOfferGenerated`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceOfferGenerated`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceOfferGenerated`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceOfferGenerated`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0130 — `workplace-integration` — `REST POST /workplace/engagement-agreements`
 - Priority: `P0`
@@ -1815,7 +1815,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceAgreementBound,WorkplaceESignSessionCreated`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceAgreementBound`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0131 — `workplace-integration` — `REST POST /workplace/roster-bindings`
 - Priority: `P0`
@@ -1827,7 +1827,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceESignSessionCreated,WorkplaceRosterBindingGranted`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceRosterBindingGranted`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceRosterBindingGranted`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceRosterBindingGranted`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0132 — `workplace-integration` — `REST POST /workplace/clock-events`
 - Priority: `P0`
@@ -1839,7 +1839,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceClockEventAttested,WorkplaceESignSessionCreated`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceClockEventAttested`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceClockEventAttested`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceClockEventAttested`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0133 — `workplace-integration` — `REST POST /workplace/dlp-traces`
 - Priority: `P0`
@@ -1851,7 +1851,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceDlpTraceSealed,WorkplaceESignSessionCreated`
 - Contract details: x-audit-event=WorkplaceESignSessionCreated
 - Recommended fix: update `microservices/workplace-integration/contracts/openapi-v1.yaml` to bind `WorkplaceDlpTraceSealed`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceDlpTraceSealed`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceDlpTraceSealed`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 #### GAP-0134 — `workplace-integration` — `GRPC RPC SubmitWorkplaceAgreement`
 - Priority: `P0`
@@ -1863,7 +1863,7 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 - IP exact-class evidence: `WorkplaceAgreementBound`
 - Contract details: no nearby audit-event class comment/option
 - Recommended fix: update `microservices/workplace-integration/contracts/workplace-integration-v1.proto` to bind `WorkplaceAgreementBound`, update the relevant IP slice to require the ADR-0263 envelope, and register the class through ADR-0263 registry or successor registry artifact.
-- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `oya gate validate audit-event-class-registered` recognizes the class.
+- Stop condition for fix wave: endpoint contract names `WorkplaceAgreementBound`, AsyncAPI/IP evidence contains the same class, and `presubmit` (retired CLI `gate validate audit-event-class-registered`) recognizes the class.
 
 ## §4 — Recommended P0/P1/P2 priority fixes (top 30)
 
@@ -3522,7 +3522,7 @@ Verdict: `PROCEED-WITH-FIXES`
 Rationale: the audit sweep completed cleanly and produced a strict-scope endpoint inventory, but the corpus is not ready for `APPROVE` because current state-changing endpoints either lack concrete audit-event classes, reuse classes across distinct transitions, or use concrete class names that are not registered in ADR-0263.
 
 Checkpoint:
-- Oya VCS claim: accepted for `docs/architecture` by `codex-audit-event-coverage-sweep` before this file was authored.
+- retired VCS ratchet claim: accepted for `docs/architecture` by `codex-audit-event-coverage-sweep` before this file was authored.
 - Strict services scanned: 15.
 - State-changing endpoints scanned: 134.
 - Gaps catalogued: 134.
@@ -3531,5 +3531,5 @@ Checkpoint:
 - Source files modified: none.
 - Authored artifact: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`.
 
-Stop condition for this wave: document exists, line count is at least 2,000, gap count is recorded for Oya VCS evidence, and Oya VCS verify/done/promote have been run with `sweep_lines:X gaps_catalogued:Y`.
+Stop condition for this wave: document exists, line count is at least 2,000, gap count is recorded for retired VCS ratchet evidence, and retired VCS ratchet verify/done/promote have been run with `sweep_lines:X gaps_catalogued:Y`.
 

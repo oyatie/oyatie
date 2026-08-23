@@ -285,23 +285,23 @@ ADRs still **treating these as canonical primitives** (not merely referencing th
 - ADR-0103 line ~1: same. **P0.**
 - ADR-0054 line ~1: `status: deprecated` → canonicalize to `Status: Superseded` + `superseded_by: ADR-0116`. **P1.**
 
-### 3.5 Drift category E — `oya vcs` vs `oya git` (2026-05-18)
+### 3.5 Drift category E — `retired VCS ratchet` vs `oya git` (2026-05-18)
 
-Per memory `[[git-canonical-2026-05-18]]`, `oya vcs` was renamed to `oya git` (PR-159A + PR-159B + PR-160).
+Per memory `[[git-canonical-2026-05-18]]`, `retired VCS ratchet` was renamed to `oya git` (PR-159A + PR-159B + PR-160).
 
-ADRs still using `oya vcs` / `oya-vcs`:
+ADRs still using `retired VCS ratchet` / `retired VCS ratchet`:
 
 - ADR-0113-vcs-orchestrator-end-to-end.md — title + body use `vcs`; **should rename** in body or carry "renamed to oya git per ADR-0223" annotation. **P1.**
-- ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md — references `oya-vcs` in tooling list. **P1.**
-- ADR-0123-hyperscaler-maturity-claim-gate.md — references `oya vcs`. **P1.**
-- ADR-0133-industry-best-practice-conformance-program.md — references `oya vcs` in conformance table. **P1.**
-- ADR-0110-changeset-state-machine.md — references `oya vcs` in state transitions. **P1.**
-- ADR-0124-own-merge-queue-webhook-driven.md — references `oya vcs`. **P1.**
-- ADR-0139-agentic-slo-gated-promotion.md — references `oya vcs`. **P2.**
-- ADR-0143-intelligence-per-bc-release-pointer.md — references `oya vcs`. **P2.**
-- ADR-0221-agentic-development-pipeline-hardening.md — references `oya vcs`. **P2.**
-- ADR-0238-connect-super-app-expansion.md — references `oya vcs`. **P2.**
-- ADR-0237-connect-dissolution-strangler-migration.md — references `oya vcs`. **P2.**
+- ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md — references `retired VCS ratchet` in tooling list. **P1.**
+- ADR-0123-hyperscaler-maturity-claim-gate.md — references `retired VCS ratchet`. **P1.**
+- ADR-0133-industry-best-practice-conformance-program.md — references `retired VCS ratchet` in conformance table. **P1.**
+- ADR-0110-changeset-state-machine.md — references `retired VCS ratchet` in state transitions. **P1.**
+- ADR-0124-own-merge-queue-webhook-driven.md — references `retired VCS ratchet`. **P1.**
+- ADR-0139-agentic-slo-gated-promotion.md — references `retired VCS ratchet`. **P2.**
+- ADR-0143-intelligence-per-bc-release-pointer.md — references `retired VCS ratchet`. **P2.**
+- ADR-0221-agentic-development-pipeline-hardening.md — references `retired VCS ratchet`. **P2.**
+- ADR-0238-connect-super-app-expansion.md — references `retired VCS ratchet`. **P2.**
+- ADR-0237-connect-dissolution-strangler-migration.md — references `retired VCS ratchet`. **P2.**
 
 ADRs already on `oya git` (verified):
 
@@ -310,7 +310,7 @@ ADRs already on `oya git` (verified):
 - ADR-0253-network-topology-edge-service-mesh.md — uses canonical surface.
 - ADR-0284-platform-owner-name-indirection.md — uses canonical surface.
 
-**Total: 11 ADRs need rename from `oya vcs` → `oya git`.**
+**Total: 11 ADRs need rename from `retired VCS ratchet` → `oya git`.**
 
 ### 3.6 Drift category F — Multispectrum review version
 
@@ -386,10 +386,10 @@ Memories retired since 2026-05-16:
 - `[[grit-claim-work-done]]` → retired by `[[deprecate-external-agent-coord-tooling]]`
 - `[[layer-enum-12-value-canonical]]` → superseded by `[[layer-enum-adr-0105-13-canonical]]`
 - `[[self-merge-on-ci-green]]` → superseded by `[[self-merge-via-contract-path]]`
-- `[[oya-vcs-canonical-2026-05-16]]` → superseded by `[[git-canonical-2026-05-18]]`
+- `[[retired-vcs-ratchet-2026-05-16]]` → superseded by `[[git-canonical-2026-05-18]]`
 - `[[workflow-objectgraph-adapter-layer]]` → retired by ADR-0145
 
-ADRs likely citing retired memories (per grep on `grit-claim-work-done`, `layer-enum-12-value`, `self-merge-on-ci-green`, `oya-vcs-canonical-2026-05-16`, `workflow-objectgraph-adapter-layer`):
+ADRs likely citing retired memories (per grep on `grit-claim-work-done`, `layer-enum-12-value`, `self-merge-on-ci-green`, `retired-vcs-ratchet-2026-05-16`, `workflow-objectgraph-adapter-layer`):
 
 The corpus does not embed memory `[[name]]` markdown shortlinks in ADR bodies; this drift is mostly carried via doctrinal language (e.g., "per claim/work/done semantics") rather than explicit memory citations. The 25 ADRs in §3.4 cover this indirectly.
 
@@ -601,7 +601,7 @@ Memories referenced in MEMORY.md are at `/Users/jasonlee/.claude/projects/-Users
 
 **Estimated impact:** Per MEMORY.md, the following retired memories may still be cited from ADRs:
 - `[[grit-claim-work-done]]`
-- `[[oya-vcs-canonical-2026-05-16]]`
+- `[[retired-vcs-ratchet-2026-05-16]]`
 - `[[layer-enum-12-value-canonical]]`
 - `[[self-merge-on-ci-green]]`
 - `[[workflow-objectgraph-adapter-layer]]`
@@ -709,7 +709,7 @@ Severity-ordered punch list. Each item maps 1:1 to a remediation step.
 9. **R-P1-01: Apply BYOK-disambiguation pass to 21 ADRs** that mention BYOK without clarifying provider-BYOK (ADR-0255 §D-4) vs encryption-BYOK (ADR-0251 §D-10). List in §3.1.
 10. **R-P1-02: Apply 13-layer enum alignment to 13 ADRs** still on 12-layer (§3.2 list). Add explicit `per ADR-0105 13-layer canonical` annotation.
 11. **R-P1-03: Replace "Object Graph" → "Ontology" terminology in 8 ADRs** still using the retired term (§3.3 sub-table).
-12. **R-P1-04: Rename `oya vcs` → `oya git` in 11 ADRs** per ADR-0223 (§3.5 list).
+12. **R-P1-04: Rename `retired VCS ratchet` → `oya git` in 11 ADRs** per ADR-0223 (§3.5 list).
 13. **R-P1-05: Upgrade OpenAPI references from 3.0/3.1 → 3.2.0 in 4 ADRs** (ADR-0157, 0166, 0185, 0258).
 14. **R-P1-06: Upgrade AsyncAPI references from 2.x → 3.1.0 in 2 ADRs** (ADR-0011, 0037).
 15. **R-P1-07: Mark ADR-0054 (`grit-scaffold-claim-pattern`) status canonicalized.** Change `status: deprecated` (lowercase) to `Status: Superseded` + `superseded_by: ADR-0116`.
@@ -772,7 +772,7 @@ ADRs that should be moved to `docs/decisions/superseded/` (does not currently ex
 
 **Files scanned:** 251 ADRs + 2 hubs (`README.md`, `RETIRED.md`).
 **Lines walked (deterministic-scan):** 120,117 across the ADR corpus.
-**Distinct patterns checked:** 17 (BYOK fields, layer enum, Object Graph rename, platform→shared, retired tooling family, oya vcs vs oya git, multispectrum versions, OpenAPI/AsyncAPI/proto, placeholder markers, Status enum casing, Status Proposed vs body claims, `superseded_by:` pointer shape, frontmatter duplicate keys, ADR-number gaps, six-hops orphans, naming_justifications block, CI-lane mention).
+**Distinct patterns checked:** 17 (BYOK fields, layer enum, Object Graph rename, platform→shared, retired tooling family, retired VCS ratchet vs oya git, multispectrum versions, OpenAPI/AsyncAPI/proto, placeholder markers, Status enum casing, Status Proposed vs body claims, `superseded_by:` pointer shape, frontmatter duplicate keys, ADR-number gaps, six-hops orphans, naming_justifications block, CI-lane mention).
 **Findings produced:** 17 contradictions · 67 drift findings · 100+ staleness findings · 217 rigor failures (all stubs <1500) · 17 broken-link gaps · 50+ graph orphans · 8 supersede-candidates.
 **Net P-count:** **8 P0** · **~140 P1** · **~80 P2**.
 
@@ -809,8 +809,8 @@ grep -l -i "object graph\|object-graph\|object_graph" docs/decisions/*.md
 # §3.4 retired tooling
 grep -lE "\b(grit|icm|vox|rtk)\b" docs/decisions/*.md
 
-# §3.5 oya vcs vs oya git
-grep -l "oya vcs\|oya-vcs" docs/decisions/*.md
+# §3.5 retired VCS ratchet vs oya git
+grep -l "retired VCS ratchet\|retired VCS ratchet" docs/decisions/*.md
 grep -l "oya git\|git" docs/decisions/*.md
 
 # §3.7 protocol versions
@@ -892,7 +892,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0234-community-social-expansion-planning-contract | 74 | Proposed | -1426 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0235-connect-core-public-contracts | 74 | Proposed | -1426 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0118-retire-archive-orphan-fitness-lane | 80 | Accepted | -1420 | R-P0-08, R-P1-15 |
-| ADR-0123-hyperscaler-maturity-claim-gate | 80 | Accepted | -1420 | R-P0-08, R-P1-15, R-P1-04 (rename oya vcs) |
+| ADR-0123-hyperscaler-maturity-claim-gate | 80 | Accepted | -1420 | R-P0-08, R-P1-15, R-P1-04 (rename retired VCS ratchet) |
 | ADR-0122-ontology-crate-rename-from-object-graph | 85 | Accepted | -1415 | R-P0-08, R-P1-15 |
 | ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation | 89 | Accepted | -1411 | R-P0-08, R-P1-15, R-P1-04 |
 | ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology | 90 | Accepted | -1410 | R-P0-08, R-P1-15 |
@@ -916,7 +916,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0219-no-code-first-ux-with-optional-ai-assist | 123 | Proposed | -1377 | R-P0-08, R-P1-15 |
 | ADR-0094-handler-trait-with-associated-error | 124 | Accepted | -1376 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0179-postgres-connection-pooling-pgcat | 125 | Proposed | -1375 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
-| ADR-0129-changeset-plan-dag-and-honest-claims-gate | 127 | Accepted | -1373 | R-P0-08, R-P1-15, R-P1-04 (rename oya vcs) |
+| ADR-0129-changeset-plan-dag-and-honest-claims-gate | 127 | Accepted | -1373 | R-P0-08, R-P1-15, R-P1-04 (rename retired VCS ratchet) |
 | ADR-0220-consumer-intelligence-substrate | 127 | Proposed | -1373 | R-P0-08, R-P1-15 |
 | ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy | 128 | Accepted | -1372 | R-P0-08, R-P1-15 |
 | ADR-0006-ontology-typed-entity-layer | 129 | Proposed | -1371 | R-P0-08, R-P1-15, R-P1-03 (replace Object Graph term) |
@@ -1028,7 +1028,7 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0044-service-mesh-istio-ambient-and-envoy-gateway | 219 | Proposed | -1281 | R-P0-08, R-P1-15, **R-P1-10** (resolve conflict with ADR-0148) |
 | ADR-0047-search-backend-strategy | 219 | Proposed | -1281 | R-P0-08, R-P1-15 |
 | ADR-0203-documentation-engine-three-tier | 219 | Proposed | -1281 | R-P0-08, R-P1-15 |
-| ADR-0133-industry-best-practice-conformance-program | 220 | Accepted | -1280 | R-P0-08, R-P1-15, R-P1-04 (rename oya vcs) |
+| ADR-0133-industry-best-practice-conformance-program | 220 | Accepted | -1280 | R-P0-08, R-P1-15, R-P1-04 (rename retired VCS ratchet) |
 | ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback | 221 | Proposed | -1279 | R-P0-08, R-P1-15 |
 | ADR-0169-webhook-dlq-retry | 221 | Proposed | -1279 | R-P0-08, R-P1-15 |
 | ADR-0202-gitops-iac-cluster-lifecycle-three-tier | 222 | Proposed | -1278 | R-P0-08, R-P1-15 |
@@ -1257,7 +1257,7 @@ Memories cited in MEMORY.md as still-active (non-retired):
 - `[[rtk-proxy-fmt-silent-passthrough]]` — SUPERSEDED 2026-05-16
 - `[[branch-pipeline-implemented]]`
 - `[[git-canonical-2026-05-18]]` ← canonical
-- `[[oya-vcs-canonical-2026-05-16]]` — SUPERSEDED
+- `[[retired-vcs-ratchet-2026-05-16]]` — SUPERSEDED
 - `[[layer-enum-adr-0105-13-canonical]]` ← canonical
 - `[[self-merge-via-contract-path]]` ← canonical
 - `[[mcc-folds-into-m01]]`
@@ -1282,12 +1282,12 @@ Memories cited in MEMORY.md as still-active (non-retired):
 Memories explicitly retired (per MEMORY.md):
 - `[[grit-claim-work-done]]` — superseded by `[[deprecate-external-agent-coord-tooling]]`
 - `[[rtk-proxy-fmt-silent-passthrough]]` — superseded same
-- `[[oya-vcs-canonical-2026-05-16]]` — superseded by `[[git-canonical-2026-05-18]]`
+- `[[retired-vcs-ratchet-2026-05-16]]` — superseded by `[[git-canonical-2026-05-18]]`
 - `[[layer-enum-12-value-canonical]]` — superseded by `[[layer-enum-adr-0105-13-canonical]]`
 - `[[self-merge-on-ci-green]]` — superseded by `[[self-merge-via-contract-path]]`
 - `[[workflow-objectgraph-adapter-layer]]` — retired per ADR-0145
 
-ADR bodies that may cite retired memories: the corpus has roughly 25-40 ADRs in §3.4 (grit refs) and §3.5 (oya vcs refs) that may also cite retired memory tags. Each citation must be:
+ADR bodies that may cite retired memories: the corpus has roughly 25-40 ADRs in §3.4 (grit refs) and §3.5 (retired VCS ratchet refs) that may also cite retired memory tags. Each citation must be:
 - Replaced with the canonical successor memory tag, OR
 - Removed entirely with a one-line "retired-doctrine — see ADR-NNNN" note.
 
@@ -1304,7 +1304,7 @@ This section spot-checks 5 ADRs against the documentation-rigor.md §1.1 hypersc
 | 1. Named precedent | ✓ | Cites Cloudflare Bot Management, Akamai Bot Manager, hCaptcha, Turnstile, App Attest (iOS), Play Integrity (Android), WebAuthn |
 | 2. Failure-mode tree | ✓ | Enumerates bot farms, reflection/amplification, credential-stuffing, AI-driven CAPTCHA solvers, residential-proxy networks |
 | 3. Capacity math | ✓ | Per-route token-bucket budgets, sliding-window quotas |
-| 4. Observability hooks | ✓ | `X-Oya-Bot-Score` header forwarded; per-µservice quota gate metrics declared |
+| 4. Observability hooks | ✓ | `X-Oyatie-Bot-Score` header forwarded; per-µservice quota gate metrics declared |
 | 5. Rollback path | ✓ | Cedar fragment soak + anomaly-rollback per ADR-0294 |
 | 6. Multi-region awareness | ✓ | Edge / app / µservice tier separation |
 | 7. Sovereign-cell awareness | ✓ | Compliance-pack overlay declared |
@@ -1398,7 +1398,7 @@ Per keystone-bundle-2026-05-20-synthesis.md §6 (Merge Sequence), the bundle is 
 9. R-P1-01: BYOK-disambiguation pass on 21 ADRs.
 10. R-P1-02: 13-layer enum alignment on 13 ADRs.
 11. R-P1-03: Object Graph → Ontology replacement on 8 ADRs.
-12. R-P1-04: oya vcs → oya git rename on 11 ADRs.
+12. R-P1-04: retired VCS ratchet → oya git rename on 11 ADRs.
 13. R-P1-05: OpenAPI 3.0/3.1 → 3.2.0 on 4 ADRs.
 14. R-P1-06: AsyncAPI 2.x → 3.1.0 on 2 ADRs.
 15. R-P1-07: Canonicalize ADR-0054 status.
@@ -1436,7 +1436,7 @@ Risks the remediation agent should track:
 | Tier-S → Tier-G expansion produces 270,000+ lines of new content | High | High | Batch by domain; use ADR templates; reuse hyperscaler-pattern-attribution.md as citation source |
 | BYOK pass introduces inconsistencies in DDL or Cedar entity schemas | Medium | High | Run schema-diff CI lane before merging each BYOK edit; cross-reference synthesis §4 |
 | Promoting ADR-0042 / 0043 / 0037 to Accepted activates lean-a* lanes that other ADRs haven't yet met | Medium | Medium | Phase promotions per the synthesis doc §6 sequence |
-| Renaming 11 ADRs `oya vcs` → `oya git` breaks search/grep in non-ADR docs | Low | Medium | Run corpus-wide rename; verify with `governance-doc-link-resolves` |
+| Renaming 11 ADRs `retired VCS ratchet` → `oya git` breaks search/grep in non-ADR docs | Low | Medium | Run corpus-wide rename; verify with `governance-doc-link-resolves` |
 | Moving 8 ADRs to `superseded/` breaks inbound citations | High | Medium | Update every referrer; CI lane catches |
 | 17 ADR-number gaps resolved by tombstoning instead of landing → corpus shrinks | Low | Low | Acceptable; just document in RETIRED.md |
 | Promotion gate §5.10 (A1 naming) requires ADR-0263 layer-enum fix before ADR-0263 itself can promote | Medium | High | Block ADR-0263 promotion until R-P0-07 closes |
@@ -1516,20 +1516,20 @@ This section converts the §8 punch list into per-domain playbooks. Each playboo
 1. For each ADR in §3.3 list, identify every occurrence of "Object Graph" / "object-graph" / "object_graph" via grep.
 2. For each occurrence, determine semantic intent:
    - If referring to the **typed-entity layer concept** → replace with "Ontology" (capitalized).
-   - If referring to a **Rust crate name** (e.g., `oya-*-object-graph-*`) → replace with the renamed-crate value per ADR-0122; update Cargo.toml and downstream imports too.
+   - If referring to a **Rust crate name** (e.g., `oyatie-*-object-graph-*`) → replace with the renamed-crate value per ADR-0122; update Cargo.toml and downstream imports too.
    - If referring to the **historical term** (e.g., "previously known as Object Graph") → keep with retirement-note annotation.
 3. Verify with `grep -c "Object Graph\|object-graph\|object_graph" docs/decisions/*.md` — should drop to <5 after this pass (only historical refs in ADR-0055, 0122, 0130).
 
 **Expected diff size:** ~25 file edits.
 
-### 19.5 Playbook E — oya vcs → oya git rename (R-P1-04)
+### 19.5 Playbook E — retired VCS ratchet → oya git rename (R-P1-04)
 
-**Scope:** 11 ADRs reference the retired `oya vcs` surface.
+**Scope:** 11 ADRs reference the retired VCS ratchet surface.
 
 **Steps:**
-1. For each ADR in §3.5 list, identify every occurrence of `oya vcs` or `oya-vcs`.
+1. For each ADR in §3.5 list, identify every occurrence of `retired VCS ratchet` or `retired VCS ratchet`.
 2. Replace with `oya git` / `git` per ADR-0223.
-3. Where the ADR's title or filename includes `vcs` (e.g., `ADR-0113-vcs-orchestrator-end-to-end.md`), KEEP the historical filename but annotate the body with "(renamed `oya vcs` → `oya git` per ADR-0223 on 2026-05-18)".
+3. Where the ADR's title or filename includes `vcs` (e.g., `ADR-0113-vcs-orchestrator-end-to-end.md`), KEEP the historical filename but annotate the body with "(renamed `retired VCS ratchet` → `oya git` per ADR-0223 on 2026-05-18)".
 4. Verify with `governance-cross-consistency` lane.
 
 **Expected diff size:** ~25 file edits.

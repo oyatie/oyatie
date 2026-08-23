@@ -167,7 +167,7 @@ components:
 
 ```proto
 syntax = "proto3";
-package oya.payroll.v1;
+package oyatie.payroll.v1;
 
 message PayeeVarianceTotal {
   string payee_id   = 1;

@@ -290,7 +290,7 @@ fn capability_invoke_api_success_path_preserves_request_id_metadata() {
                 DataClass::InternalOnly,
             ])
             .unwrap(),
-            evidence_topic: "oya.foundry.capability.invoked".to_string(),
+            evidence_topic: "oyatie.foundry.capability.invoked".to_string(),
         })
         .expect("capability can be registered after eval readiness");
     foundation
@@ -524,7 +524,7 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
                 DataClass::InternalOnly,
             ])
             .unwrap(),
-            evidence_topic: "oya.foundry.capability.invoked".to_string(),
+            evidence_topic: "oyatie.foundry.capability.invoked".to_string(),
         })
         .expect("capability can be registered after eval readiness");
     foundation
@@ -779,7 +779,7 @@ fn configured_foundation_for_api_capability(capability_id: &str) -> (Foundation,
                 DataClass::InternalOnly,
             ])
             .unwrap(),
-            evidence_topic: "oya.foundry.capability.invoked".to_string(),
+            evidence_topic: "oyatie.foundry.capability.invoked".to_string(),
         })
         .expect("capability can be registered after eval readiness");
     foundation

@@ -130,7 +130,7 @@ The Foundry axis owns the **`foundry` and `builder` bounded contexts** per [DESI
 - `crates/intelligence-adapter-{codex,claude,gemini,...}-*` — provider adapters (one crate per provider, per auth mode)
 - `crates/foundry-{repoctl,catalog,gates,scorecard,fitness,bypass,lane,supply}-*` — Foundry engineering platform engineering surfaces
 
-Per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`. As of 2026-05-09, `foundry-*` is folded into the Foundry axis (single team owns both contexts; no cross-axis review required between them).
+Per ADR-0015 §1: `oyatie-<context>-<role>[-<capability>]`. As of 2026-05-09, `foundry-*` is folded into the Foundry axis (single team owns both contexts; no cross-axis review required between them).
 
 ### 4.2 Layered structure (clean architecture inside the bounded context)
 
@@ -674,23 +674,23 @@ All events go through the canonical eventing backbone per ADR-0050/0174 + outbox
 
 | Event name | Topic | Schema location | Consumer aggregates | Retention | Idempotency key |
 |---|---|---|---|---|---|
-| `foundry.capability_registered.v1` | `oya.foundry.capability` | `contracts/events/foundry.capability_registered.v1.avsc` | Catalog projection, all axes (capability discovery), Marketplace | indefinite | `(capability_id, semver)` |
-| `foundry.capability_deprecated.v1` | `oya.foundry.capability` | `contracts/events/foundry.capability_deprecated.v1.avsc` | All consumer axes, Audit, Console | indefinite | `(capability_id, semver, deprecation_seq)` |
-| `foundry.run_started.v1` | `oya.foundry.run` | `contracts/events/foundry.run_started.v1.avsc` | Audit, Metering, Tenant trust portal | 90 d | `run_id` |
-| `foundry.run_completed.v1` | `oya.foundry.run` | `contracts/events/foundry.run_completed.v1.avsc` | Audit, Metering, FinOps, Workflow Engine (when capability bound to workflow step) | 90 d | `run_id` |
-| `foundry.run_rejected.v1` | `oya.foundry.run` | `contracts/events/foundry.run_rejected.v1.avsc` | Audit (per-rejection record with rationale), Console (operator feedback), Foundry-policy review | indefinite | `run_id` |
-| `foundry.step_emitted.v1` | `oya.foundry.step` | `contracts/events/foundry.step_emitted.v1.avsc` | Audit (per-step), Metering (per-token cost), Foundry monitor | 30 d | `(run_id, step_seq)` |
-| `foundry.evidence_emitted.v1` | `oya.foundry.evidence` | `contracts/events/foundry.evidence_emitted.v1.avsc` | Audit-chain (chain link), Tenant trust portal | indefinite | `evidence_id` |
-| `foundry.provider_failover.v1` | `oya.foundry.provider` | `contracts/events/foundry.provider_failover.v1.avsc` | Audit, FinOps, Foundry monitor, SRE | 90 d | `(run_id, failover_seq)` |
-| `foundry.autonomy_decision.v1` | `oya.foundry.policy` | `contracts/events/foundry.autonomy_decision.v1.avsc` | Audit, Tenant trust portal, Governance | indefinite | `(run_id, decision_seq)` |
-| `foundry.subscription_session_renewed.v1` | `oya.foundry.provider` | `contracts/events/foundry.subscription_session_renewed.v1.avsc` | Audit, Tenant trust portal (subscription disclosure record) | indefinite | `(tenant_id, provider_kind, session_id)` |
-| `foundry.memory_persisted.v1` | `oya.foundry.memory` | `contracts/events/foundry.memory_persisted.v1.avsc` | Audit, Tenant memory console, DSR cascade target | per-class | `memory_id` |
-| `foundry.mcp_session.v1` | `oya.foundry.mcp` | `contracts/events/foundry.mcp_session.v1.avsc` | Audit, MCP-binding analytics | 90 d | `mcp_session_id` |
-| `builder.catalog_validated.v1` | `oya.builder.catalog` | `contracts/events/builder.catalog_validated.v1.avsc` | All axes (capability discovery freshness), Audit | 30 d | `(crate_id, validation_seq)` |
-| `builder.foundation_bypass_recorded.v1` | `oya.builder.bypass` | `contracts/events/builder.foundation_bypass_recorded.v1.avsc` | All axes (visibility), Audit, Architecture council, Scorecard | indefinite | `bypass_id` |
-| `builder.fitness_failed.v1` | `oya.builder.fitness` | `contracts/events/builder.fitness_failed.v1.avsc` | All axes, PR feedback, Architecture council | 90 d | `(pr_ref, fitness_id, run_seq)` |
-| `builder.scorecard_published.v1` | `oya.builder.scorecard` | `contracts/events/builder.scorecard_published.v1.avsc` | All axes (proof-ladder progress), Architecture council, Tenant trust portal | indefinite | `(axis, period)` |
-| `builder.supply_chain_attested.v1` | `oya.builder.supply` | `contracts/events/builder.supply_chain_attested.v1.avsc` | All axes (release artifact attest), Audit, Customer-facing trust portal | indefinite | `release_artifact_ref` |
+| `foundry.capability_registered.v1` | `oyatie.foundry.capability` | `contracts/events/foundry.capability_registered.v1.avsc` | Catalog projection, all axes (capability discovery), Marketplace | indefinite | `(capability_id, semver)` |
+| `foundry.capability_deprecated.v1` | `oyatie.foundry.capability` | `contracts/events/foundry.capability_deprecated.v1.avsc` | All consumer axes, Audit, Console | indefinite | `(capability_id, semver, deprecation_seq)` |
+| `foundry.run_started.v1` | `oyatie.foundry.run` | `contracts/events/foundry.run_started.v1.avsc` | Audit, Metering, Tenant trust portal | 90 d | `run_id` |
+| `foundry.run_completed.v1` | `oyatie.foundry.run` | `contracts/events/foundry.run_completed.v1.avsc` | Audit, Metering, FinOps, Workflow Engine (when capability bound to workflow step) | 90 d | `run_id` |
+| `foundry.run_rejected.v1` | `oyatie.foundry.run` | `contracts/events/foundry.run_rejected.v1.avsc` | Audit (per-rejection record with rationale), Console (operator feedback), Foundry-policy review | indefinite | `run_id` |
+| `foundry.step_emitted.v1` | `oyatie.foundry.step` | `contracts/events/foundry.step_emitted.v1.avsc` | Audit (per-step), Metering (per-token cost), Foundry monitor | 30 d | `(run_id, step_seq)` |
+| `foundry.evidence_emitted.v1` | `oyatie.foundry.evidence` | `contracts/events/foundry.evidence_emitted.v1.avsc` | Audit-chain (chain link), Tenant trust portal | indefinite | `evidence_id` |
+| `foundry.provider_failover.v1` | `oyatie.foundry.provider` | `contracts/events/foundry.provider_failover.v1.avsc` | Audit, FinOps, Foundry monitor, SRE | 90 d | `(run_id, failover_seq)` |
+| `foundry.autonomy_decision.v1` | `oyatie.foundry.policy` | `contracts/events/foundry.autonomy_decision.v1.avsc` | Audit, Tenant trust portal, Governance | indefinite | `(run_id, decision_seq)` |
+| `foundry.subscription_session_renewed.v1` | `oyatie.foundry.provider` | `contracts/events/foundry.subscription_session_renewed.v1.avsc` | Audit, Tenant trust portal (subscription disclosure record) | indefinite | `(tenant_id, provider_kind, session_id)` |
+| `foundry.memory_persisted.v1` | `oyatie.foundry.memory` | `contracts/events/foundry.memory_persisted.v1.avsc` | Audit, Tenant memory console, DSR cascade target | per-class | `memory_id` |
+| `foundry.mcp_session.v1` | `oyatie.foundry.mcp` | `contracts/events/foundry.mcp_session.v1.avsc` | Audit, MCP-binding analytics | 90 d | `mcp_session_id` |
+| `builder.catalog_validated.v1` | `oyatie.builder.catalog` | `contracts/events/builder.catalog_validated.v1.avsc` | All axes (capability discovery freshness), Audit | 30 d | `(crate_id, validation_seq)` |
+| `builder.foundation_bypass_recorded.v1` | `oyatie.builder.bypass` | `contracts/events/builder.foundation_bypass_recorded.v1.avsc` | All axes (visibility), Audit, Architecture council, Scorecard | indefinite | `bypass_id` |
+| `builder.fitness_failed.v1` | `oyatie.builder.fitness` | `contracts/events/builder.fitness_failed.v1.avsc` | All axes, PR feedback, Architecture council | 90 d | `(pr_ref, fitness_id, run_seq)` |
+| `builder.scorecard_published.v1` | `oyatie.builder.scorecard` | `contracts/events/builder.scorecard_published.v1.avsc` | All axes (proof-ladder progress), Architecture council, Tenant trust portal | indefinite | `(axis, period)` |
+| `builder.supply_chain_attested.v1` | `oyatie.builder.supply` | `contracts/events/builder.supply_chain_attested.v1.avsc` | All axes (release artifact attest), Audit, Customer-facing trust portal | indefinite | `release_artifact_ref` |
 
 ### 5.5 Index / search-index touchpoints
 
@@ -708,21 +708,21 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 
 | Operation | Emits topic | Required fields |
 |---|---|---|
-| Capability invoked | `oya.audit.foundry_capability_invoke` | `tenant_id`, `capability_id`, `capability_semver`, `initiator`, `on_behalf_of`, `autonomy_tier_used`, `data_classes_declared`, `provider_kind`, `provider_auth_mode`, `region`, `residency`, `idempotency_key`, `timestamp`, `prev_hash` |
-| Step executed | `oya.audit.foundry_step` | `run_id`, `step_seq`, `kind`, `tool_call_ref`, `provider_kind`, `model_ref`, `input_tokens`, `output_tokens`, `data_classes_touched`, `latency_ms`, `disposition`, `timestamp`, `prev_hash` |
-| Run completed | `oya.audit.foundry_run` | `tenant_id`, `run_id`, `capability_id`, `state`, `disposition`, `data_classes_touched`, `autonomy_tier_used`, `provider_route`, `evidence_chain_root`, `timestamp`, `prev_hash` |
-| Run rejected (autonomy / class / residency / provider) | `oya.audit.foundry_run_reject` | `tenant_id`, `capability_id`, `requested_tier`, `permitted_tier`, `disposition`, `rationale`, `timestamp`, `prev_hash` |
-| Autonomy decision | `oya.audit.foundry_autonomy_decision` | `run_id`, `capability_id`, `requested_tier`, `permitted_tier`, `disposition`, `rationale`, `cedar_policy_refs`, `timestamp`, `prev_hash` |
-| Provider routed | `oya.audit.foundry_provider_route` | `run_id`, `tenant_id`, `provider_kind`, `provider_auth_mode`, `model_ref`, `region_pack`, `residency_validated`, `failovers_attempted`, `timestamp`, `prev_hash` |
-| Subscription session renewed | `oya.audit.foundry_subscription_renew` | `tenant_id`, `provider_kind`, `subscription_kind`, `session_id`, `renewed_by`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
-| Cross-session memory persisted | `oya.audit.foundry_memory_persist` | `tenant_id`, `principal`, `memory_id`, `kind`, `data_class`, `retention`, `timestamp`, `prev_hash` |
-| Cross-session memory accessed | `oya.audit.foundry_memory_access` | `tenant_id`, `principal`, `memory_id`, `accessing_run_id`, `data_class`, `timestamp`, `prev_hash` |
-| MCP session | `oya.audit.foundry_mcp_session` | `tenant_id`, `mcp_session_id`, `client_principal`, `server_endpoint`, `tools_exposed`, `data_classes_referenced`, `timestamp`, `prev_hash` |
-| Catalog validated | `oya.audit.builder_catalog_validate` | `crate_id`, `validator`, `disposition`, `regressions`, `timestamp`, `prev_hash` |
-| Foundation bypass recorded | `oya.audit.builder_foundation_bypass` | `pr_ref`, `crate_ref`, `gate_bypassed`, `bypassing_actor`, `rationale`, `regression_window_days`, `timestamp`, `prev_hash` |
-| Fitness failed | `oya.audit.builder_fitness_fail` | `pr_ref`, `fitness_id`, `axis`, `disposition`, `rationale`, `timestamp`, `prev_hash` |
-| Scorecard published | `oya.audit.builder_scorecard_publish` | `axis`, `period`, `proof_ladder_rung`, `metrics_summary`, `bypasses_open`, `timestamp`, `prev_hash` |
-| Supply-chain attested | `oya.audit.builder_supply_attest` | `release_artifact_ref`, `cosign_signature`, `sbom_ref`, `trivy_scan_ref`, `attestor`, `timestamp`, `prev_hash` |
+| Capability invoked | `oyatie.audit.foundry_capability_invoke` | `tenant_id`, `capability_id`, `capability_semver`, `initiator`, `on_behalf_of`, `autonomy_tier_used`, `data_classes_declared`, `provider_kind`, `provider_auth_mode`, `region`, `residency`, `idempotency_key`, `timestamp`, `prev_hash` |
+| Step executed | `oyatie.audit.foundry_step` | `run_id`, `step_seq`, `kind`, `tool_call_ref`, `provider_kind`, `model_ref`, `input_tokens`, `output_tokens`, `data_classes_touched`, `latency_ms`, `disposition`, `timestamp`, `prev_hash` |
+| Run completed | `oyatie.audit.foundry_run` | `tenant_id`, `run_id`, `capability_id`, `state`, `disposition`, `data_classes_touched`, `autonomy_tier_used`, `provider_route`, `evidence_chain_root`, `timestamp`, `prev_hash` |
+| Run rejected (autonomy / class / residency / provider) | `oyatie.audit.foundry_run_reject` | `tenant_id`, `capability_id`, `requested_tier`, `permitted_tier`, `disposition`, `rationale`, `timestamp`, `prev_hash` |
+| Autonomy decision | `oyatie.audit.foundry_autonomy_decision` | `run_id`, `capability_id`, `requested_tier`, `permitted_tier`, `disposition`, `rationale`, `cedar_policy_refs`, `timestamp`, `prev_hash` |
+| Provider routed | `oyatie.audit.foundry_provider_route` | `run_id`, `tenant_id`, `provider_kind`, `provider_auth_mode`, `model_ref`, `region_pack`, `residency_validated`, `failovers_attempted`, `timestamp`, `prev_hash` |
+| Subscription session renewed | `oyatie.audit.foundry_subscription_renew` | `tenant_id`, `provider_kind`, `subscription_kind`, `session_id`, `renewed_by`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
+| Cross-session memory persisted | `oyatie.audit.foundry_memory_persist` | `tenant_id`, `principal`, `memory_id`, `kind`, `data_class`, `retention`, `timestamp`, `prev_hash` |
+| Cross-session memory accessed | `oyatie.audit.foundry_memory_access` | `tenant_id`, `principal`, `memory_id`, `accessing_run_id`, `data_class`, `timestamp`, `prev_hash` |
+| MCP session | `oyatie.audit.foundry_mcp_session` | `tenant_id`, `mcp_session_id`, `client_principal`, `server_endpoint`, `tools_exposed`, `data_classes_referenced`, `timestamp`, `prev_hash` |
+| Catalog validated | `oyatie.audit.builder_catalog_validate` | `crate_id`, `validator`, `disposition`, `regressions`, `timestamp`, `prev_hash` |
+| Foundation bypass recorded | `oyatie.audit.builder_foundation_bypass` | `pr_ref`, `crate_ref`, `gate_bypassed`, `bypassing_actor`, `rationale`, `regression_window_days`, `timestamp`, `prev_hash` |
+| Fitness failed | `oyatie.audit.builder_fitness_fail` | `pr_ref`, `fitness_id`, `axis`, `disposition`, `rationale`, `timestamp`, `prev_hash` |
+| Scorecard published | `oyatie.audit.builder_scorecard_publish` | `axis`, `period`, `proof_ladder_rung`, `metrics_summary`, `bypasses_open`, `timestamp`, `prev_hash` |
+| Supply-chain attested | `oyatie.audit.builder_supply_attest` | `release_artifact_ref`, `cosign_signature`, `sbom_ref`, `trivy_scan_ref`, `attestor`, `timestamp`, `prev_hash` |
 
 ### 5.7 Schema migration policy
 
@@ -2607,10 +2607,10 @@ Pass: export hash verifies.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 full-mirror semantics are migration input only: Foundry acceptance must be evidenced by current cloud-ci/ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
+- ADR-0346 full-mirror semantics are migration input only: Foundry acceptance must be evidenced by current presubmit Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
 - ADR-0347 binds Foundry engineering-platform lane authoring to the `governance-*` lane vocabulary after the `governance-*` bulk rename. Enforced-by cross-reference: `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, `governance-rename-inventory-presence`.
 - ADR-0348 binds Foundry capability execution locality, tenant-scoped agent runs, and cross-product write placement to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, `governance-tenant-migration-reversibility`.
-- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
+- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from presubmit gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
 
 ## References
 
@@ -2645,12 +2645,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| FOUNDRY-PRD-AC-001 | The Foundry PRD is used as a planning contract and capability, autonomy ceiling, provider, audit-chain, and evidence contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Foundry capability/autonomy acceptance is linked to test and evidence paths instead of generic prose | FOUNDRY-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| FOUNDRY-PRD-AC-002 | Foundry managed-service or internal-runtime readiness is evaluated | Readiness evidence is evaluated | fresh capability registry, autonomy/authorization, provider-residency, audit-chain, and product-pain evidence is required outside this PRD | FOUNDRY-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| FOUNDRY-PRD-AC-001 | The Foundry PRD is used as a planning contract and capability, autonomy ceiling, provider, audit-chain, and evidence contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Foundry capability/autonomy acceptance is linked to test and evidence paths instead of generic prose | FOUNDRY-PRD-GATE-001 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| FOUNDRY-PRD-AC-002 | Foundry managed-service or internal-runtime readiness is evaluated | Readiness evidence is evaluated | fresh capability registry, autonomy/authorization, provider-residency, audit-chain, and product-pain evidence is required outside this PRD | FOUNDRY-PRD-GATE-002 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| Foundry capability/autonomy/evidence planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one Foundry row names capability, autonomy, provider, audit-chain, and evidence obligations | `presubmit` |
-| Foundry product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | A Foundry promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |
+| Foundry capability/autonomy/evidence planning maturity | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | At least one Foundry row names capability, autonomy, provider, audit-chain, and evidence obligations | `presubmit` |
+| Foundry product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | A Foundry promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |

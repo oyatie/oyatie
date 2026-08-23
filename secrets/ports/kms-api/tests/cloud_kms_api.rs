@@ -144,7 +144,7 @@ fn correlation_for(principal_id: &str) -> CloudKmsApiAuthorizationCorrelation {
 
 fn key_create() -> KmsKeyCreate {
     KmsKeyCreate {
-        resource_id: "oya:cloud:region-home:ten_alpha:kms-key:object-key".to_string(),
+        resource_id: "oyatie:cloud:region-home:ten_alpha:kms-key:object-key".to_string(),
         key_id: "kms/region-home/ten_alpha/object-key".to_string(),
         tenant_id: "ten_alpha".to_string(),
         region: "region-home".to_string(),
@@ -751,7 +751,7 @@ fn decrypt_cross_tenant_key_denied_by_pdp_returns_403() {
     let mut directory = directory_with_key();
     directory
         .create_key(KmsKeyCreate {
-            resource_id: "oya:cloud:region-home:ten_beta:kms-key:object-key".to_string(),
+            resource_id: "oyatie:cloud:region-home:ten_beta:kms-key:object-key".to_string(),
             key_id: "kms/region-home/ten_beta/object-key".to_string(),
             tenant_id: "ten_beta".to_string(),
             region: "region-home".to_string(),

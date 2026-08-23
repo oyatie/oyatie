@@ -11,7 +11,7 @@ fn tenant_rbac_audit_chain_emission_plan_covers_cloudevents_trace_context_and_di
 
     assert_eq!(plan.cloudevents_spec_version, "1.0");
     assert_eq!(plan.datacontenttype, "application/json");
-    assert_eq!(plan.outbox_topic, "oya.platform.audit");
+    assert_eq!(plan.outbox_topic, "platform.audit");
     assert_eq!(plan.coordinate.pack, "tenant-rbac");
     assert_eq!(plan.coordinate.tenant_partition, "tenant-scoped");
     assert!(plan.cloud_events_json_required);
@@ -70,7 +70,7 @@ fn tenant_rbac_audit_chain_emission_plan_renders_review_only_checklist() {
 
     assert!(checklist.contains("CloudEvents specversion: 1.0"));
     assert!(checklist.contains("W3C traceparent"));
-    assert!(checklist.contains("Outbox topic: oya.platform.audit"));
+    assert!(checklist.contains("Outbox topic: platform.audit"));
     assert!(checklist.contains("digest-only audit payloads"));
     assert!(checklist.contains("dev.oyatie.tenant_rbac.policy_admission_recorded.v1"));
     assert!(checklist.contains("dev.oyatie.tenant_rbac.cloud_readiness_gate_evaluated.v1"));

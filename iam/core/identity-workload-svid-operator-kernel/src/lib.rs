@@ -56,7 +56,7 @@ pub struct DesiredState {
     /// The Kubernetes Secret name the projected `kubernetes.io/tls` material is
     /// written to. The consumer contract fixes this to `cloud-iam-pdp-svid`.
     pub secret_name: String, // data_class: PUBLIC
-    /// The namespace the Secret is projected into (the cloud-iam namespace).
+    /// The namespace the Secret is projected into (the iam namespace).
     pub secret_namespace: String, // data_class: PUBLIC
 }
 

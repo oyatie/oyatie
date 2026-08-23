@@ -43,7 +43,7 @@ defect, not an optimization. This standard names the three pillars
 
 ## 1. OpenTelemetry mandatory
 
-Every `oya-*` service binary emits telemetry via the **OpenTelemetry SDK**
+Every `oyatie-*` service binary emits telemetry via the **OpenTelemetry SDK**
 (Rust crate family: `opentelemetry`, `opentelemetry-otlp`, `tracing-opentelemetry`,
 `opentelemetry_sdk`). OTLP (gRPC or HTTP) is the wire format.
 

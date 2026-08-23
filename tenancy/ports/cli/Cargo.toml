@@ -8,7 +8,7 @@ default-run = "tenant"
 license = "Apache-2.0"
 
 # Skeleton authored 2026-05-18 per ADR-0167 (tenant-facing CLI).
-# Tier-A semver-protected tenant binary distributed as `oya` to tenant
+# Tier-A semver-protected tenant binary distributed as `tenant` to tenant
 # artifact channels (Homebrew, apt, winget, ghcr). The workspace bin name is
 # unique (`tenant`) so `cargo build --workspace` never collides with the
 # internal `dev-cli` binary.

@@ -7,7 +7,7 @@ implements the already-specified proto3 `WorkloadAuthorizer`
 (AuthorizeWithToken / Authorize / AuthorizeBatch) and `WorkloadTokenValidator`
 (ValidateToken) services from
 `microservices/identity/contracts/proto/workload.proto`
-(package `oya.identity.workload.v1`).
+(package `oyatie.identity.workload.v1`).
 
 The gRPC surface mounts the SAME inward `identity-workload-app` use-cases
 the axum REST surface already mounts, proving that REST and gRPC share one
@@ -48,7 +48,7 @@ No other file defines `WorkloadAuthorizer` / `WorkloadTokenValidator`.
 
 ### Proto (server-side only)
 
-Package `oya.identity.workload.v1` — see
+Package `oyatie.identity.workload.v1` — see
 `microservices/identity/contracts/proto/workload.proto`.
 
 Services implemented:

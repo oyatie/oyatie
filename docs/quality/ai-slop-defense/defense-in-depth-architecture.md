@@ -220,7 +220,7 @@ Process (per [Google SRE postmortem culture](https://sre.google/sre-book/postmor
    clippy `disallowed_methods` config, a new pre-commit hook, or a new
    admission policy.
 5. Prevention validated by replay-as-eval per ADR-0024
-   foundry-eval-harness; existing `oya.prevention.verify-coverage`
+   foundry-eval-harness; existing `oyatie.prevention.verify-coverage`
    capability run.
 
 ## Composability + redundancy + failure isolation

@@ -202,7 +202,7 @@ Every bounded context uses the same layered structure:
 
 Use flat service naming:
 
-`oya-<service>[-<bounded-context>]-<layer>`
+`oyatie-<service>[-<bounded-context>]-<layer>`
 
 Examples:
 
@@ -330,7 +330,7 @@ Rules:
 | CI | GitHub Actions for hosted workflows; Jenkins LTS for self-hosted, air-gapped, on-prem, and colo parity |
 | Image registry | OCI registry with signed image enforcement |
 | Deployment modes | Shared cloud, dedicated cell, hybrid, on-prem, air-gapped, and future owned/colocated capacity |
-| Agent-safe repository workflow | Isolated plain-git branch, PR against `dev`, Jenkins required checks, `oya gate` / `oya verify`, reviewer/governance approval |
+| Agent-safe repository workflow | Isolated plain-git branch, PR against `dev`, Jenkins required checks, retired CLI / retired `./bin/oya verify`, reviewer/governance approval |
 
 ### 8.7 Retired Or Rejected Choices
 
@@ -642,7 +642,7 @@ Recommended local command vocabulary:
 git worktree add -b <branch> <isolated-worktree> origin/dev
 git status --short --branch
 oya verify --ci-required
-oya gate run-all
+retired CLI run-all
 git push -u origin <branch>
 gh pr create --base dev --head <branch>
 ```
@@ -799,7 +799,7 @@ isolation for untrusted tenant code.
 Deploy server-side workloads to Kubernetes. Use OpenTofu for infrastructure as
 code, Argo CD for GitOps, signed OCI images, SBOMs, cosign/Sigstore provenance,
 SLSA posture, GitHub Actions for hosted CI, and Jenkins LTS for self-hosted or
-air-gapped parity. Use the plain-git branch, PR, Jenkins, `oya gate` / `oya verify`, and reviewer/governance lifecycle for
+air-gapped parity. Use the plain-git branch, PR, Jenkins, retired CLI / retired `./bin/oya verify`, and reviewer/governance lifecycle for
 agent-safe changes.
 
 Hard rules:

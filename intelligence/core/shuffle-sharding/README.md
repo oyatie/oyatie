@@ -13,7 +13,7 @@ cells supplied by callers and returns a deterministic shard for one tenant.
 
 - `tenancy` calls the crate during tenant provisioning and records the
   tenant-to-cell assignment.
-- `cloud-iac` owns the candidate registry through OpenTofu state and lifecycle
+- `iac-app` owns the candidate registry through OpenTofu state and lifecycle
   operations.
 - `observability` owns health, SLO burn, and blast-radius signals that decide
   whether a cell is eligible for new tenants.

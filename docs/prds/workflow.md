@@ -436,10 +436,10 @@ Sharding:
 | AC-04 | Multi-step approval: four-eyes constraint enforced; single approver cannot approve twice | `cargo nextest run -p workflow-approvals-domain --test four_eyes_invariant` |
 | AC-05 | SLA timer fires escalation on breach; not before | `cargo nextest run -p workflow-sla-domain --test sla_escalation_timing` |
 | AC-06 | Agentic node: LLM decision via agent gateway routes to correct branch | integration test `test_agentic_node_routing` |
-| AC-07 | LEAN-A2: workflow crates have no product µservice imports (hr/payroll/connect etc.) | `oya gate validate lean-a2 --ms workflow` exits 0 |
+| AC-07 | LEAN-A2: workflow crates have no product µservice imports (hr/payroll/connect etc.) | `presubmit` (retired CLI `gate validate lean-a2 --ms workflow`) exits 0 |
 | AC-09 | 10k concurrent active runs per cell; p99 step execution ≤200 ms | k6 load: `k6 run tests/load/workflow-engine-10k.js` |
 | AC-10 | Tenant isolation: tenant A run cannot observe tenant B event payloads | `cargo nextest run -p workflow-engine-domain --test tenant_run_isolation` |
-| AC-11 | Audit chain: every run sealed; tampering detected on verification | `oya gate validate audit-chain --ms workflow` |
+| AC-11 | Audit chain: every run sealed; tampering detected on verification | `presubmit` (retired CLI `gate validate audit-chain --ms workflow`) |
 | AC-12 | All 10 M03 domain templates loadable in Studio; no errors | integration test `test_template_library_load` |
 
 ---

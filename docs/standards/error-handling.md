@@ -46,7 +46,7 @@ related_adrs:
 
 Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-04 ("No untyped
 values at API boundaries") and [`AGENTS.md`](../AGENTS.md) §During-change
-discipline, every Rust API boundary in `oya-*` crates MUST use typed errors.
+discipline, every Rust API boundary in `oyatie-*` crates MUST use typed errors.
 This standard names the libraries, the boundary rule, and the silent-failure
 prevention pattern.
 
@@ -54,11 +54,11 @@ prevention pattern.
 
 Hyperscaler consensus (AWS, Microsoft, Google) on Rust error handling:
 
-- **Library crates** (`oya-*-kernel`, `oya-*-domain`, `oya-*-app`,
-  `oya-*-adapter-*`): expose matchable error **enums** via
+- **Library crates** (`oyatie-*-kernel`, `oyatie-*-domain`, `oyatie-*-app`,
+  `oyatie-*-adapter-*`): expose matchable error **enums** via
   [`thiserror`](https://docs.rs/thiserror). Callers can branch on variants;
   variants form part of the public API and are SemVer-governed.
-- **Binary crates** (`oya-*-runtime-*`, CLI tools, integration test
+- **Binary crates** (`oyatie-*-runtime-*`, CLI tools, integration test
   drivers): MAY use [`anyhow`](https://docs.rs/anyhow) or
   [`eyre`](https://github.com/eyre-rs/eyre) for type-erased error
   propagation at the top level. The crate MUST NOT re-export `anyhow::Error`

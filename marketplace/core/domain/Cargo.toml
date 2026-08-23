@@ -1,0 +1,21 @@
+[package]
+name = "marketplace-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+billing-domain = { path = "../../../billing/core/billing" }
+cell-region = { path = "../../../cell/core/region" }
+
+billing-metering = { path = "../../../billing/core/metering" }
+
+[lib]
+name = "marketplace_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

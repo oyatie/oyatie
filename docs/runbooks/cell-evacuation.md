@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-sre-reliability + ops-dr-capacity
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0248 §D-4, ADR-0248 §D-7, ADR-0248 §D-12, ADR-0241, ADR-0009, ADR-0243
 
 ---
@@ -52,13 +52,13 @@ Complete all pre-checks before beginning evacuation. Estimated time: **10–20 m
 
 3. **Verify DR cell readiness for all home-tenants.** For each tenant whose `home_cell` equals the target cell:
    ```
-   oya gate validate cell-isolation-tolerance --cell <DR_CELL_ID> --tenant-count <HOME_COUNT>
+   presubmit (retired CLI gate validate) cell-isolation-tolerance --cell <DR_CELL_ID> --tenant-count <HOME_COUNT>
    ```
    Gate must return `PASS`. If `FAIL`, provision capacity on DR cell or identify an alternate DR cell before proceeding.
 
 4. **Confirm shuffle-sharding service is healthy:**
    ```
-   oya gate validate shuffle-sharding-parameters --cell-pool <PACK>
+   presubmit (retired CLI gate validate) shuffle-sharding-parameters --cell-pool <PACK>
    ```
 
 5. **Declare incident.** Open incident in `#incident-bridge`. Severity: SEV-2 (planned evacuation) or SEV-1 (forced evacuation <4h lead time). Assign incident commander. Notify `ops-compliance` if any tenant on the cell has regulated compliance packs installed.
@@ -128,7 +128,7 @@ tenancy cell-migration-apply \
 
 Verify each tenant's new `dr_cell` satisfies compliance pack cell-pinning rule (ADR-0251 §D-5):
 ```
-oya gate validate tenant-pack-cell-pinning --tenant-batch <BATCH_CSV>
+presubmit (retired CLI gate validate) tenant-pack-cell-pinning --tenant-batch <BATCH_CSV>
 ```
 
 All tenants must pass. Blocked tenants require `ops-compliance` review before proceeding.
@@ -228,12 +228,12 @@ helm uninstall cell-<TARGET_CELL_ID> --namespace cell-<TARGET_CELL_ID>
 
 2. **All migrated tenants pass cell-pinning rule** (ADR-0251 §D-5):
    ```
-   oya gate validate tenant-pack-cell-pinning --all-tenants
+   presubmit (retired CLI gate validate) tenant-pack-cell-pinning --all-tenants
    ```
 
 3. **Cedar fragment cache on receiving cells is current** (≤30s stale per ADR-0248 §D-9):
    ```
-   oya gate validate cell-isolation-tolerance --cell <DR_CELL_ID>
+   presubmit (retired CLI gate validate) cell-isolation-tolerance --cell <DR_CELL_ID>
    ```
 
 4. **Audit-chain completeness.** Verify each migrated tenant has a `TenantHomeCellMigrationCompleted` event with Merkle proof in the audit chain:

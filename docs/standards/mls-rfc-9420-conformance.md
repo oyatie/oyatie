@@ -251,7 +251,7 @@ This passes because only ciphertext is stored.
 Primary command:
 
 ```bash
-oya gate validate mls-rfc-9420-conformance --microservice messenger
+presubmit (retired CLI gate validate) mls-rfc-9420-conformance --microservice messenger
 ```
 
 The checker MUST run RFC 9420 positive vectors.

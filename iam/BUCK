@@ -1,7 +1,7 @@
 # Residual product/docs surface for iam capability (dual-home burn-down).
 # Live crates live under iam/{core,adapters,facade,ports,observability} with
 # their own package BUCKs. This package owns residual service docs, manifests,
-# contracts, and OpenSLO YAML rehomed from cloud/cloud-iam and oya/consent-graph
+# contracts, and OpenSLO YAML rehomed from cloud/iam and oya/consent-graph
 # so they remain in the Buck2 corpus graph (ADR-0541).
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")

@@ -75,7 +75,7 @@ regulatory_packs_consumed:
 
 evidence:
   audit_chain:
-    emission_topic: oya.foundry.capability.invoked   # ADR-0003; inventory via ADR-0052
+    emission_topic: oyatie.foundry.capability.invoked   # ADR-0003; inventory via ADR-0052
     fields: [capability_id, version, tenant_id, autonomy_tier, data_classes_used, provider_used, latency_ms, outcome]
   evaluation:
     eval_set_ref: capabilities/<id>/eval/golden.yaml
@@ -117,7 +117,7 @@ sunset_policy:
   migration_target: <new-capability-id-or-null>
 
 ownership:
-  catalog_record_path: registry/catalog/oya-<context>-<role>.yaml
+  catalog_record_path: registry/catalog/oyatie-<context>-<role>.yaml
   docs_path: docs.oyatie.com/capabilities/<id>/
   raci_ref: docs/RACI-OWNERSHIP.md#capability-publish
 

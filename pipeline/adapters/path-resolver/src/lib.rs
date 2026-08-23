@@ -169,7 +169,7 @@ impl MoveManifest {
     /// leniently, `Ok`).
     ///
     /// PRECONDITION (ADR-0614, amends ADR-0563): move-manifest is now DE-COMMITTED — not tracked in
-    /// git (`materialization_mode: not-tracked-in-git`). cloud-ci materializes it on demand as STEP 1
+    /// git (`materialization_mode: not-tracked-in-git`). pipeline materializes it on demand as STEP 1
     /// of `//ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin`
     /// (`materialize_move_manifest`) BEFORE any relabel-read leg, so the manifest is present on disk
     /// when this loads it. Post-de-commit an ABSENT file means the materializer did not run — a
@@ -513,7 +513,7 @@ mod tests {
         }
     }
 
-    const OLD: &str = "cloud/cloud-ci/gates/cloud-ci-firewall-app/ratchet-policy.json";
+    const OLD: &str = "cloud/cloud-ci/gates/pipeline-firewall-app/ratchet-policy.json";
     const NEW: &str = "ci/facade/baseline-ratchet/ratchet-policy.json";
 
     fn manifest_with(pairs: &[(&str, &str)]) -> Value {

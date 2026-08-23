@@ -614,7 +614,7 @@ impl CloudComputeVmApiError {
             Self::EmptyPathInstanceId => vec![detail("path.instance_id", "must be non-empty")],
             Self::InvalidInstanceId { .. } => vec![detail(
                 "path.instance_id",
-                "must be a canonical oya:cloud instance resource id",
+                "must be a canonical oyatie:cloud instance resource id",
             )],
             Self::InstanceKindMismatch { .. } => {
                 vec![detail("path.instance_id", "resource kind must be instance")]

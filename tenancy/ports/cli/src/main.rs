@@ -1,4 +1,4 @@
-//! Tenant-facing `oya` CLI surface per ADR-0167.
+//! Tenant-facing `tenant` CLI surface per ADR-0167.
 //!
 //! # Scope
 //!
@@ -31,7 +31,7 @@
 //!
 //! # References
 //!
-//! - ADR-0167 — tenant-facing CLI binary `oya` (this skeleton).
+//! - ADR-0167 — tenant-facing CLI binary `tenant` (this skeleton; the `bin/oya` shim is retired).
 //! - ADR-0037 — public API stability tiers (Tier-A semver).
 //! - ADR-0120 — Rust-first on-prem tooling authority.
 
@@ -43,9 +43,9 @@ use std::process::ExitCode;
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::{Shell, generate};
 
-/// Tenant-facing `oya` CLI per ADR-0167.
+/// Tenant-facing `tenant` CLI per ADR-0167.
 #[derive(Parser, Debug)]
-#[command(name = "oya", version, about = "Oyatie tenant CLI (ADR-0167)")]
+#[command(name = "tenant", version, about = "Oyatie tenant CLI (ADR-0167)")]
 struct Cli {
     /// Output format: `human` (default), `json`, or `ndjson`.
     #[arg(long, global = true, default_value = "human", env = "OYATIE_OUTPUT")]
@@ -195,17 +195,17 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Version => {
-            println!("oya {} (ADR-0167 skeleton)", env!("CARGO_PKG_VERSION"));
+            println!("tenant {} (ADR-0167 skeleton)", env!("CARGO_PKG_VERSION"));
             ExitCode::SUCCESS
         }
         Command::Completion { shell } => {
             let mut cmd = Cli::command();
-            generate(shell, &mut cmd, "oya", &mut stdout());
+            generate(shell, &mut cmd, "tenant", &mut stdout());
             ExitCode::SUCCESS
         }
         other => {
             eprintln!(
-                "oya: error: command not yet implemented in skeleton: {:?}\n\
+                "tenant: error: command not yet implemented in skeleton: {:?}\n\
                  see ADR-0167 §\"Migration / rollout plan\" for the schedule",
                 other
             );

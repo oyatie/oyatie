@@ -143,8 +143,8 @@ Span: foundry.supervisor.tick
 ├─ gen_ai.request.model: "claude-3-opus"
 ├─ gen_ai.usage.input_tokens: 15000
 ├─ gen_ai.usage.output_tokens: 5000
-├─ oya.foundry.capability: "foundry.supervisor.tick_once"
-├─ oya.tenant.id: "tenant-uuid"
+├─ oyatie.foundry.capability: "foundry.supervisor.tick_once"
+├─ oyatie.tenant.id: "tenant-uuid"
 └─ trace_id: "4bf92f3577b34da6a3ce929d0e0e4736"
 ```
 

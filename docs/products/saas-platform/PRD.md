@@ -223,12 +223,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| SAAS-PRD-AC-001 | The SaaS Platform PRD is used as a planning contract and tenant workflow, plugin, marketplace, billing, and audit contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | workflow/plugin/marketplace acceptance is linked to test and evidence paths instead of a generic readiness sentence | SAAS-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| SAAS-PRD-AC-002 | SaaS subscription or partner integration readiness is evaluated | Readiness evidence is evaluated | fresh tenant workflow execution, plugin publish, marketplace listing, billing, and audit evidence is required outside this PRD | SAAS-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| SAAS-PRD-AC-001 | The SaaS Platform PRD is used as a planning contract and tenant workflow, plugin, marketplace, billing, and audit contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | workflow/plugin/marketplace acceptance is linked to test and evidence paths instead of a generic readiness sentence | SAAS-PRD-GATE-001 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| SAAS-PRD-AC-002 | SaaS subscription or partner integration readiness is evaluated | Readiness evidence is evaluated | fresh tenant workflow execution, plugin publish, marketplace listing, billing, and audit evidence is required outside this PRD | SAAS-PRD-GATE-002 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| SaaS workflow/plugin/marketplace planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one SaaS row names workflow, plugin, marketplace, tenant, and audit/billing evidence obligations | `presubmit` |
-| SaaS product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | A SaaS promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |
+| SaaS workflow/plugin/marketplace planning maturity | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | At least one SaaS row names workflow, plugin, marketplace, tenant, and audit/billing evidence obligations | `presubmit` |
+| SaaS product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | A SaaS promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |

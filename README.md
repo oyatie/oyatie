@@ -36,7 +36,7 @@ The hermetic [buck2](https://buck2.build) graph remains a **local** hermeticity 
 it is not part of the merge path. Generated `*.generated.json` faces are materialized by
 `cargo run -p ci-generated-artifact-freshness --bin cloud-ci-materialize-generated-faces -- --repo-root .` — never hand-edit them.
 
-Quality is enforced on every change by the cloud-ci gate fleet behind that single required
+Quality is enforced on every change by the pipeline gate fleet behind that single required
 context: conformance, accounting, cross-artifact agreement, freshness, hygiene, security, and
 planning gates, each shipped as a neutral engine plus policy-as-data so any repo can adopt it
 (pipeline-as-product). Live plan state, work items, and status evidence live in

@@ -289,7 +289,7 @@ Base URL: `https://drive.{pack}.oyatie.com/v1`.
 
 ## gRPC Methods
 
-Package: `oya.drive.v1`.
+Package: `oyatie.drive.v1`.
 
 ### `FileStore`
 

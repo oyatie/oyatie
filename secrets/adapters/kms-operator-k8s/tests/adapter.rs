@@ -805,7 +805,7 @@ fn reconcile_cycle_executes_actions_and_emits_one_wide_event() {
     assert_eq!(actuator.actions.len(), 2);
     assert_eq!(report.planned_actions, 2);
     assert_eq!(report.executed_actions, 2);
-    assert_eq!(report.wide_event.event_name, "cloud_kms_operator_reconcile");
+    assert_eq!(report.wide_event.event_name, "secrets_kms_operator_reconcile");
     assert_eq!(report.wide_event.action_count, 2);
 }
 

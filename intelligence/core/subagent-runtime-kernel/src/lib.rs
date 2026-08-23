@@ -2,8 +2,8 @@
 //! the per-facet subagent invocation that closes the
 //! `subagent_runtime_pending=true` gap left by
 //! `tools/intelligence-pr-review-dispatcher-app` (IP-004),
-//! `tools/oya-vcs-ci-fix-loop-dispatcher-app` (IP-005), and
-//! `tools/oya-vcs-merge-queue-fix-loop-app` (IP-006).
+//! `tools/vcs-ci-fix-loop-dispatcher-app` (IP-005), and
+//! `tools/vcs-merge-queue-fix-loop-app` (IP-006).
 //!
 //! ## What lives here
 //!

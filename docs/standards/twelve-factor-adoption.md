@@ -255,7 +255,7 @@ The log is structured, streamable, and redacted.
 Primary command:
 
 ```bash
-oya gate validate twelve-factor-adoption --scope microservices
+presubmit (retired CLI gate validate) twelve-factor-adoption --scope microservices
 ```
 
 The checker MUST read each `microservices/<ms>/manifest.json`.
@@ -637,7 +637,7 @@ environment variables or OpenBao references before the process starts.
 | TFA-MAT-027 | Admin processes | One-shot jobs are audited | `jobs/*.rs` | `check-admin-processes` |
 | TFA-MAT-028 | Admin processes | Migrations run as release-bound jobs | `migrations/*.sql` | `check-migration-job-binding` |
 | TFA-MAT-029 | Admin processes | Backfills have resumable checkpoints | `backfills/*.rs` | `check-backfill-checkpoint` |
-| TFA-MAT-030 | All factors | Promotion evidence records checker output | `.omx/evidence/*` | `oya-vcs-admission` |
+| TFA-MAT-030 | All factors | Promotion evidence records checker output | `.omx/evidence/*` | `retired VCS ratchet` |
 
 ## Extended Review Questions
 
@@ -760,7 +760,7 @@ TFA-CI-013. `check-structured-logs` MUST emit sample log event.
 
 TFA-CI-014. `check-admin-processes` MUST emit audited job ids.
 
-TFA-CI-015. `oya-vcs-admission` MUST include all checker names in promote evidence.
+TFA-CI-015. `retired VCS ratchet` MUST include all checker names in promote evidence.
 
 ## Extended Anti-Pattern Catalogue
 

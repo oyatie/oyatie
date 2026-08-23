@@ -23,7 +23,7 @@ const SERVICE_NAME: &str = "tenant-rbac";
 const SUBSTRATE_NAME: &str = "oyatie-cloud";
 const TENANT_NAMESPACE: &str = "oyatie-fd001-tenant-rbac-dev";
 const TENANT_PARTITION: &str = "tenant-scoped";
-const OUTBOX_TOPIC: &str = "oya.platform.audit";
+const OUTBOX_TOPIC: &str = "platform.audit";
 const SOURCE_PLAN_REF: &str =
     "crates/tenant-rbac-audit-chain-emission/src/lib.rs::tenant_rbac_audit_chain_emission_plan";
 

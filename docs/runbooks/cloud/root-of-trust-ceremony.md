@@ -8,9 +8,9 @@ severities_supported: [Sev-1, Sev-2]
 owner_team: council-security + axis-cloud + ops-compliance
 last_verified: 2026-06-30
 last_drilled: null
-slo_topic: oya.cloud.bootstrap.root_of_trust
+slo_topic: oyatie.cloud.bootstrap.root_of_trust
 state_data_contract: ../../../specs/root-of-trust-ceremony-contract.json
-audit_emission_topic: oya.security.root_of_trust.ceremony
+audit_emission_topic: oyatie.security.root_of_trust.ceremony
 related_runbooks:
   - RB-CLOUD-KMS-EMERGENCY-ROTATION
   - RB-SHAMIR-SHARE-LOSS-OR-COERCION
@@ -40,7 +40,7 @@ Do not use this runbook for day-to-day KMS key rotation, tenant BYOK rotation, O
 
 ## SLO impact
 
-- SLO affected: `oya.cloud.bootstrap.root_of_trust`.
+- SLO affected: `oyatie.cloud.bootstrap.root_of_trust`.
 - Ceremony execution is planned change work, not live production mitigation.
 - Active compromise of an existing root, a coerced share holder, or unauthorized root material exposure is Sev-1 and must switch to incident response before any new ceremony continues.
 

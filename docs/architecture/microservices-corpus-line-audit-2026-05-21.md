@@ -90,7 +90,7 @@ The four Slice-8 reference PRDs used as the quality bar throughout this audit:
 - REVISE-PENDING count: `grep -c "REVISE-PENDING\|ANCHOR-INJECTED"` per ARCHITECTURE.md.
 - ADR citations: unique `ADR-NNNN` pattern count per file.
 - manifest.json fields: Python `json.load` + key inspection.
-- Retired citations: `grep` for `ADR-0145`, `oya-vcs`, `grit claim`, `rtk proxy`.
+- Retired citations: `grep` for `ADR-0145`, `retired VCS ratchet`, `grit claim`, `rtk proxy`.
 - Hard-coded strings: `grep` for `"oyatie"`, `oyatie.com` in substantive sections.
 - placeholder markers: `grep -ci "placeholder marker\|placeholder marker\|placeholder marker\|placeholder marker\|code-only deferral"`.
 
@@ -920,12 +920,12 @@ the higher priority — they affect runtime reasoning. The PRD frontmatter
 citations are lower priority but still fail the completeness invariant
 ("every retired doc is retired explicitly").
 
-#### §7.1.2 `oya-vcs` / external-agent-coordination tool citations
+#### §7.1.2 `retired VCS ratchet` / external-agent-coordination tool citations
 
 Per `feedback_deprecate_external_agent_coord_tooling` (2026-05-16): raw
 git/gh canonical; external-agent-coordination tooling retired. The string
-`oya-vcs` appears in compliance.md boilerplate blocks referencing "coordination
-via oya-vcs claim/work/done cycle" in at least 23 compliance.md files (the same
+`retired VCS ratchet` appears in compliance.md boilerplate blocks referencing "coordination
+via retired VCS ratchet claim/work/done cycle" in at least 23 compliance.md files (the same
 set with the ADR-0145 citation above). These compliance.md files were scaffolded
 before the 2026-05-16 deprecation and retain the stale reference.
 
@@ -1137,7 +1137,7 @@ multiple µservices in a single pass and unblock per-µservice authoring work.
 | B1 | **manifest.json schema migration** — migrate all 39 old-schema manifests to documentation-rigor.md §1 schema (add `tier`, `audience_type`, `layer_enum_conformance`, `cell_eligibility`, `substrate_dependencies`, `compliance_packs`, `naming_justifications`) | 39 | 1 PR, mechanical | manifest.json field coverage jumps from 0/46 PASS to potentially 39/46 PASS |
 | B2 | **compliance.md `§ml-model-lifecycle` + `§detection-fairness-audit` sweep** — add both missing anchors with substantive content to all 34 compliance.md files missing them | 34 | 1 PR, 68 new sections | compliance.md REVISE count drops from 34 to ≤5 |
 | B3 | **ARCHITECTURE.md `§intelligence-dispatch` + `§ontology-read-path` sweep** — add both missing anchors (explicit negative declaration or substantive content) to the 11 ARCHITECTURE.md files missing them | 11 | 1 PR, 22 new sections | Required-14 present jumps to 14/14 for all 46 µservices |
-| B4 | **Retired-tool citation sweep** — replace `oya-vcs claim/work/done` boilerplate blocks with plain `git`/`gh` references; add ADR-0145 retirement note to all 31 PRDs and 23 compliance.md files citing it | 54 | 1 PR, sed-replaceable | Staleness findings §7.1.1 and §7.1.2 cleared |
+| B4 | **Retired-tool citation sweep** — replace `retired VCS ratchet claim/work/done` boilerplate blocks with plain `git`/`gh` references; add ADR-0145 retirement note to all 31 PRDs and 23 compliance.md files citing it | 54 | 1 PR, sed-replaceable | Staleness findings §7.1.1 and §7.1.2 cleared |
 | B5 | **placeholder markers removal** — resolve or remove all 68 occurrences across 14 µservices | 14 | 1 PR, per-item resolution | Completeness invariant 7 cleared for 14 µservices |
 | B6 | **`doc_status` frontmatter sweep** — add `doc_status: draft` to 32 boilerplate ARCHITECTURE.md; `doc_status: stub` + `stub_rewrite_target: wave-3-d` to 39 stub PRDs | 71 | 1 PR, mechanical | CI lane correctly reports draft/stub state; docs stop falsely appearing published |
 

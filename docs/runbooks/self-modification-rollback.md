@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-sre-reliability + council-security + axis-workflow-engine
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0247 §D-3, ADR-0247 §D-6, ADR-0247 §D-7, ADR-0247 §D-8, ADR-0243, ADR-0249
 
 ---

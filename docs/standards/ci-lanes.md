@@ -12,7 +12,7 @@ doc_status: published
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
 The registry carries each lane's owner team and `runtime_budget_seconds`; `check_command` values are local/transitional bridge feedback and wired-command catalog data only, not protected-branch merge authority. The `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`governance-gate-catalog-domain`).
-Protected-branch authority is the single `presubmit` fan-in plus constituent cloud-ci/Rust gate packets.
+Protected-branch authority is the single `presubmit` fan-in plus constituent pipeline Rust gate packets.
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 
@@ -41,7 +41,7 @@ Protected-branch authority is the single `presubmit` fan-in plus constituent clo
 | `governance-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
 | `governance-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
 | `governance-runbook-index-resolves` | every RUNBOOKS-INDEX entry is a real file | RUNBOOKS-INDEX.md |
-| `cloud-ci-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
+| `pipeline-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
 | `governance-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
 | `governance-product-index` | product README index and machine-readable product catalog stay in sync | products/README.md |
 | `governance-adr-citation` | only-new-pack-citations check | ADR-LEGACY-REGRESSION-MAPPING |
@@ -64,7 +64,7 @@ Protected-branch authority is the single `presubmit` fan-in plus constituent clo
 | `governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 |
 | `governance-supply-chain-bootstrap` | source-only supply-chain guard plus RustSec and deny wiring |
 | `governance-api-semver` | public-API stability tier per ADR-0037 |
-| `governance-cargo-prefix` | every workspace member starts with `oya-` |
+| `governance-cargo-prefix` | every workspace member starts with `oyatie-` |
 | `governance-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |
 | `governance-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
 | `governance-master-plan-completion` | status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file |
@@ -83,7 +83,7 @@ Protected-branch authority is the single `presubmit` fan-in plus constituent clo
 | `governance-client-stack-discipline` | enforces ADR-0185 native-per-platform client stack — SvelteKit (Phase 1) → Leptos (Phase 2) on web (sequential not parallel); Swift+SwiftUI on Apple (no KMP klib imports); Kotlin+Compose+KMP on Android (Android-scope only); WinUI 3 on Windows; gtk4-rs + libadwaita on Linux. Rejects React/Vue/Flutter/Electron/Cordova/Tauri/Avalonia/MAUI references. |
 | `governance-vendor-lockin-discipline` | enforces ADR-0173 tiered vendor classification — Tier I OWNED with license+steward; Tier II VENDOR-SEAMED with replacement_path, replacement_readiness_gate, seam_adapter_trait, and ≥1 seam_adapter_impls; Tier III FORBIDDEN with refusal rationale + replacement path. |
 | `governance-authz-tier-discipline` | enforces ADR-0191 tier boundary — Cedar policy MUST NOT reference edge concerns (ip/asn/geo/country/rate/waf/bot/ddos); Envoy filter config MUST NOT reference origin concerns (oidc principal claims/acr/tenant identity/residency/purpose/data_class). Advisory until per-microservice Cedar/Envoy assets exist. |
-| `governance-tenant-cost-labels-coverage` | advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oya.io/tenant-id + oya.io/cost-center + oya.io/workload-class + oya.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml. |
+| `governance-tenant-cost-labels-coverage` | advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oyatie.io/tenant-id + oyatie.io/cost-center + oyatie.io/workload-class + oyatie.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml. |
 | `governance-backup-retention-discipline` | advisory per-µservice backup retention validation per ADR-0197 D-5 (tier-driven RPO/RTO floor; storage.backup.tier ∈ {app, batch, gpu, regulatory}; storage.backup.retention_days set). |
 | `governance-vector-store-discipline` | advisory enforcement of Milvus-canonical vector store tier per ADR-0192 (collection schema, index_type, metric, data_classes). Advisory until per-µservice manifests populate data.vector_store.* namespace. |
 | `governance-olap-tier-discipline` | advisory enforcement of ClickHouse-canonical OLAP tier per ADR-0193 (no rogue analytics queries against OLTP postgres). Advisory until per-µservice manifests populate data.olap_client.* namespace. |
@@ -106,8 +106,8 @@ Protected-branch authority is the single `presubmit` fan-in plus constituent clo
 | `quality-shardability` | all DB designs declare tenant_id partition key + RLS per ADR-0062 |
 | `quality-perf-budget` | impl plans include load-test results meeting declared perf targets per ADR-0062 |
 | `quality-benchmark` | PRDs include competitive-benchmark section before L4→L5 per ADR-0062 |
-| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run |
-| `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all` |
+| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `presubmit`; emits evidence + graph-edges artifacts on every run |
+| `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `presubmit` |
 | `lean-a-openapi-rest-route-parity` | enforces 1:1 parity between `pub const *_ROUTE` constants in crates/ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags |
 
 ### 1.3 Nightly gates
@@ -146,8 +146,8 @@ Per ADR-0050:
 
 1. Add or update the lane record in `registry/quality/lanes.yaml`.
 2. Mirror the lane row in this document under the matching stage table.
-3. If `status: active`, wire `check_command` into the local/transitional `oya gate run-all` bridge catalog (`marketplace/facade/dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) so local feedback and wired-command catalog validation stay synchronized; protected-branch merge authority remains `presubmit` plus cloud-ci/Rust gate packets.
-4. Run `oya gate validate quality-lanes` as local bridge feedback; do not treat it as protected-branch authority.
+3. If `status: active`, wire `check_command` into the local/transitional `presubmit` bridge catalog (`marketplace/facade/dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) so local feedback and wired-command catalog validation stay synchronized; protected-branch merge authority remains `presubmit` plus pipeline Rust gate packets.
+4. Run `presubmit` (retired CLI `gate validate quality-lanes`) as local bridge feedback; do not treat it as protected-branch authority.
 5. Open a PR; cite the source ADR in the PR body Verification section.
 6. After merge, `governance-cohesion` validates the lane is wired into the per-PR + nightly + release shapes appropriately.
 

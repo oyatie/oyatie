@@ -1,7 +1,7 @@
 //! Cedar adapter implementing the kernel's [`AuthzGate`] trait (ADR-0384 D7).
 //!
 //! Evaluates each kernel [`AuthzRequest`] against a Cedar [`PolicySet`] loaded
-//! from `intelligence/policy/cloud-intelligence.cedar` (or a caller-
+//! from `intelligence/policy/intelligence-app.cedar` (or a caller-
 //! provided policy text). Cedar's properties hold natively:
 //!
 //! 1. Deny by default.
@@ -32,7 +32,7 @@ use intelligence_kernel::{AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, P
 /// Default policy text bundled with the µservice. Compiled into the crate so
 /// the adapter is self-contained at runtime — no file I/O on the request path.
 pub const DEFAULT_POLICY_TEXT: &str =
-    include_str!("../../../../intelligence/policy/cloud-intelligence.cedar");
+    include_str!("../../../../intelligence/policy/intelligence-app.cedar");
 
 /// Adapter errors raised at construction time. The request path itself is
 /// total: any error during entity/request translation maps to a fail-closed
@@ -69,7 +69,7 @@ impl CedarAuthzGate {
         Ok(Self { policy_set })
     }
 
-    /// Build from the bundled `cloud-intelligence.cedar` policy.
+    /// Build from the bundled `intelligence-app.cedar` policy.
     pub fn with_default_policy() -> Result<Self, CedarAuthzGateError> {
         Self::from_policy_text(DEFAULT_POLICY_TEXT)
     }

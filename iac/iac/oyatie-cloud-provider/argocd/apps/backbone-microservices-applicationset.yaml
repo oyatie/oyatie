@@ -10,10 +10,10 @@ metadata:
     oyatie.com/image-promotion: ADR-0181
     oyatie.com/context: oyatie-cloud-provider
     oyatie.com/change-bundle: cb-backbone-microservices-argocd-promotion-20260523
-    oya.io/tenant-id: fd001-dogfood
-    oya.io/cost-center: fd001-backbone
-    oya.io/workload-class: app
-    oya.io/regulatory-pack: generic
+    oyatie.io/tenant-id: fd001-dogfood
+    oyatie.io/cost-center: fd001-backbone
+    oyatie.io/workload-class: app
+    oyatie.io/regulatory-pack: generic
     oyatie.com/dogfood-substrate: oyatie-cloud
     oyatie.com/product-goal: fd-001
   annotations:
@@ -92,10 +92,10 @@ spec:
         oyatie.com/context: oyatie-cloud-provider
         oyatie.com/owner: '{{ .owner }}'
         oyatie.com/primary-cargo-package: '{{ .primaryCargoPackage }}'
-        oya.io/tenant-id: '{{ .tenantId }}'
-        oya.io/cost-center: '{{ .costCenter }}'
-        oya.io/workload-class: '{{ .workloadClass }}'
-        oya.io/regulatory-pack: '{{ .regulatoryPack }}'
+        oyatie.io/tenant-id: '{{ .tenantId }}'
+        oyatie.io/cost-center: '{{ .costCenter }}'
+        oyatie.io/workload-class: '{{ .workloadClass }}'
+        oyatie.io/regulatory-pack: '{{ .regulatoryPack }}'
         oyatie.com/dogfood-substrate: '{{ .dogfoodSubstrate }}'
         oyatie.com/product-goal: '{{ .productGoal }}'
       annotations:
@@ -110,7 +110,7 @@ spec:
         targetRevision: dev
         path: '{{ .chartPath }}'
         helm:
-          releaseName: 'oya-{{ .microservice }}'
+          releaseName: 'oyatie-{{ .microservice }}'
           valueFiles:
             - values.yaml
           parameters:
@@ -152,10 +152,10 @@ spec:
             oyatie.com/context: oyatie-cloud-provider
             oyatie.com/microservice: '{{ .microservice }}'
             oyatie.com/tenant-class: contributor
-            oya.io/tenant-id: '{{ .tenantId }}'
-            oya.io/cost-center: '{{ .costCenter }}'
-            oya.io/workload-class: '{{ .workloadClass }}'
-            oya.io/regulatory-pack: '{{ .regulatoryPack }}'
+            oyatie.io/tenant-id: '{{ .tenantId }}'
+            oyatie.io/cost-center: '{{ .costCenter }}'
+            oyatie.io/workload-class: '{{ .workloadClass }}'
+            oyatie.io/regulatory-pack: '{{ .regulatoryPack }}'
             oyatie.com/dogfood-substrate: '{{ .dogfoodSubstrate }}'
             oyatie.com/product-goal: '{{ .productGoal }}'
           annotations:

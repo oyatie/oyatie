@@ -45,11 +45,9 @@ fn catalog_record_validates_existing_registry_shape() {
 }
 
 #[test]
-fn catalog_record_accepts_de_branded_and_legacy_crate_ids() {
-    // De-brand transition (supersedes ADR-0017 oya- prefix enforcement):
-    // catalog crate-ids now mirror the live, de-branded workspace crate names
-    // (PR #749 re-key, e.g. live crate `marketplace/core/plugin-kernel`).
-    // PR-C2 has not disposed the still-`oya-` ids yet, so both are accepted.
+fn catalog_record_accepts_de_branded_crate_ids() {
+    // Catalog crate-ids mirror live, de-branded workspace crate names
+    // (e.g. `marketplace/core/plugin-kernel`).
     for crate_id in [
         "marketplace-plugin-kernel",
         "observability-aggregate",

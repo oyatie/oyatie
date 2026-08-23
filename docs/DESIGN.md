@@ -30,7 +30,7 @@ The seven axes are *(the former separate engineering-platform axis is now part o
 | 6. Search engine | "How any object becomes findable" | `crates/search-{crawler,parser,index,rank,query,serp}-*` |
 | 7. Advertising + analytics | "How attention and intent are monetized" | `crates/ads-{auction,target,attribute,console}-*`, `crates/analytics-{event,warehouse,report}-*` |
 
-> **Crate naming convention** per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`. `<role>` ∈ {`kernel`, `domain`, `app`, `api`, `worker`, `adapter`, `runtime`}. The context names above (`platform`, `saas`, `vertical`, `foundry`, `cloud`, `search`, `ads`, `analytics`) are the axis-bounded contexts; per-axis `<role>` decomposition is enumerated in [SPEC.md](SPEC.md).
+> **Crate naming convention** per ADR-0015 §1: `oyatie-<context>-<role>[-<capability>]`. `<role>` ∈ {`kernel`, `domain`, `app`, `api`, `worker`, `adapter`, `runtime`}. The context names above (`platform`, `saas`, `vertical`, `foundry`, `cloud`, `search`, `ads`, `analytics`) are the axis-bounded contexts; per-axis `<role>` decomposition is enumerated in [SPEC.md](SPEC.md).
 
 The **central design insight** is that any one axis — taken alone — is a worse product than the integrated whole, because each axis shares two or more contracts with each other axis (see §10). Splitting an axis off forces re-implementing those contracts as multi-vendor integrations, and every multi-vendor integration leaks privacy, leaks audit trail, leaks cost attribution, leaks identity. Oyatie's competitive moat is the *non-leakage*.
 
@@ -102,7 +102,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | `crates/intelligence-model-serve-*` | Inference serving: vLLM-class for Transformers; in-house Rust serving for embedding models; per-capability routing |
 | `crates/intelligence-model-finetune-*` | Per-tenant fine-tuning (consent-gated; per-tenant LoRA adapters) |
 | `crates/intelligence-model-redteam-*` | Continuous red-team + adversarial-eval pipeline |
-| `crates/intelligence-adapter-oya-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
+| `crates/intelligence-adapter-oyatie-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
 
 **Critical contracts:**
 - Training data must satisfy `purpose = model_training_oya` permission per [PRIVACY-PROGRAM §2.2.2](PRIVACY-PROGRAM.md). Tenant data without that grant is excluded.
@@ -335,17 +335,17 @@ Each axis is a bounded context with the four-layer hexagonal stack:
                 └─────────────────────────────────────────┘
 ```
 
-Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `oya gate validate architecture-boundaries`) hard-fails any forbidden edge.
+Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `presubmit` (retired CLI `gate validate architecture-boundaries`)) hard-fails any forbidden edge.
 
 The flat-crates target encodes the layers as crate-level roles per ADR-0015:
 
-- `oya-<context>-kernel-*` = entities (no I/O, no async, no framework)
-- `oya-<context>-domain-*` = use cases + sealed-port traits
-- `oya-<context>-app-*` = orchestration / sagas / commands
-- `oya-<context>-adapter-*` = adapter implementations (DB, HTTP client, KMS, etc.)
-- `oya-<context>-api-*` = inbound HTTP/gRPC servers
-- `oya-<context>-worker-*` = inbound Kafka/queue consumers
-- `oya-<context>-runtime-*` = composition root (binaries, deploy)
+- `oyatie-<context>-kernel-*` = entities (no I/O, no async, no framework)
+- `oyatie-<context>-domain-*` = use cases + sealed-port traits
+- `oyatie-<context>-app-*` = orchestration / sagas / commands
+- `oyatie-<context>-adapter-*` = adapter implementations (DB, HTTP client, KMS, etc.)
+- `oyatie-<context>-api-*` = inbound HTTP/gRPC servers
+- `oyatie-<context>-worker-*` = inbound Kafka/queue consumers
+- `oyatie-<context>-runtime-*` = composition root (binaries, deploy)
 
 The forbidden-edge graph: `kernel ← domain ← app ← {api, worker, adapter} ← runtime`. Reverse edges are CI errors.
 
@@ -446,7 +446,7 @@ The audit-chain is the backbone of cross-axis trust. The PRD's hard zero on "ten
 
 ## 8. Architectural flattening (per ADR-0015)
 
-> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oya-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, and `tools/` are retired. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
+> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oyatie-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, and `tools/` are retired. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
 
 Every consolidated doc and the v2 backlog assume the **flat target**, not the legacy `modules/` `services/` `platform/` tree.
 
@@ -454,7 +454,7 @@ Every consolidated doc and the v2 backlog assume the **flat target**, not the le
 
 ```
 crates/
-  oya-<context>-<role>[-<capability>]/   # live flat workspace; 281 crates on 2026-05-16
+  oyatie-<context>-<role>[-<capability>]/   # live flat workspace; 281 crates on 2026-05-16
 contracts/                                 # OpenAPI specs, gRPC protos, event schemas
 infra/                                     # admission policies (kyverno/), Argo Application
                                            #   manifests, GitOps topology (per ADR-0117 +
@@ -499,7 +499,7 @@ Service runtime split (Axis E, ADR-0015 §6) is deferred until after all domain/
 
 - **No new `modules/` `services/` `platform/` work.** Every leaf in the v2 backlog cites a flat-crates target.
 - **Contracts (`contracts/`) get their own batch tag** because cross-axis contract changes touch this directory.
-- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/oya-vcs-admission/` under `infra/kyverno/oya-vcs-admission/`). `deploy/` is reserved for future per-deployable Helm/IaC that does not fit under `infra/`; the historical "split out of services/" rationale stands but admission concerns are now resolved.
+- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/retired VCS ratchet/` under `infra/kyverno/retired VCS ratchet/`). `deploy/` is reserved for future per-deployable Helm/IaC that does not fit under `infra/`; the historical "split out of services/" rationale stands but admission concerns are now resolved.
 - **Catalog remains at `registry/catalog/`** (per ADR-0115 the `registry/` root is canonical, singular, flat; the prior `registries/cross-cutting/` is retired). Any future `catalog/` relocation requires a new catalog protocol update; do not infer it from the historical phase plan.
 - **Specs flattened** (per ADR-0119): machine-readable specs live at `specs/<basename>.json` (flat root). The former `specs/cross-cutting/` nesting is retired; `specs/cross-cutting/lifecycle-configs/` is retained as a documented typed-family exception.
 
@@ -755,7 +755,7 @@ The current monolithic `repoctl` is recommended for split into 8 persona-CLIs al
 | `oya ops` | SRE / Ops | cell / region / deploy / runbook / drill | yes |
 | `oya pack` | Regional pack maintainer | pack build / verify / publish | yes |
 | `oya catalog` | Catalog + capability authoring | catalog scaffold + promote + supersede | yes |
-| `oya gate` | Gates + bypasses + claim-ceiling | gate ratchet + bypass + claim verify | yes |
+| retired CLI | Gates + bypasses + claim-ceiling | gate ratchet + bypass + claim verify | yes |
 
 Crate targets: `crates/tooling-cli-{dev,admin,build,agent,ops,pack,catalog,gate}-*`. Migration: `repoctl <cmd>` continues as a deprecated alias for ~2 waves per ADR-0001.
 

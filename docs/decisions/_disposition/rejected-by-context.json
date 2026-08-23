@@ -514,14 +514,14 @@
       },
       {
         "num": 346,
-        "title": "oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all +",
+        "title": "oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest + retired CLI run-all +",
         "summary": "### A.1 Named pressure: PR #177 surfaced 7 CI failures the local verifier missed On 2026-05-21, PR #177 was pushed to `dev` after the author ran `cargo check --workspace` locally and observed exit-0. CI subsequently surfaced **7 distinct failures** in a single cycle. Each failure",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {
         "num": 347,
         "title": "Foundry-fitness to governance bulk rename (doctrine-only; all governance-fitness-* CI lanes + crates + catalog + ADR cross-references co",
-        "summary": "### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement ADR-0335 (foundry retired, absorbed by intelligence) retired the foundry microservice as a first-class deliverable in the Oyatie corpus. The foundry pipeline (the M-CC-P11 Oya VCS substrate pe",
+        "summary": "### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement ADR-0335 (foundry retired, absorbed by intelligence) retired the foundry microservice as a first-class deliverable in the Oyatie corpus. The foundry pipeline (the M-CC-P11 retired VCS ratchet substrate pe",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {
@@ -551,7 +551,7 @@
       {
         "num": 377,
         "title": "ADR-0377-github-board-git-ref-cas-fallback",
-        "summary": "ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + cloud-ci + GitHub (interim) the coordination substrate. ADR-0369 then selected gated stacked-trunk on plain git and GitHub PRs. ADR-0374 added the GitHub webhook trigger into the cloud-ci pipeline. The remainin",
+        "summary": "ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + pipeline + GitHub (interim) the coordination substrate. ADR-0369 then selected gated stacked-trunk on plain git and GitHub PRs. ADR-0374 added the GitHub webhook trigger into the pipeline. The remainin",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {
@@ -581,13 +581,13 @@
       {
         "num": 546,
         "title": "Canonical-JSON determinism gate",
-        "summary": "Machine-readable JSON is a load-bearing governed surface across the repo: `specs/root-hub-pointers.json` is the authoritative agent entry surface, `specs/masterplan.json` and `specs/master-plan-sequencing.json` drive sequencing, and dozens of cloud-ci gates read JSON policies and",
+        "summary": "Machine-readable JSON is a load-bearing governed surface across the repo: `specs/root-hub-pointers.json` is the authoritative agent entry surface, `specs/masterplan.json` and `specs/master-plan-sequencing.json` drive sequencing, and dozens of pipeline gates read JSON policies and",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {
         "num": 549,
         "title": "buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness",
-        "summary": "Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`cloud-ci-embedded-asset-hermeticity-app`, `cloud-ci-kernel-purity-app`, `tools/buck-test-wiring-app`, `cloud-ci-accounting-registry-app`'s target-parity producer). Hostile review ",
+        "summary": "Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`pipeline-embedded-asset-hermeticity-app`, `pipeline-kernel-purity-app`, `tools/buck-test-wiring-app`, `pipeline-accounting-registry-app`'s target-parity producer). Hostile review ",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {
@@ -665,7 +665,7 @@
       {
         "num": 628,
         "title": "Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean coverage",
-        "summary": "Gate policies declare the roots they scan. The cloud-ci fleet already enforces that a declared root cannot be **removed** without the removal being the subject of a reviewed change \u2014 the anti-narrowing ratchet, e.g. `rust_first_automation_scan_scope_narrowing`. Nothing enforced t",
+        "summary": "Gate policies declare the roots they scan. The pipeline fleet already enforces that a declared root cannot be **removed** without the removal being the subject of a reviewed change \u2014 the anti-narrowing ratchet, e.g. `rust_first_automation_scan_scope_narrowing`. Nothing enforced t",
         "decision_note": "end-state freeze: Proposed not admitted; reopen as new ADR if still required"
       },
       {

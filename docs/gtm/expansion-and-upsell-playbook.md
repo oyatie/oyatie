@@ -358,8 +358,8 @@ This document is a GTM playbook and not a pricing authority.
 - Tool: `slo-budgets-service`; Action: `slo-budgets:ReadBudget`; Expansion use: support reliability upgrade conversation.
 - Tool: `finops-portal`; Action: `finops-portal:ReadTenantCostCenter`; Expansion use: support cost-center and ROI review.
 - Tool: `ops-dashboard-control-center`; Action: `ops-dashboard-control-center:ViewQuarterlyReview`; Expansion use: support executive operating review.
-- Tool: `migration-discovery-service`; Action: `oya.migration.discover`; Expansion use: scope next migration wave.
-- Tool: `migration-cutover-service`; Action: `oya.migration.cutover`; Expansion use: activate approved next wave.
+- Tool: `migration-discovery-service`; Action: `oyatie.migration.discover`; Expansion use: scope next migration wave.
+- Tool: `migration-cutover-service`; Action: `oyatie.migration.cutover`; Expansion use: activate approved next wave.
 
 ### Expansion Cedar Permits
 

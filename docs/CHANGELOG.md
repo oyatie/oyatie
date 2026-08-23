@@ -169,7 +169,7 @@ doc_status: published
 - Accepted ADR-0636 as the narrow interim authority for the already-promoted cross-run baseline consumer without closing #1504.
 - Scoped Actions read permission to the affected-set job and bound reusable artifacts to run, attempt, head, producer, immutable artifact IDs, and SHA-256 digests.
 - Made duplicate/malformed provenance a refusal and retained the clean cold build/test fallback when any binding or durable outcome telemetry is unavailable.
-- Added workflow conformance coverage; typed cloud-ci retrieval or licensed remote AC/CAS remains the mandatory deletion trigger.
+- Added workflow conformance coverage; typed pipeline retrieval or licensed remote AC/CAS remains the mandatory deletion trigger.
 
 ## 2026-08-04 — Dedicated ephemeral ARC PostgreSQL test cell
 
@@ -365,7 +365,7 @@ doc_status: published
 
 ## 2026-06-30 — ADR-0536 substrate-to-port matrix
 
-- Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oya-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
+- Added a shape-neutral D-1..D-16 substrate-to-port contract matrix to ADR-0536 so downstream product fanout locks owned port/contract seams, treats `oyatie-*` / `cloud-*` names as migration aliases, and preserves explicit non-claims for runtime readiness.
 
 ## 2026-06-30 — Review/fix evidence packet for presubmit
 
@@ -376,7 +376,7 @@ doc_status: published
 ## 2026-06-30 — AUTHZ-004 dead Cedar ConfigMap deletion
 
 - Deleted the unused `oya/analytics` Helm Cedar ConfigMap template, which still carried the legacy action-agnostic blanket Cedar permit but was not mounted by the chart Deployment.
-- Removed that path from the `cloud-ci-cedar-deploy-parity` shrink-only baseline and added a regression proving AUTHZ-004-deleted dead ConfigMaps are neither baseline-grandfathered nor collected as deployed ConfigMaps.
+- Removed that path from the `pipeline-cedar-deploy-parity` shrink-only baseline and added a regression proving AUTHZ-004-deleted dead ConfigMaps are neither baseline-grandfathered nor collected as deployed ConfigMaps.
 
 ## 2026-06-29 — Live Postgres sublanes for GH #901
 
@@ -395,28 +395,28 @@ doc_status: published
 
 ## 2026-06-29 — Cloud Cedar blanket disarm for GH #987
 
-- Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `cloud-ci-cedar-deploy-parity` shrink-only blanket baseline.
+- Replaced the fourteen Cloud control-plane Helm Cedar ConfigMaps named in GH #987 with their authored action/resource-specific PBAC policies and removed those paths from the `pipeline-cedar-deploy-parity` shrink-only blanket baseline.
 - Added a gate regression proving the Cloud templates are no longer baseline-grandfathered and that every deployed Cloud permit constrains action plus resource/scope before subset parity is evaluated.
 - Tightened the mirrored Cloud IAC and tenancy policy fragments by removing executable default-deny forbids, broadening ApplyJob negative guardrails across all mutating actions, and splitting tenancy/auditor permits by principal, action, and resource type.
 
 ## 2026-06-29 — PR metadata admission packet wired into ci
 
 - Added a Rust PR metadata packet to `presubmit` so blocked/pending-review PR title or body markers and missing `## Code Review` evidence fail before merge without claiming the F-PR5-06 live review-producer gap is closed.
-- Marked quality-lane `check_command` rows as local/transitional bridge feedback only; protected-branch authority remains the single `presubmit` fan-in plus cloud-ci/Rust gate packets.
+- Marked quality-lane `check_command` rows as local/transitional bridge feedback only; protected-branch authority remains the single `presubmit` fan-in plus pipeline Rust gate packets.
 
 ## 2026-06-29 — OpenBao ESO scope and transport gate hardened
 
-- Extended the existing operator-secret-bootstrap gate instead of adding a new cloud-ci surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
+- Extended the existing operator-secret-bootstrap gate instead of adding a new pipeline surface: static and values-backed ExternalSecret use of OpenBao stores is now policy-scoped by store, bound role, namespace, and remote key prefix, and plaintext OpenBao listeners require restrictive NetworkPolicy coverage.
 - Split the cloud-k8s CSI and cloud-iam SVID-operator ExternalSecrets onto dedicated OpenBao role/store contracts, documented the matching OpenBao policy/role bootstrap, and fenced the OpenBao listener with a committed NetworkPolicy.
 
 ## 2026-06-29 — Supply-chain admission proof wired into active gate
 
 - Replaced the in-cluster registry static-key Cosign admission policy with keyless Sigstore/Rekor plus SLSA provenance and CycloneDX SBOM attestation checks; secondary Kyverno/Kubewarden policy fixtures, signed-image dev CLI defaults, and the dev CLI supply-chain verifier now use owned `jason931225/oyatie` subject/repo scope plus live `cloud/cloud-iac` paths.
-- Retired `cargo-vet` from live readiness authority until maintained inputs exist, updated the governance-lane index to point SBOM/Cosign/SLSA at the active supply-chain gate, and added a `cloud-ci-supply-chain-audit` self-test proving the active `presubmit` path covers signature/provenance/SBOM/dependency posture.
+- Retired `cargo-vet` from live readiness authority until maintained inputs exist, updated the governance-lane index to point SBOM/Cosign/SLSA at the active supply-chain gate, and added a `pipeline-supply-chain-audit` self-test proving the active `presubmit` path covers signature/provenance/SBOM/dependency posture.
 
 ## 2026-06-10 — ADR-0544 friction-ledger closed-loop accounting gate authored
 
-- Added ADR-0544 and the `cloud-ci-friction-accounting` meta-gate: every friction-ledger row must
+- Added ADR-0544 and the `pipeline-friction-accounting` meta-gate: every friction-ledger row must
   terminate in a gate, an automation, or an explicit accepted-risk entry, enforced so unconverted,
   undisposed, or unevidenced frictions block merges like code debt (Google SRE postmortem
   action-item model, Rust-native).
@@ -435,14 +435,14 @@ doc_status: published
 
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 
-- Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
+- Added `pipeline-enforcement-liveness` to make tracked hook scripts mechanically live across
   Claude and Codex project hook wiring, while preserving marked compatibility stubs.
 - Documented the `enforcement_liveness` producer face and frozen-empty hook liveness codes in the
   ci gate catalog.
 
 ## 2026-06-10 — ADR-0540 target-parity gate authored
 
-- Added ADR-0540 and documented the `cloud-ci-target-parity` gate for Cargo workspace member
+- Added ADR-0540 and documented the `pipeline-target-parity` gate for Cargo workspace member
   BUCK-file and `rust_test` target parity.
 - Updated the ci gate catalog with the `target_parity` producer face, frozen-empty
   `member_missing_buck` code, and baseline-block-on-new test-target debt code.
@@ -490,7 +490,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-15 — Fitness lane `governance-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
 
-- Added `crates/governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
+- Added `crates/governance-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/governance-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oyatie.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
 - Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
 - Workspace members updated (`crates/governance-sunset-lifecycle-kernel`, `tools/governance-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
 - ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
@@ -881,7 +881,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 ### Updated
 - **ADR-0015**, **ADR-INDEX.md**, and **machine-readable/decisions.json** — promoted architectural flattening to Accepted and aligned CI lane names with the live flat-crates guard.
 - **DESIGN.md**, **ROADMAP.md**, **STANDARDS-AND-TEMPLATES.md**, **TOOLCHAIN.md**, **AGENTS.md**, and **teams/axis-foundry/CHARTER.md** — separated live 64-crate flat baseline from historical 89/91 split planning and retired legacy-root wording.
-- **products/foundry/PRD.md**, **ADR-0020**, and **ADR-0022** — replaced current `services/agent/daemon` / `tools/repoctl` references with flat `crates/oya-*` and `crates/tooling-cli-dev-runtime` bindings.
+- **products/foundry/PRD.md**, **ADR-0020**, and **ADR-0022** — replaced current `services/agent/daemon` / `tools/repoctl` references with flat `crates/oyatie-*` and `crates/tooling-cli-dev-runtime` bindings.
 - **PRIVACY-PROGRAM.md**, **ADR-0008**, **ADR-0019**, **ADR-0025**, **GLOSSARY.md**, **checklists/pre-push.md**, and **templates/capability-record-template.yaml** — aligned lane names and catalog paths with the live flat-crates governance model.
 - **CONSTITUTION.md**, **README.md**, **DOC-CATALOG.md**, **DOCUMENTATION.md**, ADR references, product PRDs, templates, and machine-readable batches — normalized canonical doc-tree references from retired consolidated-tree paths to the live `docs/` tree.
 
@@ -937,14 +937,14 @@ This is the founding consolidation, authored in one session as the project repos
 - `decisions/ADR-0013-product-license-policy.md` — defines product license policy; AGPL/GPL forbidden in product code (Apache-2/MIT/BSD/MPL-2 allowed)
 
 ### Direction changes integrated
-1. Brand standardized as Oyatie (`oya-*` Cargo prefix)
+1. Brand standardized as Oyatie (`oyatie-*` Cargo prefix)
 2. 7 axes (SaaS / Workspace NEW / Vertical / Foundry / Cloud / Search / Ads)
 3. Foundry consolidates Foundry engineering platform (originally separate axis)
 4. Multi-provider Foundry: Anthropic Claude / OpenAI / Google Gemini × subscription + API
 5. Canonical + regional-pack architecture (parallel global launch)
 6. Multi-year structural cost-of-deferral horizon
 7. In-house build preference + license-conscious posture
-8. Architectural flattening (`crates/oya-<context>-<role>`)
+8. Architectural flattening (`crates/oyatie-<context>-<role>`)
 9. M0/M1/M2/M3/MVP vocab retired → wave-named phases
 10. Repoctl persona-split (`oya dev/admin/build/agent/ops/pack/catalog/gate`)
 11. MCP gateway for agent-discoverable CLI

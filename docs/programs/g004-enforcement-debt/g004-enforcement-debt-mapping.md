@@ -431,9 +431,9 @@ short. `ci/facade/baseline-ratchet` runs ADR-0555 born-accounting over every tra
 document arrived failing all three of its registration codes at once:
 
 ```
-[cloud-ci-total-accounting] unjustified regressions {"docs/g004-enforcement-debt-mapping.md"}
-[cloud-ci-total-accounting] unowned      regressions {"docs/g004-enforcement-debt-mapping.md"}
-[cloud-ci-total-accounting] unreachable  regressions {"docs/g004-enforcement-debt-mapping.md"}
+[pipeline-total-accounting] unjustified regressions {"docs/g004-enforcement-debt-mapping.md"}
+[pipeline-total-accounting] unowned      regressions {"docs/g004-enforcement-debt-mapping.md"}
+[pipeline-total-accounting] unreachable  regressions {"docs/g004-enforcement-debt-mapping.md"}
 ```
 
 Two of the three are one act: REACHED implies JUSTIFIED, so a reviewed

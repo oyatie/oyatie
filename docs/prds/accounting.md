@@ -211,9 +211,9 @@ Cross-region: M03 KR only.
 | AC-02 | Auto-journal from `PayrollRunCompleted` event; entries posted correctly | integration test `test_payroll_to_accounting_journal` |
 | AC-03 | Period-close locks prior period; backdated entry rejected after close | `cargo nextest run -p accounting-period-close-domain` |
 | AC-04 | Income statement and balance sheet generated for closed period | `cargo nextest run -p accounting-reporting-domain` |
-| AC-05 | LEAN-A2: no direct imports from payroll/hr/procurement | `oya gate validate lean-a2 --ms accounting` exits 0 |
+| AC-05 | LEAN-A2: no direct imports from payroll/hr/procurement | `presubmit` (retired CLI `gate validate lean-a2 --ms accounting`) exits 0 |
 | AC-06 | Trial balance query p99 ≤500 ms at 1k RPS | k6 smoke; `http_req_duration{p(99)}<500` |
-| AC-07 | Audit chain sealed per (tenant, fiscal_period) | `oya gate validate audit-chain --ms accounting` |
+| AC-07 | Audit chain sealed per (tenant, fiscal_period) | `presubmit` (retired CLI `gate validate audit-chain --ms accounting`) |
 
 ---
 

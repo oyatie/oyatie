@@ -30,7 +30,7 @@ status: Proposed | Active | Complete
 entry_gate: |
   Exact condition that must be true before this phase begins.
   Name the prior phase and its exit criterion, or "none" for P01.
-  Example: "M03/P00 complete; tenancy-kernel ships; targeted Buck2/cloud-ci gates are green."
+  Example: "M03/P00 complete; tenancy-kernel ships; targeted Buck2/pipeline gates are green."
 exit_gate: |
   Exact condition that declares this phase complete.
 depends_on:
@@ -57,13 +57,13 @@ sequence. State which Master Plan principles it advances (cite by number from
 
 | µservice | Bounded Contexts | Files / crates affected | BNF v4.1 crate names |
 |---|---|---|---|
-| `<µservice>` | `<bc1>`, `<bc2>` | `crates/oya-<ms>-<bc>-<layer>/` | `oya-<ms>[-<bc>]-<layer>` |
+| `<µservice>` | `<bc1>`, `<bc2>` | `crates/oyatie-<ms>-<bc>-<layer>/` | `oyatie-<ms>[-<bc>]-<layer>` |
 
 Naming justification for any NEW crate introduced in this phase (mandatory per
 `feedback_naming_justification.md`):
 
 ```
-NAME: oya-<microservice>[-<bc-tokens>]-<layer>
+NAME: oyatie-<microservice>[-<bc-tokens>]-<layer>
 JUSTIFICATION:
 - microservice = <kebab-token(s)>: <rationale; ADR-0056 v4.1 flat BNF>
 - bc-tokens = <kebab-token(s)> (OPTIONAL): <rationale>
@@ -93,32 +93,32 @@ Ordered list. Each IP is an executable plan file under this phase directory.
 All gates must pass before `exit_gate` is declared. Each row is a runnable
 command + expected exit code.
 
-### Buck2 / cloud-ci gates (exit 0 required)
+### Buck2 / pipeline gates (exit 0 required)
 
 ```bash
 buck2 build <touched-build-targets>                 # exit 0
 buck2 test <targeted-test-targets>                  # exit 0; 0 failures
-buck2 test <cloud-ci-static-analysis-targets>       # exit 0
-buck2 test <supply-chain-cloud-ci-target>           # exit 0
+buck2 test <pipeline-static-analysis-targets>       # exit 0
+buck2 test <supply-chain-pipeline-target>           # exit 0
 buck2 test <docs-or-api-contract-targets>           # exit 0
 ```
 
 ### Fitness lane gates
 
 ```bash
-buck2 test <cloud-ci-lean-a1-target>          # LEAN-A1: layer ordering
-buck2 test <cloud-ci-lean-a2-target>          # LEAN-A2: cross-vertical refusal
-buck2 test <cloud-ci-lean-a3-target>          # LEAN-A3: BC boundary
-buck2 test <cloud-ci-lean-a4-target>          # LEAN-A4: naming conformance
+buck2 test <pipeline-lean-a1-target>          # LEAN-A1: layer ordering
+buck2 test <pipeline-lean-a2-target>          # LEAN-A2: cross-vertical refusal
+buck2 test <pipeline-lean-a3-target>          # LEAN-A3: BC boundary
+buck2 test <pipeline-lean-a4-target>          # LEAN-A4: naming conformance
 ```
 
 ### Workflow + Ontology integration gates
 
 ```bash
 # Verify typed events registered in Workflow
-buck2 test <cloud-ci-workflow-event-registry-target>
+buck2 test <pipeline-workflow-event-registry-target>
 # Verify Ontology object types registered
-buck2 test <cloud-ci-ontology-type-registry-target>
+buck2 test <pipeline-ontology-type-registry-target>
 ```
 
 ---
@@ -132,17 +132,17 @@ phase (per `feedback_clean_architecture_requirements.md`):
 
 | Crate (BNF v4.1) | Layer | Port traits in kernel? | Impls in adapter? | Presentation-only? |
 |---|---|---|---|---|
-| `oya-<ms>-<bc>-kernel` | `kernel` | Yes — list traits | N/A | No |
-| `oya-<ms>-<bc>-domain` | `domain` | N/A — calls through ports | N/A | No |
-| `oya-<ms>-<bc>-application` | `application` | N/A | N/A | No |
-| `oya-<ms>-<bc>-adapter` | `adapter` | N/A | Yes — implements kernel ports | No |
-| `oya-<ms>-<bc>-rest` | `rest` | N/A | No direct adapter import | Yes |
-| `oya-<ms>-<bc>-app` | `app` | N/A | Unrestricted inward (wiring only) | No |
+| `oyatie-<ms>-<bc>-kernel` | `kernel` | Yes — list traits | N/A | No |
+| `oyatie-<ms>-<bc>-domain` | `domain` | N/A — calls through ports | N/A | No |
+| `oyatie-<ms>-<bc>-application` | `application` | N/A | N/A | No |
+| `oyatie-<ms>-<bc>-adapter` | `adapter` | N/A | Yes — implements kernel ports | No |
+| `oyatie-<ms>-<bc>-rest` | `rest` | N/A | No direct adapter import | Yes |
+| `oyatie-<ms>-<bc>-app` | `app` | N/A | Unrestricted inward (wiring only) | No |
 
 ### Port traits declared in kernel (list all new ones)
 
 ```rust
-// oya-<ms>-<bc>-kernel/src/ports.rs
+// oyatie-<ms>-<bc>-kernel/src/ports.rs
 pub trait <RepositoryTrait>: Send + Sync {
     async fn find_by_id(&self, id: &<IdType>) -> Result<<Entity>, ...>;
     async fn save(&self, entity: &<Entity>) -> Result<(), ...>;
@@ -157,12 +157,12 @@ pub trait <ServiceTrait>: Send + Sync {
 
 | Lane | Command | Expected |
 |---|---|---|
-| `dependency-direction` | `buck2 test <cloud-ci-lean-a1-target>` | exit 0 |
-| `cross-product-refusal` | `buck2 test <cloud-ci-lean-a2-target>` | exit 0 |
-| `port-location` | `buck2 test <cloud-ci-port-location-target>` | exit 0 |
-| `layer-correctness` | `buck2 test <cloud-ci-layer-correctness-target>` | exit 0 |
-| `statelessness` | `buck2 test <cloud-ci-statelessness-target>` | exit 0 |
-| `shardability` | `buck2 test <cloud-ci-shardability-target>` | exit 0 |
+| `dependency-direction` | `buck2 test <pipeline-lean-a1-target>` | exit 0 |
+| `cross-product-refusal` | `buck2 test <pipeline-lean-a2-target>` | exit 0 |
+| `port-location` | `buck2 test <pipeline-port-location-target>` | exit 0 |
+| `layer-correctness` | `buck2 test <pipeline-layer-correctness-target>` | exit 0 |
+| `statelessness` | `buck2 test <pipeline-statelessness-target>` | exit 0 |
+| `shardability` | `buck2 test <pipeline-shardability-target>` | exit 0 |
 
 ### New BCs registered in this phase
 
@@ -181,8 +181,8 @@ Symbol space for this phase. Claim ALL before beginning; release with
 
 ```
 # Format: file::Identifier
-crates/oya-<ms>-<bc>-<layer>/src/lib.rs::<TypeOrTrait>
-crates/oya-<ms>-<bc>-<layer>/src/<module>.rs::<fn_name>
+crates/oyatie-<ms>-<bc>-<layer>/src/lib.rs::<TypeOrTrait>
+crates/oyatie-<ms>-<bc>-<layer>/src/<module>.rs::<fn_name>
 contracts/<surface>.openapi.yaml::<operationId>
 docs/standards/<file>.md::Section
 ```

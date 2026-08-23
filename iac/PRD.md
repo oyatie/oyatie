@@ -1,8 +1,8 @@
 ---
 doc_class: PRD
 template_id: TPL-PRD
-prd_id: PRD-cloud-iac
-microservice: cloud-iac
+prd_id: PRD-iac-app
+microservice: iac-app
 status: Accepted
 sales_segment: shared-substrate
 tier: internal
@@ -30,17 +30,17 @@ related_adrs:
   - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
-owner_team: axis-cloud-iac
+owner_team: axis-iac-app
 doc_status: published
 ---
 
-# PRD-cloud-iac: Meta-IaC Pipeline Substrate (Helm + Terraform/OpenTofu + Kustomize + GitOps)
+# PRD-iac-app: Meta-IaC Pipeline Substrate (Helm + Terraform/OpenTofu + Kustomize + GitOps)
 
 ## Purpose
 
-The `cloud-iac` microservice is oyatie's **meta-IaC** substrate: the µservice that authors, validates, applies, and rolls back every other µservice's Infrastructure-as-Code (Helm charts, Terraform/OpenTofu modules, Kustomize overlays). It runs the IaC pipeline itself. Per ADR-0131 (Cloud-product split: cloud-iac + cloud-k8s + cloud-secrets), this µservice owns the substrate that turns git-tracked IaC into deployed cluster state across every active oyatie pack (pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa).
+The `iac-app` microservice is oyatie's **meta-IaC** substrate: the µservice that authors, validates, applies, and rolls back every other µservice's Infrastructure-as-Code (Helm charts, Terraform/OpenTofu modules, Kustomize overlays). It runs the IaC pipeline itself. Per ADR-0131 (Cloud-product split: iac-app + cloud-k8s + cloud-secrets), this µservice owns the substrate that turns git-tracked IaC into deployed cluster state across every active oyatie pack (pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa).
 
-This µservice is **shared substrate**, not a hero product. Every oyatie µservice that ships IaC depends on cloud-iac to render, validate, plan-preview, and apply that IaC; cloud-iac is the precondition for ADR-0117's cloud-native posture and the operational counterpart of ADR-0120's Rust-first on-prem tooling. Its existence eliminates the "ten ways to apply Helm" anti-pattern by canonicalising one apply pipeline + one validator catalog + one drift-detection cycle across the whole estate.
+This µservice is **shared substrate**, not a hero product. Every oyatie µservice that ships IaC depends on iac-app to render, validate, plan-preview, and apply that IaC; iac-app is the precondition for ADR-0117's cloud-native posture and the operational counterpart of ADR-0120's Rust-first on-prem tooling. Its existence eliminates the "ten ways to apply Helm" anti-pattern by canonicalising one apply pipeline + one validator catalog + one drift-detection cycle across the whole estate.
 
 This µservice has no Bominal equivalent and originates in oyatie under ADR-0131.
 
@@ -49,13 +49,13 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 - **Tenant Outcome 1 — Vendor-neutral GitOps without vendor lock.** Tenants' workloads land via the same self-hosted ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller stack used by oyatie's own substrate; no Spacelift / Env0 / Terraform Cloud / Pulumi Cloud subscription required.
 - **Tenant Outcome 2 — Per-µservice render + apply traceability.** Every apply emits a signed `ApplyExecuted` event consumed by `cloud-governance-evidence` + `audit-chain`; tenants and auditors get cryptographic proof of what changed, when, and by whom.
 - **Tenant Outcome 3 — Drift-free production posture.** Continuous drift detection per cluster ≤1h cycle; reconciler converges on the git-declared state automatically; rollback to last-green state is a first-class primitive (not a "restore from backup" escape hatch).
-- **Internal Outcome 4 — One IaC pipeline across the whole estate.** Eliminates per-team divergence in chart structure, plan-preview gates, secret-reference patterns, and registry conventions. The cloud-iac registry is the single source of truth for "what chart is deployed where at what version."
+- **Internal Outcome 4 — One IaC pipeline across the whole estate.** Eliminates per-team divergence in chart structure, plan-preview gates, secret-reference patterns, and registry conventions. The iac-app registry is the single source of truth for "what chart is deployed where at what version."
 
 ## Functional Requirements
 
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
-| FR-01 | µservice author | to declare my chart/module at `microservices/<ms>/iac/{helm,terraform,kustomize}/` | cloud-iac discovers + renders it without per-µservice registration | iac-registry | Must |
+| FR-01 | µservice author | to declare my chart/module at `microservices/<ms>/iac/{helm,terraform,kustomize}/` | iac-app discovers + renders it without per-µservice registration | iac-registry | Must |
 | FR-02 | iac-renderer | to render Helm + Kustomize + Terraform/OpenTofu manifests deterministically (same input → same output) | every PR shows a reproducible preview | iac-renderer | Must |
 | FR-03 | iac-validator | to plan-preview against a live cluster and surface drift before apply | reviewers see the actual state delta in the PR | iac-validator | Must |
 | FR-04 | iac-applier | to apply a rendered manifest set in dependency-correct order with apply quorum + retry | applies are not racey; partial failure is recoverable | iac-applier | Must |
@@ -85,9 +85,9 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 - All applies are SLSA L3 build-provenance attested per OpenSSF SLSA framework; the attestation is verified pre-apply by the iac-applier.
 - Helm chart signing required via Sigstore Cosign (per docs/standards/observability-slo.md §"Supply-chain conformance"); unsigned charts refused.
 - Terraform/OpenTofu state encrypted at rest with per-pack KMS keys (no cross-pack key usage); state stored in pack-pinned Postgres (the iac-state-index) + S3-compatible object storage.
-- Per-µservice apply scope enforced: cloud-iac will refuse to apply a manifest that mutates resources outside the µservice's declared scope (Cedar policy `iac-isolation.md`).
+- Per-µservice apply scope enforced: iac-app will refuse to apply a manifest that mutates resources outside the µservice's declared scope (Cedar policy `iac-isolation.md`).
 - Secrets (cluster API credentials, Terraform-state encryption keys, ArgoCD admin tokens) follow the local-OpenBao SecretReference pattern; raw secrets never enter the repo, chat, or checkpoints.
-- Apply-time RBAC: only the iac-applier ServiceAccount may mutate cluster state; humans use `oya dev cli iac plan-preview` (read-only) routinely; `iac apply` from human console requires JIT elevation through OpenBao + 2-person rule.
+- Apply-time RBAC: only the iac-applier ServiceAccount may mutate cluster state; humans use the read-only IaC plan-preview API (read-only) routinely; `iac apply` from human console requires JIT elevation through OpenBao + 2-person rule.
 
 ### Audit + Compliance
 
@@ -99,7 +99,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ### Availability + SLO
 
 - Availability target: 99.95% monthly for the iac-applier's apply-event path; 99.9% for the iac-validator's plan-preview path.
-- GitOps reconciler (ArgoCD or Flux) availability: 99.95% monthly per their respective published SLO postures, validated against oyatie's `observability` µservice SLO substrate (ADR-0139) — cloud-iac is itself gated by the SLO promotion gate.
+- GitOps reconciler (ArgoCD or Flux) availability: 99.95% monthly per their respective published SLO postures, validated against oyatie's `observability` µservice SLO substrate (ADR-0139) — iac-app is itself gated by the SLO promotion gate.
 - Drift-detection completeness: ≥99.5% of clusters polled per 1h cycle.
 - RTO: ≤15min. RPO: ≤5min (last successful iac-state-index commit).
 
@@ -119,7 +119,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 
 - Per-tenant baseline: D-2 has not populated `capacity_model`; until then the PRD-level baseline is service-unit based rather than tenant-compute based. `iac-renderer` and `iac-validator` allocate per-request CPU/RAM, while `iac-applier` and `iac-registry` allocate shared substrate capacity for all µservices in a cell.
 - Scaling dimension: `per_capability` for render, plan-preview, apply, rollback, registry, and drift-detection workers; artifact and backup paths add `per_storage_gb` pressure through SeaweedFS and pgBackRest buckets.
-- Cell placement class: Tier-1 because cloud-iac is shared deployment substrate and touches tenant-bound cluster state, SecretReference projections, iac-state-index rows, and pack-pinned OpenTofu state.
+- Cell placement class: Tier-1 because iac-app is shared deployment substrate and touches tenant-bound cluster state, SecretReference projections, iac-state-index rows, and pack-pinned OpenTofu state.
 - Autoscaling boundaries: renderer/validator workers may scale horizontally with PR and drift volume; applier/rollback workers are bounded by the single-writer lock per target cluster; SeaweedFS bootstrap declares 3 masters, 6 volume servers, 3 filers, and 4 S3 gateways as the current M-tier substrate shape.
 - WHY: the dominant tenant load is deployment/change volume rather than end-user traffic; the capacity model protects plan-preview responsiveness while keeping state mutation serialized where correctness requires it.
 
@@ -133,7 +133,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ### API versioning posture (ADR-0342)
 
 - Public API version model: plan-preview, apply-state, provenance, and chart-signature validation contracts use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and proto3 version field.
-- SDK semver model: cloud-iac SDKs use major.minor.patch, with major bumps only when a supported date-version carrier or generated type contract breaks.
+- SDK semver model: iac-app SDKs use major.minor.patch, with major bumps only when a supported date-version carrier or generated type contract breaks.
 - Support window: last N=3 public contract versions are supported for at least 180 days.
 - Per-tenant pinning: supported for paid and regulated tenants whose deployment pipeline must remain frozen during audit windows; non-production sample_trial follows the platform default.
 - Internal-mesh exemption: yes; ArgoCD/Flux/OpenTofu worker mesh traffic keeps ADR-0145 direct gRPC semantics and records the date-version only at external or replay boundaries.
@@ -144,18 +144,18 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `iac-renderer` | `cloud-iac-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/OpenTofu-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
-| `iac-validator` | `cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Schema + policy + plan-preview + drift-diff; refuses applies that would mutate out-of-scope resources or violate Cedar policy | `PlanPreview`, `DriftReport`, `ValidationVerdict`, `PolicyViolation` |
-| `iac-applier` | `cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd,rest,worker,app}` | Apply orchestration: dependency-correct apply, retry, idempotency, per-µservice scope enforcement; mediates ArgoCD/Flux reconciler | `ApplyJob`, `ApplyResult`, `ApplyOrder`, `RetryBudget` |
-| `iac-rollback` | `cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter,rest,worker,app}` | State-revert engine: revert to last-green apply; coordinate with observability SLO gate rollback primitive | `RollbackTarget`, `StateRevertPlan`, `RollbackVerdict` |
-| `iac-registry` | `cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Versioned chart + module + overlay catalog; per-pack apply-state index; provenance store | `ChartRecord`, `ModuleRecord`, `OverlayRecord`, `ApplyStateIndex`, `Provenance` |
+| `iac-renderer` | `iac-app-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/OpenTofu-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
+| `iac-validator` | `iac-app-iac-validator-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Schema + policy + plan-preview + drift-diff; refuses applies that would mutate out-of-scope resources or violate Cedar policy | `PlanPreview`, `DriftReport`, `ValidationVerdict`, `PolicyViolation` |
+| `iac-applier` | `iac-app-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd,rest,worker,app}` | Apply orchestration: dependency-correct apply, retry, idempotency, per-µservice scope enforcement; mediates ArgoCD/Flux reconciler | `ApplyJob`, `ApplyResult`, `ApplyOrder`, `RetryBudget` |
+| `iac-rollback` | `iac-app-iac-rollback-{kernel,domain,usecase,api,adapter,rest,worker,app}` | State-revert engine: revert to last-green apply; coordinate with observability SLO gate rollback primitive | `RollbackTarget`, `StateRevertPlan`, `RollbackVerdict` |
+| `iac-registry` | `iac-app-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Versioned chart + module + overlay catalog; per-pack apply-state index; provenance store | `ChartRecord`, `ModuleRecord`, `OverlayRecord`, `ApplyStateIndex`, `Provenance` |
 
 Naming justification — `iac-renderer`:
 
 ```
-NAME: cloud-iac-iac-renderer-<layer>
+NAME: iac-app-iac-renderer-<layer>
 JUSTIFICATION:
-- microservice = cloud-iac: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice
+- microservice = iac-app: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice
   folder. No shared|vertical bisection.
 - bc-tokens = iac-renderer: primary BC for deterministic rendering (Helm/Kustomize/
   Terraform/OpenTofu plan). ADR-0056 v4.1 BC-optionality rule honoured: sibling BCs
@@ -185,9 +185,9 @@ JUSTIFICATION:
 Naming justification — `iac-validator`:
 
 ```
-NAME: cloud-iac-iac-validator-<layer>
+NAME: iac-app-iac-validator-<layer>
 JUSTIFICATION:
-- microservice = cloud-iac.
+- microservice = iac-app.
 - bc-tokens = iac-validator: sibling BC for plan-preview + drift-diff + policy
   validation. Sibling BCs justify explicit BC token.
 - layer = <layer>: per ADR-0105.
@@ -206,9 +206,9 @@ JUSTIFICATION:
 Naming justification — `iac-applier`:
 
 ```
-NAME: cloud-iac-iac-applier-<layer>
+NAME: iac-app-iac-applier-<layer>
 JUSTIFICATION:
-- microservice = cloud-iac.
+- microservice = iac-app.
 - bc-tokens = iac-applier: sibling BC for apply orchestration.
 - layer = <layer>: per ADR-0105.
   - kernel: ApplyJob + ApplyOrder + RetryBudget entities + port traits
@@ -228,9 +228,9 @@ JUSTIFICATION:
 Naming justification — `iac-rollback`:
 
 ```
-NAME: cloud-iac-iac-rollback-<layer>
+NAME: iac-app-iac-rollback-<layer>
 JUSTIFICATION:
-- microservice = cloud-iac.
+- microservice = iac-app.
 - bc-tokens = iac-rollback: sibling BC for state-revert engine.
 - layer = <layer>: per ADR-0105.
   - kernel: RollbackTarget + StateRevertPlan + RollbackVerdict entities + ports.
@@ -243,9 +243,9 @@ JUSTIFICATION:
 Naming justification — `iac-registry`:
 
 ```
-NAME: cloud-iac-iac-registry-<layer>
+NAME: iac-app-iac-registry-<layer>
 JUSTIFICATION:
-- microservice = cloud-iac.
+- microservice = iac-app.
 - bc-tokens = iac-registry: sibling BC for versioned chart/module/overlay catalog +
   apply-state index + provenance store.
 - layer = <layer>: per ADR-0105.
@@ -276,35 +276,35 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `ChartSourceReader` | `cloud-iac-iac-renderer-kernel` | `-adapter-helm` (Helm CLI / SDK) | `INTERNAL_ONLY` (chart text) |
-| `KustomizeOverlayReader` | `cloud-iac-iac-renderer-kernel` | `-adapter-kustomize` | `INTERNAL_ONLY` |
-| `TerraformPlanComputer` | `cloud-iac-iac-renderer-kernel` | `-adapter-opentofu` (OpenTofu CLI) | `INTERNAL_ONLY` + `AUDIT` (plan output is an audit artifact) |
-| `RenderEventEmitter` | `cloud-iac-iac-renderer-kernel` | `-adapter` (event bus) | `AUDIT` |
-| `PolicyEvaluator` | `cloud-iac-iac-validator-kernel` | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
-| `PlanComputer` | `cloud-iac-iac-validator-kernel` | `-adapter` | `INTERNAL_ONLY` + `AUDIT` |
-| `DriftDiffer` | `cloud-iac-iac-validator-kernel` | `-adapter` (live-cluster API client) | `BEHAVIORAL_TENANT_PRODUCT` (cluster state per tenant) |
-| `ClusterMutator` | `cloud-iac-iac-applier-kernel` | `-adapter` (Kubernetes API client) | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` |
-| `ReconcilerClient` | `cloud-iac-iac-applier-kernel` | `-adapter-argocd` (ArgoCD REST/gRPC client) | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ApplyEventEmitter` | `cloud-iac-iac-applier-kernel` | `-adapter` | `AUDIT` |
-| `RollbackEventEmitter` | `cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
-| `StateRevertPlanComputer` | `cloud-iac-iac-rollback-kernel` | `-adapter` | `AUDIT` |
-| `ChartCatalogStore` | `cloud-iac-iac-registry-kernel` | `-adapter-postgres` (Postgres) | `INTERNAL_ONLY` |
-| `ApplyStateIndexStore` | `cloud-iac-iac-registry-kernel` | `-adapter-postgres` | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` |
-| `ProvenanceVerifier` | `cloud-iac-iac-registry-kernel` | `-adapter` (Sigstore Cosign + SLSA verifier) | `AUDIT` |
+| `ChartSourceReader` | `iac-app-iac-renderer-kernel` | `-adapter-helm` (Helm CLI / SDK) | `INTERNAL_ONLY` (chart text) |
+| `KustomizeOverlayReader` | `iac-app-iac-renderer-kernel` | `-adapter-kustomize` | `INTERNAL_ONLY` |
+| `TerraformPlanComputer` | `iac-app-iac-renderer-kernel` | `-adapter-opentofu` (OpenTofu CLI) | `INTERNAL_ONLY` + `AUDIT` (plan output is an audit artifact) |
+| `RenderEventEmitter` | `iac-app-iac-renderer-kernel` | `-adapter` (event bus) | `AUDIT` |
+| `PolicyEvaluator` | `iac-app-iac-validator-kernel` | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |
+| `PlanComputer` | `iac-app-iac-validator-kernel` | `-adapter` | `INTERNAL_ONLY` + `AUDIT` |
+| `DriftDiffer` | `iac-app-iac-validator-kernel` | `-adapter` (live-cluster API client) | `BEHAVIORAL_TENANT_PRODUCT` (cluster state per tenant) |
+| `ClusterMutator` | `iac-app-iac-applier-kernel` | `-adapter` (Kubernetes API client) | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` |
+| `ReconcilerClient` | `iac-app-iac-applier-kernel` | `-adapter-argocd` (ArgoCD REST/gRPC client) | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ApplyEventEmitter` | `iac-app-iac-applier-kernel` | `-adapter` | `AUDIT` |
+| `RollbackEventEmitter` | `iac-app-iac-rollback-kernel` | `-adapter` | `AUDIT` |
+| `StateRevertPlanComputer` | `iac-app-iac-rollback-kernel` | `-adapter` | `AUDIT` |
+| `ChartCatalogStore` | `iac-app-iac-registry-kernel` | `-adapter-postgres` (Postgres) | `INTERNAL_ONLY` |
+| `ApplyStateIndexStore` | `iac-app-iac-registry-kernel` | `-adapter-postgres` | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` |
+| `ProvenanceVerifier` | `iac-app-iac-registry-kernel` | `-adapter` (Sigstore Cosign + SLSA verifier) | `AUDIT` |
 
 Data-class enforcement: every kernel struct field carries a `#[data_class(...)]` annotation; the `check-data-class` LEAN lane refuses unannotated fields at PR-time per `feedback_clean_architecture_requirements.md`.
 
-Cross-product rule: `cloud-iac` MUST NOT import any other product µservice crate at any layer. All cross-product flows go through Workflow events (`ApplyStarted/Completed/RolledBack`, `RenderRequested/Completed`, `DriftDetected`) or Ontology reads/writes (`ChartRecord`, `ApplyStateIndex`, `Provenance`). LEAN-A2 CI lane enforces.
+Cross-product rule: `iac-app` MUST NOT import any other product µservice crate at any layer. All cross-product flows go through Workflow events (`ApplyStarted/Completed/RolledBack`, `RenderRequested/Completed`, `DriftDetected`) or Ontology reads/writes (`ChartRecord`, `ApplyStateIndex`, `Provenance`). LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
 
-- cloud-ci/ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `presubmit` context — dependency-direction
-- cloud-ci/ci governance gate `lean-a2` for --microservice cloud-iac is green in the branch-protected `presubmit` context — cross-product-refusal
-- cloud-ci/ci governance gate `port-location` for --microservice cloud-iac is green in the branch-protected `presubmit` context — ports in kernel
-- cloud-ci/ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `presubmit` context — layer enum match
-- cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context — ADR-0131 conformance
-- cloud-ci/ci governance gate `statelessness` for --microservice cloud-iac is green in the branch-protected `presubmit` context — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
-- cloud-ci/ci governance gate `shardability` for --microservice cloud-iac is green in the branch-protected `presubmit` context
+- ci governance gate `lean-a1` for --microservice iac-app is green in the branch-protected `presubmit` context — dependency-direction
+- ci governance gate `lean-a2` for --microservice iac-app is green in the branch-protected `presubmit` context — cross-product-refusal
+- ci governance gate `port-location` for --microservice iac-app is green in the branch-protected `presubmit` context — ports in kernel
+- ci governance gate `layer-correctness` for --microservice iac-app is green in the branch-protected `presubmit` context — layer enum match
+- ci governance gate `per-microservice-layout` for --microservice iac-app is green in the branch-protected `presubmit` context — ADR-0131 conformance
+- ci governance gate `statelessness` for --microservice iac-app is green in the branch-protected `presubmit` context — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
+- ci governance gate `shardability` for --microservice iac-app is green in the branch-protected `presubmit` context
 
 ## Integration via Workflow + Ontology
 
@@ -325,7 +325,7 @@ CI lanes that must green:
 |---|---|---|---|
 | `MicroserviceRegistered` | `tenancy` | `iac-registry` | discover the new µservice; ensure it has IaC scaffolding under `microservices/<ms>/iac/` |
 | `EligibilityChanged` (verdict=eligible) | `observability` (per ADR-0139) | `iac-applier` | a µservice's SHA is eligible for promotion → apply that SHA's IaC to the target environment |
-| `RollbackExecuted` (production-tier) | `observability` | `iac-rollback` | a release pointer rolled back → cloud-iac reverts IaC state to the prior apply |
+| `RollbackExecuted` (production-tier) | `observability` | `iac-rollback` | a release pointer rolled back → iac-app reverts IaC state to the prior apply |
 
 ### Ontology writes
 
@@ -361,7 +361,7 @@ Key parity gaps to close (ordered by priority):
 
 1. **Meta-IaC pipeline integration** — Spacelift / Env0 / Terraform Cloud cover Terraform but do NOT canonicalize Helm + Kustomize + Terraform under one apply pipeline; oyatie's differentiator is one pipeline across all three.
 2. **Cryptographic provenance per apply** — none of the commercial offerings ship SLSA L3 + Sigstore attestation as a default invariant; oyatie's audit-chain integration makes this default.
-3. **SLO-gate integration** — Spacelift / Env0 don't refuse applies based on a downstream burn-rate signal; cloud-iac × observability does (per ADR-0139).
+3. **SLO-gate integration** — Spacelift / Env0 don't refuse applies based on a downstream burn-rate signal; iac-app × observability does (per ADR-0139).
 4. **Self-hosted with no vendor coupling** — Spacelift / Env0 / Pulumi Cloud / Terraform Cloud are SaaS; oyatie hosts everything on the same Grafana / ArgoCD / OpenTofu stack.
 
 ## Performance Targets
@@ -379,8 +379,8 @@ Key parity gaps to close (ordered by priority):
 
 Error budget:
 - Monthly error budget for iac-applier: 0.05% (≈22min/month).
-- Burn-rate alarm on cloud-iac's own SLOs (per ADR-0139 self-observability): 14.4× burn over 1h triggers page.
-- Error budget policy: `microservices/cloud-iac/runbooks/error-budget-policy.md` (extends observability template).
+- Burn-rate alarm on iac-app's own SLOs (per ADR-0139 self-observability): 14.4× burn over 1h triggers page.
+- Error budget policy: `microservices/iac-app/runbooks/error-budget-policy.md` (extends observability template).
 
 ## Horizontal Scalability
 
@@ -415,28 +415,28 @@ Sharding:
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | A new µservice's `iac/helm/<chart>/Chart.yaml` + `values.yaml` lands in the registry within 5 minutes of PR merge | end-to-end test under `microservices/cloud-iac/tests/e2e/registry-onboarding.rs` |
-| AC-02 | Render is deterministic: re-running on the same input produces an identical content digest | integration test `microservices/cloud-iac/tests/integration/render-determinism.rs` |
+| AC-01 | A new µservice's `iac/helm/<chart>/Chart.yaml` + `values.yaml` lands in the registry within 5 minutes of PR merge | end-to-end test under `microservices/iac-app/tests/e2e/registry-onboarding.rs` |
+| AC-02 | Render is deterministic: re-running on the same input produces an identical content digest | integration test `microservices/iac-app/tests/integration/render-determinism.rs` |
 | AC-03 | Plan-preview at PR-time surfaces a structured drift report | integration test |
 | AC-04 | Apply refuses to mutate resources outside the µservice's declared scope | Cedar policy unit test + integration |
 | AC-05 | Rollback reverts an apply within ≤2min when invoked | timed e2e drill |
 | AC-06 | Drift detector finds a manually-mutated cluster resource within 1h | e2e injection drill |
 | AC-07 | SLSA L3 attestation verified pre-apply | integration test against signed + unsigned chart |
-| AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `cloud-iac-iac-smoke` |
-| AC-09 | cloud-ci/ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `presubmit` context | ADR-0131 lane |
-| AC-10 | cloud-ci/ci governance gate `authority-cohesion` is green in the branch-protected `presubmit` context | ADR-0123 lane; HG-CLOUD-IAC registered |
-| AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/cloud-iac/tests/load/apply-latency.rs` |
+| AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `iac-app-iac-smoke` |
+| AC-09 | ci governance gate `per-microservice-layout` for --microservice iac-app is green in the branch-protected `presubmit` context | ADR-0131 lane |
+| AC-10 | ci governance gate `authority-cohesion` is green in the branch-protected `presubmit` context | ADR-0123 lane; HG-CLOUD-IAC registered |
+| AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/iac-app/tests/load/apply-latency.rs` |
 | AC-12 | Drift-detection cycle per cluster ≤ 1h validated under nominal load | observability self-SLO |
 
 ## Open Questions
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | ArgoCD vs Flux as the canonical GitOps reconciler at M01 | axis-cloud-iac + ops-sre-reliability | resolved in IP-001 (ArgoCD chosen; Flux supported for tenant choice via adapter pattern) |
-| 2 | OpenTofu version-pinning cadence (LTS vs trailing-stable) | axis-cloud-iac | resolved in IP-003 (LTS pin per docs/standards/observability-slo.md) |
-| 3 | iac-state-index Postgres: single cluster per pack vs single global cluster | axis-cloud-iac + cloud-secrets | resolved in IP-008 (per-pack pinned per ADR-0117) |
+| 1 | ArgoCD vs Flux as the canonical GitOps reconciler at M01 | axis-iac-app + ops-sre-reliability | resolved in IP-001 (ArgoCD chosen; Flux supported for tenant choice via adapter pattern) |
+| 2 | OpenTofu version-pinning cadence (LTS vs trailing-stable) | axis-iac-app | resolved in IP-003 (LTS pin per docs/standards/observability-slo.md) |
+| 3 | iac-state-index Postgres: single cluster per pack vs single global cluster | axis-iac-app + cloud-secrets | resolved in IP-008 (per-pack pinned per ADR-0117) |
 | 4 | Cross-µservice apply: forbidden by default, or allowed under explicit DAG declaration? | architecture-governance | resolved in policy/iac-isolation.md — forbidden by default; explicit cross-µservice DAGs require architecture-governance approval + Cedar policy entitlement |
-| 5 | Should cloud-iac apply its own IaC (bootstrap paradox)? | axis-cloud-iac | resolved in IP-015 — bootstrap via cloud-k8s + cloud-secrets minimum-viable; then cloud-iac applies itself thereafter (parallel to observability self-observability) |
+| 5 | Should iac-app apply its own IaC (bootstrap paradox)? | axis-iac-app | resolved in IP-015 — bootstrap via cloud-k8s + cloud-secrets minimum-viable; then iac-app applies itself thereafter (parallel to observability self-observability) |
 
 ## Related ADRs
 
@@ -450,13 +450,13 @@ Sharding:
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-IAC registers here |
 | ADR-0139 | Agentic SLO-gated promotion | downstream consumer of ApplyExecuted events |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
-| ADR-0132 | No-grouping policy | cloud-iac stands alone, not a platform member |
+| ADR-0132 | No-grouping policy | iac-app stands alone, not a platform member |
 | ADR-0133 | Industry-best-practice conformance | competitor parity authority |
 | ADR-0171 | Multi-cluster federation (ArgoCD ApplicationSets + Cluster API) | this PRD's canonical multi-cluster surface |
 
 ## Multi-Cluster Federation Addendum (per ADR-0171)
 
-Per ADR-0171 (2026-05-18), cloud-iac adopts a three-component multi-cluster federation substrate as the canonical scaling shape from ≥12 clusters at M02:
+Per ADR-0171 (2026-05-18), iac-app adopts a three-component multi-cluster federation substrate as the canonical scaling shape from ≥12 clusters at M02:
 
 ### Component 1 — ArgoCD ApplicationSets (application deployment across N clusters)
 
@@ -494,14 +494,14 @@ This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundat
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 is superseded for this surface: branch-protected `presubmit` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
+- ADR-0346 is superseded for this surface: branch-protected `presubmit` is the canonical blocking CI authority; retired local CLI verifier output is not production or merge authority.
 - ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-cloud-governance-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
 - ADR-0349 — GitHub Actions `presubmit` is the live CI authority until owned ci runner cutover; ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-github-actions-presubmit-continuity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-github-actions-ci-jcasc-only`, and `governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
-- Lifecycle: PROPOSED for `cloud-iac` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
-- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `cloud-iac` owns primitive selection and tenant-scoped variables.
+- Lifecycle: PROPOSED for `iac-app` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/iac-app/modules/<context>/<primitive>/`; `iac-app` owns primitive selection and tenant-scoped variables.
 - Manifest contract: `iac_module_invocations` declares 6 module pin(s) across 2 context(s).
 - Scaling input: `per_workflow_run` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
 - Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.

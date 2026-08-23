@@ -107,7 +107,7 @@ fn gateway_projects_capability_authored_agent_description_and_schemas() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         privacy_data_classes_from(&[DataClass::InternalOnly]).unwrap(),
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         CapabilityMcpContract::new(
             "Use this only for authored readiness evidence.".into(),
             "Operator-facing readiness evidence tool.".into(),
@@ -346,7 +346,7 @@ fn capability_with_data_classes(
         "demo".into(),
         tier,
         privacy_data_classes_from(data_classes).expect("test fixture uses privacy data classes"),
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
     )
     .unwrap()
 }

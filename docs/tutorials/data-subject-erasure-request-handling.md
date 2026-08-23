@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-DSR-ERASE-005
+tutorial_id: TUT-OYATIE-DSR-ERASE-005
 persona: "Marta Novak, privacy operations analyst for Acme Robotics EU"
 prerequisite_packs:
   - canonical-base

@@ -31,7 +31,7 @@ source_adrs:
 - Safety invariant: prefer refusal with evidence over a partially observed automation event.
 
 ## Doctrine Anchors
-- ADR-0346 purpose wording: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
+- ADR-0346 purpose wording: `presubmit` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 - ADR-0346 enforced_by lanes: `governance-verify-ci-mirror-coverage`; `governance-verify-ci-step-exit-semantics`; `governance-verify-skip-flag-allowlist`; `governance-submit-calls-verify`; `governance-verify-exit-code-contract`.
 - ADR-0347 purpose wording: every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request.
 - ADR-0347 enforced_by lanes: `governance-no-foundry-fitness-residue`; `governance-lane-prefix-vocabulary`; `governance-rename-inventory-presence`.
@@ -70,7 +70,7 @@ source_adrs:
 3. If audit-chain emit is unhealthy, freeze the operation before state mutation.
 4. If only observability is stale, refresh telemetry once and compare against the last sealed audit-chain event.
 5. If GitOps sync is pending, pause execution until ArgoCD confirms the service declaration is current.
-6. If Jenkins/GitHub Actions parity is unknown, keep the change in report-only state and run local `oya verify --ci-required` before push.
+6. If Jenkins/GitHub Actions parity is unknown, keep the change in report-only state and run local `presubmit` before push.
 7. If all gates pass, continue with the smallest reversible cohort.
 8. If the first cohort fails validation, roll back from the audit-chain pointer and do not expand blast radius.
 
@@ -94,7 +94,7 @@ source_adrs:
 - Evidence 5: residency and compliance pack candidate filter output.
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
 - Evidence 7: Jenkins build id or GitHub Actions run id proving CI/CD parity for this service.
-- Evidence 8: `oya verify --ci-required` local mirror result before any push related to this runbook.
+- Evidence 8: `presubmit` local mirror result before any push related to this runbook.
 - Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 

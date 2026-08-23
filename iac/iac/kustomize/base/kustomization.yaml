@@ -2,12 +2,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Shared base for the cloud-iac control-plane cluster, applied identically per-pack
+# Shared base for the iac-app control-plane cluster, applied identically per-pack
 # with pack-specific overlays for: residency region, retention overrides, OpenBao
 # secret-reference URIs, replica scaling tier.
 # Per ADR-0139 Layer-A + multi-region.md DR posture + policy/iac-isolation.md.
 
-namespace: cloud-iac
+namespace: iac-app
 
 resources:
   - namespace.yaml
@@ -17,23 +17,23 @@ resources:
   - cedar-policy-configmap.yaml
 
 helmCharts:
-  - name: cloud-iac-argocd
+  - name: iac-app-argocd
     valuesFile: ../../helm/argocd/values.yaml
     releaseName: argocd
-    namespace: cloud-iac
-  - name: cloud-iac-opentofu
+    namespace: iac-app
+  - name: iac-app-opentofu
     valuesFile: ../../helm/opentofu/values.yaml
     releaseName: opentofu
-    namespace: cloud-iac
-  - name: cloud-iac-helm-controller
+    namespace: iac-app
+  - name: iac-app-helm-controller
     valuesFile: ../../helm/helm-controller/values.yaml
     releaseName: helm-controller
-    namespace: cloud-iac
-  - name: cloud-iac-kustomize-controller
+    namespace: iac-app
+  - name: iac-app-kustomize-controller
     valuesFile: ../../helm/kustomize-controller/values.yaml
     releaseName: kustomize-controller
-    namespace: cloud-iac
+    namespace: iac-app
 
 commonLabels:
-  app.kubernetes.io/part-of: cloud-iac
-  oyatie/microservice: cloud-iac
+  app.kubernetes.io/part-of: iac-app
+  oyatie/microservice: iac-app

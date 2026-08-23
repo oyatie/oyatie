@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 description = "Analytics composition-root binary: wires kernel + adapter + domain + usecase + api into a runnable µservice process. Layer 12 per ADR-0083. Static-musl binary; distroless image."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics"
 layer = "app"

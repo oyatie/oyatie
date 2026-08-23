@@ -479,9 +479,9 @@ The pack is ready for documentation handoff when each document names ADR-0263 au
 The pack is ready for documentation handoff when each document names EU enforcement failure modes.
 The pack is ready for documentation handoff when each document includes worked examples.
 The pack is ready for documentation handoff when each document cross-references the companion pack docs.
-The pack is ready for documentation handoff when `oya vcs verify` accepts `eu_pack_docs:6`.
-The pack is ready for documentation handoff when `oya vcs done` accepts `eu_pack_docs:6`.
-The pack is ready for documentation handoff when `oya vcs promote` accepts the requested bundle.
+The pack is ready for documentation handoff when retired VCS ratchet accepts `eu_pack_docs:6`.
+The pack is ready for documentation handoff when retired VCS ratchet accepts `eu_pack_docs:6`.
+The pack is ready for documentation handoff when retired VCS ratchet accepts the requested bundle.
 
 ## Microservice Activation Matrix
 

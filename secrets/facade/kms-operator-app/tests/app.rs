@@ -83,12 +83,12 @@ fn state_store_config_requires_explicit_durable_path() {
 
     let configured = OperatorStateStoreConfig::from_env_pairs([(
         "OYATIE_KMS_OPERATOR_STATE_PATH",
-        "/var/lib/cloud-kms-operator/state.json",
+        "/var/lib/secrets-kms-operator/state.json",
     )])
     .expect("explicit state path should be accepted");
     assert_eq!(
         configured.path,
-        "/var/lib/cloud-kms-operator/state.json"
+        "/var/lib/secrets-kms-operator/state.json"
     );
 }
 

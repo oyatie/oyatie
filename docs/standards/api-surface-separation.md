@@ -88,7 +88,7 @@ internal dashboard is the cross-µservice flow surface.
 | SDK | Source | Audience |
 | --- | --- | --- |
 | Public | `platform-api-sdk-*` family per ADR-0036 (generated from public routes only) | External customers, partners |
-| Internal | `oya-*-internal-sdk-*` family (generated from internal routes; Rust workspace members) | Other µservices |
+| Internal | `oyatie-*-internal-sdk-*` family (generated from internal routes; Rust workspace members) | Other µservices |
 
 ## Documentation split
 

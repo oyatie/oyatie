@@ -14,35 +14,35 @@ data:
       match:
         ja4: ["t12d1010h2_xxxxxxxxxxx", "t13d0709h2_yyyyyyyyyyy"]
       action: block
-      audit_class: oya.api_gateway.bot.ja4.blocked
+      audit_class: gateway.bot.ja4.blocked
     # Anti-bot — bot-score gate (Wasm filter populates)
     - id: bot-002
       name: bot-score-95
       match:
         bot_score_gte: 95
       action: block
-      audit_class: oya.api_gateway.bot-score.high
+      audit_class: gateway.bot-score.high
     # Anti-bot — adaptive challenge
     - id: bot-003
       name: bot-score-suspicion
       match:
         bot_score_range: [60, 95]
       action: managed_challenge
-      audit_class: oya.api_gateway.captcha.challenge.issued
+      audit_class: gateway.captcha.challenge.issued
     # Anti-spoof — request smuggling
     - id: spoof-001
       name: cl-te-conflict
       match:
         headers_contain_both: ["transfer-encoding", "content-length"]
       action: block
-      audit_class: oya.api_gateway.request.malformed
+      audit_class: gateway.request.malformed
     # Anti-spoof — CRLF in header value
     - id: spoof-002
       name: crlf-injection
       match:
         header_value_regex: '[\r\n]'
       action: block
-      audit_class: oya.api_gateway.request.malformed
+      audit_class: gateway.request.malformed
     # Anti-spoof — HTTP/2 Rapid Reset (CVE-2023-44487)
     - id: spoof-003
       name: h2-rapid-reset
@@ -50,7 +50,7 @@ data:
         h2_rst_stream_rate_per_conn: 50
         period: 1s
       action: block
-      audit_class: oya.api_gateway.h2.rapid_reset.blocked
+      audit_class: gateway.h2.rapid_reset.blocked
     # Anti-scrape — sequential ID pattern
     - id: scrape-001
       name: sequential-id-scrape
@@ -58,7 +58,7 @@ data:
         path_param_sequential: true
         rate_per_minute: 100
       action: managed_challenge
-      audit_class: oya.api_gateway.scrape.sequential_id
+      audit_class: gateway.scrape.sequential_id
     # Anti-scrape — alphabetical pagination
     - id: scrape-002
       name: alphabetical-pagination-scrape
@@ -66,7 +66,7 @@ data:
         query_param_alphabetical: true
         rate_per_minute: 60
       action: managed_challenge
-      audit_class: oya.api_gateway.scrape.alphabetical
+      audit_class: gateway.scrape.alphabetical
     # Anti-scrape — deep pagination + fresh fingerprint
     - id: scrape-003
       name: fresh-fp-deep-paginate
@@ -74,18 +74,18 @@ data:
         fingerprint_age_seconds_lt: 30
         page_depth_gt: 50
       action: block
-      audit_class: oya.api_gateway.scrape.deep_paginate
+      audit_class: gateway.scrape.deep_paginate
     # Anti-cache-poisoning — header injection
     - id: cache-001
       name: cache-key-mutating-header
       match:
         unexpected_vary_header: true
       action: block
-      audit_class: oya.api_gateway.cache.poisoning_attempt
+      audit_class: gateway.cache.poisoning_attempt
     # Anti-scrape — honeypot route
     - id: scrape-004
       name: honeypot-hit
       match:
         path_in_honeypot_list: true
       action: serve_synthetic_canary
-      audit_class: oya.api_gateway.honeypot.activated
+      audit_class: gateway.honeypot.activated

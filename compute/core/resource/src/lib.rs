@@ -14,13 +14,13 @@ use network_residency::{ResidencyClass, residency_class_allows_home_region_label
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
-const RESOURCE_ID_PREFIX_OWNER: &str = "oya";
+const RESOURCE_ID_PREFIX_OWNER: &str = "oyatie";
 const RESOURCE_ID_PREFIX_SERVICE: &str = "cloud";
 const TENANT_ID_PREFIX: &str = "ten_";
 const HUMAN_PRINCIPAL_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
 const POLICY_ID_PREFIX: &str = "pol_";
-const RESERVED_TAG_PREFIX: &str = "oya:";
+const RESERVED_TAG_PREFIX: &str = "oyatie:";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ResourceId {
@@ -455,7 +455,7 @@ impl MeteringTag {
         kind: ResourceKind,
     ) -> Result<Self, CloudResourceError> {
         let value = value.into();
-        let expected = format!("oya:metering:{tenant_id}:{}", kind.type_label());
+        let expected = format!("oyatie:metering:{tenant_id}:{}", kind.type_label());
         if value == expected {
             Ok(Self { value })
         } else {
@@ -778,7 +778,7 @@ mod tests {
 
     fn compute_resource_create() -> ResourceCreate {
         ResourceCreate {
-            id: "oya:cloud:region-alpha1:ten_alpha:instance:api-001".to_string(),
+            id: "oyatie:cloud:region-alpha1:ten_alpha:instance:api-001".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
             az: Some("region-alpha1-a".to_string()),
@@ -789,7 +789,7 @@ mod tests {
             state: ResourceState::Pending,
             tags: tags(),
             iam_policy_attachments: vec!["pol_cloud_compute_admin".to_string()],
-            metering_tag: "oya:metering:ten_alpha:instance".to_string(),
+            metering_tag: "oyatie:metering:ten_alpha:instance".to_string(),
             residency: residency_class(),
             created_at_epoch_seconds: 1_700_000_000,
             updated_at_epoch_seconds: 1_700_000_000,
@@ -810,7 +810,7 @@ mod tests {
         assert_eq!(resource.kind.value.type_label(), "instance");
         assert_eq!(
             resource.metering_tag.value.value,
-            "oya:metering:ten_alpha:instance"
+            "oyatie:metering:ten_alpha:instance"
         );
         assert_eq!(resource.schema_version.value, RESOURCE_SCHEMA_VERSION);
     }
@@ -818,14 +818,14 @@ mod tests {
     #[test]
     fn rejects_resource_id_that_disagrees_with_tenant_region_or_kind() {
         let tenant_error = Resource::new(ResourceCreate {
-            id: "oya:cloud:region-alpha1:ten_other:instance:api-001".to_string(),
+            id: "oyatie:cloud:region-alpha1:ten_other:instance:api-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("resource id tenant must match resource tenant");
         assert_eq!(tenant_error, CloudResourceError::ResourceIdTenantMismatch);
 
         let kind_error = Resource::new(ResourceCreate {
-            id: "oya:cloud:region-alpha1:ten_alpha:bucket:api-001".to_string(),
+            id: "oyatie:cloud:region-alpha1:ten_alpha:bucket:api-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("resource id kind must match resource kind");
@@ -875,7 +875,7 @@ mod tests {
     #[test]
     fn rejects_reserved_or_empty_tenant_tags_and_duplicate_policy_ids() {
         let tag_error = Resource::new(ResourceCreate {
-            tags: BTreeMap::from([("oya:internal".to_string(), "no".to_string())]),
+            tags: BTreeMap::from([("oyatie:internal".to_string(), "no".to_string())]),
             ..compute_resource_create()
         })
         .expect_err("tenant tags cannot use the reserved Oyatie prefix");
@@ -927,14 +927,14 @@ mod tests {
             region: "region-gamma1".to_string(),
             az: Some("region-gamma1-a".to_string()),
             cell_id: "cell-region-gamma1-a-001".to_string(),
-            id: "oya:cloud:region-gamma1:ten_alpha:instance:api-001".to_string(),
+            id: "oyatie:cloud:region-gamma1:ten_alpha:instance:api-001".to_string(),
             ..compute_resource_create()
         })
         .expect_err("pack residency cannot move to a forbidden region");
         assert_eq!(residency_error, CloudResourceError::ResidencyRegionMismatch);
 
         let metering_error = Resource::new(ResourceCreate {
-            metering_tag: "oya:metering:ten_alpha:bucket".to_string(),
+            metering_tag: "oyatie:metering:ten_alpha:bucket".to_string(),
             ..compute_resource_create()
         })
         .expect_err("metering tag must match tenant and kind");

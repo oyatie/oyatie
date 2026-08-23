@@ -24,7 +24,7 @@ canonical_paths:
 # Naming Convention BNF v4 Standard
 
 This standard is the canonical authoring rule for names that must be parsed by
-agents, Oya VCS, CI lanes, catalog validators, and future automation. It expands
+agents, retired VCS ratchet, CI lanes, catalog validators, and future automation. It expands
 the older crate-specific grammar in `docs/standards/crate-naming-convention.md`
 into a cross-artifact BNF v4 discipline for crates, capability records, contract
 files, policies, events, SLOs, runbooks, dashboards, and implementation plans.
@@ -66,7 +66,7 @@ It does not authorize blanket search-and-replace migrations.
 
 It does not override ADR-0105 layer semantics.
 
-It does not relax the `oya-` crate prefix.
+It does not relax the `oyatie-` crate prefix.
 
 It does not permit compatibility aliases without a tombstone or redirect entry.
 
@@ -74,11 +74,11 @@ It does not permit compatibility aliases without a tombstone or redirect entry.
 
 N-001. Every durable identifier MUST be lowercase kebab-case unless the host format requires another separator.
 
-N-002. Every repository-owned crate MUST start with `oya-`.
+N-002. Every repository-owned crate MUST start with `oyatie-`.
 
 N-003. Every repository-owned checker crate MUST start with `check-`.
 
-N-004. Every non-checker crate MUST include a registered microservice token immediately after `oya-`.
+N-004. Every non-checker crate MUST include a registered microservice token immediately after `oyatie-`.
 
 N-005. Every non-checker crate MUST end with an ADR-0105 layer token.
 
@@ -395,9 +395,9 @@ The naming checker MAY remain advisory for legacy names only when a migration le
 Verification command:
 
 ```bash
-oya gate validate naming-convention --scope repo
-oya gate validate layered-architecture --scope crates
-oya gate validate catalog-id-discipline --scope registry
+presubmit (retired CLI gate validate) naming-convention --scope repo
+presubmit (retired CLI gate validate) layered-architecture --scope crates
+presubmit (retired CLI gate validate) catalog-id-discipline --scope registry
 ```
 
 CI evidence MUST include the count of scanned artifacts.
@@ -478,7 +478,7 @@ Using a checker exception without an ADR is an anti-pattern.
 
 ## Substance Bar Compliance Checklist
 
-BNF-SB-001. Verify `oya-` prefix on every non-checker crate.
+BNF-SB-001. Verify `oyatie-` prefix on every non-checker crate.
 
 BNF-SB-002. Verify `check-` prefix on every checker crate.
 

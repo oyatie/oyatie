@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use storage_block_api::{
-    CLOUD_STORAGE_BLOCK_CREATE_SURFACE, CloudStorageBlockApiAuthorization,
+    STORAGE_BLOCK_CREATE_SURFACE, CloudStorageBlockApiAuthorization,
     CloudStorageBlockApiBoundaryContext, CloudStorageBlockApiError, CloudStorageBlockApiPrincipal,
     CloudStorageBlockCreateApiStatus, CloudStorageBlockCreateIdempotencyLedger,
     CloudStorageBlockVolumeCreateApiRequest, CloudStorageBlockVolumeCreateRequest,
@@ -70,7 +70,7 @@ fn create_request(
         path_volume_id: VOLUME_ID.to_string(),
         boundary: boundary_for(request_id, idempotency_key),
         principal: principal_for("sp_storage_admin"),
-        authorization: authorization_for("sp_storage_admin", &[CLOUD_STORAGE_BLOCK_CREATE_SURFACE]),
+        authorization: authorization_for("sp_storage_admin", &[STORAGE_BLOCK_CREATE_SURFACE]),
         body: create_body(VOLUME_ID),
     }
 }
@@ -78,8 +78,8 @@ fn create_request(
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {
     assert_eq!(
-        CLOUD_STORAGE_BLOCK_CREATE_SURFACE,
-        "cloud.storage.block.create"
+        STORAGE_BLOCK_CREATE_SURFACE,
+        "storage.block.create"
     );
     assert_eq!(CloudStorageBlockCreateApiStatus::Created.code(), 201);
     assert_eq!(CloudStorageBlockCreateApiStatus::BadRequest.code(), 400);
@@ -189,7 +189,7 @@ fn block_create_api_rejects_unauthorized_same_tenant_principal_before_ledger() {
     assert_eq!(
         error,
         CloudStorageBlockApiError::AuthorizationDenied {
-            surface: CLOUD_STORAGE_BLOCK_CREATE_SURFACE.to_string(),
+            surface: STORAGE_BLOCK_CREATE_SURFACE.to_string(),
         }
     );
     assert_eq!(error.block_create_status_code(), 403);

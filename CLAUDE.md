@@ -8,7 +8,7 @@ Authoritative agent entry surface. This file + `AGENTS.md` + the user message. O
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns pipeline Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## Skill discovery doctrine (runtime-installed)
 
@@ -42,7 +42,7 @@ coordination_surface: governance_pipeline
 retirement_adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 retired_external_agent_coordination_tooling: true
 observability_substrate: observability/ (live capability root per ADR-0701); SLO/telemetry law is ADR-0706. Per-capability OpenSLO lives at <capability>/observability/slos/. cloud/ and {oya,cloud}/<service>/slos/ are historical — cloud/ is gone.
-cli_surface_policy: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09; verification and merge authority live in the cloud-ci gate apps behind the single required context presubmit, operations ride the console + API, and legacy dev-cli invocations are local bridge feedback only, never merge authority; the tracked bin/oya PATH shim is retired
+cli_surface_policy: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09; verification and merge authority live in the pipeline gate apps behind the single required context presubmit, operations ride the console + API, and legacy dev-cli invocations are local bridge feedback only, never merge authority; the tracked bin/oya PATH shim is retired
 owned_stack_policy: owned Rust hyperscale cloud. Fleet is stripped Linux on Cloud Hypervisor and/or Firecracker plus a compute/ agent (Borg/Twine analog). Not Kubernetes, not Talos as the cloud OS. Optional sold k8s/ SKU wraps upstream kube (EKS pattern). Asterinas/Hermit are not plant today; reconsider only per ADR-0719 D-13 with a five-field ADR. kernel/ and os/ delete; no vacant rungs. kuberos is gone (c2ee2631a). cloud/ holds zero tracked files.
 microservice_layout_authority: ADR-0562 (Accepted 2026-07-10, amended by ADR-0615) capability-first repo organization + the closed capability registry (governance/capability-registry.json) is the layout authority — one top-level dir per registered capability with core/ports/adapters/facade faces, app/<product>/ for 2+-capability tenant compositions, and top-level meta dirs kernel/os/base/governance/build/third-party; this SUPERSEDES the prior {oya,cloud}/<service>/ + libs/ clause (ADR-0550 superseded in full; ADR-0512's layout clause scoped-superseded, its workspace/crate/Buck2 invariants retained). Historical: ADR-0131 as amended by ADR-0512/platform-readiness pure split ({oya,cloud}/<service>/ + libs/) was the prior authority; existing services stay put until each capability's strangler move lands, and legacy microservices/ remains removal-candidate
 no_grouping_policy: ADR-0132 — no new bundle/grouping µservices; every new µservice is single-concern + flat
@@ -52,8 +52,8 @@ required_workflow:
   - layer_0_isolation: one isolated worktree per agent lane
   - layer_2_entry: pull request against dev enters the governance pipeline
   - admission_gate: validate policy, evidence, and the single ADR-0515 `presubmit` protected context
-  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/ci-tide
-  - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
+  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 pipeline-tide
+  - completion_gate: reviewer-agent APPROVE plus pipeline green before auto-merge
   - post_merge_record: the merged PR and its green presubmit checks are the record;
     no separate product-completion packet (ADR-0716)
 

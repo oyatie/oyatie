@@ -2,7 +2,7 @@
   "_meta": {
     "purpose": "Machine-readable dataset driving the multi-view architecture dashboard. ACCURACY-CRITICAL: every node/edge traced to a source doc; no invented nodes.",
     "generated": "2026-06-07",
-    "on_canon": "NO foundry/Kafka/forgejo/jenkins/oya-vcs/oya-CLI nodes. Eventing=Pulsar-from-day0->owned-diskless. Forge=GitHub->cloud-scm. CI/CD=GitHub-Actions->ci/cd. Governance=PaC/CaC/PaaS/CaaS. LLM=cloud-intelligence. Pure-split: oya/=product, cloud/=platform.",
+    "on_canon": "NO foundry/Kafka/forgejo/jenkins/retired VCS ratchet/oyatie-CLI nodes. Eventing=Pulsar-from-day0->owned-diskless. Forge=GitHub->cloud-scm. CI/CD=GitHub-Actions->ci/cd. Governance=PaC/CaC/PaaS/CaaS. LLM=cloud-intelligence. Pure-split: oya/=product, cloud/=platform.",
     "sources": [
       "00-VERTICALS-MAP.md (+10-cloud/a/d/n)",
       "00-TECH-STACK.md (+10-techstack-now/roadmap)",
@@ -2350,7 +2350,7 @@
         "id": "L2",
         "title": "Foundry per-file sense-routed rename + 4-term eradication (831 files)",
         "wave": "Wave-0",
-        "desc": "foundry sense-routed to cloud-intelligence (~274) vs governance (~135); forgejo/jenkins/oya-vcs = fixed replacements (GitHub-now/cloud-scm; GitHub-Actions/ci; cloud-scm). Palantir-Foundry (43) carve-out. RULED D11(d)+:52; Δ1.",
+        "desc": "foundry sense-routed to cloud-intelligence (~274) vs governance (~135); forgejo/jenkins/retired VCS ratchet = fixed replacements (GitHub-now/cloud-scm; GitHub-Actions/ci; cloud-scm). Palantir-Foundry (43) carve-out. RULED D11(d)+:52; Δ1.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:§B L2 + Δ1"
       },
       {
@@ -2392,7 +2392,7 @@
         "id": "L8",
         "title": "gate/cli SUPERSEDE + CaC/CaaS governance-pipeline re-homing",
         "wave": "Wave-1",
-        "desc": "oya gate/oya cli/oya check/oya verify/dev-cli/oya git ADRs marked Superseded; preserved gate/governance/honest-claim LOGIC re-authored as cloud-native CaC/CaaS pipeline ADRs; foundational grammar (0056/0092/0105) amended to pipeline-gate convention. RULED D-CLOUD-NATIVE + D-GOVERNANCE-CENTRAL; Δ2/Δ3.",
+        "desc": "retired CLI/oya cli/oya check/oya verify/dev-cli/oya git ADRs marked Superseded; preserved gate/governance/honest-claim LOGIC re-authored as cloud-native CaC/CaaS pipeline ADRs; foundational grammar (0056/0092/0105) amended to pipeline-gate convention. RULED D-CLOUD-NATIVE + D-GOVERNANCE-CENTRAL; Δ2/Δ3.",
         "source": "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:Δ2 (new lane L8)"
       }
     ],

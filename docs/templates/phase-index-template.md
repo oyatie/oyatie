@@ -55,7 +55,7 @@ One sentence stating what this phase delivers in present tense.
 
 ## Symbols touched (high level)
 
-- `crates/oya-<context>-<role>/` family
+- `crates/oyatie-<context>-<role>/` family
 - `contracts/<surface>.<format>`
 - `docs/<canonical-doc>.md` (per `docs/DOC-CATALOG.md` trigger)
 

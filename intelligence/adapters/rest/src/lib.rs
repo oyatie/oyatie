@@ -1,4 +1,4 @@
-//! cloud-intelligence REST adapter — OAuth subscription pool (ADR-0384 Path B).
+//! intelligence-app REST adapter — OAuth subscription pool (ADR-0384 Path B).
 //!
 //! Stage-6 GREEN. Stage-7 SSE passthrough added. Implements:
 //! - [`SecretProviderStore`] trait — owned secret-provider refresh-token storage seam.
@@ -2104,7 +2104,7 @@ fn event_status_for_upstream_status(status: u16) -> EventStatus {
     }
 }
 
-/// Build the axum [`Router`] for the cloud-intelligence REST adapter.
+/// Build the axum [`Router`] for the intelligence-app REST adapter.
 ///
 /// Routes:
 /// - `POST /v1/messages` — OAuth-gated reverse proxy to Anthropic API.
@@ -3621,7 +3621,7 @@ async fn handle_admin_agent_runtimes(
             "thinking_policy_ref": "critical-block-second-pass-policy",
             "tool_compatibility_profile_ref": "claude-codex-gemini-tool-compatibility",
             "sandbox_policy_ref": "ephemeral-workspace-sandbox",
-            "cloud_intelligence_owned_control_plane": true,
+            "intelligence_app_owned_control_plane": true,
             "embeds_model_runtime": false,
             "installs_cli_or_tui_surface": false
         }],
@@ -4104,50 +4104,50 @@ async fn handle_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse
     let pool_statuses = state.pool_registry.pool_statuses();
     let mut body = String::from(
         "\
-# HELP cloud_intelligence_up Gateway process is up\n\
-# TYPE cloud_intelligence_up gauge\n\
-cloud_intelligence_up 1\n\
-# HELP cloud_intelligence_secret_provider_ready Secret-provider readiness probe result\n\
-# TYPE cloud_intelligence_secret_provider_ready gauge\n",
+# HELP intelligence_app_up Gateway process is up\n\
+# TYPE intelligence_app_up gauge\n\
+intelligence_app_up 1\n\
+# HELP intelligence_app_secret_provider_ready Secret-provider readiness probe result\n\
+# TYPE intelligence_app_secret_provider_ready gauge\n",
     );
     body.push_str(&format!(
-        "cloud_intelligence_secret_provider_ready {}\n",
+        "intelligence_app_secret_provider_ready {}\n",
         u8::from(secret_provider_ready)
     ));
     body.push_str(
-        "# HELP cloud_intelligence_default_pool_ready Default data-plane pool has an eligible seat\n\
-# TYPE cloud_intelligence_default_pool_ready gauge\n",
+        "# HELP intelligence_app_default_pool_ready Default data-plane pool has an eligible seat\n\
+# TYPE intelligence_app_default_pool_ready gauge\n",
     );
     body.push_str(&format!(
-        "cloud_intelligence_default_pool_ready {}\n",
+        "intelligence_app_default_pool_ready {}\n",
         u8::from(default_pool_ready)
     ));
     body.push_str(
-        "# HELP cloud_intelligence_registered_provider_pools Registered tenant/provider pools\n\
-# TYPE cloud_intelligence_registered_provider_pools gauge\n",
+        "# HELP intelligence_app_registered_provider_pools Registered tenant/provider pools\n\
+# TYPE intelligence_app_registered_provider_pools gauge\n",
     );
     body.push_str(&format!(
-        "cloud_intelligence_registered_provider_pools {}\n",
+        "intelligence_app_registered_provider_pools {}\n",
         pool_statuses.len()
     ));
     body.push_str(
-        "# HELP cloud_intelligence_provider_pool_ready Provider pool readiness by provider\n\
-# TYPE cloud_intelligence_provider_pool_ready gauge\n",
+        "# HELP intelligence_app_provider_pool_ready Provider pool readiness by provider\n\
+# TYPE intelligence_app_provider_pool_ready gauge\n",
     );
     for status in &pool_statuses {
         body.push_str(&format!(
-            "cloud_intelligence_provider_pool_ready{{provider=\"{}\"}} {}\n",
+            "intelligence_app_provider_pool_ready{{provider=\"{}\"}} {}\n",
             status.provider,
             u8::from(status.ready)
         ));
     }
     body.push_str(
-        "# HELP cloud_intelligence_provider_pool_seats Provider pool seat count by provider\n\
-# TYPE cloud_intelligence_provider_pool_seats gauge\n",
+        "# HELP intelligence_app_provider_pool_seats Provider pool seat count by provider\n\
+# TYPE intelligence_app_provider_pool_seats gauge\n",
     );
     for status in &pool_statuses {
         body.push_str(&format!(
-            "cloud_intelligence_provider_pool_seats{{provider=\"{}\"}} {}\n",
+            "intelligence_app_provider_pool_seats{{provider=\"{}\"}} {}\n",
             status.provider, status.total_seats
         ));
     }
@@ -4910,7 +4910,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloud_intelligence_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
+    async fn intelligence_app_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
      {
         let router = build_router(test_state(true, true));
         for path in [
@@ -5099,7 +5099,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloud_intelligence_safety_admin_routes_are_authenticated_and_redacted() {
+    async fn intelligence_app_safety_admin_routes_are_authenticated_and_redacted() {
         let router = build_router(test_state(true, true));
         for path in [
             "/admin/v1/guardrails",

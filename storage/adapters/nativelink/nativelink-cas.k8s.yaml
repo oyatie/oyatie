@@ -52,7 +52,7 @@
 # a CA bundle into the pod is the precondition. The bucket identity stays reserved
 # at OpenBao `oya/ci/nativelink-cas-s3` (dedicated `nativelink-cas` bucket, keyed
 # separately from the sccache bucket identity); its ExternalSecret + the
-# `oya.io/seaweedfs-client` egress label return with that revisit rather than
+# `oyatie.io/seaweedfs-client` egress label return with that revisit rather than
 # projecting credentials the process never reads.
 apiVersion: v1
 kind: ConfigMap
@@ -62,7 +62,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: substrate
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 data:
   cas.json: |
     {
@@ -183,7 +183,7 @@ metadata:
   namespace: ci
   labels:
     app.kubernetes.io/part-of: substrate
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -214,7 +214,7 @@ metadata:
   labels:
     app: nativelink-cas
     app.kubernetes.io/part-of: substrate
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: local-path
@@ -230,8 +230,8 @@ metadata:
   labels:
     app: nativelink-cas
     app.kubernetes.io/part-of: substrate
-    oya.io/adr: ADR-0560
-    oya.adr/decided-by: ADR-0560
+    oyatie.io/adr: ADR-0560
+    oyatie.adr/decided-by: ADR-0560
 spec:
   # One ReadWriteOnce filesystem store must never have overlapping NativeLink
   # processes during the mandatory TLS/client-CA restart. Prefer bounded cache
@@ -361,7 +361,7 @@ metadata:
   namespace: ci
   labels:
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   selector:
     app: nativelink-cas
@@ -376,7 +376,7 @@ metadata:
   namespace: ci
   labels:
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   selector:
     app: nativelink-cas
@@ -400,14 +400,14 @@ spec:
         - namespaceSelector: {}
           podSelector:
             matchLabels:
-              oya.io/nativelink-cas-writer: "true"
+              oyatie.io/nativelink-cas-writer: "true"
       ports:
         - { protocol: TCP, port: 50051 }
     - from:
         - namespaceSelector: {}
           podSelector:
             matchLabels:
-              oya.io/nativelink-cas-reader: "true"
+              oyatie.io/nativelink-cas-reader: "true"
       ports:
         - { protocol: TCP, port: 50052 }
     - from:

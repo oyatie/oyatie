@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 #
 # SeaweedFS values per ADR-0196 (object storage canonical) + ADR-0197 (backup substrate target).
 # Per-pack overlay supplies KMS, OpenBao secret refs, replication topology overrides.
@@ -71,10 +71,10 @@ seaweedfs:
       recursive_delete = false
       [postgres2]
       enabled = true
-      hostname = "filer-meta-pg.cloud-iac.svc.cluster.local"
+      hostname = "filer-meta-pg.iac-app.svc.cluster.local"
       port = 5432
-      username = "${openbao:secret/cloud-iac/seaweedfs/filer-pg-user}"
-      password = "${openbao:secret/cloud-iac/seaweedfs/filer-pg-password}"
+      username = "${openbao:secret/iac-app/seaweedfs/filer-pg-user}"
+      password = "${openbao:secret/iac-app/seaweedfs/filer-pg-password}"
       database = "seaweedfs_filer"
       sslmode = "require"
 
@@ -89,10 +89,10 @@ seaweedfs:
     auth:
       enabled: true
       # OpenBao secret reference per ADR-0064 + ADR-0196 §SecretReference
-      accessKeySecretRef: "openbao://secret/cloud-iac/seaweedfs/s3-access-key"
-      secretKeySecretRef: "openbao://secret/cloud-iac/seaweedfs/s3-secret-key"
-    # Buckets declared per-µservice in cloud-iac IaC; preallocated to enforce naming convention
-    # Convention: oya-<purpose>-<tenant-or-shared>-<env>
+      accessKeySecretRef: "openbao://secret/iac-app/seaweedfs/s3-access-key"
+      secretKeySecretRef: "openbao://secret/iac-app/seaweedfs/s3-secret-key"
+    # Buckets declared per-µservice in iac-app IaC; preallocated to enforce naming convention
+    # Convention: oyatie-<purpose>-<tenant-or-shared>-<env>
     defaultBuckets:
       - name: workflow-artifacts-shared-prod
         quota: 100Gi
@@ -131,11 +131,11 @@ seaweedfs:
       enabled: true
 
 # ---- canonical labels (consumed by helpers) ----
-microservice: cloud-iac
+microservice: iac-app
 boundedContext: object-store
 tier: M
 plane: data
-partOf: cloud-iac
+partOf: iac-app
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:

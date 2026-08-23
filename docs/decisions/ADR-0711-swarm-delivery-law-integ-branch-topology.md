@@ -405,14 +405,14 @@ Extends (does not invent a parallel cosmology):
 - Capability-first roots + C/P/A/F faces (ADR-0701 / ADR-0562 lineage)
 - Flat cross-cutting `specs/` / `docs/` hubs (ADR-0119) with owner colocation (ADR-0131 / ADR-0541)
 - Role segments from crate-naming / BNF standards — **greenfield SUPERSEDES** brand-first
-  `required_prefix = "oya-"` (ADR-0017 era) as durable law
+  `required_prefix = "oyatie-"` (ADR-0017 era) as durable law
 
 **Grammar (binding highlights):**
 
 | Rule | Meaning |
 |---|---|
 | Role-first tokens | Name states behavior (`baseline-ratchet`, `presubmit`) |
-| Forbidden leading brand | `oya-` / `` / `cloud-` / `cloud_` as leading durable prefixes |
+| Forbidden leading brand | `oyatie-` / `` / `cloud-` / `cloud_` as leading durable prefixes |
 | ADR path shape (Amendment E) | Forever `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav — MUST NOT mass-rename for optics |
 | Self-explanatory path test | Path+filename alone convey purpose (`NNNN` + topic together) |
 | Brand ≠ keep_forever | Brand prefix alone never justifies durable home |
@@ -431,7 +431,7 @@ Extends (does not invent a parallel cosmology):
 |---|---|---|
 | `presubmit` | merge-gate-context | `presubmit` (dual-emit until founder protection flip) |
 | `freshness (…, ADR-0539)` | ci-job | `generated-artifact-freshness (lock + faces)` |
-| `cloud-ci-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
+| `pipeline-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
 | `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/ADR-NNNN-<topic>.md` (**keep** — indexes carry nav; Amendment E OVERRULE of topic-only mass rename) |
 
 **Execution order:** taxonomy lands on `integ/specs` → sweep rows cite kinds → renames execute
@@ -460,7 +460,7 @@ evidence), suggest the fix. Defensibility bar: if not defensible under the full 
 replace it if indefensible.
 
 **Taxonomy must REPLACE indefensible naming practice — not encode it.** Prior ADR/CI naming that
-fails the battery (`presubmit` brand, ADR numbers in job titles, leading `oya-`/`cloud-`
+fails the battery (`presubmit` brand, ADR numbers in job titles, leading `oyatie-`/`cloud-`
 prefixes, `firewall` metaphor) is recorded in `specs/naming-taxonomy.json#overturned_patterns`
 with fence rationale + replacement. `naming_sweep[]` / judgment rows cite those replacements.
 
@@ -470,9 +470,9 @@ Patterns this amendment recommends overturning (mechanism may stay; brand/shape 
 |---|---|---|
 | `presubmit` as forever context name | Single required context (ADR-0515/0700) + brand cohesion | Keep **single** merge context; rename to `presubmit` (dual-emit until founder protection flip) |
 | ADR numbers in CI job `name:` | Operator shortcut to governing ADR | Role-first job titles; ADR cites live in comments/docs only |
-| Leading `oya-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
-| `cloud-ci-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
-| `required_prefix = "oya-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
+| Leading `oyatie-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
+| `pipeline-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
+| `required_prefix = "oyatie-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
 | `docs/decisions/ADR-NNNN-*.md` path shape | Numbered decision catalogs | Topic-shaped filenames; numbers in index/frontmatter (batched renames) |
 
 #### B-2 — Freeze prefixes = no NEW births while moves execute
@@ -536,7 +536,7 @@ These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment 
 | **Invented work** | Inventing work into verified empty; activity theater; filler to fill quotas; observing = intervening. |
 | **Dual-truth** | Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior `merge-admission` green across new HEAD. |
 | **Second build path / shared WD** | Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity. |
-| **Brand / opaque / ADR-in-title names** | Leading `oya-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
+| **Brand / opaque / ADR-in-title names** | Leading `oyatie-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
 | **Silent blocked success** | Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; scoreboards from observation density. |
 
 #### C-3 — OVERRULE: forever merge-gate name
@@ -693,7 +693,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
 - **Mass-rename ADR files to topic-only paths for taxonomy optics** — OVERRULED (Amendment E-1 / `adr-rename-overturn`); forever is `ADR-NNNN-<topic>` + indexes.
-- **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
+- **Keep `oyatie-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
 - **Keep forever name `presubmit` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `presubmit`; distill is operating-pattern evidence, not naming authority.
 - **Defer rules-with-why / daemon-hotset / perimeter as Phase-B debt** — banned; forever shapes encode now (Amendment E); enforcement wiring may trail doctrine.
 

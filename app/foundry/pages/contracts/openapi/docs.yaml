@@ -433,7 +433,7 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          Establish that presubmit is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
         enforced_by:
           - governance-verify-ci-mirror-coverage
           - governance-verify-ci-step-exit-semantics

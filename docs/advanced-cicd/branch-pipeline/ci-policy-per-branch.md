@@ -50,7 +50,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 | `governance-promotion-gate-staging-to-prod` | BLOCKER (gate-class) | staging → prod | this composer; NEW |
 | `governance-canary-required` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/progressive-delivery-strategy.md` |
 | `governance-rollback-evidence` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` |
-| `cloud-ci-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md) |
+| `pipeline-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md) |
 
 
 **CI policy:** none. Private workspace. Agents may run lanes locally via sanctioned tooling for personal confidence; results are not promoted to a shared store.

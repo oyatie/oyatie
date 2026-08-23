@@ -19,7 +19,7 @@ Open this runbook when a PR moves, renames, creates, or splits a workspace crate
 
 Use it for changes that touch any of:
 - root `Cargo.toml [workspace.members]`
-- `crates/oya-<context>-<role>[-<capability>]/`
+- `crates/oyatie-<context>-<role>[-<capability>]/`
 - `registry/catalog/<crate>.yaml`
 - imports or dependency edges for the moved crate
 
@@ -29,7 +29,7 @@ Do not use this runbook for ordinary in-place code edits that do not change crat
 
 ## Pre-checks (5 minutes max)
 
-- [ ] Confirm the target crate name starts with `oya-` and matches `crates/<package-name>` — verify by reading the crate `Cargo.toml` and root workspace member entry.
+- [ ] Confirm the target crate name starts with `oyatie-` and matches `crates/<package-name>` — verify by reading the crate `Cargo.toml` and root workspace member entry.
 - [ ] Confirm no top-level `modules/`, `services/`, or `platform/` tree is introduced — verify with `find . -maxdepth 1 -type d`.
 - [ ] Confirm the move PR is the only active PR changing root `Cargo.toml [workspace.members]` — verify from the merge queue or PR list.
 - [ ] Confirm the crate has or will get a `registry/catalog/<package-name>.yaml` row with a valid role.
@@ -57,7 +57,7 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
    If differs: stop and fix the catalog record before running gates.
 
 5. ☐ Run the flat-crates guard.
-   Command: `oya gate validate architecture-boundaries --self-test && oya gate validate architecture-boundaries`
+   Command: `presubmit` (retired CLI `gate validate architecture-boundaries --self-test && presubmit (retired CLI gate validate) architecture-boundaries`)
    Expected: self-test passes and the architecture boundary check reports the workspace crate count.
    If differs: fix path, catalog, role, or dependency-direction errors.
 
@@ -73,7 +73,7 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
 1. Restore the previous directory path.
 2. Restore the previous root `Cargo.toml [workspace.members]` entry.
 3. Restore or remove the corresponding `registry/catalog/<package-name>.yaml` change.
-4. Re-run `oya gate validate architecture-boundaries` to prove the workspace is back to a valid state.
+4. Re-run `presubmit` (retired CLI `gate validate architecture-boundaries`) to prove the workspace is back to a valid state.
 
 ---
 
@@ -81,8 +81,8 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
 
 - [ ] `cargo fmt --all -- --check` passes.
 - [ ] `cargo check --workspace --all-targets --all-features` passes.
-- [ ] `oya gate validate architecture-boundaries --self-test` passes.
-- [ ] `oya gate validate architecture-boundaries` passes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries --self-test`) passes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries`) passes.
 - [ ] `cargo run -p tooling-cli-dev-runtime -- catalog validate` passes.
 - [ ] `cargo run -p tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
 - [ ] `cargo run -p tooling-cli-dev-runtime --bin repoctl -- pre-push` passes or the PR records a local-resource blocker plus the targeted substitutes above.

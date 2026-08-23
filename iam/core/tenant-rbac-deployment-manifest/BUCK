@@ -1,0 +1,18 @@
+rust_library(
+    name = "iam-tenant-rbac-deployment-manifest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iam_tenant_rbac_deployment_manifest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "iam-tenant-rbac-deployment-manifest-manifest",
+    srcs = ["tests/manifest.rs"],
+    crate = "iam_tenant_rbac_deployment_manifest_manifest",
+    crate_root = "tests/manifest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iam-tenant-rbac-deployment-manifest",
+    ],
+)

@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-MKT-DEAL-004
+tutorial_id: TUT-OYATIE-MKT-DEAL-004
 persona: "Yejin Choi, independent seller using Oyatie Marketplace"
 prerequisite_packs:
   - canonical-base
@@ -55,7 +55,7 @@ You will list a physical product, publish it to Marketplace, purchase it as a bu
 - Active capability tier: `marketplace-buyer-core`.
 - Test photo file: `jacket-front-redacted.jpg`.
 - Test shipping carrier: `OyaShip Ground`.
-- Test tracking number: `OYA-GROUND-20260520-001`.
+- Test tracking number: `OYATIE-GROUND-20260520-001`.
 
 ## Step-by-Step
 
@@ -186,7 +186,7 @@ You will list a physical product, publish it to Marketplace, purchase it as a bu
 11. Record fulfillment.
     - In the order detail, click `Fulfill`.
     - Carrier: `OyaShip Ground`.
-    - Tracking number: `OYA-GROUND-20260520-001`.
+    - Tracking number: `OYATIE-GROUND-20260520-001`.
     - Ship date: `2026-05-20`.
     - Package weight: `1.1 kg`.
     - Click `Save fulfillment`.
@@ -198,7 +198,7 @@ You will list a physical product, publish it to Marketplace, purchase it as a bu
 12. Confirm buyer delivery notification.
     - Aiyana opens `Mail`.
     - Open message subject `Your order has shipped`.
-    - Confirm tracking number `OYA-GROUND-20260520-001`.
+    - Confirm tracking number `OYATIE-GROUND-20260520-001`.
     - Click `View order`.
     - Confirm DealSet state: `Fulfilled`.
     - Confirm dispute window text: `14 days after delivery`.
@@ -318,7 +318,7 @@ You will list a physical product, publish it to Marketplace, purchase it as a bu
 - Pitfall: the buyer opens a dispute during the happy path.
 - Recovery: resolve or cancel the dispute before verifying settlement.
 - Pitfall: fulfillment is recorded without a tracking number.
-- Recovery: edit fulfillment and enter `OYA-GROUND-20260520-001`.
+- Recovery: edit fulfillment and enter `OYATIE-GROUND-20260520-001`.
 - Pitfall: evidence export lacks ontology object ref.
 - Recovery: rerun DealSet projection or inspect ontology projection health.
 - Pitfall: evidence export lacks audit seal.
@@ -350,7 +350,7 @@ Use this checklist to prove the sale completed as an ADR-0314 DealSet.
 - Tax estimate should be `USD 7.84`.
 - Marketplace fee should be `USD 20.60`.
 - Seller payout should be `USD 77.40`.
-- Tracking number should be `OYA-GROUND-20260520-001`.
+- Tracking number should be `OYATIE-GROUND-20260520-001`.
 - Deal state should progress `listed -> ordered -> accepted -> fulfilled -> delivered -> settled`.
 - Audit event `DealSetCreated` should precede `MarketplaceListingPublished`.
 - Audit event `BuyerOrderPlaced` should include the buyer tenant context.

@@ -30,7 +30,7 @@ After Slice D closes, Turn 2 (15 observability IPs + per-crate catalog records) 
 
 ## Minimum-shippable scope
 
-There is no smallest-actionable subset. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `oya gate validate per-microservice-layout --microservice observability` exit 0".
+There is no smallest-actionable subset. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `presubmit` (retired CLI `gate validate per-microservice-layout --microservice observability`) exit 0".
 
 ## Not Doing (and Why)
 

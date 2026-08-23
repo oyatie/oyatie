@@ -86,7 +86,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "oya:cloud:region-home:ten_alpha:k8s:prod"
+            example: "oyatie:cloud:region-home:ten_alpha:k8s:prod"
         - name: X-Request-Id
           in: header
           required: true
@@ -170,7 +170,7 @@ components:
 
 ```proto
 syntax = "proto3";
-package oya.cloud.compute.k8s.v1;
+package oyatie.cloud.compute.k8s.v1;
 
 service CloudComputeK8sService {
   // Existing

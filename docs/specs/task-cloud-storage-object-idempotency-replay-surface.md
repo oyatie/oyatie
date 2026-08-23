@@ -151,7 +151,7 @@ task does not change it.
 ### Proto3 (future gRPC adapter — informational, not implemented here)
 
 ```proto
-// Future: oya.cloud.storage.object.v1
+// Future: oyatie.cloud.storage.object.v1
 message PeekIdempotencyEntryRequest {
   string tenant_id        = 1;
   string principal_id     = 2;

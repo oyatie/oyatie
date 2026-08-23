@@ -24,7 +24,7 @@ reviewed PR merges on green checks alone, no admin override.
 **T2 — Crate colocation (make absorption true in the filesystem).** Move the 116 `intelligence-*`
 crates physically under `microservices/intelligence/` per ADR-0131/0357 vertical-slice nesting
 (task #10). Catalog records move with crates (architecture-boundaries will fail otherwise). Pure
-structure; no behavior change. Exit: `oya gate run-all` green with code colocated; "absorbed into
+structure; no behavior change. Exit: `presubmit` green with code colocated; "absorbed into
 Intelligence" is true on disk, not just in docs.
 
 **T3 — First real service: workload identity (NOT enterprise IAM).** Build the minimum `identity-*`

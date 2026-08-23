@@ -1,8 +1,8 @@
-//! ClickHouse EventSink adapter for the cloud-intelligence OAuth subscription pool
+//! ClickHouse EventSink adapter for the intelligence-app OAuth subscription pool
 //! (ADR-0384 Path B, Stage-7 D6 production seam).
 //!
 //! Implements [`EventSink`] from `intelligence-kernel` by
-//! INSERTing [`LlmGatewayEvent`] rows into the `cloud_intelligence_receipts`
+//! INSERTing [`LlmGatewayEvent`] rows into the `intelligence_app_receipts`
 //! table in the caller's per-tenant ClickHouse database via the shared
 //! [`shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
 //!
@@ -11,7 +11,7 @@
 //! Each [`LlmGatewayEvent`] maps to one row:
 //!
 //! ```text
-//! INSERT INTO tenant_{tenant_id}.cloud_intelligence_receipts
+//! INSERT INTO tenant_{tenant_id}.intelligence_app_receipts
 //!   (request_id, tenant_id, agent_id, seat_id, provider, model,
 //!    prompt_tokens, completion_tokens, ms_latency, status, timestamp_unix_ms)
 //! VALUES (...)
@@ -22,7 +22,7 @@
 //! - emit is best-effort: failures are logged via `tracing::warn` but never
 //!   propagate to the caller (D6 non-fatal contract).
 //! - no batching / coalescing (Stage-8 follow-up).
-//! - no DDL bootstrap: the `cloud_intelligence_receipts` table must exist
+//! - no DDL bootstrap: the `intelligence_app_receipts` table must exist
 //!   before the adapter is used (Stage-7 admin runbook item).
 //! - no retry: transient ClickHouse errors are logged and dropped.
 //!
@@ -44,7 +44,7 @@ use tracing::warn;
 // Table constant
 // ---------------------------------------------------------------------------
 
-const TABLE: &str = "cloud_intelligence_receipts";
+const TABLE: &str = "intelligence_app_receipts";
 
 // ---------------------------------------------------------------------------
 // Error type

@@ -99,7 +99,7 @@ depend only on the foundational kernel crate"* and `aee2297fe` describes slice 3
 whose internal deps all resolve within slices 1-2"*. `kubelet-domain` and the other two landed in
 different slices **because of their dependency counts**, for stacked-PR reviewability — not because
 anyone judged them to be different domains. Both commits say the rename `talos-<name>` →
-`cloud-os-<name>-domain` was applied *"per the BNF 13-suffix + oya- prefix + manifest-hygiene
+`cloud-os-<name>-domain` was applied *"per the BNF 13-suffix + oyatie- prefix + manifest-hygiene
 gate rules"*, i.e. mechanically.
 
 **Verdict on the fence: the fence has no builder on record.** That is a strictly different state

@@ -33,11 +33,11 @@ deliverables:
     exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking without grandfathering catalog.yaml or dual cedar+policy; layout-allowlist PRs match this set."
     verified_by: "presubmit"
   - id: ADR-0719-D9
-    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oya- prefix. Today's presubmit string is a rename target, not the destination name."
+    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oyatie- prefix. Today's presubmit string is a rename target, not the destination name."
     exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
     verified_by: "presubmit"
   - id: ADR-0719-D10
-    description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oya- prefix. No per-capability required GitHub checks."
+    description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oyatie- prefix. No per-capability required GitHub checks."
     exit_criteria: "This ADR defines those cadences; new workflows use those names; presubmit remains a rename target with branch protection in the same follow-through change."
     verified_by: "presubmit"
   - id: ADR-0719-D11
@@ -99,6 +99,86 @@ deliverables:
   - id: ADR-0719-D26
     description: "REJECT a trusted-vs-untrusted tenant mode in apps. D-23/D-25 already prove the cloud (same facade) and portability (commodity adapters). First-party is an IAM principal like any other; not an app flag, VIP class, skip-PDP, or in-process core. Do not add a mechanism we will regret."
     exit_criteria: "No TrustedTenant/cfg(trusted)/first-party quota class in app cores; no skip-PDP; no second cloud API; adapter injection and IAM principals remain the only knobs."
+    verified_by: "presubmit"
+  - id: ADR-0719-D27
+    description: "g3doc split: owner-local engineering docs live in <cap>/docs and app/<p>/docs (closed inner grammar). Repo-root docs/ is thin (operating contract, live 07xx ADRs, standards). No ADR copies, no catalog/IP/scorecard resurrection, no mass-move of the old wiki."
+    exit_criteria: "D-8 allowlists admit docs/ as a cap/app extra with the inner grammar; root docs/decisions remains the unique ADR home; no IPs/scorecards under docs/."
+    verified_by: "presubmit"
+  - id: ADR-0719-D28
+    description: "Cross-owner bindings are ports+adapters. Unagreed ports are path-visible (ports/draft/) and cheap to rename. A second owner depending on a shape forces reconcile onto one agreed name on the provider (owner-port grammar + proto v1) via escalated review. No contracts/ root and no libs/ports dump."
+    exit_criteria: "Other owners cannot path-dep ports/draft/; agreed shared shapes live on the provider as owner-port; proto packages do not ship draft names; no new contracts/ or libs/ tree."
+    verified_by: "presubmit"
+  - id: ADR-0719-D29
+    description: "Amendment jurisdiction: owner OWNERS may amend content inside their cap/app root. They must not change the canonical children, inner crate layout, or crate grammar. Shared contracts, sold facades, and repo-root law require escalated review."
+    exit_criteria: "PRs that touch agreed ports/proto/facade or repo-root law name the other owners + architecture; local-only docs/draft/core changes stay on owner OWNERS; new children, faces, or plan/tasks stay rejected."
+    verified_by: "presubmit"
+  - id: ADR-0719-D30
+    description: "Names and inner files follow established Cargo + google3 + AIP conventions: RFC 430/940, directory leaf = last grammar token, package name = full owner-port grammar, proto package directory = AIP-191. No invented domain/use_case taxonomy. Structure (D-8) does not change per team."
+    exit_criteria: "New crates: kebab package, omitted [lib].name, dir leaf matches last token, src/lib.rs or src/main.rs, snake_case modules, proto under facade/proto matching package.v1; no -rs/-rust/oyatie-/cloud- prefixes; no domain/ or use_case/ as required folders."
+    verified_by: "presubmit"
+  - id: ADR-0719-D31
+    description: "Default implement/review worker runs in an ephemeral out-of-tree git worktree. Writable surface is only the dispatched owner (one cap or one app/<p>/). OS write-jail when available. Sparse cone of that owner plus declared read-only inputs. Agent cannot expand its own sandbox. Not a full-repo hide (Cargo + D-28). Not a VCS ratchet product."
+    exit_criteria: "Worker dispatches name the owner path; worktree is not the human clone; writes outside that owner fail or are review-blocking; D-29 escalated lanes name extra writable cones; worktree is removed when the lane ends; no new claim/verify ceremony."
+    verified_by: "presubmit"
+  - id: ADR-0719-D32
+    description: "Parallelism unit is the leaf crate, not the cargo workspace and not the whole cap. Subagents get separate worktrees with disjoint crate cones. Local proof is buck2 on those targets (ADR-0716). Cargo.lock / root Cargo.toml are single-writer. CI cargo --workspace is the linearized merge proof, not N-way local cargo."
+    exit_criteria: "Dispatches name crate paths when splitting an owner; two live lanes do not share a worktree or Cargo.lock writes; local agent verify is buck2; cargo update/generate-lockfile is not used in parallel owner sandboxes; path-only PRs do not touch Cargo.lock."
+    verified_by: "presubmit"
+  - id: ADR-0719-D33
+    description: "Structural Mutation Separation: reorg (git mv/rm, D-8 children, crate grammar, workspace members, lockfile, faces) is a different class from behavioral edits. Do not mix in one lane. After the structure wave, implement lanes are content-only inside frozen crates."
+    exit_criteria: "PRs are either structural (layout/lock/members/faces) or behavioral (crate src/tests/docs), not both; implement dispatches do not git mv trees or edit root Cargo.toml; D-8 shape stays frozen mid-feature."
+    verified_by: "presubmit"
+  - id: ADR-0719-D34
+    description: "Local N-way uses shared read-only build cache (buck2 CAS/disk cache), cargo --offline --locked if cargo is used at all, and the existing buck2 + rust-analyzer graphs for dispatch. Reject shared CARGO_TARGET_DIR lock-bypass, per-agent lockfiles, and an Aggregated AST Patch product."
+    exit_criteria: "Agent local verify does not rewrite Cargo.lock or take a shared cargo target lock; cache is content-addressed and trusted-writer; dispatcher consults build graph (buck2) and crate graph (metadata/r-a); no new AST-merge service."
+    verified_by: "presubmit"
+  - id: ADR-0719-D35
+    description: "Hand-written non-exempt files are at most 300 lines. New or touched files over 300 fail. Existing over-budget files are split in dedicated lanes when that crate is worked, not one repo-wide dump. Exempt: live ADRs, PRD.md, AGENTS/CLAUDE, generated, lockfiles, third-party."
+    exit_criteria: "Presubmit pattern check on touched non-exempt paths; no expected_total of file counts; splits stay inside the crate (D-32); generated proto/lock/vendor ignored."
+    verified_by: "presubmit"
+  - id: ADR-0719-D36
+    description: "Live law is one monolithic ADR per apex topic (this file) plus app PRD.md. That document is the iterating checklist: PRD, spec, decisions, contradictions, staleness. Do not split D-n into files and do not recreate specs/ or plan/ trees."
+    exit_criteria: "No new specs/ or plan/ roots; new decisions amend this ADR or a live 07xx apex in place; PRD.md remains the app-level monolith; owner docs/ stay under the 300-line cap."
+    verified_by: "presubmit"
+  - id: ADR-0719-D37
+    description: "Shared docs/config/json/yaml/toml are not split like .rs. Keep them minimal. Implement agents must not in-place edit the denylist; additive changes are uuid-named fragments. Mechanical fold is one serial step on the receiving branch (pre-commit/merge_group), not per-worktree. Prose ADRs stay single-writer. Cargo.lock is regenerated once after fold, not fragment-merged."
+    exit_criteria: "Implement PRs that touch root Cargo.toml/lock/toolchain/deny/rustfmt/AGENTS/live ADRs in place fail unless a structural lane; additive member/config lands as a unique fragment; fold engine is Rust; no specs/ yaml farm; lockfile diffs only from the fold step."
+    verified_by: "presubmit"
+  - id: ADR-0719-D38
+    description: "Worktrees isolate indexes, not integration. Lanes integrate star-shaped onto dev via merge_group only. Never mesh-merge live worktrees. A path conflict quarantines writers to that identity only; other disjoint lanes continue. Do not merge origin/dev into the lane (rebase/queue replay)."
+    exit_criteria: "No agent merges one implementation worktree into another; PRs target dev; conflict on a file/Item pauses only that identity; other files in the same crate continue; merge_group is the combination test."
+    verified_by: "presubmit"
+  - id: ADR-0719-D39
+    description: "OVERRULE crate-lock and uuid-delta VCS. Commute identity is a unique git path at module/item (or markdown block-file) grain. Parent membership (mod, workspace members) is a pure function of the directory (Cargo/Buck globs + generated mod list), not a hand-edited list and not .delta files. N agents on one crate is allowed iff they own disjoint files/items. Same Item two writers is still refused at assign — not a crate mutex, not poll-until-unlock."
+    exit_criteria: "Workspace members use closed globs over D-8 faces so adding a crate dir does not edit root Cargo.toml; crate roots do not grow hand-maintained mod lists for every sibling file; occupancy is open PR paths at file/item grain; no Cargo.toml.d uuid product required for the common add; no whole-crate lock."
+    verified_by: "presubmit"
+  - id: ADR-0719-D40
+    description: "Occupancy is a path-set, not a cap/app session lock. Write/edit/delete occupy the path; git mv occupies {old,new}. Mixed N ops commute iff path-sets are disjoint. Cross-cap work is named extra paths (D-29), not a crate lock. Plan/ADR is one path and therefore commutes with all src. Mechanical LSC (same symbol, many files) is one lane or file-sharded, not N overlapping edits. Cap cone remains default sandbox blast-radius, not merge necessity."
+    exit_criteria: "Dispatch names a path-set (including rename pairs); overlapping path-sets are not spawned; sessions may list paths in more than one cap when escalated; plan PRs touch ADR/PRD only; LSC does not share files with feature lanes; no poll-lock of a capability."
+    verified_by: "presubmit"
+  - id: ADR-0719-D41
+    description: "YAGNI cut: git conflict is impossible iff commits do not share a path. Keep parent indexes STABLE (workspace member globs; crate module list from compile-time directory scan, not a committed generated file). Jail writes to the dispatched files. PR to dev; merge_group. No occupancy service, no uuid fragments, no crate/cap mutex. Uncoordinated same-path create is a tiny rebase, like TAP mid-air — do not invent unique-name VCS to prevent it."
+    exit_criteria: "Implement PRs do not edit root members lists or hand-maintained mod inventories; new Item is a new unique file; lib.rs membership line is stable; merge_group is the combination test; no Cargo.toml.d product; no occupancy JSON."
+    verified_by: "presubmit"
+  - id: ADR-0719-D42
+    description: "Cross-harness (Grok, Claude, Codex, Cursor, Antigravity, …): only git + draft PR on origin/dev + presubmit is portable. Do not rely on a vendor sandbox, worktree, or dispatcher. Instruction must live on every session-loaded hub. Draft PR is occupancy. Same-path create is rebase, not a lock."
+    exit_criteria: "AGENTS.md and CLAUDE.md state the same sequence; implement PRs still fail denylist regardless of which harness authored them; no harness-specific occupancy tool required."
+    verified_by: "presubmit"
+  - id: ADR-0719-D43
+    description: "N-parallel delivery loop is path-set PRs, not a task-board poll. Launcher (not the agent) derives unique output paths from ADR/PRD and spawns. Each PR: red tests on that path, implement, de-slop, coverage on that crate, pipeline review only if pipeline files are in the path-set. presubmit green is required; if red, process error on that PR not a factory stop. merge_group then squash. Stages commute across PRs."
+    exit_criteria: "No tasks/ JSON board; no agent loop on gh pr list; overlapping path-sets fail presubmit; CI-metric review only when .github/ or pipeline/ is touched; local pre-push is fmt-on-touched not workspace nextest."
+    verified_by: "presubmit"
+  - id: ADR-0719-D44
+    description: "Client need is received by the human operator plus orchestrator. Interview + research against existing docs/tree + verification produce an ephemeral artifact package. Ambiguous or wrong needs fail closed (NeedClarification / Rejected). The package hands off to Product (app/) XOR Program (capability). Raw client text never reaches implement. The package is not written under plan/ or tasks/."
+    exit_criteria: "No implement hop is admitted from an unverified prompt; mixed app+capability packages fail; dump-root requests reject; Product vs Program is a function of target paths."
+    verified_by: "presubmit"
+  - id: ADR-0719-D45
+    description: "OVERRULE D-43 single-agent walk of stages. Occupancy remains one draft PR path-set (D-42). Roles are a DAG with fan-out (implement complete unblocks review, coverage, security, docs together). Orchestrator publishes ready hops; it does not spawn agents and must not fold N ready hops of a role onto one worker. Each hop binds a fresh agent. Implementer finishing a slice is free for the next disjoint slice immediately."
+    exit_criteria: "Ready-hop cardinality for a role equals disjoint schedulable slices in that role; reused agent ids fail; completing Implement does not wait for PrBabysit before another Implement hop elsewhere; no long-running implementer looping disjoint work."
+    verified_by: "presubmit"
+  - id: ADR-0719-D46
+    description: "Cross-slice need (break, contract amend, agreement) is not a committee. Writer without occupancy of a path must not write it. Consumer files ports/draft/ or adapters/draft/ on their own path-set (commutes). Owner gets a ContractAmend hop when those owner paths are free. Presubmit/merge_group red quarantines that path-set only; other disjoint slices continue. No ticket board. No poll-lock."
+    exit_criteria: "Cross-owner path writes without occupancy fail; draft ports are path-visible; owner amend is a hop on owner paths; one red PR does not stop other path-sets."
     verified_by: "presubmit"
 ---
 
@@ -647,9 +727,11 @@ pre-created; it appears only when the first crate admitted under the ≥3-caps-b
 rule. `governance/` is gone (D-17). **No `kernel/` and no `os/` rungs** (D-13). Fleet is
 stripped Linux on Cloud Hypervisor and/or Firecracker (`compute/`).
 Composition: `app/`. One directory per capability (including BUILD `policy/`).
-`packs/` = install authority (D-24). `docs/` = ADRs + operating contract.
-Thin `templates/`: ADR skeleton + swarm ritual only. **No catch-all `specs/`.**
-Agent entry is `AGENTS.md` / `CLAUDE.md`.
+`packs/` = install authority (D-24). Repo-root `docs/` = thin operating contract
++ unique `docs/decisions/` ADR home + `docs/standards/` (D-27). Per-owner
+`docs/` lives under each cap/app, not here. Thin `templates/`: ADR skeleton +
+swarm ritual only. **No catch-all `specs/`.** Agent entry is `AGENTS.md` /
+`CLAUDE.md`.
 
 **Not repo-root (gone this wave):** `contracts/`, `plan/`, `tasks/`, `scripts/`,
 `specs/`, `registry/`, `evidence/`, `governance/`, `oya/`, `cloud/`.
@@ -671,13 +753,42 @@ service + impls; AWS control-plane vs data-plane as engines, not dump folders.
 | `cedar/` | This cap/app’s Cedar only | Platform templates (those wait `policy/` cap) |
 | `observability/slos/` | Generated from IR | Hand OpenSLO, dashboards JSON |
 | `iac/` | IR the reconciler applies | Helm/Tofu/charts as source |
+| `docs/` | This owner's g3doc (D-27): `README.md`, `concepts/`, `runbooks/`, `design/` | ADR copies, IPs, catalogs, scorecards, customer manuals, `plan/`, `tasks/` |
 | `OWNERS`, short `README.md`, `BUCK` | Yes | — |
 | `PRD.md` | **`app/<product>/` only** | Cap roots |
 
-**Inside each face (leaf crates).** One crate per directory. Only `Cargo.toml`,
-`src/`, `tests/`, `OWNERS`, `BUCK`. No nested IPs, catalog.yaml, Helm.
+**This shape does not change.** Owner PRs fill these children with content.
+They do **not** add faces, rename faces, insert `plan/`/`tasks/`/`crates/`/
+`internal/`/`domain/`, or invent a per-team taxonomy. A new child is a D-8
+five-field amendment (escalated, D-29), not an OWNERS courtesy.
 
-Grammar (no `oya-`, no `cloud-` prefix):
+**Inside each face (Cargo defaults; same for every cap and every `app/<product>/`).**
+One crate per directory. Only `Cargo.toml`, `src/`, `tests/`, `OWNERS`, `BUCK`.
+No nested IPs, catalog.yaml, Helm, `plan/`, `tasks/`. Do not flatten `src/`
+(matklad / rust-analyzer). Do not require Clean-Architecture `domain/` or
+`use_case/` — those are not Cargo or google3.
+
+| Path | What is in it | Not in it |
+|---|---|---|
+| `core/<engine>/` | Lib crate: `src/lib.rs` + snake_case modules. No IO. Calls **port crates**. | sqlx, HTTP, proto, adapter types |
+| `ports/<port>/` | **Agreed** traits (`owner-port`). Dir leaf = `<port>`. | Impl, proto SSOT |
+| `ports/draft/<port>/` | **Unagreed** (`owner-port-draft`). Other owners must not `path =`. | Sold proto |
+| `adapters/<port>-<backend>/` | One backend of an agreed port. Dir leaf = `<port>-<backend>`. | Domain rules |
+| `adapters/draft/<port>-<backend>/` | Draft impl; `git mv` with the port | — |
+| `facade/<surface>-app/` | Process: `src/main.rs` (and `lib.rs` if tests need it). Handlers call core. | sqlite, business novels |
+| `facade/proto/<owner>/<api>/v1/` | Sold proto (AIP-191): dir **is** the proto package; files `snake_case.proto` | Draft names, `v1.proto` as filename |
+| `cedar/` | This owner's Cedar only | Platform templates |
+| `observability/slos/` | Generated from IR | Hand YAML novels |
+| `iac/` | IR this engine needs in a cell | Helm/Tofu as source |
+| `docs/README.md` | Landing (g3doc traffic cop) | Essays |
+| `docs/concepts/` | How *this* owner works | ADR-07xx copies |
+| `docs/runbooks/` | On-call for *this* owner | Fleet stamped books |
+| `docs/design/` | Owner-local design notes | `plan/`, IPs, ADR forks |
+| `PRD.md` | App product requirements only | Cap roots |
+
+Do not add a fifth face. Do not pre-create empty module dirs.
+
+Grammar (no `oyatie-`, no `cloud-` prefix):
 
 ```
 owner     := <capability> | <product>          # kebab, registered / D-22
@@ -687,15 +798,20 @@ backend   := sqlite|postgres|s3|oyatie|imap|smtp|jmap|stripe|onprem|…
 surface   := kebab                             # optional facade qualifier
 
 core crate      := owner "-" engine
-ports crate     := owner "-" port
-adapters crate  := owner "-" port "-" backend
+ports crate     := owner "-" port                 # AGREED only (D-28)
+draft port crate:= owner "-" port "-draft"        # UNAGREED; path ports/draft/<port>/
+adapters crate  := owner "-" port "-" backend     # agreed port
+draft adapter   := owner "-" port "-" backend "-draft"
 facade crate    := owner ["-" surface] "-app"
 ```
 
 Examples: `storage-blob`, `storage-blob-sqlite`, `storage-blob-s3`,
-`foundry-ontology`, `payroll-run-app`, `iam-pdp`. One primary `core/` engine
-per cap/app unless a §7 split names a second. `app/foundry/{pages,grid}` fold
-into these faces on the Foundry BUILD PR — they are not a third layout.
+`foundry-blob-draft` (local, rename freely), `foundry-ontology`,
+`payroll-run-app`, `iam-pdp`. One primary `core/` engine per cap/app unless a
+§7 split names a second. `app/foundry/{pages,grid}` fold into these faces on
+the Foundry BUILD PR — they are not a third layout. Draft names are **illegal**
+in sold proto packages. Promotion is `git mv` of `ports/draft/<port>/` onto the
+provider's `ports/<port>/` after D-28/D-29 review — not a copy.
 
 **Must not exist at cap/app root:** `manifest.json` census, `catalog.yaml`, `IPs/`,
 `IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
@@ -714,14 +830,17 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - **origin:** naming `policy/` for both the PDP and per-cap Cedar followed the live
   tree; OpenSLO-as-authoring and REST transcode are Helm-shaped dual stacks; dual
   `cedar/`+`policy/` allowlists encoded the collision.
-- **rule:** cap-root `cedar/` only; `policy/` is the capability; SLO source is IR;
-  no `specs/` catch-all; `ports/` is the contract face; extras, REST/JSON product
-  surfaces, and `HANDOFF.md` deleted, not grandfathered. Temporarily breaking live
-  callers/gates is accepted. Leaving anti-pattern debt is not.
-- **ensure:** layout allowlists match this set; no immortal `IPs/`; no both `cedar/` and
-  `policy/` as cap children.
-- **overturn_when:** a child is loaded by a compiler/PDP/SLO/reconciler AND a five-field
-  amendment lands same-wave.
+- **rule:** cap and `app/<product>/` share this child set; the set and inner Cargo
+  layout **do not change** per owner (D-29/D-30); cap-root `cedar/` only; `policy/`
+  is the capability; SLO source is IR; no `specs/` catch-all; `ports/` is the
+  contract face (draft vs agreed: D-28); extras, REST/JSON product surfaces, and
+  `HANDOFF.md` deleted, not grandfathered. Temporarily breaking live callers/gates
+  is accepted. Leaving anti-pattern debt is not.
+- **ensure:** layout allowlists match this set; no immortal `IPs/`; no both `cedar/`
+  and `policy/` as cap children; owner PRs that add a new child or `domain/`/
+  `use_case/`/`crates/` taxonomy fail.
+- **overturn_when:** a child is loaded by a compiler/PDP/SLO/reconciler AND a
+  five-field amendment lands same-wave.
 
 ## Consequences
 
@@ -942,7 +1061,7 @@ The “four-tier cargo blog” (fmt+clippy+check locally in <5s; nextest+doc-tes
 
 Local pre-push is **fmt on touched files**, not a 5-second fantasy that also runs clippy `--all-targets` and `cargo check`. A hook that takes minutes is a hook people `--no-verify`. Tests the author cares about are `cargo nextest run -p <crate>`.
 
-No new `scripts/check.sh` / pre-push product. Rust-first: a three-line git hook may call `cargo fmt --check` on staged `*.rs`. Do not resurrect `oya verify` / `dev-cli`.
+No new `scripts/check.sh` / pre-push product. Rust-first: a three-line git hook may call `cargo fmt --check` on staged `*.rs`. Do not resurrect retired `./bin/oya verify` / `dev-cli`.
 
 **MUST (nextest is the proof)**
 
@@ -959,7 +1078,7 @@ paths**, not 24 contexts. Do not resurrect merge-base **count** baselines as
 “affected set.”
 
 New workflow and context names: `presubmit`, `postsubmit`, `nightly`, `weekly`,
-`promotion-predecessor`, `release`. No `oya-` prefix. Today’s `presubmit` is
+`promotion-predecessor`, `release`. No `oyatie-` prefix. Today’s `presubmit` is
 the **presubmit** rename target (branch protection in the same change).
 
 ### D-11 — What the cloud is, and what each capability holds
@@ -1094,7 +1213,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 **MUST (cloud lives in caps)**
 
 - **achieves:** one place for each cloud concern; `cloud/` and `specs/cloud-*` cannot return.
-- **origin:** `cloud/` was emptied; the cloud leaked into JSON specs and nested `oya-*` / `cloud-*` leftover dirs inside caps.
+- **origin:** `cloud/` was emptied; the cloud leaked into JSON specs and nested `oyatie-*` / `cloud-*` leftover dirs inside caps.
 - **rule:** a cloud-provider engine occupies exactly one registered capability’s `core/`; sold single-cap surface is `facade/`; 2+ is `app/`; repo root does not hold IaaS dumps; **no new `cloud-*` crate, dir, or type name** (existing `CloudRegion` fossils burn with their dump, they are not a pattern).
 - **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`; new crate names use the cap slug (`cell-clock-api`, not `cloud-clock`).
 - **overturn_when:** a §7 split/merge ADR with five fields lands same-wave.
@@ -1468,6 +1587,960 @@ Hyperscalers do not ship “trusted GCS for Gmail.” One API, identities, ACLs.
 - **ensure:** review rejects `TrustedTenant`, `cfg(trusted)` cloud-core path-deps, first-party unmetered classes, and privileged extra APIs.
 - **overturn_when:** a five-field ADR same-wave shows a missing capability that IAM+adapters cannot express AND names a fail-closed alternative that is still one proto.
 
+### D-27 — Docs live with the owner; root `docs/` is thin (g3doc)
+
+Hyperscaler analog: Google **g3doc** next to the package; org-wide developer
+guides stay central; customer manuals are a different product. Chromium: same
+CL as the code. Not a 1,490-file root wiki (Google already failed that as
+GooWiki).
+
+**Per owner** (`<cap>/docs/`, `app/<p>/docs/`): engineering docs for *this*
+tree — concepts, runbooks, design notes. Same inner grammar as the D-8 table.
+Owner OWNERS may amend these without architecture review (D-29).
+
+**Repo root `docs/`:** `AGENTS.md` operating contract pointer, unique
+`docs/decisions/` (07xx live ADRs), `docs/standards/`. No per-cap copies of
+ADRs. No catalogs, IPs, scorecards, census JSON.
+
+**Do not:** mass-move the old wiki this wave; put Foundry user manuals here
+(that is a later product site); resurrect `plan/` or `tasks/` as `docs/`.
+
+**MUST (g3doc)**
+
+- **achieves:** docs that describe a service change in the same PR; org law has
+  one home; owner docs cannot fork ADRs.
+- **origin:** root `docs/` became GooWiki; cap context was unfindable; founders
+  asked whether per-owner docs match hyperscaler practice (they do: g3doc).
+- **rule:** owner engineering docs under `<owner>/docs/` with the closed inner
+  grammar; root `docs/` is thin law; unique ADR home; no IP/catalog resurrection;
+  no same-wave 1,490-file move.
+- **ensure:** D-8 allowlist includes `docs/` as a cap/app extra; layout rejects
+  `plan/`, `tasks/`, `IPs/`, `decisions/` copies under owners.
+- **overturn_when:** a five-field ADR names a different docs home that still
+  co-locates service docs with code and keeps a thin org-law tree.
+
+### D-28 — Shared contracts: draft vs agreed (ports + adapters)
+
+Caps and apps bind **only** through ports and adapters (D-23/D-25). There is
+**no** `contracts/` root and **no** `libs/ports`.
+
+**Local / unagreed.** A team may invent a port under `ports/draft/<port>/`
+(crate `owner-port-draft`). The word `draft` is in the **path and crate name**
+so it cannot be mistaken for an agreed contract. Rename is `git mv`. Other
+owners **must not** depend on it. Sold proto packages **must not** contain
+`draft`.
+
+**Shared / agreed.** The second owner that needs the same shape **cannot** copy
+the draft. Reconcile onto **one** name on the **provider** (`storage-blob`,
+`data-records`, mailbox, clock, …) using the `owner-port` grammar, plus the
+sold proto `*.v1` if it is a facade. Promotion is `git mv` of the draft onto
+the provider, not a fork. Google analog: AIP-181/185 — `v1alpha` is expected
+to break; `v1` is the compatibility surface. We use `draft` internally so
+rename stays cheap; customer-facing proto uses `v1` / `v2`, not `v1draft`.
+
+**Escalated review** (D-29) is what turns draft → agreed. Observation that two
+trees “look similar” is not agreement.
+
+**MUST (contract stages)**
+
+- **achieves:** unagreed shapes are grep-visible and cheap to rename; agreed
+  names are the compatibility surface; no third contracts tree.
+- **origin:** hexagonal ports proliferate incompatible `blob` traits; shared
+  JSON/IDL dumps drifted; founder required distinguishable unagreed contracts.
+- **rule:** bindings are ports+adapters; `ports/draft/` is local and not a
+  dependency; a second consumer forces one agreed provider port + proto v1;
+  no `contracts/` or `libs/`; draft illegal in sold proto.
+- **ensure:** review rejects cross-owner `path =` into `ports/draft/`; agreed
+  crate names match `owner-port`; layout rejects a `contracts/` root.
+- **overturn_when:** a five-field ADR names a different staging that still
+  makes unagreed contracts visually distinct and keeps shared names reviewed.
+
+### D-29 — Amendment jurisdiction (owner-local vs external vs repo root)
+
+**Same structure, different blast radius.** Every cap and every app uses the
+D-8 children. Who may **amend** them is not the same.
+
+| Blast | What | Who reviews | Analog |
+|---|---|---|---|
+| **Owner-local** | `core/`, `ports/draft/`, local `adapters/draft/`, `cedar/`, `docs/` (including `docs/design/`), `iac/` that only this engine consumes | That owner's `OWNERS` | Google package OWNERS / g3doc CL |
+| **External contract** | Agreed `ports/<port>/`, adapters other owners consume, sold `facade/` proto, any crate another owner `path =`s | **This owner + every consuming owner + architecture** | Google API review / AIP; not a drive-by |
+| **Repo root** | `AGENTS.md`, `CLAUDE.md`, `docs/decisions/ADR-07xx`, D-8 allowlist, `rust-toolchain.toml`, workspace membership policy, required `presubmit` | Architecture (+ founder on law) | Central developer guides; not a cap feature PR |
+
+Owner-local **includes** amending this owner's docs, design notes, and
+`ports/draft/` **content**. It is **not** a license to change the canonical
+children, inner crate files, crate grammar, or to add `plan/`, `tasks/`,
+`crates/`, `domain/`, or a private ADR tree. The structure is the same for
+every owner and does not evolve per team. Repo-root law and agreed contracts
+**do not** land as a side effect of a feature PR.
+
+**MUST (jurisdiction)**
+
+- **achieves:** teams move inside a frozen tree; they cannot silently bind the
+  rest of the company, rewrite org law, or fork layout.
+- **origin:** local iteration blocked by org review; conversely, shared ports
+  and `AGENTS.md` edited from a cap dump; teams inventing `domain/`/`plan/`
+  inside “their” root.
+- **rule:** owner OWNERS for **content** in canonical children that do not leak;
+  the D-8 shape and D-30 grammar are not owner-amendable; escalated review for
+  agreed ports/proto/facade and for repo-root law; `plan/`/`tasks/` stay gone.
+- **ensure:** PRs touching agreed ports, sold proto, or root law name the extra
+  reviewers; layout rejects non-canonical children and invented inner taxonomies
+  even on owner PRs.
+- **overturn_when:** a five-field ADR replaces this split with an equally
+  fail-closed OWNERS + API-review model.
+
+### D-30 — Names and inner files: Cargo + google3 + AIP (not invented taxonomy)
+
+The D-8 **tree is frozen**. Names *inside* that tree follow conventions that
+already exist. Do not invent a per-repo dialect.
+
+**Cargo package vs rustc crate (RFC 940, API guidelines C-CASE / RFC 430).**
+
+| Thing | Convention | Source |
+|---|---|---|
+| `[package] name` | kebab-case, `[a-z0-9-]+`. Grammar above. No `-rs`, `-rust`, `oyatie-`, `cloud-` | RFC 940; C-CASE; AWS SDK `aws-sdk-s3`, tokio `tokio-util` |
+| rustc crate / `use` path | hyphen → underscore. **Omit** `[lib] name` so Cargo does this | RFC 940 |
+| Directory leaf | last grammar token: `blob`, `blob-sqlite`, `pdp-app` | google3 path identity; matklad: don't strip prefixes *from the Cargo name* |
+| Cargo name | full `owner-port` / `owner-port-backend` / `owner-app` (Cargo's namespace is **flat**, so the prefix lives in the name) | matklad large workspaces; not a `crates/` dump — faces stay D-8 |
+| Modules / files | `snake_case.rs`; `src/lib.rs` (lib), `src/main.rs` (facade bin) | RFC 430; Cargo book |
+| Types / traits | `UpperCamelCase` (`BlobStore`, not `BLOBStore`) | RFC 430 |
+| fns / methods | `snake_case`; getters are `blob()`, not `get_blob()` | C-GETTER |
+| Consts / statics | `SCREAMING_SNAKE_CASE` | RFC 430 |
+| Cargo features | additive; named `std` not `use-std` / `no-foo` | C-FEATURE |
+| Tests | unit next to code; integration in `tests/` | Cargo book |
+| Proto package | `owner.api.v1`; directory **matches** package; files `snake_case.proto` not `v1.proto` | AIP-191, AIP-185 |
+| Proto messages / RPCs | `UpperCamelCase` | AIP-190 |
+
+**Why not rust-analyzer's flat `crates/`.** That layout is right for a *single*
+Cargo project (hir, hir_def, …). This repo is a google3-shaped capability
+monorepo: path is identity (`storage/ports/blob`), Cargo names carry the
+owner prefix because Cargo cannot express `storage::blob`. Fuchsia/GN and
+google3 work the same way: hierarchical path + flat target/package name.
+
+**Why not `domain/` / `use_case/`.** Those are Uncle Bob Clean Architecture
+folders. They are not Cargo, not google3, not rustc, not Oxide/tokio. Core
+is a lib crate; ports are sibling crates; adapters implement ports. Extra
+module names are ordinary `snake_case` as the code needs them.
+
+**MUST (established names)**
+
+- **achieves:** one grammar humans and cargo already know; rename stays a
+  `git mv` of a leaf that matches the last token; proto path = package.
+- **origin:** D-8 needed inner files; an invented `domain/use_case/connect`
+  taxonomy is not hyperscaler or Rust-workspace practice.
+- **rule:** RFC 430/940 + dir leaf = last token + package = full grammar +
+  AIP-191 proto under `facade/proto`; no `[lib] name` override; no
+  `-rs`/`oyatie-`/`cloud-`; no required `domain/`/`use_case/`/`crates/`.
+- **ensure:** new crate PRs match the table; proto dirs match `package`;
+  layout still rejects extra faces.
+- **overturn_when:** a five-field ADR cites a different *established*
+  (Cargo or AIP or google3) convention and lands same-wave.
+
+### D-31 — Ephemeral out-of-tree sandbox (owner-writable only)
+
+D-29 is policy. This is **physical**. A default implement/review worker
+must not be able to edit `iam/` while dispatched to `storage/`.
+
+**Hyperscaler analogs (use, don't cargo-cult).**
+
+| Practice | What it actually does | We take |
+|---|---|---|
+| Google CitC / Piper workspace | Full *view*, overlay only of dirty files; OWNERS on submit | Out-of-tree workspace; **not** “hide the rest of google3 from reads” — CitC does not |
+| git cone sparse-checkout + worktree | Working tree materializes only named dirs ([GitHub](https://github.blog/open-source/git/bring-your-monorepo-down-to-size-with-sparse-checkout/), git-scm) | Default cone = one owner |
+| Bazel action sandbox | Process sees **declared inputs**; Linux namespaces / macOS `sandbox-exec`; undeclared writes die ([Bazel sandboxing](https://bazel.build/docs/sandboxing)) | Write-jail + declared read set |
+| Docker AI / agent sandboxes | VM or Landlock/Seatbelt; workspace-write vs full-trust | Landlock (Linux) / Seatbelt (macOS) when the runtime has it |
+| Codex/Claude worktrees | Isolated checkout per agent, destroy later | Ephemeral; not the human clone |
+
+**Default worker sandbox (one owner).**
+
+1. **Out of tree.** `git worktree add` under a temp path (`/tmp`, `/private/tmp`, …). Never the human clone (`integ/audit` or `~/Developer/oyatie`). Already required; this names why.
+2. **Ephemeral.** Create on dispatch. Remove on PR merge, lane abort, or idle expiry. Leftover worktrees are bugs, not inventory.
+3. **Writable cone.** Maximum is one `<cap>/` or `app/<product>/` named in the dispatch (D-29). Parallel subagents **narrow** that to disjoint **leaf crate** dirs (D-32). Plus the worktree's own `.git` / index so git works. One git index per worktree — two writers in one worktree are forbidden.
+4. **Read-only declared inputs** (not “the whole company” as writes). Root law the agent must load (`AGENTS.md`, `CLAUDE.md`, `rust-toolchain.toml`, workspace `Cargo.toml`/`Cargo.lock`, thin `docs/decisions/` for live 07xx). Agreed ports/facades this owner **already** `path =`s (D-28). Toolchain. `/tmp` for build scratch.
+5. **OS write-jail** when the host can: Landlock path-beneath on Linux, Seatbelt `sandbox-exec` on macOS (Bazel Darwin sandbox, Anthropic/DeepSeek agent runtimes). Writable = owner cone + tmp + target dir. Everything else read-only or absent. The agent **cannot** widen this set.
+6. **Local proof is buck2** (D-32 / ADR-0716). Not `cargo nextest --workspace`, not N cargo processes. Optional `cargo nextest -p <one crate>` is local feedback only. Full-graph cargo stays CI.
+
+**Rejected (would regret).**
+
+- **Hide other owners from all reads.** Cargo path-deps and D-28 reconciliation need to *see* the agreed provider port. Blind agents duplicate `blob` traits. CitC shows the repo; OWNERS bind submit. We jail **writes**.
+- **A VCS ratchet product** (claim/verify/done). ADR-0363. Sandbox is dispatch plumbing, not a merge context.
+- **JSON census of allowed paths** as a gate fleet. D-17. The cone is the dispatch argument, not a repo-wide list to freeze.
+- **Agent self-service `sparse-checkout add iam/`.** Expanding the sandbox is a **new dispatch** (D-29 escalated), with extra writable cones named by the dispatcher.
+
+**Escalated D-29 lane.** Writable cones listed explicitly (this owner + consuming owner, or repo-root files named). Still out-of-tree, still ephemeral, still not “the whole monorepo.” Coordinator/architecture that must survey many trees is a different profile — read-mostly, not a default implementer with a full write mount.
+
+**MUST (owner sandbox)**
+
+- **achieves:** a worker physically cannot mutate another owner's tree; D-29 is enforced by FS not by hope; parallel lanes do not share a checkout.
+- **origin:** worktrees existed but were full clones; agents edited across caps; founder asked for ephemeral out-of-tree sandbox keyed to ownership.
+- **rule:** default worker = ephemeral out-of-tree worktree; writable = dispatched owner only; OS write-jail when available; declared read-only inputs for law + existing path-deps; agent cannot expand the cone; D-29 extra cones are dispatcher-named; no ratchet product; no full-read hide.
+- **ensure:** dispatch records the owner path; writes outside it fail or are review-blocking; worktree is deleted when the lane ends; human clone stays untouched.
+- **overturn_when:** a five-field ADR names a stricter isolation (e.g. per-crate Bazel-style input set) that still lets Cargo and D-28 work, or a fail-closed alternative that still keeps writes owner-local.
+
+### D-32 — Parallelism is a leaf crate + buck2 locally; cargo is the linearized merge
+
+The cargo **workspace** is the merge graph (ADR-0716). It is not an isolation
+mechanism. Two agents in one workspace still collide on:
+
+| Shared file | Who may write it live | Why |
+|---|---|---|
+| A leaf crate's `src/`, `Cargo.toml` | **One** lane | Git merge of the same crate is the conflict you already feel |
+| Root `Cargo.toml` members | **One** lane (D-29) | Adding a crate is org-graph |
+| `Cargo.lock` | **One** lane, only when a crates.io / version pin changes | N cargo processes regenerate it; path-dep-only work must not touch it |
+| One worktree `.git/index` | **One** process | Two subagents in one checkout serialize on `index.lock` even on disjoint files |
+
+**Unit of parallel write (OVERRULED by D-39):** not the whole crate.
+Crate → files/modules → one primary Item per file (D-35). N agents on
+the **same crate** is the point. Same **file/Item** → assign disjoint
+or stack that item; do **not** lock the crate.
+
+**Local (N-way).** `buck2 build` / `buck2 test` of the dispatched targets.
+Hermetic per action; no `Cargo.lock` rewrite; no workspace-wide cargo lock.
+That is why buck2 exists here (ADR-0716). Reindeer still reads `Cargo.toml` as
+manifest input — do not invent a second package graph.
+
+**CI (1-way).** Merge queue / `presubmit` runs **one** `cargo nextest --workspace`.
+By then lanes are linearized; one lockfile writer. Cargo at CI is therefore
+**not** the N-parallelism problem. Dual cargo+buck2 merge proof stays forbidden.
+
+**Do not:** per-agent `Cargo.lock`; N virtual workspaces; `cargo update` /
+`generate-lockfile` inside owner sandboxes; `--workspace` cargo as the
+subagent loop; two live writers on the same **file/Item** (D-39). Two
+writers on the same **crate** (disjoint files) is the desired case.
+
+**MUST (parallel crates, local buck2)**
+
+- **achieves:** subagents actually run in parallel; lockfile and crate files
+  have a single writer; local proof does not N-way cargo; CI cargo stays the
+  one merge graph.
+- **origin:** cargo workspace still shares `Cargo.lock` and crate files;
+  splitting workspaces creates N lockfiles; founder: buck2 is the local
+  resolution, CI cargo is fine once linearized.
+- **rule:** parallel write unit = file/Item (D-39), not the crate;
+  worktree per parallel process; local verify = buck2; `Cargo.lock` is
+  single-writer; membership is directory glob/generated (D-39); CI cargo
+  `--workspace` is merge-only. Do not crate-lock.
+- **ensure:** dispatch names crate paths when an owner is split; review
+  rejects lockfile diffs on path-dep-only changes; agents do not run
+  workspace cargo locally as the parallel loop.
+- **overturn_when:** pipeline **serves** buck2 as tenant #0 presubmit
+  (ADR-0716 overturn_when) same-wave, or a five-field ADR names another
+  single-writer lock story that still permits crate-parallel worktrees.
+
+### D-33 — Structural Mutation Separation
+
+The reorg (D-8 last-leg, dumps, `git mv` / `git rm`, crate grammar, debrand,
+workspace membership) is **not** the same class of change as implementing
+ontology or a blob adapter. Mixing them is how agents tangle layout with
+behavior (empirical: majority of agent “refactors” land inside feature
+commits and become unreviewable).
+
+| Class | What moves | Lane |
+|---|---|---|
+| **Structural** | Faces, crate dirs, `git mv`/`git rm`, root `Cargo.toml` members, `Cargo.lock`, D-8 children, proto package path, agreed port promotion | One serialized (or explicitly stacked) reorg lane. Escalated (D-29). This is `#2221`. |
+| **Behavioral** | `src/`, `tests/`, owner `docs/`, cedar, IR under an **existing** crate | Parallel leaf-crate worktrees (D-32). Frozen shape (D-8/D-30). |
+
+`REFACTOR` = `git mv`. `REMOVE` = `git rm`. Neither is a feature PR. After
+the structure wave, implement agents **do not** mutate the tree shape.
+Draft→agreed port promotion is structural (D-28), not a side effect of a
+Foundry feature.
+
+**MUST (separate structure from behavior)**
+
+- **achieves:** review can tell layout from logic; parallel agents do not
+  fight the workspace graph; reorg can finish.
+- **origin:** one PR that both moves `iam/` and changes PDP semantics;
+  cargo lock + git mv + feature in the same index.
+- **rule:** a lane is structural or behavioral, not both; implement
+  dispatches do not add/rename/remove crates or edit `Cargo.lock` /
+  root members; structure stays frozen while behavior fans out.
+- **ensure:** review rejects mixed PRs; D-8 allowlist diffs are structural
+  lanes only.
+- **overturn_when:** a five-field ADR names a mechanical splitter that
+  still keeps layout diffs independently revertible.
+
+### D-34 — Cache and graphs (not a cargo lock-bypass, not an AST-merge product)
+
+N worktrees need **shared compile reuse** without sharing cargo’s locks.
+
+| Idea | Ruling | Why |
+|---|---|---|
+| Shared **read-only** cache (buck2 CAS / disk cache, Bazel remote/disk cache, cargo **registry** as fetch cache) | **Keep** | Hyperscaler default. Trusted writers (CI + local buck2); agents **read**. Do not let agents poison CAS. |
+| Global target dir / `CARGO_TARGET_DIR` for all worktrees | **Reject as the parallel loop** | Cargo’s target lock serializes N agents; bypassing it corrupts artifacts ([cargo#16804](https://github.com/rust-lang/cargo/issues/16804)). |
+| “Lock bypass” of cargo target-dir | **Reject** | The lock exists to prevent corruption. Bypass **git** `Cargo.lock` mutation instead (D-32). |
+| `cargo --offline --locked` if cargo is used at all | **Keep** | No fetch, no lock rewrite. Offline mode is not a second workspace. |
+| Path mapping so cache keys are not worktree-absolute (`SCCACHE_BASEDIRS`, Bazel execroot, buck2 action keys) | **Keep as cache impl** | Hits must be content-addressed, not `/tmp/wt-3/...` paths. |
+| Aggregated AST patching (merge N agents’ edits in one file via AST) | **Reject as a product** | D-32 already forbids two writers on one crate. An AST-merge service is a new dual stack. Git merge of disjoint crates is enough. |
+| **Build graph** (buck2) | **Keep — dispatcher** | Who depends on this target; local `buck2 test //owner/...`. |
+| **Crate/code graph** (`cargo metadata --offline --locked`, rust-analyzer) | **Keep — dispatcher** | Concurrent-safe paths; D-28 consumers. Read-only. |
+| **AST/HIR graph** (rust-analyzer) | **Keep as editor/query**, not a stored census | Do not freeze HIR dumps in git (D-17). |
+
+Local N-way proof remains **buck2** (D-32). The cache sits **beside**
+worktrees, not inside them. When CAS is served by `storage/` that is
+pipeline/RE (ADR-0716 overturn), the same read-only rule holds.
+
+**MUST (cache + graphs)**
+
+- **achieves:** parallel worktrees reuse compiles; agents cannot take the
+  cargo target lock or rewrite `Cargo.lock`; dispatch uses graphs we
+  already have.
+- **origin:** N cargo `target/` dirs; shared `CARGO_TARGET_DIR` deadlocks;
+  founder listed cache, offline cargo, AST patch, graphs as candidates.
+- **rule:** shared cache is content-addressed and read-only to agents;
+  no shared cargo target-dir as the parallel engine; cargo if used is
+  `--offline --locked`; dispatcher uses buck2 + metadata/r-a; no
+  AST-merge product; no HIR/census files in git.
+- **ensure:** path-only PRs have no lockfile diff; agent logs do not show
+  `cargo update` / `generate-lockfile`; cache writers are not owner
+  sandboxes.
+- **overturn_when:** a five-field ADR shows a safe shared cargo cache that
+  does not lock or corrupt, or an AST merge that is still crate-disjoint
+  (then it is unnecessary).
+
+### D-35 — File budget: 300 lines (agents), with a closed exempt set
+
+Google does not hard-cap file length (C++ guide caps *functions* around
+~40 lines as a smell, not files). For **agents**, a 2k-line `lib.rs` is a
+context and conflict magnet (D-32: one writer per crate is useless if
+that crate is one file). Cap **hand-written** files.
+
+**Budget.** **300** physical lines is the born-blocking maximum for a
+non-exempt file (the top of the 100–300 range). Prefer splitting before
+that; **100 is not a gate** — it would explode module count and fight
+RFC 430 (`lib.rs` as the crate root). Count is `wc -l`, no comment-stripping
+cleverness (that becomes a census).
+
+**Exempt (closed).** Live `docs/decisions/ADR-*.md`; `app/<product>/PRD.md`;
+`AGENTS.md` / `CLAUDE.md`; `Cargo.lock`; `third-party/`; generated
+(`*.generated.*`, prost/tonic/reindeer output, OpenSLO from IR); vendored
+lock-step snapshots. Not exempt: tests, cedar, owner `docs/`, `*.rs` agents
+write. Do **not** add `specs/` or `plan/` to the exempt list by recreating
+those trees (D-8 / D-36).
+
+**Existing over-budget files.** Split when that **crate** is next worked,
+or in a dedicated file-budget lane for that crate (D-33: not mixed with a
+feature, not one repo-wide 2221 dump). Split = more `snake_case.rs` modules
+**inside the same leaf crate**, not a new crate (unless D-28/D-29).
+
+**Enforcement.** Pattern gate on **touched** non-exempt paths (D-17 keep
+set: fail the file, not `expected_total`). Agents must not emit a new file
+over 300.
+
+**MUST (file budget)**
+
+- **achieves:** agent-local diffs stay reviewable; parallel crates stay
+  small; monsters get split on purpose.
+- **origin:** unbounded `lib.rs`; founder 100–300 range; census gates are
+  forbidden.
+- **rule:** 300-line cap on hand-written non-exempt files; 100 is not a
+  gate; exempt set is closed; existing over-budget split per crate when
+  touched; no repo-wide dump; no `expected_total`.
+- **ensure:** touched-path check in presubmit; new agent files >300 fail;
+  generated/lock/ADR/PRD ignored.
+- **overturn_when:** a five-field ADR names a different number that still
+  fits agent context and does not become a file-count freeze.
+
+### D-36 — Live law is one monolithic checklist document
+
+ADR-0719 (and each live 07xx apex) is **one file** on purpose. Splitting
+D-1…D-n into a directory of mini-docs recreates `specs/` drift: N copies,
+stale bullets, no single pass that sees contradictions.
+
+Iterate **in place** on that monolith: PRD ↔ decisions ↔ owner docs
+pointers. The D-n tables *are* the checklist. Recursive challenge is
+editing this file, not adding `plan/iteration-47.md`.
+
+App-level monolith is `PRD.md` (D-8). Owner `docs/` stays short (D-35)
+and points at the ADR/PRD — it is not a second spec farm.
+
+**Do not:** recreate `specs/`, `plan/`, `tasks/`; write a parallel “north
+star” markdown; fork this ADR into per-D files.
+
+**MUST (monolithic live law)**
+
+- **achieves:** one place to see contradictions and staleness; PRD and
+  decisions iterate together; no N+1 spec hubs.
+- **origin:** JSON/spec hubs drifted; founder: ADR/plans as one document
+  that behaves like a checklist.
+- **rule:** live 07xx ADRs and app `PRD.md` are the long-form checklists;
+  amend in place; no `specs/`/`plan/` resurrection; owner docs remain
+  under D-35.
+- **ensure:** layout still rejects `specs/` and `plan/`; new law lands in
+  this file or another live apex, not a sidecar novel.
+- **overturn_when:** PHASE-5 promotion of a different operating-contract
+  home moves this monolith atomically with evidence (INV-DOC-9).
+
+### D-37 — Shared docs/config are not 300-line splits; uuid fragments + one fold
+
+N agents colliding on `Cargo.toml` / `Cargo.lock` / YAML / JSON is the
+problem D-32 named. Splitting those files like `lib.rs` does not work
+(Cargo has one manifest; lock is one graph). **Different resolution.**
+
+**Prefer delete or generate.** File-based config stays the closed minimum:
+root `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `rustfmt.toml`,
+`deny.toml`, per-crate `Cargo.toml` (travels with that crate’s writer).
+No new JSON/YAML product. OpenSLO/faces stay generated. Cedar is per-owner
+policy, not a global yaml.
+
+**Denylist (implement agents: no in-place edit).** Root workspace
+`Cargo.toml`, `Cargo.lock`, toolchain/fmt/deny, `AGENTS.md`, `CLAUDE.md`,
+live 07xx ADRs, generated `*.json`/`*.yaml`. Crate-local `Cargo.toml` is
+**not** on this list — it is that crate’s file (D-32).
+
+**Additive path: uuid fragments, not clones of the whole file.** Copying
+`Cargo.toml.<uuid>` and hoping to 3-way merge is still a novel. Agents
+**add** a unique file, e.g. `Cargo.toml.d/<uuid>.toml`, that states only
+the addition (`members = ["storage/adapters/blob-sqlite"]`). Paths never
+collide across worktrees. Ephemeral: the fragment is not the long-term
+SSOT.
+
+**Fold is serial, once, on the receiving branch.** If each worktree
+pre-commit *already* folds into `Cargo.toml` and deletes the fragment,
+merge recreates the `Cargo.toml` conflict. So:
+
+| Stage | What happens |
+|---|---|
+| Implement lane commit | Fragment only. Hook **rejects** in-place denylist edits. Validates fragment schema. Does **not** rewrite the canonical file. |
+| Restack / merge_group / integration pre-commit | **One** Rust fold engine: apply all fragments (set-union of members; fail on key conflict), write canonical, `git rm` fragments, refresh `Cargo.lock` **once** (`--locked` path if no pin change; regenerate only if the fold added a crates.io dep). |
+
+That step is “pre-commit” in the TAP sense (before the linearized snapshot
+is proven), not N local hooks racing.
+
+**Cannot fragment-merge:** prose ADRs/PRDs (D-36 — single writer,
+architecture lane); `Cargo.lock` body (derive after fold); YAML/JSON
+novels (do not exist). Duplicate fragment keys with different values
+**fail closed**.
+
+**YAGNI bound (thought experiment).** After D-33 the common implement
+lane never touches root `Cargo.toml`. Two humans on different laptops
+already resolve via **merge queue + disjoint crate paths** (Google:
+small packages so BUILD files rarely collide; TAP mid-air collisions
+are semantic, caught on the linearized snapshot). UUID fragments are **YAGNI** if workspace `members` are **globs** over
+D-8 faces (D-39). They are not a general clone-the-file protocol and
+not a second VCS (`.delta`). Prefer glob; fragments only if a glob
+cannot express the add.
+Same-machine N agents: shared **read-only** buck2 cache (D-34),
+separate worktrees, no shared cargo `target/` lock. Different
+machines: git + merge_group is the bus; do not invent a fragment
+message bus. Dispatcher assigns disjoint crates **before** spawn —
+that is the waste-avoidance, not a smarter fold.
+
+**MUST (fragments + one fold)**
+
+- **achieves:** N agents add to shared config without touching the same
+  git path; one mechanical fold; no yaml/json farm; lockfile has one
+  writer at fold.
+- **origin:** N-way `Cargo.toml`/`Cargo.lock`/docs; 300-line split does
+  not apply; founder: uuid clones + pre-commit resolve.
+- **rule:** keep file-config minimal; implement agents do not in-place
+  edit the denylist; additions are uuid fragments; fold is one Rust
+  serial step on the receiving branch; ADRs stay single-writer; lock is
+  regenerated once after fold; no whole-file uuid clones.
+- **ensure:** review/presubmit reject in-place denylist diffs on
+  implement PRs; fragment schema is closed; leftover fragments after
+  fold fail; no `specs/` resurrection.
+- **overturn_when:** a five-field ADR names another single-writer
+  merge-driver that still keeps additions on unique paths and fails
+  closed on semantic conflict.
+
+### D-38 — Worktrees are not integration; star into `dev`; quarantine the identity
+
+Worktrees stop two processes sharing one `.git/index`. They do **not**
+make two diffs commute. Mesh-merging live worktrees (A into B into C
+while agents still write) is how conflicts take hours and then grow:
+each resolution is a moving target (trunk-based: the cost lives at a
+**stale** merge boundary, not inside the branch).
+
+Google/CitC: no git worktree mesh. CLs are patches on Piper HEAD; TAP
+tests the projected submit; mid-air collisions are **semantic** and
+caught on a linearized snapshot. GitHub/Trunk merge queues: test PR
+against `dev` **plus** what is ahead in the queue — not against a
+sibling feature branch. Hyperscaler rule: **never merge trunk into the
+lane; never merge lanes into each other.** Replay the lane onto trunk
+(rebase / queue).
+
+**Topology (star, not mesh).**
+
+```
+lane worktree ──PR──► merge_group ──► origin/dev
+lane worktree ──PR──►      ▲
+lane worktree ──PR──►      │
+```
+
+Forbidden: `git merge other-agent-worktree`, `git merge origin/dev` into
+a live implement branch, a “integration worktree” that sucks in five
+lanes while they keep coding.
+
+**When a conflict appears.** Constant-work / bulkhead: **quarantine that
+identity** (the **file/Item**, D-39 — not the whole crate). Writers to
+*that* path stop or restack **one** lane onto current `dev`. Other files
+in the same crate **continue**. Global stop is the N-tax. Continuing to
+implement on the conflicted **item** is how you get a second hour of
+conflicts. If a git conflict happened, assignment was not path-disjoint
+(failure), not “need a better merge.”
+
+Worktrees stay **optional isolation** (same-machine index, D-31). If a
+lane is sequential on one crate, one worktree is enough. Parallelism
+is disjoint PRs into the queue, not N checkouts that later have to be
+hand-folded.
+
+**MUST (star integration)**
+
+- **achieves:** no hour-long mesh merges; implementation does not halt
+  globally; conflict debt cannot compound on a path still being written.
+- **origin:** worktrees treated as the integration strategy; resolving
+  while agents kept writing the same files.
+- **rule:** integrate only lane → `dev` via merge_group; no live
+  worktree↔worktree merges; no merge-trunk-into-lane; on conflict,
+  pause writers to that identity only; other disjoint lanes continue.
+- **ensure:** dispatch/review reject inter-lane merges; overlapping
+  crate assignment is a dispatcher fail, not a merge-hero task.
+- **overturn_when:** a five-field ADR names another integration topology
+  that still forbids mesh merges of live writers and still tests the
+  combination before `dev` moves.
+
+### D-39 — Identity is a unique git path (file/Item), not a crate lock or `.delta`
+
+**Adversarial on D-32/D-37/D-38.** “One writer per crate, others wait” is
+a mutex with polling. “`.delta` / uuid clones” is a second version
+control. Neither meets “conflict is structurally impossible under N
+writers,” including **N on the same crate**.
+
+Git conflicts iff two commits mutate the **same path** (or the same
+hunk of that path). Therefore the only structural impossibility is:
+**each parallel mutation owns a unique path.** Crate directories are too
+big; uuid sidecars invent paths that are not the code.
+
+**Decomposition (this is the grain).**
+
+```
+crate → module files → one primary Item per file
+        (fn / struct / impl / trait / enum — RFC 430 names)
+markdown → one structural block per file
+        (one H2 / one D-n section — not a .delta of the ADR)
+```
+
+D-35 (≤300 lines) exists so one file ≈ one Item. N agents on crate P
+= N files under P (`blob.rs`, `quota.rs`, …). `git merge` of those
+paths cannot conflict.
+
+**Parent lists must not be hand-edited.** `mod blob;` in `lib.rs` and
+`members = ["storage/adapters/blob-sqlite"]` in root `Cargo.toml` are
+the remaining mutexes. Make membership a **pure function of the
+directory**:
+
+- Workspace: Cargo globs over closed D-8 faces
+  (`storage/adapters/*`, `app/*/core/*`, …). Adding a crate is
+  `git add storage/adapters/foo/{Cargo.toml,src/lib.rs}` — unique
+  paths; root toml does not change.
+- Crate modules: Buck `srcs = glob(["src/**/*.rs"])` already. Cargo
+  still wants `mod`. **Generate** `src/mods.generated.rs` (sorted
+  `mod x;`) from the directory at the **one** merge_group snapshot
+  (same class as generated faces). Agents never edit it. `lib.rs` is
+  `include!("mods.generated.rs");` plus the crate’s tiny public API
+  (itself one Item file if it grows).
+
+No `.delta`. No uuid object store. The new file **is** the commit.
+
+**Honest limit.** Two agents editing the same `fn foo` in the same file
+**will** conflict. That is not solved by OT, mergiraf, or hope. Occupancy
+is **that file/Item** on open PRs. Agent 2 is dispatched to a **different
+Item/file in the same crate**, immediately — not parked on a crate lock.
+
+Markdown law (ADR/PRD) stays one writer (D-36): rare, checklist
+iteration. Owner `docs/` splits like code: one topic file.
+
+**MUST (path identity)**
+
+- **achieves:** N-way work on one crate without crate mutex, without a
+  sidecar VCS; git conflicts become assignment bugs.
+- **origin:** crate-lock and uuid-delta both failed the founder bar;
+  crates already decompose into files and Items.
+- **rule:** commute identity = unique git path at module/Item (or md
+  block-file); membership = directory glob + generated mod list; no
+  `.delta`; no whole-crate lock; same-Item dual write refused at
+  assign; N disjoint files in one crate is allowed and expected.
+- **ensure:** workspace members globs match D-8; generated mod list not
+  hand-edited; occupancy matches PR file paths; review rejects crate-
+  wide locks and uuid-delta dumps.
+- **overturn_when:** rustc/Cargo load modules by directory without
+  generated `mod` (then drop the generator) or a five-field ADR names
+  another unique-path membership that is not a second VCS.
+
+### D-40 — Path-sets, mixed ops, plans, cross-owner; cap cone is sandbox not a lock
+
+**Is a session locked to an app/capability?** For **merge: no.** Commute
+is path-sets (D-39). For **blast radius / sandbox: default yes** (D-31
+cone). For **contracts: escalate** (D-29). Those are three different
+knobs. Conflating them produced crate-locks and “agent owns `storage/`.”
+
+An agent’s dispatch is a **path-set** `S`. Spawn iff `S` is disjoint
+from every open PR’s path-set (rename occupies `{old, new}`). The set
+may list files in more than one cap **only** when the dispatcher names
+them (found a correction; D-29). The agent still cannot self-widen.
+
+**Mixed ops (all at once, N-way).** Git only cares about paths.
+
+| A \ B | new unique file | edit F | delete F | `git mv` F→G |
+|---|---|---|---|---|
+| new unique file | commute | commute | commute | commute if dest ≠ new |
+| edit F | | **no** (same Item) | **no** | **no** |
+| delete F | | | idempotent / **no** | **no** |
+| `git mv` F→G | | | | commute iff `{F,G}` ∩ `{F',G'}` = ∅ |
+
+Refactor = `git mv` + edits of **callers**. Occupancy = old + new +
+every caller file touched. If that set is huge, it is a **large-scale
+change** (Google LSC / Rosie): **one** mechanical lane, or N agents
+each given a **disjoint shard of caller files**. Do not N-way edit the
+same caller. Do not run a feature lane on files an LSC already occupies.
+
+Write + refactor + move + delete **in parallel** is allowed **and
+expected** when those path-sets do not intersect. That is structurally
+conflict-free. Same-path mix is an assignment bug, not a merge skill.
+
+**Planning vs implementation.** ADR-0719 / `PRD.md` are **one path
+each**. A plan-amendment lane occupies that path; every `*.rs` lane
+**commutes** with it (different paths). “Needs more planning” does
+**not** stop implementation. Two plan-amendment lanes on the **same**
+ADR **do** conflict — serialize plan writers (D-36), or split only
+owner `docs/` into block-files (not a `.delta` of the ADR). Corrections
+found in another cap: **new dispatch** with those paths, original lane
+keeps its set. Do not mutate the living ADR from ten implement agents.
+
+**Scenarios (experiment).**
+
+1. N writes of new Items in one crate — unique files, glob membership —
+   commute.
+2. N edits of disjoint files, plus one `git mv` of a third file —
+   commute.
+3. Edit F while another lane moves F — **forbidden at assign.**
+4. Extract fn from F.rs into G.rs while another lane edits H.rs —
+   commute; if they both edit F.rs — **no.**
+5. Delete dead F.rs while someone still edits F.rs — **no.**
+6. Mechanical rename of a trait across 40 files — LSC lane owns those
+   40, or 40 shards with disjoint files; feature work on those files
+   waits **on those files**, not on the capability.
+7. Plan lane amends D-40 in this ADR while N crates implement — commute.
+8. Two plan lanes both edit this ADR — serialize (single writer).
+9. Foundry agent finds a `storage` bug — dispatcher opens a **storage
+   path-set** lane; Foundry lane does not absorb `storage/` (D-31 no
+   self-widen). If it is a **shared port** shape, that is D-28/D-29,
+   not a silent extra file.
+10. Session “locked” to `app/foundry` as sandbox, but occupancy is
+    `app/foundry/core/ontology/src/property.rs` — another Foundry agent
+    on `pages.rs` runs now.
+
+**MUST (path-sets)**
+
+- **achieves:** mixed N ops without crate/cap locks; plans commute with
+  code; cross-owner corrections are named dispatches; LSC does not
+  collide with features on the same files.
+- **origin:** cap-session lock and crate-wait were mutexes; founder
+  asked mixed write/refactor/move/delete, plan/amend/correct, and
+  whether cap lock is necessary.
+- **rule:** occupancy = path-set (mv occupies both ends); disjoint
+  sets commute including across caps; cap cone is default sandbox not
+  merge law; plan/ADR is one path (commutes with src); LSC is one lane
+  or file-sharded; no poll-lock; no self-widen; no `.delta`.
+- **ensure:** dispatch records the path-set; overlapping PR path-sets
+  are not spawned; review rejects cap-wide locks and un-named cross-cap
+  writes.
+- **overturn_when:** a five-field ADR names another occupancy grain
+  that still makes same-path dual write unspawnable without a sidecar
+  VCS or a capability mutex.
+
+### D-41 — Simplest commute: stable indexes + unique files + queue
+
+**Challenge.** D-37 fragments, D-39 committed generated `mods`, D-40
+occupancy-before-spawn are still machinery. Compile-time `mod` generation
+**committed at merge_group** fails locally (agents need to compile) or
+**conflicts** if they commit it. Occupancy against GitHub is not
+structural (two laptops can still `add src/put.rs`). Cap cones do not
+make git commute.
+
+**First principle.** Two commits conflict iff they change the same git
+path. Therefore:
+
+1. **Never edit the indexes.** Workspace `members` are **globs** over
+   D-8 faces (Cargo already supports `crates/*`). Crate `lib.rs` has
+   **one stable line** that includes modules by **scanning `src/items/`
+   at compile time** (tiny owned `build.rs` / buck2 genrule writing
+   `OUT_DIR`, not a tracked file). Agents never touch `lib.rs` or root
+   `Cargo.toml` for adds.
+2. **New work is a new unique file** (`src/items/quota.rs`, or a new
+   globbed crate dir). The file **is** the commit. No `.delta`.
+3. **Edit / delete / `git mv`** only those files. `git mv` needs a free
+   destination. Callers you actually rewrite are extra paths — if that
+   set is large, it is one mechanical LSC PR, not N overlapping edits.
+4. **Integrate** PR → `origin/dev` → merge_group. Star, not mesh (D-38).
+5. **Jail** writes to the dispatched files (narrower than a cap). Cap
+   is a default hint, not a lock.
+6. **Plan** occupies the ADR path; implement occupies `*.rs`. They
+   already commute. One plan writer (D-36).
+
+**Do not build:** occupancy JSON; uuid fragments; committed generated
+mod lists; crate/cap poll-locks; automod from crates.io unless owned.
+
+**Uncoordinated same-name create** (`put.rs` vs `put.rs`): Google TAP
+mid-air — cheap, one file. Merge queue rebases the loser; they rename.
+Do not uuid-name every module to prevent a rare event.
+
+**How we achieve it (instruction → automation → presubmit).**
+
+- Convention: new Items only under `src/items/` (or a new globbed crate
+  directory). `lib.rs` / root members lists are denylist for implement
+  PRs (same class as D-37 denylist, without fragments).
+- One owned compile-time scanner per crate (or shared tiny codegen in
+  `build/`) when a crate has more than `lib.rs`. Until the second file,
+  YAGNI — stay in `lib.rs` under 300 lines.
+- Workspace glob in the structural wave (`#2221` or immediately after).
+- Write-jail = path-set. merge_group as today.
+- Dispatcher *looks* at open PR files (no store). If overlap, pick
+  another filename **now**, do not wait on a lock.
+
+**MUST (stable index)**
+
+- **achieves:** N mixed ops with no sidecar VCS, no mutex, no generated
+  file in git; git conflicts only when two lanes actually share a path.
+- **origin:** fragments and occupancy were solving coordination with
+  product; founder asked simplest first-principles.
+- **rule:** membership is glob + compile-time directory scan; new work
+  is a new unique file; implementers do not edit parent indexes; jail
+  the path-set; PR to `dev`; no `.delta`; no crate/cap lock; same-path
+  dual write is an assign rename, not a queue.
+- **ensure:** admission rejects implement diffs to root members lists
+  and hand-maintained `mod` inventories; `src/items/*.rs` adds do not
+  change `lib.rs`.
+- **overturn_when:** rustc modules-from-directory lands and drops the
+  scanner, or a five-field ADR shows a smaller rule that still keeps
+  parent indexes stable.
+
+### D-42 — Cross-harness: only git, draft PR, and presubmit travel
+
+50 agents on five vendors do **not** share a dispatcher, Landlock,
+CitC, or even a worktree. Cursor often shares one checkout; Claude
+may lazy-worktree; Codex sandboxes; Grok uses isolated worktrees.
+Antigravity will differ again. **Worktrees and sandboxes are
+harness-private. They are not Oyatie law.** D-31 is a *local recipe*
+for a Grok-class isolation, not `required_sequence` for every tool.
+
+**What still holds (harness-agnostic).**
+
+- Commute = disjoint git paths (D-41).
+- Parent indexes stable; new work is a new file.
+- Every lane opens a **draft PR against `origin/dev` as soon as it
+  has a path** — that is occupancy every other harness can `gh pr
+  list` / GitHub files API. No JSON board.
+- `presubmit` / merge_group is the only combination test. Denylist
+  and 300-line cap fire on the PR, not in the vendor.
+- Instruction on **every** session hub (`AGENTS.md`, `CLAUDE.md`;
+  Cursor/Codex overlays must point here, not fork law).
+
+**What does not hold unless you stop believing the vendor.**
+
+- Physical write-jail — optional, per harness. Assume the agent *can*
+  edit `iam/` anyway; admission + review catch it.
+- “Dispatcher assigned disjoint names before spawn” — there is no
+  one dispatcher across Grok+Cursor. Two uncoordinated `put.rs`
+  creates: merge_group rebase, rename. Waste is **one file**, not a
+  crate. Accept it (TAP mid-air). Do not uuid-name modules.
+- Ten Cursors in one clone without worktrees: `index.lock` / mixed
+  diffs. That is a **local** problem: those ten need worktrees or
+  they are one writer. Other harnesses on other machines are fine.
+- 50× `cargo nextest --workspace`: laptop tax. Instruction: buck2
+  `-p`/target. CI still one cargo snapshot. You cannot make Codex
+  run buck2 if it ignores AGENTS — that is operator, not law.
+
+**50-wide merge queue.** Semantic collisions (two PRs, different
+files, tests red together) grow with N. That is why the queue
+exists. Do not serialise spawn to avoid it.
+
+**MUST (portable protocol)**
+
+- **achieves:** five harnesses, one merge story; no vendor lock-in
+  of isolation.
+- **origin:** N agents on Grok/Claude/Codex/Cursor/Antigravity do
+  not share a sandbox.
+- **rule:** portable surface is git + draft PR on `origin/dev` +
+  `presubmit`; law on every hub; do not depend on vendor jail or a
+  cross-harness dispatcher; same-path create is rebase.
+- **ensure:** denylist/file-budget fail regardless of authoring
+  tool; hubs do not fork D-41/D-42.
+- **overturn_when:** a five-field ADR names another portable
+  occupancy that is still git (not a new sidecar VCS).
+
+### D-43 — N-parallel delivery: launcher assigns paths; PRs are the pipeline
+
+This is the acquire → plan → red → green → slop → CI → queue loop,
+**N-wide**. It is not a Kanban JSON and not “agents browse a list.”
+
+**Honest limit.** Thought-experiments on commute (D-38…D-42) are
+law. The four-harness collision lab was **not** executed to merge.
+Do not claim that loop is empirically green.
+
+**Acquire is the launcher, once.** ADR/PRD names work as **output
+paths** (`storage/adapters/blob-sqlite/src/items/put.rs`). A spawn
+script (human or one coordinator process) gives each harness **one
+path-set**. The agent does not poll issues, `gh pr list`, or
+`tasks/`. Grabbing is `argv`, not a mutex. Second spawn with an
+overlapping path is a launcher bug; presubmit path-intersect is the
+backstop (D-42).
+
+**One PR per path-set** (usually one harness). Cross-harness =
+separate PRs onto `dev`/`main`, never a Graphite stack across
+vendors. Subagents inside one harness share that PR unless the
+vendor invents branches by itself.
+
+**Stages on that PR** (same path-set; do not open a second PR per
+stage). Other PRs run the same stages **at the same time**.
+
+| Stage | What | N-parallel? |
+|---|---|---|
+| Valid | Path in D-8 grammar; not denylist; not intersecting open PR files | Launcher + presubmit |
+| Plan | PR body or `docs/design/<item>.md` ≤300, cites the D-n. Review on the PR | Yes, different items |
+| Red | Tests for **this** item as unique files | Yes |
+| Review tests | PR review (≠ merge APPROVE) | Yes |
+| Implement | Fill the item file | Yes |
+| Review / de-slop | Same PR | Yes |
+| Coverage | More tests in **this** crate only | Yes |
+| Pipeline/CI review | **Only if** `.github/` or `pipeline/` ∈ path-set. Metrics: wall-clock, queue depth, duplicate jobs vs last `dev` presubmit — skip if the PR is `src/items/` | Rare; serialize if they touch the same workflow file |
+| Diff + merge review | Required APPROVE | Per PR |
+| presubmit | fmt/clippy/nextest (touched + workspace as today). Red = **this PR’s** process error. Do not stop other PRs | N in the queue |
+| merge_group | Combination on advancing `origin` (D-38). Agent does not rebase-loop | One snapshot at a time, many PRs waiting |
+| squash | Lands | |
+
+**Local pre-push** is `cargo fmt` on staged `*.rs` only. It cannot
+catch workspace nextest; claiming it should is false on this graph.
+presubmit catches. If presubmit is red on fmt/denylist, the agent
+skipped the cheap local step. If red on full nextest, that is the
+merge proof, not a pre-push miss.
+
+**CI must be green to merge.** If it is not, that PR is wrong — not
+the factory. Other path-sets stay in the queue.
+
+**Forbidden:** `tasks/` board; agent wait-until-unlock; one global
+plan review gate; every implement PR reviewing CI throughput;
+mesh-merge of stages across PRs; new ceremony markdown per stage.
+
+**MUST (N-parallel loop)**
+
+- **achieves:** many PRs in plan/red/implement/review at once;
+  acquire without polling; CI red is local to a PR.
+- **origin:** a 19-step serial ritual plus a grab-list would recreate
+  locks and GooWiki.
+- **rule:** launcher assigns unique path-sets from ADR/PRD; one PR
+  carries plan→tests→impl→slop→coverage; pipeline/CI review only
+  when those files are touched; presubmit/merge_group/squash;
+  pre-push is fmt-touched only; no task board; no factory-stop on
+  one red PR.
+- **ensure:** path-intersect check; denylist; no `tasks/` directory;
+  workflow diffs require CI-metric look, src-only PRs do not.
+- **overturn_when:** a five-field ADR names a smaller loop that still
+  assigns unique paths without agent-side wait.
+
+### D-44 — Operator interview is the only intake; Product xor Program
+
+**Who receives client directions?** Not implementers. Not the merge
+queue. The **human operator** working with the orchestrator.
+
+Client needs arrive **ambiguous and sometimes wrong**. Passing them
+down the factory is how you get N agents building the wrong shape.
+
+**Gate (fail closed, before any slice).**
+
+1. Interview until the need is unambiguous (no TBD / empty acceptance).
+2. Research **existing** docs and the working tree; cite paths that
+   exist.
+3. Realistic evaluation: layout (D-8 faces), YAGNI, blast radius,
+   what already exists. Dump-root asks (`plan/`, `libs/`, …) are
+   **Rejected**, not clarified into existence.
+4. Emit an **ephemeral artifact package** (not a `plan/` or `tasks/`
+   in the product tree).
+5. Handoff is a function of paths: `app/` → **Product**; capability
+   root → **Program**. Mixed packages split. No owner → no package.
+
+Product/Program decompose the package into path-sets. Only then do
+role hops exist.
+
+**MUST (intake)**
+
+- **achieves:** wrong or vague client text cannot occupy implement
+  capacity; Product vs Program is deterministic.
+- **origin:** prompt-to-implement skipped clarification and built
+  dump folders; founder required interview artifacts and a Product
+  or Program handoff.
+- **rule:** operator+orchestrator interview, cite, verify; fail
+  closed on ambiguity or forbidden shape; ephemeral package; Product
+  xor Program; never raw text to implement.
+- **ensure:** admission of an implement hop requires a packaged
+  handoff; mixed app+cap packages fail; dump-root packages reject.
+- **overturn_when:** a five-field ADR names another intake that still
+  stops wrong/ambiguous needs before path occupancy.
+
+### D-45 — Lanes are deterministic; orchestrator does not spawn or fold
+
+D-43's occupancy (one PR per path-set) stands. The implication that
+**one agent walks plan→red→implement→coverage** on that PR is
+**OVERRULED**. That is a serial mega-agent. Ten implement-ready
+disjoint slices bound to one implementer is a fold. The whole
+pipeline waiting on that implementer is a bottleneck.
+
+**Ready hops are a pure function** of (slices, completed roles,
+in-flight, path occupancy). Anvil publishes them. Harnesses bind a
+**fresh agent id** per claimed hop. The orchestrator does not spawn
+vendor CLIs for those hops.
+
+Roles form a **DAG with fan-out**: after Implement, review, coverage,
+security, docs, and box tests become ready **together**. Completing
+Implement on slice A unblocks A's successors **and** frees the
+implement lane for slice B.
+
+**MUST (lanes)**
+
+- **achieves:** N-wide role trains; no fold; no spawn bottleneck in
+  the orchestrator.
+- **origin:** one implementer looping disjoint work; serial stage
+  enum; founder: tasks and lanes are deterministic; 1-of-10 is
+  wrong.
+- **rule:** ready-hop count for a role is the number of disjoint
+  schedulable slices in that role; no agent-id reuse; orchestrator
+  publishes, launchers bind; fan-out after Implement; not one
+  sequential pipeline.
+- **ensure:** fold (k < N bound agents for N ready hops) fails
+  closed; reused agent ids fail; tests prove fan-out cardinality.
+- **overturn_when:** a five-field ADR names another scheduler that
+  still forbids folding a lane onto one long-running agent.
+
+### D-46 — Foreign-path need is a draft on *your* files, not a committee
+
+When something breaks, or a downstream team needs a contract change
+on a slice they **do not occupy**: they **do not write those files**
+(D-40). They do not open a ticket. They do not wait on a lock.
+
+They add `ports/draft/<port>/` or `adapters/draft/` **on their own
+path-set** (D-28). That commutes with the owner. The owner receives
+a `ContractAmend` hop when **their** paths are free. Agreement is
+`git mv` of the draft onto the provider (D-28), under D-29
+escalated review — not a standing committee.
+
+A red presubmit / merge_group **quarantines that path-set** (D-38).
+Other disjoint slices **continue**. Global stop is the N-tax.
+
+**MUST (amend without bureaucracy)**
+
+- **achieves:** N-parallelism survives contract lag and CI red;
+  unagreed shapes stay grep-visible.
+- **origin:** escalation boards and "please change your API" waits
+  serialized the factory; founder asked minimum bureaucracy.
+- **rule:** no occupancy ⇒ no write; consumer drafts on owned
+  paths; owner amends on owner paths when free; red is local to
+  the path-set; no `tasks/` board.
+- **ensure:** cross-owner writes without occupancy fail; draft
+  paths contain `draft`; one red PR is not a factory stop.
+- **overturn_when:** a five-field ADR names another settlement that
+  still keeps foreign writes unspawnable and does not add a queue
+  product.
+
 ### D-16 — `console/` is not a capability; discard the pilot
 
 The tree at `console/` is **ops-dashboard-control-center**: a Wave-15 internal
@@ -1518,6 +2591,7 @@ hand-edit of generated faces, D-8 unknown root name):
 |---|---|
 | One license/ban engine (`deny.toml` + weekly `cargo deny`, not a crate) | Legal. |
 | D-8 unknown-name (`pipeline/core/admission`) | Closed root set. Fails on **unknown names**, never `expected_total`. |
+| D-35 file budget on **touched** non-exempt files | Pattern: this file is too long. Not a frozen count of files. |
 
 **Not needed** as crates, JSON dirs, or merge predicates: corpus-census,
 planning-projection as a required check, cross-artifact-agreement as a

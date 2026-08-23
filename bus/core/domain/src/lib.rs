@@ -77,7 +77,7 @@ impl Topic {
             return Err(EventingError::EmptyTopicDescription);
         }
 
-        let expected_prefix = format!("oya.{axis_trimmed}.");
+        let expected_prefix = format!("oyatie.{axis_trimmed}.");
         if name_trimmed != name || !name_trimmed.starts_with(&expected_prefix) {
             return Err(EventingError::InvalidTopicName);
         }
@@ -119,7 +119,7 @@ impl Topic {
             return Err(EventingError::EmptyTopicDescription);
         }
 
-        let expected_prefix = format!("oya.{axis_trimmed}.");
+        let expected_prefix = format!("oyatie.{axis_trimmed}.");
         if axis_trimmed != axis
             || name_trimmed != name
             || !name_trimmed.starts_with(&expected_prefix)
@@ -243,7 +243,7 @@ mod tests {
     fn topic_registry_enforces_axis_prefixed_names() {
         let topic = Topic::new(
             "foundation",
-            "oya.foundation.eventing",
+            "oyatie.foundation.eventing",
             "Foundation eventing backbone topic",
         )
         .expect("axis-prefixed topic is valid");
@@ -253,15 +253,15 @@ mod tests {
             .register(topic.clone())
             .expect("first registration succeeds");
 
-        assert_eq!(registry.require("oya.foundation.eventing"), Ok(&topic));
+        assert_eq!(registry.require("oyatie.foundation.eventing"), Ok(&topic));
         assert_eq!(registry.topics(), vec![&topic]);
         assert_eq!(registry.register(topic), Err(EventingError::DuplicateTopic));
         assert_eq!(
-            Topic::new("foundation", "oya.cloud.eventing", "wrong axis"),
+            Topic::new("foundation", "oyatie.cloud.eventing", "wrong axis"),
             Err(EventingError::InvalidTopicName)
         );
         assert_eq!(
-            Topic::new("", "oya.foundation.eventing", "missing axis"),
+            Topic::new("", "oyatie.foundation.eventing", "missing axis"),
             Err(EventingError::EmptyTopicAxis)
         );
     }
@@ -270,7 +270,7 @@ mod tests {
     fn topic_registry_revalidates_topic_invariants_at_registration() {
         let invalid = Topic {
             axis: Classified::new("foundation".to_string(), DataClass::InternalOnly),
-            name: Classified::new("oya.cloud.eventing".to_string(), DataClass::InternalOnly),
+            name: Classified::new("oyatie.cloud.eventing".to_string(), DataClass::InternalOnly),
             description: Classified::new(
                 "Foundation eventing backbone topic".to_string(),
                 DataClass::InternalOnly,
@@ -291,7 +291,7 @@ mod tests {
         let first = outbox
             .publish(
                 "tenant-a".to_string(),
-                "oya.foundation.eventing".to_string(),
+                "oyatie.foundation.eventing".to_string(),
                 "idem-1".to_string(),
                 "payloads/1".to_string(),
             )
@@ -299,7 +299,7 @@ mod tests {
         let replay = outbox
             .publish(
                 "tenant-a".to_string(),
-                "oya.foundation.eventing".to_string(),
+                "oyatie.foundation.eventing".to_string(),
                 "idem-1".to_string(),
                 "payloads/1".to_string(),
             )
@@ -321,7 +321,7 @@ mod tests {
         outbox
             .publish(
                 "tenant-a".to_string(),
-                "oya.foundation.eventing".to_string(),
+                "oyatie.foundation.eventing".to_string(),
                 "idem-1".to_string(),
                 "payloads/1".to_string(),
             )
@@ -330,7 +330,7 @@ mod tests {
         assert_eq!(
             outbox.publish(
                 "tenant-a".to_string(),
-                "oya.foundation.eventing".to_string(),
+                "oyatie.foundation.eventing".to_string(),
                 "idem-1".to_string(),
                 "payloads/2".to_string(),
             ),

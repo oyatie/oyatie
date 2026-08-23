@@ -1,6 +1,6 @@
 microservice:
-  id: cloud-iac
-  cargoPackage: cloud-iac-app
+  id: iac-app
+  cargoPackage: iac-app
   tenantClass: contributor
 
 replicaCount: 2
@@ -9,11 +9,11 @@ podRuntime:
   runtimeClassName: kata-cloud-hypervisor
 
 serviceAccount:
-  name: cloud-iac
+  name: iac-app
 
 image:
   registry: registry.oyatie.dev
-  repository: cloud-iac
+  repository: iac-app
   tag: "0.1.0"
   # Release automation must inject a real signed image digest. Keep the
   # pre-release default empty so local checks do not carry fake digests.
@@ -35,7 +35,7 @@ config:
 
 cedar:
   enabled: true
-  policyConfigMapName: cloud-iac-cedar
+  policyConfigMapName: iac-app-cedar
   # Per-service authorization policy. DATA, never a shared template.
   policy: |
     // Deployed Cedar mirrors the authored PBAC policy directories for this capability.
@@ -453,8 +453,8 @@ cedar:
       resource has apply_scope &&
       resource.apply_scope.microservice like "system:*" &&
       !(
-        (principal == Service::"iac-applier-worker" && resource.apply_scope.microservice == "system:cloud-iac")
-        || (principal == Service::"iac-rollback-worker" && resource.apply_scope.microservice == "system:cloud-iac")
+        (principal == Service::"iac-applier-worker" && resource.apply_scope.microservice == "system:iac-app")
+        || (principal == Service::"iac-rollback-worker" && resource.apply_scope.microservice == "system:iac-app")
         || (principal == Service::"cloud-k8s-applier" && resource.apply_scope.microservice == "system:cloud-k8s")
         || (principal == Service::"cloud-secrets-applier" && resource.apply_scope.microservice == "system:cloud-secrets")
         || (principal == Service::"observability-applier" && resource.apply_scope.microservice == "system:observability")
@@ -484,7 +484,7 @@ cedar:
     )
     when {
       resource has system_id &&
-      resource.system_id == "system:cloud-iac" &&
+      resource.system_id == "system:iac-app" &&
       resource has data_class &&
       resource.data_class == "PUBLIC"
     };
@@ -691,7 +691,7 @@ cedar:
       action in [Action::"ComputeAutoshardingPlacement", Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
       resource is ShardingAutomation
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.doctrine.adr_0348 == true &&
       context.autosharding_mode == "control_plane_driven" &&
       context.honors_residency == true &&
@@ -705,7 +705,7 @@ cedar:
       action in [Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
       resource is ShardingAutomation
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       (
         context.honors_residency == false ||
         context.compliance_pack_check_result != "pass" ||
@@ -719,7 +719,7 @@ cedar:
       action == Action::"MigrateTenantCrossJurisdiction",
       resource is TenantMigration
     ) unless {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.cedar_permit_id != "" &&
       context.cross_jurisdiction_permit_id != "" &&
       context.audit_chain_emit == true
@@ -730,7 +730,7 @@ cedar:
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.required_context == "presubmit" &&
       context.shared_rust_gate_logic == true &&
       context.surface_all_aggregator == true &&
@@ -743,7 +743,7 @@ cedar:
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.required_context == "presubmit" &&
       context.cutover_proven == true &&
       context.shared_rust_gate_logic == true &&
@@ -757,7 +757,7 @@ cedar:
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       (
         context.required_context != "presubmit" ||
         context.local_cli_authority == true ||
@@ -770,7 +770,7 @@ cedar:
       action == Action::"RunRequiredCi",
       resource is ServiceCiSurface
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       (
         context.required_context != "presubmit" ||
         context.local_cli_authority == true ||
@@ -783,7 +783,7 @@ cedar:
       action == Action::"SyncApplication",
       resource is GitOpsApplication
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.doctrine.adr_0349 == true &&
       context.cosign_signature_verified == true &&
       context.tenant_namespace_isolated == true &&
@@ -796,7 +796,7 @@ cedar:
       action == Action::"SyncApplication",
       resource is GitOpsApplication
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       (
         context.cosign_signature_verified == false ||
         context.tenant_namespace_isolated == false ||
@@ -809,7 +809,7 @@ cedar:
       action == Action::"AuthorGovernanceLane",
       resource is ServiceCiSurface
     ) when {
-      resource.microservice == "cloud-iac" &&
+      resource.microservice == "iac-app" &&
       context.doctrine.adr_0347 == true &&
       context.lane_id.matches("^governance-.*$") &&
       context.historical_reference != true

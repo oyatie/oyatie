@@ -28,7 +28,7 @@ doc_status: published
 doc_class: PRD
 template_id: TPL-PRD
 prd_id: PRD-<µservice-name>    # e.g. PRD-hr, PRD-payroll, PRD-ontology
-microservice: <µservice-name>  # kebab; registered in [workspace.metadata.oya.microservices]
+microservice: <µservice-name>  # kebab; registered in [workspace.metadata.oyatie.microservices]
 status: Draft | Review | Accepted | Superseded
 sales_segment: Healthcare | Enterprise | FinTech | Social | shared-substrate
 # NOTE: sales_segment is GTM/marketing segmentation ONLY — not architectural grouping.
@@ -102,18 +102,18 @@ one Workflow event or Ontology write.
 
 ## Bounded Contexts
 
-BCs under BNF v4.1: `oya-<µservice>[-<bc-tokens>]-<layer>`.
+BCs under BNF v4.1: `oyatie-<µservice>[-<bc-tokens>]-<layer>`.
 Register each BC in `docs/standards/bounded-contexts.md`.
 
 | BC name (kebab) | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `<bc-name>` | `oya-<ms>-<bc>-{domain,application,infrastructure,rest,grpc,...}` | <one-line> | `<Entity1>`, `<Entity2>` |
+| `<bc-name>` | `oyatie-<ms>-<bc>-{domain,application,infrastructure,rest,grpc,...}` | <one-line> | `<Entity1>`, `<Entity2>` |
 
 Naming justification block for EACH BC's crate family (mandatory per
 `feedback_naming_justification.md`):
 
 ```
-NAME: oya-<µservice>-<bc>-<layer>
+NAME: oyatie-<µservice>-<bc>-<layer>
 JUSTIFICATION:
 - microservice = <kebab-token(s)>: <rationale; ADR-0056 v4.1 flat BNF>
 - bc-tokens = <kebab-token(s)>: <rationale; ADR-0056 v4.1 BC-optionality rule>
@@ -125,24 +125,24 @@ Layer mapping per BC (per `feedback_clean_architecture_requirements.md` §1):
 
 | BC | kernel | domain | application | adapter | presentation |
 |---|---|---|---|---|---|
-| `<bc-name>` | `oya-<ms>-<bc>-kernel` | `oya-<ms>-<bc>-domain` | `oya-<ms>-<bc>-application` | `oya-<ms>-<bc>-adapter` | `oya-<ms>-<bc>-{rest,grpc}` |
+| `<bc-name>` | `oyatie-<ms>-<bc>-kernel` | `oyatie-<ms>-<bc>-domain` | `oyatie-<ms>-<bc>-application` | `oyatie-<ms>-<bc>-adapter` | `oyatie-<ms>-<bc>-{rest,grpc}` |
 
 Port traits declared in kernel for each BC (zero business logic; zero I/O):
 
 | Port trait | Kernel crate | Implemented in |
 |---|---|---|
-| `<RepositoryTrait>` | `oya-<ms>-<bc>-kernel` | `oya-<ms>-<bc>-adapter` |
-| `<ServiceTrait>` | `oya-<ms>-<bc>-kernel` | `oya-<ms>-<bc>-adapter` |
+| `<RepositoryTrait>` | `oyatie-<ms>-<bc>-kernel` | `oyatie-<ms>-<bc>-adapter` |
+| `<ServiceTrait>` | `oyatie-<ms>-<bc>-kernel` | `oyatie-<ms>-<bc>-adapter` |
 
 Cross-product rule: this µservice MUST NOT import any other product µservice
 crate at any layer. All cross-product flows go through Workflow (events) or
 Ontology (entity reads/writes). LEAN-A2 CI lane enforces.
 
 CI lanes that must green:
-- `buck2 test <cloud-ci-lean-a1-target>` — dependency-direction
-- `buck2 test <cloud-ci-lean-a2-target>` — cross-product-refusal
-- `buck2 test <cloud-ci-port-location-target>` — ports in kernel
-- `buck2 test <cloud-ci-layer-correctness-target>` — layer enum match
+- `buck2 test <pipeline-lean-a1-target>` — dependency-direction
+- `buck2 test <pipeline-lean-a2-target>` — cross-product-refusal
+- `buck2 test <pipeline-port-location-target>` — ports in kernel
+- `buck2 test <pipeline-layer-correctness-target>` — layer enum match
 
 ---
 

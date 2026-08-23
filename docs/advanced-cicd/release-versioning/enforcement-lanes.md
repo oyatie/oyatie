@@ -23,7 +23,7 @@ doc_status: published
 
 | Lane ID | Status | Severity | Scope | What it verifies |
 |---|---|---|---|---|
-| `governance-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oya-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
+| `governance-semver-discipline` | **NEW** | BLOCKER | every PR touching `crates/oyatie-*/src/**` | cargo-semver-checks clean against `origin/prod` baseline per [`crate-versioning-spec.md`](crate-versioning-spec.md) |
 | `governance-api-version-stability` | **NEW** | BLOCKER | every PR touching `contracts/openapi/**` | No removal / type change / rename in stable path-versions per [`api-versioning-spec.md`](api-versioning-spec.md) §6 |
 | `governance-version-eol-warning` | **NEW** | HIGH (BLOCKER on EOL day) | nightly + per-PR | 90-day pre-EOL warning emitted per [`version-eol-policy.md`](version-eol-policy.md) §3 |
 | `governance-release-branch-cut` | **NEW** | BLOCKER | release-cherry-pick agent invocation | Tag + branch + workspace version + lanes-green pre-cut all consistent per [`release-branch-cut-spec.md`](release-branch-cut-spec.md) §3 |
@@ -60,7 +60,7 @@ Checks:
    crate touched.
 2. If violations exist → fail UNLESS PR carries `breaking_change: true`
    frontmatter + linked ADR + dual reviewer-agent approval.
-3. Workspace lockstep invariant (Phase A): all `oya-*` versions match.
+3. Workspace lockstep invariant (Phase A): all `oyatie-*` versions match.
 4. Phase B (post-W-Foundry-Preview): per-crate major bumps consistent with
    layer rules (`platform-*` shared major, `foundry-*` shared major).
 

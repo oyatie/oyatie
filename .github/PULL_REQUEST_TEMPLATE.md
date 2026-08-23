@@ -2,7 +2,7 @@
 Canonical authority: docs/templates/pull-request-template.md. Keep it short: CI logs and the
 review thread are the evidence. No other sections are required or checked.
 Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a
-trusted server-side/cloud-ci producer.
+trusted server-side/pipeline producer.
 -->
 
 ## Issue

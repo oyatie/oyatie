@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=supervisor; layer=kernel (12-layer-enum L1).
 #         Justification: pure-kernel value types + port traits for the foundry
 #         supervisor lane (M02-P06). No I/O. No provider-specific code.

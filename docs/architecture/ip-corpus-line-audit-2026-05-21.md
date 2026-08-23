@@ -108,7 +108,7 @@ The audit was conducted against:
 
 For each of the 921 IPs the audit ran three classes of probe:
 
-1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
+1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, retired VCS ratchet, governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer, multispectrum-v2.2/v2.3, grit/rtk/icm/vox).
 2. **Post-keystone binding probe** — grep for citations of the keystone bundle (ADR-0242…0258 + 0263 + 0272–0292), the F5-CRITICAL fix bundle (ADR-0293–0296), the critical-path cluster (ADR-0297–0310), and the amendment ADRs (ADR-0246-amendment / ADR-0257-amendment / ADR-0253-amendment).
 3. **Rigor probe** — line-count vs the 110-line exemplar floor; presence of the five required sections (Intent / ChangeSet boundary / Concrete File Targets / Acceptance / Verification) and the four front-matter fields the template mandates (`changeset_contract`, `acceptance_lanes`, `depends_on`, `execution_unit`).
 
@@ -136,7 +136,7 @@ Surface-specific probes ran for the four critical-path classes (internet-facing,
 | IPs citing **any** critical-path cluster ADR (0297–0310) | 17 | 1.8% |
 | IPs citing **any** library-first / HTTP/3-PQC amendment | **0** | 0% |
 | IPs with `governance-*` lane references | **0** | 0% |
-| IPs with `oya vcs` (now `oya git`) references | **63** (in 15 IP file paths) | 6.8% file-share |
+| IPs with `retired VCS ratchet` (now `oya git`) references | **63** (in 15 IP file paths) | 6.8% file-share |
 | IPs with `ADR-0136` (superseded) references | 5 | 0.5% |
 
 **Headline:** the foundry-fitness→governance rename completed cleanly (0 stale lane prefixes in IP front-matter). The IP corpus has **two large structural gaps**: (1) it pre-dates the 2026-05-20 keystone bundle in nearly its entirety (only 14% of IPs cite any keystone ADR) and (2) the IPs systemically fall short of the documentation-rigor.md intern-buildability bar (68% below the 110-line floor, 65% missing changeset_contract).
@@ -162,40 +162,40 @@ This section enumerates every line-anchored stale reference found in IP bodies +
 
 **Total: 8 line-anchored hits across 5 IP files.** All ADR-0136 references must rebind to ADR-0247 (self-modification doctrine) and/or ADR-0255 (intelligence two-layer substrate absorbing foundry). The four foundry IPs above must additionally cite ADR-0246-amendment (library-first dispatch) because their language ("foundry-as-single-microservice") conflicts with the post-2026-05-20 substrate-vs-product split.
 
-### §2.2 `oya vcs` (now `oya git`) — superseded by [[git-canonical-2026-05-18]]
+### §2.2 `retired VCS ratchet` (now `oya git`) — superseded by [[git-canonical-2026-05-18]]
 
-The audit found **63 line-anchored references** to `oya vcs`, `oya-vcs-promotion-readiness`, `oya vcs done`, or `crates/dev-cli/src/commands/vcs/*` across IP files. The verb-surface rename per PR-159B is incomplete in the IP corpus.
+The audit found **63 line-anchored references** to `retired VCS ratchet`, `retired VCS ratchet`, retired VCS ratchet, or `crates/dev-cli/src/commands/vcs/*` across IP files. The verb-surface rename per PR-159B is incomplete in the IP corpus.
 
-#### §2.2.1 acceptance_lanes referencing `oya-vcs-promotion-readiness`
+#### §2.2.1 acceptance_lanes referencing `retired VCS ratchet`
 
 These rows mutate IP front-matter — they are mechanically rewriteable.
 
 | IP file | Line(s) | Stale acceptance_lane |
 |---|---|---|
-| `microservices/audit-chain/IP-002-self-slo-manifest.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/observability/ARCHITECTURE.md#cell-health` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/intelligence/IP-037-eval-eval-runner-adapter.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/mail/IP-014-hg-mail-authority-cohesion.md` | front-matter | required_status_checks: `oya-vcs-promotion-readiness` (x2) |
-| `microservices/ontology/IP-010-audit-chain-merkle-ed25519.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/tenancy/IP-012-branch-protection-and-release-pointers.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/workflow-engine/IP-013-observability-slo-manifests.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` | front-matter | `oya-vcs-promotion-readiness` |
-| `microservices/workflow-studio/IP-013…IP-027 (12 IPs)` | front-matter | `oya-vcs-promotion-readiness` (12 distinct IPs in workflow-studio) |
-| `microservices/anonymous/IP-015-hg-anonymous-registration-branch-protection.md` | body | `\`oya-vcs-promotion-readiness\` (all 9 SLOs green)` |
+| `microservices/audit-chain/IP-002-self-slo-manifest.md` | front-matter | `retired VCS ratchet` |
+| `microservices/api-gateway/ARCHITECTURE.md#cell-aware-routing` | front-matter | `retired VCS ratchet` |
+| `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning` | front-matter | `retired VCS ratchet` |
+| `microservices/observability/ARCHITECTURE.md#cell-health` | front-matter | `retired VCS ratchet` |
+| `microservices/cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md` | front-matter | `retired VCS ratchet` |
+| `microservices/intelligence/IP-037-eval-eval-runner-adapter.md` | front-matter | `retired VCS ratchet` |
+| `microservices/governance/IP-WASMTIME-002-waf-coraza-onboard.md` | front-matter | `retired VCS ratchet` |
+| `microservices/mail/IP-014-hg-mail-authority-cohesion.md` | front-matter | required_status_checks: `retired VCS ratchet` (x2) |
+| `microservices/ontology/IP-010-audit-chain-merkle-ed25519.md` | front-matter | `retired VCS ratchet` |
+| `microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md` | front-matter | `retired VCS ratchet` |
+| `microservices/tenancy/IP-012-branch-protection-and-release-pointers.md` | front-matter | `retired VCS ratchet` |
+| `microservices/workflow-engine/IP-013-observability-slo-manifests.md` | front-matter | `retired VCS ratchet` |
+| `microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` | front-matter | `retired VCS ratchet` |
+| `microservices/workflow-studio/IP-013…IP-027 (12 IPs)` | front-matter | `retired VCS ratchet` (12 distinct IPs in workflow-studio) |
+| `microservices/anonymous/IP-015-hg-anonymous-registration-branch-protection.md` | body | `\`retired VCS ratchet\` (all 9 SLOs green)` |
 
-Action: rename lane `oya-vcs-promotion-readiness` → `governance-promotion-readiness` (matching the foundry-fitness→governance rename pattern) **OR** retain the `oya-vcs-` prefix per the corrected [[git-canonical-2026-05-18]] doctrine which says raw-git is canonical and `oya git` is the agent VCS primitive. The decision belongs to the governance lane owner; **the audit's job is to flag**.
+Action: rename lane `retired VCS ratchet` → `governance-promotion-readiness` (matching the foundry-fitness→governance rename pattern) **OR** retain the `retired VCS ratchet-` prefix per the corrected [[git-canonical-2026-05-18]] doctrine which says raw-git is canonical and `oya git` is the agent VCS primitive. The decision belongs to the governance lane owner; **the audit's job is to flag**.
 
-#### §2.2.2 Body references to `oya vcs done` (developer-sdk + plugin-app-store)
+#### §2.2.2 Body references to retired VCS ratchet (developer-sdk + plugin-app-store)
 
 15 IPs in `microservices/developer-sdk/implementation-plans/` and 15 IPs in `microservices/plugin-app-store/implementation-plans/` carry the line:
 
 ```
-On successful `oya vcs done`, this IP emits to `microservices/<svc>/evidence/multispectrum/<change_id>-<unix_ts>.json`
+On successful retired VCS ratchet, this IP emits to `microservices/<svc>/evidence/multispectrum/<change_id>-<unix_ts>.json`
 ```
 
 This is **30 IPs × 1 line each = 30 mechanical rewrites**. Per [[git-canonical-2026-05-18]], the canonical primitive is `oya git done` (drop-in for raw git + ledger layer).
@@ -204,12 +204,12 @@ This is **30 IPs × 1 line each = 30 mechanical rewrites**. Per [[git-canonical-
 
 | IP file | Line | Stale surface |
 |---|---:|---|
-| `microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md` | filename + frontmatter + body | the whole IP — including ImplPlan ID — is named after the retired prefix |
-| `microservices/observability/IP-013-event-driven-promote-workflows.md` | body | `.github/workflows/oya-vcs-promotion-readiness.yml` |
-| `microservices/observability/IP-011-per-component-release-pointers.md` | body | xref to `IP-012-oya-vcs-promotion-readiness-lane.md` |
+| `microservices/observability/IP-012-retired-vcs-ratchet` | filename + frontmatter + body | the whole IP — including ImplPlan ID — is named after the retired prefix |
+| `microservices/observability/IP-013-event-driven-promote-workflows.md` | body | `.github/workflows/retired-vcs-ratchet` |
+| `microservices/observability/IP-011-per-component-release-pointers.md` | body | xref to `IP-012-retired-vcs-ratchet` |
 | `microservices/observability/IP-014-automated-rollback-primitive.md` | body | `crates/dev-cli/src/commands/vcs/rollback.rs` (path uses `vcs/`, not `git/`) |
 
-**Total `oya vcs` line-anchored hits: 63 across 15 IP files.** Plus 30 body references in the developer-sdk / plugin-app-store evidence-emit boilerplate.
+**Total `retired VCS ratchet` line-anchored hits: 63 across 15 IP files.** Plus 30 body references in the developer-sdk / plugin-app-store evidence-emit boilerplate.
 
 ### §2.3 OpenAPI / AsyncAPI / proto stale versions
 
@@ -231,7 +231,7 @@ No proto2 references found.
 
 ### §2.4 Retired tooling (grit / rtk / icm / vox)
 
-**0 IP-body hits.** The IP corpus is clean of grit/rtk/icm/vox references per [[deprecate-external-agent-coord-tooling]]. The `oya vcs` references in §2.2 are the residual: they came from the same era but were independently retired by the [[git-canonical-2026-05-18]] sub-doctrine.
+**0 IP-body hits.** The IP corpus is clean of grit/rtk/icm/vox references per [[deprecate-external-agent-coord-tooling]]. The `retired VCS ratchet` references in §2.2 are the residual: they came from the same era but were independently retired by the [[git-canonical-2026-05-18]] sub-doctrine.
 
 ### §2.5 12-value layer enum
 
@@ -249,7 +249,7 @@ No proto2 references found.
 |---|---:|---|---|
 | `microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` | Intent | "Wire the workflow-engine µservice into the platform's governance + hyperscaler-claim infrastructure" | "…into the shared governance + hyperscaler-claim infrastructure" |
 | `microservices/comms-email/IP-015-in-house-relay-roadmap-phase-2.md` | body | "Phase 2 is not a marketing-email platform" | the "platform" in this context = "product"; could remain, but auditor flags for editorial pass |
-| `microservices/feature-flags/IP-027-pack-overlay-worker.md` | body | `oya.platform.pack.activated` event topic | this is a topic-namespace string — likely deliberate; verify with topic registry |
+| `microservices/feature-flags/IP-027-pack-overlay-worker.md` | body | `oyatie.platform.pack.activated` event topic | this is a topic-namespace string — likely deliberate; verify with topic registry |
 | `microservices/feature-flags/IP-009-experiment-domain.md` | body | "platform-safety-officer consent" | "shared-safety-officer" — or define platform-safety-officer in glossary |
 | `microservices/translate/IP-001..IP-015 (15 IPs)` | front-matter `phase:` | `phase: P01-translate-platform` (15 hits) | `phase: P01-translate-shared` |
 | `microservices/identity/IP-001-zitadel-helm-per-pack.md` | front-matter | `owner_team: axis-identity + ops-platform` | `ops-shared` |
@@ -277,7 +277,7 @@ Grep `microservices -name "IP-*.md" -exec grep -lE "BYOK|byok" {} \;` in Wave-3-
 | Category | IP-file hit count | Line-anchored hit count | Severity |
 |---|---:|---:|---|
 | ADR-0136 (foundry-as-single) | 5 | 8 | P0 |
-| `oya vcs` lane / verb / surface | 15 (lanes) + 30 (boilerplate) | 63 (excl. 30 boilerplate) | P1 |
+| `retired VCS ratchet` lane / verb / surface | 15 (lanes) + 30 (boilerplate) | 63 (excl. 30 boilerplate) | P1 |
 | OpenAPI 3.1 / AsyncAPI 3.0 / 2.x | 5 | 8 | P1 |
 | grit / rtk / icm / vox | 0 | 0 | n/a |
 | 12-value layer enum | 0 | 0 | n/a |
@@ -382,7 +382,7 @@ Total substrate-tier IPs at 0% keystone coverage: **~290 IPs**. Each needs a rel
 
 ```
 microservices/anonymous/IP-001..IP-015 (15 IPs)
-microservices/community/IP-001..IP-013 (13 IPs incl. IP-013-oya-vcs-promotion-readiness which is itself stale)
+microservices/community/IP-001..IP-013 (13 IPs incl. IP-013-retired VCS ratchet which is itself stale)
 microservices/calendar/IP-001..IP-015 (15 IPs — note IP-011 already binds OpenAPI version bump)
 microservices/drive/IP-001..IP-015 (15 IPs)
 microservices/forms/IP-001..IP-015 (15 IPs)
@@ -399,7 +399,7 @@ microservices/social/IP-001..IP-018 (16 of 18 missing)
 microservices/tasks/IP-001..IP-015 (15 IPs)
 microservices/translate/IP-001..IP-015 (15 IPs)
 microservices/workflow-engine/IP-001..IP-015 (15 IPs)
-microservices/workflow-studio/IP-001..IP-027 (all 27 IPs at 0% — IP-013..IP-027 also carry oya-vcs-promotion-readiness lane staleness)
+microservices/workflow-studio/IP-001..IP-027 (all 27 IPs at 0% — IP-013..IP-027 also carry retired VCS ratchet lane staleness)
 microservices/plugin-app-store/implementation-plans/IP-001..IP-015 (15 IPs)
 microservices/developer-sdk/implementation-plans/IP-001..IP-015 (15 IPs)
 microservices/analytics/specs/IP-001..IP-015 (15 IPs)
@@ -421,9 +421,9 @@ The 2026-05-21 rename ledger moved 561 files from `governance-*` to `governance-
 |---|---:|---|
 | IP files with `governance-` anywhere | **0** | PASS — rename complete in IP corpus |
 | IP files with `governance-*` lane refs in `acceptance_lanes:` | (positive — counted) | PASS |
-| IP files with `oya-vcs-promotion-readiness` lane refs (separate sub-doctrine) | 15 IPs / 63 line hits | FAIL — see §2.2 |
+| IP files with `retired VCS ratchet` lane refs (separate sub-doctrine) | 15 IPs / 63 line hits | FAIL — see §2.2 |
 
-**The foundry-fitness→governance rename is structurally complete in the IP corpus.** This was the most critical post-rename audit invariant and it passes. The independent `oya-vcs-promotion-readiness` rename is **incomplete** (15 IPs still cite this lane name) — but that's a different sub-doctrine and is captured in §2.2.
+**The foundry-fitness→governance rename is structurally complete in the IP corpus.** This was the most critical post-rename audit invariant and it passes. The independent `retired VCS ratchet` rename is **incomplete** (15 IPs still cite this lane name) — but that's a different sub-doctrine and is captured in §2.2.
 
 ### §4.2 Acceptance-lane roster validation
 
@@ -928,12 +928,12 @@ IPs that describe work bound to a now-superseded ADR should move to `microservic
 
 **No IPs are recommended for hard-supersede (move to `superseded/`).** The ADR-0136 → ADR-0247 transition is a doctrinal rebind, not a work-cancellation. The IPs' work still applies; the rationale changes.
 
-### §9.2 `oya vcs` IPs
+### §9.2 `retired VCS ratchet` IPs
 
 | IP file | Action |
 |---|---|
-| `microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md` | **Rename file** to `IP-012-git-promotion-readiness-lane.md`; update body to use `oya git` verb surface; do NOT supersede — the lane itself is canonical |
-| `microservices/community/IP-013-oya-vcs-promotion-readiness.md` | Rename to `IP-013-git-promotion-readiness.md` |
+| `microservices/observability/IP-012-retired-vcs-ratchet` | **Rename file** to `IP-012-git-promotion-readiness-lane.md`; update body to use `oya git` verb surface; do NOT supersede — the lane itself is canonical |
+| `microservices/community/IP-013-retired-vcs-ratchet` | Rename to `IP-013-git-promotion-readiness.md` |
 | `microservices/observability/IP-014-automated-rollback-primitive.md` | Update `crates/dev-cli/src/commands/vcs/rollback.rs` path to `crates/dev-cli/src/commands/git/rollback.rs` |
 
 ### §9.3 IPs whose work is folded into successor µservices
@@ -978,8 +978,8 @@ These can be done by a sed-script in a single PR; they are purely renames:
 
 | Task | Files touched | Risk |
 |---|---|---|
-| Rename `oya vcs done` → `oya git done` (30 boilerplate hits + 33 other body hits) | 30 IPs (developer-sdk/* + plugin-app-store/*) + 33 hits | low — verb-surface rename per PR-159B |
-| Rename `oya-vcs-promotion-readiness` lane → `governance-promotion-readiness` (if governance-lane decision says so) **OR** retain (if [[git-canonical-2026-05-18]] says lane stays vcs-prefixed) | 15 IP file fronts | low — depends on lane-roster decision |
+| Rename retired VCS ratchet → `oya git done` (30 boilerplate hits + 33 other body hits) | 30 IPs (developer-sdk/* + plugin-app-store/*) + 33 hits | low — verb-surface rename per PR-159B |
+| Rename `retired VCS ratchet` lane → `governance-promotion-readiness` (if governance-lane decision says so) **OR** retain (if [[git-canonical-2026-05-18]] says lane stays vcs-prefixed) | 15 IP file fronts | low — depends on lane-roster decision |
 | Rename `crates/dev-cli/src/commands/vcs/*` → `git/*` in IP body refs | 1 IP (observability/IP-014) | low |
 | Bump OpenAPI 3.1 → 3.2.0 / AsyncAPI 3.0 → 3.1.0 prose | 4 IPs (calendar, finops-portal, sites, drive) | low |
 | Rename `phase: P01-translate-platform` → `phase: P01-translate-shared` | 15 translate IPs | low — pure naming |
@@ -1155,10 +1155,10 @@ Numbered list ordered by criticality (production-risk first, then doctrine-bindi
 11. **`microservices/intelligence/IP-001..IP-101` (101 IPs) at 0% keystone coverage; foundry is the substrate for self-modification + intelligence.** Largest single µservice rebind. P0-SUBSTRATE.
 12. **`microservices/observability/IP-001..IP-026` (26 IPs) at 0% keystone coverage; observability is the substrate every µservice telemetries to.** P0-SUBSTRATE.
 13. **`microservices/governance/IP-001..IP-022` (22 IPs) at 0% keystone coverage including the policy-engine + WAF + authz-filter substrate.** P0-SUBSTRATE.
-14. **63 line-anchored `oya vcs` references across 15 IP files violate the [[git-canonical-2026-05-18]] verb-surface rename.** Mechanically rewriteable (sed-script). P1-RENAME.
-15. **30 IPs in developer-sdk + plugin-app-store carry the `On successful \`oya vcs done\`…` boilerplate; must update to `oya git done`.** Mechanically rewriteable. P1-RENAME.
-16. **`microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md` filename + impl_plan_id contain the retired prefix.** Rename file + impl_plan_id; do not supersede. P1-RENAME.
-17. **`microservices/community/IP-013-oya-vcs-promotion-readiness.md` filename contains the retired prefix.** Rename file. P1-RENAME.
+14. **63 line-anchored `retired VCS ratchet` references across 15 IP files violate the [[git-canonical-2026-05-18]] verb-surface rename.** Mechanically rewriteable (sed-script). P1-RENAME.
+15. **30 IPs in developer-sdk + plugin-app-store carry the `On successful \retired VCS ratchet…` boilerplate; must update to `oya git done`.** Mechanically rewriteable. P1-RENAME.
+16. **`microservices/observability/IP-012-retired-vcs-ratchet` filename + impl_plan_id contain the retired prefix.** Rename file + impl_plan_id; do not supersede. P1-RENAME.
+17. **`microservices/community/IP-013-retired-vcs-ratchet` filename contains the retired prefix.** Rename file. P1-RENAME.
 18. **`microservices/observability/IP-014-automated-rollback-primitive.md` references `crates/dev-cli/src/commands/vcs/rollback.rs`; per [[git-canonical-2026-05-18]] the path is `…/commands/git/rollback.rs`.** Update path ref. P1-RENAME.
 19. **OpenAPI 3.1 / AsyncAPI 3.0 / 2.x stale-version references in 5 IPs (calendar/IP-011, finops-portal/IP-005, sites/IP-013, drive/IP-004).** Must be 3.2.0 / 3.1.0. P1-VERSION.
 20. **Non-flat IP layouts in 4 µservices violate ADR-0131** (`analytics/specs/`, `developer-sdk/implementation-plans/`, `finops-portal/implementation-plans/`, `plugin-app-store/implementation-plans/`). 75 IP files must be flattened. P1-STRUCTURE.
@@ -1226,7 +1226,7 @@ Per `feedback_autonomous_implementation_artifacts`, the long-term target is "Imp
 
 The audit raises (does not resolve) the following governance questions for the lane-roster owner + ADR-0258 versioning-policy owner:
 
-1. **`oya-vcs-promotion-readiness` lane name** — does the [[git-canonical-2026-05-18]] doctrine retain the `oya-vcs-` lane prefix (since the lane predates the verb rename) or rename to `governance-promotion-readiness`?
+1. **`retired VCS ratchet` lane name** — does the [[git-canonical-2026-05-18]] doctrine retain the `retired VCS ratchet-` lane prefix (since the lane predates the verb rename) or rename to `governance-promotion-readiness`?
 2. **Foundry IPs vs intelligence µservice** — per ADR-0255 KS#14 the intelligence two-layer substrate absorbs Foundry. Should the 101 foundry IPs migrate to `microservices/intelligence/`?
 3. **IP-NEW-* / IP-WASMTIME-* / IP-GITOPS-* renaming numeric slots** — what's the canonical numeric range to assign? (Reserve the IP-NEW-* set for the next available slots in the µservice's sequence, or use a separate IP-NNNN-extended range?)
 4. **Acceptance-lane roster updates** — the 25 candidate lane names found in IPs but not in the documentation-rigor.md roster: add to roster, or rename in IPs?
@@ -1291,8 +1291,8 @@ social                       total=18  ks=2   f5=0  cp=1  contract=15/18 CB=14/1
 tasks                        total=15  ks=0   f5=0  cp=0  contract=15/15 CB=15/15 CFT=15/15 Accept=15/15 Verify=15/15 Lanes=15/15  Deps=0/15
 tenancy                      total=26  ks=11  f5=0  cp=0  contract=2/26  CB=3/26  CFT=15/26 Accept=25/26 Verify=15/26 Lanes=15/26  Deps=0/26
 translate                    total=15  ks=0   f5=0  cp=0  contract=1/15  CB=15/15 CFT=2/15  Accept=2/15  Verify=15/15 Lanes=15/15  Deps=0/15  platform→shared phase rename=15
-workflow-engine              total=15  ks=0   f5=0  cp=0  contract=15/15 CB=14/15 CFT=14/15 Accept=11/15 Verify=14/15 Lanes=15/15  Deps=1/15  oya-vcs=2
-workflow-studio              total=27  ks=0   f5=0  cp=0  contract=27/27 CB=15/27 CFT=15/27 Accept=27/27 Verify=15/27 Lanes=27/27  Deps=24/27 oya-vcs=12
+workflow-engine              total=15  ks=0   f5=0  cp=0  contract=15/15 CB=14/15 CFT=14/15 Accept=11/15 Verify=14/15 Lanes=15/15  Deps=1/15  retired VCS ratchet=2
+workflow-studio              total=27  ks=0   f5=0  cp=0  contract=27/27 CB=15/27 CFT=15/27 Accept=27/27 Verify=15/27 Lanes=27/27  Deps=24/27 retired VCS ratchet=12
 ```
 
 Reading the table: each column = "IPs that have the property" out of "total IPs". Higher is better. The gap to close = total – column-value.
@@ -1318,7 +1318,7 @@ Single row per IP. Format: file path (line count) + tag list. Tags:
 - `F5` — IP cites at least one F5-CRITICAL fix ADR (0293-0296) — POSITIVE signal
 - `CP` — IP cites at least one critical-path cluster ADR (0297-0310) — POSITIVE signal
 - `ADR-0136-STALE` — IP cites the superseded ADR-0136
-- `oya-vcs` — IP body or front-matter contains `oya vcs` / `oya-vcs` (verb rename pending)
+- `retired VCS ratchet` — IP body or front-matter contains `retired VCS ratchet` / `retired VCS ratchet` (verb rename pending)
 - `<50lines` or `<100lines` — IP is below the exemplar floor
 
 Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-queue.
@@ -1358,7 +1358,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `anonymous/IP-012-retention-policy-worker.md` (      26L) noContract noCB noCFT noVerify noDeps noKS <50lines
 - `anonymous/IP-013-hard-delete-propagation-chain.md` (      35L) noContract noCB noCFT noVerify noDeps noKS <50lines
 - `anonymous/IP-014-rest-api-openapi-sdk.md` (      26L) noContract noCB noCFT noVerify noDeps noKS <50lines
-- `anonymous/IP-015-hg-anonymous-registration-branch-protection.md` (      43L) noContract noCB noCFT noVerify noDeps noKS oya-vcs <50lines
+- `anonymous/IP-015-hg-anonymous-registration-branch-protection.md` (      43L) noContract noCB noCFT noVerify noDeps noKS retired VCS ratchet <50lines
 
 ### §15.apigateway — `microservices/api-gateway/`
 
@@ -1403,7 +1403,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 ### §15.auditchain — `microservices/audit-chain/`
 
 - `audit-chain/IP-001-storage-backend-iac.md` (      68L) noVerify noDeps noKS <100lines
-- `audit-chain/IP-002-self-slo-manifest.md` (     151L) noCB noCFT noVerify noKS oya-vcs
+- `audit-chain/IP-002-self-slo-manifest.md` (     151L) noCB noCFT noVerify noKS retired VCS ratchet
 - `audit-chain/IP-003-emission-kernel.md` (     134L) noContract noCB noDeps noKS
 - `audit-chain/IP-004-emission-domain.md` (      41L) noContract noCB noVerify noDeps noKS <50lines
 - `audit-chain/IP-005-emission-usecase-and-adapter.md` (      97L) noContract noCB noDeps noKS <100lines
@@ -1443,15 +1443,15 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `cell/IP-003-cell-registry-kernel.md` (     141L) noContract noCB noDeps noKS
 - `cell/IP-004-cell-registry-domain-usecase.md` (     115L) noContract noCB noDeps noKS
 - `cell/IP-005-cell-registry-adapter-postgres-rest-sdk-app.md` (     104L) noContract noCB noDeps noKS
-- `cell/IP-006-cell-boundary-gate-lane.md` (     141L) noCB noCFT noVerify noKS oya-vcs
+- `cell/IP-006-cell-boundary-gate-lane.md` (     141L) noCB noCFT noVerify noKS retired VCS ratchet
 - `cell/IP-007-scheduler-binpack.md` (     118L) noContract noCB noDeps noKS
 - `cell/IP-008-lifecycle-manager-k8s.md` (     109L) noContract noCB noDeps noKS
 - `cell/IP-009-tenant-assignment-stack.md` (     130L) noContract noCB noDeps noKS
 - `cell/IP-010-tenant-migration-orchestrator.md` (     119L) noContract noCB noDeps noKS
 - `cell/IP-011-host-pool-drain-primitive.md` (      94L) noContract noCB noDeps noKS <100lines
 - `cell/IP-012-cell-registry-events-emitter.md` (      82L) noContract noCB noDeps noKS <100lines
-- `cell/IP-013-observability-slo-manifests.md` (     125L) noContract noCB noDeps noKS oya-vcs
-- `cell/IP-014-branch-protection-gate-registration.md` (      95L) noContract noCB noDeps noKS oya-vcs <100lines
+- `cell/IP-013-observability-slo-manifests.md` (     125L) noContract noCB noDeps noKS retired VCS ratchet
+- `cell/IP-014-branch-protection-gate-registration.md` (      95L) noContract noCB noDeps noKS retired VCS ratchet <100lines
 - `cell/IP-015-hyperscaler-claim-gate.md` (      92L) noContract noCB noDeps noKS <100lines
 
 ### §15.cloudiac — `microservices/cloud-iac/`
@@ -1500,7 +1500,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `cloud-k8s/IP-012-kubernetes-api-proxy.md` (     101L) noContract noDeps noKS
 - `cloud-k8s/IP-013-cluster-bootstrap-rest-worker-sdk-app.md` (     124L) noContract noDeps noKS
 - `cloud-k8s/IP-014-branch-protection-and-hyperscaler-gate.md` (     116L) noContract noDeps noKS
-- `cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md` (     155L) noContract noDeps noKS oya-vcs
+- `cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md` (     155L) noContract noDeps noKS retired VCS ratchet
 - `cloud-k8s/IP-CLUSTERAPI-001-clusterclass-templates.md` (      45L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `cloud-k8s/IP-CLUSTERAPI-002-cluster-lifecycle-orchestration.md` (      41L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `cloud-k8s/IP-CLUSTERAPI-003-cluster-promotion-pipeline.md` (      36L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
@@ -1566,7 +1566,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `community/IP-010-foundry-guardrails-moderation-bridge.md` (      45L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `community/IP-011-cedar-policy-fragments.md` (      46L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `community/IP-012-openslo-grafana-dashboards.md` (      43L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
-- `community/IP-013-oya-vcs-promotion-readiness.md` (      42L) noContract noCB noCFT noVerify noDeps noLanes noKS oya-vcs <50lines
+- `community/IP-013-retired-vcs-ratchet` (      42L) noContract noCB noCFT noVerify noDeps noLanes noKS retired VCS ratchet <50lines
 - `community/IP-014-hyperscaler-maturity-gate.md` (      44L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 - `community/IP-015-capacity-cost-chaos-drill.md` (      46L) noContract noCB noCFT noVerify noDeps noLanes noKS <50lines
 
@@ -1637,21 +1637,21 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 
 ### §15.developersdk — `microservices/developer-sdk/`
 
-- `developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-backstage-iac.md` (     140L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-002-developer-onboarding-kernel-domain.md` (     161L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-003-developer-onboarding-usecase-api-adapter-rest-app.md` (     141L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-004-signing-key-issuance-openbao.md` (     150L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-005-api-contracts-registry.md` (     159L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-006-sdk-codegen-ts-rust-swift-kotlin-csharp-python.md` (     158L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-007-sandbox-provisioner-tenant-on-demand.md` (     146L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-008-dev-portal-backstage-extension.md` (     153L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-009-dev-portal-app-submission-flow.md` (     144L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-010-payout-ach-sepa-kftc-fedwire.md` (     164L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-011-tax-form-1099-vat-moss-kr-vat.md` (     153L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-012-package-registry-vendored.md` (     143L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-013-observability-slo-manifests.md` (     150L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md` (     135L) noDeps noKS oya-vcs
-- `developer-sdk/implementation-plans/IP-015-stripe-connect-parity-end-to-end-drill.md` (     146L) noDeps noKS oya-vcs
+- `developer-sdk/implementation-plans/IP-001-layer-a-postgres-openbao-backstage-iac.md` (     140L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-002-developer-onboarding-kernel-domain.md` (     161L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-003-developer-onboarding-usecase-api-adapter-rest-app.md` (     141L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-004-signing-key-issuance-openbao.md` (     150L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-005-api-contracts-registry.md` (     159L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-006-sdk-codegen-ts-rust-swift-kotlin-csharp-python.md` (     158L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-007-sandbox-provisioner-tenant-on-demand.md` (     146L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-008-dev-portal-backstage-extension.md` (     153L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-009-dev-portal-app-submission-flow.md` (     144L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-010-payout-ach-sepa-kftc-fedwire.md` (     164L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-011-tax-form-1099-vat-moss-kr-vat.md` (     153L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-012-package-registry-vendored.md` (     143L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-013-observability-slo-manifests.md` (     150L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md` (     135L) noDeps noKS retired VCS ratchet
+- `developer-sdk/implementation-plans/IP-015-stripe-connect-parity-end-to-end-drill.md` (     146L) noDeps noKS retired VCS ratchet
 
 ### §15.docs — `microservices/docs/`
 
@@ -1809,7 +1809,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `foundry/IP-034-eval-eval-runner-domain.md` (      46L) noContract noDeps noKS <50lines
 - `foundry/IP-035-eval-eval-runner-usecase.md` (      47L) noContract noDeps noKS <50lines
 - `foundry/IP-036-eval-eval-runner-api.md` (      44L) noContract noAccept noDeps noKS <50lines
-- `foundry/IP-037-eval-eval-runner-adapter.md` (     152L) noCB noCFT noVerify noKS oya-vcs
+- `foundry/IP-037-eval-eval-runner-adapter.md` (     152L) noCB noCFT noVerify noKS retired VCS ratchet
 - `foundry/IP-038-eval-eval-runner-adapter-s3.md` (      39L) noContract noAccept noDeps noKS <50lines
 - `foundry/IP-039-eval-eval-runner-adapter-gpu.md` (      38L) noContract noAccept noDeps noKS <50lines
 - `foundry/IP-040-eval-eval-runner-rest.md` (      39L) noContract noAccept noDeps noKS <50lines
@@ -1896,7 +1896,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md` (     140L) noVerify noDeps noKS
 - `governance/IP-NEW-slsa-l3-evidence-grounded-lane.md` (     149L) noVerify noDeps noKS
 - `governance/IP-WASMTIME-001-envoy-wasm-filter-substrate.md` (      72L) noContract noCB noCFT noVerify noDeps noLanes noKS <100lines
-- `governance/IP-WASMTIME-002-waf-coraza-onboard.md` (     136L) noCB noCFT noVerify noKS oya-vcs
+- `governance/IP-WASMTIME-002-waf-coraza-onboard.md` (     136L) noCB noCFT noVerify noKS retired VCS ratchet
 - `governance/IP-WASMTIME-003-regulatory-response-shaper.md` (      53L) noContract noCB noCFT noVerify noDeps noLanes noKS <100lines
 - `governance/IP-WASMTIME-004-authz-filter.md` (      54L) noContract noCB noCFT noVerify noDeps noLanes noKS <100lines
 
@@ -1964,7 +1964,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `mail/IP-011-legal-hold-engine.md` (     108L) noDeps noKS
 - `mail/IP-012-ediscovery-export.md` (      96L) noDeps noKS <100lines
 - `mail/IP-013-mail-workflow-handoff.md` (     101L) noDeps noKS
-- `mail/IP-014-hg-mail-authority-cohesion.md` (     130L) noDeps noKS oya-vcs
+- `mail/IP-014-hg-mail-authority-cohesion.md` (     130L) noDeps noKS retired VCS ratchet
 - `mail/IP-015-pack-kr-overlay.md` (     101L) noDeps noKS
 - `mail/IP-016-jmap-rfc-8620-frontend.md` (      43L) noContract noCB noCFT noAccept noVerify noDeps noLanes <50lines
 - `mail/IP-017-anti-phishing-edge-wiring.md` (      41L) noContract noCB noCFT noAccept noVerify noDeps noLanes noKS CP <50lines
@@ -2058,10 +2058,10 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `observability/IP-008-slo-engine-worker.md` (      98L) noCB noDeps noKS <100lines
 - `observability/IP-009-slo-engine-app.md` (      88L) noCB noDeps noKS <100lines
 - `observability/IP-010-promotion-eligibility-ledger.md` (      75L) noCB noDeps noKS <100lines
-- `observability/IP-011-per-component-release-pointers.md` (      85L) noCB noDeps noKS oya-vcs <100lines
-- `observability/IP-012-oya-vcs-promotion-readiness-lane.md` (      78L) noCB noDeps noKS oya-vcs <100lines
-- `observability/IP-013-event-driven-promote-workflows.md` (      86L) noCB noDeps noKS oya-vcs <100lines
-- `observability/IP-014-automated-rollback-primitive.md` (      75L) noCB noDeps noKS oya-vcs <100lines
+- `observability/IP-011-per-component-release-pointers.md` (      85L) noCB noDeps noKS retired VCS ratchet <100lines
+- `observability/IP-012-retired-vcs-ratchet` (      78L) noCB noDeps noKS retired VCS ratchet <100lines
+- `observability/IP-013-event-driven-promote-workflows.md` (      86L) noCB noDeps noKS retired VCS ratchet <100lines
+- `observability/IP-014-automated-rollback-primitive.md` (      75L) noCB noDeps noKS retired VCS ratchet <100lines
 - `observability/IP-015-canary-cohort-weighting.md` (      87L) noCB noDeps noKS <100lines
 - `observability/IP-021-clickhouse-cluster-iac.md` (     151L) noContract noCB noCFT noDeps noLanes noKS
 - `observability/IP-022-otel-to-clickhouse-bridge.md` (     157L) noContract noCB noCFT noDeps noLanes noKS
@@ -2086,7 +2086,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `ontology/IP-007-action-engine-cedar-gated.md` (      68L) noContract noCB noCFT noAccept noKS <100lines
 - `ontology/IP-008-function-engine-oltp-and-olap.md` (      61L) noContract noCB noCFT noAccept noKS <100lines
 - `ontology/IP-009-clickhouse-history-mirror.md` (      63L) noContract noCB noCFT noAccept noKS <100lines
-- `ontology/IP-010-audit-chain-merkle-ed25519.md` (     160L) noCB noCFT noVerify noKS oya-vcs
+- `ontology/IP-010-audit-chain-merkle-ed25519.md` (     160L) noCB noCFT noVerify noKS retired VCS ratchet
 - `ontology/IP-011-query-engine-3layer-kg.md` (      64L) noContract noCB noCFT noAccept noKS <100lines
 - `ontology/IP-012-agent-gateway-llm-tool-call.md` (      65L) noContract noCB noCFT noAccept noKS <100lines
 - `ontology/IP-013-pillar-cross-pillar-grant.md` (      59L) noContract noCB noCFT noAccept noKS <100lines
@@ -2143,21 +2143,21 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 
 ### §15.pluginappstore — `microservices/plugin-app-store/`
 
-- `plugin-app-store/implementation-plans/IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac.md` (     175L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-002-plugin-catalog-kernel-domain.md` (     175L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-003-plugin-catalog-usecase-api-adapter-rest-sdk-app.md` (     185L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-004-plugin-lifecycle-state-machine.md` (     175L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-005-plugin-install-kernel-domain-usecase.md` (     172L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-006-plugin-install-rest-sdk-app.md` (     153L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-007-vetting-pipeline-kernel-domain.md` (     158L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-008-vetting-pipeline-cosign-trivy-wasmtime.md` (     171L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-009-per-plugin-permissions-cedar.md` (     152L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-010-per-plugin-rate-limit.md` (     147L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-011-subscription-billing-aggregation.md` (     151L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-012-audit-stream-per-plugin-action.md` (     147L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-013-observability-slo-manifests.md` (     156L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md` (     145L) noDeps noKS oya-vcs
-- `plugin-app-store/implementation-plans/IP-015-discovery-install-leptos-app.md` (     159L) noDeps noKS oya-vcs
+- `plugin-app-store/implementation-plans/IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac.md` (     175L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-002-plugin-catalog-kernel-domain.md` (     175L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-003-plugin-catalog-usecase-api-adapter-rest-sdk-app.md` (     185L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-004-plugin-lifecycle-state-machine.md` (     175L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-005-plugin-install-kernel-domain-usecase.md` (     172L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-006-plugin-install-rest-sdk-app.md` (     153L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-007-vetting-pipeline-kernel-domain.md` (     158L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-008-vetting-pipeline-cosign-trivy-wasmtime.md` (     171L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-009-per-plugin-permissions-cedar.md` (     152L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-010-per-plugin-rate-limit.md` (     147L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-011-subscription-billing-aggregation.md` (     151L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-012-audit-stream-per-plugin-action.md` (     147L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-013-observability-slo-manifests.md` (     156L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md` (     145L) noDeps noKS retired VCS ratchet
+- `plugin-app-store/implementation-plans/IP-015-discovery-install-leptos-app.md` (     159L) noDeps noKS retired VCS ratchet
 
 ### §15.recordings — `microservices/recordings/`
 
@@ -2192,7 +2192,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `sheets/IP-011-ai-formula-smart-fill-foundry-runtime-bridge.md` (     105L) noContract noCFT noKS
 - `sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md` (      65L) noContract noCFT noKS <100lines
 - `sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md` (      85L) noContract noCFT noKS <100lines
-- `sheets/IP-014-observability-slo-manifests-9-openslo.md` (      68L) noContract noCFT noKS oya-vcs <100lines
+- `sheets/IP-014-observability-slo-manifests-9-openslo.md` (      68L) noContract noCFT noKS retired VCS ratchet <100lines
 - `sheets/IP-015-hg-sheets-registration-and-branch-protection.md` (     126L) noContract noCFT noKS
 
 ### §15.shorts — `microservices/shorts/`
@@ -2301,7 +2301,7 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `tenancy/IP-009-dsr-cascade-runner.md` (     108L) noContract noCB noDeps noKS
 - `tenancy/IP-010-tenancy-rest-and-sdk.md` (      93L) noContract noCB noDeps noKS <100lines
 - `tenancy/IP-011-audit-chain-integration.md` (      58L) noContract noCB noDeps noKS <100lines
-- `tenancy/IP-012-branch-protection-and-release-pointers.md` (      72L) noContract noCB noDeps noKS oya-vcs <100lines
+- `tenancy/IP-012-branch-protection-and-release-pointers.md` (      72L) noContract noCB noDeps noKS retired VCS ratchet <100lines
 - `tenancy/IP-013-canary-cohort-and-rollback-wiring.md` (      71L) noContract noCB noDeps noKS <100lines
 - `tenancy/IP-014-tests-load-drills-observability-slos.md` (     118L) noContract noCB noDeps noKS
 - `tenancy/IP-015-legacy-crates-migration.md` (      77L) noContract noDeps noKS <100lines
@@ -2349,8 +2349,8 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `workflow-engine/IP-010-replay-debugger-backend-kernel-domain.md` (      69L) noAccept noDeps noKS <100lines
 - `workflow-engine/IP-011-replay-debugger-backend-usecase-adapter.md` (      53L) noAccept noDeps noKS <100lines
 - `workflow-engine/IP-012-replay-debugger-backend-rest-sdk-app.md` (      51L) noAccept noDeps noKS <100lines
-- `workflow-engine/IP-013-observability-slo-manifests.md` (     101L) noDeps noKS oya-vcs
-- `workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` (     141L) noCB noCFT noVerify noKS oya-vcs
+- `workflow-engine/IP-013-observability-slo-manifests.md` (     101L) noDeps noKS retired VCS ratchet
+- `workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` (     141L) noCB noCFT noVerify noKS retired VCS ratchet
 - `workflow-engine/IP-015-deterministic-replay-lane.md` (      83L) noDeps noKS <100lines
 
 ### §15.workflowstudio — `microservices/workflow-studio/`
@@ -2367,18 +2367,18 @@ Sorted by µservice, then by IP number. Wave-3-E iterates this list as the work-
 - `workflow-studio/IP-010-jurisdiction-overlay-renderer-full.md` (     145L) noKS
 - `workflow-studio/IP-011-replay-debugger-frontend-full.md` (     132L) noKS
 - `workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md` (     147L) noKS
-- `workflow-studio/IP-013-observability-slo-manifests.md` (     118L) noKS oya-vcs
-- `workflow-studio/IP-014-branch-protection-and-hyperscaler-gates.md` (     139L) noKS oya-vcs
+- `workflow-studio/IP-013-observability-slo-manifests.md` (     118L) noKS retired VCS ratchet
+- `workflow-studio/IP-014-branch-protection-and-hyperscaler-gates.md` (     139L) noKS retired VCS ratchet
 - `workflow-studio/IP-015-hg-workflow-studio-registration-final.md` (     126L) noKS
-- `workflow-studio/IP-016-svelte-flow-canvas-integration.md` (     181L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-017-leptos-canvas-scaffold.md` (     140L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-018-swiftui-canvas-impl.md` (     141L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-019-compose-canvas-impl.md` (     143L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-020-gtk-drawingarea-impl.md` (     150L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-021-winui-canvas-impl.md` (     150L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-022-loro-crdt-sync-binding.md` (     150L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-023-presence-awareness-protocol.md` (     133L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-024-1000-node-perf-bench.md` (     128L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-025-codemirror-6-integration.md` (     138L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-026-lsp-bridge.md` (     138L) noCB noCFT noVerify noKS oya-vcs
-- `workflow-studio/IP-027-cedar-grammar-impl.md` (     136L) noCB noCFT noVerify noKS oya-vcs
+- `workflow-studio/IP-016-svelte-flow-canvas-integration.md` (     181L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-017-leptos-canvas-scaffold.md` (     140L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-018-swiftui-canvas-impl.md` (     141L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-019-compose-canvas-impl.md` (     143L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-020-gtk-drawingarea-impl.md` (     150L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-021-winui-canvas-impl.md` (     150L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-022-loro-crdt-sync-binding.md` (     150L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-023-presence-awareness-protocol.md` (     133L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-024-1000-node-perf-bench.md` (     128L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-025-codemirror-6-integration.md` (     138L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-026-lsp-bridge.md` (     138L) noCB noCFT noVerify noKS retired VCS ratchet
+- `workflow-studio/IP-027-cedar-grammar-impl.md` (     136L) noCB noCFT noVerify noKS retired VCS ratchet

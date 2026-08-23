@@ -2,18 +2,18 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-iac-iac-apply-latency
-  displayName: "cloud-iac: IaC apply latency p95 ≤ 30s"
+  name: iac-app-iac-apply-latency
+  displayName: "iac-app: IaC apply latency p95 ≤ 30s"
   labels:
-    microservice: cloud-iac
+    microservice: iac-app
     bounded_context: iac-applier
     sli_class: latency
     tier: internal-substrate
     plane: control
-    owner_team: axis-cloud-iac
+    owner_team: axis-iac-app
     pack_scope: all
 spec:
-  service: cloud-iac
+  service: iac-app
   description: |
     IaC apply latency p95 SLO. An apply is "good" when the orchestrated
     sync (ArgoCD/Flux pickup → OpenTofu/Helm/Kustomize plan-and-apply →
@@ -22,7 +22,7 @@ spec:
     hot-path.
   indicator:
     metadata:
-      name: cloud-iac-apply-latency-p95
+      name: iac-apply-latency-p95
     spec:
       ratioMetric:
         counter: true
@@ -31,13 +31,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_apply_duration_seconds_bucket{le="30"}[5m]))
+                sum(rate(iac_apply_duration_seconds_bucket{le="30"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_apply_duration_seconds_count[5m]))
+                sum(rate(iac_apply_duration_seconds_count[5m]))
   objectives:
     - target: 0.95
       displayName: "p95 ≤ 30s for 95% of 5min windows over 30d"

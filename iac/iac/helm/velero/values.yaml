@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 #
 # Velero values per ADR-0197 backup canonical.
 # Verified versions (2026-05-18):
@@ -27,12 +27,12 @@ velero:
         config:
           region: on-prem
           # SeaweedFS S3 endpoint (per ADR-0196)
-          s3Url: http://cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333
+          s3Url: http://iac-app-seaweedfs-s3.iac-app.svc.cluster.local:8333
           s3ForcePathStyle: "true"
           # Server-side encryption via age (per ADR-0197 §Encryption)
           # Velero-level encryption is delegated to the age-encryption sidecar;
           # bucket-level KMS handled by SeaweedFS (KMS key ref via OpenBao)
-          kmsKeyId: openbao://secret/cloud-iac/velero/kms-key-ref
+          kmsKeyId: openbao://secret/iac-app/velero/kms-key-ref
         credential:
           name: velero-credentials
           key: cloud
@@ -67,7 +67,7 @@ velero:
           - "*-app-*"
         labelSelector:
           matchLabels:
-            oya.io/backup-tier: app
+            oyatie.io/backup-tier: app
         storageLocation: default
         volumeSnapshotLocations:
           - default
@@ -80,7 +80,7 @@ velero:
           - "*-app-*"
         labelSelector:
           matchLabels:
-            oya.io/backup-tier: app
+            oyatie.io/backup-tier: app
         storageLocation: default
     # Batch tier: RPO ≤ 1 h, RTO ≤ 4 h
     batch-tier-daily:
@@ -92,7 +92,7 @@ velero:
           - "*-batch-*"
         labelSelector:
           matchLabels:
-            oya.io/backup-tier: batch
+            oyatie.io/backup-tier: batch
         storageLocation: default
     # Regulatory tier: full retention per ADR-0162 + ADR-0240-sovereign + regional-pack
     regulatory-tier-daily:
@@ -105,7 +105,7 @@ velero:
           - "audit-chain"
         labelSelector:
           matchLabels:
-            oya.io/backup-tier: regulatory
+            oyatie.io/backup-tier: regulatory
         storageLocation: default
 
   # ---- deploy node-agent DaemonSet for filesystem PV backup ----
@@ -122,11 +122,11 @@ velero:
       enabled: true
 
 # ---- canonical labels ----
-microservice: cloud-iac
+microservice: iac-app
 boundedContext: backup
 tier: M
 plane: control
-partOf: cloud-iac
+partOf: iac-app
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:

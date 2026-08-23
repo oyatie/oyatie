@@ -70,7 +70,7 @@ spec:
             - name: OYATIE_ONTOLOGY_READ_MODE
               value: "library-first"
             - name: OYATIE_KILLSWITCH_KAFKA_TOPIC
-              value: "oya.feature-flags.killswitch-engaged"
+              value: "oyatie.feature-flags.killswitch-engaged"
           resources:
             requests:
               cpu: "500m"

@@ -210,7 +210,7 @@ Cross-region: M03 KR only; post-M03 global per ADR-0117 stages.
 | AC-04 | `TenantActivated` event routed by Workflow to all enabled µservices | integration test `test_tenant_activated_workflow` |
 | AC-05 | GDPR erasure: all tenant data deleted; erasure certificate generated | `cargo nextest run -p tenancy-lifecycle-domain --test gdpr_erasure` |
 | AC-06 | Cell assignment: new tenant routed to least-loaded cell in correct jurisdiction | `cargo nextest run -p tenancy-cell-assignment-domain` |
-| AC-07 | LEAN-A2: tenancy-kernel has no upstream µservice imports | `oya gate validate lean-a2 --ms tenancy` exits 0 |
+| AC-07 | LEAN-A2: tenancy-kernel has no upstream µservice imports | `presubmit` (retired CLI `gate validate lean-a2 --ms tenancy`) exits 0 |
 
 ---
 

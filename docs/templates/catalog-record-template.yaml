@@ -1,6 +1,6 @@
 # Catalog record per ADR-0015 flat-crates target.
 # Lives at `registry/catalog/<crate-name>.yaml`. Validated by `oya catalog validate`.
-name: oya-<context>-<role>          # MUST match Cargo package name
+name: oyatie-<context>-<role>          # MUST match Cargo package name
 role: kernel | domain | app | api | worker | adapter | runtime
 context: platform | saas | workspace | vertical | foundry | cloud | search | ads | analytics
 plane: control | data | analytics    # per ADR-0017

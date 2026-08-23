@@ -3,7 +3,7 @@
 ## Objective
 Append the four built-but-unaggregated quality lanes (`statelessness`, `shardability`,
 `perf-budget`, `benchmark`) to `AGGREGATED_VALIDATE_LANES` in
-`crates/governance-gate-catalog-domain/src/lib.rs` so that `oya gate run-all`
+`crates/governance-gate-catalog-domain/src/lib.rs` so that `presubmit`
 dispatches to the check crates that already exist.
 
 ## Scope

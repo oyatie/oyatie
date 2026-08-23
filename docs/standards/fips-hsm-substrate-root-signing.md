@@ -301,7 +301,7 @@ cosign verify \
 # Expected: a valid logIndex > 0
 
 # 4. Verify Cedar genesis fragment signature
-oya gate verify cedar-genesis-fragment \
+retired CLI verify cedar-genesis-fragment \
   --root-cert ceremony-output/org-root-pub.pem \
   --fragment microservices/policy-engine/fragments/bootstrap/genesis.cedar
 # Expected: signature valid; certificate chain valid
@@ -604,7 +604,7 @@ kubectl -n policy-engine get pod -l app=cedar-signing-service \
 # Expected: a timestamp in the future
 
 # Verify the SPIFFE SVID matches the expected trust domain
-oya gate validate spiffe-svid \
+presubmit (retired CLI gate validate) spiffe-svid \
   --workload cedar-signing-service \
   --expected-trust-domain spiffe://oyatie.internal
 # Expected: PASS
@@ -640,7 +640,7 @@ oya policy get-fragment \
 # Expected: status: ACTIVE; tier: substrate
 
 # Verify the fragment's signature against the org root cert
-oya gate verify cedar-fragment-signature \
+retired CLI verify cedar-fragment-signature \
   --fragment-id substrate/root-signing-gate \
   --cert ceremony-output/org-baseline-intermediate-cert.pem
 # Expected: PASS
@@ -650,7 +650,7 @@ oya gate verify cedar-fragment-signature \
 
 ```bash
 # Run the FIPS/HSM CI lane in advisory mode
-oya gate run fips-hsm-substrate-root --advisory
+retired CLI run fips-hsm-substrate-root --advisory
 # Expected: All checks PASS; any warnings shown but not blocking
 ```
 
@@ -658,7 +658,7 @@ oya gate run fips-hsm-substrate-root --advisory
 
 ```bash
 # For a KR-CSAP cell, verify the HSM cluster is KR-resident
-oya gate validate sovereign-cell-hsm-region \
+presubmit (retired CLI gate validate) sovereign-cell-hsm-region \
   --cell kr-csap-seoul-1 \
   --expected-region ap-northeast-2
 # Expected: PASS — HSM cluster in ap-northeast-2 (Seoul)

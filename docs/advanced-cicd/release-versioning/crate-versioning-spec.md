@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
-  Define how every oya-* crate is versioned: SemVer 2.0.0 mandatory, workspace
+  Define how every oyatie-* crate is versioned: SemVer 2.0.0 mandatory, workspace
   lockstep until W-Foundry-Preview, independent thereafter, with cargo-semver-checks
   enforcement in CI and a breaking-change ADR gate.
 planned_enforcement_ref: governance-semver-discipline
@@ -36,7 +36,7 @@ version. cargo-semver-checks enforces this mechanically.
 
 ```toml
 [workspace.package]
-version = "0.X.Y"   # all oya-* crates inherit
+version = "0.X.Y"   # all oyatie-* crates inherit
 ```
 
 All crates publish together; the version moves together. This eliminates the
@@ -84,7 +84,7 @@ cargo semver-checks check-release --baseline-rev origin/prod
 Behavior:
 - `deny` level (per cargo-semver-checks): hard error → CI fails → PR blocked.
 - Override allowed ONLY via the breaking-change ADR (see §6).
-- Runs on every PR that touches `crates/oya-*/src/**`.
+- Runs on every PR that touches `crates/oyatie-*/src/**`.
 
 Per research: accidental SemVer violations happen in ~3% of releases; this
 lane catches them mechanically.
@@ -123,7 +123,7 @@ cargo-semver-checks correctly says nothing happened. Honour that.
 Even in Phase B (independent cadence), the workspace asserts:
 - All `platform-*` crates share `major` (compatibility kernel layer).
 - All `foundry-*` crates share `major` (control-plane kernel layer).
-- All `oya-{axis}-*` crates may diverge per-axis (axis-prefix layer).
+- All `oyatie-{axis}-*` crates may diverge per-axis (axis-prefix layer).
 
 This is the same shape Kubernetes uses for version skew across kube components
 (client ≤ control plane ≤ nodes within one minor).

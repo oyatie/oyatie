@@ -290,7 +290,7 @@ mod tests {
 
     fn instance() -> Instance {
         Instance::new(InstanceCreate {
-            resource_id: "oya:cloud:ap-chuncheon-1:ten_alpha:instance:app-1".to_string(),
+            resource_id: "oyatie:cloud:ap-chuncheon-1:ten_alpha:instance:app-1".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "ap-chuncheon-1".to_string(),
             az: "ap-chuncheon-1-a".to_string(),
@@ -302,10 +302,10 @@ mod tests {
                 gpu_count: 0,
                 local_ssd_gb: 100,
             },
-            image: format!("oci://harbor.ap-chuncheon-1.oya/ten_alpha/app@sha256:{DIGEST}"),
+            image: format!("oci://harbor.ap-chuncheon-1.oyatie.io/ten_alpha/app@sha256:{DIGEST}"),
             key_pair: Some("key_prod".to_string()),
-            vpc_id: "oya:cloud:ap-chuncheon-1:ten_alpha:vpc:prod".to_string(),
-            subnet_id: "oya:cloud:ap-chuncheon-1:ten_alpha:subnet:prod-a".to_string(),
+            vpc_id: "oyatie:cloud:ap-chuncheon-1:ten_alpha:vpc:prod".to_string(),
+            subnet_id: "oyatie:cloud:ap-chuncheon-1:ten_alpha:subnet:prod-a".to_string(),
             security_groups: vec!["sg_web".to_string(), "sg_app".to_string()],
             iam_role: Some("role_app".to_string()),
             user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),

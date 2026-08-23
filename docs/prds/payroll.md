@@ -209,9 +209,9 @@ Cross-region: M03 KR only; post-M03 per `docs/ROADMAP.md`.
 | AC-02 | 4대보험 EDI file generated matches 더존 iCUBE reference format | `cargo nextest run -p payroll-insurance-domain --test edi_format_compliance` |
 | AC-03 | 연말정산 all 21 deduction categories computed correctly | `cargo nextest run -p payroll-year-end-domain --test year_end_all_categories` |
 | AC-04 | `PayrollRunCompleted` event routed to accounting | integration test `test_payroll_accounting_workflow` |
-| AC-05 | LEAN-A2: no direct imports from hr/accounting/connect | `oya gate validate lean-a2 --ms payroll` exits 0 |
+| AC-05 | LEAN-A2: no direct imports from hr/accounting/connect | `presubmit` (retired CLI `gate validate lean-a2 --ms payroll`) exits 0 |
 | AC-06 | Payslip p99 ≤50 ms at 1k RPS | k6 smoke; `http_req_duration{p(99)}<50` |
-| AC-07 | Audit chain sealed; tamper-evident per (tenant, year, month) | `oya gate validate audit-chain --ms payroll` |
+| AC-07 | Audit chain sealed; tamper-evident per (tenant, year, month) | `presubmit` (retired CLI `gate validate audit-chain --ms payroll`) |
 
 ---
 

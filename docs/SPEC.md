@@ -133,7 +133,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `foundry.capability.publish` | control | REST | per [`templates/capability-record-template.yaml`](templates/capability-record-template.yaml); eval-set pass required; OpenAPI source `contracts/openapi/foundry/registry-v1.yaml` | stable | `intelligence-registry-api` |
 | `foundry.adapter.{anthropic,openai,gemini}.{api,subscription}.invoke` | data | provider-bound | provider-failover-supported; cost-ceiling-enforced | stable | `intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*` |
 | `foundry.policy.autonomy-ceiling.publish` | control | REST | Cedar-backed; per-tenant per-capability scope; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` | stable | `intelligence-policy-api` |
-| `foundry.evidence.emit` | data | event | every capability invocation emits to `oya.foundry.capability.invoked`; audit-chain anchored | stable | `intelligence-evidence-app` |
+| `foundry.evidence.emit` | data | event | every capability invocation emits to `oyatie.foundry.capability.invoked`; audit-chain anchored | stable | `intelligence-evidence-app` |
 | `foundry.rag.retrieve` | data | REST | per-tenant boundary; per-class allowlist; consent-receipt cited; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` | stable | `intelligence-rag-api` |
 | `foundry.eval.run` | analytics | REST | per-capability golden-set evaluation; pass-threshold per capability; OpenAPI source `contracts/openapi/foundry/eval-v1.yaml` | stable | `intelligence-eval-application` |
 | `foundry.sandbox.spawn` | data | REST | Wasmtime / Firecracker; per-tool resource caps; per-agent worktree | stable | `intelligence-sandbox-app` |

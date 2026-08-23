@@ -19,14 +19,14 @@ critic_iter_5: APPROVE-WITH-CONDITIONS (3 conditions, folded; G1–G3 per §15e 
 prefold_a_state: 3-open-items-CLOSED (transitive-cross-vertical refusal + verticals deprecation lifecycle + reviewer-hours 4-stream re-sync) + cloud-dual-role-public_layers-mechanism added
 postfold_a_state: 7-codex-iter2-execution-consistency-edits-CLOSED (D1 audit-row 3-slot rewrite + D2 §1/§3.6 arithmetic sync + D3 §3.0 metadata schema thing-cleanup + D4 LEAN-A2 transitive-walker explicit gate + D5 BNF vertical-single-token policy + D6 code-style-rust.md inventory addition + D7 open-questions iter-2 refresh + stale check-crate name fix at §6 R10)
 iter3_fold_state: 5-codex-iter3-execution-consistency-edits-CLOSED (E1 §3.1–§3.5 body rows REGENERATED to 11-col 3-slot tuples with STUB markers; zero `rest (provisional)` cells remain in audit; E2 §3.6 arithmetic fixed to "140 + 4 = 144" matching §1; E3 frontmatter purpose rewritten to 3-slot grammar; E4 stale A4 §4a heading renamed singular→plural; E5 open-questions honest-claim correction + iter-3 closure section appended)
-fold_state: 12-layer-canonical + 4-lean-check-codification + 3-slot-BNF `oya-<shared|vertical>-<bc>-<layer>` (single-token verticals, Option A per ADR-0056 §"Vertical naming policy") + verticals-as-open-kebab-registry-with-active/deprecated/retired-lifecycle + public_layers-cross-vertical-exemption mechanism
+fold_state: 12-layer-canonical + 4-lean-check-codification + 3-slot-BNF `oyatie-<shared|vertical>-<bc>-<layer>` (single-token verticals, Option A per ADR-0056 §"Vertical naming policy") + verticals-as-open-kebab-registry-with-active/deprecated/retired-lifecycle + public_layers-cross-vertical-exemption mechanism
 architect: opus
 critic: codex-gpt-5.5-xhigh
 supersedes: docs/plans/rename-plan-v3-2026-05-12.md
 date: 2026-05-13
 purpose: |
   Execution plan v4.1 for the 140-crate workspace cutover (amended 2026-05-13).
-  BNF v4.1: `oya-<microservice>[-<bc>]-<layer>` — microservice is slot2 open
+  BNF v4.1: `oyatie-<microservice>[-<bc>]-<layer>` — microservice is slot2 open
   kebab (no shared|vertical binary; everything is shared per flat catalog);
   BC slot is OPTIONAL (omit when microservice has a single concept at the layer).
   Check crates remain `check-<rule-name>` flat namespace (BNF-exempt).
@@ -61,7 +61,7 @@ doc_status: published
 > v3 reached consensus-approval but a user pressure-test exposed three
 > over-engineered layers that did not earn their keep:
 >
-> 1. The verbose `oya-<context>-<feature>-<capability>-<role>` BNF (4–5 segments)
+> 1. The verbose `oyatie-<context>-<feature>-<capability>-<role>` BNF (4–5 segments)
 >    produced names like `governance-architecture-conventions-kernel`.
 > 2. The `governance-freeze-window-kernel` lane primitive duplicated
 > 3. "Fitness" terminology, imported wholesale from *Building Evolutionary
@@ -129,7 +129,7 @@ v3) and §6 R3 (re-audited blast-radius row).
 
 1. **The v3 BNF cannot parse the load-bearing CLI.** v3 row 36 forced
    `tooling-agent-read` → `tooling-agent-cli-read` because the BNF
-   required a role token. v4's `oya-<bounded-context>-<layer>` parses
+   required a role token. v4's `oyatie-<bounded-context>-<layer>` parses
    `codeview-cli` cleanly: bounded context = `codeview` (a domain noun);
    layer = `cli`.
 2. **`fitness` is jargon, not vocabulary.** Every fitness-as-feature crate
@@ -171,8 +171,8 @@ canonical layer enum + canonical decision tree + flat check namespace.**
   6-segment AMBER tax; `tooling-agent-read` rename remains awkward;
   every "fitness" crate enforces a name the team does not use informally.
 
-**Option E — Thing-domain literal (rejected; the `<thing>` slot was removed in v4 iteration sequence and the final v4 BNF settled at 3-slot `oya-<shared|vertical>-<bounded-context>-<layer>`).**
-- Pros: explicit `oya-<bounded-context>-<thing>-<layer>` always, no optional
+**Option E — Thing-domain literal (rejected; the `<thing>` slot was removed in v4 iteration sequence and the final v4 BNF settled at 3-slot `oyatie-<shared|vertical>-<bounded-context>-<layer>`).**
+- Pros: explicit `oyatie-<bounded-context>-<thing>-<layer>` always, no optional
   slot, easier to parse.
 - Cons: forces a `<thing>` token where none semantically exists (e.g.
   `codeview-tool-cli` to satisfy the slot); pessimises the common case;
@@ -262,7 +262,7 @@ drivers above; no single-viable-option invalidation rationale needed.
 | `[package.metadata.oya]` block additions | **140** | Schema simplified vs. v3 §3.1: drops `feature`, `capability`, `compound`; keeps `bounded_context`, `layer`, `audit_chain`. See §3.0 |
 | Dep-edge rewrites | **~200–400** (toml_edit handles all forms per §3.3.1 v3 matrix, carried forward) | Estimate, not gate; final count emerges from `cargo metadata --no-deps` diff in Shard 0 step 15a |
 | New `check-*` crates (LEAN per iter-2 fold; collapsed from 11 → 4 per Codex iter-1 ITERATE-7 edit C1: "too verbose") | **4** | `check-architecture` (orchestrator: subcommands for layer-correctness + dependency-direction + naming-collision + metadata-schema + lockfile-parity + lib-name-parity + check-namespace — all 7 inner checks consolidated as xtask subcommands), `check-bounded-contexts` (BC registry validation + overlap governance + shared/vertical-kind dependency enforcement per supplement), `check-supply-chain` (cargo deny wrapper), `check-semver` (cargo-semver-checks rename-baseline-reset classifier). Scaffolded empty in Shard 0; populated in Shard 1; flipped from `--report-only` to BLOCKER in §8.2 follow-up (per B6 chicken-and-egg avoidance). See §4a "4 lean check crates" for full per-crate spec. |
-| Bounded-context kind taxonomy + verticals registry (FINAL per iter-2 fold supplement #2 — 3-slot BNF; supersedes the metadata-only kind taxonomy and the 5-axis enum) | **`shared` literal + open verticals registry** | The slot-2 token in `oya-<shared\|vertical>-<bc>-<layer>` is either the literal `shared` OR an open kebab vertical name registered in `[workspace.metadata.oya.verticals]`. Initial verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace). Future verticals: `healthcare`, `corporate`, etc., added by registry append + ADR cite. `shared` BCs depend only on other `shared` BCs. `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only. Cross-vertical deps refused by `check-bounded-contexts`. xtask refuses crate names whose slot 2 is neither `shared` nor a registered vertical. |
+| Bounded-context kind taxonomy + verticals registry (FINAL per iter-2 fold supplement #2 — 3-slot BNF; supersedes the metadata-only kind taxonomy and the 5-axis enum) | **`shared` literal + open verticals registry** | The slot-2 token in `oyatie-<shared\|vertical>-<bc>-<layer>` is either the literal `shared` OR an open kebab vertical name registered in `[workspace.metadata.oyatie.verticals]`. Initial verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace). Future verticals: `healthcare`, `corporate`, etc., added by registry append + ADR cite. `shared` BCs depend only on other `shared` BCs. `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only. Cross-vertical deps refused by `check-bounded-contexts`. xtask refuses crate names whose slot 2 is neither `shared` nor a registered vertical. |
 | Cargo.lock churn events | **1** | Hybrid C atomic Shard 1 ⇒ single lockfile regen via `xtask-metadata-augment lockfile-rename` |
 | Bounded contexts identified | **~100 entries** (post-3rd-correction expansion) | Initial draft enumerates the v4-draft-4 ~72 single-token BCs PLUS the ~28 multi-token BCs that absorbed the dropped `thing` slot per third correction. Single-token BCs: `cell`, `region`, `compute`, `iam`, `billing`, `capacity`, `finops`, `marketplace`, `dcops`, `kms`, `storage`, `surface`, `network`, `observability`, `audit-chain`, `eventing`, `object-graph`, `policy-cedar`, `residency`, `regulatory-pack`, `secrets`, `tenant`, `identity`, `metering`, `dsr`, `data-boundary`, `foundry`, `codeview`, `dev`, `composition`, plus 23 workspace product axes. Multi-token BCs (new under 3-slot, populating slot 3): `compute-vm`, `compute-k8s`, `compute-functions`, `storage-object`, `storage-block`, `network-vpc`, `network-dns`, `network-lb`, `audit-chain-file`, `eventing-file`, `observability-tracing`, `secrets-file`, `foundry-evidence-file`, `foundry-run-file`, `foundry-step-file`, `billing-tax`, plus foundry sub-contexts (`foundry-adapter`, `foundry-bypass`, `foundry-capability`, `foundry-catalog`, `foundry-cloud-mutation`, `foundry-evidence`, `foundry-eval`, `foundry-mcp-gateway`, `foundry-policy`, `foundry-rag`, `foundry-registry`, `foundry-run`, `foundry-step`, `foundry-api-semver`, `foundry-mdbook`, `foundry-openapi`, `foundry-cargo-prefix`). Plus the flat `check` namespace. Each entry registered with A4 fields (`name`, `owner`, `rationale`, `adr_cite`). |
 | CI workflow updates | **3 files** (carry forward from v3 §1) | Same files as v3; the cargo run package targets change per the new rename map |
@@ -284,7 +284,7 @@ drivers above; no single-viable-option invalidation rationale needed.
 ```bnf
 crate          ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer
                  | "oya" "-" "check" "-" rule-name
-microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registered in [workspace.metadata.oya.microservices] *)
+microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registered in [workspace.metadata.oyatie.microservices] *)
 bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL — omit when microservice has single concept at the layer *)
 layer          ::= "kernel" | "domain" | "application" | "app"
                  | "adapter" | "infrastructure"
@@ -301,13 +301,13 @@ has multiple binaries or multiple BC-level splits at the same layer (e.g.,
 `workflow-state-machine-domain`, `workflow-approvals-application`).
 
 **FINAL BNF v4.1**: each crate name encodes
-`oya-<microservice>[-<bc>]-<layer>`. The microservice slot is an open
-kebab registered in `[workspace.metadata.oya.microservices]`. There is
+`oyatie-<microservice>[-<bc>]-<layer>`. The microservice slot is an open
+kebab registered in `[workspace.metadata.oyatie.microservices]`. There is
 no `shared|vertical` binary — every feature/product is a microservice
 in the flat catalog.
 
 Parser rule: split crate name on `-`; LAST token MUST be a layer value
-(one of 12 canonical); SECOND token (after `oya-`) MUST be `shared` OR
+(one of 12 canonical); SECOND token (after `oyatie-`) MUST be `shared` OR
 a registered vertical name from the workspace verticals registry;
 remaining middle tokens (joined by `-`) = bounded-context. The `check-*`
 namespace is exempt — checks are cross-cutting and use the
@@ -344,7 +344,7 @@ Constraints:
    Long names are encouraged when granularity demands them: e.g.,
    `audit-chain-emission-domain` parses as `BC=audit-chain-emission,
    layer=domain` — 5 segments, no AMBER tax, no special handling. The
-   grammar treats every kebab token between `oya-` and the trailing
+   grammar treats every kebab token between `oyatie-` and the trailing
    layer token as part of the bounded-context slot.
 2. **Layer enum (closed, 12 values).** Adding a layer is a 1-ADR action.
    Layer enum is the ONLY closed set in the grammar. The 12 values
@@ -594,7 +594,7 @@ Column semantics:
   for verification (kind == "shared" iff vertical == "shared").
 - `layer` — one of 12 canonical values per §2.2.
 - `layer_evidence` — file:line cite (e.g., `crates/intelligence-policy-api/src/main.rs:42 — Router::new()`) OR `cargo metadata` query result OR explicit `PROTOCOL-UNKNOWN, deferred to ADR-0056 §<X>` deferral marker. **NO row may ship as `provisional`** post-iter-3.
-- `proposed_name` — 3-slot pattern `oya-<shared|vertical>-<bc>-<layer>`.
+- `proposed_name` — 3-slot pattern `oyatie-<shared|vertical>-<bc>-<layer>`.
 - `bc_registry_status` — `REGISTERED` | `PROPOSED-NEW` | `DEPRECATED`.
 - `risk` — 1-5.
 - `dep_edges_affected` — estimated edges touched by the rename.
@@ -613,18 +613,18 @@ Column semantics:
 > open-item #1 from `.omc/plans/open-questions.md`.
 
 **v3 axis → v4.1 translation rule** (BNF v4.1 amendment applied row-by-row):
-- `platform-<bc>-<layer>` → `oya-<bc>-<layer>` (drop slot2 entirely; BC promoted to slot2)
-- `foundation-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; foundation prefix dropped)
-- `tooling-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; tooling prefix dropped)
+- `platform-<bc>-<layer>` → `oyatie-<bc>-<layer>` (drop slot2 entirely; BC promoted to slot2)
+- `foundation-<bc>-<layer>` → `oyatie-<bc>-<layer>` (same rule; foundation prefix dropped)
+- `tooling-<bc>-<layer>` → `oyatie-<bc>-<layer>` (same rule; tooling prefix dropped)
 - `foundry-<bc>-<layer>` → unchanged (foundry is the µservice name)
 - `cloud-<bc>-<layer>` → unchanged (cloud is the µservice name)
 - `workspace-<bc>-<layer>` → `connect-<bc>-<layer>` (workspace renamed to connect per Round 4 decision [[feedback-flat-product-catalog]])
-- `shared-<bc>-<layer>` → `oya-<bc>-<layer>` (drop redundant shared prefix)
+- `shared-<bc>-<layer>` → `oyatie-<bc>-<layer>` (drop redundant shared prefix)
 - `check-<rule>` → unchanged (BNF-exempt)
 
 > **Atomic rename rule**: old crate name is DELETED from disk. No aliases.
 > No compatibility shims. After Shard 1, `platform-*` directory does
-> not exist; only `oya-<bc>-*` exists. Old `Cargo.toml` package names
+> not exist; only `oyatie-<bc>-*` exists. Old `Cargo.toml` package names
 > are gone from `Cargo.lock` (verified by `lockfile-parity` gate).
 
 Examples of v4.1 `proposed_name` after translation:
@@ -671,7 +671,7 @@ xtask produces the final count.
 existing `*-api` crate is provisionally classified as `rest` (the
 workspace's current HTTP+JSON surface) BUT Codex iter-1 audit MUST
 confirm protocol per crate. If a crate currently serves gRPC, it
-becomes `oya-<context>-grpc`; GraphQL → `oya-<context>-graphql`;
+becomes `oyatie-<context>-grpc`; GraphQL → `oyatie-<context>-graphql`;
 multi-protocol → split into per-protocol crates OR documented as
 exception in ADR-0056 §"Bounded context registry". The default-to-`rest`
 classification is a planner-best-guess; it is one of the top-3 expected
@@ -690,7 +690,7 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
   EXCEPTIONS expected (pure types + ports only → `kernel` under v4):
   `platform-data-boundary-kernel`, possibly several
   `foundry-*-kernel` crates that are pure check-rule type bundles.
-  These exceptions get re-classified to `oya-<bc>-kernel` (v4) during
+  These exceptions get re-classified to `oyatie-<bc>-kernel` (v4) during
   Codex iter-1 audit; the row stays in §3 with `domain → kernel`
   override note.
 - **v3 `*-app` → v4 default `application`**: most v3 app crates are
@@ -711,9 +711,9 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
 
 ### 3.1 Platform / shared µservice crates (n = 28) — BNF v4.1: drop `platform-` prefix, BC becomes slot2
 
-> **v4.1 rule**: `platform-<bc>-<layer>` → `oya-<bc>-<layer>`. Old
+> **v4.1 rule**: `platform-<bc>-<layer>` → `oyatie-<bc>-<layer>`. Old
 > directory `crates/platform-<bc>-<layer>/` is DELETED and replaced
-> by `crates/oya-<bc>-<layer>/`. No alias. No compatibility shim.
+> by `crates/oyatie-<bc>-<layer>/`. No alias. No compatibility shim.
 > Object Graph crates renamed to Ontology per [[feedback-glossary-ontology-not-object-graph]].
 
 | # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
@@ -940,8 +940,8 @@ to the flat `check` namespace.
 
 ### 3.5 Foundation + tooling crates (n = 3) — BNF v4.1: drop `foundation-`/`tooling-` prefix
 
-> **v4.1 rule**: `foundation-<bc>-<layer>` → `oya-<bc>-<layer>`;
-> `tooling-<bc>-<layer>` → `oya-<bc>-<layer>`. Old directories
+> **v4.1 rule**: `foundation-<bc>-<layer>` → `oyatie-<bc>-<layer>`;
+> `tooling-<bc>-<layer>` → `oyatie-<bc>-<layer>`. Old directories
 > DELETED. No alias. `foundation-app` becomes `application-app`
 > (the B2B Application shell µservice per [[feedback-flat-product-catalog]]).
 
@@ -1093,11 +1093,11 @@ subcommands; collates JSON output; produces one consolidated PR comment.
 
 **Purpose**: enforces three load-bearing rules:
 1. Every crate's `[package.metadata.oya].bounded_context` exists in
-   `[workspace.metadata.oya.bounded_contexts]` with required fields
+   `[workspace.metadata.oyatie.bounded_contexts]` with required fields
    `kind` (`shared` OR `vertical`), `owner` (default
    `council-architecture`), `rationale` (1 paragraph), `adr_cite`
    (one-line). `vertical` BCs additionally carry a `vertical: <name>`
-   field whose value is registered in `[workspace.metadata.oya.verticals]`.
+   field whose value is registered in `[workspace.metadata.oyatie.verticals]`.
 2. **Shared/vertical-kind dependency rule** (the load-bearing new rule
    per supplement #2; extended iter-2 prefold-A item 1 with transitive
    walker):
@@ -1427,8 +1427,8 @@ Same shape as v3 §5.1. Differences:
 | 6 | `git log -1 --name-only HEAD \| grep -E "ADR-005[467]"` | 0 (all three files in diff) | All three ADR files present in Shard 0 commit |
 | 7 | Scaffold **4 LEAN check crates** per §4a iter-2-fold-B (collapses iter-1-fold-A's 11 checks per Codex C1): `check-architecture` (LEAN-A1 orchestrator with 7 subcommands), `check-bounded-contexts` (LEAN-A2 BC registry + shared/vertical-kind cross-vertical refusal + BC overlap governance), `check-supply-chain` (LEAN-A3 cargo-deny wrapper), `check-semver` (LEAN-A4 cargo-semver-checks + rename-baseline-reset classifier) | n/a | All 4 `crates/check-*/` directories exist with empty lib + Cargo.toml; `[package.metadata.oya].purpose` populated per LEAN-A1 `metadata-schema` subcommand contract; severity = `--report-only` until §8.2 BLOCKER flip per B6 |
 | 7a | **Architect B1 closure**: confirm port traits placed in `kernel` layer (not `domain`) per canonical decision tree §2.2.4; audit `docs/standards/clean-architecture.md` §2.1 "domain — Defines ports: Rust traits" wording for ADR-0056-cited amendment (the standard currently places ports in `domain`; v4 places them in `kernel`); add Shard 1 step 9a to update standard wording in same atomic commit. | n/a | Standard amended in Shard 1; ADR-0056 §"Decision" notes port-location move from `domain` → `kernel` |
-| 7b | Author `docs/standards/bounded-contexts.md` (skeleton; initial registry of contexts identified in §3) with required LEAN-A2 fields: `name`, `kind` (closed: `shared` OR `vertical`), `vertical` (open kebab token from `[workspace.metadata.oya.verticals]`; required iff `kind == "vertical"`), `owner` (default `council-architecture`), `rationale` (1 paragraph), `adr_cite` (one-line), `parent: <bc>` (optional, used when BC is prefix-child of a parent BC per §15a fix 5); **B3 arbitrator clause** included: "If two PRs propose conflicting BC names for the same crate cluster, council-architecture reviews both proposals; tie-breaker is the proposal with the more specific `rationale` paragraph + ADR cite linking to upstream design discussion; ultimate timestamp tiebreaker per Codex C5: earlier-PR timestamp wins ties not resolvable by rationale + ADR-cite specificity." | n/a | Living-document file present with B3 arbitrator clause + parent/sibling rule + §15a fix 5 BC overlap governance |
-| 7d | Author `[workspace.metadata.oya.verticals]` registry section in root `Cargo.toml` enumerating initial 3 verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace); each entry carries `rationale` + `adr_cite`. Document the open-set policy (future verticals — `healthcare`, `corporate`, etc. — added via registry append + ADR cite). | n/a | Verticals registry block present; `check-bounded-contexts` (LEAN-A2) reads this to validate slot-2 token of every crate name |
+| 7b | Author `docs/standards/bounded-contexts.md` (skeleton; initial registry of contexts identified in §3) with required LEAN-A2 fields: `name`, `kind` (closed: `shared` OR `vertical`), `vertical` (open kebab token from `[workspace.metadata.oyatie.verticals]`; required iff `kind == "vertical"`), `owner` (default `council-architecture`), `rationale` (1 paragraph), `adr_cite` (one-line), `parent: <bc>` (optional, used when BC is prefix-child of a parent BC per §15a fix 5); **B3 arbitrator clause** included: "If two PRs propose conflicting BC names for the same crate cluster, council-architecture reviews both proposals; tie-breaker is the proposal with the more specific `rationale` paragraph + ADR cite linking to upstream design discussion; ultimate timestamp tiebreaker per Codex C5: earlier-PR timestamp wins ties not resolvable by rationale + ADR-cite specificity." | n/a | Living-document file present with B3 arbitrator clause + parent/sibling rule + §15a fix 5 BC overlap governance |
+| 7d | Author `[workspace.metadata.oyatie.verticals]` registry section in root `Cargo.toml` enumerating initial 3 verticals: `cloud` (owner: council-cloud), `foundry` (owner: council-foundry), `workspace` (owner: council-workspace); each entry carries `rationale` + `adr_cite`. Document the open-set policy (future verticals — `healthcare`, `corporate`, etc. — added via registry append + ADR cite). | n/a | Verticals registry block present; `check-bounded-contexts` (LEAN-A2) reads this to validate slot-2 token of every crate name |
 | 7c | **Architect B7 closure (BNF accommodation)**: author ADR-0056 §"BNF accommodation" enumerating the 4 gap cases (proc-macros, codegen crates, test-fixture crates, library+binary split-the-crate rule) with canonical layer assignment for each. See §11 ADR-0056 outline. | n/a | ADR-0056 §"BNF accommodation" present in Shard 0 commit |
 | 8 | `cargo check --workspace --all-features` | 0 | Workspace still builds with empty new check crates |
 | 9 | Add `[workspace.metadata.oya]` block to root `Cargo.toml` (simplified per §3.0 schema; layer enum + bounded-contexts auto-populated) | n/a | New registry block present |
@@ -1440,7 +1440,7 @@ Same shape as v3 §5.1. Differences:
 | 15 | `cargo metadata --no-deps --format-version 1 \| jq -r '.workspace_members[]' \| sort > /tmp/shard0-metadata.txt` | 0 | Snapshot stored for Shard 1 path-edge diff |
 | 15a | Generate `/tmp/old-crate-names.txt` (one old-name per line, from §3 rename inventory) AND `/tmp/rename-map.tsv` (old<TAB>new) AND `/tmp/reverse-dep-counts.tsv` (per-crate `cargo metadata` reverse-dep count, used for Scenario B mitigation: every crate gets a consumer-count assertion, not just the predicted-highest one) | 0 | `wc -l /tmp/rename-map.tsv` ≈ 135 (the actual rename count); `/tmp/reverse-dep-counts.tsv` has 140 rows |
 | 15b | **IDE smoke gate** (NEW per Scenario C pre-mortem mitigation): scaffold a single `policy-test-application` crate with empty lib + minimal cargo metadata; load it in rust-analyzer, IntelliJ-Rust, and VS Code rust-extension; assert each resolves the crate and renders symbols without warnings. Remove the test crate before Shard 0 merge. | 0 (per IDE) | If any IDE flags `application` as a reserved layer name, fall back to `app` layer enum (1-ADR edit to ADR-0056). |
-| 15c | **§3 audit table 3-slot column-schema rework** (FINAL per iter-2 supplement #2; supersedes the iter-1-fold-A 2-slot rework): regenerate §3.1–§3.5 audit tables under the 3-slot schema `oya-<shared\|vertical>-<bc>-<layer>`. Each row's `proposed_name` follows the 3-slot pattern. Add columns: `vertical` (value = `shared` OR a vertical name), `bounded_context` (kebab; multi-token allowed), `layer` (12-value enum), `layer_evidence` (file:line cite OR `cargo metadata` query OR `PROTOCOL-UNKNOWN` deferral marker per Codex C1), `bc_registry_status` (REGISTERED / PROPOSED-NEW / DEPRECATED), `kind` (`shared` / `vertical`; matches slot 2). Drop `thing?` column (already dropped pre-supplement-2). **Audit translation from v3**: v3 `platform-*` → slot 2 = `shared`; v3 `foundation-*` → slot 2 = `shared`; v3 `tooling-*` → slot 2 = `shared`; v3 `cloud-*` → slot 2 = `cloud`; v3 `foundry-*` → slot 2 = `foundry`; v3 `workspace-*` → slot 2 = `workspace`. xtask `--audit-rebuild` automates this. | 0 | All §3 tables match the canonical column directive; xtask emits `/tmp/audit-v4-3slot.tsv` for Codex iter-2 consumption |
+| 15c | **§3 audit table 3-slot column-schema rework** (FINAL per iter-2 supplement #2; supersedes the iter-1-fold-A 2-slot rework): regenerate §3.1–§3.5 audit tables under the 3-slot schema `oyatie-<shared\|vertical>-<bc>-<layer>`. Each row's `proposed_name` follows the 3-slot pattern. Add columns: `vertical` (value = `shared` OR a vertical name), `bounded_context` (kebab; multi-token allowed), `layer` (12-value enum), `layer_evidence` (file:line cite OR `cargo metadata` query OR `PROTOCOL-UNKNOWN` deferral marker per Codex C1), `bc_registry_status` (REGISTERED / PROPOSED-NEW / DEPRECATED), `kind` (`shared` / `vertical`; matches slot 2). Drop `thing?` column (already dropped pre-supplement-2). **Audit translation from v3**: v3 `platform-*` → slot 2 = `shared`; v3 `foundation-*` → slot 2 = `shared`; v3 `tooling-*` → slot 2 = `shared`; v3 `cloud-*` → slot 2 = `cloud`; v3 `foundry-*` → slot 2 = `foundry`; v3 `workspace-*` → slot 2 = `workspace`. xtask `--audit-rebuild` automates this. | 0 | All §3 tables match the canonical column directive; xtask emits `/tmp/audit-v4-3slot.tsv` for Codex iter-2 consumption |
 | 15d | **BC registry multi-token expansion + kind/vertical fields** (FINAL per supplement #2): `docs/standards/bounded-contexts.md` initial population at **~100 entries**. Each entry carries LEAN-A2 required fields: `name`, `kind`, `owner`, `rationale`, `adr_cite`, plus `vertical: <name>` if `kind == "vertical"`, plus `parent: <bc>` if BC is prefix-child of another BC per §15a fix 5. Examples of `kind: shared` BCs: `audit-chain`, `eventing`, `tenant`, `identity`, `policy-cedar`, `composition`, `codeview`, `dev`. Examples of `kind: vertical, vertical: cloud` BCs: `compute-vm`, `compute-k8s`, `compute-functions`, `storage-object`, `storage-block`, `network-vpc`, `network-dns`, `network-lb`, `iam`, `billing`. Examples of `kind: vertical, vertical: foundry` BCs: `foundry-policy`, `foundry-evidence`, `foundry-eval`, `foundry-rag`. Examples of `kind: vertical, vertical: workspace` BCs: `drive`, `chat`, `mail`, `meet`, `calendar`. | n/a | BC registry file present with ~100 entries; each row has B3 arbitrator clause ownership default + §15a fix 5 BC overlap governance + supplement #2 kind/vertical taxonomy |
 
 ### 5.2 Shard 1 checklist (atomic ~139-rename + everything else)
@@ -1450,10 +1450,10 @@ Same shape as v3 §5.2; row counts updated:
 | # | Command | Expected exit | Verification |
 |---:|---|:---:|---|
 | 2 | Update root `Cargo.toml` `[workspace] members = [...]` array per §3 | n/a | All entries updated atomically |
-| 3 | `git mv crates/oya-<old> crates/oya-<new>` × ~139 | 0 each | Directory renames |
+| 3 | `git mv crates/oyatie-<old> crates/oyatie-<new>` × ~139 | 0 each | Directory renames |
 | 4 | `cargo run -p xtask-metadata-augment -- --apply` | 0 | All 140 manifests carry `[package.metadata.oya]` per §3.0 schema |
 | 5 | For each renamed crate: rewrite `[package] name` AND `[lib] name = "..."` (underscored form) | n/a | R7-equivalent permanent control (renamed from v3 §6 R7) |
-| 6 | Rewrite all dep-edge `path = "../oya-<old>"` entries (est. 200–400 sites) | n/a | xtask traversal per v3 §3.3.1 matrix |
+| 6 | Rewrite all dep-edge `path = "../oyatie-<old>"` entries (est. 200–400 sites) | n/a | xtask traversal per v3 §3.3.1 matrix |
 | 7 | Update 3 CI workflow files (same as v3) — `cargo run -p tooling-cli-dev-runtime` → `cargo run -p dev-cli`; other references per §3 | n/a | Per-workflow grep verification |
 | 8 | Update `scripts/check.sh` (~29 sites), `scripts/hooks/pre-push-repoctl.sh` (1 site), `scripts/check-architecture-boundaries.sh` (3 sites). New: rename references to `intelligence-api` and `foundation-app` per §3 rows 138 + 60 | n/a | Verified in §8.1 zero-old-names gate |
 | 9 | Update `docs/standards/clean-architecture.md` §3 row 35 named-by-identity reference: `platform-data-boundary-kernel` → `data-boundary-domain` | n/a | Same row, new name |
@@ -1496,7 +1496,7 @@ state. Lockfile inverse-rename via `cargo run --release -p xtask-metadata-augmen
 then `cargo check --workspace --locked --offline`.
 
 > **BNF v4.1 flag**: `--bnf-version v4.1` instructs the xtask to apply
-> the v4.1 translation rule (`platform-<bc>` → `oya-<bc>`,
+> the v4.1 translation rule (`platform-<bc>` → `oyatie-<bc>`,
 > `workspace-<bc>` → `connect-<bc>`, etc.) rather than the
 > v4.0 `shared|vertical` rule. The xtask must be updated in Shard 0
 > to accept this flag before Shard 1 dispatches.
@@ -1551,7 +1551,7 @@ Every gate is a runnable command with explicit exit-code expectation.
 | `[lib]` name parity | `cargo run -p xtask-metadata-augment -- --lib-name-check` | 0 |
 | Reverse-dep count parity (R3 mitigation: all 140 crates, not just row-35-equivalent) | `for old new <- /tmp/rename-map.tsv: test "$(cargo metadata --locked --format-version 1 \| jq -r '[.packages[] \| select(.dependencies[]?.name == "'$new'") \| .name] \| unique \| length')" -eq "$(grep -P "^$old\t" /tmp/reverse-dep-counts.tsv \| cut -f2)"` (one assertion per rename) | 0 for all |
 | **LEAN-A1 — Architecture orchestrator (7 inner code-shape checks)** | `cargo run -p check-architecture -- report --format json` (invokes subcommands `layer-correctness` + `dependency-direction` + `naming-collision` + `metadata-schema` + `lockfile-parity` + `lib-name-parity` + `check-namespace`; classifies dep edges per 12-value §2.2.5 matrix; per-layer heuristic per §4a LEAN-A1 table; dev-deps + `[target.cfg(test).dependencies]` EXCLUDED from direction enforcement per §15a fix 10; tuple uniqueness on `<shared\|vertical>-<bc>-<layer>` per 3-slot grammar). **Lockfile-parity subcommand exit-code discipline** per §15a fix 12: rg exit 1 (no match) = PASS, rg exit ≥ 2 (rg error) = FAIL with explicit error message. | 0 |
-| **LEAN-A2 — Bounded-contexts registry + shared/vertical-kind dep enforcement (D4 explicit transitive walker + public_layers hop check + chain output)** | `cargo run -p check-bounded-contexts -- --check` enforces: (i) every `[package.metadata.oya].bounded_context` registered in `[workspace.metadata.oya.bounded_contexts]` with `name`/`kind`/`owner`/`rationale`/`adr_cite` (+ `vertical` if `kind == "vertical"`); (ii) **CROSS-VERTICAL DEPENDENCY REFUSAL — DIRECT** — parses each crate's `cargo metadata` deps; classifies source slot-2 + target slot-2; refuses direct edges where (source = vertical-X, target = vertical-Y, X ≠ Y, both ≠ `shared`); (iii) **CROSS-VERTICAL DEPENDENCY REFUSAL — TRANSITIVE (D4)** — walks transitive deps via recursive `cargo metadata` traversal; at EACH cross-vertical hop in the chain, checks whether the target crate's layer ∈ target vertical's `public_layers` allowlist (if yes, hop is allowed via the public-layer exemption per §11 ADR-0056 §"Cloud vertical dual-role + public_layers"; if no, hop is refused); `shared → vertical` hops never qualify for public-layer exemption (shared reuse requires complete vertical neutrality); (iv) shared BCs depend only on other shared BCs; (v) BC overlap governance: lexical-prefix + Jaro-Winkler similarity > 0.85 triggers manual review (non-blocking advisory); (vi) **Violation output FORMAT (D4)**: on violation, emit FULL dep-chain `a → x → y → b` with per-node `{kind: shared\|vertical, vertical: <name>, layer: <12-value>}` annotation; reviewers pinpoint the boundary-crossing intermediate (typically a `shared` crate that incorrectly depends on a vertical) for splitting. | 0 |
+| **LEAN-A2 — Bounded-contexts registry + shared/vertical-kind dep enforcement (D4 explicit transitive walker + public_layers hop check + chain output)** | `cargo run -p check-bounded-contexts -- --check` enforces: (i) every `[package.metadata.oya].bounded_context` registered in `[workspace.metadata.oyatie.bounded_contexts]` with `name`/`kind`/`owner`/`rationale`/`adr_cite` (+ `vertical` if `kind == "vertical"`); (ii) **CROSS-VERTICAL DEPENDENCY REFUSAL — DIRECT** — parses each crate's `cargo metadata` deps; classifies source slot-2 + target slot-2; refuses direct edges where (source = vertical-X, target = vertical-Y, X ≠ Y, both ≠ `shared`); (iii) **CROSS-VERTICAL DEPENDENCY REFUSAL — TRANSITIVE (D4)** — walks transitive deps via recursive `cargo metadata` traversal; at EACH cross-vertical hop in the chain, checks whether the target crate's layer ∈ target vertical's `public_layers` allowlist (if yes, hop is allowed via the public-layer exemption per §11 ADR-0056 §"Cloud vertical dual-role + public_layers"; if no, hop is refused); `shared → vertical` hops never qualify for public-layer exemption (shared reuse requires complete vertical neutrality); (iv) shared BCs depend only on other shared BCs; (v) BC overlap governance: lexical-prefix + Jaro-Winkler similarity > 0.85 triggers manual review (non-blocking advisory); (vi) **Violation output FORMAT (D4)**: on violation, emit FULL dep-chain `a → x → y → b` with per-node `{kind: shared\|vertical, vertical: <name>, layer: <12-value>}` annotation; reviewers pinpoint the boundary-crossing intermediate (typically a `shared` crate that incorrectly depends on a vertical) for splitting. | 0 |
 | **LEAN-A3 — Supply-chain (cargo-deny wrapper)** | `cargo run -p check-supply-chain -- --check` wraps `cargo deny check`; pinned JSON output schema `{"violations":[...],"schema_version":"1.0"}` | 0 |
 | **LEAN-A4 — Semver (cargo-semver-checks rename-baseline-reset classifier)** | `cargo run -p check-semver -- --check --baseline-rev <pre-shard-1-sha>` wraps `cargo-semver-checks 0.46.0`; pinned JSON output schema `{"violations":[{"crate":"...","severity":"ERROR\|BASELINE-RESET\|WARN\|INFO","kind":"breaking\|name-only\|deprecation\|...","detail":"..."}],"schema_version":"1.0"}` per §15a fix 11; only `BASELINE-RESET` failures allowed during 14-day post-merge grace window | 0 |
 | **B5/C6 — 4 partition sign-offs collected** (NEW; R11 reviewability; iter-2 rebalance from 3 → 4) | PR-comment heuristic: `gh pr view <num> --json comments \| jq '[.comments[] \| select(.body \| test("APPROVE-PARTITION:(1a\|1b\|1c\|1d)"))] \| group_by(.body \| capture("APPROVE-PARTITION:(?<p>1[abcd])").p) \| length'` returns `4` | exit 0 iff value = 4 |
@@ -1706,7 +1706,7 @@ Secondary surfaces (lower probe priority):
 Shard 1.
 
 **Decision**: Adopt the canonical Rust Clean Architecture crate naming
-grammar `oya-<shared|vertical>-<bounded-context>-<layer>` (3-slot grammar per iter-2 supplement #2 + Codex iter-4 F4 rewrite; granularity
+grammar `oyatie-<shared|vertical>-<bounded-context>-<layer>` (3-slot grammar per iter-2 supplement #2 + Codex iter-4 F4 rewrite; granularity
 expressed via multi-token bounded-context names tracked in the registry,
 NOT via a separate slot) + flat `check-<rule-name>` namespace for
 cross-cutting checks. Layer is a closed **12-value enum** with canonical
@@ -1759,7 +1759,7 @@ format (`rest` / `grpc` / `graphql` / `worker` / multi-protocol split).
   primitives). **Why rejected**: 31 compound-feature ADR rows; 6-segment
   AMBER tax; `fitness` jargon mismatch with team vocabulary; cannot
   cleanly parse load-bearing `tooling-agent-read`.
-- **Pattern B — thing-domain literal** (always `oya-<bounded-context>
+- **Pattern B — thing-domain literal** (always `oyatie-<bounded-context>
   -<thing>-<layer>`, no optional slot). **Why rejected**: forces a
   `<thing>` token where none semantically exists; pessimises common case;
   no hyperscaler analogue. Superseded by 2-slot final (Pattern G
@@ -1772,7 +1772,7 @@ format (`rest` / `grpc` / `graphql` / `worker` / multi-protocol split).
   good name". The interim 2-slot BNF (draft-5) removed the slot entirely;
   the BC registry handles all granularity needs as multi-token kebab strings.
 - **Pattern H — Axis-in-name with 5-value closed enum**
-  (`oya-<platform|cloud|foundry|workspace|tooling>-<bc>-<layer>`).
+  (`oyatie-<platform|cloud|foundry|workspace|tooling>-<bc>-<layer>`).
   **Why rejected**: bloats every name with axis token; closed 5-enum
   conflates organizational axis (platform/cloud/foundry/workspace/
   tooling) with deployment vertical (cloud/foundry/workspace), forcing
@@ -1792,7 +1792,7 @@ format (`rest` / `grpc` / `graphql` / `worker` / multi-protocol split).
 `docs/standards/bounded-contexts.md` is a living-document registry with
 required fields per BC entry: `name`, `kind` (closed: `shared` or
 `vertical`), `vertical: <name>` (required iff `kind == "vertical"`;
-value validated against `[workspace.metadata.oya.verticals]`), `owner`
+value validated against `[workspace.metadata.oyatie.verticals]`), `owner`
 (default `council-architecture`), `rationale` (1 paragraph), `adr_cite`
 (one-line), `parent: <bc>` (optional, used when BC is prefix-child of
 another BC per BC overlap governance below).
@@ -1819,19 +1819,19 @@ another BC per BC overlap governance below).
 
 ### Shared/vertical kind taxonomy + verticals registry (supplement #2)
 
-The 3-slot BNF `oya-<shared|vertical>-<bc>-<layer>` encodes the
+The 3-slot BNF `oyatie-<shared|vertical>-<bc>-<layer>` encodes the
 **shared/vertical kind taxonomy** directly in the crate name. Slot-2
 token is either:
 - The literal `shared` — BC depended on by anything; no vertical
   ownership; cross-cutting infra.
 - A vertical name (open kebab token) registered in
-  `[workspace.metadata.oya.verticals]` — BC scoped to one vertical;
+  `[workspace.metadata.oyatie.verticals]` — BC scoped to one vertical;
   may be depended on only by same-vertical BCs or by `shared` BCs
   that do NOT depend on it.
 
 **Verticals registry** (open set; lifecycle-aware per iter-2 prefold-A item 2):
 ```toml
-[workspace.metadata.oya.verticals.cloud]
+[workspace.metadata.oyatie.verticals.cloud]
 status = "active"        # active | deprecated | retired
 owner = "council-cloud"
 rationale = "Provider plane: compute, storage, network, IAM, KMS, billing, region, observability"
@@ -1840,7 +1840,7 @@ public_layers = ["sdk"]  # see "Cloud vertical dual-role" sub-section
 deprecated_at = ""       # RFC 3339 timestamp set on soft-deprecate
 retired_at = ""          # RFC 3339 timestamp set when no crates remain
 
-[workspace.metadata.oya.verticals.foundry]
+[workspace.metadata.oyatie.verticals.foundry]
 status = "active"
 owner = "council-foundry"
 rationale = "Engineering platform: evidence, eval, capability registry, MCP gateway, ADR/audit/coverage probes"
@@ -1849,7 +1849,7 @@ public_layers = []        # foundry is internal-only by default
 deprecated_at = ""
 retired_at = ""
 
-[workspace.metadata.oya.verticals.workspace]
+[workspace.metadata.oyatie.verticals.workspace]
 status = "active"
 owner = "council-workspace"
 rationale = "User-facing product axis: drive, mail, calendar, chat, meet, docs, sheets, …"
@@ -1912,7 +1912,7 @@ The `status` field carries one of three closed values:
 ### Vertical naming policy (Option A: single-token verticals; Codex iter-2 D5)
 
 The verticals registry restricts every entry's `name` to **exactly one
-kebab token** (no hyphens). The `[workspace.metadata.oya.verticals]`
+kebab token** (no hyphens). The `[workspace.metadata.oyatie.verticals]`
 keys are single-token kebab strings such as `cloud`, `foundry`,
 `workspace`, `healthcare`, `corporate`, `fintech`. Two-token vertical
 names (e.g., `data-platform`, `cloud-edge`) are FORBIDDEN.
@@ -1924,7 +1924,7 @@ multi-token)**:
   name them and read naturally on the command line.
 - Single-token verticals eliminate parser ambiguity between vertical
   and bounded-context tokens at slot 2/slot 3 boundary; the parser
-  splits at the first hyphen after `oya-<slot2>-`. No need for
+  splits at the first hyphen after `oyatie-<slot2>-`. No need for
   "longest-registered-match" disambiguation pass.
 - Granularity within a vertical is expressed via multi-token bounded
   contexts (slot 3), where granularity-by-name is already the
@@ -1935,7 +1935,7 @@ multi-token)**:
 in slot 2. The verticals registry MUST refuse any entry whose `name ==
 "shared"` (LEAN-A2 `--check-vertical-name` enforces). This guarantees
 the parser can unambiguously distinguish `shared-<bc>-<layer>`
-(cross-vertical) from `oya-<vertical>-<bc>-<layer>` (vertical-scoped).
+(cross-vertical) from `oyatie-<vertical>-<bc>-<layer>` (vertical-scoped).
 
 **xtask enforcement** (`check-bounded-contexts`):
 - Reject any verticals-registry entry whose `name` contains a hyphen
@@ -2055,7 +2055,7 @@ layers within the `cloud` vertical = customer-facing product surface).
 
 **`public_layers` cross-vertical exemption mechanism**:
 
-The `[workspace.metadata.oya.verticals.<name>.public_layers]` field
+The `[workspace.metadata.oyatie.verticals.<name>.public_layers]` field
 documents which layers within a vertical are consumable cross-vertical.
 For `cloud`, the initial allowlist is `["sdk"]` — `cloud-*-sdk` crates
 are explicitly callable from any vertical because SDKs depend on
@@ -2130,7 +2130,7 @@ referenced unchanged if the cross-reference text already lines up; per
 Codex C7 the reference is added rather than the underlying docs
 amended — `cargo` non-coordination-primitive status is implicit in
 both docs today and made explicit by this ADR-0056 sub-section).
-- **Pattern C — drop-verb pattern** (`oya-<bounded-context>`, 2 segments
+- **Pattern C — drop-verb pattern** (`oyatie-<bounded-context>`, 2 segments
   only). **Why rejected**: cannot disambiguate domain layer from
   infrastructure layer of the same bounded context.
 - **Pattern D — single `presentation` layer with protocol as second-
@@ -2233,7 +2233,7 @@ window.
 ## §13 Reference inventory (full per Critic edit #9 from v3, ported forward)
 
 **Source**:
-- 140 `crates/oya-*/Cargo.toml` (all get `[package.metadata.oya]` per
+- 140 `crates/oyatie-*/Cargo.toml` (all get `[package.metadata.oya]` per
   §3.0 simplified schema; ~139 get rename + `[lib]` update)
 - 1 root `Cargo.toml` (members list + simplified workspace metadata block)
 - `Cargo.lock` (single regen via `xtask lockfile-rename`)
@@ -2353,10 +2353,10 @@ metadata-oya       ::= "[package.metadata.oya]" NL
                        "purpose          = " purpose-str NL
                        [ "audit_chain      = " bool-str NL ]
                        [ "feature          = " feature-str NL ]
-name-str           ::= "\"oya-" vertical "-" bounded-context "-" layer "\""
+name-str           ::= "\"oyatie-" vertical "-" bounded-context "-" layer "\""
                      | "\"check-" rule-name "\""
 vertical-str       ::= "\"shared\""                                  ; reserved literal (cross-vertical)
-                     | "\"" single-kebab-token "\""                  ; single-token vertical name registered in [workspace.metadata.oya.verticals]
+                     | "\"" single-kebab-token "\""                  ; single-token vertical name registered in [workspace.metadata.oyatie.verticals]
 bc-str             ::= "\"" kebab-bc "\""                            ; 1..N kebab tokens
 purpose-str        ::= "\"" free-text "\""                           ; required key per LEAN-A1 metadata-schema subcommand
 feature-str        ::= "\"" kebab-feature "\""                       ; optional presentation-protocol subkey for cli/rest/grpc/graphql multi-protocol BCs
@@ -2373,7 +2373,7 @@ substitutes `check_rule = "<rule-name>"`. The xtask handles both shapes.
 
 **Required keys for non-check crates** (per Codex iter-2 D3):
 `vertical` (literal `shared` OR single-kebab vertical name registered
-in `[workspace.metadata.oya.verticals]`) + `bounded_context` (kebab,
+in `[workspace.metadata.oyatie.verticals]`) + `bounded_context` (kebab,
 multi-token allowed) + `layer` (one of 12 canonical values) +
 `purpose` (free text; 1-sentence summary). **Optional keys**:
 `audit_chain` (bool; defaults `false`), `feature` (presentation-
@@ -2487,7 +2487,7 @@ during this iter-2 session.
 - **Supplement #2** (3-slot BNF + open verticals registry +
   shared/vertical-kind dependency rule) is the FINAL iter-2 fold
   state. All sections in v4 now use 3-slot grammar
-  `oya-<shared|vertical>-<bc>-<layer>`.
+  `oyatie-<shared|vertical>-<bc>-<layer>`.
 
 ### Final iter-2 state cross-references
 
@@ -2522,7 +2522,7 @@ during this iter-2 postfold-A session.
 |---|---|---|---|---|
 | D1 | §3 audit row rewrite — 3-slot column schema; drop `thing?`; add `vertical`+`kind`+`layer_evidence`+`bc_registry_status`; update proposed_names to 3-slot; replace `rest (provisional)` cells with evidence cite OR `PROTOCOL-UNKNOWN` deferral marker | BLOCKING (biggest gap) | CLOSED — schema rewrite landed; per-row body inspection deferred to iter-3 with explicit open-item | §3 audit preamble "Columns (FINAL post-Codex-iter-2 D1)"; §3.1–§3.5 header rows rewritten to 11-column 3-slot schema (verified via `grep -c "current_name | vertical | bounded_context | kind | layer | layer_evidence"` = 5); §3 v3-axis→v4-vertical translation rule documented; iter-3 open-item #1 in `.omc/plans/open-questions.md` records the per-row inspection surface |
 | D2 | Arithmetic consistency — §1 (144) vs §3.6 (139); sync to "140 existing + 4 new = 144" matching §1 | LOW | CLOSED | §3.6 audit summary rewritten — explicit subtotal "139 existing + 4 new check crates = 144 ops"; reconciles 28+31+22+29+26+3 = 139 to Cargo.toml 140-row ground truth via `cloud-data-kernel` bucket note + `foundation-app` accounting |
-| D3 | §3.0 metadata schema — purge `thing` references; required keys `vertical`+`bounded_context`+`layer`+`purpose`; optional `audit_chain`+`feature` | LOW | CLOSED | §3.0 metadata-oya BNF rewritten; `name-str` reads `oya-<vertical>-<bc>-<layer>`; `vertical-str` accepts literal `shared` or single-kebab token; "Difference from v3" prose updated to acknowledge `thing` was a transitional draft-only construct PURGED from v4 production prose |
+| D3 | §3.0 metadata schema — purge `thing` references; required keys `vertical`+`bounded_context`+`layer`+`purpose`; optional `audit_chain`+`feature` | LOW | CLOSED | §3.0 metadata-oya BNF rewritten; `name-str` reads `oyatie-<vertical>-<bc>-<layer>`; `vertical-str` accepts literal `shared` or single-kebab token; "Difference from v3" prose updated to acknowledge `thing` was a transitional draft-only construct PURGED from v4 production prose |
 | D4 | §8.1 LEAN-A2 gate row — explicitly walk transitive deps + per-hop `public_layers` check + FULL-chain violation output | MEDIUM | CLOSED | §8.1 LEAN-A2 gate row extended with explicit (ii) direct cross-vertical refusal + (iii) transitive cross-vertical refusal with per-hop public_layers check + (vi) violation-output format `a → x → y → b` with per-node `{kind, vertical, layer}` annotation; §6 R11a previously codified the rule, §8.1 now codifies the gate-command behaviour |
 | D5 | BNF ambiguity at `:282` — Option A: BAN multi-token verticals; reserve `shared` as non-vertical literal | BLOCKING | CLOSED | §2.1 BNF `vertical ::= kebab-token` (single token); `shared-or-vertical` declared "reserved non-vertical literal"; new §11 ADR-0056 §"Vertical naming policy" enumerates Option A rationale + xtask enforcement (reject hyphenated vertical names + reject `name == "shared"` registrations) |
 | D6 | §13 reference inventory — add `docs/standards/code-style-rust.md` lines 11-12, 137-147, 162-177 as Shard 1 co-edit (still declares v3 BNF + role enum) | MEDIUM | CLOSED | §13 reference inventory adds `docs/standards/code-style-rust.md` bullet with explicit line ranges; §5.2 step 10b added to enforce the co-edit; iter-3 open-item #3 records the surrounding-context-damage pressure test |
@@ -2558,7 +2558,7 @@ rows. Iter-3 pairs every directive with concrete execution.
 |---|---|---|---|---|
 | E1 | §3.1–§3.5 row-by-row regeneration to 11-column 3-slot schema; replace `rest (provisional)` with evidence cite OR `PROTOCOL-UNKNOWN` deferral | BLOCKING (root cause) | CLOSED | §3.1 rows 1-28 + §3.2 rows 29-59 + §3.3.1 rows 60-82 + §3.4 rows 112-137 + §3.5 rows 138-140 — all 110 rows regenerated to `current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected`. Zero `rest (provisional)` cells; every `-api` row carries `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` in `layer_evidence` + `proposed_name`; every kernel/app/adapter row carries `STUB-pending-iter-4-src-inspection` in `layer_evidence` |
 | E2 | §3.6 arithmetic — display 140+4=144 not 139+4=144 | LOW | CLOSED | §3.6 audit-summary row "Subtotal existing crates renamed: **140**"; total row "**140 + 4 new = 144**"; reconciliation prose rewritten to explain the visible-row-numbering (28+31+22+29+26+3 = 139 visible-row-numbers across the 5 sub-tables = 140 unique crates matching Cargo.toml ground truth) |
-| E3 | Frontmatter `purpose:` rewrite to 3-slot grammar; delete "2-slot" language + "<thing> slot considered in earlier drafts is REMOVED" | LOW | CLOSED | frontmatter lines 19-30 — `purpose:` block declares 3-slot grammar `oya-<shared\|vertical>-<bounded-context>-<layer>`; previous "2-slot" wording deleted; deleted stale "Codex iter-1 should regenerate 2-slot tables" directive at §3 :620-631 (replaced with superseded note pointing to iter-3 E1 regeneration) |
+| E3 | Frontmatter `purpose:` rewrite to 3-slot grammar; delete "2-slot" language + "<thing> slot considered in earlier drafts is REMOVED" | LOW | CLOSED | frontmatter lines 19-30 — `purpose:` block declares 3-slot grammar `oyatie-<shared\|vertical>-<bounded-context>-<layer>`; previous "2-slot" wording deleted; deleted stale "Codex iter-1 should regenerate 2-slot tables" directive at §3 :620-631 (replaced with superseded note pointing to iter-3 E1 regeneration) |
 | E4 | Stale §4a A4 heading rename — singular → plural | LOW | CLOSED | §4a "A4 — `check-bounded-contexts` (BC validation)" heading updated; explicit SUPERSEDED→LEAN-A2 annotation; §15b closure-table entry already documented the rename history, this E4 closes the heading itself |
 | E5 | `.omc/plans/open-questions.md` honest-claim correction + iter-3 closure section | LOW | CLOSED | `.omc/plans/open-questions.md` — `## rename-plan-v4 iter-3 fold — 2026-05-13` section appended with E1–E5 closure cites; iter-2 postfold-A section's "all references purged" claim corrected via inline HONEST-CLAIM-CORRECTION block listing 4 surfaces NOT actually purged at iter-2 (frontmatter, body rows, §3.0 prose comment, §6 R10 lane row); iter-3 fold corrects all 4 |
 
@@ -2620,7 +2620,7 @@ consensus pass). All 4 folded; plan is APPROVE-ready.
 | F1 | §3.3.2 schema carve-out — Option A regeneration to 11-column 3-slot with check-namespace exemption | BLOCKING (schema inconsistency) | CLOSED | §3.3.2 header updated to `n = 29` + check-namespace-exemption preamble + table header rewritten to 11-column 3-slot + all 29 body rows (83-111) regenerated with `vertical/bounded_context/kind/layer: check-namespace-exempt | layer_evidence: NEW-scaffold-shard-1-from-v3-fitness-crate (rule-name <X>) | proposed_name: check-<X> | bc_registry_status: PROPOSED-NEW`. Grep verification: `grep -cE "^\| (8[3-9]\|9[0-9]\|10[0-9]\|11[01]) \|"` returns 29; `grep -c "check-namespace-exempt"` returns 32 (29 row lines + 3 prose mentions) |
 | F2 | Arithmetic mechanical fixes — §3.3 header n=52, §3.3.1 header n=23, §3.6 reconciliation 28+31+23+29+26+3=140 | LOW | CLOSED | §3.3 header annotated "Codex iter-4 F2 fix — 23 non-check + 29 check = 52, was incorrectly stated as 53"; §3.3.1 header annotated "Codex iter-4 F2 fix — rows 60-82 are 23 rows, not 22"; §3.6 reconciliation prose rewritten to drop iter-3's "missing row" claim + show correct 28+31+23+29+26+3 = 140 arithmetic |
 | F3 | STUB/PROTOCOL count actual sync via grep | LOW | CLOSED | `.omc/plans/open-questions.md` STUB markers block — 110 → 85; 22 → 26; verification commands documented inline (`rg -cE` patterns); iter-3 estimates explicitly marked inaccurate |
-| F4 | ADR-0056 outline 3-slot rewrite + §"Protocol classification" sub-section authored | MEDIUM | CLOSED | §11 ADR-0056 Decision paragraph: `2-slot grammar` → `3-slot grammar `oya-<shared\|vertical>-<bounded-context>-<layer>`` (line 1650); new §"Protocol classification" sub-section authored before §"Cloud vertical dual-role" with: grep heuristic mapping table (axum/tonic/async-graphql/tokio loop), multi-protocol split-vs-exception policy with `[package.metadata.oya].protocols = [...]` declaration requirement, 26-row PROTOCOL-UNKNOWN deferred-crate enumeration (5 platform + 13 cloud + 4 foundry + 4 workspace = 26 matching body-row grep), Option-Hold-vs-Option-Inline sequencing decision criterion (5 working days threshold), Exceptions list (empty at iter-4 close) |
+| F4 | ADR-0056 outline 3-slot rewrite + §"Protocol classification" sub-section authored | MEDIUM | CLOSED | §11 ADR-0056 Decision paragraph: `2-slot grammar` → `3-slot grammar `oyatie-<shared\|vertical>-<bounded-context>-<layer>`` (line 1650); new §"Protocol classification" sub-section authored before §"Cloud vertical dual-role" with: grep heuristic mapping table (axum/tonic/async-graphql/tokio loop), multi-protocol split-vs-exception policy with `[package.metadata.oya].protocols = [...]` declaration requirement, 26-row PROTOCOL-UNKNOWN deferred-crate enumeration (5 platform + 13 cloud + 4 foundry + 4 workspace = 26 matching body-row grep), Option-Hold-vs-Option-Inline sequencing decision criterion (5 working days threshold), Exceptions list (empty at iter-4 close) |
 
 ### Iter-4 final verification grep output (mechanical confirmation)
 

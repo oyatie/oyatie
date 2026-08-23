@@ -322,7 +322,7 @@ fn workload(
         residency_region: RESIDENCY_REGION,
         runtime_package_ref,
         route_scope_ref: "crates/tenant-rbac-local-runtime-composition/src/lib.rs::tenant_rbac_local_runtime_composition",
-        deployment_manifest_ref: "crates/tenant-rbac-cloud-deployment-manifest/src/lib.rs::tenant_rbac_cloud_deployment_manifest",
+        deployment_manifest_ref: "crates/tenant-rbac-deployment-manifest/src/lib.rs::tenant_rbac_deployment_manifest",
         resource_quota_ref: "deploy/oyatie-cloud/fd001-tenant-rbac/resource-quota.yaml",
         network_policy_ref: "deploy/oyatie-cloud/fd001-tenant-rbac/network-policy.yaml",
         service_account_ref: "serviceaccount/fd001-tenant-rbac-workload",
@@ -393,7 +393,7 @@ fn validate_workload(
     )?;
     validate_prefixed_ref(
         workload.deployment_manifest_ref,
-        "crates/tenant-rbac-cloud-deployment-manifest/",
+        "crates/tenant-rbac-deployment-manifest/",
         Fd001TenantWorkloadManifestError::InvalidDeploymentManifestRef,
     )?;
     validate_prefixed_ref(

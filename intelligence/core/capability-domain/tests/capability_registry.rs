@@ -70,7 +70,7 @@ fn capability_rejects_operational_or_subject_markers_as_touched_privacy_classes(
                 "demo".into(),
                 AutonomyTier::T1ViewOnly,
                 vec![data_class],
-                "oya.foundry.capability.invoked".into(),
+                "oyatie.foundry.capability.invoked".into(),
             ),
             Err(CapabilityError::NonPrivacyDataClass)
         );
@@ -111,7 +111,7 @@ fn capability_cost_profile_declares_cost_ceiling_and_ordered_provider_preference
         "demo".into(),
         AutonomyTier::T2Advisory,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         profile.clone(),
     )
     .unwrap();
@@ -159,7 +159,7 @@ fn capability_mcp_contract_carries_authored_descriptions_and_schemas() {
         "demo".into(),
         AutonomyTier::T1ViewOnly,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
         contract.clone(),
     )
     .unwrap();
@@ -213,7 +213,7 @@ fn capability(id: &str, tier: AutonomyTier) -> Capability {
         "demo".into(),
         tier,
         vec![privacy_data_class(DataClass::InternalOnly)],
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
     )
     .unwrap()
 }

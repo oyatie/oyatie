@@ -5,11 +5,11 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Provider-pool composition root (usecase layer per ADR-0105). Wires the pure provider-pool-kernel routing function (round-robin / least-used / least-latency / least-remaining / sticky over BTreeSet membership + AccountHealthMap + UsageSnapshotMap) into an end-to-end dispatch use-case: load pool registry, drive failover through the kernel's fallback_chain on retryable failures, mutate health on consecutive-failure quarantine, and surface a typed Unimplemented boundary for OpenBao secret resolution + Bedrock-shape audit emission downstreams. Path-deps on the kernel + the sibling account-kernel only; no NEW external workspace dependency seam. Mirrors the workload-identity-app + cloud-intelligence-app composition pattern (ports + in-memory adapters + production transport adapter; default-deny on error; ADR-0083 Tier-3 panic-free)."
+description = "Provider-pool composition root (usecase layer per ADR-0105). Wires the pure provider-pool-kernel routing function (round-robin / least-used / least-latency / least-remaining / sticky over BTreeSet membership + AccountHealthMap + UsageSnapshotMap) into an end-to-end dispatch use-case: load pool registry, drive failover through the kernel's fallback_chain on retryable failures, mutate health on consecutive-failure quarantine, and surface a typed Unimplemented boundary for OpenBao secret resolution + Bedrock-shape audit emission downstreams. Path-deps on the kernel + the sibling account-kernel only; no NEW external workspace dependency seam. Mirrors the workload-identity-app + intelligence-app composition pattern (ports + in-memory adapters + production transport adapter; default-deny on error; ADR-0083 Tier-3 panic-free)."
 
 # INVARIANT: path-deps on the provider-pool kernel + the sibling account kernel
 # only for the LIBRARY. The composition layer adds tokio/futures-util/bytes/tracing
-# for the production hyper-backed transport (mirroring how the cloud-intelligence-app
+# for the production hyper-backed transport (mirroring how the intelligence-app
 # composes the same backbone). No NEW external workspace dependency seam in the library.
 #
 # The [[bin]] composition root (src/main.rs, pooling-convergence slice 1,

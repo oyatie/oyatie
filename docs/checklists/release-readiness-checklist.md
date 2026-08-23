@@ -44,11 +44,11 @@ doc_status: published
 - [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature. *Lane:* `governance-supply-chain`.
 - [ ] **RR12** Every shipped binary has Syft / CycloneDX SBOM artifact. *Lane:* `governance-supply-chain`.
 - [ ] **RR13** SLSA L2+ provenance attestation present + Rekor log index recorded. *Lane:* `governance-supply-chain`.
-- [ ] **RR14** Dependency/advisory posture green via `cloud-ci-supply-chain-audit` (owned RustSec advisory scan over vendored mirror; `cargo-vet` retired until maintained inputs). *Lane:* `cloud-ci-supply-chain-audit`. *Evidence:* `presubmit` supply-chain packet or `buck2 test //ci/facade/supply-chain-audit:ci-supply-chain-audit-gate`.
+- [ ] **RR14** Dependency/advisory posture green via `pipeline-supply-chain-audit` (owned RustSec advisory scan over vendored mirror; `cargo-vet` retired until maintained inputs). *Lane:* `pipeline-supply-chain-audit`. *Evidence:* `presubmit` supply-chain packet or `buck2 test //ci/facade/supply-chain-audit:ci-supply-chain-audit-gate`.
 
 ## SRE / observability
 
-- [ ] **RR15** SLOs defined for every milestone-shipped surface (per `docs/SLO-CATALOG.md`). *Lane:* `cloud-ci-slo-coverage`.
+- [ ] **RR15** SLOs defined for every milestone-shipped surface (per `docs/SLO-CATALOG.md`). *Lane:* `pipeline-slo-coverage`.
 - [ ] **RR16** 4 golden signals (latency, traffic, errors, saturation) dashboards live. *(advisory; observability team)*
 - [ ] **RR17** Runbooks live for every alert resolving to a runbook URL. *Lane:* `governance-runbook-index-resolves`.
 - [ ] **RR18** On-call rotation (primary + secondary) staffed for milestone owner-axis. *(advisory)*

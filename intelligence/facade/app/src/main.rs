@@ -1,4 +1,4 @@
-//! cloud-intelligence binary entry-point (ADR-0384 Path B, Stage-7).
+//! intelligence-app binary entry-point (ADR-0384 Path B, Stage-7).
 //!
 //! Reads config from environment variables, calls [`build_app`] to wire all
 //! production components (secret-provider adapter + ClickHouse + Valkey sinks),
@@ -14,7 +14,7 @@
 //! - `OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS` — semicolon-separated tenant/provider handle pools
 //! - `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL`         — secret-provider adapter base URL (required)
 //! - `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`       — secret-provider adapter token (required)
-//! - `OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME`    — Transit key name (default: cloud-intelligence-rt)
+//! - `OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME`    — Transit key name (default: intelligence-app-rt)
 //! - `OYATIE_CLOUD_INTEL_CLICKHOUSE_URL`      — ClickHouse HTTP URL (default: analytics svc)
 //! - `OYATIE_CLOUD_INTEL_CLICKHOUSE_USER`     — ClickHouse user (default: default)
 //! - `OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD` — ClickHouse password (required)
@@ -73,7 +73,7 @@ async fn main() {
         }
     };
 
-    info!(addr = %listen_addr, "cloud-intelligence listening");
+    info!(addr = %listen_addr, "intelligence-app listening");
 
     // Serve. `axum::serve` is infallible until the OS closes the socket.
     if let Err(e) = axum::serve(listener, router).await {

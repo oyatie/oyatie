@@ -444,12 +444,12 @@ This playbook should be attached to the customer kickoff and reviewed at every o
 - Microservice: `messenger-service`; Action: `messenger:NotifyTenantContact`; Onboarding use: incident and launch notifications.
 - Microservice: `mail-service`; Action: `mail:SendTenantMessage`; Onboarding use: kickoff, recap, and enablement messages.
 - Microservice: `finops-portal`; Action: `finops-portal:ReadTenantCostCenter`; Onboarding use: cost-center and value reporting.
-- Microservice: `migration-discovery-service`; Action: `oya.migration.discover`; Onboarding use: identify source objects.
-- Microservice: `migration-export-service`; Action: `oya.migration.export`; Onboarding use: extract approved source data.
-- Microservice: `migration-transform-service`; Action: `oya.migration.transform`; Onboarding use: map incumbent data to Oyatie model.
-- Microservice: `migration-import-service`; Action: `oya.migration.import`; Onboarding use: import mapped data.
-- Microservice: `migration-validate-service`; Action: `oya.migration.validate`; Onboarding use: verify completeness and quality.
-- Microservice: `migration-cutover-service`; Action: `oya.migration.cutover`; Onboarding use: perform cutover after validation.
+- Microservice: `migration-discovery-service`; Action: `oyatie.migration.discover`; Onboarding use: identify source objects.
+- Microservice: `migration-export-service`; Action: `oyatie.migration.export`; Onboarding use: extract approved source data.
+- Microservice: `migration-transform-service`; Action: `oyatie.migration.transform`; Onboarding use: map incumbent data to Oyatie model.
+- Microservice: `migration-import-service`; Action: `oyatie.migration.import`; Onboarding use: import mapped data.
+- Microservice: `migration-validate-service`; Action: `oyatie.migration.validate`; Onboarding use: verify completeness and quality.
+- Microservice: `migration-cutover-service`; Action: `oyatie.migration.cutover`; Onboarding use: perform cutover after validation.
 
 ### Cedar Policies by Onboarding Stage
 

@@ -16,7 +16,7 @@ metadata:
     enforced_by: governance-dynamic-sharding-threshold-coverage
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_purpose: "oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix."
+    adr_0346_purpose: "presubmit is the canonical local pre-push verifier and MUST locally mirror the full CI matrix."
     adr_0347_enforced_by: "governance-lane-prefix-vocabulary"
     adr_0348_enforced_by: "governance-dynamic-sharding-threshold-coverage; governance-audit-chain-emit-on-automation-events"
     adr_0349_enforced_by: "governance-jenkins-github-actions-parity"

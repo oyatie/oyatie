@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # OAuth subscription-pool app crate (ADR-0384 Path B, Stage-6).
-# Composition + binary entry-point for the cloud-intelligence µservice.
+# Composition + binary entry-point for the intelligence-app µservice.
 # Wires:
 #   kernel (pool + AuthzGate seam) + Cedar adapter + REST adapter + in-process stubs
 #   into build_app() -> Arc<AppState>, then serves the axum router via tokio::main.
@@ -15,7 +15,7 @@ license = "Apache-2.0"
 # Real OpenBao adapter and ClickHouse/Valkey sinks are Stage-7 items.
 
 [[bin]]
-name = "cloud-intelligence"
+name = "intelligence-app"
 path = "src/main.rs"
 
 [lib]

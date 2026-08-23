@@ -20,7 +20,7 @@ It records threats in enough detail for governance review, runbook routing, moni
 It treats legal and regulatory material as risk intelligence, not legal advice.
 It uses official regulator source snapshots where current enforcement posture matters.
 
-### Likelihood Scale - OYA-L5
+### Likelihood Scale - OYATIE-L5
 
 1. Rare - credible only under exceptional conditions or targeted nation-state pressure.
 2. Unlikely - plausible within a year, but current controls and threat surface keep probability low.
@@ -28,7 +28,7 @@ It uses official regulator source snapshots where current enforcement posture ma
 4. Likely - expected without active mitigation, monitoring, and owner accountability.
 5. Almost Certain - already recurring, already materialized elsewhere, or structurally probable.
 
-### Impact Scale - OYA-I5
+### Impact Scale - OYATIE-I5
 
 1. Limited - localized inconvenience, no regulated data, no customer trust impact.
 2. Moderate - single-team disruption, limited tenant effect, recoverable without external notice.
@@ -654,7 +654,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - Cedar policies: `policy.cloud_mutation_tenant_target`, `policy.production_change_dual_control`, `policy.agent_claim_scope_bound`.
 - monitoring: cloud mutation audit, feature flag blast radius, agent claim mismatch, environment selector drift.
 - named indicators: dry-run target mismatch, tenant selector ambiguity, environment variable drift, mutation rollback count.
-- early-warning trigger: operator command target differs from Oya VCS claim scope.
+- early-warning trigger: operator command target differs from retired VCS ratchet claim scope.
 - control evidence: dry-run artifact, Cedar permit, change bundle, audit-chain event, rollback proof.
 - runbook reference: `docs/runbooks/cloud-mutation.md` if promoted; interim `docs/runbooks/release-rollback.md`.
 - incident class: control-plane-misfire.
@@ -1923,7 +1923,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 
 ## Section 8. Risk Heatmap
 
-Matrix name: OYA-L5 x OYA-I5 snapshot on 2026-05-20.
+Matrix name: OYATIE-L5 x OYATIE-I5 snapshot on 2026-05-20.
 
 | Impact \\ Likelihood | Rare 1 | Unlikely 2 | Possible 3 | Likely 4 | Almost Certain 5 |
 |---|---|---|---|---|---|
@@ -2133,4 +2133,4 @@ Risk catalogue count: 57.
 Register owner: `council-architecture`.
 Next required review: next Weekly Risk Council after 2026-05-20.
 Required follow-up artifact: machine-readable mirror candidate under the active artifact contract when PHASE-5/PHASE-6 work schedules this Markdown projection for retirement.
-Clean halt condition: document authored, line count verified, Oya VCS verify/done/promote run with `risks_catalogued:57` and exact `register_lines` evidence.
+Clean halt condition: document authored, line count verified, retired VCS ratchet verify/done/promote run with `risks_catalogued:57` and exact `register_lines` evidence.

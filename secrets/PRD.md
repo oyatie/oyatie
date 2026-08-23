@@ -23,7 +23,7 @@ The `cloud-secrets` microservice is oyatie's secret-manager substrate. It owns t
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice that needs a secret (provider credentials, API keys, signing keys, encryption keys, OTel tokens, mTLS material) and emits to `audit-chain` on every access. Its existence is the precondition for every other µservice meeting the security posture in `feedback_quality_performance_scalability_bar.md` and the residency posture in `microservices/observability/policy/data-residency.md` §"Per-Pack Overlay Sections".
 
-Per ADR-0131 Cloud split, the umbrella `microservices/cloud/` is dissolved into focused µservices; `cloud-secrets` owns the OpenBao operator + SecretReference contract. Sibling cloud µservices (`cloud-iac`, `cloud-k8s`, `cloud-mesh`, `cloud-cdn`, `cloud-edge`) consume this substrate but do not duplicate its responsibilities.
+Per ADR-0131 Cloud split, the umbrella `microservices/cloud/` is dissolved into focused µservices; `cloud-secrets` owns the OpenBao operator + SecretReference contract. Sibling cloud µservices (`iac-app`, `cloud-k8s`, `cloud-mesh`, `cloud-cdn`, `cloud-edge`) consume this substrate but do not duplicate its responsibilities.
 
 This µservice has no Bominal equivalent; it originates in oyatie.
 
@@ -375,7 +375,7 @@ Sharding:
 | ADR-0132 | Industry-vertical unbundle policy | sibling cloud µservices |
 | ADR-0133 | (Cloud split formalisation) | this µservice scaffolds under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-SECRETS registers here |
-| ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives throughout |
+| ADR-0116 | Retire external agent-coordination tooling | retired vcs primitives throughout |
 
 ## ADR-0164 Update — Sovereign Cloud / Air-Gapped Deployment Variant
 
@@ -403,7 +403,7 @@ Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_regio
   `presubmit` is the live blocker until the owned `ci` cutover reuses
   the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
   checks, shell scripts, and legacy build-server mirrors are
-  non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
+  non-authoritative unless explicitly re-homed through the ci pipeline.
 - Delivery authority: Kubernetes/cloud-native services, controllers, APIs, and
   declarative manifests are canonical. ArgoCD/GitOps consumes signed
   declarative state; manual `kubectl apply`, Helm CLI deploys, and local
@@ -413,14 +413,14 @@ Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-secrets`; the branch-protected `presubmit` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `ci` rather than revived as local CLI authority.
+- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-secrets`; the branch-protected `presubmit` context is the live required gate, and reusable Rust gate logic must be re-homed into owned `ci` rather than revived as local CLI authority.
 - ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-retired-vocab-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
 - ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-secrets`; GitHub Actions `presubmit` remains the live required context until owned `ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-secrets` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
-- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `cloud-secrets` owns primitive selection and tenant-scoped variables.
+- ADR-0339 adoption keeps reusable HCL in `microservices/iac-app/modules/<context>/<primitive>/`; `cloud-secrets` owns primitive selection and tenant-scoped variables.
 - Manifest contract: `iac_module_invocations` declares 6 module pin(s) across 4 context(s).
 - Scaling input: `per_request` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
 - Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.

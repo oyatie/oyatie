@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya gate run-all` with `--affected [--base <ref>]` so presubmit runs
+Extend `presubmit` with `--affected [--base <ref>]` so presubmit runs
 execute only the governance lanes triggered by the diff against a base ref,
 mirroring the affected-scope selection already used by `oya verify --affected`
 (ADR-0360 O1). `--ci-required` remains the authoritative whole-workspace trunk
@@ -35,7 +35,7 @@ No new modules, no new abstractions beyond the two new fields on `RunAllArgs`.
 ## CLI surface
 
 ```
-oya gate run-all [--include-deferred] [--ci-required] [--affected [--base <ref>]]
+retired CLI run-all [--include-deferred] [--ci-required] [--affected [--base <ref>]]
 ```
 
 | Flag | Semantics |

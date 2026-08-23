@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: application-shell-app
 description: Application Shell composition-root binaries (shell-routing + tenant-context + auth-gateway + module-loader + frontend-bundle-serve) per ADR-0121 + ADR-0131

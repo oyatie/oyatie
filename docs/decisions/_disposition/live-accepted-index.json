@@ -1094,7 +1094,7 @@
     },
     {
       "num": 539,
-      "file": "ADR-0539-cloud-ci-freshness-gate.md",
+      "file": "ADR-0539-pipeline-freshness-gate.md",
       "title": "Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity"
     },
     {
@@ -1169,8 +1169,8 @@
     },
     {
       "num": 595,
-      "file": "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
-      "title": "De-commit the pure-derivation cloud-ci accounting faces \u2014 derive-on-demand + gate teaching"
+      "file": "ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
+      "title": "De-commit the pure-derivation pipeline accounting faces \u2014 derive-on-demand + gate teaching"
     },
     {
       "num": 597,

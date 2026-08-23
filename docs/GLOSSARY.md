@@ -124,8 +124,8 @@ The fitness-function `governance-glossary` walks every consolidated doc and flag
 | **Apache Polaris** | Open-source Iceberg REST Catalog reference implementation; Snowflake-authored, donated to ASF as incubating 2024-07-23; canonical for self-managed and OCI-guest contexts per ADR-0337. |
 | **BigLake** | Google Cloud's managed Iceberg REST Catalog endpoint (GA 2025-01-15); canonical for GCP-guest context per ADR-0337. |
 | **Delta UniForm** | Databricks-authored Delta variant that emits Iceberg metadata pointing at Delta data; read-accepted by Oyatie's Iceberg read path per ADR-0337 §D-2.4. |
-| **Apache Delta Lake** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Delta-formatted data are served by `oya-<ms>-adapter-delta-ingest-to-iceberg`. |
-| **Apache Hudi** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Hudi-formatted data are served by `oya-<ms>-adapter-hudi-ingest-to-iceberg`. |
+| **Apache Delta Lake** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Delta-formatted data are served by `oyatie-<ms>-adapter-delta-ingest-to-iceberg`. |
+| **Apache Hudi** | Adapter-only OLAP substrate per ADR-0337; canonical write path is Iceberg. Tenants ingesting Hudi-formatted data are served by `oyatie-<ms>-adapter-hudi-ingest-to-iceberg`. |
 | **k-anonymity** | A record is indistinguishable from at least k-1 others on the QID columns. |
 | **Differential Privacy (DP)** | Bounded ε-budget noise injection that limits individual disclosure. |
 | **PII / PHI / PCI** | Personally Identifiable / Protected Health / Payment Card data. |
@@ -493,7 +493,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | Old | New | Reason |
 |---|---|---|
 | Pre-directive brand aliases | Oyatie | Brand standardization per ADR-0017 (user directive 2026-05-08) |
-| oyatie-* (Cargo prefix) | oya-* | ADR-0017 |
+| oyatie-* (Cargo prefix) | oyatie-* | ADR-0017 |
 | shell (UI) | Bench | ADR-0017 |
 | Caddy (gateway) | Envoy | ADR-0013 (supersedes ADR-0004) |
 | WireGuard (bastion) | OCI Bastion | ADR-0045 (supersedes earlier WireGuard plan) |
@@ -504,14 +504,14 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | Redis 7.4+ (RSAL/SSPL — Redis Inc. dual-license since 2024-03-20) | **Valkey** (BSD-3-Clause — Linux Foundation fork) | ADR-0013 / ADR-0045 / **ADR-0336** (canonical authority — DragonflyDB removed because BSL-1.1 is on the forbidden-license list) |
 | MVP / Milestone (M0..M3) | Wave per PRD §3.1 (W-Foundation, W-Foundry-Preview, ...) | Drawing-board reframing on 2026-05-09 |
 | postmortem long-form | mistakes-and-fixes-ledger entry | Per `docs/MISTAKES-LEDGER.md` and CLAUDE.md |
-| `oya verify` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
+| retired `./bin/oya verify` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
 | Foundry engineering platform axis (separate) | Foundry (consolidated; ADR-0025 foundry-as-engineering-platform) | Foundry axis consolidation on 2026-05-09 |
 
 ## 12. Conventions
 
 ### 12.1 Crate naming
 
-Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `platform-tenant-kernel`, `identity-usecase`, `intelligence-policy-app`, `cloud-iam-rest`.
+Per ADR-0105 + ADR-0106 + ADR-0565: `oyatie-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `platform-tenant-kernel`, `identity-usecase`, `intelligence-policy-app`, `cloud-iam-rest`.
 
 ### 12.2 ADR naming
 
@@ -603,7 +603,7 @@ The table is reference-shaped so an intern can resolve each term to a decision s
 | **Tenant membership** | Relationship between one identity and one tenant with scoped roles. | [ADR-0244](decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Okta group membership | role projection |
 | **Transient identity** | Time-boxed identity projection for apprentice, intern, resident, fellow, or extern roles. | [ADR-0320](decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | temporary access group | persona |
 | **Meta-trust-root** | Root of trust attesting agentic self-modification and Foundry authority. | [ADR-0293](decisions/ADR-0293-governance-meta-trust-root.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | SLSA provenance root | audit-chain |
-| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
+| **retired VCS ratchet ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Gerrit change plus PR | claim, promote |
 | **ChangeBundle** | Promotion package grouping verified ChangeSets for controller-owned movement. | [ADR-0110](decisions/ADR-0110-changeset-state-machine.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | merge queue batch | ChangeSet |
 | **Cell tier** | Deployment class controlling blast radius, compliance eligibility, and workload isolation. | [ADR-0248](decisions/ADR-0248-amazon-shape-cellular-architecture.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | AWS cellular architecture | shuffle sharding |
 | **Sovereign cell** | Cell operating under jurisdiction-specific legal, data, and operational constraints. | [ADR-0240](decisions/ADR-0240-sovereign-cloud-per-regional-pack.md) | [unified-ecosystem-thesis-2026-05-21.md](architecture/unified-ecosystem-thesis-2026-05-21.md) | Azure sovereign cloud | pack overlay |
@@ -1092,17 +1092,17 @@ Authority citation: ADR-0263 "Observability emission contract"; Audit Chain arch
 
 ### Claim / work / verify / done / promote primitives
 
-Definition: Claim, work, verify, done, and promote are the Oya VCS lifecycle primitives used to reserve scope, perform edits, attach evidence, close a changeset, and advance a verified bundle.
+Definition: Claim, work, verify, done, and promote are the retired VCS ratchet lifecycle primitives used to reserve scope, perform edits, attach evidence, close a changeset, and advance a verified bundle.
 
 `claim` reserves the intended scope before editing so concurrent agents can detect collisions. `work` is the edit phase under the claim, even when no separate command is required. `verify` attaches concrete evidence that the change satisfied its checks.
 
 `done` marks the claimed slice complete with evidence, and `promote` advances the verified changeset or bundle toward an environment or merge queue. These verbs make agent work auditable without depending on retired external coordination tools.
 
-Named µservices and surfaces using the terms include `foundry`, `governance`, `audit-chain`, `developer-sdk`, `ci`, and the repository `bin/oya vcs` control surface. The lifecycle is especially important for documentation, policy, and master-plan slices where concurrency safety matters.
+Named µservices and surfaces using the terms include `foundry`, `governance`, `audit-chain`, `developer-sdk`, `ci`, and the repository `bin/retired VCS ratchet` control surface. The lifecycle is especially important for documentation, policy, and master-plan slices where concurrency safety matters.
 
-Related terms: Oya VCS ChangeSet; ChangeBundle; claim ceiling; merge queue; audit-event class; Foundry.
+Related terms: retired VCS ratchet ChangeSet; ChangeBundle; claim ceiling; merge queue; audit-event class; Foundry.
 
-Authority citation: ADR-0116 external tooling retirement; ADR-0110 ChangeSet state machine; project AGENTS required sequence for Oya VCS.
+Authority citation: ADR-0116 external tooling retirement; ADR-0110 ChangeSet state machine; project AGENTS required sequence for retired VCS ratchet.
 
 ### Valkey
 
@@ -1112,7 +1112,7 @@ Valkey preserves the RESP3 wire protocol, command surface, cluster slot mapping,
 
 Hyperscaler-managed offerings: AWS ElastiCache for Valkey (GA 2024-11-04, 20% lower instance pricing than ElastiCache for Redis OSS at equivalent instance class); Google Memorystore for Valkey (GA 2024-09-24); Oracle Cloud Cache with Valkey (GA 2025-01-21, integrated with OCI Always Free perpetual tier).
 
-Crate naming: `oya-<microservice>-adapter-valkey[-<topology>]` per ADR-0336 §D-1. IaC modules at `iac/<context>/valkey/` per ADR-0336 §D-2. Environment variables `VALKEY_URL`, `VALKEY_CLUSTER_ENDPOINTS`, `VALKEY_TLS_CERT_PATH`, etc., per ADR-0336 §D-5. Cedar entity types `ValkeyCluster::"<id>"`, `ValkeyKey::"<pattern>"`, `ValkeyChannel::"<name>"`, `ValkeyStream::"<name>"` per ADR-0336 §D-8. Audit-chain event classes `valkey.*` per ADR-0336 §D-10. Metric label `substrate="valkey"` per ADR-0336 §D-9.
+Crate naming: `oyatie-<microservice>-adapter-valkey[-<topology>]` per ADR-0336 §D-1. IaC modules at `iac/<context>/valkey/` per ADR-0336 §D-2. Environment variables `VALKEY_URL`, `VALKEY_CLUSTER_ENDPOINTS`, `VALKEY_TLS_CERT_PATH`, etc., per ADR-0336 §D-5. Cedar entity types `ValkeyCluster::"<id>"`, `ValkeyKey::"<pattern>"`, `ValkeyChannel::"<name>"`, `ValkeyStream::"<name>"` per ADR-0336 §D-8. Audit-chain event classes `valkey.*` per ADR-0336 §D-10. Metric label `substrate="valkey"` per ADR-0336 §D-9.
 
 Counterpart-fact preservation: factual references to Redis-based external products (e.g., "Discord uses Redis Cluster for session state", "Twitch uses Redis for chat fanout") remain preserved quote-bound per ADR-0336 §D-11; these are NOT migrated to Valkey because the counterpart product factually uses Redis.
 

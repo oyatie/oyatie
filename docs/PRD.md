@@ -197,10 +197,10 @@ The PRD's central commercial claim: **the cohesion is the moat.** Customers can 
 1. **Global-canonical regulatory posture, regional-pack-driven.** The architecture is locale-agnostic. Every regulated surface declares its `regulatory_packs:` set in the catalog, and a regional pack supplies the per-jurisdiction implementation. Initial pack set: KR (PIPA/KISA/MFDS/FSC/KCC/NIS/CSAP/K-ISMS-P/KCMVP), JP (APPI/ISMAP), US (HIPAA/HITECH/SOX/CCPA-CPRA/StateAGs/FedRAMP), EU (GDPR/DORA/EU-AI-Act/GAIA-X), IN (DPDP/RBI/MeitY), BR (LGPD/ICP-Brasil), KSA (PDPL/NDMO/SDAIA), UAE (TDRA/ADGM), ANZ (Privacy Act/IRAP). Every axis ships with the *canonical* contract; every regional pack ships with the *jurisdictional* control evidence in its first commercial wave for that region.
 2. **Audit-chain immutability.** Every capability invocation, every consent decision, every cross-axis data flow emits a tamper-evident record per ADR-0003 audit-chain-merkle-sealed-ed25519. *Without this, the cohesion thesis fails on first audit.*
 3. **Tenancy isolation under formal proof.** PHI/PII/PCI never cross tenant boundary; cell-isolation evidence required for every axis. *Move #0* (per maturity 8-move program) is the substrate.
-4. **Architectural flattening.** Per ADR-0015 architectural-flattening-target / Issue #1458, the codebase is migrating to flat `crates/oya-<context>-<role>[-<capability>]/`. No new `modules/` `services/` `platform/` tiers. Every consolidated doc and the v2 backlog assume the flat target.
+4. **Architectural flattening.** Per ADR-0015 architectural-flattening-target / Issue #1458, the codebase is migrating to flat `crates/oyatie-<context>-<role>[-<capability>]/`. No new `modules/` `services/` `platform/` tiers. Every consolidated doc and the v2 backlog assume the flat target.
 5. **Clean-architecture boundaries inside each crate.** Entities → use-cases → adapters → frameworks; dependency direction always inward. Validator hard-fails forbidden edges.
 6. **Horizontal scaling end-to-end.** No single-instance assumptions. Every state lives in a partitionable store. Every queue is partitioned. Every search shard is replicated.
-7. **Single brand surface (Oyatie).** Product, package, and UI surfaces standardize on `Oyatie` per ADR-0017, with `oya-` as the Cargo prefix. Repo slug + filesystem path retained (no GitHub repo rename in scope yet).
+7. **Single brand surface (Oyatie).** Product, package, and UI surfaces standardize on `Oyatie` per ADR-0017, with `oyatie-` as the Cargo prefix. Repo slug + filesystem path retained (no GitHub repo rename in scope yet).
 8. **Data Use Boundary ADR (P0 prereq).** Defines per-consent-tier which tenant data is search-indexable and which can feed ad targeting; PHI/PII/PCI walled off; emits audit-chain on every cross-axis flow. *No cloud / search / ads work begins before this ADR is Accepted.*
 9. **Plane separation per ADR-0017 / DESIGN §2.** Every surface declares its plane (control / data / analytics). Cross-plane calls are explicit contracts.
 10. **Claim ceiling.** No preview slice may claim foundation guarantees the foundation hasn't yet shipped. Foundation-bypasses are tracked, expirable, ledgered.
@@ -242,7 +242,7 @@ These are open at PRD draft v0.1 and need a council decision before promoting to
 
 | Date | Decision | Rationale |
 |---|---|---|
-| 2026-05-08 | Brand standardized as Oyatie (logo `oYa`, domain `oyatie.com`) | User directive; `oya-*` Cargo prefix is cleaner; KR-recognizable. |
+| 2026-05-08 | Brand standardized as Oyatie (logo `oYa`, domain `oyatie.com`) | User directive; `oyatie-*` Cargo prefix is cleaner; KR-recognizable. |
 | 2026-05-08 | Repo slug + filesystem path stay `oyatie` | Migration cost > brand purity; ADR-0017. |
 | 2026-05-09 | Repositioned to one cohesive ecosystem-as-a-service across 7 axes | The integration tax kills multi-vendor stacks; cohesion is the moat. |
 | 2026-05-09 | Cost-of-deferral horizon: multi-year / structural | Schemas, audit-chain, tenancy, plane separation, search-index shape, cloud control-plane API are unrecoverable failure modes. |

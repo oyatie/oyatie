@@ -678,6 +678,6 @@ The required lifecycle claim was made before authoring.
 Verification must confirm the six requested documents exist.
 Verification must confirm each document has at least 600 lines.
 Verification must confirm each document contains required headings.
-Verification must run the required Oya VCS `verify` command without `--intent`.
-Completion must run the required Oya VCS `done` command.
-Promotion must run the required Oya VCS `promote` command.
+Verification must run the required retired VCS ratchet `verify` command without `--intent`.
+Completion must run the required retired VCS ratchet `done` command.
+Promotion must run the required retired VCS ratchet `promote` command.

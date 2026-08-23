@@ -19,7 +19,7 @@ If any of these are missing, see `docs/templates/microservice-bootstrap-checklis
 
 ## Step 1 — Integrate audit-chain client (Invariant 1)
 
-Add to the µservice's `Cargo.toml` (one of the µservice's app crates, typically `crates/oya-<ms>-app/Cargo.toml`):
+Add to the µservice's `Cargo.toml` (one of the µservice's app crates, typically `crates/oyatie-<ms>-app/Cargo.toml`):
 
 ```toml
 [dependencies]
@@ -102,7 +102,7 @@ If this µservice owns canonical entities (Person, Task, Document, Recording, et
 ]
 ```
 
-The schema is enforced by `specs/microservices/manifest-schema.json`. The gate `oya gate validate ontology-projection-coverage` flags µservices that own entities but ship an empty projections list.
+The schema is enforced by `specs/microservices/manifest-schema.json`. The gate `presubmit` (retired CLI `gate validate ontology-projection-coverage`) flags µservices that own entities but ship an empty projections list.
 
 ## Step 6 — Wire the per-µservice metric kernel
 
@@ -122,10 +122,10 @@ After all 6 steps land:
 
 ```bash
 # Build the µservice
-cargo build -p oya-<ms>-app
+cargo build -p oyatie-<ms>-app
 
 # Run the µservice's tests
-cargo nextest run -p oya-<ms>-app
+cargo nextest run -p oyatie-<ms>-app
 
 # Validate manifest
 cargo run -p dev-cli -- gate validate ontology-projection-coverage

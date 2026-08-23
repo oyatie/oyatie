@@ -20,7 +20,7 @@ doc_status: published
 
 Cross-cutting principles that distinguish oyatie's repo from a human-developer-team repo. Industry best practices assume a human typing into an editor; oyatie's developer is a fully-agentic team executing in parallel. This standard codifies the optimisation vectors that make every artifact agent-friendly: structured, parallel-safe, idempotent, audit-chain-sealed, fail-closed, smallest-actionable.
 
-Every artifact authored in oyatie MUST satisfy these principles. The `governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired `oya vcs` claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and `oya gate` / `oya verify`.
+Every artifact authored in oyatie MUST satisfy these principles. The `governance-industry-best-practice-conformance` CI lane (per ADR-0133) enforces. The retired VCS ratchet claim/verify/done/promote ratchet is historical only; live coordination uses plain git branches, PRs, Jenkins, and retired CLI / retired `./bin/oya verify`.
 
 ## Principle 1 — Semantic branch scope
 
@@ -46,7 +46,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `governance
 - Migrations touch disjoint paths (per `migrate-microservice` parallel_safety contract).
 - CI lanes parallelise per PR branch; cross-µservice ordering only on explicit dependency edges.
 
-**Verification:** `oya gate run-all` / reviewer governance evidence asserts the PR branch affected paths do not overlap with known in-flight ownership.
+**Verification:** `presubmit` / reviewer governance evidence asserts the PR branch affected paths do not overlap with known in-flight ownership.
 
 ## Principle 3 — Idempotent operations
 
@@ -73,7 +73,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `governance
 - Every Cedar policy decision emits per `policy/auditor-scope.cedar` audit trail.
 - Per-changeset multispectrum evidence at `microservices/<ms>/evidence/multispectrum/<change_id>-*.json` (per `docs/AGENTS.md §changeset`) seals what shipped.
 
-**Verification:** `oya gate validate audit-chain-coverage --microservice <ms>` asserts every state-transition emitter is wired.
+**Verification:** `presubmit` (retired CLI `gate validate audit-chain-coverage --microservice <ms>`) asserts every state-transition emitter is wired.
 
 ## Principle 5 — Fail-closed on every gate
 
@@ -100,13 +100,13 @@ Every artifact authored in oyatie MUST satisfy these principles. The `governance
 - Frontmatter carries machine-readable structure; body carries why-not-what.
 - No commented-out code; no `TODO` markers that should be filed as fixuptasks.
 
-**Verification:** `oya gate validate smallest-actionable --path <artifact>` (TBD; queued per ADR-0133 axis-5 enforcement) measures token-count vs information-density and flags below-threshold artifacts.
+**Verification:** `presubmit` (retired CLI `gate validate smallest-actionable --path <artifact>`) (TBD; queued per ADR-0133 axis-5 enforcement) measures token-count vs information-density and flags below-threshold artifacts.
 
 ## Principle 7 — No blanket-sed
 
 **Rule:** Repo-wide multi-file substitutions use AST-aware tooling (ast-grep, rust-analyzer, clippy, custom Cargo workspace operations) rather than blanket `sed -i`.
 
-**Why:** Per durable user directive ("The implementation rebrand `oyatie-*` → `oya-*` MUST proceed as a coordinated multi-batch migration; blanket-sed is forbidden"). Blanket-sed silently mangles strings inside comments, doc-comments, test fixtures, and unrelated semantic contexts.
+**Why:** Per durable user directive ("The implementation rebrand `oyatie-*` → `oyatie-*` MUST proceed as a coordinated multi-batch migration; blanket-sed is forbidden"). Blanket-sed silently mangles strings inside comments, doc-comments, test fixtures, and unrelated semantic contexts.
 
 **How to apply:**
 - `oya dev migrate-microservice` uses ast-grep for Markdown-link patterns + Cargo workspace operations for `[workspace.members]` updates.
@@ -122,11 +122,11 @@ Every artifact authored in oyatie MUST satisfy these principles. The `governance
 **Why:** Per durable user preference. Reducing framework leakage keeps the repo replaceable; agents author against stable Oya types, not against shifting third-party APIs.
 
 **How to apply:**
-- New crates depend on `oya-*` façades (e.g., `observability-slo-engine-kernel` for SLO types, not `prometheus-client` directly).
+- New crates depend on `oyatie-*` façades (e.g., `observability-slo-engine-kernel` for SLO types, not `prometheus-client` directly).
 - When no façade exists and adding one is < 100 lines of code, add it; otherwise file a fixuptask for the missing façade.
 - Adapter layers isolate external framework imports per ADR-0105 layer enum.
 
-**Verification:** `oya gate validate no-deeper-hole --crate <crate>` (TBD; queued per ADR-0133 axis-5 enforcement) compares per-crate external-framework imports against the Oya-façade catalog.
+**Verification:** `presubmit` (retired CLI `gate validate no-deeper-hole --crate <crate>`) (TBD; queued per ADR-0133 axis-5 enforcement) compares per-crate external-framework imports against the Oya-façade catalog.
 
 ## Enforcement
 

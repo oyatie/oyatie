@@ -127,8 +127,8 @@ following reasons:
 2. Every µservice scope is bounded by a `tier:` and `tier_subtype:`
    classification per ADR-0245 §D-3, and the dependency direction is
    declared explicitly in §D-4 of ADR-0245.
-3. Every gate has a named validator (e.g., `oya gate validate cedar-
-   coverage`, `oya gate validate shuffle-sharding-parameters`), and
+3. Every gate has a named validator (e.g., `presubmit` (retired CLI `gate validate cedar-
+   coverage`), `presubmit` (retired CLI `gate validate shuffle-sharding-parameters`)), and
    every validator is wired to an `enforcement_status` that promotes
    from advisory to BLOCKER on a documented bootstrap precondition.
 4. The user-story compendia explicitly carry the "intern-buildable
@@ -595,7 +595,7 @@ Content shape:
   per-stream sealed audit log
 - §6 Step 5 — Wire the ADR-0333 cell pattern successors with the bootstrap
   cell self-retirement procedure
-- §7 Verification — `oya gate validate` commands per step
+- §7 Verification — `presubmit` (retired CLI `gate validate`) commands per step
 - §8 Done-criteria — green CI on a clean checkout
 
 **Owner.** axis-tenancy + axis-identity + axis-policy-engine + axis-
@@ -668,7 +668,7 @@ Content shape:
   - "What does the wire look like?" → ADR-0253 §D-5 HTTP/3 +
     voice-video standard
 - §3 Step-by-step build narrative (1 working day of implementation)
-- §4 Verification — `oya gate validate` commands
+- §4 Verification — `presubmit` (retired CLI `gate validate`) commands
 
 **Owner.** council-architecture; estimated 1 day of writing.
 
@@ -734,7 +734,7 @@ exemplar (e.g., Apple-Pay-class US 50-state rollout).
 estimated 2 days of authoring.
 
 **Acceptance criterion.** ADR-0250's `enforced_by:` lane
-`oya gate validate capability-launch-runbook-completeness` returns
+`presubmit` (retired CLI `gate validate capability-launch-runbook-completeness`) returns
 exit 0 for at least one capability.
 
 ---
@@ -1575,7 +1575,7 @@ For a deeper validation, dispatch a follow-up wave that:
    ADR-0246 §D-7, ADR-0249 §D-3, ADR-0251 §D-4, etc.
 5. Walks every cross-reference in every `related:` block and
    verifies file-existence + reciprocal back-reference.
-6. Runs `oya gate validate <each enforced_by lane name>` to check
+6. Runs `presubmit` (retired CLI `gate validate <each enforced_by lane name>`) to check
    that the named lanes exist as code in `microservices/governance/`.
 
 The next-pass workload is roughly 4-6 hours of agent dispatch +

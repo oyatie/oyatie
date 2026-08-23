@@ -21,7 +21,7 @@ path = "src/lib.rs"
 doctest = false
 
 [[bin]]
-name = "cloud-iac"
+name = "iac-app"
 path = "src/main.rs"
 
 [lints]

@@ -1,0 +1,16 @@
+[package]
+name = "iam-control-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+iam-domain = { path = "../domain-control" }
+iam-policy-cedar-domain = { path = "../policy-cedar-domain" }
+
+[dev-dependencies]
+
+
+[lints]
+workspace = true

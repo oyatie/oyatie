@@ -148,7 +148,7 @@ components:
 
 ```proto
 syntax = "proto3";
-package oya.managed_k8s.v1;
+package oyatie.managed_k8s.v1;
 
 enum NodePoolAction {
   NODE_POOL_ACTION_UNSPECIFIED = 0;

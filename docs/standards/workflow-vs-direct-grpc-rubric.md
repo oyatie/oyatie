@@ -37,7 +37,7 @@ Use **direct gRPC** when ALL of these are true:
 - ATS may be down for hours; replay-from-cursor required.
 - Audit-chain causal ordering required across `network` and `ats` µservices.
 
-**Decision**: Workflow. ATS handoff publishes `oya.network.jobposting.v1.published` to workflow-engine; workflow-engine routes to ATS; ATS ack returns via workflow-engine. This is the canonical pattern documented in IP-011-jobs-handoff-bc.md.
+**Decision**: Workflow. ATS handoff publishes `oyatie.network.jobposting.v1.published` to workflow-engine; workflow-engine routes to ATS; ATS ack returns via workflow-engine. This is the canonical pattern documented in IP-011-jobs-handoff-bc.md.
 
 ### Example 2 — `tasks` reads a Person entity from `ontology`
 

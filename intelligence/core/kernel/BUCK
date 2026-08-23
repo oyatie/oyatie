@@ -72,10 +72,10 @@ rust_test(
 
 
 rust_test(
-    name = "cloud-intelligence-safety-guardrails-test",
-    srcs = glob(["tests/cloud_intelligence_safety_guardrails.rs"]),
-    crate = "intelligence_kernel_cloud_intelligence_safety_guardrails_test",
-    crate_root = "tests/cloud_intelligence_safety_guardrails.rs",
+    name = "intelligence-app-safety-guardrails-test",
+    srcs = glob(["tests/intelligence_app_safety_guardrails.rs"]),
+    crate = "intelligence_kernel_intelligence_app_safety_guardrails_test",
+    crate_root = "tests/intelligence_app_safety_guardrails.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-kernel",

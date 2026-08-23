@@ -39,7 +39,7 @@ spec:
       serviceAccountName: docs
 {{- if $useGvisor }}
       {{- /* Untrusted-content sandbox per ADR-0147; gVisor default, Kata for sovereign tenants */}}
-      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
+      {{- include "helpers.runtimeClassName.untrustedContent" $ | nindent 6 }}
 {{- end }}
       securityContext:
         runAsNonRoot: true

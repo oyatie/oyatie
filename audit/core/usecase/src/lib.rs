@@ -32,7 +32,7 @@ use authz::{
 };
 
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit.event.emit";
-pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";
+pub const AUDIT_EVENT_TOPIC: &str = "oyatie.platform.audit";
 pub const AUDIT_EVENT_EMIT_SCHEMA: &str = "audit.event.emit.v1";
 pub const AUDIT_EVENT_EMIT_SOURCE: &str = "oyatie://platform/audit-chain";
 pub const AUDIT_EVENT_ASYNCAPI_CONTRACT: &str = "contracts/asyncapi/platform/audit-events-v1.yaml";

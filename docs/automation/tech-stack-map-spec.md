@@ -37,7 +37,7 @@ Directive 8 (current LTS dependencies, CI-enforced) requires a single visible ro
 - Every `clients/typescript/**/package.json` `dependencies` block.
 - Every base image referenced in `Dockerfile`s under `crates/**/Dockerfile` and `infra/**/Dockerfile`.
 - The verified LTS roster `.omc/plans/specs/lts-versions-verified-2026-05-12.md`.
-- The provider-adapter registry (every `oya-*-adapter-<provider>-*` crate declares which external in its `Cargo.toml` `[package.metadata.oyatie.adapts]`).
+- The provider-adapter registry (every `oyatie-*-adapter-<provider>-*` crate declares which external in its `Cargo.toml` `[package.metadata.oyatie.adapts]`).
 
 ## 3. Per-dep record shape
 
@@ -87,7 +87,7 @@ For each axis, an axis-scoped Mermaid view showing only the deps that axis consu
 ## 5. Validation gates (`governance-tech-stack-map`)
 
 1. **LTS conformance.** Every dep's `version_pinned` resolves to the current LTS major.minor per `lts-versions-verified-*.md` (BLOCKER absent ADR-tracked exception).
-2. **Adapter-boundary discipline.** Provider-specific deps (AWS, GCP, Azure, OCI, OpenAI, Anthropic, etc.) appear ONLY in `oya-*-adapter-<provider>-*` crates (BLOCKER per Directive 4).
+2. **Adapter-boundary discipline.** Provider-specific deps (AWS, GCP, Azure, OCI, OpenAI, Anthropic, etc.) appear ONLY in `oyatie-*-adapter-<provider>-*` crates (BLOCKER per Directive 4).
 3. **Distroless conformance.** Every binary crate's Dockerfile inherits `gcr.io/distroless/static-debian12` or `gcr.io/distroless/cc-debian12` (BLOCKER per Directive 5).
 4. **License-policy compliance.** Every dep's license passes `governance-license-policy-kernel` (BLOCKER on prohibited license).
 5. **Vendor-contract recency.** For commercial vendors, `last_audit` ≤ 365 days (HIGH; via `governance-vendor-contract-recency-kernel`).

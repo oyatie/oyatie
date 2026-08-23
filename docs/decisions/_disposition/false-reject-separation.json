@@ -734,7 +734,7 @@
       "num": 111,
       "title": "ADR-0111-merge-queue-projected-state-fix-at-any-stage",
       "file": "ADR-0111-merge-queue-projected-state-fix-at-any-stage.md",
-      "reason": "Merge-queue projected-state model superseded by live 0515 cloud-ci/Tide admission",
+      "reason": "Merge-queue projected-state model superseded by live 0515 pipeline Tide admission",
       "action": "Keep Rejected"
     },
     {

@@ -193,7 +193,7 @@ Acceptance:
   - All crates in workspace [members] glob
 
 Validation command:
-  bash oya gate validate architecture-boundaries crates/intelligence-account-*
+  bash presubmit (retired CLI gate validate) architecture-boundaries crates/intelligence-account-*
 ```
 
 **P00-02: Domain types + application commands + ports**

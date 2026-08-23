@@ -381,7 +381,11 @@ fn validate_bypass_id(id: &str) -> Result<(), BypassError> {
 }
 
 fn validate_crate_ref(crate_ref: &str) -> Result<(), BypassError> {
-    if crate_ref.starts_with("oya-")
+    let mut characters = crate_ref.chars();
+    let starts_with_lowercase = characters
+        .next()
+        .is_some_and(|character| character.is_ascii_lowercase());
+    if starts_with_lowercase
         && crate_ref.chars().all(|character| {
             character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
         })

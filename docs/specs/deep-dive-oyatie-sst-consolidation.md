@@ -14,7 +14,7 @@ doc_status: published
 
 ## Constraints
 
-4. **Clean Architecture dependency direction is preserved.** `kernel ← domain ← app ← {api, worker, adapter} ← runtime` per the flat-crates ADR-0015 target. Any new crate introduced by the cutover names itself `oya-<context>-<role>[-<capability>]` and respects the dependency direction.
+4. **Clean Architecture dependency direction is preserved.** `kernel ← domain ← app ← {api, worker, adapter} ← runtime` per the flat-crates ADR-0015 target. Any new crate introduced by the cutover names itself `oyatie-<context>-<role>[-<capability>]` and respects the dependency direction.
 7. **Linus-style discipline.** Delete bureaucracy that hides bad data structures. Eliminate special cases by reshaping the data, not by adding shims. Flat structure > deep hierarchy when the deep one is ceremony. "Good taste" means the simplest representation that handles all cases without branching. No half-finished implementations.
 8. **bominal-to-oyatie boundary is explicit.** `oyatie/docs/PRD.md` cites `bominal/docs/consolidated/PRD.md` as portfolio parent; `bominal` references `oyatie` as the canonical implementation home for the seven-axis product. Cross-cite enforcement lands as a new fitness lane: `governance-portfolio-citation`.
 9. **All four OPEN ledger entries stay open.** Direction shift does not force-close LEDG-008, LEDG-017, LEDG-021, LEDG-024. They continue on their existing resolution-batch ownership.

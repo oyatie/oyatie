@@ -574,7 +574,7 @@ impl CloudComputeFunctionsApiError {
             Self::EmptyPathFunctionId => vec![detail("path.function_id", "must be non-empty")],
             Self::InvalidFunctionId { .. } => vec![detail(
                 "path.function_id",
-                "must be a canonical oya:cloud function resource id",
+                "must be a canonical oyatie:cloud function resource id",
             )],
             Self::FunctionKindMismatch { .. } => {
                 vec![detail("path.function_id", "resource kind must be function")]

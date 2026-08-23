@@ -95,7 +95,7 @@ The Cloud axis owns the **`cloud` bounded context** per [DESIGN.md §1](../../DE
 
 - `crates/cloud-{compute,storage,network,iam,billing,observability,region,resource}-*`
 
-Per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`.
+Per ADR-0015 §1: `oyatie-<context>-<role>[-<capability>]`.
 
 ### 4.2 Layered structure (clean architecture inside the bounded context)
 
@@ -221,7 +221,7 @@ runtime   — composition root (binary)
 ```rust
 // cloud-resource-kernel
 pub struct Resource {
-    pub id: ResourceId,                        // ulid; arn-style "oya:cloud:<region>:<tenant>:<kind>:<name>"
+    pub id: ResourceId,                        // ulid; arn-style "oyatie:cloud:<region>:<tenant>:<kind>:<name>"
     pub tenant_id: TenantId,                   // every record carries tenant
     pub region: RegionCode,                    // KR-Seoul1, JP-Tokyo1, US-Virginia1, EU-Frankfurt1, ...
     pub az: Option<AzCode>,                    // KR-Seoul1-a/b/c
@@ -514,19 +514,19 @@ All events go through the canonical eventing backbone per ADR-0050/0174 + outbox
 
 | Event name | Topic | Schema location | Consumer aggregates | Retention | Idempotency key |
 |---|---|---|---|---|---|
-| `cloud.billing.event.ingest.v1` | `oya.cloud.billing` | `contracts/asyncapi/cloud/cloud-billing-events-v1.yaml`; `contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` | SaaS billing, FinOps, Marketplace, Tax, platform metering | 7y | `idempotency_key` |
-| `cloud.resource_created.v1` | `oya.cloud.resource` | `contracts/events/cloud.resource_created.v1.avsc` | Billing (start meter), Audit, FinOps, SaaS metering | 90 d | `(tenant_id, resource_id)` |
-| `cloud.resource_terminated.v1` | `oya.cloud.resource` | `contracts/events/cloud.resource_terminated.v1.avsc` | Billing (stop meter), Audit, FinOps | 90 d | `(tenant_id, resource_id)` |
-| `cloud.iam_role_assumed.v1` | `oya.cloud.iam` | `contracts/events/cloud.iam_role_assumed.v1.avsc` | Audit (per-assume record), Foundry (capability bind) | 90 d | `sts_session_id` |
-| `cloud.iam_policy_changed.v1` | `oya.cloud.iam` | `contracts/events/cloud.iam_policy_changed.v1.avsc` | Audit, Cedar evaluator cache invalidate, Foundry policy projection | indefinite | `(tenant_id, policy_id, version)` |
-| `cloud.region_registered.v1` | `oya.cloud.region` | `contracts/events/cloud.region_registered.v1.avsc` | All axes (residency-aware), regulatory pack binding, marketplace | indefinite | `region_code` |
-| `cloud.cell_rebalanced.v1` | `oya.cloud.region` | `contracts/events/cloud.cell_rebalanced.v1.avsc` | Audit, FinOps, observability | 90 d | `(cell_id, rebalance_seq)` |
-| `cloud.invoice_issued.v1` | `oya.cloud.billing` | `contracts/events/cloud.invoice_issued.v1.avsc` | SaaS billing-account update, Tax (regional pack), Tenant trust portal | 7y | `invoice_id` |
-| `cloud.budget_alert.v1` | `oya.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, (notification) | 30 d | `(billing_account_id, alert_seq)` |
-| `cloud.bucket_replication_lag.v1` | `oya.cloud.storage` | `contracts/events/cloud.bucket_replication_lag.v1.avsc` | Observability, Foundry remediation capability | 14 d | `(bucket_id, ts)` |
-| `cloud.object_lifecycle_transitioned.v1` | `oya.cloud.storage` | `contracts/events/cloud.object_lifecycle_transitioned.v1.avsc` | Audit, FinOps, Search re-index hint | 90 d | `(bucket_id, key, transition_seq)` |
-| `cloud.network_flow_anomaly.v1` | `oya.cloud.network` | `contracts/events/cloud.network_flow_anomaly.v1.avsc` | Security review, Foundry remediation, Audit | 90 d | `(vpc_id, anomaly_id)` |
-| `cloud.kms_key_used.v1` | `oya.cloud.iam` | `contracts/events/cloud.kms_key_used.v1.avsc` | Audit (per-decrypt record per ADR-0003 properties) | indefinite | `(key_id, use_seq)` |
+| `cloud.billing.event.ingest.v1` | `oyatie.cloud.billing` | `contracts/asyncapi/cloud/cloud-billing-events-v1.yaml`; `contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` | SaaS billing, FinOps, Marketplace, Tax, platform metering | 7y | `idempotency_key` |
+| `cloud.resource_created.v1` | `oyatie.cloud.resource` | `contracts/events/cloud.resource_created.v1.avsc` | Billing (start meter), Audit, FinOps, SaaS metering | 90 d | `(tenant_id, resource_id)` |
+| `cloud.resource_terminated.v1` | `oyatie.cloud.resource` | `contracts/events/cloud.resource_terminated.v1.avsc` | Billing (stop meter), Audit, FinOps | 90 d | `(tenant_id, resource_id)` |
+| `cloud.iam_role_assumed.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.iam_role_assumed.v1.avsc` | Audit (per-assume record), Foundry (capability bind) | 90 d | `sts_session_id` |
+| `cloud.iam_policy_changed.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.iam_policy_changed.v1.avsc` | Audit, Cedar evaluator cache invalidate, Foundry policy projection | indefinite | `(tenant_id, policy_id, version)` |
+| `cloud.region_registered.v1` | `oyatie.cloud.region` | `contracts/events/cloud.region_registered.v1.avsc` | All axes (residency-aware), regulatory pack binding, marketplace | indefinite | `region_code` |
+| `cloud.cell_rebalanced.v1` | `oyatie.cloud.region` | `contracts/events/cloud.cell_rebalanced.v1.avsc` | Audit, FinOps, observability | 90 d | `(cell_id, rebalance_seq)` |
+| `cloud.invoice_issued.v1` | `oyatie.cloud.billing` | `contracts/events/cloud.invoice_issued.v1.avsc` | SaaS billing-account update, Tax (regional pack), Tenant trust portal | 7y | `invoice_id` |
+| `cloud.budget_alert.v1` | `oyatie.cloud.billing` | `contracts/events/cloud.budget_alert.v1.avsc` | Tenant FinOps surface, (notification) | 30 d | `(billing_account_id, alert_seq)` |
+| `cloud.bucket_replication_lag.v1` | `oyatie.cloud.storage` | `contracts/events/cloud.bucket_replication_lag.v1.avsc` | Observability, Foundry remediation capability | 14 d | `(bucket_id, ts)` |
+| `cloud.object_lifecycle_transitioned.v1` | `oyatie.cloud.storage` | `contracts/events/cloud.object_lifecycle_transitioned.v1.avsc` | Audit, FinOps, Search re-index hint | 90 d | `(bucket_id, key, transition_seq)` |
+| `cloud.network_flow_anomaly.v1` | `oyatie.cloud.network` | `contracts/events/cloud.network_flow_anomaly.v1.avsc` | Security review, Foundry remediation, Audit | 90 d | `(vpc_id, anomaly_id)` |
+| `cloud.kms_key_used.v1` | `oyatie.cloud.iam` | `contracts/events/cloud.kms_key_used.v1.avsc` | Audit (per-decrypt record per ADR-0003 properties) | indefinite | `(key_id, use_seq)` |
 
 ### 5.5 Index / search-index touchpoints
 
@@ -544,16 +544,16 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 
 | Operation | Emits topic | Required fields |
 |---|---|---|
-| Resource created | `oya.audit.cloud_resource_created` | `tenant_id`, `region`, `cell_id`, `kind`, `actor`, `iam_role`, `timestamp`, `prev_hash` |
-| Resource terminated | `oya.audit.cloud_resource_terminated` | `tenant_id`, `resource_id`, `actor`, `reason`, `timestamp`, `prev_hash` |
-| IAM role assumed | `oya.audit.cloud_iam_assume` | `tenant_id`, `role_id`, `assumed_by`, `external_id`, `scopes`, `timestamp`, `prev_hash` |
-| IAM policy changed | `oya.audit.cloud_iam_policy` | `tenant_id`, `policy_id`, `before_hash`, `after_hash`, `actor`, `timestamp`, `prev_hash` |
-| Region registered | `oya.audit.cloud_region_register` | `region_code`, `regulatory_packs`, `actor`, `attestation_refs`, `timestamp`, `prev_hash` |
-| KMS key used (decrypt) | `oya.audit.cloud_kms_use` | `tenant_id`, `key_id`, `purpose`, `actor`, `data_class_referenced`, `timestamp`, `prev_hash` |
-| Cross-region replication | `oya.audit.cloud_replication` | `tenant_id`, `bucket_id`, `src_region`, `dst_region`, `data_classes_present`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
-| Network flow anomaly | `oya.audit.cloud_flow_anomaly` | `tenant_id`, `vpc_id`, `flow_pattern`, `severity`, `disposition`, `timestamp`, `prev_hash` |
-| Invoice issued | `oya.audit.cloud_invoice` | `tenant_id`, `billing_account_id`, `invoice_id`, `total`, `tax_invoice_format`, `regional_pack`, `timestamp`, `prev_hash` |
-| Direct interconnect provisioned | `oya.audit.cloud_interconnect` | `tenant_id`, `interconnect_id`, `bandwidth`, `peer_asn`, `peering_location`, `actor`, `timestamp`, `prev_hash` |
+| Resource created | `oyatie.audit.cloud_resource_created` | `tenant_id`, `region`, `cell_id`, `kind`, `actor`, `iam_role`, `timestamp`, `prev_hash` |
+| Resource terminated | `oyatie.audit.cloud_resource_terminated` | `tenant_id`, `resource_id`, `actor`, `reason`, `timestamp`, `prev_hash` |
+| IAM role assumed | `oyatie.audit.cloud_iam_assume` | `tenant_id`, `role_id`, `assumed_by`, `external_id`, `scopes`, `timestamp`, `prev_hash` |
+| IAM policy changed | `oyatie.audit.cloud_iam_policy` | `tenant_id`, `policy_id`, `before_hash`, `after_hash`, `actor`, `timestamp`, `prev_hash` |
+| Region registered | `oyatie.audit.cloud_region_register` | `region_code`, `regulatory_packs`, `actor`, `attestation_refs`, `timestamp`, `prev_hash` |
+| KMS key used (decrypt) | `oyatie.audit.cloud_kms_use` | `tenant_id`, `key_id`, `purpose`, `actor`, `data_class_referenced`, `timestamp`, `prev_hash` |
+| Cross-region replication | `oyatie.audit.cloud_replication` | `tenant_id`, `bucket_id`, `src_region`, `dst_region`, `data_classes_present`, `consent_receipt_ref`, `timestamp`, `prev_hash` |
+| Network flow anomaly | `oyatie.audit.cloud_flow_anomaly` | `tenant_id`, `vpc_id`, `flow_pattern`, `severity`, `disposition`, `timestamp`, `prev_hash` |
+| Invoice issued | `oyatie.audit.cloud_invoice` | `tenant_id`, `billing_account_id`, `invoice_id`, `total`, `tax_invoice_format`, `regional_pack`, `timestamp`, `prev_hash` |
+| Direct interconnect provisioned | `oyatie.audit.cloud_interconnect` | `tenant_id`, `interconnect_id`, `bandwidth`, `peer_asn`, `peering_location`, `actor`, `timestamp`, `prev_hash` |
 
 ### 5.7 Schema migration policy
 
@@ -2517,10 +2517,10 @@ Pass: imported credentials are secret references only.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 full-mirror semantics are migration input only: Cloud Provider acceptance must be evidenced by current cloud-ci/ci Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
+- ADR-0346 full-mirror semantics are migration input only: Cloud Provider acceptance must be evidenced by current presubmit Rust gate packets and promotion artifacts. The retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked, recreated, or treated as merge/exit authority.
 - ADR-0347 binds Cloud governance and CI-lane authoring to the `governance-*` lane vocabulary after the `governance-*` bulk rename. Enforced-by cross-reference: `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, `governance-rename-inventory-presence`.
 - ADR-0348 binds Region, AZ, Cell, tenant placement, capacity rebalance, and shard-count automation to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, `governance-tenant-migration-reversibility`.
-- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from cloud-ci/ci gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
+- ADR-0349 is amended by ADR-0513/platform-readiness: Jenkins is bridge evidence only until cutover, ArgoCD/Rollouts remain authorized bridge/reference CD adapters where separately governed, and canonical readiness/promotion evidence comes from presubmit gate packets plus deployment/audit artifacts rather than Jenkins as destination CI authority.
 
 ## References
 
@@ -2555,12 +2555,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| CLOUD-PRD-AC-001 | The Cloud PRD is used as a planning contract and region, cell, resource, IAM/KMS, audit, billing, and observability contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Cloud region/cell/resource acceptance is linked to test and evidence paths instead of generic prose | CLOUD-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| CLOUD-PRD-AC-002 | cloud-provider preview, stable, or GA readiness is evaluated | Readiness evidence is evaluated | fresh CI, SLO, security, SBOM, rollback/DR, cost, audit, billing, and product-pain evidence is required outside this PRD | CLOUD-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| CLOUD-PRD-AC-001 | The Cloud PRD is used as a planning contract and region, cell, resource, IAM/KMS, audit, billing, and observability contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | Cloud region/cell/resource acceptance is linked to test and evidence paths instead of generic prose | CLOUD-PRD-GATE-001 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| CLOUD-PRD-AC-002 | cloud-provider preview, stable, or GA readiness is evaluated | Readiness evidence is evaluated | fresh CI, SLO, security, SBOM, rollback/DR, cost, audit, billing, and product-pain evidence is required outside this PRD | CLOUD-PRD-GATE-002 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| Cloud region/cell/resource/audit/billing planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one Cloud row names region, cell, resource, audit, billing, and SLO/security obligations | `presubmit` |
-| Cloud product-ready and hyperscaler-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | A Cloud promotion packet cannot treat this PRD as hyperscaler-ready evidence without fresh CI/SLO/security/SBOM/DR proof | `presubmit` |
+| Cloud region/cell/resource/audit/billing planning maturity | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | At least one Cloud row names region, cell, resource, audit, billing, and SLO/security obligations | `presubmit` |
+| Cloud product-ready and hyperscaler-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | A Cloud promotion packet cannot treat this PRD as hyperscaler-ready evidence without fresh CI/SLO/security/SBOM/DR proof | `presubmit` |

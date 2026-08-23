@@ -508,8 +508,8 @@
     "539": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
-      "archive_path": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0539-pipeline-freshness-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0539-pipeline-freshness-gate.md"
     },
     "365": {
       "disposition": "consolidated",
@@ -1519,8 +1519,8 @@
     "595": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
-      "archive_path": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
+      "archive_path": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md"
     },
     "586": {
       "disposition": "consolidated",
@@ -3118,7 +3118,7 @@
     "ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
     "ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
     "ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-    "ADR-0539-cloud-ci-freshness-gate.md",
+    "ADR-0539-pipeline-freshness-gate.md",
     "ADR-0540-cargo-buck2-target-parity-gate.md",
     "ADR-0541-corpus-liveness-graph.md",
     "ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
@@ -3164,7 +3164,7 @@
     "ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
     "ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
     "ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
-    "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+    "ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
     "ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
     "ADR-0598-commission-comms-meet-capability-first-core-slice.md",
     "ADR-0599-commission-comms-calendar-capability-first-core-slice.md",

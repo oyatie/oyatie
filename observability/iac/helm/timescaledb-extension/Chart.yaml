@@ -11,4 +11,4 @@ home: https://github.com/timescale/timescaledb
 maintainers:
   - name: axis-observability
 annotations:
-  oya.adr/0194: tenant-facing-timeseries-timescaledb
+  oyatie.adr/0194: tenant-facing-timeseries-timescaledb

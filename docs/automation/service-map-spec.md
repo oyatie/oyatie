@@ -50,7 +50,7 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | `rest` / `grpc` / `api` | External-surface handlers | `intelligence-rest`, `cloud-iam-api` |
 | `worker` | Queue/scheduled entrypoints | `intelligence-ci-worker` |
 
-Layer is declared in `[package.metadata.oya.layer]` / catalog `role`. The pipeline rejects crates without a catalog role. The active dependency rule is inward-only: `kernel <- domain <- usecase <- app`; `app -> app` is a blocker.
+Layer is declared in `[package.metadata.oyatie.layer]` / catalog `role`. The pipeline rejects crates without a catalog role. The active dependency rule is inward-only: `kernel <- domain <- usecase <- app`; `app -> app` is a blocker.
 
 ## 4. Output rendering
 
@@ -97,7 +97,7 @@ The pipeline also emits per-layer subviews `docs/visualization/service-map-<laye
 
 ## 5. Validation gates (`governance-service-map`)
 
-1. **Layer declaration.** Every workspace crate has catalog `role` plus `[package.metadata.oya.layer]` where present (BLOCKER).
+1. **Layer declaration.** Every workspace crate has catalog `role` plus `[package.metadata.oyatie.layer]` where present (BLOCKER).
 2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on outer layers; `domain` must not depend on `usecase`/`app`/adapters/surfaces; `usecase` must not depend on concrete adapters or apps; `app -> app` is a BLOCKER. The pipeline enforces strict inward dependency direction.
 3. **Cycle ban.** Workspace-internal dependency cycles → BLOCKER (cargo already rejects, but the pipeline asserts the rendered DAG is acyclic for visual clarity).
 4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `intelligence-catalog-kernel`).

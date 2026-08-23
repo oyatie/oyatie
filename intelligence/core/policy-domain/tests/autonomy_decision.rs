@@ -258,7 +258,7 @@ fn capability_with_action(
         action,
         tier,
         privacy_classes,
-        "oya.foundry.capability.invoked".into(),
+        "oyatie.foundry.capability.invoked".into(),
     )
     .unwrap()
 }

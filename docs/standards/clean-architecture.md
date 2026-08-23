@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical layered-architecture standard for every `oya-*` crate."
+purpose: "Canonical layered-architecture standard for every `oyatie-*` crate."
 doc_status: published
 ---
 
@@ -11,7 +11,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical layered-architecture standard for every `oya-*` crate. Defines the
+  Canonical layered-architecture standard for every `oyatie-*` crate. Defines the
   `kernel ◀── domain ◀── app ◀── { api, worker, adapter } ◀── runtime`
   dependency direction, the cross-layer contract rules (traits, error
   boundaries), the testing posture per layer, and the cross-reference to
@@ -109,7 +109,7 @@ graph MUST topologically match it.
   (`trait FooStore: Send + Sync { … }`); it belongs in the innermost layer
   alongside the types it operates on, not in the layer that uses it. The domain
   layer holds business logic that *calls through* ports; it does not define them.
-  Crate name: `oya-<microservice>[-<bc>]-kernel` per BNF v4.1.
+  Crate name: `oyatie-<microservice>[-<bc>]-kernel` per BNF v4.1.
 
 - **`domain`** — Business logic on kernel types: entities, domain services,
   invariant enforcement. Uses (calls through) port traits defined in `kernel`.
@@ -392,4 +392,4 @@ unless an external link is given.
 - [Robert C. Martin — Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
   (original layered/hexagonal synthesis).
 - [Alistair Cockburn — Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/).
-- ADR-0015 (flat crates), ADR-0017 (`oya-` prefix), ADR-0053, ADR-0054.
+- ADR-0015 (flat crates), ADR-0017 (`oyatie-` prefix), ADR-0053, ADR-0054.

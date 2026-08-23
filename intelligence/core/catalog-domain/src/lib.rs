@@ -270,14 +270,12 @@ impl CatalogIndex {
 }
 
 fn validate_crate_id(crate_id: &str) -> Result<(), CatalogError> {
-    // De-brand transition (supersedes ADR-0017 oya- prefix enforcement; naming
-    // grammar de-brand mandates updating naming-enforcing gates in lockstep):
-    // catalog crate-ids must match the live workspace crate name, which is now
-    // de-branded (e.g. `marketplace-plugin-kernel`). Accept any valid cargo
-    // crate name — non-empty, first char an ascii lowercase letter, remaining
-    // chars ascii-lowercase / ascii-digit / '-'. This accepts both de-branded
-    // ids and still-`oya-` ids that have not yet been disposed. No liveness
-    // check here — that is a separate gate.
+    // De-branded crate-ids (supersedes ADR-0017 vendor-prefix enforcement):
+    // catalog crate-ids must match the live workspace crate name (e.g.
+    // `marketplace-plugin-kernel`). Accept any valid cargo crate name —
+    // non-empty, first char an ascii lowercase letter, remaining chars
+    // ascii-lowercase / ascii-digit / '-'. No liveness check here — that is a
+    // separate gate.
     let mut characters = crate_id.chars();
     let starts_with_lowercase = characters
         .next()

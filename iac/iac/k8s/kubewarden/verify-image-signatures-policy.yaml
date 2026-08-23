@@ -4,7 +4,7 @@ metadata:
   name: verify-signed-images
   labels:
     app.kubernetes.io/name: verify-signed-images
-    app.kubernetes.io/part-of: cloud-iac
+    app.kubernetes.io/part-of: iac-app
     oyatie.com/admission-default: kubewarden
     oyatie.com/kyverno-adapter-parity: first-class
   annotations:

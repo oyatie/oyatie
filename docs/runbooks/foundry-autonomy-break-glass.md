@@ -9,7 +9,7 @@ doc_status: published
 > **Owner:** `axis-foundry + ops-security + council-privacy`
 > **Severity scope:** Sev 1
 > **Authored from:** [`templates/runbook-template.md`](../templates/runbook-template.md)
-> **Last verified:** 2026-05-11 (validated against `oya gate validate foundation-bypass` autonomy break-glass ledger records)
+> **Last verified:** 2026-05-11 (validated against `presubmit` (retired CLI `gate validate foundation-bypass`) autonomy break-glass ledger records)
 
 ## Symptom
 An otherwise blocked capability invocation must proceed during an emergency, or an operator requests a temporary autonomy ceiling override for a tenant/capability pair.
@@ -31,7 +31,7 @@ Break-glass is not a bypass around the autonomy ceiling. It is an audited, time-
    - `three-of-five` for catastrophic-class, regulated, or T4 override.
 5. Collect approvals from distinct `usr_` or `svc_` principals; the requesting actor cannot self-approve.
 6. Add one `entry_class: autonomy-break-glass` YAML record under `registry/foundation-bypasses/`.
-7. Run `oya gate validate foundation-bypass --ledger registry/foundation-bypasses` before proceeding.
+7. Run `presubmit` (retired CLI `gate validate foundation-bypass --ledger registry/foundation-bypasses`) before proceeding.
 
 ## Ledger record shape
 
@@ -64,11 +64,11 @@ Allowed tiers are `T1ViewOnly`, `T2Advisory`, `T3ExecuteWithApproval`, and `T4Au
 
 ## Recovery
 - Remove the operational need for the override, then record revocation by adding `revoked_at_epoch_days` to the ledger record.
-- Revocation must happen on or before `expires_at_epoch_days`; otherwise `oya gate validate foundation-bypass` fails closed with `ExpiredBypass`.
+- Revocation must happen on or before `expires_at_epoch_days`; otherwise `presubmit` (retired CLI `gate validate foundation-bypass`) fails closed with `ExpiredBypass`.
 - Restore the normal autonomy ceiling path and verify the original invocation would now be allowed or correctly denied without break-glass.
 
 ## Verify-recovery
-- Run `oya gate validate foundation-bypass --ledger registry/foundation-bypasses` and confirm zero expired open break-glass records.
+- Run `presubmit` (retired CLI `gate validate foundation-bypass --ledger registry/foundation-bypasses`) and confirm zero expired open break-glass records.
 - Confirm audit-chain integrity per ADR-0003 and preserve approval/override/revocation evidence in the incident record.
 - Run the affected capability invocation test or policy fitness lane.
 - File a MISTAKES-LEDGER row and prevention ticket if existing gates did not catch the defect.

@@ -299,8 +299,8 @@ Object Types (Medical, Payments, Audit chain).
 | AC-03 | Action invocation: Cedar policy block returns 403; permitted returns 200 + audit sealed | `cargo nextest run -p ontology-action-domain --test cedar_gate` |
 | AC-04 | Agent gateway: LLM tool-call dispatched to Function; result returned in ≤200 ms | integration test `test_agent_gateway_function_call` |
 | AC-05 | Pillar enforcement: org-pillar Object Type unreachable via person-pillar context | `cargo nextest run -p ontology-pillar-domain --test pillar_isolation` |
-| AC-06 | Audit chain: Merkle root verifiable; tamper = verification failure | `oya gate validate audit-chain --ms ontology` |
-| AC-07 | LEAN-A2: ontology crates have no µservice-specific imports | `oya gate validate lean-a2 --ms ontology` exits 0 |
+| AC-06 | Audit chain: Merkle root verifiable; tamper = verification failure | `presubmit` (retired CLI `gate validate audit-chain --ms ontology`) |
+| AC-07 | LEAN-A2: ontology crates have no µservice-specific imports | `presubmit` (retired CLI `gate validate lean-a2 --ms ontology`) exits 0 |
 
 ---
 

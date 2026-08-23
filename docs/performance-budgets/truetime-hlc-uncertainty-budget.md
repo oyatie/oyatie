@@ -230,7 +230,7 @@ ssh <tier4-node> 'gpsd -n && gpsmon --once | head -20'
 # Expected: satellites visible ≥ 4; fix 3D
 
 # Verify idempotency UPSERT p99 < 10ms at load
-oya gate benchmark idempotency-upsert \
+retired CLI benchmark idempotency-upsert \
   --cell <cell-id> \
   --qps 40000 \
   --duration 60s

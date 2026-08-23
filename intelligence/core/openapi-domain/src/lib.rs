@@ -1,8 +1,8 @@
 //! OpenAPI reference source fitness kernel.
 //!
 //! Public REST contracts become tenant- and ISV-facing promises. This pure
-//! kernel validates the minimum OpenAPI 3.2 source shape that `oya doc openapi`
-//! may publish: contract paths are versioned, `info.version` agrees with the
+//! kernel validates the minimum OpenAPI 3.2 source shape that the OpenAPI publish surface
+//! may emit: contract paths are versioned, `info.version` agrees with the
 //! path suffix, every document declares paths, and every operation carries an
 //! operation id plus at least one response. Adapters own filesystem discovery
 //! and semver metadata parsing.

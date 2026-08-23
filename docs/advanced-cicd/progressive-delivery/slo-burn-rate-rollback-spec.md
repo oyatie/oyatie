@@ -11,7 +11,7 @@ purpose: |
   slow-burn (1hr×6hr). Auto-rollback at fast-burn threshold; auto-pause at slow-burn threshold.
   Provider-agnostic burn-rate kernel.
 planned_enforcement_ref:
-  - cloud-ci-slo-coverage
+  - pipeline-slo-coverage
   - governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]
 doc_status: published
@@ -61,15 +61,15 @@ Provider-neutral. Swap adapters without changing the kernel or call sites. [Dire
 ```promql
 # fast-burn (5 min vs 1 h)
 (
-  sum(rate(http_requests_total{job="oya-<axis>-<svc>",status=~"5.."}[5m]))
+  sum(rate(http_requests_total{job="oyatie-<axis>-<svc>",status=~"5.."}[5m]))
   /
-  sum(rate(http_requests_total{job="oya-<axis>-<svc>"}[5m]))
+  sum(rate(http_requests_total{job="oyatie-<axis>-<svc>"}[5m]))
 ) / (1 - 0.999) > 14.4
 AND
 (
-  sum(rate(http_requests_total{job="oya-<axis>-<svc>",status=~"5.."}[1h]))
+  sum(rate(http_requests_total{job="oyatie-<axis>-<svc>",status=~"5.."}[1h]))
   /
-  sum(rate(http_requests_total{job="oya-<axis>-<svc>"}[1h]))
+  sum(rate(http_requests_total{job="oyatie-<axis>-<svc>"}[1h]))
 ) / (1 - 0.999) > 14.4
 ```
 
@@ -87,7 +87,7 @@ Per-service SLOs are owned by [`docs/SLO-CATALOG.md`](../../../docs/SLO-CATALOG.
 | GA | 99.95% | 30 d | 1.0× |
 | Stable | 99.99% (critical: audit, identity, KMS) | 30 d | 1.0× |
 
-`cloud-ci-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
+`pipeline-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
 
 ## 7. Per-cohort burn-rate (regulated cohorts)
 
@@ -111,7 +111,7 @@ We adopt the Google formulation as the canonical math; provider adapters surface
 
 ## 10. Compliance gates
 
-- `cloud-ci-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
+- `pipeline-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
 - `governance-rollback-evidence` (NEW; BLOCKER).
 
 ## 11. Lift target

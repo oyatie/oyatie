@@ -166,7 +166,7 @@ doc_status: archived
 
 ### ADR-549 — buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`cloud-ci-embedded-asset-hermeticity-app`, `cloud-ci-kernel-purity-app`, `tools/buck-test-wiring-app`, `cloud-ci-account
+- **About:** Three-plus gate/tool crates carried private, divergent text-heuristic BUCK parsers (`pipeline-embedded-asset-hermeticity-app`, `pipeline-kernel-purity-app`, `tools/buck-test-wiring-app`, `pipeline-account
 
 ### ADR-559 — Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -218,7 +218,7 @@ doc_status: archived
 
 ### ADR-628 — Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** Gate policies declare the roots they scan. The cloud-ci fleet already enforces that a declared root cannot be **removed** without the removal being the subject of a reviewed change — the anti-narrowing ratchet, e.g. `rus
+- **About:** Gate policies declare the roots they scan. The pipeline fleet already enforces that a declared root cannot be **removed** without the removal being the subject of a reviewed change — the anti-narrowing ratchet, e.g. `rus
 
 ### ADR-629 — Crate-catalog coverage: every live crate carries a catalog row, closing the crate→row direction
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
@@ -240,7 +240,7 @@ doc_status: archived
 
 ### ADR-377 — GitHub board projection with git-ref CAS fallback
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)
-- **About:** ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + cloud-ci + GitHub (interim) the coordination substrate. ADR-0369 then selected gated stacked-trunk on plain git and GitHub PRs. ADR-0374 added the Git
+- **About:** ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + pipeline + GitHub (interim) the coordination substrate. ADR-0369 then selected gated stacked-trunk on plain git and GitHub PRs. ADR-0374 added the Git
 
 ### ADR-561 — Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 sli
 - **How rejected:** was Proposed → end-state freeze Reject (not context-reviewed)

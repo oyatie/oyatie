@@ -18,7 +18,7 @@ doc_status: published
 
 ## 2. CI lane catalog
 
-Per `docs/standards/ci-lanes.md` (legacy catalog) + cloud-ci gate apps. The single protected merge authority is `presubmit`; local `oya` output is bridge evidence only and cannot independently authorize merge.
+Per `docs/standards/ci-lanes.md` (legacy catalog) + pipeline gate apps. The single protected merge authority is `presubmit`; local `oya` output is bridge evidence only and cannot independently authorize merge.
 
 | Lane | Trigger | Hard-fail? |
 |---|---|---|
@@ -27,12 +27,12 @@ Per `docs/standards/ci-lanes.md` (legacy catalog) + cloud-ci gate apps. The sing
 | `cargo-nextest --workspace --all-features` | every PR | yes |
 | `cargo check --workspace --all-targets --all-features` | every PR (PM-2 mitigation) | yes |
 | `cargo deny check licenses` | every PR | yes (per License Policy ADR) |
-| cloud-ci/ci Rust gate packet: architecture-boundaries, catalog, claim-ceiling, foundation-bypass, plane-class | every PR | yes, through `presubmit` |
+| presubmit Rust gate packet: architecture-boundaries, catalog, claim-ceiling, foundation-bypass, plane-class | every PR | yes, through `presubmit` |
 | `governance-license` | every PR | yes |
 | `governance-data-class` | every PR | yes |
 | `governance-cohesion` (cross-axis drift) | every PR | yes (warn first wave; block at W-Foundation gate) |
 | `governance-doc-catalog` | PRs touching `docs/**` | yes |
-| `cloud-ci-slo-coverage` | every PR | yes |
+| `pipeline-slo-coverage` | every PR | yes |
 | `governance-blast-radius` | every PR | label-emit |
 | Trivy 4-layer scan (per ADR-0039) | every PR + nightly | yes |
 | Cosign sign + Rekor anchor | release artifact | yes |
@@ -86,7 +86,7 @@ A squash merge only enters post-merge verification. A change is not product-comp
 
 ## 6. Pre-release verification (per ADR-0040 9-item readiness)
 
-Per release-candidate, attach the cloud-ci/ci release packet (legacy `/release-verify` output is local bridge evidence only):
+Per release-candidate, attach the presubmit release packet (legacy `/release-verify` output is local bridge evidence only):
 1. All CI lanes green on the release tag SHA
 2. SBOM generated + Cosign-signed + Rekor-anchored
 3. Per-region SLO budget ≥ 50%

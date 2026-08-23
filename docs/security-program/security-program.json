@@ -155,7 +155,7 @@
     },
     {
       "id": "SEC-POSTURE-08",
-      "statement": "Branch-protection-as-code; admission policy via the owned cloud-ci/cloud-k8s admission gates (single required context presubmit per ADR-0515)."
+      "statement": "Branch-protection-as-code; admission policy via the owned pipeline/cloud-k8s admission gates (single required context presubmit per ADR-0515)."
     },
     {
       "id": "SEC-POSTURE-09",

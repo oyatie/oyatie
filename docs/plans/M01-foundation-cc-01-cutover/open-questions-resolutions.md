@@ -31,7 +31,7 @@ Evidence: `ls docs/decisions/ | tail -15` shows ADR-0049, ADR-0050, ADR-0051 and
 
 **Choice: Rust.** Rationale:
 
-1. Workspace idiom — every other crate in this repo is `oya-*` Rust (140+ crates per `Cargo.toml`).
+1. Workspace idiom — every other crate in this repo is `oyatie-*` Rust (140+ crates per `Cargo.toml`).
 2. The helper emits audit-chain events, which are typed in the existing `platform-audit-chain-kernel`. Reusing the kernel from Rust is direct; from Node/TS it requires an FFI or a re-implementation.
 3. Distribution: Rust binaries are static and trivially shippable; no Node runtime dependency for agent boxes.
 4. Fitness lanes (`governance-*`) are Rust kernels; banned-primitives lane (P7 §"Outputs") would be a sibling.

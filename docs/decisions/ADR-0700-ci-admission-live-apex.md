@@ -68,17 +68,17 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-44** (ADR-0044-service-mesh-istio-ambient-and-envoy-gateway): We adopt **Istio Ambient mode** as the canonical east-west service mesh; **Envoy** (gateway-class) as the canonical north-south edge gateway; **mTLS everywhere** as the default with per-traffic-type opt-out only via ADR; **per-cell namespace** as the isolation unit; **cross-cell traffic** explicit + Cedar-policied + audit-chained per call. ### Isti
 - **ADR-47** (ADR-0047-search-backend-strategy): We adopt **pgroonga** day-1 with **legal isolation** per License Policy ADR + replacement plan; **Tantivy** (MIT) in-Rust at scale; **OpenSearch** (Apache-2) only as an adapter behind a port; **Elasticsearch SSPL forbidden** in product surface; **in-house long-horizon** (KR morphology + Tantivy + custom ranker) under `crates/search-backend-*`. 
 - **ADR-56** (ADR-0056-rust-clean-architecture-bnf): ### Canonical BNF v4.1 ```bnf crate ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer | "oya" "-" "check" "-" rule-name microservice ::= kebab-token ( "-" kebab-token )* (* 1..3 tokens; registry-validated *) bc-tokens ::= kebab-token ( "-" kebab-token )* (* 0..N; OPTIONAL *) layer ::= "kernel" | "domain" | "usecase" | "app" | "adapter" | "inf
-- **ADR-83** (ADR-0083-rust-error-handling-tier-decision): We adopt a **three-tier** error-handling policy applied uniformly across every `oya-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **
+- **ADR-83** (ADR-0083-rust-error-handling-tier-decision): We adopt a **three-tier** error-handling policy applied uniformly across every `oyatie-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **
 - **ADR-91** (ADR-0091-governance-write-gate-foundations): The write-gate kernel owns the canonical write-gate state machine: ``` Proposed → Reviewed { reviewer } → Approved { approver } → Executed \ / +----------> Rejected { reason } <--------------+ ``` Linear forward path: `Proposed → Reviewed → Approved → Executed`. Any non-terminal state may transition to `Rejected`. `Executed` and `Rejected` are term
 - **ADR-94** (ADR-0094-handler-trait-with-associated-error): Add a typed `Handler` trait in `http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into()
 - **ADR-99** (Cedar policy extension — intelligence supervisor capabilities in docs/policies/foundr): Add `docs/policies/intelligence-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, r
 - **ADR-104** (Ecosystem-expansion principle for check-lane + adapter crate reintroduction): **Ecosystem-expansion rule.** A crate is shipped iff: 1. The kernel/domain layer it implements is itself shipped, AND 2. At least one consumer in the workspace imports it, AND 3. The crate has a real implementation (not a doc-stub). If any condition fails, the crate is not shipped. Documentation of the trigger that would unblock the crate lives in 
-- **ADR-117** (ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation): 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/oya-vcs-admission infra/kyverno/oya-vcs-admission` (history-preserving), removing the now-empt
+- **ADR-117** (ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation): 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/retired VCS ratchet infra/kyverno/retired VCS ratchet` (history-preserving), removing the now-empt
 - **ADR-118** (ADR-0118-retire-archive-orphan-fitness-lane): Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/governance-archive-orphan-kernel` - `tools/governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retiremen
-- **ADR-123** (ADR-0123-hyperscaler-maturity-claim-gate): Use `/specs/hyperscaler-gates.json` as the machine-readable maturity claim registry. The exact phrase "we are hyperscaler mature" is forbidden unless the registry claim rule is allowed and all required gates have fresh evidence. Add the repo-native gate: ```text oya gate validate hyperscaler-maturity-claims ``` The gate validates: - Required maturi
+- **ADR-123** (ADR-0123-hyperscaler-maturity-claim-gate): Use `/specs/hyperscaler-gates.json` as the machine-readable maturity claim registry. The exact phrase "we are hyperscaler mature" is forbidden unless the registry claim rule is allowed and all required gates have fresh evidence. Add the repo-native gate: ```text presubmit (retired CLI gate validate) hyperscaler-maturity-claims ``` The gate validates: - Required maturi
 - **ADR-128** (ADR-0128-hyperscaler-architecture-invariants): `specs/hyperscaler-architecture-invariants.json` (spec_id: EXE-HYPERSCALER-ARCH-INVARIANTS, version 1.0.0) is the canonical, machine-readable, binding source of truth for what "hyperscaler-grade" means in the Oyatie portfolio. This PR lands the catalog validator; it does not claim that product PRDs are already blocked on the catalog. Binding rules:
 - **ADR-129** (ADR-0129-changeset-plan-dag-and-honest-claims-gate): The existing ImplementationPlan frontmatter `id` is the canonical ChangeSet ID. No separate `changeset_id` field is introduced. The validator treats these fields as the exact ChangeSet graph contract: | Field | Status | Meaning | |---|---|---| | `doc_class` | required | Must be `ImplementationPlan`. | | `id` | required | Canonical ChangeSet ID, mat
-- **ADR-135** (ADR-0135-aspirational-enforcement-gate): `cloud-ci/Rust gate packet aspirational-enforcement` scans the normative docs, specs, and registry corpus for binding enforcement claims that name repository enforcement surfaces. The default corpus roots are: - `docs` - `specs` - `registry` Callers can narrow or replace coverage with `--clear-default-corpus --corpus-root <path>` for fixture and lo
+- **ADR-135** (ADR-0135-aspirational-enforcement-gate): `pipeline Rust gate packet aspirational-enforcement` scans the normative docs, specs, and registry corpus for binding enforcement claims that name repository enforcement surfaces. The default corpus roots are: - `docs` - `specs` - `registry` Callers can narrow or replace coverage with `--clear-default-corpus --corpus-root <path>` for fixture and lo
 - **ADR-139** (ADR-0139-agentic-slo-gated-promotion): oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `obse
 - **ADR-148** (ADR-0148-service-mesh-cilium-ambient-layered): Oyatie adopts a **layered service-mesh substrate** in which **each layer owns exactly one concern**: ### Layer ownership (canonical; zero overlap) | Layer | Owner | Responsibilities | Out-of-scope | |---|---|---|---| | **Layer 3/4 (kernel-level dataplane)** | **Cilium 1.19.x** (pin 1.19.4) [amended 2026-05-26 — see note] | CNI (pod networking, IPAM
 - **ADR-157** (ADR-0157-api-gateway-tier): Oyatie adopts a dedicated **`api-gateway` µservice** as the canonical north-south entry tier. Every external HTTPS REST or realtime request transits the api-gateway tier before the cell-µservice tenant-routing layer hands it to a workload µservice. ### Operational shape 1. **Termination.** TLS 1.3 termination at the api-gateway edge (cert rotation 
@@ -108,7 +108,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-334** (ADR-0334-shorts-microservice-merged-into-social): D-1. `microservices/shorts/` is retired as a standalone µservice. D-2. `microservices/shorts/` keeps only a `RETIRED.md` redirect marker. D-3. Historical shorts service content is not the live authority after this ADR. D-4. `microservices/social/` is the canonical owner of short-form video. D-5. `microservices/social/` is the canonical owner of lon
 - **ADR-340** (Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram): ### B.1 Decision statement Every µservice's `microservices/<name>/manifest.json` MUST declare a top-level `capacity_model` block with the following required fields: - `baseline_cpu_per_tenant`: decimal vCPU value per active tenant at steady state (e.g., `0.1`). - `baseline_ram_per_tenant`: integer MiB value per active tenant at steady state (e.g., 
 - **ADR-341** (Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + a): ### B.1 Decision statement Every cellular promotion or demotion event between ADR-0248 tiers (Tier 0..Tier 4, where Tier 0 = highest blast-radius / most isolated, Tier 4 = best-effort / edge / lowest blast-radius) MUST be evaluated against six machine-checkable gate inputs by the new CI lane `check-cell-promotion-gates` plus the in-cluster cell
-- **ADR-346** (oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + car): ### B.1 Decision statement `./bin/oya verify --ci-required` is the canonical local pre-push verifier. The verifier MUST locally mirror the full CI matrix at `.github/workflows/pr-tests.yml` and MUST block on exit-0 of EACH step before returning success to the caller. The five mandatory mirror steps are: 1. **D-1:** `cargo fmt --all --check` — forma
+- **ADR-346** (oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + car): ### B.1 Decision statement the retired `./bin/oya verify --ci-required` path is historical/provenance-only; merge authority is the `presubmit` context. The verifier MUST locally mirror the full CI matrix at `.github/workflows/pr-tests.yml` and MUST block on exit-0 of EACH step before returning success to the caller. The five mandatory mirror steps are: 1. **D-1:** `cargo fmt --all --check` — forma
 - **ADR-348** (Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support): ### B.1 Decision statement Cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: 1. **Autosharding** — tenant→cell/shard placement is computed automatically by the control plane; no human operator picks placement; inputs are capacity_model (ADR-0340) + com
 - **ADR-360** (CI/CD pipeline optimization program — affected-target precision, gate-only overl): Adopt a seven-part CI/CD optimization program. Each part has a hard correctness rule so optimization never weakens the governance gates. - **O1 — Affected-target precision.** Add an additive `oya verify --affected [--base <ref>]` presubmit mode. Classify the changed-file set vs the base into: **Full** (any of `Cargo.lock`, root/`[workspace]` `Cargo
 - **ADR-366** (ADR-0366-agentic-high-throughput-self-enforcing-pipeline): ### 1. Parallelism with conflict PREVENTION (not just resolution) A **single-threaded owner-agent per service/lane** (AWS STO) owns **disjoint paths** — the flat / no-grouping doctrine (ADR-0362) makes service paths naturally disjoint. One **isolated worktree per lane**. A **concurrent-safe-paths** admission gate rejects two in-flight lanes touchin
@@ -162,7 +162,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-538 residual
 
-**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oya-*", "cloud/*/crates/oya-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oya-*", "oya/office/oya-*", "tools/oya-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `libs/workspace-members-kernel::resolve_member_dirs(repo_root)`.
+**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oyatie-*", "cloud/*/crates/oyatie-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oyatie-*", "oya/office/oyatie-*", "tools/oyatie-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `libs/workspace-members-kernel::resolve_member_dirs(repo_root)`.
 
 ### ADR-44 residual
 
@@ -178,7 +178,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-515 residual
 
-**Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture — presubmit is the single GitHub-Actions** — ### D1. The Phase-0 firewall is the enforcement substrate The Phase-0 false-green firewall is the substrate that makes merge-gate enforcement **real**: 1. **One generated accounting-registry.** `cloud-ci-accounting-registry-app` emits one deterministic record per tracked path (+ the TTL / crosswalk / enforcement-inventory faces); `registry-drift` enforces `committed == regenerated` byte-for-by
+**Phase-0 firewall + one-canonical-CI + the 2026-06-07 cloud-native posture — presubmit is the single GitHub-Actions** — ### D1. The Phase-0 firewall is the enforcement substrate The Phase-0 false-green firewall is the substrate that makes merge-gate enforcement **real**: 1. **One generated accounting-registry.** `pipeline-accounting-registry-app` emits one deterministic record per tracked path (+ the TTL / crosswalk / enforcement-inventory faces); `registry-drift` enforces `committed == regenerated` byte-for-by
 
 ### ADR-631 residual
 
@@ -198,7 +198,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-605 residual
 
-**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
+**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained pipeline gate**, `pipeline-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
 
 ### ADR-348 residual
 
@@ -218,7 +218,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-83 residual
 
-**ADR-0083-rust-error-handling-tier-decision** — We adopt a **three-tier** error-handling policy applied uniformly across every `oya-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **MUST** be matchable enums exported via [`thiserror
+**ADR-0083-rust-error-handling-tier-decision** — We adopt a **three-tier** error-handling policy applied uniformly across every `oyatie-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **MUST** be matchable enums exported via [`thiserror
 
 ### ADR-162 residual
 
@@ -230,7 +230,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-525 residual
 
-**ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + ** — Four condensed parts: **D1 — git-facts boundary (Option C).** Push ALL ambient git access to ONE out-of-graph emitter and make every downstream action consume a frozen, content-addressed snapshot. A NEW non-hermetic `rust_binary` `cloud-ci-git-facts-emitter` (the four `Command::new("git")` calls moved verbatim out of the producer) emits a COMMITTED canonical-JSON face `git-facts.generated.json
+**ci hermetic buck2 execution: git-facts boundary (Option C, committed content-addressed face) + buck2-native gates + ** — Four condensed parts: **D1 — git-facts boundary (Option C).** Push ALL ambient git access to ONE out-of-graph emitter and make every downstream action consume a frozen, content-addressed snapshot. A NEW non-hermetic `rust_binary` `pipeline-git-facts-emitter` (the four `Command::new("git")` calls moved verbatim out of the producer) emits a COMMITTED canonical-JSON face `git-facts.generated.json
 
 ### ADR-194 residual
 
@@ -246,7 +246,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-539 residual
 
-**Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity** — Add `ci/facade/generated-artifact-freshness` as a single-concern Rust gate. NAME: cloud-ci-freshness-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = freshness: the bounded concern is candidate-tree freshness, not general registry accounting. - layer = app: the crate exposes a composition-root binary plus a pure librar
+**Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity** — Add `ci/facade/generated-artifact-freshness` as a single-concern Rust gate. NAME: pipeline-freshness-app JUSTIFICATION: - microservice = pipeline: the pipeline admission product owns gate execution per ADR-0515. - bc-tokens = freshness: the bounded concern is candidate-tree freshness, not general registry accounting. - layer = app: the crate exposes a composition-root binary plus a pure librar
 
 ### ADR-313 residual
 
@@ -274,11 +274,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-346 residual
 
-**oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest ** — ### B.1 Decision statement `./bin/oya verify --ci-required` is the canonical local pre-push verifier. The verifier MUST locally mirror the full CI matrix at `.github/workflows/pr-tests.yml` and MUST block on exit-0 of EACH step before returning success to the caller. The five mandatory mirror steps are: 1. **D-1:** `cargo fmt --all --check` — formatting validation. 2. **D-2:** `cargo check --works
+**oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest ** — ### B.1 Decision statement the retired `./bin/oya verify --ci-required` path is historical/provenance-only; merge authority is the `presubmit` context. The verifier MUST locally mirror the full CI matrix at `.github/workflows/pr-tests.yml` and MUST block on exit-0 of EACH step before returning success to the caller. The five mandatory mirror steps are: 1. **D-1:** `cargo fmt --all --check` — formatting validation. 2. **D-2:** `cargo check --works
 
 ### ADR-540 residual
 
-**Cargo workspace to Buck2 target parity gate** — Add `ci/facade/build-target-parity` as a pure cloud-ci gate. NAME: cloud-ci-target-parity-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = target-parity: the bounded concern is Cargo member to Buck target parity. - layer = app: the crate is an executable CI gate surface with pure evaluator logic. - exemptions claimed:
+**Cargo workspace to Buck2 target parity gate** — Add `ci/facade/build-target-parity` as a pure pipeline gate. NAME: pipeline-target-parity-app JUSTIFICATION: - microservice = pipeline: the pipeline admission product owns gate execution per ADR-0515. - bc-tokens = target-parity: the bounded concern is Cargo member to Buck target parity. - layer = app: the crate is an executable CI gate surface with pure evaluator logic. - exemptions claimed:
 
 ### ADR-560 residual
 
@@ -286,7 +286,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-566 residual
 
-**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
+**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained pipeline gate**, `pipeline-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
 
 ### ADR-616 residual
 
@@ -298,7 +298,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-526 residual
 
-**ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour** — Two coupled, byte-parity-preserving moves, and nothing else: **(1) RENAME every git-flavored identifier in the boundary to the VCS-agnostic family `scm-facts` / `scm_facts` / `SCM_FACTS` / `ScmFacts`.** The emitter crate dir + binary `cloud-ci-git-facts-emitter-app` → `cloud-ci-scm-facts-emitter-app`; the committed snapshot `git-facts.generated.json` → `scm-facts.generated.json`; the schem
+**ci scm-facts boundary: VCS-agnostic identifiers (git-facts->scm-facts rename, schema v1 retained) + the ScmFactsSour** — Two coupled, byte-parity-preserving moves, and nothing else: **(1) RENAME every git-flavored identifier in the boundary to the VCS-agnostic family `scm-facts` / `scm_facts` / `SCM_FACTS` / `ScmFacts`.** The emitter crate dir + binary `pipeline-git-facts-emitter-app` → `pipeline-scm-facts-emitter-app`; the committed snapshot `git-facts.generated.json` → `scm-facts.generated.json`; the schem
 
 ### ADR-234 residual
 
@@ -314,7 +314,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-547 residual
 
-**Kernel-purity dependency gate** — Ship a **self-contained cloud-ci gate**, `cloud-ci-kernel-purity` (`ci/facade/core-dependency-isolation`), that asserts: **no crate matching the kernel-name globs (`*-kernel`, `*-core`) — nor any workspace-internal crate reachable through its path-dependency closure — directly depends on a denylisted transient-tech crate**, unless an explicit, reasoned per-(crate, dep) exception is declared in pol
+**Kernel-purity dependency gate** — Ship a **self-contained pipeline gate**, `pipeline-kernel-purity` (`ci/facade/core-dependency-isolation`), that asserts: **no crate matching the kernel-name globs (`*-kernel`, `*-core`) — nor any workspace-internal crate reachable through its path-dependency closure — directly depends on a denylisted transient-tech crate**, unless an explicit, reasoned per-(crate, dep) exception is declared in pol
 
 ### ADR-148 residual
 
@@ -326,15 +326,15 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-600 residual
 
-**Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible** — Ship `cloud-ci-root-workspace-hygiene-app` — a born-blocking, UNIVERSAL, HERMETIC gate with a default-DENY posture and the legitimate root surface expressed as DATA. **Allowlist-as-DATA (universal).** `root-workspace-hygiene-policy.json` declares `allowed_root_files` (a rule table of `exact`/`suffix`/`prefix` basename matchers) and `allowed_root_dirs` (the permitted top-level capability/meta h
+**Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible** — Ship `pipeline-root-workspace-hygiene-app` — a born-blocking, UNIVERSAL, HERMETIC gate with a default-DENY posture and the legitimate root surface expressed as DATA. **Allowlist-as-DATA (universal).** `root-workspace-hygiene-policy.json` declares `allowed_root_files` (a rule table of `exact`/`suffix`/`prefix` basename matchers) and `allowed_root_dirs` (the permitted top-level capability/meta h
 
 ### ADR-570 residual
 
-**Clean-arch port-placement gate (ports defined in core, not adapters)** — Ship `cloud-ci-port-placement`, a born-blocking cloud-ci gate that flags a `pub trait <Name>` whose name matches a storage/repository/port suffix heuristic and is DEFINED in a crate whose repo-relative path contains a forbidden layer-dir segment (`adapters`). - **HERMETIC pure-Rust predicate.** `collect_port_traits(root, policy)` enumerates workspace members (reusing `workspace-members-kernel`
+**Clean-arch port-placement gate (ports defined in core, not adapters)** — Ship `pipeline-port-placement`, a born-blocking pipeline gate that flags a `pub trait <Name>` whose name matches a storage/repository/port suffix heuristic and is DEFINED in a crate whose repo-relative path contains a forbidden layer-dir segment (`adapters`). - **HERMETIC pure-Rust predicate.** `collect_port_traits(root, policy)` enumerates workspace members (reusing `workspace-members-kernel`
 
 ### ADR-608 residual
 
-**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, po
+**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained pipeline gate**, `pipeline-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, po
 
 ### ADR-624 residual
 
@@ -358,7 +358,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-634 residual
 
-**Approval attaches to the PRODUCER of a change, not to a reader of its diff: a mechanical auto-approval predicate over de** — **Proposed — 2026-08-02.** Landed `Proposed`, not `Accepted`, for the reason ADR-0633 states in its own Status section: a fresh `Accepted` reddens `cloud-ci-cross-artifact-agreement` until the evidence it claims has propagated. Nothing in this ADR is enforced by its own merge; every decision below carries the assertion that would enforce it, and that assertion is the follow-up work.
+**Approval attaches to the PRODUCER of a change, not to a reader of its diff: a mechanical auto-approval predicate over de** — **Proposed — 2026-08-02.** Landed `Proposed`, not `Accepted`, for the reason ADR-0633 states in its own Status section: a fresh `Accepted` reddens `pipeline-cross-artifact-agreement` until the evidence it claims has propagated. Nothing in this ADR is enforced by its own merge; every decision below carries the assertion that would enforce it, and that assertion is the follow-up work.
 
 ### ADR-31 residual
 
@@ -390,7 +390,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-544 residual
 
-**Friction-ledger closed-loop accounting meta-gate** — Add `ci/facade/action-item-accounting` as a pure cloud-ci meta-gate. NAME: cloud-ci-friction-accounting-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = friction-accounting: the bounded concern is closed-loop friction-ledger accounting. - layer = app: the crate is an executable CI gate surface with a pure evaluator ker
+**Friction-ledger closed-loop accounting meta-gate** — Add `ci/facade/action-item-accounting` as a pure pipeline meta-gate. NAME: pipeline-friction-accounting-app JUSTIFICATION: - microservice = pipeline: the pipeline admission product owns gate execution per ADR-0515. - bc-tokens = friction-accounting: the bounded concern is closed-loop friction-ledger accounting. - layer = app: the crate is an executable CI gate surface with a pure evaluator ker
 
 ### ADR-295 residual
 
@@ -422,7 +422,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-595 residual
 
-**De-commit the pure-derivation cloud-ci accounting faces — derive-on-demand + gate teaching** — STOP committing the six producer faces above. They are declared `materialization_mode: not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived on demand via `buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin` and materialize
+**De-commit the pure-derivation pipeline accounting faces — derive-on-demand + gate teaching** — STOP committing the six producer faces above. They are declared `materialization_mode: not-tracked-in-git` in `registry/generated-artifact-control-plane.json`, removed from git (`git rm --cached`), and covered by the existing `**/*.generated.json` ignore. They are derived on demand via `buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin` and materialize
 
 ### ADR-586 residual
 
@@ -430,7 +430,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-546 residual
 
-**Canonical-JSON determinism gate** — Add `ci/facade/canonical-json` as a pure cloud-ci determinism gate. NAME: cloud-ci-canonical-json-app JUSTIFICATION: - microservice = cloud-ci: the cloud-ci admission product owns gate execution per ADR-0515. - bc-tokens = canonical-json: the bounded concern is deterministic JSON serialization. - layer = app: the crate is an executable CI gate surface with a pure canonicalizer kernel. - single
+**Canonical-JSON determinism gate** — Add `ci/facade/canonical-json` as a pure pipeline determinism gate. NAME: pipeline-canonical-json-app JUSTIFICATION: - microservice = pipeline: the pipeline admission product owns gate execution per ADR-0515. - bc-tokens = canonical-json: the bounded concern is deterministic JSON serialization. - layer = app: the crate is an executable CI gate surface with a pure canonicalizer kernel. - single
 
 ### ADR-129 residual
 
@@ -478,7 +478,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-530 residual
 
-**The enforced engineering-excellence property set: falsifiable structural gates + fenced advisory remainder over the owne** — Extend the floor-gate family (ADR-0515) with the named engineering-excellence property gates, all on the same `Finding` / `remediate()` contract (ADR-0528) + shrink-only ratchet, each split into a gated falsifiable structural core and a fenced advisory remainder (`advisory-until-infra` with an `infra_prereq` corpus, never flipping the verdict). FULLY GATED: (1) documentation — `cloud-ci-doc-covera
+**The enforced engineering-excellence property set: falsifiable structural gates + fenced advisory remainder over the owne** — Extend the floor-gate family (ADR-0515) with the named engineering-excellence property gates, all on the same `Finding` / `remediate()` contract (ADR-0528) + shrink-only ratchet, each split into a gated falsifiable structural core and a fenced advisory remainder (`advisory-until-infra` with an `infra_prereq` corpus, never flipping the verdict). FULLY GATED: (1) documentation — `pipeline-doc-covera
 
 ### ADR-612 residual
 
@@ -522,11 +522,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-135 residual
 
-**ADR-0135-aspirational-enforcement-gate** — `cloud-ci/Rust gate packet aspirational-enforcement` scans the normative docs, specs, and registry corpus for binding enforcement claims that name repository enforcement surfaces. The default corpus roots are: - `docs` - `specs` - `registry` Callers can narrow or replace coverage with `--clear-default-corpus --corpus-root <path>` for fixture and local validation. Production CI and branch-protectio
+**ADR-0135-aspirational-enforcement-gate** — `pipeline Rust gate packet aspirational-enforcement` scans the normative docs, specs, and registry corpus for binding enforcement claims that name repository enforcement surfaces. The default corpus roots are: - `docs` - `specs` - `registry` Callers can narrow or replace coverage with `--clear-default-corpus --corpus-root <path>` for fixture and local validation. Production CI and branch-protectio
 
 ### ADR-606 residual
 
-**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, policy-
+**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained pipeline gate**, `pipeline-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/presubmit.yml`, no `libs/ci-config` edit, no producer-face binding. ### D1 — Pure, policy-
 
 ### ADR-309 residual
 
@@ -550,7 +550,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-549 residual
 
-**buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`libs/buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two cloud-ci gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
+**buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`libs/buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two pipeline gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
 
 ### ADR-204 residual
 
@@ -558,7 +558,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-117 residual
 
-**ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation** — 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/oya-vcs-admission infra/kyverno/oya-vcs-admission` (history-preserving), removing the now-empty `deploy/gitops/` and `deploy/` parents. Rewrite
+**ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation** — 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/retired VCS ratchet infra/kyverno/retired VCS ratchet` (history-preserving), removing the now-empty `deploy/gitops/` and `deploy/` parents. Rewrite
 
 ### ADR-529 residual
 
@@ -574,7 +574,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-123 residual
 
-**ADR-0123-hyperscaler-maturity-claim-gate** — Use `/specs/hyperscaler-gates.json` as the machine-readable maturity claim registry. The exact phrase "we are hyperscaler mature" is forbidden unless the registry claim rule is allowed and all required gates have fresh evidence. Add the repo-native gate: ```text oya gate validate hyperscaler-maturity-claims ``` The gate validates: - Required maturity gate IDs, including plan, pipeline, toolchain,
+**ADR-0123-hyperscaler-maturity-claim-gate** — Use `/specs/hyperscaler-gates.json` as the machine-readable maturity claim registry. The exact phrase "we are hyperscaler mature" is forbidden unless the registry claim rule is allowed and all required gates have fresh evidence. Add the repo-native gate: ```text presubmit (retired CLI gate validate) hyperscaler-maturity-claims ``` The gate validates: - Required maturity gate IDs, including plan, pipeline, toolchain,
 
 ### ADR-533 residual
 
@@ -598,7 +598,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-582 residual
 
-**DTO-authz-trust gate (caller-supplied authorization decision backstop)** — Ship `ci/facade/caller-supplied-authorization`, a born-blocking cloud-ci gate that makes a NEW instance of the caller-supplied-authz-trust antipattern IMPOSSIBLE to ship while frozen-baselining the existing debt (shrink-only). It is a SIBLING of the authz-coverage gate (ADR-0566) and registers in the same `presubmit` matrix gate family. It mirrors the kernel-purity (ADR-0547) / port-placemen
+**DTO-authz-trust gate (caller-supplied authorization decision backstop)** — Ship `ci/facade/caller-supplied-authorization`, a born-blocking pipeline gate that makes a NEW instance of the caller-supplied-authz-trust antipattern IMPOSSIBLE to ship while frozen-baselining the existing debt (shrink-only). It is a SIBLING of the authz-coverage gate (ADR-0566) and registers in the same `presubmit` matrix gate family. It mirrors the kernel-purity (ADR-0547) / port-placemen
 
 ### ADR-56 residual
 
@@ -610,7 +610,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-545 residual
 
-**Embedded-asset hermeticity gate** — Ship a standalone, born-blocking, pack-shaped cloud-ci gate `cloud-ci-embedded-asset-hermeticity` (crate `ci/facade/embedded-asset-hermeticity`) that mirrors the ADR-0544 gate family (pure kernel + policy DATA + reviewed shrink-only baseline + a `*-gate` rust_test self-test). The kernel contract (the **tree-namespace rule**): - **D(T)** = { package-relative short paths of every plain/glob/list src
+**Embedded-asset hermeticity gate** — Ship a standalone, born-blocking, pack-shaped pipeline gate `pipeline-embedded-asset-hermeticity` (crate `ci/facade/embedded-asset-hermeticity`) that mirrors the ADR-0544 gate family (pure kernel + policy DATA + reviewed shrink-only baseline + a `*-gate` rust_test self-test). The kernel contract (the **tree-namespace rule**): - **D(T)** = { package-relative short paths of every plain/glob/list src
 
 ### ADR-590 residual
 

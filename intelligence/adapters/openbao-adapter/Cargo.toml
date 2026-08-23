@@ -6,7 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Real OpenBao Transit envelope-encryption adapter for the cloud-intelligence OAuth
+# Real OpenBao Transit envelope-encryption adapter for the intelligence-app OAuth
 # subscription pool (ADR-0384 Path B, Stage-7 D8 production seam).
 #
 # Implements `OpenBaoSecretStore` from `intelligence-rest` via

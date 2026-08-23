@@ -173,7 +173,7 @@ No gRPC surface is added in this task. Future gRPC adapter anticipated shape (in
 ```proto
 // future adapter — informational only
 syntax = "proto3";
-package oya.social.v1;
+package oyatie.social.v1;
 
 service FeedRanking {
   rpc GetRankedFeed(RankedFeedRequest) returns (RankedFeedResponse);

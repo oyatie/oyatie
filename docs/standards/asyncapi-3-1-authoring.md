@@ -260,7 +260,7 @@ This passes because ontology dependency is explicit.
 Primary command:
 
 ```bash
-oya gate validate asyncapi-3-1-authoring --scope microservices
+presubmit (retired CLI gate validate) asyncapi-3-1-authoring --scope microservices
 ```
 
 The checker MUST parse all `*.asyncapi.yaml`.
@@ -608,7 +608,7 @@ components:
 | ASYNC-MAT-017 | Replay | event is replay-safe | event metadata | `check-replay-safety` |
 | ASYNC-MAT-018 | Projection | projection links named | projection manifest | `check-projection-linkage` |
 | ASYNC-MAT-019 | Broker | no broker-specific extension as authority | extensions | `check-broker-portability` |
-| ASYNC-MAT-020 | Promote | evidence includes checker output | VCS bundle | `oya-vcs-admission` |
+| ASYNC-MAT-020 | Promote | evidence includes checker output | VCS bundle | `retired VCS ratchet` |
 
 ## Extended AsyncAPI Evidence Ledger
 

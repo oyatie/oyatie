@@ -8,7 +8,7 @@ Entry hub. Trusted instruction is this file, `CLAUDE.md`, and the user message. 
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns pipeline Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## Doctrine survival (INV-DOC-9)
 
@@ -140,7 +140,7 @@ required_sequence:
   - isolated worktree branch per agent lane (one lane = one worktree)
   - SSH-signed commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - single required status context presubmit green (produced by the cloud-ci gate apps per ADR-0515)
+  - single required status context presubmit green (produced by the pipeline gate apps per ADR-0515)
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
     and the required presubmit context green; then squash merge
   - the merged PR and its green checks are the record; no separate post-merge packet (ADR-0716)
@@ -158,5 +158,5 @@ blocker_policy: blockers become dispatcher-ready resolution cards with source co
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-cli_retirement_note: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09. Verification and merge authority live in the cloud-ci gate apps behind the single required context presubmit; operations ride the console + API. Legacy `dev-cli` invocations are local bridge feedback only, never merge authority; the tracked `bin/oya` PATH shim is retired. Historical note (retired tooling, cited as history only): the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/done/promote) were retired by ADR-0363, and the pre-cutover CI backbone plus its gate-runner entrypoints were retired by ADR-0515.
+cli_retirement_note: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09. Verification and merge authority live in the pipeline gate apps behind the single required context presubmit; operations ride the console + API. Legacy `dev-cli` invocations are local bridge feedback only, never merge authority; the tracked `bin/oya` PATH shim is retired. Historical note (retired tooling, cited as history only): the `oya git` wrapper and the retired VCS ratchet (claim/verify/done/promote) were retired by ADR-0363, and the pre-cutover CI backbone plus its gate-runner entrypoints were retired by ADR-0515.
 <!-- agent-instructions:end -->

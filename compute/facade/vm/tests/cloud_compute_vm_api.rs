@@ -14,7 +14,7 @@ use compute_vm_api::{
     create_cloud_compute_vm_from_api_with_verifier,
 };
 
-const INSTANCE_ID: &str = "oya:cloud:region-home:ten_alpha:instance:app-1";
+const INSTANCE_ID: &str = "oyatie:cloud:region-home:ten_alpha:instance:app-1";
 const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const VERIFIER_EVALUATION_EPOCH_SECONDS: u64 = 1_700_099_500;
 
@@ -130,29 +130,29 @@ fn body(resource_id: &str) -> CloudComputeVmCreateRequest {
         az: "region-home-a".to_string(),
         cell_id: "cell-region-home-a-001".to_string(),
         flavor: flavor(),
-        image: format!("oci://harbor.region-home.oya/ten_alpha/app@sha256:{DIGEST}"),
+        image: format!("oci://harbor.region-home.oyatie.io/ten_alpha/app@sha256:{DIGEST}"),
         key_pair: Some("key_prod".to_string()),
-        vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
-        subnet_id: "oya:cloud:region-home:ten_alpha:subnet:prod-a".to_string(),
+        vpc_id: "oyatie:cloud:region-home:ten_alpha:vpc:prod".to_string(),
+        subnet_id: "oyatie:cloud:region-home:ten_alpha:subnet:prod-a".to_string(),
         security_groups: vec![
             CloudComputeVmSecurityGroupRef {
                 value: "sg_web".to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-home".to_string(),
-                vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
+                vpc_id: "oyatie:cloud:region-home:ten_alpha:vpc:prod".to_string(),
             },
             CloudComputeVmSecurityGroupRef {
                 value: "sg_app".to_string(),
                 tenant_id: "ten_alpha".to_string(),
                 region: "region-home".to_string(),
-                vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
+                vpc_id: "oyatie:cloud:region-home:ten_alpha:vpc:prod".to_string(),
             },
         ],
         iam_role: Some(CloudComputeVmIamRoleRef {
             value: "role_app".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-home".to_string(),
-            vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
+            vpc_id: "oyatie:cloud:region-home:ten_alpha:vpc:prod".to_string(),
         }),
         user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
         quota: quota(),
@@ -248,7 +248,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut request = request("req-compute-vm-drift", "idem-compute-vm-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:instance:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:instance:other".to_string();
 
     let error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, request)
         .expect_err("path/body instance drift is rejected");
@@ -257,7 +257,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeVmApiError::InstanceIdMismatch {
             path_instance_id: INSTANCE_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:instance:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:instance:other".to_string(),
         }
     );
     assert_eq!(error.vm_create_status_code(), 400);
@@ -520,7 +520,7 @@ fn vm_create_api_rejects_foreign_security_group_and_iam_role_proofs_before_ledge
         .iam_role
         .as_mut()
         .expect("role ref exists")
-        .vpc_id = "oya:cloud:region-home:ten_other:vpc:foreign".to_string();
+        .vpc_id = "oyatie:cloud:region-home:ten_other:vpc:foreign".to_string();
     let role_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, role_request)
         .expect_err("IAM role proof must match VPC boundary");
 
@@ -597,18 +597,18 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     residency_request.body.az = "failover-region-a".to_string();
     residency_request.body.cell_id = "cell-failover-region-a-001".to_string();
     residency_request.body.resource_id =
-        "oya:cloud:failover-region:ten_alpha:instance:app-1".to_string();
+        "oyatie:cloud:failover-region:ten_alpha:instance:app-1".to_string();
     residency_request.path_instance_id = residency_request.body.resource_id.clone();
-    residency_request.body.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
+    residency_request.body.vpc_id = "oyatie:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     residency_request.body.subnet_id =
-        "oya:cloud:failover-region:ten_alpha:subnet:prod-a".to_string();
+        "oyatie:cloud:failover-region:ten_alpha:subnet:prod-a".to_string();
     for group in &mut residency_request.body.security_groups {
         group.region = "failover-region".to_string();
-        group.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
+        group.vpc_id = "oyatie:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     if let Some(role) = &mut residency_request.body.iam_role {
         role.region = "failover-region".to_string();
-        role.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
+        role.vpc_id = "oyatie:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     let residency_error =
         create_vm_with_trusted_verifier(&mut catalog, &mut ledger, residency_request)
@@ -620,7 +620,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(residency_error.vm_create_status_code(), 403);
 
     let mut image_request = request("req-compute-vm-image", "idem-compute-vm-image");
-    image_request.body.image = "oci://harbor.region-home.oya/ten_alpha/app:latest".to_string();
+    image_request.body.image = "oci://harbor.region-home.oyatie.io/ten_alpha/app:latest".to_string();
     let image_error = create_vm_with_trusted_verifier(&mut catalog, &mut ledger, image_request)
         .expect_err("image refs must be digest pinned");
     assert_eq!(
@@ -663,7 +663,7 @@ fn vm_create_idempotency_ledger_enforces_bounded_retention() {
     )
     .expect("first create succeeds");
     let mut second = request("req-vm-bound-2", "idem-vm-bound-2");
-    second.path_instance_id = "oya:cloud:region-home:ten_alpha:instance:app-2".to_string();
+    second.path_instance_id = "oyatie:cloud:region-home:ten_alpha:instance:app-2".to_string();
     second.body.resource_id = second.path_instance_id.clone();
     create_vm_with_trusted_verifier(&mut catalog, &mut ledger, second)
         .expect("second create succeeds");

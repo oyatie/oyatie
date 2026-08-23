@@ -58,7 +58,7 @@ MEMORY.md uses inline `SUPERSEDED` annotations but does not segregate these into
 |-------|-------------|----------------------|------|
 | `feedback_grit_claim_work_done.md` | `feedback_deprecate_external_agent_coord_tooling.md` (2026-05-16) | Listed under active entries with inline note | Agents may follow grit claim/work/done protocol, which is retired |
 | `feedback_rtk_proxy_fmt_silent_passthrough.md` | `feedback_deprecate_external_agent_coord_tooling.md` (2026-05-16) | Listed under active entries with inline note | Agents may attempt rtk bypass path for cargo |
-| `feedback_vcs_canonical_2026_05_16.md` | `feedback_git_canonical_2026_05_18.md` (2026-05-18) | Listed with "(SUPERSEDED)" in title | Body still contains detailed `oya vcs claim/work/done` agent flow as "How to apply" |
+| `feedback_vcs_canonical_2026_05_16.md` | `feedback_git_canonical_2026_05_18.md` (2026-05-18) | Listed with "(SUPERSEDED)" in title | Body still contains detailed retired VCS ratchet agent flow as "How to apply" |
 | `feedback_layer_enum_12_value_canonical.md` | `feedback_layer_enum_adr_0105_13_canonical.md` (2026-05-16) | Listed with "(SUPERSEDED)" in title | Body content is stub/correct, low risk |
 | `feedback_self_merge_on_ci_green.md` | `feedback_self_merge_via_contract_path.md` (2026-05-16) | Listed with "(SUPERSEDED)" in title | Body correctly warns; low risk |
 

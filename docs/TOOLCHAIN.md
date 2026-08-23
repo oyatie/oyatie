@@ -102,7 +102,7 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Browser auth bridge** (for subscription-mode adapters) | **Rust + Chromiumoxide** (CDP wrapper) | Playwright (Apache-2) only as escape hatch | Headless browser in Rust |
 | **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; **Leptos hot-reload via cargo-leptos**; **nextest watch** | none | Devcontainer is industry standard |
 | **Editor / IDE** | Engineer choice (VS Code / Cursor / Helix / Zed / Neovim); **rust-analyzer** is required; **leptos-language-server** when authoring Leptos UI | none | Editor-agnostic; require LSP support |
-| **Pre-commit + pre-push** | **`oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
+| **Pre-commit + pre-push** | **retired `./bin/oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `presubmit` (retired CLI `gate validate`) + boundary validator | none | Already in the design |
 
 ---
 
@@ -193,8 +193,8 @@ Every persona-CLI subcommand becomes an MCP tool with a typed schema:
 ```jsonc
 // Example tool exposed by mcp-server
 {
-  "name": "oya.dev.check",
-  "description": "Run pre-push checks: cargo fmt --check, cargo clippy, cargo nextest run, oya gate validate, architecture-boundary validator. Use BEFORE every push. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
+  "name": "oyatie.dev.check",
+  "description": "Run pre-push checks: cargo fmt --check, cargo clippy, cargo nextest run, presubmit (retired CLI gate validate), architecture-boundary validator. Use BEFORE every push. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
   "inputSchema": {
     "type": "object",
     "properties": {
@@ -212,7 +212,7 @@ Every persona-CLI subcommand becomes an MCP tool with a typed schema:
   "policy": {
     "autonomy_tier_required": "T2",
     "data_classes_touched": ["INTERNAL_ONLY"],
-    "evidence_emission_topic": "oya.foundry.mcp.invocation",
+    "evidence_emission_topic": "oyatie.foundry.mcp.invocation",
     "regulatory_packs_consumed": []
   }
 }
@@ -238,10 +238,10 @@ Per-tool instructions are sourced from the CLI's structured `--help` + per-subco
 
 1. **Per-tool instructions** (in the tool's `description` field): when-to-use, when-NOT-to-use, side effects, idempotency, expected output shape, common errors, links to runbooks.
 2. **Server-level prompts** (MCP `prompts` capability): higher-level workflows that orchestrate multiple tools. Examples:
-   - `oya.workflow.preview-vertical` — "Author a vertical preview: scaffold catalog records, draft kernel entities, run check, open PR with the canonical 5-section body."
-   - `oya.workflow.regional-pack-authoring` — "Author a new regional pack: install seam impls, declare regulator binding, run pack-validate, sign with Cosign."
-   - `oya.workflow.adr-promotion` — "Promote a Proposed ADR to Accepted: confirm shipped evidence in `crates/` and `registry/catalog/`, sweep for cross-references, regenerate ADR-INDEX, run validator."
-   - `oya.workflow.foundation-bypass-renewal` — "Renew a foundation bypass: read expiry, check status of underlying issue, propose renewal or retirement."
+   - `oyatie.workflow.preview-vertical` — "Author a vertical preview: scaffold catalog records, draft kernel entities, run check, open PR with the canonical 5-section body."
+   - `oyatie.workflow.regional-pack-authoring` — "Author a new regional pack: install seam impls, declare regulator binding, run pack-validate, sign with Cosign."
+   - `oyatie.workflow.adr-promotion` — "Promote a Proposed ADR to Accepted: confirm shipped evidence in `crates/` and `registry/catalog/`, sweep for cross-references, regenerate ADR-INDEX, run validator."
+   - `oyatie.workflow.foundation-bypass-renewal` — "Renew a foundation bypass: read expiry, check status of underlying issue, propose renewal or retirement."
 
 ### 4.A.4 Per-tenant MCP endpoint
 
@@ -328,7 +328,7 @@ CI lane `governance-license` runs `cargo deny` + per-language equivalents and ha
 
 | Order | Tool | Why first |
 |---|---|---|
-| 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
+| 1 | retired `./bin/oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
 | 2 | `intelligence-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
 | 3 | `intelligence-capability-kernel` + MCP-compatible registry | Foundry preview gate |
 | 4 | `intelligence-router` (multi-provider routing + cost ceiling) | Production agent reliability |

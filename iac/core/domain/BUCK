@@ -16,10 +16,10 @@ rust_test(
 )
 
 rust_test(
-    name = "iac-domain-cloud-iac-foundation",
-    srcs = ["tests/cloud_iac_foundation.rs"],
-    crate = "iac_domain_cloud_iac_foundation",
-    crate_root = "tests/cloud_iac_foundation.rs",
+    name = "iac-domain-iac-app-foundation",
+    srcs = ["tests/iac_app_foundation.rs"],
+    crate = "iac_domain_iac_app_foundation",
+    crate_root = "tests/iac_app_foundation.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":iac-domain",

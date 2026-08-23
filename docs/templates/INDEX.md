@@ -76,7 +76,7 @@ Glossary enforced in all 7 templates:
 - "Ontology" not "Object Graph" (renamed per `feedback_glossary_ontology_not_object_graph.md`)
 - "Application" not "Shell" (override #8 per `feedback_bominal_inheritance_precedence.md`)
 - flat µservice catalog; no "Product Group" / "Arm"
-- BNF v4.1: `oya-<microservice>[-<bc-tokens>]-<layer>` (no `shared|vertical` slot)
+- BNF v4.1: `oyatie-<microservice>[-<bc-tokens>]-<layer>` (no `shared|vertical` slot)
 
 ---
 

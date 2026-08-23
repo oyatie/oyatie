@@ -2567,9 +2567,9 @@
       },
       {
         "num": 539,
-        "file": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
+        "file": "docs/adr-archive/ADR-0539-pipeline-freshness-gate.md",
         "status": "Proposed",
-        "title": "ADR-0539-cloud-ci-freshness-gate.md"
+        "title": "ADR-0539-pipeline-freshness-gate.md"
       }
     ],
     "all_nums": [
@@ -2948,9 +2948,9 @@
       },
       {
         "num": 595,
-        "file": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+        "file": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
         "status": "Proposed",
-        "title": "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md"
+        "title": "ADR-0595-de-commit-pure-derivation-pipeline-faces.md"
       },
       {
         "num": 597,

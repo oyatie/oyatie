@@ -1,8 +1,8 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (per ADR-0064)
 # Compliance evidence collector tier per ADR-0209.
 
 image:
-  repository: oya/compliance-evidence-collector
+  repository: oyatie/compliance-evidence-collector
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 

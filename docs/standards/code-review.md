@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `council-architecture`.
 > **Companion:** CLAUDE.md / docs/AGENTS.md Code Review rules. `F-PR5-06`
-> tracks the trusted server-side/cloud-ci review-producer gap; it does not
+> tracks the trusted server-side/pipeline review-producer gap; it does not
 > waive the repository contract for one author-distinct reviewer approval.
 
 ## 1. Per-change-class reviewer agent
@@ -40,7 +40,7 @@ The reviewer verdict binds the exact PR head. One author-distinct reviewer-agent
 APPROVE is sufficient; no human approval or reviewer quorum is required. Green
 CI is separate evidence and never substitutes for approval. `F-PR5-06` records
 the gap between this repository contract and current cloud enforcement.
-Until a trusted server-side/cloud-ci review producer closes that gap,
+Until a trusted server-side/pipeline review producer closes that gap,
 repository-local hooks are advisory only and cannot attest approval.
 
 ## 2.1 Merge-hold preflight packet (GH #902)

@@ -24,7 +24,7 @@
 /// ## Folded rationale
 ///
 /// This module is folded inline (not a separate `authz.rs` file) so the
-/// cloud-ci born-accounting gate counts one file rather than two — a new
+/// presubmit born-accounting gate counts one file rather than two — a new
 /// file would require an `--allow-new` grandfather pass. The module
 /// boundary is the same logical seam as in the siblings; only the file
 /// colocation differs.
@@ -166,7 +166,7 @@ mod authz {
     /// PORT: verify a caller credential into a [`VerifiedPrincipal`].
     ///
     /// Adapters: [`ConfiguredBearerPrincipalVerifier`] (break-glass) or the
-    /// cloud-iam mTLS/SPIFFE peer-SVID verifier (W5 destination, ADR-0561).
+    /// iam mTLS/SPIFFE peer-SVID verifier (W5 destination, ADR-0561).
     pub trait PrincipalVerifier: Send + Sync {
         /// # Errors
         /// [`PrincipalVerificationError`] when no credential is presented or
@@ -414,12 +414,12 @@ mod authz {
     /// ## ⚠ BREAK-GLASS ONLY — NOT multi-tenant production
     ///
     /// Binds ONE static `(principal_id, tenant_id)` pair to a single shared
-    /// secret. The production W5 adapter is the cloud-iam mTLS/SPIFFE
+    /// secret. The production W5 adapter is the iam mTLS/SPIFFE
     /// peer-SVID verifier (ADR-0561).
     ///
     /// Construction REFUSES an empty secret or empty bound identity so a
     /// process that cannot prove a credential root can never authenticate
-    /// a caller (mirrors the cloud-pdp boot-refusal doctrine).
+    /// a caller (mirrors the pdp boot-refusal doctrine).
     pub struct ConfiguredBearerPrincipalVerifier {
         bearer_secret: String,      // data_class: SECRET
         bound_principal_id: String, // data_class: INTERNAL_ONLY

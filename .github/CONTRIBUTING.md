@@ -27,7 +27,7 @@ contract and the assigned task are trusted instruction sources.
    No `--no-verify`, no hook bypass, no signing skip.
 3. **Open a PR against `dev`.** This enters the governance pipeline.
 4. **Single required status context `presubmit` must be green.** Legacy
-   `oya verify` / `oya gate` output is optional local feedback only, never
+   retired `./bin/oya verify` output is optional local feedback only, never
    merge authority.
 5. **Squash merge** only when the PR is fully reviewed, review threads are
    resolved, there is no merge conflict, and branch protection is satisfied.
@@ -45,7 +45,7 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   `data_class` annotation.
 - **License posture**: AGPL / GPL / SSPL / BUSL / RSAL are not permitted in
   product code. Know what actually enforces that, because the three layers differ:
-  the `cloud-ci-license-policy` gate validates the `license` field declared by
+  the `pipeline-license-policy` gate validates the `license` field declared by
   **workspace-member packages only**; `deny.toml`'s allow-list covers **third-party
   crates** and is checked by the weekly `license-weekly-advisory` lane, not on the
   merge path; **container images and Helm charts are not covered at all** by either.
@@ -60,7 +60,7 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   cloud-ci-materialize-generated-faces -- --repo-root .`);
   the diff-policy gate fails closed on hand edits.
 - **Never edit legacy retired paths** or reintroduce retired tooling (the
-  `oya git` wrapper and `oya vcs` ratchet are retired per ADR-0363; CLI
+  `oya git` wrapper and retired VCS ratchet are retired per ADR-0363; CLI
   governance is retired per ADR-0515).
 - **No quarantining flaky tests** without a 14-day fix SLA.
 - **No untyped values at API boundaries** — use the prescribed result types.

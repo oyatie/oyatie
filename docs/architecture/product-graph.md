@@ -232,7 +232,7 @@ CI lanes: `canonical-base-neutrality` + `cross-pack-refusal` (M02-P20).
 
 ## 3. Per-layer tech stack (BNF v4.1 12-layer enum)
 
-Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
+Crate naming: `oyatie-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 
 | Layer | Crate suffix | Tech stack | Owns | Forbidden in this layer |
 |---|---|---|---|---|
@@ -402,7 +402,7 @@ CREATE INDEX idx_outbox_pending ON <microservice>_outbox (occurred_at)
     WHERE published_at IS NULL;
 ```
 
-Outbox worker polls + publishes to Kafka KRaft topic `oya.<microservice>.<event-type>.v<n>`. LISTEN/NOTIFY trigger on insert wakes the worker for sub-second latency.
+Outbox worker polls + publishes to Kafka KRaft topic `oyatie.<microservice>.<event-type>.v<n>`. LISTEN/NOTIFY trigger on insert wakes the worker for sub-second latency.
 
 ### 6.3 Ontology Object Type schema (information-plane adapter; ADR-0059)
 
@@ -626,7 +626,7 @@ The canonical algorithm in `payroll-run-domain` is jurisdiction-agnostic. The pa
 flowchart LR
     PR[PR opened] --> CI[GitHub Actions ci-governance-lanes]
     CI --> CheckCov[check-documentation --workspace --report-only<br/>post-M02-P22: --blocker]
-    CheckCov --> ReadWS[Read workspace.metadata.oya.microservices]
+    CheckCov --> ReadWS[Read workspace.metadata.oyatie.microservices]
     CheckCov --> ReadMP[Read MASTERPLAN §2.1 catalog]
     CheckCov --> ReadPack[Read docs/localization-packs/&lt;pack&gt;/pack.yaml]
     ReadWS --> Algo[Algorithm §5: 10 steps]
@@ -652,7 +652,7 @@ To re-verify this map's accuracy at any future commit:
 git rev-parse HEAD                                                     # confirm commit
 cargo run -p check-documentation -- --workspace --report-only      # exit 0; markdown report
 cargo test -p check-documentation                                  # 2/2 pass
-grep -c "^name = \"oya-" Cargo.toml                                    # workspace member count
+grep -c "^name = \"oyatie-" Cargo.toml                                    # workspace member count
 rg -nP '^- \{ microservice:' docs/localization-packs/kr/pack.yaml | wc -l  # 27 KR pack µservices
 rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0709-general-live-apex.md | head -5
 ```

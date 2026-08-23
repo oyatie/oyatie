@@ -331,16 +331,16 @@ Cross-product rule: `tenancy` MUST NOT import any other product µservice crate 
 
 CI lanes that must green:
 
-- `oya gate validate lean-a1 --microservice tenancy` — dependency-direction
-- `oya gate validate lean-a2 --microservice tenancy` — cross-product-refusal
-- `oya gate validate port-location --microservice tenancy` — ports in kernel
-- `oya gate validate layer-correctness --microservice tenancy`
-- `oya gate validate per-microservice-layout --microservice tenancy` — ADR-0131 conformance
-- `oya gate validate statelessness --microservice tenancy` (read path; write path uses `postgres` strategy)
-- `oya gate validate shardability --microservice tenancy`
-- `oya gate validate rls-no-superuser-bypass --microservice tenancy` — NEW; refuses superuser-bypass code paths
-- `oya gate validate rls-force-on-tenant-tables --microservice tenancy` — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
-- `oya gate validate jwt-key-fingerprint-advertised --microservice tenancy` — NEW; refuses key rotation without fingerprint Workflow event
+- `presubmit` (retired CLI `gate validate lean-a1 --microservice tenancy`) — dependency-direction
+- `presubmit` (retired CLI `gate validate lean-a2 --microservice tenancy`) — cross-product-refusal
+- `presubmit` (retired CLI `gate validate port-location --microservice tenancy`) — ports in kernel
+- `presubmit` (retired CLI `gate validate layer-correctness --microservice tenancy`)
+- `presubmit` (retired CLI `gate validate per-microservice-layout --microservice tenancy`) — ADR-0131 conformance
+- `presubmit` (retired CLI `gate validate statelessness --microservice tenancy`) (read path; write path uses `postgres` strategy)
+- `presubmit` (retired CLI `gate validate shardability --microservice tenancy`)
+- `presubmit` (retired CLI `gate validate rls-no-superuser-bypass --microservice tenancy`) — NEW; refuses superuser-bypass code paths
+- `presubmit` (retired CLI `gate validate rls-force-on-tenant-tables --microservice tenancy`) — NEW; refuses tenant-bound table migrations without `FORCE ROW LEVEL SECURITY`
+- `presubmit` (retired CLI `gate validate jwt-key-fingerprint-advertised --microservice tenancy`) — NEW; refuses key rotation without fingerprint Workflow event
 
 ## Integration via Workflow + Ontology
 
@@ -480,11 +480,11 @@ Sharding:
 | AC-05 | DSR cascade end-to-end: every µservice emits `ErasureReceipt`; `ProofOfErasure` certificate signed; tenant data unreachable | `cargo nextest run -p tenancy-dsr-cascade-worker --test dsr_cascade_proof` |
 | AC-06 | Cell assignment routes new tenant to least-loaded cell in correct jurisdiction; rebalance within 2 s of cell-unhealthy signal | `cargo nextest run -p tenancy-cell-assignment-worker --test rebalance_on_unhealthy` |
 | AC-07 | JWT signing key rotation: `JwtSigningKeyRotated` event delivered; verifier pubkey cache refreshed; old key valid for 30d grace | `cargo nextest run -p tenancy-isolation-policy-worker --test jwt_rotation` |
-| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `oya gate validate lean-a2 --microservice tenancy` exit 0 |
-| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `oya gate validate rls-no-superuser-bypass --microservice tenancy` exit 0 |
-| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `oya gate validate rls-force-on-tenant-tables --microservice tenancy` exit 0 |
-| AC-11 | per-microservice-layout lane green | `oya gate validate per-microservice-layout --microservice tenancy` exit 0 |
-| AC-12 | authority-cohesion lane green; HG-TEN registered | `oya gate validate authority-cohesion` exit 0 |
+| AC-08 | LEAN-A2: tenancy crates import no other product µservice | `presubmit` (retired CLI `gate validate lean-a2 --microservice tenancy`) exit 0 |
+| AC-09 | RLS lane refuses superuser-bypass code path in any tenancy-adjacent crate | `presubmit` (retired CLI `gate validate rls-no-superuser-bypass --microservice tenancy`) exit 0 |
+| AC-10 | RLS-force lane refuses tenant-bound table migration without `FORCE ROW LEVEL SECURITY` | `presubmit` (retired CLI `gate validate rls-force-on-tenant-tables --microservice tenancy`) exit 0 |
+| AC-11 | per-microservice-layout lane green | `presubmit` (retired CLI `gate validate per-microservice-layout --microservice tenancy`) exit 0 |
+| AC-12 | authority-cohesion lane green; HG-TEN registered | `presubmit` (retired CLI `gate validate authority-cohesion`) exit 0 |
 | AC-13 | Citus rebalance preserves tenant data integrity (checksum before/after) | `cargo nextest run -p tenancy-cell-assignment-adapter-citus --test rebalance_integrity` |
 | AC-14 | Patroni HA failover: tenant validate hot path stays available with ≤ 10s blip during primary loss | `tests/load/patroni-failover-availability.sh` |
 
@@ -553,7 +553,7 @@ Operations covered: DSR delete; tenant offboarding; bulk delete > 100 rows; cell
 
 ### CI lane (new)
 
-`oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+`presubmit` (retired CLI `gate validate tenant-environment-tier`) enforces (a) every outbound-effect µservice checks `env_tier` before dispatch, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
 
 ### New endpoints (tenancy µservice)
 
@@ -571,7 +571,7 @@ See `multi-region.md` for the full disposition statement and `/specs/multi-regio
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- ADR-0346 — the retired `./bin/oya verify --ci-required` path is historical/provenance-only; merge authority is the `presubmit` context; enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
 - ADR-0347 — every `governance-*` CI lane prefix in the Oyatie corpus RENAMES to `governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
 - ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.

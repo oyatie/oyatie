@@ -282,7 +282,7 @@ This passes because authority and deadline are explicit.
 Primary command:
 
 ```bash
-oya gate validate workflow-substrate-engine --scope microservices/workflow-engine
+presubmit (retired CLI gate validate) workflow-substrate-engine --scope microservices/workflow-engine
 ```
 
 The checker MUST parse workflow templates.
@@ -631,7 +631,7 @@ ports:
 | WF-VER-017 | Test | state-machine transition coverage | `check-workflow-test-coverage` |
 | WF-VER-018 | Fixture | invalid transition fixture | `check-workflow-fixtures` |
 | WF-VER-019 | Schema | OpenAPI/AsyncAPI/Proto parity | `check-contract-parity` |
-| WF-VER-020 | Promote | evidence names workflow template | `oya-vcs-admission` |
+| WF-VER-020 | Promote | evidence names workflow template | `retired VCS ratchet` |
 
 ## Extended Review Questions
 

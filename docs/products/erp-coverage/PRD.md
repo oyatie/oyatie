@@ -2490,7 +2490,7 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 This product consumes current SSOT doctrine for the intelligence substrate, cellular automation, and cloud-native delivery:
 
-- D-CICD-AUTHORITY binds this lane to the branch-protected `presubmit` cloud-ci/ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
+- D-CICD-AUTHORITY binds this lane to the branch-protected `presubmit` presubmit gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
 - D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
 - ADR-0348 binds ERP module placement, migration runs, supply-chain workflows, and regulated evidence export to cellular topology. Enforcement evidence flows through central governance and the branch-protected `presubmit` gate, not scattered local lanes.
 - D-CICD-AUTHORITY keeps one canonical CI authority now (`presubmit`) and the owned ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
@@ -2519,12 +2519,12 @@ This section is a planning-maturity contract only. It does **not** claim runtime
 
 | AC-ID | Given | When | Then | Test ID | Test path |
 |---|---|---|---|---|---|
-| ERP-PRD-AC-001 | The ERP Coverage PRD is used as a planning contract and finance ledger, procurement, payroll, supply-chain, and SAP-displacement module contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | ERP module acceptance is linked to test and evidence paths instead of generic prose | ERP-PRD-GATE-001 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
-| ERP-PRD-AC-002 | ERP module-pack readiness is evaluated | Readiness evidence is evaluated | fresh ledger/procurement/payroll/workflow/audit evidence and user-pain validation is required outside this PRD | ERP-PRD-GATE-002 | `cloud/cloud-ci/gates/cloud-ci-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| ERP-PRD-AC-001 | The ERP Coverage PRD is used as a planning contract and finance ledger, procurement, payroll, supply-chain, and SAP-displacement module contracts are referenced by a promotion packet | The planned-maturity gate scans product PRDs | ERP module acceptance is linked to test and evidence paths instead of generic prose | ERP-PRD-GATE-001 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
+| ERP-PRD-AC-002 | ERP module-pack readiness is evaluated | Readiness evidence is evaluated | fresh ledger/procurement/payroll/workflow/audit evidence and user-pain validation is required outside this PRD | ERP-PRD-GATE-002 | `cloud/cloud-ci/gates/pipeline-planned-maturity-app/tests/planned_maturity.rs::live_product_prds_capabilities_and_retired_plan_refs_are_maturity_gated` |
 
 ## 9b. Verification commands (required) — one runnable check per metric
 
 | Metric | Verification command | Pass criterion | CI lane |
 |---|---|---|---|
-| ERP ledger/module/workflow planning maturity | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | At least one ERP row names ledger, procurement/payroll, workflow, SAP-parity, and audit obligations | `presubmit` |
-| ERP product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/cloud-ci-planned-maturity-app:cloud-ci-planned-maturity-app-gate` | An ERP promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |
+| ERP ledger/module/workflow planning maturity | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | At least one ERP row names ledger, procurement/payroll, workflow, SAP-parity, and audit obligations | `presubmit` |
+| ERP product-ready non-claim boundary | `buck2 test //cloud/cloud-ci/gates/pipeline-planned-maturity-app:pipeline-planned-maturity-app-gate` | An ERP promotion packet cannot treat this PRD as product-ready evidence without fresh CI and product-pain proof | `presubmit` |

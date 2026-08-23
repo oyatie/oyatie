@@ -67,7 +67,7 @@ impl OperatorMtlsFiles {
     fn from_env() -> Self {
         let cert_dir = env_or(
             "OYATIE_KMS_OPERATOR_MTLS_CERT_DIR",
-            "/etc/cloud-kms-operator/tls",
+            "/etc/secrets-kms-operator/tls",
         );
         let ca_default = format!("{cert_dir}/ca.crt");
         let cert_default = format!("{cert_dir}/tls.crt");

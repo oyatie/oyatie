@@ -287,7 +287,7 @@ Every internet-facing µservice MUST wire the following defence-in-depth control
 |---:|---|---|---|
 | 1 | **Edge rate-limiting (per-IP, per-fingerprint, per-tenant, per-route)** | Tier-0 edge | Token-bucket + sliding-window; burst caps per route class (auth, write, read, admin) |
 | 2 | **Behavioural fingerprinting** | Edge | TLS JA4 / JA4+ / HTTP/2-3 frame-pattern fingerprint; passive — never alone gates a request |
-| 3 | **Bot-management with ML scoring** | Edge | Cloudflare Bot Management / Akamai Bot Manager / in-house equivalent at parity; score forwarded to µservice as header `X-Oya-Bot-Score` for downstream policy |
+| 3 | **Bot-management with ML scoring** | Edge | Cloudflare Bot Management / Akamai Bot Manager / in-house equivalent at parity; score forwarded to µservice as header `X-Oyatie-Bot-Score` for downstream policy |
 | 4 | **CAPTCHA-on-suspicion** | Edge | hCaptcha + Turnstile + Cloudflare Challenge; presented only when bot-score crosses threshold; **never on default path** (accessibility floor) |
 | 5 | **Device attestation** | Edge / app | App Attest (iOS), Play Integrity (Android), WebAuthn Origin-binding (web); for native + signed-in surfaces |
 | 6 | **Stolen-credential check** | Auth path | HIBP API / oyatie's internal credential-stuffing-detector; pause sign-in if password appears in dump corpus |

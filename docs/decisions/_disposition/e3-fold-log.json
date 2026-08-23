@@ -14,7 +14,7 @@
     {
       "adr": 511,
       "folded_into": 515,
-      "title": "CI orchestration = Argo Workflows (k8s-native); cloud-ci transitory; supersede P"
+      "title": "CI orchestration = Argo Workflows (k8s-native); pipeline transitory; supersede P"
     },
     {
       "adr": 140,
@@ -58,7 +58,7 @@
     {
       "adr": 349,
       "folded_into": 515,
-      "title": "Self-hostable CI/CD substrate \u2014 cloud-ci augments GitHub Actions for self-hostab"
+      "title": "Self-hostable CI/CD substrate \u2014 pipeline augments GitHub Actions for self-hostab"
     },
     {
       "adr": 42,

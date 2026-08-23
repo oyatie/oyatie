@@ -208,7 +208,7 @@ Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
 - **ADR-54** — ADR-0054-grit-scaffold-claim-pattern
   - Grit/icm coordination pattern retired with external agent tooling (0363/0619 lineage)
 - **ADR-111** — ADR-0111-merge-queue-projected-state-fix-at-any-stage
-  - Merge-queue projected-state model superseded by live 0515 cloud-ci/Tide admission
+  - Merge-queue projected-state model superseded by live 0515 pipeline Tide admission
 - **ADR-347** — Foundry-fitness to governance bulk rename (doctrine-only; all governance-fitness-* CI lanes + cr
   - Stale tooling path, superseded admission model, or conflicts live law
 

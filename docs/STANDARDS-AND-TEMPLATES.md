@@ -55,8 +55,8 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
-| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
+| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | retired `./bin/oya verify` |
+| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `presubmit` (retired CLI `gate validate`) |
 | Wave-gate passing | [`../templates/checklists/wave-gate.md`](../templates/checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
 | Vertical onboarding | [`../templates/checklists/vertical-onboarding.md`](../templates/checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
 | Regional-pack onboarding | [`../templates/checklists/regional-pack-onboarding.md`](../templates/checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
@@ -83,11 +83,11 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | Hook | Event | Purpose | Path |
 |---|---|---|---|
 | `pre-commit-license` | git pre-commit | Refuses commits that add an external dep without a license-ledger entry | `scripts/hooks/pre-commit-license.sh` |
-| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `oya gate validate architecture-boundaries` |
+| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `presubmit` (retired CLI `gate validate architecture-boundaries`) |
 | `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
 | `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
 | `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |
-| `pre-push` | git pre-push | Runs `oya verify` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
+| `pre-push` | git pre-push | Runs retired `./bin/oya verify` (cargo fmt --check, cargo clippy, cargo nextest, presubmit (retired CLI gate validate), arch-boundary) | `.git/hooks/pre-push` |
 | `pre-tool-use-foundry-evidence` | Claude Code PreToolUse | Stamps every Foundry capability invocation with an evidence-emission event before tool runs | `.claude/hooks/pre-tool-use-foundry-evidence.sh` |
 | `post-tool-use-cohesion-fitness` | Claude Code PostToolUse | Runs cross-axis contract drift detection after edits | `.claude/hooks/post-tool-use-cohesion.sh` |
 | `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
@@ -105,7 +105,7 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 
 | Skill | Path | Purpose | Persona-CLI alias |
 |---|---|---|---|
-| `dev-check` | `.claude/skills/dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
+| `dev-check` | `.claude/skills/dev-check/SKILL.md` | Run pre-push checks | retired `./bin/oya verify` |
 | `adr-author` | `.claude/skills/adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
 | `adr-promote` | `.claude/skills/adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
 | `intelligence-capability-author` | `.claude/skills/intelligence-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
@@ -134,7 +134,7 @@ The 8 persona-CLIs:
 - `oya ops` — SRE/Ops
 - `oya pack` — regional pack maintainer
 - `oya catalog` — catalog + capability authoring
-- `oya gate` — gates + bypasses + claim-ceiling
+- retired CLI — gates + bypasses + claim-ceiling
 
 Plus the agent-discoverable equivalent: `mcp-server` exposing every CLI subcommand as an MCP tool (per [TOOLCHAIN §4.A](TOOLCHAIN.md)).
 
@@ -216,7 +216,7 @@ When you start a new piece of work:
 3. Find the matching checklist; do every step
 4. If you hit a hook block, fix it (don't `--no-verify`)
 5. Output the artifact in the canonical location with the canonical structure
-6. The `oya verify` and CI lanes will validate
+6. The retired `./bin/oya verify` and CI lanes will validate
 
 This is the *contract*: zero bespoke artifacts. Standardization-first.
 

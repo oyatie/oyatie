@@ -1,7 +1,7 @@
 //! Cloud storage aggregate kernel.
 //!
 //! This crate owns the Cloud storage product surface named by the Cloud PRD and
-//! SPEC (`cloud.storage.object.put` / `.get`, `cloud.storage.block.create`, and
+//! SPEC (`cloud.storage.object.put` / `.get`, `storage.block.create`, and
 //! the file/archive metadata surfaces). It is intentionally adapter-free: object
 //! bodies, block devices, and file shares live behind later infrastructure
 //! adapters, while this kernel keeps the typed control/data-plane invariants for

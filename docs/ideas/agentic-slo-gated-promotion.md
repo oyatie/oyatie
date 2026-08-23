@@ -11,7 +11,7 @@ auto-promotion cadence?
 **Milestone 1 (foundation).** This work is substrate consumed by every
 oyatie product; it cannot land in a later milestone without leaving M01
 products promoting unguarded. Per the M-CC-folds-into-M01 rule, the
-existing `M-CC-P11` (Oya VCS substrate) renumbers into M01, and this
+existing `M-CC-P11` (retired VCS ratchet substrate) renumbers into M01, and this
 substrate is either an extension of that phase or two sibling sub-phases
 of M01 covering observability (Layer A) and promotion gating (Layer B)
 respectively. Final sub-phase decomposition is captured in the ADR (#18)
@@ -67,7 +67,7 @@ deferred; everything ships as one unit.
     `(component, source_sha, target_env, verdict, burn_rate_snapshot,
     evaluated_at, evaluator_version)`. Union-merge driver already in
     `.gitattributes` for JSONL ledgers.
-13. **`oya-vcs-promotion-readiness` CI lane** — asserts the latest ledger
+13. **`retired VCS ratchet` CI lane** — asserts the latest ledger
     record for every component touched by the SHA is `eligible` for the
     target environment. Added to `branch-protection.yaml`
     required-status-checks on `dev` and `staging`.
@@ -94,7 +94,7 @@ deferred; everything ships as one unit.
     hyperscaler-citation matrix (Google SRE workbook, OpenSLO, OTel,
     Grafana stack adoption by AWS / GCP / Cloudflare / Shopify).
 19. **`branch-protection.yaml` update** — adds
-    `oya-vcs-promotion-readiness` to required checks on `dev` and
+    `retired VCS ratchet` to required checks on `dev` and
     `staging`.
 20. **Decommission of FUTURE-marked stubs** — references in
     `promote-dev-to-staging.yml` and `promote-staging-to-production.yml`

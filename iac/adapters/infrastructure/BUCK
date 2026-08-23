@@ -15,10 +15,10 @@ rust_library(
 )
 
 rust_test(
-    name = "iac-infrastructure-cloud-iac-infrastructure",
-    srcs = ["tests/cloud_iac_infrastructure.rs"],
-    crate = "iac_infrastructure_cloud_iac_infrastructure",
-    crate_root = "tests/cloud_iac_infrastructure.rs",
+    name = "iac-infrastructure-iac-app-infrastructure",
+    srcs = ["tests/iac_app_infrastructure.rs"],
+    crate = "iac_infrastructure_iac_app_infrastructure",
+    crate_root = "tests/iac_app_infrastructure.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":iac-infrastructure",

@@ -10,7 +10,7 @@ purpose: |
   Metric-gated promotion at 1% → 5% → 25% → 50% → 100% with SLO-burn-rate-bounded hold durations.
 planned_enforcement_ref:
   - governance-canary-required
-  - cloud-ci-slo-coverage
+  - pipeline-slo-coverage
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published
@@ -46,10 +46,10 @@ Both adapted behind `platform-rollout-controller-kernel` (NEW) + adapter crates.
 apiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
-  name: oya-<axis>-<service>
+  name: oyatie-<axis>-<service>
 spec:
   provider: istio
-  targetRef: { apiVersion: apps/v1, kind: Deployment, name: oya-<axis>-<service> }
+  targetRef: { apiVersion: apps/v1, kind: Deployment, name: oyatie-<axis>-<service> }
   analysis:
     interval: 1m
     threshold: 5            # ≤ 5 failed checks before rollback
@@ -105,7 +105,7 @@ AWS CodeDeploy "Canary 10/45" + "Linear 10/3min"; Microsoft Azure Deployment Rin
 ## 10. Compliance gates
 
 - `governance-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
-- `cloud-ci-slo-coverage` (existing; extended).
+- `pipeline-slo-coverage` (existing; extended).
 
 ## 11. Lift target
 

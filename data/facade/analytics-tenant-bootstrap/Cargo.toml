@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 description = "Sidecar controller binary: consumes tenancy lifecycle events and reconciles per-tenant ClickHouse state (database creation, row-level policies, quota bindings). Controller-pattern per Kubernetes operator doctrine."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics-tenant-bootstrap"
 layer = "app"

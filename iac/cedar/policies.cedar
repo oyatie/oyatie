@@ -1,7 +1,7 @@
-// Cedar policy fragments for cloud-iac.
+// Cedar policy fragments for iac-app.
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
-// ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not authority mechanisms for active work; cloud-ci/ci produces the single required presubmit context.
-// ADR-0346 enforced_by: presubmit; cloud-ci shared Rust gate logic; local-authority-enforcer.
+// ADR-0346 supersession: retired local verifier/gate/check wrappers are not authority mechanisms for active work; ci produces the single required presubmit context.
+// ADR-0346 enforced_by: presubmit; ci shared Rust gate logic; local-authority-enforcer.
 // ADR-0347 purpose: every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
 // ADR-0347 enforced_by: retired-fitness-residue detection; governance-lane-prefix-vocabulary; governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
@@ -14,7 +14,7 @@ permit(
   action in [Action::"ComputeAutoshardingPlacement", Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
   resource is ShardingAutomation
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.doctrine.adr_0348 == true &&
   context.autosharding_mode == "control_plane_driven" &&
   context.honors_residency == true &&
@@ -28,7 +28,7 @@ forbid(
   action in [Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
   resource is ShardingAutomation
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   (
     context.honors_residency == false ||
     context.compliance_pack_check_result != "pass" ||
@@ -42,7 +42,7 @@ forbid(
   action == Action::"MigrateTenantCrossJurisdiction",
   resource is TenantMigration
 ) unless {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.cedar_permit_id != "" &&
   context.cross_jurisdiction_permit_id != "" &&
   context.audit_chain_emit == true
@@ -53,7 +53,7 @@ permit(
   action == Action::"RunRequiredCi",
   resource is ServiceCiSurface
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.required_context == "presubmit" &&
   context.shared_rust_gate_logic == true &&
   context.surface_all_aggregator == true &&
@@ -66,7 +66,7 @@ permit(
   action == Action::"RunRequiredCi",
   resource is ServiceCiSurface
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.required_context == "presubmit" &&
   context.cutover_proven == true &&
   context.shared_rust_gate_logic == true &&
@@ -80,7 +80,7 @@ forbid(
   action == Action::"RunRequiredCi",
   resource is ServiceCiSurface
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   (
     context.required_context != "presubmit" ||
     context.local_cli_authority == true ||
@@ -93,7 +93,7 @@ forbid(
   action == Action::"RunRequiredCi",
   resource is ServiceCiSurface
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   (
     context.required_context != "presubmit" ||
     context.local_cli_authority == true ||
@@ -106,7 +106,7 @@ permit(
   action == Action::"SyncApplication",
   resource is GitOpsApplication
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.doctrine.adr_0349 == true &&
   context.cosign_signature_verified == true &&
   context.tenant_namespace_isolated == true &&
@@ -119,7 +119,7 @@ forbid(
   action == Action::"SyncApplication",
   resource is GitOpsApplication
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   (
     context.cosign_signature_verified == false ||
     context.tenant_namespace_isolated == false ||
@@ -132,7 +132,7 @@ forbid(
   action == Action::"AuthorGovernanceLane",
   resource is ServiceCiSurface
 ) when {
-  resource.microservice == "cloud-iac" &&
+  resource.microservice == "iac-app" &&
   context.doctrine.adr_0347 == true &&
   context.lane_id.matches("^governance-.*$") &&
   context.historical_reference != true

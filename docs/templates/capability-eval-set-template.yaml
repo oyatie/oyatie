@@ -1,7 +1,7 @@
 # Capability eval set template per ADR-0024.
 # Lives at `registry/capability-templates/eval-sets/<capability-id>.yaml`.
 # Validated by `capability-eval-coverage` and `capability-eval-{adversarial,linguistic}-coverage`.
-capability_id: oya.<context>.<verb>     # per capability registry per ADR-0021
+capability_id: oyatie.<context>.<verb>     # per capability registry per ADR-0021
 version: 0.1.0
 metric: ExactMatch | F1 | Bleu | Rouge | HumanJudged | Composite
 pass_threshold:

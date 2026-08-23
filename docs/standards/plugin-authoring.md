@@ -28,15 +28,15 @@ languages_supported: [rust, ts, python]   # author's source language; runtime is
 runtime:
   target: wasm32-wasi-preview2
   capabilities_required:
-    - oya.workspace.mail.send         # explicit allowlist; principle-of-least-privilege
-    - oya.platform.tenant.read
+    - oyatie.workspace.mail.send         # explicit allowlist; principle-of-least-privilege
+    - oyatie.platform.tenant.read
   data_classes_touched:
     - PII_QUASI_IDENTIFIER
   autonomy_tier_required: T2
 permissions:
-  - oya.tenant.read
-  - oya.workspace.mail.send
-  - oya.intelligence.capability.invoke
+  - oyatie.tenant.read
+  - oyatie.workspace.mail.send
+  - oyatie.intelligence.capability.invoke
 resource_caps:
   cpu_ms_per_invocation: 200
   memory_mb: 64

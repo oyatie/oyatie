@@ -1,6 +1,6 @@
 //! OAuth subscription-pool app crate (ADR-0384 Path B).
 //!
-//! This is the composition layer for the cloud-intelligence
+//! This is the composition layer for the intelligence-app
 //! µservice. It wires:
 //!
 //! - [`intelligence_kernel`] — pure-Rust pool + trait seams.
@@ -262,7 +262,7 @@ impl AppConfig {
     /// | `OYATIE_CLOUD_INTEL_TENANT_PROVIDER_POOLS`| *(empty)*                      |
     /// | `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_URL`        | *(required)*                     |
     /// | `OYATIE_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`      | *(required)*                     |
-    /// | `OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `cloud-intelligence-rt`                 |
+    /// | `OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `intelligence-app-rt`                 |
     /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_URL`     | `http://clickhouse.analytics.svc:8123` |
     /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_USER`    | `default`                        |
     /// | `OYATIE_CLOUD_INTEL_CLICKHOUSE_PASSWORD`| *(required)*                     |
@@ -303,7 +303,7 @@ impl AppConfig {
                 )
             })?;
         let transit_key_name = std::env::var("OYATIE_CLOUD_INTEL_TRANSIT_KEY_NAME")
-            .unwrap_or_else(|_| "cloud-intelligence-rt".to_string());
+            .unwrap_or_else(|_| "intelligence-app-rt".to_string());
         let clickhouse_url = std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_URL")
             .unwrap_or_else(|_| "http://clickhouse.analytics.svc:8123".to_string());
         let clickhouse_user = std::env::var("OYATIE_CLOUD_INTEL_CLICKHOUSE_USER")
@@ -699,7 +699,7 @@ impl EventSink for InProcessEventSink {
             provider   = %event.provider,
             status     = ?event.status,
             ms_latency = event.ms_latency,
-            "cloud-intelligence event"
+            "intelligence-app event"
         );
     }
 }
@@ -1074,7 +1074,7 @@ mod tests {
             // These fields are not used by build_app_for_tests (in-process mocks).
             secret_provider_url: "http://127.0.0.1:1".to_string(),
             secret_provider_token: "test-token".to_string(),
-            transit_key_name: "cloud-intelligence-rt".to_string(),
+            transit_key_name: "intelligence-app-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
             clickhouse_password: "test".to_string(),
@@ -1139,7 +1139,7 @@ mod tests {
             initial_seats: vec![],
             secret_provider_url: "http://127.0.0.1:1".to_string(),
             secret_provider_token: "test-token".to_string(),
-            transit_key_name: "cloud-intelligence-rt".to_string(),
+            transit_key_name: "intelligence-app-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
             clickhouse_password: "test".to_string(),
@@ -1447,7 +1447,7 @@ mod tests {
 
         assert!(
             app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
-            "core cloud-intelligence Rust boundary should expose the owned secret-provider port"
+            "core intelligence-app Rust boundary should expose the owned secret-provider port"
         );
         assert!(
             deployment_template.contains("SECRET_PROVIDER"),
@@ -1463,7 +1463,7 @@ mod tests {
                 !app_source.contains(&forbidden)
                     && !rest_source.contains(&forbidden)
                     && !deployment_template.contains(&forbidden),
-                "core cloud-intelligence boundary leaked transient adapter identifier {forbidden}"
+                "core intelligence-app boundary leaked transient adapter identifier {forbidden}"
             );
         }
     }

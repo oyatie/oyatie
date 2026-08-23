@@ -187,7 +187,7 @@ G-060. Proto files MUST NOT rely on generation defaults as documented behavior.
 ```proto
 syntax = "proto3";
 
-package oya.workflow_engine.state_machine.v1;
+package oyatie.workflow_engine.state_machine.v1;
 
 service WorkflowStateMachineService {
   rpc CompleteStep(CompleteStepRequest) returns (CompleteStepResponse);
@@ -251,14 +251,14 @@ This fails because money must not use floating point.
 Primary command:
 
 ```bash
-oya gate validate proto3-authoring --scope microservices
+presubmit (retired CLI gate validate) proto3-authoring --scope microservices
 ```
 
 Companion commands:
 
 ```bash
-oya gate validate grpc-contract-compatibility --scope microservices
-oya gate validate sdk-generation --scope microservices
+presubmit (retired CLI gate validate) grpc-contract-compatibility --scope microservices
+presubmit (retired CLI gate validate) sdk-generation --scope microservices
 ```
 
 The checker MUST parse every proto file.
@@ -431,21 +431,21 @@ PROTO-SB-039. Verify deprecation replacement.
 
 PROTO-SB-040. Verify generated code is not edited.
 
-PROTO-SB-041. Check `oya.workflow_engine.state_machine.v1`.
+PROTO-SB-041. Check `oyatie.workflow_engine.state_machine.v1`.
 
-PROTO-SB-042. Check `oya.tenancy.lifecycle.v1`.
+PROTO-SB-042. Check `oyatie.tenancy.lifecycle.v1`.
 
-PROTO-SB-043. Check `oya.policy_engine.cedar.v1`.
+PROTO-SB-043. Check `oyatie.policy_engine.cedar.v1`.
 
-PROTO-SB-044. Check `oya.ontology.projection.v1`.
+PROTO-SB-044. Check `oyatie.ontology.projection.v1`.
 
-PROTO-SB-045. Check `oya.cloud.compute.vm.v1`.
+PROTO-SB-045. Check `oyatie.cloud.compute.vm.v1`.
 
-PROTO-SB-046. Check `oya.messenger.delivery.v1`.
+PROTO-SB-046. Check `oyatie.messenger.delivery.v1`.
 
-PROTO-SB-047. Check `oya.mail.message.v1`.
+PROTO-SB-047. Check `oyatie.mail.message.v1`.
 
-PROTO-SB-048. Check `oya.capability_tier.registry.v1`.
+PROTO-SB-048. Check `oyatie.capability_tier.registry.v1`.
 
 PROTO-SB-049. Check `CompleteStepRequest`.
 
@@ -580,7 +580,7 @@ message CancelWorkflowExecutionResponse {
 | PROTO-MAT-017 | Versioning | breaking change bumps package | package v2 | `check-contract-version` |
 | PROTO-MAT-018 | Docs | ADR links exist | docs path | `check-doc-links` |
 | PROTO-MAT-019 | Audit | mutating RPC emits event | audit map | `check-audit-emission` |
-| PROTO-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| PROTO-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended Proto Evidence Ledger
 

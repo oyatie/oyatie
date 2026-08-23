@@ -64,9 +64,9 @@ When a mistake surfaces (incident, audit finding, customer report, drift discove
 ## 6. Prevention as a Foundry capability
 
 Per [DESIGN §3](../DESIGN.md) Foundry-as-accelerator:
-- `oya.prevention.draft-from-incident` — Foundry capability that proposes a mechanical prevention from an incident postmortem
-- `oya.prevention.verify-coverage` — runs the proposed prevention against the original failure mode (or replay trace)
-- `oya.prevention.ship` — opens PR with the prevention + mistakes-and-fixes-ledger row
+- `oyatie.prevention.draft-from-incident` — Foundry capability that proposes a mechanical prevention from an incident postmortem
+- `oyatie.prevention.verify-coverage` — runs the proposed prevention against the original failure mode (or replay trace)
+- `oyatie.prevention.ship` — opens PR with the prevention + mistakes-and-fixes-ledger row
 
 ## 7. Long-running prevention areas
 

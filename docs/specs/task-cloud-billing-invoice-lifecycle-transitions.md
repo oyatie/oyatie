@@ -183,7 +183,7 @@ responses:
 
 ```proto
 syntax = "proto3";
-package oya.cloud.billing.v1;
+package oyatie.cloud.billing.v1;
 
 enum InvoiceState {
   INVOICE_STATE_UNSPECIFIED = 0;

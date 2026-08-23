@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=cli-session; layer=driver (SessionDriver adapter).
 #         Justification: the single subprocess-spawning SessionDriver adapter. Replaces
 #         intelligence-{claude,codex,gemini}-account-adapter, which differed only in the

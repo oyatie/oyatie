@@ -99,7 +99,7 @@ forbid (...) when { ... };
 
 ## Validation
 
-`oya gate cedar-structural-validator` validates every per-µservice cedar:
+`retired CLI cedar-structural-validator` validates every per-µservice cedar:
 
 1. Filename matches canonical archetype
 2. Header cites `cedar-canonical-imports.cedar`

@@ -85,7 +85,7 @@ Schema definitions, invariants, state-machine transitions. If a domain `State �
 
 ### API surface
 
-OpenAPI / Protobuf / AsyncAPI excerpt. Provider-neutral (Master Plan §2 principle 4). Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only.
+OpenAPI / Protobuf / AsyncAPI excerpt. Provider-neutral (Master Plan §2 principle 4). Provider-specific code lives in `oyatie-<context>-adapter-<provider>-*` crates only.
 
 ### Concurrency / consistency model
 

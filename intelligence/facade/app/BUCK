@@ -42,7 +42,7 @@ rust_test(
         "OYATIE_INTELLIGENCE_APP_SOURCE": "$(location :intelligence-app-source)",
         "OYATIE_INTELLIGENCE_HELM_DEPLOYMENT": "$(location //intelligence/iac/k8s/helm/templates:deployment.yaml)",
         "OYATIE_INTELLIGENCE_HELM_EXTERNALSECRET": "$(location //intelligence/iac/k8s/helm/templates:externalsecret.yaml)",
-        "OYATIE_INTELLIGENCE_OPENAPI_CONTRACT": "$(location //intelligence/contracts:cloud-intelligence.openapi.yaml)",
+        "OYATIE_INTELLIGENCE_OPENAPI_CONTRACT": "$(location //intelligence/contracts:intelligence-app.openapi.yaml)",
         "OYATIE_INTELLIGENCE_REST_SOURCE": "$(location //intelligence/adapters/rest:intelligence-rest-source)",
     },
     visibility = ["PUBLIC"],
@@ -64,7 +64,7 @@ rust_test(
 )
 
 rust_binary(
-    name = "cloud-intelligence",
+    name = "intelligence-app-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],

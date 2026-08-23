@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-CONSENT-CASCADE-006
+tutorial_id: TUT-OYATIE-CONSENT-CASCADE-006
 persona: "Hae-Won Kim, tenant privacy administrator"
 prerequisite_packs:
   - canonical-base

@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — Commit Message Standard
 
-> **Owner:** `council-architecture`. Validator: `oya verify` pre-push hook + per-PR CI lane.
+> **Owner:** `council-architecture`. Validator: retired `./bin/oya verify` pre-push hook + per-PR CI lane.
 
 ## 1. Format (Conventional Commits)
 
@@ -100,7 +100,7 @@ Closes #5678
 ```
 migrate(repo): phase 5 service-runtime crate moves
 
-Moves runtimes from services/* to crates/oya-*-runtime per ADR-0015
+Moves runtimes from services/* to crates/oyatie-*-runtime per ADR-0015
 flat-crates target.
 
 Refs #1458

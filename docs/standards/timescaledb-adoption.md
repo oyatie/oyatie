@@ -105,7 +105,7 @@ refresh + retention worker.
 
 1. Helm chart consumption: add `microservices/<ms>/iac/helm/timescaledb-extension/`.
 2. Manifest update: declare hypertable.
-3. Refresh worker addition: ~30 LOC in `crates/oya-<ms>-worker/`.
+3. Refresh worker addition: ~30 LOC in `crates/oyatie-<ms>-worker/`.
 4. SLO authoring: 3-4 OpenSLO sources.
 5. Runbook: `microservices/<ms>/runbooks/timescaledb.md`.
 

@@ -2,7 +2,7 @@
 # As of the P0.0 gap packet, live GitHub dev protection does not reflect
 # this file exactly; drift is recorded in
 # specs/phase0-ci-enforcement-baseline.json. This file is not Phase-0
-# exit authority until a trusted cloud-ci/ci required context is live.
+# exit authority until a trusted presubmit required context is live.
 #
 # Pipeline topology (per feedback_branch_pipeline_final_final,
 # 2026-05-12):
@@ -48,7 +48,7 @@ branches:
     # owner COMMENTED review, proving review admission is target-only here.
     required_approving_reviews: 0
     # P0.0 local target: one required context posted by trusted
-    # cloud-ci/ci control state. This file is not a live-enforcement
+    # presubmit control state. This file is not a live-enforcement
     # claim until the ruleset is applied and ci-controller posts the
     # candidate-SHA status. Legacy cargo/* and verify lanes are feedback
     # only, not protected-branch merge or Phase-0 exit authority.

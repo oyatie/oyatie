@@ -34,7 +34,7 @@ as described in RFC 2119 and RFC 8174 when they appear in all capitals.
 
 ## Scope
 
-This standard applies to every `oya-*` crate.
+This standard applies to every `oyatie-*` crate.
 
 It applies to every `registry/catalog/*.yaml` layer declaration.
 
@@ -364,15 +364,15 @@ It must produce deterministic diagnostics.
 Primary command:
 
 ```bash
-oya gate validate layered-architecture --scope crates
+presubmit (retired CLI gate validate) layered-architecture --scope crates
 ```
 
 Additional commands:
 
 ```bash
-oya gate validate naming-convention --scope crates
-oya gate validate flat-crates --scope crates
-oya gate validate catalog-id-discipline --scope registry
+presubmit (retired CLI gate validate) naming-convention --scope crates
+presubmit (retired CLI gate validate) flat-crates --scope crates
+presubmit (retired CLI gate validate) catalog-id-discipline --scope registry
 ```
 
 The layer checker MUST parse `cargo metadata --no-deps`.

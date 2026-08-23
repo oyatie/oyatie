@@ -1,7 +1,7 @@
 # Residual product/docs surface for gateway capability (dual-home burn-down).
 # Live crates live under gateway/adapters (and future core/ports) with their own
 # package BUCKs. This package owns residual service docs, manifests, contracts,
-# and OpenSLO YAML rehomed from oya/api-gateway and oya/connector so they remain
+# and OpenSLO YAML rehomed from api-gateway and connector so they remain
 # in the Buck2 corpus graph (ADR-0541).
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")

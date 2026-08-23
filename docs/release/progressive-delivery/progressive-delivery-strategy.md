@@ -72,7 +72,7 @@ This strategy does not own: SLO catalog (per [ADR-0042](../../decisions/ADR-0042
 - `governance-canary-required` (NEW; BLOCKER) — refuses kernel/domain/app/api/adapter changes without canary manifest.
 - `governance-rollback-evidence` (NEW; BLOCKER) — refuses release without signed D14 rollback artefact.
 - `governance-cohort-honor` (NEW; HIGH) — verifies cohort-honour at canary cut.
-- `cloud-ci-slo-coverage` (existing; extended) — requires burn-rate alert per service.
+- `pipeline-slo-coverage` (existing; extended) — requires burn-rate alert per service.
 
 ## 9. ADR citations
 

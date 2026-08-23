@@ -1,13 +1,13 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Skeleton values authored 2026-05-18 per ADR-0168.
 # Full values tracked under registry/placeholder-debt/adr-follow-ups.yaml
 # #adr-0168-statuspage-helm-impl.
 
 statuspage:
-  domain: "status.oya.dev"
+  domain: "status.oyatie.dev"
   perPackSubdomains:
-    - "status.kr.oya.dev"
-    - "status.eu.oya.dev"
+    - "status.kr.oyatie.dev"
+    - "status.eu.oyatie.dev"
   cellAffinity: "cell-statuspage"  # per ADR-0009 cell isolation
   replicas: 3                       # HA at 99.99% per ADR-0168 §"Operational"
   sloSource:

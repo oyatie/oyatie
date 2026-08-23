@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
+purpose: "Canonical, machine-checkable grammar for every `oyatie-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
 doc_status: published
 ---
 
@@ -11,7 +11,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and
+  Canonical, machine-checkable grammar for every `oyatie-*` Cargo crate name and
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
   conventions) and binds the `governance-naming-convention` lane.
@@ -38,9 +38,9 @@ authority_chain_declaration: |
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 This standard operates within the [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json)
-frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
+frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oyatie-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
-Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
+Every `oyatie-*` crate path under `crates/` MUST conform to the grammar in §2.
 The lane [`governance-naming-convention`](../../.omc/governance-lanes/naming-convention.md)
 mechanically enforces it. Severity = **BLOCKER**.
 
@@ -81,8 +81,8 @@ they appear in all capitals.
 > **v4.1 supersedes v4.** This section is updated per ADR-0056 v4.1
 > (accepted 2026-05-13). The v4 `shared|vertical` binary is **retired** — the flat
 > µservice catalog makes every µservice independent; the `shared` literal is dropped
-> from slot2. The v3 BNF (`oya-<context>-<feature>-<role>[-<capability>]`) is also
-> retired. v4.1 is the canonical grammar for all `oya-*` crates from Shard 1 forward.
+> from slot2. The v3 BNF (`oyatie-<context>-<feature>-<role>[-<capability>]`) is also
+> retired. v4.1 is the canonical grammar for all `oyatie-*` crates from Shard 1 forward.
 
 The crate-name grammar, evaluated left-to-right on the package-name kebab string:
 
@@ -105,7 +105,7 @@ kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
 **Parser rule**: split on `-`; LAST token = layer (one of 12); SECOND token
-(after `oya-`) = registered µservice name; remaining middle tokens (if any) =
+(after `oyatie-`) = registered µservice name; remaining middle tokens (if any) =
 optional BC tokens. `check-*` crates are exempt from this grammar.
 
 **BC optionality rule**: BC slot is OPTIONAL. Omit when the µservice has a single
@@ -117,7 +117,7 @@ Constraints (the lane `check-architecture-cli` verifies all of them):
 1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be `>=3`
    (microservice + layer minimum); NO upper bound.
 2. **Slot-2 µservice enum.** MUST be a µservice name registered in
-   `[workspace.metadata.oya.microservices]`. Adding a µservice is a **1-ADR action**.
+   `[workspace.metadata.oyatie.microservices]`. Adding a µservice is a **1-ADR action**.
    The literals `shared`, `platform`, `vertical` are **retired** and must NOT appear
    as slot-2 values.
 3. **Layer enum (closed, 12 values).** LAST token MUST be one of 12 canonical
@@ -147,7 +147,7 @@ replaced by `_` (per Cargo's library-name rule).
 
 ## 3. Microservice registry — semantic table (selected examples)
 
-The full registry lives in `[workspace.metadata.oya.microservices]` in the root
+The full registry lives in `[workspace.metadata.oyatie.microservices]` in the root
 `Cargo.toml`. Examples of registered µservices:
 
 | Microservice | Definition | Layer examples |
@@ -167,7 +167,7 @@ The full registry lives in `[workspace.metadata.oya.microservices]` in the root
 | `payments` | Payment rails, settlement, reconciliation. | `payments-ledger-application` |
 
 Adding a µservice REQUIRES: (1) an ADR proposing the name + justification,
-(2) a row in `[workspace.metadata.oya.microservices]`, (3) the lane regex updated
+(2) a row in `[workspace.metadata.oyatie.microservices]`, (3) the lane regex updated
 in the naming-convention fitness lane.
 
 ## 4. Role enum — semantic table
@@ -267,7 +267,7 @@ Every workspace member's `Cargo.toml` MUST include:
 
 ```toml
 [package]
-name             = "oya-<context>-<feature>-<role>[-<capability>]"
+name             = "oyatie-<context>-<feature>-<role>[-<capability>]"
 edition          .workspace = true
 version          .workspace = true
 rust-version     .workspace = true
@@ -381,7 +381,7 @@ Inside a crate, the standard tracks the
 
 ## 11. Anti-patterns
 
-1. **Adapter without capability tail.** A crate named `oya-*-adapter` is
+1. **Adapter without capability tail.** A crate named `oyatie-*-adapter` is
    ambiguous (which provider?). Always include the capability tail:
    `-adapter-file`, `-adapter-tracing`, `-adapter-postgres`.
 2. **Kernel with capability tail.** A kernel is by definition
@@ -419,4 +419,4 @@ Inside a crate, the standard tracks the
 - [Google Cloud Rust](https://github.com/googleapis/google-cloud-rust)
 - [Firecracker](https://firecracker-microvm.github.io/) (AWS workspace structure precedent)
 - [Hyperlight](https://opensource.microsoft.com/blog/2024/11/07/introducing-hyperlight-virtual-machine-based-security-for-functions-at-scale/) (Microsoft workspace structure precedent)
-- ADR-0015 (flat crates), ADR-0017 (`oya-` prefix), ADR-0053, ADR-0054.
+- ADR-0015 (flat crates), ADR-0017 (`oyatie-` prefix), ADR-0053, ADR-0054.

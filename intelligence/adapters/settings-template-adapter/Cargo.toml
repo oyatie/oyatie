@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=settings-template; layer=adapter (12-layer-enum L4).
 #         Justification: per-provider settings renderer — filesystem I/O + per-provider
 #         format dialects (Claude/Codex/Gemini). PRE-1 rename applied: NOT -fs suffix

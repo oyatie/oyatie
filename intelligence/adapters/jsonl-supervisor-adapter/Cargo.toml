@@ -1,4 +1,4 @@
-# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+# Naming: <capability>-<feature>-<layer> per v4 BNF.
 #         product=foundry; feature=jsonl-supervisor; layer=adapter (12-layer-enum L4).
 #         Justification: file-backed InboxStore + OutboxSink for the foundry supervisor
 #         lane (M02-P06). BC-tokens=[jsonl,supervisor] + layer=adapter; the only

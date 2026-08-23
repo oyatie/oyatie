@@ -17,7 +17,7 @@ fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
     let first = outbox
         .publish(
             "ten_alpha".into(),
-            "oya.object-graph.entity.upserted.v1".into(),
+            "oyatie.object-graph.entity.upserted.v1".into(),
             "idem-1".into(),
             "ent-1".into(),
         )
@@ -25,7 +25,7 @@ fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
     let duplicate = outbox
         .publish(
             "ten_alpha".into(),
-            "oya.object-graph.entity.upserted.v1".into(),
+            "oyatie.object-graph.entity.upserted.v1".into(),
             "idem-1".into(),
             "ent-1".into(),
         )
@@ -38,7 +38,7 @@ fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
     let second = outbox
         .publish(
             "ten_alpha".into(),
-            "oya.identity.user.upserted.v1".into(),
+            "oyatie.identity.user.upserted.v1".into(),
             "idem-2".into(),
             "usr-1".into(),
         )
@@ -63,7 +63,7 @@ fn file_outbox_store_persists_published_state_transition_as_append_only_event() 
     let record = outbox
         .publish(
             "ten_alpha".into(),
-            "oya.object-graph.entity.upserted.v1".into(),
+            "oyatie.object-graph.entity.upserted.v1".into(),
             "idem-1".into(),
             "ent-1".into(),
         )
@@ -95,7 +95,7 @@ fn file_outbox_store_rejects_divergent_or_malformed_history() {
     original
         .publish(
             "ten_alpha".into(),
-            "oya.object-graph.entity.upserted.v1".into(),
+            "oyatie.object-graph.entity.upserted.v1".into(),
             "idem-1".into(),
             "ent-1".into(),
         )
@@ -106,7 +106,7 @@ fn file_outbox_store_rejects_divergent_or_malformed_history() {
     divergent
         .publish(
             "ten_alpha".into(),
-            "oya.object-graph.entity.deleted.v1".into(),
+            "oyatie.object-graph.entity.deleted.v1".into(),
             "idem-1".into(),
             "ent-1".into(),
         )

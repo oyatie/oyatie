@@ -271,14 +271,14 @@ This passes because tier, audit, and authorization are explicit.
 Primary command:
 
 ```bash
-oya gate validate openapi-3-2-authoring --scope contracts
+presubmit (retired CLI gate validate) openapi-3-2-authoring --scope contracts
 ```
 
 Companion commands:
 
 ```bash
-oya gate validate openapi-rest-route-parity --scope crates
-oya gate validate api-versioning --scope contracts
+presubmit (retired CLI gate validate) openapi-rest-route-parity --scope crates
+presubmit (retired CLI gate validate) api-versioning --scope contracts
 oya doc openapi
 ```
 
@@ -654,7 +654,7 @@ components:
 | OAS-MAT-017 | Versioning | breaking change bumps major | info.version | `check-contract-version` |
 | OAS-MAT-018 | Docs | standard cross-reference | docs path | `check-doc-links` |
 | OAS-MAT-019 | Audit | mutating operation emits event | audit map | `check-audit-emission` |
-| OAS-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| OAS-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended OpenAPI Evidence Ledger
 

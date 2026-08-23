@@ -263,16 +263,16 @@ permit (principal, action == Action::"ReadDocument", resource);
 
 ## Verification
 
-Merge/promotion authority is the cloud-ci/ci Rust gate packet for Cedar policy authoring,
+Merge/promotion authority is the presubmit Rust gate packet for Cedar policy authoring,
 Cedar structural validation, capability-tier Cedar coverage, and autonomy-ceiling coverage.
-Legacy `oya gate` invocations are transitional/local feedback only; they are not merge
+Legacy retired CLI invocations are transitional/local feedback only; they are not merge
 authority, promotion authority, or a required context.
 
-Local feedback commands while the cloud-ci/Rust gates are being cut over:
-- `oya gate validate cedar-policy-authoring --scope microservices`
-- `oya gate validate cedar-structural-validator --scope microservices`
-- `oya gate validate capability-tier-cedar-coverage --scope microservices`
-- `oya gate validate autonomy-ceiling --scope capabilities`
+Local feedback commands while the pipeline Rust gates are being cut over:
+- `presubmit` (retired CLI `gate validate cedar-policy-authoring --scope microservices`)
+- `presubmit` (retired CLI `gate validate cedar-structural-validator --scope microservices`)
+- `presubmit` (retired CLI `gate validate capability-tier-cedar-coverage --scope microservices`)
+- `presubmit` (retired CLI `gate validate autonomy-ceiling --scope capabilities`)
 
 The checker MUST parse every Cedar file.
 
@@ -601,7 +601,7 @@ namespace Oyatie {
 | CEDAR-MAT-017 | Simulation | decision fixture hash | simulator output | `check-cedar-simulation` |
 | CEDAR-MAT-018 | Audit | decision emits audit event | audit chain | `check-audit-emission` |
 | CEDAR-MAT-019 | Version | bundle version bump | policy bundle | `check-policy-version` |
-| CEDAR-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| CEDAR-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended Cedar Evidence Ledger
 

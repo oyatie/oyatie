@@ -115,7 +115,7 @@ Crate directory `k8s/<face>/upstream-<dashed>`, package name `k8s-upstream-<dash
 **Why `upstream-` and not a new directory.** The root `Cargo.toml` members are the four depth-3 layer
 globs `*/core/*`, `*/ports/*`, `*/adapters/*`, `*/facade/*`. `k8s/ports/upstream-api-core-v1` matches
 `*/ports/*` and needs **zero** root-manifest edit. A novel root (`build/…`, `k8s/generated/…`) matches
-no glob, REDs `cloud-ci-workspace-glob-coverage` with `crate_dir_not_covered`, and would need an
+no glob, REDs `pipeline-workspace-glob-coverage` with `crate_dir_not_covered`, and would need an
 ADR-authorized members-line exception this lane has no authority to write. The `upstream-` prefix is
 what makes a generated leaf visually and mechanically separable from a hand-authored product port
 inside the same glob — which is the whole reason the incumbents do not need to move.
@@ -212,7 +212,7 @@ satisfy — none is wired today:
 |---|---|---|
 | Generated seam crate | dir `k8s/ports/upstream-<dashed>`, package `k8s-upstream-<dashed>` | Section 3.1. Matches `*/ports/*`; zero root-manifest edit. |
 | Generated engine crate | dir `k8s/core/upstream-<dashed>`, package `k8s-upstream-<dashed>` | Same name function, different face. |
-| Hand-authored product port | unchanged: `k8s/ports/<concern>-api` | The four incumbents keep their names. No `oya-` prefix, no `managed-k8s-` infix in a crate name. |
+| Hand-authored product port | unchanged: `k8s/ports/<concern>-api` | The four incumbents keep their names. No `oyatie-` prefix, no `managed-k8s-` infix in a crate name. |
 | Talos-port crate in `os/` | unchanged: `os/core/<domain>-domain`, package `os-<domain>-domain` | This lane renames nothing in `os/`. |
 | Divergence row id | `DVG-<SCOPE>-<SUBJECT>`, screaming-kebab | Matches the five landed seeds (`DVG-CEDAR-AUTHORIZATION-SEAM`, …). |
 | Doc under `docs/programs/k8s-port/` | frontmatter with `doc_status:` **and** a `## Baseline version header` section | Both are gates, not style (T-4, T-9). |

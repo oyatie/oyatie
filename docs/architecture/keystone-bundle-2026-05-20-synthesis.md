@@ -284,7 +284,7 @@ The Phase-1 memory-spec-runbook audit produced a finding list. Each finding requ
 |---|---|---|
 | `claude-code-harness.md` describes retired grit/icm/rtk tooling per ADR-0116 | **TRUE P0** | Phase-2 action: tombstone with `Status: Superseded by ADR-0116`. |
 | `agent-instructions-discipline.md` §2 + §10 retain grit/icm references | **TRUE P0** | Phase-2 action: surgical Edit to remove grit/icm; replace with `oya git`. |
-| `git-workflow.md` references `oya vcs` not `oya git` (canonical 2026-05-18) | **TRUE P0** | Phase-2 action: rewrite §1; merge double-frontmatter. |
+| `git-workflow.md` references `retired VCS ratchet` not `oya git` (canonical 2026-05-18) | **TRUE P0** | Phase-2 action: rewrite §1; merge double-frontmatter. |
 | `brand-voice.md` + `incident-severity.md` are unresolved draft stubs | **TRUE P0** | Phase-2 action: author both from scratch. |
 | SLSA L2 vs L3 contradiction between `image-discipline.md` and `image-signing-canonical.md` | **TRUE P0** | Phase-2 action: needs ADR to resolve (recommend L3 per FIPS-HSM-substrate-root + ADR-0247 trust-chain). |
 | Cedar version mixed: `cedar-policy-discipline.md` at 3.x; `regulatory-pack-authzpolicy-overlays.md` at 4.9.1; canonical = v4.2 LTS per CLAUDE.md | **TRUE P0** | Phase-2 action: pin all to v4.2 LTS. |
@@ -320,7 +320,7 @@ The Phase-1 memory-spec-runbook audit produced a finding list. Each finding requ
 | 921 IPs scanned (audit reports 846 flat + 75 in non-flat subdirs) | **TRUE finding** — non-flat IP layout violates ADR-0131. Phase-2 action: flatten the 75 IPs in `analytics/specs/`, `developer-sdk/implementation-plans/`, `finops-portal/implementation-plans/`, `plugin-app-store/implementation-plans/` to per-µservice root. |
 | Post-rename `governance-*` in acceptance_lanes = 0 hits | **PASS** — the foundry → governance rename cleaned this corpus thoroughly. |
 | 5 IPs still bind ADR-0136 (superseded by ADR-0247) | **TRUE P0** — Phase-2 action: rebind to ADR-0247. |
-| 15 IPs / 63 lines reference `oya vcs` (superseded by `oya git`) | **TRUE P0** — Phase-2 action: rename. |
+| 15 IPs / 63 lines reference `retired VCS ratchet` (superseded by `oya git`) | **TRUE P0** — Phase-2 action: rename. |
 | 5 IPs reference OpenAPI 3.1 / AsyncAPI 3.0 / 2.x | **TRUE P0** — Phase-2 action: pin to 3.2.0 / 3.1.0. |
 | 7 IPs conflate BYOK (provider vs encryption split per 2026-05-20) | **TRUE P0** — Phase-2 action: disambiguate. |
 | Only 129/921 IPs (14%) cite any keystone-bundle ADR; 0% cite amendments | **TRUE P1 — pre-keystone-bundle vintage** — most IPs were authored before 2026-05-20. Phase-2 action: per-µservice keystone-rebind batch (substrate first). |
@@ -335,7 +335,7 @@ The Phase-1 memory-spec-runbook audit produced a finding list. Each finding requ
 | Messenger 16-IP set at 0% keystone binding — should cite MLS RFC 9420 per ADR-0246 KS#5 | **TRUE P0** — Phase-2 action: messenger IPs rebind to MLS + keystone bundle. |
 
 **Phase-2 IP remediation work split** (~1,217 agent-hours per audit estimate, ~145 PRs, 7-8 calendar weeks):
-- Batch 0 — Mechanical seds (oya vcs → oya git, OpenAPI version pins, BYOK disambiguation, ADR-0136 → ADR-0247)
+- Batch 0 — Mechanical seds (retired VCS ratchet → oya git, OpenAPI version pins, BYOK disambiguation, ADR-0136 → ADR-0247)
 - Batch 1 — Substrate µservices keystone-bundle rebind (cell → tenancy → cloud-secrets → identity → governance → consent-graph → audit-chain → compliance → cloud-iac → cloud-k8s → observability → api-gateway → application → foundry → ontology)
 - Batch 2 — Product µservices rebind
 - Batch 3 — Populate `depends_on:` across all 921 IPs to form coherent cross-µservice DAG (enables parallel work)

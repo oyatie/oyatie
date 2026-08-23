@@ -64,7 +64,7 @@ Test sharding via `--partition count:N/M`.
 - **`bacon`** — background watcher; auto re-runs the right `cargo` job (`check` / `clippy` / `nextest`) on file save. Engineer's primary feedback loop. Project ships curated `bacon.toml` with jobs covering check / clippy / nextest / doc / boundary-validator. Pairs with sccache for sub-30s incremental.
 - **`cargo-machete`** — finds unused dependencies; per-PR + per-quarter sweep. Surfaces accidental dep adoption that the [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) might otherwise carry forever.
 
-`oya verify` (the persona-CLI per [TOOLCHAIN.md](TOOLCHAIN.md)) bundles `cargo fmt --check + cargo clippy + cargo nextest run + cargo machete + oya gate validate architecture-boundaries + oya gate validate` into one pre-push gate.
+retired `./bin/oya verify` (the persona-CLI per [TOOLCHAIN.md](TOOLCHAIN.md)) bundles `cargo fmt --check + cargo clippy + cargo nextest run + cargo machete + presubmit (retired CLI gate validate) architecture-boundaries + presubmit (retired CLI gate validate)` into one pre-push gate.
 
 ## 5. Flaky-test policy
 

@@ -138,7 +138,7 @@ Baseline invariants:
 - `supply_chain` points at `deny.toml`, the cargo-deny/advisory lane, cargo-vet,
   and the OSS stewardship registry.
 
-Lane: `cloud-ci-dependency-automation` validates `deps.toml`, rejects
+Lane: `pipeline-dependency-automation` validates `deps.toml`, rejects
 external bot configs, and catches Rust pin split-brain.
 
 Source: ADR-0535 and root `deps.toml`.
@@ -146,7 +146,7 @@ Source: ADR-0535 and root `deps.toml`.
 ## 5. Provider-SDK strategy — `ProviderAdapter`
 
 Per MASTERPLAN Directive 4 (Provider-agnostic by default), every
-provider-specific dependency lives in an `oya-*-adapter-<provider>-*`
+provider-specific dependency lives in an `oyatie-*-adapter-<provider>-*`
 crate. The `app` and `domain` layers depend only on a trait abstraction.
 
 ### 5.1 The `ProviderAdapter` shape
@@ -191,7 +191,7 @@ generated from each provider's published OpenAPI schema where available.
 ### 5.3 Provider-coupling lane
 
 Lane `governance-provider-coupling` refuses provider-specific
-imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
+imports outside `oyatie-*-adapter-<provider>-*` crates. The `app` and
 `domain` layers see only the `ProviderAdapter` trait.
 
 ## 6. Secret-provider strategy
@@ -271,7 +271,7 @@ CI/CD-platform dependency in §8 — MUST be classified into one of three
 
 ### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
 
-**Maintainer-class floor:** every `oya-*` crate (~200+); `shuffle-sharding`
+**Maintainer-class floor:** every `oyatie-*` crate (~200+); `shuffle-sharding`
 (ADR-0333 substrate); `dev-cli` (ADR-0218); `shared-policy-engine-client`
 (Cedar wrapper); `shared-workflow-engine`; `shared-ontology-projection`;
 internal hooks + tools under `tools/` + `bin/`.

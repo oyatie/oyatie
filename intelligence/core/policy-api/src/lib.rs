@@ -631,7 +631,7 @@ fn autonomy_policy_record_from_request(
         capability_action,
         capability_required_tier,
         data_classes,
-        "oya.foundry.policy.autonomy_decision".to_string(),
+        "oyatie.foundry.policy.autonomy_decision".to_string(),
     )
     .map_err(FoundryPolicyApiError::InvalidCapability)?;
     let decision = TenantPolicy::new(request.tenant_id.clone(), configured_ceiling)

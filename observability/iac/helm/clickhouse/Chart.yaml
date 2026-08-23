@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers
 apiVersion: v2
 name: observability-clickhouse
 description: |
@@ -23,10 +23,10 @@ maintainers:
   - name: axis-observability
     email: axis-observability@oyatie.com
 annotations:
-  oya.adr/0193: olap-analytics-warehouse-clickhouse
-  oya.adr/0195: stream-processing-tier
-  oya.adr/0184: storage-tier-layering
-  oya.layout: per-microservice-flat-layout-adr-0131
+  oyatie.adr/0193: olap-analytics-warehouse-clickhouse
+  oyatie.adr/0195: stream-processing-tier
+  oyatie.adr/0184: storage-tier-layering
+  oyatie.layout: per-microservice-flat-layout-adr-0131
 dependencies:
   # Bitnami's altinity/clickhouse-operator chart is the canonical upstream;
   # we consume via operator + ClickHouseInstallation CR.

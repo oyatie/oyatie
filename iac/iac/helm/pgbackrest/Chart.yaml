@@ -1,6 +1,6 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: cloud-iac-pgbackrest
+name: iac-app-pgbackrest
 description: |
   pgBackRest sidecar Helm chart per ADR-0197 backup substrate. Provides
   Postgres point-in-time recovery (PITR) via WAL archive + full/differential/
@@ -17,7 +17,7 @@ type: application
 version: 0.1.0
 appVersion: "2.58.0"  # pgBackRest stable per docs/standards/backup-canonical.md
 maintainers:
-  - name: axis-cloud-iac
-    email: axis-cloud-iac@oyatie.com
+  - name: axis-iac-app
+    email: axis-iac-app@oyatie.com
 # No upstream chart — sidecar pattern; values are consumed by per-Postgres
 # StatefulSet templates rendered from the canonical postgres µservice chart.

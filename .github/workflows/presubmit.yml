@@ -141,6 +141,7 @@ jobs:
           # is what kept target/ small enough to be worth storing against the 10 GB per-repo
           # cache budget.
           cache-workspace-crates: "true"
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
       - name: Workspace tests
         # ADR-0718-D3. nextest runs each test in its own process with a work-stealing
         # scheduler — materially faster than libtest's in-process threads at this scale, with
@@ -153,8 +154,6 @@ jobs:
         # This is not an advisory escape: the job still fails if any test fails, unlike
         # `--keep-going` or `|| true`, which the registration gates reject for that reason.
         run: cargo nextest run --locked --workspace --profile ci
-      - name: Kernel workspace tests
-        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --no-fail-fast
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)

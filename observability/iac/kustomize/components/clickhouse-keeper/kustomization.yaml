@@ -15,4 +15,4 @@ labels:
     pairs:
       app.kubernetes.io/component: clickhouse-keeper
       app.kubernetes.io/part-of: observability-clickhouse
-      oya.adr: "0193"
+      oyatie.adr: "0193"

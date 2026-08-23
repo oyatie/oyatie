@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: observability-grafana
 description: Grafana UI + dashboards per ADR-0139 Layer-A; RBAC managed via OpenTofu per policy/tenant-isolation.md FM-06

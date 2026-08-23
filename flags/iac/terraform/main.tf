@@ -130,7 +130,7 @@ resource "kubernetes_manifest" "kafka_topic_killswitch" {
     apiVersion = "kafka.strimzi.io/v1beta2"
     kind       = "KafkaTopic"
     metadata = {
-      name      = "oya.feature-flags.killswitch-engaged"
+      name      = "oyatie.feature-flags.killswitch-engaged"
       namespace = "kafka"
       labels = {
         "strimzi.io/cluster" = "oyatie-kafka"
@@ -155,7 +155,7 @@ resource "kubernetes_manifest" "kafka_topic_flag_state" {
     apiVersion = "kafka.strimzi.io/v1beta2"
     kind       = "KafkaTopic"
     metadata = {
-      name      = "oya.feature-flags.flag-state-changed"
+      name      = "oyatie.feature-flags.flag-state-changed"
       namespace = "kafka"
     }
     spec = {

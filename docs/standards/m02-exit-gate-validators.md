@@ -15,7 +15,7 @@ meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 ## What "wired" means
 
 A lane is **wired** when:
-1. `oya gate validate <lane>` dispatches to a real Rust kernel (not a stub).
+1. `presubmit` (retired CLI `gate validate <lane>`) dispatches to a real Rust kernel (not a stub).
 2. At least one integration test in `crates/dev-cli/tests/gate_cli.rs` proves the validator catches a known-bad input.
 
 A lane is **not wired** (implementation exists but test absent) when (1) is true but (2) is false.
@@ -24,9 +24,9 @@ A lane is **not wired** (implementation exists but test absent) when (1) is true
 
 The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes in `ci-lanes.md §1.2` that:
 - have a real Rust kernel under `crates/check-*`, AND
-- are callable via `oya gate validate <lane>`.
+- are callable via `presubmit` (retired CLI `gate validate <lane>`).
 
-| # | Lane slug | `oya gate validate` subcommand | Kernel crate | Status |
+| # | Lane slug | `presubmit` (retired CLI `gate validate`) subcommand | Kernel crate | Status |
 |---|---|---|---|---|
 | 1 | `quality-statelessness` | `statelessness` | `check-statelessness` | **wired + tested** (PR #112) |
 | 2 | `quality-shardability` | `shardability` | `check-shardability` | **wired + tested** (PR #114) |
@@ -43,7 +43,7 @@ The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes 
 | 13 | `lean-a4-semver` | `api-semver` | `check-api-semver` | **wired + tested** (PR #122) |
 | 14 | `lean-a5-documentation` | `documentation-system` | `check-documentation-system` | **wired + tested** (PR #123) |
 
-## Lanes that do NOT map to `oya gate validate`
+## Lanes that do NOT map to `presubmit` (retired CLI `gate validate`)
 
 The following lanes in ci-lanes.md run via other mechanisms (cargo toolchain, external scripts, or Foundry fitness crates) and are **out of scope** for this document:
 

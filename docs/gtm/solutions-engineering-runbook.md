@@ -553,12 +553,12 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Tool: `ops-dashboard-control-center`; Purpose: show operational review and health posture; Primary action: `ops-dashboard-control-center:ViewQuarterlyReview`.
 - Tool: `finops-portal`; Purpose: show cost-center, service-credit, and usage-cost evidence; Primary action: `finops-portal:ReadTenantCostCenter`.
 - Tool: `slo-budgets-service`; Purpose: show error budget, SLA, and credit context; Primary action: `slo-budgets:ReadBudget`.
-- Tool: `migration-discovery-service`; Purpose: discover source systems during POC; Primary action: `oya.migration.discover`.
-- Tool: `migration-export-service`; Purpose: extract approved sample data; Primary action: `oya.migration.export`.
-- Tool: `migration-transform-service`; Purpose: map source objects to Oyatie objects; Primary action: `oya.migration.transform`.
-- Tool: `migration-import-service`; Purpose: import scoped data into sandbox; Primary action: `oya.migration.import`.
-- Tool: `migration-validate-service`; Purpose: verify imported data completeness; Primary action: `oya.migration.validate`.
-- Tool: `migration-cutover-service`; Purpose: model or execute cutover; Primary action: `oya.migration.cutover`.
+- Tool: `migration-discovery-service`; Purpose: discover source systems during POC; Primary action: `oyatie.migration.discover`.
+- Tool: `migration-export-service`; Purpose: extract approved sample data; Primary action: `oyatie.migration.export`.
+- Tool: `migration-transform-service`; Purpose: map source objects to Oyatie objects; Primary action: `oyatie.migration.transform`.
+- Tool: `migration-import-service`; Purpose: import scoped data into sandbox; Primary action: `oyatie.migration.import`.
+- Tool: `migration-validate-service`; Purpose: verify imported data completeness; Primary action: `oyatie.migration.validate`.
+- Tool: `migration-cutover-service`; Purpose: model or execute cutover; Primary action: `oyatie.migration.cutover`.
 
 ### Named Cedar Permits
 

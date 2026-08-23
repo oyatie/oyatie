@@ -22,7 +22,7 @@ doc_status: published
 |---|---|---|---|---|
 | `governance-feature-flag-debt` | **NEW** | HIGH at 90 d / BLOCKER at 180 d | flag registry + repo grep | Release-class flags have a declared retire date; stable flags age out per [`feature-flag-architecture.md`](feature-flag-architecture.md) §5 |
 | `governance-canary-required` | **NEW** | BLOCKER | PR | Kernel/domain/app/api/adapter changes carry a Flagger Canary or Argo Rollout manifest with the canonical 1→5→25→50→100 progression |
-| `cloud-ci-slo-coverage` | **EXTENDED** | HIGH | service catalog + Prometheus | Every GA+ service has burn-rate alerts wired (fast 5min×1h@14.4×, slow 30min×6h@6.0×); per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md) |
+| `pipeline-slo-coverage` | **EXTENDED** | HIGH | service catalog + Prometheus | Every GA+ service has burn-rate alerts wired (fast 5min×1h@14.4×, slow 30min×6h@6.0×); per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md) |
 | `governance-rollback-evidence` | **NEW** | BLOCKER | release artefact | Signed D14 rollback artefact present, covering up / down / dry-run / per-tenant / per-cell paths; Cosign signature valid |
 | `governance-cohort-honor` | **NEW** | HIGH | mesh manifests + cohort kernel | Stable-regulated and connect-no-ads cohorts are intersected at flag-evaluation, canary traffic split, and blue/green cutover |
 | `governance-shadow-diff` | **NEW** | HIGH for high-risk surfaces | shadow-diff kernel + manifests | High-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2) carry a shadow-diff manifest with sample rate + threshold + side-effect stub list |
@@ -68,7 +68,7 @@ Checks:
 
 Outputs: pass / fail / advisory.
 
-## 5. `cloud-ci-slo-coverage` (EXTENDED)
+## 5. `pipeline-slo-coverage` (EXTENDED)
 
 Existing scope: every GA+ service declares an SLO with target + window. Extension:
 1. Every SLO declaration has a paired burn-rate alert wired in Prometheus 3.11+ (per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md)).

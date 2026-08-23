@@ -90,7 +90,7 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
 
 ### 3.2 Canary rollout
 
-Default rollout shape for an `oya-*-runtime-*` deploy:
+Default rollout shape for an `oyatie-*-runtime-*` deploy:
 
 1. **Stage 0** (1% traffic, stable cohort): hold ≥ 30 min; require
    burn rate ≤ 1× across all golden signals.

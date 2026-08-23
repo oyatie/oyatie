@@ -32,7 +32,7 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 purpose: |
   One paragraph stating what this IP delivers and why it sits at this position in the phase. Inherits Master Plan principles 1-12 by reference.
 grit_claim_symbols:            # MUST be real file::Identifier; pre-scaffolded if new (ADR-0054)
-  - "crates/oya-<context>-<role>/src/lib.rs::<TypeOrFn>"
+  - "crates/oyatie-<context>-<role>/src/lib.rs::<TypeOrFn>"
 agent_prerequisites:           # files/docs the agent MUST read before claiming
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md                 # phase index
@@ -62,8 +62,8 @@ State why this IP is one cohesive ChangeSet: exact issue-level scope, affected s
 Real `file::Identifier` list. New-crate IPs scaffold the symbols first (per ADR-0054); the scaffold commit is the first claimable artifact.
 
 ```
-crates/oya-<context>-<role>/src/lib.rs::<Type>
-crates/oya-<context>-<role>/src/<module>.rs::<fn>
+crates/oyatie-<context>-<role>/src/lib.rs::<Type>
+crates/oyatie-<context>-<role>/src/<module>.rs::<fn>
 contracts/<surface>.openapi.yaml::<operationId>
 ```
 
@@ -76,7 +76,7 @@ contracts/<surface>.openapi.yaml::<operationId>
 5. Read `docs/CONSTITUTION.md §Decision principles + §Prohibitions`.
 <!-- agent-instructions:end -->
 
-**Human path:** read the same files; run the Buck2/cloud-ci plan-hierarchy gate target to confirm parent pointers resolve and frontmatter is well-formed.
+**Human path:** read the same files; run the Buck2/pipeline plan-hierarchy gate target to confirm parent pointers resolve and frontmatter is well-formed.
 
 ## Acceptance test commands
 
@@ -85,8 +85,8 @@ Each row is a runnable command + expected pass token. CI replays these on every 
 ```
 $ buck2 test <targeted-test-targets>                        # expect: PASS, 0 failures
 $ buck2 build <targeted-build-targets>                        # expect: PASS
-$ buck2 test <supply-chain-cloud-ci-target>                   # expect: PASS
-$ buck2 test <lane-specific-cloud-ci-target>                  # expect: PASS
+$ buck2 test <supply-chain-pipeline-target>                   # expect: PASS
+$ buck2 test <lane-specific-pipeline-target>                  # expect: PASS
 $ <sanctioned command>                                        # expect: <captured evidence shape>
 ```
 
@@ -94,7 +94,7 @@ $ <sanctioned command>                                        # expect: <capture
 
 - [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness.
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
-- [ ] Dependency additions cleared the Cargo/cloud-ci supply-chain lane and are named in PR `## Summary`.
+- [ ] Dependency additions cleared the Cargo/pipeline supply-chain lane and are named in PR `## Summary`.
 - [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Verification` when required.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 - [ ] Inventory ledger row added if migration-class (per ADR-0052).

@@ -57,8 +57,8 @@ related_adrs:
 ## Retirement rationale (summary)
 
 1. **ADR-0116** retired out-of-repo coordination tooling (grit/rtk/icm/vox) in favour of the in-repo governance pipeline.
-2. **ADR-0363** retired the bespoke Oya VCS claim/verify/done/promote ratchet; plain git + protected PR is the substrate.
-3. **ADR-0515** is the single canonical cloud-ci admission context (`presubmit`).
+2. **ADR-0363** retired the bespoke retired VCS ratchet claim/verify/done/promote ratchet; plain git + protected PR is the substrate.
+3. **ADR-0515** is the single canonical pipeline admission context (`presubmit`).
 4. **ADR-0619** forbids re-entry of a retired external agent-harness brand as live authority or source-specific plan ingest.
 5. Local session stores under `.omc/` / `.omx/` / `.gjc/` are gitignored provenance at best; live machine-readable authority is under `/specs`, `/registry`, `/evidence`, and `/templates`.
 

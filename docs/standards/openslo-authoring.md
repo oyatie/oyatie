@@ -280,13 +280,13 @@ This passes when retries are idempotent and counters use stable labels.
 Primary command:
 
 ```bash
-oya gate validate openslo-conformance --scope microservices
+presubmit (retired CLI gate validate) openslo-conformance --scope microservices
 ```
 
 Companion command:
 
 ```bash
-oya gate validate openslo-promql-feasibility --scope microservices
+presubmit (retired CLI gate validate) openslo-promql-feasibility --scope microservices
 ```
 
 The checker MUST parse every `*.openslo.yaml`.
@@ -619,7 +619,7 @@ spec:
 | SLO-MAT-017 | Release | rollback signal declared | release manifest | `check-rollback-signal` |
 | SLO-MAT-018 | Audit | SLO change event emitted | audit chain | `check-audit-emission` |
 | SLO-MAT-019 | Pack | regulated target override explicit | pack overlay | `check-pack-slo-overlay` |
-| SLO-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| SLO-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended SLO Evidence Ledger
 

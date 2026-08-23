@@ -12,7 +12,7 @@ Written before any implementation. Every later unit is checked against this file
 **Why this path.** `.omc/**` is a *restricted tracked root*:
 `ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json` (`restricted_tracked_roots`,
 `allowlist` rules `omc-ultragoal-*`) admits exactly four tracked `.omc/` paths and its own prose says
-"do not expand the .omc tracked set". `git add -f` there reds `cloud-ci-repo-root-hygiene`. So this
+"do not expand the .omc tracked set". `git add -f` there reds `pipeline-repo-root-hygiene`. So this
 document lives under `docs/`, and it pays the two costs that come with that, in its own commit:
 
 - it declares `doc_status: drafted` in a leading `---` fence, so the `doc-status` lane sees a
@@ -157,8 +157,8 @@ does not fix `crate-status`; it renames the lane to `catalog-row-non-liveness`.
 lane can make.** The field's owning gate states the contract verbatim: *"A LIVE record needs no
 marker (the gate checks live OR marked)"* (`catalog_non_live_marker`, same file, ~`:1147`). The
 lifecycle kernel has no "absence is legal" mode — absent is `StageNotDeclared`. The 694 rows would
-therefore be simultaneously **correct** under `cloud-ci-catalog-liveness` and **violating** under
-`cloud-ci-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
+therefore be simultaneously **correct** under `pipeline-catalog-liveness` and **violating** under
+`pipeline-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
 (false), or introducing a sixth value into a closed vocabulary that belongs to another gate — an
 edit outside this lane. This is the same failure mode as the retracted `unknown_stage: 750`
 api-stability baseline whose only remedy the claim-ceiling check rejects when run (§3.2 — that check
@@ -168,7 +168,7 @@ is the live proof — it is outside `NON_LIVE_STATUS_MARKERS`, so the owning gat
 
 **R3 — the property is already enforced twice, born-blocking, with zero authoring.** Row↔crate
 correspondence is closed in *both* directions today: `ci/facade/crate-catalog-coverage` (crate→row)
-and `cloud-ci-catalog-liveness` (row→crate), both computed mechanically from the workspace member
+and `pipeline-catalog-liveness` (row→crate), both computed mechanically from the workspace member
 set. A frozen count of 694 undeclared rows adds no property those two do not already prove, at the
 cost of 694 hand-authored declarations of a fact derivable from disk. Contrast `doc-status`, which
 IS kept with 1921 `stage_not_declared`: that count is the **only** measurement of doc lifecycle
@@ -325,7 +325,7 @@ independent ways: `docs/machine-readable/contracts.json` `_metadata.stability_ti
 `FoundationClaimCeiling::preview_foundation()` (`libs/check-claim-ceiling/src/lib.rs:22`),
 applied over this exact directory by `validate_claim_ceiling_gate`
 (`marketplace/facade/dev-cli/src/governance_gates.rs:84`). **That third citation is VOCABULARY
-evidence, not merge authority**: it is reachable only from the `oya gate validate claim-ceiling` CLI
+evidence, not merge authority**: it is reachable only from the `presubmit` (retired CLI `gate validate claim-ceiling`) CLI
 subcommand (`commands/gate/mod.rs:284`) and from fixture-only tests; no `ci/facade` lane invokes it
 and no workflow references `dev-cli`. So this was never `preview`
 being *added* to a vocabulary — it was the config carrying the WRONG vocabulary, sharing one token
@@ -428,7 +428,7 @@ Checkable against one diff, in isolation.
 - **I5 Shrink floor.** A lane lit up in this unit either carries ≥1 baselined violation row, or the
   commit message states explicitly that its only floor is `artifacts > 0` and why that was accepted.
 - **I6 Census.** No new tracked file under a scanned prefix without same-commit attribution.
-- **I7 Canonical JSON.** `specs/**` is governed by `cloud-ci-canonical-json`
+- **I7 Canonical JSON.** `specs/**` is governed by `pipeline-canonical-json`
   (`governed_roots: ["specs"]`): 2-space indent, LF, trailing newline, literal UTF-8, and
   `sort_keys=false` — so key order is **preserved, never sorted**.
 - **I8 Gate green.** `//ci/facade/lifecycle-status:ci-lifecycle-status-gate` is green at the unit's

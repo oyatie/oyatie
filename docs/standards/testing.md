@@ -37,7 +37,7 @@ related_adrs:
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Tests are the executable evidence that the system meets its contracts. This
-standard governs how to write, organize, and run them across `oya-*` crates.
+standard governs how to write, organize, and run them across `oyatie-*` crates.
 [`docs/QA-TEST-STRATEGY.md`](../QA-TEST-STRATEGY.md) sets per-axis test
 strategy; this standard sets the cross-axis floor.
 
@@ -154,7 +154,7 @@ Source: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-o
 
 ## 6. Mutation testing — `cargo-mutants`
 
-Run nightly against `oya-*-kernel` and `oya-*-domain` crates. Target:
+Run nightly against `oyatie-*-kernel` and `oyatie-*-domain` crates. Target:
 **≥ 80% caught mutants** on kernel/domain. Application-layer mutation
 testing is optional (high cost, low signal).
 

@@ -16,7 +16,7 @@ Authority: [docs/AGENTS.md](AGENTS.md) remains the live agent operating contract
 
 ## ADR-0346
 
-[ADR-0346](decisions/ADR-0346-verify-must-run-full-ci-mirror.md) declares that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix. It invokes cargo fmt, cargo check, cargo clippy, cargo nextest, `oya gate run-all --ci-required`, advisory `oya doc adr-index --write`, and ADR-shape linting, and MUST block on exit-0 of each mandatory step before returning success.
+[ADR-0346](decisions/ADR-0346-verify-must-run-full-ci-mirror.md) records that the retired `./bin/oya verify --ci-required` path is historical/provenance-only and that merge authority is the `presubmit` context. It invokes cargo fmt, cargo check, cargo clippy, cargo nextest, `presubmit`, advisory `oya doc adr-index --write`, and ADR-shape linting, and MUST block on exit-0 of each mandatory step before returning success.
 
 Enforced by: `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, `governance-verify-exit-code-contract`.
 

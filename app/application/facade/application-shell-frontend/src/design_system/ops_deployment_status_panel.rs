@@ -5,7 +5,7 @@
 //!
 //! 1. manual SSH remediation never appears — [`RemediationRoute`] is a closed
 //!    enum of declarative routes with no SSH variant, so an SSH remediation is
-//!    unrepresentable (the spec's `oya ops` CLI mention is superseded by the
+//!    unrepresentable (the spec's `ops` CLI mention is superseded by the
 //!    founder CLI-retirement directive; operations route through the console
 //!    + GitOps reconciliation instead);
 //! 2. a destructive apply requires a plan artifact AND a rollback path before

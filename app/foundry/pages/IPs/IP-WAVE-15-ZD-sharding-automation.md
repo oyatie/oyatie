@@ -47,14 +47,14 @@ STANCE-019: CI/CD substrate stance is ADR-0349 Jenkins plus ArgoCD parity once t
 STANCE-020: Governance naming stance is ADR-0347; this IP uses governance lane identifiers consistently.
 
 ## 3. Canonical ADR-0346 Wording
-ADR346-PURPOSE-001: `./bin/oya verify --ci-required` is the canonical local pre-push verifier.
+ADR346-PURPOSE-001: `presubmit` is the canonical local pre-push verifier.
 ADR346-PURPOSE-002: It MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
 ADR346-PURPOSE-003: Default invocation runs every step; skip flags are limited to `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}`.
 ADR346-PURPOSE-004: Exit-code contract is closed: 0 = ALL passed; 1 = at least one failed; 2 = invalid arguments.
-ADR346-ENFORCED-BY-001: governance-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)
+ADR346-ENFORCED-BY-001: governance-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + presubmit by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)
 ADR346-ENFORCED-BY-002: governance-verify-ci-step-exit-semantics (new lane; refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps; refuses changes that conflate fmt-fail with check-fail in the exit code emitted to the caller)
 ADR346-ENFORCED-BY-003: governance-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)
-ADR346-ENFORCED-BY-004: governance-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 -- preserves the existing call chain, refuses regressions)
+ADR346-ENFORCED-BY-004: governance-submit-calls-verify (new lane; refuses changes to `submit` that bypass `presubmit` per D-10 -- preserves the existing call chain, refuses regressions)
 ADR346-ENFORCED-BY-005: governance-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)
 
 ## 4. Canonical ADR-0347 Wording

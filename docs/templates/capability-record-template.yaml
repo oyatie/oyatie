@@ -40,7 +40,7 @@ regulatory_packs_consumed:       # per COMPLIANCE-MATRIX
   - pack-kr.PIPA
   - global.GDPR
 
-evidence_emission_topic: oya.foundry.capability.invoked  # ADR-0003 audit-chain
+evidence_emission_topic: oyatie.foundry.capability.invoked  # ADR-0003 audit-chain
 
 cost_profile:
   input_token_cost_class: low | med | high

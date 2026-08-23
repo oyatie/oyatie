@@ -1,7 +1,7 @@
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    match iac_app::run_cloud_iac_app_from_env() {
+    match iac_app::run_iac_app_from_env() {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("{error}");

@@ -1,7 +1,7 @@
 //! Workload X.509-SVID kernel — PURE (no I/O, no clock, no crypto).
 //!
 //! This crate is the canonical value-and-port core for SPIFFE-style X.509-SVID
-//! caller authentication (G002 slice-1; ADR-0561). It gives the cloud-iam Cedar
+//! caller authentication (G002 slice-1; ADR-0561). It gives the iam Cedar
 //! PDP a way to derive the *authorized* tenant of a caller from a
 //! cryptographically-verified peer SVID, closing the gap where the PDP trusts a
 //! caller-body `tenant_id` verbatim.

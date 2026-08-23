@@ -291,7 +291,7 @@ operation returns a typed object directly. All error responses use `{ "error": .
 
 ## gRPC Methods
 
-Package: `oya.messenger.v1`.
+Package: `oyatie.messenger.v1`.
 
 ### `ChannelStore`
 

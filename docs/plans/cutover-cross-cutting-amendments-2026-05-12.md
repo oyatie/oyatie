@@ -20,7 +20,7 @@ These 12 directives were issued by the user across the planning loop. Every phas
 1. **4-tier hierarchy**: Master Plan > Milestone > Phases > Implementation Plans. The cutover plan is one *phase or milestone* within the larger Master Plan structure; once the masterplan composer's output lands, the cutover plan lifts under `M01-Foundation` (or `M-CC-01 Agentic-pipeline` — composer's call).
 2. **Autonomous senior-engineering decisions** for long-term maintainability/scalability/performance. No corner-cutting.
 3. **Final-shape adoption** from the start. No MVP-shaped artifacts that need replacement; no placeholders that need migration; no temporary names that need renaming.
-4. **Provider-agnostic** by default. Provider-specific code lives in `oya-<service>-adapter-<provider>-*` crates only.
+4. **Provider-agnostic** by default. Provider-specific code lives in `oyatie-<service>-adapter-<provider>-*` crates only.
 5. **Distroless + smallest-image** for containers. Static binaries; musl static linking; CI image-size budget.
 6. **AWS / Google / Microsoft / Oracle launch-quality bar** throughout.
 7. **Linus-style discipline**: delete bureaucracy; reshape data to eliminate special cases.
@@ -88,7 +88,7 @@ Per Directive 10, every cutover output (P0.5 ADR-0054, P1 ADR-0052, P2 helper cr
 
 - **Purpose declared**: each new file has frontmatter (markdown) or top-comment (Rust) stating "Purpose: <one line>".
 - **Machine-readable index**: each new directory has `INDEX.md` listing contents with purpose.
-- **Predictable naming**: all new crates follow `oya-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
+- **Predictable naming**: all new crates follow `oyatie-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
 
 ## 6. Visualization integration (Directive 11)
 

@@ -31,7 +31,7 @@ This idea-pager proposes: (a) a formal N-lane parallel safety proof layer, and (
 
 The lane model (ADR-0388 + parallel-swarm memory) already requires disjoint file paths per lane. The missing piece is automated verification at PR time.
 
-**Proposed gate: `oya gate validate lane-overlap`**
+**Proposed gate: `presubmit` (retired CLI `gate validate lane-overlap`)**
 
 ```
 For each open PR in the current merge batch:

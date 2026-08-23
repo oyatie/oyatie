@@ -2,18 +2,18 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-iac-iac-render-latency
-  displayName: "cloud-iac: IaC render latency p95 ≤ 10s"
+  name: iac-app-iac-render-latency
+  displayName: "iac-app: IaC render latency p95 ≤ 10s"
   labels:
-    microservice: cloud-iac
+    microservice: iac-app
     bounded_context: iac-renderer
     sli_class: latency
     tier: internal-substrate
     plane: control
-    owner_team: axis-cloud-iac
+    owner_team: axis-iac-app
     pack_scope: all
 spec:
-  service: cloud-iac
+  service: iac-app
   description: |
     IaC render latency p95 SLO. A render is "good" when the per-pack
     template-resolve + variable-substitution + manifest-emit completes in
@@ -21,7 +21,7 @@ spec:
     overlays). Per PRD §"Performance Targets" render-path.
   indicator:
     metadata:
-      name: cloud-iac-render-latency-p95
+      name: iac-app-render-latency-p95
     spec:
       ratioMetric:
         counter: true
@@ -30,13 +30,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_render_duration_seconds_bucket{le="10"}[5m]))
+                sum(rate(iac_app_render_duration_seconds_bucket{le="10"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_render_duration_seconds_count[5m]))
+                sum(rate(iac_app_render_duration_seconds_count[5m]))
   objectives:
     - target: 0.95
       displayName: "p95 ≤ 10s for 95% of 5min windows over 30d"

@@ -329,7 +329,7 @@ my-pack.oyastk
     "license": {
       "type": "string",
       "description": "SPDX identifier or marketplace license slug.",
-      "examples": ["CC-BY-4.0", "CC-BY-NC-4.0", "OYA-MARKETPLACE-EULA-v1"]
+      "examples": ["CC-BY-4.0", "CC-BY-NC-4.0", "OYATIE-MARKETPLACE-EULA-v1"]
     },
     "min_app_version": {
       "type": "string",

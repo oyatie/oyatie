@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 #
 # pgBackRest sidecar values per ADR-0197 backup canonical.
 # Verified versions (2026-05-18):
@@ -18,16 +18,16 @@ pgbackrest:
   repo:
     type: s3
     s3:
-      endpoint: "http://cloud-iac-seaweedfs-s3.cloud-iac.svc.cluster.local:8333"
+      endpoint: "http://iac-app-seaweedfs-s3.iac-app.svc.cluster.local:8333"
       bucket: "backup-postgres-shared-prod"
       region: on-prem
       uriStyle: path
-      accessKeyRef: "openbao://secret/cloud-iac/pgbackrest/s3-access-key"
-      secretKeyRef: "openbao://secret/cloud-iac/pgbackrest/s3-secret-key"
+      accessKeyRef: "openbao://secret/iac-app/pgbackrest/s3-access-key"
+      secretKeyRef: "openbao://secret/iac-app/pgbackrest/s3-secret-key"
       # Bucket-side encryption (age) per ADR-0197 §Encryption
       encryption:
         cipher: aes-256-cbc
-        passwordRef: "openbao://secret/cloud-iac/pgbackrest/repo-passphrase"
+        passwordRef: "openbao://secret/iac-app/pgbackrest/repo-passphrase"
   # Backup cadence — per ADR-0197 §Cadence
   schedules:
     # Full backup weekly
@@ -55,11 +55,11 @@ pgbackrest:
     evidenceClass: "BackupRestoreDrill"
 
 # ---- canonical labels ----
-microservice: cloud-iac
+microservice: iac-app
 boundedContext: backup-postgres
 tier: M
 plane: data
-partOf: cloud-iac
+partOf: iac-app
 
 # ---- cost-attribution labels per ADR-0199 ----
 costAttribution:

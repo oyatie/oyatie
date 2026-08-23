@@ -2,18 +2,18 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-iac-iac-rollback-latency
-  displayName: "cloud-iac: IaC rollback latency p95 ≤ 60s"
+  name: iac-app-iac-rollback-latency
+  displayName: "iac-app: IaC rollback latency p95 ≤ 60s"
   labels:
-    microservice: cloud-iac
+    microservice: iac-app
     bounded_context: iac-rollback-engine
     sli_class: latency
     tier: internal-substrate
     plane: control
-    owner_team: axis-cloud-iac + ops-incident-response
+    owner_team: axis-iac-app + ops-incident-response
     pack_scope: all
 spec:
-  service: cloud-iac
+  service: iac-app
   description: |
     IaC rollback latency p95 SLO. A rollback is "good" when the previous-
     known-good revision is re-applied + healthcheck-confirmed within
@@ -21,7 +21,7 @@ spec:
     ADR-0124 automated-rollback primitive.
   indicator:
     metadata:
-      name: cloud-iac-rollback-latency-p95
+      name: iac-app-rollback-latency-p95
     spec:
       ratioMetric:
         counter: true
@@ -30,13 +30,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_rollback_duration_seconds_bucket{le="60"}[5m]))
+                sum(rate(iac_app_rollback_duration_seconds_bucket{le="60"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(cloud_iac_rollback_duration_seconds_count[5m]))
+                sum(rate(iac_app_rollback_duration_seconds_count[5m]))
   objectives:
     - target: 0.95
       displayName: "p95 ≤ 60s for 95% of 5min windows over 30d"

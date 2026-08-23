@@ -21,7 +21,7 @@ fn audit_chain_runtime_evidence_plan_validates_controls_and_nonclaims() {
         plan.audit_chain_emission_plan_name,
         "tenant-rbac-audit-chain-emission"
     );
-    assert_eq!(plan.outbox_topic, "oya.platform.audit");
+    assert_eq!(plan.outbox_topic, "platform.audit");
     assert_eq!(plan.event_schema_count, 9);
     assert_eq!(plan.required_context_attribute_count, 8);
     assert_eq!(plan.required_extension_attribute_count, 7);
@@ -106,7 +106,7 @@ fn audit_chain_runtime_evidence_plan_preserves_ref_boundaries_and_source_contrac
                 .starts_with("crates/tenant-rbac-audit-chain-emission/")
             && requirement.tenant_namespace == "oyatie-fd001-tenant-rbac-dev"
             && requirement.tenant_partition == "tenant-scoped"
-            && requirement.outbox_topic == "oya.platform.audit"
+            && requirement.outbox_topic == "platform.audit"
             && !requirement.runtime_evidence_attached
     }));
     assert!(plan.requirements.iter().any(|requirement| {

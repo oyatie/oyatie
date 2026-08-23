@@ -1,0 +1,13 @@
+[package]
+name = "iam-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+iam-domain = { path = "../../core/domain-control" }
+
+
+[lints]
+workspace = true

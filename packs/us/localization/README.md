@@ -554,7 +554,7 @@ The checkpoint label is `us-localization-pack-w1-2026-05-20`.
 - XREF-016: `registry/catalog/check-a11y-discipline.yaml` is a future gate candidate for ADA-related accessibility evidence.
 - XREF-017: `registry/catalog/check-slsa-l3-evidence-grounded.yaml` supports control evidence and provenance posture for NIST and FedRAMP overlays.
 - XREF-018: `registry/catalog/check-audit-chain-seal-coverage.yaml` supports regulated event sealing.
-- XREF-019: `docs/decisions/ADR-0709-general-live-apex.md` remains the Oya VCS coordination reference.
+- XREF-019: `docs/decisions/ADR-0709-general-live-apex.md` remains the retired VCS ratchet coordination reference.
 - XREF-020: `docs/decisions/ADR-0708-platform-foundations-live-apex.md` is cited by the existing CN pack and remains a likely future compliance-pack primitive reference.
 
 ## Pack Checkpoint

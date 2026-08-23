@@ -85,7 +85,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 ## 4. Contract recency ledger
 
 > **As of:** 2026-05-10.
-> **Gate:** `oya gate validate vendor-contract-recency`.
+> **Gate:** `presubmit` (retired CLI `gate validate vendor-contract-recency`).
 > **Bootstrap declaration:** No signed vendor or partner contract rows are recorded in this ledger yet; replace the declaration row with one row per signed contract before any signed vendor / partner contract is adopted.
 
 | Contract ID | Vendor / partner | Status | Expiry date | Renewal task | Owner |

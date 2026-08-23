@@ -81,7 +81,7 @@ regional-packs/<pack>/                @teams/regional-packs
 
 ### 3.1 Team charter coverage
 
-This table is generated from `docs/teams/*/CHARTER.md` and validated by `oya gate validate raci-team-coverage`. Every team charter MUST have a RACI row and a direct CODEOWNERS owner handle.
+This table is generated from `docs/teams/*/CHARTER.md` and validated by `presubmit` (retired CLI `gate validate raci-team-coverage`). Every team charter MUST have a RACI row and a direct CODEOWNERS owner handle.
 
 | team_id | charter | owning_handle | CODEOWNERS requirement |
 |---|---|---|---|

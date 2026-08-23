@@ -41,14 +41,14 @@ Application config never references a specific mesh; mesh-binding is per-cell de
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: oya-<axis>-<svc>
+  name: oyatie-<axis>-<svc>
 spec:
-  hosts: [oya-<axis>-<svc>]
+  hosts: [oyatie-<axis>-<svc>]
   http:
     - route:
-        - destination: { host: oya-<axis>-<svc>, subset: blue }
+        - destination: { host: oyatie-<axis>-<svc>, subset: blue }
           weight: 100
-      mirror: { host: oya-<axis>-<svc>, subset: green }
+      mirror: { host: oyatie-<axis>-<svc>, subset: green }
       mirrorPercentage: { value: 10.0 }
 ```
 

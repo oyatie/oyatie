@@ -72,14 +72,14 @@ Per [`standards/prevention-doctrine.md §6`](standards/prevention-doctrine.md):
 - Council reviews ledger quarterly
 - Patterns (recurring failure-mode class) trigger meta-prevention
 - Top-10-by-recurrence reported to Founder
-- Foundry capability `oya.mistakes.detect-pattern` proposes meta-prevention
+- Foundry capability `oyatie.mistakes.detect-pattern` proposes meta-prevention
 
 ## 5. Per-prevention verification
 
 Per `standards/prevention-doctrine.md §5 step 6`:
 - Each shipped prevention tested against the original failure mode (replay or fuzz)
 - Replay-as-eval per [ADR-0024 foundry-eval-harness-and-replay](decisions/ADR-0024-intelligence-eval-harness-and-replay.md)
-- Per-quarter `oya.prevention.verify-coverage` capability run
+- Per-quarter `oyatie.prevention.verify-coverage` capability run
 
 ## 6. Sources
 

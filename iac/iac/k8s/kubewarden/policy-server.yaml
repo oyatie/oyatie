@@ -5,7 +5,7 @@ metadata:
   namespace: kubewarden
   labels:
     app.kubernetes.io/name: kubewarden-default
-    app.kubernetes.io/part-of: cloud-iac
+    app.kubernetes.io/part-of: iac-app
     oyatie.com/admission-default: kubewarden
     oyatie.com/runtime-mode: local-filesystem-admission-policy-source-gate-no-controller-execution
   annotations:

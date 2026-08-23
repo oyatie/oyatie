@@ -33,7 +33,7 @@ A flat, single-concern controller (per ADR-0131/0132 — **not** folded into clo
 ## Key Assumptions to Validate
 
 - [ ] **Is this layer wanted at all, or retired on purpose?** ADR-0116 (retire external agent-coordination tooling) and ADR-0363 (retire agentic VCS foundry) deliberately killed the adjacent coordination layer. This idea must either (a) be reconciled as a *net-new, narrower* concern that those ADRs did not intend to forbid, or (b) be explicitly declined. **Resolve this before any code.** *Decision owner: founder.*
-- [ ] **Boundary holds.** It is a new flat `oya-*` (or `cloud-*`) service, single-concern, consuming cloud-intelligence for inference and `oya/intelligence` for substrate/guardrails — never duplicating either. *Test: `depends_on` graph has zero new inference/guardrail logic.*
+- [ ] **Boundary holds.** It is a new flat `oyatie-*` (or `cloud-*`) service, single-concern, consuming cloud-intelligence for inference and `oya/intelligence` for substrate/guardrails — never duplicating either. *Test: `depends_on` graph has zero new inference/guardrail logic.*
 - [ ] **Credential handles only.** Task/launch contracts carry `credential_ref` handles (ADR-0296 sidecar / OpenBao response-wrapping), never secret material; runner emits redacted dispatch events only.
 - [ ] **Talos-native split.** Workloads via K8s Job/Pod; node/cluster lifecycle via Talos API. No host-shell.
 - [ ] **Evidence is the only handoff.** Controllers consume `evidence-bundle.v1`, never bespoke runner status files.

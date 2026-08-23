@@ -262,7 +262,7 @@ The action is policy-gated, workflow-backed, and auditable.
 Primary command:
 
 ```bash
-oya gate validate ontology-projection-pin --scope microservices
+presubmit (retired CLI gate validate) ontology-projection-pin --scope microservices
 ```
 
 The checker MUST parse `specs/products/ontology.json`.
@@ -601,7 +601,7 @@ rebuild:
 | ONT-MAT-027 | Tenant | Tenant id is mandatory on tenant projections | schema | `check-tenant-boundary` |
 | ONT-MAT-028 | Pack | Pack overlays are explicit | projection manifest | `check-pack-overlay` |
 | ONT-MAT-029 | Consumer | Consumer compatibility is tested | contract test | `check-consumer-compat` |
-| ONT-MAT-030 | Promote | Evidence names changed projections | VCS bundle | `oya-vcs-admission` |
+| ONT-MAT-030 | Promote | Evidence names changed projections | VCS bundle | `retired VCS ratchet` |
 
 ## Extended Review Questions
 

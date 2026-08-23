@@ -34,7 +34,7 @@ pub const ENV_SIGNING_KID: &str = "OYATIE_IDENTITY_SIGNING_KID";
 /// principal-lifecycle control plane (`:suspend`/`:retire`) verifies in constant
 /// time before any mutation (ADR-0581 / AUTH-005). The binary REFUSES to start
 /// without it: there is no unauthenticated mutating control plane. Production
-/// custody moves behind the cloud-iam credential store / mTLS-SPIFFE adapter.
+/// custody moves behind the iam credential store / mTLS-SPIFFE adapter.
 pub const ENV_LIFECYCLE_BEARER: &str = "OYATIE_IDENTITY_LIFECYCLE_BEARER";
 /// `OYATIE_IDENTITY_LIFECYCLE_CALLER_TENANT` — the tenant the verified lifecycle
 /// caller acts within (REQUIRED; bound to the credential, never a header).

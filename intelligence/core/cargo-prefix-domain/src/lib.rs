@@ -111,11 +111,11 @@ mod tests {
                         package_name: "intelligence-capability-kernel".into(),
                     },
                     CargoPrefixMember {
-                        member_path: "crates/dev-cli".into(),
-                        package_name: "dev-cli".into(),
+                        member_path: "crates/intelligence-policy-kernel".into(),
+                        package_name: "intelligence-policy-kernel".into(),
                     },
                 ],
-                "oya-",
+                "intelligence-",
             ),
             Ok(CargoPrefixReport { members_checked: 2 })
         );
@@ -129,12 +129,12 @@ mod tests {
                     member_path: "crates/foundry-capability-kernel".into(),
                     package_name: "intelligence-capability-kernel".into(),
                 }],
-                "oya-",
+                "intelligence-",
             ),
             Err(CargoPrefixError::MemberPathPrefixViolation {
                 member_path: "crates/foundry-capability-kernel".into(),
                 crate_id: "foundry-capability-kernel".into(),
-                expected_prefix: "oya-".into(),
+                expected_prefix: "intelligence-".into(),
             })
         );
     }
@@ -147,12 +147,12 @@ mod tests {
                     member_path: "crates/intelligence-capability-kernel".into(),
                     package_name: "foundry-capability-kernel".into(),
                 }],
-                "oya-",
+                "intelligence-",
             ),
             Err(CargoPrefixError::PackageNamePrefixViolation {
                 member_path: "crates/intelligence-capability-kernel".into(),
                 package_name: "foundry-capability-kernel".into(),
-                expected_prefix: "oya-".into(),
+                expected_prefix: "intelligence-".into(),
             })
         );
     }
@@ -165,7 +165,7 @@ mod tests {
                     member_path: "crates/intelligence-capability-kernel".into(),
                     package_name: "intelligence-policy-kernel".into(),
                 }],
-                "oya-",
+                "intelligence-",
             ),
             Err(CargoPrefixError::PackageNamePathMismatch {
                 member_path: "crates/intelligence-capability-kernel".into(),
@@ -188,7 +188,7 @@ mod tests {
             Err(CargoPrefixError::EmptyPrefix)
         );
         assert_eq!(
-            validate_cargo_prefix([], "oya-"),
+            validate_cargo_prefix([], "intelligence-"),
             Err(CargoPrefixError::NoWorkspaceMembers)
         );
     }

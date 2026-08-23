@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: observability-oncall
 description: Grafana OnCall paging + rotation per ADR-0139 Layer-A; rotation managed via OpenTofu per runbooks/oncall-rotation.md
