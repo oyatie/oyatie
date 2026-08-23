@@ -598,8 +598,9 @@ mod tests {
     #[test]
     fn partial_segment_glob_filters_non_crate_siblings() {
         let root = fixture_root();
+        make_crate(&root, "tools/oya-one-cli");
+        make_crate(&root, "tools/oya-two-cli");
         make_crate(&root, "tools/one-cli");
-        make_crate(&root, "tools/two-cli");
         // Non-crate sibling dirs (scripts, completions) must NOT break or appear.
         std::fs::create_dir_all(root.join("tools/hooks")).unwrap();
         std::fs::write(root.join("tools/hooks/run.sh"), "#!/bin/sh\n").unwrap();
@@ -610,15 +611,19 @@ mod tests {
 
         assert_eq!(
             resolved,
-            vec!["tools/one-cli".to_string(), "tools/two-cli".to_string()],
-            "tools/oya-* must capture only prefixed crate dirs, never sibling tool dirs"
+            vec![
+                "tools/oya-one-cli".to_string(),
+                "tools/oya-two-cli".to_string()
+            ],
+            "tools/oya-* captures the oya- prefix, never unprefixed siblings"
         );
     }
 
     #[test]
     fn segment_matches_anchors_both_ends() {
-        assert!(segment_matches("oya-*", "foo"));
+        assert!(segment_matches("oya-*", "oya-foo"));
         assert!(segment_matches("oya-*", "oya-"));
+        assert!(!segment_matches("oya-*", "foo"));
         assert!(!segment_matches("oya-*", "xoya-foo"));
         assert!(!segment_matches("oya-*", "completions"));
         assert!(segment_matches("*", "anything"));
@@ -717,7 +722,8 @@ mod tests {
     #[test]
     fn pattern_covers_dir_honors_per_component_glob_semantics() {
         // A narrowed leaf glob covers a matching leaf, never a sibling that fails the prefix.
-        assert!(pattern_covers_dir("libs/oya-*", "libs/foo-kernel"));
+        assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel"));
+        assert!(!pattern_covers_dir("libs/oya-*", "libs/foo-kernel"));
         assert!(!pattern_covers_dir("libs/oya-*", "libs/registry-drift"));
         // `*` never spans `/`: a 2-segment glob cannot cover a 3-segment dir.
         assert!(!pattern_covers_dir("libs/*", "libs/group/nested-kernel"));
@@ -725,7 +731,7 @@ mod tests {
         assert!(pattern_covers_dir("messaging/*/*", "messaging/core/domain"));
         assert!(!pattern_covers_dir("messaging/*/*", "messaging/core"));
         // Trailing slashes are normalized away on both sides.
-        assert!(pattern_covers_dir("libs/oya-*", "libs/foo-kernel/"));
+        assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel/"));
     }
 
     #[test]

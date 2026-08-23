@@ -1262,7 +1262,7 @@ mod tests {
     };
 
     // Region must be in the "region-home" family so StrictHomeRegion residency passes.
-    const BUCKET_ID: &str = "oya:cloud:region-home:ten_unit:bucket:unit-assets";
+    const BUCKET_ID: &str = "oyatie:cloud:region-home:ten_unit:bucket:unit-assets";
     const OBJECT_KEY: &str = "unit/obj.bin";
 
     fn bucket_create() -> BucketCreate {

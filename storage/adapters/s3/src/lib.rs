@@ -270,7 +270,7 @@ mod tests {
 
     const REGION: &str = "ap-northeast-2";
     const BUCKET: &str = "oyatie-s3-cold-backup";
-    const BUCKET_ID: &str = "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets";
+    const BUCKET_ID: &str = "oyatie:cloud:alpha-region:ten_alpha:bucket:tenant-assets";
     const OBJECT_KEY: &str = "workspace/report.pdf";
 
     fn adapter() -> S3Adapter {
@@ -400,7 +400,7 @@ mod tests {
         ));
 
         let mut bad_bucket = put_request();
-        bad_bucket.bucket_id = "oya:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
+        bad_bucket.bucket_id = "oyatie:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
         assert_eq!(
             bad_bucket.validate(),
             Err(StorageProviderObjectError::InvalidRequestShape(

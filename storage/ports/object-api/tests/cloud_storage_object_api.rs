@@ -20,7 +20,7 @@ use storage_object_api::{
     get_cloud_storage_object_from_api, put_cloud_storage_object_from_api,
 };
 
-const BUCKET_ID: &str = "oya:cloud:region-home:ten_alpha:bucket:tenant-assets";
+const BUCKET_ID: &str = "oyatie:cloud:region-home:ten_alpha:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";
 
 fn bucket_create() -> BucketCreate {
@@ -398,7 +398,7 @@ fn get_object_api_maps_not_found_and_tenant_drift_explicitly() {
     let tenant_drift = get_cloud_storage_object_from_api(
         &catalog,
         get_request(
-            "oya:cloud:region-home:ten_other:bucket:tenant-assets",
+            "oyatie:cloud:region-home:ten_other:bucket:tenant-assets",
             OBJECT_KEY,
         ),
     )

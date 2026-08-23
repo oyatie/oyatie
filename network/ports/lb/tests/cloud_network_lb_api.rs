@@ -22,9 +22,9 @@ use network_lb::{
 };
 use network_residency::ResidencyClass;
 
-const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
-const SUBNET_ID: &str = "oya:cloud:region-home:ten_alpha:subnet:prod-a";
-const LB_ID: &str = "oya:cloud:region-home:ten_alpha:lb-v7:frontdoor";
+const VPC_ID: &str = "oyatie:cloud:region-home:ten_alpha:vpc:prod";
+const SUBNET_ID: &str = "oyatie:cloud:region-home:ten_alpha:subnet:prod-a";
+const LB_ID: &str = "oyatie:cloud:region-home:ten_alpha:lb-v7:frontdoor";
 const PRINCIPAL_ID: &str = "sp_network_lb_admin";
 const TENANT_ID: &str = "ten_alpha";
 const BEARER_SECRET: &str = "break-glass-network-lb-secret";
@@ -436,7 +436,7 @@ fn lb_create_api_rejects_path_body_lb_drift_before_catalog_mutation() {
     let mut ledger = CloudNetworkLbCreateIdempotencyLedger::default();
     let provider = allow_all_provider();
     let mut request = create_request("req-network-lb-drift", "idem-network-lb-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:lb-v7:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:lb-v7:other".to_string();
 
     let error =
         create_cloud_network_load_balancer_from_api(&mut catalog, &mut ledger, &provider, request)
@@ -446,7 +446,7 @@ fn lb_create_api_rejects_path_body_lb_drift_before_catalog_mutation() {
         error,
         CloudNetworkLbApiError::LoadBalancerIdMismatch {
             path_load_balancer_id: LB_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:lb-v7:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:lb-v7:other".to_string(),
         }
     );
     assert_eq!(error.lb_create_status_code(), 400);

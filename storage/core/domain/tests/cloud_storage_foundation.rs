@@ -11,7 +11,7 @@ fn foundation() -> StorageTenantCellGuardrailCreate {
         tenant_id: "ten_alpha".to_string(),
         region: "region-alpha1".to_string(),
         primary_cell_id: "cell-region-alpha1-a-001".to_string(),
-        bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
+        bucket_id: "oyatie:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
         object_key_prefix: "ten_alpha/cell-region-alpha1-a-001/".to_string(),
         object_versioning_enabled: true,
         object_lock_enabled: true,
@@ -20,12 +20,12 @@ fn foundation() -> StorageTenantCellGuardrailCreate {
             retain_until_epoch_seconds: 1_800_000_000,
             legal_hold: true,
         },
-        volume_id: "oya:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
+        volume_id: "oyatie:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
         volume_tier: VolumeTier::ProvisionedIopsSsd,
         snapshot_required: true,
         snapshot_evidence_ref: "snapshot-evidence/ten_alpha/cell-region-alpha1-a-001/db-primary"
             .to_string(),
-        filesystem_id: "oya:cloud:region-alpha1:ten_alpha:filesystem:shared-docs".to_string(),
+        filesystem_id: "oyatie:cloud:region-alpha1:ten_alpha:filesystem:shared-docs".to_string(),
         filesystem_tier: FilesystemTier::ThroughputOptimized,
         filesystem_mount_policy_ref: "mount-policy/ten_alpha/cell-region-alpha1-a-001/shared-docs"
             .to_string(),
@@ -48,7 +48,7 @@ fn tenant_cell_guardrail_admits_object_block_and_file_metadata_only_namespace() 
     );
     assert_eq!(
         guardrail.bucket_id.value.value,
-        "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets"
+        "oyatie:cloud:region-alpha1:ten_alpha:bucket:tenant-assets"
     );
     assert_eq!(
         guardrail.object_key_prefix.value.value,
@@ -115,14 +115,14 @@ fn tenant_cell_guardrail_rejects_secret_like_evidence_refs() {
 #[test]
 fn tenant_cell_guardrail_rejects_volume_and_filesystem_tenant_drift() {
     let volume_error = StorageTenantCellGuardrail::new(StorageTenantCellGuardrailCreate {
-        volume_id: "oya:cloud:region-alpha1:ten_beta:volume:db-primary".to_string(),
+        volume_id: "oyatie:cloud:region-alpha1:ten_beta:volume:db-primary".to_string(),
         ..foundation()
     })
     .expect_err("volume tenant must match guardrail tenant");
     assert_eq!(volume_error, CloudStorageError::ResourceTenantMismatch);
 
     let filesystem_error = StorageTenantCellGuardrail::new(StorageTenantCellGuardrailCreate {
-        filesystem_id: "oya:cloud:region-alpha1:ten_beta:filesystem:shared-docs".to_string(),
+        filesystem_id: "oyatie:cloud:region-alpha1:ten_beta:filesystem:shared-docs".to_string(),
         ..foundation()
     })
     .expect_err("filesystem tenant must match guardrail tenant");

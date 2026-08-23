@@ -19,9 +19,9 @@ use network_domain::{
 };
 use network_residency::ResidencyClass;
 
-const PUBLIC_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:example-com";
-const PRIVATE_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:internal-example";
-const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
+const PUBLIC_ZONE_ID: &str = "oyatie:cloud:region-home:ten_alpha:dns-zone:example-com";
+const PRIVATE_ZONE_ID: &str = "oyatie:cloud:region-home:ten_alpha:dns-zone:internal-example";
+const VPC_ID: &str = "oyatie:cloud:region-home:ten_alpha:vpc:prod";
 const PRINCIPAL_ID: &str = "sp_network_dns_admin";
 const TENANT_ID: &str = "ten_alpha";
 const BEARER_SECRET: &str = "break-glass-network-dns-secret";
@@ -430,7 +430,7 @@ fn dns_zone_create_api_rejects_path_body_zone_drift_before_catalog_mutation() {
     let mut ledger = CloudNetworkDnsZoneCreateIdempotencyLedger::default();
     let provider = allow_all_provider();
     let mut request = create_public_request("req-network-dns-drift", "idem-network-dns-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:dns-zone:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:dns-zone:other".to_string();
 
     let error =
         create_cloud_network_dns_zone_from_api(&mut catalog, &mut ledger, &provider, request)
@@ -440,7 +440,7 @@ fn dns_zone_create_api_rejects_path_body_zone_drift_before_catalog_mutation() {
         error,
         CloudNetworkDnsApiError::ZoneIdMismatch {
             path_zone_id: PUBLIC_ZONE_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:dns-zone:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:dns-zone:other".to_string(),
         }
     );
     assert_eq!(error.dns_zone_create_status_code(), 400);

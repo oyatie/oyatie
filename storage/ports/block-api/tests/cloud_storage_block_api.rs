@@ -11,7 +11,7 @@ use storage_block_api::{
 };
 use storage_domain::{CloudStorageCatalog, CloudStorageError};
 
-const VOLUME_ID: &str = "oya:cloud:region-home:ten_alpha:volume:db-primary";
+const VOLUME_ID: &str = "oyatie:cloud:region-home:ten_alpha:volume:db-primary";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudStorageBlockApiBoundaryContext {
     CloudStorageBlockApiBoundaryContext {
@@ -128,7 +128,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
     let mut catalog = CloudStorageCatalog::default();
     let mut ledger = CloudStorageBlockCreateIdempotencyLedger::default();
     let mut request = create_request("req-storage-block-drift", "idem-storage-block-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_alpha:volume:other".to_string();
+    request.body.resource_id = "oyatie:cloud:region-home:ten_alpha:volume:other".to_string();
 
     let error = create_cloud_storage_block_volume_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body volume drift is rejected");
@@ -137,7 +137,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
         error,
         CloudStorageBlockApiError::VolumeIdMismatch {
             path_volume_id: VOLUME_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_alpha:volume:other".to_string(),
+            body_resource_id: "oyatie:cloud:region-home:ten_alpha:volume:other".to_string(),
         }
     );
     assert_eq!(error.block_create_status_code(), 400);
