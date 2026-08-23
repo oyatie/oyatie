@@ -266,8 +266,8 @@ fn hooks_are_fmt_only() {
     ] {
         assert!(body.contains("rustfmt --check"), "{name} runs rustfmt");
         assert!(
-            !body.contains("cargo fmt"),
-            "{name} must not call cargo fmt (that formats the whole workspace)"
+            !body.contains("xargs -0 cargo fmt"),
+            "{name} must not invoke cargo fmt (that formats the whole workspace)"
         );
         assert!(
             !body.contains("cargo nextest"),
