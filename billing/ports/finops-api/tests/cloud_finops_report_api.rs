@@ -30,7 +30,7 @@ const TENANT: &str = "ten_alpha";
 const PRINCIPAL: &str = "sp_finops_admin";
 const BEARER: &str = "br_finops_alpha_secret";
 const REGION: &str = "region-home";
-const RESOURCE: &str = "oya:cloud:region-home:ten_alpha:instance:vm-a";
+const RESOURCE: &str = "oyatie:cloud:region-home:ten_alpha:instance:vm-a";
 const RATE_CARD: &str = "rate/kr-standard";
 
 // ── Test PDP authorizers ───────────────────────────────────────────────────

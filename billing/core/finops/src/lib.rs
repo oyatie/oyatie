@@ -1197,7 +1197,7 @@ mod tests {
 
     const TENANT: &str = "ten_alpha";
     const REGION: &str = "region-alpha1";
-    const RESOURCE: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
+    const RESOURCE: &str = "oyatie:cloud:region-alpha1:ten_alpha:instance:vm-a";
     const RATE_CARD: &str = "rate/standard";
 
     fn period() -> FinopsPeriod {
@@ -1416,7 +1416,7 @@ mod tests {
         assert_eq!(
             ledger
                 .record_allocation(CostAllocationCreate {
-                    resource_id: "oya:cloud:region-alpha1:ten_other:instance:vm-a".to_string(),
+                    resource_id: "oyatie:cloud:region-alpha1:ten_other:instance:vm-a".to_string(),
                     ..allocation(
                         "fca_bad_tenant",
                         meter_event("mtr_bad_tenant", AxisId::Cloud, 1_000_000, 1_500),

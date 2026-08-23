@@ -54,7 +54,7 @@ fn account_create() -> BillingAccountCreate {
 fn invoice_line_item() -> InvoiceLineItemCreate {
     InvoiceLineItemCreate {
         id: "ili_compute_001".to_string(),
-        resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+        resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
         description: "instance api-001 resource seconds".to_string(),
         units: units(),
         subtotal: Money::new("OYC", 100_000).expect("money fixture valid"),
@@ -95,7 +95,7 @@ fn credit_note(credit_minor_units: u64, line_item_suffix: &str) -> CreditNoteCre
     CreditNoteCreate {
         invoice_id: "inv_alpha_202605_001".to_string(),
         line_item_id: format!("ili_credit_{line_item_suffix}"),
-        resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+        resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
         description: "compute overage correction".to_string(),
         units: units(),
         credit_minor_units,

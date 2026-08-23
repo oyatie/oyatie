@@ -94,7 +94,7 @@ mod tests {
                     .expect("period fixture valid"),
                 line_items: vec![InvoiceLineItemCreate {
                     id: "ili_compute_001".to_owned(),
-                    resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_owned(),
+                    resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_owned(),
                     description: "instance api-001 resource seconds".to_owned(),
                     units: vec![
                         MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)

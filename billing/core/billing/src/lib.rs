@@ -1075,7 +1075,7 @@ fn validate_metering_tag(
     let kind = resource_id
         .kind_label()
         .map_err(|_| CloudBillingError::InvalidResourceId)?;
-    let expected = format!("oya:metering:{tenant_id}:{kind}");
+    let expected = format!("oyatie:metering:{tenant_id}:{kind}");
     if value == expected {
         Ok(())
     } else {
@@ -1239,9 +1239,9 @@ mod tests {
         CloudBillingEventCreate {
             id: "cbill_resource_created_001".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
             region: "region-alpha".to_string(),
-            metering_tag: "oya:metering:ten_alpha:instance".to_string(),
+            metering_tag: "oyatie:metering:ten_alpha:instance".to_string(),
             kind: CloudBillingEventKind::ResourceCreated,
             units: units(),
             rate_card_ref: "rate/region-alpha/compute/v1".to_string(),
@@ -1254,7 +1254,7 @@ mod tests {
     fn invoice_line_item() -> InvoiceLineItemCreate {
         InvoiceLineItemCreate {
             id: "ili_compute_001".to_string(),
-            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
             description: "instance api-001 resource seconds".to_string(),
             units: units(),
             subtotal: Money::new("OYC", 100_000).expect("money fixture valid"),
@@ -1413,7 +1413,7 @@ mod tests {
     fn rejects_resource_tenant_region_and_metering_tag_mismatch() {
         let tenant_error = CloudBillingEvent::new(CloudBillingEventCreate {
             tenant_id: "ten_other".to_string(),
-            metering_tag: "oya:metering:ten_other:instance".to_string(),
+            metering_tag: "oyatie:metering:ten_other:instance".to_string(),
             ..event_create()
         })
         .expect_err("resource tenant must match billing tenant");
@@ -1427,7 +1427,7 @@ mod tests {
         assert_eq!(region_error, CloudBillingError::RegionMismatch);
 
         let metering_error = CloudBillingEvent::new(CloudBillingEventCreate {
-            metering_tag: "oya:metering:ten_alpha:bucket".to_string(),
+            metering_tag: "oyatie:metering:ten_alpha:bucket".to_string(),
             ..event_create()
         })
         .expect_err("metering tag must match resource tenant and type");
@@ -1588,7 +1588,7 @@ mod tests {
         CreditNoteCreate {
             invoice_id: "inv_alpha_202605_001".to_string(),
             line_item_id: "ili_credit_001".to_string(),
-            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
+            resource_id: "oyatie:cloud:region-alpha:ten_alpha:instance:api-001".to_string(),
             description: "compute overage correction".to_string(),
             units: units(),
             credit_minor_units,
