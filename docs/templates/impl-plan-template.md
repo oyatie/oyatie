@@ -8,7 +8,7 @@ purpose: |
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/<impl-plan-name>.md.
   An autonomous executor reading this plan must be able to act without escalation:
   concrete file targets, crate names with BNF v4.1 justification, code skeletons,
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md
@@ -38,9 +38,9 @@ blocked_by:
 acceptance_lanes:
   - buck2-build
   - buck2-test
-  - cloud-ci-static-analysis
-  - cloud-ci-supply-chain
-  - cloud-ci-formatting
+  - pipeline-static-analysis
+  - pipeline-supply-chain
+  - pipeline-formatting
   - lean-a1
   - lean-a2
   - lean-a3
@@ -53,7 +53,7 @@ acceptance_lanes:
 ## Intent
 
 One to two sentences. What this implementation plan delivers. Present tense;
-durable outcome framing. Example: "Scaffolds the `oya-hr-employee-domain` crate
+durable outcome framing. Example: "Scaffolds the `hr-employee-domain` crate
 with Employment entity, EmployeeRepository port-trait, and unit tests. Establishes
 the domain boundary for the HR µservice's Employee BC."
 
@@ -71,10 +71,10 @@ content shape. An executor reads this list and touches ONLY these files.
 
 | Path | Action | Description |
 |---|---|---|
-| `crates/oya-<ms>-<bc>-<layer>/Cargo.toml` | create | `[package]` + `[dependencies]` skeleton |
-| `crates/oya-<ms>-<bc>-<layer>/src/lib.rs` | create | module declarations + `pub use` surface |
-| `crates/oya-<ms>-<bc>-<layer>/src/<module>.rs` | create | trait / entity / use-case body |
-| `Cargo.toml` | update | add `crates/oya-<ms>-<bc>-<layer>` to `[workspace.members]` |
+| `crates/oyatie-<ms>-<bc>-<layer>/Cargo.toml` | create | `[package]` + `[dependencies]` skeleton |
+| `crates/oyatie-<ms>-<bc>-<layer>/src/lib.rs` | create | module declarations + `pub use` surface |
+| `crates/oyatie-<ms>-<bc>-<layer>/src/<module>.rs` | create | trait / entity / use-case body |
+| `Cargo.toml` | update | add `crates/oyatie-<ms>-<bc>-<layer>` to `[workspace.members]` |
 | `docs/standards/bounded-contexts.md` | update | register new BC rows |
 
 ---
@@ -86,10 +86,10 @@ For EACH new crate or binary introduced, include the full justification block
 rejected at scaffold time):
 
 ```
-NAME: oya-<microservice>[-<bc-tokens>]-<layer>
+NAME: oyatie-<microservice>[-<bc-tokens>]-<layer>
 JUSTIFICATION:
 - microservice = <kebab-token(s)>: <product/capability; registered in
-  [workspace.metadata.oya.microservices]; ADR-0056 v4.1 flat BNF; no
+  [workspace.metadata.oyatie.microservices]; ADR-0056 v4.1 flat BNF; no
   shared|vertical bisection>
 - bc-tokens = <kebab-token(s)> (OPTIONAL): <omit if µservice has single
   concept at this layer; include if multiple BCs or binaries split at same
@@ -112,7 +112,7 @@ Skeleton for each new file. Trait signatures, data types, module structure.
 No implementation detail required — just enough for an executor to understand
 the shape and fill it without escalation.
 
-### `crates/oya-<ms>-<bc>-<layer>/src/lib.rs`
+### `crates/oyatie-<ms>-<bc>-<layer>/src/lib.rs`
 
 ```rust
 // Module declarations
@@ -122,7 +122,7 @@ pub mod <module>;
 pub use <module>::{<Type>, <Trait>};
 ```
 
-### `crates/oya-<ms>-<bc>-<layer>/src/<module>.rs`
+### `crates/oyatie-<ms>-<bc>-<layer>/src/<module>.rs`
 
 ```rust
 use std::error::Error;
@@ -141,11 +141,11 @@ pub trait <RepositoryTrait>: Send + Sync {
 }
 ```
 
-### `crates/oya-<ms>-<bc>-<layer>/Cargo.toml`
+### `crates/oyatie-<ms>-<bc>-<layer>/Cargo.toml`
 
 ```toml
 [package]
-name = "oya-<ms>-<bc>-<layer>"
+name = "oyatie-<ms>-<bc>-<layer>"
 version.workspace = true
 edition.workspace = true
 
@@ -172,19 +172,19 @@ buck2 build <crate-or-app-target>                         # exit 0
 buck2 test <targeted-test-targets>                        # exit 0; 0 failures
 
 # 3. Static/lint gate packets
-buck2 test <relevant-cloud-ci-static-analysis-targets>    # exit 0
+buck2 test <relevant-pipeline-static-analysis-targets>    # exit 0
 
 # 4. Supply chain
-buck2 test <supply-chain-cloud-ci-target>                 # exit 0
+buck2 test <supply-chain-pipeline-target>                 # exit 0
 
 # 5. Docs/API contract checks
-buck2 test <docs-or-api-contract-cloud-ci-targets>        # exit 0
+buck2 test <docs-or-api-contract-pipeline-targets>        # exit 0
 
 # 6. LEAN / architecture checks (per ADR-0057)
-buck2 test <cloud-ci-lean-a1-target>                     # layer ordering
-buck2 test <cloud-ci-lean-a2-target>                     # cross-vertical refusal
-buck2 test <cloud-ci-lean-a3-target>                     # BC boundary
-buck2 test <cloud-ci-lean-a4-target>                     # naming conformance
+buck2 test <pipeline-lean-a1-target>                     # layer ordering
+buck2 test <pipeline-lean-a2-target>                     # cross-vertical refusal
+buck2 test <pipeline-lean-a3-target>                     # BC boundary
+buck2 test <pipeline-lean-a4-target>                     # naming conformance
 ```
 
 ---
@@ -193,7 +193,7 @@ buck2 test <cloud-ci-lean-a4-target>                     # naming conformance
 
 ### Unit tests
 
-Location: `crates/oya-<ms>-<bc>-<layer>/src/<module>.rs #[cfg(test)]`
+Location: `crates/oyatie-<ms>-<bc>-<layer>/src/<module>.rs #[cfg(test)]`
 
 | Test name | What it verifies |
 |---|---|
@@ -202,7 +202,7 @@ Location: `crates/oya-<ms>-<bc>-<layer>/src/<module>.rs #[cfg(test)]`
 
 ### Integration tests
 
-Location: `crates/oya-<ms>-<bc>-<layer>/tests/<test_file>.rs`
+Location: `crates/oyatie-<ms>-<bc>-<layer>/tests/<test_file>.rs`
 
 | Test name | What it verifies |
 |---|---|
@@ -231,18 +231,18 @@ For each new crate, state its layer and list the layers it imports:
 
 | Crate | Layer | Imports (layers only) | Forbidden imports |
 |---|---|---|---|
-| `oya-<ms>-<bc>-kernel` | `kernel` | (nothing project-internal) | all other layers |
-| `oya-<ms>-<bc>-domain` | `domain` | `kernel` | `application`, `adapter`, `infrastructure`, presentation, `app` |
-| `oya-<ms>-<bc>-application` | `application` | `domain`, `kernel` | `adapter`, `infrastructure`, presentation, `app` |
-| `oya-<ms>-<bc>-adapter` | `adapter` | `application`, `domain`, `kernel` | `infrastructure`, presentation, `app` |
-| `oya-<ms>-<bc>-rest` | `rest` | `application`, `domain`, `kernel` | `adapter`, `infrastructure` directly |
+| `oyatie-<ms>-<bc>-kernel` | `kernel` | (nothing project-internal) | all other layers |
+| `oyatie-<ms>-<bc>-domain` | `domain` | `kernel` | `application`, `adapter`, `infrastructure`, presentation, `app` |
+| `oyatie-<ms>-<bc>-application` | `application` | `domain`, `kernel` | `adapter`, `infrastructure`, presentation, `app` |
+| `oyatie-<ms>-<bc>-adapter` | `adapter` | `application`, `domain`, `kernel` | `infrastructure`, presentation, `app` |
+| `oyatie-<ms>-<bc>-rest` | `rest` | `application`, `domain`, `kernel` | `adapter`, `infrastructure` directly |
 
 ### Port traits (must live in kernel)
 
 Every port trait this IP introduces — zero business logic, zero I/O:
 
 ```rust
-// oya-<ms>-<bc>-kernel/src/ports.rs
+// oyatie-<ms>-<bc>-kernel/src/ports.rs
 #[doc(hidden)]
 mod sealed { pub trait Sealed {} }
 
@@ -253,7 +253,7 @@ pub trait <PortName>: Send + Sync + sealed::Sealed {
 }
 ```
 
-Implementations live exclusively in `oya-<ms>-<bc>-adapter`. Domain calls
+Implementations live exclusively in `oyatie-<ms>-<bc>-adapter`. Domain calls
 through the trait; domain never imports the adapter.
 
 ### Cross-product integration check
@@ -263,15 +263,15 @@ cross-product data flow uses:
 - Workflow events (action/orchestration) — list event types: `<EventType>`
 - Ontology reads/writes (information) — list Object Types: `<ObjectType>`
 
-If this IP is for a product µservice: confirm the Buck2/cloud-ci lean-a2 gate will pass by design (no product crate deps in `[dependencies]`).
+If this IP is for a product µservice: confirm the Buck2/pipeline lean-a2 gate will pass by design (no product crate deps in `[dependencies]`).
 
 ### CI lanes this IP must green
 
 ```bash
-buck2 test <cloud-ci-dependency-direction-target>          # dependency-direction
-buck2 test <cloud-ci-cross-product-refusal-target>         # cross-product-refusal
-buck2 test <cloud-ci-port-location-target>                 # ports in kernel
-buck2 test <cloud-ci-layer-correctness-target>             # layer correctness
+buck2 test <pipeline-dependency-direction-target>          # dependency-direction
+buck2 test <pipeline-cross-product-refusal-target>         # cross-product-refusal
+buck2 test <pipeline-port-location-target>                 # ports in kernel
+buck2 test <pipeline-layer-correctness-target>             # layer correctness
 ```
 
 ---
@@ -336,8 +336,8 @@ Claim these symbols BEFORE beginning work (per `feedback_grit_claim_work_done.md
   --agent <agent-id> \
   --intent "<impl-plan-name>: <one-line intent>" \
   --ttl 3600 \
-  crates/oya-<ms>-<bc>-<layer>/src/lib.rs::<TypeOrTrait> \
-  crates/oya-<ms>-<bc>-<layer>/src/<module>.rs::<fn_name>
+  crates/oyatie-<ms>-<bc>-<layer>/src/lib.rs::<TypeOrTrait> \
+  crates/oyatie-<ms>-<bc>-<layer>/src/<module>.rs::<fn_name>
 ```
 
 

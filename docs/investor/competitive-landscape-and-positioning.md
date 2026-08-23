@@ -759,7 +759,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Repository evidence: more than 70 microservice directories under `microservices/`.
 - Repository evidence: hundreds of Cedar policy artifacts under service directories.
 - Repository evidence: capability-tier and catalog folders across service families.
-- Repository evidence: ADR corpus covering audit chain, Cedar, compliance packs, and Oya VCS governance.
+- Repository evidence: ADR corpus covering audit chain, Cedar, compliance packs, and retired VCS ratchet governance.
 
 ## 29 - Positioning Summary
 

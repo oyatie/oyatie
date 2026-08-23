@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
 use data_ontology_domain::{ObjectEntity, ObjectGraphError, ObjectProperty, PropertyTier};
-use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
 
 pub const OBJECT_GRAPH_ENTITY_UPSERT_SURFACE: &str = "object-graph.entity.upsert";
 pub const OBJECT_GRAPH_ENTITY_UPSERT_OPENAPI_CONTRACT: &str =

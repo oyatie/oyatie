@@ -5,8 +5,8 @@
 //! `microservices/identity/workload-identity/PRD.md` §1.2. The DTOs convert
 //! into (and out of) the pure [`iam_identity_workload_domain`] values; this
 //! crate persists nothing, performs no crypto, evaluates no policy, and does no
-//! I/O. The axum surface (`oya-identity-workload-rest`) and the use-case core
-//! (`oya-identity-workload-app`) consume these shapes.
+//! I/O. The axum surface (`identity-workload-rest`) and the use-case core
+//! (`identity-workload-app`) consume these shapes.
 //!
 //! ## Layering invariant (ADR-0131 / architecture-boundaries gate)
 //!
@@ -32,7 +32,7 @@ use serde::{Deserialize, Serialize};
 // =====================================================================
 
 /// Stable error envelope returned for every non-2xx response. Mirrors the flat
-/// `oya-accounting-journal-api` envelope shape (code/message/details).
+/// `accounting-journal-api` envelope shape (code/message/details).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiErrorEnvelope {

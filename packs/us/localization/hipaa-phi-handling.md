@@ -509,9 +509,9 @@ The document requires HHS OCR guidance refresh before any runtime enforcement.
 - HIPAA-XREF-009: `specs/microservices/anonymous.json` is the likely home for de-identification and anonymization workflows.
 - HIPAA-XREF-010: `specs/microservices/accounting.json` may host payment workflows that contain PHI.
 - HIPAA-XREF-011: `specs/microservices/hr.json` may host workforce access and sanctions evidence.
-- HIPAA-XREF-012: `registry/catalog/oya-check-data-class.yaml` is a future PHI/ePHI classification gate.
-- HIPAA-XREF-013: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future HIPAA evidence completeness gate.
-- HIPAA-XREF-014: `registry/catalog/oya-check-audit-chain-seal-coverage.yaml` is a future breach and access evidence gate.
+- HIPAA-XREF-012: `registry/catalog/check-data-class.yaml` is a future PHI/ePHI classification gate.
+- HIPAA-XREF-013: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future HIPAA evidence completeness gate.
+- HIPAA-XREF-014: `registry/catalog/check-audit-chain-seal-coverage.yaml` is a future breach and access evidence gate.
 - HIPAA-XREF-015: HHS OCR guidance remains primary for HIPAA Privacy, Security, Breach Notification, BAA, minimum-necessary, and de-identification interpretation.
 - HIPAA-XREF-016: eCFR 45 CFR Parts 160, 162, and 164 remain primary for current rule text.
 - HIPAA-XREF-017: Counsel review is required before applying preemption conclusions.

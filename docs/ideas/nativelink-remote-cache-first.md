@@ -16,7 +16,7 @@ How might we make the buck2 CI gate (and the agent fleet) fast by **warming a sh
 Cache-first uses **CAS + AC only**; the Scheduler is dormant until the RE phase.
 
 ## Recommended Direction
-Deploy **NativeLink cache-only on Talos** (CAS + Action Cache, backed by SeaweedFS S3 at `oya-storage`). Point buck2 at it via `[buck2_re_client]` with a **cache-only** `CommandExecutorConfig`:
+Deploy **NativeLink cache-only on Talos** (CAS + Action Cache, backed by SeaweedFS S3 at `storage`). Point buck2 at it via `[buck2_re_client]` with a **cache-only** `CommandExecutorConfig`:
 `remote_cache_enabled=true` + `allow_cache_uploads=true` + `local_enabled=true` + **`remote_enabled=false`**
 (`remote_enabled` = remote *execution* — flipped on later for full RE). Actions execute locally; a cache hit from any prior pod/laptop skips the work; every local result uploads so the next pod builds it for free. 80/20: most of RE's speed, none of the Scheduler/worker ops.
 
@@ -27,7 +27,7 @@ Deploy **NativeLink cache-only on Talos** (CAS + Action Cache, backed by Seaweed
 - [ ] **In-cluster gRPC + tls** pod → NativeLink reachable.
 
 ## MVP Scope
-**In:** NativeLink CAS+AC (oya-ci ns, SeaweedFS-backed) + `[buck2_re_client]` endpoint + cache-only `CommandExecutorConfig` in `toolchains//` + the 2-pod hit + cold→warm speedup measurement.
+**In:** NativeLink CAS+AC (ci ns, SeaweedFS-backed) + `[buck2_re_client]` endpoint + cache-only `CommandExecutorConfig` in `toolchains//` + the 2-pod hit + cold→warm speedup measurement.
 **Out:** Scheduler/RE, worker autoscaling, cross-arch RE.
 
 ## Not Doing (and why)

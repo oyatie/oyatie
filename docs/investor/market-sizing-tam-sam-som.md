@@ -466,13 +466,13 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Policy angle: Cedar gates for development workflow, customer data access, AI capability, and cost.
 - Deployment angle: managed cloud and self-hosted option for sensitive source code.
 - Pilot target: audit evidence automation plus AI action governance.
-- Expansion target: Oya VCS, Foundry, customer trust portal, and compliance evidence.
+- Expansion target: retired VCS ratchet, Foundry, customer trust portal, and compliance evidence.
 - Sales cycle assumption: 3 to 9 months.
 - Named milestone: enterprise SaaS design partner by 2026-10-15.
 - Risk: engineering buyers may prefer building internally.
 - Mitigation: sell time-to-evidence and governance depth.
 - Market rationale: Zylo reports AI-native spend volatility and portfolio pressure.
-- Product implication: Foundry and Oya VCS can be commercial wedge assets.
+- Product implication: Foundry and retired VCS ratchet can be commercial wedge assets.
 - Commercial implication: this may be the fastest early enterprise vertical.
 - Diligence implication: proof must be hands-on and technical.
 
@@ -663,7 +663,7 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Analytics maps to analytics, data-warehouse, data-pipeline, ontology, and intelligence.
 - AI governance maps to foundry, intelligence, policy, audit-chain, finops-portal, and capability registry.
 - Cloud operations maps to cloud-k8s, cloud-iac, cloud-network, cloud-storage, cloud-iam, cloud-kms, and observability.
-- Developer platform maps to developer-sdk, foundry, Oya VCS, api-gateway, and marketplace.
+- Developer platform maps to developer-sdk, foundry, retired VCS ratchet, api-gateway, and marketplace.
 - Marketplace settlement maps to marketplace, payments, cloud-billing-tax, treasury, and contract-lifecycle-management.
 - The same surface can participate in many verticals.
 - This is why capability tiers matter.

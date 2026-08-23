@@ -11,17 +11,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
+use data_boundary_kernel::{Classified, DataClass};
 use network_residency::{
     RegionRef, RegionRefCreate, ResidencyClass, ResidencyError, infer_region_jurisdiction_label,
     residency_class_allows_home_region_label,
 };
-use oya_data_boundary_kernel::{Classified, DataClass};
 
 const CLOUD_REGION_SCHEMA_VERSION: u32 = 1;
 const CLOUD_AZ_SCHEMA_VERSION: u32 = 1;
 const CLOUD_CELL_SCHEMA_VERSION: u32 = 1;
 const CELL_ID_PREFIX: &str = "cell-";
-const REGIONAL_PACK_ID_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_ID_PREFIX: &str = "pack-";
 const HSM_PARTITION_PREFIX: &str = "hsm/";
 const TENANT_ID_PREFIX: &str = "ten_";
 
@@ -709,7 +709,7 @@ mod tests {
         CloudRegionCreate {
             code: "region-alpha1".to_string(),
             display_name: "Alpha Region".to_string(),
-            regulatory_packs: vec!["oya-pack-alpha".to_string()],
+            regulatory_packs: vec!["pack-alpha".to_string()],
             state: RegionState::Preview,
             provider_facing: true,
             residency_strictness: residency_class(),

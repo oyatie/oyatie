@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** ops-security + council-security + ops-compliance
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0251 §D-10, ADR-0244 §D-3, ADR-0243, ADR-0009, ADR-0049
 
 ---

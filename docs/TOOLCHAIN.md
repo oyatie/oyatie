@@ -102,7 +102,7 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Browser auth bridge** (for subscription-mode adapters) | **Rust + Chromiumoxide** (CDP wrapper) | Playwright (Apache-2) only as escape hatch | Headless browser in Rust |
 | **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; **Leptos hot-reload via cargo-leptos**; **nextest watch** | none | Devcontainer is industry standard |
 | **Editor / IDE** | Engineer choice (VS Code / Cursor / Helix / Zed / Neovim); **rust-analyzer** is required; **leptos-language-server** when authoring Leptos UI | none | Editor-agnostic; require LSP support |
-| **Pre-commit + pre-push** | **`oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
+| **Pre-commit + pre-push** | **retired `./bin/oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `presubmit` (retired CLI `gate validate`) + boundary validator | none | Already in the design |
 
 ---
 
@@ -112,7 +112,7 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.1 Capability registry + tool-use schema
 
-- `oya-intelligence-capability-kernel` defines `Capability { id, namespace, input_schema, output_schema, autonomy_tier_required, data_classes_touched, evidence_emission_topic, regulatory_packs_consumed }`.
+- `intelligence-capability-kernel` defines `Capability { id, namespace, input_schema, output_schema, autonomy_tier_required, data_classes_touched, evidence_emission_topic, regulatory_packs_consumed }`.
 - Wire format: JSON Schema-compatible per [MCP — Model Context Protocol](https://modelcontextprotocol.io) so any MCP-aware client (including Claude Desktop, Continue, Cursor) can consume Foundry capabilities directly.
 - Tool-use schema validation runs at invocation time AND at registration time.
 - Per-tenant per-capability allow/deny with policy gates (Cedar).
@@ -135,7 +135,7 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.4 Multi-provider router + cost ceiling
 
-- `oya-intelligence-router` selects provider per capability per tenant per session.
+- `intelligence-router` selects provider per capability per tenant per session.
 - Routing inputs: latency budget, cost ceiling (per-tenant and per-capability), quality target (eval-set bound), data-class constraint (some classes can only go to providers with specific contractual data-handling).
 - Failover: ordered preference list `[claude-api, openai-api, gemini-api, claude-subscription, ...]` with timeouts.
 - Cost ceiling enforcement: hard stop when monthly tenant budget exhausted; soft warn at 80%.
@@ -149,14 +149,14 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.6 RAG endpoint shared across agents
 
-- `oya-intelligence-rag` exposes per-tenant + per-capability search retrieval with consent enforcement.
+- `intelligence-rag` exposes per-tenant + per-capability search retrieval with consent enforcement.
 - Inputs: query, tenant, capability, max-context-window.
 - Outputs: ranked passages with provenance + audit-chain emission.
 - Backed by the search axis (per-tier index segregation).
 
 ### 4.7 Agent eval harness
 
-- `oya-intelligence-eval` runs golden-set evaluations on every capability change.
+- `intelligence-eval` runs golden-set evaluations on every capability change.
 - Per-capability eval set with versioning.
 - Replay against past traces (regression detection).
 - A/B testing of provider routing decisions.
@@ -184,17 +184,17 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ## 4.A MCP gateway — the agent-discoverable interface to the Oyatie CLI toolchain
 
-> **2026-05-09 addition (per user note):** The `oya` CLI persona-split (`dev / admin / build / agent / ops / pack / catalog / gate`) is the *human* surface. To make the same toolchain agent-discoverable, Oyatie ships an **MCP server** (`oya-mcp-server`) that exposes every CLI subcommand as an MCP tool with per-tool instructions, examples, and runtime gates. This is the "Section H.1 / C.1" recommendation from the Foundry-improvements research and one of the only-Foundry-can-do differentiators.
+> **2026-05-09 addition (per user note):** The `oya` CLI persona-split (`dev / admin / build / agent / ops / pack / catalog / gate`) is the *human* surface. To make the same toolchain agent-discoverable, Oyatie ships an **MCP server** (`mcp-server`) that exposes every CLI subcommand as an MCP tool with per-tool instructions, examples, and runtime gates. This is the "Section H.1 / C.1" recommendation from the Foundry-improvements research and one of the only-Foundry-can-do differentiators.
 
-### 4.A.1 What `oya-mcp-server` exposes
+### 4.A.1 What `mcp-server` exposes
 
 Every persona-CLI subcommand becomes an MCP tool with a typed schema:
 
 ```jsonc
-// Example tool exposed by oya-mcp-server
+// Example tool exposed by mcp-server
 {
-  "name": "oya.dev.check",
-  "description": "Run pre-push checks: cargo fmt --check, cargo clippy, cargo nextest run, oya gate validate, architecture-boundary validator. Use BEFORE every push. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
+  "name": "oyatie.dev.check",
+  "description": "Run pre-push checks: cargo fmt --check, cargo clippy, cargo nextest run, presubmit (retired CLI gate validate), architecture-boundary validator. Use BEFORE every push. Idempotent. Reads-only on the working tree (no writes). Exits 0 on pass, 1 on fail. Output is structured JSON with per-check pass/fail and links to evidence.",
   "inputSchema": {
     "type": "object",
     "properties": {
@@ -212,7 +212,7 @@ Every persona-CLI subcommand becomes an MCP tool with a typed schema:
   "policy": {
     "autonomy_tier_required": "T2",
     "data_classes_touched": ["INTERNAL_ONLY"],
-    "evidence_emission_topic": "oya.foundry.mcp.invocation",
+    "evidence_emission_topic": "oyatie.foundry.mcp.invocation",
     "regulatory_packs_consumed": []
   }
 }
@@ -222,26 +222,26 @@ Per-tool instructions are sourced from the CLI's structured `--help` + per-subco
 
 - Foundry agents inside Oyatie
 - External agents (Claude Desktop, Cursor, Continue, Cline) when the customer enables their tenant's MCP endpoint
-- The `oya-intelligence-router` for capability routing
+- The `intelligence-router` for capability routing
 
 ### 4.A.2 Why MCP and not a proprietary RPC
 
 - **Industry direction.** Anthropic's Model Context Protocol is now the de facto standard for tool-use schemas (Claude Desktop, Cursor, Continue, Cline, OpenAI ChatGPT Apps via OpenAI Apps SDK). Picking MCP minimizes integration surface for every agent client.
 - **Bidirectional.** An external agent can drive the Oyatie CLI; an Oyatie Foundry capability can be consumed by an external agent. Same wire format.
 - **Schema-first.** Each tool ships a JSON Schema for inputs + outputs; the schema is the contract, not the prose docs.
-- **Composability.** MCP `prompts` + `resources` let `oya-mcp-server` ship reusable agent prompts (e.g. "Before opening a PR, run these checks…") alongside the tools.
+- **Composability.** MCP `prompts` + `resources` let `mcp-server` ship reusable agent prompts (e.g. "Before opening a PR, run these checks…") alongside the tools.
 - **License.** MCP spec is MIT-licensed. SDKs (Anthropic) are MIT.
 
 ### 4.A.3 Per-tool instructions vs server-level prompts
 
-`oya-mcp-server` ships two layers of agent guidance:
+`mcp-server` ships two layers of agent guidance:
 
 1. **Per-tool instructions** (in the tool's `description` field): when-to-use, when-NOT-to-use, side effects, idempotency, expected output shape, common errors, links to runbooks.
 2. **Server-level prompts** (MCP `prompts` capability): higher-level workflows that orchestrate multiple tools. Examples:
-   - `oya.workflow.preview-vertical` — "Author a vertical preview: scaffold catalog records, draft kernel entities, run check, open PR with the canonical 5-section body."
-   - `oya.workflow.regional-pack-authoring` — "Author a new regional pack: install seam impls, declare regulator binding, run pack-validate, sign with Cosign."
-   - `oya.workflow.adr-promotion` — "Promote a Proposed ADR to Accepted: confirm shipped evidence in `crates/` and `registry/catalog/`, sweep for cross-references, regenerate ADR-INDEX, run validator."
-   - `oya.workflow.foundation-bypass-renewal` — "Renew a foundation bypass: read expiry, check status of underlying issue, propose renewal or retirement."
+   - `oyatie.workflow.preview-vertical` — "Author a vertical preview: scaffold catalog records, draft kernel entities, run check, open PR with the canonical 5-section body."
+   - `oyatie.workflow.regional-pack-authoring` — "Author a new regional pack: install seam impls, declare regulator binding, run pack-validate, sign with Cosign."
+   - `oyatie.workflow.adr-promotion` — "Promote a Proposed ADR to Accepted: confirm shipped evidence in `crates/` and `registry/catalog/`, sweep for cross-references, regenerate ADR-INDEX, run validator."
+   - `oyatie.workflow.foundation-bypass-renewal` — "Renew a foundation bypass: read expiry, check status of underlying issue, propose renewal or retirement."
 
 ### 4.A.4 Per-tenant MCP endpoint
 
@@ -258,7 +258,7 @@ Customer builders authoring workflows or plugins via Workflow Studio can also dr
 
 ### 4.A.6 Implementation
 
-- Server: `crates/oya-intelligence-mcp-server-*` (Rust, axum + the official Anthropic MCP Rust SDK or in-house if SDK is insufficient)
+- Server: `crates/intelligence-mcp-server-*` (Rust, axum + the official Anthropic MCP Rust SDK or in-house if SDK is insufficient)
 - Tool catalog: generated from `oya <persona> <subcommand> --emit-mcp` per CLI, plus capability registry projection
 - Transport: MCP stdio for local; MCP SSE/HTTP for remote
 - Versioning: per-tool semver; deprecation per ADR-0001 + ADR-0040
@@ -266,7 +266,7 @@ Customer builders authoring workflows or plugins via Workflow Studio can also dr
 
 ### 4.A.7 Investment timing
 
-Per [§8 investment sequence](#8-tooling-investment-sequence-what-to-build-first), `oya-intelligence-mcp-server` slots in at order **#3.5** (right after capability registry, since the registry IS the source of truth the MCP server publishes from).
+Per [§8 investment sequence](#8-tooling-investment-sequence-what-to-build-first), `intelligence-mcp-server` slots in at order **#3.5** (right after capability registry, since the registry IS the source of truth the MCP server publishes from).
 
 ---
 
@@ -320,7 +320,7 @@ Allowed licenses: Apache-2.0, MIT, BSD-2/3-Clause, MPL-2.0, ISC, Unlicense, CC0.
 Forbidden: AGPL (any), GPL (any), SSPL, BUSL (after 2024), Commons Clause.
 Requires-review: anything else; council must approve.
 
-CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents and hard-fails on a forbidden license.
+CI lane `governance-license` runs `cargo deny` + per-language equivalents and hard-fails on a forbidden license.
 
 ---
 
@@ -328,31 +328,31 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 
 | Order | Tool | Why first |
 |---|---|---|
-| 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
-| 2 | `oya-intelligence-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
-| 3 | `oya-intelligence-capability-kernel` + MCP-compatible registry | Foundry preview gate |
-| 4 | `oya-intelligence-router` (multi-provider routing + cost ceiling) | Production agent reliability |
-| 5 | `oya-intelligence-evidence` (audit-chain emission per agent step) | Compliance + cohesion |
-| 6 | `oya-intelligence-sandbox` (Wasmtime + Firecracker) | Safety |
-| 7 | `oya-intelligence-rag` (shared RAG endpoint) | Cross-axis retrieval |
-| 8 | `oya-intelligence-eval` (golden-set + replay) | Regression prevention |
-| 9 | `oya-intelligence-trace` (step-level + replay) | Debugging |
-| 10 | `oya-intelligence-cache` (prompt + semantic cache) | Cost reduction |
+| 1 | retired `./bin/oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
+| 2 | `intelligence-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
+| 3 | `intelligence-capability-kernel` + MCP-compatible registry | Foundry preview gate |
+| 4 | `intelligence-router` (multi-provider routing + cost ceiling) | Production agent reliability |
+| 5 | `intelligence-evidence` (audit-chain emission per agent step) | Compliance + cohesion |
+| 6 | `intelligence-sandbox` (Wasmtime + Firecracker) | Safety |
+| 7 | `intelligence-rag` (shared RAG endpoint) | Cross-axis retrieval |
+| 8 | `intelligence-eval` (golden-set + replay) | Regression prevention |
+| 9 | `intelligence-trace` (step-level + replay) | Debugging |
+| 10 | `intelligence-cache` (prompt + semantic cache) | Cost reduction |
 | 11 | `oya dev / admin / build / agent / ops / pack / catalog / gate` CLI split | Persona separation |
-| 12 | `oya-intelligence-marketplace` (plugin authoring + signing + sandbox) | Customer-extensible Foundry |
-| 13 | `oya-portal` (IDP / catalog UI in Leptos) | Deliver the first-party portal without a Backstage runtime bootstrap |
-| 14 | `oya-toolchain` (shared Rust libs every team uses) | Cohesion compounds |
-| 15 | `oya-bench` (benchmark harness) | Perf regression detection |
-| 16 | `oya-bouncer` (license + SBOM + supply-chain) | Wraps cargo-deny + Cosign + Trivy |
-| 17 | `oya-studio` (Workflow Studio) | Customer-builder surface |
-| 18 | `oya-trust` (trust portal) | Compliance customer-facing |
+| 12 | `intelligence-marketplace` (plugin authoring + signing + sandbox) | Customer-extensible Foundry |
+| 13 | `portal` (IDP / catalog UI in Leptos) | Deliver the first-party portal without a Backstage runtime bootstrap |
+| 14 | `toolchain` (shared Rust libs every team uses) | Cohesion compounds |
+| 15 | `bench` (benchmark harness) | Perf regression detection |
+| 16 | `bouncer` (license + SBOM + supply-chain) | Wraps cargo-deny + Cosign + Trivy |
+| 17 | `studio` (Workflow Studio) | Customer-builder surface |
+| 18 | `trust` (trust portal) | Compliance customer-facing |
 
 ---
 
 ## 9. Open questions
 
 1. **Bazel adoption** — should we adopt Bazel for cross-language remote-execution + caching? Currently cargo + pnpm + ad-hoc. Pro: scales beyond Rust. Con: Bazel learning curve. Defer until the second non-Rust workspace appears at scale.
-2. **In-house notebook environment** — should we build an Oyatie-native Python+Rust notebook, or use Jupyter? Current pick: Jupyter for ad hoc; consider in-house when integrated with `oya-intelligence-rag`.
+2. **In-house notebook environment** — should we build an Oyatie-native Python+Rust notebook, or use Jupyter? Current pick: Jupyter for ad hoc; consider in-house when integrated with `intelligence-rag`.
 3. **Code-search index** — Sourcegraph is a great tool; license is Apache-2 (verify); should we adopt or build? Probably adopt initially; in-house later if scale demands.
 4. **Documentation site generator** — mdbook (Rust, Apache-2/MIT) is the natural Rust-stack default; alternative: in-house. Pick mdbook initially with Leptos overlays for interactive surfaces.
 5. **Cargo workspace splitting** — after the workspace grows past the historical 91-crate split inventory, do we shard the workspace into multiple repos? Current pick: stay in one repo with `cargo build --workspace --target` sharding; live count was 64 on 2026-05-11; revisit at 200+ crates.

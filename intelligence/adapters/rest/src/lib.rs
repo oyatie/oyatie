@@ -1,4 +1,4 @@
-//! cloud-intelligence REST adapter — OAuth subscription pool (ADR-0384 Path B).
+//! intelligence-app REST adapter — OAuth subscription pool (ADR-0384 Path B).
 //!
 //! Stage-6 GREEN. Stage-7 SSE passthrough added. Implements:
 //! - [`SecretProviderStore`] trait — owned secret-provider refresh-token storage seam.
@@ -1374,7 +1374,7 @@ pub struct AppState {
     pub ingress_authenticator: Arc<dyn IngressPrincipalAuthenticator>, // data_class: INTERNAL_ONLY
     /// Admin control-plane authenticator (AUTH-005 / ADR-0573 PR2). Verifies the
     /// configured admin bearer and mints a [`VerifiedAdminPrincipal`] bound to the
-    /// CONFIGURED admin tenant — NEVER the caller-supplied `x-oya-admin-tenant`
+    /// CONFIGURED admin tenant — NEVER the caller-supplied `x-admin-tenant`
     /// header. An empty/unset admin bearer verifies nothing, so every `/admin/v1/*`
     /// tenant-scoped route fails closed with 401 (no allow-all path).
     pub admin_authenticator: Arc<dyn AdminPrincipalAuthenticator>, // data_class: INTERNAL_ONLY
@@ -1454,7 +1454,7 @@ impl AppState {
         // Default admin authenticator: the configured admin bearer bound to this
         // service's own tenant (the administered tenant). An empty token => every
         // tenant-scoped admin request 401 (fail-closed); the verified admin tenant
-        // (never `x-oya-admin-tenant`) then drives the tenant-isolation guard + gate.
+        // (never `x-admin-tenant`) then drives the tenant-isolation guard + gate.
         let admin_authenticator: Arc<dyn AdminPrincipalAuthenticator> =
             Arc::new(ConfiguredBearerAdminAuthenticator::new(
                 admin_bearer_token.clone().unwrap_or_default(),
@@ -1698,7 +1698,7 @@ impl IngressPrincipalAuthenticator for ConfiguredBearerMapIngressAuthenticator {
 //
 // The admin plane previously gated every `/admin/v1/*` route on a single global
 // admin bearer plus `admin_tenant_allowed`, which only checked the caller-supplied
-// `x-oya-admin-tenant` header against the path tenant — BOTH attacker-controlled —
+// `x-admin-tenant` header against the path tenant — BOTH attacker-controlled —
 // and never invoked the authz gate. One admin credential could administer EVERY
 // tenant (cross-tenant IDOR). We mirror the shipped gold standard
 // (iam/facade/identity-workload-rest + TenantScopedLifecycleAuthorizer): verify an
@@ -1861,7 +1861,7 @@ fn forbidden_ingress_response() -> Response {
 /// then consult the in-process authz gate.
 ///
 /// - No verified admin principal ⇒ `401`. The configured admin bearer is the only
-///   credential that mints one; a caller-supplied `x-oya-admin-tenant` header never
+///   credential that mints one; a caller-supplied `x-admin-tenant` header never
 ///   does (it is no longer an authz input).
 /// - Verified admin tenant != the administered (path) tenant ⇒ `403`. This
 ///   BLAST-RADIUS guard is MANDATORY because the admin Cedar rule is realm-scoped:
@@ -2104,7 +2104,7 @@ fn event_status_for_upstream_status(status: u16) -> EventStatus {
     }
 }
 
-/// Build the axum [`Router`] for the cloud-intelligence REST adapter.
+/// Build the axum [`Router`] for the intelligence-app REST adapter.
 ///
 /// Routes:
 /// - `POST /v1/messages` — OAuth-gated reverse proxy to Anthropic API.
@@ -2753,7 +2753,7 @@ async fn handle_legacy_complete(
     axum::response::Response::builder()
         .status(StatusCode::GONE)
         .header("content-type", "application/json")
-        .header("x-oya-compatibility", "deprecated-legacy-completions")
+        .header("x-compatibility", "deprecated-legacy-completions")
         .body(Body::from(body))
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
@@ -3621,7 +3621,7 @@ async fn handle_admin_agent_runtimes(
             "thinking_policy_ref": "critical-block-second-pass-policy",
             "tool_compatibility_profile_ref": "claude-codex-gemini-tool-compatibility",
             "sandbox_policy_ref": "ephemeral-workspace-sandbox",
-            "cloud_intelligence_owned_control_plane": true,
+            "intelligence_app_owned_control_plane": true,
             "embeds_model_runtime": false,
             "installs_cli_or_tui_surface": false
         }],
@@ -4104,50 +4104,50 @@ async fn handle_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse
     let pool_statuses = state.pool_registry.pool_statuses();
     let mut body = String::from(
         "\
-# HELP oya_cloud_intelligence_up Gateway process is up\n\
-# TYPE oya_cloud_intelligence_up gauge\n\
-oya_cloud_intelligence_up 1\n\
-# HELP oya_cloud_intelligence_secret_provider_ready Secret-provider readiness probe result\n\
-# TYPE oya_cloud_intelligence_secret_provider_ready gauge\n",
+# HELP intelligence_app_up Gateway process is up\n\
+# TYPE intelligence_app_up gauge\n\
+intelligence_app_up 1\n\
+# HELP intelligence_app_secret_provider_ready Secret-provider readiness probe result\n\
+# TYPE intelligence_app_secret_provider_ready gauge\n",
     );
     body.push_str(&format!(
-        "oya_cloud_intelligence_secret_provider_ready {}\n",
+        "intelligence_app_secret_provider_ready {}\n",
         u8::from(secret_provider_ready)
     ));
     body.push_str(
-        "# HELP oya_cloud_intelligence_default_pool_ready Default data-plane pool has an eligible seat\n\
-# TYPE oya_cloud_intelligence_default_pool_ready gauge\n",
+        "# HELP intelligence_app_default_pool_ready Default data-plane pool has an eligible seat\n\
+# TYPE intelligence_app_default_pool_ready gauge\n",
     );
     body.push_str(&format!(
-        "oya_cloud_intelligence_default_pool_ready {}\n",
+        "intelligence_app_default_pool_ready {}\n",
         u8::from(default_pool_ready)
     ));
     body.push_str(
-        "# HELP oya_cloud_intelligence_registered_provider_pools Registered tenant/provider pools\n\
-# TYPE oya_cloud_intelligence_registered_provider_pools gauge\n",
+        "# HELP intelligence_app_registered_provider_pools Registered tenant/provider pools\n\
+# TYPE intelligence_app_registered_provider_pools gauge\n",
     );
     body.push_str(&format!(
-        "oya_cloud_intelligence_registered_provider_pools {}\n",
+        "intelligence_app_registered_provider_pools {}\n",
         pool_statuses.len()
     ));
     body.push_str(
-        "# HELP oya_cloud_intelligence_provider_pool_ready Provider pool readiness by provider\n\
-# TYPE oya_cloud_intelligence_provider_pool_ready gauge\n",
+        "# HELP intelligence_app_provider_pool_ready Provider pool readiness by provider\n\
+# TYPE intelligence_app_provider_pool_ready gauge\n",
     );
     for status in &pool_statuses {
         body.push_str(&format!(
-            "oya_cloud_intelligence_provider_pool_ready{{provider=\"{}\"}} {}\n",
+            "intelligence_app_provider_pool_ready{{provider=\"{}\"}} {}\n",
             status.provider,
             u8::from(status.ready)
         ));
     }
     body.push_str(
-        "# HELP oya_cloud_intelligence_provider_pool_seats Provider pool seat count by provider\n\
-# TYPE oya_cloud_intelligence_provider_pool_seats gauge\n",
+        "# HELP intelligence_app_provider_pool_seats Provider pool seat count by provider\n\
+# TYPE intelligence_app_provider_pool_seats gauge\n",
     );
     for status in &pool_statuses {
         body.push_str(&format!(
-            "oya_cloud_intelligence_provider_pool_seats{{provider=\"{}\"}} {}\n",
+            "intelligence_app_provider_pool_seats{{provider=\"{}\"}} {}\n",
             status.provider, status.total_seats
         ));
     }
@@ -4910,7 +4910,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloud_intelligence_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
+    async fn intelligence_app_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
      {
         let router = build_router(test_state(true, true));
         for path in [
@@ -4935,7 +4935,7 @@ mod tests {
                     Request::builder()
                         .uri(path)
                         .header("authorization", "Bearer admin-token")
-                        .header("x-oya-admin-tenant", "tenant-a")
+                        .header("x-admin-tenant", "tenant-a")
                         .body(Body::empty())
                         .unwrap(),
                 )
@@ -4966,7 +4966,7 @@ mod tests {
         }
 
         // AUTH-005 / ADR-0573 PR2: these routes administer the service's own tenant
-        // (tenant-a). The `x-oya-admin-tenant` header is no longer an authz input —
+        // (tenant-a). The `x-admin-tenant` header is no longer an authz input —
         // a forged value is DEAD INPUT and cannot redirect or deny the request. The
         // verified admin credential (bound to tenant-a) authorizes; the gate decides.
         for path in [
@@ -4981,7 +4981,7 @@ mod tests {
                         Request::builder()
                             .uri(path)
                             .header("authorization", "Bearer admin-token")
-                            .header("x-oya-admin-tenant", forged_tenant)
+                            .header("x-admin-tenant", forged_tenant)
                             .body(Body::empty())
                             .unwrap(),
                     )
@@ -5007,7 +5007,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/agent-runtimes")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5042,7 +5042,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/agent-schedules")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5074,7 +5074,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/parity/canaries")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5099,7 +5099,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloud_intelligence_safety_admin_routes_are_authenticated_and_redacted() {
+    async fn intelligence_app_safety_admin_routes_are_authenticated_and_redacted() {
         let router = build_router(test_state(true, true));
         for path in [
             "/admin/v1/guardrails",
@@ -5121,7 +5121,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/guardrails")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5143,7 +5143,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/evidence/retention")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5162,7 +5162,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/redaction/profiles")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5179,14 +5179,14 @@ mod tests {
     /// AUTH-005 / ADR-0573 PR2: the admin tenant axis is bound to the VERIFIED
     /// credential (the configured admin bearer → tenant-a here) and enforced against
     /// the administered (path) tenant SERVER-SIDE. The caller-supplied
-    /// `x-oya-admin-tenant` header is NO LONGER an authz input — it can neither deny a
+    /// `x-admin-tenant` header is NO LONGER an authz input — it can neither deny a
     /// legitimate same-tenant request nor grant a cross-tenant one. (This supersedes
     /// the FRIC-1781420000 header guard, which trusted a forgeable header.)
     #[tokio::test]
     async fn admin_authz_is_credential_bound_not_header_bound() {
         let router = build_router(test_state(true, true));
         // Same-tenant routes (administer tenant-a): a valid admin bearer authorizes
-        // regardless of the x-oya-admin-tenant header (absent OR forged => still OK);
+        // regardless of the x-admin-tenant header (absent OR forged => still OK);
         // no bearer => 401.
         for path in [
             "/admin/v1/agent-runtimes",
@@ -5203,7 +5203,7 @@ mod tests {
                     .uri(path)
                     .header("authorization", "Bearer admin-token");
                 if let Some(header) = header {
-                    builder = builder.header("x-oya-admin-tenant", header);
+                    builder = builder.header("x-admin-tenant", header);
                 }
                 let response = router
                     .clone()
@@ -5213,7 +5213,7 @@ mod tests {
                 assert_eq!(
                     response.status(),
                     StatusCode::OK,
-                    "{path} must authorize the credential-bound admin regardless of the x-oya-admin-tenant header ({header:?})"
+                    "{path} must authorize the credential-bound admin regardless of the x-admin-tenant header ({header:?})"
                 );
             }
 
@@ -5230,13 +5230,13 @@ mod tests {
         }
 
         // Cross-tenant PATH: the admin credential is bound to tenant-a, so a tenant-b
-        // path is forbidden — even with a forged matching x-oya-admin-tenant header.
+        // path is forbidden — even with a forged matching x-admin-tenant header.
         let cross_tenant_pool = build_router(test_state(true, true))
             .oneshot(
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-b/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-b")
+                    .header("x-admin-tenant", "tenant-b")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5259,7 +5259,7 @@ mod tests {
                 .header("idempotency-key", "44444444-4444-4444-8444-444444444444")
                 .header("content-type", "application/json");
             if let Some(tenant) = tenant_header {
-                builder = builder.header("x-oya-admin-tenant", tenant);
+                builder = builder.header("x-admin-tenant", tenant);
             }
             builder
                 .body(Body::from(
@@ -6174,7 +6174,7 @@ mod tests {
         assert_eq!(
             response
                 .headers()
-                .get("x-oya-compatibility")
+                .get("x-compatibility")
                 .and_then(|value| value.to_str().ok()),
             Some("deprecated-legacy-completions")
         );
@@ -6236,7 +6236,7 @@ mod tests {
             .method("POST")
             .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
             .header("authorization", "Bearer admin-token")
-            .header("x-oya-admin-tenant", "tenant-a")
+            .header("x-admin-tenant", "tenant-a")
             .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
             .header("content-type", "application/json")
             .body(Body::from(format!(
@@ -6566,7 +6566,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -6585,7 +6585,7 @@ mod tests {
 
     /// AUTH-005 / ADR-0573 PR2: an admin credential bound to tenant-a must not read
     /// another tenant's pool. The cross-tenant axis is the PATH tenant vs the verified
-    /// credential tenant — the forged `x-oya-admin-tenant` header cannot grant access.
+    /// credential tenant — the forged `x-admin-tenant` header cannot grant access.
     #[tokio::test]
     async fn tenant_scoped_admin_pool_route_forbids_cross_tenant_path() {
         let response = build_router(test_state(true, true))
@@ -6593,7 +6593,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-b/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-b")
+                    .header("x-admin-tenant", "tenant-b")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -6613,7 +6613,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
                     .header("content-type", "application/json")
                     .body(Body::from(
@@ -6635,7 +6635,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -6656,7 +6656,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/gemini/subscriptions")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .header("idempotency-key", "33333333-3333-4333-8333-333333333333")
                     .header("content-type", "application/json")
                     .body(Body::from(
@@ -6678,7 +6678,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/gemini/pool")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -6699,7 +6699,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .header("content-type", "application/json")
                     .body(Body::from(
                         r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-b"}"#,
@@ -6724,7 +6724,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
                     .header("content-type", "application/json")
                     .body(Body::from(request_body))
@@ -6740,7 +6740,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
-                    .header("x-oya-admin-tenant", "tenant-a")
+                    .header("x-admin-tenant", "tenant-a")
                     .header("idempotency-key", "22222222-2222-4222-8222-222222222222")
                     .header("content-type", "application/json")
                     .body(Body::from(request_body))

@@ -12,7 +12,7 @@ Written before any implementation. Every later unit is checked against this file
 **Why this path.** `.omc/**` is a *restricted tracked root*:
 `ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json` (`restricted_tracked_roots`,
 `allowlist` rules `omc-ultragoal-*`) admits exactly four tracked `.omc/` paths and its own prose says
-"do not expand the .omc tracked set". `git add -f` there reds `cloud-ci-repo-root-hygiene`. So this
+"do not expand the .omc tracked set". `git add -f` there reds `pipeline-repo-root-hygiene`. So this
 document lives under `docs/`, and it pays the two costs that come with that, in its own commit:
 
 - it declares `doc_status: drafted` in a leading `---` fence, so the `doc-status` lane sees a
@@ -43,11 +43,11 @@ observing a real corpus behind an armed floor.
 | Thing | Where | What it already does |
 |---|---|---|
 | Live doctrine | `docs/decisions/*-general-live-apex.md` (lines 79, 482) | Restates the lifecycle-framework rule verbatim: one generic kernel, each lifecycle is a JSON config under `specs/lifecycle-configs/`. The original decision record is archived/Superseded — cite the rule via the live apex, never the archived path. |
-| Kernel | `libs/oya-governance-lifecycle-kernel/src/lib.rs` | `evaluate()` (pure) + `discovery::{expand_glob, discover, frontmatter_scalar}` (I/O). |
+| Kernel | `libs/governance-lifecycle-kernel/src/lib.rs` | `evaluate()` (pure) + `discovery::{expand_glob, discover, frontmatter_scalar}` (I/O). |
 | Gate kernel | `ci/facade/lifecycle-status/src/lib.rs` | `parse_policy`, `compare`. |
 | Live run | `ci/facade/lifecycle-status/tests/lifecycle_status.rs` | ONE `#[test]`; `set_current_dir(repo_root)`; walks DISK; `EVALUATED_AT = 2026-01-01`. |
 | The ledger | `ci/facade/lifecycle-status/lifecycle-status-policy.json` | `configs_dir`, `frozen_violation_baseline`, `known_broken_lanes`. |
-| Wiring | `.github/workflows/oya-ci-required.yml` lines 579-589 | `buck2 test //ci/...` — recursive, by PATTERN not by name. Grepping the workflows for this gate's name returns nothing; it is nonetheless in the required context. |
+| Wiring | `.github/workflows/presubmit.yml` lines 579-589 | `buck2 test //ci/...` — recursive, by PATTERN not by name. Grepping the workflows for this gate's name returns nothing; it is nonetheless in the required context. |
 
 The floor, in `compare()` (`ci/facade/lifecycle-status/src/lib.rs` lines 283-303):
 
@@ -116,9 +116,9 @@ Presumptive-binding. A unit may overturn one **only** by recording contradicting
 | `plan-status-lifecycle` | DELETE | Root `.omc/plans/milestones/**/*.md` is gitignored (`.gitignore`: `/.omc/*` with four re-inclusions, all under `.omc/ultragoal/`), so it is absent from every checkout. The nearest tracked surface, `specs/masterplan.json`, is ONE file; the kernel is one-artifact-per-FILE with no row reader, so a re-root observes 1 artifact — clearing the floor while observing nothing. Vacuity in a new shape. |
 | `migration-status-lifecycle` | DELETE | Same gitignored root. Nearest tracked corpus is 27 `*/migration-playbooks/*.md` scattered across ~15 capability dirs: unreachable by one glob (§2.2), needing ~15 hand-listed sources, and none carries frontmatter — it would baseline 27 fabricated `stage_not_declared`. The ledger's own recorded resolution names `docs/migration-playbooks/`, which has **0 tracked files**. |
 | `capability-status-lifecycle` | DELETE | `specs/**/*.capability.json` matches **0** files while `specs/` resolves — the vacuous green named in the goal. Candidate A `specs/capability-registry.json` = 1 file. Candidate B `*/capabilities/*.yaml` = **378 files across 66 distinct directories**, of which only **16** declare any `status:` and **1** is fenced. Both are vacuity or fabrication. |
-| `dependency-status-lifecycle` | DELETE | `docs/dependencies/` has 0 tracked files. Both recorded alternatives (`registry/dependency-rationales.json`, `oya-deps.toml`) are single aggregate files → 1 artifact. |
+| `dependency-status-lifecycle` | DELETE | `docs/dependencies/` has 0 tracked files. Both recorded alternatives (`registry/dependency-rationales.json`, `deps.toml`) are single aggregate files → 1 artifact. |
 | `crate-status-lifecycle` | DELETE — **re-affirmed, on different evidence; two claims below are RETRACTED** | `crates/*-domain/Cargo.toml` does not exist and was never satisfiable (§2.2); `git grep -c lifecycle_stage -- '*.toml'` matches **zero files**; the declared `cargo_metadata_table` reader does not exist. RETRACTED: "`registry/catalog/*.yaml` carries no lifecycle-stage field" (it carries `status:` on 56/750) and "a re-root needs new kernel code" (`c4925c55d` removed that constraint). The registry/catalog option — the only one that mattered — is answered on its merits in **§3.1.1**, not on the retracted premises. |
-| `feature-flag-status-lifecycle` | DELETE **+ 3 reference repairs** | `docs/feature-flags/` has 0 tracked files. `flags/catalog/*.yaml` is a **crate** catalog (`oya-feature-flags-*`), not a per-flag artifact class; no per-flag corpus exists anywhere in the tree. Blast radius, all three repaired in the same commit: `ci/facade/contract-slice-conformance/contract-slice-policy.json:1670`, `ci/facade/contract-slice-conformance/slices/release-001-runtime-safety-policy.json:164`, `flags/release/runtime-safety-policy.json:94` (`status_lifecycle_ref`). |
+| `feature-flag-status-lifecycle` | DELETE **+ 3 reference repairs** | `docs/feature-flags/` has 0 tracked files. `flags/catalog/*.yaml` is a **crate** catalog (`feature-flags-*`), not a per-flag artifact class; no per-flag corpus exists anywhere in the tree. Blast radius, all three repaired in the same commit: `ci/facade/contract-slice-conformance/contract-slice-policy.json:1670`, `ci/facade/contract-slice-conformance/slices/release-001-runtime-safety-policy.json:164`, `flags/release/runtime-safety-policy.json:94` (`status_lifecycle_ref`). |
 
 #### 3.1.1 `crate-status-lifecycle` vs `registry/catalog/*.yaml` — the re-litigation, answered directly
 
@@ -157,8 +157,8 @@ does not fix `crate-status`; it renames the lane to `catalog-row-non-liveness`.
 lane can make.** The field's owning gate states the contract verbatim: *"A LIVE record needs no
 marker (the gate checks live OR marked)"* (`catalog_non_live_marker`, same file, ~`:1147`). The
 lifecycle kernel has no "absence is legal" mode — absent is `StageNotDeclared`. The 694 rows would
-therefore be simultaneously **correct** under `cloud-ci-catalog-liveness` and **violating** under
-`cloud-ci-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
+therefore be simultaneously **correct** under `pipeline-catalog-liveness` and **violating** under
+`pipeline-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
 (false), or introducing a sixth value into a closed vocabulary that belongs to another gate — an
 edit outside this lane. This is the same failure mode as the retracted `unknown_stage: 750`
 api-stability baseline whose only remedy the claim-ceiling check rejects when run (§3.2 — that check
@@ -168,7 +168,7 @@ is the live proof — it is outside `NON_LIVE_STATUS_MARKERS`, so the owning gat
 
 **R3 — the property is already enforced twice, born-blocking, with zero authoring.** Row↔crate
 correspondence is closed in *both* directions today: `ci/facade/crate-catalog-coverage` (crate→row)
-and `cloud-ci-catalog-liveness` (row→crate), both computed mechanically from the workspace member
+and `pipeline-catalog-liveness` (row→crate), both computed mechanically from the workspace member
 set. A frozen count of 694 undeclared rows adds no property those two do not already prove, at the
 cost of 694 hand-authored declarations of a fact derivable from disk. Contrast `doc-status`, which
 IS kept with 1921 `stage_not_declared`: that count is the **only** measurement of doc lifecycle
@@ -181,7 +181,7 @@ not the crate universe, so this surface structurally cannot govern the ~895 crat
 **THE RE-OPENING CONDITION, which is the part worth keeping.** This lane becomes correct the moment
 a per-crate maturity declaration exists **whose absence is not already meaningful to another gate** —
 concretely, a `lifecycle_stage:` key in the catalog record schema that
-`libs/oya-crate-registrar-app/src/lib.rs` `catalog_yaml::compute` **emits**, so new crates are born
+`libs/crate-registrar-app/src/lib.rs` `catalog_yaml::compute` **emits**, so new crates are born
 declaring it. Until the producer emits it, any lane rooted on a catalog field reds on the next
 `register_crate`; that is not a hypothetical, it is the defect this branch fixed for `api_stability`
 in the same change that records this section.
@@ -265,7 +265,7 @@ already measured, at 13 artifacts.
 matches are archived decision records, two architecture docs, one canonical spec, one SLO file, and
 crate rows — no per-flag record). `flags/catalog/*.yaml` is 12 files whose first line names
 `specs/catalog/canonical-crate-record-schema.json`, the same schema `registry/catalog/*.yaml` uses:
-re-rooting a flag lane there governs twelve **crates** named `oya-feature-flags-*`, which is a third
+re-rooting a flag lane there governs twelve **crates** named `feature-flags-*`, which is a third
 copy of `crate-status` wearing a flag's name.
 
 **RE-OPENING CONDITIONS.** `capability-status` re-opens if `expand_glob` gains a wildcard directory
@@ -322,10 +322,10 @@ would have read a live ruling that the tree had already reversed.
 debt signature. `[preview, stable, GA]` is the repo's canonical tier vocabulary, confirmed three
 independent ways: `docs/machine-readable/contracts.json` `_metadata.stability_tiers`;
 `enum ApiStability` in `intelligence/core/catalog-domain/src/lib.rs`; and
-`FoundationClaimCeiling::preview_foundation()` (`libs/oya-check-claim-ceiling/src/lib.rs:22`),
+`FoundationClaimCeiling::preview_foundation()` (`libs/check-claim-ceiling/src/lib.rs:22`),
 applied over this exact directory by `validate_claim_ceiling_gate`
 (`marketplace/facade/dev-cli/src/governance_gates.rs:84`). **That third citation is VOCABULARY
-evidence, not merge authority**: it is reachable only from the `oya gate validate claim-ceiling` CLI
+evidence, not merge authority**: it is reachable only from the `presubmit` (retired CLI `gate validate claim-ceiling`) CLI
 subcommand (`commands/gate/mod.rs:284`) and from fixture-only tests; no `ci/facade` lane invokes it
 and no workflow references `dev-cli`. So this was never `preview`
 being *added* to a vocabulary — it was the config carrying the WRONG vocabulary, sharing one token
@@ -391,7 +391,7 @@ rather than pretending otherwise.
 |---|---|---|---|
 | U0 | this mapping + its census re-freeze | `docs/plans/lifecycle-lane-disposition/mapping.md`, `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (`files_scanned` 16524 → 16525) | — |
 | U1 | DELETE the six | 6 × `specs/lifecycle-configs/*.json` (deleted), the ledger (6 entries), 3 feature-flag reference sites | U0 |
-| U2 | RE-ROOT api-stability | `libs/oya-governance-lifecycle-kernel/src/lib.rs`, `specs/lifecycle-configs/api-stability-tier-lifecycle.json`, the ledger (1 entry out, 1 baseline row in) | U1 |
+| U2 | RE-ROOT api-stability | `libs/governance-lifecycle-kernel/src/lib.rs`, `specs/lifecycle-configs/api-stability-tier-lifecycle.json`, the ledger (1 entry out, 1 baseline row in) | U1 |
 | U3 | LAND | `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (`files_scanned` 16525 → 16519), whole-graph sweep, **the single PR** | U2 |
 
 U2's kernel edit and its two RED proofs may be drafted while U1 is in flight; only the ledger edit
@@ -428,7 +428,7 @@ Checkable against one diff, in isolation.
 - **I5 Shrink floor.** A lane lit up in this unit either carries ≥1 baselined violation row, or the
   commit message states explicitly that its only floor is `artifacts > 0` and why that was accepted.
 - **I6 Census.** No new tracked file under a scanned prefix without same-commit attribution.
-- **I7 Canonical JSON.** `specs/**` is governed by `cloud-ci-canonical-json`
+- **I7 Canonical JSON.** `specs/**` is governed by `pipeline-canonical-json`
   (`governed_roots: ["specs"]`): 2-space indent, LF, trailing newline, literal UTF-8, and
   `sort_keys=false` — so key order is **preserved, never sorted**.
 - **I8 Gate green.** `//ci/facade/lifecycle-status:ci-lifecycle-status-gate` is green at the unit's
@@ -550,7 +550,7 @@ A reviewer holding only the diff and the commit message applies all nine.
    A floor nobody has seen fire is the false green it exists to prevent.
 5. **The gates governing the PATHS were run, not only the lane's own.**
    `specs/**` edits → `//ci/facade/canonical-json:ci-canonical-json-gate`;
-   kernel edits → `//libs/oya-governance-lifecycle-kernel:oya-governance-lifecycle-kernel-unittest`;
+   kernel edits → `//libs/governance-lifecycle-kernel:governance-lifecycle-kernel-unittest`;
    the feature-flag deletion → `//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate`
    and `:ci-contract-slice-conformance-fragments-gate`;
    any census move → `//governance/check/adr-citation-closure:check-adr-citation-closure-gate`.

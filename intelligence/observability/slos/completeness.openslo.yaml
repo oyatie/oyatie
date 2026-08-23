@@ -1,16 +1,16 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-intelligence-completeness
+  name: intelligence-app-completeness
   displayName: "Cloud Intelligence Stream Completeness"
   labels:
-    microservice: cloud-intelligence
+    microservice: intelligence-app
     surface: chat-completions-stream
     sli_role: streaming-unique
     adr: "ADR-0373"
-    research_brief: "microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md#4"
+    research_brief: "microservices/intelligence-app/design/hyperscaler-best-practice-brief.md#4"
 spec:
-  service: cloud-intelligence
+  service: intelligence-app
   description: |
     STREAMING-UNIQUE SLI (brief §4 — "a streaming-unique Completeness SLI: [DONE]-terminated vs
     truncated"). A streamed /v1/chat/completions is COMPLETE when its SSE stream terminated with
@@ -33,16 +33,16 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_stream_total{
-                  service="cloud-intelligence",termination="done_sentinel"
+                sum(rate(intelligence_app_stream_total{
+                  service="intelligence-app",termination="done_sentinel"
                 }[5m])) by (provider)
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_stream_total{
-                  service="cloud-intelligence",termination!="client_cancelled"
+                sum(rate(intelligence_app_stream_total{
+                  service="intelligence-app",termination!="client_cancelled"
                 }[5m])) by (provider)
   timeWindow:
     - duration: 30d
@@ -52,7 +52,7 @@ spec:
     - displayName: "99.5% of streams terminate with [DONE] (not truncated)"
       target: 0.995
   alertPolicies:
-    - name: cloud-intelligence-completeness-burnrate-fastburn
+    - name: intelligence-app-completeness-burnrate-fastburn
       kind: AlertPolicy
       spec:
         conditions:
@@ -60,23 +60,23 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-cloud-intelligence
-          - target: opsgenie-cloud-intelligence
-    - name: cloud-intelligence-completeness-burnrate-mediumburn
+          - target: pagerduty-intelligence-app
+          - target: opsgenie-intelligence-app
+    - name: intelligence-app-completeness-burnrate-mediumburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: mediumburn }
             spec: { op: gte, threshold: 6.0, lookbackWindow: 6h, alertAfter: 15m }
-    - name: cloud-intelligence-completeness-burnrate-slowburn
+    - name: intelligence-app-completeness-burnrate-slowburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: slowburn }
             spec: { op: gte, threshold: 3.0, lookbackWindow: 1d, alertAfter: 1h }
-    - name: cloud-intelligence-completeness-burnrate-trickleburn
+    - name: intelligence-app-completeness-burnrate-trickleburn
       kind: AlertPolicy
       spec:
         conditions:

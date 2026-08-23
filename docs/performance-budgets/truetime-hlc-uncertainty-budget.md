@@ -80,10 +80,10 @@ controlling logical counter behavior, not a wait time.
 
 | Metric threshold | Alert level | Action |
 |---|---|---|
-| `oya_hlc_uncertainty_ms > 300ms` p99 sustained 5 min | WARN (SEV-4) | Investigate chronyd health; check NTP source reachability |
-| `oya_hlc_uncertainty_ms > 500ms` p99 sustained 1 min | SEV-3 (cell-local page) | As ADR-0252 §D-11 |
-| `oya_hlc_uncertainty_ms > 1000ms` p99 | SEV-2 (cell-wide) | Brown-out signal; saga coordinator pauses strict-total-order ops |
-| `oya_hlc_uncertainty_ms > 5000ms` p99 | SEV-1 (cross-cell) | Outage mode; ADR-0252 §D-11 full response |
+| `hlc_uncertainty_ms > 300ms` p99 sustained 5 min | WARN (SEV-4) | Investigate chronyd health; check NTP source reachability |
+| `hlc_uncertainty_ms > 500ms` p99 sustained 1 min | SEV-3 (cell-local page) | As ADR-0252 §D-11 |
+| `hlc_uncertainty_ms > 1000ms` p99 | SEV-2 (cell-wide) | Brown-out signal; saga coordinator pauses strict-total-order ops |
+| `hlc_uncertainty_ms > 5000ms` p99 | SEV-1 (cross-cell) | Outage mode; ADR-0252 §D-11 full response |
 
 The **300ms warn threshold** (below the 500ms budget) gives operators 30+ minutes of lead
 time before the budget is breached, based on chronyd drift rates (typical: ≤10ms/hour drift
@@ -211,7 +211,7 @@ An intern can verify the HLC and TrueTime claims on a deployed cell:
 ```bash
 # Verify HLC uncertainty < 500ms on all nodes
 oya metrics query \
-  'max(oya_hlc_uncertainty_ms{cell="<cell-id>"}) by (node)' \
+  'max(hlc_uncertainty_ms{cell="<cell-id>"}) by (node)' \
   --window 1h
 # Expected: all nodes < 500ms; alert if any > 300ms sustained
 
@@ -221,7 +221,7 @@ ssh <node> 'chronyc tracking | grep "RMS offset"'
 
 # Tier-4: verify TrueTime uncertainty < 10ms p99
 oya metrics query \
-  'oya_truetime_uncertainty_ms{cell="<cell-id>"}' \
+  'truetime_uncertainty_ms{cell="<cell-id>"}' \
   --window 1h
 # Expected: p99 < 10ms; < 1ms when GPS + atomic healthy
 
@@ -230,7 +230,7 @@ ssh <tier4-node> 'gpsd -n && gpsmon --once | head -20'
 # Expected: satellites visible ≥ 4; fix 3D
 
 # Verify idempotency UPSERT p99 < 10ms at load
-oya gate benchmark idempotency-upsert \
+retired CLI benchmark idempotency-upsert \
   --cell <cell-id> \
   --qps 40000 \
   --duration 60s

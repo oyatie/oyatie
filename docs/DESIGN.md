@@ -22,15 +22,15 @@ The seven axes are *(the former separate engineering-platform axis is now part o
 
 | Axis | Reads as | Owning bounded context (flat-crates target) |
 |---|---|---|
-| 1. SaaS multi-tenant shared substrate | "The shared substrate — tenancy, workflows, plugins, Ontology, marketplace" (per MASTERPLAN.md §2.4: `platform` retired → `shared`; Object Graph renamed → Ontology) | `crates/oya-platform-tenant-*`, `crates/oya-saas-workflow-*`, `crates/oya-saas-plugin-*` (BNF paths retained pending ADR-grade rename per ADR-0015 migration ledger) |
-| 2. **Workspace / Productivity Platform (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
-| 3. Vertical industry cloud | "How that work is shaped per industry" | `crates/oya-vertical-{healthcare,industrial,logistics,fintech,legal,corporate,retail,education,public,hospitality,construction,realestate,agriculture,food}-*` |
-| 4. **Foundry: AI agent runtime + control plane + engineering platform** | "Who or what *executes* the work AND how engineers + customers build all of the above" | `crates/oya-foundry-*` covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
-| 5. Cloud provider | "What runs everything" | `crates/oya-cloud-{compute,storage,network,iam,billing,observability}-*` |
-| 6. Search engine | "How any object becomes findable" | `crates/oya-search-{crawler,parser,index,rank,query,serp}-*` |
-| 7. Advertising + analytics | "How attention and intent are monetized" | `crates/oya-ads-{auction,target,attribute,console}-*`, `crates/oya-analytics-{event,warehouse,report}-*` |
+| 1. SaaS multi-tenant shared substrate | "The shared substrate — tenancy, workflows, plugins, Ontology, marketplace" (per MASTERPLAN.md §2.4: `platform` retired → `shared`; Object Graph renamed → Ontology) | `crates/platform-tenant-*`, `crates/saas-workflow-*`, `crates/saas-plugin-*` (BNF paths retained pending ADR-grade rename per ADR-0015 migration ledger) |
+| 2. **Workspace / Productivity Platform (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
+| 3. Vertical industry cloud | "How that work is shaped per industry" | `crates/vertical-{healthcare,industrial,logistics,fintech,legal,corporate,retail,education,public,hospitality,construction,realestate,agriculture,food}-*` |
+| 4. **Foundry: AI agent runtime + control plane + engineering platform** | "Who or what *executes* the work AND how engineers + customers build all of the above" | `crates/foundry-*` covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
+| 5. Cloud provider | "What runs everything" | `crates/cloud-{compute,storage,network,iam,billing,observability}-*` |
+| 6. Search engine | "How any object becomes findable" | `crates/search-{crawler,parser,index,rank,query,serp}-*` |
+| 7. Advertising + analytics | "How attention and intent are monetized" | `crates/ads-{auction,target,attribute,console}-*`, `crates/analytics-{event,warehouse,report}-*` |
 
-> **Crate naming convention** per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`. `<role>` ∈ {`kernel`, `domain`, `app`, `api`, `worker`, `adapter`, `runtime`}. The context names above (`platform`, `saas`, `vertical`, `foundry`, `cloud`, `search`, `ads`, `analytics`) are the axis-bounded contexts; per-axis `<role>` decomposition is enumerated in [SPEC.md](SPEC.md).
+> **Crate naming convention** per ADR-0015 §1: `oyatie-<context>-<role>[-<capability>]`. `<role>` ∈ {`kernel`, `domain`, `app`, `api`, `worker`, `adapter`, `runtime`}. The context names above (`platform`, `saas`, `vertical`, `foundry`, `cloud`, `search`, `ads`, `analytics`) are the axis-bounded contexts; per-axis `<role>` decomposition is enumerated in [SPEC.md](SPEC.md).
 
 The **central design insight** is that any one axis — taken alone — is a worse product than the integrated whole, because each axis shares two or more contracts with each other axis (see §10). Splitting an axis off forces re-implementing those contracts as multi-vendor integrations, and every multi-vendor integration leaks privacy, leaks audit trail, leaks cost attribution, leaks identity. Oyatie's competitive moat is the *non-leakage*.
 
@@ -95,21 +95,21 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 
 | Crate family | Role |
 |---|---|
-| `crates/oya-intelligence-model-train-*` | Distributed training orchestration (multi-node, multi-GPU, FSDP / DeepSpeed / Megatron-LM-class scheduler) |
-| `crates/oya-intelligence-model-data-pipeline-*` | Training-data ingestion + filtering + deduplication + DP/k-anonymity gates per Data Use Boundary |
-| `crates/oya-intelligence-model-eval-*` | Eval harness: golden sets + adversarial + per-vertical safety + per-region linguistic |
-| `crates/oya-intelligence-model-registry-*` | Model artifact + version + lineage + provenance (signed via Cosign) |
-| `crates/oya-intelligence-model-serve-*` | Inference serving: vLLM-class for Transformers; in-house Rust serving for embedding models; per-capability routing |
-| `crates/oya-intelligence-model-finetune-*` | Per-tenant fine-tuning (consent-gated; per-tenant LoRA adapters) |
-| `crates/oya-intelligence-model-redteam-*` | Continuous red-team + adversarial-eval pipeline |
-| `crates/oya-intelligence-adapter-oya-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
+| `crates/intelligence-model-train-*` | Distributed training orchestration (multi-node, multi-GPU, FSDP / DeepSpeed / Megatron-LM-class scheduler) |
+| `crates/intelligence-model-data-pipeline-*` | Training-data ingestion + filtering + deduplication + DP/k-anonymity gates per Data Use Boundary |
+| `crates/intelligence-model-eval-*` | Eval harness: golden sets + adversarial + per-vertical safety + per-region linguistic |
+| `crates/intelligence-model-registry-*` | Model artifact + version + lineage + provenance (signed via Cosign) |
+| `crates/intelligence-model-serve-*` | Inference serving: vLLM-class for Transformers; in-house Rust serving for embedding models; per-capability routing |
+| `crates/intelligence-model-finetune-*` | Per-tenant fine-tuning (consent-gated; per-tenant LoRA adapters) |
+| `crates/intelligence-model-redteam-*` | Continuous red-team + adversarial-eval pipeline |
+| `crates/intelligence-adapter-oyatie-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
 
 **Critical contracts:**
 - Training data must satisfy `purpose = model_training_oya` permission per [PRIVACY-PROGRAM §2.2.2](PRIVACY-PROGRAM.md). Tenant data without that grant is excluded.
-- Per-capability `provider` field can route to `oya-internal-<model-id>` instead of (or in addition to) external providers; failover supported per autonomy ceiling.
+- Per-capability `provider` field can route to `internal-<model-id>` instead of (or in addition to) external providers; failover supported per autonomy ceiling.
 - Inference serving SLO: p99 < 500ms for embedding; < 2s for chat completion at moderate length; per-capability bound.
 - Model artifacts are Cosign-signed + Rekor-anchored per ADR-0039 (supply chain) — proof of training-data lineage included.
-- GPU fleet is part of the Cloud axis (`crates/oya-cloud-compute-gpu-*`) — Foundry consumes via standard cloud-IAM + cost-attribution.
+- GPU fleet is part of the Cloud axis (`crates/cloud-compute-gpu-*`) — Foundry consumes via standard cloud-IAM + cost-attribution.
 - KCMVP-validated HSM-backed model encryption for any model trained on regulated data (PHI / 신용정보 / PCI training corpora).
 
 **Anti-scope (still):**
@@ -123,9 +123,9 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 
 | Surface | Foundry crate (model substrate) | Per-vertical consumers |
 |---|---|---|
-| Vision | `crates/oya-intelligence-model-vision-*` (OCR, image classification, object detection, video analytics, facial recognition where lawful, scene anomaly) | Industrial (CCTV facility per ADR-0027; AMR mapping per ADR-0027); Healthcare (clinical imaging per ADR-0033); Logistics (yard / dock vision); Retail (anti-theft, customer flow); Workspace (Drive doc OCR + understanding) |
-| Speech | `crates/oya-intelligence-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); (voice messaging) |
-| Robotics control | `crates/oya-intelligence-robotics-control-*` (agent-mediated under autonomy ceiling T1-T3 default; T4 disabled for actuation) + `crates/oya-vertical-industrial-robotics-*` (fleet, simulator, kinematics) | Industrial (AGV/AMR/robotic arms/drones per ADR-0027+0143); Logistics (yard jockeys, ASRS, automated trucks); Healthcare (surgical robotics — anti-scope unless founder ratifies; disinfection robots OK) |
+| Vision | `crates/intelligence-model-vision-*` (OCR, image classification, object detection, video analytics, facial recognition where lawful, scene anomaly) | Industrial (CCTV facility per ADR-0027; AMR mapping per ADR-0027); Healthcare (clinical imaging per ADR-0033); Logistics (yard / dock vision); Retail (anti-theft, customer flow); Workspace (Drive doc OCR + understanding) |
+| Speech | `crates/intelligence-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); (voice messaging) |
+| Robotics control | `crates/intelligence-robotics-control-*` (agent-mediated under autonomy ceiling T1-T3 default; T4 disabled for actuation) + `crates/vertical-industrial-robotics-*` (fleet, simulator, kinematics) | Industrial (AGV/AMR/robotic arms/drones per ADR-0027+0143); Logistics (yard jockeys, ASRS, automated trucks); Healthcare (surgical robotics — anti-scope unless founder ratifies; disinfection robots OK) |
 
 **Critical design constraints** for Robotics in particular:
 - Real-time control loops (deterministic latency budgets) — not Foundry's default async; runs on dedicated runtime with guaranteed scheduling
@@ -144,14 +144,14 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 |---|---|---|
 | Compilation caching | sccache (local + S3-backed remote) — Apache-2 license-clean | 60-90% cache hit on incremental builds |
 | Workspace-affected build | `cargo nextest` + custom affected-graph (per-crate change detection) | Build only what changed + downstream |
-| Remote execution | Bazel-remote-class via `oya-build-cache` (or Bazel itself if council ratifies; see TOOLCHAIN §9 open question) | 5-10x speedup on cold builds across distributed agents |
+| Remote execution | Bazel-remote-class via `build-cache` (or Bazel itself if council ratifies; see TOOLCHAIN §9 open question) | 5-10x speedup on cold builds across distributed agents |
 | Incremental check vs full check | `cargo check` for fast iteration; `cargo build --release` only at release-tag time | seconds vs minutes per iteration |
 | Test sharding | `cargo nextest` partitioning across N runners | linear speedup with shard count |
 | Insta snapshot caching | per-test golden snapshots in CI cache | avoid re-running snapshot derivation |
 | Per-target compilation | `--target x86_64-unknown-linux-gnu` only when needed; skip cross-targets in PR CI | per-PR savings |
 | Codegen unit count tuning | `codegen-units = 16` (debug); `1` (release) | trade-off across profiles |
 | Link-time optimization gating | LTO only at release; skip in PR | minutes saved per PR |
-| Per-crate compile-time budget | hard ceiling (e.g. ≥ 60s = warn) per `oya-governance-build-time` lane | catches slow-dep regressions |
+| Per-crate compile-time budget | hard ceiling (e.g. ≥ 60s = warn) per `governance-build-time` lane | catches slow-dep regressions |
 
 #### 3.0.5.2 Agent-concurrent CI / PR pipeline
 
@@ -171,7 +171,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Speculative parallel dispatch | For agent-authored PRs: fire 3 alternative approaches in parallel; pick first to pass acceptance criteria |
 | Replay-as-eval | New PR's affected-test set is replayed against past trace set for regression detection |
 | Nightly affected-rebuild | `main` re-builds nightly with full `--all-features` to catch feature-flag drift (PM-2 from ADR-0015 plan) |
-| Per-lane CI-time budget | `oya-governance-ci-time` lane warns when any lane regresses ≥ 20% over baseline |
+| Per-lane CI-time budget | `governance-ci-time` lane warns when any lane regresses ≥ 20% over baseline |
 
 #### 3.0.5.3 Blast-radius containment (the cohesion-side guarantee)
 
@@ -188,7 +188,7 @@ Every agent + automation invocation declares its blast radius. The CI pipeline e
 | `regulatory-impact` | Touches a regulator-bound surface | requires `ops-compliance` review |
 | `data-class-impact` | Changes a `data_class` annotation | requires `council-privacy` review |
 
-The classification is auto-detected by `oya-governance-blast-radius` from the
+The classification is auto-detected by `governance-blast-radius` from the
 diff and emitted as a PR label. One author-distinct reviewer agent applies the
 relevant blast-class lenses on the exact PR head; affected teams are notified
 for non-binding input, not counted as a reviewer quorum.
@@ -244,17 +244,17 @@ The product surface — `oya cloud` IAM / region / cell / billing / observabilit
 
 | Sub-surface | Crate family | Reference |
 |---|---|---|
-| DCIM (Datacenter Infrastructure Mgmt) — rack/asset/capacity/power/PUE inventory | `crates/oya-cloud-dcops-dcim-*` | Sunbird DCIM, Schneider EcoStruxure, Nlyte; Google internal Borg-DC integration |
-| BMS / BAS (Building / HVAC / fire / water) | `crates/oya-cloud-dcops-bms-*` | Siemens Desigo, Honeywell EBI, Johnson Controls Metasys |
-| Power monitoring (PDU/ATS/UPS/generator/fuel) | `crates/oya-cloud-dcops-power-*` | Schneider, Eaton, ABB |
-| Cooling control (CRAH, chilled water, free-air, hot-aisle containment) | `crates/oya-cloud-dcops-cooling-*` | (custom + BMS adapters) |
-| Network ops (cable maps, fiber budget, patch panel) | `crates/oya-cloud-dcops-network-*` | NetBox-class |
-| Physical security (badge, CCTV, mantrap, env sensors) | `crates/oya-cloud-dcops-security-*` | Genetec, Lenel; integrates with vision substrate |
-| Asset lifecycle (procurement → decommission → e-waste) | `crates/oya-cloud-dcops-asset-*` | (custom; integrates with vendor-partner-ledger) |
-| Capacity + thermal planning | `crates/oya-cloud-dcops-capacity-*` | Per-rack power + thermal budget; growth modeling |
-| Workorder + technician dispatch | `crates/oya-cloud-dcops-workorder-*` | (custom; integrates with Workspace tasks/calendar) |
-| Sustainability + carbon accounting | `crates/oya-cloud-dcops-sustainability-*` | PUE/WUE/CUE per region; carbon attribution per tenant |
-| Regulatory (Uptime Institute Tier, EN 50600, KR ISMS-DC, CSA STAR-Cloud) | `crates/oya-cloud-dcops-compliance-*` | Per regional pack regulator |
+| DCIM (Datacenter Infrastructure Mgmt) — rack/asset/capacity/power/PUE inventory | `crates/cloud-dcops-dcim-*` | Sunbird DCIM, Schneider EcoStruxure, Nlyte; Google internal Borg-DC integration |
+| BMS / BAS (Building / HVAC / fire / water) | `crates/cloud-dcops-bms-*` | Siemens Desigo, Honeywell EBI, Johnson Controls Metasys |
+| Power monitoring (PDU/ATS/UPS/generator/fuel) | `crates/cloud-dcops-power-*` | Schneider, Eaton, ABB |
+| Cooling control (CRAH, chilled water, free-air, hot-aisle containment) | `crates/cloud-dcops-cooling-*` | (custom + BMS adapters) |
+| Network ops (cable maps, fiber budget, patch panel) | `crates/cloud-dcops-network-*` | NetBox-class |
+| Physical security (badge, CCTV, mantrap, env sensors) | `crates/cloud-dcops-security-*` | Genetec, Lenel; integrates with vision substrate |
+| Asset lifecycle (procurement → decommission → e-waste) | `crates/cloud-dcops-asset-*` | (custom; integrates with vendor-partner-ledger) |
+| Capacity + thermal planning | `crates/cloud-dcops-capacity-*` | Per-rack power + thermal budget; growth modeling |
+| Workorder + technician dispatch | `crates/cloud-dcops-workorder-*` | (custom; integrates with Workspace tasks/calendar) |
+| Sustainability + carbon accounting | `crates/cloud-dcops-sustainability-*` | PUE/WUE/CUE per region; carbon attribution per tenant |
+| Regulatory (Uptime Institute Tier, EN 50600, KR ISMS-DC, CSA STAR-Cloud) | `crates/cloud-dcops-compliance-*` | Per regional pack regulator |
 
 **Anti-scope inside DC-ops:** designing custom chips / ASICs / FPGAs (we use commercial silicon); building DC shells / civil construction (we lease the shell + build out the interior).
 
@@ -268,7 +268,7 @@ Foundry must work with **both subscription auth and API auth** across **Claude, 
 | OpenAI | ChatGPT Plus / Team / Enterprise session token via headless adapter | `OPENAI_API_KEY` direct API |
 | Google Gemini | Gemini Advanced session token via headless adapter | `GOOGLE_GEMINI_API_KEY` direct API |
 
-The `ProviderAdapter` trait in `oya-intelligence-adapter-kernel` exposes a uniform `invoke(prompt, tools, policy) -> Stream<Event>` interface; concrete impls live in `oya-intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*`. Per-tenant per-capability the `ProviderAuth` enum selects the auth mode. Subscription mode requires the `oya-intelligence-session-vault` to hold rotating session tokens with refresh logic; API mode hits the SecretProvider for the API key. Capability-level routing supports failover across providers (e.g. `prefer: claude-api → fallback: openai-api → fallback: gemini-subscription`) per autonomy-ceiling and per FinOps cost ceiling.
+The `ProviderAdapter` trait in `intelligence-adapter-kernel` exposes a uniform `invoke(prompt, tools, policy) -> Stream<Event>` interface; concrete impls live in `intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*`. Per-tenant per-capability the `ProviderAuth` enum selects the auth mode. Subscription mode requires the `intelligence-session-vault` to hold rotating session tokens with refresh logic; API mode hits the SecretProvider for the API key. Capability-level routing supports failover across providers (e.g. `prefer: claude-api → fallback: openai-api → fallback: gemini-subscription`) per autonomy-ceiling and per FinOps cost ceiling.
 
 Foundry is axis 3 of the six, but it is also the *substrate* for the other five. Once Foundry preview is online with provider adapters (Anthropic / OpenAI / Gemini × subscription + API auth), capability registry, autonomy-ceiling enforcement, evidence-chain emission, AND the consolidated foundry surfaces, then:
 
@@ -299,12 +299,12 @@ After step 7, Foundry can fan out *parallel* capability authorship across all si
 
 | Contract | Owners | Consumers |
 |---|---|---|
-| Capability invocation API (`oya-intelligence-api`) | Foundry | Every axis (SaaS workflows, vertical runbooks, cloud control-plane mutators, search index ops, ad-campaign mutators) |
-| Autonomy-ceiling enforcement (`oya-intelligence-policy`) | Foundry + ADR-0050 governance | Every regulated capability across all axes |
-| Evidence-chain emission (`oya-intelligence-evidence`, ties to ADR-0003) | Foundry + audit subsystem | Every axis that touches regulated data |
-| Capability registry (`oya-intelligence-registry`, projection from `registry/catalog/`) | Foundry + Foundry catalog | Every axis (every capability they expose) |
-| Provider adapter trait (`oya-intelligence-adapter`) | Foundry | Codex, Claude, future model providers |
-| RAG endpoint (`oya-intelligence-rag`) | Foundry + Search | Every axis that needs retrieval |
+| Capability invocation API (`intelligence-api`) | Foundry | Every axis (SaaS workflows, vertical runbooks, cloud control-plane mutators, search index ops, ad-campaign mutators) |
+| Autonomy-ceiling enforcement (`intelligence-policy`) | Foundry + ADR-0050 governance | Every regulated capability across all axes |
+| Evidence-chain emission (`intelligence-evidence`, ties to ADR-0003) | Foundry + audit subsystem | Every axis that touches regulated data |
+| Capability registry (`intelligence-registry`, projection from `registry/catalog/`) | Foundry + Foundry catalog | Every axis (every capability they expose) |
+| Provider adapter trait (`intelligence-adapter`) | Foundry | Codex, Claude, future model providers |
+| RAG endpoint (`intelligence-rag`) | Foundry + Search | Every axis that needs retrieval |
 
 ---
 
@@ -335,17 +335,17 @@ Each axis is a bounded context with the four-layer hexagonal stack:
                 └─────────────────────────────────────────┘
 ```
 
-Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `oya gate validate architecture-boundaries`) hard-fails any forbidden edge.
+Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `presubmit` (retired CLI `gate validate architecture-boundaries`)) hard-fails any forbidden edge.
 
 The flat-crates target encodes the layers as crate-level roles per ADR-0015:
 
-- `oya-<context>-kernel-*` = entities (no I/O, no async, no framework)
-- `oya-<context>-domain-*` = use cases + sealed-port traits
-- `oya-<context>-app-*` = orchestration / sagas / commands
-- `oya-<context>-adapter-*` = adapter implementations (DB, HTTP client, KMS, etc.)
-- `oya-<context>-api-*` = inbound HTTP/gRPC servers
-- `oya-<context>-worker-*` = inbound Kafka/queue consumers
-- `oya-<context>-runtime-*` = composition root (binaries, deploy)
+- `oyatie-<context>-kernel-*` = entities (no I/O, no async, no framework)
+- `oyatie-<context>-domain-*` = use cases + sealed-port traits
+- `oyatie-<context>-app-*` = orchestration / sagas / commands
+- `oyatie-<context>-adapter-*` = adapter implementations (DB, HTTP client, KMS, etc.)
+- `oyatie-<context>-api-*` = inbound HTTP/gRPC servers
+- `oyatie-<context>-worker-*` = inbound Kafka/queue consumers
+- `oyatie-<context>-runtime-*` = composition root (binaries, deploy)
 
 The forbidden-edge graph: `kernel ← domain ← app ← {api, worker, adapter} ← runtime`. Reverse edges are CI errors.
 
@@ -353,22 +353,22 @@ The forbidden-edge graph: `kernel ← domain ← app ← {api, worker, adapter} 
 
 | Axis | Kernel crate count | Why | Example kernels |
 |---|---|---|---|
-| 1. SaaS | 6-10 | Stable platform invariants (tenant, workspace, identity, RBAC, plane, metering) | `oya-platform-tenant-kernel`, `oya-platform-identity-kernel` |
-| 2. Vertical | 1-3 per vertical | Per-vertical entity model (Patient, WorkOrder, Shipment, Loan) | `oya-vertical-healthcare-kernel`, `oya-vertical-industrial-kernel` |
-| 3. Foundry | 4-6 | Capability, Step, Run, Evidence, Provider, AutonomyCeiling | `oya-intelligence-capability-kernel`, `oya-intelligence-evidence-kernel` |
-| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `oya-intelligence-catalog-kernel`, `oya-governance-gate-kernel` |
-| 5. Cloud | 5-8 | Resource, Region, AZ, Cell, IAM, Billing | `oya-cloud-resource-kernel`, `oya-cloud-iam-kernel` |
-| 6. Search | 3-5 | Document, Index, Query, Result, Ranker | `oya-search-document-kernel`, `oya-search-index-kernel` |
-| 7. Ads | 4-6 | Campaign, Auction, Impression, Click, Conversion, Audience | `oya-ads-campaign-kernel`, `oya-ads-auction-kernel` |
+| 1. SaaS | 6-10 | Stable platform invariants (tenant, workspace, identity, RBAC, plane, metering) | `platform-tenant-kernel`, `platform-identity-kernel` |
+| 2. Vertical | 1-3 per vertical | Per-vertical entity model (Patient, WorkOrder, Shipment, Loan) | `vertical-healthcare-kernel`, `vertical-industrial-kernel` |
+| 3. Foundry | 4-6 | Capability, Step, Run, Evidence, Provider, AutonomyCeiling | `intelligence-capability-kernel`, `intelligence-evidence-kernel` |
+| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `intelligence-catalog-kernel`, `governance-gate-kernel` |
+| 5. Cloud | 5-8 | Resource, Region, AZ, Cell, IAM, Billing | `cloud-resource-kernel`, `cloud-iam-kernel` |
+| 6. Search | 3-5 | Document, Index, Query, Result, Ranker | `search-document-kernel`, `search-index-kernel` |
+| 7. Ads | 4-6 | Campaign, Auction, Impression, Click, Conversion, Audience | `ads-campaign-kernel`, `ads-auction-kernel` |
 
 ---
 
 ## 5. The unifying tenancy model
 
-Every axis shares one tenancy abstraction (per Maturity Move #0, Issue #1558). One `Tenant` entity lives in `oya-platform-tenant-kernel` and is referenced by every other axis:
+Every axis shares one tenancy abstraction (per Maturity Move #0, Issue #1558). One `Tenant` entity lives in `platform-tenant-kernel` and is referenced by every other axis:
 
 ```rust
-// oya-platform-tenant-kernel
+// platform-tenant-kernel
 pub struct TenantId(pub Uuid);
 pub struct Tenant {
     pub id: TenantId,
@@ -438,7 +438,7 @@ The single tamper-evident record-keeping surface across all axes. Built on hash-
 - **Hash-chain integrity**: each record references the prior block hash; periodic root anchoring published to a customer-facing trust portal (search-axis is the surface for it).
 - **Per-tenant chain shard**: chains are tenant-scoped to keep regulator queries scoped; cross-tenant root index for global proofs.
 - **Replayable**: chain replay must reconstruct the regulatory state at any prior `t`. No live mutation can break replay.
-- **Foundry-emitted**: agent invocations write evidence directly via `oya-intelligence-evidence` so non-agent paths are the exception, not the rule.
+- **Foundry-emitted**: agent invocations write evidence directly via `intelligence-evidence` so non-agent paths are the exception, not the rule.
 
 The audit-chain is the backbone of cross-axis trust. The PRD's hard zero on "tenant data egress without consent receipt" depends on the audit chain working — which is why audit-chain immutability is a P0 structural requirement, not a follow-up.
 
@@ -446,7 +446,7 @@ The audit-chain is the backbone of cross-axis trust. The PRD's hard zero on "ten
 
 ## 8. Architectural flattening (per ADR-0015)
 
-> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oya-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, and `tools/` are retired. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
+> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oyatie-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, and `tools/` are retired. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
 
 Every consolidated doc and the v2 backlog assume the **flat target**, not the legacy `modules/` `services/` `platform/` tree.
 
@@ -454,7 +454,7 @@ Every consolidated doc and the v2 backlog assume the **flat target**, not the le
 
 ```
 crates/
-  oya-<context>-<role>[-<capability>]/   # live flat workspace; 281 crates on 2026-05-16
+  oyatie-<context>-<role>[-<capability>]/   # live flat workspace; 281 crates on 2026-05-16
 contracts/                                 # OpenAPI specs, gRPC protos, event schemas
 infra/                                     # admission policies (kyverno/), Argo Application
                                            #   manifests, GitOps topology (per ADR-0117 +
@@ -474,15 +474,15 @@ specs/                                     # flat-root machine-readable specs (p
 
 | Source crate | Split → kernel half | Split → platform half |
 |---|---|---|
-| `forms` | `oya-platform-forms-kernel` | `oya-platform-forms-app` (+ adapters) |
-| `analytics` | `oya-analytics-kernel` | `oya-analytics-app` |
-| `data-policy` | `oya-platform-data-policy-kernel` | `oya-platform-data-policy-app` |
-| `audit-chain` | `oya-platform-audit-chain-kernel` | `oya-platform-audit-chain-app` |
-| `crypto` | `oya-platform-crypto-kernel` | `oya-platform-crypto-app` |
-| `observability` | `oya-platform-observability-kernel` | `oya-platform-observability-app` |
-| `secrets` | `oya-platform-secrets-kernel` | `oya-platform-secrets-app` |
-| `web` | `oya-platform-web-kernel` | `oya-platform-web-app` |
-| `workflow-sdk` | `oya-saas-workflow-sdk-kernel` | `oya-saas-workflow-sdk-app` |
+| `forms` | `platform-forms-kernel` | `platform-forms-app` (+ adapters) |
+| `analytics` | `analytics-kernel` | `analytics-app` |
+| `data-policy` | `platform-data-policy-kernel` | `platform-data-policy-app` |
+| `audit-chain` | `platform-audit-chain-kernel` | `platform-audit-chain-app` |
+| `crypto` | `platform-crypto-kernel` | `platform-crypto-app` |
+| `observability` | `platform-observability-kernel` | `platform-observability-app` |
+| `secrets` | `platform-secrets-kernel` | `platform-secrets-app` |
+| `web` | `platform-web-kernel` | `platform-web-app` |
+| `workflow-sdk` | `saas-workflow-sdk-kernel` | `saas-workflow-sdk-app` |
 
 Two of nine shipped in the historical plan as 1-PR atomic (`forms`, `analytics`); seven shipped as 2-PR pairs. **Historical inventory: 89 move PRs, 91 target crates.** Treat these counts as planning evidence only; the live workspace count is the Cargo metadata count.
 
@@ -499,7 +499,7 @@ Service runtime split (Axis E, ADR-0015 §6) is deferred until after all domain/
 
 - **No new `modules/` `services/` `platform/` work.** Every leaf in the v2 backlog cites a flat-crates target.
 - **Contracts (`contracts/`) get their own batch tag** because cross-axis contract changes touch this directory.
-- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/oya-vcs-admission/` under `infra/kyverno/oya-vcs-admission/`). `deploy/` is reserved for future per-deployable Helm/IaC that does not fit under `infra/`; the historical "split out of services/" rationale stands but admission concerns are now resolved.
+- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/retired VCS ratchet/` under `infra/kyverno/retired VCS ratchet/`). `deploy/` is reserved for future per-deployable Helm/IaC that does not fit under `infra/`; the historical "split out of services/" rationale stands but admission concerns are now resolved.
 - **Catalog remains at `registry/catalog/`** (per ADR-0115 the `registry/` root is canonical, singular, flat; the prior `registries/cross-cutting/` is retired). Any future `catalog/` relocation requires a new catalog protocol update; do not infer it from the historical phase plan.
 - **Specs flattened** (per ADR-0119): machine-readable specs live at `specs/<basename>.json` (flat root). The former `specs/cross-cutting/` nesting is retired; `specs/cross-cutting/lifecycle-configs/` is retained as a documented typed-family exception.
 
@@ -524,7 +524,7 @@ Every axis ships with the following horizontal-scale primitives. The CI fitness 
 | **Idempotency + replay safety** | Every API and event consumer tolerates re-delivery. | Audit-chain consumers must be idempotent; billing events must dedupe; capability invocations must be replay-safe. |
 | **Region failover drill** | Quarterly proven failover in non-prod; annual in prod. | Cloud (#214 multi-AZ failover automation); SaaS (#1302 DR drills); Search (cross-region index replication). |
 
-The fitness function is the enforcement; the primitive list is the contract. Both live in Foundry axis (`oya-governance-*`).
+The fitness function is the enforcement; the primitive list is the contract. Both live in Foundry axis (`governance-*`).
 
 ---
 
@@ -534,34 +534,34 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 
 | Contract | Owner axis | Consumer axis(es) | Where it lives | Contract change requires |
 |---|---|---|---|---|
-| `Tenant` kernel | SaaS | All others | `oya-platform-tenant-kernel` | All-axis review; ADR amendment if shape changes |
-| `Identity / RBAC / Cedar policy` | SaaS | All others | `oya-platform-identity-kernel` + Cedar | Cross-axis review; security-reviewer agent |
-| `Capability invocation` | Foundry | All others | `oya-intelligence-api` + `contracts/openapi/foundry/capability-v1.yaml` | Foundry review + the consuming axis review |
-| `Autonomy ceiling policy` | Foundry + Governance (ADR-0050) | All regulated capabilities | `oya-intelligence-policy-kernel` | Governance + security review |
-| `Audit-chain event` | Audit subsystem (per ADR-0003) | All emitters | `oya-platform-audit-chain-kernel` + event schema | Audit + downstream-consumer review |
+| `Tenant` kernel | SaaS | All others | `platform-tenant-kernel` | All-axis review; ADR amendment if shape changes |
+| `Identity / RBAC / Cedar policy` | SaaS | All others | `platform-identity-kernel` + Cedar | Cross-axis review; security-reviewer agent |
+| `Capability invocation` | Foundry | All others | `intelligence-api` + `contracts/openapi/foundry/capability-v1.yaml` | Foundry review + the consuming axis review |
+| `Autonomy ceiling policy` | Foundry + Governance (ADR-0050) | All regulated capabilities | `intelligence-policy-kernel` | Governance + security review |
+| `Audit-chain event` | Audit subsystem (per ADR-0003) | All emitters | `platform-audit-chain-kernel` + event schema | Audit + downstream-consumer review |
 | `Capability registry record` | Foundry catalog | Foundry, all axes | `registry/catalog/<crate>.yaml` (any future relocation requires a catalog protocol update) | Catalog gate + consuming-axis review |
 | `Plane class` | Foundry catalog | All surfaces | `registry/catalog/<crate>.yaml: plane:` | Cross-plane review trigger |
-| `Cloud resource type` | Cloud | Cloud customers, tenant resource lifecycle, billing | `oya-cloud-resource-kernel` | Cloud + billing review |
-| `Region / AZ / Cell` | Cloud | All others (tenant residency, search shard placement, ad cell) | `oya-cloud-region-kernel` | Multi-axis review (residency-impact) |
-| `IAM / SSO / SAML / OIDC IdP` | Cloud (also SaaS) | All others | `oya-cloud-iam-kernel` (cloud-customer-facing) and `oya-platform-identity-kernel` (SaaS) | Two ADRs in lockstep |
-| `Ontology property tier` (ADR-0006..0112; legacy name "Object Graph property tier" — renamed per MASTERPLAN.md §2.4) | SaaS | Search (indexable), Vertical (regulatory), Ads (targetable) | `oya-platform-object-graph-kernel` (BNF path retained pending ADR-grade rename per ADR-0015 migration ledger) | Ontology review + Data Use Boundary check |
-| `Search index lifecycle` | Search | Foundry (RAG), SaaS (tenant search), Ads (sponsored slot) | `oya-search-index-kernel` | Search + downstream review |
-| `Ad slot inventory` | Ads | Search (SERP), SaaS (in-app), Vertical (in-vertical-app) | `oya-ads-slot-kernel` | Ads + surface-owner review |
-| `Billing event` | Cloud + SaaS metering | Billing + Tax + Marketplace | `oya-platform-metering-kernel` + `oya-cloud-billing-kernel` | Billing + tax review |
-| `DSR / consent withdrawal cascade` | Privacy/Compliance | All emitters of indexed/targetable data | `oya-platform-dsr-kernel` | All data-touching axes acknowledge cascade ack |
-| `Webhook delivery + signing` | SaaS / Cloud | External callers + ISVs | `oya-platform-webhook-kernel` | API stability gate (ADR-0040) |
+| `Cloud resource type` | Cloud | Cloud customers, tenant resource lifecycle, billing | `cloud-resource-kernel` | Cloud + billing review |
+| `Region / AZ / Cell` | Cloud | All others (tenant residency, search shard placement, ad cell) | `cloud-region-kernel` | Multi-axis review (residency-impact) |
+| `IAM / SSO / SAML / OIDC IdP` | Cloud (also SaaS) | All others | `cloud-iam-kernel` (cloud-customer-facing) and `platform-identity-kernel` (SaaS) | Two ADRs in lockstep |
+| `Ontology property tier` (ADR-0006..0112; legacy name "Object Graph property tier" — renamed per MASTERPLAN.md §2.4) | SaaS | Search (indexable), Vertical (regulatory), Ads (targetable) | `platform-object-graph-kernel` (BNF path retained pending ADR-grade rename per ADR-0015 migration ledger) | Ontology review + Data Use Boundary check |
+| `Search index lifecycle` | Search | Foundry (RAG), SaaS (tenant search), Ads (sponsored slot) | `search-index-kernel` | Search + downstream review |
+| `Ad slot inventory` | Ads | Search (SERP), SaaS (in-app), Vertical (in-vertical-app) | `ads-slot-kernel` | Ads + surface-owner review |
+| `Billing event` | Cloud + SaaS metering | Billing + Tax + Marketplace | `platform-metering-kernel` + `cloud-billing-kernel` | Billing + tax review |
+| `DSR / consent withdrawal cascade` | Privacy/Compliance | All emitters of indexed/targetable data | `platform-dsr-kernel` | All data-touching axes acknowledge cascade ack |
+| `Webhook delivery + signing` | SaaS / Cloud | External callers + ISVs | `platform-webhook-kernel` | API stability gate (ADR-0040) |
 | `Public REST stability tier` | SaaS / Cloud / Search / Ads | External callers | `contracts/openapi/**/*.yaml` | API stability gate (ADR-0040) |
-| `Marketplace listing` | Foundry + SaaS | ISVs, Plugin runtime, Ads | `oya-saas-marketplace-kernel` | Marketplace gate + plugin signing/sandbox |
-| `Eventing backbone (outbox + Kafka topic)` | Foundation contracts (`oya-foundation-contracts`, not "Platform") | All axes | `oya-platform-eventing-kernel` | Cross-axis on topic shape |
-| `CLOUD_SEARCH_CAPACITY_AND_RESIDENCY` | Cloud + Search | Search shard placement; crawl/index capacity; data residency per region; deletion propagation; cost attribution | `crates/oya-cloud-capacity-kernel` + `crates/oya-search-shard-placement` | Cloud + Search review + Privacy review (residency) |
-| `SEARCH_ADS_SERP_AND_QUERY_PRIVACY` | Search + Ads | Sponsored-result labeling; query-privacy; ad-eligibility per query class; ranking separation; minors / medical / financial ad exclusions; click + conversion attribution | `crates/oya-search-serp-kernel` + `crates/oya-ads-eligibility-kernel` | Search + Ads + Privacy review |
-| `FOUNDRY_CLOUD_MUTATION_CONTROL` | Foundry + Cloud | Agent-driven control-plane mutation: dry-run, M-of-N approval, break-glass, rollback, per-mutation audit evidence | `crates/oya-intelligence-cloud-mutation-kernel` | Foundry + Cloud + Security review |
-| `FOUNDRY_SEARCH_RETRIEVAL_BOUNDARY` | Foundry + Search | RAG retrieval isolation: per-tenant boundary, prompt + tool-trace data class, source-citation evidence, public-corpus rights enforcement, minor-subject filter | `crates/oya-intelligence-rag-kernel` + `crates/oya-search-retrieval-kernel` | Foundry + Search + Privacy review |
-| `TENANT_ADS_ANALYTICS_ELIGIBILITY` | SaaS / Vertical + Ads / Analytics | Tenant ad-free modes; per-vertical override (healthcare / fintech / education hard-deny); consent inheritance; event-schema; attribution; DSR cascade | `crates/oya-platform-ads-eligibility-kernel` + per-vertical override pack | SaaS + Vertical + Ads + Privacy review |
-| `REVENUE_METERING_TAX_INVOICE` | SaaS + Cloud + Ads + Marketplace | Cross-axis billing-event contract; per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA, UAE e-invoicing); dispute / chargeback / reconciliation flow | `crates/oya-platform-billing-kernel` + per-pack tax adapter | Billing + Tax + per-pack regional review |
-| `FOUNDATION_BUILDER_CONTRACT_REGISTRY` | Foundry (foundry surface) | Source of truth for every cross-axis contract row in this table; CI fitness function generates this table from the registry | `crates/oya-intelligence-contract-registry-*` | Foundation Council |
+| `Marketplace listing` | Foundry + SaaS | ISVs, Plugin runtime, Ads | `saas-marketplace-kernel` | Marketplace gate + plugin signing/sandbox |
+| `Eventing backbone (outbox + Kafka topic)` | Foundation contracts (`foundation-contracts`, not "Platform") | All axes | `platform-eventing-kernel` | Cross-axis on topic shape |
+| `CLOUD_SEARCH_CAPACITY_AND_RESIDENCY` | Cloud + Search | Search shard placement; crawl/index capacity; data residency per region; deletion propagation; cost attribution | `crates/cloud-capacity-kernel` + `crates/search-shard-placement` | Cloud + Search review + Privacy review (residency) |
+| `SEARCH_ADS_SERP_AND_QUERY_PRIVACY` | Search + Ads | Sponsored-result labeling; query-privacy; ad-eligibility per query class; ranking separation; minors / medical / financial ad exclusions; click + conversion attribution | `crates/search-serp-kernel` + `crates/ads-eligibility-kernel` | Search + Ads + Privacy review |
+| `FOUNDRY_CLOUD_MUTATION_CONTROL` | Foundry + Cloud | Agent-driven control-plane mutation: dry-run, M-of-N approval, break-glass, rollback, per-mutation audit evidence | `crates/intelligence-cloud-mutation-kernel` | Foundry + Cloud + Security review |
+| `FOUNDRY_SEARCH_RETRIEVAL_BOUNDARY` | Foundry + Search | RAG retrieval isolation: per-tenant boundary, prompt + tool-trace data class, source-citation evidence, public-corpus rights enforcement, minor-subject filter | `crates/intelligence-rag-kernel` + `crates/search-retrieval-kernel` | Foundry + Search + Privacy review |
+| `TENANT_ADS_ANALYTICS_ELIGIBILITY` | SaaS / Vertical + Ads / Analytics | Tenant ad-free modes; per-vertical override (healthcare / fintech / education hard-deny); consent inheritance; event-schema; attribution; DSR cascade | `crates/platform-ads-eligibility-kernel` + per-vertical override pack | SaaS + Vertical + Ads + Privacy review |
+| `REVENUE_METERING_TAX_INVOICE` | SaaS + Cloud + Ads + Marketplace | Cross-axis billing-event contract; per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA, UAE e-invoicing); dispute / chargeback / reconciliation flow | `crates/platform-billing-kernel` + per-pack tax adapter | Billing + Tax + per-pack regional review |
+| `FOUNDATION_BUILDER_CONTRACT_REGISTRY` | Foundry (foundry surface) | Source of truth for every cross-axis contract row in this table; CI fitness function generates this table from the registry | `crates/intelligence-contract-registry-*` | Foundation Council |
 
-Anytime a PR touches a row above, the cross-axis label is required, and the labeled review block in the PR template is mandatory. The fitness function (`oya-governance-contracts`) checks for orphan contract changes.
+Anytime a PR touches a row above, the cross-axis label is required, and the labeled review block in the PR template is mandatory. The fitness function (`governance-contracts`) checks for orphan contract changes.
 
 ---
 
@@ -622,18 +622,18 @@ Per the cohesion thesis, a regional pack must NEVER fork the canonical architect
 
 | Seam | Where it lives | What the pack supplies |
 |---|---|---|
-| Regulator → control-mapping seam | `oya-platform-regulatory-kernel` | A trait `RegulatoryPack { regulator_id, controls(), evidence_collector(), reporting_cadence() }` impl per pack. |
-| Tokenizer seam (search axis) | `oya-search-tokenizer-kernel` | `Tokenizer` trait impl per language family. |
-| Tax-invoice formatter seam (cloud + saas billing) | `oya-platform-billing-tax-kernel` | `TaxInvoiceFormatter` trait impl per locale. |
-| Identity-provider adapter seam | `oya-platform-identity-kernel` | `IdentityProvider` trait impl per local SSO. |
-| Payment-rails adapter seam | `oya-saas-billing-rail-kernel` (and `oya-vertical-fintech-*` for vertical-fintech specifics) | `PaymentRail` trait impl. |
-| Address-validator seam | `oya-platform-address-kernel` | `AddressValidator` trait impl. |
-| Ad-policy-gate seam | `oya-ads-policy-kernel` | `LocalAdPolicy` trait impl per locale. |
-| Content-safety seam | `oya-platform-content-safety-kernel` | `ContentSafetyRules` trait impl. |
-| Calendar / locale formatting seam | `oya-platform-locale-kernel` | `LocaleFormatter` trait impl. |
+| Regulator → control-mapping seam | `platform-regulatory-kernel` | A trait `RegulatoryPack { regulator_id, controls(), evidence_collector(), reporting_cadence() }` impl per pack. |
+| Tokenizer seam (search axis) | `search-tokenizer-kernel` | `Tokenizer` trait impl per language family. |
+| Tax-invoice formatter seam (cloud + saas billing) | `platform-billing-tax-kernel` | `TaxInvoiceFormatter` trait impl per locale. |
+| Identity-provider adapter seam | `platform-identity-kernel` | `IdentityProvider` trait impl per local SSO. |
+| Payment-rails adapter seam | `saas-billing-rail-kernel` (and `vertical-fintech-*` for vertical-fintech specifics) | `PaymentRail` trait impl. |
+| Address-validator seam | `platform-address-kernel` | `AddressValidator` trait impl. |
+| Ad-policy-gate seam | `ads-policy-kernel` | `LocalAdPolicy` trait impl per locale. |
+| Content-safety seam | `platform-content-safety-kernel` | `ContentSafetyRules` trait impl. |
+| Calendar / locale formatting seam | `platform-locale-kernel` | `LocaleFormatter` trait impl. |
 | Industry-data-model extension seam | per vertical kernel | `LocalIndustryExtension` trait impl per (vertical × region). |
 
-Regional packs are versioned independently and published as `oya-pack-<region-code>-<version>` artifacts. A tenant binds to *one or more* regional packs at onboarding (rare to be more than one).
+Regional packs are versioned independently and published as `pack-<region-code>-<version>` artifacts. A tenant binds to *one or more* regional packs at onboarding (rare to be more than one).
 
 ### 12.3 Why this is better than locale-special-case
 
@@ -647,34 +647,34 @@ Regional packs are versioned independently and published as `oya-pack-<region-co
 
 | Pack id | Region | Wave first onboarded | Initial regulators | Local payment / identity highlights |
 |---|---|---|---|---|
-| `oya-pack-kr` | South Korea | W-Cloud-Preview | PIPA, KISA, MFDS, FSC, KCC, NIS, CSAP, K-ISMS-P, KCMVP | 본인확인서비스, 카카오/네이버/토스, 전자세금계산서 |
-| `oya-pack-jp` | Japan | W-Cloud-Preview (parallel) | APPI (PPC), PMDA, JFSA, ISMAP | マイナンバー, MUFG/Mizuho/SMBC, 適格請求書 |
-| `oya-pack-us` | United States | W-Cloud-Preview (parallel) | HIPAA/HITECH, SOX, CCPA/CPRA, FedRAMP, OCC, FDA | Login.gov, ACH/Wire/RTP, NACHA, IRS forms |
-| `oya-pack-eu` | European Union (DE first, then FR/SE/NL/IE) | W-Cloud-Preview (parallel) | GDPR, DORA, EU AI Act, GAIA-X, EMA | eIDAS, SEPA / SEPA-Inst, e-invoicing per country |
-| `oya-pack-in` | India | W-Region-Fan-Out wave 1 | DPDP Act, RBI, MeitY, CDSCO | Aadhaar, UPI/RTGS/IMPS, GST e-invoicing |
-| `oya-pack-br` | Brazil | W-Region-Fan-Out wave 1 | LGPD, ANS, ANVISA, BACEN, ICP-Brasil | gov.br, Pix, NF-e |
-| `oya-pack-ksa` | Saudi Arabia | W-Region-Fan-Out wave 2 | PDPL, NDMO, SDAIA, SAMA, SFDA | Absher, SADAD/Mada, FATOORA |
-| `oya-pack-ae` | UAE | W-Region-Fan-Out wave 2 | TDRA / ADGM / DIFC, UAE-CB | UAE-PASS, UAEFTS / AaniPay, e-invoicing |
-| `oya-pack-au` | Australia + NZ | W-Region-Fan-Out wave 2 | Privacy Act 1988, IRAP, TGA, ASIC, RBA | myGovID, NPP, OSKO |
-| `oya-pack-sg` | Singapore | W-Region-Fan-Out wave 2 | PDPA-SG, MAS, HSA, IMDA | Singpass, FAST/PayNow, e-invoicing IMDA |
-| `oya-pack-mx` | Mexico | W-Region-Fan-Out wave 3 | LFPDPPP, INAI, COFEPRIS, CNBV | e.firma, SPEI, CFDI |
-| `oya-pack-id` | Indonesia | W-Region-Fan-Out wave 3 | UU PDP, BPOM, OJK | PeduliLindungi heir, RTGS, BI-FAST |
-| `oya-pack-ph` | Philippines | W-Region-Fan-Out wave 3 | DPA-2012, BSP, FDA-PH | PhilSys, InstaPay/PESONet |
-| `oya-pack-vn` | Vietnam | W-Region-Fan-Out wave 3 | Cybersecurity Law, MOH, SBV | NAPAS, e-invoicing |
-| `oya-pack-th` | Thailand | W-Region-Fan-Out wave 3 | PDPA-TH, BoT, TFDA | NDID, PromptPay |
-| `oya-pack-tr` | Turkey | W-Region-Fan-Out wave 3 | KVKK, BDDK, TİTCK | e-Devlet, FAST, e-Fatura |
-| `oya-pack-ng` | Nigeria | W-Region-Fan-Out wave 4 | NDPR, CBN, NAFDAC | NIN, NIBSS Instant Payment |
-| `oya-pack-za` | South Africa | W-Region-Fan-Out wave 4 | POPIA, SARB, SAHPRA | RSA-ID, RPP |
+| `pack-kr` | South Korea | W-Cloud-Preview | PIPA, KISA, MFDS, FSC, KCC, NIS, CSAP, K-ISMS-P, KCMVP | 본인확인서비스, 카카오/네이버/토스, 전자세금계산서 |
+| `pack-jp` | Japan | W-Cloud-Preview (parallel) | APPI (PPC), PMDA, JFSA, ISMAP | マイナンバー, MUFG/Mizuho/SMBC, 適格請求書 |
+| `pack-us` | United States | W-Cloud-Preview (parallel) | HIPAA/HITECH, SOX, CCPA/CPRA, FedRAMP, OCC, FDA | Login.gov, ACH/Wire/RTP, NACHA, IRS forms |
+| `pack-eu` | European Union (DE first, then FR/SE/NL/IE) | W-Cloud-Preview (parallel) | GDPR, DORA, EU AI Act, GAIA-X, EMA | eIDAS, SEPA / SEPA-Inst, e-invoicing per country |
+| `pack-in` | India | W-Region-Fan-Out wave 1 | DPDP Act, RBI, MeitY, CDSCO | Aadhaar, UPI/RTGS/IMPS, GST e-invoicing |
+| `pack-br` | Brazil | W-Region-Fan-Out wave 1 | LGPD, ANS, ANVISA, BACEN, ICP-Brasil | gov.br, Pix, NF-e |
+| `pack-ksa` | Saudi Arabia | W-Region-Fan-Out wave 2 | PDPL, NDMO, SDAIA, SAMA, SFDA | Absher, SADAD/Mada, FATOORA |
+| `pack-ae` | UAE | W-Region-Fan-Out wave 2 | TDRA / ADGM / DIFC, UAE-CB | UAE-PASS, UAEFTS / AaniPay, e-invoicing |
+| `pack-au` | Australia + NZ | W-Region-Fan-Out wave 2 | Privacy Act 1988, IRAP, TGA, ASIC, RBA | myGovID, NPP, OSKO |
+| `pack-sg` | Singapore | W-Region-Fan-Out wave 2 | PDPA-SG, MAS, HSA, IMDA | Singpass, FAST/PayNow, e-invoicing IMDA |
+| `pack-mx` | Mexico | W-Region-Fan-Out wave 3 | LFPDPPP, INAI, COFEPRIS, CNBV | e.firma, SPEI, CFDI |
+| `pack-id` | Indonesia | W-Region-Fan-Out wave 3 | UU PDP, BPOM, OJK | PeduliLindungi heir, RTGS, BI-FAST |
+| `pack-ph` | Philippines | W-Region-Fan-Out wave 3 | DPA-2012, BSP, FDA-PH | PhilSys, InstaPay/PESONet |
+| `pack-vn` | Vietnam | W-Region-Fan-Out wave 3 | Cybersecurity Law, MOH, SBV | NAPAS, e-invoicing |
+| `pack-th` | Thailand | W-Region-Fan-Out wave 3 | PDPA-TH, BoT, TFDA | NDID, PromptPay |
+| `pack-tr` | Turkey | W-Region-Fan-Out wave 3 | KVKK, BDDK, TİTCK | e-Devlet, FAST, e-Fatura |
+| `pack-ng` | Nigeria | W-Region-Fan-Out wave 4 | NDPR, CBN, NAFDAC | NIN, NIBSS Instant Payment |
+| `pack-za` | South Africa | W-Region-Fan-Out wave 4 | POPIA, SARB, SAHPRA | RSA-ID, RPP |
 
 The list expands as council ratifies new packs. Pack onboarding is an **independent workstream** per pack; no pack blocks another after the seam contracts are stable.
 
 ### 12.5 Data residency interaction
 
-A regional pack declares its **default residency class** for tenants in that region. Cross-region replication is opt-in per residency class (per Data Use Boundary ADR §2.2.1). The canonical residency model lives in `oya-platform-tenant-kernel`; the pack supplies the local residency choice and any cross-border transfer constraints (e.g., GDPR Schrems III, KR Art 28-8, Russia data-localization law if onboarded).
+A regional pack declares its **default residency class** for tenants in that region. Cross-region replication is opt-in per residency class (per Data Use Boundary ADR §2.2.1). The canonical residency model lives in `platform-tenant-kernel`; the pack supplies the local residency choice and any cross-border transfer constraints (e.g., GDPR Schrems III, KR Art 28-8, Russia data-localization law if onboarded).
 
 ### 12.6 Industry-data model extension
 
-A vertical (e.g. healthcare) declares its canonical model in its kernel; per-region extensions plug in. Example: `oya-vertical-healthcare-kernel` defines `Patient`, `Encounter`, `Observation` (FHIR-aligned); `oya-pack-kr` extends with `KrPatientId`, `KrInsurancePayer (NHIS)`, `KrRRN`; `oya-pack-jp` extends with `JpPatientId`, `JpHokenSha`; etc. The vertical kernel never imports a region; regions extend it.
+A vertical (e.g. healthcare) declares its canonical model in its kernel; per-region extensions plug in. Example: `vertical-healthcare-kernel` defines `Patient`, `Encounter`, `Observation` (FHIR-aligned); `pack-kr` extends with `KrPatientId`, `KrInsurancePayer (NHIS)`, `KrRRN`; `pack-jp` extends with `JpPatientId`, `JpHokenSha`; etc. The vertical kernel never imports a region; regions extend it.
 
 This pattern repeats for every vertical and every region — the math is `verticals × regions` extensions but the **canonical core is `verticals` + `regions`** (sum, not product). That sum-not-product property is why parallel global launch is possible.
 
@@ -755,9 +755,9 @@ The current monolithic `repoctl` is recommended for split into 8 persona-CLIs al
 | `oya ops` | SRE / Ops | cell / region / deploy / runbook / drill | yes |
 | `oya pack` | Regional pack maintainer | pack build / verify / publish | yes |
 | `oya catalog` | Catalog + capability authoring | catalog scaffold + promote + supersede | yes |
-| `oya gate` | Gates + bypasses + claim-ceiling | gate ratchet + bypass + claim verify | yes |
+| retired CLI | Gates + bypasses + claim-ceiling | gate ratchet + bypass + claim verify | yes |
 
-Crate targets: `crates/oya-tooling-cli-{dev,admin,build,agent,ops,pack,catalog,gate}-*`. Migration: `repoctl <cmd>` continues as a deprecated alias for ~2 waves per ADR-0001.
+Crate targets: `crates/tooling-cli-{dev,admin,build,agent,ops,pack,catalog,gate}-*`. Migration: `repoctl <cmd>` continues as a deprecated alias for ~2 waves per ADR-0001.
 
 #### 13.4.2 Why the split is structurally important
 

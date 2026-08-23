@@ -35,8 +35,8 @@ primitives.
 
 Inherits from Bominal ADR-0018 (tenancy + RLS posture) 1:1. The `platform`
 naming in Bominal is translated to `shared` per oyatie glossary
-(`feedback_glossary_shared_not_platform.md`). Crate prefix: `oya-tenancy-*`
-(not `oya-shared-tenancy-*` — BNF v4.1 flat; `tenancy` is the µservice name).
+(`feedback_glossary_shared_not_platform.md`). Crate prefix: `tenancy-*`
+(not `shared-tenancy-*` — BNF v4.1 flat; `tenancy` is the µservice name).
 
 ---
 
@@ -108,13 +108,13 @@ and every oyatie customer organization.
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `lifecycle` | `oya-tenancy-lifecycle-{domain,application,infrastructure,rest}` | Tenant CRUD; activation; suspension; deletion; erasure | `Tenant`, `TenantStatus` |
-| `rls` | `oya-tenancy-rls-{domain,application,infrastructure}` | RLS policy generation; SET LOCAL helper; Postgres adapter | `RlsPolicy` |
-| `cell-assignment` | `oya-tenancy-cell-assignment-{domain,application,infrastructure}` | Cell routing; load balancing; cell-health queries | `CellAssignment` |
-| `kernel` | `oya-tenancy-kernel` | Shared port-traits + `TenantId` value type consumed by ALL µservices | `TenantId`, `TenantContext` |
+| `lifecycle` | `tenancy-lifecycle-{domain,application,infrastructure,rest}` | Tenant CRUD; activation; suspension; deletion; erasure | `Tenant`, `TenantStatus` |
+| `rls` | `tenancy-rls-{domain,application,infrastructure}` | RLS policy generation; SET LOCAL helper; Postgres adapter | `RlsPolicy` |
+| `cell-assignment` | `tenancy-cell-assignment-{domain,application,infrastructure}` | Cell routing; load balancing; cell-health queries | `CellAssignment` |
+| `kernel` | `tenancy-kernel` | Shared port-traits + `TenantId` value type consumed by ALL µservices | `TenantId`, `TenantContext` |
 
 ```
-NAME: oya-tenancy-kernel
+NAME: tenancy-kernel
 JUSTIFICATION:
 - microservice = tenancy: Tenancy shared substrate µservice; flat catalog; ADR-0056 v4.1; no "shared|vertical" bisection — tenancy IS the µservice name
 - bc-tokens: OMITTED — kernel crate has a single concept (TenantId value type + TenantContext port-trait); ADR-0056 v4.1 BC-optionality rule
@@ -205,12 +205,12 @@ Cross-region: M03 KR only; post-M03 global per ADR-0117 stages.
 | AC-ID | Criterion | Verification |
 |---|---|---|
 | AC-01 | Tenant activation completes in ≤5 min; RLS policy active post-activation | integration test `test_tenant_activation_e2e` |
-| AC-02 | Cross-tenant query returns zero rows under RLS | `cargo nextest run -p oya-tenancy-rls-domain --test rls_isolation` |
+| AC-02 | Cross-tenant query returns zero rows under RLS | `cargo nextest run -p tenancy-rls-domain --test rls_isolation` |
 | AC-03 | TenantId validation p99 ≤5 ms at 100k RPS (Valkey cache hit) | k6 smoke; `http_req_duration{p(99)}<5` |
 | AC-04 | `TenantActivated` event routed by Workflow to all enabled µservices | integration test `test_tenant_activated_workflow` |
-| AC-05 | GDPR erasure: all tenant data deleted; erasure certificate generated | `cargo nextest run -p oya-tenancy-lifecycle-domain --test gdpr_erasure` |
-| AC-06 | Cell assignment: new tenant routed to least-loaded cell in correct jurisdiction | `cargo nextest run -p oya-tenancy-cell-assignment-domain` |
-| AC-07 | LEAN-A2: tenancy-kernel has no upstream µservice imports | `oya gate validate lean-a2 --ms tenancy` exits 0 |
+| AC-05 | GDPR erasure: all tenant data deleted; erasure certificate generated | `cargo nextest run -p tenancy-lifecycle-domain --test gdpr_erasure` |
+| AC-06 | Cell assignment: new tenant routed to least-loaded cell in correct jurisdiction | `cargo nextest run -p tenancy-cell-assignment-domain` |
+| AC-07 | LEAN-A2: tenancy-kernel has no upstream µservice imports | `presubmit` (retired CLI `gate validate lean-a2 --ms tenancy`) exits 0 |
 
 ---
 

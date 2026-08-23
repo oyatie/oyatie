@@ -1,14 +1,14 @@
 # Spec: obs-tracing-adapter-slo-breach-span-emit
 
 Vertical: observability
-Crate (only): oya-observability-tracing-adapter
+Crate (only): observability-tracing-adapter
 Status: IN PROGRESS — feat/task-obs-tracing-adapter-slo-breach-span-emit-2026-05-28
 
 ---
 
 ## Objective
 
-Extend the `oya-observability-tracing-adapter` crate with a concrete
+Extend the `observability-tracing-adapter` crate with a concrete
 SLO-breach trace-emission path. The path is layered over the domain's existing
 alerting vocabulary pattern (field-name constants, value objects, observer
 traits, noop defaults) introduced for `CapabilityInvocationTraceObserver`.
@@ -22,7 +22,7 @@ open a stable-named span that carries:
 - The resulting alert decision (page / ticket / none)
 
 All new types and constants are defined in the adapter crate. The
-`oya-observability-domain` crate is read-only throughout this task.
+`observability-domain` crate is read-only throughout this task.
 
 ---
 
@@ -36,7 +36,7 @@ usecase, app, rest, or worker layers.
 ## Mod Layout (flat clean-arch pattern, ADR-0509)
 
 ```
-crates/oya-observability-tracing-adapter/
+crates/observability-tracing-adapter/
   src/
     lib.rs          ← all code; slo_breach module added here
   Cargo.toml        ← add no new workspace member
@@ -66,7 +66,7 @@ pub const SLO_BREACH_SPAN_NAME: &str = "slo.breach.evaluate";
 ```
 
 General fields (`service.name`, `oyatie.tenant.id`, etc.) reuse the existing
-`oya_observability_domain::fields::*` constants — no duplication.
+`observability_domain::fields::*` constants — no duplication.
 
 ### Domain value objects
 
@@ -162,8 +162,8 @@ span capture infrastructure needed.
 
 ## Boundaries
 
-- ONLY `oya-observability-tracing-adapter` is modified
-- `oya-observability-domain` is read-only
+- ONLY `observability-tracing-adapter` is modified
+- `observability-domain` is read-only
 - Root `Cargo.toml` is untouched (no new workspace members)
 - No new crates created
 - No HTTP/gRPC/event contracts

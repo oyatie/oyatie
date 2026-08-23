@@ -10,21 +10,21 @@ This team owns Oyatie's advertising platform and the analytics infrastructure th
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Advertising + Analytics (Axis 7)
 - **Surfaces:**
-  - `oya-ads-campaign-kernel` — `Campaign`, `AdGroup`, `Creative`, `Budget`, `BidStrategy`
-  - `oya-ads-auction-kernel` — `AuctionRequest`, `AuctionResult`, `BidPrice`, `QualityScore`
-  - `oya-ads-slot-kernel` — `SlotInventory`, `SlotId`, `SlotContext` (SERP, in-app, vertical-app)
-  - `oya-ads-target-*` — audience management, targeting rules, privacy-gate enforcement
-  - `oya-ads-attribute-*` — attribution: click, view, multi-touch, cross-device, server-API, offline, privacy-preserving
-  - `oya-ads-console-*` — advertiser console: campaign, asset, audience, tag, budget, recommendations, API
-  - `oya-analytics-kernel` / `oya-analytics-app` — event pipeline, warehouse projection, cohort/funnel/retention
-  - `oya-analytics-event-*` — event ingest, dedup, enrichment
-  - `oya-analytics-warehouse-*` — materialized projections, dimensional model
-  - `oya-analytics-report-*` — dashboard, streaming analytics, A/B framework
+  - `ads-campaign-kernel` — `Campaign`, `AdGroup`, `Creative`, `Budget`, `BidStrategy`
+  - `ads-auction-kernel` — `AuctionRequest`, `AuctionResult`, `BidPrice`, `QualityScore`
+  - `ads-slot-kernel` — `SlotInventory`, `SlotId`, `SlotContext` (SERP, in-app, vertical-app)
+  - `ads-target-*` — audience management, targeting rules, privacy-gate enforcement
+  - `ads-attribute-*` — attribution: click, view, multi-touch, cross-device, server-API, offline, privacy-preserving
+  - `ads-console-*` — advertiser console: campaign, asset, audience, tag, budget, recommendations, API
+  - `analytics-kernel` / `analytics-app` — event pipeline, warehouse projection, cohort/funnel/retention
+  - `analytics-event-*` — event ingest, dedup, enrichment
+  - `analytics-warehouse-*` — materialized projections, dimensional model
+  - `analytics-report-*` — dashboard, streaming analytics, A/B framework
   - Products owned: `products/ads-analytics/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Ad slot inventory` (owner) — surfaces SERP slots, in-app slots, vertical-app slots to consumers
-  - `Billing event` (co-owner) — ad spend billing events flow through `oya-platform-metering-kernel`
-- **Catalog records:** `crates/oya-ads-*`, `crates/oya-analytics-*`
+  - `Billing event` (co-owner) — ad spend billing events flow through `platform-metering-kernel`
+- **Catalog records:** `crates/ads-*`, `crates/analytics-*`
 - **Runbooks:** `runbooks/ad-auction-latency-incident.md`, `runbooks/attribution-pipeline-lag.md`, `runbooks/analytics-warehouse-reconciliation.md`
 - **ADRs:** Data Use Boundary ADR (consumer — hardest constraint), KR adtech policy gate ADR
 
@@ -39,7 +39,7 @@ This team owns Oyatie's advertising platform and the analytics infrastructure th
 - Analytics event pipeline: ingest, dedup, enrichment, tenant-isolated projections
 - Analytics warehouse: dimensional model, materialized projections (k-anonymous cross-tenant aggregates)
 - A/B testing framework: experiment assignment, result analysis, significance testing
-- KR adtech compliance: 의료광고, 금융광고, 정치광고 policy gates (via regional pack `oya-pack-kr` `ad_policy_gate` seam)
+- KR adtech compliance: 의료광고, 금융광고, 정치광고 policy gates (via regional pack `pack-kr` `ad_policy_gate` seam)
 - Impression and click stream (privacy-gated, k-anonymous before cross-tenant share with search ranker)
 
 ## Out-of-scope (anti-scope)
@@ -104,7 +104,7 @@ This team owns Oyatie's advertising platform and the analytics infrastructure th
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| PHI/PCI enters ad-targeting signal via unclassified data path | Catastrophic | `oya-governance-data-use-boundary` CI gate; all new targeting signals require privacy-council review |
+| PHI/PCI enters ad-targeting signal via unclassified data path | Catastrophic | `governance-data-use-boundary` CI gate; all new targeting signals require privacy-council review |
 | Ads axis monetizes healthcare/fintech tenant data | Catastrophic | Vertical-specific forced override in Data Use Boundary ADR; CI gate |
 | Auction latency spike degrades SERP UX | High | Cell-local auction; backpressure; admission control |
 | KR adtech regulatory change not caught before launch | Medium | Monthly regulatory-change watch lane (`ops-compliance`); regional-pack `ad_policy_gate` seam |

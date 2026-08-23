@@ -41,4 +41,4 @@ doc_status: published
 Inventory total: 25 files; 25 fenced sections.
 
 
-Validation command: `cargo run -p oya-governance-banned-primitives`. In this workspace the cargo invocation is still blocked by the pre-existing missing `crates/oya-tenancy-kernel/Cargo.toml`; standalone rustc validation for the lane is recorded in the IP-007 evidence bundle.
+Validation command: `cargo run -p governance-banned-primitives`. In this workspace the cargo invocation is still blocked by the pre-existing missing `crates/tenancy-kernel/Cargo.toml`; standalone rustc validation for the lane is recorded in the IP-007 evidence bundle.

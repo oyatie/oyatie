@@ -3,7 +3,7 @@
 | Field       | Value                                                          |
 |-------------|----------------------------------------------------------------|
 | Vertical    | intelligence                                                   |
-| Crate       | `oya-intelligence-provider-pool-kernel`                        |
+| Crate       | `intelligence-provider-pool-kernel`                        |
 | Task slug   | `intel-provider-pool-cooldown-rotation`                        |
 | ADR anchor  | M02-P02-IP-001 (pool kernel); ADR-0083 (Tier 3 test doctrine)  |
 | Stage       | SPEC                                                           |
@@ -22,7 +22,7 @@ no async).
 
 ## Background
 
-`oya-intelligence-provider-pool-kernel` implements `pick_account`: a pure rotation kernel
+`intelligence-provider-pool-kernel` implements `pick_account`: a pure rotation kernel
 that filters `Unhealthy` members and applies a `PoolRoutingStrategy`. The existing kernel
 has `anti_correlation_window_ms: DurationMs` on `ProviderAccountPool` and a
 `PoolMembershipChange::Quarantined` event, but no per-account quarantine timestamp and no
@@ -169,7 +169,7 @@ All tests live in `#[cfg(test)] mod tests` inside `src/lib.rs` (ADR-0083 Tier 3)
 
 | In scope | Out of scope |
 |----------|-------------|
-| `src/lib.rs` in `oya-intelligence-provider-pool-kernel` | Any other crate |
+| `src/lib.rs` in `intelligence-provider-pool-kernel` | Any other crate |
 | `tasks/intel-provider-pool-cooldown-rotation-plan.md` | Root `Cargo.toml` |
 | `docs/specs/task-intel-provider-pool-cooldown-rotation.md` | New workspace members |
 | Adding `last_quarantined_at_unix_ms` to `AccountHealth` | Modifying adapter crates |
@@ -181,6 +181,6 @@ All tests live in `#[cfg(test)] mod tests` inside `src/lib.rs` (ADR-0083 Tier 3)
 
 | ST  | Acceptance gate |
 |-----|----------------|
-| ST1 | `cargo check -p oya-intelligence-provider-pool-kernel --all-targets` green; zero new `Cargo.toml` deps |
-| ST2 | `cargo nextest run -p oya-intelligence-provider-pool-kernel` green; 4 new cooldown tests pass |
+| ST1 | `cargo check -p intelligence-provider-pool-kernel --all-targets` green; zero new `Cargo.toml` deps |
+| ST2 | `cargo nextest run -p intelligence-provider-pool-kernel` green; 4 new cooldown tests pass |
 | ST3 | Quarantined-high-quota test passes; full existing suite green |

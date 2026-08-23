@@ -7,7 +7,7 @@ ServiceMonitor — Prometheus scrape config; per-µservice job labels.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: oya-calendar-{{ $bc }}-sm
+  name: calendar-{{ $bc }}-sm
   namespace: calendar
   labels:
     microservice: calendar

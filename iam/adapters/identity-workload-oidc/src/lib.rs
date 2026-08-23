@@ -1021,12 +1021,12 @@ mod tests {
     }
 
     fn config() -> ValidationConfig {
-        ValidationConfig::new("https://idp.oyatie.com", "oya-cloud-kms")
+        ValidationConfig::new("https://idp.oyatie.com", "cloud-kms")
     }
 
     fn valid_claims(now: i64) -> String {
         format!(
-            r#"{{"iss":"https://idp.oyatie.com","aud":"oya-cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
+            r#"{{"iss":"https://idp.oyatie.com","aud":"cloud-kms","exp":{},"iat":{},"tenant_id":"ten_acme","sub":"wl_secrets_sync","owning_capability":"cap.cloud.kms","scope":"cloud.kms.decrypt cloud.kms.describe","mfa":true}}"#,
             now + 300,
             now
         )
@@ -1151,7 +1151,7 @@ mod tests {
     fn expired_token_is_rejected() {
         let now = 1_700_000_000;
         let expired = format!(
-            r#"{{"iss":"https://idp.oyatie.com","aud":"oya-cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
+            r#"{{"iss":"https://idp.oyatie.com","aud":"cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
             now - 10
         );
         let signed = mint_es256_token(&expired, "kid-1");
@@ -1179,7 +1179,7 @@ mod tests {
     fn wrong_issuer_is_rejected() {
         let now = 1_700_000_000;
         let claims = format!(
-            r#"{{"iss":"https://evil.example","aud":"oya-cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
+            r#"{{"iss":"https://evil.example","aud":"cloud-kms","exp":{},"tenant_id":"ten_acme","sub":"wl_a","owning_capability":"cap.x.y"}}"#,
             now + 300
         );
         let signed = mint_es256_token(&claims, "kid-1");

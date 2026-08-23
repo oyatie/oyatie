@@ -10,18 +10,18 @@ This team owns the fintech vertical: payment gateway integration, open-banking A
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Fintech (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-fintech-kernel` — `PaymentTransaction`, `Account`, `KycRecord`, `AmlAlert`, `OpenBankingConsent`
-  - `oya-vertical-fintech-domain-*` — PG orchestration, KYC lifecycle, AML screening, open-banking consent
-  - `oya-vertical-fintech-adapter-kftc` — KR KFTC open-banking API adapter
-  - `oya-vertical-fintech-adapter-nacha` — US NACHA/ACH adapter
-  - `oya-vertical-fintech-adapter-sepa` — EU SEPA/SEPA-Inst adapter
-  - Per-region extensions: `oya-pack-kr` → KR FSC controls, 전자금융거래법; `oya-pack-us` → Reg-E, BSA/AML; `oya-pack-eu` → PSD2, DORA
+  - `vertical-fintech-kernel` — `PaymentTransaction`, `Account`, `KycRecord`, `AmlAlert`, `OpenBankingConsent`
+  - `vertical-fintech-domain-*` — PG orchestration, KYC lifecycle, AML screening, open-banking consent
+  - `vertical-fintech-adapter-kftc` — KR KFTC open-banking API adapter
+  - `vertical-fintech-adapter-nacha` — US NACHA/ACH adapter
+  - `vertical-fintech-adapter-sepa` — EU SEPA/SEPA-Inst adapter
+  - Per-region extensions: `pack-kr` → KR FSC controls, 전자금융거래법; `pack-us` → Reg-E, BSA/AML; `pack-eu` → PSD2, DORA
   - Products owned: `products/vertical-fintech/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — every payment transaction, KYC decision, AML alert)
   - `DSR / consent withdrawal cascade` (ack required — open-banking consent withdrawal)
   - All account/payment fields forced to `ad_targetable_blocked` (Data Use Boundary vertical override)
-- **Catalog records:** `crates/oya-vertical-fintech-*`
+- **Catalog records:** `crates/vertical-fintech-*`
 - **Runbooks:** `runbooks/fintech-payment-failure.md`, `runbooks/aml-alert-escalation.md`, `runbooks/kyc-review-queue.md`
 - **ADRs:** ADR-0027 (fintech schema), KR FSC compliance ADR
 

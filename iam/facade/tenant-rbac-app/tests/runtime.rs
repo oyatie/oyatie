@@ -3,6 +3,8 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 use iam_tenant_rbac_api::{
     CloseBoundaryStateDto, CrossServiceWorkflowPlanRequest, DataClassDto, DeterministicGateDto,
     DeterministicGateEvidenceRequest, GateClosureAuthorityDto, GroupCloseRollupRequest,
@@ -21,12 +23,10 @@ use iam_tenant_rbac_app::{
     TenantRbacMutationResource, VerifiedPrincipal, dispatch_tenant_rbac_request,
     tenant_rbac_runtime_routes, tenant_rbac_server_config,
 };
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     DecisionAuditRecord, EntitySlice, PdpError, PdpOutcome, PolicyDecisionPoint,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, PolicyVersion,
 };
 

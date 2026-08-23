@@ -135,13 +135,13 @@ fn tenant_cost_allocation_contract_preserves_cost_refs_and_scope() {
                 .starts_with("evidence/cost-allocation/fd001-tenant-rbac/")
             && requirement
                 .source_manifest_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-workload-manifest/")
+                .starts_with("crates/tenant-rbac-tenant-workload-manifest/")
             && requirement
                 .source_admission_policy_ref
-                .starts_with("crates/oya-tenant-rbac-tenant-admission-policy/")
+                .starts_with("crates/tenant-rbac-tenant-admission-policy/")
             && requirement
                 .source_finops_ref
-                .starts_with("crates/oya-cloud-finops-kernel/")
+                .starts_with("crates/cloud-finops-kernel/")
             && requirement.applies_to_all_manifest_workloads
             && !requirement.runtime_observation_attached
     }));

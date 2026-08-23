@@ -3,8 +3,8 @@
 //! `.omc/pooling-convergence.json`).
 //!
 //! Composes the bespoke hyper backbone
-//! (`oya_http_runtime_hyper_adapter::{ServerConfig, serve}` + the
-//! `oya-http-router-kernel` `Router` + `oya-http-middleware-kernel`
+//! (`http_runtime_hyper_adapter::{ServerConfig, serve}` + the
+//! `http-router-kernel` `Router` + `http-middleware-kernel`
 //! `MiddlewareChain`) with the anthropic/openai compat-api ingress route
 //! surfaces into a runnable process, wiring real handlers through to the
 //! existing [`dispatch_to_pool`] use-case over the in-memory reference adapters
@@ -12,7 +12,7 @@
 //! [`InMemoryAccountHealthStore`]) and the in-memory mock transport.
 //!
 //! Lifts the `AppConfig::from_env -> build_app -> serve` shape from
-//! `microservices/cloud-intelligence/crates/oya-cloud-intelligence-app/main.rs`
+//! `microservices/intelligence-app/crates/intelligence-app/main.rs`
 //! (which serves an axum router — this binary serves the doctrine-compliant
 //! bespoke hyper backbone instead, no axum, no reqwest).
 //!
@@ -46,9 +46,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use bytes::Bytes;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router};
-use oya_http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router};
+use http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
 
 use intelligence_provider_pool_app::{
     AccountHealthMap, AccountHealthStore, DispatchError, InMemoryAccountHealthStore,
@@ -378,11 +378,11 @@ pub struct AppConfig {
 /// variant maps to a non-zero process exit.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConfigError {
-    /// `OYA_POOL_LISTEN_ADDR` did not parse as a `SocketAddr`.
+    /// `OYATIE_POOL_LISTEN_ADDR` did not parse as a `SocketAddr`.
     InvalidListenAddr { value: String },
     /// An unknown provider family was supplied.
     InvalidProvider { value: String },
-    /// `OYA_POOL_MAX_BODY_BYTES` did not parse as a `usize`.
+    /// `OYATIE_POOL_MAX_BODY_BYTES` did not parse as a `usize`.
     InvalidMaxBodyBytes { value: String },
 }
 
@@ -392,15 +392,18 @@ impl fmt::Display for ConfigError {
             Self::InvalidListenAddr { value } => {
                 write!(
                     f,
-                    "OYA_POOL_LISTEN_ADDR is not a valid socket address: {value}"
+                    "OYATIE_POOL_LISTEN_ADDR is not a valid socket address: {value}"
                 )
             }
             Self::InvalidProvider { value } => write!(
                 f,
-                "OYA_POOL_PROVIDER must be one of claude|openai|gemini, got: {value}"
+                "OYATIE_POOL_PROVIDER must be one of claude|openai|gemini, got: {value}"
             ),
             Self::InvalidMaxBodyBytes { value } => {
-                write!(f, "OYA_POOL_MAX_BODY_BYTES is not a valid usize: {value}")
+                write!(
+                    f,
+                    "OYATIE_POOL_MAX_BODY_BYTES is not a valid usize: {value}"
+                )
             }
         }
     }
@@ -409,26 +412,26 @@ impl fmt::Display for ConfigError {
 impl std::error::Error for ConfigError {}
 
 impl AppConfig {
-    /// Default bind address used when `OYA_POOL_LISTEN_ADDR` is unset.
+    /// Default bind address used when `OYATIE_POOL_LISTEN_ADDR` is unset.
     pub const DEFAULT_LISTEN_ADDR: &'static str = "127.0.0.1:8089";
 
     /// Read configuration from the process environment, failing closed on any
     /// malformed value.
     ///
     /// Environment variables:
-    /// - `OYA_POOL_LISTEN_ADDR`      — bind address (default `127.0.0.1:8089`)
-    /// - `OYA_POOL_TENANT_ID`        — tenant id (default `ten_local`)
-    /// - `OYA_POOL_POOL_ID`          — pool id (default `pool_local`)
-    /// - `OYA_POOL_PROVIDER`         — `claude|openai|gemini` (default `claude`)
-    /// - `OYA_POOL_MEMBER_IDS`       — comma-separated account ids (default `seat-local-1`)
-    /// - `OYA_POOL_MAX_BODY_BYTES`   — per-request body cap (default 1 MiB)
-    /// - `OYA_POOL_INGRESS_BEARER`   — bearer for /v1/* routes (empty → 401 fail-closed; AUTH-005)
-    /// - `OYA_POOL_CONTROL_BEARER`   — bearer for /internal/* routes (empty → 401)
+    /// - `OYATIE_POOL_LISTEN_ADDR`      — bind address (default `127.0.0.1:8089`)
+    /// - `OYATIE_POOL_TENANT_ID`        — tenant id (default `ten_local`)
+    /// - `OYATIE_POOL_POOL_ID`          — pool id (default `pool_local`)
+    /// - `OYATIE_POOL_PROVIDER`         — `claude|openai|gemini` (default `claude`)
+    /// - `OYATIE_POOL_MEMBER_IDS`       — comma-separated account ids (default `seat-local-1`)
+    /// - `OYATIE_POOL_MAX_BODY_BYTES`   — per-request body cap (default 1 MiB)
+    /// - `OYATIE_POOL_INGRESS_BEARER`   — bearer for /v1/* routes (empty → 401 fail-closed; AUTH-005)
+    /// - `OYATIE_POOL_CONTROL_BEARER`   — bearer for /internal/* routes (empty → 401)
     ///
     /// # Errors
     /// Returns [`ConfigError`] when a supplied value is malformed.
     pub fn from_env() -> Result<Self, ConfigError> {
-        let listen_addr_raw = std::env::var("OYA_POOL_LISTEN_ADDR")
+        let listen_addr_raw = std::env::var("OYATIE_POOL_LISTEN_ADDR")
             .unwrap_or_else(|_| Self::DEFAULT_LISTEN_ADDR.to_string());
         let listen_addr =
             listen_addr_raw
@@ -437,16 +440,17 @@ impl AppConfig {
                     value: listen_addr_raw.clone(),
                 })?;
 
-        let tenant_id = std::env::var("OYA_POOL_TENANT_ID").unwrap_or_else(|_| "ten_local".into());
-        let pool_id = std::env::var("OYA_POOL_POOL_ID").unwrap_or_else(|_| "pool_local".into());
+        let tenant_id =
+            std::env::var("OYATIE_POOL_TENANT_ID").unwrap_or_else(|_| "ten_local".into());
+        let pool_id = std::env::var("OYATIE_POOL_POOL_ID").unwrap_or_else(|_| "pool_local".into());
 
         let provider_raw =
-            std::env::var("OYA_POOL_PROVIDER").unwrap_or_else(|_| "claude".to_string());
+            std::env::var("OYATIE_POOL_PROVIDER").unwrap_or_else(|_| "claude".to_string());
         let provider = parse_provider(&provider_raw).ok_or(ConfigError::InvalidProvider {
             value: provider_raw.clone(),
         })?;
 
-        let member_account_ids = std::env::var("OYA_POOL_MEMBER_IDS")
+        let member_account_ids = std::env::var("OYATIE_POOL_MEMBER_IDS")
             .unwrap_or_else(|_| "seat-local-1".into())
             .split(',')
             .map(str::trim)
@@ -454,18 +458,18 @@ impl AppConfig {
             .map(str::to_owned)
             .collect();
 
-        let max_body_bytes = match std::env::var("OYA_POOL_MAX_BODY_BYTES") {
+        let max_body_bytes = match std::env::var("OYATIE_POOL_MAX_BODY_BYTES") {
             Ok(raw) => raw
                 .parse::<usize>()
                 .map_err(|_| ConfigError::InvalidMaxBodyBytes { value: raw.clone() })?,
-            Err(_) => oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
+            Err(_) => http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
         };
 
         // AUTH-005: empty bearer is deliberately valid config — it means fail-closed
         // (every request on that plane gets 401). Operators must set a non-empty value
         // to enable the corresponding plane.
-        let ingress_bearer = std::env::var("OYA_POOL_INGRESS_BEARER").unwrap_or_default();
-        let control_bearer = std::env::var("OYA_POOL_CONTROL_BEARER").unwrap_or_default();
+        let ingress_bearer = std::env::var("OYATIE_POOL_INGRESS_BEARER").unwrap_or_default();
+        let control_bearer = std::env::var("OYATIE_POOL_CONTROL_BEARER").unwrap_or_default();
 
         Ok(Self {
             listen_addr,
@@ -688,7 +692,7 @@ fn build_app(config: &AppConfig) -> Result<ComposedApp, BuildError> {
 
     // AUTH-005: authenticators are bound to the service's own tenant with
     // explicit RBAC roles. Empty bearer → fail-closed (operator must set
-    // OYA_POOL_INGRESS_BEARER / OYA_POOL_CONTROL_BEARER in production).
+    // OYATIE_POOL_INGRESS_BEARER / OYATIE_POOL_CONTROL_BEARER in production).
     let ingress_auth = authz::BearerAuthenticator::new(
         config.ingress_bearer.clone(),
         tenant_id.clone(),
@@ -1156,7 +1160,7 @@ mod tests {
             pool_id: "pool_local".into(),
             provider: ProviderFamily::Claude,
             member_account_ids: vec!["seat-local-1".into(), "seat-local-2".into()],
-            max_body_bytes: oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
+            max_body_bytes: http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
             ingress_bearer: "test-ingress-secret".into(),
             control_bearer: "test-control-secret".into(),
         }
@@ -1179,7 +1183,7 @@ mod tests {
     #[test]
     fn default_listen_addr_parses() {
         // The fail-closed default must be a valid SocketAddr (else from_env
-        // with an unset OYA_POOL_LISTEN_ADDR would error spuriously).
+        // with an unset OYATIE_POOL_LISTEN_ADDR would error spuriously).
         assert!(AppConfig::DEFAULT_LISTEN_ADDR.parse::<SocketAddr>().is_ok());
     }
 
@@ -1220,7 +1224,7 @@ mod tests {
         assert!(router.match_route(HttpMethod::Get, "/v1/models").is_some());
         assert_eq!(
             server_config.max_body_bytes,
-            oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES
+            http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES
         );
     }
 
@@ -1228,7 +1232,7 @@ mod tests {
     fn healthz_returns_ok_json() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/healthz".into(),
@@ -1249,7 +1253,7 @@ mod tests {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let body = br#"{"model":"claude-sonnet-4-6","messages":[{"role":"user","content":"hi"}],"max_tokens":16}"#.to_vec();
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1276,7 +1280,7 @@ mod tests {
         cfg.provider = ProviderFamily::OpenAiOrCodex;
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let body = br#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#.to_vec();
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/chat/completions".into(),
@@ -1316,7 +1320,7 @@ mod tests {
     fn auth_no_bearer_on_messages_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1335,7 +1339,7 @@ mod tests {
     fn auth_no_bearer_on_chat_completions_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/chat/completions".into(),
@@ -1367,7 +1371,7 @@ mod tests {
             ),
             (HttpMethod::Get, "/v1/models", Vec::new()),
         ] {
-            let resp = oya_http_runtime_hyper_adapter::dispatch(
+            let resp = http_runtime_hyper_adapter::dispatch(
                 HttpRequest {
                     method,
                     path: path.into(),
@@ -1388,7 +1392,7 @@ mod tests {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
 
-        let count_tokens = oya_http_runtime_hyper_adapter::dispatch(
+        let count_tokens = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/v1/messages/count_tokens".into(),
@@ -1403,7 +1407,7 @@ mod tests {
         assert_eq!(count_tokens.status, 200);
         assert_eq!(count_tokens.body, br#"{"input_tokens":2}"#.to_vec());
 
-        let models = oya_http_runtime_hyper_adapter::dispatch(
+        let models = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/v1/models".into(),
@@ -1417,7 +1421,7 @@ mod tests {
         );
         assert_eq!(models.status, 200);
 
-        let embeddings = oya_http_runtime_hyper_adapter::dispatch(
+        let embeddings = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/embeddings".into(),
@@ -1438,7 +1442,7 @@ mod tests {
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let mut headers = std::collections::BTreeMap::new();
         headers.insert("authorization".into(), "Bearer forged-token".into());
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1457,7 +1461,7 @@ mod tests {
     fn auth_no_bearer_on_internal_seats_reload_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/internal/seats/reload".into(),
@@ -1476,7 +1480,7 @@ mod tests {
     fn auth_no_bearer_on_internal_seats_get_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/internal/seats".into(),
@@ -1558,7 +1562,7 @@ mod tests {
     fn auth_valid_control_bearer_permits_reload() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/internal/seats/reload".into(),
@@ -1581,7 +1585,7 @@ mod tests {
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let mut headers = std::collections::BTreeMap::new();
         headers.insert("authorization".into(), "Bearer anything".into());
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),

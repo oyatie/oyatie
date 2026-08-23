@@ -19,7 +19,7 @@ spec:
     # Emergency-services bypass FIRST (highest priority)
     - matches:
         - headers:
-            - name: X-Oya-Audience-Type
+            - name: X-Oyatie-Audience-Type
               value: EMERGENCY_SERVICES
       backendRefs:
         - name: feature-flags-evaluator
@@ -28,7 +28,7 @@ spec:
         - type: RequestHeaderModifier
           requestHeaderModifier:
             add:
-              - name: X-Oya-WAF-Bypass
+              - name: X-Oyatie-WAF-Bypass
                 value: "emergency-services"
 
     # Rate limiting (evaluation path — high throughput)
@@ -75,7 +75,7 @@ spec:
   limits:
     - name: per-tenant-eval
       dimensions:
-        - header: X-Oya-Tenant-Id
+        - header: X-Oyatie-Tenant-Id
       rateLimit:
         unit: minute
         requestsPerUnit: 100000  # 100k eval/min per tenant
@@ -88,7 +88,7 @@ spec:
     # Bot-score gate (passive; pre-computed at edge)
     - name: high-bot-score-block
       dimensions:
-        - header: X-Oya-Bot-Score
+        - header: X-Oyatie-Bot-Score
           operator: gte
           value: "95"
       action: block
@@ -103,7 +103,7 @@ spec:
   limits:
     - name: per-principal-mutation
       dimensions:
-        - header: X-Oya-Principal-Id
+        - header: X-Oyatie-Principal-Id
       rateLimit:
         unit: minute
         requestsPerUnit: 60   # 60 mutations/min per principal (anti-flag-flooding)

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya gate run-all` with `--affected [--base <ref>]` so presubmit runs
+Extend `presubmit` with `--affected [--base <ref>]` so presubmit runs
 execute only the governance lanes triggered by the diff against a base ref,
 mirroring the affected-scope selection already used by `oya verify --affected`
 (ADR-0360 O1). `--ci-required` remains the authoritative whole-workspace trunk
@@ -10,14 +10,14 @@ backstop and always forces the full lane set.
 
 ## Crate boundary
 
-All changes are confined to `crates/oya-dev-cli` — no new workspace member, no
+All changes are confined to `crates/dev-cli` — no new workspace member, no
 changes to `Cargo.toml` at the repo root. This is consistent with the flat
 clean-arch doctrine (ADR-0509).
 
 ## Mod layout (flat clean-arch per ADR-0509)
 
 ```
-crates/oya-dev-cli/src/commands/gate/run_all.rs   ← sole change site
+crates/dev-cli/src/commands/gate/run_all.rs   ← sole change site
 ```
 
 No new modules, no new abstractions beyond the two new fields on `RunAllArgs`.
@@ -29,13 +29,13 @@ No new modules, no new abstractions beyond the two new fields on `RunAllArgs`.
   service; OTel is already handled by the individual gate handlers).
 * No new SLO required (CLI tool, not a µservice).
 * Reuses existing `verify_affected::changed_files()` (git subprocess, already
-  audited) and `oya_governance_gate_catalog_domain::lanes_for_changed()` (pure
+  audited) and `governance_gate_catalog_domain::lanes_for_changed()` (pure
   domain function, no I/O).
 
 ## CLI surface
 
 ```
-oya gate run-all [--include-deferred] [--ci-required] [--affected [--base <ref>]]
+retired CLI run-all [--include-deferred] [--ci-required] [--affected [--base <ref>]]
 ```
 
 | Flag | Semantics |
@@ -53,7 +53,7 @@ oya gate run-all [--include-deferred] [--ci-required] [--affected [--base <ref>]
 3. When `--affected` is present and `--ci-required` is absent:
    a. Call `verify_affected::changed_files(repo_root, base)`.
    b. Convert `Vec<String>` to `Vec<&str>`.
-   c. Call `oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs)`.
+   c. Call `governance_gate_catalog_domain::lanes_for_changed(&changed_refs)`.
    d. Iterate the returned subset in catalog order; dispatch only those lanes.
    e. Log `[gate run-all] affected mode: {selected}/{total} lanes selected`.
 4. If `changed_files()` returns an error (e.g. git unavailable), emit a warning

@@ -11,9 +11,9 @@ related_oyatie_adrs:
   - ADR-0177
   - ADR-0258
 enforced_by:
-  - oya-governance-openapi-3-2-authoring
-  - oya-governance-openapi-rest-route-parity
-  - oya-governance-api-versioning
+  - governance-openapi-3-2-authoring
+  - governance-openapi-rest-route-parity
+  - governance-api-versioning
 canonical_paths:
   - contracts/*.openapi.yaml
   - microservices/*/contracts/*.openapi.yaml
@@ -271,14 +271,14 @@ This passes because tier, audit, and authorization are explicit.
 Primary command:
 
 ```bash
-oya gate validate openapi-3-2-authoring --scope contracts
+presubmit (retired CLI gate validate) openapi-3-2-authoring --scope contracts
 ```
 
 Companion commands:
 
 ```bash
-oya gate validate openapi-rest-route-parity --scope crates
-oya gate validate api-versioning --scope contracts
+presubmit (retired CLI gate validate) openapi-rest-route-parity --scope crates
+presubmit (retired CLI gate validate) api-versioning --scope contracts
 oya doc openapi
 ```
 
@@ -635,26 +635,26 @@ components:
 
 | ID | Concern | Requirement | Example | Checker |
 |---|---|---|---|---|
-| OAS-MAT-001 | Version | `openapi: 3.2.0` | root field | `oya-check-openapi-version` |
-| OAS-MAT-002 | Info | standard link | `x-oyatie-standard` | `oya-check-contract-links` |
-| OAS-MAT-003 | Info | ADR links | `x-oyatie-adrs` | `oya-check-adr-links` |
-| OAS-MAT-004 | Operation | stable operation id | `tenantCapabilityCeilingUpdateV1` | `oya-check-operation-ids` |
-| OAS-MAT-005 | Idempotency | mutation header required | `Idempotency-Key` | `oya-check-idempotency` |
-| OAS-MAT-006 | Request id | request header required | `X-Request-Id` | `oya-check-request-id` |
-| OAS-MAT-007 | Errors | problem schema | `OyatieProblemV1` | `oya-check-error-schema` |
-| OAS-MAT-008 | Cedar | denial response documented | `403` | `oya-check-cedar-denial-response` |
-| OAS-MAT-009 | Pagination | cursor shape for list | `cursor` | `oya-check-pagination` |
-| OAS-MAT-010 | Data class | schema extension | `x-oyatie-data-class` | `oya-check-data-class` |
-| OAS-MAT-011 | Tenant | tenant path/header explicit | `tenant_id` | `oya-check-tenant-boundary` |
-| OAS-MAT-012 | Compatibility | diff run | schema diff | `oya-check-openapi-compatibility` |
-| OAS-MAT-013 | SDK | generated client compiles | SDK path | `oya-check-sdk-generation` |
-| OAS-MAT-014 | Route parity | handler exists | service route | `oya-check-route-parity` |
-| OAS-MAT-015 | Examples | examples are synthetic | examples | `oya-check-example-safety` |
-| OAS-MAT-016 | Security | security schemes declared | components | `oya-check-security-schemes` |
-| OAS-MAT-017 | Versioning | breaking change bumps major | info.version | `oya-check-contract-version` |
-| OAS-MAT-018 | Docs | standard cross-reference | docs path | `oya-check-doc-links` |
-| OAS-MAT-019 | Audit | mutating operation emits event | audit map | `oya-check-audit-emission` |
-| OAS-MAT-020 | Promote | checker output in evidence | VCS bundle | `oya-vcs-admission` |
+| OAS-MAT-001 | Version | `openapi: 3.2.0` | root field | `check-openapi-version` |
+| OAS-MAT-002 | Info | standard link | `x-oyatie-standard` | `check-contract-links` |
+| OAS-MAT-003 | Info | ADR links | `x-oyatie-adrs` | `check-adr-links` |
+| OAS-MAT-004 | Operation | stable operation id | `tenantCapabilityCeilingUpdateV1` | `check-operation-ids` |
+| OAS-MAT-005 | Idempotency | mutation header required | `Idempotency-Key` | `check-idempotency` |
+| OAS-MAT-006 | Request id | request header required | `X-Request-Id` | `check-request-id` |
+| OAS-MAT-007 | Errors | problem schema | `OyatieProblemV1` | `check-error-schema` |
+| OAS-MAT-008 | Cedar | denial response documented | `403` | `check-cedar-denial-response` |
+| OAS-MAT-009 | Pagination | cursor shape for list | `cursor` | `check-pagination` |
+| OAS-MAT-010 | Data class | schema extension | `x-oyatie-data-class` | `check-data-class` |
+| OAS-MAT-011 | Tenant | tenant path/header explicit | `tenant_id` | `check-tenant-boundary` |
+| OAS-MAT-012 | Compatibility | diff run | schema diff | `check-openapi-compatibility` |
+| OAS-MAT-013 | SDK | generated client compiles | SDK path | `check-sdk-generation` |
+| OAS-MAT-014 | Route parity | handler exists | service route | `check-route-parity` |
+| OAS-MAT-015 | Examples | examples are synthetic | examples | `check-example-safety` |
+| OAS-MAT-016 | Security | security schemes declared | components | `check-security-schemes` |
+| OAS-MAT-017 | Versioning | breaking change bumps major | info.version | `check-contract-version` |
+| OAS-MAT-018 | Docs | standard cross-reference | docs path | `check-doc-links` |
+| OAS-MAT-019 | Audit | mutating operation emits event | audit map | `check-audit-emission` |
+| OAS-MAT-020 | Promote | checker output in evidence | VCS bundle | `retired VCS ratchet` |
 
 ## Extended OpenAPI Evidence Ledger
 

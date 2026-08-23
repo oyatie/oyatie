@@ -36,13 +36,13 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_replication_lag_seconds_bucket{le="5.0"}[5m]))
+                sum(rate(feature_flag_replication_lag_seconds_bucket{le="5.0"}[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_feature_flag_replication_lag_seconds_count[5m]))
+                sum(rate(feature_flag_replication_lag_seconds_count[5m]))
   alerting:
     burnRateAlerts:
       - shortWindow: 5m

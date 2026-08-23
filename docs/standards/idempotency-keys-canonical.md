@@ -56,7 +56,7 @@ On receipt:
 ### 3. Trait surface
 
 Every microservice integrates the `IdempotencyKeyStore` trait from
-`oya-shared-idempotency-key-kernel`:
+`shared-idempotency-key-kernel`:
 
 ```rust
 pub trait IdempotencyKeyStore: Send + Sync {
@@ -103,7 +103,7 @@ so the publisher emits at most one event per state change.
 
 ### 7. Validation
 
-The `oya-check-idempotency-key-coverage` gate enforces that every
+The `check-idempotency-key-coverage` gate enforces that every
 state-changing operation in every microservice OpenAPI document
 declares the canonical `Idempotency-Key` parameter.
 

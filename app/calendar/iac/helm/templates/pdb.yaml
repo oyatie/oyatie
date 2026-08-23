@@ -7,7 +7,7 @@ Per-BC PodDisruptionBudget. min-available 50% per ADR-0131 baseline.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: oya-calendar-{{ $bc }}-app-pdb
+  name: calendar-{{ $bc }}-app-pdb
   namespace: calendar
   labels:
     microservice: calendar

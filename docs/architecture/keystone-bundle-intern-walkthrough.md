@@ -350,7 +350,7 @@ DM does not yet exist.** Step-by-step it will be created on-demand.
   `messenger-api` Service in `cell-us-west-2-a`. Three pods sit behind
   the Service (HPA scales on CPU + queue depth per Messenger PRD
   §10.3). One pod accepts the request. The pod's Rust binary is the
-  `oya-messenger-direct-messaging-api` crate (BC `direct-messaging` per
+  `messenger-direct-messaging-api` crate (BC `direct-messaging` per
   Messenger PRD §11).
 - **Why it matters architecturally.** The messenger µservice has 18
   bounded contexts (PRD §11). The API pod is the BC entry; everything
@@ -684,7 +684,7 @@ DM does not yet exist.** Step-by-step it will be created on-demand.
   (caller-supplied idempotency keys per state-changing action);
   ADR-0252 D-5 (no wall clock for ordering decisions).
 - **What happens.** Client reads its local HLC primitive (per
-  `oya-shared-time-kernel` per ADR-0252's enforcement preconditions);
+  `shared-time-kernel` per ADR-0252's enforcement preconditions);
   attaches `hlc_timestamp = (physical_now, logical_counter)` to the
   outer frame. Also attaches `idempotency_key = uuid_v4()` so the
   server can dedupe on retry.

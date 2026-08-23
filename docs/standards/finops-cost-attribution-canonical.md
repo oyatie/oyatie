@@ -39,10 +39,10 @@ following labels:
 
 | Label                       | Required | Cardinality target | Source                                |
 |-----------------------------|----------|--------------------|---------------------------------------|
-| `oya.io/tenant-id`          | yes      | bounded; ULID      | tenancy µservice                      |
-| `oya.io/cost-center`        | yes      | closed enum        | µservice manifest                     |
-| `oya.io/workload-class`     | yes      | closed enum: `app` / `batch` / `gpu` / `regulatory` | µservice manifest |
-| `oya.io/regulatory-pack`    | yes      | closed enum: `generic` / `kr` / `eu` / `us-healthcare` / `us-financial` / `us-public-sector` | µservice manifest |
+| `oyatie.io/tenant-id`          | yes      | bounded; ULID      | tenancy µservice                      |
+| `oyatie.io/cost-center`        | yes      | closed enum        | µservice manifest                     |
+| `oyatie.io/workload-class`     | yes      | closed enum: `app` / `batch` / `gpu` / `regulatory` | µservice manifest |
+| `oyatie.io/regulatory-pack`    | yes      | closed enum: `generic` / `kr` / `eu` / `us-healthcare` / `us-financial` / `us-public-sector` | µservice manifest |
 
 **Privacy + cardinality discipline (per ADR-0186):**
 
@@ -71,29 +71,29 @@ fields are 1:1 across the two surfaces.
 
 ## Helm helper (canonical)
 
-The library helper `oya.tenantCostLabels` emits the K8s label block:
+The library helper `oyatie.tenantCostLabels` emits the K8s label block:
 
 ```yaml
-{{- define "oya.tenantCostLabels" -}}
-oya.io/tenant-id: {{ .Values.costAttribution.tenantId | default "shared" | quote }}
-oya.io/cost-center: {{ required "costAttribution.costCenter is required" .Values.costAttribution.costCenter | quote }}
-oya.io/workload-class: {{ required "costAttribution.workloadClass is required" .Values.costAttribution.workloadClass | quote }}
-oya.io/regulatory-pack: {{ .Values.costAttribution.regulatoryPack | default "generic" | quote }}
+{{- define "oyatie.tenantCostLabels" -}}
+oyatie.io/tenant-id: {{ .Values.costAttribution.tenantId | default "shared" | quote }}
+oyatie.io/cost-center: {{ required "costAttribution.costCenter is required" .Values.costAttribution.costCenter | quote }}
+oyatie.io/workload-class: {{ required "costAttribution.workloadClass is required" .Values.costAttribution.workloadClass | quote }}
+oyatie.io/regulatory-pack: {{ .Values.costAttribution.regulatoryPack | default "generic" | quote }}
 {{- end }}
 ```
 
 The helper is `required`-guarded — Helm rendering FAILS if `cost-center`
 or `workload-class` are absent. (Parent wiring task: extend
-`_oya-helpers/templates/_helpers.tpl`.)
+`_oyatie-helpers/templates/_helpers.tpl`.)
 
 Per-µservice `Chart.yaml` + `values.yaml`:
 
 ```yaml
 # Chart.yaml
 dependencies:
-  - name: oya-helpers
+  - name: helpers
     version: 0.1.0
-    repository: "file://../../../../governance/iac/helm/_oya-helpers"
+    repository: "file://../../../../governance/iac/helm/_oyatie-helpers"
 
 # values.yaml
 costAttribution:
@@ -107,8 +107,8 @@ Every Deployment / StatefulSet / DaemonSet pod spec MUST include:
 ```yaml
 metadata:
   labels:
-    {{ include "oya.labels" $ | nindent 4 }}
-    {{ include "oya.tenantCostLabels" $ | nindent 4 }}
+    {{ include "oyatie.labels" $ | nindent 4 }}
+    {{ include "oyatie.tenantCostLabels" $ | nindent 4 }}
 ```
 
 ## OpenCost aggregation
@@ -130,7 +130,7 @@ metadata:
     NodePools.
   - **Allocation columns** — declare how costs split across workloads.
 - FOCUS export lands in SeaweedFS bucket
-  `oya-finops-focus-export-shared-<env>` per ADR-0196.
+  `finops-focus-export-shared-<env>` per ADR-0196.
 
 ## Cost anomaly alerts (canonical)
 
@@ -148,7 +148,7 @@ Runbooks live at `docs/runbooks/finops-<alert-slug>.md`.
 
 | Gate                                          | Lane mode | Behavior                                              |
 |-----------------------------------------------|-----------|-------------------------------------------------------|
-| `oya-check-tenant-cost-labels-coverage`       | advisory  | renders Helm + reports workloads missing the label block |
+| `check-tenant-cost-labels-coverage`       | advisory  | renders Helm + reports workloads missing the label block |
 
 Strict promotion follows when the per-µservice coverage backlog reaches
 zero.
@@ -167,11 +167,11 @@ Quarterly:
 
 Tenant `t-1234`, Pro tier, period 2026-Q2:
 
-- Cluster cost (OpenCost) — `oya.io/tenant-id=01HX...` aggregated:
+- Cluster cost (OpenCost) — `oyatie.io/tenant-id=01HX...` aggregated:
   $4,200.
 - Foundry capability invocations — 1.2M × $0.00015: $180.
 - Audit-chain emit — 18M rows × $0.000002: $36.
-- Storage (`oya-class-tenant-pii`) — 240 GB × $0.20: $48.
+- Storage (`class-tenant-pii`) — 240 GB × $0.20: $48.
 - Customer-success credit: −$200.
 - **Total**: $4,264.
 

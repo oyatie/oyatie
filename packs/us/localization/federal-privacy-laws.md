@@ -491,9 +491,9 @@ The pack uses official public authorities available on 2026-05-20.
 - FED-XREF-009: `specs/microservices/identity.json` is the likely host for parent, guardian, authorized-agent, and identity verification.
 - FED-XREF-010: `specs/microservices/governance.json` is the likely host for authority resolution and processor contracts.
 - FED-XREF-011: `specs/microservices/audit-chain` catalog entries are future hosts for federal audit events.
-- FED-XREF-012: `registry/catalog/oya-check-data-class.yaml` is a future gate for federal data labels.
-- FED-XREF-013: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future gate for federal evidence completeness.
-- FED-XREF-014: `registry/catalog/oya-check-cedar-fragment-coverage.yaml` is a future gate for executable Cedar fragments.
+- FED-XREF-012: `registry/catalog/check-data-class.yaml` is a future gate for federal data labels.
+- FED-XREF-013: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future gate for federal evidence completeness.
+- FED-XREF-014: `registry/catalog/check-cedar-fragment-coverage.yaml` is a future gate for executable Cedar fragments.
 - FED-XREF-015: Official HHS HIPAA guidance must remain the primary source for HIPAA rule interpretation.
 - FED-XREF-016: Official eCFR pages must remain the current citation source for CFR parts.
 - FED-XREF-017: FTC sources remain primary for GLBA Safeguards and FCRA statutory reference material where FTC jurisdiction applies.

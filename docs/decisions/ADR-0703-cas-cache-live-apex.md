@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0703-D1
     description: "Live apex source-of-truth for topic cas_cache: Live CAS/cache policy (activation-gated RE remains fail-closed)."
     exit_criteria: "docs/decisions/ADR-0703-cas-cache-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0703: Live CAS/cache policy (activation-gated RE remains fail-closed)
 

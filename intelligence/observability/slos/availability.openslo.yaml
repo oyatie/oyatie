@@ -1,15 +1,15 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-intelligence-availability
+  name: intelligence-app-availability
   displayName: "Cloud Intelligence Availability"
   labels:
-    microservice: cloud-intelligence
+    microservice: intelligence-app
     surface: ingress
     adr: "ADR-0373"
-    research_brief: "microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md#4"
+    research_brief: "microservices/intelligence-app/design/hyperscaler-best-practice-brief.md#4"
 spec:
-  service: cloud-intelligence
+  service: intelligence-app
   description: |
     Availability = ratio of ingress responses that are NOT a 5xx and NOT a gateway-originated
     error (brief §4 — "ratio non-5xx/non-gateway-error"). A gateway-originated 503
@@ -26,15 +26,15 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{
-                  service="cloud-intelligence",code!~"5..",gateway_error="false"
+                sum(rate(intelligence_app_requests_total{
+                  service="intelligence-app",code!~"5..",gateway_error="false"
                 }[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_requests_total{service="cloud-intelligence"}[5m]))
+                sum(rate(intelligence_app_requests_total{service="intelligence-app"}[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true
@@ -43,7 +43,7 @@ spec:
     - displayName: "99.9% availability"
       target: 0.999
   alertPolicies:
-    - name: cloud-intelligence-availability-burnrate-fastburn
+    - name: intelligence-app-availability-burnrate-fastburn
       kind: AlertPolicy
       spec:
         conditions:
@@ -51,23 +51,23 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-cloud-intelligence
-          - target: opsgenie-cloud-intelligence
-    - name: cloud-intelligence-availability-burnrate-mediumburn
+          - target: pagerduty-intelligence-app
+          - target: opsgenie-intelligence-app
+    - name: intelligence-app-availability-burnrate-mediumburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: mediumburn }
             spec: { op: gte, threshold: 6.0, lookbackWindow: 6h, alertAfter: 15m }
-    - name: cloud-intelligence-availability-burnrate-slowburn
+    - name: intelligence-app-availability-burnrate-slowburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: slowburn }
             spec: { op: gte, threshold: 3.0, lookbackWindow: 1d, alertAfter: 1h }
-    - name: cloud-intelligence-availability-burnrate-trickleburn
+    - name: intelligence-app-availability-burnrate-trickleburn
       kind: AlertPolicy
       spec:
         conditions:

@@ -95,14 +95,14 @@ No Bominal overrides.
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `payroll-run` | `oya-payroll-run-{domain,application,infrastructure,rest}` | Monthly payroll computation; gross-to-net; pro-rata | `PayrollRun`, `PayrollEntry` |
-| `insurance` | `oya-payroll-insurance-{domain,application,infrastructure}` | 4대보험 rate config; EDI submission; NPS/NHIS/MOEL adapters | `InsuranceConfig`, `EdiSubmission` |
-| `year-end` | `oya-payroll-year-end-{domain,application,infrastructure,rest}` | 연말정산 calculation; deduction collection; withholding cert gen | `YearEndSettlement`, `WithholdingCert` |
-| `payslip` | `oya-payroll-payslip-{domain,application,infrastructure,rest}` | Payslip generation (Typst); employee-facing read | `Payslip` |
-| `disbursement` | `oya-payroll-disbursement-{domain,application,infrastructure}` | Bank transfer batch; disbursement status tracking | `DisbursementBatch` |
+| `payroll-run` | `payroll-run-{domain,application,infrastructure,rest}` | Monthly payroll computation; gross-to-net; pro-rata | `PayrollRun`, `PayrollEntry` |
+| `insurance` | `payroll-insurance-{domain,application,infrastructure}` | 4대보험 rate config; EDI submission; NPS/NHIS/MOEL adapters | `InsuranceConfig`, `EdiSubmission` |
+| `year-end` | `payroll-year-end-{domain,application,infrastructure,rest}` | 연말정산 calculation; deduction collection; withholding cert gen | `YearEndSettlement`, `WithholdingCert` |
+| `payslip` | `payroll-payslip-{domain,application,infrastructure,rest}` | Payslip generation (Typst); employee-facing read | `Payslip` |
+| `disbursement` | `payroll-disbursement-{domain,application,infrastructure}` | Bank transfer batch; disbursement status tracking | `DisbursementBatch` |
 
 ```
-NAME: oya-payroll-run-domain
+NAME: payroll-run-domain
 JUSTIFICATION:
 - microservice = payroll: Payroll µservice; flat catalog; ADR-0056 v4.1
 - bc-tokens = run: payroll has multiple BCs (run/insurance/year-end/payslip/disbursement); run BC owns the monthly computation cycle; ADR-0056 v4.1 BC-optionality
@@ -205,13 +205,13 @@ Cross-region: M03 KR only; post-M03 per `docs/ROADMAP.md`.
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | Payroll run for 1,000 employees completes in ≤30 s; all entries correct | `cargo nextest run -p oya-payroll-run-domain --test payroll_run_1000` |
-| AC-02 | 4대보험 EDI file generated matches 더존 iCUBE reference format | `cargo nextest run -p oya-payroll-insurance-domain --test edi_format_compliance` |
-| AC-03 | 연말정산 all 21 deduction categories computed correctly | `cargo nextest run -p oya-payroll-year-end-domain --test year_end_all_categories` |
+| AC-01 | Payroll run for 1,000 employees completes in ≤30 s; all entries correct | `cargo nextest run -p payroll-run-domain --test payroll_run_1000` |
+| AC-02 | 4대보험 EDI file generated matches 더존 iCUBE reference format | `cargo nextest run -p payroll-insurance-domain --test edi_format_compliance` |
+| AC-03 | 연말정산 all 21 deduction categories computed correctly | `cargo nextest run -p payroll-year-end-domain --test year_end_all_categories` |
 | AC-04 | `PayrollRunCompleted` event routed to accounting | integration test `test_payroll_accounting_workflow` |
-| AC-05 | LEAN-A2: no direct imports from hr/accounting/connect | `oya gate validate lean-a2 --ms payroll` exits 0 |
+| AC-05 | LEAN-A2: no direct imports from hr/accounting/connect | `presubmit` (retired CLI `gate validate lean-a2 --ms payroll`) exits 0 |
 | AC-06 | Payslip p99 ≤50 ms at 1k RPS | k6 smoke; `http_req_duration{p(99)}<50` |
-| AC-07 | Audit chain sealed; tamper-evident per (tenant, year, month) | `oya gate validate audit-chain --ms payroll` |
+| AC-07 | Audit chain sealed; tamper-evident per (tenant, year, month) | `presubmit` (retired CLI `gate validate audit-chain --ms payroll`) |
 
 ---
 

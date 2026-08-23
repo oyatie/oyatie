@@ -2,14 +2,14 @@
 
 ## Objective
 
-Extend the `oya-ontology-kernel` crate with a tenant-scoped link-instance registry and
+Extend the `ontology-kernel` crate with a tenant-scoped link-instance registry and
 cardinality enforcement. The engine already knows the declared `LinkCardinality` of every
 registered `LinkTypeDefinition`; this slice enforces that cardinality at the instance level
 when callers register concrete directed edges between entity instances.
 
 ## Crate boundary
 
-Only `crates/oya-ontology-kernel` is modified. No workspace Cargo.toml changes. No new crate.
+Only `crates/ontology-kernel` is modified. No workspace Cargo.toml changes. No new crate.
 
 ## Mod layout (flat-clean-arch per ADR-0509)
 
@@ -94,7 +94,7 @@ Check order: idempotency → outbound → inbound → insert.
 ## Testing strategy
 
 Hermetic unit tests only. New integration test file:
-`crates/oya-ontology-kernel/tests/link_instance_cardinality.rs`
+`crates/ontology-kernel/tests/link_instance_cardinality.rs`
 
 | Test | Scenario |
 |------|----------|

@@ -8,12 +8,12 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use iam_tenant_rbac_domain::{
     AiSuggestionRef, AuditEvidenceRef, CrossServiceWorkflowPlan, DeterministicGate,
     IncidentFirstAction, IncidentId, IncidentPlanStatus, IncidentRemediationRoute,
     IncidentRollbackPlan, IncidentTrigger, ObjectGraphRelationshipRef, TenantId, WorkflowRef,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const TENANT_RBAC_OPS_TOPIC: &str = "audit.tenant-rbac.ops.command";
 const TENANT_RBAC_WORKFLOW_TOPIC: &str = "workflow.tenant-rbac.cross-service.dispatch";

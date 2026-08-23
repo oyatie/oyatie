@@ -2,7 +2,7 @@
 
 This document records the canonical MUST/SHOULD rules, pitfalls, and how they
 constrain the implementation of the tonic gRPC delivery surface for
-`crates/oya-identity-workload-rest`.  It is a companion to
+`crates/identity-workload-rest`.  It is a companion to
 `docs/specs/slice-id-workload-grpc-surface.md` (the architectural spec) and
 `tasks/id-workload-grpc-surface-plan.md` (the plan).
 
@@ -43,11 +43,11 @@ not a manual `include!` with an `OUT_DIR` path.  The macro expands to
 version-portable way to pull in codegen output.
 
 **MUST**: The argument is the proto *package* name (dots preserved), not the
-file name.  For `package oya.identity.workload.v1` the argument is
-`"oya.identity.workload.v1"`.
+file name.  For `package oyatie.identity.workload.v1` the argument is
+`"oyatie.identity.workload.v1"`.
 
 **Pitfall**: Using `include_proto!("workload")` (file stem) instead of
-`include_proto!("oya.identity.workload.v1")` (package name) causes a compile-time
+`include_proto!("oyatie.identity.workload.v1")` (package name) causes a compile-time
 `include!` expansion failure because the generated file is named after the
 package, not the source file.
 
@@ -108,7 +108,7 @@ tonic_prost_build::configure()
 **MUST**: Provide the vendored `protoc` via `protoc-bin-vendored` before calling
 `compile_protos`.  Set `PROTOC` via `std::env::set_var` in the build script.
 This is the workspace-established pattern (see
-`crates/oya-shared-backbone-grpc-generated-adapter/build.rs`).
+`crates/shared-backbone-grpc-generated-adapter/build.rs`).
 
 **Pitfall**: Not setting `PROTOC` causes the build to try to find `protoc` on
 `PATH`, which fails in hermetic CI environments where protoc is not installed.
@@ -120,7 +120,7 @@ and emits `cargo:rerun-if-changed` for the proto directory and file manually.
 
 Source: https://docs.rs/tonic-prost-build (tonic-prost-build 0.14.x);
 https://crates.io/crates/tonic-prost-build/0.14.2;
-Workspace pattern: `crates/oya-shared-backbone-grpc-generated-adapter/build.rs`
+Workspace pattern: `crates/shared-backbone-grpc-generated-adapter/build.rs`
 
 ### 2.2 No new workspace member required
 
@@ -129,7 +129,7 @@ Workspace pattern: `crates/oya-shared-backbone-grpc-generated-adapter/build.rs`
 requires only `[build-dependencies]` in the crate's own `Cargo.toml`.
 
 **MUST NOT** change `root Cargo.toml` at all.  Disjointness requires this
-lane touch only `crates/oya-identity-workload-rest/`.
+lane touch only `crates/identity-workload-rest/`.
 
 Source: Cargo reference https://doc.rust-lang.org/cargo/reference/build-scripts.html
 
@@ -288,14 +288,14 @@ The `detail` field in the proto `ValidationError` carries the full
 `error.to_string()` for operator diagnostics regardless of kind.
 
 Source: `microservices/identity/contracts/proto/workload.proto` (ValidationErrorKind enum);
-`crates/oya-identity-workload-oidc-adapter/src/lib.rs` (OidcValidationError enum)
+`crates/identity-workload-oidc-adapter/src/lib.rs` (OidcValidationError enum)
 
 ---
 
 ## 5. Crypto path and ADR-0506 non-regression
 
 **MUST NOT** set `default-features = false` on `aws-lc-rs` anywhere in
-`crates/oya-identity-workload-rest/Cargo.toml`.  ADR-0506 mandates `aws-lc-rs`
+`crates/identity-workload-rest/Cargo.toml`.  ADR-0506 mandates `aws-lc-rs`
 as the crypto backend; disabling default features can silently disable the
 `aws-lc-rs` feature flag, falling back to the ring/openssl backend in TLS
 libraries.
@@ -348,10 +348,10 @@ shared-core mapping:
 
 | gRPC RPC | Shared core |
 |---|---|
-| `AuthorizeWithToken` | `oya_identity_workload_app::authorize_with_token` |
-| `AuthorizeBatch` (per item) | `oya_identity_workload_app::authorize_with_token` |
+| `AuthorizeWithToken` | `identity_workload_app::authorize_with_token` |
+| `AuthorizeBatch` (per item) | `identity_workload_app::authorize_with_token` |
 | `Authorize` | `build_active_principal` (crate fn in `src/lib.rs`) + `authorizer.authorize` |
-| `ValidateToken` | `oya_identity_workload_oidc_adapter::validate_workload_token` |
+| `ValidateToken` | `identity_workload_oidc_adapter::validate_workload_token` |
 
 The `Authorize` RPC uses `build_active_principal` because the REST `/authorize`
 handler also uses `build_active_principal` — this IS the shared core for that
@@ -369,13 +369,13 @@ surface and risk semantic drift between the two delivery layers.
 
 **MUST NOT** add a new crate to the workspace for the gRPC surface.  The
 implementation lives in `src/grpc/mod.rs` inside the existing
-`oya-identity-workload-rest` crate.
+`identity-workload-rest` crate.
 
 **MUST NOT** edit the root `Cargo.toml` workspace member list.
 
 **Pitfall**: The established pattern in this repo for other services places gRPC
-delivery in standalone `*-grpc` crates (e.g. `oya-shared-backbone-grpc-*`,
-`oya-payments-charge-grpc`).  This pattern is correct for those services (they
+delivery in standalone `*-grpc` crates (e.g. `shared-backbone-grpc-*`,
+`payments-charge-grpc`).  This pattern is correct for those services (they
 ARE standalone service crates).  For the identity workload vertical the existing
 `-rest` crate is the single service crate under ADR-0509; the gRPC surface is
 a delivery module inside it, not a second service crate.
@@ -411,7 +411,7 @@ Source: `microservices/identity/workload-identity/PRD.md` §3.3 (AC-W-13);
 |---|---|---|
 | M-01 | `#[tonic::async_trait]` on every service impl block | Compiler |
 | M-02 | All type params on server struct: `Send + Sync + 'static` | Compiler |
-| M-03 | `tonic::include_proto!("oya.identity.workload.v1")` (package name, not file stem) | Compiler |
+| M-03 | `tonic::include_proto!("oyatie.identity.workload.v1")` (package name, not file stem) | Compiler |
 | M-04 | Proto enum fields set as `EnumVariant as i32` | Compiler |
 | M-05 | Deny always `Ok(Response)` with DECISION_EFFECT_DENY, never `Err(Status)` | Test (b) |
 | M-06 | Store/JWKS unavailable (unary): `Err(Status::unavailable(...))` | Test (d) |
@@ -443,8 +443,8 @@ Source: `microservices/identity/workload-identity/PRD.md` §3.3 (AC-W-13);
 - Cargo build scripts: https://doc.rust-lang.org/cargo/reference/build-scripts.html
 - Cargo integration tests: https://doc.rust-lang.org/cargo/reference/cargo-targets.html#integration-tests
 - Local: `microservices/identity/contracts/proto/workload.proto`
-- Local: `crates/oya-identity-workload-rest/Cargo.toml`
-- Local: `crates/oya-identity-workload-rest/build.rs`
-- Local: `crates/oya-identity-workload-rest/src/grpc/mod.rs`
+- Local: `crates/identity-workload-rest/Cargo.toml`
+- Local: `crates/identity-workload-rest/build.rs`
+- Local: `crates/identity-workload-rest/src/grpc/mod.rs`
 - Local: `docs/specs/slice-id-workload-grpc-surface.md`
 - Local: `tasks/id-workload-grpc-surface-plan.md`

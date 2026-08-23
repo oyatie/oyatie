@@ -20,15 +20,15 @@ deliverables:
   - id: ADR-0712-D1
     description: "Select a permanent two-SKU node-kernel pool matrix after A1 evidence: Asterinas hosts shared-kernel workloads (plus a TDX-guest trajectory); stripped-Linux KVM-capable pools are co-selected as a permanent SKU for private-kernel and attestation-capable pools for private-kernel-attested. Until A1 is green, Linux pools are primary production and Asterinas remains soak/boot evidence only."
     exit_criteria: "A1 4-surface ABI matrix evidence is published (syscalls + proc/sys/cgroupfs files + netlink families + mount semantics) comparing pinned ISO profiles of runc/youki/containerd/kubelet against Asterinas v0.17.2's implemented set; founder Accept selects the co-SKU matrix OR Accept selects named fallback G5 (Linux/Talos-class kernel remains the node kernel; Asterinas remains soak/boot evidence only) when Critical gaps fire (cgroup v2 delegation, netlink, or overlayfs)."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0712-D2
     description: "Name fallback G5 as the only authorized retreat from D-1 without inventing a third kernel product."
     exit_criteria: "G5 trigger criteria are enumerated in this ADR; Accept of D-1 without A1 evidence is forbidden; Accept of G5 requires a recorded Critical-surface gap from the A1 matrix."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0712-D3
     description: "Attestation-capable pool constraint for private-kernel-attested: pool MUST advertise TEE hardware profile (selected TDX/SEV-SNP) AND relying-party reachability as pool properties; admission MUST deny private-kernel-attested unless both are present with evidence."
     exit_criteria: "Accept records the attestation-capable pool capability schema and deny rule; day-1 attested tier is labeled attested-identity (host in TCB); pool TEE+RP is necessary but not sufficient — attested identity/authz requires fresh nonce-bound quote validated by relying party before leaving quarantine; operator-excluded confidentiality (guest-pull) remains the F1 Isolation target, not a day-1 claim."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0712: Node kernel + pool matrix — Linux primary; Asterinas soak until A1
 
@@ -217,7 +217,7 @@ points live in the k8s admission and node-pool µservices' PRDs after Accept.
 
 - Cell density SLOs for `shared-kernel` remain first-class (historical ADR-0338 density caution,
   carried via ADR-0701 gist); VM-first is per-cell-class, not global.
-- CI: Accept evidence rides `oya-ci-required`; no authority-surface citation while Proposed.
+- CI: Accept evidence rides `presubmit`; no authority-surface citation while Proposed.
 
 ## Clean Architecture Impact
 

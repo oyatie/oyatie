@@ -221,8 +221,8 @@
     "480": {
       "disposition": "consolidated",
       "live_id": "ADR-0701",
-      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
-      "archive_path": "docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md"
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0480-cost-bespoke-k8s-cost-allocation.md",
+      "archive_path": "docs/adr-archive/ADR-0480-cost-bespoke-k8s-cost-allocation.md"
     },
     "611": {
       "disposition": "consolidated",
@@ -341,8 +341,8 @@
     "527": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
-      "archive_path": "docs/adr-archive/ADR-0527-oya-ci-conformance-floor-config-driven-engine.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0527-ci-conformance-floor-config-driven-engine.md",
+      "archive_path": "docs/adr-archive/ADR-0527-ci-conformance-floor-config-driven-engine.md"
     },
     "222": {
       "disposition": "consolidated",
@@ -371,8 +371,8 @@
     "223": {
       "disposition": "consolidated",
       "live_id": "ADR-0709",
-      "note": "full text docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md; live apex ADR-0709",
-      "archive_path": "docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md"
+      "note": "full text docs/adr-archive/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md"
     },
     "83": {
       "disposition": "consolidated",
@@ -449,8 +449,8 @@
     "525": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-      "archive_path": "docs/adr-archive/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md"
     },
     "6": {
       "disposition": "consolidated",
@@ -508,8 +508,8 @@
     "539": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
-      "archive_path": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0539-pipeline-freshness-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0539-pipeline-freshness-gate.md"
     },
     "365": {
       "disposition": "consolidated",
@@ -627,8 +627,8 @@
     "531": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
-      "archive_path": "docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0531-auto-remediation-delivery-bot-autofix.md",
+      "archive_path": "docs/adr-archive/ADR-0531-auto-remediation-delivery-bot-autofix.md"
     },
     "250": {
       "disposition": "consolidated",
@@ -693,8 +693,8 @@
     "569": {
       "disposition": "consolidated",
       "live_id": "ADR-0704",
-      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
-      "archive_path": "docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md"
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0569-commission-data-outbox-cdc-adapter-postgres.md",
+      "archive_path": "docs/adr-archive/ADR-0569-commission-data-outbox-cdc-adapter-postgres.md"
     },
     "100": {
       "disposition": "consolidated",
@@ -753,8 +753,8 @@
     "553": {
       "disposition": "consolidated",
       "live_id": "ADR-0702",
-      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md",
-      "archive_path": "docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md"
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0553-identity-workload-service-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0553-identity-workload-service-commissioning.md"
     },
     "23": {
       "disposition": "consolidated",
@@ -777,14 +777,14 @@
     "346": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
-      "archive_path": "docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0346-verify-must-run-full-ci-mirror.md",
+      "archive_path": "docs/adr-archive/ADR-0346-verify-must-run-full-ci-mirror.md"
     },
     "513": {
       "disposition": "consolidated",
       "live_id": "ADR-0709",
-      "note": "full text docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md; live apex ADR-0709",
-      "archive_path": "docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+      "note": "full text docs/adr-archive/ADR-0513-ci-bespoke-rust-prow-cicd-platform.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0513-ci-bespoke-rust-prow-cicd-platform.md"
     },
     "329": {
       "disposition": "consolidated",
@@ -854,8 +854,8 @@
     "526": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
-      "archive_path": "docs/adr-archive/ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md",
+      "archive_path": "docs/adr-archive/ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md"
     },
     "146": {
       "disposition": "consolidated",
@@ -902,8 +902,8 @@
     "597": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
-      "archive_path": "docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+      "archive_path": "docs/adr-archive/ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md"
     },
     "547": {
       "disposition": "consolidated",
@@ -1016,8 +1016,8 @@
     "476": {
       "disposition": "consolidated",
       "live_id": "ADR-0701",
-      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md",
-      "archive_path": "docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md"
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0476-identity-bespoke-human-identity.md",
+      "archive_path": "docs/adr-archive/ADR-0476-identity-bespoke-human-identity.md"
     },
     "624": {
       "disposition": "consolidated",
@@ -1112,8 +1112,8 @@
     "358": {
       "disposition": "consolidated",
       "live_id": "ADR-0709",
-      "note": "full text docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md; live apex ADR-0709",
-      "archive_path": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md"
+      "note": "full text docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md"
     },
     "518": {
       "disposition": "consolidated",
@@ -1376,8 +1376,8 @@
     "481": {
       "disposition": "consolidated",
       "live_id": "ADR-0709",
-      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
-      "archive_path": "docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md"
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0481-flags-bespoke-feature-flag-server.md",
+      "archive_path": "docs/adr-archive/ADR-0481-flags-bespoke-feature-flag-server.md"
     },
     "243": {
       "disposition": "consolidated",
@@ -1519,8 +1519,8 @@
     "595": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
-      "archive_path": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
+      "archive_path": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md"
     },
     "586": {
       "disposition": "consolidated",
@@ -1866,8 +1866,8 @@
     "479": {
       "disposition": "consolidated",
       "live_id": "ADR-0701",
-      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md",
-      "archive_path": "docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md"
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0479-meter-bespoke-usage-metering.md",
+      "archive_path": "docs/adr-archive/ADR-0479-meter-bespoke-usage-metering.md"
     },
     "354": {
       "disposition": "consolidated",
@@ -2375,8 +2375,8 @@
     "639": {
       "disposition": "consolidated",
       "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
-      "archive_path": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md"
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0639-path-event-optional-legs-under-presubmit.md",
+      "archive_path": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-presubmit.md"
     },
     "618": {
       "disposition": "consolidated",
@@ -2696,8 +2696,8 @@
     "478": {
       "disposition": "consolidated",
       "live_id": "ADR-0709",
-      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md",
-      "archive_path": "docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md"
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0478-billing-bespoke-billing-engine.md",
+      "archive_path": "docs/adr-archive/ADR-0478-billing-bespoke-billing-engine.md"
     },
     "134": {
       "disposition": "consolidated",
@@ -2952,7 +2952,7 @@
     "ADR-0220-consumer-intelligence-substrate.md",
     "ADR-0221-agentic-development-pipeline-hardening.md",
     "ADR-0222-saga-compensation-portfolio-policy.md",
-    "ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+    "ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md",
     "ADR-0234-connect-social-expansion-planning-contract.md",
     "ADR-0235-connect-core-public-contracts.md",
     "ADR-0236-op11-corpus-remediation-planning-contract.md",
@@ -3031,7 +3031,7 @@
     "ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
     "ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
     "ADR-0344-sustainability-finops-dimensional-model.md",
-    "ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+    "ADR-0346-verify-must-run-full-ci-mirror.md",
     "ADR-0347-governance-fitness-bulk-rename.md",
     "ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
     "ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
@@ -3043,7 +3043,7 @@
     "ADR-0355-amendment-library-first-network-opt-in-clarification.md",
     "ADR-0356-amendment-library-first-ontology-read-path.md",
     "ADR-0357-vertical-slice-monorepo-nesting.md",
-    "ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+    "ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md",
     "ADR-0359-jenkins-completely-replaces-github-actions.md",
     "ADR-0360-ci-pipeline-optimization-program.md",
     "ADR-0361-jenkins-native-cicd-revamp-execution.md",
@@ -3079,11 +3079,11 @@
     "ADR-0393-leptos-canonical-app-shell-frontend.md",
     "ADR-0394-bespoke-rust-idp-central-hub.md",
     "ADR-0397-pulsar-oxia-canonical-event-bus.md",
-    "ADR-0476-oya-identity-bespoke-human-identity.md",
-    "ADR-0478-oya-billing-bespoke-billing-engine.md",
-    "ADR-0479-oya-meter-bespoke-usage-metering.md",
-    "ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
-    "ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+    "ADR-0476-identity-bespoke-human-identity.md",
+    "ADR-0478-billing-bespoke-billing-engine.md",
+    "ADR-0479-meter-bespoke-usage-metering.md",
+    "ADR-0480-cost-bespoke-k8s-cost-allocation.md",
+    "ADR-0481-flags-bespoke-feature-flag-server.md",
     "ADR-0482-bespoke-substrate-roadmap.md",
     "ADR-0506-aws-lc-rs-canonical-crypto-provider.md",
     "ADR-0507-webauthn-rs-canonical-relying-party.md",
@@ -3092,7 +3092,7 @@
     "ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md",
     "ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
     "ADR-0512-canonical-monorepo-pattern.md",
-    "ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+    "ADR-0513-ci-bespoke-rust-prow-cicd-platform.md",
     "ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
     "ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
     "ADR-0516-agentic-delivery-fabric-apex-vision.md",
@@ -3104,13 +3104,13 @@
     "ADR-0522-lifecycle-wide-hermeticity-one-graph-four-runners.md",
     "ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md",
     "ADR-0524-kernel-buckification-additive-first-verify-parity.md",
-    "ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-    "ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
-    "ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
+    "ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md",
+    "ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md",
+    "ADR-0527-ci-conformance-floor-config-driven-engine.md",
     "ADR-0528-remediation-first-class-on-gate-contract.md",
     "ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
     "ADR-0530-enforced-engineering-excellence-property-set.md",
-    "ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
+    "ADR-0531-auto-remediation-delivery-bot-autofix.md",
     "ADR-0532-platform-product-line-taxonomy-canonical-names.md",
     "ADR-0533-config-driven-public-boundary.md",
     "ADR-0534-gate-pipeline-step-sdk-and-marketplace.md",
@@ -3118,7 +3118,7 @@
     "ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
     "ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
     "ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-    "ADR-0539-cloud-ci-freshness-gate.md",
+    "ADR-0539-pipeline-freshness-gate.md",
     "ADR-0540-cargo-buck2-target-parity-gate.md",
     "ADR-0541-corpus-liveness-graph.md",
     "ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
@@ -3132,7 +3132,7 @@
     "ADR-0550-repository-layout-doctrine.md",
     "ADR-0551-merge-base-frozen-baseline-ratchet.md",
     "ADR-0552-stable-volatile-scm-facts-split.md",
-    "ADR-0553-oya-identity-workload-service-commissioning.md",
+    "ADR-0553-identity-workload-service-commissioning.md",
     "ADR-0554-binding-buck2-workspace-coverage.md",
     "ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md",
     "ADR-0556-build-cache-warmth-classification.md",
@@ -3148,7 +3148,7 @@
     "ADR-0566-authz-coverage-gate.md",
     "ADR-0567-auth-durable-store-postgres-rls-plans.md",
     "ADR-0568-born-accounting-register-crate-registrar-kernel.md",
-    "ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+    "ADR-0569-commission-data-outbox-cdc-adapter-postgres.md",
     "ADR-0570-port-placement-clean-arch-gate.md",
     "ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md",
     "ADR-0572-fail-closed-authz-for-cedar-policy-publish-control-plane.md",
@@ -3164,8 +3164,8 @@
     "ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
     "ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
     "ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
-    "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
-    "ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+    "ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
+    "ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
     "ADR-0598-commission-comms-meet-capability-first-core-slice.md",
     "ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
     "ADR-0600-root-workspace-hygiene-allowlist-gate.md",
@@ -3205,7 +3205,7 @@
     "ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
     "ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
     "ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
-    "ADR-0639-path-event-optional-legs-under-oya-ci-required.md"
+    "ADR-0639-path-event-optional-legs-under-presubmit.md"
   ],
   "tip": "fd6154ecd6e05dc082bad618a493f927d7ec00b8"
 }

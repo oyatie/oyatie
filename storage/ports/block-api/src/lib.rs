@@ -6,14 +6,14 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 use storage_domain::{
     BlockVolume, CloudStorageCatalog, CloudStorageError, EncryptionMode, StorageRepo, VolumeCreate,
     VolumePerformance, VolumeState, VolumeTier,
 };
 
-pub const CLOUD_STORAGE_BLOCK_CREATE_SURFACE: &str = "cloud.storage.block.create";
+pub const STORAGE_BLOCK_CREATE_SURFACE: &str = "storage.block.create";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudStorageBlockCreateApiStatus {
@@ -65,32 +65,28 @@ pub enum CloudStorageBlockApiErrorCode {
 impl CloudStorageBlockApiErrorCode {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::RequestIdEmpty => "CLOUD_STORAGE_BLOCK_REQUEST_ID_EMPTY",
-            Self::TenantHeaderEmpty => "CLOUD_STORAGE_BLOCK_TENANT_HEADER_EMPTY",
-            Self::IdempotencyKeyEmpty => "CLOUD_STORAGE_BLOCK_IDEMPOTENCY_KEY_EMPTY",
-            Self::PrincipalIdEmpty => "CLOUD_STORAGE_BLOCK_PRINCIPAL_ID_EMPTY",
-            Self::PathVolumeIdEmpty => "CLOUD_STORAGE_BLOCK_PATH_VOLUME_ID_EMPTY",
-            Self::VolumeIdMismatch => "CLOUD_STORAGE_BLOCK_VOLUME_ID_MISMATCH",
-            Self::TenantMismatch => "CLOUD_STORAGE_BLOCK_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => {
-                "CLOUD_STORAGE_BLOCK_AUTHORIZATION_DECISION_ID_EMPTY"
-            }
-            Self::AuthorizationTenantMismatch => {
-                "CLOUD_STORAGE_BLOCK_AUTHORIZATION_TENANT_MISMATCH"
-            }
+            Self::RequestIdEmpty => "STORAGE_BLOCK_REQUEST_ID_EMPTY",
+            Self::TenantHeaderEmpty => "STORAGE_BLOCK_TENANT_HEADER_EMPTY",
+            Self::IdempotencyKeyEmpty => "STORAGE_BLOCK_IDEMPOTENCY_KEY_EMPTY",
+            Self::PrincipalIdEmpty => "STORAGE_BLOCK_PRINCIPAL_ID_EMPTY",
+            Self::PathVolumeIdEmpty => "STORAGE_BLOCK_PATH_VOLUME_ID_EMPTY",
+            Self::VolumeIdMismatch => "STORAGE_BLOCK_VOLUME_ID_MISMATCH",
+            Self::TenantMismatch => "STORAGE_BLOCK_TENANT_MISMATCH",
+            Self::AuthorizationDecisionIdEmpty => "STORAGE_BLOCK_AUTHORIZATION_DECISION_ID_EMPTY",
+            Self::AuthorizationTenantMismatch => "STORAGE_BLOCK_AUTHORIZATION_TENANT_MISMATCH",
             Self::AuthorizationPrincipalMismatch => {
-                "CLOUD_STORAGE_BLOCK_AUTHORIZATION_PRINCIPAL_MISMATCH"
+                "STORAGE_BLOCK_AUTHORIZATION_PRINCIPAL_MISMATCH"
             }
-            Self::AuthorizationDenied => "CLOUD_STORAGE_BLOCK_AUTHORIZATION_DENIED",
-            Self::IdempotencyKeyReused => "CLOUD_STORAGE_BLOCK_IDEMPOTENCY_KEY_REUSED",
-            Self::ResidencyInvalid => "CLOUD_STORAGE_BLOCK_RESIDENCY_INVALID",
-            Self::VolumeTierInvalid => "CLOUD_STORAGE_BLOCK_VOLUME_TIER_INVALID",
-            Self::EncryptionInvalid => "CLOUD_STORAGE_BLOCK_ENCRYPTION_INVALID",
-            Self::DataClassInvalid => "CLOUD_STORAGE_BLOCK_DATA_CLASS_INVALID",
-            Self::StorageInvalidRequest => "CLOUD_STORAGE_BLOCK_INVALID_REQUEST",
-            Self::StorageForbidden => "CLOUD_STORAGE_BLOCK_FORBIDDEN",
-            Self::StorageNotFound => "CLOUD_STORAGE_BLOCK_NOT_FOUND",
-            Self::StorageConflict => "CLOUD_STORAGE_BLOCK_CONFLICT",
+            Self::AuthorizationDenied => "STORAGE_BLOCK_AUTHORIZATION_DENIED",
+            Self::IdempotencyKeyReused => "STORAGE_BLOCK_IDEMPOTENCY_KEY_REUSED",
+            Self::ResidencyInvalid => "STORAGE_BLOCK_RESIDENCY_INVALID",
+            Self::VolumeTierInvalid => "STORAGE_BLOCK_VOLUME_TIER_INVALID",
+            Self::EncryptionInvalid => "STORAGE_BLOCK_ENCRYPTION_INVALID",
+            Self::DataClassInvalid => "STORAGE_BLOCK_DATA_CLASS_INVALID",
+            Self::StorageInvalidRequest => "STORAGE_BLOCK_INVALID_REQUEST",
+            Self::StorageForbidden => "STORAGE_BLOCK_FORBIDDEN",
+            Self::StorageNotFound => "STORAGE_BLOCK_NOT_FOUND",
+            Self::StorageConflict => "STORAGE_BLOCK_CONFLICT",
         }
     }
 }
@@ -523,7 +519,7 @@ pub fn validate_cloud_storage_block_create_request(
     validate_authorization(
         &request.principal,
         &request.authorization,
-        CLOUD_STORAGE_BLOCK_CREATE_SURFACE,
+        STORAGE_BLOCK_CREATE_SURFACE,
     )
 }
 
@@ -536,7 +532,7 @@ pub fn create_cloud_storage_block_volume_from_api(
     let key = idempotency_key_for(
         &request.boundary,
         &request.principal,
-        CLOUD_STORAGE_BLOCK_CREATE_SURFACE,
+        STORAGE_BLOCK_CREATE_SURFACE,
     );
     let fingerprint = block_create_fingerprint_for(&request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {

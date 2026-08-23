@@ -82,7 +82,7 @@ temporarily unreachable (ADR-0248 §D-8: 24-hour isolation tolerance).
 **Mechanism:**
 1. Tier 2 `policy-engine` publishes a versioned snapshot of ALL active Cedar fragments every
    **30 seconds** (configurable per cell; default 30s) to an object-store snapshot path
-   (e.g., `s3://oya-policy-snapshots/<cell-id>/latest.bundle`).
+   (e.g., `s3://policy-snapshots/<cell-id>/latest.bundle`).
 2. Tier 3 cells' `policy-engine-evaluator` DaemonSet polls the snapshot path on a 30-second
    jittered cadence (jitter: ±5s to avoid thundering-herd across cells).
 3. If the snapshot version matches the cached version, no recompile occurs. If it differs,

@@ -7,7 +7,7 @@ locals {
 
   common_labels = merge({
     "app.kubernetes.io/name"        = local.component
-    "app.kubernetes.io/part-of"     = "oya-ci-cd-substrate"
+    "app.kubernetes.io/part-of"     = "ci-cd-substrate"
     "app.kubernetes.io/component"   = "gitops-controller"
     "app.kubernetes.io/managed-by"  = "opentofu"
     "oyatie.com/adr"                = "ADR-0349"
@@ -85,9 +85,9 @@ locals {
               { name = "grpc", containerPort = 8083 }
             ]
             env = [
-              { name = "OYA_CD_CONTEXT", value = var.context },
-              { name = "OYA_REPO_URL", value = var.repo_url },
-              { name = "OYA_TARGET_REVISION", value = var.target_revision }
+              { name = "OYATIE_CD_CONTEXT", value = var.context },
+              { name = "OYATIE_REPO_URL", value = var.repo_url },
+              { name = "OYATIE_TARGET_REVISION", value = var.target_revision }
             ]
             resources = {
               requests = { cpu = "500m", memory = "1Gi" }
@@ -126,7 +126,7 @@ locals {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "AppProject"
     metadata = {
-      name      = "oya-oci-guest-tenants"
+      name      = "oci-guest-tenants"
       namespace = var.namespace
       labels    = local.common_labels
     }

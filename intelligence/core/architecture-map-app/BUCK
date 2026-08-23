@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
     ],
 )
 
@@ -18,6 +18,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//libs/workspace-members-kernel:workspace-members-kernel",
     ],
 )

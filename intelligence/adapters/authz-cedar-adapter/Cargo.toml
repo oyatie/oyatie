@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 # Cedar (cedar-policy crate, Apache-2.0, AWS) adapter implementing the kernel's
 # AuthzGate trait (ADR-0384 D7). Evaluates kernel AuthzRequests against the
-# bundled policy at intelligence/policy/cloud-intelligence.cedar with
+# bundled policy at intelligence/policy/intelligence-app.cedar with
 # Cedar's deny-by-default + forbid-wins semantics (ADR-0183 inheritance).
 
 [dependencies]

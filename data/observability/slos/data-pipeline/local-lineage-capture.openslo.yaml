@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_lineage_capture_good_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_lineage_capture_good_total[30d])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_lineage_capture_total[30d])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_lineage_capture_total[30d])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Lineage captured for completed runs
       target: 0.999

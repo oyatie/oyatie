@@ -7,16 +7,13 @@ publish = false
 license = "Apache-2.0"
 description = "Analytics REST + gRPC handler surface (outward-facing layer 11 per ADR-0083). Exposes tenant-dashboard-query, audit-log-search, billing-rollup, and data-export endpoints. Contracts: openapi-v1.yaml, asyncapi-v1.yaml, analytics.proto."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics"
 layer = "api"
 owner_team = "council-analytics"
 adr_anchors = ["ADR-0083", "ADR-0157", "ADR-0193"]
 ip_anchor = "IP-007,IP-008,IP-013,IP-015"
-openapi = "data/analytics/contracts/openapi-v1.yaml"
-asyncapi = "data/analytics/contracts/asyncapi-v1.yaml"
-proto = "data/analytics/contracts/analytics.proto"
 data_classification = "TENANT_PUBLIC, AUDIT_INTERNAL"
 
 [lib]
@@ -25,9 +22,10 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+shared-olap-client-kernel = { path = "../../core/olap-client-kernel" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
 data-analytics-usecase = { path = "../../core/analytics-usecase" }
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 

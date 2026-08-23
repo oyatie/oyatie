@@ -31,7 +31,7 @@ variable "compliance_packs" {
 
 resource "kubernetes_namespace" "compliance" {
   metadata {
-    name = "oya-compliance"
+    name = "compliance"
     labels = {
       "oyatie.io/microservice" = "compliance"
       "oyatie.io/cell-tier"    = var.cell_tier

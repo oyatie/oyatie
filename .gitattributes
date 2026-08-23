@@ -27,7 +27,7 @@ evidence/audit-chain.jsonl merge=union
 # Cargo.lock is generated, but it is not append-only: package sections can be added, removed,
 # or version-replaced by independent branches. Git's text merge and `merge=union` can silently
 # keep stale package entries, so Cargo.lock uses the structural three-way driver in
-# tools/oya-cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
+# tools/cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
 # exits 1 on same-package version divergence or removal-vs-edit conflicts.
 #
 # Whenever it reports a conflict it WRITES diff3 markers carrying every side. Git does not re-run
@@ -40,7 +40,7 @@ evidence/audit-chain.jsonl merge=union
 #
 # Registration is per-clone (see the crate README): an actor without the `merge.cargo-lock` git
 # config simply gets today's normal conflict. Extra placeholders after `%O %A %B` (`%P`, `%L`, …)
-# are accepted and ignored, so a `%O %A %B %P` registration — the form `merge.oya-faces` uses — is
+# are accepted and ignored, so a `%O %A %B %P` registration — the form `merge.faces` uses — is
 # safe; demanding exactly three was itself a data-loss bug.
 Cargo.lock merge=cargo-lock
 # The fixup registry is append-mostly JSONL: line 1 is a schema header with NO `id`, every other
@@ -69,7 +69,7 @@ registry/fixuptasks.jsonl merge=fixup-ledger
 # friction-accounting gate folds them per id). Plain `merge=union` is WRONG here: it keeps both
 # sides of two lanes' PRIMARY rows for one id (friction_duplicate_primary_row, FRIC-1781370000
 # incident 1) and duplicates byte-divergent serializations of one logical row (incident 3). The
-# structural driver in tools/oya-friction-ledger-merge-driver-app performs an id-aware union with
+# structural driver in tools/friction-ledger-merge-driver-app performs an id-aware union with
 # second-author primary->update conversion, parsed-JSON logical dedup, and canonical output; it
 # exits nonzero on any unparseable/unmodeled side so git falls back to a normal conflict
 # (incident 2 — never write garbage). Same deletion trade-off as audit-chain above: base rows are

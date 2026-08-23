@@ -16,13 +16,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                count(oya_compliance_dsar_open) - count(oya_compliance_dsar_open > 100)
+                count(compliance_dsar_open) - count(compliance_dsar_open > 100)
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                count(oya_compliance_dsar_open)
+                count(compliance_dsar_open)
   objectives:
     - displayName: DSAR backlog ≤ 100 per tenant
       target: 0.999

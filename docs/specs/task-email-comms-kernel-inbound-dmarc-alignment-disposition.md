@@ -1,6 +1,6 @@
 # Spec: Inbound DMARC Alignment + Disposition Evaluator
 
-**Crate**: `oya-shared-email-comms-kernel`  
+**Crate**: `shared-email-comms-kernel`  
 **Slug**: `email-comms-kernel-inbound-dmarc-alignment-disposition`  
 **RFC reference**: RFC 7489 (DMARC), RFC 7208 (SPF), RFC 6376 (DKIM)
 
@@ -85,5 +85,5 @@ Existing SLO: `microservices/comms-email/slos/dmarc-alignment-rate.openslo.yaml`
 
 ## Crate Boundary
 
-All changes are confined to `crates/oya-shared-email-comms-kernel/src/lib.rs`.
+All changes are confined to `crates/shared-email-comms-kernel/src/lib.rs`.
 No new workspace member, no root `Cargo.toml` edit, no other crate touched.

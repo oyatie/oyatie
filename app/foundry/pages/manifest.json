@@ -1,0 +1,529 @@
+{
+  "schema_version": "1.0",
+  "microservice": "docs",
+  "tier": "product",
+  "tier_subtype": "product-consumer-docs",
+  "dr_tier": "T1",
+  "version": "0.1.0",
+  "owner": "axis-docs",
+  "bounded_contexts": [
+    {
+      "name": "block-types",
+      "description": "Bounded context 'block-types' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "collab-crdt",
+      "description": "Bounded context 'collab-crdt' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "comments-and-suggestions",
+      "description": "Bounded context 'comments-and-suggestions' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "document-store",
+      "description": "Bounded context 'document-store' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "embed-resolver",
+      "description": "Bounded context 'embed-resolver' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "export-import",
+      "description": "Bounded context 'export-import' within docs (data plane)",
+      "crates": []
+    },
+    {
+      "name": "sharing-and-permissions",
+      "description": "Bounded context 'sharing-and-permissions' within docs (control plane)",
+      "crates": []
+    },
+    {
+      "name": "version-history",
+      "description": "Bounded context 'version-history' within docs (data plane)",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/docs/contracts/openapi/docs.yaml"
+    ],
+    "asyncapi": [
+      "microservices/docs/contracts/asyncapi/docs-events.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/docs/contracts/proto/docs.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "T0-suggest",
+      "file": "microservices/docs/capabilities/T0-suggest.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T1-assist",
+      "file": "microservices/docs/capabilities/T1-assist.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T2-auto",
+      "file": "microservices/docs/capabilities/T2-auto.yaml",
+      "risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "docs-collab-cursor-sync-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_collab_cursor_sync_seconds_bucket[5m])) by (le))",
+      "file": "oya/docs/slos/collab-cursor-sync-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-crdt-merge-no-silent-loss",
+      "target": "1.0 (1)",
+      "sli": "total:",
+      "file": "oya/docs/slos/crdt-merge-no-silent-loss.openslo.yaml"
+    },
+    {
+      "name": "docs-doc-list-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_document_list_seconds_bucket{page_size=\"1000\"}[5m])) by (le))",
+      "file": "oya/docs/slos/doc-list-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-doc-open-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_document_open_seconds_bucket{cache_kind=\"cold\"}[5m])) by (le))",
+      "file": "oya/docs/slos/doc-open-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-export-pdf-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_export_pdf_seconds_bucket{doc_size_bucket=\"50-page\"}[5m])) by (le))",
+      "file": "oya/docs/slos/export-pdf-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-pandoc-export-pipeline-availability",
+      "target": "0.999",
+      "sli": "sum(rate(docs_export_job_total{status=~\"succeeded|failed_unsupported_feature\"}[5m]))",
+      "file": "oya/docs/slos/pandoc-export-pipeline-availability.openslo.yaml"
+    },
+    {
+      "name": "docs-save-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_save_seconds_bucket[5m])) by (le))",
+      "file": "oya/docs/slos/save-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-search-within-doc-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(docs_search_within_doc_seconds_bucket[5m])) by (le))",
+      "file": "oya/docs/slos/search-within-doc-latency.openslo.yaml"
+    },
+    {
+      "name": "docs-share-acl-enforcement-correctness",
+      "target": "1.0 (1)",
+      "sli": "total:",
+      "file": "oya/docs/slos/share-acl-enforcement-correctness.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-document-store-kernel",
+      "title": "IP-002: document-store kernel — Document + BlockTree + RetentionPolicyRef + LegalHoldRef + port traits",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-002-document-store-kernel.md"
+    },
+    {
+      "id": "IP-003-document-store-domain-and-usecase",
+      "title": "IP-003: document-store domain + usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-003-document-store-domain-and-usecase.md"
+    },
+    {
+      "id": "IP-004-document-store-adapter-postgres-and-s3",
+      "title": "IP-004: document-store -adapter-postgres + -adapter-s3 + RLS schema + tenant-DEK envelope",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-004-document-store-adapter-postgres-and-s3.md"
+    },
+    {
+      "id": "IP-005-block-types-kernel-domain",
+      "title": "IP-005: block-types kernel + domain (block schema + sanitisation per ADR-DOCS-0002)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-005-block-types-kernel-domain.md"
+    },
+    {
+      "id": "IP-006-collab-crdt-kernel-domain",
+      "title": "IP-006: collab-crdt kernel + domain + adapter (Loro 1.x integration; cross-µservice consistent per ADR-DOCS-0001 + ADR-WS-0001)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-006-collab-crdt-kernel-domain.md"
+    },
+    {
+      "id": "IP-007-collab-crdt-adapter-valkey-worker",
+      "title": "IP-007: collab-crdt -adapter-valkey + worker (WebSocket gateway)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md"
+    },
+    {
+      "id": "IP-008-comments-and-suggestions",
+      "title": "IP-008: comments-and-suggestions BC (9 crates)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-008-comments-and-suggestions.md"
+    },
+    {
+      "id": "IP-009-version-history",
+      "title": "IP-009: version-history BC (8 crates)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-009-version-history.md"
+    },
+    {
+      "id": "IP-010-sharing-and-permissions",
+      "title": "IP-010: sharing-and-permissions BC (8 crates; per-block ACL per ADR-DOCS-0004)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-010-sharing-and-permissions.md"
+    },
+    {
+      "id": "IP-011-export-import",
+      "title": "IP-011: export-import BC (11 crates) — Pandoc + WeasyPrint + Chromium inside gVisor sandbox",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-011-export-import.md"
+    },
+    {
+      "id": "IP-012-embed-resolver",
+      "title": "IP-012: embed-resolver BC (8 crates)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-012-embed-resolver.md"
+    },
+    {
+      "id": "IP-013-rest-websocket-protocol",
+      "title": "IP-013: REST + WebSocket frame protocol",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-013-rest-websocket-protocol.md"
+    },
+    {
+      "id": "IP-014-ai-assist-wire",
+      "title": "IP-014: AI writing-assist wire (T0/T1/T2 per ADR-DOCS-0005)",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-014-ai-assist-wire.md"
+    },
+    {
+      "id": "IP-015-hg-docs-registration-and-branch-protection",
+      "title": "IP-015: HG-DOCS registration + branch-protection",
+      "acceptance_status": "ga",
+      "file": "microservices/docs/IP-015-hg-docs-registration-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0234",
+      "title": "Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Platform And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
+    },
+    {
+      "id": "ADR-0236",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0237",
+      "title": "Dissolution Strangler Migration",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0238",
+      "title": "Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.docs.T0-suggest",
+      "oya.docs.T1-assist",
+      "oya.docs.T2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "naming_justifications": "docs is a BNF v4.1 kebab-case microservice slug; generated names follow docs-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "automation_risk_classes": [
+    "T0",
+    "T1",
+    "T2"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-docs",
+  "tier_classification": "tenant-facing",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "workflow-studio",
+    "audit-chain",
+    "tenancy",
+    "workflow-engine",
+    "drive",
+    "mail",
+    "messenger",
+    "sheets",
+    "slides",
+    "identity",
+    "observability",
+    "network",
+    "intelligence",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac",
+    "calendar"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.12,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 25,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_user",
+    "cell_placement_class": "Tier-3",
+    "notes": "Collaborative editing sessions, CRDT spooling, exports, and attachment resolution scale with active editors rather than raw request count."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Docs is a first-party collaborative document application. The CRDT and export surfaces process tenant document data but do not run tenant-supplied code, so ADR-0338 Tier 2 is the correct runtime and ADR-0340 Tier-3 is the matching application cell class.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/docs/PRD.md",
+    "microservices/docs/capacity-model.md",
+    "microservices/docs/IP-006-collab-crdt-kernel-domain.md",
+    "microservices/docs/IP-011-export-import.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-20",
+      "2025-11-20"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/docs/contracts/openapi/docs.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/docs/contracts/asyncapi/docs-events.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "vpc",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
+}

@@ -24,12 +24,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_key_rotation_completed_within_24h_total[5m]))
+              query: sum(rate(data_warehouse_key_rotation_completed_within_24h_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_key_rotation_requested_total[5m]))
+              query: sum(rate(data_warehouse_key_rotation_requested_total[5m]))
   objectives:
     - displayName: key rotation completes within 24h in 99% of cases
       target: 0.99

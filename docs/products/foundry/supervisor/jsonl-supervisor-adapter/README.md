@@ -8,7 +8,7 @@ doc_status: published
 
 # JSONL Supervisor Adapter — README
 
-**Crate:** `oya-intelligence-jsonl-supervisor-adapter`  
+**Crate:** `intelligence-jsonl-supervisor-adapter`  
 **Layer:** Adapter (12-layer-enum L4)  
 **Wave:** 2c (M02-P06)  
 **Key trait:** `InboxStore`, `OutboxSink`
@@ -81,8 +81,8 @@ impl OutboxSink for JsonlOutboxSink {
 ## Usage Example
 
 ```rust
-use oya_intelligence_jsonl_supervisor_adapter::*;
-use oya_intelligence_supervisor_kernel::*;
+use intelligence_jsonl_supervisor_adapter::*;
+use intelligence_supervisor_kernel::*;
 
 let inbox = JsonlInboxStore::new("~/.oya/inbox")?;
 let outbox = JsonlOutboxSink::new("~/.oya/outbox")?;
@@ -178,6 +178,6 @@ Cache entries are pruned daily (background cleanup task).
 
 ## References
 
-- **Trait definition:** `oya-intelligence-supervisor-kernel::InboxStore`, `OutboxSink`
+- **Trait definition:** `intelligence-supervisor-kernel::InboxStore`, `OutboxSink`
 - **Plan:** v4 §B.3 (JSONL adapter spec), §A.3 (Option D architecture)
 - **Kernel README:** `docs/products/foundry/supervisor/supervisor-kernel/README.md`

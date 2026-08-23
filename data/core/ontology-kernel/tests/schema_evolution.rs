@@ -29,11 +29,11 @@
 //!  • Confluent Schema Registry FORWARD/BACKWARD compat: field removal forbidden.
 //!  • Monotonic schema-version gating (Confluent compatibility level enforcement).
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, OntologyEngine,
     OntologyEngineError, PropertyTier,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers

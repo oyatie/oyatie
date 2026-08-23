@@ -7,11 +7,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_shared_platform_contracts_kernel::identity::{Principal, PrincipalKind, PrincipalState};
 use secrets_domain::{
     DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseState, MAX_LEASE_LIFETIME_SECONDS,
     MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS, RevocationReason,
 };
+use shared_platform_contracts_kernel::identity::{Principal, PrincipalKind, PrincipalState};
 
 const T0: u64 = 1_750_000_000;
 const TTL: u64 = 300;

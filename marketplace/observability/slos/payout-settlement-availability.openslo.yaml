@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-developer-sdk-payout-settlement-availability
-  displayName: "oya-developer-sdk-payout-settlement-availability"
+  name: developer-sdk-payout-settlement-availability
+  displayName: "developer-sdk-payout-settlement-availability"
   labels:
     microservice: developer-sdk
     bounded_context: payout
     tier: external-facing
     plane: data
 spec:
-  service: oya-developer-sdk-payout-settlement-availability
+  service: developer-sdk-payout-settlement-availability
   description: |
     99.95% payout settlement availability
   indicator:
     metadata:
-      name: oya-developer-sdk-payout-settlement-availability-sli
+      name: developer-sdk-payout-settlement-availability-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_payout_settlement_total{outcome="settled"}[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total{outcome=~"settled|deferred|failed"}[24h]))'
+              query: 'sum(rate(developer_sdk_payout_settlement_total{outcome="settled"}[24h])) / sum(rate(developer_sdk_payout_settlement_total{outcome=~"settled|deferred|failed"}[24h]))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_payout_settlement_total{outcome="settled"}[24h])) / sum(rate(oya_developer_sdk_payout_settlement_total{outcome=~"settled|deferred|failed"}[24h]))'
+              query: 'sum(rate(developer_sdk_payout_settlement_total{outcome="settled"}[24h])) / sum(rate(developer_sdk_payout_settlement_total{outcome=~"settled|deferred|failed"}[24h]))'
   objectives:
     - target: 0.9995
       displayName: "0.9995 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-payout-settlement-availability-fast-burn-1h
+        name: developer-sdk-payout-settlement-availability-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-payout-settlement-availability-slow-burn-6h
+        name: developer-sdk-payout-settlement-availability-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

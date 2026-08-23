@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_dlt_refresh_within_target_lag_total[5m]))
+              query: sum(rate(data_warehouse_dlt_refresh_within_target_lag_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_dlt_refresh_total[5m]))
+              query: sum(rate(data_warehouse_dlt_refresh_total[5m]))
   objectives:
     - displayName: DLT refresh within target_lag in 99% of windows
       target: 0.99

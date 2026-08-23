@@ -6,9 +6,9 @@ required status contexts must be green before a PR can merge.
 
 ## How gating works
 
-1. The oya-ci controller posts GitHub Commit Status API entries for the
-   `oya-ci-required` context (crier pattern; see
-   `oya/ci-controller/crates/oya-ci-controller-app`).
+1. The ci controller posts GitHub Commit Status API entries for the
+   `presubmit` context (crier pattern; see
+   `oya/ci-controller/crates/ci-controller-app`).
 2. The GitHub branch-protection rule for `dev` requires all contexts in
    `infra/branch-protection/dev.json` to be green before a PR can merge.
 3. `.github/branch-protection.yaml` is the canonical branch-protection record.
@@ -22,11 +22,11 @@ required status contexts must be green before a PR can merge.
 | `cargo-clippy` | `oyaCiLane` | `cargo clippy -- -D warnings` |
 | `cargo-nextest` | `oyaCiLane` | nextest test run |
 | `cargo-deny` | `oyaCiLane` | OSI license + advisory + bans gate |
-| `oya-verify` | `oyaCiLane` | Rolled-up `./bin/oya verify --affected` verdict |
+| `verify` | `oyaCiLane` | Rolled-up `./bin/oya verify --affected` verdict |
 
 ## Phase-2 (pending)
 
-`oya-pr-review` will be added back as a required context once the reviewer-agent HTTP
+`pr-review` will be added back as a required context once the reviewer-agent HTTP
 endpoint ships (currently returns HTTP 501). It was removed from the Phase-1 required
 set to avoid deadlocking every PR. See `infra/branch-protection/dev.json` for the
 tracking note.

@@ -11,7 +11,7 @@ purpose: |
   reviewer-APPROVE + CI green) → staging (autonomous promotion + canary cohort) →
   prod (5-gate verification). New fitness lane binds stage to source branch.
 planned_enforcement_ref:
-  - oya-governance-capability-stage-binding
+  - governance-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -57,7 +57,7 @@ stage_history:                              # append-only audit log
   # ... staging, prod
 ```
 
-Fitness lane `oya-governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
+Fitness lane `governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
 
 - `stage: dev-draft` ⇔ exists only in agent worktree / local-dev clone.
 - `stage: dev` ⇔ exists in `origin/dev` capability registry.
@@ -119,7 +119,7 @@ Demotion semantics. A capability that fails its staging eval-harness sweep is **
 
 When a capability change crosses an axis boundary (per [ADR-0011](../../decisions/ADR-0011-cross-axis-contract-registry.md)), all affected axes must promote in lockstep:
 
-- Local-dev → origin/dev gate runs the cross-axis contract diff (`oya-contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
+- Local-dev → origin/dev gate runs the cross-axis contract diff (`contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
 - Origin/dev → staging is autonomous; lockstep is preserved because origin/dev → staging is one mechanical fast-forward per axis.
 - Staging → prod gate runs the cross-axis canary check: all consumer axes must observe canary-clean SLO on the new capability shape for ≥ M hours.
 
@@ -144,4 +144,4 @@ This file does not own:
 
 ## 10. ADR citations
 
-- [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror the four branch layers defined in ADR-0055; `oya-governance-capability-stage-binding` is a branch-pipeline lane.
+- [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror the four branch layers defined in ADR-0055; `governance-capability-stage-binding` is a branch-pipeline lane.

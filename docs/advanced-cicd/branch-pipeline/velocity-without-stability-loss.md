@@ -12,8 +12,8 @@ purpose: |
   origin/dev → staging, 5-gate staging → prod) beats both trunk-based and
   review-on-every-stage. Metrics, accepted risks, comparison table.
 planned_enforcement_ref:
-  - oya-governance-canary-regression-sla
-  - oya-governance-promotion-gate-staging-to-prod
+  - governance-canary-regression-sla
+  - governance-promotion-gate-staging-to-prod
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -68,31 +68,31 @@ We do **not** treat canary regression as a defect to be eliminated. We treat it 
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Reviewer agent rubber-stamps a PR; bad code lands on origin/dev | Med | Verdict-quality lane `oya-governance-reviewer-verdict-quality` (MED) tracks per-reviewer-agent baseline acceptance rates; outliers feed back into reviewer governance. CI green is an independent gate. |
-| `dev-promoter` orchestration fails (reviewer agent timeout, CI flakiness) | Med | Per-reviewer P95 SLO ≤ 15 min (lane `oya-governance-reviewer-verdict-latency`); flakes retried up to 3 times; persistent failures route to `staging-fixer` Mode-B-equivalent. |
+| Reviewer agent rubber-stamps a PR; bad code lands on origin/dev | Med | Verdict-quality lane `governance-reviewer-verdict-quality` (MED) tracks per-reviewer-agent baseline acceptance rates; outliers feed back into reviewer governance. CI green is an independent gate. |
+| `dev-promoter` orchestration fails (reviewer agent timeout, CI flakiness) | Med | Per-reviewer P95 SLO ≤ 15 min (lane `governance-reviewer-verdict-latency`); flakes retried up to 3 times; persistent failures route to `staging-fixer` Mode-B-equivalent. |
 | Canary regression detection lag (staging cohort too small to catch tail issue) | Med | Canary cohort sized per `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md` (≥ 200 sampled requests at gate 1; stage-progression bounded by SLO-burn-rate-bounded holds). |
 | 5-gate verification stuck (perpetual red on one gate) | Med | Per-gate metrics emitted; `prod_promotion_failure_rate` > 5% triggers HIGH alert to council-architecture. |
-| Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `oya-governance-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
+| Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `governance-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
 
 ## 7. Velocity metrics (targets, lane-enforced)
 
 | Metric | Target | Lane |
 |---|---|---|
-| `local_main_to_dev_pr_open_to_merge_p95_minutes` (rename clarification: local-dev PR open → origin/dev merge) | ≤ 30 min | `oya-governance-dev-promotion-cadence` (MED) |
-| `dev_to_staging_p95_minutes` | ≤ 5 min (autonomous) | `oya-governance-dev-promotion-cadence` (MED) |
-| `staging_to_prod_p95_hours` (from canary-complete to prod-promoted) | ≤ 8 h (post-canary tail; M=24h canary is the floor) | `oya-governance-promotion-gate-staging-to-prod` |
-| `reviewer_verdict_p95_minutes` (per change class) | ≤ 15 min | `oya-governance-reviewer-verdict-latency` |
+| `local_main_to_dev_pr_open_to_merge_p95_minutes` (rename clarification: local-dev PR open → origin/dev merge) | ≤ 30 min | `governance-dev-promotion-cadence` (MED) |
+| `dev_to_staging_p95_minutes` | ≤ 5 min (autonomous) | `governance-dev-promotion-cadence` (MED) |
+| `staging_to_prod_p95_hours` (from canary-complete to prod-promoted) | ≤ 8 h (post-canary tail; M=24h canary is the floor) | `governance-promotion-gate-staging-to-prod` |
+| `reviewer_verdict_p95_minutes` (per change class) | ≤ 15 min | `governance-reviewer-verdict-latency` |
 
 ## 8. Stability metrics (targets, lane-enforced)
 
 | Metric | Target | Lane |
 |---|---|---|
-| `prod_promotion_failure_rate` (gate-red percentage of prod-promoter evaluations) | ≤ 5% | `oya-governance-promotion-gate-staging-to-prod` |
-| `canary_regression_to_stable_p95_hours` | ≤ 4 h | `oya-governance-canary-regression-sla` (HIGH) |
-| `direct_origin_dev_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-origin-dev-commit` |
-| `direct_staging_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-staging-commit` |
-| `direct_prod_commit_count` | 0 (BLOCKER) | `oya-governance-no-direct-prod-commit` |
-| `pr_review_verdict_present_rate` (at local-dev → origin/dev) | 100% (BLOCKER) | `oya-governance-pr-review-verdict-present` |
+| `prod_promotion_failure_rate` (gate-red percentage of prod-promoter evaluations) | ≤ 5% | `governance-promotion-gate-staging-to-prod` |
+| `canary_regression_to_stable_p95_hours` | ≤ 4 h | `governance-canary-regression-sla` (HIGH) |
+| `direct_origin_dev_commit_count` | 0 (BLOCKER) | `governance-no-direct-origin-dev-commit` |
+| `direct_staging_commit_count` | 0 (BLOCKER) | `governance-no-direct-staging-commit` |
+| `direct_prod_commit_count` | 0 (BLOCKER) | `governance-no-direct-prod-commit` |
+| `pr_review_verdict_present_rate` (at local-dev → origin/dev) | 100% (BLOCKER) | `governance-pr-review-verdict-present` |
 
 ## 9. Comparison table — five branching models
 

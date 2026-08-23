@@ -5,7 +5,7 @@
 //! X.509-SVID for the PDP's platform identity by driving the unchanged trustd
 //! issuer ([`TrustdSvidIssuer::issue`] over the `EcdsaP256Signer` CA), and
 //! projects the result as a `kubernetes.io/tls` Secret named EXACTLY
-//! `oya-cloud-iam-pdp-svid`, carrying `tls.crt` / `tls.key` / `ca.crt` in the
+//! `cloud-iam-pdp-svid`, carrying `tls.crt` / `tls.key` / `ca.crt` in the
 //! byte-for-byte shape the PDP's `MtlsContext::from_path` consumer parses.
 //!
 //! ## Clean-arch boundary
@@ -314,7 +314,7 @@ pub fn secret_manifest(
             "name": name,
             "namespace": namespace,
             "labels": {
-                "app.kubernetes.io/managed-by": "oya-cloud-iam-pdp-svid-operator",
+                "app.kubernetes.io/managed-by": "iam-svid-operator",
                 "app.kubernetes.io/part-of": "oyatie-microservices",
             },
         },
@@ -541,7 +541,7 @@ where
             &self.desired.secret_namespace,
             material,
         );
-        let params = PatchParams::apply("oya-cloud-iam-pdp-svid-operator").force();
+        let params = PatchParams::apply("iam-svid-operator").force();
         self.secret_api
             .patch(&self.desired.secret_name, &params, &Patch::Apply(&manifest))
             .await
@@ -618,10 +618,10 @@ where
         .for_each(|result| async move {
             match result {
                 Ok((object_ref, action)) => {
-                    info!(object = ?object_ref, requeue = ?action, "cloud-iam svid-operator reconcile complete");
+                    info!(object = ?object_ref, requeue = ?action, "iam svid-operator reconcile complete");
                 }
                 Err(error) => {
-                    error!(error = %error, "cloud-iam svid-operator reconcile stream error");
+                    error!(error = %error, "iam svid-operator reconcile stream error");
                 }
             }
         });
@@ -629,7 +629,7 @@ where
         info!(
             namespace = %self.context.desired.secret_namespace,
             secret = %self.context.desired.secret_name,
-            "starting cloud-iam svid-delivery kube-rs operator"
+            "starting iam svid-delivery kube-rs operator"
         );
         controller.await;
     }
@@ -671,7 +671,7 @@ where
     B: SvidIssuanceBackend + Send + 'static,
     C: Clock + Send + Sync + 'static,
 {
-    warn!(error = %error, "cloud-iam svid-operator reconcile failed closed");
+    warn!(error = %error, "iam svid-operator reconcile failed closed");
     ControllerAction::requeue(Duration::from_secs(context.next_backoff_delay_seconds()))
 }
 
@@ -682,11 +682,11 @@ fn emit_reconcile_event(report: &ReconcileReport, elapsed: Duration) {
         Action::Noop => "noop",
     };
     info!(
-        event_name = "cloud_iam_svid_operator_reconcile",
+        event_name = "iam_svid_operator_reconcile",
         action = action,
         mutated = report.mutated,
-        metric_name = "oya_cloud_iam_svid_operator_reconcile_convergence_seconds",
+        metric_name = "iam_svid_operator_reconcile_convergence_seconds",
         convergence_seconds = elapsed.as_secs_f64(),
-        "cloud-iam svid-operator reconcile cycle"
+        "iam svid-operator reconcile cycle"
     );
 }

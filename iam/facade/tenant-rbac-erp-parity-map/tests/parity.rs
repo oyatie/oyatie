@@ -81,7 +81,7 @@ fn real_estate_row_references_portfolio_domain_foundation() {
     assert!(
         real_estate
             .oyatie_destinations
-            .contains(&"microservices/real-estate/crates/oya-real-estate-portfolio-domain")
+            .contains(&"microservices/real-estate/crates/real-estate-portfolio-domain")
     );
     assert!(
         real_estate.evidence_refs.contains(
@@ -107,7 +107,7 @@ fn global_trade_row_references_compliance_domain_foundation() {
     assert!(
         global_trade
             .oyatie_destinations
-            .contains(&"microservices/global-trade/crates/oya-global-trade-compliance-domain")
+            .contains(&"microservices/global-trade/crates/global-trade-compliance-domain")
     );
     assert!(
         global_trade.evidence_refs.contains(
@@ -128,7 +128,7 @@ fn crm_row_references_customer_engagement_domain_foundation() {
     );
     assert!(
         crm.oyatie_destinations
-            .contains(&"microservices/crm/crates/oya-crm-customer-engagement-domain")
+            .contains(&"microservices/crm/crates/crm-customer-engagement-domain")
     );
     assert!(
         crm.evidence_refs.contains(
@@ -152,9 +152,9 @@ fn supply_chain_planning_row_references_domain_foundation() {
             .contains(&"specs/microservices/supply-chain-planning.json")
     );
     assert!(
-        advanced_planning.oyatie_destinations.contains(
-            &"microservices/supply-chain-planning/crates/oya-supply-chain-planning-domain"
-        )
+        advanced_planning
+            .oyatie_destinations
+            .contains(&"microservices/supply-chain-planning/crates/supply-chain-planning-domain")
     );
     assert!(
         advanced_planning.evidence_refs.contains(
@@ -180,7 +180,7 @@ fn plant_maintenance_row_references_domain_foundation() {
     assert!(
         plant_maintenance
             .oyatie_destinations
-            .contains(&"microservices/plant-maintenance/crates/oya-plant-maintenance-domain")
+            .contains(&"microservices/plant-maintenance/crates/plant-maintenance-domain")
     );
     assert!(
         plant_maintenance
@@ -203,7 +203,7 @@ fn quality_management_row_references_domain_foundation() {
     assert!(
         quality
             .oyatie_destinations
-            .contains(&"microservices/quality-management/crates/oya-quality-management-domain")
+            .contains(&"microservices/quality-management/crates/quality-management-domain")
     );
     assert!(
         quality
@@ -229,7 +229,7 @@ fn production_planning_row_references_domain_foundation() {
     assert!(
         production_planning
             .oyatie_destinations
-            .contains(&"microservices/production-planning/crates/oya-production-planning-domain")
+            .contains(&"microservices/production-planning/crates/production-planning-domain")
     );
     assert!(
         production_planning
@@ -251,7 +251,7 @@ fn materials_and_supplier_rows_reference_procurement_foundation() {
     assert!(
         materials
             .oyatie_destinations
-            .contains(&"microservices/procurement/crates/oya-procurement-source-to-pay-domain")
+            .contains(&"microservices/procurement/crates/procurement-source-to-pay-domain")
     );
     assert!(materials.evidence_refs.contains(
         &"evidence/multispectrum/cs-ent-procurement-source-to-pay-domain-1779545400.json"
@@ -266,7 +266,7 @@ fn materials_and_supplier_rows_reference_procurement_foundation() {
     assert!(
         supplier_relationship
             .oyatie_destinations
-            .contains(&"microservices/procurement/crates/oya-procurement-source-to-pay-domain")
+            .contains(&"microservices/procurement/crates/procurement-source-to-pay-domain")
     );
     assert!(!supplier_relationship.production_runtime_claimed);
 }
@@ -282,7 +282,7 @@ fn materials_and_warehouse_rows_reference_warehouse_inventory_foundation() {
     assert!(
         materials
             .oyatie_destinations
-            .contains(&"microservices/warehouse/crates/oya-warehouse-inventory-domain")
+            .contains(&"microservices/warehouse/crates/warehouse-inventory-domain")
     );
     assert!(
         materials
@@ -301,7 +301,7 @@ fn materials_and_warehouse_rows_reference_warehouse_inventory_foundation() {
     assert!(
         warehouse
             .oyatie_destinations
-            .contains(&"microservices/warehouse/crates/oya-warehouse-inventory-domain")
+            .contains(&"microservices/warehouse/crates/warehouse-inventory-domain")
     );
     assert!(!warehouse.production_runtime_claimed);
 }
@@ -317,7 +317,7 @@ fn financial_and_treasury_rows_reference_treasury_cash_foundation() {
     assert!(
         financial_accounting
             .oyatie_destinations
-            .contains(&"microservices/treasury/crates/oya-treasury-cash-domain")
+            .contains(&"microservices/treasury/crates/treasury-cash-domain")
     );
     assert!(
         financial_accounting
@@ -336,7 +336,7 @@ fn financial_and_treasury_rows_reference_treasury_cash_foundation() {
     assert!(
         treasury
             .oyatie_destinations
-            .contains(&"microservices/treasury/crates/oya-treasury-cash-domain")
+            .contains(&"microservices/treasury/crates/treasury-cash-domain")
     );
     assert!(!treasury.production_runtime_claimed);
 }

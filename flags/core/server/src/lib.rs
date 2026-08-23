@@ -1,4 +1,4 @@
-//! oya-flags — feature flag service for oyatie (OpenFeature-compatible).
+//! flags — feature flag service for oyatie (OpenFeature-compatible).
 //!
 //! Single-crate-per-service pattern per ADR-0509.
 

@@ -1,7 +1,7 @@
 # Spec: Payroll Pre-Close Variance / Anomaly Gate
 
 ## Objective
-Extend the `oya-payroll-run-domain` crate with a pure-domain, side-effect-free pre-close variance/anomaly gate. The gate accepts current-period and prior-period per-payee net wage totals, a rulepack-governed tolerance, and evidence refs; it computes per-payee BPS variance, flags anomalies (over-threshold swings, sign flips, dropped payees), and returns a classified `PayrollVarianceVerdict` that downstream orchestration can inspect before calling `evaluate_close_promotion`.
+Extend the `payroll-run-domain` crate with a pure-domain, side-effect-free pre-close variance/anomaly gate. The gate accepts current-period and prior-period per-payee net wage totals, a rulepack-governed tolerance, and evidence refs; it computes per-payee BPS variance, flags anomalies (over-threshold swings, sign flips, dropped payees), and returns a classified `PayrollVarianceVerdict` that downstream orchestration can inspect before calling `evaluate_close_promotion`.
 
 The gate complements — and does not overlap — the existing `evaluate_close_promotion` function: variance checking runs first, close-promotion runs after.
 
@@ -9,7 +9,7 @@ The gate complements — and does not overlap — the existing `evaluate_close_p
 b2b — payroll run domain
 
 ## Crate
-`oya-payroll-run-domain` (`crates/oya-payroll-run-domain/src/lib.rs`)
+`payroll-run-domain` (`crates/payroll-run-domain/src/lib.rs`)
 
 No new crate. No edits to root `Cargo.toml`. No new dependencies.
 
@@ -167,7 +167,7 @@ components:
 
 ```proto
 syntax = "proto3";
-package oya.payroll.v1;
+package oyatie.payroll.v1;
 
 message PayeeVarianceTotal {
   string payee_id   = 1;

@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_admission_decision_under_10ms_total[5m]))
+              query: sum(rate(data_warehouse_admission_decision_under_10ms_total[5m]))
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_warehouse_admission_decision_total[5m]))
+              query: sum(rate(data_warehouse_admission_decision_total[5m]))
   objectives:
     - displayName: p99 admission decision under 10ms
       target: 0.99

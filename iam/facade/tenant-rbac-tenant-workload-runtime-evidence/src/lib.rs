@@ -28,7 +28,7 @@ const RESIDENCY_REGION: &str = "us-east-1";
 const OTEL_SERVICE_NAMESPACE: &str = "fd001-tenant-rbac";
 const TENANT_CLAIM: &str = "tenant_id";
 const SOURCE_MANIFEST_REF: &str =
-    "crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
+    "crates/tenant-rbac-tenant-workload-manifest/src/lib.rs::fd001_tenant_workload_manifest";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum TenantWorkloadRuntimeEvidenceRequirementKind {
@@ -574,7 +574,7 @@ fn validate_requirement(
     )?;
     validate_prefixed_ref(
         requirement.source_manifest_ref,
-        "crates/oya-tenant-rbac-tenant-workload-manifest/",
+        "crates/tenant-rbac-tenant-workload-manifest/",
         TenantRbacTenantWorkloadRuntimeEvidenceError::InvalidSourceManifestRef,
     )?;
     if requirement.tenant_namespace != TENANT_NAMESPACE {

@@ -6,8 +6,8 @@
 -- at runtime: a non-matching login role gets deny-all (outage) and a
 -- BYPASSRLS/superuser role silently skips RLS entirely. This migration ships the
 -- role contract IN the migration set so production's RLS posture is the EXACT
--- posture the live test exercises (mirrors the oya-data outbox precedent,
--- ADR-0569 D3 / libs/oya-data-outbox-adapter-postgres/migrations/0000_runtime_role.sql).
+-- posture the live test exercises (mirrors the data outbox precedent,
+-- ADR-0569 D3 / libs/data-outbox-adapter-postgres/migrations/0000_runtime_role.sql).
 --
 -- The runtime role:
 --   * NOLOGIN — it is assumed (SET ROLE / GRANT membership) by a deploy-managed

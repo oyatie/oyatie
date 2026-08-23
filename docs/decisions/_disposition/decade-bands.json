@@ -1247,9 +1247,9 @@
       },
       {
         "num": 223,
-        "file": "docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+        "file": "docs/adr-archive/ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md",
         "status": "Accepted",
-        "title": "ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md"
+        "title": "ADR-0223-git-drop-in-surface-with-explicit-policy-verbs.md"
       }
     ],
     "all_nums": [
@@ -1913,9 +1913,9 @@
       },
       {
         "num": 346,
-        "file": "docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+        "file": "docs/adr-archive/ADR-0346-verify-must-run-full-ci-mirror.md",
         "status": "Proposed",
-        "title": "ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+        "title": "ADR-0346-verify-must-run-full-ci-mirror.md"
       },
       {
         "num": 347,
@@ -1997,9 +1997,9 @@
       },
       {
         "num": 358,
-        "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+        "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md",
         "status": "Proposed",
-        "title": "ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md"
+        "title": "ADR-0358-ideal-production-roadmap-strangler-bazel-overlay.md"
       }
     ],
     "all_nums": [
@@ -2277,21 +2277,21 @@
     "adrs": [
       {
         "num": 476,
-        "file": "docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md",
+        "file": "docs/adr-archive/ADR-0476-identity-bespoke-human-identity.md",
         "status": "Accepted",
-        "title": "ADR-0476-oya-identity-bespoke-human-identity.md"
+        "title": "ADR-0476-identity-bespoke-human-identity.md"
       },
       {
         "num": 478,
-        "file": "docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md",
+        "file": "docs/adr-archive/ADR-0478-billing-bespoke-billing-engine.md",
         "status": "Accepted",
-        "title": "ADR-0478-oya-billing-bespoke-billing-engine.md"
+        "title": "ADR-0478-billing-bespoke-billing-engine.md"
       },
       {
         "num": 479,
-        "file": "docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md",
+        "file": "docs/adr-archive/ADR-0479-meter-bespoke-usage-metering.md",
         "status": "Accepted",
-        "title": "ADR-0479-oya-meter-bespoke-usage-metering.md"
+        "title": "ADR-0479-meter-bespoke-usage-metering.md"
       }
     ],
     "all_nums": [
@@ -2308,15 +2308,15 @@
     "adrs": [
       {
         "num": 480,
-        "file": "docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
+        "file": "docs/adr-archive/ADR-0480-cost-bespoke-k8s-cost-allocation.md",
         "status": "Accepted",
-        "title": "ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md"
+        "title": "ADR-0480-cost-bespoke-k8s-cost-allocation.md"
       },
       {
         "num": 481,
-        "file": "docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+        "file": "docs/adr-archive/ADR-0481-flags-bespoke-feature-flag-server.md",
         "status": "Accepted",
-        "title": "ADR-0481-oya-flags-bespoke-feature-flag-server.md"
+        "title": "ADR-0481-flags-bespoke-feature-flag-server.md"
       },
       {
         "num": 482,
@@ -2463,21 +2463,21 @@
       },
       {
         "num": 525,
-        "file": "docs/adr-archive/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
+        "file": "docs/adr-archive/ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md",
         "status": "Accepted",
-        "title": "ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md"
+        "title": "ADR-0525-ci-hermetic-buck2-execution-git-facts-boundary.md"
       },
       {
         "num": 526,
-        "file": "docs/adr-archive/ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
+        "file": "docs/adr-archive/ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md",
         "status": "Accepted",
-        "title": "ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md"
+        "title": "ADR-0526-ci-scm-facts-boundary-vcs-agnostic.md"
       },
       {
         "num": 527,
-        "file": "docs/adr-archive/ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
+        "file": "docs/adr-archive/ADR-0527-ci-conformance-floor-config-driven-engine.md",
         "status": "Accepted",
-        "title": "ADR-0527-oya-ci-conformance-floor-config-driven-engine.md"
+        "title": "ADR-0527-ci-conformance-floor-config-driven-engine.md"
       },
       {
         "num": 528,
@@ -2519,9 +2519,9 @@
       },
       {
         "num": 531,
-        "file": "docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
+        "file": "docs/adr-archive/ADR-0531-auto-remediation-delivery-bot-autofix.md",
         "status": "Accepted",
-        "title": "ADR-0531-auto-remediation-delivery-oya-bot-autofix.md"
+        "title": "ADR-0531-auto-remediation-delivery-bot-autofix.md"
       },
       {
         "num": 532,
@@ -2567,9 +2567,9 @@
       },
       {
         "num": 539,
-        "file": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
+        "file": "docs/adr-archive/ADR-0539-pipeline-freshness-gate.md",
         "status": "Proposed",
-        "title": "ADR-0539-cloud-ci-freshness-gate.md"
+        "title": "ADR-0539-pipeline-freshness-gate.md"
       }
     ],
     "all_nums": [
@@ -2685,9 +2685,9 @@
       },
       {
         "num": 553,
-        "file": "docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md",
+        "file": "docs/adr-archive/ADR-0553-identity-workload-service-commissioning.md",
         "status": "Proposed",
-        "title": "ADR-0553-oya-identity-workload-service-commissioning.md"
+        "title": "ADR-0553-identity-workload-service-commissioning.md"
       },
       {
         "num": 554,
@@ -2801,9 +2801,9 @@
       },
       {
         "num": 569,
-        "file": "docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+        "file": "docs/adr-archive/ADR-0569-commission-data-outbox-cdc-adapter-postgres.md",
         "status": "Proposed",
-        "title": "ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md"
+        "title": "ADR-0569-commission-data-outbox-cdc-adapter-postgres.md"
       }
     ],
     "all_nums": [
@@ -2948,15 +2948,15 @@
       },
       {
         "num": 595,
-        "file": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+        "file": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-pipeline-faces.md",
         "status": "Proposed",
-        "title": "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md"
+        "title": "ADR-0595-de-commit-pure-derivation-pipeline-faces.md"
       },
       {
         "num": 597,
-        "file": "docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+        "file": "docs/adr-archive/ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
         "status": "Proposed",
-        "title": "ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md"
+        "title": "ADR-0597-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md"
       },
       {
         "num": 598,
@@ -3271,9 +3271,9 @@
       },
       {
         "num": 639,
-        "file": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
+        "file": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-presubmit.md",
         "status": "Accepted",
-        "title": "ADR-0639-path-event-optional-legs-under-oya-ci-required.md"
+        "title": "ADR-0639-path-event-optional-legs-under-presubmit.md"
       }
     ],
     "all_nums": [

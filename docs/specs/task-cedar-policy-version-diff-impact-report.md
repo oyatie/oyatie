@@ -1,6 +1,6 @@
 # Spec: cedar-policy-version-diff-impact-report
 
-**Crate**: `oya-policy-cedar-domain`  
+**Crate**: `policy-cedar-domain`  
 **Module**: `policy_diff`  
 **Priority**: high | **Effort**: M | **Lane**: foundation
 

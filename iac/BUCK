@@ -1,7 +1,7 @@
 # Residual product/docs surface for iac capability (dual-home burn-down).
 # Live crates live under iac/{core,adapters,facade,ports,tofu} with their own
 # package BUCKs. This package owns residual service docs, manifests, contracts,
-# and OpenSLO YAML rehomed from cloud/cloud-iac so they remain in the Buck2
+# and OpenSLO YAML rehomed from cloud/iac-app so they remain in the Buck2
 # corpus graph (ADR-0541).
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")

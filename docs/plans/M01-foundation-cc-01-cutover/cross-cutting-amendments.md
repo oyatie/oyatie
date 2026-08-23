@@ -23,14 +23,14 @@ These 12 directives were issued by the user across the planning loop. Every phas
 1. **4-tier hierarchy**: Master Plan > Milestone > Phases > Implementation Plans. The cutover plan is one *phase or milestone* within the larger Master Plan structure; once the masterplan composer's output lands, the cutover plan lifts under `M01-Foundation` (or `M-CC-01 Agentic-pipeline` — composer's call).
 2. **Autonomous senior-engineering decisions** for long-term maintainability/scalability/performance. No corner-cutting.
 3. **Final-shape adoption** from the start. No MVP-shaped artifacts that need replacement; no placeholders that need migration; no temporary names that need renaming.
-4. **Provider-agnostic** by default. Provider-specific code lives in `oya-<service>-adapter-<provider>-*` crates only.
+4. **Provider-agnostic** by default. Provider-specific code lives in `oyatie-<service>-adapter-<provider>-*` crates only.
 5. **Distroless + smallest-image** for containers. Static binaries; musl static linking; CI image-size budget.
 6. **AWS / Google / Microsoft / Oracle launch-quality bar** throughout.
 7. **Linus-style discipline**: delete bureaucracy; reshape data to eliminate special cases.
-8. **Current LTS dependencies, CI-enforced** via `oya-governance-lts-dependency`.
+8. **Current LTS dependencies, CI-enforced** via `governance-lts-dependency`.
 9. **Hyperscaler-bar internal toolchain** + architectural robustness.
 10. **Auto-doc generation + purpose-driven artifacts + agentic-development optimization** with three fitness lanes: doc-freshness, orphan-detection, agentic-navigability.
-11. **Visualization-as-code, Foundry-owned, auto-updated**: `oya-intelligence-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
+11. **Visualization-as-code, Foundry-owned, auto-updated**: `intelligence-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
 
 ## 2. LTS-pin amendments for cutover deliverables
 
@@ -59,7 +59,7 @@ P2 (helper crate) MUST include in its `Cargo.toml`:
 ```
 And the helper's CI lane MUST run `cargo deny check`, `cargo audit`, `cargo nextest run --workspace`, `cargo semver-checks` (if public API) on every PR.
 
-## 3. Container image discipline for oya-tooling-agent-read (P2)
+## 3. Container image discipline for tooling-agent-read (P2)
 
 The helper is a binary. If it ships as a container (for sandboxed agent runners), the image:
 
@@ -67,7 +67,7 @@ The helper is a binary. If it ships as a container (for sandboxed agent runners)
 - Build: `cargo build --release --target x86_64-unknown-linux-musl` (musl static).
 - Multi-arch: `linux/amd64` + `linux/arm64`.
 - Size budget: target `<= 15 MB` for the static-musl binary; the distroless wrapper adds `~2 MB` for cert bundle.
-- CI lane: `oya-governance-image-size-budget` (new; scaffolded as part of M-CC Visualization+Image-discipline workstream — out of cutover scope but referenced).
+- CI lane: `governance-image-size-budget` (new; scaffolded as part of M-CC Visualization+Image-discipline workstream — out of cutover scope but referenced).
 - Signing: Cosign `>= 3.0.6` with `--bundle`. Image attestation includes SBOM via Syft (current stable).
 
 ## 4. Hyperscaler-practice inheritance for cutover phases
@@ -79,7 +79,7 @@ Per the hyperscaler-research agent's output at `docs/standards/hyperscaler-best-
 - **Blameless postmortems** (Google SRE): if any cutover phase rolls back, a postmortem lands at `oyatie/docs/runbooks/<axis>/postmortem-<event>.md`.
 - **OKRs**: cutover deliverables map to wave-1 W-Foundation acceptance gates (per ROADMAP).
 - **Trunk-based development**: cutover lands on `main` (session-less mode); no long-lived branches.
-- **1ES templated pipelines** (Microsoft): every cutover CI lane (`oya-governance-*`) is a templated reusable workflow.
+- **1ES templated pipelines** (Microsoft): every cutover CI lane (`governance-*`) is a templated reusable workflow.
 - **Sigstore / SLSA**: every cutover binary deliverable is Cosign-signed; provenance attestation per SLSA L3.
 - **SBOM**: every cutover binary deliverable ships an SBOM (Syft + Grype attestation).
 
@@ -89,7 +89,7 @@ Per Directive 10, every cutover output (P0.5 ADR-0054, P1 ADR-0052, P2 helper cr
 
 - **Purpose declared**: each new file has frontmatter (markdown) or top-comment (Rust) stating "Purpose: <one line>".
 - **Machine-readable index**: each new directory has `INDEX.md` listing contents with purpose.
-- **Predictable naming**: all new crates follow `oya-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
+- **Predictable naming**: all new crates follow `oyatie-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
 
 ## 6. Visualization integration (Directive 11)
 

@@ -55,7 +55,7 @@ impl fmt::Display for BootError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ProductionAdapterUnavailable => f.write_str(
-                "production cluster-lifecycle adapters are not wired; set OYA_CLUSTER_LIFECYCLE_ENABLE_INMEMORY=true only for dev/test bring-up",
+                "production cluster-lifecycle adapters are not wired; set OYATIE_CLUSTER_LIFECYCLE_ENABLE_INMEMORY=true only for dev/test bring-up",
             ),
             Self::InvalidStaticQuota(error) => write!(f, "invalid dev static quota: {error}"),
             Self::Authz(error) => write!(f, "authz provider boot refused: {error}"),
@@ -73,7 +73,7 @@ impl From<AuthzProviderConfigError> for BootError {
     }
 }
 
-pub const ENABLE_INMEMORY_ENV: &str = "OYA_CLUSTER_LIFECYCLE_ENABLE_INMEMORY";
+pub const ENABLE_INMEMORY_ENV: &str = "OYATIE_CLUSTER_LIFECYCLE_ENABLE_INMEMORY";
 
 /// Env var carrying the break-glass platform-operator bearer secret. Fail-closed:
 /// boot is REFUSED if this is empty (no provable credential root, no service).
@@ -207,7 +207,7 @@ async fn create_cluster_handler(
     // The verified principal's tenant is authoritative; `body.tenant_id` is a
     // PDP-checked RESOURCE SELECTOR. The Cedar decision denies a cross-tenant
     // create unless the principal holds the platform scope (replaces the old
-    // forgeable `x-oya-tenant-id == body.tenant_id` header-trust). Authn ran in
+    // forgeable `x-tenant-id == body.tenant_id` header-trust). Authn ran in
     // the `VerifiedCaller` extractor before this body was parsed; the PDP
     // decision runs before any provisioning — fail-closed.
     if state

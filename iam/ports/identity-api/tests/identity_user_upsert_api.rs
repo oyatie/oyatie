@@ -49,7 +49,7 @@ fn identity_user_upsert_creates_and_replays_same_idempotent_result() {
     assert_eq!(first.data.primary_identifier, "admin@kr.example");
     assert_eq!(first.data.display_name, "KR Admin");
     assert_eq!(first.data.roles[0].value, "tenant.admin");
-    assert_eq!(first.data.region_pack, "oya-pack-alpha");
+    assert_eq!(first.data.region_pack, "pack-alpha");
     assert_eq!(first.data.identity_provider_id, "idp_kr_oidc");
     assert_eq!(first.data.external_subject, "oidc://kr.example/admin");
     assert_eq!(first.data.schema_version, 1);
@@ -260,7 +260,7 @@ fn user_request(
             roles: vec![IdentityUserRoleRef {
                 value: "tenant.admin".to_string(),
             }],
-            region_pack: "oya-pack-alpha".to_string(),
+            region_pack: "pack-alpha".to_string(),
             identity_provider_id: "idp_kr_oidc".to_string(),
             external_subject: "oidc://kr.example/admin".to_string(),
         },

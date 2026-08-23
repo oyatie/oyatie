@@ -1,4 +1,4 @@
-//! oya-identity binary entrypoint.
+//! identity binary entrypoint.
 //!
 //! Boots the workload-identity service (REST + gRPC) from environment
 //! configuration and drains gracefully on SIGTERM/ctrl-c (K8s-native pod

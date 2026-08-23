@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-cloud-k8s-cni-cilium
+name: cloud-k8s-cni-cilium
 description: Cilium CNI 1.16 LTS — eBPF dataplane + NetworkPolicy + Hubble per ADR-0117
 type: application
 version: 0.1.0

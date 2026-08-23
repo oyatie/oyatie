@@ -22,7 +22,7 @@ After Slice D closes, Turn 2 (15 observability IPs + per-crate catalog records) 
 - [x] **Audit-grade depth required, not skeletons.** Confirmed 2026-05-17: "deeper" — full structural rigor + concrete per-jurisdiction citations.
 - [x] **Globally-enforced frameworks: SOC 2 Type 2 + ISO 27001:2022 + GDPR.** Confirmed 2026-05-17.
 - [x] **Suggested frameworks via regional-pack overlay: KR-ISMS-P, KR PIPA, KR 전자문서법, HIPAA, APPI, PDPA, DPDPA, LGPD, Privacy Act, PDPL, UAE-DPL, etc.** Confirmed 2026-05-17.
-- [x] **Mimir tenant model: hashed-customer-id `X-Scope-OrgID` + reserved `oya-ci` tenant.** Predicted, confirmed 2026-05-17.
+- [x] **Mimir tenant model: hashed-customer-id `X-Scope-OrgID` + reserved `ci` tenant.** Predicted, confirmed 2026-05-17.
 - [x] **Self-observability bootstrap: fail-closed (≥3 evaluator cycles clean before verdicts emit).** Predicted, confirmed 2026-05-17.
 - [x] **Layer-A cluster: dedicated observability cluster (not co-located).** Predicted, confirmed 2026-05-17.
 - [ ] **Per-pack legal citations cover every market in scope.** Validated by: cross-reference `regional-packs/<pack>/PACK.md` for each pack against the artifacts' overlay sections.
@@ -30,7 +30,7 @@ After Slice D closes, Turn 2 (15 observability IPs + per-crate catalog records) 
 
 ## Minimum-shippable scope
 
-There is no smallest-actionable subset. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `oya gate validate per-microservice-layout --microservice observability` exit 0".
+There is no smallest-actionable subset. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `presubmit` (retired CLI `gate validate per-microservice-layout --microservice observability`) exit 0".
 
 ## Not Doing (and Why)
 

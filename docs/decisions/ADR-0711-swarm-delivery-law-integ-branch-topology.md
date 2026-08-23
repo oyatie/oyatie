@@ -19,39 +19,39 @@ deliverables:
   - id: ADR-0711-D1
     description: "Durable integ/<root> + integ/docs + integ/specs branch topology with machine-readable path envelopes."
     exit_criteria: "specs/integ-branch-envelopes.json exists; governed roots/planes/hubs are enumerated ONLY in that JSON (#roots, #planes, #hubs.paths) — prose cites JSON pointers and MUST NOT re-list; hub sole-owner list and adjunct claim rules are machine-readable; envelope self-ownership is integ/specs."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D2
     description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
     exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D3
     description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
     exit_criteria: "ADR-0711 and PORTABLE-SWARM-CONTRACT.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D4
     description: "Amendment A — docs governability epic gate, buck2 [check] daemon (no cargo revival), comment doctrine, generated-files doctrine."
     exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D5
     description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
     exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D6
     description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
     exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + judgment_files.dir (naming_sweep lives under governance/check/integ-envelope/judgments/, not inlined); no mass rename without taxonomy instance."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D7
-    description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
-    verified_by: "oya-ci-required"
+    description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name presubmit are OVERRULED (forever name presubmit)."
+    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of presubmit-as-forever-name."
+    verified_by: "presubmit"
   - id: ADR-0711-D8
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
     exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0711-D10
     description: "Amendment E — adr-rename-overturn (forever ADR-NNNN-<topic> + indexes); rules-with-why on load-bearing MUST/KEEP/BAN; daemon_hotset + perimeter northstar as envelopes policy-as-data."
     exit_criteria: "ADR-0711 Amendment E + PORTABLE Amendment E present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
 
@@ -61,7 +61,7 @@ deliverables:
 live and already enforced; leaving this ADR `Proposed` while Claim treated it as binding law
 violated END-STATE-POLICY (Proposed carries no implement authority). Remaining rollout work is
 deliverable completion, not a status gate: Phase B hermetic CI envelope check under
-`oya-ci-required`, and Phase C (branch protection restricting `dev` PRs to `integ/*` +
+`presubmit`, and Phase C (branch protection restricting `dev` PRs to `integ/*` +
 `hotfix/*`) which stays founder-paired and out of this ADR's acceptance criteria.
 
 ## Context
@@ -76,7 +76,7 @@ Parallel agent delivery on this monorepo repeatedly hit the same failure classes
 
 Industry practice converged on scoped parallel merge lanes and worktree-per-agent isolation. This
 repo already requires one isolated worktree per lane (`docs/AGENTS.md`) and a single protected
-context `oya-ci-required` (ADR-0700 / ADR-0515). What was missing is a **durable, envelope-scoped
+context `presubmit` (ADR-0700 / ADR-0515). What was missing is a **durable, envelope-scoped
 integration topology** plus a **mechanical command discipline** so workers cannot recreate the
 stash/reset substrate even by accident.
 
@@ -214,7 +214,7 @@ historical ADRs are provenance only.
    Serialize only at trunk and on hub contention. No long-lived divergent feature branches —
    integ content resets to `dev` after every land (this ADR D-1 / D-4).
 5. **Hermetic policy-as-data gates in one blocking CI context.** Merge authority is solely
-   `oya-ci-required` (ADR-0700 restating ADR-0515). Checks consume declared SCM facts only —
+   `presubmit` (ADR-0700 restating ADR-0515). Checks consume declared SCM facts only —
    never ambient `git` probes inside hermetic evaluators.
 6. **Selective / affected testing doctrine.** Worker lanes do not require a full monorepo
    rebuild. Binding CI uses the affected-set cone (ADR-0554 / ADR-0700 lineage). Workers read
@@ -405,14 +405,14 @@ Extends (does not invent a parallel cosmology):
 - Capability-first roots + C/P/A/F faces (ADR-0701 / ADR-0562 lineage)
 - Flat cross-cutting `specs/` / `docs/` hubs (ADR-0119) with owner colocation (ADR-0131 / ADR-0541)
 - Role segments from crate-naming / BNF standards — **greenfield SUPERSEDES** brand-first
-  `required_prefix = "oya-"` (ADR-0017 era) as durable law
+  `required_prefix = "oyatie-"` (ADR-0017 era) as durable law
 
 **Grammar (binding highlights):**
 
 | Rule | Meaning |
 |---|---|
-| Role-first tokens | Name states behavior (`baseline-ratchet`, `merge-admission-required`) |
-| Forbidden leading brand | `oya-` / `oya_` / `cloud-` / `cloud_` as leading durable prefixes |
+| Role-first tokens | Name states behavior (`baseline-ratchet`, `presubmit`) |
+| Forbidden leading brand | `oyatie-` / `` / `cloud-` / `cloud_` as leading durable prefixes |
 | ADR path shape (Amendment E) | Forever `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav — MUST NOT mass-rename for optics |
 | Self-explanatory path test | Path+filename alone convey purpose (`NNNN` + topic together) |
 | Brand ≠ keep_forever | Brand prefix alone never justifies durable home |
@@ -429,9 +429,9 @@ Extends (does not invent a parallel cosmology):
 
 | name_now | kind | name_forever |
 |---|---|---|
-| `oya-ci-required` | merge-gate-context | `merge-admission-required` (dual-emit until founder protection flip) |
+| `presubmit` | merge-gate-context | `presubmit` (dual-emit until founder protection flip) |
 | `freshness (…, ADR-0539)` | ci-job | `generated-artifact-freshness (lock + faces)` |
-| `cloud-ci-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
+| `pipeline-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
 | `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/ADR-NNNN-<topic>.md` (**keep** — indexes carry nav; Amendment E OVERRULE of topic-only mass rename) |
 
 **Execution order:** taxonomy lands on `integ/specs` → sweep rows cite kinds → renames execute
@@ -460,7 +460,7 @@ evidence), suggest the fix. Defensibility bar: if not defensible under the full 
 replace it if indefensible.
 
 **Taxonomy must REPLACE indefensible naming practice — not encode it.** Prior ADR/CI naming that
-fails the battery (`oya-ci-required` brand, ADR numbers in job titles, leading `oya-`/`cloud-`
+fails the battery (`presubmit` brand, ADR numbers in job titles, leading `oyatie-`/`cloud-`
 prefixes, `firewall` metaphor) is recorded in `specs/naming-taxonomy.json#overturned_patterns`
 with fence rationale + replacement. `naming_sweep[]` / judgment rows cite those replacements.
 
@@ -468,11 +468,11 @@ Patterns this amendment recommends overturning (mechanism may stay; brand/shape 
 
 | Existing practice | Fence (why it existed) | Overturn to |
 |---|---|---|
-| `oya-ci-required` as forever context name | Single required context (ADR-0515/0700) + brand cohesion | Keep **single** merge context; rename to `merge-admission-required` (dual-emit until founder protection flip) |
+| `presubmit` as forever context name | Single required context (ADR-0515/0700) + brand cohesion | Keep **single** merge context; rename to `presubmit` (dual-emit until founder protection flip) |
 | ADR numbers in CI job `name:` | Operator shortcut to governing ADR | Role-first job titles; ADR cites live in comments/docs only |
-| Leading `oya-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
-| `cloud-ci-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
-| `required_prefix = "oya-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
+| Leading `oyatie-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
+| `pipeline-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
+| `required_prefix = "oyatie-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
 | `docs/decisions/ADR-NNNN-*.md` path shape | Numbered decision catalogs | Topic-shaped filenames; numbers in index/frontmatter (batched renames) |
 
 #### B-2 — Freeze prefixes = no NEW births while moves execute
@@ -536,14 +536,14 @@ These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment 
 | **Invented work** | Inventing work into verified empty; activity theater; filler to fill quotas; observing = intervening. |
 | **Dual-truth** | Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior `merge-admission` green across new HEAD. |
 | **Second build path / shared WD** | Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity. |
-| **Brand / opaque / ADR-in-title names** | Leading `oya-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
+| **Brand / opaque / ADR-in-title names** | Leading `oyatie-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
 | **Silent blocked success** | Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; scoreboards from observation density. |
 
 #### C-3 — OVERRULE: forever merge-gate name
 
-Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
+Any distill note that said **keep the name `presubmit`** is **OVERRULED**.
 
-- **Forever name:** `merge-admission-required` (`specs/naming-taxonomy.json` overturned pattern
+- **Forever name:** `presubmit` (`specs/naming-taxonomy.json` overturned pattern
   `OP-merge-gate-brand`).
 - Live GitHub protection may still pin the legacy string until dual-emit + founder flip
   (Amendment B / Phase C) — that is a cutover alias, **not** forever grammar.
@@ -668,7 +668,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 | Phase | What lands | Blocking? |
 |---|---|---|
 | A (this ADR) | ADR + envelope JSON + PORTABLE-SWARM-CONTRACT + deliver.js Claim/Land + shims | advisory |
-| B | `governance/check/integ-envelope/` under `oya-ci-required` | blocking |
+| B | `governance/check/integ-envelope/` under `presubmit` | blocking |
 | C | restrict `dev` PRs to `integ/*` + `hotfix/*` | founder-paired |
 
 ## Alternatives considered
@@ -693,8 +693,8 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
 - **Mass-rename ADR files to topic-only paths for taxonomy optics** — OVERRULED (Amendment E-1 / `adr-rename-overturn`); forever is `ADR-NNNN-<topic>` + indexes.
-- **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
-- **Keep forever name `oya-ci-required` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `merge-admission-required`; distill is operating-pattern evidence, not naming authority.
+- **Keep `oyatie-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
+- **Keep forever name `presubmit` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `presubmit`; distill is operating-pattern evidence, not naming authority.
 - **Defer rules-with-why / daemon-hotset / perimeter as Phase-B debt** — banned; forever shapes encode now (Amendment E); enforcement wiring may trail doctrine.
 
 ## References
@@ -707,7 +707,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
 - Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)
 - Layout apex: ADR-0701 (capability-first; supersedes ADR-0562 / ADR-0131 as live law)
-- CI admission apex: ADR-0700 (single required merge-admission context; ADR-0515 lineage; forever name `merge-admission-required`)
+- CI admission apex: ADR-0700 (single required merge-admission context; ADR-0515 lineage; forever name `presubmit`)
 - Specs topology provenance: ADR-0119 (flat cross-cutting `specs/` hub)
 - Doc colocation / g3doc pattern: ADR-0541 (corpus liveness; owner-colocated docs)
 - Affected testing: ADR-0554 / ADR-0700 lineage

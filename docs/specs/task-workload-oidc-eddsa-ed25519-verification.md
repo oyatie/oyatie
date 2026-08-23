@@ -2,11 +2,11 @@
 
 ## Objective
 
-Extend `oya-identity-workload-oidc-adapter` with EdDSA/Ed25519 (RFC 8037) JWS verification so that OIDC issuers that publish OKP Ed25519 JWKs can issue workload tokens verified by this adapter. All existing RS256/384/512 and ES256 paths remain unchanged.
+Extend `identity-workload-oidc-adapter` with EdDSA/Ed25519 (RFC 8037) JWS verification so that OIDC issuers that publish OKP Ed25519 JWKs can issue workload tokens verified by this adapter. All existing RS256/384/512 and ES256 paths remain unchanged.
 
 ## Crate Boundary
 
-- Crate: `crates/oya-identity-workload-oidc-adapter`
+- Crate: `crates/identity-workload-oidc-adapter`
 - No workspace member additions; no root `Cargo.toml` edits.
 - Crypto backend: `aws-lc-rs` (already a dependency, `signature::ED25519` + `Ed25519KeyPair`).
 

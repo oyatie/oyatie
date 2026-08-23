@@ -1,0 +1,20 @@
+[package]
+name = "sheets-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../../data/core/data-boundary-kernel" }
+
+intelligence-collab-runtime-domain = { path = "../../../../../intelligence/core/collab-runtime-domain" }
+
+[lib]
+name = "sheets_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

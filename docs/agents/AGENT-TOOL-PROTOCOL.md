@@ -37,17 +37,17 @@ doc_status: published
 
 **Importance ladder:** `critical` = halts + autonomy-ceiling decisions; `high` = decisions, errors-resolved, direct-tool-invocations, scaffold-locks; `medium` = progress checkpoints; `low` = informational. Never store secrets, PII, or full file contents — content fields are summary form.
 
-## `oya-tooling-agent-read` — read-only repo surface
+## `tooling-agent-read` — read-only repo surface
 
 The sanctioned read interface. Substitutes for `git log`, `git diff`, `gh pr view`, `gh pr comments` so the banned-primitives lane stays green.
 
 | Subcommand | Substitutes | Form |
 |---|---|---|
-| `oya-tooling-agent-read log` | `git log` / `git show` | `oya-tooling-agent-read log --range <ref1>..<ref2> [--paths <glob>]` |
-| `oya-tooling-agent-read diff` | `git diff` | `oya-tooling-agent-read diff --base <ref> --head <ref> [--paths <glob>]` |
-| `oya-tooling-agent-read pr-view <n>` | `gh pr view <n>` | `oya-tooling-agent-read pr-view <pr-number>` |
-| `oya-tooling-agent-read pr-comments <n>` | `gh pr view <n> --comments` | `oya-tooling-agent-read pr-comments <pr-number>` |
-| `oya-tooling-agent-read audit-emit` | (no direct substitute) | `oya-tooling-agent-read audit-emit --event <EVT-id> --payload <json>` — emits the audit-chain row |
+| `tooling-agent-read log` | `git log` / `git show` | `tooling-agent-read log --range <ref1>..<ref2> [--paths <glob>]` |
+| `tooling-agent-read diff` | `git diff` | `tooling-agent-read diff --base <ref> --head <ref> [--paths <glob>]` |
+| `tooling-agent-read pr-view <n>` | `gh pr view <n>` | `tooling-agent-read pr-view <pr-number>` |
+| `tooling-agent-read pr-comments <n>` | `gh pr view <n> --comments` | `tooling-agent-read pr-comments <pr-number>` |
+| `tooling-agent-read audit-emit` | (no direct substitute) | `tooling-agent-read audit-emit --event <EVT-id> --payload <json>` — emits the audit-chain row |
 
 
 ## Directive-12 escape hatch (raw `git` / `gh`)
@@ -57,7 +57,7 @@ The sanctioned read interface. Substitutes for `git log`, `git diff`, `gh pr vie
   -i high -k "git,<context>"
 ```
 
-The lane `oya-governance-banned-primitives` (revised per Directive 12) catches *undocumented* invocations only. ≥5 invocations of the same shape in 30 days auto-emits a `MISTAKES-LEDGER` migration-candidate row — this is a signal to extend `oya-tooling-agent-read`, not a punishment.
+The lane `governance-banned-primitives` (revised per Directive 12) catches *undocumented* invocations only. ≥5 invocations of the same shape in 30 days auto-emits a `MISTAKES-LEDGER` migration-candidate row — this is a signal to extend `tooling-agent-read`, not a punishment.
 
 **Forbidden under Directive 12 even with rationale:**
 - `git push --force` to `main`
@@ -70,9 +70,9 @@ The lane `oya-governance-banned-primitives` (revised per Directive 12) catches *
 
 | Need | Use |
 |---|---|
-| See last 10 commits on path | `oya-tooling-agent-read log --range HEAD~10..HEAD --paths <p>` |
-| Inspect a PR | `oya-tooling-agent-read pr-view <n>` |
-| Emit audit chain row | `oya-tooling-agent-read audit-emit --event EVT-* --payload <json>` |
+| See last 10 commits on path | `tooling-agent-read log --range HEAD~10..HEAD --paths <p>` |
+| Inspect a PR | `tooling-agent-read pr-view <n>` |
+| Emit audit chain row | `tooling-agent-read audit-emit --event EVT-* --payload <json>` |
 
 ## When in doubt
 

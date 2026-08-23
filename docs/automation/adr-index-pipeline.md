@@ -10,10 +10,10 @@ purpose: |
   (id, title, status, supersedes, superseded_by, owners, date). Manual edits to
   ADR-INDEX.md are forbidden after generation. A pre-commit hook verifies index
   matches the source set; CI re-verifies; out-of-sync rejects.
-planned_enforcement_ref: oya-governance-adr-index
+planned_enforcement_ref: governance-adr-index
 extends_crates:
-  - oya-governance-adr-index-kernel
-  - oya-governance-adr-citation-kernel
+  - governance-adr-index-kernel
+  - governance-adr-citation-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/ADR-INDEX.md
@@ -26,7 +26,7 @@ doc_status: published
 
 ## 1. Purpose
 
-The ADR pack at `docs/decisions/**/*.md` is the source of truth for every architectural decision. The single-file `docs/ADR-INDEX.md` is a derived view. Today the index is hand-maintained; the lane already runs `oya-governance-adr-index-kernel` validation, but generation is the next step. This pipeline closes the loop: the ADR-INDEX is emitted from frontmatter; manual edits are rejected.
+The ADR pack at `docs/decisions/**/*.md` is the source of truth for every architectural decision. The single-file `docs/ADR-INDEX.md` is a derived view. Today the index is hand-maintained; the lane already runs `governance-adr-index-kernel` validation, but generation is the next step. This pipeline closes the loop: the ADR-INDEX is emitted from frontmatter; manual edits are rejected.
 
 ## 2. Inputs
 
@@ -64,13 +64,13 @@ tags:
 | Per-PR | CI re-runs generation; PR fails if generated output differs from committed. |
 | Nightly | Sweep for orphan ADRs (file under `decisions/` not in index) and missing supersession targets. |
 
-## 5. Validation gates (`oya-governance-adr-index`)
+## 5. Validation gates (`governance-adr-index`)
 
 1. **No hand edits.** Generated output character-identical to committed file (BLOCKER).
 2. **Frontmatter completeness.** Every ADR has all required fields; missing field → BLOCKER with file path.
 3. **Status-transition validity.** Allowed transitions: `Proposed → Accepted`, `Proposed → Rejected`, `Accepted → Superseded`, `Accepted → Deprecated`. Any other transition → HIGH (requires ADR-amendment).
 4. **Supersession graph closure.** Every `supersedes:` target exists; every `superseded_by:` target exists and references this id back; cycles forbidden.
-5. **Owner-team existence.** Every owner id resolves to a `docs/teams/<id>/CHARTER.md` (cross-validated via `oya-governance-raci-team-coverage-kernel`).
+5. **Owner-team existence.** Every owner id resolves to a `docs/teams/<id>/CHARTER.md` (cross-validated via `governance-raci-team-coverage-kernel`).
 6. **ID density.** No gaps > 5 in the id sequence (signals a lost ADR or shadow-numbering).
 
 ## 6. Manual-edit lockout
@@ -91,6 +91,6 @@ Solid edges = `supersedes`; dashed edges = `superseded_by` (informational). The 
 
 ## 8. Out-of-scope
 
-- ADR body content validation (handled by `oya-governance-adr-citation-kernel`).
+- ADR body content validation (handled by `governance-adr-citation-kernel`).
 - ADR-to-code-citation enforcement (handled by a separate governance lane).
 - Cross-ADR consistency review (human council; tracked in `docs/CONTRADICTION-LEDGER.md`).

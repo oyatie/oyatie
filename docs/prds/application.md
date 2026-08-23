@@ -99,14 +99,14 @@ capability-registration protocol; Application never owns product-specific logic.
 
 | BC name | Crate family (BNF v4.1) | Purpose | Key entities |
 |---|---|---|---|
-| `auth` | `oya-application-auth-{domain,application,infrastructure,rest}` | OIDC/SAML sign-in; token issuance; MFA | `Session`, `OidcProvider` |
-| `product-enablement` | `oya-application-product-enablement-{domain,application,infrastructure,rest}` | Product catalog; enable/disable; seat licensing | `ProductLicense`, `EnabledProduct` |
-| `user-provisioning` | `oya-application-user-provisioning-{domain,application}` | User create/suspend; role assignment; HR sync | `TenantUser` |
-| `billing` | `oya-application-billing-{domain,application,infrastructure,rest}` | Plan management; invoicing; seat counts | `BillingPlan`, `Invoice` |
-| `navigation` | `oya-application-navigation-{domain,application,rest}` | App-switcher; product links; notifications | `NavItem` |
+| `auth` | `application-auth-{domain,application,infrastructure,rest}` | OIDC/SAML sign-in; token issuance; MFA | `Session`, `OidcProvider` |
+| `product-enablement` | `application-product-enablement-{domain,application,infrastructure,rest}` | Product catalog; enable/disable; seat licensing | `ProductLicense`, `EnabledProduct` |
+| `user-provisioning` | `application-user-provisioning-{domain,application}` | User create/suspend; role assignment; HR sync | `TenantUser` |
+| `billing` | `application-billing-{domain,application,infrastructure,rest}` | Plan management; invoicing; seat counts | `BillingPlan`, `Invoice` |
+| `navigation` | `application-navigation-{domain,application,rest}` | App-switcher; product links; notifications | `NavItem` |
 
 ```
-NAME: oya-application-product-enablement-rest
+NAME: application-product-enablement-rest
 JUSTIFICATION:
 - microservice = application: B2B unified shell µservice; flat catalog; ADR-0056 v4.1; "Application" not "Shell" per oyatie override
 - bc-tokens = product-enablement: application has multiple BCs; product-enablement BC owns ProductLicense entity + enable/disable use-cases; ADR-0056 v4.1 BC-optionality
@@ -207,10 +207,10 @@ entry point — requires cross-region DNS + OCI Traffic Management).
 | AC-01 | OIDC sign-in round-trip; JWT `tenant_id` claim present; two-cookie contract met | integration test `test_oidc_signin_two_cookie` |
 | AC-02 | Product enable/disable triggers `ProductEnabled`/`ProductDisabled` Workflow event | integration test `test_product_enablement_workflow` |
 | AC-03 | `EmployeeHired` → TenantUser created in ≤5 s | integration test `test_user_provisioning_on_hire` |
-| AC-04 | Cedar policy: employee cannot access admin portal | `oya gate validate cedar-policy --ms application` |
-| AC-05 | LEAN-A2: Application shell imports no product-specific crates | `oya gate validate lean-a2 --ms application` exits 0 |
+| AC-04 | Cedar policy: employee cannot access admin portal | `presubmit` (retired CLI `gate validate cedar-policy --ms application`) |
+| AC-05 | LEAN-A2: Application shell imports no product-specific crates | `presubmit` (retired CLI `gate validate lean-a2 --ms application`) exits 0 |
 | AC-06 | Shell frame p99 ≤100 ms at 10k concurrent sessions | k6 smoke; `http_req_duration{p(99)}<100` |
-| AC-07 | Audit log: all admin actions sealed; export correct | `oya gate validate audit-chain --ms application` |
+| AC-07 | Audit log: all admin actions sealed; export correct | `presubmit` (retired CLI `gate validate audit-chain --ms application`) |
 
 ---
 

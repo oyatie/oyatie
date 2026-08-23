@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Vertical | workflow |
-| Crate | `oya-workflow-studio-dsl-emitter-domain` |
+| Crate | `workflow-studio-dsl-emitter-domain` |
 | Stage | SPEC |
 | Branch | `feat/task-studio-dsl-emitter-cycle-reachability-validate-2026-05-28` |
 | ADR authority | ADR-0509 (flat crate per service), ADR-0131 (flat µservice layout) |
@@ -28,7 +28,7 @@ emission and all existing validations remain unchanged in shape and semantics.
 
 ## Vertical & crate boundaries
 
-- **Only file changed:** `crates/oya-workflow-studio-dsl-emitter-domain/src/lib.rs`
+- **Only file changed:** `crates/workflow-studio-dsl-emitter-domain/src/lib.rs`
 - Root `Cargo.toml` is not touched. No new workspace members. No new crates.
 - No storage, signing, transport, HTTP, or gRPC concerns enter this crate.
 
@@ -41,7 +41,7 @@ extension keeps that shape: new variants and helper functions live in
 `lib.rs` alongside the existing code.
 
 ```
-crates/oya-workflow-studio-dsl-emitter-domain/
+crates/workflow-studio-dsl-emitter-domain/
   src/
     lib.rs   ← only file modified
   Cargo.toml ← unchanged
@@ -129,7 +129,7 @@ Existing tests (`emits_canonical_workflow_spec_v1_json_without_null_conditions`,
 `rejects_duplicate_node_ids`, `rejects_dangling_edges`) must continue to pass
 unchanged.
 
-Test runner: `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain`
+Test runner: `cargo nextest run -p workflow-studio-dsl-emitter-domain`
 
 ---
 
@@ -137,8 +137,8 @@ Test runner: `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain`
 
 | # | Criterion |
 |---|---|
-| A1 | `cargo check -p oya-workflow-studio-dsl-emitter-domain --all-targets` exits 0 |
-| A2 | `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain` exits 0, all tests green |
+| A1 | `cargo check -p workflow-studio-dsl-emitter-domain --all-targets` exits 0 |
+| A2 | `cargo nextest run -p workflow-studio-dsl-emitter-domain` exits 0, all tests green |
 | A3 | Cyclic spec → `Err(GraphCycle(..))` |
 | A4 | Spec with unreachable node → `Err(UnreachableNode(..))` |
 | A5 | All pre-existing valid-spec tests pass, `emit_canonical_json` output byte-identical |
@@ -150,5 +150,5 @@ Test runner: `cargo nextest run -p oya-workflow-studio-dsl-emitter-domain`
 ## OpenSLO reference
 
 Crate is a pure library with no runtime SLO. The owning µservice
-(`oya-workflow-studio-dsl-emitter-domain`) inherits the workflow vertical SLO
+(`workflow-studio-dsl-emitter-domain`) inherits the workflow vertical SLO
 policy; no new SLO yaml is required for a pure validation extension.

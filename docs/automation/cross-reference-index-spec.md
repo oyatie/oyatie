@@ -10,11 +10,11 @@ purpose: |
   with: path | purpose | doc-class | owner (RACI) | lifecycle (DOC-CATALOG) |
   consumer-fitness-lane | last-verified. The single navigation surface for
   agents + humans across the entire canonical doc tree.
-planned_enforcement_ref: oya-governance-cross-reference-index
+planned_enforcement_ref: governance-cross-reference-index
 extends_crates:
-  - oya-governance-doc-catalog-kernel
-  - oya-governance-raci-team-coverage-kernel
-  - oya-governance-readme-doc-coverage-kernel
+  - governance-doc-catalog-kernel
+  - governance-raci-team-coverage-kernel
+  - governance-readme-doc-coverage-kernel
 companion_docs:
   - INDEX.md
   - orphan-detection-discipline.md
@@ -33,8 +33,8 @@ doc_status: published
 
 ## 2. Inputs
 
-- `docs/machine-readable/catalog.json` (from `oya-governance-doc-catalog-kernel`).
-- `docs/machine-readable/raci.json` (from `oya-governance-raci-team-coverage-kernel`).
+- `docs/machine-readable/catalog.json` (from `governance-doc-catalog-kernel`).
+- `docs/machine-readable/raci.json` (from `governance-raci-team-coverage-kernel`).
 - `docs/machine-readable/doc-freshness.json` (from `doc-freshness-discipline.md`).
 - `docs/machine-readable/orphans.json` `purpose:` lookup (from `orphan-detection-discipline.md`).
 - The fitness-lane registry (per `fitness-lane-reports-pipeline.md`).
@@ -59,7 +59,7 @@ Ordering: alphabetical by `path`. Multi-table sections by `doc-class`: Constitut
 | Nightly | Full re-generation; archive snapshot. |
 | On any new doc | The doc's row is auto-added on next regeneration; missing row at PR-time → HIGH. |
 
-## 5. Validation gates (`oya-governance-cross-reference-index`)
+## 5. Validation gates (`governance-cross-reference-index`)
 
 1. **Generated drift.** Committed `docs/CROSS-REFERENCE-INDEX.md` differs from re-generated (BLOCKER).
 2. **Coverage.** Every doc in `docs/machine-readable/catalog.json` has a row (BLOCKER).
@@ -91,4 +91,4 @@ The mdbook chapter `docs/site/src/reference/cross-reference-index.md` is the hum
 
 - Per-section anchor-level cross-references (granular; future enhancement).
 - Search-engine indexing (handled by mdbook's built-in search + downstream Search axis).
-- Per-region localized index (future per `oya-governance-glossary-localization-kernel`).
+- Per-region localized index (future per `governance-glossary-localization-kernel`).

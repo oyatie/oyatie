@@ -3,7 +3,7 @@
 //! This crate is the canonical principal/identity state machine for *workload*
 //! identities (machine-to-machine: CI runners, microservice service accounts,
 //! agents) as distinct from the human-identity surface owned by the
-//! `oya-identity-oidc-issuer-*` / `oya-identity-webauthn-*` crate families.
+//! `identity-oidc-issuer-*` / `identity-webauthn-*` crate families.
 //!
 //! Scope per task T3 (workload-identity service):
 //! - the workload principal model: tenant + workload identity + claims,

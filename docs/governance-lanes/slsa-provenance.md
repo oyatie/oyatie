@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every release artifact has a SLSA Level 2+ provenance attestation tied to the build workflow.
 - enforces: hyperscaler-best-practices spec — SLSA L2+ provenance.
-- kernel_crate: `oya-governance-slsa-provenance-kernel` — `ProvenanceRecord { artifact, builder_id, slsa_level, attestation_path }`, verdict `SlsaProvenanceFitnessReport { records_checked }`.
-- runner_path: `tools/oya-governance-slsa-provenance`
+- kernel_crate: `governance-slsa-provenance-kernel` — `ProvenanceRecord { artifact, builder_id, slsa_level, attestation_path }`, verdict `SlsaProvenanceFitnessReport { records_checked }`.
+- runner_path: `tools/governance-slsa-provenance`
 - inputs: in-toto attestation JSONs, registered builder list.
 - failure_modes:
   - missing attestation file
   - SLSA level < 2
   - builder id not in registered list
-- ci_invocation: `cargo run -p oya-governance-slsa-provenance`
+- ci_invocation: `cargo run -p governance-slsa-provenance`
 - runtime_budget: 1200 ms
 - severity: HIGH
 - kernel_sketch:

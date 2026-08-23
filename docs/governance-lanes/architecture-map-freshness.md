@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify `docs/architecture-map.md` (visualization) lists every active crate/axis and is regenerated when the crate list changes.
 - enforces: Directive 11 (MASTERPLAN) — visualization is up-to-date.
-- kernel_crate: `oya-governance-architecture-map-freshness-kernel` — `MapNode { crate_id }`, verdict `ArchitectureMapFreshnessFitnessReport { crates_checked }`.
-- runner_path: `tools/oya-governance-architecture-map-freshness`
+- kernel_crate: `governance-architecture-map-freshness-kernel` — `MapNode { crate_id }`, verdict `ArchitectureMapFreshnessFitnessReport { crates_checked }`.
+- runner_path: `tools/governance-architecture-map-freshness`
 - inputs: `docs/architecture-map.md` parse, workspace crate list, last regen timestamp.
 - failure_modes:
   - crate exists but absent from map
   - map node references missing crate
   - map last regen older than workspace `Cargo.toml`
-- ci_invocation: `cargo run -p oya-governance-architecture-map-freshness`
+- ci_invocation: `cargo run -p governance-architecture-map-freshness`
 - runtime_budget: 350 ms
 - severity: MED
 - kernel_sketch:

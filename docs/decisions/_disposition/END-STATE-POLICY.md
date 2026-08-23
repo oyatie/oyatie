@@ -5,7 +5,7 @@ doc_status: archived
 # ADR end-state policy — clean live source of truth
 
 **Status:** binding process for disposition program (2026-08-06)  
-**Not merge authority alone.** Land via protected PR + dual-critic + `oya-ci-required`.
+**Not merge authority alone.** Land via protected PR + dual-critic + `presubmit`.
 
 ## Target end state
 
@@ -46,7 +46,7 @@ Never treat `status: Accepted` as sufficient. Resolve supersession + `amended_by
 ## North star / hyperscaler bar (Accept filter)
 
 - Owned Rust stack; capability-first monorepo  
-- Single `oya-ci-required` admission (live 0515 lineage)  
+- Single `presubmit` admission (live 0515 lineage)  
 - No dual-authority CI / no re-Prow / no external harness brand as law  
 - Zero-trust, cell isolation, telemetry-first, constant-work  
 - Full-depth product depth — not MVP cosplay  

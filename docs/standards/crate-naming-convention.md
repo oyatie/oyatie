@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
+purpose: "Canonical, machine-checkable grammar for every `oyatie-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
 doc_status: published
 ---
 
@@ -11,12 +11,12 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and
+  Canonical, machine-checkable grammar for every `oyatie-*` Cargo crate name and
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
-  conventions) and binds the `oya-governance-naming-convention` lane.
+  conventions) and binds the `governance-naming-convention` lane.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-naming-convention
+planned_enforcement_ref: governance-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/doc-style.md
@@ -38,10 +38,10 @@ authority_chain_declaration: |
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 This standard operates within the [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json)
-frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
+frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oyatie-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
-Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
-The lane [`oya-governance-naming-convention`](../../.omc/governance-lanes/naming-convention.md)
+Every `oyatie-*` crate path under `crates/` MUST conform to the grammar in §2.
+The lane [`governance-naming-convention`](../../.omc/governance-lanes/naming-convention.md)
 mechanically enforces it. Severity = **BLOCKER**.
 
 This standard ports the convergent hyperscaler practice for crate naming:
@@ -81,8 +81,8 @@ they appear in all capitals.
 > **v4.1 supersedes v4.** This section is updated per ADR-0056 v4.1
 > (accepted 2026-05-13). The v4 `shared|vertical` binary is **retired** — the flat
 > µservice catalog makes every µservice independent; the `shared` literal is dropped
-> from slot2. The v3 BNF (`oya-<context>-<feature>-<role>[-<capability>]`) is also
-> retired. v4.1 is the canonical grammar for all `oya-*` crates from Shard 1 forward.
+> from slot2. The v3 BNF (`oyatie-<context>-<feature>-<role>[-<capability>]`) is also
+> retired. v4.1 is the canonical grammar for all `oyatie-*` crates from Shard 1 forward.
 
 The crate-name grammar, evaluated left-to-right on the package-name kebab string:
 
@@ -105,19 +105,19 @@ kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
 **Parser rule**: split on `-`; LAST token = layer (one of 12); SECOND token
-(after `oya-`) = registered µservice name; remaining middle tokens (if any) =
-optional BC tokens. `oya-check-*` crates are exempt from this grammar.
+(after `oyatie-`) = registered µservice name; remaining middle tokens (if any) =
+optional BC tokens. `check-*` crates are exempt from this grammar.
 
 **BC optionality rule**: BC slot is OPTIONAL. Omit when the µservice has a single
-concept at the layer (e.g., `oya-medical-domain`, `oya-tenancy-kernel`). Include
+concept at the layer (e.g., `medical-domain`, `tenancy-kernel`). Include
 when the µservice has multiple BC-level splits at the same layer (e.g.,
 
-Constraints (the lane `oya-check-architecture-cli` verifies all of them):
+Constraints (the lane `check-architecture-cli` verifies all of them):
 
 1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be `>=3`
    (microservice + layer minimum); NO upper bound.
 2. **Slot-2 µservice enum.** MUST be a µservice name registered in
-   `[workspace.metadata.oya.microservices]`. Adding a µservice is a **1-ADR action**.
+   `[workspace.metadata.oyatie.microservices]`. Adding a µservice is a **1-ADR action**.
    The literals `shared`, `platform`, `vertical` are **retired** and must NOT appear
    as slot-2 values.
 3. **Layer enum (closed, 12 values).** LAST token MUST be one of 12 canonical
@@ -147,27 +147,27 @@ replaced by `_` (per Cargo's library-name rule).
 
 ## 3. Microservice registry — semantic table (selected examples)
 
-The full registry lives in `[workspace.metadata.oya.microservices]` in the root
+The full registry lives in `[workspace.metadata.oyatie.microservices]` in the root
 `Cargo.toml`. Examples of registered µservices:
 
 | Microservice | Definition | Layer examples |
 |---|---|---|
-| `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. | `oya-cloud-compute-vm-rest`, `oya-cloud-iam-kernel` |
-| `ontology` | Palantir-Ontology-equivalent information adapter: typed entities + links + actions + functions, audit-chain, RLS, jurisdiction overlays. Replaces retired `object-graph`. | `oya-ontology-entity-kernel`, `oya-ontology-agent-gateway-rest` |
-| `workflow` | Cross-µservice action/orchestration adapter: state machines, DAGs, approvals, SLA timers, escalations, handoffs. | `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application` |
-| `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `oya-application-product-enablement-rest` |
-| `messenger` | Concrete messaging µservice with strict personal/professional tenant and RBAC separation. | `oya-messenger-domain`, `oya-messenger-message-stream-usecase` |
-| `mail` | Concrete mail µservice with strict personal/professional tenant and RBAC separation. | `oya-mail-domain`, `oya-mail-mailbox-store-usecase` |
+| `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. | `cloud-compute-vm-rest`, `cloud-iam-kernel` |
+| `ontology` | Palantir-Ontology-equivalent information adapter: typed entities + links + actions + functions, audit-chain, RLS, jurisdiction overlays. Replaces retired `object-graph`. | `ontology-entity-kernel`, `ontology-agent-gateway-rest` |
+| `workflow` | Cross-µservice action/orchestration adapter: state machines, DAGs, approvals, SLA timers, escalations, handoffs. | `workflow-state-machine-domain`, `workflow-approvals-application` |
+| `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `application-product-enablement-rest` |
+| `messenger` | Concrete messaging µservice with strict personal/professional tenant and RBAC separation. | `messenger-domain`, `messenger-message-stream-usecase` |
+| `mail` | Concrete mail µservice with strict personal/professional tenant and RBAC separation. | `mail-domain`, `mail-mailbox-store-usecase` |
 | `community` | Concrete community µservice for groups, professional profile/graph, social/anonymous modes, and moderation. | `community-post-store-domain`, `community-social-domain` |
-| `connector` | Integration-adapter substrate for external systems, OAuth/webhook brokerage, and connector catalog/runtime contracts. Not a product-group wrapper. | `oya-connector-salesforce-adapter`, `oya-connector-netsuite-adapter` |
-| `tenancy` | Tenant lifecycle, multi-tenant isolation, RLS enforcement. | `oya-tenancy-kernel`, `oya-tenancy-adapter` |
-| `identity` | Authentication, STS token issue, PKCE+nonce, SSO binding. | `oya-identity-kernel`, `oya-identity-rest` |
-| `medical` | Electronic medical records, FHIR R5, clinical workflows. | `oya-medical-encounter-domain` |
-| `payroll` | Salary calculation, 4대보험 EDI, 연말정산, payroll journal. | `oya-payroll-ledger-application` |
-| `payments` | Payment rails, settlement, reconciliation. | `oya-payments-ledger-application` |
+| `connector` | Integration-adapter substrate for external systems, OAuth/webhook brokerage, and connector catalog/runtime contracts. Not a product-group wrapper. | `connector-salesforce-adapter`, `connector-netsuite-adapter` |
+| `tenancy` | Tenant lifecycle, multi-tenant isolation, RLS enforcement. | `tenancy-kernel`, `tenancy-adapter` |
+| `identity` | Authentication, STS token issue, PKCE+nonce, SSO binding. | `identity-kernel`, `identity-rest` |
+| `medical` | Electronic medical records, FHIR R5, clinical workflows. | `medical-encounter-domain` |
+| `payroll` | Salary calculation, 4대보험 EDI, 연말정산, payroll journal. | `payroll-ledger-application` |
+| `payments` | Payment rails, settlement, reconciliation. | `payments-ledger-application` |
 
 Adding a µservice REQUIRES: (1) an ADR proposing the name + justification,
-(2) a row in `[workspace.metadata.oya.microservices]`, (3) the lane regex updated
+(2) a row in `[workspace.metadata.oyatie.microservices]`, (3) the lane regex updated
 in the naming-convention fitness lane.
 
 ## 4. Role enum — semantic table
@@ -195,13 +195,13 @@ Legacy `application`, `runtime`, and `test` role records are transitional compat
 
 | Role | Capability tail | Examples |
 |---|---|---|
-| `kernel` | **forbidden** | `oya-intelligence-evidence-kernel` (no tail) |
+| `kernel` | **forbidden** | `intelligence-evidence-kernel` (no tail) |
 | `domain` | optional | n/a in workspace yet |
-| `app` | optional | `oya-cloud-billing-tax-app` (tail = `tax` on feature `billing`) |
-| `api` | optional | `oya-cloud-compute-vm-api` (tail = `vm` on feature `compute`) |
+| `app` | optional | `cloud-billing-tax-app` (tail = `tax` on feature `billing`) |
+| `api` | optional | `cloud-compute-vm-api` (tail = `vm` on feature `compute`) |
 | `worker` | optional | n/a in workspace yet |
-| `adapter` | **REQUIRED** | `oya-intelligence-evidence-adapter-file` (file backend) |
-| `runtime` | optional | `oya-tooling-cli-dev-runtime` (tail = `dev`; see §6.1) |
+| `adapter` | **REQUIRED** | `intelligence-evidence-adapter-file` (file backend) |
+| `runtime` | optional | `tooling-cli-dev-runtime` (tail = `dev`; see §6.1) |
 | `cli` | optional | n/a in workspace yet |
 | `sdk` | optional | n/a in workspace yet |
 
@@ -244,7 +244,7 @@ Rules:
    The recommended resolution is to fold the noun-phrase into a single
    token: `release-evidence-pack` → feature `release-pack`, capability
    `evidence`. See `docs/plans/rename-plan-2026-05-12.md`.
-3. Compounds MUST NOT cross the role boundary: `oya-governance-data-class-fitness-kernel`
+3. Compounds MUST NOT cross the role boundary: `governance-data-class-fitness-kernel`
    parses as feature=`data-class-fitness` (3 tokens) + role=`kernel`,
    exceeding the feature-token cap; rename per the plan.
 
@@ -258,7 +258,7 @@ surface published outside the workspace. The exemption is narrow:
   the compound-feature ADR requirement, because the audience is internal
   and the surface is non-load-bearing.
 - A `tooling` crate that produces a multi-binary distribution (e.g.
-  `oya-tooling-cli-dev-runtime` ships two bins) MUST use `role = runtime`
+  `tooling-cli-dev-runtime` ships two bins) MUST use `role = runtime`
   with a feature describing the runtime kind.
 
 ## 7. Cargo.toml requirements (per crate)
@@ -267,7 +267,7 @@ Every workspace member's `Cargo.toml` MUST include:
 
 ```toml
 [package]
-name             = "oya-<context>-<feature>-<role>[-<capability>]"
+name             = "oyatie-<context>-<feature>-<role>[-<capability>]"
 edition          .workspace = true
 version          .workspace = true
 rust-version     .workspace = true
@@ -275,7 +275,7 @@ license          = "Apache-2.0"
 publish          = false                    # unless role = sdk
 
 [lib]                                       # for non-bin-only crates
-name = "oya_<context>_<feature>_<role>[_<capability>]"   # underscored
+name = "<context>_<feature>_<role>[_<capability>]"   # underscored
 path = "src/lib.rs"
 doctest = false                              # unless explicitly opted in
 
@@ -381,13 +381,13 @@ Inside a crate, the standard tracks the
 
 ## 11. Anti-patterns
 
-1. **Adapter without capability tail.** A crate named `oya-*-adapter` is
+1. **Adapter without capability tail.** A crate named `oyatie-*-adapter` is
    ambiguous (which provider?). Always include the capability tail:
    `-adapter-file`, `-adapter-tracing`, `-adapter-postgres`.
 2. **Kernel with capability tail.** A kernel is by definition
    capability-agnostic; if the kernel needs a capability tail, it isn't a
    kernel — it's an adapter or an app.
-3. **Headless adapter** (e.g. `oya-intelligence-evidence-file`). The role token
+3. **Headless adapter** (e.g. `intelligence-evidence-file`). The role token
    is missing; readers cannot tell whether the crate is a kernel with a
    file-format feature or an adapter binding evidence to a file backend.
 4. **Compound feature without ADR.** Adding a fourth-token feature
@@ -396,8 +396,8 @@ Inside a crate, the standard tracks the
 5. **Crate name ≠ directory name.** Cargo allows it; the lane refuses it.
 6. **Bin-only crate using `role = kernel`.** Kernels have no I/O. A
    bin-only crate is `cli` or `runtime`.
-7. **Cross-context renames absent ADR.** Moving `oya-platform-X-kernel` to
-   `oya-foundry-X-kernel` changes the data-class boundary and the
+7. **Cross-context renames absent ADR.** Moving `platform-X-kernel` to
+   `foundry-X-kernel` changes the data-class boundary and the
    audit-chain emission; an ADR is REQUIRED.
 
 ## 12. Sources scanned
@@ -419,4 +419,4 @@ Inside a crate, the standard tracks the
 - [Google Cloud Rust](https://github.com/googleapis/google-cloud-rust)
 - [Firecracker](https://firecracker-microvm.github.io/) (AWS workspace structure precedent)
 - [Hyperlight](https://opensource.microsoft.com/blog/2024/11/07/introducing-hyperlight-virtual-machine-based-security-for-functions-at-scale/) (Microsoft workspace structure precedent)
-- ADR-0015 (flat crates), ADR-0017 (`oya-` prefix), ADR-0053, ADR-0054.
+- ADR-0015 (flat crates), ADR-0017 (`oyatie-` prefix), ADR-0053, ADR-0054.

@@ -1,7 +1,7 @@
 //! M02-P04-IP-001 — REST transport adapter (stub).
 //!
 //! Maps incoming REST envelopes to the canonical use-case ports. Real wire
-//! framing lives in `oya-http-runtime-hyper-adapter`; this crate only owns
+//! framing lives in `http-runtime-hyper-adapter`; this crate only owns
 //! the use-case projection.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.

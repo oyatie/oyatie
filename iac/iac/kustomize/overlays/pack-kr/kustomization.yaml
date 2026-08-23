@@ -32,7 +32,7 @@ configMapGenerator:
       - DR_REGION=  # pack-kr is single-region (no DR pair)
       - JURISDICTION=kr
       - OCI_OBJECTSTORAGE_ENDPOINT=https://objectstorage.ap-seoul-1.oraclecloud.com
-      - KMS_KEY_RING=cloud-iac-kr-keyring
+      - KMS_KEY_RING=iac-app-kr-keyring
       - APPLY_AUDIT_RETENTION_YEARS=5  # KR commercial code; KR-FSS guidance
       - HIPAA_ELIGIBLE=false
       - ARGOCD_URL=https://argocd-kr.oyatie.dev

@@ -7,10 +7,10 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - enforces: CHECKLIST/agent-completion; ADR-0054.
-- kernel_crate: `oya-governance-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
-- runner_path: `tools/oya-governance-agent-completion-checklist`
+- kernel_crate: `governance-agent-completion-checklist-kernel` — `CompletionTriple { grit_done_id, icm_store_id, audit_event_id }`, verdict `AgentCompletionChecklistFitnessReport { triples_checked }`.
+- runner_path: `tools/governance-agent-completion-checklist`
 - failure_modes:
-- ci_invocation: `cargo run -p oya-governance-agent-completion-checklist`
+- ci_invocation: `cargo run -p governance-agent-completion-checklist`
 - runtime_budget: 600 ms
 - severity: BLOCKER
 - kernel_sketch:

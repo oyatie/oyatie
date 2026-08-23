@@ -9,7 +9,7 @@ deciders: axis-observability, council-architecture, ops-sre-reliability
 related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json]
 applies_to: every microservice in microservices/ that promotes past dev
-enforced_by: oya-governance-openslo-conformance CI lane (BLOCKER)
+enforced_by: governance-openslo-conformance CI lane (BLOCKER)
 review_cadence: annually + on every OpenSLO spec version update
 doc_status: published
 ---
@@ -101,7 +101,7 @@ All pinned to the current LTS line. Verify against `grafana.com/docs/<component>
 
 ### Verification
 
-- `oya-governance-version-pinning-conformance` CI lane (Slice D follow-up) refuses Cargo.toml + Helm-values + Dockerfile references to versions outside the LTS lines above without an ADR.
+- `governance-version-pinning-conformance` CI lane (Slice D follow-up) refuses Cargo.toml + Helm-values + Dockerfile references to versions outside the LTS lines above without an ADR.
 - Quarterly version-pinning refresh PR: ops-sre-reliability sweeps the LTS lines; bumps any that have moved.
 
 ## SLI Catalog (canonical, every µservice declares at least these four)
@@ -183,7 +183,7 @@ Every manifest MUST declare `metadata.labels.data_classes` matching at least one
 
 ### Forbidden patterns
 
-The `oya-governance-openslo-conformance` lane (BLOCKER) refuses:
+The `governance-openslo-conformance` lane (BLOCKER) refuses:
 
 1. Manifest without `metadata.labels.microservice` (cannot route to pack).
 2. Manifest with `target < 0.9` (sub-90% targets are unprofessional and likely manifest authoring bug).
@@ -204,9 +204,9 @@ The `oya-governance-openslo-conformance` lane (BLOCKER) refuses:
    - council-architecture (review for cross-µservice consistency)
 4. CI lanes that MUST green:
    - `cargo fmt --check`
-   - `oya gate validate openslo-conformance`
-   - `oya gate validate data-class-coverage` (the manifest's labels match the µservice's declared data classes)
-   - `oya gate validate openslo-promql-feasibility` (the PromQL expression returns non-empty data against representative Mimir snapshot)
+   - `presubmit` (retired CLI `gate validate openslo-conformance`)
+   - `presubmit` (retired CLI `gate validate data-class-coverage`) (the manifest's labels match the µservice's declared data classes)
+   - `presubmit` (retired CLI `gate validate openslo-promql-feasibility`) (the PromQL expression returns non-empty data against representative Mimir snapshot)
 5. Merge advances `microservices/<ms>/slos/*.openslo.yaml` through git PR; `slo-engine-worker` consumes the `OpenSloManifestUpdated` event (per `microservices/observability/contracts/asyncapi/eligibility-events.yaml`) and hot-reloads.
 
 ## SLI Type-Specific Guidance

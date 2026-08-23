@@ -11,7 +11,7 @@
 //! caller may suspend/retire a principal ONLY within its own tenant. A
 //! cross-tenant request (caller in tenant A acting on tenant B's principal) is
 //! DENIED regardless of action — closing the IDOR / blast-radius axis. It is the
-//! W5-shaped default; a richer Cedar-policy-backed cloud-iam PDP swaps in behind
+//! W5-shaped default; a richer Cedar-policy-backed iam PDP swaps in behind
 //! the same port without touching the REST surface.
 //!
 //! ADR-0083 Tier 3: panic-free; `#![forbid(unsafe_code)]` inherited at crate root.

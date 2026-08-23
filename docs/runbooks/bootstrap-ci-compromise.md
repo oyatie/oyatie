@@ -8,7 +8,7 @@ doc_status: published
 > **Status:** Active
 > **Owner:** council-security + ops-sre-reliability
 > **Last updated:** 2026-05-20
-> **Last verified:** 2026-05-20 (validated during `oya verify` gate repair sweep)
+> **Last verified:** 2026-05-20 (validated during retired `./bin/oya verify` gate repair sweep)
 > **Related ADRs:** ADR-0247 §D-5, ADR-0247 §D-4, ADR-0243 §D-5, ADR-0248 §D-2
 
 ---
@@ -198,7 +198,7 @@ psql -c "UPDATE bootstrap_state SET stage = 'STAGE_1',
 Issue a new one-shot CA for the Stage-1 replacement runner. This CA has a fresh ≤8h validity window:
 ```
 vault write pki/root/generate/internal \
-  common_name="oya-bootstrap-stage1-replacement-<DATE>" \
+  common_name="bootstrap-stage1-replacement-<DATE>" \
   ttl="8h" \
   key_type="ed25519"
 ```

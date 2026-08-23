@@ -8,12 +8,12 @@
 
 use std::collections::BTreeMap;
 
+use data_boundary_kernel::{
+    AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
+};
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
 use intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
-};
-use oya_data_boundary_kernel::{
-    AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
 
 pub const FOUNDRY_POLICY_AUTONOMY_CEILING_PUBLISH_SURFACE: &str =
@@ -631,7 +631,7 @@ fn autonomy_policy_record_from_request(
         capability_action,
         capability_required_tier,
         data_classes,
-        "oya.foundry.policy.autonomy_decision".to_string(),
+        "oyatie.foundry.policy.autonomy_decision".to_string(),
     )
     .map_err(FoundryPolicyApiError::InvalidCapability)?;
     let decision = TenantPolicy::new(request.tenant_id.clone(), configured_ceiling)

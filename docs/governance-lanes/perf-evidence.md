@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every PR touching a perf-sensitive crate ships a numeric evidence block (p50/p95/p99 in ms) in CHANGELOG.
-- enforces: STANDARD/perf-evidence; AGENTS.md fitness-lane `oya-governance-perf-evidence`.
-- kernel_crate: `oya-governance-perf-evidence-kernel` — `PerfEvidence { crate_id, p50_ms, p95_ms, p99_ms, source }`, verdict `PerfEvidenceFitnessReport { evidences_checked }`.
-- runner_path: `tools/oya-governance-perf-evidence`
+- enforces: STANDARD/perf-evidence; AGENTS.md fitness-lane `governance-perf-evidence`.
+- kernel_crate: `governance-perf-evidence-kernel` — `PerfEvidence { crate_id, p50_ms, p95_ms, p99_ms, source }`, verdict `PerfEvidenceFitnessReport { evidences_checked }`.
+- runner_path: `tools/governance-perf-evidence`
 - inputs: PR body, `docs/CHANGELOG.md`, registry of perf-sensitive crate ids.
 - failure_modes:
   - perf-sensitive crate touched but no evidence block
   - evidence has placeholder `TBD` value
   - p99 < p50 (impossible)
-- ci_invocation: `cargo run -p oya-governance-perf-evidence`
+- ci_invocation: `cargo run -p governance-perf-evidence`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

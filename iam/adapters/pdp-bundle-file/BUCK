@@ -1,0 +1,33 @@
+rust_library(
+    name = "iam-pdp-bundle-file",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_pdp_bundle_file",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/pdp-kernel:iam-pdp-kernel",
+        "//libs/shared-audit-digest-adapter-awslc:shared-audit-digest-adapter-awslc",
+        "//libs/shared-audit-event-kernel:shared-audit-event-kernel",
+        "//libs/shared-pdp-kernel:shared-pdp-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "iam-pdp-bundle-file-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "iam_pdp_bundle_file",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/pdp-kernel:iam-pdp-kernel",
+        "//libs/shared-audit-digest-adapter-awslc:shared-audit-digest-adapter-awslc",
+        "//libs/shared-audit-event-kernel:shared-audit-event-kernel",
+        "//libs/shared-pdp-kernel:shared-pdp-kernel",
+        "//libs/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

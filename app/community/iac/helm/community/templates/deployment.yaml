@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers — helpers via {{ include "helpers.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{- range tuple "postStoreRest" "postStoreWorker" "threadTree" "votingEngine" "votingEngineWorker" "moderationQueue" "moderationQueueWorker" "kbArticleStore" "searchIndexRest" "searchIndexWorker" }}
 {{- $c := index $.Values . }}
 ---
@@ -10,7 +10,7 @@ metadata:
   labels:
     app.kubernetes.io/name: community
     app.kubernetes.io/component: {{ . | kebabcase }}
-    app.kubernetes.io/part-of: oya-community
+    app.kubernetes.io/part-of: community
     oyatie/microservice: community
 spec:
   replicas: {{ $c.replicas }}
@@ -29,7 +29,7 @@ spec:
     spec:
       serviceAccountName: community-{{ . | kebabcase }}
       securityContext:
-        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
+        {{- include "helpers.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: community-{{ . | kebabcase }}
           image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -44,12 +44,12 @@ spec:
             requests: {{- toYaml $c.resources.requests | nindent 14 }}
             limits: {{- toYaml $c.resources.limits | nindent 14 }}
           livenessProbe:
-            {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
+            {{- include "helpers.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:
-            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
+            {{- include "helpers.probes.httpHealthReadiness8080" $ | nindent 12 }}
           envFrom:
             - secretRef:
                 name: community-openbao-injected
           securityContext:
-            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
+            {{- include "helpers.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}

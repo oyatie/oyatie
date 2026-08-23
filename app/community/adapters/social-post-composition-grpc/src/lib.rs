@@ -3,8 +3,8 @@
 
 use community_social_app::{SocialAppError, SocialPublishPlan, plan_publish_post};
 use community_social_post_composition_api::{AuthorizedSocialContext, ComposePostRequest};
-use oya_shared_postgres_command_kernel::TenantSqlContext;
-use oya_shared_protocol_transport_kernel::GrpcUnaryPlan;
+use shared_postgres_command_kernel::TenantSqlContext;
+use shared_protocol_transport_kernel::GrpcUnaryPlan;
 
 pub const SOCIAL_PROTO_PACKAGE: &str = "oya.social.v1";
 pub const SOCIAL_GRPC_SERVICE: &str = "PostComposition";

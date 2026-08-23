@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-cloud-k8s-csi-block-volume
+name: cloud-k8s-csi-block-volume
 description: Oyatie cloud-k8s CSI block-volume controller for OCI Block Volume and Ceph RBD backends
 type: application
 version: 0.1.0

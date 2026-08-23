@@ -1,6 +1,6 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers — helpers via {{ include "oyatie.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{/*
-Per-cloud-iac CIS-compliant Deployment template (Sweep-E in-pass fix).
+Per-iac-app CIS-compliant Deployment template (Sweep-E in-pass fix).
 
 Substrate µservices share this baseline: non-root, read-only rootfs,
 all capabilities dropped, no privilege escalation, seccompProfile RuntimeDefault,
@@ -12,28 +12,28 @@ Per ADR-0131 per-µservice flat layout + ADR-0123 secret-reference URI policy.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oya-cloud-iac-helm-controller
-  namespace: cloud-iac
+  name: iac-app-helm-controller
+  namespace: iac-app
   labels:
-    microservice: cloud-iac
-    app.kubernetes.io/name: oya-cloud-iac-helm-controller
+    microservice: iac-app
+    app.kubernetes.io/name: iac-app-helm-controller
     app.kubernetes.io/version: {{ $.Chart.AppVersion | default "0.1.0" }}
 spec:
   replicas: {{ $cfg.replicaCount | default 2 }}
   selector:
     matchLabels:
-      microservice: cloud-iac
-      app.kubernetes.io/name: oya-cloud-iac-helm-controller
+      microservice: iac-app
+      app.kubernetes.io/name: iac-app-helm-controller
   template:
     metadata:
       labels:
-        microservice: cloud-iac
-        app.kubernetes.io/name: oya-cloud-iac-helm-controller
+        microservice: iac-app
+        app.kubernetes.io/name: iac-app-helm-controller
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9090"
     spec:
-      serviceAccountName: oya-cloud-iac
+      serviceAccountName: iac-app
       automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
@@ -44,14 +44,14 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/oya-cloud-iac-helm-controller" }}:{{ $cfg.image.tag | default "0.1.0" }}"
+          image: "{{ $cfg.image.repository | default "registry.oyatie.dev/iac-app-helm-controller" }}:{{ $cfg.image.tag | default "0.1.0" }}"
           imagePullPolicy: IfNotPresent
           ports:
             - {name: app,     containerPort: 9000, protocol: TCP}
             - {name: metrics, containerPort: 9090, protocol: TCP}
           env:
-            - {name: OYA_MICROSERVICE, value: cloud-iac}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://oya-observability-alloy.observability.svc.cluster.local:4317"}
+            - {name: OYATIE_MICROSERVICE, value: iac-app}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://observability-alloy.observability.svc.cluster.local:4317"}
             - {name: RUST_LOG, value: info}
           resources:
             requests:
@@ -61,9 +61,9 @@ spec:
               cpu: {{ $cfg.resources.limits.cpu | default "2" }}
               memory: {{ $cfg.resources.limits.memory | default "1Gi" }}
           readinessProbe:
-            {{- include "oya.probes.healthzReadiness" $ | nindent 12 }}
+            {{- include "oyatie.probes.healthzReadiness" $ | nindent 12 }}
           livenessProbe:
-            {{- include "oya.probes.healthzLiveness" $ | nindent 12 }}
+            {{- include "oyatie.probes.healthzLiveness" $ | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

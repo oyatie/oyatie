@@ -92,7 +92,7 @@ This council holds final decision authority on the Data Use Boundary ADR, the pe
 | Risk | Severity | Mitigation |
 |---|---|---|
 | Data Use Boundary ADR stalls → blocks cloud/search/ads axes | High | Weekly progress check by secretariat; founder escalation if stalled > 2 weeks |
-| New OG property tier approved without council sign-off | Catastrophic | Planned advisory lane `oya-governance-data-use-boundary` records merge-readiness gaps until the CI gate exists |
+| New OG property tier approved without council sign-off | Catastrophic | Planned advisory lane `governance-data-use-boundary` records merge-readiness gaps until the CI gate exists |
 | Privacy incident not reviewed within 24 h | High | PagerDuty alert to council chair on any PHI/PII class-boundary violation |
 
 ## Sources scanned

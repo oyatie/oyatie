@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_schema_drift_latency_good_total[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_schema_drift_latency_good_total[5m])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_pipeline_schema_drift_latency_total[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_pipeline_schema_drift_latency_total[5m])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Schema drift detected before downstream publish
       target: 0.999

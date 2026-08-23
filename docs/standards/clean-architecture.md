@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical layered-architecture standard for every `oya-*` crate."
+purpose: "Canonical layered-architecture standard for every `oyatie-*` crate."
 doc_status: published
 ---
 
@@ -11,14 +11,14 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical layered-architecture standard for every `oya-*` crate. Defines the
+  Canonical layered-architecture standard for every `oyatie-*` crate. Defines the
   `kernel ◀── domain ◀── app ◀── { api, worker, adapter } ◀── runtime`
   dependency direction, the cross-layer contract rules (traits, error
   boundaries), the testing posture per layer, and the cross-reference to
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-architecture-conventions
+planned_enforcement_ref: governance-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
   - docs/standards/code-style-rust.md
@@ -49,7 +49,7 @@ frame (architecture decision principles; ADR-0015 flat crates) and is the **peer
 [`crate-naming-convention.md`](crate-naming-convention.md): the naming
 standard binds the **role token** of every crate name; this standard binds
 the **layer semantics** the role represents. The pair is enforced as a
-single lane, `oya-governance-architecture-conventions`, severity
+single lane, `governance-architecture-conventions`, severity
 **BLOCKER**.
 
 ## 1. Vocabulary
@@ -109,7 +109,7 @@ graph MUST topologically match it.
   (`trait FooStore: Send + Sync { … }`); it belongs in the innermost layer
   alongside the types it operates on, not in the layer that uses it. The domain
   layer holds business logic that *calls through* ports; it does not define them.
-  Crate name: `oya-<microservice>[-<bc>]-kernel` per BNF v4.1.
+  Crate name: `oyatie-<microservice>[-<bc>]-kernel` per BNF v4.1.
 
 - **`domain`** — Business logic on kernel types: entities, domain services,
   invariant enforcement. Uses (calls through) port traits defined in `kernel`.
@@ -154,7 +154,7 @@ graph MUST topologically match it.
 
 ## 3. Dependency-direction enforcement
 
-The lane `oya-governance-architecture-conventions` parses every
+The lane `governance-architecture-conventions` parses every
 workspace member's `[dependencies]` table and refuses the following edges:
 
 | From → To | Status |
@@ -180,9 +180,9 @@ The lane uses two mechanisms, layered:
 
 1. **`cargo-deny` per-crate `[bans]` blocks**, generated from each
    crate's `[package.metadata.oya].role`. The generator lives in
-   `oya-governance-naming-convention` (Sub-plan from
+   `governance-naming-convention` (Sub-plan from
    [`docs/plans/rename-plan-2026-05-12.md`](../plans/rename-plan-2026-05-12.md)).
-2. **A workspace-level lane** (`oya-governance-architecture-conventions`)
+2. **A workspace-level lane** (`governance-architecture-conventions`)
    walks every member manifest, classifies each crate by its
    `[package.metadata.oya].role`, and refuses any cross-layer edge
    forbidden by the table above. The lane is implemented in Rust as a
@@ -283,7 +283,7 @@ remains synchronous — async is forbidden in kernel.
 | `kernel` | Pure unit | `cargo nextest run -p <kernel-crate>`; no `tokio` | Invariants on value types; property tests via `proptest` / `quickcheck` |
 | `domain` | Trait-mock + property | `cargo nextest run -p <domain-crate>`; `mockall` or hand-rolled in-mem adapter | Port-contract assertions; property tests on workflow invariants |
 | `app` | Integration with in-mem adapters | `cargo nextest run -p <app-crate>`; in-memory adapter implementations live in the app's `tests/` dir | Use-case happy-path + failure-path coverage |
-| `api` | Contract test against OpenAPI/AsyncAPI | `cargo nextest run -p <api-crate>` + `oya-intelligence-openapi-kernel` validation | Request/response schema; auth-extraction; error-rendering |
+| `api` | Contract test against OpenAPI/AsyncAPI | `cargo nextest run -p <api-crate>` + `intelligence-openapi-kernel` validation | Request/response schema; auth-extraction; error-rendering |
 | `worker` | Contract test against queue schema | Same as api | Message schema + idempotency proofs |
 | `adapter` | Integration against real backing service | `cargo nextest run -p <adapter-crate> --features integration`; `testcontainers` for dockerable services; local OpenBao for secrets adapter | Backend semantics + boundary error translation |
 | `runtime` | Smoke test | `cargo run --bin <name> -- --help`; `cargo nextest run -p <runtime-crate>` for startup-config tests | Binary builds, DI wiring resolves, `--help` exits 0 |
@@ -392,4 +392,4 @@ unless an external link is given.
 - [Robert C. Martin — Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
   (original layered/hexagonal synthesis).
 - [Alistair Cockburn — Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/).
-- ADR-0015 (flat crates), ADR-0017 (`oya-` prefix), ADR-0053, ADR-0054.
+- ADR-0015 (flat crates), ADR-0017 (`oyatie-` prefix), ADR-0053, ADR-0054.

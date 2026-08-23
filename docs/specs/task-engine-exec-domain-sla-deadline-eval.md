@@ -1,14 +1,14 @@
 # Spec: engine-exec-domain-sla-deadline-eval
 
 vertical: workflow
-crate: oya-workflow-engine-execution-engine-domain
+crate: workflow-engine-execution-engine-domain
 task: engine-exec-domain-sla-deadline-eval
 status: spec
 
 ## Objective
 
 Extend the pure execution-engine domain evaluator
-(`crates/oya-workflow-engine-execution-engine-domain/src/lib.rs`) with deterministic
+(`crates/workflow-engine-execution-engine-domain/src/lib.rs`) with deterministic
 SLA-deadline reasoning for the existing `ArmSlaTimer` command path. The change:
 
 1. Adds `SlaDeadlineClass` (OnTrack / AtRisk / Breached) — a pure value object
@@ -28,8 +28,8 @@ All code is pure domain — no DB, clock, network, filesystem, or randomness.
 ```
 vertical:  workflow
 lane:      engine-exec-domain-sla-deadline-eval
-crate:     oya-workflow-engine-execution-engine-domain
-path:      crates/oya-workflow-engine-execution-engine-domain/src/lib.rs
+crate:     workflow-engine-execution-engine-domain
+path:      crates/workflow-engine-execution-engine-domain/src/lib.rs
 ```
 
 ## Domain model additions
@@ -167,7 +167,7 @@ byte-stable equality check.
 
 ## Boundaries
 
-- Single file: `crates/oya-workflow-engine-execution-engine-domain/src/lib.rs`
+- Single file: `crates/workflow-engine-execution-engine-domain/src/lib.rs`
 - No root `Cargo.toml` changes
 - No kernel crate changes
 - No other crate changes
@@ -178,4 +178,4 @@ byte-stable equality check.
 ## Dependencies
 
 No new Cargo dependencies. The crate already depends on
-`oya-workflow-engine-execution-engine-kernel` which provides `SlaTimer`.
+`workflow-engine-execution-engine-kernel` which provides `SlaTimer`.

@@ -2,7 +2,7 @@
 Canonical authority: docs/templates/pull-request-template.md. Keep it short: CI logs and the
 review thread are the evidence. No other sections are required or checked.
 Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a
-trusted server-side/cloud-ci producer.
+trusted server-side/pipeline producer.
 -->
 
 ## Issue
@@ -12,12 +12,12 @@ trusted server-side/cloud-ci producer.
 ## Summary
 
 - 1-3 bullets on **what + why**. The diff already shows the *what*; this section adds the *why*.
-- Cite the canonical authority read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
+- Cite the path’s `ADR.md` / `PRD.md` / `SPEC.md` / `PLAN.md` for what you changed.
 
 ## Verification
 
 - Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
-- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
+- `presubmit` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
 

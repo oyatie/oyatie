@@ -18,13 +18,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_observability_trace_sampled_total{policy_kind=~"status_code_error|latency_p99|new_endpoint_warmup|audit_event|slo_burn"}[5m]))
+                sum(rate(observability_trace_sampled_total{policy_kind=~"status_code_error|latency_p99|new_endpoint_warmup|audit_event|slo_burn"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_observability_trace_eligible_total{policy_kind=~"status_code_error|latency_p99|new_endpoint_warmup|audit_event|slo_burn"}[5m]))
+                sum(rate(observability_trace_eligible_total{policy_kind=~"status_code_error|latency_p99|new_endpoint_warmup|audit_event|slo_burn"}[5m]))
   objectives:
     - displayName: 100% preservation of must-sample policy hits
       target: 1.0

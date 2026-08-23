@@ -36,7 +36,7 @@ skip-list), **presubmit (cheap, local-darwin) vs postsubmit (authoritative gate-
 
 ## MVP Scope
 **In:** `pipeline` over remaining `#84` subsystems → append-emit (`scripts/emit_rust_tests.py`)
-→ local `buck2 test //unit/...` (darwin presubmit) → land-loop (open PR → poll `oya-ci-gate` →
+→ local `buck2 test //unit/...` (darwin presubmit) → land-loop (open PR → poll `ci-gate` →
 on RED, parse the status-summary, quarantine the named crate via `KNOWN_FAILING` + revert +
 follow-up, re-push, ≤K rounds → **auto-merge** on green) → report (landed/quarantined counts,
 follow-up list, nothing silently dropped). `risk-class = mechanical` for `#84` (no adversarial

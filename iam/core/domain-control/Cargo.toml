@@ -1,0 +1,21 @@
+[package]
+name = "iam-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+cell-region = { path = "../../../cell/core/region" }
+
+iam-identity-domain = { path = "../identity-domain" }
+
+[lib]
+name = "iam_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

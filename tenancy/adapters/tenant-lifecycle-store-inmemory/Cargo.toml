@@ -8,11 +8,13 @@ license = "Apache-2.0"
 description = "In-memory TenantLifecycleStore adapter: ordered keyed records over BTreeMaps for single-node bring-up and acceptance tests. Production swaps a persistent store behind the same kernel port."
 
 [dependencies]
+shared-resource-provider-contract-kernel = { path = "../../../compute/core/resource-provider-contract-kernel" }
+shared-platform-contracts-kernel = { path = "../../../iam/core/platform-contracts-kernel" }
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
+
 
 [dev-dependencies]
-oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+
 # Async store port: unit tests `.await` the boxed-future methods under #[tokio::test].
 tokio = { workspace = true, features = ["macros", "rt"] }
 

@@ -23,10 +23,10 @@ source_scope:
   - docs/architecture/memory-spec-runbook-audit-2026-05-21.md
   - docs/architecture/foundry-fitness-to-governance-transition-2026-05-21.md
 vcs_lifecycle:
-  claim: ./bin/oya vcs claim --agent codex-wave-3-retrospective --intent wave-3-retrospective-2026-05-20 docs/architecture
-  verify: ./bin/oya vcs verify --agent codex-wave-3-retrospective --evidence retrospective_lines:X docs/architecture
-  done: ./bin/oya vcs done --agent codex-wave-3-retrospective --evidence retrospective_lines:X docs/architecture
-  promote: ./bin/oya vcs promote --agent codex-wave-3-retrospective --bundle wave-3-retrospective-2026-05-20 --environment dev --evidence retrospective_lines:X docs/architecture
+  claim: ./bin/retired VCS ratchet claim --agent codex-wave-3-retrospective --intent wave-3-retrospective-2026-05-20 docs/architecture
+  verify: ./bin/retired VCS ratchet verify --agent codex-wave-3-retrospective --evidence retrospective_lines:X docs/architecture
+  done: ./bin/retired VCS ratchet done --agent codex-wave-3-retrospective --evidence retrospective_lines:X docs/architecture
+  promote: ./bin/retired VCS ratchet promote --agent codex-wave-3-retrospective --bundle wave-3-retrospective-2026-05-20 --environment dev --evidence retrospective_lines:X docs/architecture
 ---
 
 # Wave-3 Retrospective - 2026-05-20
@@ -805,7 +805,7 @@ The best prevention is a validator that refuses IP promotion without file target
 
 Forgetting CLI parser nuances failed because lifecycle commands are exact.
 The retrospective prompt explicitly corrected the verify, done, and promote syntax.
-The verify command must be ./bin/oya vcs verify --agent codex-wave-3-retrospective --evidence 'retrospective_lines:X' docs/architecture.
+The verify command must be ./bin/retired VCS ratchet verify --agent codex-wave-3-retrospective --evidence 'retrospective_lines:X' docs/architecture.
 The verify command must not include --intent.
 The done command must include --evidence.
 The promote command must include --agent.
@@ -1365,7 +1365,7 @@ Question 3: Which services are the first Rust scaffold batch?
 Question 4: Should ERP services get runtime scaffolds before B2B leader services?
 Question 5: Should marketplace and workplace-integration be treated as P0 because earlier audits showed low artifact counts?
 Question 6: Which CI gate crate owns the six-hop graph walker?
-Question 7: Should the six-hop walker live under tools, crates, or oya-dev-cli?
+Question 7: Should the six-hop walker live under tools, crates, or dev-cli?
 Question 8: What is the authoritative schema for per-microservice ADRs?
 Question 9: Should per-microservice ADRs use local numbering only, or should they register in a global ADR index?
 Question 10: How should ADR amendments be numbered to avoid duplicate root ADR IDs?
@@ -1431,7 +1431,7 @@ Question 69: Which Wave-3 artifacts should be frozen as historical snapshots?
 Question 70: Which Wave-3 artifacts should be maintained as living docs?
 Question 71: Should docs/architecture/wave-3-retrospective-2026-05-20.md itself become an input to future planning?
 Question 72: Should this retrospective be projected into a machine-readable summary?
-Question 73: Should the retrospective's recommendations become issues or Oya VCS changesets?
+Question 73: Should the retrospective's recommendations become issues or retired VCS ratchet changesets?
 Question 74: Should Wave-4 use native subagents or OMX team mode for implementation lanes?
 Question 75: What maximum child-agent count is safe for shared-file avoidance in this repo?
 Question 76: Should every parallel lane claim disjoint path scopes before editing?
@@ -1686,7 +1686,7 @@ Retrospective use: detection substrate linked to ADR-0307 and ADR-0309.
 Wave-4 follow-up: implement streaming/batch/fairness scaffold.
 Microservice: developer-sdk.
 Retrospective use: ecosystem and plugin developer surface.
-Wave-4 follow-up: repair IPs with old oya vcs lines and non-flat layout.
+Wave-4 follow-up: repair IPs with old retired VCS ratchet lines and non-flat layout.
 Microservice: docs.
 Retrospective use: requested doc-set service and knowledge surface.
 Wave-4 follow-up: repair PRD and link to drive, sheets, slides, forms.
@@ -2506,7 +2506,7 @@ Month 1 output: exact service inventory decision between 70 and 78 live services
 Month 1 output: machine-readable audit backlog for all P0 and P1 findings.
 Month 1 output: j151 repair plan and j176 migration journey plan.
 Month 1 output: Rust scaffold batch selection.
-Month 1 validation: Oya VCS evidence for backlog, inventory, and selected batches.
+Month 1 validation: retired VCS ratchet evidence for backlog, inventory, and selected batches.
 Month 1 stop condition: no new scope until inventory drift is resolved or waived.
 Month 2 objective: implement first CI gate crates.
 Month 2 output: six-hop graph walker minimum viable implementation.
@@ -2611,7 +2611,7 @@ IP checklist 04: concrete file targets exist.
 IP checklist 05: verification plan exists.
 IP checklist 06: halt conditions exist.
 IP checklist 07: references include root ADR and local service context.
-IP checklist 08: no stale oya vcs or retired command syntax appears unless historical.
+IP checklist 08: no stale retired VCS ratchet or retired command syntax appears unless historical.
 IP checklist 09: line count alone is not used as pass.
 IP checklist 10: IP buildability validator passes.
 Journey checklist 01: canonical bundle files exist.
@@ -2756,7 +2756,7 @@ Risk 22 owner candidate: migration lane.
 Risk 23: Foundry pipeline stays documentary.
 Risk 23 mitigation: CI gate crate implementation and evidence emission.
 Risk 23 owner candidate: foundry.
-Risk 24: Oya VCS parser nuances keep causing failed lifecycle commands.
+Risk 24: retired VCS ratchet parser nuances keep causing failed lifecycle commands.
 Risk 24 mitigation: command grammar doc and parser tests.
 Risk 24 owner candidate: governance tooling.
 Risk 25: dirty worktree changes get overwritten.
@@ -2906,7 +2906,7 @@ Immediate next prompt line 06: "Then plan Rust scaffold batch one."
 Immediate next prompt line 07: "Then plan CI gate crate batch one."
 Immediate next prompt line 08: "Then repair j151 or explicitly schedule it before j176."
 Immediate next prompt line 09: "Then choose first 10 incumbent migration journeys."
-Immediate next prompt line 10: "Validate plan with Oya VCS claim, verify, done, and promote."
+Immediate next prompt line 10: "Validate plan with retired VCS ratchet claim, verify, done, and promote."
 
 ### §8.20 Retrospective close-out checklist
 

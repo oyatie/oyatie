@@ -7,7 +7,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-identity-workload-svid-issuance-availability
+  name: identity-workload-svid-issuance-availability
   displayName: "workload X.509-SVID issuance availability"
   labels:
     microservice: identity
@@ -16,11 +16,11 @@ metadata:
     tier: control-plane
     plane: control
 spec:
-  service: oya-identity-workload-svid
+  service: identity-workload-svid
   description: "Availability of the workload X.509-SVID issuance surface (the trustd-backed SecurityService::handle_certificate issuance path, ADR-0561). Issuance is the prerequisite for PDP mTLS caller-auth: a workload that cannot obtain a fresh SVID cannot authenticate, and the PDP fail-closes to deny. The error budget therefore bounds spurious denials of legitimate workload traffic caused by issuance unavailability."
   indicator:
     metadata:
-      name: oya-identity-workload-svid-issuance-availability-sli
+      name: identity-workload-svid-issuance-availability-sli
     spec:
       ratioMetric:
         counter: true
@@ -28,12 +28,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_identity_workload_svid_issuance_total{code!~"5.."}[5m]))'
+              query: 'sum(rate(identity_workload_svid_issuance_total{code!~"5.."}[5m]))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_identity_workload_svid_issuance_total[5m]))'
+              query: 'sum(rate(identity_workload_svid_issuance_total[5m]))'
   objectives:
     - displayName: "99.9% of SVID issuance requests complete without server error over rolling 30d"
       target: 0.999

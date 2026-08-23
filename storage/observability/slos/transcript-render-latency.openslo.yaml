@@ -25,13 +25,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_transcript_render_duration_seconds_bucket{recording_duration_bucket="10min",le="0.5"}[5m]))
+                sum(rate(recordings_transcript_render_duration_seconds_bucket{recording_duration_bucket="10min",le="0.5"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_recordings_transcript_render_duration_seconds_count{recording_duration_bucket="10min"}[5m]))
+                sum(rate(recordings_transcript_render_duration_seconds_count{recording_duration_bucket="10min"}[5m]))
   timeWindow:
     - duration: 30d
       isRolling: true

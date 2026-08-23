@@ -21,7 +21,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_tenant_bootstrap_duration_seconds_bucket{
+                sum(rate(analytics_tenant_bootstrap_duration_seconds_bucket{
                   operation="onboard",le="30"
                 }[5m]))
         total:
@@ -29,7 +29,7 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_analytics_tenant_bootstrap_duration_seconds_count{
+                sum(rate(analytics_tenant_bootstrap_duration_seconds_count{
                   operation="onboard"
                 }[5m]))
   timeWindow:

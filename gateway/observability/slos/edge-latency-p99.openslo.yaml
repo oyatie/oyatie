@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-api-gateway-edge-latency-p99
+  name: api-gateway-edge-latency-p99
   displayName: "api-gateway: edge p99 latency ≤ 500ms"
   labels:
     microservice: api-gateway
@@ -24,13 +24,13 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_latency_seconds_bucket{le="0.5"}[5m]))
+                sum(rate(api_gateway_latency_seconds_bucket{le="0.5"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
               query: |
-                sum(rate(oya_api_gateway_latency_seconds_count[5m]))
+                sum(rate(api_gateway_latency_seconds_count[5m]))
   objectives:
     - target: 0.99
       displayName: "30d rolling p99 ≤ 500ms"

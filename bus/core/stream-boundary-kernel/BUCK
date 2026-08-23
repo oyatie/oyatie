@@ -1,0 +1,21 @@
+rust_library(
+    name = "messaging-stream-boundary-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "messaging_stream_boundary_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//bus/core/substrate-kernel:messaging-substrate-kernel",
+    ],
+)
+
+rust_test(
+    name = "messaging-stream-boundary-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "messaging_stream_boundary_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//bus/core/substrate-kernel:messaging-substrate-kernel",
+    ],
+)

@@ -14,7 +14,7 @@ commonLabels:
   oyatie.dev/data-residency: kr-ap-seoul-1
 
 configMapGenerator:
-  - name: oya-calendar-pack-config
+  - name: calendar-pack-config
     namespace: calendar
     literals:
       - PACK_REGION=kr
@@ -26,12 +26,12 @@ configMapGenerator:
       - PIPA_ART_28_AUDIT_CHAIN=enabled
 
 patches:
-  - target: {kind: Deployment, name: oya-calendar-event-store-app}
+  - target: {kind: Deployment, name: calendar-event-store-app}
     patch: |
       - op: replace
         path: /spec/template/spec/containers/0/env/2/value
         value: kr
-  - target: {kind: HorizontalPodAutoscaler, name: oya-calendar-event-store-app-hpa}
+  - target: {kind: HorizontalPodAutoscaler, name: calendar-event-store-app-hpa}
     patch: |
       - op: replace
         path: /spec/maxReplicas

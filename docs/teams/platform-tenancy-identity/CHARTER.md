@@ -10,18 +10,18 @@ This team owns the single tenancy kernel and identity kernel that every Oyatie a
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cross-cutting (SaaS kernel, consumed by all 7 axes)
 - **Surfaces:**
-  - `oya-platform-tenant-kernel` — `TenantId`, `Tenant`, `ResidencyClass`, `RegulatoryPackId`, `TenantPlaneGrants`, `AutonomyTier`, `DataUseConsent`, `BillingAccountId`
-  - `oya-platform-identity-kernel` — `UserId`, `Principal`, `RoleBinding`, `PolicySet`, Cedar integration
-  - `oya-platform-tenant-domain` — tenant lifecycle use-cases (onboard, suspend, migrate, off-board)
-  - `oya-platform-identity-domain` — RBAC/ABAC use-cases, SSO federation, STS token issuance
-  - `oya-platform-identity-adapter-cedar` — Cedar policy engine adapter
-  - `oya-platform-identity-api` — REST/gRPC identity surface
-  - `oya-platform-address-kernel` — `AddressValidator` trait + KR/JP/US/EU default impls
+  - `platform-tenant-kernel` — `TenantId`, `Tenant`, `ResidencyClass`, `RegulatoryPackId`, `TenantPlaneGrants`, `AutonomyTier`, `DataUseConsent`, `BillingAccountId`
+  - `platform-identity-kernel` — `UserId`, `Principal`, `RoleBinding`, `PolicySet`, Cedar integration
+  - `platform-tenant-domain` — tenant lifecycle use-cases (onboard, suspend, migrate, off-board)
+  - `platform-identity-domain` — RBAC/ABAC use-cases, SSO federation, STS token issuance
+  - `platform-identity-adapter-cedar` — Cedar policy engine adapter
+  - `platform-identity-api` — REST/gRPC identity surface
+  - `platform-address-kernel` — `AddressValidator` trait + KR/JP/US/EU default impls
 - **Cross-axis contracts (DESIGN §10):**
   - `Tenant` kernel (owner) — consumed by all axes
   - `Identity / RBAC / Cedar policy` (owner) — consumed by all axes
   - `IAM / SSO / SAML / OIDC IdP` (co-owner with `axis-cloud` for cloud-customer-facing IAM)
-- **Catalog records:** `crates/oya-platform-tenant-*`, `crates/oya-platform-identity-*`, `crates/oya-platform-address-*`
+- **Catalog records:** `crates/platform-tenant-*`, `crates/platform-identity-*`, `crates/platform-address-*`
 - **Runbooks:** `runbooks/tenant-onboarding.md`, `runbooks/identity-provider-federation.md`, `runbooks/cedar-policy-rollback.md`
 - **ADRs:** ADR-0044 (corp data tier + residency), ADR-0006 (cross-product auth), ADR-0017 (plane separation — tenancy sections)
 
@@ -35,12 +35,12 @@ This team owns the single tenancy kernel and identity kernel that every Oyatie a
 - Cell-routing read of `Tenant.region` — tenant-kernel is the source; cloud axis reads it
 - `AddressValidator` trait contract; default impls for initial regional packs
 - All-axis review participation when any consuming axis touches a `Tenant` field
-- Fitness-function gate: `oya-governance-tenant-shape` (blocks unauthorized `Tenant` mutations)
+- Fitness-function gate: `governance-tenant-shape` (blocks unauthorized `Tenant` mutations)
 
 ## Out-of-scope (anti-scope)
 - Per-axis billing and metering (→ `platform-audit-evidence` owns audit; `axis-cloud` / `axis-saas` own metering kernels)
 - Data Use Boundary ADR authorship (→ `platform-privacy-dub`)
-- Cloud-customer-facing IAM surface (→ `axis-cloud` owns `oya-cloud-iam-kernel`; this team co-owns the seam contract only)
+- Cloud-customer-facing IAM surface (→ `axis-cloud` owns `cloud-iam-kernel`; this team co-owns the seam contract only)
 - Eventing backbone (→ `platform-eventing-og`)
 - Public REST/SDK stability tier for non-identity surfaces (→ `platform-api-sdk`)
 - Per-vertical regulatory-pack impls (→ per-vertical team)
@@ -98,7 +98,7 @@ This team owns the single tenancy kernel and identity kernel that every Oyatie a
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| `Tenant` shape change lands without all-axis review | High | `oya-governance-tenant-shape` CI gate hard-fails on unauthorized mutations |
+| `Tenant` shape change lands without all-axis review | High | `governance-tenant-shape` CI gate hard-fails on unauthorized mutations |
 | Cedar policy misconfiguration allows cross-tenant data access | Catastrophic | Policy publish requires security-reviewer agent sign-off; rollback runbook tested quarterly |
 | Identity provider federation bug leaks tokens cross-tenant | Catastrophic | STS token validation is per-tenant-scoped; audit-chain emits every issuance |
 | Residency field drift between tenant-kernel and cloud-kernel | High | Monthly sync with `axis-cloud`; fitness function checks cross-reference |

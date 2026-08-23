@@ -1,6 +1,6 @@
 # Spec: Thread/Conversation Grouping Kernel
 
-**Crate:** `oya-mail-domain`  
+**Crate:** `mail-domain`  
 **Module:** `src/thread_grouping.rs`  
 **RFC references:** RFC 5322 §3.6.4 (In-Reply-To/References), §3.6.5 (Subject)
 
@@ -61,7 +61,7 @@ pub struct ThreadTransitionError {
 ## Mod layout (flat-clean-arch per ADR-0509)
 
 ```
-crates/oya-mail-domain/src/
+crates/mail-domain/src/
   thread_grouping.rs   ← this slice (pure kernel, no deps beyond std)
   thread_state.rs      ← existing ThreadStatus type (unchanged)
   lib.rs               ← adds `pub mod thread_grouping; pub use thread_grouping::*;`

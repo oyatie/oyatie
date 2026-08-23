@@ -15,7 +15,7 @@ related_adrs:
   - ADR-0181
   - ADR-0183
   - ADR-0209
-enforced_by: oya-check-compliance-evidence-coverage
+enforced_by: check-compliance-evidence-coverage
 ---
 
 # Compliance Evidence Automation Standard
@@ -59,7 +59,7 @@ AuditBoard / ServiceNow GRC.**
 
 Every artifact carries an **audit-chain seal hex (SHA-256 / 64 hex chars)** per ADR-0145.
 Auditor verifies via Sigstore / Cosign chain. The kernel
-(`oya-shared-compliance-evidence-kernel`) validates seal shape; the adapter does the cryptographic
+(`shared-compliance-evidence-kernel`) validates seal shape; the adapter does the cryptographic
 verification.
 
 ## Cross-tenant isolation invariant
@@ -85,7 +85,7 @@ engagement and expires when the engagement closes.
 
 ## Coverage gate
 
-`oya-check-compliance-evidence-coverage` (advisory) scans per-µservice evidence emission. Gaps
+`check-compliance-evidence-coverage` (advisory) scans per-µservice evidence emission. Gaps
 flagged per (microservice × framework × required artifact kind).
 
 ## Cross-references

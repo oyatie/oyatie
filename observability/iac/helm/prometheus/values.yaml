@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 prometheus:
   image:
     tag: "v3.2.0"
@@ -8,9 +8,9 @@ prometheus:
       enabled: true
       size: 50Gi
     remoteWrite:
-      - url: http://oya-observability-mimir.observability.svc:9009/api/v1/push
+      - url: http://observability-mimir.observability.svc:9009/api/v1/push
         headers:
-          X-Scope-OrgID: oya-self
+          X-Scope-OrgID: self
         write_relabel_configs:
           - source_labels: [__name__]
             regex: '(up|prometheus_.*|cortex_.*|mimir_.*)'

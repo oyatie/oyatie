@@ -7,14 +7,18 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+shared-transactional-outbox-kernel = { path = "../../../../data/core/transactional-outbox-kernel" }
+shared-protocol-transport-kernel = { path = "../../../../gateway/core/protocol-transport-kernel" }
+shared-postgres-command-kernel = { path = "../../../../data/core/postgres-command-kernel" }
+shared-protocol-parity-kernel = { path = "../../../../gateway/core/protocol-parity-kernel" }
 community-post-store-postgres = { path = "../../adapters/post-store-postgres" }
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-domain = { path = "../../core/post-store-domain" }
 community-post-store-usecase = { path = "../../core/post-store-usecase" }
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-protocol-parity-kernel = { path = "../../../../libs/oya-shared-protocol-parity-kernel" }
-oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
-oya-shared-transactional-outbox-kernel = { path = "../../../../libs/oya-shared-transactional-outbox-kernel" }
+
+
+
+
 
 [lib]
 name = "community_post_store_app"

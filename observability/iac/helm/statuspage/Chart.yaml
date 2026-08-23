@@ -1,11 +1,11 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Skeleton authored 2026-05-18 per ADR-0168 (public status page).
-# Renders the public status surface at status.oya.dev (and per-pack
-# subdomains status.kr.oya.dev / status.eu.oya.dev) auto-derived from
+# Renders the public status surface at status.oyatie.dev (and per-pack
+# subdomains status.kr.oyatie.dev / status.eu.oyatie.dev) auto-derived from
 # ADR-0139 SLO state, with incident narrative pushed from the
 # incident-response µservice.
 apiVersion: v2
-name: oya-observability-statuspage
+name: observability-statuspage
 description: Public status page per ADR-0168; auto-derived from ADR-0139 SLO state + incident-response push; cell-isolated per ADR-0009
 type: application
 version: 0.1.0

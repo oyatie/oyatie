@@ -1,4 +1,4 @@
-//! oya-billing — billing service for oyatie.
+//! billing — billing service for oyatie.
 //!
 //! Single-crate-per-service pattern per ADR-0509.
 

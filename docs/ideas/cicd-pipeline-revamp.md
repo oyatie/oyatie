@@ -23,7 +23,7 @@ Rollouts** canary. All Apache-2.0/MIT/LGPL — no Snyk, no Drone, no Mend-CE.
 Cutover is **retire-in-code now**: delete the 36 workflows, drop the parity gate, and —
 critically — **repoint the `hyperscaler-maturity-claims`/`protection-context-match` gate**
 from `pr-review.yml`/`ci-failure-fix-loop.yml` to the Jenkins pipeline closure, so
-`oya verify` stays green. Branch-protection contexts swap Actions→Jenkins in both
+retired `./bin/oya verify` stays green. Branch-protection contexts swap Actions→Jenkins in both
 `dev.json` and `branch-protection.yaml` (kept in agreement).
 
 ## Key Assumptions to Validate
@@ -40,7 +40,7 @@ from `pr-review.yml`/`ci-failure-fix-loop.yml` to the Jenkins pipeline closure, 
 **In:** ADR-0361 (cutover); a shared Jenkins library + one reference
 `microservices/<ms>/ci/Jenkinsfile` lane + root orchestrator with the mandatory stage
 order; the repointed closure gate (TDD); branch-protection context swap; deletion of
-the 36 Actions workflows + parity gate; `oya verify` green.
+the 36 Actions workflows + parity gate; retired `./bin/oya verify` green.
 **Out (deploy/infra-time):** live GitHub branch-protection API change; production
 Jenkins controller + GitHub App registration; populating real Trivy/cosign creds.
 
@@ -55,8 +55,8 @@ Jenkins controller + GitHub App registration; populating real Trivy/cosign creds
 - **Per-gate O7 cache adoption** — separate incremental lane; not coupled here.
 
 ## Open Questions
-- Status-context granularity: one `oya-verify` required check, or a small set
-  (`oya-verify`, `oya-pr-review`, `oya-supply-chain`)? (Leaning: 2–3, mapped from the
+- Status-context granularity: one `verify` required check, or a small set
+  (`verify`, `pr-review`, `supply-chain`)? (Leaning: 2–3, mapped from the
   current 15 so reviewers see meaningful gates.)
 - SBOM/attestation storage: in the OCI registry alongside the image (cosign attach) vs
   a SeaweedFS evidence bucket? (Leaning: registry via cosign, mirrored to evidence.)

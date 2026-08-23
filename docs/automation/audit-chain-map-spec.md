@@ -10,11 +10,11 @@ purpose: |
   crates. Source: per-crate `[package.metadata.oyatie.events]` blocks +
   `contracts/eventschema/*.yaml` + the doc-catalog event taxonomy.
   Lift to `docs/visualization/audit-chain.md` (D2 + Mermaid).
-planned_enforcement_ref: oya-governance-audit-chain-map
+planned_enforcement_ref: governance-audit-chain-map
 extends_crates:
-  - oya-governance-cohesion-fitness-kernel
-  - oya-intelligence-evidence-kernel
-  - oya-intelligence-architecture-map-kernel
+  - governance-cohesion-fitness-kernel
+  - intelligence-evidence-kernel
+  - intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
@@ -50,11 +50,11 @@ consumes = ["EVT-CAPABILITY-INVOKED"]
 event_id: EVT-CAPABILITY-INVOKED
 schema_path: contracts/eventschema/EVT-CAPABILITY-INVOKED.yaml
 emitter_crates:
-  - oya-intelligence-policy-kernel
-  - oya-intelligence-capability-kernel
+  - intelligence-policy-kernel
+  - intelligence-capability-kernel
 consumer_crates:
-  - oya-intelligence-evidence-kernel
-  - oya-platform-audit-store-kernel
+  - intelligence-evidence-kernel
+  - platform-audit-store-kernel
 retention_days: 2555  # 7 years
 data_class: CUSTOMER_CONFIDENTIAL
 regulatory_scope: ["KR-PIPC", "KR-FSC"]
@@ -99,7 +99,7 @@ For each `EVT-*` topic, a per-topic mdbook page `docs/site/src/visualization/aud
 - Retention + data-class + regulatory-scope.
 - A worked example payload from `contracts/eventschema/<topic>.example.yaml`.
 
-## 5. Validation gates (`oya-governance-audit-chain-map`)
+## 5. Validation gates (`governance-audit-chain-map`)
 
 1. **Topic schema presence.** Every emitted topic has a schema at `contracts/eventschema/<topic>.yaml` (BLOCKER).
 2. **Emitter ↔ schema parity.** The emitter crate's serialization signature matches the schema (BLOCKER; cross-fed from `schema-doc-pipeline.md`).
@@ -123,11 +123,11 @@ The pipeline statically inspects every consumer's event-handler signature: a con
 ## 8. Cross-references
 
 - `architecture-map-kernel-spec.md` consumes the event graph as one of its sources.
-- `oya-intelligence-evidence-kernel` consumes the topic list at runtime to wire emitters.
+- `intelligence-evidence-kernel` consumes the topic list at runtime to wire emitters.
 - `docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md is the constitutional authority.
 
 ## 9. Out-of-scope
 
-- Live event throughput dashboards (covered by `oya-cloud-observability-*`).
-- Per-tenant audit-chain export (covered by `oya-platform-audit-store-kernel`).
+- Live event throughput dashboards (covered by `cloud-observability-*`).
+- Per-tenant audit-chain export (covered by `platform-audit-store-kernel`).
 - Per-region event-routing topology (covered by future `cell-event-routing-spec.md`).

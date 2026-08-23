@@ -1,0 +1,81 @@
+# Unique live-Postgres proof. Called from presubmit (path-gated) and
+# postsubmit (always). Runs #[ignore] live_* tests only; empty selection is red.
+name: live-postgres
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  CARGO_INCREMENTAL: "0"
+  OYATIE_BACKBONE_LIVE_POSTGRES: "1"
+
+jobs:
+  live-postgres:
+    name: live-postgres
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_pg_admin_local_only
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86
+          cache-workspace-crates: "true"
+      - name: Bootstrap roles and schemas
+        env:
+          ADMIN_PASSWORD: ci_pg_admin_local_only
+          APP_PASSWORD: ci_pg_app_local_only
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${ADMIN_PASSWORD}"
+          echo "::add-mask::${APP_PASSWORD}"
+          printf 'PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/ci\nPG_APP_URL=postgres://app:%s@127.0.0.1:5432/ci\n' "${ADMIN_PASSWORD}" "${APP_PASSWORD}" >> "${GITHUB_ENV}"
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${ADMIN_PASSWORD}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d ci)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app') THEN EXECUTE format('CREATE ROLE app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${APP_PASSWORD}'); END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO app;"
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO app;"
+      - name: Live Postgres tests (live_* only)
+        env:
+          OYATIE_BACKBONE_LIVE_POSTGRES: "1"
+          OYATIE_BACKBONE_POSTGRES_URL: ${{ env.PG_ADMIN_URL }}
+          OYATIE_BACKBONE_POSTGRES_APP_URL: ${{ env.PG_APP_URL }}
+        run: |
+          set -euo pipefail
+          test "${OYATIE_BACKBONE_LIVE_POSTGRES}" = "1"
+          test -n "${OYATIE_BACKBONE_POSTGRES_URL}"
+          test -n "${OYATIE_BACKBONE_POSTGRES_APP_URL}"
+          cargo nextest run --locked --profile live --run-ignored only --no-tests=error \
+            -p tenancy-tenant-lifecycle-store-postgres \
+            -p identity-scim-store-postgres \
+            -p iam-identity-service \
+            -p tenancy-tenant-lifecycle-app

@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0145
   - ADR-0186
   - ADR-0210
-enforced_by: advisory (oya-governance-otel-emit lane not yet shipped; proposed)
+enforced_by: advisory (governance-otel-emit lane not yet shipped; proposed)
 ---
 
 # Trace Sampling Tier Standard

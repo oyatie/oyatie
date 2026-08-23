@@ -1,13 +1,13 @@
 # Spec: marketplace-entitlement-suspend-reinstate-transitions
 
-**Crate**: `oya-cloud-marketplace-kernel`  
+**Crate**: `cloud-marketplace-kernel`  
 **Lane**: cloud  
 **Priority**: high  
 **Effort**: S
 
 ## Background
 
-The `oya-cloud-marketplace-kernel` crate exposes a pure, I/O-free model for
+The `cloud-marketplace-kernel` crate exposes a pure, I/O-free model for
 marketplace offers and entitlements. `EntitlementState::Suspended` is already
 declared but has no associated transitions. This slice adds the two missing
 lifecycle operations so the state machine is complete.

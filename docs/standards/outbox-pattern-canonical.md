@@ -85,7 +85,7 @@ pub trait OutboxStore: Send + Sync {
 }
 ```
 
-Lives in `oya-shared-outbox-pattern-kernel`.
+Lives in `shared-outbox-pattern-kernel`.
 
 ### 5. NO direct event emission
 

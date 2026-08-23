@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-listing-plugins-availability
+  name: marketplace-listing-plugins-availability
   displayName: Marketplace Plugin Listing Availability
   labels:
     service: marketplace
@@ -12,19 +12,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-listing-plugins-availability-sli
+      name: marketplace-listing-plugins-availability-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_category_plugins_listing_success_total{tenant_class=~"paid|demo_trial"}[5m]))
+              query: sum(rate(marketplace_category_plugins_listing_success_total{tenant_class=~"paid|demo_trial"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_category_plugins_listing_total{tenant_class=~"paid|demo_trial"}[5m]))
+              query: sum(rate(marketplace_category_plugins_listing_total{tenant_class=~"paid|demo_trial"}[5m]))
   objectives:
     - displayName: Paid tenants (contractual)
       target: 0.9995

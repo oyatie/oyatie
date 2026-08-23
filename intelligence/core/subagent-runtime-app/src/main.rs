@@ -34,7 +34,7 @@
 //! user message (failing-job log + PR diff + last N commits + mistakes-
 //! ledger candidates + IP-003 preflight hints) and emits the agent's
 //! response to `<output-dir>/<attempt>-agent-response.json`. The fix is
-//! then claimed by the agent via `oya verify` (the canonical pre-merge
+//! then claimed by the agent via `presubmit` (the canonical pre-merge
 //! gate) BEFORE push.
 
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -54,7 +54,7 @@ use intelligence_subagent_runtime_app::{
 };
 
 const DEFAULT_MODEL_ID: &str = "claude-opus-4-7";
-const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oya/foundry/anthropic-api-key";
+const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oyatie/foundry/anthropic-api-key";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -411,7 +411,7 @@ fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
         .join(format!("{}-agent-response.json", options.attempt));
     fs::write(&output_path, json).map_err(|e| format!("write {}: {e}", output_path.display()))?;
     Ok(format!(
-        "fix-loop complete: attempt={attempt} output={output} mode={mode} subagent_runtime_pending=false next_step='oya verify' then commit+push",
+        "fix-loop complete: attempt={attempt} output={output} mode={mode} subagent_runtime_pending=false next_step='presubmit' then commit+push",
         attempt = options.attempt,
         output = output_path.display(),
         mode = match options.mode {
@@ -431,7 +431,7 @@ fn build_fix_loop_template() -> Result<FacetPromptTemplate, String> {
         "diagnose failing CI / review findings + produce a single patch that lands green".to_owned(),
         "APPROVE iff you produce a complete patch; CHANGES_REQUESTED iff you cannot diagnose; REJECT iff the bundle indicates a genuine product bug not fixable by patch".to_owned(),
         "You will receive an IP-005 ContextBundle containing failing-job logs, PR diff vs base, last N=5 commits, and mistakes-ledger candidates.\n\
-         Produce a single unified-diff patch that, when applied + run through `oya verify`, makes the failing surface green.\n\
+         Produce a single unified-diff patch that, when applied + run through `presubmit`, makes the failing surface green.\n\
          Do not invent files. Do not silently change public contracts.\n\
          Cite any mistakes-ledger row your fix addresses.\n".to_owned(),
     )

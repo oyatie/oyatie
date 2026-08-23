@@ -1,1 +1,0 @@
-cedar/pack-author-authorization.cedar

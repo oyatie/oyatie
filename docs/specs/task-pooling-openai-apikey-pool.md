@@ -10,7 +10,7 @@ and correct `Authorization: Bearer` header injection.
 ## Crate Boundary
 
 ONLY `intelligence/adapter-openai-subscription-adapter`
-is modified. The kernel (`oya-intelligence-adapter-openai-subscription-kernel`) is NOT changed.
+is modified. The kernel (`intelligence-adapter-openai-subscription-kernel`) is NOT changed.
 
 ## Mod Layout (flat clean-arch per ADR-0509)
 

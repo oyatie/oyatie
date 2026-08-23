@@ -1,0 +1,27 @@
+# Canonical-base: microservices/governance/iac/helm/_helpers — helpers via {{ include "helpers.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-cell-grid-rest
+  namespace: sheets
+  labels:
+    app.kubernetes.io/name: sheets-cell-grid-rest
+    oyatie/microservice: sheets
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sheets-cell-grid-rest
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+      path: /metrics
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_oyatie_microservice]
+          targetLabel: microservice
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: pack
+          regex: sheets-(.+)
+          replacement: $1
+{{- end }}

@@ -1,0 +1,781 @@
+openapi: 3.2.0
+info:
+  title: oyatie Docs µservice API
+  version: 1.0.0
+  description: |
+    Docs µservice REST API. Surfaces document-store, collab-crdt, block-types,
+    comments-and-suggestions, version-history, sharing-and-permissions,
+    export-import, and embed-resolver bounded contexts.
+
+    Per ADR-0135 (unbundle) + ADR-0132 (no-grouping forward policy): docs is a
+    standalone tenant-facing µservice. Dual-context (Personal / Professional) isolation
+    enforced structurally per `policy/editor-isolation.md`. Per-block ACL per ADR-DOCS-0004.
+
+    Authentication: OIDC + per-tenant API key (over HTTPS + mTLS where applicable).
+    Authorisation: Cedar policies (`tenant-scope.cedar`, `auditor-scope.cedar`, etc.).
+    Realtime collab via WebSocket gateway (see asyncapi/docs-events.yaml).
+  contact:
+    name: axis-docs
+    email: docs@oyatie.com
+  license:
+    name: Internal-Use
+servers:
+  - url: https://docs.{pack}.oyatie.com/v1
+    description: per-pack production endpoint
+    variables:
+      pack:
+        enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
+        default: kr
+
+security:
+  - oidcBearer: []
+  - tenantApiKey: []
+  - shareLinkToken: []
+
+tags:
+  - name: documents
+    description: Document lifecycle (document-store BC)
+  - name: blocks
+    description: Block-tree mutations (block-types BC)
+  - name: collab
+    description: Real-time collaboration (collab-crdt BC)
+  - name: comments
+    description: Comments + threads (comments-and-suggestions BC)
+  - name: suggestions
+    description: Suggestion + track-changes (comments-and-suggestions BC)
+  - name: versions
+    description: Version history + revert (version-history BC)
+  - name: sharing
+    description: Share grants + per-block ACL (sharing-and-permissions BC)
+  - name: export
+    description: Export pipeline (export-import BC)
+  - name: import
+    description: Import pipeline (export-import BC)
+  - name: attachments
+    description: Attachment upload + download (document-store BC)
+  - name: embeds
+    description: Cross-µservice embed resolution (embed-resolver BC)
+
+paths:
+  /documents:
+    post:
+      summary: Create document
+      tags: [documents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+    get:
+      summary: List documents (per tenant + context)
+      tags: [documents]
+      parameters:
+        - name: context
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [personal, professional]
+        - name: limit
+          in: query
+          schema: {type: integer, maximum: 1000, default: 50}
+        - name: cursor
+          in: query
+          schema: {type: string}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentListResponse'
+
+  /documents/{document_id}:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Get document with block tree
+      tags: [documents]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update document metadata (title / archived flag / context)
+      tags: [documents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentUpdateRequest'
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: Archive document (soft-delete; hard-delete requires purge endpoint + 2-person rule)
+      tags: [documents]
+      responses:
+        '204':
+          description: Archived
+
+  /documents/{document_id}/blocks:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Apply block operations (atomic)
+      tags: [blocks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockOperationBatch'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+  /documents/{document_id}/blocks/{block_id}/acl:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: block_id, in: path, required: true, schema: {type: string, format: uuid}}
+    put:
+      summary: Set per-block ACL (per ADR-DOCS-0004)
+      tags: [blocks, sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockAcl'
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/versions:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: List versions
+      tags: [versions]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionListResponse'
+
+  /documents/{document_id}/versions/{version_id}/revert:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: version_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Revert to a prior version
+      tags: [versions]
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/comments:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Add comment
+      tags: [comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Created
+    get:
+      summary: List comments on document
+      tags: [comments]
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/suggestions:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Add suggestion (track-changes proposed edit)
+      tags: [suggestions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestionCreateRequest'
+      responses:
+        '201':
+          description: Created
+
+  /suggestions/{suggestion_id}/respond:
+    parameters:
+      - {name: suggestion_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Accept or reject a suggestion (author-only by default)
+      tags: [suggestions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestionResponseRequest'
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/share:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Grant share to user/email
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareGrantRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareGrant'
+    get:
+      summary: List share grants
+      tags: [sharing]
+      responses:
+        '200':
+          description: OK
+
+  /share-grants/{grant_id}:
+    parameters:
+      - {name: grant_id, in: path, required: true, schema: {type: string, format: uuid}}
+    delete:
+      summary: Revoke share grant
+      tags: [sharing]
+      responses:
+        '204':
+          description: Revoked
+
+  /documents/{document_id}/share-links:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Issue share-link token (Ed25519-signed)
+      tags: [sharing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareLinkIssueRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLink'
+
+  /share-links/{share_link_id}/redeem:
+    parameters:
+      - {name: share_link_id, in: path, required: true, schema: {type: string}}
+    post:
+      summary: Redeem share-link token (anonymous if signed-token)
+      tags: [sharing]
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/export:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Submit export job (async; returns ExportJob)
+      tags: [export]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportJobRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+
+  /export-jobs/{job_id}:
+    parameters:
+      - {name: job_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Poll export job
+      tags: [export]
+      responses:
+        '200':
+          description: OK
+
+  /import:
+    post:
+      summary: Submit import job (DOCX / Markdown / HTML)
+      tags: [import]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ImportJobRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportJob'
+
+  /documents/{document_id}/attachments:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Upload attachment (scanned by ClamAV / OPSWAT)
+      tags: [attachments]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttachmentUploadRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+
+  /attachments/{attachment_id}:
+    parameters:
+      - {name: attachment_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Download attachment (signed S3 URL)
+      tags: [attachments]
+      responses:
+        '200':
+          description: OK
+
+  /documents/{document_id}/embeds/{embed_ref}/resolve:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: embed_ref, in: path, required: true, schema: {type: string}}
+    get:
+      summary: Resolve cross-µservice embed snapshot
+      tags: [embeds]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedSnapshot'
+
+  /documents/{document_id}/legal-hold:
+    parameters:
+      - {name: document_id, in: path, required: true, schema: {type: string, format: uuid}}
+    put:
+      summary: Apply legal hold to a document
+      tags: [documents]
+      responses:
+        '200':
+          description: OK
+
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: docs
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that presubmit is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - governance-verify-ci-mirror-coverage
+          - governance-verify-ci-step-exit-semantics
+          - governance-verify-skip-flag-allowlist
+          - governance-submit-calls-verify
+          - governance-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every governance-* CI lane prefix in the Oyatie corpus RENAMES to governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - governance-no-foundry-fitness-residue
+          - governance-lane-prefix-vocabulary
+          - governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - governance-sharding-automation-coverage
+          - governance-autosharding-manual-mode-refusal
+          - governance-auto-rebalance-residency-honored
+          - governance-dynamic-sharding-threshold-coverage
+          - governance-audit-chain-emit-on-automation-events
+          - governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - governance-jenkins-github-actions-parity
+          - governance-argocd-application-cosign-verified
+          - governance-argocd-tenant-namespace-isolation
+          - governance-jenkins-jcasc-only
+          - governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  securitySchemes:
+    oidcBearer:
+      type: openIdConnect
+      openIdConnectUrl: https://oidc.{pack}.oyatie.com/.well-known/openid-configuration
+    tenantApiKey:
+      type: apiKey
+      in: header
+      name: X-Tenant-API-Key
+    shareLinkToken:
+      type: apiKey
+      in: header
+      name: X-Share-Link-Token
+
+  schemas:
+    Document:
+      type: object
+      required: [document_id, tenant_id, context, title, version, created_at, updated_at]
+      properties:
+        document_id: {type: string, format: uuid}
+        tenant_id: {type: string, format: uuid}
+        context:
+          type: string
+          enum: [personal, professional]
+        title: {type: string}
+        block_tree:
+          $ref: '#/components/schemas/BlockTree'
+        retention_policy_id: {type: string}
+        legal_hold_open: {type: boolean}
+        version: {type: integer, format: int64}
+        version_sha: {type: string}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+
+    DocumentCreateRequest:
+      type: object
+      required: [context, title]
+      properties:
+        context: {type: string, enum: [personal, professional]}
+        title: {type: string}
+        initial_block_tree:
+          $ref: '#/components/schemas/BlockTree'
+
+    DocumentUpdateRequest:
+      type: object
+      properties:
+        title: {type: string}
+        archived: {type: boolean}
+
+    DocumentListResponse:
+      type: object
+      properties:
+        documents:
+          type: array
+          items: {$ref: '#/components/schemas/Document'}
+        next_cursor: {type: string}
+
+    BlockTree:
+      type: object
+      properties:
+        root_block_id: {type: string, format: uuid}
+        blocks:
+          type: array
+          items: {$ref: '#/components/schemas/Block'}
+
+    Block:
+      type: object
+      required: [block_id, kind, position]
+      properties:
+        block_id: {type: string, format: uuid}
+        kind:
+          type: string
+          enum: [paragraph, heading_1, heading_2, heading_3, ordered_list, unordered_list, checklist, table, image, embed, code, math, callout, divider, page_break]
+        position: {type: integer}
+        text: {type: string}
+        attributes:
+          type: object
+          additionalProperties: true
+        acl:
+          $ref: '#/components/schemas/BlockAcl'
+        children:
+          type: array
+          items: {$ref: '#/components/schemas/Block'}
+
+    BlockAcl:
+      type: object
+      properties:
+        visibility:
+          type: string
+          enum: [public, team_visible, private]
+        principals:
+          type: array
+          items: {type: string, format: uuid}
+        teams:
+          type: array
+          items: {type: string, format: uuid}
+        inherited_from_doc: {type: boolean}
+
+    BlockOperationBatch:
+      type: object
+      properties:
+        ops:
+          type: array
+          items: {$ref: '#/components/schemas/BlockOperation'}
+        expected_version_sha: {type: string}
+
+    BlockOperation:
+      type: object
+      properties:
+        op_kind:
+          type: string
+          enum: [insert, update, delete, move]
+        block_id: {type: string, format: uuid}
+        payload:
+          type: object
+          additionalProperties: true
+
+    CommentCreateRequest:
+      type: object
+      required: [anchor, text]
+      properties:
+        anchor: {$ref: '#/components/schemas/Anchor'}
+        text: {type: string}
+        thread_id: {type: string, format: uuid}
+
+    Anchor:
+      type: object
+      properties:
+        block_id: {type: string, format: uuid}
+        start_tree_id: {type: string}
+        end_tree_id: {type: string}
+
+    SuggestionCreateRequest:
+      type: object
+      required: [anchor, proposed_content]
+      properties:
+        anchor: {$ref: '#/components/schemas/Anchor'}
+        proposed_content: {type: string}
+
+    SuggestionResponseRequest:
+      type: object
+      required: [response]
+      properties:
+        response:
+          type: string
+          enum: [accept, reject]
+
+    ShareGrant:
+      type: object
+      properties:
+        grant_id: {type: string, format: uuid}
+        document_id: {type: string, format: uuid}
+        grantee_user_id: {type: string, format: uuid}
+        role:
+          type: string
+          enum: [viewer, commenter, editor]
+        granted_at: {type: string, format: date-time}
+        expires_at: {type: string, format: date-time}
+
+    ShareGrantRequest:
+      type: object
+      required: [grantee, role]
+      properties:
+        grantee:
+          oneOf:
+            - {type: object, properties: {user_id: {type: string, format: uuid}}}
+            - {type: object, properties: {email: {type: string, format: email}}}
+        role:
+          type: string
+          enum: [viewer, commenter, editor]
+        expires_at: {type: string, format: date-time}
+
+    ShareLink:
+      type: object
+      properties:
+        share_link_id: {type: string}
+        document_id: {type: string, format: uuid}
+        role:
+          type: string
+          enum: [viewer, commenter]
+        token: {type: string, description: "Ed25519-signed; client opaque"}
+        expires_at: {type: string, format: date-time}
+
+    ShareLinkIssueRequest:
+      type: object
+      required: [role, expires_at]
+      properties:
+        role:
+          type: string
+          enum: [viewer, commenter]
+        expires_at: {type: string, format: date-time}
+
+    VersionListResponse:
+      type: object
+      properties:
+        versions:
+          type: array
+          items: {$ref: '#/components/schemas/Version'}
+
+    Version:
+      type: object
+      properties:
+        version_id: {type: string, format: uuid}
+        document_id: {type: string, format: uuid}
+        version_sha: {type: string}
+        sealed_at: {type: string, format: date-time}
+        author_user_id: {type: string, format: uuid}
+
+    ExportJobRequest:
+      type: object
+      required: [format]
+      properties:
+        format:
+          type: string
+          enum: [pdf, pdf_a_1b, pdf_a_2u, docx, markdown, html, epub, latex]
+        options:
+          type: object
+          additionalProperties: true
+
+    ExportJob:
+      type: object
+      properties:
+        job_id: {type: string, format: uuid}
+        document_id: {type: string, format: uuid}
+        format: {type: string}
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed]
+        download_url: {type: string, format: uri}
+        sha256: {type: string}
+
+    ImportJobRequest:
+      type: object
+      properties:
+        file: {type: string, format: binary}
+        source_format:
+          type: string
+          enum: [docx, markdown, html, google_docs]
+
+    ImportJob:
+      type: object
+      properties:
+        job_id: {type: string, format: uuid}
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed]
+        document_id: {type: string, format: uuid}
+        fidelity_ratio: {type: number, format: float}
+        unsupported_features:
+          type: array
+          items: {type: string}
+
+    AttachmentUploadRequest:
+      type: object
+      properties:
+        file: {type: string, format: binary}
+
+    Attachment:
+      type: object
+      properties:
+        attachment_id: {type: string, format: uuid}
+        document_id: {type: string, format: uuid}
+        size_bytes: {type: integer, format: int64}
+        sha256: {type: string}
+        mime_type: {type: string}
+        scan_status:
+          type: string
+          enum: [pending, clean, quarantined, refused]
+
+    EmbedSnapshot:
+      type: object
+      properties:
+        embed_ref: {type: string}
+        source_microservice:
+          type: string
+          enum: [workflow-studio, sheets, slides]
+        snapshot_blob_url: {type: string, format: uri}
+        refreshed_at: {type: string, format: date-time}
+        staleness_seconds: {type: integer}
+        source_acl_passthrough_status:
+          type: string
+          enum: [admitted, denied, source_unavailable, source_revoked]
+
+  responses:
+    Forbidden:
+      description: Cedar policy refused
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: {type: string}
+              cedar_decision_id: {type: string}
+    NotFound:
+      description: Resource not found
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: {type: string}
+              details:
+                type: array
+                items: {type: string}

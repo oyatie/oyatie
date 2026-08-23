@@ -1,6 +1,6 @@
 # Spec: cursor-pagination-inmemory-reference-impl
 
-**Crate**: `oya-shared-cursor-pagination-kernel`
+**Crate**: `shared-cursor-pagination-kernel`
 **Lane**: foundation
 **Priority**: high
 **Effort**: M

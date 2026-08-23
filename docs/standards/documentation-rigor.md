@@ -11,7 +11,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-20
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json + docs/standards/doc-style.md
-planned_enforcement_ref: oya-governance-doc-rigor
+planned_enforcement_ref: governance-doc-rigor
 companion_docs:
   - docs/standards/doc-style.md
   - docs/STANDARDS-AND-TEMPLATES.md
@@ -39,7 +39,7 @@ Layered on top of [`doc-style.md`](doc-style.md) (style, Diátaxis quadrants, RF
 
 ## Applicability — existing and new docs alike
 
-This standard applies **retroactively to every canonical doc in the corpus**, not just docs authored after 2026-05-20. Every existing ADR, PRD, spec, standard, runbook, onboarding guide, user-stories file, architecture walkthrough, and migration playbook MUST be audited against §1.1 (hyperscaler-grade sub-test), §1.2 (engineering-rigor dimensions matrix), §2 (doc-class rigor matrix), and §3.1 (six-hops graph-traversability invariant) and upgraded where any (M)-cell fails. The CI lane `oya-governance-doc-rigor` reads every doc under `docs/`, `microservices/*/`, `packs/*/`, `specs/`, and `crates/*/docs/` — not just newly-touched ones. Lane is **advisory until 2026-07-15** to give the corpus-wide upgrade pass time to land; **BLOCKER from 2026-07-16**. No doc gets a grandfather clause.
+This standard applies **retroactively to every canonical doc in the corpus**, not just docs authored after 2026-05-20. Every existing ADR, PRD, spec, standard, runbook, onboarding guide, user-stories file, architecture walkthrough, and migration playbook MUST be audited against §1.1 (hyperscaler-grade sub-test), §1.2 (engineering-rigor dimensions matrix), §2 (doc-class rigor matrix), and §3.1 (six-hops graph-traversability invariant) and upgraded where any (M)-cell fails. The CI lane `governance-doc-rigor` reads every doc under `docs/`, `microservices/*/`, `packs/*/`, `specs/`, and `crates/*/docs/` — not just newly-touched ones. Lane is **advisory until 2026-07-15** to give the corpus-wide upgrade pass time to land; **BLOCKER from 2026-07-16**. No doc gets a grandfather clause.
 
 The upgrade order is:
 1. Hub docs first: `docs/README.md`, `docs/AGENTS.md`, `docs/DOC-CATALOG.md`, `docs/STANDARDS-AND-TEMPLATES.md`, `docs/GLOSSARY.md`. Without rigor on hubs, downstream traversability fails.
@@ -80,7 +80,7 @@ The corpus is complete when ALL of the following hold:
 
    **Above-and-beyond signal:** µservices that exceed the baseline (PR-143 observability ships 132 artifacts at 188%) are the operating bar. New µservices SHOULD target ≥100 artifacts. The ~70 number is the floor; ≥100 is the operating bar; ≥130 is the rigor we ship.
 
-   Missing baseline files trigger `oya-governance-microservice-doc-set` BLOCKER (advisory until 2026-07-15, BLOCKER thereafter). Aggregate corpus completeness reported by `oya-governance-doc-completeness` daily.
+   Missing baseline files trigger `governance-microservice-doc-set` BLOCKER (advisory until 2026-07-15, BLOCKER thereafter). Aggregate corpus completeness reported by `governance-doc-completeness` daily.
 
    **Worked exemplar:** `microservices/observability/` — read this directory tree before drafting any new µservice. The shape MUST match.
 
@@ -93,7 +93,7 @@ The corpus is complete when ALL of the following hold:
    | **At/above operating bar (≥100)** — §1.1/§1.2/§3.1 rigor audit required (no new artifacts mandated, but existing ones must clear the bar) | 32 | `shorts` (100) through `foundry` (561), all 32 µservices currently in this band |
    | **Above-and-beyond exemplar (≥130)** | 8 | `observability` (146), `cloud-iac` (150), `governance` (172), `workflow-studio` (198), `foundry` (561), plus 3 more crossing the threshold |
 
-   Total upgrade workload: **14 µservices need artifact-count remediation** + **32 µservices need rigor audit against §1.1/§1.2/§3.1**. The `oya-governance-doc-set-completeness` lane reports the per-µservice gap daily and gates the platform's promotion-to-GA milestones per ADR-0250.
+   Total upgrade workload: **14 µservices need artifact-count remediation** + **32 µservices need rigor audit against §1.1/§1.2/§3.1**. The `governance-doc-set-completeness` lane reports the per-µservice gap daily and gates the platform's promotion-to-GA milestones per ADR-0250.
 
    Upgrade ordering: below-floor µservices first (they cannot serve production traffic until they meet ADR-0212 buildability doctrine), then borderline, then audit pass on the 32 at-bar µservices. The ordering is *not* alphabetical — substrate µservices (cell, tenancy, policy-engine, cloud-secrets, foundry) are remediated before product µservices (community, marketplace, etc.) because substrate gaps propagate.
 
@@ -123,12 +123,12 @@ The corpus is complete when ALL of the following hold:
 4. **Every operational primitive has a runbook.** If a primitive can fail, drift, or need rotation, it has a runbook at `docs/runbooks/<slug>.md` meeting §2 runbook rigor. Cross-referenced from the binding ADR's §F.
 5. **Every public contract has a versioning + deprecation policy.** OpenAPI/AsyncAPI/event/ABI/CLI contracts declare their SemVer policy + deprecation cadence + sunset rules per ADR-0258.
 6. **Every term used is defined.** Every term appearing in ≥2 canonical docs has a glossary entry at `docs/GLOSSARY.md` with: definition, first-introduced ADR, hyperscaler analog, related terms.
-7. **Every cross-reference resolves.** No `[broken link]`. No unresolved placeholder markers in canonical doc bodies. CI lane `oya-governance-doc-link-resolves` enforces.
+7. **Every cross-reference resolves.** No `[broken link]`. No unresolved placeholder markers in canonical doc bodies. CI lane `governance-doc-link-resolves` enforces.
 8. **Every cell-tier / compliance-pack / sovereign-cloud variant is documented.** For each µservice and each primitive: which packs activate it, which cell tiers it deploys to, which sovereign-cloud overlays apply.
 9. **Every retired doc is retired explicitly.** Files removed from canonical scope get a tombstone entry in `docs/retired/` per the markdown-retirement-policy. No silent deletions.
-10. **No orphan files.** Every file under `docs/`, `microservices/`, `packs/`, `specs/`, `crates/*/docs/` is reachable via the §3.1 graph traversal OR is explicitly tombstoned. CI lane `oya-governance-doc-orphan-detection` enforces.
+10. **No orphan files.** Every file under `docs/`, `microservices/`, `packs/`, `specs/`, `crates/*/docs/` is reachable via the §3.1 graph traversal OR is explicitly tombstoned. CI lane `governance-doc-orphan-detection` enforces.
 
-The completeness invariants apply to the corpus as a whole, not per-PR. The `oya-governance-doc-completeness` aggregate lane reports the corpus-wide gap count daily and gates the platform's promotion-to-GA milestones (per ADR-0250 build-ahead-of-certification).
+The completeness invariants apply to the corpus as a whole, not per-PR. The `governance-doc-completeness` aggregate lane reports the corpus-wide gap count daily and gates the platform's promotion-to-GA milestones (per ADR-0250 build-ahead-of-certification).
 
 ## 1. The intern-buildability test
 
@@ -166,7 +166,7 @@ Every canonical doc that describes a system, primitive, or surface MUST address 
 | **Scalability** | The primitive serves 10× and 100× the current load without architectural change. | ADR (M), PRD (M), Spec (R), Runbook (R) | Capacity math (Little's Law / queue theory / binomial); explicit bottleneck identification + the shard / partition / cache strategy that resolves it; horizontal-scale-out path; explicit "the system goes red when X exceeds Y" thresholds. |
 | **Performance** | Latency, throughput, jitter, tail behavior are quantified and budgeted. | ADR (M), PRD (M), Spec (R), Runbook (R) | P50/P95/P99 targets with error bars; modeling note OR benchmark commit; per-region budget split; tail-latency mitigation (hedging, fan-out-and-take-first, circuit-breakers); cold-start budget. No bare percentile claims. |
 | **Optimization** | The cost-performance frontier is examined; lazy/eager/cache trade-offs are named. | ADR (M), PRD (R), Spec (R), Runbook (-) | Explicit per-call cost model (CPU-µs, RAM-MB, IOPS, $/M-requests); explicit "we picked lazy because X" or "we picked eager because Y"; cache-invalidation policy if any; cold-vs-warm path latency separation; profiling-evidence link if applicable. |
-| **Code quality** | The implementation has tests, error handling, types, lints; the doc names the quality bar. | ADR (M), PRD (M), Spec (M), Standard (M) | Required test classes (unit / property / fuzz / load / e2e); coverage floor (≥85% line, ≥75% branch); lint passes named (`oya-check-*`); type-strictness level (Rust deny(warnings), TS strict, etc.); SemVer + ABI policy. |
+| **Code quality** | The implementation has tests, error handling, types, lints; the doc names the quality bar. | ADR (M), PRD (M), Spec (M), Standard (M) | Required test classes (unit / property / fuzz / load / e2e); coverage floor (≥85% line, ≥75% branch); lint passes named (`check-*`); type-strictness level (Rust deny(warnings), TS strict, etc.); SemVer + ABI policy. |
 
 A canonical doc that fails any **(M)** cell for its doc class is **REVISE**. The §4 audit rolls up the dimension grades into the overall verdict.
 
@@ -209,7 +209,7 @@ From **any** canonical entry point (`docs/README.md`, any ADR, any PRD, any stan
 - Entry points include: `docs/README.md`, `docs/AGENTS.md`, `docs/DOC-CATALOG.md`, `docs/STANDARDS-AND-TEMPLATES.md`, the keystone-bundle synthesis doc, every µservice's PRD.md, every ADR.
 - Reachability is BFS-traversal over markdown links + frontmatter `related_*` + `companion_docs` lists.
 - A primitive is "reached" when an intern lands on the doc that *introduces* or *normatively specifies* it — not merely a doc that mentions it.
-- Verified by a deterministic graph-walker (`tools/doc-graph-walker/`); CI lane `oya-governance-doc-graph-6hops` (advisory until 2026-07-15, BLOCKER thereafter).
+- Verified by a deterministic graph-walker (`tools/doc-graph-walker/`); CI lane `governance-doc-graph-6hops` (advisory until 2026-07-15, BLOCKER thereafter).
 
 If an intern reads ADR-0244 (tenant model) and wants to understand provider-BYOK, they MUST be able to reach ADR-0255 §D-4 in ≤2 hops via `provider_credential_mode` cross-reference. If they read a runbook and need the Cedar permit for the operation, they MUST reach the relevant ADR-0243 §D-N permit definition in ≤3 hops. If they read a PRD and need the compliance-pack manifest schema, they MUST reach `specs/compliance-pack-schema.json` in ≤3 hops.
 
@@ -233,7 +233,7 @@ For every µservice, the following questions MUST have explicit answers (not "se
 | 2 | ADR-0243 (Cedar universal gate) | Which Cedar fragments gate this µservice's actions? Where is the default-deny baseline? | `policy/*.cedar` + `ARCHITECTURE.md §cedar-gates` |
 | 3 | ADR-0244 (tenant scoping) | Which tables / events / rows carry `tenant_id`? What `audience_type` does this µservice serve? What `provider_credential_mode` does it honor? | `ARCHITECTURE.md §tenant-scoping` + `migrations/` |
 | 4 | ADR-0245 (substrate vs product) | Substrate or product? If substrate, which products consume it? If product, which substrates it depends on? | `manifest.json:tier` + `ARCHITECTURE.md §substrate-product-binding` |
-| 5 | ADR-0246 + amendment (policy-engine library-first) | Does it use the caller-side `oya-shared-policy-eval` library? What's its `policy_evaluation_mode`? | `ARCHITECTURE.md §policy-evaluation` |
+| 5 | ADR-0246 + amendment (policy-engine library-first) | Does it use the caller-side `shared-policy-eval` library? What's its `policy_evaluation_mode`? | `ARCHITECTURE.md §policy-evaluation` |
 | 6 | ADR-0247 (self-modification doctrine) | Does this µservice produce or consume self-modification artifacts? If so, what's its meta-trust-root attestation path? | `compliance.md §self-modification` |
 | 7 | ADR-0248 (cellular architecture) | Which cell tier (0/1/2/3) does it deploy to? What's the per-cell shard width? Which cells does it span? | `multi-region.md` + `manifest.json:cell_eligibility` |
 | 8 | ADR-0249 (multi-category marketplace) | Does it expose marketplace surfaces? If so, which categories? | `competitor-parity-matrix.md` + `ARCHITECTURE.md §marketplace` |
@@ -258,7 +258,7 @@ For every µservice, the following questions MUST have explicit answers (not "se
 | 27 | ADR-0296 (library-first credential sidecar) | If holding any provider credential: sidecar isolation OR ≤60s OpenBao TTL | `ARCHITECTURE.md §credential-isolation` |
 | 28 | ADR-0297 (abuse-defence: anti-bot + anti-spoof + anti-scrape) | If internet-facing: which anti-bot, anti-spoof, anti-scrape controls are wired? See §3.2.3 below for the mandatory taxonomy. | `ARCHITECTURE.md §abuse-defence` + `iac/<env>-edge-waf.yaml` + `policy/abuse-defence.cedar` |
 
-A µservice that answers fewer than 28 of these is REVISE. The audit lane `oya-governance-adr-adherence-matrix` reads every µservice's `ARCHITECTURE.md + compliance.md` and reports per-row pass/fail (advisory until 2026-07-15, BLOCKER thereafter).
+A µservice that answers fewer than 28 of these is REVISE. The audit lane `governance-adr-adherence-matrix` reads every µservice's `ARCHITECTURE.md + compliance.md` and reports per-row pass/fail (advisory until 2026-07-15, BLOCKER thereafter).
 
 ### 3.2.2 Cross-µservice consistency invariants
 
@@ -275,7 +275,7 @@ The corpus is consistent when:
 9. **Six-hops graph traversal works on every entry point.** Per §3.1.
 10. **BYOK terminology is consistent.** Every doc that mentions BYOK disambiguates provider-BYOK vs encryption-BYOK (per the 2026-05-20 scope split).
 
-CI lane `oya-governance-cross-consistency` enforces invariants 1-10 daily.
+CI lane `governance-cross-consistency` enforces invariants 1-10 daily.
 
 ### 3.2.3 Abuse-defence baseline — anti-bot, anti-spoof, anti-scrape
 
@@ -287,7 +287,7 @@ Every internet-facing µservice MUST wire the following defence-in-depth control
 |---:|---|---|---|
 | 1 | **Edge rate-limiting (per-IP, per-fingerprint, per-tenant, per-route)** | Tier-0 edge | Token-bucket + sliding-window; burst caps per route class (auth, write, read, admin) |
 | 2 | **Behavioural fingerprinting** | Edge | TLS JA4 / JA4+ / HTTP/2-3 frame-pattern fingerprint; passive — never alone gates a request |
-| 3 | **Bot-management with ML scoring** | Edge | Cloudflare Bot Management / Akamai Bot Manager / in-house equivalent at parity; score forwarded to µservice as header `X-Oya-Bot-Score` for downstream policy |
+| 3 | **Bot-management with ML scoring** | Edge | Cloudflare Bot Management / Akamai Bot Manager / in-house equivalent at parity; score forwarded to µservice as header `X-Oyatie-Bot-Score` for downstream policy |
 | 4 | **CAPTCHA-on-suspicion** | Edge | hCaptcha + Turnstile + Cloudflare Challenge; presented only when bot-score crosses threshold; **never on default path** (accessibility floor) |
 | 5 | **Device attestation** | Edge / app | App Attest (iOS), Play Integrity (Android), WebAuthn Origin-binding (web); for native + signed-in surfaces |
 | 6 | **Stolen-credential check** | Auth path | HIBP API / oyatie's internal credential-stuffing-detector; pause sign-in if password appears in dump corpus |
@@ -339,7 +339,7 @@ The bar: a legitimate user with no bot signals MUST experience the same smooth, 
 | **Performance during scrape-pattern detection** | Adaptive challenge MUST throttle bots without slowing legitimate concurrent traffic to the same surface. Per-fingerprint isolation, not per-route. | Bot scraping `/products/*` → all `/products/*` slows for everyone |
 | **Transparent telemetry to tenants** | Tenant-admin dashboards show the abuse-defence outcomes affecting their own tenant: false-positive rate, friction events, blocked-bot count. Per ADR-0263 audit-event surface. | Black-box abuse defence with no tenant visibility |
 
-UX-friction CI lane: `oya-governance-abuse-defence-ux-floor`. Verifies that the default-path latency budget holds, that every challenge in `policy/abuse-defence.cedar` has documented a11y alternatives, and that no µservice's abuse-defence config sets default-path friction.
+UX-friction CI lane: `governance-abuse-defence-ux-floor`. Verifies that the default-path latency budget holds, that every challenge in `policy/abuse-defence.cedar` has documented a11y alternatives, and that no µservice's abuse-defence config sets default-path friction.
 
 The bar is: **security AND UX, not security OR UX**. Hyperscaler precedent: Stripe Radar (passive scoring; visible only on confirmed-suspicion), Cloudflare Turnstile (replaces visible CAPTCHA with invisible challenge for ~95% of legitimate traffic), Apple App Attest (silent device attestation), WebAuthn passkeys (phishing-resistant AND smoother than passwords).
 
@@ -374,7 +374,7 @@ The bar is: **security AND UX, not security OR UX**. Hyperscaler precedent: Stri
 7. **Crisis-hotline bots can legitimately operate.** Crisis-line text-bot triage (988 chat, Samaritans chat, Crisis Text Line) routes legitimate automated intake — bot-score must NOT block them. They're identified by `audience_type = EMERGENCY_SERVICES + bot_class = CRISIS_TRIAGE` (a sub-class) and pass without challenge.
 8. **Mobile UX parity.** Native-app emergency surfaces (iOS Emergency SOS, Android Emergency SOS, KakaoTalk emergency-call integration, LINE 1-1-9 integration) attest via App Attest + Play Integrity; the abuse-defence stack treats those as elevated-trust origins.
 9. **Geographic graceful degradation.** When ECH / PQC / advanced-TLS-1.3 features cause incompatibility with a legacy emergency-services dispatch system, the platform negotiates DOWN to whatever the dispatch system supports — NEVER refuses the session. (Cross-ref documentation-rigor.md §3.2.1 row 12 graceful degradation principle.)
-10. **Test in chaos exercises.** Quarterly chaos-test: simulate a mass-casualty incident (10× normal 9-1-1 volume) and verify zero challenge events on emergency-services traffic. CI lane `oya-governance-emergency-services-chaos-test` enforces.
+10. **Test in chaos exercises.** Quarterly chaos-test: simulate a mass-casualty incident (10× normal 9-1-1 volume) and verify zero challenge events on emergency-services traffic. CI lane `governance-emergency-services-chaos-test` enforces.
 
 **Forbidden patterns (MUST NEVER):**
 
@@ -423,7 +423,7 @@ Emergency-services is the most consequential critical path, but it is **not the 
 | 11 | **Custody / shared-account dispute** | Separated parents accessing child-shared accounts; legal custody status | Per-jurisdiction family-court order integration; per-account cooling-off on custody-disputed accounts; child-best-interest standard | No parent can unilaterally lock the other out without court order; child's surface preserved |
 | 12 | **Disability accommodations (beyond a11y floor)** | Assistive-tech-only users, voice-control-only, single-switch users, dementia, post-trauma | Per-tenant accessibility-profile honored; alternative auth methods (voice biometric, single-switch, longer time budgets); a11y-floor + tenant-extension | WCAG 2.2 AAA target on accommodation paths; per-tenant override of friction-defaults |
 | 13 | **Non-native-language user** | Translation breaking auth or critical workflows | Locale fallback chain (preferred → English → translate-on-fly); critical surfaces (auth, financial, medical) NEVER auto-translated without consent | Translation is opt-in for sensitive surfaces; per-locale UX parity (no second-class locales) |
-| 14 | **Low-bandwidth / disaster-zone / offline-first** | Rural + post-disaster + satellite-internet users; intermittent connectivity | Offline-first sync (CRDT per `oya-collab-crdt-portability-kernel`); progressive enhancement; degraded mode preserves core workflow | Offline-mode audit retained + reconciled; no data loss on resync; per-tenant offline-quota |
+| 14 | **Low-bandwidth / disaster-zone / offline-first** | Rural + post-disaster + satellite-internet users; intermittent connectivity | Offline-first sync (CRDT per `collab-crdt-portability-kernel`); progressive enhancement; degraded mode preserves core workflow | Offline-mode audit retained + reconciled; no data loss on resync; per-tenant offline-quota |
 | 15 | **Banking / financial inclusion** | Unbanked, gig workers, remittance recipients, undocumented | Cash-out paths (Toss / KakaoPay / WeChat / mobile money); no SSN-required for low-tier consumer; per-pack jurisdiction overlay | Per-pack KYB/KYC tier respects regulator floor (not above-and-beyond by default); financial-inclusion path doesn't strand under-banked |
 | 16 | **Activist / dissident in authoritarian jurisdiction** | High-risk users in countries with state-level surveillance | Tor-friendly ingress; metadata-minimization mode; per-tenant `audience_type = HIGH_RISK_USER` overlay; no cross-border data export unless tenant-opted | E2EE preserved; metadata minimal; per-pack `pack-cn-pipl` + per-tenant override permitted within regulator floor |
 | 17 | **Service outage during regulator-deadline** | NIS2 72-hour notification, GDPR 72h, KR-PIPA 72h | Degraded-mode preserves regulator-required action; per-pack breach-notification-workflow continues via DR-pair cell | Regulator deadlines honored even during outages; audit retained; per-pack workflow has graceful-degraded path |
@@ -448,7 +448,7 @@ Every µservice's `compliance.md §critical-path-edge-cases` MUST list the rows 
 - Cross-reference to the binding ADR + runbook + Cedar policy
 - The CI lane that verifies the handling
 
-CI lane: `oya-governance-critical-path-coverage` reads `compliance.md §critical-path-edge-cases` per µservice and verifies the applicable rows are addressed.
+CI lane: `governance-critical-path-coverage` reads `compliance.md §critical-path-edge-cases` per µservice and verifies the applicable rows are addressed.
 
 #### The safety-security-policy invariant
 
@@ -673,11 +673,11 @@ Every µservice's `compliance.md §detection-substrate-binding` MUST list:
 
 #### CI lanes
 
-- `oya-governance-detection-substrate-emission` — verifies every µservice emits the events declared
-- `oya-governance-detection-fairness-audit` — quarterly fairness audit cadence enforced
-- `oya-governance-detection-appeal-coverage` — every adverse-action surface has appeal mechanism
-- `oya-governance-detection-explainability` — every detection score has feature-importance available
-- Aggregate: `oya-governance-detection-baseline`
+- `governance-detection-substrate-emission` — verifies every µservice emits the events declared
+- `governance-detection-fairness-audit` — quarterly fairness audit cadence enforced
+- `governance-detection-appeal-coverage` — every adverse-action surface has appeal mechanism
+- `governance-detection-explainability` — every detection score has feature-importance available
+- Aggregate: `governance-detection-baseline`
 
 #### New ADRs required (added to Wave-3-D backlog, joining 0298-0306)
 
@@ -718,10 +718,10 @@ forbid (principal == ?, action in [Action::Read, Action::Scrape], resource) when
 
 #### CI lanes
 
-- `oya-governance-anti-bot-coverage` — every internet-facing µservice declares its anti-bot controls and CI verifies the 8-row anti-bot table is filled.
-- `oya-governance-anti-spoof-coverage` — same for anti-spoof.
-- `oya-governance-anti-scrape-coverage` — same for anti-scrape.
-- Aggregate lane `oya-governance-abuse-defence` rolls up all three.
+- `governance-anti-bot-coverage` — every internet-facing µservice declares its anti-bot controls and CI verifies the 8-row anti-bot table is filled.
+- `governance-anti-spoof-coverage` — same for anti-spoof.
+- `governance-anti-scrape-coverage` — same for anti-scrape.
+- Aggregate lane `governance-abuse-defence` rolls up all three.
 
 #### Canonical authority — ADR-0297
 
@@ -735,10 +735,10 @@ Beyond abuse-defence (§3.2.3), every internet-facing µservice and every substr
 
 | Layer | Control | Hyperscaler precedent | CI lane |
 |---|---|---|---|
-| L3/L4 volumetric | Anycast + SYN-cookies + BGP-flowspec + scrubbing | AWS Shield Advanced, Cloudflare Magic Transit, Google Cloud Armor | `oya-governance-ddos-l3l4` |
-| L4 protocol | TCP-state tracking + QUIC connection-limit + slow-loris timeout | Cloudflare, Akamai Prolexic | `oya-governance-ddos-protocol` |
-| L7 application | Adaptive rate-limiting + JS challenge + bot-mgmt composition | Cloudflare, AWS WAF, Imperva | `oya-governance-ddos-l7` |
-| Egress | Per-µservice outbound rate-limit + DLP scan | AWS WAF, Cilium Cluster Mesh | `oya-governance-egress-rate-limit` |
+| L3/L4 volumetric | Anycast + SYN-cookies + BGP-flowspec + scrubbing | AWS Shield Advanced, Cloudflare Magic Transit, Google Cloud Armor | `governance-ddos-l3l4` |
+| L4 protocol | TCP-state tracking + QUIC connection-limit + slow-loris timeout | Cloudflare, Akamai Prolexic | `governance-ddos-protocol` |
+| L7 application | Adaptive rate-limiting + JS challenge + bot-mgmt composition | Cloudflare, AWS WAF, Imperva | `governance-ddos-l7` |
+| Egress | Per-µservice outbound rate-limit + DLP scan | AWS WAF, Cilium Cluster Mesh | `governance-egress-rate-limit` |
 
 #### Domain 2 — WAF (OWASP Top 10 + API security)
 
@@ -752,22 +752,22 @@ Per-µservice docs: `policy/waf-rules.md` declaring the active rule sets + custo
 
 | Layer | Control | Precedent | CI lane |
 |---|---|---|---|
-| Pre-commit | Pre-commit hook scans staged diff for secrets | GitGuardian pre-commit, gitleaks, talisman | `oya-governance-precommit-secrets` |
-| Repo | Scheduled repo scan; rotate-on-detect; quarantine | GitHub Secret Scanning, TruffleHog, GitGuardian | `oya-governance-repo-secret-scan` |
-| Runtime | eBPF-based detection of in-memory secrets at egress | Cloudflare R2 secret-detection, AWS Macie | `oya-governance-runtime-secret-detect` |
-| Image | Container image scan for embedded secrets | Snyk, Anchore, Trivy | `oya-governance-image-secret-scan` |
-| Public surface | Per-tenant key-canary tokens to detect leaks | Stripe canary keys, GitHub canary tokens | `oya-governance-canary-token-deploy` |
+| Pre-commit | Pre-commit hook scans staged diff for secrets | GitGuardian pre-commit, gitleaks, talisman | `governance-precommit-secrets` |
+| Repo | Scheduled repo scan; rotate-on-detect; quarantine | GitHub Secret Scanning, TruffleHog, GitGuardian | `governance-repo-secret-scan` |
+| Runtime | eBPF-based detection of in-memory secrets at egress | Cloudflare R2 secret-detection, AWS Macie | `governance-runtime-secret-detect` |
+| Image | Container image scan for embedded secrets | Snyk, Anchore, Trivy | `governance-image-secret-scan` |
+| Public surface | Per-tenant key-canary tokens to detect leaks | Stripe canary keys, GitHub canary tokens | `governance-canary-token-deploy` |
 
 #### Domain 4 — SAST + DAST + IAST + SCA
 
 | Class | Control | Precedent | CI lane |
 |---|---|---|---|
-| SAST | Static analysis on every PR: rust-clippy + cargo-audit + Semgrep + CodeQL | Snyk Code, Semgrep Pro, GitHub Advanced Security, Checkmarx | `oya-governance-sast` |
-| DAST | Dynamic scan against staging: ZAP + Burp Suite + Pentest-Tools | OWASP ZAP, PortSwigger Burp Enterprise | `oya-governance-dast-staging` |
-| IAST | Instrumented test run captures coverage + vulns at runtime | Contrast Security, Synopsys Seeker | `oya-governance-iast` |
-| SCA | Dependency vuln scan + SBOM | owned SCA gate, SBOM, advisory feed, Anchore-compatible evidence | `oya-governance-sca` |
-| Fuzzing | Continuous fuzzing of public APIs + parsers | OSS-Fuzz, AFL++, libFuzzer, Honggfuzz | `oya-governance-fuzz` |
-| SBOM | SBOM in CycloneDX + SPDX; attached to every release; signed via cosign + Rekor | Sigstore SBOM, FOSSA, Anchore Enterprise | `oya-governance-sbom-coverage` |
+| SAST | Static analysis on every PR: rust-clippy + cargo-audit + Semgrep + CodeQL | Snyk Code, Semgrep Pro, GitHub Advanced Security, Checkmarx | `governance-sast` |
+| DAST | Dynamic scan against staging: ZAP + Burp Suite + Pentest-Tools | OWASP ZAP, PortSwigger Burp Enterprise | `governance-dast-staging` |
+| IAST | Instrumented test run captures coverage + vulns at runtime | Contrast Security, Synopsys Seeker | `governance-iast` |
+| SCA | Dependency vuln scan + SBOM | owned SCA gate, SBOM, advisory feed, Anchore-compatible evidence | `governance-sca` |
+| Fuzzing | Continuous fuzzing of public APIs + parsers | OSS-Fuzz, AFL++, libFuzzer, Honggfuzz | `governance-fuzz` |
+| SBOM | SBOM in CycloneDX + SPDX; attached to every release; signed via cosign + Rekor | Sigstore SBOM, FOSSA, Anchore Enterprise | `governance-sbom-coverage` |
 
 #### Domain 5 — Container + supply-chain hardening
 
@@ -792,7 +792,7 @@ Per-µservice docs: `policy/waf-rules.md` declaring the active rule sets + custo
 | North-south | Edge → service mesh ingress only via mTLS-verified gateway | Cloudflare Tunnels, AWS API Gateway → VPC Lambda |
 | East-west | Default-deny baseline; every flow explicitly allowed in NetworkPolicy | Google BeyondCorp, Zscaler ZIA |
 
-Per-µservice doc: `iac/network-policy.yaml` declares allow-list; verified by `oya-governance-network-policy-coverage`.
+Per-µservice doc: `iac/network-policy.yaml` declares allow-list; verified by `governance-network-policy-coverage`.
 
 #### Domain 7 — DLP (Data Loss Prevention)
 
@@ -804,7 +804,7 @@ Per-µservice doc: `iac/network-policy.yaml` declares allow-list; verified by `o
 | Clipboard | Native-app clipboard scoping; no cross-tenant copy-paste | Microsoft Intune, VMware Workspace ONE |
 | Print + screenshot | Watermark + audit-trail for sensitive content | Microsoft Purview Information Protection |
 
-Per-µservice doc: `policy/dlp-egress.cedar`; CI lane `oya-governance-dlp-egress-coverage`.
+Per-µservice doc: `policy/dlp-egress.cedar`; CI lane `governance-dlp-egress-coverage`.
 
 #### Domain 8 — UEBA + insider threat + just-in-time access
 
@@ -817,7 +817,7 @@ Per-µservice doc: `policy/dlp-egress.cedar`; CI lane `oya-governance-dlp-egress
 | Background checks | Pre-employment + role-change | Sterling, Checkr, HireRight |
 | Step-up auth on sensitive ops | Per `docs/standards/step-up-auth-classes.md`; WebAuthn passkey + hardware token for highest tier | Cross-ref ADR + step-up-auth-classes standard |
 
-Per-µservice doc: `compliance.md §insider-threat-controls`; CI lane `oya-governance-jit-access-coverage`.
+Per-µservice doc: `compliance.md §insider-threat-controls`; CI lane `governance-jit-access-coverage`.
 
 #### Domain 9 — Threat intelligence integration
 
@@ -844,7 +844,7 @@ Per-µservice doc: `compliance.md §threat-intelligence-feeds`.
 | Post-mortem | Blameless within 5 business days; cross-ref `docs/standards/postmortem-template.md` | Google SRE Workbook |
 | Communication | Per-tenant + per-regulator notification; per ADR-0251 breach-notification-workflow | GDPR Art. 33 + 34, CCPA, KR-PIPA Art. 34, NIS2 Art. 23 |
 
-Per-µservice doc: `incident-response.md` (already in roster); CI lane `oya-governance-incident-response-coverage`.
+Per-µservice doc: `incident-response.md` (already in roster); CI lane `governance-incident-response-coverage`.
 
 #### Domain 11 — Vulnerability management
 
@@ -883,7 +883,7 @@ Per-µservice doc: `compliance.md §pentest-and-bounty-cadence`.
 | Ingest | Auto-classify at API boundary; PII / PHI / PCI / Sovereign tagging | AWS Macie, Microsoft Purview, BigID, Immuta |
 | Storage | Per-data-class encryption + retention + DSAR-handling | Cross-ref ADR-0276 + `data-class.md` standard |
 | Lineage | Track data lineage from ingest through every transformation to egress | DataHub, Alation, OpenLineage |
-| Tagging | Per-row tenant_id + data_class tags; verified by `oya-check-tenant-cost-labels-coverage` | Cross-ref existing CI lane |
+| Tagging | Per-row tenant_id + data_class tags; verified by `check-tenant-cost-labels-coverage` | Cross-ref existing CI lane |
 
 #### Domain 15 — Backup + recovery + business continuity
 
@@ -894,7 +894,7 @@ Per existing `docs/standards/backup-canonical.md` + `dr-business-continuity.md` 
 - Tested restore quarterly per `docs/runbooks/dr-business-continuity.md`
 - RPO/RTO per cell tier (per ADR-0241)
 
-CI lane: `oya-governance-backup-restore-tested`.
+CI lane: `governance-backup-restore-tested`.
 
 #### Domain 16 — Cryptographic key + rotation discipline
 
@@ -916,7 +916,7 @@ CI lane: `oya-governance-backup-restore-tested`.
 | Audit | Per-tenant audit-stream per ADR-0263 | Stripe audit log, AWS CloudTrail org-mode |
 | Chaos-test | Quarterly cross-tenant reachability test (assumed-breach in one tenant; verify no L3 reachability to another) | Netflix Chaos Monkey, AWS Fault Injection Simulator |
 
-CI lane: `oya-governance-tenant-isolation-chaos-test`.
+CI lane: `governance-tenant-isolation-chaos-test`.
 
 #### Domain 18 — Physical + facility security
 
@@ -942,13 +942,13 @@ Per-µservice doc: `compliance.md §facility-controls` (mostly inherited from ce
 
 Per ADR-0253 amendment + future ADRs. Migration plan: hybrid (X25519 + ML-KEM-768) NOW; full PQ when peer-support common (2027+ target). Crypto-library choices: `aws-lc-rs`, `openssl-3-pqc`, `BoringSSL-pqc` — all maintained-PQ-track libraries.
 
-Per-µservice doc: `compliance.md §crypto-agility-plan`; CI lane `oya-governance-crypto-agility`.
+Per-µservice doc: `compliance.md §crypto-agility-plan`; CI lane `governance-crypto-agility`.
 
 ---
 
 #### Aggregate CI lane
 
-`oya-governance-hyperscaler-defense-baseline` is the aggregate that reads §3.2.3 (abuse-defence 24 controls + UX-floor) + §3.2.4 (20 domains above). Per-µservice answer count: ≥150 control rows across all 20 domains + abuse-defence. Reports daily corpus gap.
+`governance-hyperscaler-defense-baseline` is the aggregate that reads §3.2.3 (abuse-defence 24 controls + UX-floor) + §3.2.4 (20 domains above). Per-µservice answer count: ≥150 control rows across all 20 domains + abuse-defence. Reports daily corpus gap.
 
 #### Per-µservice ADR-adherence matrix extension
 
@@ -988,7 +988,7 @@ For any doc graph rooted at a hero PRD or hero ADR, the audit answers:
 - **Compliance coverage.** Does each doc that touches PII, payments, or self-modification map to its compliance pack(s) per ADR-0251?
 - **Numeric coverage.** Does each performance / capacity claim cite the benchmark or modeling note?
 
-Audit output: pass / pass-with-findings / revise / blocker. CI lane: `oya-governance-doc-rigor` (advisory until 2026-07-15, BLOCKER thereafter).
+Audit output: pass / pass-with-findings / revise / blocker. CI lane: `governance-doc-rigor` (advisory until 2026-07-15, BLOCKER thereafter).
 
 ## 5. What good looks like — exemplars
 
@@ -1032,7 +1032,7 @@ When a doc fails the intern-buildable bar, the upgrade pass:
 
 ## 8. Enforcement
 
-CI lane: `oya-governance-doc-rigor`. Status:
+CI lane: `governance-doc-rigor`. Status:
 
 - **advisory** until 2026-07-15 to give the upgrade pass time to land across the corpus.
 - **BLOCKER** from 2026-07-16. PRs that introduce or modify a canonical doc that fails the bar cannot merge.

@@ -1,32 +1,7 @@
-# Weekly non-blocking license-policy check over the resolved dependency graph.
+# Weekly advisory refresh (network). Licenses/bans/sources are hermetic on
+# presubmit via cargo deny. This lane is not merge-blocking.
 #
-# Not part of the merge path: merge authority is the `oya-ci-required` context.
-# A red run here means a dependency's license left the deny.toml allow-list, or an
-# exception expired — a signal to fix the dependency or review the policy, never a
-# merge blocker. It is scheduled rather than per-PR deliberately: a license
-# regression is not the same urgency class as a broken build, and installing this
-# tool on the required path would be wall-clock paid on every merge forever.
-#
-# WHY THIS IS NOT A PRODUCER-FACE GATE. Every registered gate here is hermetic: its
-# producer reads tracked files and a pure evaluator scores the rows. Third-party
-# license metadata is not a tracked file in this repository — Cargo.lock carries
-# name/version/checksum but no license, and third-party/ holds reindeer fixups
-# rather than vendored crate sources. The license of a transitive dependency is
-# knowable only from the registry, so a hermetic producer cannot emit those rows.
-# cargo-deny reads the registry cache directly and enforces deny.toml verbatim,
-# exceptions and all, with no second policy surface to drift.
-#
-# Authority: deny.toml (the allow-list + dated per-crate exceptions);
-# ci/facade/dependency-automation `[supply_chain] license_policy = "deny.toml"`;
-# .github/CONTRIBUTING.md, which already documents `cargo deny check` as advisory.
-#
-# ZERO inline `run:` steps. The shrink-only workflow_inline_shell baseline is keyed
-# per (workflow, job, required unique run-step name); new run: keys are
-# born-blocking. Checkout is the same SHA-pinned actions/checkout as every other
-# workflow. The check is EmbarkStudios/cargo-deny-action@v2.1.1 (commit
-# 3c6349835b2b7b196a839186cb8b78e02f7b5f25), which ships cargo-deny 0.20.2 and
-# provisions Rust 1.97.1 — the workspace rust-toolchain.toml pin — so this advisory
-# lane adds no unbaselined shell.
+# Authority: deny.toml
 
 name: license-weekly-advisory
 
@@ -40,8 +15,8 @@ permissions:
 
 jobs:
   license-weekly-advisory:
-    name: license-weekly-advisory (deny.toml over the resolved graph)
-    runs-on: ubuntu-latest
+    name: deny advisories (weekly)
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -50,5 +25,5 @@ jobs:
       - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
         with:
           command: check
-          command-arguments: licenses
-          rust-version: "1.97.1"
+          command-arguments: advisories
+          rust-version: "1.98.0"

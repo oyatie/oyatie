@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-XTENANT-MSG-002
+tutorial_id: TUT-OYATIE-XTENANT-MSG-002
 persona: "Priya Krishnan, Acme Robotics partnership lead"
 prerequisite_packs:
   - canonical-base

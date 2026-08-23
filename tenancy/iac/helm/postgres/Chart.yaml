@@ -1,6 +1,6 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-tenancy-postgres
+name: tenancy-postgres
 description: Postgres 16 primary + sync replicas with FORCE ROW LEVEL SECURITY enforcement per policy/rls-isolation.md
 type: application
 version: 0.1.0

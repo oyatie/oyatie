@@ -2,7 +2,7 @@
 
 **Status**: draft  
 **Vertical**: community  
-**Crate**: `oya-connect-social-domain` (`crates/oya-connect-social-domain/`)  
+**Crate**: `connect-social-domain` (`crates/connect-social-domain/`)  
 **Branch**: `feat/task-social-context-scoped-story-sweep-2026-05-28`  
 **ADR authority**: ADR-0509 (flat single-crate service), ADR-0131 (flat layout)
 
@@ -10,7 +10,7 @@
 
 ## Objective
 
-Extend the `oya-connect-social-domain` crate with a context- and pillar-scoped batch story-expiry sweep function (`story_sweep`) and the implicit per-context purge-target filter it embodies. The function operates as a pure domain computation over existing types — no I/O, no new crate, no root `Cargo.toml` edit.
+Extend the `connect-social-domain` crate with a context- and pillar-scoped batch story-expiry sweep function (`story_sweep`) and the implicit per-context purge-target filter it embodies. The function operates as a pure domain computation over existing types — no I/O, no new crate, no root `Cargo.toml` edit.
 
 ---
 
@@ -19,15 +19,15 @@ Extend the `oya-connect-social-domain` crate with a context- and pillar-scoped b
 | Attribute | Value |
 |---|---|
 | Vertical | community |
-| Owning crate | `oya-connect-social-domain` |
-| Lib name | `oya_connect_social_domain` |
-| Dependency | `oya-data-boundary-kernel` (existing) |
+| Owning crate | `connect-social-domain` |
+| Lib name | `connect_social_domain` |
+| Dependency | `data-boundary-kernel` (existing) |
 
 ---
 
 ## Mod layout (flat clean-arch)
 
-All additions live inside `crates/oya-connect-social-domain/src/lib.rs` as a new public function alongside the existing `context_snapshot` and `story_purge` functions. No new modules or files are introduced; the crate contains a single `lib.rs` by established convention.
+All additions live inside `crates/connect-social-domain/src/lib.rs` as a new public function alongside the existing `context_snapshot` and `story_purge` functions. No new modules or files are introduced; the crate contains a single `lib.rs` by established convention.
 
 ```
 src/
@@ -125,8 +125,8 @@ All tests live in the `#[cfg(test)] mod tests` block inside `src/lib.rs`.
 ## Acceptance gate
 
 ```sh
-cargo check -p oya-connect-social-domain --all-targets
-cargo nextest run -p oya-connect-social-domain
+cargo check -p connect-social-domain --all-targets
+cargo nextest run -p connect-social-domain
 ```
 
 Both commands must exit 0 with all tests passing.
@@ -135,7 +135,7 @@ Both commands must exit 0 with all tests passing.
 
 ## Boundaries and constraints
 
-- **No new crate** — all additions are inside the existing `oya-connect-social-domain` crate.
+- **No new crate** — all additions are inside the existing `connect-social-domain` crate.
 - **No root `Cargo.toml` edit** — the workspace manifest is untouched.
 - **No I/O** — `story_sweep` is a pure function; it takes a slice and a timestamp, returns a `Result`.
 - **No adjacent refactoring** — existing functions (`context_snapshot`, `story_purge`, `SocialPost::new`) are not modified.

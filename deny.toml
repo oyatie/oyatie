@@ -1,9 +1,8 @@
-# cargo-deny policy (M01-P14-IP-004).
+# cargo-deny policy.
 #
-# Hyperscaler-grade dependency policy: licenses, advisories, bans, and
-# registry sources are all governed here. `cargo deny check` is wired
-# into `scripts/check.sh` and CI; any change to this file is a policy
-# change and must be reviewed under that lens (security + licensing).
+# Presubmit (hermetic): `cargo deny check licenses bans sources`.
+# Weekly (network): `cargo deny check advisories`.
+# Any change to this file is a policy change.
 
 [licenses]
 version = 2
@@ -32,7 +31,7 @@ exceptions = [
   # exceptions discovered outside the SQLx-specific review above. Keep
   # these per-crate instead of broad global allows so new uses re-open
   # review.
-  { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "ar_archive_writer@0.5.1" },
+  { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "ar_archive_writer@0.5.3" },
   { allow = ["CC0-1.0"], crate = "base16@0.2.1" },
   { allow = ["Zlib"], crate = "const_format@0.2.36" },
   { allow = ["Zlib"], crate = "const_format_proc_macros@0.2.34" },
@@ -40,7 +39,7 @@ exceptions = [
   { allow = ["Zlib"], crate = "konst@0.2.20" },
   { allow = ["Zlib"], crate = "konst_macro_rules@0.2.19" },
   { allow = ["Zlib"], crate = "slotmap@1.1.1" },
-  { allow = ["BSL-1.0"], crate = "xxhash-rust@0.8.15" },
+  { allow = ["BSL-1.0"], crate = "xxhash-rust@0.8.18" },
   # 2026-08-19: refreshed when `cargo deny check licenses` was FIRST actually executed
   # (see .github/workflows/license-weekly-advisory.yml). These rows had drifted because
   # nothing ran them: the pinned 1.0.7 row named a version no longer in the lock, and

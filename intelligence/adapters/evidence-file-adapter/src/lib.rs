@@ -8,11 +8,11 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
-use intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, OperationalDataClass, PrivacyDataClass, parse_data_class_pascal_label,
     privacy_data_classes_from,
 };
+use intelligence_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileEvidenceChainStore {

@@ -1,7 +1,7 @@
 # Spec: comms-email-bounce-dsn-classification
 
 **Vertical:** mail  
-**Crate:** `oya-shared-email-comms-kernel`  
+**Crate:** `shared-email-comms-kernel`  
 **ADRs:** ADR-0201 (email substrate), ADR-0145 (audit chain events), ADR-0173 (vendor lock-in avoidance)  
 **Stage:** SPEC → IMPL → VERIFY
 
@@ -31,7 +31,7 @@ logic. The existing `DeliveryEventKind::Bounced` wire vocabulary and its
 
 ## Vertical context
 
-`oya-shared-email-comms-kernel` is the port-in-kernel (ADR-0056) shared by
+`shared-email-comms-kernel` is the port-in-kernel (ADR-0056) shared by
 every email-sending µservice (Identity, Tenancy, Workflow Studio, Billing,
 Audit, Foundry). It carries zero runtime dependencies so any layer can import
 it without pulling in provider SDKs. The existing `enforce_deliverability_invariants`
@@ -51,7 +51,7 @@ RFC references:
 ## Module layout (flat clean-arch inside `src/`)
 
 ```
-crates/oya-shared-email-comms-kernel/
+crates/shared-email-comms-kernel/
   Cargo.toml          ← unchanged; [dependencies] stays empty
   src/
     lib.rs            ← single flat file; new types + functions appended here
@@ -225,7 +225,7 @@ by this task.
 
 ## Boundaries
 
-- Modify: `crates/oya-shared-email-comms-kernel/src/lib.rs` only.
+- Modify: `crates/shared-email-comms-kernel/src/lib.rs` only.
 - Do not touch: root `Cargo.toml`, any other crate, any other file.
 - Do not add any entry to `Cargo.toml [dependencies]`.
 - Do not alter `DeliveryEventKind` variants or their `Display` output.
@@ -237,8 +237,8 @@ by this task.
 
 ## Definition of done
 
-1. `cargo check -p oya-shared-email-comms-kernel --all-targets` → clean.
-2. `cargo nextest run -p oya-shared-email-comms-kernel` → all tests pass.
+1. `cargo check -p shared-email-comms-kernel --all-targets` → clean.
+2. `cargo nextest run -p shared-email-comms-kernel` → all tests pass.
 3. `Cargo.toml [dependencies]` is empty.
 4. `DeliveryEventKind::Bounced.to_string()` still returns `"bounced"`.
 5. `BounceCategory`, `classify_bounce_enhanced`, `classify_bounce_smtp`,

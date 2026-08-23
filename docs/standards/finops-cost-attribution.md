@@ -137,7 +137,7 @@ Tenant `t-1234`, Pro tier, period 2026-Q2:
 - Dedicated workspace cell `c-9876`: $4,200 labelled spend.
 - 1.2M foundry capability invocations (claude-sonnet-3.5): $180.
 - 18M audit-chain rows × $0.000002 per row: $36.
-- 240 GB tenant storage (`oya-class-tenant-pii`): $48.
+- 240 GB tenant storage (`class-tenant-pii`): $48.
 - $200 customer-success credit.
 
 ```
@@ -159,7 +159,7 @@ carbon attribution (KR Carbon Neutrality Act 2050 + EU CSRD).
 
 - Tag application: `microservices/cloud-iac/iac/` per-provider modules
   (the OpenTofu modules per ADR-0179 each apply the canonical tag block).
-- Chargeback formula: `crates/oya-cloud-billing-domain/src/chargeback.rs`.
+- Chargeback formula: `crates/cloud-billing-domain/src/chargeback.rs`.
 - Anomaly detector: `microservices/cloud-iac/src/cost_anomaly.rs`.
 - Quarterly report emit: `microservices/cloud-iac/src/finops_quarterly_emit.rs`.
 - Tag vocabulary registry: `registry/finops/cost-tag-vocabulary.yaml`.

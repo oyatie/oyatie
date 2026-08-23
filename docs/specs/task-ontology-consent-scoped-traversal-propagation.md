@@ -3,7 +3,7 @@
 doc_class: TaskSpec
 task_id: ontology-consent-scoped-traversal-propagation
 vertical: ontology
-crate: oya-ontology-query-engine-domain
+crate: ontology-query-engine-domain
 status: spec
 date: 2026-05-29
 owner_team: axis-ontology
@@ -28,9 +28,9 @@ surface change.
 | Item | Value |
 |------|-------|
 | Vertical | ontology |
-| Crate | `oya-ontology-query-engine-domain` |
-| Crate path | `crates/oya-ontology-query-engine-domain/` |
-| Source root | `crates/oya-ontology-query-engine-domain/src/lib.rs` |
+| Crate | `ontology-query-engine-domain` |
+| Crate path | `crates/ontology-query-engine-domain/` |
+| Source root | `crates/ontology-query-engine-domain/src/lib.rs` |
 | Upstream IP | IP-011 (query-engine 3-layer KG) |
 
 ---
@@ -185,5 +185,5 @@ Assert: `response.edges` contains all three edges.
 
 | Gate | Command | Must pass |
 |------|---------|-----------|
-| Compile | `cargo check -p oya-ontology-query-engine-domain --all-targets` | Yes |
-| Tests | `cargo nextest run -p oya-ontology-query-engine-domain` | Yes |
+| Compile | `cargo check -p ontology-query-engine-domain --all-targets` | Yes |
+| Tests | `cargo nextest run -p ontology-query-engine-domain` | Yes |

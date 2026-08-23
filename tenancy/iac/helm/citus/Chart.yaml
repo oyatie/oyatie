@@ -1,6 +1,6 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-tenancy-citus
+name: tenancy-citus
 description: Citus 12.x multi-tenant Postgres sharding extension per Bominal ADR-0018 + ADR-0009 (cell architecture)
 type: application
 version: 0.1.0

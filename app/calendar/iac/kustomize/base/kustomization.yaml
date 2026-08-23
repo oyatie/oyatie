@@ -15,9 +15,9 @@ resources:
   - serviceaccount.yaml
 
 helmCharts:
-  - name: oya-calendar
+  - name: calendar
     repo: oci://registry.oyatie.dev/charts
     version: 1.0.0
-    releaseName: oya-calendar
+    releaseName: calendar
     namespace: calendar
     valuesFile: ../../helm/values.yaml

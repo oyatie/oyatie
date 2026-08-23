@@ -7,7 +7,7 @@ purpose: |
   Canonical ADR shape for every oyatie architectural decision. Enforces BNF v4.1
   naming justification, Bominal inheritance citation, and concrete file-path consequences.
   Every executor authoring a new ADR MUST start from this template.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/naming.md
@@ -16,7 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
-  - ADR-0346  # historical full CI mirror semantics; destination is Buck2/cloud-ci gate packets
+  - ADR-0346  # historical full CI mirror semantics; destination is Buck2/pipeline gate packets
 doc_status: published
 ---
 
@@ -63,10 +63,10 @@ include the **Naming Justification block** for EACH name (mandatory per
 `feedback_naming_justification.md`):
 
 ```
-NAME: oya-<microservice>[-<bc-tokens>]-<layer>
+NAME: oyatie-<microservice>[-<bc-tokens>]-<layer>
 JUSTIFICATION:
 - microservice = <kebab-token(s)>: <product/capability name; registered in
-  [workspace.metadata.oya.microservices]; cite ADR-0056 v4.1 flat BNF — no
+  [workspace.metadata.oyatie.microservices]; cite ADR-0056 v4.1 flat BNF — no
   shared|vertical bisection>
 - bc-tokens = <kebab-token(s)> (OPTIONAL): <omit when µservice has single
   binary/concept; include when µservice has multiple binaries or BC-level splits
@@ -97,7 +97,7 @@ of this decision. An autonomous executor must be able to act without escalation:
 
 | Path / Crate | Change type | BNF v4.1 name | Layer |
 |---|---|---|---|
-| `crates/oya-<ms>-<bc>-<layer>/` | create \| rename \| delete | `oya-<ms>[-<bc>]-<layer>` | `<layer-enum>` |
+| `crates/oyatie-<ms>-<bc>-<layer>/` | create \| rename \| delete | `oyatie-<ms>[-<bc>]-<layer>` | `<layer-enum>` |
 | `docs/standards/<file>.md` | update | — | — |
 
 ### Integration via Workflow + Ontology
@@ -121,7 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is Buck2/cloud-ci gate packets and the `oya-ci-required` context.
+- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is Buck2/pipeline gate packets and the `presubmit` context.
 
 ---
 
@@ -142,7 +142,7 @@ Port traits introduced by this decision (must live in `kernel` layer, per
 `feedback_clean_architecture_requirements.md` §3):
 
 ```rust
-// In oya-<ms>-<bc>-kernel/src/ports.rs
+// In oyatie-<ms>-<bc>-kernel/src/ports.rs
 // Port trait declarations — ZERO business logic; ZERO I/O
 
 #[doc(hidden)]
@@ -154,7 +154,7 @@ pub trait <PortTrait>: Send + Sync + sealed::Sealed {
 }
 ```
 
-Implementations live in `oya-<ms>-<bc>-adapter` (or `-infrastructure`).
+Implementations live in `oyatie-<ms>-<bc>-adapter` (or `-infrastructure`).
 Domain calls through port; domain never imports adapter.
 
 ---
@@ -177,6 +177,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- ADR-0346 historical full CI mirror semantics; Buck2/cloud-ci destination authority
+- ADR-0346 historical full CI mirror semantics; Buck2/pipeline destination authority
 - Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

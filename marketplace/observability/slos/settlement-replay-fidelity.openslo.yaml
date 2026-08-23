@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-settlement-replay-fidelity
+  name: marketplace-settlement-replay-fidelity
   displayName: Marketplace Settlement Replay Fidelity
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-settlement-replay-fidelity-sli
+      name: marketplace-settlement-replay-fidelity-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_revenue_share_accrue_success_total[5m]))
+              query: sum(rate(marketplace_revenue_share_accrue_success_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_revenue_share_accrue_total[5m]))
+              query: sum(rate(marketplace_revenue_share_accrue_total[5m]))
   objectives:
     - displayName: Settlement Replay Fidelity
       target: 0.9999

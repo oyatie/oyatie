@@ -46,13 +46,13 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
 - **Does**: axum `Router` accepting `POST /anthropic/v1/messages`, `POST /openai/v1/chat/completions`, `POST /gemini/v1/models/{model}:generateContent`. Health (`/healthz`), readiness (`/readyz`), metrics (`/metrics` Prometheus exposition).
 - **Concurrency**: tower `ConcurrencyLimitLayer` (default N=1000 in-flight); `LoadShedLayer` returns 503 with Retry-After when over budget; `DefaultBodyLimit::max(1 MiB)`.
 - **Proof property**: a `RequestId` is minted at P0 and propagated through every subsequent stage in a tracing span; no other stage may mint one.
-- **Metric**: `oya_cloud_intelligence_p0_requests_total{provider, status_code}` counter; `oya_cloud_intelligence_p0_body_bytes` histogram.
+- **Metric**: `cloud_intelligence_p0_requests_total{provider, status_code}` counter; `cloud_intelligence_p0_body_bytes` histogram.
 
 ### P1 — Authorization
 - **Does**: extracts `(tenant_id, agent_id, action)` from request (header or signed JWT — v1 is header-based; JWT extraction lands in v2); builds `AuthzRequest`; calls `Arc<dyn AuthzGate>`; on `Forbid` returns 403 + emits a P4 receipt with `EventStatus::Forbidden`.
 - **Concurrency**: stateless (Cedar `Authorizer::new()` + immutable `PolicySet` shared via `Arc`).
 - **Proof property** (proptest): for any (principal_tenant ≠ resource_tenant), Cedar decision MUST be `Forbid`. Already covered by 10 adversarial tests in PR #273 + Loom-free since stateless.
-- **Metric**: `oya_cloud_intelligence_p1_decisions_total{decision}` counter; `oya_cloud_intelligence_p1_latency_ms` histogram.
+- **Metric**: `cloud_intelligence_p1_decisions_total{decision}` counter; `cloud_intelligence_p1_latency_ms` histogram.
 
 ### P2 — Pool lease
 - **Does**: `SubscriptionPool::lease(agent_id, gate, now) -> Result<SeatLease, _>`. Atomically picks an eligible seat AND marks it `Reserved`. Returns a `SeatLease` value-object the caller must `complete(outcome, now)` (explicitly or via Drop). Resolves the seat's `refresh_token_handle` → access token via P2-internal singleflight + cache (see below).
@@ -63,13 +63,13 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
 - **Proof properties**:
   - **Loom**: spawn N tokio tasks calling `lease()` concurrently; exhaustive interleavings prove no SeatId is held by two leases simultaneously.
   - **proptest**: `SubscriptionPool` is a state machine; invariants — every Cooldown reaches Active or Blacklisted; failure_count is monotonic non-decreasing until reset; lease count + free count = seat count.
-- **Metric**: `oya_cloud_intelligence_p2_lease_acquisitions_total{strategy, result}`; `oya_cloud_intelligence_p2_pool_active_seats{tenant}` gauge; `oya_cloud_intelligence_p2_refresh_coalesced_total` counter.
+- **Metric**: `cloud_intelligence_p2_lease_acquisitions_total{strategy, result}`; `cloud_intelligence_p2_pool_active_seats{tenant}` gauge; `cloud_intelligence_p2_refresh_coalesced_total` counter.
 
 ### P3 — Provider call
 - **Does**: forward the request to the upstream provider with the lease's access_token + `anthropic-version` header + filtered request headers. Returns response or maps upstream error to a kernel `SeatOutcome` (RateLimited429 / ServerError5xx / RefreshFailed / Ok).
 - **Concurrency**: one shared `Arc<reqwest::Client>` (NOT per-request — keep-alive critical per best-practice-research §7). Async reqwest. `tower::timeout::TimeoutLayer` 30s budget.
 - **Proof property** (loom): concurrent `proxy()` calls against the same provider with different leases never share access_tokens.
-- **Metric**: `oya_cloud_intelligence_p3_upstream_requests_total{provider, status_code}`; `oya_cloud_intelligence_p3_upstream_latency_ms` histogram; `oya_cloud_intelligence_p3_retry_total{reason}` counter.
+- **Metric**: `cloud_intelligence_p3_upstream_requests_total{provider, status_code}`; `cloud_intelligence_p3_upstream_latency_ms` histogram; `cloud_intelligence_p3_retry_total{reason}` counter.
 
 ### P4 — Receipt (three-tier)
 - **Does**: emits a `CloudIntelligenceReceipt` to ALL THREE sinks:
@@ -78,25 +78,25 @@ A request enters P0, flows P0→P1→P2→P3, response flows back P3→P4→P5�
   3. **Invocation log** (optional per tenant config flag) → S3-compatible sink writes the full prompt + response body for tenants who require audit-grade prompt logging (regulated industries).
 - **Concurrency**: tokio mpsc channel + spawned receipt-writer task; the request path blocks for at most 1ms (write to channel) — sinks emit asynchronously.
 - **Proof property** (proptest): every successful P3 produces exactly one receipt in the structured-event sink; receipts are append-only (no updates).
-- **Metric**: `oya_cloud_intelligence_p4_receipts_emitted_total{sink}`; `oya_cloud_intelligence_p4_idempotency_hits_total`; `oya_cloud_intelligence_p4_sink_lag_ms` histogram.
+- **Metric**: `cloud_intelligence_p4_receipts_emitted_total{sink}`; `cloud_intelligence_p4_idempotency_hits_total`; `cloud_intelligence_p4_sink_lag_ms` histogram.
 
 ### P5 — Window + state
 - **Does**: takes the receipt's `prompt_tokens + completion_tokens`, updates the lease's seat: `record_token_usage(seat_id, in, out, now)` rolls the 5h window forward (drops events older than 5h via min-heap) + accumulates weekly counter. On 429 with Retry-After, transitions to `Cooldown { until: now + Retry-After, reason: UpstreamRateLimit429 }`. Calls `SeatLease::complete(outcome, now)` releasing the lease.
 - **Concurrency**: holds the `SubscriptionPool` mutex briefly to mutate seat state. Min-heap maintenance is O(log N).
 - **Proof properties** (proptest): 5h-window sum equals the sum of all in-flight + recent receipt tokens; weekly counter resets at provider-specific epoch; exhaustion is detected when window-sum / provider-limit > 0.95.
-- **Metric**: `oya_cloud_intelligence_p5_window_tokens{tenant, seat, window=5h|weekly}` gauge; `oya_cloud_intelligence_p5_window_reset_total{window}` counter; `oya_cloud_intelligence_p5_exhaustion_forecast_seconds` gauge.
+- **Metric**: `cloud_intelligence_p5_window_tokens{tenant, seat, window=5h|weekly}` gauge; `cloud_intelligence_p5_window_reset_total{window}` counter; `cloud_intelligence_p5_exhaustion_forecast_seconds` gauge.
 
 ### P6 — Egress
 - **Does**: filter response headers (drop hop-by-hop set per RFC 7230 §6.1: `connection, keep-alive, proxy-authenticate, proxy-authorization, te, trailers, transfer-encoding, upgrade`); pass `Retry-After` through if present; rewrite `Content-Length` to match buffered body; return response to client.
 - **Concurrency**: stateless.
 - **Proof property** (proptest): for any upstream response, the egress output's header set is exactly `input ∖ hop_by_hop ∪ { computed Content-Length }`.
-- **Metric**: `oya_cloud_intelligence_p6_response_status_total{status_code}`.
+- **Metric**: `cloud_intelligence_p6_response_status_total{status_code}`.
 
 ### P7 — Audit + evidence
 - **Does**: emits the receipt + provenance into the audit-chain µservice (existing per ADR-0193). The Valkey Stream from P4 sink is consumed by `microservices/audit-chain/` which builds a Merkle-chained immutable log. Daily, `oya evidence emit` produces a Sigstore in-toto attestation bundle signed by the cluster's cosign key.
 - **Concurrency**: out-of-band consumer; the request path NEVER blocks on audit.
 - **Proof property** (chaos): kill the audit consumer mid-stream; verify Valkey Stream backlog reaches the consumer when restored; no receipts are dropped (Valkey Stream is durable). Run weekly on Talos.
-- **Metric**: `oya_cloud_intelligence_p7_audit_lag_seconds` gauge; `oya_cloud_intelligence_p7_chain_depth` gauge.
+- **Metric**: `cloud_intelligence_p7_audit_lag_seconds` gauge; `cloud_intelligence_p7_chain_depth` gauge.
 
 ## Proof layer (orthogonal — spans P1-P5)
 
@@ -124,7 +124,7 @@ In (the pipeline as drawn above):
 - Subscription admin API + 5h/weekly window tracking surfaced in DevOps console v0.
 
 Out (v2+):
-- Bedrock Converse / InvokeModel / oya-invoke surfaces.
+- Bedrock Converse / InvokeModel / invoke surfaces.
 - Cross-provider transparent failover (Application Inference Profiles).
 - Capability-port abstraction.
 - Codex provider adapter (Codex OAuth is more involved than Anthropic; defer to v1.5).
@@ -134,7 +134,7 @@ Out (v2+):
 
 ## Not Doing (and Why)
 
-- **Mix passthrough + Bedrock + oya-invoke in v1** — already pushed back; data-gated expansion.
+- **Mix passthrough + Bedrock + invoke in v1** — already pushed back; data-gated expansion.
 - **WebSocket transport** — REST + SSE only; WebSocket adds complexity for marginal UX gain.
 - **Bedrock Guardrails compat** — provider-side filters are already enforced upstream.
 - **Predictive ML-based seat selection** — fancy; the simple cooldown + weighted-by-capacity strategy is sufficient until traffic data justifies otherwise.
@@ -152,10 +152,10 @@ Out (v2+):
 - This pipeline doc → the in-flight cloud-intelligence v1 planning ADR (request pipeline + proof layer + receipts; ADR id minted when the ADR file lands).
 - Each stage P0-P7 becomes a deliverable Dx in that planning ADR with its concurrency primitive + proof property + metric spec.
 - Implementation lanes (parallel agent fanout, with absolute-path constraints):
-  - **Lane K** — kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) — `microservices/cloud-intelligence/crates/oya-cloud-intelligence-kernel/`.
-  - **Lane R** — REST adapter (P0/P3/P6 + the AnthropicAdapter async migration) — `microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/`.
+  - **Lane K** — kernel additions (SeatLease, refresh singleflight, record_token_usage, RefreshFailed outcome) — `microservices/cloud-intelligence/crates/cloud-intelligence-kernel/`.
+  - **Lane R** — REST adapter (P0/P3/P6 + the AnthropicAdapter async migration) — `microservices/cloud-intelligence/crates/cloud-intelligence-rest/`.
   - **Lane Z** — proof harness (loom + proptest + chaos) — same crates, in `tests/`.
-  - **Lane A** — admin API + subscription CRUD + window-tracking endpoints — new crate `microservices/cloud-intelligence/crates/oya-cloud-intelligence-admin-api/`.
+  - **Lane A** — admin API + subscription CRUD + window-tracking endpoints — new crate `microservices/cloud-intelligence/crates/cloud-intelligence-admin-api/`.
   - **Lane C** — console v0 wiring + cloud-intelligence tab — `microservices/devops-console/` (new µservice).
   - **Lane N** — rename sweep `legacy gateway name` → `cloud-intelligence` (cosmetic, runs last after all above land).
 

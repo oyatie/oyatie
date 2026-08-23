@@ -25,9 +25,9 @@ pub struct SecretReference {
 **Usage in templates:**
 ```toml
 [[mcp_servers]]
-name = "oya-mcp-gateway"
+name = "mcp-gateway"
 env_secret_refs = [
-    { env_var = "OYA_MCP_TOKEN", sref = "sref://openbao/foundry/mcp-gateway/token" }
+    { env_var = "OYATIE_MCP_TOKEN", sref = "sref://openbao/foundry/mcp-gateway/token" }
 ]
 ```
 
@@ -95,5 +95,5 @@ When drift is detected and reconciled:
 ## References
 
 - **ADR-0008:** Data use boundary + privacy classes
-- **Account kernel:** `crates/oya-intelligence-account-kernel/src/lib.rs` (SecretReference def)
+- **Account kernel:** `crates/intelligence-account-kernel/src/lib.rs` (SecretReference def)
 - **v5 Plan § B.2:** Public API (kernel contracts)

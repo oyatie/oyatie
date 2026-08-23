@@ -5,6 +5,7 @@
 use std::sync::Arc;
 
 use audit_chain_domain::{AuditChain, Plane};
+use data_boundary_kernel::{DataClass, Purpose};
 use network_residency::ResidencyClass;
 use observability_aggregate::{
     CloudAuditEnvelopeCreate, CloudAuditOperation, CloudAuditTopic, CloudObservabilityCatalog,
@@ -19,14 +20,13 @@ use observability_api::{
     CloudObservabilityAuditReadTopicRef, ConfiguredBearerPrincipalVerifier, PrincipalVerifier,
     VerifiedPrincipal, read_cloud_observability_audit_from_api,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
 
 const TENANT: &str = "ten_alpha";
 const OTHER_TENANT: &str = "ten_other";
 const REGION: &str = "region-home";
 const CELL: &str = "cell-region-home-a-001";
 const SIGNED_EXPORT: &str = "s3+signed://region-home/ten_alpha/audit?sig=abc123";
-const RESOURCE_ID: &str = "oya:cloud:region-home:ten_alpha:instance:vm-a";
+const RESOURCE_ID: &str = "oyatie:cloud:region-home:ten_alpha:instance:vm-a";
 const HASH_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const HASH_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const BEARER_SECRET: &str = "obs-audit-reader-break-glass-secret";
@@ -146,7 +146,7 @@ fn residency() -> ObservabilityResidency {
     ObservabilityResidency::new(ObservabilityResidencyCreate {
         tenant_id: TENANT.to_string(),
         region: REGION.to_string(),
-        regional_pack: "oya-pack-alpha".to_string(),
+        regional_pack: "pack-alpha".to_string(),
         residency: ResidencyClass::StrictHomeRegion,
         metric_storage_region: REGION.to_string(),
         log_storage_region: REGION.to_string(),
@@ -316,7 +316,10 @@ fn audit_read_api_projects_first_page_and_cursor_metadata() {
     assert!(response.metadata.chain_complete);
     assert_eq!(response.metadata.high_watermark_sequence, Some(2));
     assert_eq!(response.data[0].operation, "resource_created");
-    assert_eq!(response.data[0].topic, "oya.audit.cloud_resource_created");
+    assert_eq!(
+        response.data[0].topic,
+        "oyatie.audit.cloud_resource_created"
+    );
     assert_eq!(response.data[0].record_class, "control_plane_mutation");
     assert_eq!(response.data[0].audit_marker, "AUDIT");
     assert_eq!(response.data[0].data_classes_referenced[2].label, "AUDIT");
@@ -591,7 +594,7 @@ fn audit_read_api_rejects_invalid_scope_and_topic_labels_before_kernel() {
 
     let mut invalid_topic = request();
     invalid_topic.body.topics = vec![CloudObservabilityAuditReadTopicRef {
-        value: "oya.audit.unknown".to_string(),
+        value: "oyatie.audit.unknown".to_string(),
     }];
     let err = read_cloud_observability_audit_from_api(
         &verified,
@@ -635,7 +638,7 @@ fn audit_read_api_maps_kernel_read_window_cursor_and_topic_scope_errors() {
 
     let mut scope_topic = request();
     scope_topic.body.topics = vec![CloudObservabilityAuditReadTopicRef {
-        value: "oya.audit.cloud_kms_use".to_string(),
+        value: "oyatie.audit.cloud_kms_use".to_string(),
     }];
     let err = read_cloud_observability_audit_from_api(
         &verified,

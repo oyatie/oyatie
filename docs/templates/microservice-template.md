@@ -8,7 +8,7 @@ purpose: |
   Covers naming justification (BNF v4.1), Cargo workspace entries, layer
   skeleton, BC list, [package.metadata.oya] schema, test scaffolding, and
   µservice without escalation.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/prd-template.md
@@ -22,7 +22,7 @@ adrs_cited:
 doc_status: published
 ---
 
-# New µservice scaffold: `oya-<µservice-name>-*`
+# New µservice scaffold: `oyatie-<µservice-name>-*`
 
 ## Name Justification (BNF v4.1)
 
@@ -33,7 +33,7 @@ Mandatory for every new artifact name introduced by this scaffold
 MICROSERVICE: <µservice-name>
 JUSTIFICATION:
 - microservice = <kebab-token(s)>: <product/capability name; must be registered
-  in [workspace.metadata.oya.microservices] in root Cargo.toml; cite ADR-0056
+  in [workspace.metadata.oyatie.microservices] in root Cargo.toml; cite ADR-0056
   v4.1 flat BNF — no shared|vertical bisection; every µservice is equal in
   the flat catalog>
 - Glossary check:
@@ -46,7 +46,7 @@ JUSTIFICATION:
 Per-crate justification blocks (fill one per layer crate you scaffold):
 
 ```
-NAME: oya-<µservice>[-<bc-tokens>]-<layer>
+NAME: oyatie-<µservice>[-<bc-tokens>]-<layer>
 JUSTIFICATION:
 - microservice = <µservice-name>: <rationale>
 - bc-tokens = <bc-name> (OPTIONAL): <include if multiple BCs or binaries;
@@ -76,15 +76,15 @@ Add to root `Cargo.toml` `[workspace.members]`:
 ```toml
 [workspace.members]
 # ... existing members ...
-"crates/oya-<µservice>-<bc>-domain",
-"crates/oya-<µservice>-<bc>-usecase",
-"crates/oya-<µservice>-<bc>-infrastructure",
-"crates/oya-<µservice>-<bc>-rest",        # if REST surface needed
-"crates/oya-<µservice>-<bc>-grpc",        # if gRPC surface needed
-"crates/oya-<µservice>-<bc>-worker",      # if background workers needed
-"crates/oya-<µservice>-<bc>-app",         # composition-root binary
+"crates/oyatie-<µservice>-<bc>-domain",
+"crates/oyatie-<µservice>-<bc>-usecase",
+"crates/oyatie-<µservice>-<bc>-infrastructure",
+"crates/oyatie-<µservice>-<bc>-rest",        # if REST surface needed
+"crates/oyatie-<µservice>-<bc>-grpc",        # if gRPC surface needed
+"crates/oyatie-<µservice>-<bc>-worker",      # if background workers needed
+"crates/oyatie-<µservice>-<bc>-app",         # composition-root binary
 
-[workspace.metadata.oya.microservices]
+[workspace.metadata.oyatie.microservices]
 <µservice-name> = { prd = "docs/prds/<µservice-name>.md", milestone_first_ship = "M0X" }
 ```
 
@@ -112,24 +112,24 @@ needs; justify omissions. Dependency direction is strictly inward-only
 
 | Layer | Crate name (BNF v4.1) | Ship? | Reason if omitted |
 |---|---|---|---|
-| `kernel` | `oya-<ms>[-<bc>]-kernel` | Yes (always) | — |
-| `domain` | `oya-<ms>[-<bc>]-domain` | Yes (always) | — |
-| `usecase` | `oya-<ms>[-<bc>]-usecase` | Yes (always) | — |
-| `adapter` | `oya-<ms>[-<bc>]-adapter` | Yes (if state) | Omit for stateless-only µservices |
-| `infrastructure` | `oya-<ms>[-<bc>]-infrastructure` | Conditional | Use adapter instead where possible |
-| `rest` | `oya-<ms>[-<bc>]-rest` | Conditional | Omit if gRPC-only surface |
-| `grpc` | `oya-<ms>[-<bc>]-grpc` | Conditional | Omit if REST-only surface |
-| `worker` | `oya-<ms>[-<bc>]-worker` | Conditional | Required if background jobs exist |
-| `cli` | `oya-<ms>[-<bc>]-cli` | Conditional | Internal tooling µservices only |
-| `sdk` | `oya-<ms>[-<bc>]-sdk` | Conditional | External client consumers only |
-| `api` | `oya-<ms>[-<bc>]-api` | Conditional | Protocol-neutral contract surface |
-| `app` | `oya-<ms>-app` | Yes (always) | Composition root binary |
+| `kernel` | `oyatie-<ms>[-<bc>]-kernel` | Yes (always) | — |
+| `domain` | `oyatie-<ms>[-<bc>]-domain` | Yes (always) | — |
+| `usecase` | `oyatie-<ms>[-<bc>]-usecase` | Yes (always) | — |
+| `adapter` | `oyatie-<ms>[-<bc>]-adapter` | Yes (if state) | Omit for stateless-only µservices |
+| `infrastructure` | `oyatie-<ms>[-<bc>]-infrastructure` | Conditional | Use adapter instead where possible |
+| `rest` | `oyatie-<ms>[-<bc>]-rest` | Conditional | Omit if gRPC-only surface |
+| `grpc` | `oyatie-<ms>[-<bc>]-grpc` | Conditional | Omit if REST-only surface |
+| `worker` | `oyatie-<ms>[-<bc>]-worker` | Conditional | Required if background jobs exist |
+| `cli` | `oyatie-<ms>[-<bc>]-cli` | Conditional | Internal tooling µservices only |
+| `sdk` | `oyatie-<ms>[-<bc>]-sdk` | Conditional | External client consumers only |
+| `api` | `oyatie-<ms>[-<bc>]-api` | Conditional | Protocol-neutral contract surface |
+| `app` | `oyatie-<ms>-app` | Yes (always) | Composition root binary |
 
 **Port trait rule**: ALL port traits live in `kernel`. Never in `domain`.
 `domain` calls *through* port traits; it does not declare them.
 
 ```rust
-// CORRECT — oya-<ms>-<bc>-kernel/src/ports.rs
+// CORRECT — oyatie-<ms>-<bc>-kernel/src/ports.rs
 #[doc(hidden)]
 mod sealed { pub trait Sealed {} }
 
@@ -142,7 +142,7 @@ pub trait <RepositoryPort>: Send + Sync + sealed::Sealed {
 // WRONG — never put port traits in domain or application
 ```
 
-Implementations live in `oya-<ms>-<bc>-adapter`. Domain imports `kernel`
+Implementations live in `oyatie-<ms>-<bc>-adapter`. Domain imports `kernel`
 only; never imports `adapter`. `app` imports everything to wire.
 
 ---
@@ -152,7 +152,7 @@ only; never imports `adapter`. `app` imports everything to wire.
 Ship only the layers that the µservice actually needs. Justify omissions.
 Standard order: `domain` → `application` → `infrastructure` → `{rest|grpc}` → `worker` → `app`.
 
-### `crates/oya-<µservice>-<bc>-domain/`
+### `crates/oyatie-<µservice>-<bc>-domain/`
 
 ```
 Cargo.toml
@@ -165,7 +165,7 @@ src/
 
 `Cargo.toml` dependencies: `async-trait`, `serde`, `thiserror`; NO framework crates.
 
-### `crates/oya-<µservice>-<bc>-application/`
+### `crates/oyatie-<µservice>-<bc>-application/`
 
 ```
 Cargo.toml
@@ -178,7 +178,7 @@ src/
 
 `Cargo.toml` dependencies: domain crate; `async-trait`; NO infrastructure crates.
 
-### `crates/oya-<µservice>-<bc>-infrastructure/`
+### `crates/oyatie-<µservice>-<bc>-infrastructure/`
 
 ```
 Cargo.toml
@@ -193,7 +193,7 @@ src/
 
 `Cargo.toml` dependencies: domain crate; `sqlx` or `diesel`; `tokio`.
 
-### `crates/oya-<µservice>-<bc>-rest/` (omit if REST not needed)
+### `crates/oyatie-<µservice>-<bc>-rest/` (omit if REST not needed)
 
 ```
 Cargo.toml
@@ -206,7 +206,7 @@ src/
     <resource>.rs  — request/response DTOs (serde)
 ```
 
-### `crates/oya-<µservice>-<bc>-worker/` (omit if no background workers)
+### `crates/oyatie-<µservice>-<bc>-worker/` (omit if no background workers)
 
 ```
 Cargo.toml
@@ -216,9 +216,9 @@ src/
 ```
 
 Layer note: worker crates MUST be stateless (no module-level mutable state);
-`oya-check-statelessness-cli` CI lane enforces this.
+`check-statelessness-cli` CI lane enforces this.
 
-### `crates/oya-<µservice>-<bc>-app/`
+### `crates/oyatie-<µservice>-<bc>-app/`
 
 ```
 Cargo.toml
@@ -236,7 +236,7 @@ Register each BC in `docs/standards/bounded-contexts.md` using
 
 | BC name (kebab) | Crate family | Key entities | Workflow events | Ontology types |
 |---|---|---|---|---|
-| `<bc-name>` | `oya-<ms>-<bc>-{domain,application,...}` | `<Entity>` | `<EventType>` | `<ObjectType>` |
+| `<bc-name>` | `oyatie-<ms>-<bc>-{domain,application,...}` | `<Entity>` | `<EventType>` | `<ObjectType>` |
 
 ---
 
@@ -260,7 +260,7 @@ active_active_compatibility = "stateless-compatible | single-writer-compatible"
 ## Test Scaffolding
 
 ```
-crates/oya-<µservice>-<bc>-domain/src/<entity>.rs
+crates/oyatie-<µservice>-<bc>-domain/src/<entity>.rs
   #[cfg(test)]
   mod tests {
       use super::*;
@@ -268,10 +268,10 @@ crates/oya-<µservice>-<bc>-domain/src/<entity>.rs
       fn test_<entity>_<scenario>() { ... }
   }
 
-crates/oya-<µservice>-<bc>-application/tests/
+crates/oyatie-<µservice>-<bc>-application/tests/
   <use_case>_test.rs   — in-process integration test; mock infrastructure
 
-crates/oya-<µservice>-<bc>-infrastructure/tests/
+crates/oyatie-<µservice>-<bc>-infrastructure/tests/
   <repo>_integration_test.rs  — requires test DB; #[ignore] by default; run via CI lane
 
 tests/load/
@@ -286,12 +286,12 @@ Register the µservice's symbol space before scaffolding files
 
 ```bash
   --agent <agent-id> \
-  --intent "scaffold oya-<µservice>-* crates" \
+  --intent "scaffold oyatie-<µservice>-* crates" \
   --ttl 3600 \
-  crates/oya-<µservice>-<bc>-domain/src/lib.rs::root \
-  crates/oya-<µservice>-<bc>-application/src/lib.rs::root \
-  crates/oya-<µservice>-<bc>-infrastructure/src/lib.rs::root \
-  crates/oya-<µservice>-<bc>-app/src/main.rs::main
+  crates/oyatie-<µservice>-<bc>-domain/src/lib.rs::root \
+  crates/oyatie-<µservice>-<bc>-application/src/lib.rs::root \
+  crates/oyatie-<µservice>-<bc>-infrastructure/src/lib.rs::root \
+  crates/oyatie-<µservice>-<bc>-app/src/main.rs::main
 ```
 
 

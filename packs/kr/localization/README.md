@@ -490,7 +490,7 @@ Compliance pack and cell certification decision: `docs/decisions/ADR-0708-platfo
 Observability emission contract: `docs/decisions/ADR-0706-observability-live-apex.md`.
 Existing KR planning source: `docs/localization-packs/kr.md`.
 Existing KR pack manifest source: `docs/localization-packs/kr/pack.yaml`.
-Regional pack precedent: `docs/regional-packs/oya-pack-kr/PACK.md`.
+Regional pack precedent: `docs/regional-packs/pack-kr/PACK.md`.
 Compliance pack schema: `specs/compliance-pack-schema.json`.
 Cedar fragment schema: `specs/cedar-fragment-schema.json`.
 Audit event class registry: `specs/audit-event-class-registry.json`.
@@ -678,6 +678,6 @@ The required lifecycle claim was made before authoring.
 Verification must confirm the six requested documents exist.
 Verification must confirm each document has at least 600 lines.
 Verification must confirm each document contains required headings.
-Verification must run the required Oya VCS `verify` command without `--intent`.
-Completion must run the required Oya VCS `done` command.
-Promotion must run the required Oya VCS `promote` command.
+Verification must run the required retired VCS ratchet `verify` command without `--intent`.
+Completion must run the required retired VCS ratchet `done` command.
+Promotion must run the required retired VCS ratchet `promote` command.

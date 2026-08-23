@@ -1,0 +1,108 @@
+{{/*
+PrometheusRule — fast-burn + slow-burn alert rules per SLO. Aligns with
+slos/*.openslo.yaml alertPolicyRef bindings.
+*/}}
+{{- if $.Values.prometheusRule.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: docs-slo-burn-rules
+  namespace: docs
+  labels:
+    microservice: docs
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: docs-doc-open-latency
+      interval: 30s
+      rules:
+        - alert: docs-doc-open-fast-burn-1h-14x
+          expr: |
+            (1 - (
+              sum(rate(docs_document_open_seconds_bucket{le="0.3",cache_kind="cold"}[1h]))
+              /
+              sum(rate(docs_document_open_seconds_count{cache_kind="cold"}[1h]))
+            )) > 14 * (1 - 0.99)
+          for: 2m
+          labels: {severity: page, slo: doc-open-latency, burn: fast-1h-14x}
+          annotations:
+            summary: "Doc-open latency burning 14x over 1h"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/editor-session-storm-throttle.md"
+
+    - name: docs-crdt-no-silent-loss
+      interval: 30s
+      rules:
+        - alert: docs-crdt-silent-loss-any-page
+          expr: |
+            sum(rate(docs_collab_silent_loss_attempt_total[5m])) > 0
+          for: 1m
+          labels: {severity: page, slo: crdt-merge-no-silent-loss, slo_target: 1.0}
+          annotations:
+            summary: "CRDT silent loss DETECTED — Sev-1; PRD AC-06 broken"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/collab-conflict-resolution.md"
+
+    - name: docs-per-block-acl-correctness
+      interval: 30s
+      rules:
+        - alert: docs-per-block-acl-violation-page
+          expr: |
+            sum(rate(docs_per_block_acl_violation_total[5m])) > 0
+          for: 1m
+          labels: {severity: page, slo: share-acl-enforcement-correctness, slo_target: 1.0}
+          annotations:
+            summary: "Per-block ACL violation DETECTED — Sev-1; PRD AC-04 broken"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/share-acl-drift.md"
+
+    - name: docs-export-pipeline
+      interval: 30s
+      rules:
+        - alert: docs-export-pdf-fast-burn-1h-14x
+          expr: |
+            (1 - (
+              sum(rate(docs_export_pdf_seconds_bucket{le="3"}[1h]))
+              /
+              sum(rate(docs_export_pdf_seconds_count[1h]))
+            )) > 14 * (1 - 0.99)
+          for: 2m
+          labels: {severity: page, slo: export-pdf-latency, burn: fast-1h-14x}
+          annotations:
+            summary: "PDF export latency burning 14x over 1h"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/export-pipeline-failure-pandoc-rollback.md"
+        - alert: docs-gvisor-seccomp-violation-page
+          expr: |
+            sum(rate(docs_gvisor_seccomp_violation_total[5m])) > 0
+          for: 1m
+          labels: {severity: page, slo: export-sandbox-conformance}
+          annotations:
+            summary: "gVisor seccomp violation DETECTED — Sev-1; possible sandbox escape attempt"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/export-pipeline-failure-pandoc-rollback.md"
+
+    - name: docs-collab-cursor-sync
+      interval: 30s
+      rules:
+        - alert: docs-cursor-sync-fast-burn-1h-14x
+          expr: |
+            (1 - (
+              sum(rate(docs_collab_cursor_sync_seconds_bucket{le="0.15"}[1h]))
+              /
+              sum(rate(docs_collab_cursor_sync_seconds_count[1h]))
+            )) > 14 * (1 - 0.99)
+          for: 2m
+          labels: {severity: page, slo: collab-cursor-sync-latency, burn: fast-1h-14x}
+          annotations:
+            summary: "Collab cursor-sync latency burning 14x over 1h"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/collab-conflict-resolution.md"
+
+    - name: docs-ooxml-import-fidelity
+      interval: 5m
+      rules:
+        - alert: docs-ooxml-fidelity-below-threshold
+          expr: |
+            avg_over_time(docs_ooxml_import_fidelity_ratio[1h]) < 0.95
+          for: 30m
+          labels: {severity: ticket, slo: ooxml-import-fidelity}
+          annotations:
+            summary: "OOXML import fidelity below 95% threshold"
+            runbook_url: "https://oyatie.com/microservices/docs/runbooks/export-pipeline-failure-pandoc-rollback.md"
+{{- end }}

@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Canonical Milestone INDEX shape (≤100 lines). One file per milestone under `.omc/plans/milestones/M0N/INDEX.md`. Anchors phase list, names dependencies, acceptance gate, hyperscaler practices inherited, agent-navigability pointer.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md
@@ -32,7 +32,7 @@ purpose: |
 owner_axis: <axis-id>
 co_owners: [<team-id>]
 gates_on: [M0N-1, ...]          # predecessor milestones
-hyperscaler_practices_inherited: [working-backwards | design-doc | postmortem-blameless | 1ES-templated-pipelines | engineering-excellence | trunk-based-development | slsa-l2 | feature-flags-canary | cloud-ci-supply-chain | distroless]
+hyperscaler_practices_inherited: [working-backwards | design-doc | postmortem-blameless | 1ES-templated-pipelines | engineering-excellence | trunk-based-development | slsa-l2 | feature-flags-canary | pipeline-supply-chain | distroless]
 length_cap: 100
 authority_chain_declaration: |
   docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
@@ -95,7 +95,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 - Blameless Postmortem — every Sev-1/Sev-2 in milestone scope.
 - Trunk-Based Development + Feature Flags + Canary — release strategy per `docs/RELEASE-MANAGEMENT.md`.
 - SLSA L2 + Cosign keyless OIDC + Syft SBOM — supply-chain (M01-P15).
-- Buck2/cloud-ci supply-chain gate packets — Rust dependency and provenance supply chain.
+- Buck2/pipeline supply-chain gate packets — Rust dependency and provenance supply chain.
 - Distroless / Chainguard images — runtime image policy.
 
 ## Risk register (milestone-scoped slice)

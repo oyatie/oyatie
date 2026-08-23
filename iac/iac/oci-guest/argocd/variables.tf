@@ -25,7 +25,7 @@ variable "cluster_id" {
 variable "namespace" {
   description = "Kubernetes namespace for ArgoCD."
   type        = string
-  default     = "oya-cd-argocd"
+  default     = "cd-argocd"
 }
 
 variable "argocd_host" {

@@ -16,8 +16,8 @@ use std::collections::BTreeMap;
 
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId, ResourceKind};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const KMS_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -1826,7 +1826,7 @@ mod tests {
     const HSM_PARTITION: &str = "hsm/region-alpha1/cell-region-alpha1-a-001";
     const GLOBAL_HSM_PARTITION: &str = "hsm/region-beta1/cell-region-beta1-a-001";
     const FORBIDDEN_HSM_PARTITION: &str = "hsm/region-gamma1/cell-region-gamma1-a-001";
-    const RESOURCE_ID: &str = "oya:cloud:region-alpha1:ten_alpha:kms-key:object-key";
+    const RESOURCE_ID: &str = "oyatie:cloud:region-alpha1:ten_alpha:kms-key:object-key";
     const KEY_ID: &str = "kms/region-alpha1/ten_alpha/object-key";
     const PLAINTEXT_REF: &str = "matref/ten_alpha/object/001";
     const CIPHERTEXT_REF: &str = "ct/ten_alpha/object/001";
@@ -2189,7 +2189,7 @@ mod tests {
         assert_eq!(wrong_origin, CloudKmsError::KeyIdOriginMismatch);
 
         let wrong_kind = KmsKey::new(KmsKeyCreate {
-            resource_id: format!("oya:cloud:{REGION}:{TENANT}:bucket:object-key"),
+            resource_id: format!("oyatie:cloud:{REGION}:{TENANT}:bucket:object-key"),
             ..key_create()
         })
         .expect_err("resource id kind must be kms-key");
@@ -2219,7 +2219,7 @@ mod tests {
         ] {
             let profile_error = KmsKey::new(KmsKeyCreate {
                 resource_id: format!(
-                    "oya:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"
+                    "oyatie:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"
                 ),
                 key_id: format!("kms/{GLOBAL_REGION}/{GLOBAL_TENANT}/object-key"),
                 tenant_id: GLOBAL_TENANT.to_string(),
@@ -2235,7 +2235,7 @@ mod tests {
         }
 
         let baseline = KmsKey::new(KmsKeyCreate {
-            resource_id: format!("oya:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"),
+            resource_id: format!("oyatie:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"),
             key_id: format!("kms/{GLOBAL_REGION}/{GLOBAL_TENANT}/object-key"),
             tenant_id: GLOBAL_TENANT.to_string(),
             region: GLOBAL_REGION.to_string(),
@@ -2249,7 +2249,7 @@ mod tests {
         assert_eq!(baseline.hsm_validation.value, HsmValidation::Fips1403Level3);
 
         let residency_error = KmsKey::new(KmsKeyCreate {
-            resource_id: format!("oya:cloud:{FORBIDDEN_REGION}:{TENANT}:kms-key:object-key"),
+            resource_id: format!("oyatie:cloud:{FORBIDDEN_REGION}:{TENANT}:kms-key:object-key"),
             key_id: format!("kms/{FORBIDDEN_REGION}/{TENANT}/object-key"),
             region: FORBIDDEN_REGION.to_string(),
             cell_id: FORBIDDEN_CELL.to_string(),
@@ -2363,7 +2363,7 @@ mod tests {
         assert_eq!(rotated.current_version.value, 2);
 
         let hyok = KmsKey::new(KmsKeyCreate {
-            resource_id: format!("oya:cloud:{REGION}:{TENANT}:kms-key:tenant-held"),
+            resource_id: format!("oyatie:cloud:{REGION}:{TENANT}:kms-key:tenant-held"),
             key_id: format!("hyok/{REGION}/{TENANT}/tenant-held"),
             origin: KmsKeyOrigin::Hyok,
             rotation_period_days: None,

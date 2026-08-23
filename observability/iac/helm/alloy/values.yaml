@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 alloy:
   image:
     repository: grafana/alloy
@@ -30,8 +30,8 @@ alloy:
         }
         prometheus.remote_write "mimir" {
           endpoint {
-            url = "http://oya-observability-mimir.observability.svc:9009/api/v1/push"
-            headers = { "X-Scope-OrgID" = env("OYA_TENANT") }
+            url = "http://observability-mimir.observability.svc:9009/api/v1/push"
+            headers = { "X-Scope-OrgID" = env("OYATIE_TENANT") }
           }
         }
   resources:

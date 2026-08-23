@@ -10,14 +10,14 @@ This team owns the logistics vertical: shipment lifecycle, dock scheduling, EDI 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Vertical industry cloud — Logistics (Axis 2 sub-axis)
 - **Surfaces:**
-  - `oya-vertical-logistics-kernel` — `Shipment`, `ShipmentLeg`, `DockAppointment`, `Route`, `Carrier`, `HosLog`, `ColdChainRecord`
-  - `oya-vertical-logistics-domain-*` — shipment lifecycle, dock scheduling, EDI transaction processing, route optimization
-  - `oya-vertical-logistics-adapter-edi` — EDI 214 (shipment status), 990 (response), 997 (functional ack), KR 관세청 customs EDI
+  - `vertical-logistics-kernel` — `Shipment`, `ShipmentLeg`, `DockAppointment`, `Route`, `Carrier`, `HosLog`, `ColdChainRecord`
+  - `vertical-logistics-domain-*` — shipment lifecycle, dock scheduling, EDI transaction processing, route optimization
+  - `vertical-logistics-adapter-edi` — EDI 214 (shipment status), 990 (response), 997 (functional ack), KR 관세청 customs EDI
   - Products owned: `products/vertical-logistics/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Audit-chain event` (emitter — cross-border shipments, customs declarations)
   - `DSR / consent withdrawal cascade` (ack required — driver PII in HOS logs)
-- **Catalog records:** `crates/oya-vertical-logistics-*`
+- **Catalog records:** `crates/vertical-logistics-*`
 - **Runbooks:** `runbooks/logistics-edi-failure.md`, `runbooks/cold-chain-breach-alert.md`
 - **ADRs:** logistics compliance ADR (to be authored)
 

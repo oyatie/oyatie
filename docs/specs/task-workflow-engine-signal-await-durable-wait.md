@@ -1,14 +1,14 @@
 # Spec: workflow-engine-signal-await-durable-wait
 
 vertical: workflow
-crate: oya-workflow-engine-execution-engine-usecase
+crate: workflow-engine-execution-engine-usecase
 task: workflow-engine-signal-await-durable-wait
 status: spec
 
 ## Objective
 
 Extend the execution-engine usecase layer
-(`crates/oya-workflow-engine-execution-engine-usecase/src/lib.rs`) with a durable
+(`crates/workflow-engine-execution-engine-usecase/src/lib.rs`) with a durable
 signal/await orchestration slice. A running step can suspend awaiting a named external
 signal on a `(tenant_id, run_id, signal_name)` correlation key and deterministically
 resume (or time out) on delivery.
@@ -31,8 +31,8 @@ Valkey, Postgres, or cloud runtime work.
 ```
 vertical:  workflow
 lane:      workflow-engine-signal-await-durable-wait
-crate:     oya-workflow-engine-execution-engine-usecase
-path:      crates/oya-workflow-engine-execution-engine-usecase/src/lib.rs
+crate:     workflow-engine-execution-engine-usecase
+path:      crates/workflow-engine-execution-engine-usecase/src/lib.rs
 ```
 
 ## Domain model additions
@@ -399,7 +399,7 @@ Determinism gate: same input twice → byte-stable `evidence_refs` and `audit_ev
 
 ## Boundaries
 
-- Single file: `crates/oya-workflow-engine-execution-engine-usecase/src/lib.rs`
+- Single file: `crates/workflow-engine-execution-engine-usecase/src/lib.rs`
 - No root `Cargo.toml` changes
 - No kernel or domain crate changes
 - No other crate changes
@@ -411,6 +411,6 @@ Determinism gate: same input twice → byte-stable `evidence_refs` and `audit_ev
 ## Dependencies
 
 No new Cargo dependencies. The crate already depends on
-`oya-workflow-engine-execution-engine-domain` (which re-exports the kernel types:
+`workflow-engine-execution-engine-domain` (which re-exports the kernel types:
 `SlaTimer`, `SlaTimerStore`, `ExecutionStoreError`, etc.). All new types compose over
 already-imported items.

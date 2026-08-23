@@ -15,7 +15,7 @@ related_adrs:
   - ADR-0185
   - ADR-0206
   - ADR-0207
-enforced_by: oya-check-i18n-coverage
+enforced_by: check-i18n-coverage
 ---
 
 # i18n Canonical Standard
@@ -55,7 +55,7 @@ workflow-studio-canvas-node-count =
 
 ## Coverage gate
 
-`oya-check-i18n-coverage` (advisory) computes per-locale coverage in basis-points (10000 = 100%).
+`check-i18n-coverage` (advisory) computes per-locale coverage in basis-points (10000 = 100%).
 Threshold defaults to **9500 bps (95%)** for production-promoted locales; **9000 bps (90%)**
 for tier-2 locales; **8000 bps (80%)** for beta locales. Per-µservice manifest overrides.
 

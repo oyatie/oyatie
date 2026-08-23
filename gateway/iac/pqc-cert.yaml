@@ -3,16 +3,16 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: oya-api-gateway-pqc-cert
+  name: api-gateway-pqc-cert
   namespace: api-gateway
   annotations:
     cert-manager.io/private-key-algorithm: "ed25519+ml_dsa_65"
 spec:
-  secretName: oya-api-gateway-pqc-cert
+  secretName: api-gateway-pqc-cert
   duration: 2160h
   renewBefore: 720h
   issuerRef:
-    name: oya-sigstore-pqc-issuer  # internal PQC-capable CA
+    name: sigstore-pqc-issuer  # internal PQC-capable CA
     kind: ClusterIssuer
   dnsNames:
   - api.oyatie.com
@@ -27,7 +27,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-api-gateway-kem-groups
+  name: api-gateway-kem-groups
   namespace: api-gateway
 data:
   preferred_kem_groups: "X25519MLKEM768,X25519,P-256"

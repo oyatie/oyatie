@@ -1,7 +1,0 @@
-# governance/ BUCK — the capability-first meta directory for ADRs, specs, policy-as-data,
-# the closed capability registry, and the dep-lint authority (ADR-0562 §1). The registry moved
-# here from specs/ on 2026-08-14 (its ADR-0562 §2 destined home); the export rides the move.
-export_file(
-    name = "capability-registry.json",
-    visibility = ["PUBLIC"],
-)

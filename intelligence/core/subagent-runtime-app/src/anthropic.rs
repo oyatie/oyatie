@@ -10,7 +10,7 @@
 //! impl so:
 //!
 //! - **Production wiring** plugs in a real HTTPS client (canonical:
-//!   the existing `oya-intelligence-adapter-anthropic-api-adapter` exposes
+//!   the existing `intelligence-adapter-anthropic-api-adapter` exposes
 //!   `messages_complete(...)` once the live-network feature is enabled
 //!   — see the IP-009 plan §"Wiring" for the extension hook). Until
 //!   that hook lands, callers in production must inject a transport
@@ -65,7 +65,7 @@ pub trait HttpTransport {
 }
 
 /// Secret resolver — turns a [`SecretReference`] into the resolved
-/// bearer-token string. Canonical impl resolves via the `oya-secrets-*`
+/// bearer-token string. Canonical impl resolves via the `secrets-*`
 /// substrate against local OpenBao; tests inject a fixed-value resolver.
 pub trait SecretResolver {
     fn resolve(&self, sref: &SecretReference) -> Result<String, SubagentError>;
@@ -237,7 +237,7 @@ impl HttpTransport for StubHttpTransport {
 }
 
 /// Fixed-value secret resolver for tests. Production callers MUST use
-/// a resolver backed by `oya-secrets-*` against local OpenBao.
+/// a resolver backed by `secrets-*` against local OpenBao.
 #[derive(Debug, Clone)]
 pub struct FixedSecretResolver {
     value: String,

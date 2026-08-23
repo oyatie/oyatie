@@ -4,7 +4,7 @@ metadata:
   name: cloud-k8s-system-default-deny
   namespace: cloud-k8s-system
   labels:
-    app.kubernetes.io/part-of: oya-cloud-k8s
+    app.kubernetes.io/part-of: cloud-k8s
     oyatie/microservice: cloud-k8s
 spec:
   podSelector: {}
@@ -16,7 +16,7 @@ metadata:
   name: cloud-k8s-system-allow-substrate-egress
   namespace: cloud-k8s-system
   labels:
-    app.kubernetes.io/part-of: oya-cloud-k8s
+    app.kubernetes.io/part-of: cloud-k8s
     oyatie/microservice: cloud-k8s
 spec:
   podSelector: {}

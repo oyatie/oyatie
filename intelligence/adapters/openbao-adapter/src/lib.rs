@@ -193,7 +193,7 @@ pub struct OpenBaoTransitStore {
     transit_key_name: String, // data_class: INTERNAL_ONLY
     /// Sub-path under /v1/secret/data/ where per-handle blobs are stored.
     /// Defaults to the transit key name so handles are co-located under the
-    /// same KV prefix (e.g. /v1/secret/data/cloud-intelligence-rt/<handle>).
+    /// same KV prefix (e.g. /v1/secret/data/intelligence-app-rt/<handle>).
     kv_key_path: String, // data_class: INTERNAL_ONLY
     http: Arc<reqwest::Client>, // data_class: INTERNAL_ONLY
     vault_token: RedactedToken, // data_class: SECRET

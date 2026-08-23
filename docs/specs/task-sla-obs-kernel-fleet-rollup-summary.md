@@ -3,14 +3,14 @@
 ## Objective
 
 Add a pure, deterministic tenant-fleet rollup function to the
-`oya-managed-k8s-sla-observability-kernel` crate. The function aggregates many
+`managed-k8s-sla-observability-kernel` crate. The function aggregates many
 per-cluster `SlaSummary` values into a single `FleetSlaSummary` for a tenant,
 using sample-weighted arithmetic to preserve statistical correctness.
 
 ## Crate Boundary
 
-**Only crate modified**: `oya-managed-k8s-sla-observability-kernel`
-(`microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel`)
+**Only crate modified**: `managed-k8s-sla-observability-kernel`
+(`microservices/managed-k8s-sla-observability/crates/managed-k8s-sla-observability-kernel`)
 
 No root `Cargo.toml` edit. No new workspace member. All logic stays in `src/lib.rs`.
 

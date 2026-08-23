@@ -18,11 +18,11 @@ purpose: |
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-governance-data-class
+planned_enforcement_ref: governance-data-class
 enforcement_status:
-  oya-governance-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-governance-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)
-  oya-governance-audit-emission: existing
+  governance-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  governance-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)
+  governance-audit-emission: existing
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
@@ -62,7 +62,7 @@ standard supplies the per-field rules.
 | `secret` | tokens, API keys, encryption keys | NEVER cross-pillar; vault-only | NEVER logged |
 | `regulated-jurisdiction` | KR-residency, EU-residency, US-state-residency markers | governs which pillars are allowed | YES (the marker only) |
 
-Lane: `oya-governance-data-class` checks every new kernel struct
+Lane: `governance-data-class` checks every new kernel struct
 field declaration for an annotation.
 
 ## 2. Annotation shape
@@ -85,7 +85,7 @@ pub struct PatientRecord {
 ```
 
 The `oyatie` attribute is a derive macro (or attribute macro) provided by
-`oya-kernel-data-class`. It emits compile-time metadata and runtime
+`kernel-data-class`. It emits compile-time metadata and runtime
 descriptors consumed by:
 
 - The audit-chain emission processor.
@@ -108,8 +108,8 @@ Ads + Analytics) are pillars. Flows are governed by:
 | any → Cloud (storage/runtime) | ✓ | ✓ | ✓ | ✓ (encrypted-at-rest) | ✓ + KMS | ✓ + dedicated KMS + jurisdiction | ✓ + KMS | ✓ (vault-only) |
 
 "DENY" means: no plumbing, no opt-in, no flag. A flow that violates a row
-fails the `oya-governance-cohesion` lane and the
-`oya-governance-data-class` lane at the field-level.
+fails the `governance-cohesion` lane and the
+`governance-data-class` lane at the field-level.
 
 Mathematical rule: the class of a derived value is the **lexicographic
 maximum** of its inputs (e.g., `name + diagnosis = phi`).
@@ -134,7 +134,7 @@ event) with:
 | `jurisdiction` | when `regulated-jurisdiction` |
 | `redacted_payload_hash` | YES (proves emission without storing the body) |
 
-Lane: `oya-governance-audit-emission` validates the emission point
+Lane: `governance-audit-emission` validates the emission point
 exists for every `data_class`-gated transition.
 
 ## 5. DSR cascade integration
@@ -146,7 +146,7 @@ Subject Request — access / rectification / erasure / portability) walks
 
 Mechanics:
 
-1. The `oya-platform-dsr-kernel` walks the catalog of kernel structs and
+1. The `platform-dsr-kernel` walks the catalog of kernel structs and
    their `data_class` annotations.
 2. For each (`subject_id`, `class`) pair, the kernel queries each pillar
    adapter implementing `DsrCapable`.
@@ -157,7 +157,7 @@ Mechanics:
    touched.
 5. Proof-of-erasure is hash-chained and signed.
 
-Lane: `oya-governance-dsr-cascade` validates that every `pii`/`phi`/
+Lane: `governance-dsr-cascade` validates that every `pii`/`phi`/
 `financial` field has a registered `DsrCapable` adapter.
 
 ## 6. Schema migration discipline
@@ -173,7 +173,7 @@ Adding a new field to a kernel struct:
    mapping.
 4. Provide DSR cascade adapter coverage (§5) before the field reaches
    production.
-5. Run `oya-governance-schema-migration` (per AGENTS.md D14).
+5. Run `governance-schema-migration` (per AGENTS.md D14).
 
 ## 7. Field-naming conventions
 
@@ -194,7 +194,7 @@ This standard adds the `data_class` participation:
   `#[tenant_scoped]` attribute that emits a tenant-mismatch check at
   the trait boundary.
 - Cross-tenant aggregations (e.g., billing rollups) MUST go through
-  `oya-platform-tenancy-aggregator` which strips `tenant-data`,
+  `platform-tenancy-aggregator` which strips `tenant-data`,
   hashes `tenant_id`, and emits the aggregate via `internal` class.
 
 ## 9. Observability redaction binding

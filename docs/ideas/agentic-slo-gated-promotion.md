@@ -11,7 +11,7 @@ auto-promotion cadence?
 **Milestone 1 (foundation).** This work is substrate consumed by every
 oyatie product; it cannot land in a later milestone without leaving M01
 products promoting unguarded. Per the M-CC-folds-into-M01 rule, the
-existing `M-CC-P11` (Oya VCS substrate) renumbers into M01, and this
+existing `M-CC-P11` (retired VCS ratchet substrate) renumbers into M01, and this
 substrate is either an extension of that phase or two sibling sub-phases
 of M01 covering observability (Layer A) and promotion gating (Layer B)
 respectively. Final sub-phase decomposition is captured in the ADR (#18)
@@ -54,7 +54,7 @@ deferred; everything ships as one unit.
     SLI, 30-day SLO target, error-budget windows, burn-rate alert
     thresholds (2 % / 1 h fast burn, 5 % / 6 h slow burn — Google SRE
     workbook Ch. 5).
-10. **`oya-observability-slo-engine` crate** — reads OpenSLO manifests,
+10. **`observability-slo-engine` crate** — reads OpenSLO manifests,
     queries Prometheus/Mimir via PromQL for burn-rate computation, emits
     per-component eligibility verdicts. The differentiator: it knows about
     components, ledger, release pointers, and the agentic gate. The TSDB
@@ -67,12 +67,12 @@ deferred; everything ships as one unit.
     `(component, source_sha, target_env, verdict, burn_rate_snapshot,
     evaluated_at, evaluator_version)`. Union-merge driver already in
     `.gitattributes` for JSONL ledgers.
-13. **`oya-vcs-promotion-readiness` CI lane** — asserts the latest ledger
+13. **`retired VCS ratchet` CI lane** — asserts the latest ledger
     record for every component touched by the SHA is `eligible` for the
     target environment. Added to `branch-protection.yaml`
     required-status-checks on `dev` and `staging`.
 14. **Continuous burn-rate evaluator** — runs inside
-    `oya-observability-slo-engine`; 1-minute cadence; writes eligibility
+    `observability-slo-engine`; 1-minute cadence; writes eligibility
     records for every (component, environment, current-sha) tuple.
     Idempotent. Event source.
 15. **Event-driven promote workflows** — `promote-dev-to-staging.yml` and
@@ -94,11 +94,11 @@ deferred; everything ships as one unit.
     hyperscaler-citation matrix (Google SRE workbook, OpenSLO, OTel,
     Grafana stack adoption by AWS / GCP / Cloudflare / Shopify).
 19. **`branch-protection.yaml` update** — adds
-    `oya-vcs-promotion-readiness` to required checks on `dev` and
+    `retired VCS ratchet` to required checks on `dev` and
     `staging`.
 20. **Decommission of FUTURE-marked stubs** — references in
     `promote-dev-to-staging.yml` and `promote-staging-to-production.yml`
-    to `oya-governance-canary-cohort-observability` /
+    to `governance-canary-cohort-observability` /
     `-full-rollout-observability` are replaced by Layer-B components; no
     placeholder lanes remain.
 
@@ -161,7 +161,7 @@ gate is a permissive gate.
   M01; or (b) gate lands last and retroactively gates earlier components.
   (a) is the hyperscaler answer; (b) is the simpler integration.
 - Whether the burn-rate evaluator runs as a long-lived service or as a
-  scheduled job inside `oya-observability-slo-engine` against Prometheus
+  scheduled job inside `observability-slo-engine` against Prometheus
   snapshots. (Long-lived service is the hyperscaler answer.)
 - How `release/<component>/<environment>` ref proliferation interacts
   with GitHub branch-protection (per-rule cap on matched refs); may need

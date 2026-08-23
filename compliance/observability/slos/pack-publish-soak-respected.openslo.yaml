@@ -11,7 +11,7 @@ spec:
     metricSource:
       type: prometheus
       spec:
-        query: "sum(rate(oya_compliance_pack_publish_soak_respected_total[5m])) / sum(rate(oya_compliance_pack_publish_total[5m]))"
+        query: "sum(rate(compliance_pack_publish_soak_respected_total[5m])) / sum(rate(compliance_pack_publish_total[5m]))"
   objectives:
     - target: 1.000
       timeWindow: 30d

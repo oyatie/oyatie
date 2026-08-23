@@ -29,9 +29,9 @@ We score each risk on three dimensions:
 
 | # | Risk | Sev | Like | Vel | Score | Owner | Mitigation | Monitoring |
 |---|---|---|---|---|---|---|---|---|
-| R-001 | Tenant data leak into search index or as ad-targeting feature (PHI / PII / PCI / KR-신용정보 / KR-PIPA Art-23) | 5 | 4 | 5 | **100** | `council-privacy` | Data Use Boundary ADR (P0 prereq); 6-layer structural enforcement per [PRIVACY-PROGRAM §2.2.4](PRIVACY-PROGRAM.md); per-class compile-time annotation; singleton `oya-platform-ads-gate` source; runtime guard at auction boundary | Audit-chain emission rate; rejected cross-axis call alerts; quarterly re-identification red team |
+| R-001 | Tenant data leak into search index or as ad-targeting feature (PHI / PII / PCI / KR-신용정보 / KR-PIPA Art-23) | 5 | 4 | 5 | **100** | `council-privacy` | Data Use Boundary ADR (P0 prereq); 6-layer structural enforcement per [PRIVACY-PROGRAM §2.2.4](PRIVACY-PROGRAM.md); per-class compile-time annotation; singleton `platform-ads-gate` source; runtime guard at auction boundary | Audit-chain emission rate; rejected cross-axis call alerts; quarterly re-identification red team |
 | R-002 | Cross-axis contract drift (an axis evolves a contract another axis has frozen) | 5 | 4 | 4 | **80** | `council-architecture` | DESIGN §10 contract surface as audit point; cross-axis PR class label; CI fitness function checks every contract against every consumer per [DESIGN §11](DESIGN.md); cohesion fitness function (top-20 #13 from Foundry-improvements research) | PR class label compliance; fitness-function block rate |
-| R-003 | Audit-chain emission gap (some regulated capability path bypasses ADR-0003 emission) | 5 | 3 | 5 | **75** | `platform-audit-evidence` | Mandatory emission per capability registration; CI gate `oya-governance-audit-emit`; per-quarter chain-integrity check + replay drill | Emission completeness % per capability; chain-integrity check exit code |
+| R-003 | Audit-chain emission gap (some regulated capability path bypasses ADR-0003 emission) | 5 | 3 | 5 | **75** | `platform-audit-evidence` | Mandatory emission per capability registration; CI gate `governance-audit-emit`; per-quarter chain-integrity check + replay drill | Emission completeness % per capability; chain-integrity check exit code |
 
 ### 2.2 High structural (score 50-74)
 
@@ -47,14 +47,14 @@ We score each risk on three dimensions:
 | # | Risk | Sev | Like | Vel | Score | Owner | Mitigation | Monitoring |
 |---|---|---|---|---|---|---|---|---|
 | R-008 | Brand consolidation to Oyatie touches public APIs incorrectly | 4 | 3 | 3 | **36** | `axis-foundry` + `council-architecture` | Standalone PG-0a precursor PR per bounded context (ADR-0017); aliases retire in Phase 7 sweep; per-batch rename plan in 17 batches per recon | DNS / package / API consumer count regression |
-| R-009 | License drift (an external dep changes from Apache-2 to AGPL/SSPL/BUSL) | 4 | 3 | 3 | **36** | `ops-security` + `axis-foundry` (foundry) | License policy ADR (planned P0); `oya-governance-license` CI lane; per-quarter license audit; Vendor-Partner-Ledger | cargo-deny exit; license-watch alerts |
+| R-009 | License drift (an external dep changes from Apache-2 to AGPL/SSPL/BUSL) | 4 | 3 | 3 | **36** | `ops-security` + `axis-foundry` (foundry) | License policy ADR (planned P0); `governance-license` CI lane; per-quarter license audit; Vendor-Partner-Ledger | cargo-deny exit; license-watch alerts |
 | R-010 | Multi-provider quota exhaustion (one provider rate-limits Foundry) | 3 | 4 | 3 | **36** | `axis-foundry` | Multi-provider router with cost-aware + latency-aware fallback (top-20 #15); per-tenant per-capability budget ceilings; provider equivalence map; subscription↔API failover | Provider error-rate dashboards; quota-exhaustion alerts |
-| R-011 | Korea-locale regulatory shift mid-build (PIPA / FSC / MFDS / KCC) | 4 | 3 | 3 | **36** | `regional-packs/oya-pack-kr` + `ops-compliance` | Quarterly regulatory-change watch lane per ADR-0050; KR-pack maintainer engages with regulator-relations | KR regulator publication monitoring |
+| R-011 | Korea-locale regulatory shift mid-build (PIPA / FSC / MFDS / KCC) | 4 | 3 | 3 | **36** | `regional-packs/pack-kr` + `ops-compliance` | Quarterly regulatory-change watch lane per ADR-0050; KR-pack maintainer engages with regulator-relations | KR regulator publication monitoring |
 | R-012 | Cell-isolation failure (one tenant's data accessible to another) | 5 | 2 | 4 | **40** | `axis-cloud` + `platform-tenancy-identity` | Cell architecture ADR (planned P0); per-cell isolation evidence; quarterly cross-tenant access fuzz test (#129) | Cross-tenant access negative tests; cell membership integrity |
 | R-013 | Subscription-mode session breakage (Claude/OpenAI/Gemini change auth flow) | 3 | 4 | 3 | **36** | `axis-foundry` | Per-provider subscription contract tests (top-20 #16); subscription↔API failover; PTY warm pool; idle refresh | Per-provider subscription health probe |
-| R-014 | KCMVP HSM procurement lead-time (6-9 months) blocks KR cloud GA | 4 | 3 | 2 | **24** (~25) | `axis-cloud` + `regional-packs/oya-pack-kr` | Order at month 0 of W-Cloud-Preview per recon; secondary supplier identified | HSM delivery tracking |
+| R-014 | KCMVP HSM procurement lead-time (6-9 months) blocks KR cloud GA | 4 | 3 | 2 | **24** (~25) | `axis-cloud` + `regional-packs/pack-kr` | Order at month 0 of W-Cloud-Preview per recon; secondary supplier identified | HSM delivery tracking |
 | R-015 | Plugin substrate trust gate failure allows malicious plugin install | 5 | 2 | 3 | **30** | `axis-foundry` (foundry surface — plugin substrate) + `ops-security` | Cosign keyless signing per ADR-0039; Wasmtime sandbox per ADR-0023; plugin trust tiers per ADR-0036; sigstore + Rekor mirror (top-20 D-1) | Plugin signature verification audit; sandbox escape attempts |
-| R-016 | Autonomy-ceiling implementation gap (Cedar policy authored but no runtime enforcement) | 5 | 2 | 3 | **30** | `axis-foundry` | Top-20 #1 — runtime gate, not docs; `oya-intelligence-policy` runtime check on every capability invocation | Capability-invocation policy-check log |
+| R-016 | Autonomy-ceiling implementation gap (Cedar policy authored but no runtime enforcement) | 5 | 2 | 3 | **30** | `axis-foundry` | Top-20 #1 — runtime gate, not docs; `intelligence-policy` runtime check on every capability invocation | Capability-invocation policy-check log |
 | R-017 | Per-capability eval set regression on a model upgrade | 3 | 4 | 2 | **24** (~25) | `axis-foundry` | Per-capability eval contract (PRD-shaping #10); golden tasks + nightly run + regression gating | Per-capability eval pass rate trend |
 
 ### 2.4 Medium (score 10-24)
@@ -62,19 +62,19 @@ We score each risk on three dimensions:
 | # | Risk | Sev | Like | Vel | Score | Owner | Mitigation | Monitoring |
 |---|---|---|---|---|---|---|---|---|
 | R-018 | Vertical pilot fails to prove cohesion thesis | 4 | 3 | 2 | 24 | `tactical-first-vertical-pilot` | Pre-flight check that pilot exercises ≥ 6 cross-axis contracts; design-partner co-author of acceptance | Per-pilot acceptance test pass rate |
-| R-019 | M3/MVP vocab leakage from legacy docs into new docs | 2 | 4 | 2 | 16 | `council-architecture` | `oya-governance-glossary` checks for retired terms; banner in PRD §3.1; ADR-0050/0185/0191 explicitly amended | Grep for retired terms in PR diffs |
+| R-019 | M3/MVP vocab leakage from legacy docs into new docs | 2 | 4 | 2 | 16 | `council-architecture` | `governance-glossary` checks for retired terms; banner in PRD §3.1; ADR-0050/0185/0191 explicitly amended | Grep for retired terms in PR diffs |
 | R-020 | ADR backlog (71 Proposed) creates governance drift | 3 | 4 | 1 | 12 | `crew-adr-promotion` | Monthly burndown target; promotion validator; per-ADR Owner+Status check | Proposed:Accepted ratio per quarter |
 | R-021 | Catalog projection drift (`goals.json` ↔ `batch-manifest.json`) | 2 | 4 | 2 | 16 | `axis-foundry` (foundry) | Autosync per Issue #1486; CI check | Drift-detection alerts |
 | R-022 | Worktree leakage / branch-name collision | 3 | 3 | 2 | 18 | `axis-foundry` (foundry) | Worktree-isolation guardrails; branch-name collision detection at spawn (#58) | Per-spawn collision-check log |
 | R-023 | Foreign data localization law shift (e.g., new India / Russia / KSA mandate) | 4 | 2 | 2 | 16 | `regional-packs` + `ops-compliance` | Per-pack residency declaration; cross-region replication opt-in only; legal watch | Per-region legal-watch reports |
-| R-024 | OSS dependency vulnerability (CVE on a runtime dep) | 3 | 3 | 2 | 18 | `ops-security` | Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-ChangeSet via the in-house oya-deps bump-bot | RUSTSEC backlog; Trivy alerts |
+| R-024 | OSS dependency vulnerability (CVE on a runtime dep) | 3 | 3 | 2 | 18 | `ops-security` | Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-ChangeSet via the in-house deps bump-bot | RUSTSEC backlog; Trivy alerts |
 
 ### 2.5 Watching (score < 10)
 
 | # | Risk | Sev | Like | Vel | Score | Owner | Mitigation |
 |---|---|---|---|---|---|---|---|
 | R-025 | Cosmetic doc drift (e.g., outdated diagrams) | 1 | 4 | 1 | 4 | per-doc owner | DOC-CATALOG cadence + agent-authored refresh |
-| R-026 | Glossary term drift across docs | 2 | 3 | 1 | 6 | `council-architecture` | `oya-governance-glossary` |
+| R-026 | Glossary term drift across docs | 2 | 3 | 1 | 6 | `council-architecture` | `governance-glossary` |
 | R-027 | Internal CRM ↔ tenant catalog sync drift | 2 | 3 | 1 | 6 | `gtm-customer-success` | Monthly sync check |
 
 ---
@@ -102,7 +102,7 @@ A real-time risk dashboard tracks for each risk:
 - Mitigation status (% complete)
 - Last review date
 
-Powered by `oya-intelligence-risk-tracker` (a capability that aggregates audit-chain events + CI lane status + manual council inputs). Surfaced on `dev.oyatie.com/risks` for internal staff and on `trust.oyatie.com/risks` (filtered) for customers.
+Powered by `intelligence-risk-tracker` (a capability that aggregates audit-chain events + CI lane status + manual council inputs). Surfaced on `dev.oyatie.com/risks` for internal staff and on `trust.oyatie.com/risks` (filtered) for customers.
 
 ---
 

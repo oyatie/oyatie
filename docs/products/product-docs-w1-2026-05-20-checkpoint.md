@@ -50,11 +50,11 @@ No `/microservices/*/` trees were edited by this wave.
   - Failure Modes + Recovery
   - References
 
-## Oya VCS Checkpoint
+## retired VCS ratchet Checkpoint
 
 Claim accepted:
 
-`./bin/oya vcs claim --agent codex-product-docs-w1 --intent product-prd-deepening-w1 docs/products`
+`./bin/retired VCS ratchet claim --agent codex-product-docs-w1 --intent product-prd-deepening-w1 docs/products`
 
 Verification evidence:
 

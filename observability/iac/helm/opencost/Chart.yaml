@@ -1,11 +1,11 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-observability-opencost
+name: observability-opencost
 description: |
   OpenCost (CNCF incubating; OSS preference over Kubecost commercial) per
   ADR-0199 FinOps cost-attribution. Aggregates per-tenant cost via mandatory
-  labels (`oya.io/tenant-id`, `oya.io/cost-center`, `oya.io/workload-class`,
-  `oya.io/regulatory-pack`) federated through Prometheus. FOCUS 1.3 schema
+  labels (`oyatie.io/tenant-id`, `oyatie.io/cost-center`, `oyatie.io/workload-class`,
+  `oyatie.io/regulatory-pack`) federated through Prometheus. FOCUS 1.3 schema
   normalization for cloud bills + cluster costs.
 type: application
 version: 0.1.0

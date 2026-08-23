@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-MULTIPACK-007
+tutorial_id: TUT-OYATIE-MULTIPACK-007
 persona: "Omar Haddad, compliance platform administrator"
 prerequisite_packs:
   - canonical-base

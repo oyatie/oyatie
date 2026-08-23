@@ -6,7 +6,7 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-20
 owner: council-documentation
-planned_enforcement_ref: oya-governance-brief-template
+planned_enforcement_ref: governance-brief-template
 related_adrs:
   - ADR-0321
   - ADR-0322
@@ -174,7 +174,7 @@ The brief MUST state the sole or primary deliverable path.
 
 The path MUST be absolute when dispatched from an orchestrator.
 
-The path MAY also include the repository-relative path for git/PR and `oya gate` evidence.
+The path MAY also include the repository-relative path for git/PR and retired CLI evidence.
 
 The line floor MUST be explicit.
 
@@ -326,7 +326,7 @@ The lifecycle verifies after the artifact exists:
 
 ```bash
 ./bin/oya verify --ci-required
-./bin/oya gate run-all
+presubmit
 ```
 
 The lifecycle opens or updates the PR only after verification evidence exists:

@@ -63,7 +63,7 @@ fn verified_break_glass(provider: &AuditEmitAuthzProvider) -> VerifiedProducerPr
 #[test]
 fn audit_event_contract_runtime_constants_are_covered() {
     assert_eq!(AUDIT_EVENT_EMIT_SURFACE, "audit.event.emit");
-    assert_eq!(AUDIT_EVENT_TOPIC, "oya.platform.audit");
+    assert_eq!(AUDIT_EVENT_TOPIC, "oyatie.platform.audit");
     assert_eq!(AUDIT_EVENT_EMIT_SCHEMA, "audit.event.emit.v1");
     assert_eq!(AUDIT_EVENT_EMIT_SOURCE, "oyatie://platform/audit-chain");
     assert_eq!(

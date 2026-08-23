@@ -1,6 +1,6 @@
 # Build + Gate + CI/CD Pipeline — Refined Target Architecture (idea-refine)
 
-> Synthesis of three code analyses (build-system, gate-cicd, oya-ci-plan) + two research
+> Synthesis of three code analyses (build-system, gate-cicd, ci-plan) + two research
 > reports (hyperscaler CI/CD patterns, buck2+reindeer best practices). Read-only review;
 > all claims cite `file:line` in `/tmp/buck-psm`. Lens: SIMPLIFY + IDEA-REFINE.
 
@@ -45,10 +45,10 @@ gate is not isolated** — everything else is downstream of those three.
 ## 2. Analysis Summary (current architecture + ranked issues)
 
 **Pipeline today:** GitHub PR webhook → `ci-webhook-gateway` (bespoke Rust, ADR-0374,
-HMAC-verified, fail-closed router) → Jenkins genericTrigger (token `oya-ci-gate`) → cpsScm
-loads `Jenkinsfile-oya-ci-gate` from `dev` → ephemeral K8s agent checks out PR sha →
+HMAC-verified, fail-closed router) → Jenkins genericTrigger (token `ci-gate`) → cpsScm
+loads `Jenkinsfile-ci-gate` from `dev` → ephemeral K8s agent checks out PR sha →
 `buck2-affected-gate.sh` (`owner()` + `rdeps(//…, %Ss)` @argfile, fail-closed) →
-`buck2 build`+`test` affected closure → GitHub commit-status `oya-ci-gate`. The two bespoke
+`buck2 build`+`test` affected closure → GitHub commit-status `ci-gate`. The two bespoke
 pieces (gateway + gate.sh) are clean and well-tested; **all fragility is in the
 Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans to retire.
 
@@ -61,9 +61,9 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
 | 5 | **HIGH** | One third-party change → ~1919-target build+test, 60-min race, no cache | `buck2-affected-gate.sh:56-96`; `Jenkinsfile:31` | rdeps depth-cap + presubmit/postsubmit tiers + NativeLink CAS |
 | 6 | **HIGH** | Self-deadlock + Groovy/CPS parse fragility (un-lintable, silent load failure) | `Jenkinsfile:40-97`; commit `c042aacff` | Deployed controller (no Groovy on the gated branch) |
 | 7 | **MEDIUM** | Observability: 230-char status line; PR-comment best-effort/often silent; kubectl-exec to diagnose | `Jenkinsfile:90-94,118-121` | Consume buck2 event-log JSON → structured failure summary; persist logs to S3 |
-| 8 | **MEDIUM** | Controller built but NOT wired (only `JenkinsDispatcher` exists) | `dispatch.rs:145-225` (no controller dispatcher; controller on `feat/oya-ci-controller`) | Add `ControllerDispatcher` impl of `PipelineDispatcher` + cutover |
+| 8 | **MEDIUM** | Controller built but NOT wired (only `JenkinsDispatcher` exists) | `dispatch.rs:145-225` (no controller dispatcher; controller on `feat/ci-controller`) | Add `ControllerDispatcher` impl of `PipelineDispatcher` + cutover |
 | 9 | **MEDIUM** | Controller inherits scale + log-harvest gaps; 3600s hard deadline turns scale risk into guaranteed red | controller `values.yaml` `gateActiveDeadlineSecs:3600` | Carry scale + log-harvest into controller design before declaring the win |
-| 10 | **MEDIUM** | Two CI definitions (cargo-era `oyaCiLane` 16 ctxs vs `oya-ci-gate` 1 ctx) drift | `reported-status-contexts.json`; `oyaCiLane.groovy` | Delete `oyaCiLane` + reconcile registry |
+| 10 | **MEDIUM** | Two CI definitions (cargo-era `oyaCiLane` 16 ctxs vs `ci-gate` 1 ctx) drift | `reported-status-contexts.json`; `oyaCiLane.groovy` | Delete `oyaCiLane` + reconcile registry |
 
 ---
 
@@ -77,7 +77,7 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
   Collapse to: **gateway → deployed controller → K8s Job → status**. Three hops, one
   language (Rust), one config source (the controller binary + the trunk gate.sh).
 - **DELETE the second CI definition.** `oyaCiLane.groovy` + its 16 cargo-era contexts
-  (`reported-status-contexts.json`) are dead weight beside `oya-ci-gate`. One pipeline, one
+  (`reported-status-contexts.json`) are dead weight beside `ci-gate`. One pipeline, one
   context registry.
 - **COLLAPSE the per-crate darwin-hardcoded fixup whack-a-mole.** The recurring
   `DEP_OPENSSL_*`, `DEP_AWS_LC_*`, `LDFLAGS=-nostartfiles` firefight is N symptoms of ONE
@@ -92,7 +92,7 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
   live problem is **gate reliability**. Ship P1 (controller) alone; defer merge-queue, UI,
   ChatOps behind explicit demand. Saying no to four subsystems is the biggest simplification.
 
-**Minimal robust shape:** `GitHub PR → ci-webhook-gateway → oya-ci-controller (deployed) →
+**Minimal robust shape:** `GitHub PR → ci-webhook-gateway → ci-controller (deployed) →
 K8s Job [clone dev (trusted) + PR-ref as data → trunk gate.sh → buck2 (NativeLink CAS)] →
 controller harvests buck2 event-log → GitHub status + structured summary`. One language,
 three hops, hermetic toolchain, durable third-party, isolated gate.
@@ -167,9 +167,9 @@ Rust → doctrine-aligned; skip BuildBarn/EngFlow/BuildBuddy).
 
 ### (d) Controller vs hardening Jenkins — phased, controller wins
 
-**Decision: cut over to the deployed `oya-ci-controller` (ADR-0513 Phase 1); do not invest
+**Decision: cut over to the deployed `ci-controller` (ADR-0513 Phase 1); do not invest
 further in Jenkins beyond the minimum to keep dev landable during cutover.** The controller's
-kernel/k8s-adapter (on `feat/oya-ci-controller`) is genuinely good: pure no-IO state machine,
+kernel/k8s-adapter (on `feat/ci-controller`) is genuinely good: pure no-IO state machine,
 trunk-sourcing enforced in the Job command, least-privilege RBAC, terminal-status-always. It
 kills failure modes 1 (no Groovy), 2 (deployed = deadlock-proof), 4 (terminal-always +
 fail-closed), 5 (fewer hops). **But it is NOT live**: the gateway has only `JenkinsDispatcher`

@@ -14,7 +14,7 @@ doc_status: published
 an ads-side surface received data from a forbidden data_class per ADR-0008
 
 ## Detection
-- Source signal: Ads-side schema rejection log; `oya-governance-data-class` runtime block
+- Source signal: Ads-side schema rejection log; `governance-data-class` runtime block
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 1 ladder
 
 ## First-response checklist
@@ -28,7 +28,7 @@ an ads-side surface received data from a forbidden data_class per ADR-0008
 Block the affected ad-targeting flow; preserve the schema diff + caller chain
 
 ## Diagnosis
-Walk caller chain; verify singleton allowlist enforcement (oya-platform-ads-gate is the only legitimate source)
+Walk caller chain; verify singleton allowlist enforcement (platform-ads-gate is the only legitimate source)
 
 ## Recovery
 Patch the source service or remove the call site; verify with replay; emit MFL row + ship fitness lane

@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-data-substrate-operator-reconciliation-latency
+  name: data-substrate-operator-reconciliation-latency
   displayName: Data substrate operator reconciliation latency
   labels:
     microservice: data-substrate
@@ -29,12 +29,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_substrate_operator_reconcile_duration_seconds_bucket{le="300"}[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_substrate_operator_reconcile_duration_seconds_bucket{le="300"}[5m])) by (tenant_id, cell_tier)
         total:
           metricSource:
             type: prometheus
             spec:
-              query: sum(rate(oya_data_substrate_operator_reconcile_duration_seconds_count[5m])) by (tenant_id, cell_tier)
+              query: sum(rate(data_substrate_operator_reconcile_duration_seconds_count[5m])) by (tenant_id, cell_tier)
   objectives:
     - displayName: Operator reconciliations complete within five minutes
       target: 0.99

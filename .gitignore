@@ -66,8 +66,8 @@ test-results/
 # claim/heartbeat/run state per specs/fabric-drive-loop-state.json. Never
 # committed: the durable coordination plane (plan/fabric-loop/) is the only
 # PR-governed loop-state surface; this root is a local bridge store behind
-# ExecutionPlanePort until the oya-cloud-ci-loop-state-service cutover.
-/.oya-loop-state/
+# ExecutionPlanePort until the cloud-ci-loop-state-service cutover.
+/.loop-state/
 # Generated outputs default to untracked. Public/productized generated
 # artifacts that must be committed are force-added intentionally and declared in
 # registry/generated-artifact-control-plane.json, where cloud-ci enforces owner,
@@ -100,7 +100,7 @@ test-results/
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
 # merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
-# DEMAND (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
+# DEMAND (buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
 # consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
 # regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
 # gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already
@@ -128,7 +128,7 @@ test-results/
 # materialized PROJECTION faces below were still committed merge surfaces. They are exactly the
 # projections a mis-invoked local materializer can silently corrupt (the motivating incident:
 # masterplan adr_count 106->64 from a partial regen). They are now DERIVED ON DEMAND by the same
-# materializer entrypoint (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin;
+# materializer entrypoint (buck2 run //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin;
 # masterplan first, then the arch-graph dashboard). Freshness is regenerate-success (masterplan-drift
 # gate, controller-materialized output_mode) + regenerate-twice determinism (product-graph), not byte
 # parity; the control-plane policy gate forbids re-tracking them (materialization_mode: not-tracked-in-git).
@@ -143,7 +143,7 @@ registry/graph/active-artifact-contract-edges.json
 # JOINS it. ADR-0563 originally made it the authoritative COMMITTED move-bijection; ADR-0614
 # amends that committed-vs-materialized stance. The face is a pure function of the committed
 # move-plan(s) x candidate tree, so — like the ADR-0595 faces — it is DERIVED ON DEMAND (buck2 run
-# //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin runs the
+# //ci/facade/generated-artifact-freshness:cloud-ci-materialize-generated-faces-bin runs the
 # codemod `manifest` subcommand as step 1, materialize_move_manifest, before the scm-facts emitter's
 # rename-aware relabel reads it). registry-drift validates regenerate-twice determinism, not
 # committed-byte parity; the control-plane policy gate forbids re-tracking it (materialization_mode:

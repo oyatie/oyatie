@@ -81,7 +81,7 @@ use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
 use futures_util::stream::Stream;
-use oya_http_runtime_hyper_adapter::{
+use http_runtime_hyper_adapter::{
     HyperHttpsClient, build_loopback_http_or_pqc_hybrid_https_client_for_tests,
     build_pqc_hybrid_https_client,
 };
@@ -1170,7 +1170,7 @@ fn is_loopback_http_url(url: &str) -> bool {
 }
 
 /// Production [`ProviderInvocationTransport`] backed by the canonical
-/// `oya-http-runtime-hyper-adapter` PQC-hybrid HTTPS client.
+/// `http-runtime-hyper-adapter` PQC-hybrid HTTPS client.
 ///
 /// Credential resolution is delegated to the injected [`SecretResolution`]
 /// adapter (default: [`OpenBaoSecretResolver`], which surfaces the honest-claims

@@ -474,7 +474,7 @@ impl<T> TenantScopedRecord<T> {
 pub const CROSS_MICROSERVICE_TENANT_MUTATION_LABEL: &str = "cross-microservice-tenant-mutation";
 
 /// API-gateway header required for prod-tier destructive operations (ADR-0163).
-pub const PROD_DESTRUCTIVE_ACK_HEADER: &str = "x-oya-prod-destructive-ack";
+pub const PROD_DESTRUCTIVE_ACK_HEADER: &str = "x-prod-destructive-ack";
 
 /// Cedar context key that must be true for prod-tier destructive operations.
 pub const PROD_DESTRUCTIVE_ACK_CEDAR_CONDITION: &str = "prod_destructive_acknowledged";
@@ -716,8 +716,8 @@ fn is_valid_region_code(value: &str) -> bool {
 }
 
 fn is_valid_pack_id(value: &str) -> bool {
-    value.starts_with("oya-pack-")
-        && value.len() > "oya-pack-".len()
+    value.starts_with("pack-")
+        && value.len() > "pack-".len()
         && value
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
@@ -932,7 +932,7 @@ mod tests {
             tenant_id("ten_alpha"),
             "Alpha Tenant Ltd",
             home_binding(),
-            vec!["oya-pack-alpha".to_string()],
+            vec!["pack-alpha".to_string()],
             TenantPlaneGrants::all(),
         )
         .expect("tenant is valid");
@@ -963,7 +963,7 @@ mod tests {
                 base.0,
                 base.1,
                 base.2,
-                vec!["oya-pack-alpha".to_string(), "oya-pack-alpha".to_string()],
+                vec!["pack-alpha".to_string(), "pack-alpha".to_string()],
                 TenantPlaneGrants::all(),
             ),
             Err(TenantKernelError::DuplicateRegulatoryPack)
@@ -1210,7 +1210,7 @@ mod tests {
         assert!(!TenantEnvironmentTier::Test.requires_destructive_acknowledgment());
         assert!(!TenantEnvironmentTier::Staging.requires_destructive_acknowledgment());
         assert!(TenantEnvironmentTier::Prod.requires_destructive_acknowledgment());
-        assert_eq!(PROD_DESTRUCTIVE_ACK_HEADER, "x-oya-prod-destructive-ack");
+        assert_eq!(PROD_DESTRUCTIVE_ACK_HEADER, "x-prod-destructive-ack");
         assert_eq!(
             PROD_DESTRUCTIVE_ACK_CEDAR_CONDITION,
             "prod_destructive_acknowledged"

@@ -1,6 +1,6 @@
 ---
 doc_class: Tutorial
-tutorial_id: TUT-OYA-AI-SUMMARY-008
+tutorial_id: TUT-OYATIE-AI-SUMMARY-008
 persona: "Valeria Ionescu, legal counsel reviewing vendor contracts"
 prerequisite_packs:
   - canonical-base

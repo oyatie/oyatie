@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
-use intelligence_capability_domain::{AutonomyTier, Capability};
-use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use intelligence_capability_domain::{AutonomyTier, Capability};
+use intelligence_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;
 const MUTATION_ID_PREFIX: &str = "fcm_";
@@ -26,7 +26,7 @@ const TENANT_ID_PREFIX: &str = "ten_";
 const USER_PRINCIPAL_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "svc_";
 const CAPABILITY_ID_PREFIX: &str = "cap.cloud.";
-const CLOUD_NAMESPACE_PREFIX: &str = "oya.cloud";
+const CLOUD_NAMESPACE_PREFIX: &str = "oyatie.cloud";
 const CLOUD_SURFACE_PREFIX: &str = "cloud.";
 const REQUEST_FINGERPRINT_PREFIX: &str = "sha256:";
 const MAX_EMERGENCY_WINDOW_SECONDS: u64 = 4 * 60 * 60;
@@ -624,7 +624,7 @@ fn validate_capability(
             .namespace
             .value
             .starts_with(CLOUD_NAMESPACE_PREFIX)
-        || !capability.evidence_topic.value.starts_with("oya.cloud.")
+        || !capability.evidence_topic.value.starts_with("oyatie.cloud.")
         || capability.required_tier > AutonomyTier::T2Advisory
     {
         return Err(FoundryCloudMutationError::InvalidCapability);
@@ -783,8 +783,8 @@ fn audit<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
+    use data_boundary_kernel::SubjectClass;
     use intelligence_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
-    use oya_data_boundary_kernel::SubjectClass;
 
     use super::*;
 
@@ -798,10 +798,10 @@ mod tests {
     fn capability(required_tier: AutonomyTier) -> Capability {
         Capability::new_with_privacy_data_classes(
             "cap.cloud.capacity.rebalance".to_string(),
-            "oya.cloud.capacity".to_string(),
+            "oyatie.cloud.capacity".to_string(),
             required_tier,
             vec![privacy_class(DataClass::InternalOnly)],
-            "oya.cloud.capacity.rebalanced.v1".to_string(),
+            "oyatie.cloud.capacity.rebalanced.v1".to_string(),
         )
         .expect("capability")
     }

@@ -38,7 +38,7 @@
 //!   and handed to the same engine. This keeps test authoring ergonomic and the
 //!   public API stable while still exercising the real Cedar evaluator.
 //!
-//! See `registry/catalog/oya-identity-workload-authz-cedar-adapter.yaml`.
+//! See `registry/catalog/identity-workload-authz-cedar-adapter.yaml`.
 
 // ADR-0083 Tier 3: production code stays panic-free; tests may use unwrap/expect.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]

@@ -1,5 +1,5 @@
-//! storage subsystem for oya-meter.
+//! storage subsystem for meter.
 //!
 //! Hyperscaler pattern per ADR-0509: subsystem mod within single service crate.
 
-// TODO(ADR-0479): implement storage per oya-meter feature parity table
+// TODO(ADR-0479): implement storage per meter feature parity table

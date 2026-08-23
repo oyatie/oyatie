@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers — helpers via {{ include "helpers.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -14,33 +14,33 @@ spec:
       rules:
         - record: community:post_create:availability_5m
           expr: |
-            sum(rate(oya_community_post_create_total{result="success"}[5m]))
+            sum(rate(community_post_create_total{result="success"}[5m]))
             /
-            sum(rate(oya_community_post_create_total[5m]))
+            sum(rate(community_post_create_total[5m]))
         - record: community:post_create:latency_p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le) (rate(oya_community_post_create_duration_seconds_bucket[5m]))
+              sum by (le) (rate(community_post_create_duration_seconds_bucket[5m]))
             )
         - record: community:vote_cast:latency_p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le) (rate(oya_community_vote_cast_duration_seconds_bucket[5m]))
+              sum by (le) (rate(community_vote_cast_duration_seconds_bucket[5m]))
             )
         - record: community:search_query:latency_p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le) (rate(oya_community_search_query_duration_seconds_bucket[5m]))
+              sum by (le) (rate(community_search_query_duration_seconds_bucket[5m]))
             )
         - record: community:moderation_action:latency_p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le) (rate(oya_community_moderation_action_duration_seconds_bucket[5m]))
+              sum by (le) (rate(community_moderation_action_duration_seconds_bucket[5m]))
             )
         - record: community:audit_seal:latency_p99_5m
           expr: |
             histogram_quantile(0.99,
-              sum by (le) (rate(oya_community_audit_seal_duration_seconds_bucket[5m]))
+              sum by (le) (rate(community_audit_seal_duration_seconds_bucket[5m]))
             )
 
     - name: community-burn-rate-alerts
@@ -95,7 +95,7 @@ spec:
 
         - alert: CommunityModerationQueueDepthHigh
           expr: |
-            max by (tenant_id) (oya_community_moderation_queue_depth) > 5000
+            max by (tenant_id) (community_moderation_queue_depth) > 5000
           for: 15m
           labels:
             severity: warning
@@ -108,7 +108,7 @@ spec:
 
         - alert: CommunityAuditSealMiss
           expr: |
-            increase(oya_community_audit_seal_missed_total[5m]) > 0
+            increase(community_audit_seal_missed_total[5m]) > 0
           for: 1m
           labels:
             severity: critical
@@ -120,7 +120,7 @@ spec:
 
         - alert: CommunitySpamFloodDetected
           expr: |
-            sum by (tenant_id) (rate(oya_community_post_create_total[5m])) > 100
+            sum by (tenant_id) (rate(community_post_create_total[5m])) > 100
           for: 5m
           labels:
             severity: warning

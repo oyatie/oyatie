@@ -41,12 +41,12 @@ If the conflict is broader than workspace membership, route to [per-context-flat
    If differs: do not merge stale workspace-member edits.
 
 3. ☐ Validate the merge-head PR.
-   Command: `oya gate validate architecture-boundaries --self-test && oya gate validate architecture-boundaries`
+   Command: `presubmit` (retired CLI `gate validate architecture-boundaries --self-test && presubmit (retired CLI gate validate) architecture-boundaries`)
    Expected: flat-crates self-test and workspace checks pass.
    If differs: fix the merge-head PR before unblocking the queue.
 
 4. ☐ Validate catalog coverage.
-   Command: `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate`
+   Command: `cargo run -p tooling-cli-dev-runtime -- catalog validate`
    Expected: every workspace member has a catalog record. Extra catalog records are currently allowed; stricter reverse-sync is a separate policy change.
    If differs: add or fix missing catalog records.
 
@@ -60,7 +60,7 @@ If the conflict is broader than workspace membership, route to [per-context-flat
 
 - Revert only the most recently merged workspace-members PR.
 - Restore the matching catalog record state.
-- Re-run `oya gate validate architecture-boundaries` before merging the next PR.
+- Re-run `presubmit` (retired CLI `gate validate architecture-boundaries`) before merging the next PR.
 - If more than one PR landed with conflicting membership, stop the queue and run a phase-level audit from [per-context-flatten-phase.md](per-context-flatten-phase.md).
 
 ---
@@ -68,11 +68,11 @@ If the conflict is broader than workspace membership, route to [per-context-flat
 ## Verification
 
 - [ ] Merge-head PR has no concurrent root `Cargo.toml [workspace.members]` owner.
-- [ ] `oya gate validate architecture-boundaries --self-test` passes.
-- [ ] `oya gate validate architecture-boundaries` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push` passes before closing the queue or the queue records an explicit local-resource blocker plus targeted substitutes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries --self-test`) passes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries`) passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- catalog validate` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime --bin repoctl -- pre-push` passes before closing the queue or the queue records an explicit local-resource blocker plus targeted substitutes.
 
 ---
 

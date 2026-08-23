@@ -1,76 +1,30 @@
-# Oyatie CODEOWNERS
-# Source: docs/RACI-OWNERSHIP.md §3. Team handles are logical owner IDs until the GitHub org/team namespace is provisioned.
-
-* @teams/council-architecture
-
-Cargo.toml @teams/council-architecture @teams/axis-foundry
-scripts/ @teams/axis-foundry
-registry/catalog/ @teams/axis-foundry @teams/council-architecture
-
-crates/oya-platform-tenant-* @teams/platform-tenancy-identity
-crates/oya-platform-identity-* @teams/platform-tenancy-identity
-crates/oya-platform-audit-chain-* @teams/platform-audit-evidence
-crates/oya-platform-eventing-* @teams/platform-eventing-og
-crates/oya-platform-object-graph-* @teams/platform-eventing-og
-crates/oya-foundry-* @teams/axis-foundry
-crates/oya-cloud-* @teams/axis-cloud
-crates/oya-saas-* @teams/axis-saas
-crates/oya-workspace-* @teams/axis-workspace
-crates/oya-search-* @teams/axis-search
-crates/oya-ads-* @teams/axis-ads-analytics
-crates/oya-analytics-* @teams/axis-ads-analytics
-crates/oya-vertical-* @teams/council-architecture
-
-# Canonical docs and mirrors
-docs/decisions/ @teams/crew-adr-promotion @teams/council-architecture
-docs/machine-readable/ @teams/council-architecture @teams/axis-foundry
-docs/products/*/PRD.md @teams/council-architecture
-docs/teams/*/CHARTER.md @teams/council-architecture
-# Team charter direct ownership
-docs/teams/axis-ads-analytics/CHARTER.md @teams/axis-ads-analytics @teams/council-architecture
-docs/teams/axis-cloud/CHARTER.md @teams/axis-cloud @teams/council-architecture
-docs/teams/axis-foundry/CHARTER.md @teams/axis-foundry @teams/council-architecture
-docs/teams/axis-saas/CHARTER.md @teams/axis-saas @teams/council-architecture
-docs/teams/axis-search/CHARTER.md @teams/axis-search @teams/council-architecture
-docs/teams/axis-workspace/CHARTER.md @teams/axis-workspace @teams/council-architecture
-docs/teams/council-architecture/CHARTER.md @teams/council-architecture @teams/council-architecture
-docs/teams/council-privacy/CHARTER.md @teams/council-privacy @teams/council-architecture
-docs/teams/crew-adr-promotion/CHARTER.md @teams/crew-adr-promotion @teams/council-architecture
-docs/teams/gtm-customer-success/CHARTER.md @teams/gtm-customer-success @teams/council-architecture
-docs/teams/gtm-marketing/CHARTER.md @teams/gtm-marketing @teams/council-architecture
-docs/teams/gtm-partnerships/CHARTER.md @teams/gtm-partnerships @teams/council-architecture
-docs/teams/gtm-sales-se/CHARTER.md @teams/gtm-sales-se @teams/council-architecture
-docs/teams/ops-compliance/CHARTER.md @teams/ops-compliance @teams/council-architecture
-docs/teams/ops-dr-capacity/CHARTER.md @teams/ops-dr-capacity @teams/council-architecture
-docs/teams/ops-finops/CHARTER.md @teams/ops-finops @teams/council-architecture
-docs/teams/ops-security/CHARTER.md @teams/ops-security @teams/council-architecture
-docs/teams/ops-sre-reliability/CHARTER.md @teams/ops-sre-reliability @teams/council-architecture
-docs/teams/platform-api-sdk/CHARTER.md @teams/platform-api-sdk @teams/council-architecture
-docs/teams/platform-audit-evidence/CHARTER.md @teams/platform-audit-evidence @teams/council-architecture
-docs/teams/platform-eventing-og/CHARTER.md @teams/platform-eventing-og @teams/council-architecture
-docs/teams/platform-privacy-dub/CHARTER.md @teams/platform-privacy-dub @teams/council-architecture
-docs/teams/platform-tenancy-identity/CHARTER.md @teams/platform-tenancy-identity @teams/council-architecture
-docs/teams/regional-packs/CHARTER.md @teams/regional-packs @teams/council-architecture
-docs/teams/tactical-first-vertical-pilot/CHARTER.md @teams/tactical-first-vertical-pilot @teams/council-architecture
-docs/teams/vertical-agriculture/CHARTER.md @teams/vertical-agriculture @teams/council-architecture
-docs/teams/vertical-construction/CHARTER.md @teams/vertical-construction @teams/council-architecture
-docs/teams/vertical-corporate/CHARTER.md @teams/vertical-corporate @teams/council-architecture
-docs/teams/vertical-education/CHARTER.md @teams/vertical-education @teams/council-architecture
-docs/teams/vertical-fintech/CHARTER.md @teams/vertical-fintech @teams/council-architecture
-docs/teams/vertical-food/CHARTER.md @teams/vertical-food @teams/council-architecture
-docs/teams/vertical-healthcare/CHARTER.md @teams/vertical-healthcare @teams/council-architecture
-docs/teams/vertical-hospitality/CHARTER.md @teams/vertical-hospitality @teams/council-architecture
-docs/teams/vertical-industrial/CHARTER.md @teams/vertical-industrial @teams/council-architecture
-docs/teams/vertical-legal/CHARTER.md @teams/vertical-legal @teams/council-architecture
-docs/teams/vertical-logistics/CHARTER.md @teams/vertical-logistics @teams/council-architecture
-docs/teams/vertical-public-sector/CHARTER.md @teams/vertical-public-sector @teams/council-architecture
-docs/teams/vertical-real-estate/CHARTER.md @teams/vertical-real-estate @teams/council-architecture
-docs/teams/vertical-retail/CHARTER.md @teams/vertical-retail @teams/council-architecture
-
-docs/PRD.md @teams/council-architecture
-docs/DESIGN.md @teams/council-architecture
-docs/SPEC.md @teams/platform-api-sdk @teams/council-architecture
-docs/PRIVACY-PROGRAM.md @teams/council-privacy
-docs/security-program/security-program.json @teams/ops-security
-docs/COMPLIANCE-MATRIX.md @teams/ops-compliance
-docs/RACI-OWNERSHIP.md @teams/council-architecture
+* @jason931225
+.github/workflows/ @oyatie/pipeline
+audit/ @oyatie/audit
+billing/ @oyatie/billing
+bus/ @oyatie/bus
+cell/ @oyatie/cell
+compliance/ @oyatie/compliance
+compute/ @oyatie/compute
+data/ @oyatie/data
+flags/ @oyatie/flags
+gateway/ @oyatie/gateway
+iac/ @oyatie/iac
+iam/ @oyatie/iam
+intelligence/ @oyatie/intelligence
+k8s/ @oyatie/k8s
+marketplace/ @oyatie/marketplace
+network/ @oyatie/network
+observability/ @oyatie/observability
+packs/ @oyatie/packs
+pipeline/ @oyatie/pipeline
+secrets/ @oyatie/secrets
+storage/ @oyatie/storage
+tenancy/ @oyatie/tenancy
+app/application/ @oyatie/application
+app/calendar/ @oyatie/calendar
+app/community/ @oyatie/community
+app/foundry/ @oyatie/foundry
+app/hr/ @oyatie/hr
+app/payments/ @oyatie/payments
+app/payroll/ @oyatie/payroll

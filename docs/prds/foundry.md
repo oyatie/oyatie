@@ -17,7 +17,7 @@ adrs_cited:
 doc_status: published
 ---
 
-# `oya-foundry-*` — Internal Engineering Engine PRD
+# `foundry-*` — Internal Engineering Engine PRD
 
 ## Intent
 
@@ -42,7 +42,7 @@ Foundry is the substrate on which M01–M12 milestones depend. Every µservice i
 | `engine-mdbook` | mdbook publishing pipeline | M01-P09 |
 | `engine-openapi` | OpenAPI contract validator | M01-P09 |
 
-Plus `oya-check-*` rule binaries (BNF-exempt) for the 14+ fitness lanes.
+Plus `check-*` rule binaries (BNF-exempt) for the 14+ fitness lanes.
 
 ## Competitive Benchmark
 
@@ -50,9 +50,9 @@ Plus `oya-check-*` rule binaries (BNF-exempt) for the 14+ fitness lanes.
 |---|---|---|
 | Capability registry + autonomy ceiling | LangChain agent gateway, AWS Bedrock Guardrails | Cedar-policy + capability tokens; deterministic-replay execution per Bominal ADR-0107 |
 | Workspace dependency graph + fitness lanes | Bazel (build graph), `cargo-deny` (supply-chain) | cargo + cargo-deny + cargo-semver-checks + 14 LEAN lanes; ADR-0056 inward-only flow CI-enforced |
-| Per-PR architectural fitness checks | ArchUnit (Java), Nx workspace lint | `oya-check-architecture` 9 sub-commands; per-PR BLOCKER post M02-P22 |
+| Per-PR architectural fitness checks | ArchUnit (Java), Nx workspace lint | `check-architecture` 9 sub-commands; per-PR BLOCKER post M02-P22 |
 | Evidence-driven phase progression | OPA + Conftest, Open Policy Framework | Proof Ladder L0→L7 (Bominal ADR-0223 inherited); signed evidence per (tenant, period) |
-| Doc-coverage CI enforcement | (no direct competitor; Read.the.Docs is publish-only) | `oya-check-doc-coverage` LEAN-A5 per ADR-0063 |
+| Doc-coverage CI enforcement | (no direct competitor; Read.the.Docs is publish-only) | `check-doc-coverage` LEAN-A5 per ADR-0063 |
 
 
 ## Performance Targets
@@ -61,9 +61,9 @@ Foundry is on-host CLI tooling and CI infrastructure; targets are latency + reli
 
 | Dimension | Target | Notes |
 |---|---|---|
-| `oya-check-architecture` per-sub-command (workspace ~140 crates) | ≤300s | cargo metadata + AST scan; cached across PR runs |
-| `oya-check-doc-coverage --workspace` | ≤600s | walks `docs/` + pack manifests + milestone dirs |
-| `oya-intelligence-evidence` segment-seal latency | <1s per (tenant, period) | per Bominal ADR-0028 audit-chain target |
+| `check-architecture` per-sub-command (workspace ~140 crates) | ≤300s | cargo metadata + AST scan; cached across PR runs |
+| `check-doc-coverage --workspace` | ≤600s | walks `docs/` + pack manifests + milestone dirs |
+| `intelligence-evidence` segment-seal latency | <1s per (tenant, period) | per Bominal ADR-0028 audit-chain target |
 | Agent autonomy-ceiling validation p99 | ≤50ms | Cedar policy eval per Bominal ADR-0107 |
 | Capability-token mint p99 | ≤100ms | symmetric key-derivation; bound to (agent, capability, ttl) tuple |
 
@@ -74,11 +74,11 @@ Error budget: 0.1% per phase (one fitness lane failure per 1000 PR runs); SLO bu
 
 | Requirement | Status |
 |---|---|
-| Stateless services | ✓ `oya-check-*` (pure functions of repo HEAD) |
+| Stateless services | ✓ `check-*` (pure functions of repo HEAD) |
 | Sharded state | n/a (no Postgres in Foundry kernel) |
 | Event-driven | n/a (Foundry is synchronous CLI tooling; CI dispatch via GitHub Actions only) |
 | Cell architecture | n/a (Foundry runs per-agent; not tenant-bound) |
-| Active-active capable | yes — `oya-check-*` binaries replicate trivially per CI runner |
+| Active-active capable | yes — `check-*` binaries replicate trivially per CI runner |
 | Cross-region replication | n/a (per-agent state) |
 | Auto-scale ready | yes (GitHub Actions runners + per-PR fan-out) |
 
@@ -91,7 +91,7 @@ Cross-region story: not applicable; Foundry is build-time infrastructure, not ru
 ## Architectural posture
 
 - **No customer-facing surface** — Foundry never receives a tenant request; it exists between agents + CI + the codebase
-- **Composition root only** — `oya-intelligence-cli-dev-runtime` is the single binary aggregating Foundry tooling; agents call sub-commands
+- **Composition root only** — `intelligence-cli-dev-runtime` is the single binary aggregating Foundry tooling; agents call sub-commands
 - **Pack-neutral** — Foundry has zero jurisdiction-specific logic; localization packs do NOT extend Foundry (the localization-pack pluggability rule §ADR-0064 §2 does NOT apply to internal-engine µservices)
 
 ## Open dependencies

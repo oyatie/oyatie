@@ -6,12 +6,12 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Valkey Stream EventSink adapter for the cloud-intelligence OAuth subscription pool
+# Valkey Stream EventSink adapter for the intelligence-app OAuth subscription pool
 # (ADR-0384 Path B, Stage-7 D6 production seam).
 #
 # Implements `EventSink` from `intelligence-kernel` by
 # emitting `LlmGatewayEvent` to Valkey Stream
-# `cloud-intelligence-receipts:<tenant>` via XADD.
+# `intelligence-app-receipts:<tenant>` via XADD.
 #
 # ADR citations: ADR-0083, ADR-0105, ADR-0131, ADR-0384.
 

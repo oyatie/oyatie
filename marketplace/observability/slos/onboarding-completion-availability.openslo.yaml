@@ -2,20 +2,20 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-developer-sdk-onboarding-completion-availability
-  displayName: "oya-developer-sdk-onboarding-completion-availability"
+  name: developer-sdk-onboarding-completion-availability
+  displayName: "developer-sdk-onboarding-completion-availability"
   labels:
     microservice: developer-sdk
     bounded_context: developer-onboarding
     tier: external-facing
     plane: data
 spec:
-  service: oya-developer-sdk-onboarding-completion-availability
+  service: developer-sdk-onboarding-completion-availability
   description: |
     99.5% onboarding completion
   indicator:
     metadata:
-      name: oya-developer-sdk-onboarding-completion-availability-sli
+      name: developer-sdk-onboarding-completion-availability-sli
     spec:
       ratioMetric:
         counter: true
@@ -23,12 +23,12 @@ spec:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_onboarding_total{outcome="completed"}[1h])) / sum(rate(oya_developer_sdk_onboarding_total{outcome=~"completed|failed|abandoned"}[1h]))'
+              query: 'sum(rate(developer_sdk_onboarding_total{outcome="completed"}[1h])) / sum(rate(developer_sdk_onboarding_total{outcome=~"completed|failed|abandoned"}[1h]))'
         total:
           metricSource:
             type: prometheus
             spec:
-              query: 'sum(rate(oya_developer_sdk_onboarding_total{outcome="completed"}[1h])) / sum(rate(oya_developer_sdk_onboarding_total{outcome=~"completed|failed|abandoned"}[1h]))'
+              query: 'sum(rate(developer_sdk_onboarding_total{outcome="completed"}[1h])) / sum(rate(developer_sdk_onboarding_total{outcome=~"completed|failed|abandoned"}[1h]))'
   objectives:
     - target: 0.995
       displayName: "0.995 target"
@@ -39,7 +39,7 @@ spec:
   alertPolicies:
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-onboarding-completion-availability-fast-burn-1h
+        name: developer-sdk-onboarding-completion-availability-fast-burn-1h
       spec:
         description: Fast-burn 1h burn-rate 14.4x → page on-call (Sev-2)
         notificationTargets:
@@ -53,7 +53,7 @@ spec:
               alertAfter: 5m
     - kind: AlertPolicy
       metadata:
-        name: oya-developer-sdk-onboarding-completion-availability-slow-burn-6h
+        name: developer-sdk-onboarding-completion-availability-slow-burn-6h
       spec:
         description: Slow-burn 6h burn-rate 6x → ticket (Sev-3)
         notificationTargets:

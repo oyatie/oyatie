@@ -23,7 +23,7 @@
       "score": 100,
       "tier": "catastrophic",
       "owner": "council-privacy",
-      "mitigation": "Data Use Boundary ADR; 6-layer structural enforcement per PRIVACY-PROGRAM \u00a72.2.4; per-class compile-time annotation; singleton oya-platform-ads-gate source; runtime guard at auction boundary"
+      "mitigation": "Data Use Boundary ADR; 6-layer structural enforcement per PRIVACY-PROGRAM \u00a72.2.4; per-class compile-time annotation; singleton platform-ads-gate source; runtime guard at auction boundary"
     },
     {
       "id": "R-002",
@@ -45,7 +45,7 @@
       "score": 75,
       "tier": "catastrophic",
       "owner": "platform-audit-evidence",
-      "mitigation": "Mandatory emission per capability registration; CI gate oya-governance-audit-emit; per-quarter chain-integrity check + replay drill"
+      "mitigation": "Mandatory emission per capability registration; CI gate governance-audit-emit; per-quarter chain-integrity check + replay drill"
     },
     {
       "id": "R-004",
@@ -111,7 +111,7 @@
       "score": 36,
       "tier": "operational",
       "owner": "ops-security+axis-foundry",
-      "mitigation": "License Policy ADR; oya-governance-license CI lane; per-quarter license audit; Vendor-Partner-Ledger"
+      "mitigation": "License Policy ADR; governance-license CI lane; per-quarter license audit; Vendor-Partner-Ledger"
     },
     {
       "id": "R-010",
@@ -188,7 +188,7 @@
       "score": 30,
       "tier": "structural",
       "owner": "axis-foundry",
-      "mitigation": "Top-20 #1 \u2014 runtime gate, not docs; oya-intelligence-policy runtime check on every capability invocation"
+      "mitigation": "Top-20 #1 \u2014 runtime gate, not docs; intelligence-policy runtime check on every capability invocation"
     },
     {
       "id": "R-017",
@@ -221,7 +221,7 @@
       "score": 16,
       "tier": "watching",
       "owner": "council-architecture",
-      "mitigation": "oya-governance-glossary checks for retired terms; banner in PRD \u00a73.1; ADR-0050/0185/0191 explicitly amended"
+      "mitigation": "governance-glossary checks for retired terms; banner in PRD \u00a73.1; ADR-0050/0185/0191 explicitly amended"
     },
     {
       "id": "R-020",
@@ -276,7 +276,7 @@
       "score": 18,
       "tier": "watching",
       "owner": "ops-security",
-      "mitigation": "Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-PR via in-house oya-deps bump-bot"
+      "mitigation": "Trivy 4-layer per ADR-0039; weekly cargo-audit; auto-PR via in-house deps bump-bot"
     }
   ],
   "anti_patterns": [

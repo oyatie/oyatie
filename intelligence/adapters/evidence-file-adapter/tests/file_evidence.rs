@@ -7,9 +7,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 use intelligence_evidence_domain::{EvidenceChain, EvidenceKind};
 use intelligence_evidence_file_adapter::{FileEvidenceChainStore, FileEvidenceStoreError};
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
     privacy_data_classes_from(&data_classes).expect("test fixture uses privacy data classes")
@@ -119,7 +119,7 @@ fn temp_store_path(label: &str) -> PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "oya-evidence-store-{label}-{}-{nanos}.log",
+        "evidence-store-{label}-{}-{nanos}.log",
         std::process::id()
     ))
 }

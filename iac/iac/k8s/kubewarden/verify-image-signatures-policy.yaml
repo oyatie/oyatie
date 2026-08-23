@@ -1,10 +1,10 @@
 apiVersion: policies.kubewarden.io/v1
 kind: ClusterAdmissionPolicy
 metadata:
-  name: oya-verify-signed-images
+  name: verify-signed-images
   labels:
-    app.kubernetes.io/name: oya-verify-signed-images
-    app.kubernetes.io/part-of: oya-cloud-iac
+    app.kubernetes.io/name: verify-signed-images
+    app.kubernetes.io/part-of: iac-app
     oyatie.com/admission-default: kubewarden
     oyatie.com/kyverno-adapter-parity: first-class
   annotations:
@@ -12,7 +12,7 @@ metadata:
     oyatie.com/non-claim: no-cosign-call-no-kubernetes-api-no-admission-execution
 spec:
   module: registry://ghcr.io/kubewarden/policies/verify-image-signatures:v0.3.0
-  policyServer: oya-kubewarden-default
+  policyServer: kubewarden-default
   mutating: true
   rules:
     - apiGroups: [""]

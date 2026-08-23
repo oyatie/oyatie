@@ -33,7 +33,7 @@ use iam_identity_workload_domain::{Action, Effect, Resource, WorkloadId, Workloa
 use iam_identity_workload_oidc::{Jwk, Jwks, ValidationConfig};
 
 const ISSUER: &str = "https://idp.oyatie.com";
-const AUDIENCE: &str = "oya-cloud-kms";
+const AUDIENCE: &str = "cloud-kms";
 const KID: &str = "kid-acceptance-1";
 const NOW: i64 = 1_700_000_000;
 

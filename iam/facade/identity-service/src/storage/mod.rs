@@ -3,7 +3,7 @@
 //! The service composes [`WorkloadPrincipalRepository`] /
 //! [`RevocationDenylist`] PORT implementations. For single-node bring-up the
 //! in-memory reference adapters are seeded from a deployment-mounted JSON
-//! file; the durable store (sqlx over the owned oya-data SQL interface)
+//! file; the durable store (sqlx over the owned data SQL interface)
 //! arrives behind the SAME ports via the G03 persistence lane — this module's
 //! seed format and the server wiring do not change at that cutover.
 

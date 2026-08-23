@@ -1,0 +1,24 @@
+rust_library(
+    name = "iam-tenant-rbac-deployment-evidence",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iam_tenant_rbac_deployment_evidence",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//iam/core/tenant-rbac-deployment-manifest:iam-tenant-rbac-deployment-manifest",
+        "//iam/core/tenant-rbac-tenant-workload-manifest:iam-tenant-rbac-tenant-workload-manifest",
+    ],
+)
+
+rust_test(
+    name = "iam-tenant-rbac-deployment-evidence-deployment-evidence",
+    srcs = ["tests/deployment_evidence.rs"],
+    crate = "iam_tenant_rbac_deployment_evidence_deployment_evidence",
+    crate_root = "tests/deployment_evidence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":iam-tenant-rbac-deployment-evidence",
+        "//iam/core/tenant-rbac-deployment-manifest:iam-tenant-rbac-deployment-manifest",
+        "//iam/core/tenant-rbac-tenant-workload-manifest:iam-tenant-rbac-tenant-workload-manifest",
+    ],
+)

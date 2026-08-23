@@ -97,35 +97,35 @@ the workspace `Cargo.toml` files (`grep -r 'path = "../<crate>"'`).
 
 | # | Current name | Proposed name | Class | Direct consumers | Effort | Risk | Cutover order |
 |---:|---|---|---|---:|:---:|---|---:|
-| 1 | `oya-foundation-app` | `oya-foundation-composition-app` | TOOSHORT | 1 (`oya-tooling-cli-dev-runtime`) | M | low-MED — sole foundation singleton; dep is the dev-runtime CLI; doc cross-refs need update | 8 |
-| 2 | `oya-intelligence-api` | `oya-intelligence-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
-| 3 | `oya-governance-data-class-fitness-kernel` | `oya-governance-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
-| 4 | `oya-governance-raci-team-coverage-kernel` | `oya-governance-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 3 |
-| 5 | `oya-governance-readme-doc-coverage-kernel` | `oya-governance-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 4 |
-| 6 | `oya-intelligence-release-evidence-pack-kernel` | `oya-intelligence-release-pack-kernel` *(evidence is implied by foundry context)* OR `oya-intelligence-evidence-pack-kernel` *(drop `release`; the artifact is the pack)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | MED — pick one; doc cross-refs in `release-management.md` need update | 5 |
-| 7 | `oya-governance-vendor-contract-recency-kernel` | `oya-governance-vendor-recency-kernel` *(contract is implied)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 6 |
-| 8 | `oya-tooling-agent-read` | `oya-tooling-agent-cli-read` *(insert role `cli` before capability `read`)* OR `oya-tooling-agent-read-cli` *(role last)* | NO-ROLE | 0 | S | low — newly-added bin-only crate; not yet imported | 7 |
-| 9 | `oya-tooling-cli-dev-runtime` | `oya-tooling-dev-runtime` *(`cli` and `runtime` are redundant; pick role `runtime`)* OR keep as-is by admitting `cli-dev` as compound | LONG-CAPTAIL | many (workspace dev-binary host) | L | **HIGH** — this is the workspace's primary dev binary (`oya`, `repoctl`); CI scripts, AGENTS.md, docs reference it by name | 9 |
+| 1 | `foundation-app` | `foundation-composition-app` | TOOSHORT | 1 (`tooling-cli-dev-runtime`) | M | low-MED — sole foundation singleton; dep is the dev-runtime CLI; doc cross-refs need update | 8 |
+| 2 | `intelligence-api` | `intelligence-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
+| 3 | `governance-data-class-fitness-kernel` | `governance-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
+| 4 | `governance-raci-team-coverage-kernel` | `governance-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`tooling-cli-dev-runtime`) | S | low | 3 |
+| 5 | `governance-readme-doc-coverage-kernel` | `governance-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`tooling-cli-dev-runtime`) | S | low | 4 |
+| 6 | `intelligence-release-evidence-pack-kernel` | `intelligence-release-pack-kernel` *(evidence is implied by foundry context)* OR `intelligence-evidence-pack-kernel` *(drop `release`; the artifact is the pack)* | LONG-FEATURE | 1 (`tooling-cli-dev-runtime`) | S | MED — pick one; doc cross-refs in `release-management.md` need update | 5 |
+| 7 | `governance-vendor-contract-recency-kernel` | `governance-vendor-recency-kernel` *(contract is implied)* | LONG-FEATURE | 1 (`tooling-cli-dev-runtime`) | S | low | 6 |
+| 8 | `tooling-agent-read` | `tooling-agent-cli-read` *(insert role `cli` before capability `read`)* OR `tooling-agent-read-cli` *(role last)* | NO-ROLE | 0 | S | low — newly-added bin-only crate; not yet imported | 7 |
+| 9 | `tooling-cli-dev-runtime` | `tooling-dev-runtime` *(`cli` and `runtime` are redundant; pick role `runtime`)* OR keep as-is by admitting `cli-dev` as compound | LONG-CAPTAIL | many (workspace dev-binary host) | L | **HIGH** — this is the workspace's primary dev binary (`oya`, `repoctl`); CI scripts, AGENTS.md, docs reference it by name | 9 |
 
-### 2.1 Note on `oya-intelligence-api`
+### 2.1 Note on `intelligence-api`
 
-`oya-intelligence-api` parses as `context=foundry` + (no feature) + role `api`.
+`intelligence-api` parses as `context=foundry` + (no feature) + role `api`.
 Possible re-interpretations:
 
 1. Insert a feature segment naming the bound surface. The crate's
    `[lib]` exposes the foundry policy binding for external consumers
    (foundry policy ↔ cloud / platform contracts). Proposed:
-   `oya-intelligence-policy-binding-api` — but this clashes semantically with
-   the existing `oya-intelligence-policy-api`. The right answer is probably to
-   **merge** the two into `oya-intelligence-policy-api` and retire
-   `oya-intelligence-api`. This adds a **MERGE** row to the plan; flagged for
+   `intelligence-policy-binding-api` — but this clashes semantically with
+   the existing `intelligence-policy-api`. The right answer is probably to
+   **merge** the two into `intelligence-policy-api` and retire
+   `intelligence-api`. This adds a **MERGE** row to the plan; flagged for
    architect review.
 2. If the crate truly has a distinct surface, choose a feature segment
-   that does not clash (e.g. `oya-intelligence-meta-api`).
+   that does not clash (e.g. `intelligence-meta-api`).
 
 Carrying forward as a rename candidate; the merge option is the user's call.
 
-### 2.2 Note on `oya-tooling-cli-dev-runtime`
+### 2.2 Note on `tooling-cli-dev-runtime`
 
 The token sequence parses three ways:
 
@@ -135,7 +135,7 @@ The token sequence parses three ways:
 | B | `cli-dev` (compound) | `runtime` | — | acceptable if `cli-dev` registered as compound; semantically thin |
 | C | `cli` | `runtime` | `dev` | semantically wrong; `dev` describes the *audience* not a capability |
 
-Recommend **rename to `oya-tooling-dev-runtime`** (feature `dev`, role
+Recommend **rename to `tooling-dev-runtime`** (feature `dev`, role
 `runtime`, no capability) since `cli` is redundant with `runtime` for a
 bin-only crate. This is the canonical interpretation per
 `crate-naming-convention.md` §6.1. Effort is L because the crate ships
@@ -146,15 +146,15 @@ scripts will need a coordinated update.
 ## 3. Cutover order — leaves → roots
 
 ```
-1. oya-intelligence-api                         (zero/one consumer; cheapest first)
-2. oya-governance-data-class-fitness-kernel   (1 consumer)
-3. oya-governance-raci-team-coverage-kernel   (1 consumer)
-4. oya-governance-readme-doc-coverage-kernel  (1 consumer)
-5. oya-intelligence-release-evidence-pack-kernel (1 consumer)
-6. oya-governance-vendor-contract-recency-kernel (1 consumer)
-7. oya-tooling-agent-read                  (0 consumers)
-8. oya-foundation-app                      (1 consumer; coordinate with sub-plan B step 9)
-9. oya-tooling-cli-dev-runtime             (top of dep graph; coordinated final cutover)
+1. intelligence-api                         (zero/one consumer; cheapest first)
+2. governance-data-class-fitness-kernel   (1 consumer)
+3. governance-raci-team-coverage-kernel   (1 consumer)
+4. governance-readme-doc-coverage-kernel  (1 consumer)
+5. intelligence-release-evidence-pack-kernel (1 consumer)
+6. governance-vendor-contract-recency-kernel (1 consumer)
+7. tooling-agent-read                  (0 consumers)
+8. foundation-app                      (1 consumer; coordinate with sub-plan B step 9)
+9. tooling-cli-dev-runtime             (top of dep graph; coordinated final cutover)
 ```
 
 Each step's PR MUST: (a) bump the workspace `Cargo.toml` member list,
@@ -177,15 +177,15 @@ manual; not consensus-gated). The script:
    doc-update candidates (does NOT auto-rewrite docs — they need review).
 6. Runs `cargo check --workspace` to verify the rename compiles.
 
-This script SHOULD live in `crates/oya-tooling-dev-runtime/src/bin/`
+This script SHOULD live in `crates/tooling-dev-runtime/src/bin/`
 (after step 9) or temporarily in `tools/cargo-rename-helper.sh`.
 
 ## 5. Risk register
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Step 9 (`oya-tooling-cli-dev-runtime` rename) breaks every CI workflow | M | H | Land in one atomic PR with all `.github/workflows/*.yml` updates; freeze main during the merge |
-| `oya-foundation-app` rename collides with the public crate `foundation-app` (unlikely) on crates.io | L | L | All crates `publish = false`; no namespace collision |
+| Step 9 (`tooling-cli-dev-runtime` rename) breaks every CI workflow | M | H | Land in one atomic PR with all `.github/workflows/*.yml` updates; freeze main during the merge |
+| `foundation-app` rename collides with the public crate `foundation-app` (unlikely) on crates.io | L | L | All crates `publish = false`; no namespace collision |
 | Doc cross-refs forgotten in `MASTERPLAN.md` / `RUNBOOKS-INDEX.md` / `AGENTS.md` | M | M | Lane includes a `rg`-based "no orphaned references" sub-check; sub-plan A registers the names before any rename |
 | Consensus required for step 9 (high-risk leaf) | M | M | Run `/plan --consensus` on step 9 alone before scheduling |
 | Sub-plan A is "approve all 28 compounds without per-feature review" | M | L | The single ADR enumerates each compound + a one-sentence rationale, reviewable by architect |
@@ -201,7 +201,7 @@ This script SHOULD live in `crates/oya-tooling-dev-runtime/src/bin/`
    step or one rolled-up PR). The cargo-rename-helper script lands first
    if multiple authors will run renames.
 4. **Fourth**: open the consensus loop on Sub-plan B step 9 (the
-   `oya-tooling-cli-dev-runtime` rename). Coordinate with CI freeze.
+   `tooling-cli-dev-runtime` rename). Coordinate with CI freeze.
 5. **Fifth**: turn the lane from advisory to **BLOCKER** once RED = 0
    and AMBER-metadata has a per-crate `[package.metadata.oya]` block
    landed across the workspace.

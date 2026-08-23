@@ -37,7 +37,7 @@ spec:
 Implemented via the canonical helper:
 
 ```yaml
-{{- include "oya.gracefulShutdown" $ | nindent 6 }}
+{{- include "oyatie.gracefulShutdown" $ | nindent 6 }}
 ```
 
 ### 2. SIGTERM handler discipline
@@ -66,7 +66,7 @@ lifecycle:
       command: ["/bin/sh", "-c", "sleep 5"]
 ```
 
-Provided by the canonical helper `oya.preStopHook.gracefulDelay`.
+Provided by the canonical helper `oyatie.preStopHook.gracefulDelay`.
 
 ### 4. PodDisruptionBudget interaction
 
@@ -77,8 +77,8 @@ whichever applies.
 
 ### 5. Validation
 
-The canonical helper `oya.gracefulShutdown` is enforced by
-`oya-check-statelessness` (existing) — non-stateless components are
+The canonical helper `oyatie.gracefulShutdown` is enforced by
+`check-statelessness` (existing) — non-stateless components are
 flagged. New µservices MUST use the helper.
 
 ## References

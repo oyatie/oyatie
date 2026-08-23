@@ -5,7 +5,7 @@
 
 use std::collections::BTreeMap;
 
-pub use oya_application_app::{
+pub use application_app::{
     CapabilityInvocationPrincipal, CapabilityInvocationRequest, Foundation, FoundationError,
     InvocationReceipt,
 };
@@ -477,7 +477,7 @@ fn foundation_error_status(error: &FoundationError) -> CapabilityInvokeApiStatus
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_application_app::{AutonomyTier, Purpose, SubjectClass};
+    use application_app::{AutonomyTier, Purpose, SubjectClass};
 
     fn fingerprint_request() -> CapabilityInvokeApiRequest {
         CapabilityInvokeApiRequest {

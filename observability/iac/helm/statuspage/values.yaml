@@ -1,17 +1,17 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Skeleton values authored 2026-05-18 per ADR-0168.
 # Full values tracked under registry/placeholder-debt/adr-follow-ups.yaml
 # #adr-0168-statuspage-helm-impl.
 
 statuspage:
-  domain: "status.oya.dev"
+  domain: "status.oyatie.dev"
   perPackSubdomains:
-    - "status.kr.oya.dev"
-    - "status.eu.oya.dev"
+    - "status.kr.oyatie.dev"
+    - "status.eu.oyatie.dev"
   cellAffinity: "cell-statuspage"  # per ADR-0009 cell isolation
   replicas: 3                       # HA at 99.99% per ADR-0168 §"Operational"
   sloSource:
-    mimirRemoteReadUrl: "http://oya-observability-mimir.observability.svc:9009/prometheus"
+    mimirRemoteReadUrl: "http://observability-mimir.observability.svc:9009/prometheus"
     pollIntervalSeconds: 15
   incidentSource:
     eventStream: "incident.timeline.updated"  # via ADR-0005 outbox
@@ -20,10 +20,10 @@ statuspage:
   subscribers:
     email:
       enabled: true
-      smtpUpstream: "oya-mail-outbound.mail.svc:587"
+      smtpUpstream: "mail-outbound.mail.svc:587"
     webhook:
       enabled: true
-      deliveryKernel: "oya-shared-webhook-delivery-kernel"  # per ADR-0169
+      deliveryKernel: "shared-webhook-delivery-kernel"  # per ADR-0169
     rss:
       enabled: true
   cdn:

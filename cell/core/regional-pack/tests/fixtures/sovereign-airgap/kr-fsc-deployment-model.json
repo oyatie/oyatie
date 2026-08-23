@@ -30,9 +30,9 @@
   },
   "artifact_bundle": {
     "format": "oab",
-    "bundle_ref": "evidence/sovereign-airgap/kr-fsc/oya-kr-fsc-airgap-20260709.oab",
+    "bundle_ref": "evidence/sovereign-airgap/kr-fsc/kr-fsc-airgap-20260709.oab",
     "digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-    "signature_ref": "evidence/sovereign-airgap/kr-fsc/oya-kr-fsc-airgap-20260709.oab.sig",
+    "signature_ref": "evidence/sovereign-airgap/kr-fsc/kr-fsc-airgap-20260709.oab.sig",
     "signature_profile": "cosign-offline-key",
     "signing_status": "fixture_signed_reference"
   },

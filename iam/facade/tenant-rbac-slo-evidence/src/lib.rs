@@ -139,10 +139,10 @@ pub fn tenant_rbac_slo_evidence_plan() -> TenantRbacSloEvidencePlan {
                 evidence_ref: "evidence/slo/tenant-rbac/audit-emission-lag-p99.jsonl",
             },
             TenantRbacSloObjective {
-                name: "tenant-rbac-cloud-readiness-gate-correctness",
+                name: "tenant-rbac-readiness-gate-correctness",
                 kind: TenantRbacSloKind::Correctness,
-                user_journey: "tenant-rbac-cloud-readiness-release-gate",
-                openslo_manifest_path: "microservices/tenant-rbac/slos/tenant-rbac-cloud-readiness-gate-correctness.openslo.yaml",
+                user_journey: "tenant-rbac-readiness-release-gate",
+                openslo_manifest_path: "microservices/tenant-rbac/slos/tenant-rbac-readiness-gate-correctness.openslo.yaml",
                 sli_metric_name: "tenant_rbac.cloud_readiness.gate.result",
                 target_bps: 9_999,
                 threshold_millis: None,

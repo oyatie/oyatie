@@ -1,4 +1,4 @@
-//! oya-authn-device-firmware — authenticator-side WebAuthn firmware stub.
+//! authn-device-firmware — authenticator-side WebAuthn firmware stub.
 //!
 //! Phase-1 reference per ADR-0508: wraps Google's OpenSK (vendored at
 //! `tools/opensk-vendored/`). Phase-2+ replaces OpenSK with bespoke

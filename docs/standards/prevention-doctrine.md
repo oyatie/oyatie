@@ -44,7 +44,7 @@ Per [INCIDENT-MANAGEMENT.md §3.6](../INCIDENT-MANAGEMENT.md):
 | Git hooks (pre-commit / pre-push) | `scripts/hooks/pre-commit-license.sh`, `scripts/hooks/pre-commit-arch-boundary.sh`, `.git/hooks/pre-push` |
 | Claude Code / Codex / Gemini hooks | `.claude/hooks/pre-tool-use-foundry-evidence.sh`, `.claude/hooks/post-tool-use-cohesion.sh` |
 | CI lanes (`.github/workflows/`) | per-PR + nightly per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md) |
-| Foundry fitness functions | `oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius, glossary, adr-citation, ...}` |
+| Foundry fitness functions | `governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius, glossary, adr-citation, ...}` |
 | Schema validators | proto / OpenAPI / AsyncAPI / capability-record / catalog-record / regional-pack |
 | Runtime gates | Cedar policy + per-capability autonomy ceiling + per-class data boundary |
 | Catalog-driven | per-crate / per-capability / per-pack records that machine-validate |
@@ -64,18 +64,18 @@ When a mistake surfaces (incident, audit finding, customer report, drift discove
 ## 6. Prevention as a Foundry capability
 
 Per [DESIGN §3](../DESIGN.md) Foundry-as-accelerator:
-- `oya.prevention.draft-from-incident` — Foundry capability that proposes a mechanical prevention from an incident postmortem
-- `oya.prevention.verify-coverage` — runs the proposed prevention against the original failure mode (or replay trace)
-- `oya.prevention.ship` — opens PR with the prevention + mistakes-and-fixes-ledger row
+- `oyatie.prevention.draft-from-incident` — Foundry capability that proposes a mechanical prevention from an incident postmortem
+- `oyatie.prevention.verify-coverage` — runs the proposed prevention against the original failure mode (or replay trace)
+- `oyatie.prevention.ship` — opens PR with the prevention + mistakes-and-fixes-ledger row
 
 ## 7. Long-running prevention areas
 
-- License drift → `oya-governance-license` (per ADR-0013)
-- Data-class annotation gap → `oya-governance-data-class` (per ADR-0008)
-- Cross-axis contract drift → `oya-governance-cohesion` (per ADR-0011)
-- Brand residue (deprecated aliases or tautological brand transitions) → `oya-governance-brand-residue` (per ADR-0017 / MFL-0011)
-- Legacy ADR citation in active docs → `oya-governance-adr-citation`
-- Glossary term drift → `oya-governance-glossary`
+- License drift → `governance-license` (per ADR-0013)
+- Data-class annotation gap → `governance-data-class` (per ADR-0008)
+- Cross-axis contract drift → `governance-cohesion` (per ADR-0011)
+- Brand residue (deprecated aliases or tautological brand transitions) → `governance-brand-residue` (per ADR-0017 / MFL-0011)
+- Legacy ADR citation in active docs → `governance-adr-citation`
+- Glossary term drift → `governance-glossary`
 - Forward-reference (markdown link to path not on origin/main) → `pre-commit-forward-ref.sh`
 - YAML date integrity (unquoted dates) → `pre-commit-yaml-date.sh`
 - Worktree leakage / branch-name collision → spawn-time check

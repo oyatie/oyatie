@@ -11,7 +11,7 @@ Own the Oyatie Workspace / Productivity Platform (Axis 2): Mail, Calendar, Docs,
 - Axis: `workspace` (axis 2 of 7)
 - Surfaces: [`products/workspace/PRD.md`](../../products/workspace/PRD.md) — Mail, Calendar, Docs, Sheets, Slides, Drive, Meet, Chat, Forms, Sites, Tasks, Notes, Translate, Recordings, Address Book
 - Cross-axis contracts: `WORKSPACE_TENANT_AND_IDENTITY` (consumed from SaaS); `WORKSPACE_KMS_SHRED` (Cloud); `WORKSPACE_SEARCH_BOUNDARY` (Search; consent-gated); `WORKSPACE_FOUNDRY_CAPABILITIES` (Foundry — compose/triage/schedule/transcribe/summarize); `WORKSPACE_REGIONAL_PACK_SEAMS` (per-region mail-security, holiday calendar, language pack, e-invoicing tax format)
-- Catalog records: `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings,address-book}-*`
+- Catalog records: `crates/workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings,address-book}-*`
 - Runbooks: mail deliverability incident; doc CRDT divergence recovery; drive object integrity check; meet SFU failover; recording archiver
 - ADRs: Workspace-axis ADR cluster needed (TBD): Mail server choice, CRDT engine choice (Yrs picked), Meet SFU choice (in-house picked), DLP engine, e-discovery policy
 
@@ -91,9 +91,9 @@ Own the Oyatie Workspace / Productivity Platform (Axis 2): Mail, Calendar, Docs,
 
 ## Operating norms
 - Per-surface sub-team owns its Cargo crate family
-- All surfaces share the `oya-workspace-shared-kernel` for `WorkspaceTenantBinding`, `PermissionSet`, `RetentionPolicy`
+- All surfaces share the `workspace-shared-kernel` for `WorkspaceTenantBinding`, `PermissionSet`, `RetentionPolicy`
 - Mandatory: every new surface ships with a DLP rule set + per-class allowlist before going to preview
-- Pre-push: `oya verify` + `oya gate validate workspace`
+- Pre-push: retired `./bin/oya verify` + `presubmit` (retired CLI `gate validate workspace`)
 - ADR proposal cadence: monthly batch
 
 ## Slice of risk register

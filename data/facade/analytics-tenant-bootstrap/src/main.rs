@@ -11,7 +11,7 @@
 #![forbid(unsafe_code)]
 
 use data_analytics_tenant_bootstrap::TenantBootstrapController;
-use oya_shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
+use shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
 
 fn main() {
     tracing_subscriber::fmt().json().init();

@@ -1,13 +1,13 @@
 # Spec: intel-capability-status-lifecycle-guard
 
 **Vertical:** intelligence
-**Crate:** `oya-intelligence-capability-registry-kernel`
+**Crate:** `intelligence-capability-registry-kernel`
 **Task branch:** `feat/task-intel-capability-status-lifecycle-guard-2026-05-28`
 **Stage:** SPEC
 
 ## Objective
 
-Extend the pure-value capability-registry kernel (`oya-intelligence-capability-registry-kernel`) with:
+Extend the pure-value capability-registry kernel (`intelligence-capability-registry-kernel`) with:
 
 1. A **status lifecycle transition guard** — a method on `CapabilityStatus` returning `Result<CapabilityStatus, CapabilityStatusTransitionError>` that encodes legal lifecycle edges and rejects illegal or same-state transitions.
 2. A **registry-view helper** — a pure function that partitions an iterator of `(CapabilityId, CapabilityStatus)` pairs into discoverable and invocable subsets using the existing `is_discoverable` / `is_invocable` predicates, with deterministic ordering via `BTreeMap`.

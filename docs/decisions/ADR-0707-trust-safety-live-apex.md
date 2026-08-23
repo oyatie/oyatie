@@ -19,7 +19,7 @@ deliverables:
   - id: ADR-0707-D1
     description: "Live apex source-of-truth for topic trust_safety: Live trust, safety, and resilience substrate doctrines."
     exit_criteria: "docs/decisions/ADR-0707-trust-safety-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
 ---
 # ADR-0707: Live trust, safety, and resilience substrate doctrines
 

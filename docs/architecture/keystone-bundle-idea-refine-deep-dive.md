@@ -2284,7 +2284,7 @@ F-ANTI-7)
 **Implementation**:
 - OTel semantic-conventions log envelope as canonical.
 - W3C Trace Context propagation locked.
-- Per-language emission library (`oya-observability-rs`) embeds the
+- Per-language emission library (`observability-rs`) embeds the
   contract.
 - Mandatory attribute list per emission.
 **Placement**: ADR-0263 + library.

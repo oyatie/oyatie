@@ -2,7 +2,7 @@
 # As of the P0.0 gap packet, live GitHub dev protection does not reflect
 # this file exactly; drift is recorded in
 # specs/phase0-ci-enforcement-baseline.json. This file is not Phase-0
-# exit authority until a trusted cloud-ci/oya-ci required context is live.
+# exit authority until a trusted presubmit required context is live.
 #
 # Pipeline topology (per feedback_branch_pipeline_final_final,
 # 2026-05-12):
@@ -39,25 +39,25 @@ branches:
     require_signed_commits: true
     require_signed_tags: true
     # Target reviews are agent-run and fully automated. The repo now carries a
-    # fail-closed `oya-pr-review` GitHub API adapter contract that binds PR,
+    # fail-closed `pr-review` GitHub API adapter contract that binds PR,
     # head SHA, author, designated eligible reviewer, APPROVED verdict, and
     # durable review URL without trusting PR-body text. It is not deployed or wired into the
-    # single `oya-ci-required` fan-in yet, so it remains a non-live target.
+    # single `presubmit` fan-in yet, so it remains a non-live target.
     # REVIEW-ADMISSION-GAP-LIVE-BOUNDARY: F-PR5-06 remains open. PR #964
-    # merged with green `oya-ci-required`, empty reviewDecision, and only an
+    # merged with green `presubmit`, empty reviewDecision, and only an
     # owner COMMENTED review, proving review admission is target-only here.
     required_approving_reviews: 0
     # P0.0 local target: one required context posted by trusted
-    # cloud-ci/oya-ci control state. This file is not a live-enforcement
-    # claim until the ruleset is applied and oya-ci-controller posts the
-    # candidate-SHA status. Legacy cargo/* and oya-verify lanes are feedback
+    # presubmit control state. This file is not a live-enforcement
+    # claim until the ruleset is applied and ci-controller posts the
+    # candidate-SHA status. Legacy cargo/* and verify lanes are feedback
     # only, not protected-branch merge or Phase-0 exit authority.
-    # NOTE: oya-pr-review is intentionally ABSENT from required checks. Once
+    # NOTE: pr-review is intentionally ABSENT from required checks. Once
     # controller deployment, trusted credentials, fan-in wiring, and live API
     # readback are complete, it must feed this one context rather than become a
     # competing protected merge authority.
     required_status_checks:
-      - oya-ci-required
+      - presubmit
 
   staging:
     # Auto-promoted from dev by the promote-dev-to-staging pipeline

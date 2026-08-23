@@ -127,8 +127,8 @@ following reasons:
 2. Every µservice scope is bounded by a `tier:` and `tier_subtype:`
    classification per ADR-0245 §D-3, and the dependency direction is
    declared explicitly in §D-4 of ADR-0245.
-3. Every gate has a named validator (e.g., `oya gate validate cedar-
-   coverage`, `oya gate validate shuffle-sharding-parameters`), and
+3. Every gate has a named validator (e.g., `presubmit` (retired CLI `gate validate cedar-
+   coverage`), `presubmit` (retired CLI `gate validate shuffle-sharding-parameters`)), and
    every validator is wired to an `enforcement_status` that promotes
    from advisory to BLOCKER on a documented bootstrap precondition.
 4. The user-story compendia explicitly carry the "intern-buildable
@@ -570,7 +570,7 @@ from advisory to BLOCKER:
 - `microservices/identity/` (per ADR-0242)
 - `microservices/policy-engine/` (per ADR-0246, ADR-0243)
 - `microservices/audit-chain/` (per ADR-0242)
-- Cell pattern successor owners: tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/oya-shuffle-sharding` (per ADR-0248 and ADR-0333)
+- Cell pattern successor owners: tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/shuffle-sharding` (per ADR-0248 and ADR-0333)
 
 An intern starting from a fresh checkout has no guidance on which
 five µservices to scaffold first, in what order, with what initial
@@ -595,7 +595,7 @@ Content shape:
   per-stream sealed audit log
 - §6 Step 5 — Wire the ADR-0333 cell pattern successors with the bootstrap
   cell self-retirement procedure
-- §7 Verification — `oya gate validate` commands per step
+- §7 Verification — `presubmit` (retired CLI `gate validate`) commands per step
 - §8 Done-criteria — green CI on a clean checkout
 
 **Owner.** axis-tenancy + axis-identity + axis-policy-engine + axis-
@@ -668,7 +668,7 @@ Content shape:
   - "What does the wire look like?" → ADR-0253 §D-5 HTTP/3 +
     voice-video standard
 - §3 Step-by-step build narrative (1 working day of implementation)
-- §4 Verification — `oya gate validate` commands
+- §4 Verification — `presubmit` (retired CLI `gate validate`) commands
 
 **Owner.** council-architecture; estimated 1 day of writing.
 
@@ -687,7 +687,7 @@ classification of µservice X matches X's PRD's self-declared tier.
 silently break the substrate-vs-product invariant.
 
 **Where remediation belongs.** Add a CI gate
-`oya-check-microservice-tier-coherence` that walks every PRD's
+`check-microservice-tier-coherence` that walks every PRD's
 `tier:` declaration and verifies it matches ADR-0245 §D-3's row.
 
 **Owner.** axis-foundry + axis-governance; estimated 1 day of
@@ -734,7 +734,7 @@ exemplar (e.g., Apple-Pay-class US 50-state rollout).
 estimated 2 days of authoring.
 
 **Acceptance criterion.** ADR-0250's `enforced_by:` lane
-`oya gate validate capability-launch-runbook-completeness` returns
+`presubmit` (retired CLI `gate validate capability-launch-runbook-completeness`) returns
 exit 0 for at least one capability.
 
 ---
@@ -922,7 +922,7 @@ remediation PR.
 | Agent-A3 | onboarding-author | Author `docs/onboarding/intern-day-one.md` per gap #3. |
 | Agent-A4 | placeholder-signposter | For each `placeholder` occurrence in ADR-0249, add a citation to ADR-0250. |
 | Agent-A5 | walkthrough-author | Author `docs/architecture/keystone-bundle-intern-walkthrough.md` per gap #5. |
-| Agent-A6 | tier-coherence-author | Author CI gate `oya-check-microservice-tier-coherence` per gap #6. |
+| Agent-A6 | tier-coherence-author | Author CI gate `check-microservice-tier-coherence` per gap #6. |
 | Agent-A7 | cedar-validator | Extract every Cedar fragment in the bundle into a test corpus + CI lane per gap #7. |
 | Agent-A8 | launch-runbook-author | Author the `capability-launch-runbook-template.md` + Apple-Pay-class exemplar per gap #8. |
 
@@ -1575,7 +1575,7 @@ For a deeper validation, dispatch a follow-up wave that:
    ADR-0246 §D-7, ADR-0249 §D-3, ADR-0251 §D-4, etc.
 5. Walks every cross-reference in every `related:` block and
    verifies file-existence + reciprocal back-reference.
-6. Runs `oya gate validate <each enforced_by lane name>` to check
+6. Runs `presubmit` (retired CLI `gate validate <each enforced_by lane name>`) to check
    that the named lanes exist as code in `microservices/governance/`.
 
 The next-pass workload is roughly 4-6 hours of agent dispatch +

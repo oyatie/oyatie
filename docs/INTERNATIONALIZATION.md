@@ -36,7 +36,7 @@ Per [DOCUMENTATION.md §8](DOCUMENTATION.md):
 
 ## 3. Currency + tax engines
 
-- Multi-currency at the platform tenancy kernel (`oya-platform-tenant-kernel.billing_account.currency`)
+- Multi-currency at the platform tenancy kernel (`platform-tenant-kernel.billing_account.currency`)
 - Per-region tax-engine adapter via [DESIGN §12.2 seam](DESIGN.md): KR NTS, JP NTA, US per-state, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA, UAE FTA
 - FX rate: per-day from Bank of Korea / FRBK / ECB / Reserve Bank of India; per-pack source
 

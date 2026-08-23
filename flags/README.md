@@ -15,7 +15,7 @@ companion_docs:
   - microservices/feature-flags/ARCHITECTURE.md
   - microservices/feature-flags/PRD.md
   - microservices/feature-flags/manifest.json
-planned_enforcement_ref: oya-governance-microservice-doc-set
+planned_enforcement_ref: governance-microservice-doc-set
 ---
 
 # feature-flags
@@ -29,7 +29,7 @@ Hyperscaler precedents: LaunchDarkly relay-proxy model, Statsig server-side eval
 | Question | Answer |
 |---|---|
 | What does it do? | Runtime flag evaluation + experiment design + kill-switch with per-tenant Cedar targeting |
-| Who calls it? | Every µservice via `oya-feature-flags-sdk`; SDKs in Rust, TypeScript, Python |
+| Who calls it? | Every µservice via `feature-flags-sdk`; SDKs in Rust, TypeScript, Python |
 | Latency target | ≤1ms p99 (cell-local evaluation) |
 | Availability target | ≥99.99% |
 | Service role | **Substrate** — consumed by all 46+ µservices |
@@ -68,7 +68,7 @@ microservices/feature-flags/
 │   ├── killswitch-trigger.yaml
 │   └── pack-overlay-subscribe.yaml
 ├── catalog/
-│   └── oya-feature-flags-{bc}-{layer}.yaml  (≥11 records)
+│   └── feature-flags-{bc}-{layer}.yaml  (≥11 records)
 ├── contracts/
 │   ├── openapi-v1.yaml           — OpenAPI 3.2.0; OpenFeature-compatible
 │   ├── asyncapi-v1.yaml          — AsyncAPI 3.1.0; flag-state-changed events
@@ -133,8 +133,8 @@ microservices/feature-flags/
 ## How to call the SDK (Rust)
 
 ```rust
-// Cargo.toml: oya-feature-flags-sdk = { workspace = true }
-use oya_feature_flags_sdk::{FlagClient, EvaluationContext};
+// Cargo.toml: feature-flags-sdk = { workspace = true }
+use feature_flags_sdk::{FlagClient, EvaluationContext};
 
 let client = FlagClient::new(config).await?;
 let ctx = EvaluationContext::builder()
@@ -170,24 +170,20 @@ curl -X POST https://feature-flags.internal/api/v1/flags \
 
 See `runbooks/killswitch-engaged.md` for full procedure. CLI shortcut:
 
-```bash
-# Step-up auth required (Class C: TOTP + passkey)
-oya flags kill-switch engage dark-mode-v2 \
-  --reason "regression in dark-mode rendering on mobile" \
-  --step-up-token $STEP_UP_TOKEN
-# KillSwitchEngaged audit event emitted; all cells updated ≤1s
-```
+The `bin/oya` flags CLI is retired; engage kill-switches through the console + API
+(step-up auth Class C: TOTP + passkey). A `KillSwitchEngaged` audit event is emitted;
+all cells update in ≤1s.
 
 ## CI lanes
 
 | Lane | Purpose | Gate |
 |---|---|---|
-| `oya-governance-adr-adherence-matrix` | 28-row ADR adherence check | Advisory → BLOCKER 2026-07-16 |
-| `oya-governance-pack-overlay-coverage` | Verifies all active packs have declared overrides | Advisory |
-| `oya-governance-microservice-doc-set` | Artifact count ≥70 | Advisory → BLOCKER 2026-07-16 |
-| `oya-governance-abuse-defence-ux-floor` | Default-path latency budget | Advisory |
-| `oya-governance-emergency-services-chaos-test` | Quarterly chaos test | Advisory |
-| `oya-governance-detection-fairness-audit` | Quarterly experiment fairness | Advisory |
+| `governance-adr-adherence-matrix` | 28-row ADR adherence check | Advisory → BLOCKER 2026-07-16 |
+| `governance-pack-overlay-coverage` | Verifies all active packs have declared overrides | Advisory |
+| `governance-microservice-doc-set` | Artifact count ≥70 | Advisory → BLOCKER 2026-07-16 |
+| `governance-abuse-defence-ux-floor` | Default-path latency budget | Advisory |
+| `governance-emergency-services-chaos-test` | Quarterly chaos test | Advisory |
+| `governance-detection-fairness-audit` | Quarterly experiment fairness | Advisory |
 
 ## Key ADRs
 
@@ -203,7 +199,7 @@ Runbook index: `runbooks/`. PagerDuty service: `feature-flags-sre`. Escalation: 
 
 ## Doctrine references
 
-- [ADR-0346](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- [ADR-0347](../../docs/decisions/ADR-0709-general-live-apex.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-- [ADR-0348](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- [ADR-0349](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- [ADR-0346](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): the retired `./bin/oya verify --ci-required` path is historical/provenance-only; merge authority is the `presubmit` context. Enforced by `governance-verify-ci-mirror-coverage`, `governance-verify-ci-step-exit-semantics`, `governance-verify-skip-flag-allowlist`, `governance-submit-calls-verify`, and `governance-verify-exit-code-contract`.
+- [ADR-0347](../../docs/decisions/ADR-0709-general-live-apex.md): Every `governance-*` CI lane prefix RENAMES to `governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `governance-no-foundry-fitness-residue`, `governance-lane-prefix-vocabulary`, and `governance-rename-inventory-presence`.
+- [ADR-0348](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `governance-sharding-automation-coverage`, `governance-autosharding-manual-mode-refusal`, `governance-auto-rebalance-residency-honored`, `governance-dynamic-sharding-threshold-coverage`, `governance-audit-chain-emit-on-automation-events`, and `governance-tenant-migration-reversibility`.
+- [ADR-0349](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `governance-jenkins-github-actions-parity`, `governance-argocd-application-cosign-verified`, `governance-argocd-tenant-namespace-isolation`, `governance-jenkins-jcasc-only`, and `governance-deploy-audit-chain-emit`.

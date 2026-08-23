@@ -9,7 +9,7 @@ byte-for-byte. Pure deterministic domain logic; zero I/O; no new crate dependenc
 
 ## Crate boundary
 
-Only `oya-ontology-query-engine-domain` (`crates/oya-ontology-query-engine-domain/`) is
+Only `ontology-query-engine-domain` (`crates/ontology-query-engine-domain/`) is
 modified. No workspace Cargo.toml changes.
 
 ## Mod layout (flat clean-arch per ADR-0509)

@@ -2,7 +2,7 @@
 
 **Vertical**: messenger
 **Task slug**: `messenger-domain-reaction-kernel`
-**Crate**: `oya-messenger-domain` (`crates/oya-messenger-domain`)
+**Crate**: `messenger-domain` (`crates/messenger-domain`)
 **Module**: `src/reaction.rs` (new file, re-exported from `lib.rs`)
 **Stage created**: SPEC
 **Date**: 2026-05-28
@@ -11,7 +11,7 @@
 
 ## Objective
 
-Extend the `oya-messenger-domain` crate with a fail-closed message-reaction kernel. The kernel owns
+Extend the `messenger-domain` crate with a fail-closed message-reaction kernel. The kernel owns
 the typed `MessageReaction` record, constructor validation invariants, Classified data-class tagging,
 and a per-message dedup invariant (`ReactionSet`). No I/O, no REST, no usecase or adapter dependencies.
 
@@ -21,20 +21,20 @@ and a per-message dedup invariant (`ReactionSet`). No I/O, no REST, no usecase o
 
 | Layer | Crate / location |
 |-------|-----------------|
-| Domain kernel (this task) | `crates/oya-messenger-domain/src/reaction.rs` |
-| Usecase (future) | `crates/oya-messenger-message-stream-usecase` (out of scope) |
+| Domain kernel (this task) | `crates/messenger-domain/src/reaction.rs` |
+| Usecase (future) | `crates/messenger-message-stream-usecase` (out of scope) |
 | REST adapter (future) | messenger REST crate (out of scope) |
-| Persistence adapter (future) | `crates/oya-messenger-message-stream-adapter-postgres` (out of scope) |
+| Persistence adapter (future) | `crates/messenger-message-stream-adapter-postgres` (out of scope) |
 
-The reaction kernel is a pure domain module. It imports only `oya-data-boundary-kernel`
-(already a declared dependency of `oya-messenger-domain`) and `std`.
+The reaction kernel is a pure domain module. It imports only `data-boundary-kernel`
+(already a declared dependency of `messenger-domain`) and `std`.
 
 ---
 
 ## Module Layout (flat clean-arch, ADR-0509)
 
 ```
-crates/oya-messenger-domain/
+crates/messenger-domain/
   src/
     lib.rs            ← adds `pub mod reaction;` + `pub use reaction::*;`
     delivery_class.rs ← unchanged
@@ -122,7 +122,7 @@ consistent with `validate_bot_principal` in `lib.rs`.
 
 ## Data-Class Tagging
 
-Consistent with existing kernel (ADR-0083, oya-data-boundary-kernel):
+Consistent with existing kernel (ADR-0083, data-boundary-kernel):
 
 | Field | `DataClass` / `PrivacyDataClass` | Helper |
 |-------|----------------------------------|--------|
@@ -187,7 +187,7 @@ Pattern matches sibling modules (`lib.rs`, `delivery_class.rs`, `governance.rs`)
 
 ## Boundaries
 
-- This task ONLY touches `crates/oya-messenger-domain/src/` and these two docs files.
+- This task ONLY touches `crates/messenger-domain/src/` and these two docs files.
 - Root `Cargo.toml` is untouched; no new workspace member.
 - No changes to `delivery_class.rs` or `governance.rs`.
 - No changes to any other crate.

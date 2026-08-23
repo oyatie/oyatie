@@ -44,4 +44,4 @@ One NativeLink + one store serves **linux/amd64** (GHA writers), **linux/arm64**
 
 ## Sibling track
 
-ARC `oya-arm64` retirement is **not** this runbook — Phase B of the laptop-CAS plan owns teardown. Do not delete ARC from this lab bring-up.
+ARC `arm64` retirement is **not** this runbook — Phase B of the laptop-CAS plan owns teardown. Do not delete ARC from this lab bring-up.

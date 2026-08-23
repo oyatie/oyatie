@@ -38,7 +38,7 @@ doc_status: published
 | AIS-031 Off-by-one | D33 (mutation) | `cargo-mutants` not adopted | OPEN (H) |
 | AIS-032 Null-deref on input | D14 + D32 | partial | OPEN (H) |
 | AIS-040 IO in kernel crate | D01..D04 + kernel-purity | flat-crates lane partial | OPEN (H) |
-| AIS-041 Provider-specific in kernel | D04 | `oya-governance-provider-coupling` | CLOSED |
+| AIS-041 Provider-specific in kernel | D04 | `governance-provider-coupling` | CLOSED |
 | AIS-042 Logic in adapter | D04 | partial (inverse rule pending) | OPEN (M) |
 | AIS-050 Deprecated Rust idiom | D31 | clippy `-D warnings` | CLOSED |
 | AIS-051 Stale K8s API | D26 | no lane today | OPEN (M) |
@@ -48,7 +48,7 @@ doc_status: published
 | AIS-070 SQLi / shell-injection | D17 | no semgrep lane today | **OPEN (C)** |
 | AIS-071 Hardcoded secret | D15 + D17 | gitleaks not adopted | **OPEN (C)** |
 | AIS-072 Weak randomness | D14 + D17 | no clippy `disallowed_methods` config | OPEN (H) |
-| AIS-073 AGPL/GPL trap | D27 | `oya-governance-license` | CLOSED |
+| AIS-073 AGPL/GPL trap | D27 | `governance-license` | CLOSED |
 | AIS-074 Hidden-Unicode injection | D14 + D38 | no lane today | **OPEN (C)** |
 | AIS-080 Orphan tokio::spawn | D09 | no lane today | OPEN (H) |
 | AIS-081 Cancel-unsafe future | D08 | no lane today | **OPEN (C)** |
@@ -61,17 +61,17 @@ doc_status: published
 | AIS-102 Snapshot-on-broken | D34 | `insta` not adopted | OPEN (M) |
 | AIS-110 Lying docstring | D36 | `cargo doc` enforced — partial (doctests not always run) | OPEN (M) |
 | AIS-111 Fabricated example | D36 | same | OPEN (M) |
-| AIS-112 Architecture-map drift | D36 | `oya-governance-architecture-map-freshness` | CLOSED |
+| AIS-112 Architecture-map drift | D36 | `governance-architecture-map-freshness` | CLOSED |
 | AIS-120 Workspace version skew | D26 | partial via Cargo.lock | OPEN (M) |
 | AIS-121 Feature-flag mismatch | D26 | partial | OPEN (M) |
 | AIS-122 Transitive license violation | D27 | `cargo-deny` | CLOSED |
 | AIS-130 Missing tracing span | D18 | partial | OPEN (M) |
 | AIS-131 Missing metric | D19 | no lane today | OPEN (M) |
-| AIS-132 Missing audit emit | D21 | `oya-governance-audit-emission` | CLOSED |
-| AIS-140 Irreversible schema change | D22 + D23 | `oya-governance-schema-migration` | CLOSED (extend to rollback) |
+| AIS-132 Missing audit emit | D21 | `governance-audit-emission` | CLOSED |
+| AIS-140 Irreversible schema change | D22 + D23 | `governance-schema-migration` | CLOSED (extend to rollback) |
 | AIS-141 Global rollout | D24 | no per-tenant lane today | **OPEN (C)** |
-| AIS-150 PII in logs | D20 | `oya-governance-data-class` | CLOSED |
-| AIS-151 Missing consent check | D16 | `oya-governance-capability-publish` | CLOSED |
+| AIS-150 PII in logs | D20 | `governance-data-class` | CLOSED |
+| AIS-151 Missing consent check | D16 | `governance-capability-publish` | CLOSED |
 | AIS-152 Cross-region data flow | D16 | no data-residency lane today | OPEN (H) |
 
 ## 2. Closed vs open
@@ -102,11 +102,11 @@ explicitly noted clippy `unwrap_used = "deny"` would have prevented it
 ([Hackaday postmortem](https://hackaday.com/2025/11/20/how-one-uncaught-rust-exception-took-out-cloudflare/);
 [Medium — Cloudflare unwrap](https://medium.com/@lordmoma/trust-me-bro-the-cloudflare-rust-unwrap-that-panicked-across-330-data-centers-a29f33ef1ba9)).
 
-**Fix**: Adopt `oya-governance-no-unwrap` lane immediately
+**Fix**: Adopt `governance-no-unwrap` lane immediately
 (workspace `[lints]` with `clippy::unwrap_used = "deny"`,
 `clippy::expect_used = "deny"`, `clippy::panic = "deny"`,
 `clippy::todo = "deny"`, `clippy::unimplemented = "deny"`,
-`clippy::unreachable = "deny"`) + `oya-governance-error-fan-in`
+`clippy::unreachable = "deny"`) + `governance-error-fan-in`
 (no empty/log-only catch). Blocker for M01.
 
 ### Gap-2 — Supply-chain slopsquat surface (AIS-001 / AIS-074)
@@ -123,8 +123,8 @@ plants invisible BiDi-control characters into `.cursorrules` /
 code. GitHub shipped Unicode-warning May 2025 but oyatie has neither
 the warning nor a denial lane.
 
-**Fix**: Adopt `cargo-vet` + dep-allowlist (`oya-governance-dep-allowlist`)
-+ Unicode-discipline lane (`oya-governance-unicode-discipline`,
+**Fix**: Adopt `cargo-vet` + dep-allowlist (`governance-dep-allowlist`)
++ Unicode-discipline lane (`governance-unicode-discipline`,
 deny non-ASCII in `.cursorrules`, `.claude/`, `.omc/`, `AGENTS.md`,
 `CLAUDE.md`, source files; allow only in `i18n/` and `docs/i18n/`).
 Blocker for M02.
@@ -139,9 +139,9 @@ No oyatie lane currently catches them. Foundry capability runtime +
 agent orchestration are entirely async paths; a single orphan task
 across 50K runs/week (per M04 done criterion) compounds.
 
-**Fix**: Adopt `loom` model-check lane (`oya-governance-cancel-safety`)
+**Fix**: Adopt `loom` model-check lane (`governance-cancel-safety`)
 + `clippy::disallowed_methods` deny of bare `tokio::spawn` (mandate
-`oya-intelligence-task-supervisor` wrapper which registers a `TaskTracker`).
+`intelligence-task-supervisor` wrapper which registers a `TaskTracker`).
 Blocker for M02 (Foundry-Preview).
 
 ## 4. Coverage trajectory

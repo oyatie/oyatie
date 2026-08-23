@@ -4,13 +4,13 @@
 |-------|-------|
 | Task slug | `cloud-billing-invoice-lifecycle-transitions` |
 | Vertical | cloud |
-| Crate | `oya-cloud-billing-domain` |
+| Crate | `cloud-billing-domain` |
 | Branch | `feat/task-cloud-billing-invoice-lifecycle-transitions-2026-05-28` |
 | Stage | SPEC |
 
 ## Objective
 
-Extend the `oya-cloud-billing-domain` kernel with two additive domain
+Extend the `cloud-billing-domain` kernel with two additive domain
 operations inside the single existing `src/lib.rs`:
 
 1. **Invoice lifecycle state-transition** — a typed, guarded method on
@@ -27,7 +27,7 @@ Scope is pure in-crate domain logic. No new workspace member, no root
 
 ## Vertical and Crate Context
 
-`oya-cloud-billing-domain` currently owns:
+`cloud-billing-domain` currently owns:
 
 - `InvoiceState` enum: `Issued | Paid | Overdue | Void`
 - `Invoice` struct with `state: Classified<InvoiceState>` (always starts as
@@ -183,7 +183,7 @@ responses:
 
 ```proto
 syntax = "proto3";
-package oya.cloud.billing.v1;
+package oyatie.cloud.billing.v1;
 
 enum InvoiceState {
   INVOICE_STATE_UNSPECIFIED = 0;
@@ -270,7 +270,7 @@ and `units` fixtures are reused.
 
 ## Boundaries
 
-- **In scope**: `crates/oya-cloud-billing-domain/src/lib.rs` (additive changes
+- **In scope**: `crates/cloud-billing-domain/src/lib.rs` (additive changes
   only), `docs/specs/task-cloud-billing-invoice-lifecycle-transitions.md`,
   `tasks/cloud-billing-invoice-lifecycle-transitions-plan.md`.
 - **Out of scope**: root `Cargo.toml`, any other crate, REST/gRPC adapters,

@@ -28,21 +28,21 @@ Previously, every cross-µservice call was REQUIRED to flow through Workflow (or
 ### 3. Audit-chain integration (Invariant 1)
 
 - Every state-changing inter-µservice call MUST emit an audit-chain seal at the CALLING site.
-- Each µservice integrates `oya-shared-audit-chain-client-kernel` (skeleton authored; production impl tracked under `registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-audit-client-impl`).
-- During the skeleton phase, the gate `oya gate validate audit-chain-seal-coverage` runs in DEFERRED (advisory) mode.
+- Each µservice integrates `shared-audit-chain-client-kernel` (skeleton authored; production impl tracked under `registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-audit-client-impl`).
+- During the skeleton phase, the gate `presubmit` (retired CLI `gate validate audit-chain-seal-coverage`) runs in DEFERRED (advisory) mode.
 
 ### 4. Trace propagation (Invariant 2)
 
 - Every inter-µservice call MUST propagate the W3C `traceparent` header.
-- Hubble's OpenTelemetry exporter + the canonical `oya-shared-tracing-client-kernel` integrate the surface.
+- Hubble's OpenTelemetry exporter + the canonical `shared-tracing-client-kernel` integrate the surface.
 - Tempo backend (in `observability` µservice) is the destination.
-- Gate `oya gate validate otel-trace-propagation` runs in DEFERRED (advisory) mode pending strict-mode parser landing.
+- Gate `presubmit` (retired CLI `gate validate otel-trace-propagation`) runs in DEFERRED (advisory) mode pending strict-mode parser landing.
 
 ### 5. Ontology projection (Invariant 3)
 
 - µservices that own canonical entities (Person, Task, Document, Recording, etc.) MUST declare `ontology_projections: [...]` in their `manifest.json`.
 - Schema updated at `specs/microservices/manifest-schema.json`.
-- Gate `oya gate validate ontology-projection-coverage` runs in DEFERRED (advisory) mode.
+- Gate `presubmit` (retired CLI `gate validate ontology-projection-coverage`) runs in DEFERRED (advisory) mode.
 
 ## Rollback
 

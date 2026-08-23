@@ -9,11 +9,11 @@ purpose: |
   Enforce a `last_verified:` date on every runbook under `docs/runbooks/**/*.md`
   with severity-aware staleness thresholds: >90 days = advisory, >180 days = HIGH,
   >365 days = BLOCKER. Auto-generate a refresh-PR template when a threshold is
-  crossed. Extends the existing `oya-governance-runbook-freshness-kernel`.
-planned_enforcement_ref: oya-governance-runbook-freshness
+  crossed. Extends the existing `governance-runbook-freshness-kernel`.
+planned_enforcement_ref: governance-runbook-freshness
 extends_crates:
-  - oya-governance-runbook-freshness-kernel
-  - oya-governance-runbook-index-kernel
+  - governance-runbook-freshness-kernel
+  - governance-runbook-index-kernel
 companion_docs:
   - INDEX.md
   - doc-freshness-discipline.md
@@ -27,7 +27,7 @@ doc_status: published
 
 ## 1. Purpose
 
-The extant `oya-governance-runbook-freshness-kernel` already validates `last_verified:` per severity (Sev-1 ≤ 90d, Sev-2 ≤ 180d, Sev-3/4 ≤ 365d). This pipeline adds:
+The extant `governance-runbook-freshness-kernel` already validates `last_verified:` per severity (Sev-1 ≤ 90d, Sev-2 ≤ 180d, Sev-3/4 ≤ 365d). This pipeline adds:
 
 1. A graduated severity ladder (advisory → HIGH → BLOCKER) so operations are not silently broken at the cliff.
 2. Auto-generation of a refresh-PR template the moment any threshold is crossed.
@@ -36,7 +36,7 @@ The extant `oya-governance-runbook-freshness-kernel` already validates `last_ver
 ## 2. Inputs
 
 - Every `docs/runbooks/**/*.md` frontmatter: `last_verified: YYYY-MM-DD`, `severity_scope:` (Sev-1..Sev-4 or unscoped), `owner:`, `status:`, `next_review:`.
-- `docs/RUNBOOKS-INDEX.md` (validated by `oya-governance-runbook-index-kernel`).
+- `docs/RUNBOOKS-INDEX.md` (validated by `governance-runbook-index-kernel`).
 - Current date (CI build clock).
 
 ## 3. Outputs
@@ -83,7 +83,7 @@ The extant kernel handles the HIGH threshold; this pipeline extends to advisory 
 <auto-summarized commit diff against runbook path>
 ```
 
-## 7. Validation gates (extending `oya-governance-runbook-freshness`)
+## 7. Validation gates (extending `governance-runbook-freshness`)
 
 The existing kernel's errors remain authoritative. New gate additions:
 
@@ -92,6 +92,6 @@ The existing kernel's errors remain authoritative. New gate additions:
 
 ## 8. Out-of-scope
 
-- Runbook content quality (covered by `oya-governance-runbook-index-kernel` discoverability checks).
-- Per-Sev playbook completeness (covered by `oya-governance-slo-coverage-kernel`).
-- Incident postmortem freshness (covered by `oya-governance-incident-template-completeness`).
+- Runbook content quality (covered by `governance-runbook-index-kernel` discoverability checks).
+- Per-Sev playbook completeness (covered by `governance-slo-coverage-kernel`).
+- Incident postmortem freshness (covered by `governance-incident-template-completeness`).

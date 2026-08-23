@@ -33,7 +33,7 @@ use std::collections::BTreeMap;
 const PLUGIN_MANIFEST_ID_PREFIX: &str = "plg_";
 const LISTING_ID_PREFIX: &str = "lst_";
 const COSIGN_SIGNATURE_PREFIX: &str = "cosign:";
-const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_PREFIX: &str = "pack-";
 const PLUGIN_MANIFEST_SCHEMA_VERSION: u32 = 1;
 const MARKETPLACE_LISTING_SCHEMA_VERSION: u32 = 1;
 
@@ -361,7 +361,7 @@ mod tests {
             manifest_id: manifest_id.to_string(),
             trust_tier: TrustTier::Verified,
             verticals: vec![Vertical::Agentic, Vertical::Development],
-            regional_packs: vec!["oya-pack-alpha".to_string(), "oya-pack-beta".to_string()],
+            regional_packs: vec!["pack-alpha".to_string(), "pack-beta".to_string()],
             headline: "Summarize anything".to_string(),
             published_at_epoch_seconds: 1_700_000_100,
         }
@@ -403,8 +403,8 @@ mod tests {
             listing_input("lst_sum_alpha", "plg_sum_v1"),
         )
         .expect("valid listing");
-        assert!(listing.matches(Vertical::Agentic, "oya-pack-alpha"));
-        assert!(!listing.matches(Vertical::Healthcare, "oya-pack-alpha"));
+        assert!(listing.matches(Vertical::Agentic, "pack-alpha"));
+        assert!(!listing.matches(Vertical::Healthcare, "pack-alpha"));
 
         let mismatch =
             MarketplaceListing::publish(manifest_id.clone(), listing_input("lst_mis", "plg_other"))
@@ -448,9 +448,9 @@ mod tests {
             .expect_err("duplicate listing rejected");
         assert_eq!(dup_listing, MarketplaceError::DuplicateListing);
 
-        let agentic_kr = reg.filter(Vertical::Agentic, "oya-pack-alpha");
+        let agentic_kr = reg.filter(Vertical::Agentic, "pack-alpha");
         assert_eq!(agentic_kr.len(), 1);
-        let healthcare = reg.filter(Vertical::Healthcare, "oya-pack-alpha");
+        let healthcare = reg.filter(Vertical::Healthcare, "pack-alpha");
         assert!(healthcare.is_empty());
     }
 

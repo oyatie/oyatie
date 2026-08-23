@@ -5,7 +5,7 @@
 //! Binary entry point for `intelligence-pr-review-dispatcher-app`.
 //!
 //! Invoked from `.github/workflows/pr-review.yml` after the required-check
-//! workflows (`pr-tests`, `oya-governance-supply-chain`) converge
+//! workflows (`pr-tests`, `governance-supply-chain`) converge
 //! green. Reads per-facet findings written by the subagent panel (when
 //! the subagent runtime lands) and writes:
 //!
@@ -37,7 +37,7 @@ const EVIDENCE_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review";
 const TEMPLATES_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review/facets";
 const ROLLUP_PATH: &str = "evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json";
 const ADMISSION_LOG: &str = "registry/merge-queue-admission-log.json";
-const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oya/foundry/anthropic-api-key";
+const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oyatie/foundry/anthropic-api-key";
 const DEFAULT_MODEL_ID: &str = "claude-opus-4-7";
 
 fn main() -> ExitCode {
@@ -252,7 +252,7 @@ where
 
 /// Invoke the IP-009 subagent runtime inline. Uses the deterministic
 /// mock port (canonical CI/test infrastructure; NOT a stub — see
-/// `crates/oya-intelligence-subagent-runtime-kernel` doc-comment). Writes
+/// `crates/intelligence-subagent-runtime-kernel` doc-comment). Writes
 /// 21 per-facet JSON findings to `<evidence_dir>/<facet_id>.json`.
 fn run_inline_subagent_runtime(options: &Options, evidence_dir: &Path) -> Result<(), String> {
     fs::create_dir_all(evidence_dir)
@@ -418,7 +418,7 @@ fn render_rollup_json(
         .unwrap_or(0);
     let mut buf = String::new();
     buf.push_str("{\n");
-    buf.push_str("  \"schema\": \"oya-pr-review-rollup/v1\",\n");
+    buf.push_str("  \"schema\": \"pr-review-rollup/v1\",\n");
     buf.push_str(&format!(
         "  \"pr_number\": \"{}\",\n",
         json_escape(pr_number)
@@ -488,8 +488,8 @@ fn render_rollup_json(
     buf.push_str("  \"audit_trail\": {\n");
     buf.push_str("    \"plan_ref\": \".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md\",\n");
     buf.push_str("    \"audit_ref\": \"evidence/audits/pipeline-maturity-audit-2026-05-15.md\",\n");
-    buf.push_str("    \"upstream_kernel\": \"oya-vcs-review-mergequeue-kernel\",\n");
-    buf.push_str("    \"subagent_runtime_ref\": \"M01-P17-IP-009 — `oya-intelligence-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
+    buf.push_str("    \"upstream_kernel\": \"vcs-review-mergequeue-kernel\",\n");
+    buf.push_str("    \"subagent_runtime_ref\": \"M01-P17-IP-009 — `intelligence-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
     buf.push_str("  }\n");
     buf.push_str("}\n");
     buf
@@ -552,7 +552,7 @@ fn append_admission_event(
     log.push(new_entry);
 
     let mut body = String::new();
-    body.push_str("{\n  \"schema\": \"oya-merge-queue-admission-log/v1\",\n  \"events\": [\n");
+    body.push_str("{\n  \"schema\": \"merge-queue-admission-log/v1\",\n  \"events\": [\n");
     for (index, entry) in log.iter().enumerate() {
         if index > 0 {
             body.push_str(",\n");

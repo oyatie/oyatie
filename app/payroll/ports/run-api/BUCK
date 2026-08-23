@@ -16,7 +16,7 @@ rust_test(
     name = "payroll-run-api-contracts",
     # Declared contract binding; previously a cwd-relative read that only resolved under Buck.
     env = {
-        "OYA_PAYROLL_OPENAPI_CONTRACT": "$(location //app/payroll/contracts:openapi-v1.yaml)",
+        "OYATIE_PAYROLL_OPENAPI_CONTRACT": "$(location //app/payroll/contracts:openapi-v1.yaml)",
     },
     srcs = ["tests/contracts.rs"],
     crate = "payroll_run_api_contracts",

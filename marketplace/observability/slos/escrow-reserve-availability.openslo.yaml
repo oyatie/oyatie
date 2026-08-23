@@ -1,7 +1,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-marketplace-escrow-reserve-availability
+  name: marketplace-escrow-reserve-availability
   displayName: Marketplace Escrow Reserve Availability
   labels:
     service: marketplace
@@ -11,19 +11,19 @@ spec:
   service: marketplace
   indicator:
     metadata:
-      name: oya-marketplace-escrow-reserve-availability-sli
+      name: marketplace-escrow-reserve-availability-sli
     spec:
       ratioMetric:
         good:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_escrow_release_success_total[5m]))
+              query: sum(rate(marketplace_escrow_release_success_total[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(oya_marketplace_escrow_release_total[5m]))
+              query: sum(rate(marketplace_escrow_release_total[5m]))
   objectives:
     - displayName: Escrow Reserve Availability
       target: 0.999

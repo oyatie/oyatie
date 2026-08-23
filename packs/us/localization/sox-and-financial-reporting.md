@@ -497,9 +497,9 @@ The document requires issuer counsel, audit-firm, and finance-owner review befor
 - SOX-XREF-009: `specs/microservices/cloud-iac.json` is the likely home for cloud boundary evidence if present in the manifest set.
 - SOX-XREF-010: `specs/microservices/cloud-k8s.json` is the likely home for Kubernetes infrastructure controls if present in the manifest set.
 - SOX-XREF-011: `specs/microservices/cloud-secrets.json` is the likely home for secrets-control evidence if present in the manifest set.
-- SOX-XREF-012: `registry/catalog/oya-check-compliance-evidence-coverage.yaml` is a future SOX evidence completeness gate.
-- SOX-XREF-013: `registry/catalog/oya-check-audit-chain-seal-coverage.yaml` is a future SOX evidence sealing gate.
-- SOX-XREF-014: `registry/catalog/oya-check-slsa-l3-evidence-grounded.yaml` supports provenance evidence for control artifacts.
+- SOX-XREF-012: `registry/catalog/check-compliance-evidence-coverage.yaml` is a future SOX evidence completeness gate.
+- SOX-XREF-013: `registry/catalog/check-audit-chain-seal-coverage.yaml` is a future SOX evidence sealing gate.
+- SOX-XREF-014: `registry/catalog/check-slsa-l3-evidence-grounded.yaml` supports provenance evidence for control artifacts.
 - SOX-XREF-015: PCAOB AS 2201 remains the primary audit-control interpretation source.
 - SOX-XREF-016: SEC rules and releases remain primary for issuer management certification and ICFR disclosure duties.
 - SOX-XREF-017: NIST 800-53 is only a reusable control catalog, not the source of SOX certification.

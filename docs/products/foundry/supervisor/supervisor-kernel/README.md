@@ -8,7 +8,7 @@ doc_status: published
 
 # Foundry Supervisor Kernel — README
 
-**Crate:** `oya-intelligence-supervisor-kernel`  
+**Crate:** `intelligence-supervisor-kernel`  
 **Layer:** Kernel (12-layer-enum L1)  
 **Wave:** 2b (M02-P06)  
 **Dependencies:** std-only (Branch Y)
@@ -141,15 +141,15 @@ pub trait SessionDriver {
 ### Composition Shims
 
 #### `RoutePolicy`
-Wraps `oya-intelligence-route-policy-kernel`. Method: `select(eligible_accounts: &[ProviderAccount]) -> Result<AccountId, NoEligibleAccount>`.
+Wraps `intelligence-route-policy-kernel`. Method: `select(eligible_accounts: &[ProviderAccount]) -> Result<AccountId, NoEligibleAccount>`.
 
 #### `UsageEnforcement`
-Wraps `oya-intelligence-usage-window-kernel`. Enforces Cedar autonomy-tier ceilings via `check_limit(&ticket, &spend_record) -> Result<(), OverLimit>`.
+Wraps `intelligence-usage-window-kernel`. Enforces Cedar autonomy-tier ceilings via `check_limit(&ticket, &spend_record) -> Result<(), OverLimit>`.
 
 ## Usage Example
 
 ```rust
-use oya_intelligence_supervisor_kernel::*;
+use intelligence_supervisor_kernel::*;
 
 // In supervisor-app:
 let accounts = snapshot_provider.snapshot().await?;

@@ -52,24 +52,13 @@ fn batch_ingest_fixture_records_duplicates_and_rejects_late_rows() {
     let sink = InMemorySink::new(LatenessPolicy::default());
     let hour = UsageHour::from_epoch_seconds(7200);
     let arrived = hour.start_epoch_seconds() + 60;
-    let primary = usage_record("ten_batch", "oya-meter", "requests", hour, 5_000_000);
+    let primary = usage_record("ten_batch", "meter", "requests", hour, 5_000_000);
     let mut conflicting_replay = primary.clone();
     conflicting_replay.consumed_quantity_microunits = 7_000_000;
-    let distinct_dimension = usage_record(
-        "ten_batch",
-        "oya-meter",
-        "storage-gb-seconds",
-        hour,
-        2_500_000,
-    );
+    let distinct_dimension =
+        usage_record("ten_batch", "meter", "storage-gb-seconds", hour, 2_500_000);
     let late_hour = UsageHour::from_epoch_seconds(0);
-    let late = usage_record(
-        "ten_batch",
-        "oya-meter",
-        "late-requests",
-        late_hour,
-        1_000_000,
-    );
+    let late = usage_record("ten_batch", "meter", "late-requests", late_hour, 1_000_000);
     let late_arrival = late_hour.end_epoch_seconds() + sink.lateness_policy().window_seconds;
 
     let results = sink.ingest_batch(&[

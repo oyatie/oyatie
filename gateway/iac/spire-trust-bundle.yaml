@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: oya-api-gateway-spire-bundle
+  name: api-gateway-spire-bundle
   namespace: api-gateway
 data:
   spire-server: spire.spire-system.svc.cluster.local:8081

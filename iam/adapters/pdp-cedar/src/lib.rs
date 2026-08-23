@@ -3,7 +3,7 @@
 //! Embedded cedar-policy PDP adapter for FD-001 (story G004, ADR-0536 D-2).
 //!
 //! ## Posture
-//! Implements the [`PolicyDecisionPoint`] port from `oya-shared-pdp-kernel`
+//! Implements the [`PolicyDecisionPoint`] port from `shared-pdp-kernel`
 //! over the upstream, formally-verified `cedar-policy` engine (arXiv
 //! 2403.04651): default-deny, forbid-overrides-permit, order-independent.
 //! Evaluation is strictly in-process — an authorization decision never takes
@@ -11,7 +11,7 @@
 //! Permissions embedded evaluator).
 //!
 //! Cedar is the TERMINAL engine decision, not a transitional impl: ADR-0536
-//! D-2 retires the hand-rolled `oya-policy-cedar-*` evaluator in favor of
+//! D-2 retires the hand-rolled `policy-cedar-*` evaluator in favor of
 //! this crate (two decision algorithms must never coexist, ADR-0243).
 //!
 //! ## Behavior
@@ -46,16 +46,16 @@ use audit_chain_domain::{
     Ed25519VerificationKeySet, Plane,
 };
 use audit_file_adapter::{FileAuditLedger, FileAuditLedgerError};
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     CachedDecision, DecisionAuditRecord, DecisionCache, DecisionCacheKey, EntityRecord,
     EntitySlice, PdpError, PdpOutcome, PolicyBundle, PolicyDecisionPoint, request_fingerprint,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::IdGenerator;
+use shared_ulid_id_kernel::IdGenerator;
 
 /// Annotation key whose value names the obligation a permit carries.
 /// PEPs MUST enforce obligations or fail closed (locked PDP contract).

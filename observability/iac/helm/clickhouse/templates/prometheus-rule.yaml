@@ -1,11 +1,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: oya-observability-clickhouse-slo
+  name: observability-clickhouse-slo
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability
-    oya.adr: "0139,0186,0193"
+    oyatie.adr: "0139,0186,0193"
 spec:
   groups:
     - name: clickhouse.slo.query-latency.4-window

@@ -28,7 +28,7 @@ kernel    contracts  domain    app       api/worker/adapter  runtime  sweep
 
 ## Pre-checks (5 minutes max)
 
-- [ ] Confirm the previous phase is green for the same context — verify with the phase evidence bundle or `oya verify` output.
+- [ ] Confirm the previous phase is green for the same context — verify with the phase evidence bundle or retired `./bin/oya verify` output.
 - [ ] Confirm no PR ahead in the merge queue touches root `Cargo.toml [workspace.members]`.
 - [ ] Confirm no new top-level `modules/`, `services/`, or `platform/` tree exists.
 - [ ] Confirm every candidate crate has a catalog target and role from ADR-0015.
@@ -53,7 +53,7 @@ If a pre-check fails, do not start the phase; open [workspace-members-merge-queu
    If differs: split the move PR.
 
 4. ☐ Run phase-level dependency and catalog checks after each PR lands.
-   Command: `oya gate validate architecture-boundaries && cargo run -p oya-tooling-cli-dev-runtime -- catalog validate`
+   Command: `presubmit` (retired CLI `gate validate architecture-boundaries && cargo run -p tooling-cli-dev-runtime -- catalog validate`)
    Expected: no forbidden role edge and every workspace package has a catalog record.
    If differs: halt the phase until fixed.
 
@@ -67,18 +67,18 @@ If a pre-check fails, do not start the phase; open [workspace-members-merge-queu
 
 - Roll back the last move PR first; do not roll back earlier inward-role PRs unless their verification also failed.
 - Restore root `Cargo.toml [workspace.members]` and the matching catalog record in the same rollback.
-- Re-run `oya gate validate architecture-boundaries` and the moved crate tests before reopening the phase.
+- Re-run `presubmit` (retired CLI `gate validate architecture-boundaries`) and the moved crate tests before reopening the phase.
 
 ---
 
 ## Verification
 
 - [ ] Phase move PRs all have passing targeted tests.
-- [ ] `oya gate validate architecture-boundaries --self-test` passes.
-- [ ] `oya gate validate architecture-boundaries` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime -- gate validate quality-lanes` passes.
-- [ ] `cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push` passes at phase close or the phase records an explicit local-resource blocker plus targeted substitutes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries --self-test`) passes.
+- [ ] `presubmit` (retired CLI `gate validate architecture-boundaries`) passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- catalog validate` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime -- gate validate quality-lanes` passes.
+- [ ] `cargo run -p tooling-cli-dev-runtime --bin repoctl -- pre-push` passes at phase close or the phase records an explicit local-resource blocker plus targeted substitutes.
 
 ---
 

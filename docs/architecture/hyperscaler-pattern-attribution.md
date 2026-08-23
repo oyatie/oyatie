@@ -218,7 +218,7 @@ Rows are ordered by ADR number, then by decision number within ADR.
 | ADR-0246 D-8 | Bootstrap chain of trust: org root in HSM → genesis fragment → intermediate keys → publisher fragments | PKI Root + Intermediate Certificate Chain | RFC 5280 X.509; Sigstore Rekor; AWS KMS key hierarchy; Let's Encrypt CA hierarchy | Implicit Bootstrap Trust — undocumented signing key emergence |
 | ADR-0246 D-9 | Ontology amendment: drop BC, rewrite "universal mediator" framing, rename agent-gateway BC | Substrate Cohesion via PRD Amendment | DDD context-mapping (Evans 2003); ADR pattern (Nygard 2011) | Stale PRD — PRDs drift behind architectural reality |
 | ADR-0246 D-10 | SLO targets: T1, 5min RTO, 0 RPO, 99.99% availability | Tiered DR + Per-Microservice SLO Ownership | ADR-0241 DR + BC portfolio policy; Google SRE Workbook ch. 2 | Implicit SLO — µservices ship without explicit SLO declaration |
-| ADR-0246 D-11 | CI lane rename: oya-governance-* → oya-governance-* | Coverage-Enforced Substrate Doctrine | Google SRE Workbook ch. 4 (SLO coverage); AWS Config conformance packs | Untested Substrate Surface — substrate gates discovered missing in production |
+| ADR-0246 D-11 | CI lane rename: governance-* → governance-* | Coverage-Enforced Substrate Doctrine | Google SRE Workbook ch. 4 (SLO coverage); AWS Config conformance packs | Untested Substrate Surface — substrate gates discovered missing in production |
 
 ### 3.6 ADR-0247 — self-hosting / self-modification doctrine (12 rows)
 
@@ -1346,7 +1346,7 @@ When a new ADR (≥0256) lands with its own Appendix A:
 
 ### 8.2 CI verification
 
-A CI lane (`oya-check-hyperscaler-pattern-matrix-coherence`) verifies:
+A CI lane (`check-hyperscaler-pattern-matrix-coherence`) verifies:
 
 - Every keystone ADR (≥0242 and any ADR with an `## Appendix A:
   Hyperscaler-pattern attribution matrix` header) has a corresponding

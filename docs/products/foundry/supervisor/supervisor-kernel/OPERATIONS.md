@@ -80,7 +80,7 @@ pub struct SessionTicket {
 
 **Fix:**
 1. `templates/foundry-supervisor/` was deleted (hooks pointed at missing `tools/foundry-supervisor-*` binaries). Do not expect that path; settings-template drift for that tree is retired until a replacement lands.
-2. Force re-render (local bridge only): `cargo run -p oya-dev-cli -- settings-drift --reconcile`
+2. Force re-render (local bridge only): `cargo run -p dev-cli -- settings-drift --reconcile`
 3. Check drift report: `cat .omc/state/settings-drift-report.json`
 
 ## Audit Trail Verification
@@ -89,7 +89,7 @@ Every message passing through the supervisor system emits audit events (ADR-0003
 
 ```bash
 # Check audit chain integrity:
-cargo run -p oya-dev-cli -- audit verify-chain \
+cargo run -p dev-cli -- audit verify-chain \
   --input evidence/audit-chain.jsonl \
   --expected-events 'foundry_supervisor_*'
 
@@ -106,7 +106,7 @@ Expected events per `tick_once()` call:
 
 ## References
 
-- **Kernel source:** `crates/oya-intelligence-supervisor-kernel/src/lib.rs`
+- **Kernel source:** `crates/intelligence-supervisor-kernel/src/lib.rs`
 - **Application runbook:** `docs/products/foundry/supervisor/supervisor-app/OPERATIONS.md`
 - **Adapter runbooks:**
   - JSONL: `docs/products/foundry/supervisor/jsonl-supervisor-adapter/OPERATIONS.md`

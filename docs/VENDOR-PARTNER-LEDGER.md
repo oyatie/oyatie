@@ -85,7 +85,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 ## 4. Contract recency ledger
 
 > **As of:** 2026-05-10.
-> **Gate:** `oya gate validate vendor-contract-recency`.
+> **Gate:** `presubmit` (retired CLI `gate validate vendor-contract-recency`).
 > **Bootstrap declaration:** No signed vendor or partner contract rows are recorded in this ledger yet; replace the declaration row with one row per signed contract before any signed vendor / partner contract is adopted.
 
 | Contract ID | Vendor / partner | Status | Expiry date | Renewal task | Owner |
@@ -94,7 +94,7 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 
 ## 5. Contract recency SLA
 
-- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `oya-governance-vendor-contract-recency`
+- All contracts ≥ 90 days from expiry get a renewal task auto-opened per `governance-vendor-contract-recency`
 - Per quarter: vendor-risk review per `ops-security` + `gtm-partnerships`
 - Per `EVT-LICENSE-POLICY-CHANGE`: re-review affected vendor
 
@@ -104,4 +104,4 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 
 ---
 
-> **§Note (2026-05-21 transition):** References to `oya-governance-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.
+> **§Note (2026-05-21 transition):** References to `governance-*` in this historical document are intentional — they describe past state. New work uses `governance-*` per the 2026-05-21 transition directive.

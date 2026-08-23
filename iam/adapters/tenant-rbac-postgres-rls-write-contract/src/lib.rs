@@ -25,7 +25,7 @@ const SCHEMA_NAME: &str = "tenant_rbac";
 const RUNTIME_ROLE: &str = "tenant_rbac_runtime";
 const TENANT_CONTEXT_SETTING: &str = "app.tenant_id";
 const SOURCE_STORAGE_PLAN_REF: &str =
-    "crates/oya-tenant-rbac-postgres-rls-storage/src/lib.rs::tenant_rbac_postgres_rls_storage_plan";
+    "crates/tenant-rbac-postgres-rls-storage/src/lib.rs::tenant_rbac_postgres_rls_storage_plan";
 
 const INSERT_DOC_URL: &str = "https://www.postgresql.org/docs/current/sql-insert.html";
 const SET_DOC_URL: &str = "https://www.postgresql.org/docs/current/sql-set.html";
@@ -330,7 +330,7 @@ fn validate_statement(
     }
     validate_prefixed_ref(
         statement.source_storage_plan_ref,
-        "crates/oya-tenant-rbac-postgres-rls-storage/",
+        "crates/tenant-rbac-postgres-rls-storage/",
         TenantRbacPostgresRlsWriteContractError::InvalidSourceStoragePlanRef,
     )?;
     for control in [

@@ -7,7 +7,7 @@
 //! This type is the merge-variant landing of the `employee_status`
 //! contract from `.omc/plans/milestones/M07-first-tenant/phases/P01-hr/
 //! impl-plan.md` (Concrete File Targets: `hr.employees` DDL column
-//! `status hr.employee_status`) into the existing `oya-identity-domain`
+//! `status hr.employee_status`) into the existing `identity-domain`
 //! crate (merge-variant execution per user directive 2026-05-17,
 //! `execution_variant: merge-into-existing-crates`). It is additive —
 //! existing types (`UserId`, `User`, `Principal`, `Token`, `StsCredential`,

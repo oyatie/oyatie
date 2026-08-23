@@ -1,14 +1,14 @@
 # Spec: Savings Portfolio Rollup
 
 **Slug**: cloud-finops-savings-portfolio-rollup  
-**Crate**: oya-cloud-finops-kernel  
+**Crate**: cloud-finops-kernel  
 **Lane**: cloud  
 **Priority**: high  
 **Effort**: M
 
 ## Summary
 
-Add a `savings_portfolio` module to `oya-cloud-finops-kernel` that aggregates
+Add a `savings_portfolio` module to `cloud-finops-kernel` that aggregates
 a set of `Recommendation`s against their baseline `CostReport`(s) into a
 deterministic `SavingsPortfolio` projection.
 

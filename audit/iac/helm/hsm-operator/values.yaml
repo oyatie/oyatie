@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 # OCI Cloud-HSM operator configuration.
 # Partition lifecycle (create, rotate, retire keys) is in iac/terraform/oci-cloud-hsm-partition.tf;
 # this Helm chart deploys the in-cluster operator that mediates PKCS#11 sessions
@@ -40,7 +40,7 @@ hsm_operator:
     # Every PKCS#11 call emits a structured audit event
     enabled: true
     emit_to_audit_chain: true  # recursive; self-audit
-    emit_to_mimir_oya_self: true
+    emit_to_mimir_self: true
 
   health_check:
     enabled: true

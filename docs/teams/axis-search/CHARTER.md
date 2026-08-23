@@ -10,21 +10,21 @@ This team owns Oyatie's search engine axis: crawler, parser, inverted index, vec
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Search engine (Axis 6)
 - **Surfaces:**
-  - `oya-search-document-kernel` — `Document`, `DocumentClass`, `IndexEntry`, `TenantPrivateIndex`
-  - `oya-search-index-kernel` — `IndexLifecycle`, `ShardSpec`, `SnapshotRef`
-  - `oya-search-crawler-*` — web + tenant-content crawler (politeness, robots, dedup, spam)
-  - `oya-search-parser-*` — HTML/PDF/OCR, Korean morphology (mecab-ko/khaiii), NER, embeddings
-  - `oya-search-index-*` — inverted index (pgroonga day-1), vector index (pgvector), knowledge graph
-  - `oya-search-rank-*` — BM25 + semantic reranker, freshness, authority, diversity, KR signals
-  - `oya-search-query-*` — query understanding, expansion, spelling, autocomplete, QA, RAG retrieval
-  - `oya-search-serp-*` — SERP assembly, sponsored slot stitching (slot inventory from `axis-ads-analytics`)
+  - `search-document-kernel` — `Document`, `DocumentClass`, `IndexEntry`, `TenantPrivateIndex`
+  - `search-index-kernel` — `IndexLifecycle`, `ShardSpec`, `SnapshotRef`
+  - `search-crawler-*` — web + tenant-content crawler (politeness, robots, dedup, spam)
+  - `search-parser-*` — HTML/PDF/OCR, Korean morphology (mecab-ko/khaiii), NER, embeddings
+  - `search-index-*` — inverted index (pgroonga day-1), vector index (pgvector), knowledge graph
+  - `search-rank-*` — BM25 + semantic reranker, freshness, authority, diversity, KR signals
+  - `search-query-*` — query understanding, expansion, spelling, autocomplete, QA, RAG retrieval
+  - `search-serp-*` — SERP assembly, sponsored slot stitching (slot inventory from `axis-ads-analytics`)
   - Trust portal evidence surface (read side hosted on search axis infrastructure)
   - Products owned: `products/search/PRD.md`
 - **Cross-axis contracts (DESIGN §10):**
   - `Search index lifecycle` (owner) — Foundry (RAG), SaaS (tenant search), Ads (sponsored slot)
   - `Ad slot inventory` (consumer from `axis-ads-analytics`) — sponsored slots stitched into SERP
   - `RAG endpoint` (co-owner with `axis-foundry`) — search provides the retrieval; Foundry exposes the endpoint
-- **Catalog records:** `crates/oya-search-*`
+- **Catalog records:** `crates/search-*`
 - **Runbooks:** `runbooks/search-index-dsr-cascade.md`, `runbooks/crawler-politeness-incident.md`, `runbooks/serp-sponsored-slot-failure.md`
 - **ADRs:** ADR-0047 (search architecture), KR morphology tokenizer seam
 
@@ -35,7 +35,7 @@ This team owns Oyatie's search engine axis: crawler, parser, inverted index, vec
 - Ranking: BM25 + semantic reranker, freshness, authority signals, diversity, Korean-specific ranking signals, click-stream feedback (privacy-gated via Data Use Boundary)
 - Query understanding: parser, query expansion, spelling correction, autocomplete, QA, RAG retrieval path
 - SERP: organic result assembly, sponsored slot stitching, result diversity, RTBF/PIPA/GDPR safety filter
-- RAG endpoint: expose indexed content to Foundry via `oya-intelligence-rag`; consent gate on every retrieval
+- RAG endpoint: expose indexed content to Foundry via `intelligence-rag`; consent gate on every retrieval
 - DSR cascade: delete index entries on DSR trigger; emit proof-of-erasure to `platform-audit-evidence`
 - Trust portal evidence read surface (the search infra hosts the read side; content comes from audit chain)
 - Per-tenant index isolation: tenant-private indexes never surface in cross-tenant results
@@ -102,7 +102,7 @@ This team owns Oyatie's search engine axis: crawler, parser, inverted index, vec
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Tenant PHI ingested into shared search index | Catastrophic | Data Use Boundary gate; `oya-governance-data-use-boundary` CI; PHI class forced `internal_only` |
+| Tenant PHI ingested into shared search index | Catastrophic | Data Use Boundary gate; `governance-data-use-boundary` CI; PHI class forced `internal_only` |
 | Cross-tenant search result leak | Catastrophic | Per-tenant index isolation; CI test set for result isolation |
 | DSR cascade partial completion leaves residual data in index | High | Cascade ack protocol; proof-of-erasure chain record; automated monitor |
 | Crawler violates robots.txt / KR copyright law | Medium | Politeness enforcer with hard-fail; KR 저작권 compliance review quarterly |

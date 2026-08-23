@@ -1,7 +1,7 @@
 //! gRPC delivery surface for workload-identity.
 //!
 //! Implements both `WorkloadAuthorizer` and `WorkloadTokenValidator` tonic
-//! service traits, delegating to the SAME `oya-identity-workload-app`
+//! service traits, delegating to the SAME `identity-workload-app`
 //! use-cases and OIDC adapter primitives that the REST surface uses — no
 //! duplicated decision logic.
 //!
@@ -39,7 +39,7 @@ use crate::{
     build_active_principal,
 };
 
-// Include tonic-generated stubs for oya.identity.workload.v1.
+// Include tonic-generated stubs for identity.workload.v1.
 pub mod proto {
     tonic::include_proto!("oya.identity.workload.v1");
 }

@@ -10,26 +10,26 @@ doc_status: published
 
 | Pack | Region | Status | First-onboarding wave |
 |---|---|---|---|
-| [`oya-pack-kr`](oya-pack-kr/PACK.md) | South Korea | draft (full content) | W-Cloud-Preview (anchor pack) |
-| oya-pack-jp | Japan | skeleton (planned) | W-Cloud-Preview (parallel) |
-| oya-pack-us | United States | skeleton (planned) | W-Cloud-Preview (parallel) |
-| oya-pack-eu | European Union (DE first; FR/SE/NL/IE follow) | skeleton (planned) | W-Cloud-Preview (parallel) |
-| oya-pack-in | India | skeleton (planned) | W-Region-Fan-Out wave 1 |
-| oya-pack-br | Brazil | skeleton (planned) | W-Region-Fan-Out wave 1 |
-| oya-pack-ksa | Saudi Arabia | skeleton (planned) | W-Region-Fan-Out wave 2 |
-| oya-pack-ae | UAE | skeleton (planned) | W-Region-Fan-Out wave 2 |
-| oya-pack-au | Australia + NZ | skeleton (planned) | W-Region-Fan-Out wave 2 |
-| oya-pack-sg | Singapore | skeleton (planned) | W-Region-Fan-Out wave 2 |
+| [`pack-kr`](pack-kr/PACK.md) | South Korea | draft (full content) | W-Cloud-Preview (anchor pack) |
+| pack-jp | Japan | skeleton (planned) | W-Cloud-Preview (parallel) |
+| pack-us | United States | skeleton (planned) | W-Cloud-Preview (parallel) |
+| pack-eu | European Union (DE first; FR/SE/NL/IE follow) | skeleton (planned) | W-Cloud-Preview (parallel) |
+| pack-in | India | skeleton (planned) | W-Region-Fan-Out wave 1 |
+| pack-br | Brazil | skeleton (planned) | W-Region-Fan-Out wave 1 |
+| pack-ksa | Saudi Arabia | skeleton (planned) | W-Region-Fan-Out wave 2 |
+| pack-ae | UAE | skeleton (planned) | W-Region-Fan-Out wave 2 |
+| pack-au | Australia + NZ | skeleton (planned) | W-Region-Fan-Out wave 2 |
+| pack-sg | Singapore | skeleton (planned) | W-Region-Fan-Out wave 2 |
 | (later) | MX / ID / PH / VN / TH / TR / NG / ZA / CL / CO / ... | planned | W-Region-Fan-Out wave 3+ |
 
 ## 2. Authoring a new pack
 
 Per [`../../templates/checklists/regional-pack-onboarding.md`](../../templates/checklists/regional-pack-onboarding.md):
 1. Council ratification per ADR-0012 axis admission protocol (per-region pack inherits axis 3 vertical-cloud + cross-cutting)
-2. Pack scaffold via `oya pack new <region>` (Foundry skill `oya-regional-pack-author`)
+2. Pack scaffold via `oya pack new <region>` (Foundry skill `regional-pack-author`)
 3. Fill 14 sections per [`_TEMPLATE.md`](_TEMPLATE.md): regulatory, compliance packs, i18n, currency, calendar, tax, identity providers, payment rails, address book, ecosystem partners, content safety, ad policy, industry data models, vendor partners
 4. Author per-seam impls for `RegulatoryPack` / `Tokenizer` / `TaxInvoiceFormatter` / `IdentityProvider` / `PaymentRail` / `AddressValidator` / `LocalAdPolicy` / `ContentSafetyRules` / `LocaleFormatter`
-5. CI lane `oya-governance-regional-pack` validates seam-impl coverage
+5. CI lane `governance-regional-pack` validates seam-impl coverage
 6. Per-region regulator filing (CSAP / ISMAP / FedRAMP / GAIA-X / MeitY / LGPD / etc.)
 7. First tenant onboarded with new pack (design partner)
 8. Pack promoted to `preview`

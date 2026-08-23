@@ -1,16 +1,16 @@
-//! Valkey Stream EventSink adapter for the cloud-intelligence OAuth subscription pool
+//! Valkey Stream EventSink adapter for the intelligence-app OAuth subscription pool
 //! (ADR-0384 Path B, Stage-7 D6 production seam).
 //!
 //! Implements [`EventSink`] from `intelligence-kernel` by
 //! emitting [`LlmGatewayEvent`] to the Valkey Stream key
-//! `cloud-intelligence-receipts:<tenant_id>` via `XADD`.
+//! `intelligence-app-receipts:<tenant_id>` via `XADD`.
 //!
 //! Valkey is a Redis-protocol-compatible fork; the `redis` crate connects to
 //! it without modification.
 //!
 //! ## Stream key shape
 //!
-//! `cloud-intelligence-receipts:<tenant_id>`  (one stream per tenant)
+//! `intelligence-app-receipts:<tenant_id>`  (one stream per tenant)
 //!
 //! ## XADD field mapping
 //!
@@ -43,7 +43,7 @@ use tracing::warn;
 // ---------------------------------------------------------------------------
 
 fn stream_key(tenant_id: &str) -> String {
-    format!("cloud-intelligence-receipts:{tenant_id}")
+    format!("intelligence-app-receipts:{tenant_id}")
 }
 
 // ---------------------------------------------------------------------------
@@ -178,10 +178,7 @@ mod tests {
 
     #[test]
     fn stream_key_format() {
-        assert_eq!(
-            stream_key("tenant-a"),
-            "cloud-intelligence-receipts:tenant-a"
-        );
+        assert_eq!(stream_key("tenant-a"), "intelligence-app-receipts:tenant-a");
     }
 
     #[test]

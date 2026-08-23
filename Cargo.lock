@@ -108,6 +108,63 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
+name = "application-app"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "cell-regional-pack",
+ "cell-routing",
+ "check-cost-budget",
+ "data-boundary-kernel",
+ "data-ontology-domain",
+ "governance-eval-domain",
+ "iam-identity-domain",
+ "iam-policy-cedar-domain",
+ "intelligence-adapter-kernel",
+ "intelligence-bypass-domain",
+ "intelligence-capability-domain",
+ "intelligence-evidence-domain",
+ "intelligence-mcp-gateway-domain",
+ "intelligence-policy-domain",
+ "intelligence-run-domain",
+ "intelligence-step-domain",
+ "messaging-domain",
+ "network-residency",
+ "observability-domain",
+ "observability-tracing-adapter",
+ "secrets-domain",
+ "tenancy-domain",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "application-shell-frontend"
+version = "0.1.0"
+dependencies = [
+ "any_spawner",
+ "application-shell-frontend",
+ "axum",
+ "leptos",
+ "leptos_axum",
+ "serde",
+ "serde_json",
+ "shared-oidc-client-kernel",
+ "shared-platform-contracts-kernel",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "application-surface-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
+
+[[package]]
 name = "ar_archive_writer"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -124,12 +181,6 @@ checksum = "c049c0be4daef0b145cb3555416b3b8ef5b7888a38aea1a3a155801fe7b0810b"
 dependencies = [
  "rustversion",
 ]
-
-[[package]]
-name = "arraydeque"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
 name = "arrayref"
@@ -308,8 +359,8 @@ dependencies = [
 name = "audit-chain-domain"
 version = "0.2.0"
 dependencies = [
+ "data-boundary-kernel",
  "ed25519-dalek",
- "oya-data-boundary-kernel",
  "sha2",
 ]
 
@@ -336,7 +387,7 @@ name = "audit-file-adapter"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -393,8 +444,8 @@ name = "audit-usecase"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "messaging-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -543,7 +594,7 @@ name = "billing-accounting-app"
 version = "0.1.0"
 dependencies = [
  "billing-accounting-journal",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -552,9 +603,9 @@ version = "0.1.0"
 dependencies = [
  "billing-accounting-api",
  "billing-accounting-app",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -563,7 +614,7 @@ dependencies = [
 name = "billing-accounting-journal"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -588,7 +639,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -599,7 +650,7 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -609,7 +660,7 @@ dependencies = [
  "billing-domain",
  "billing-finops",
  "billing-metering",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -631,7 +682,7 @@ dependencies = [
 name = "billing-metering"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -639,23 +690,12 @@ name = "billing-metering-pipeline-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "billing-saas-bench"
-version = "0.1.0"
-dependencies = [
- "marketplace-plugin-kernel",
- "oya-saas-plugin-app",
- "workflow-saas-app",
- "workflow-saas-domain",
- "workflow-saas-kernel",
-]
-
-[[package]]
 name = "billing-service"
 version = "0.1.0"
 dependencies = [
  "billing-domain",
  "billing-metering",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "tokio",
 ]
 
@@ -743,9 +783,9 @@ dependencies = [
 
 [[package]]
 name = "bstr"
-version = "1.13.0"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f7dc094d718f2e1c1559ad110e27eeaae14a5465d3d56dd6dbd793079fbd530"
+checksum = "6bb31b46c14244e20ee9984b11bf5c992b91fb6939fea616e3512c8baecdbe5f"
 dependencies = [
  "memchr",
 ]
@@ -866,16 +906,20 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
+
+[[package]]
+name = "cell-clock-api"
+version = "0.1.0"
 
 [[package]]
 name = "cell-region"
 version = "0.1.0"
 dependencies = [
  "cell-routing",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -890,8 +934,8 @@ dependencies = [
 name = "cell-regional-pack"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "serde",
  "serde_json",
 ]
@@ -908,8 +952,8 @@ dependencies = [
 name = "cell-routing"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -936,289 +980,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "check-a11y-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-active-artifact-contract"
+name = "check-cost-budget"
 version = "0.1.0"
 dependencies = [
- "serde_json",
+ "data-boundary-kernel",
 ]
-
-[[package]]
-name = "check-adr-citation-closure"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-apex-gist-integrity"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-aspirational-enforcement"
-version = "0.1.0"
-
-[[package]]
-name = "check-audit-chain-seal-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-authority-cohesion"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-authz-tier-discipline"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "check-benchmark"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-cedar-fragment-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-client-stack-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-codeowners-mirror"
-version = "0.1.0"
-
-[[package]]
-name = "check-cohesion"
-version = "0.1.0"
-
-[[package]]
-name = "check-cursor-pagination-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-data-class"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "check-doc-catalog"
-version = "0.1.0"
-
-[[package]]
-name = "check-documentation-system"
-version = "0.1.0"
-
-[[package]]
-name = "check-event-schema-versioning"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-glossary-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-glossary-vocabulary"
-version = "0.1.0"
-
-[[package]]
-name = "check-high-risk-auto-decision-refusal"
-version = "0.1.0"
-
-[[package]]
-name = "check-honest-claims"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-iac-tier-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-id-discipline"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-idempotency-key-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-image-signing-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-integ-envelope"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-layered-architecture-discipline"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-metric-cardinality"
-version = "0.1.0"
-
-[[package]]
-name = "check-mobile-native"
-version = "0.1.0"
-
-[[package]]
-name = "check-no-grouping"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-no-template-stamping"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
-name = "check-olap-tier-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-ontology-projection-coverage"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "check-openapi-rest-route-parity"
-version = "0.1.0"
-
-[[package]]
-name = "check-otel-trace-propagation"
-version = "0.1.0"
-
-[[package]]
-name = "check-perf-budget"
-version = "0.1.0"
-
-[[package]]
-name = "check-placeholder-debt"
-version = "0.1.0"
-
-[[package]]
-name = "check-protection-context-match"
-version = "0.1.0"
-
-[[package]]
-name = "check-quality-lane"
-version = "0.1.0"
-
-[[package]]
-name = "check-raci-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-readme-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-release-pack"
-version = "0.1.0"
-
-[[package]]
-name = "check-retired-vocabulary"
-version = "0.1.0"
-
-[[package]]
-name = "check-rpo-rto-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-runbook-freshness"
-version = "0.1.0"
-
-[[package]]
-name = "check-runbook-index"
-version = "0.1.0"
-
-[[package]]
-name = "check-shardability"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "check-slsa-l3-evidence-grounded"
-version = "0.1.0"
-
-[[package]]
-name = "check-statelessness"
-version = "0.1.0"
-
-[[package]]
-name = "check-tenant-cost-labels-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "check-typescript-workspace"
-version = "0.1.0"
-
-[[package]]
-name = "check-vector-store-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-vendor-lockin-discipline"
-version = "0.1.0"
-
-[[package]]
-name = "check-vendor-recency"
-version = "0.1.0"
-
-[[package]]
-name = "check-wasm-runtime-discipline"
-version = "0.1.0"
 
 [[package]]
 name = "chrono"
@@ -1227,722 +993,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327"
 dependencies = [
  "iana-time-zone",
- "js-sys",
  "num-traits",
  "serde",
- "wasm-bindgen",
  "windows-link",
-]
-
-[[package]]
-name = "ci-action-item-accounting"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-affected-target-set"
-version = "0.1.0"
-dependencies = [
- "reqwest 0.13.4",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-artifact-accountability"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-artifact-inventory-registry"
-version = "0.1.0"
-dependencies = [
- "ci-artifact-accountability",
- "ci-automation-coverage",
- "ci-build-target-parity",
- "ci-crate-layer-suffix",
- "ci-crate-name-prefix",
- "ci-cross-artifact-agreement",
- "ci-hook-wiring",
- "ci-license-policy",
- "ci-package-manifest-hygiene",
- "ci-path-resolver-adapters",
- "ci-service-catalog-parity",
- "ci-slo-coverage",
- "ci-stale-artifact-detection",
- "ci-workspace-member-coverage",
- "oya-check-brand-residue",
- "oya-ci-config-kernel",
- "oya-reorg-codemod-app",
- "oya-workspace-members-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-automation-coverage"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-automation-language-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "serde_yaml",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-baseline-ratchet"
-version = "0.1.0"
-dependencies = [
- "ci-generated-artifact-freshness",
- "ci-path-resolver-adapters",
- "reqwest 0.13.4",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-build-target-parity"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-caller-supplied-authorization"
-version = "0.1.0"
-dependencies = [
- "ci-scan-root-derivation-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-canonical-json"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-cloud-name-ratchet"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-contract-slice-conformance"
-version = "0.1.0"
-dependencies = [
- "regex",
- "serde_json",
-]
-
-[[package]]
-name = "ci-controller-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "ci-controller-github-adapter",
- "ci-controller-k8s-adapter",
- "ci-controller-kernel",
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-controller-kernel",
- "reqwest 0.13.4",
- "scripted-http-server",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-controller-kernel",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "ci-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-core-dependency-isolation"
-version = "0.1.0"
-dependencies = [
- "oya-buck-syntax-kernel",
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-corpus-census-adapters"
-version = "0.1.0"
-dependencies = [
- "oya-ci-config-kernel",
- "oya-workspace-members-kernel",
-]
-
-[[package]]
-name = "ci-corpus-index-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-buck-syntax-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-crate-catalog-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-crate-layer-suffix"
-version = "0.1.0"
-dependencies = [
- "ci-corpus-census-adapters",
- "ci-path-resolver-adapters",
- "oya-ci-config-kernel",
- "oya-governance-predictable-naming-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-crate-name-prefix"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "ci-scm-facts-snapshot",
- "intelligence-cargo-prefix-domain",
- "oya-ci-config-kernel",
- "oya-workspace-members-kernel",
- "serde_json",
- "tempfile",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-crate-registration"
-version = "0.1.0"
-dependencies = [
- "ci-artifact-accountability",
- "ci-artifact-inventory-registry",
- "ci-module-membership",
- "ci-service-catalog-parity",
- "ci-slo-coverage",
- "oya-ci-config-kernel",
- "oya-crate-registrar-app",
- "oya-crate-registrar-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-cross-artifact-agreement"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "oya-check-adr-index",
- "oya-governance-adr-shape-kernel",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
-]
-
-[[package]]
-name = "ci-crypto-backend-policy"
-version = "0.1.0"
-dependencies = [
- "ci-corpus-census-adapters",
- "oya-buck-syntax-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-dep-freshness"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-dependency-automation"
-version = "0.1.0"
-dependencies = [
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-dependency-graph-acyclicity"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-embedded-asset-hermeticity"
-version = "0.1.0"
-dependencies = [
- "ci-scan-root-derivation-adapters",
- "oya-buck-syntax-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-endpoint-authorization-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-facade-core-layering"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-feature-maturity-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-gate-self-conformance"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-generated-artifact-freshness"
-version = "0.1.0"
-dependencies = [
- "ci-cross-artifact-agreement",
- "ci-planning-projection",
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-generated-artifact-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-gitops-chart-license"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "ci-graphql-usage-policy"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-helm-chart-shape"
-version = "0.1.0"
-
-[[package]]
-name = "ci-hook-wiring"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-inventory-registry-drift"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
-]
-
-[[package]]
-name = "ci-k8s-program-docs"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-layer-dependency-acyclicity"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-license-policy"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "oya-check-license-policy",
- "serde_json",
-]
-
-[[package]]
-name = "ci-lifecycle-status"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-module-membership"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-operator-secret-rbac"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "ci-package-manifest-hygiene"
-version = "0.1.0"
-dependencies = [
- "ci-corpus-census-adapters",
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-parity-claim-evidence"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-path-resolver-adapters"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-ports",
- "serde_json",
-]
-
-[[package]]
-name = "ci-path-resolver-ports"
-version = "0.1.0"
-
-[[package]]
-name = "ci-planning-projection"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-policy-deploy-parity"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-port-placement"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-product-protocol-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-repo-root-hygiene"
-version = "0.1.0"
-dependencies = [
- "ci-scm-facts-snapshot",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "ci-reset-eligibility-policy"
-version = "0.1.0"
-dependencies = [
- "ed25519-dalek",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-resource-contract-conformance"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-runner-disk-reclaim"
-version = "0.1.0"
-dependencies = [
- "libc",
- "serde_json",
-]
-
-[[package]]
-name = "ci-rust-toolchain-bump-proposer"
-version = "0.1.0"
-dependencies = [
- "ci-dependency-automation",
- "ci-generated-artifact-freshness",
- "proptest",
-]
-
-[[package]]
-name = "ci-scan-root-derivation-adapters"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-scan-root-liveness"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-scm-facts-snapshot"
-version = "0.1.0"
-dependencies = [
- "ci-artifact-inventory-registry",
- "ci-baseline-ratchet",
- "ci-path-resolver-adapters",
- "ci-path-resolver-ports",
- "corpus-doc-parser",
- "oya-check-brand-residue",
- "oya-ci-config-kernel",
- "oya-reorg-codemod-app",
- "rustix",
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-service-catalog-parity"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-service-tier-metadata"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-slo-coverage"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "oya-check-slo-coverage",
- "serde_json",
-]
-
-[[package]]
-name = "ci-stale-artifact-detection"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "serde_json",
-]
-
-[[package]]
-name = "ci-supply-chain-audit"
-version = "0.1.0"
-dependencies = [
- "ci-scm-facts-snapshot",
- "oya-advisory-mirror-kernel",
- "semver",
- "serde_json",
- "tempfile",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "ci-tide-app"
-version = "0.1.0"
-dependencies = [
- "ci-tide-github-adapter",
- "ci-tide-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-tide-github-adapter"
-version = "0.1.0"
-dependencies = [
- "ci-tide-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-tide-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "ci-topology-manifest-contract"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-webhook-gateway-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "bytes",
- "ci-webhook-gateway-authz-cedar",
- "ci-webhook-gateway-ed25519",
- "ci-webhook-gateway-github",
- "ci-webhook-gateway-ports",
- "ed25519-dalek",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "ci-webhook-gateway-authz-cedar"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "ci-webhook-gateway-kernel",
-]
-
-[[package]]
-name = "ci-webhook-gateway-ed25519"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
- "ed25519-dalek",
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "ci-webhook-gateway-github"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
- "reqwest 0.13.4",
- "scripted-http-server",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-webhook-gateway-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-webhook-gateway-ports"
-version = "0.1.0"
-dependencies = [
- "ci-webhook-gateway-kernel",
-]
-
-[[package]]
-name = "ci-workspace-member-coverage"
-version = "0.1.0"
-dependencies = [
- "ci-path-resolver-adapters",
- "oya-workspace-members-kernel",
- "serde_json",
 ]
 
 [[package]]
@@ -2084,192 +1137,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "comms-calendar-api"
-version = "0.1.0"
-dependencies = [
- "comms-calendar-domain",
-]
-
-[[package]]
-name = "comms-calendar-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "comms-calendar-usecase"
-version = "0.1.0"
-dependencies = [
- "comms-calendar-api",
- "comms-calendar-domain",
-]
-
-[[package]]
-name = "comms-contact-center-voice-routing"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "comms-mail-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-api"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-app"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-postgres",
- "comms-mail-mailbox-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-grpc"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-app",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-rest"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-app",
- "comms-mail-mailbox-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "comms-mail-mailbox-usecase"
-version = "0.1.0"
-dependencies = [
- "comms-mail-domain",
- "comms-mail-mailbox-api",
-]
-
-[[package]]
-name = "comms-meet-api"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "comms-meet-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "comms-meet-usecase"
-version = "0.1.0"
-dependencies = [
- "comms-meet-api",
- "comms-meet-domain",
-]
-
-[[package]]
-name = "comms-messenger-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-api"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-app"
-version = "0.1.0"
-dependencies = [
- "comms-messenger-stream-api",
- "comms-messenger-stream-postgres",
- "comms-messenger-stream-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-grpc"
-version = "0.1.0"
-dependencies = [
- "comms-messenger-stream-api",
- "comms-messenger-stream-app",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-rest"
-version = "0.1.0"
-dependencies = [
- "comms-messenger-stream-api",
- "comms-messenger-stream-app",
- "comms-messenger-stream-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "comms-messenger-stream-usecase"
-version = "0.1.0"
-dependencies = [
- "comms-messenger-domain",
- "comms-messenger-stream-api",
-]
-
-[[package]]
 name = "community-post-store-api"
 version = "0.1.0"
 dependencies = [
- "oya-shared-protocol-parity-kernel",
+ "shared-protocol-parity-kernel",
 ]
 
 [[package]]
@@ -2280,17 +1151,17 @@ dependencies = [
  "community-post-store-domain",
  "community-post-store-postgres",
  "community-post-store-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
+ "shared-postgres-command-kernel",
+ "shared-protocol-parity-kernel",
+ "shared-protocol-transport-kernel",
+ "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
 name = "community-post-store-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2300,15 +1171,15 @@ dependencies = [
  "community-post-store-api",
  "community-post-store-app",
  "community-post-store-domain",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
+ "shared-postgres-command-kernel",
+ "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-post-store-postgres"
 version = "0.1.0"
 dependencies = [
- "oya-shared-postgres-command-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -2319,8 +1190,8 @@ dependencies = [
  "community-post-store-app",
  "community-post-store-domain",
  "community-post-store-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
+ "shared-hyperscaler-metrics-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -2338,24 +1209,24 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
+ "shared-postgres-command-kernel",
+ "shared-protocol-parity-kernel",
+ "shared-protocol-transport-kernel",
+ "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
 name = "community-social-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "community-social-post-composition-api"
 version = "0.1.0"
 dependencies = [
- "oya-shared-protocol-parity-kernel",
+ "shared-protocol-parity-kernel",
 ]
 
 [[package]]
@@ -2364,15 +1235,15 @@ version = "0.1.0"
 dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
+ "shared-postgres-command-kernel",
+ "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-social-post-composition-postgres"
 version = "0.1.0"
 dependencies = [
- "oya-shared-postgres-command-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -2382,8 +1253,8 @@ dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
  "community-social-post-composition-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
+ "shared-hyperscaler-metrics-kernel",
+ "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -2398,14 +1269,14 @@ dependencies = [
 name = "compliance-dlp"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-dsr"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2413,7 +1284,7 @@ name = "compliance-dsr-usecase"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2421,14 +1292,14 @@ name = "compliance-ediscovery"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-retention"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2436,7 +1307,7 @@ name = "compliance-retention-dsr"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2444,8 +1315,8 @@ name = "compliance-trust-portal"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2454,8 +1325,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2463,7 +1334,7 @@ name = "compute-dcops"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2472,10 +1343,10 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
- "iam-cloud-domain",
+ "data-boundary-kernel",
+ "iam-domain",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2484,8 +1355,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2494,8 +1365,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2504,8 +1375,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2513,8 +1384,8 @@ name = "compute-resource"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2523,8 +1394,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2538,93 +1409,6 @@ dependencies = [
  "serde_core",
  "toml 1.1.4+spec-1.1.0",
  "winnow 1.0.4",
-]
-
-[[package]]
-name = "connect-address-book-api"
-version = "0.1.0"
-
-[[package]]
-name = "connect-address-book-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "connect-address-book-usecase"
-version = "0.1.0"
-dependencies = [
- "connect-address-book-api",
- "connect-address-book-domain",
-]
-
-[[package]]
-name = "console-docs-portal-adapter"
-version = "0.1.0"
-dependencies = [
- "console-docs-portal-kernel",
-]
-
-[[package]]
-name = "console-docs-portal-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "console-docs-portal-rest"
-version = "0.1.0"
-dependencies = [
- "console-docs-portal-adapter",
- "console-docs-portal-kernel",
- "console-docs-portal-usecase",
-]
-
-[[package]]
-name = "console-docs-portal-usecase"
-version = "0.1.0"
-dependencies = [
- "console-docs-portal-kernel",
-]
-
-[[package]]
-name = "console-workspace-shell-adapter"
-version = "0.1.0"
-dependencies = [
- "console-workspace-shell-kernel",
-]
-
-[[package]]
-name = "console-workspace-shell-app"
-version = "0.1.0"
-dependencies = [
- "console-workspace-shell-adapter",
- "console-workspace-shell-kernel",
- "console-workspace-shell-rest",
- "console-workspace-shell-usecase",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
- "tokio",
-]
-
-[[package]]
-name = "console-workspace-shell-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "console-workspace-shell-rest"
-version = "0.1.0"
-dependencies = [
- "console-workspace-shell-adapter",
- "console-workspace-shell-kernel",
- "console-workspace-shell-usecase",
-]
-
-[[package]]
-name = "console-workspace-shell-usecase"
-version = "0.1.0"
-dependencies = [
- "console-workspace-shell-kernel",
 ]
 
 [[package]]
@@ -2714,46 +1498,6 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
-
-[[package]]
-name = "corpus-core"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "corpus-doc-parser"
-version = "0.1.0"
-dependencies = [
- "sha2",
- "work-area-tree-kernel",
-]
-
-[[package]]
-name = "corpus-extract"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "corpus-core",
- "corpus-yaml-kernel",
- "oya-workspace-members-kernel",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
-name = "corpus-yaml-kernel"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "corpus-core",
- "saphyr",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "cpufeatures"
@@ -2880,9 +1624,9 @@ version = "0.1.0"
 dependencies = [
  "data-analytics-domain",
  "data-analytics-usecase",
- "oya-shared-olap-client-kernel",
  "serde",
  "serde_json",
+ "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -2893,10 +1637,9 @@ dependencies = [
  "data-analytics-api",
  "data-analytics-domain",
  "data-analytics-usecase",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
  "serde",
  "serde_json",
+ "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -2905,8 +1648,8 @@ dependencies = [
 name = "data-analytics-domain"
 version = "0.1.0"
 dependencies = [
- "oya-shared-olap-client-kernel",
  "serde",
+ "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -2915,10 +1658,10 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "data-analytics-domain",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
  "serde",
  "serde_json",
+ "shared-olap-clickhouse-adapter",
+ "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -2928,23 +1671,12 @@ name = "data-analytics-usecase"
 version = "0.1.0"
 dependencies = [
  "data-analytics-domain",
- "oya-shared-olap-client-kernel",
  "serde",
+ "shared-olap-client-kernel",
 ]
 
 [[package]]
-name = "data-cloud-domain"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "compute-resource",
- "network-residency",
- "oya-data-boundary-kernel",
- "secrets-kms-domain",
-]
-
-[[package]]
-name = "data-cloud-kernel"
+name = "data-boundary-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -2957,8 +1689,8 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 name = "data-ontology-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2972,24 +1704,24 @@ dependencies = [
 name = "data-ontology-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "data-ontology-query-engine-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "data-ontology-query-engine-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "data-ontology-kernel",
  "data-ontology-query-engine-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -3009,62 +1741,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "data-search-crawler"
-version = "0.1.0"
-
-[[package]]
-name = "data-search-index-inverted"
-version = "0.1.0"
-dependencies = [
- "data-search-crawler",
- "data-search-parser",
-]
-
-[[package]]
-name = "data-search-index-vector"
-version = "0.1.0"
-dependencies = [
- "data-search-crawler",
- "data-search-parser",
- "serde_json",
-]
-
-[[package]]
-name = "data-search-parser"
-version = "0.1.0"
-dependencies = [
- "data-search-crawler",
-]
-
-[[package]]
-name = "data-search-query"
-version = "0.1.0"
-
-[[package]]
-name = "data-search-rag"
-version = "0.1.0"
-dependencies = [
- "data-search-query",
- "data-search-rank",
- "data-search-serp",
-]
-
-[[package]]
-name = "data-search-rank"
-version = "0.1.0"
-dependencies = [
- "data-search-query",
-]
-
-[[package]]
-name = "data-search-serp"
-version = "0.1.0"
-dependencies = [
- "data-search-query",
- "data-search-rank",
 ]
 
 [[package]]
@@ -3197,6 +1873,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "docs-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3238,7 +1921,6 @@ checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
- "rand_core 0.6.4",
  "serde",
  "sha2",
  "subtle",
@@ -3404,13 +2086,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
-name = "fixup-ledger-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "flags-evaluation-domain"
 version = "0.1.0"
 
@@ -3558,70 +2233,70 @@ dependencies = [
 name = "gateway-adp-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-epic-fhir-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-gusto-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-netsuite-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-quickbooks-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-rippling-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-salesforce-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-slack-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-teams-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
 name = "gateway-workday-connector"
 version = "0.1.0"
 dependencies = [
- "oya-shared-connector-kernel",
+ "shared-connector-kernel",
 ]
 
 [[package]]
@@ -3674,19 +2349,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glob"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
-
-[[package]]
-name = "global-trade-compliance-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "gloo-net"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3730,6 +2392,13 @@ dependencies = [
  "serde_json",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "governance-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -3790,9 +2459,6 @@ name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
-dependencies = [
- "foldhash 0.2.0",
-]
 
 [[package]]
 name = "hashlink"
@@ -3801,15 +2467,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
 dependencies = [
  "hashbrown 0.15.5",
-]
-
-[[package]]
-name = "hashlink"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32069d97bb81e38fa67eab65e3393bf804bb85969f2bc06bf13f64aef5aba248"
-dependencies = [
- "hashbrown 0.17.1",
 ]
 
 [[package]]
@@ -3876,15 +2533,15 @@ dependencies = [
 name = "hr-employment-app"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "hr-employment-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "hr-employment-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -3894,9 +2551,9 @@ dependencies = [
  "hr-employment-api",
  "hr-employment-app",
  "hr-employment-domain",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -3949,10 +2606,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-middleware-kernel"
+version = "0.1.0"
+dependencies = [
+ "http-router-kernel",
+]
+
+[[package]]
 name = "http-range-header"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c"
+
+[[package]]
+name = "http-router-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "http-runtime-hyper-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "rcgen",
+ "rustls",
+ "tokio",
+]
+
+[[package]]
+name = "http-sse-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "httparse"
@@ -4068,12 +2756,12 @@ dependencies = [
 name = "iac-app"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-infrastructure",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
  "sha2",
 ]
 
@@ -4085,19 +2773,27 @@ version = "0.1.0"
 name = "iac-infrastructure"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-rest",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
 ]
 
 [[package]]
 name = "iac-rest"
 version = "0.1.0"
 dependencies = [
- "oya-http-router-kernel",
+ "http-router-kernel",
+]
+
+[[package]]
+name = "iam-api"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "iam-domain",
 ]
 
 [[package]]
@@ -4105,108 +2801,25 @@ name = "iam-authn-device-firmware"
 version = "0.1.0"
 
 [[package]]
-name = "iam-cloud-api"
+name = "iam-control-app"
 version = "0.1.0"
 dependencies = [
- "iam-cloud-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "iam-cloud-app"
-version = "0.1.0"
-dependencies = [
- "iam-cloud-domain",
+ "data-boundary-kernel",
+ "iam-domain",
  "iam-policy-cedar-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "iam-cloud-domain"
+name = "iam-device-attestation-api"
+version = "0.1.0"
+
+[[package]]
+name = "iam-domain"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "iam-identity-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "iam-cloud-oci"
-version = "0.1.0"
-dependencies = [
- "iam-cloud-domain",
-]
-
-[[package]]
-name = "iam-cloud-pdp-app"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "aws-lc-rs",
- "axum",
- "base64",
- "futures-core",
- "http-body-util",
- "hyper",
- "hyper-util",
- "iam-cloud-pdp-bundle-file",
- "iam-cloud-pdp-kernel",
- "iam-identity-workload-domain",
- "iam-identity-workload-svid-kernel",
- "iam-identity-workload-svid-operator-k8s",
- "iam-identity-workload-svid-operator-kernel",
- "iam-identity-workload-svid-trustd",
- "iam-pdp-cedar",
- "os-trustd-domain",
- "oya-http-runtime-hyper-adapter",
- "oya-shared-audit-digest-adapter-awslc",
- "oya-shared-audit-event-kernel",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
- "oya-shared-ulid-id-kernel",
- "prost",
- "protoc-bin-vendored",
- "reqwest 0.13.4",
- "rustls",
- "serde",
- "serde_json",
- "tokio",
- "tokio-rustls",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
- "x509-parser",
-]
-
-[[package]]
-name = "iam-cloud-pdp-bundle-file"
-version = "0.1.0"
-dependencies = [
- "iam-cloud-pdp-kernel",
- "oya-shared-audit-digest-adapter-awslc",
- "oya-shared-audit-event-kernel",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "iam-cloud-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
-]
-
-[[package]]
-name = "iam-cloud-selfhosted"
-version = "0.1.0"
-dependencies = [
- "iam-cloud-domain",
 ]
 
 [[package]]
@@ -4220,7 +2833,7 @@ dependencies = [
 name = "iam-identity-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4241,10 +2854,10 @@ dependencies = [
  "iam-identity-workload-oidc",
  "iam-identity-workload-rest",
  "identity-scim-store-postgres",
- "oya-shared-scim-server-kernel",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tonic",
@@ -4258,8 +2871,8 @@ dependencies = [
 name = "iam-identity-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-identity-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -4385,17 +2998,89 @@ dependencies = [
 ]
 
 [[package]]
+name = "iam-oci"
+version = "0.1.0"
+dependencies = [
+ "iam-domain",
+]
+
+[[package]]
+name = "iam-pdp-app"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "aws-lc-rs",
+ "axum",
+ "base64",
+ "futures-core",
+ "http-body-util",
+ "http-runtime-hyper-adapter",
+ "hyper",
+ "hyper-util",
+ "iam-identity-workload-domain",
+ "iam-identity-workload-svid-kernel",
+ "iam-identity-workload-svid-operator-k8s",
+ "iam-identity-workload-svid-operator-kernel",
+ "iam-identity-workload-svid-trustd",
+ "iam-pdp-bundle-file",
+ "iam-pdp-cedar",
+ "iam-pdp-kernel",
+ "os-trustd-domain",
+ "prost",
+ "protoc-bin-vendored",
+ "reqwest 0.13.4",
+ "rustls",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+ "tokio",
+ "tokio-rustls",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+ "x509-parser",
+]
+
+[[package]]
+name = "iam-pdp-bundle-file"
+version = "0.1.0"
+dependencies = [
+ "iam-pdp-kernel",
+ "serde",
+ "serde_json",
+ "shared-audit-digest-adapter-awslc",
+ "shared-audit-event-kernel",
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
 name = "iam-pdp-cedar"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
  "cedar-policy",
- "oya-data-boundary-kernel",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
- "oya-shared-ulid-id-kernel",
+ "data-boundary-kernel",
  "serde_json",
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
+]
+
+[[package]]
+name = "iam-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -4421,12 +3106,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "iam-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "iam-domain",
+]
+
+[[package]]
 name = "iam-tenant-rbac-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
- "oya-data-boundary-kernel",
  "serde",
  "serde_json",
 ]
@@ -4435,16 +3127,16 @@ dependencies = [
 name = "iam-tenant-rbac-app"
 version = "0.1.0"
 dependencies = [
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "iam-tenant-rbac-api",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
  "serde",
  "serde_json",
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -4467,55 +3159,16 @@ name = "iam-tenant-rbac-auth-app"
 version = "0.1.0"
 
 [[package]]
-name = "iam-tenant-rbac-cloud-deployment-evidence"
+name = "iam-tenant-rbac-deployment-evidence"
 version = "0.1.0"
 dependencies = [
- "iam-tenant-rbac-cloud-deployment-manifest",
+ "iam-tenant-rbac-deployment-manifest",
  "iam-tenant-rbac-tenant-workload-manifest",
 ]
 
 [[package]]
-name = "iam-tenant-rbac-cloud-deployment-manifest"
+name = "iam-tenant-rbac-deployment-manifest"
 version = "0.1.0"
-
-[[package]]
-name = "iam-tenant-rbac-cloud-readiness-gate"
-version = "0.1.0"
-dependencies = [
- "iam-tenant-rbac-audit-chain-emission",
- "iam-tenant-rbac-audit-chain-runtime-evidence",
- "iam-tenant-rbac-auth-app",
- "iam-tenant-rbac-cloud-deployment-evidence",
- "iam-tenant-rbac-cloud-deployment-manifest",
- "iam-tenant-rbac-disbursement-evidence",
- "iam-tenant-rbac-erp-parity-map",
- "iam-tenant-rbac-identity-provider-runtime-evidence",
- "iam-tenant-rbac-identity-provider-verification",
- "iam-tenant-rbac-listener-gateway",
- "iam-tenant-rbac-listener-runtime-evidence",
- "iam-tenant-rbac-local-inmemory-harness",
- "iam-tenant-rbac-local-runtime-composition",
- "iam-tenant-rbac-postgres-rls-runtime-evidence",
- "iam-tenant-rbac-postgres-rls-storage",
- "iam-tenant-rbac-postgres-rls-transaction-contract",
- "iam-tenant-rbac-postgres-rls-write-contract",
- "iam-tenant-rbac-slo-evidence",
- "iam-tenant-rbac-statutory-filing-evidence",
- "iam-tenant-rbac-tenant-admission-policy",
- "iam-tenant-rbac-tenant-autoscaling-contract",
- "iam-tenant-rbac-tenant-availability-contract",
- "iam-tenant-rbac-tenant-cost-allocation-contract",
- "iam-tenant-rbac-tenant-egress-policy-contract",
- "iam-tenant-rbac-tenant-image-provenance-contract",
- "iam-tenant-rbac-tenant-residency-contract",
- "iam-tenant-rbac-tenant-resource-quota-contract",
- "iam-tenant-rbac-tenant-secret-boundary-contract",
- "iam-tenant-rbac-tenant-workload-identity-contract",
- "iam-tenant-rbac-tenant-workload-manifest",
- "iam-tenant-rbac-tenant-workload-runtime-evidence",
- "iam-tenant-rbac-workflow-inmemory",
- "iam-tenant-rbac-workflow-runtime-evidence",
-]
 
 [[package]]
 name = "iam-tenant-rbac-disbursement-evidence"
@@ -4525,7 +3178,7 @@ version = "0.1.0"
 name = "iam-tenant-rbac-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -4551,7 +3204,7 @@ name = "iam-tenant-rbac-listener-gateway"
 version = "0.1.0"
 dependencies = [
  "iam-tenant-rbac-auth-app",
- "iam-tenant-rbac-cloud-deployment-manifest",
+ "iam-tenant-rbac-deployment-manifest",
  "iam-tenant-rbac-local-runtime-composition",
 ]
 
@@ -4617,6 +3270,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "iam-tenant-rbac-readiness-gate"
+version = "0.1.0"
+dependencies = [
+ "iam-tenant-rbac-audit-chain-emission",
+ "iam-tenant-rbac-audit-chain-runtime-evidence",
+ "iam-tenant-rbac-auth-app",
+ "iam-tenant-rbac-deployment-evidence",
+ "iam-tenant-rbac-deployment-manifest",
+ "iam-tenant-rbac-disbursement-evidence",
+ "iam-tenant-rbac-erp-parity-map",
+ "iam-tenant-rbac-identity-provider-runtime-evidence",
+ "iam-tenant-rbac-identity-provider-verification",
+ "iam-tenant-rbac-listener-gateway",
+ "iam-tenant-rbac-listener-runtime-evidence",
+ "iam-tenant-rbac-local-inmemory-harness",
+ "iam-tenant-rbac-local-runtime-composition",
+ "iam-tenant-rbac-postgres-rls-runtime-evidence",
+ "iam-tenant-rbac-postgres-rls-storage",
+ "iam-tenant-rbac-postgres-rls-transaction-contract",
+ "iam-tenant-rbac-postgres-rls-write-contract",
+ "iam-tenant-rbac-slo-evidence",
+ "iam-tenant-rbac-statutory-filing-evidence",
+ "iam-tenant-rbac-tenant-admission-policy",
+ "iam-tenant-rbac-tenant-autoscaling-contract",
+ "iam-tenant-rbac-tenant-availability-contract",
+ "iam-tenant-rbac-tenant-cost-allocation-contract",
+ "iam-tenant-rbac-tenant-egress-policy-contract",
+ "iam-tenant-rbac-tenant-image-provenance-contract",
+ "iam-tenant-rbac-tenant-residency-contract",
+ "iam-tenant-rbac-tenant-resource-quota-contract",
+ "iam-tenant-rbac-tenant-secret-boundary-contract",
+ "iam-tenant-rbac-tenant-workload-identity-contract",
+ "iam-tenant-rbac-tenant-workload-manifest",
+ "iam-tenant-rbac-tenant-workload-runtime-evidence",
+ "iam-tenant-rbac-workflow-inmemory",
+ "iam-tenant-rbac-workflow-runtime-evidence",
+]
+
+[[package]]
 name = "iam-tenant-rbac-slo-evidence"
 version = "0.1.0"
 
@@ -4628,9 +3320,9 @@ version = "0.1.0"
 name = "iam-tenant-rbac-storage-inmemory"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -4727,8 +3419,8 @@ dependencies = [
 name = "iam-tenant-rbac-usecase"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "iam-tenant-rbac-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -4862,11 +3554,11 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 name = "identity-scim-store-postgres"
 version = "0.1.0"
 dependencies = [
- "oya-shared-postgres-command-adapter-sqlx",
- "oya-shared-postgres-command-kernel",
- "oya-shared-scim-server-kernel",
  "serde",
  "serde_json",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
+ "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tracing",
@@ -4938,9 +3630,9 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
+ "check-cost-budget",
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-check-cost-budget",
- "oya-data-boundary-kernel",
  "secrets-domain",
 ]
 
@@ -4948,10 +3640,10 @@ dependencies = [
 name = "intelligence-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
+ "http-router-kernel",
+ "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
 ]
 
 [[package]]
@@ -4961,12 +3653,12 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
+ "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-domain",
  "intelligence-account-kernel",
  "intelligence-oauth-subscription-kernel",
- "oya-http-runtime-hyper-adapter",
  "serde",
  "serde_json",
  "tokio",
@@ -4977,7 +3669,7 @@ dependencies = [
 name = "intelligence-api"
 version = "0.1.0"
 dependencies = [
- "oya-application-app",
+ "application-app",
 ]
 
 [[package]]
@@ -5036,9 +3728,9 @@ dependencies = [
  "intelligence-kernel",
  "intelligence-openbao-adapter",
  "intelligence-rest",
- "oya-shared-olap-clickhouse-adapter",
  "reqwest 0.13.4",
  "serde",
+ "shared-olap-clickhouse-adapter",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -5049,7 +3741,7 @@ name = "intelligence-architecture-map-app"
 version = "0.1.0"
 dependencies = [
  "intelligence-architecture-map-kernel",
- "oya-workspace-members-kernel",
+ "workspace-members-kernel",
 ]
 
 [[package]]
@@ -5202,12 +3894,6 @@ version = "0.1.0"
 name = "intelligence-backbone-workload-live-app"
 version = "0.1.0"
 dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-postgres",
- "comms-mail-mailbox-usecase",
- "comms-messenger-stream-api",
- "comms-messenger-stream-postgres",
- "comms-messenger-stream-usecase",
  "community-post-store-api",
  "community-post-store-domain",
  "community-post-store-postgres",
@@ -5215,11 +3901,11 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
- "oya-shared-postgres-command-adapter-sqlx",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-transactional-outbox-adapter-sqlx",
- "oya-shared-transactional-outbox-kernel",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
+ "shared-protocol-parity-kernel",
+ "shared-transactional-outbox-adapter-sqlx",
+ "shared-transactional-outbox-kernel",
  "sqlx",
  "tokio",
 ]
@@ -5228,8 +3914,8 @@ dependencies = [
 name = "intelligence-bypass-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5240,7 +3926,7 @@ version = "0.1.0"
 name = "intelligence-capability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5270,7 +3956,7 @@ version = "0.1.0"
 name = "intelligence-catalog-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5296,19 +3982,6 @@ dependencies = [
  "intelligence-account-domain",
  "intelligence-supervisor-kernel",
  "tokio",
-]
-
-[[package]]
-name = "intelligence-codeview-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "regex",
- "serde",
- "serde_json",
- "walkdir",
 ]
 
 [[package]]
@@ -5345,7 +4018,7 @@ version = "0.1.0"
 name = "intelligence-collab-runtime-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5451,8 +4124,8 @@ dependencies = [
 name = "intelligence-document-format-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5510,9 +4183,9 @@ name = "intelligence-eventsink-clickhouse-adapter"
 version = "0.1.0"
 dependencies = [
  "intelligence-kernel",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
  "serde",
+ "shared-olap-clickhouse-adapter",
+ "shared-olap-client-kernel",
  "tokio",
  "tracing",
 ]
@@ -5532,15 +4205,15 @@ dependencies = [
 name = "intelligence-evidence-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "intelligence-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-evidence-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5599,8 +4272,8 @@ dependencies = [
 name = "intelligence-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5634,9 +4307,9 @@ name = "intelligence-mutation-domain"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5650,10 +4323,10 @@ dependencies = [
 name = "intelligence-openai-compat-api"
 version = "0.1.0"
 dependencies = [
+ "http-router-kernel",
+ "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
 ]
 
 [[package]]
@@ -5676,7 +4349,7 @@ dependencies = [
 name = "intelligence-openapi-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5708,17 +4381,17 @@ dependencies = [
 name = "intelligence-policy-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5738,15 +4411,15 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-kernel",
  "intelligence-anthropic-compat-api",
  "intelligence-openai-compat-api",
  "intelligence-provider-pool-kernel",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
  "serde",
  "serde_json",
  "tokio",
@@ -5773,7 +4446,7 @@ dependencies = [
 name = "intelligence-rag-api"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5803,9 +4476,9 @@ dependencies = [
 name = "intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
+ "governance-eval-domain",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
- "oya-governance-eval-domain",
 ]
 
 [[package]]
@@ -5839,17 +4512,17 @@ dependencies = [
 name = "intelligence-run-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "intelligence-run-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-run-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5879,15 +4552,15 @@ version = "0.1.0"
 name = "intelligence-step-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "intelligence-step-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-step-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -5950,13 +4623,6 @@ dependencies = [
  "intelligence-autonomy-ceiling-kernel",
  "intelligence-capability-registry-kernel",
  "intelligence-supervisor-kernel",
-]
-
-[[package]]
-name = "intelligence-third-party-test-deps"
-version = "0.1.0"
-dependencies = [
- "proptest",
 ]
 
 [[package]]
@@ -6939,117 +5605,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "marketplace-cloud-domain"
+name = "marketplace-doc-set-scaffold"
+version = "0.1.0"
+
+[[package]]
+name = "marketplace-domain"
 version = "0.1.0"
 dependencies = [
  "billing-domain",
  "billing-metering",
  "cell-region",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
-name = "marketplace-cloud-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "marketplace-dev-cli"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "audit-file-adapter",
- "check-a11y-discipline",
- "check-active-artifact-contract",
- "check-aspirational-enforcement",
- "check-audit-chain-seal-coverage",
- "check-authority-cohesion",
- "check-authz-tier-discipline",
- "check-benchmark",
- "check-cedar-fragment-coverage",
- "check-client-stack-discipline",
- "check-codeowners-mirror",
- "check-cohesion",
- "check-cursor-pagination-coverage",
- "check-data-class",
- "check-doc-catalog",
- "check-documentation-system",
- "check-event-schema-versioning",
- "check-glossary-coverage",
- "check-glossary-vocabulary",
- "check-high-risk-auto-decision-refusal",
- "check-honest-claims",
- "check-iac-tier-discipline",
- "check-id-discipline",
- "check-idempotency-key-coverage",
- "check-image-signing-discipline",
- "check-layered-architecture-discipline",
- "check-metric-cardinality",
- "check-mobile-native",
- "check-no-grouping",
- "check-olap-tier-discipline",
- "check-ontology-projection-coverage",
- "check-openapi-rest-route-parity",
- "check-otel-trace-propagation",
- "check-perf-budget",
- "check-placeholder-debt",
- "check-protection-context-match",
- "check-quality-lane",
- "check-raci-coverage",
- "check-readme-coverage",
- "check-release-pack",
- "check-retired-vocabulary",
- "check-rpo-rto-coverage",
- "check-runbook-freshness",
- "check-runbook-index",
- "check-shardability",
- "check-slsa-l3-evidence-grounded",
- "check-statelessness",
- "check-tenant-cost-labels-coverage",
- "check-typescript-workspace",
- "check-vector-store-discipline",
- "check-vendor-lockin-discipline",
- "check-vendor-recency",
- "check-wasm-runtime-discipline",
- "ci-generated-artifact-freshness",
- "ci-planning-projection",
- "intelligence-api-semver-domain",
- "intelligence-architecture-map-app",
- "intelligence-bypass-domain",
- "intelligence-cargo-prefix-domain",
- "intelligence-catalog-domain",
- "intelligence-evidence-file-adapter",
- "intelligence-mdbook-domain",
- "intelligence-openapi-domain",
- "intelligence-run-domain",
- "intelligence-run-file-adapter",
- "intelligence-step-domain",
- "intelligence-step-file-adapter",
- "messaging-domain",
- "messaging-file-adapter",
- "oya-application-app",
- "oya-check-adr-index",
- "oya-check-backup-retention-discipline",
- "oya-check-brand-residue",
- "oya-check-claim-ceiling",
- "oya-check-compliance-evidence-coverage",
- "oya-check-dependency-seam",
- "oya-check-doc-axis",
- "oya-check-i18n-coverage",
- "oya-check-license-policy",
- "oya-check-realtime-transport-tier",
- "oya-check-slo-coverage",
- "oya-data-boundary-kernel",
- "oya-governance-banned-primitives-kernel",
- "oya-governance-gate-catalog-domain",
- "oya-workspace-members-kernel",
- "secrets-domain",
- "secrets-file",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "marketplace-doc-set-scaffold"
+name = "marketplace-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -7098,15 +5668,15 @@ dependencies = [
 name = "messaging-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "messaging-file-adapter"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "messaging-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7210,9 +5780,9 @@ checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 name = "network-dns"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7221,42 +5791,42 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-lb"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-oci"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-residency"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "network-selfhosted"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7271,9 +5841,9 @@ dependencies = [
 name = "network-vpc"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-domain",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7366,10 +5936,10 @@ dependencies = [
  "audit-chain-domain",
  "cell-region",
  "compute-resource",
- "iam-cloud-domain",
+ "data-boundary-kernel",
+ "iam-domain",
  "network-residency",
  "observability-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -7377,16 +5947,16 @@ name = "observability-api"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "data-boundary-kernel",
  "network-residency",
  "observability-aggregate",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "observability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
@@ -7455,344 +6025,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordered-float"
-version = "5.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "os-apid-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-proto-api",
-]
-
-[[package]]
-name = "os-archiver-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-attestation-relying-party"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "os-block-domain"
-version = "0.1.0"
-dependencies = [
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-board-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-cluster-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-conditions-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-config-docs-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-config-v1alpha1-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-controllers-domain"
-version = "0.1.0"
-dependencies = [
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
- "os-network-domain",
-]
-
-[[package]]
-name = "os-cosi-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-difftest-app"
-version = "0.1.0"
-dependencies = [
- "os-controllers-domain",
- "os-init-app",
- "os-kernel",
- "os-kubernetes-domain",
- "os-machine-config-domain",
- "os-network-domain",
- "os-platform-domain",
- "os-runtime-cri-domain",
- "os-secrets-domain",
-]
-
-[[package]]
-name = "os-etcd-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-events-logging-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-extensions-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-hardware-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-imager-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-init-app"
-version = "0.1.0"
-dependencies = [
- "libc",
- "os-block-domain",
- "os-controllers-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-kernel-abi",
- "os-machine-config-domain",
- "os-machined-domain",
- "os-network-domain",
- "os-platform-domain",
- "os-runtime-cri-domain",
-]
-
-[[package]]
-name = "os-install-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-k8s-control-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-kubelet-domain",
- "os-runtime-cri-domain",
-]
-
-[[package]]
 name = "os-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "os-kernel-abi"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-kubelet-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "os-secrets-domain",
-]
-
-[[package]]
-name = "os-kubespan-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-machine-config-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-machined-domain"
-version = "0.1.0"
-dependencies = [
- "os-block-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-runtime-cri-domain",
-]
-
-[[package]]
-name = "os-maintenance-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-meta-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-network-domain"
-version = "0.1.0"
-dependencies = [
- "libc",
- "os-kernel",
- "os-kernel-abi",
-]
-
-[[package]]
-name = "os-oci-executor-oracle"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "os-perf-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-platform-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-proto-api"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-resources-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-runtime-cri-domain"
-version = "0.1.0"
-dependencies = [
- "os-block-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-security-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-siderolink-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-syslogd-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-time-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
 
 [[package]]
 name = "os-trustd-domain"
@@ -7803,832 +6037,6 @@ dependencies = [
  "rcgen",
  "time",
  "x509-parser",
-]
-
-[[package]]
-name = "os-upgrade-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-advisory-mirror-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-application-app"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "cell-regional-pack",
- "cell-routing",
- "data-ontology-domain",
- "iam-identity-domain",
- "iam-policy-cedar-domain",
- "intelligence-adapter-kernel",
- "intelligence-bypass-domain",
- "intelligence-capability-domain",
- "intelligence-evidence-domain",
- "intelligence-mcp-gateway-domain",
- "intelligence-policy-domain",
- "intelligence-run-domain",
- "intelligence-step-domain",
- "messaging-domain",
- "network-residency",
- "observability-domain",
- "observability-tracing-adapter",
- "oya-check-cost-budget",
- "oya-data-boundary-kernel",
- "oya-governance-eval-domain",
- "secrets-domain",
- "tenancy-domain",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-application-shell-frontend"
-version = "0.1.0"
-dependencies = [
- "any_spawner",
- "axum",
- "leptos",
- "leptos_axum",
- "oya-application-shell-frontend",
- "oya-shared-oidc-client-kernel",
- "oya-shared-platform-contracts-kernel",
- "serde",
- "serde_json",
- "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "oya-architecture-graph-generator-app"
-version = "0.1.0"
-dependencies = [
- "ci-generated-artifact-freshness",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "oya-buck-syntax-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-buck-test-wiring-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "oya-workspace-members-kernel",
-]
-
-[[package]]
-name = "oya-cargo-lock-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "toml_edit",
-]
-
-[[package]]
-name = "oya-cargo-lock-transform-kernel"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "toml_edit",
-]
-
-[[package]]
-name = "oya-check-adr-index"
-version = "0.1.0"
-dependencies = [
- "corpus-doc-parser",
-]
-
-[[package]]
-name = "oya-check-backup-retention-discipline"
-version = "0.1.0"
-dependencies = [
- "oya-shared-backup-kernel",
-]
-
-[[package]]
-name = "oya-check-brand-residue"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-check-claim-ceiling"
-version = "0.1.0"
-dependencies = [
- "intelligence-catalog-domain",
-]
-
-[[package]]
-name = "oya-check-compliance-evidence-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-shared-compliance-evidence-kernel",
-]
-
-[[package]]
-name = "oya-check-cost-budget"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-check-dependency-seam"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-check-doc-axis"
-version = "0.1.0"
-dependencies = [
- "oya-governance-adr-shape-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "oya-check-i18n-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-shared-i18n-kernel",
-]
-
-[[package]]
-name = "oya-check-license-policy"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-realtime-transport-tier"
-version = "0.1.0"
-dependencies = [
- "oya-shared-realtime-transport-kernel",
-]
-
-[[package]]
-name = "oya-check-saga-shape"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-slo-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-checkout-guard-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-config-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-ci-gate-contract"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-surface-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-crate-registrar-app"
-version = "0.1.0"
-dependencies = [
- "oya-crate-registrar-kernel",
- "oya-workspace-members-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-crate-registrar-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-data-boundary-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-data-outbox-adapter-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-data-outbox-kernel",
- "oya-data-sql-kernel",
- "oya-shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "oya-data-outbox-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-data-sql-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-data-sql-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "oya-data-sql-kernel",
- "oya-shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "oya-data-sql-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-docs-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-fabric-loop-state-app"
-version = "0.1.0"
-
-[[package]]
-name = "oya-friction-ledger-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "ci-action-item-accounting",
- "ci-canonical-json",
- "serde_json",
-]
-
-[[package]]
-name = "oya-governance-adapter-with-no-importer-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-adapter-with-no-importer-kernel",
-]
-
-[[package]]
-name = "oya-governance-adapter-with-no-importer-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "oya-governance-adr-shape-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-adr-shape-kernel",
-]
-
-[[package]]
-name = "oya-governance-adr-shape-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-authoritative-tracked-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-authoritative-tracked-kernel",
-]
-
-[[package]]
-name = "oya-governance-authoritative-tracked-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-banned-primitives-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-banned-primitives-kernel",
-]
-
-[[package]]
-name = "oya-governance-banned-primitives-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-bypass-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-claim-ceiling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-cohesion-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-eval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-governance-gate-catalog-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-lifecycle-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-portfolio-citation-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-portfolio-citation-kernel",
-]
-
-[[package]]
-name = "oya-governance-portfolio-citation-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pr-traceability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pre-push-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-predictable-naming-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-predictable-naming-kernel",
-]
-
-[[package]]
-name = "oya-governance-predictable-naming-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-purpose-audit-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "glob",
- "oya-governance-purpose-kernel",
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
-name = "oya-governance-purpose-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-quality-lane-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-sunset-lifecycle-app"
-version = "0.1.0"
-dependencies = [
- "oya-governance-sunset-lifecycle-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "oya-governance-sunset-lifecycle-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-http-middleware-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-http-router-kernel",
-]
-
-[[package]]
-name = "oya-http-router-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-http-runtime-hyper-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "rcgen",
- "rustls",
- "tokio",
-]
-
-[[package]]
-name = "oya-http-sse-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-http-telemetry-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
-]
-
-[[package]]
-name = "oya-http-tenant-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "tenancy-kernel",
-]
-
-[[package]]
-name = "oya-lane-supervisor-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-reorg-codemod-app"
-version = "0.1.0"
-dependencies = [
- "oya-cargo-lock-transform-kernel",
- "oya-workspace-members-kernel",
- "serde_json",
- "toml_edit",
-]
-
-[[package]]
-name = "oya-saas-plugin-app"
-version = "0.1.0"
-dependencies = [
- "marketplace-plugin-kernel",
-]
-
-[[package]]
-name = "oya-shared-architecture-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
-
-[[package]]
-name = "oya-shared-audit-chain-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-audit-digest-adapter-awslc"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "oya-shared-audit-event-kernel",
-]
-
-[[package]]
-name = "oya-shared-audit-event-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-backbone-grpc-generated-adapter"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-app",
- "comms-mail-mailbox-grpc",
- "comms-messenger-stream-api",
- "comms-messenger-stream-app",
- "comms-messenger-stream-grpc",
- "community-post-store-api",
- "community-post-store-app",
- "community-post-store-domain",
- "community-post-store-grpc",
- "community-social-app",
- "community-social-post-composition-api",
- "community-social-post-composition-grpc",
- "oya-shared-backbone-proto-contracts-kernel",
- "oya-shared-postgres-command-kernel",
- "prost",
- "protoc-bin-vendored",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
-]
-
-[[package]]
-name = "oya-shared-backbone-proto-contracts-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-backbone-rest-runtime-adapter"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-rest",
- "comms-messenger-stream-api",
- "comms-messenger-stream-rest",
- "community-post-store-api",
- "community-post-store-domain",
- "community-post-store-rest",
- "community-social-post-composition-api",
- "community-social-post-composition-rest",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
- "oya-shared-postgres-command-kernel",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "oya-shared-backup-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-bounded-contexts-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
-
-[[package]]
-name = "oya-shared-compliance-evidence-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-connector-kernel"
-version = "0.1.0"
-dependencies = [
- "sha2",
-]
-
-[[package]]
-name = "oya-shared-hyperscaler-metrics-adapter-prometheus"
-version = "0.1.0"
-dependencies = [
- "oya-shared-hyperscaler-metrics-kernel",
- "prometheus",
-]
-
-[[package]]
-name = "oya-shared-hyperscaler-metrics-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-i18n-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-idempotency-key-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-oidc-client-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-olap-clickhouse-adapter"
-version = "0.1.0"
-dependencies = [
- "clickhouse",
- "oya-shared-olap-client-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-olap-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-shared-platform-contracts-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-platform-contracts-kernel"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-postgres-command-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "oya-shared-postgres-command-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-protocol-parity-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-protocol-transport-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "oya-shared-realtime-transport-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-resource-provider-contract-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "oya-shared-scim-server-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "oya-shared-tracing-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-transactional-outbox-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
- "oya-shared-transactional-outbox-kernel",
- "sqlx",
-]
-
-[[package]]
-name = "oya-shared-transactional-outbox-dispatch-app"
-version = "0.1.0"
-dependencies = [
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "oya-shared-transactional-outbox-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "oya-shared-transactional-outbox-poller-app"
-version = "0.1.0"
-dependencies = [
- "oya-shared-transactional-outbox-kernel",
- "oya-shared-transactional-outbox-worker-app",
-]
-
-[[package]]
-name = "oya-shared-transactional-outbox-worker-app"
-version = "0.1.0"
-dependencies = [
- "oya-shared-transactional-outbox-adapter-sqlx",
- "oya-shared-transactional-outbox-dispatch-app",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "oya-shared-ulid-id-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-wasm-runtime-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-tooling-agent-read"
-version = "0.1.0"
-
-[[package]]
-name = "oya-workspace-chat-api"
-version = "0.1.0"
-dependencies = [
- "comms-messenger-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-drive-api"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "storage-drive-domain",
-]
-
-[[package]]
-name = "oya-workspace-forms-api"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "workflow-forms-domain",
-]
-
-[[package]]
-name = "oya-workspace-meet-api"
-version = "0.1.0"
-dependencies = [
- "comms-meet-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-members-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-xtask-metadata-augment-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "oya-cargo-lock-transform-kernel",
- "oya-workspace-members-kernel",
- "serde_json",
- "tempfile",
- "toml_edit",
 ]
 
 [[package]]
@@ -8686,7 +6094,7 @@ dependencies = [
 name = "payroll-run-app"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "payroll-run-domain",
 ]
 
@@ -8694,16 +6102,16 @@ dependencies = [
 name = "payroll-run-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
 ]
 
 [[package]]
 name = "payroll-run-infrastructure"
 version = "0.1.0"
 dependencies = [
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
+ "http-middleware-kernel",
+ "http-router-kernel",
+ "http-runtime-hyper-adapter",
  "payroll-run-api",
  "payroll-run-app",
  "serde",
@@ -8837,6 +6245,10 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
+
+[[package]]
+name = "pipeline-admission"
+version = "0.1.0"
 
 [[package]]
 name = "pkcs8"
@@ -9106,20 +6518,6 @@ dependencies = [
  "syn 2.0.119",
  "version_check",
  "yansi",
-]
-
-[[package]]
-name = "prometheus"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
-dependencies = [
- "cfg-if",
- "fnv",
- "lazy_static",
- "memchr",
- "parking_lot",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -9907,34 +7305,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
 
 [[package]]
+name = "saas-plugin-app"
+version = "0.1.0"
+dependencies = [
+ "marketplace-plugin-kernel",
+]
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "saphyr"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8acd6cfc4803660d26a3fb5bd8f5e47bc0eea5229f4d32f7cb4ee21a733e6961"
-dependencies = [
- "hashlink 0.12.1",
- "ordered-float 5.3.0",
- "saphyr-parser",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "saphyr-parser"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebfd783fcf1b3f6bafd557be0e1427ec54f826f513c3cdd749f9844484df2a13"
-dependencies = [
- "arraydeque",
- "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -10010,8 +7393,8 @@ dependencies = [
 name = "secrets-domain"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
- "oya-shared-platform-contracts-kernel",
+ "data-boundary-kernel",
+ "shared-platform-contracts-kernel",
  "zeroize",
 ]
 
@@ -10027,8 +7410,8 @@ name = "secrets-kms-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -10038,8 +7421,8 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -10056,7 +7439,7 @@ dependencies = [
 name = "secrets-kms-oci"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -10065,7 +7448,7 @@ name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
  "base64",
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
  "zeroize",
@@ -10088,12 +7471,12 @@ dependencies = [
 name = "secrets-kms-operator-k8s"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "futures",
  "k8s-openapi",
  "kube",
  "kube-runtime",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-operator-kernel",
  "serde",
@@ -10163,7 +7546,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
 dependencies = [
- "ordered-float 2.10.1",
+ "ordered-float",
  "serde",
 ]
 
@@ -10417,11 +7800,141 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared-audit-digest-adapter-awslc"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "shared-audit-event-kernel",
+]
+
+[[package]]
+name = "shared-audit-event-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-connector-kernel"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+]
+
+[[package]]
+name = "shared-hyperscaler-metrics-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-oidc-client-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-olap-clickhouse-adapter"
+version = "0.1.0"
+dependencies = [
+ "clickhouse",
+ "serde",
+ "serde_json",
+ "shared-olap-client-kernel",
+]
+
+[[package]]
+name = "shared-olap-client-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shared-platform-contracts-kernel",
+]
+
+[[package]]
+name = "shared-platform-contracts-kernel"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "shared-postgres-command-adapter-sqlx"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
+name = "shared-postgres-command-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-protocol-parity-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "shared-protocol-transport-kernel"
+version = "0.1.0"
+dependencies = [
+ "shared-protocol-parity-kernel",
+]
+
+[[package]]
+name = "shared-resource-provider-contract-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "shared-scim-server-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "shared-transactional-outbox-adapter-sqlx"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "shared-transactional-outbox-kernel",
+ "sqlx",
+]
+
+[[package]]
+name = "shared-transactional-outbox-kernel"
+version = "0.1.0"
+dependencies = [
+ "shared-postgres-command-kernel",
+ "shared-protocol-parity-kernel",
+]
+
+[[package]]
+name = "shared-ulid-id-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "sheets-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -10559,7 +8072,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "hashbrown 0.15.5",
- "hashlink 0.10.0",
+ "hashlink",
  "indexmap 2.14.0",
  "log",
  "memchr",
@@ -10680,8 +8193,8 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 name = "storage-block-api"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -10691,16 +8204,9 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
-]
-
-[[package]]
-name = "storage-drive-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -10708,8 +8214,8 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "storage-domain",
 ]
@@ -10725,23 +8231,15 @@ dependencies = [
 name = "storage-oci-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "storage-domain",
-]
-
-[[package]]
-name = "storage-recordings-domain"
-version = "0.1.0"
-dependencies = [
- "comms-meet-domain",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-data-boundary-kernel",
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -10907,8 +8405,8 @@ version = "0.1.0"
 name = "tenancy-domain"
 version = "0.1.0"
 dependencies = [
+ "data-boundary-kernel",
  "network-residency",
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -10953,10 +8451,10 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "http-body-util",
- "oya-shared-platform-contracts-kernel",
- "oya-shared-resource-provider-contract-kernel",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-authz-pdp",
  "tenancy-tenant-lifecycle-authz-port",
  "tenancy-tenant-lifecycle-kernel",
@@ -10975,12 +8473,12 @@ version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
  "iam-pdp-cedar",
- "oya-shared-pdp-kernel",
- "oya-shared-platform-contracts-kernel",
- "oya-shared-ulid-id-kernel",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "shared-pdp-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-ulid-id-kernel",
  "tenancy-tenant-lifecycle-authz-port",
 ]
 
@@ -10992,27 +8490,27 @@ version = "0.1.0"
 name = "tenancy-tenant-lifecycle-domain"
 version = "0.1.0"
 dependencies = [
- "oya-shared-platform-contracts-kernel",
- "oya-shared-resource-provider-contract-kernel",
  "serde",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
 name = "tenancy-tenant-lifecycle-kernel"
 version = "0.1.0"
 dependencies = [
- "oya-shared-platform-contracts-kernel",
- "oya-shared-resource-provider-contract-kernel",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
 name = "tenancy-tenant-lifecycle-store-inmemory"
 version = "0.1.0"
 dependencies = [
- "oya-shared-platform-contracts-kernel",
- "oya-shared-resource-provider-contract-kernel",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
 ]
@@ -11021,12 +8519,11 @@ dependencies = [
 name = "tenancy-tenant-lifecycle-store-postgres"
 version = "0.1.0"
 dependencies = [
- "oya-shared-platform-contracts-kernel",
- "oya-shared-postgres-command-adapter-sqlx",
- "oya-shared-postgres-command-kernel",
- "oya-shared-resource-provider-contract-kernel",
  "serde",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-postgres-command-adapter-sqlx",
+ "shared-postgres-command-kernel",
  "sqlx",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -11036,9 +8533,9 @@ dependencies = [
 name = "tenancy-tenant-lifecycle-usecase"
 version = "0.1.0"
 dependencies = [
- "oya-shared-platform-contracts-kernel",
- "oya-shared-resource-provider-contract-kernel",
  "serde_json",
+ "shared-platform-contracts-kernel",
+ "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-domain",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -12225,328 +9722,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
-name = "work-area-rust-parser"
-version = "0.1.0"
-dependencies = [
- "sha2",
- "work-area-tree-kernel",
-]
-
-[[package]]
-name = "work-area-tree-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-event-bus-adapter"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-api",
-]
-
-[[package]]
-name = "workflow-event-bus-api"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-usecase",
-]
-
-[[package]]
-name = "workflow-event-bus-app"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-sdk",
- "workflow-event-bus-worker",
-]
-
-[[package]]
-name = "workflow-event-bus-domain"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-kernel",
-]
-
-[[package]]
-name = "workflow-event-bus-kafka"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-adapter",
-]
-
-[[package]]
-name = "workflow-event-bus-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-event-bus-pulsar"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-adapter",
-]
-
-[[package]]
-name = "workflow-event-bus-rest"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-api",
-]
-
-[[package]]
-name = "workflow-event-bus-sdk"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-rest",
-]
-
-[[package]]
-name = "workflow-event-bus-usecase"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-domain",
-]
-
-[[package]]
-name = "workflow-event-bus-worker"
-version = "0.1.0"
-dependencies = [
- "workflow-event-bus-api",
-]
-
-[[package]]
-name = "workflow-execution-engine-adapter"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-usecase",
-]
-
-[[package]]
-name = "workflow-execution-engine-api"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-usecase",
-]
-
-[[package]]
-name = "workflow-execution-engine-app"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-adapter",
- "workflow-execution-engine-rest",
- "workflow-execution-engine-sdk",
- "workflow-execution-engine-worker",
-]
-
-[[package]]
-name = "workflow-execution-engine-domain"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-kernel",
-]
-
-[[package]]
-name = "workflow-execution-engine-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-execution-engine-postgres"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-usecase",
-]
-
-[[package]]
-name = "workflow-execution-engine-rest"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-adapter",
- "workflow-execution-engine-api",
-]
-
-[[package]]
-name = "workflow-execution-engine-sdk"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-adapter",
- "workflow-execution-engine-rest",
-]
-
-[[package]]
-name = "workflow-execution-engine-usecase"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-domain",
-]
-
-[[package]]
-name = "workflow-execution-engine-worker"
-version = "0.1.0"
-dependencies = [
- "workflow-execution-engine-adapter",
- "workflow-execution-engine-usecase",
-]
-
-[[package]]
-name = "workflow-forms-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "workflow-saas-app"
-version = "0.1.0"
-dependencies = [
- "workflow-saas-domain",
- "workflow-saas-kernel",
-]
-
-[[package]]
-name = "workflow-saas-domain"
-version = "0.1.0"
-dependencies = [
- "workflow-saas-kernel",
-]
-
-[[package]]
-name = "workflow-saas-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-state-machine-adapter"
-version = "0.1.0"
-dependencies = [
- "workflow-state-machine-kernel",
- "workflow-state-machine-usecase",
-]
-
-[[package]]
-name = "workflow-state-machine-api"
-version = "0.1.0"
-dependencies = [
- "workflow-state-machine-domain",
- "workflow-state-machine-kernel",
- "workflow-state-machine-usecase",
-]
-
-[[package]]
-name = "workflow-state-machine-domain"
-version = "0.1.0"
-dependencies = [
- "workflow-state-machine-kernel",
-]
-
-[[package]]
-name = "workflow-state-machine-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-state-machine-postgres"
-version = "0.1.0"
-dependencies = [
- "workflow-state-machine-kernel",
- "workflow-state-machine-usecase",
-]
-
-[[package]]
-name = "workflow-state-machine-usecase"
-version = "0.1.0"
-dependencies = [
- "workflow-state-machine-domain",
- "workflow-state-machine-kernel",
-]
-
-[[package]]
-name = "workflow-studio-dsl-emitter"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "workflow-studio-dsl-loader"
+name = "workspace-members-kernel"
 version = "0.1.0"
 dependencies = [
  "serde_json",
- "workflow-studio-dsl-emitter",
-]
-
-[[package]]
-name = "workflow-studio-policy-preview"
-version = "0.1.0"
-dependencies = [
- "serde",
- "workflow-studio-dsl-emitter",
-]
-
-[[package]]
-name = "workflow-studio-visual-canvas"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "workflow-tasks-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-api"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-usecase",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-app"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-rest",
- "workflow-trigger-orchestrator-sdk",
- "workflow-trigger-orchestrator-worker",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-domain"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-kernel",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "workflow-trigger-orchestrator-rest"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-api",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-sdk"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-rest",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-usecase"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-domain",
-]
-
-[[package]]
-name = "workflow-trigger-orchestrator-worker"
-version = "0.1.0"
-dependencies = [
- "workflow-trigger-orchestrator-api",
+ "toml 0.8.23",
 ]
 
 [[package]]

@@ -11,7 +11,7 @@ spec:
     metricSource:
       type: prometheus
       spec:
-        query: "histogram_quantile(0.99, sum(rate(oya_compliance_breach_notify_authority_seconds_bucket[30d])) by (le)) <= 259200"
+        query: "histogram_quantile(0.99, sum(rate(compliance_breach_notify_authority_seconds_bucket[30d])) by (le)) <= 259200"
   objectives:
     - target: 0.9999
       timeWindow: 30d

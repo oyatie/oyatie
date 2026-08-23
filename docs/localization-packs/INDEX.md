@@ -16,7 +16,7 @@ doc_status: published
 
 This is the canonical catalog of oyatie localization packs. Every active pack has a dedicated overview doc at `docs/localization-packs/<code>.md` and a manifest at `docs/localization-packs/<code>/pack.yaml`.
 
-CI enforcement (`oya-check-doc-coverage-cli` / LEAN-A5) reads this catalog plus each pack's `pack.yaml` to verify required per-µservice overlay artifacts exist for every (pack × µservice in scope) pair.
+CI enforcement (`check-doc-coverage-cli` / LEAN-A5) reads this catalog plus each pack's `pack.yaml` to verify required per-µservice overlay artifacts exist for every (pack × µservice in scope) pair.
 
 ---
 

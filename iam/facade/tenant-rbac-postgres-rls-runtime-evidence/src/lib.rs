@@ -411,7 +411,7 @@ fn probe(
         record_kind,
         probe_kind,
         official_doc_url,
-        source_migration_ref: "crates/oya-tenant-rbac-postgres-rls-storage/src/lib.rs::render_tenant_rbac_postgres_rls_migration",
+        source_migration_ref: "crates/tenant-rbac-postgres-rls-storage/src/lib.rs::render_tenant_rbac_postgres_rls_migration",
         runtime_check_ref,
         expected_evidence_ref: "evidence/postgres-rls-runtime/tenant-rbac/probe-results.jsonl",
         requires_tenant_a_context,
@@ -438,7 +438,7 @@ fn validate_probe(
     validate_doc_url(probe.official_doc_url)?;
     validate_prefixed_ref(
         probe.source_migration_ref,
-        "crates/oya-tenant-rbac-postgres-rls-storage/",
+        "crates/tenant-rbac-postgres-rls-storage/",
         TenantRbacPostgresRlsRuntimeEvidenceError::InvalidSourceMigrationRef,
     )?;
     validate_prefixed_ref(

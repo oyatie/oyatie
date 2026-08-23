@@ -22,7 +22,7 @@ resource "kubernetes_config_map" "dr_pairing" {
   for_each = toset(var.regions)
   metadata {
     name      = "tenancy-dr-pairing-${each.value}"
-    namespace = "oya-tenancy"
+    namespace = "tenancy"
   }
   data = {
     home_region = each.value

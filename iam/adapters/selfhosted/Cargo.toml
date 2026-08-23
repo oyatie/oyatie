@@ -1,0 +1,18 @@
+[package]
+name = "iam-selfhosted"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "iam_selfhosted"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+iam-domain = { path = "../../core/domain-control" }
+
+[lints]
+workspace = true

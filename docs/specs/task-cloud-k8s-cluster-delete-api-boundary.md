@@ -4,13 +4,13 @@
 |-------|-------|
 | Task slug | `cloud-k8s-cluster-delete-api-boundary` |
 | Vertical | infra |
-| Crate | `oya-cloud-compute-k8s-api` |
+| Crate | `cloud-compute-k8s-api` |
 | Branch | `feat/task-cloud-k8s-cluster-delete-api-boundary-2026-05-28` |
 | Stage | SPEC |
 
 ## Objective
 
-Extend the `oya-cloud-compute-k8s-api` boundary crate with a tenant-safe,
+Extend the `cloud-compute-k8s-api` boundary crate with a tenant-safe,
 idempotent cluster DELETE (teardown) request-boundary surface. The surface
 mirrors the existing create-path discipline — request-id / tenant /
 idempotency-key normalization, authorization-proof checks against a new
@@ -23,7 +23,7 @@ new workspace crate.
 
 ## Vertical and Crate Context
 
-The `oya-cloud-compute-k8s-api` crate already owns:
+The `cloud-compute-k8s-api` crate already owns:
 
 - `CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE` surface constant
 - `CloudComputeK8sApiBoundaryContext` — request-id / tenant / idempotency-key
@@ -86,7 +86,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "oya:cloud:region-home:ten_alpha:k8s:prod"
+            example: "oyatie:cloud:region-home:ten_alpha:k8s:prod"
         - name: X-Request-Id
           in: header
           required: true
@@ -170,7 +170,7 @@ components:
 
 ```proto
 syntax = "proto3";
-package oya.cloud.compute.k8s.v1;
+package oyatie.cloud.compute.k8s.v1;
 
 service CloudComputeK8sService {
   // Existing
@@ -269,7 +269,7 @@ new test functions appended):
 
 ## Boundary Constraints
 
-- `crates/oya-cloud-compute-k8s-api/` is the only directory modified.
+- `crates/cloud-compute-k8s-api/` is the only directory modified.
 - Root `Cargo.toml` is not touched.
 - No new workspace member is introduced.
 - No existing public function signatures or error variants are altered.

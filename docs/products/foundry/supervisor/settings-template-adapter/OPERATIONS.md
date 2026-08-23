@@ -17,7 +17,7 @@ To manually render settings for all accounts:
 > when one exists; do not recreate the deleted tree.
 
 ```bash
-cargo run -p oya-dev-cli -- settings-template render \
+cargo run -p dev-cli -- settings-template render \
   --templates-root <live-templates-root> \
   --accounts-root registry/accounts \
   --home-dir ~
@@ -30,7 +30,7 @@ cargo run -p oya-dev-cli -- settings-template render \
 To check for drift across all accounts:
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate settings-drift \
+cargo run -p dev-cli -- gate validate settings-drift \
   --templates-root <live-templates-root> \
   --accounts-root registry/accounts \
   --report-out .omc/state/settings-drift-report.json
@@ -71,8 +71,8 @@ cargo run -p oya-dev-cli -- gate validate settings-drift \
 If drift is detected, trigger reconciliation:
 
 ```bash
-export OYA_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
-systemctl restart oya-intelligence-supervisor
+export OYATIE_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
+systemctl restart intelligence-supervisor
 
 # Next tick will render all drifted accounts
 # Check: .omc/state/settings-drift-report.json should now be all "Match"

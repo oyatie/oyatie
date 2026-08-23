@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 description = "Sidecar controller binary: consumes tenancy lifecycle events and reconciles per-tenant ClickHouse state (database creation, row-level policies, quota bindings). Controller-pattern per Kubernetes operator doctrine."
 
-[package.metadata.oya]
+[package.metadata.oyatie]
 microservice = "analytics"
 bounded_context = "analytics-tenant-bootstrap"
 layer = "app"
@@ -27,9 +27,11 @@ name = "data-analytics-tenant-bootstrap"
 path = "src/main.rs"
 
 [dependencies]
+shared-olap-clickhouse-adapter = { path = "../../adapters/olap-clickhouse" }
+shared-olap-client-kernel = { path = "../../core/olap-client-kernel" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
-oya-shared-olap-client-kernel = { path = "../../../libs/oya-shared-olap-client-kernel" }
-oya-shared-olap-clickhouse-adapter = { path = "../../../libs/oya-shared-olap-clickhouse-adapter" }
+
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }

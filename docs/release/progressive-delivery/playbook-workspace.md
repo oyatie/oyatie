@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Workspace surface rollouts (Mail / Docs / Drive / Calendar / Meet).
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-rollback-evidence
+  - governance-canary-required
+  - governance-rollback-evidence
 related_adrs: [ADR-0029, ADR-0040, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -44,11 +44,11 @@ Mail rollout must:
 3. Atomic traffic-shift via mesh.
 4. Soak ≥ 24 h; rollback re-shifts traffic to blue with replay of any green-only deliveries (idempotency required).
 
-`oya-governance-rollback-evidence` requires per-spool replay-proof.
+`governance-rollback-evidence` requires per-spool replay-proof.
 
 ## 4. CRDT compatibility (Docs)
 
-Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `oya-governance-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
+Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `governance-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
 
 ## 5. Per-tenant smoke
 
@@ -62,7 +62,7 @@ Failure = per-tenant rollback. Surfaced in tenant trust portal.
 
 ## 6. Connect-no-ads cohort honour
 
-Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Planned advisory lane: `oya-governance-cohort-honor`.
+Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Planned advisory lane: `governance-cohort-honor`.
 
 ## 7. SLO targets (Workspace-specific)
 

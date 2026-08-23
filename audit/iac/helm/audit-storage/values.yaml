@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (SWEEP-I Slice 2 per ADR-0064)
 # S3-compatible bucket configuration (OCI Object Storage equivalent).
 # Wrapped as Helm chart to declarate the bucket lifecycle + policy from git.
 # Actual bucket creation happens via OpenTofu (iac/terraform/), this chart
@@ -54,5 +54,5 @@ audit_storage:
     break_glass_principal_arn: "arn:openbao:audit-chain-break-glass-${pack}"
 
   monitoring:
-    metric_filter: oya_audit_chain_s3_*
+    metric_filter: audit_chain_s3_*
     sla_target_per_request: 99.95

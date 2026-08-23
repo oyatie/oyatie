@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_helpers — helpers via {{ include "helpers.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 {{- range tuple "postStoreRest" "votingEngine" "kbArticleStore" "searchIndexRest" }}
 {{- $c := index $.Values . }}
 {{- if $c.hpa }}
@@ -25,7 +25,7 @@ spec:
     - type: Pods
       pods:
         metric:
-          name: oya_community_request_queue_depth
+          name: community_request_queue_depth
         target:
           type: AverageValue
           averageValue: "500"

@@ -9,8 +9,8 @@ purpose: |
   Cloud-kernel rollouts (KMS / storage / network / billing / observability).
   Blue/green for KMS roots; canary for everything else.
 planned_enforcement_ref:
-  - oya-governance-canary-required
-  - oya-governance-rollback-evidence
+  - governance-canary-required
+  - governance-rollback-evidence
 related_adrs: [ADR-0028, ADR-0043, ADR-0045, ADR-0049, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -21,21 +21,21 @@ doc_status: published
 
 ## 1. Surface
 
-Cloud-axis kernels under `crates/oya-cloud-*` ([ADR-0028](../../decisions/ADR-0028-cloud-provider-architecture.md)).
+Cloud-axis kernels under `crates/cloud-*` ([ADR-0028](../../decisions/ADR-0028-cloud-provider-architecture.md)).
 
 ## 2. Default rail per sub-axis
 
 | Sub-axis | Rail | Rationale |
 |---|---|---|
-| `oya-cloud-kms-*` | **Blue/green** (mandatory) | KMS root rotation = atomic; HSM-backed; per [ADR-0043](../../decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md) |
-| `oya-cloud-storage-*` | Canary (BG for schema) | Per-cell canary; BG when block/object storage backends change |
-| `oya-cloud-network-*` | Canary, per-cell, **lockstep across regions** | Cross-region replication topology change → BG |
-| `oya-cloud-billing-*` | Canary + dark-launch (write-side) | Per [`dark-launch-spec.md`](dark-launch-spec.md) §2 — billing logic is high-risk |
-| `oya-cloud-observability-*` | Canary | OTel collector / metric source — provider-agnostic |
-| `oya-cloud-iam-*` | Canary + dark-launch (Cedar policy) | Per [ADR-0007](../../decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md) — auth logic = high-risk |
-| `oya-cloud-region-*` / `-cell-*` | Blue/green | Cell topology is stateful |
-| `oya-cloud-compute-*` | Canary | Compute fleet rollouts |
-| `oya-cloud-dcops-*` | Canary | DCIM software ([ADR-0032](../../decisions/ADR-0032-dcim-software-for-own-dc-ops.md)) |
+| `cloud-kms-*` | **Blue/green** (mandatory) | KMS root rotation = atomic; HSM-backed; per [ADR-0043](../../decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md) |
+| `cloud-storage-*` | Canary (BG for schema) | Per-cell canary; BG when block/object storage backends change |
+| `cloud-network-*` | Canary, per-cell, **lockstep across regions** | Cross-region replication topology change → BG |
+| `cloud-billing-*` | Canary + dark-launch (write-side) | Per [`dark-launch-spec.md`](dark-launch-spec.md) §2 — billing logic is high-risk |
+| `cloud-observability-*` | Canary | OTel collector / metric source — provider-agnostic |
+| `cloud-iam-*` | Canary + dark-launch (Cedar policy) | Per [ADR-0007](../../decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md) — auth logic = high-risk |
+| `cloud-region-*` / `-cell-*` | Blue/green | Cell topology is stateful |
+| `cloud-compute-*` | Canary | Compute fleet rollouts |
+| `cloud-dcops-*` | Canary | DCIM software ([ADR-0032](../../decisions/ADR-0032-dcim-software-for-own-dc-ops.md)) |
 
 ## 3. KMS root rotation (special)
 
@@ -47,7 +47,7 @@ KMS root rotation runs blue/green with mandatory:
 4. **Soak ≥ 7 days** on `canary-eligible` before stable cohort cut.
 5. **Rollback path** — re-shift traffic to blue root; blue retains material ≥ 90 days post-cutover.
 
-Planned advisory lane: `oya-governance-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
+Planned advisory lane: `governance-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
 
 ## 4. Cross-region rollout halting
 
@@ -55,7 +55,7 @@ Per [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-m
 
 ## 5. Per-cell rollback unit
 
-Default per [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). Cloud-axis cells correspond 1:1 to `oya-cloud-cell-app` instances.
+Default per [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). Cloud-axis cells correspond 1:1 to `cloud-cell-app` instances.
 
 ## 6. SLO targets (cloud-specific)
 

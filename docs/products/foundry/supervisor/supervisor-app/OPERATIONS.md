@@ -14,15 +14,15 @@ doc_status: published
 
 ```bash
 # 1. Set configuration
-export OYA_SUPERVISOR_MAX_IN_FLIGHT=12
-export OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=300
+export OYATIE_SUPERVISOR_MAX_IN_FLIGHT=12
+export OYATIE_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=300
 
 # 2. Create config directories
 mkdir -p ~/.oya/supervisor
 mkdir -p /var/log/oya/supervisor
 
 # 3. Start daemon (foreground, for debugging)
-RUST_LOG=info oya-intelligence-supervisor
+RUST_LOG=info intelligence-supervisor
 
 # 4. In another terminal, check health
 curl http://localhost:8080/health
@@ -31,7 +31,7 @@ curl http://localhost:8080/health
 ### Systemd Service
 
 ```ini
-# /etc/systemd/system/oya-intelligence-supervisor.service
+# /etc/systemd/system/intelligence-supervisor.service
 [Unit]
 Description=Oyatie Foundry Supervisor Daemon
 After=network-online.target
@@ -42,7 +42,7 @@ User=oya
 Group=oya
 WorkingDirectory=/opt/oya
 EnvironmentFile=/etc/oya/supervisor.env
-ExecStart=/usr/local/bin/oya-intelligence-supervisor
+ExecStart=/usr/local/bin/intelligence-supervisor
 Restart=always
 RestartSec=5s
 StandardOutput=journal
@@ -54,12 +54,12 @@ WantedBy=multi-user.target
 
 ```bash
 # Enable and start
-sudo systemctl enable oya-intelligence-supervisor
-sudo systemctl start oya-intelligence-supervisor
-sudo systemctl status oya-intelligence-supervisor
+sudo systemctl enable intelligence-supervisor
+sudo systemctl start intelligence-supervisor
+sudo systemctl status intelligence-supervisor
 
 # View logs
-journalctl -u oya-intelligence-supervisor -f
+journalctl -u intelligence-supervisor -f
 ```
 
 ## Configuration
@@ -68,12 +68,12 @@ journalctl -u oya-intelligence-supervisor -f
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `OYA_SUPERVISOR_MAX_IN_FLIGHT` | 12 | Concurrent sessions per tick |
-| `OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS` | 300 | SIGKILL after timeout |
-| `OYA_SUPERVISOR_SETTINGS_RENDERER_MODE` | Disabled | VerifyOnly / Reconcile |
-| `OYA_SUPERVISOR_SETTINGS_VERIFY_DEBOUNCE_SECS` | 60 | Drift cache TTL |
-| `OYA_SUPERVISOR_MINIMUM_ELIGIBLE_ACCOUNTS` | 1 | Min accounts before DriftExcluded |
-| `OYA_CONFIG_PATH` | `~/.oya` | Config directory |
+| `OYATIE_SUPERVISOR_MAX_IN_FLIGHT` | 12 | Concurrent sessions per tick |
+| `OYATIE_SUPERVISOR_WATCHDOG_TIMEOUT_SECS` | 300 | SIGKILL after timeout |
+| `OYATIE_SUPERVISOR_SETTINGS_RENDERER_MODE` | Disabled | VerifyOnly / Reconcile |
+| `OYATIE_SUPERVISOR_SETTINGS_VERIFY_DEBOUNCE_SECS` | 60 | Drift cache TTL |
+| `OYATIE_SUPERVISOR_MINIMUM_ELIGIBLE_ACCOUNTS` | 1 | Min accounts before DriftExcluded |
+| `OYATIE_CONFIG_PATH` | `~/.oya` | Config directory |
 | `RUST_LOG` | info | Tracing filter (debug, info, warn, error) |
 
 ### TOML Config File
@@ -110,7 +110,7 @@ The watchdog enforces a timeout on every spawned session. To tune:
 **Diagnosis:**
 ```bash
 # Check watchdog timeout
-echo $OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS  # shows 300
+echo $OYATIE_SUPERVISOR_WATCHDOG_TIMEOUT_SECS  # shows 300
 
 # Check actual session duration
 jq '.[] | select(.event_class == "foundry_supervisor_session_duration_micros") | .duration_micros' \
@@ -121,8 +121,8 @@ jq '.[] | select(.event_class == "foundry_supervisor_session_duration_micros") |
 **Fix:** Increase timeout. If p99 duration is 180s, set `WATCHDOG_TIMEOUT_SECS=240`.
 
 ```bash
-export OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=240
-systemctl restart oya-intelligence-supervisor
+export OYATIE_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=240
+systemctl restart intelligence-supervisor
 ```
 
 ### Scenario 2: Hung Sessions Not Being Killed
@@ -136,14 +136,14 @@ jq '.[] | select(.event_class == "foundry_supervisor_watchdog_spawn")' \
   evidence/audit-chain.jsonl | wc -l
 
 # Check system for hung processes
-ps aux | grep oya-intelligence-supervisor | grep -v grep
+ps aux | grep intelligence-supervisor | grep -v grep
 ps aux | grep "Claude\|claude" | wc -l  # spawned session count
 ```
 
 **Fix:** Watchdog may not be running due to a bug. Check logs:
 
 ```bash
-journalctl -u oya-intelligence-supervisor --since="5 min ago" | grep watchdog
+journalctl -u intelligence-supervisor --since="5 min ago" | grep watchdog
 ```
 
 If no watchdog messages, restart the daemon.
@@ -172,8 +172,8 @@ If `TickOutcome::DriftExcluded` is happening:
 cat .omc/state/settings-drift-report.json | jq '.[] | select(.state != "Match")'
 
 # If RendererMode is VerifyOnly, manually reconcile
-export OYA_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
-systemctl restart oya-intelligence-supervisor
+export OYATIE_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
+systemctl restart intelligence-supervisor
 
 # Wait for next tick
 sleep 2
@@ -201,8 +201,8 @@ curl -v http://localhost:8080/health
 curl http://localhost:8080/metrics
 
 # Expect Prometheus format:
-# oya_foundry_supervisor_inbox_depth{account_id="..."} 42
-# oya_foundry_supervisor_idle_ticks_total 1234
+# foundry_supervisor_inbox_depth{account_id="..."} 42
+# foundry_supervisor_idle_ticks_total 1234
 ```
 
 ### Manual Smoke Test
@@ -218,7 +218,7 @@ curl -X POST http://localhost:8080/inbox \
   }'
 
 # Watch logs for processing
-journalctl -u oya-intelligence-supervisor -f | grep "foundry_supervisor_spawn"
+journalctl -u intelligence-supervisor -f | grep "foundry_supervisor_spawn"
 
 # Verify spend record was written
 tail -5 ~/.oya/outbox/spend-records.jsonl

@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every doc-class in the catalog has an owner row in `docs/RACI-OWNERSHIP.md`.
 - enforces: STANDARD/raci-ownership.
-- kernel_crate: `oya-governance-raci-completeness-kernel` — `RaciRow { doc_class, responsible, accountable }`, verdict `RaciCompletenessFitnessReport { rows_checked }`.
-- runner_path: `tools/oya-governance-raci-completeness`
+- kernel_crate: `governance-raci-completeness-kernel` — `RaciRow { doc_class, responsible, accountable }`, verdict `RaciCompletenessFitnessReport { rows_checked }`.
+- runner_path: `tools/governance-raci-completeness`
 - inputs: `docs/RACI-OWNERSHIP.md`, doc-class registry.
 - failure_modes:
   - doc-class with no RACI row
   - row missing accountable owner
   - duplicated row for same doc-class
-- ci_invocation: `cargo run -p oya-governance-raci-completeness`
+- ci_invocation: `cargo run -p governance-raci-completeness`
 - runtime_budget: 200 ms
 - severity: HIGH
 - kernel_sketch:

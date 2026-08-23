@@ -8,7 +8,7 @@ purpose: |
   Every BC must be registered before a crate carrying its bc-tokens can be scaffolded.
   Carries naming justification (BNF v4.1), ownership, Ontology entries, Workflow
   events, and acceptance criteria.
-enforcing_fitness_lane: oya-governance-plan-hierarchy
+enforcing_fitness_lane: governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/bounded-contexts.md
@@ -118,11 +118,11 @@ crate (mandatory per `feedback_naming_justification.md`):
 
 | Crate | Layer | Purpose |
 |---|---|---|
-| `oya-<ms>-<bc>-domain` | `domain` | Entities + port-traits |
-| `oya-<ms>-<bc>-application` | `application` | Use-case orchestrators |
-| `oya-<ms>-<bc>-infrastructure` | `infrastructure` | Port-trait impls |
-| `oya-<ms>-<bc>-rest` | `rest` | REST handler wiring (if applicable) |
-| `oya-<ms>-<bc>-grpc` | `grpc` | gRPC handler wiring (if applicable) |
+| `oyatie-<ms>-<bc>-domain` | `domain` | Entities + port-traits |
+| `oyatie-<ms>-<bc>-application` | `application` | Use-case orchestrators |
+| `oyatie-<ms>-<bc>-infrastructure` | `infrastructure` | Port-trait impls |
+| `oyatie-<ms>-<bc>-rest` | `rest` | REST handler wiring (if applicable) |
+| `oyatie-<ms>-<bc>-grpc` | `grpc` | gRPC handler wiring (if applicable) |
 
 ---
 
@@ -135,8 +135,8 @@ A BC is considered validly registered when ALL of the following are true:
 3. Each crate carries `[package.metadata.oya]` with `microservice`, `bc`, and `layer` fields.
 4. Naming justification block present in this registration AND in each crate's
    `[package.metadata.oya]` or associated ADR.
-5. Buck2/cloud-ci lean-a3 gate target exits 0 for `<bc-name>` (BC boundary check).
-6. the Buck2/cloud-ci naming-conformance gate target exits 0 for `<bc-name>`.
+5. Buck2/pipeline lean-a3 gate target exits 0 for `<bc-name>` (BC boundary check).
+6. the Buck2/pipeline naming-conformance gate target exits 0 for `<bc-name>`.
 7. Ontology Object Types registered in Ontology type registry.
 8. Workflow event types registered in Workflow event registry.
 

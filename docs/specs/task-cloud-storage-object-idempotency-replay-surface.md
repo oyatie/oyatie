@@ -1,7 +1,7 @@
-# Spec: PUT Idempotency Replay Surface — oya-cloud-storage-object-api
+# Spec: PUT Idempotency Replay Surface — cloud-storage-object-api
 
 **Vertical**: cloud  
-**Crate**: `oya-cloud-storage-object-api`  
+**Crate**: `cloud-storage-object-api`  
 **Plan**: `tasks/cloud-storage-object-idempotency-replay-surface-plan.md`  
 **Stage**: SPEC
 
@@ -20,7 +20,7 @@ Expose a public, observable PUT idempotency replay surface over the existing pri
    not duplicated branches).
 
 Scope is pure boundary logic: no async runtime, no new crate, no edits to
-`oya-cloud-storage-domain` or `oya-cloud-kms-domain`.
+`cloud-storage-domain` or `cloud-kms-domain`.
 
 ---
 
@@ -28,13 +28,13 @@ Scope is pure boundary logic: no async runtime, no new crate, no edits to
 
 ```
 cloud vertical
-└── oya-cloud-storage-object-api   (THIS crate — only crate this task touches)
+└── cloud-storage-object-api   (THIS crate — only crate this task touches)
     ├── src/lib.rs                  (all changes live here)
     └── tests/cloud_storage_object_api.rs  (existing integration tests; must stay green)
 ```
 
-Domain crates (`oya-cloud-storage-domain`, `oya-cloud-kms-domain`,
-`oya-cloud-resource-domain`, `oya-data-boundary-kernel`) are **read-only** from this
+Domain crates (`cloud-storage-domain`, `cloud-kms-domain`,
+`cloud-resource-domain`, `data-boundary-kernel`) are **read-only** from this
 task's perspective: no changes to their source.
 
 ---
@@ -151,7 +151,7 @@ task does not change it.
 ### Proto3 (future gRPC adapter — informational, not implemented here)
 
 ```proto
-// Future: oya.cloud.storage.object.v1
+// Future: oyatie.cloud.storage.object.v1
 message PeekIdempotencyEntryRequest {
   string tenant_id        = 1;
   string principal_id     = 2;
@@ -182,7 +182,7 @@ Two test layers:
 ### Layer 1 — `#[cfg(test)]` inline in `src/lib.rs` (NEW, this task)
 
 Minimal unit tests using the in-process `CloudStorageCatalog` stub from
-`oya-cloud-storage-domain`. Four required cases:
+`cloud-storage-domain`. Four required cases:
 
 | Case | Description |
 |---|---|
@@ -213,8 +213,8 @@ All 10 existing integration tests must continue to pass unchanged. These cover:
 
 - No async runtime introduced.
 - No new crate, no edit to root `Cargo.toml`.
-- No changes to `oya-cloud-storage-domain`, `oya-cloud-kms-domain`,
-  `oya-cloud-resource-domain`, or `oya-data-boundary-kernel`.
+- No changes to `cloud-storage-domain`, `cloud-kms-domain`,
+  `cloud-resource-domain`, or `data-boundary-kernel`.
 - No HTTP adapter, no gRPC adapter.
 - No persistence layer for the ledger (in-memory BTreeMap only, as before).
 - No change to the signature of `put_cloud_storage_object_from_api`.

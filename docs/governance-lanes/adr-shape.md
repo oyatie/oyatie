@@ -7,15 +7,15 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every ADR has required sections (Context, Decision, Consequences, Status, Drivers, Alternatives) and a valid status.
-- enforces: TEMPLATE/adr-template; AGENTS.md fitness-lane `oya-governance-adr-shape`.
-- kernel_crate: `oya-governance-adr-shape-kernel` — `AdrDocument { adr_id, sections, status }`, verdict `AdrShapeFitnessReport { adrs_checked }`.
-- runner_path: `tools/oya-governance-adr-shape`
+- enforces: TEMPLATE/adr-template; AGENTS.md fitness-lane `governance-adr-shape`.
+- kernel_crate: `governance-adr-shape-kernel` — `AdrDocument { adr_id, sections, status }`, verdict `AdrShapeFitnessReport { adrs_checked }`.
+- runner_path: `tools/governance-adr-shape`
 - inputs: `docs/decisions/ADR-*.md`, ADR template `docs/templates/ADR-TEMPLATE.md`.
 - failure_modes:
   - ADR missing Consequences section
   - status not in {proposed, accepted, superseded, retracted}
   - sections in wrong order
-- ci_invocation: `cargo run -p oya-governance-adr-shape`
+- ci_invocation: `cargo run -p governance-adr-shape`
 - runtime_budget: 250 ms
 - severity: BLOCKER
 - kernel_sketch:
@@ -66,7 +66,7 @@ pub fn validate_adr_shape_fitness(
 ## Diagnostic audit API
 
 The retirement-marked app remains only the blocking validation path:
-`buck2 run //tools/oya-governance-adr-shape-app:oya-governance-adr-shape-app`.
+`buck2 run //tools/governance-adr-shape-app:governance-adr-shape-app`.
 Its explicit-path form is blocking as well. Migration-inventory consumers call
 the public Rust `audit_adr_shape_fitness(&[AdrDocument])` API and own their input
 loading and output presentation.

@@ -14,12 +14,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
-use iam_cloud_domain::IamRoleId;
-use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use iam_domain::IamRoleId;
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
 
 const OBSERVABILITY_SCHEMA_VERSION: u32 = 1;
 const AUDIT_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -31,7 +31,7 @@ const ALERT_ID_PREFIX: &str = "alert_";
 const DASHBOARD_ID_PREFIX: &str = "dash_";
 const AUDIT_CURSOR_PREFIX: &str = "cur/";
 const IDEMPOTENCY_KEY_PREFIX: &str = "idem/";
-const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const REGIONAL_PACK_PREFIX: &str = "pack-";
 const SHA256_PREFIX: &str = "sha256:";
 const FNV_HASH_PREFIX: &str = "fnv1a64:";
 const SIGNED_EXPORT_URI_PREFIX: &str = "s3+signed://";
@@ -503,17 +503,17 @@ pub struct CloudObservabilityCatalog {
 impl CloudAuditTopic {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::CloudResourceCreated => "oya.audit.cloud_resource_created",
-            Self::CloudResourceTerminated => "oya.audit.cloud_resource_terminated",
-            Self::CloudIamAssume => "oya.audit.cloud_iam_assume",
-            Self::CloudIamPolicy => "oya.audit.cloud_iam_policy",
-            Self::CloudRegionRegister => "oya.audit.cloud_region_register",
-            Self::CloudKmsUse => "oya.audit.cloud_kms_use",
-            Self::CloudReplication => "oya.audit.cloud_replication",
-            Self::CloudFlowAnomaly => "oya.audit.cloud_flow_anomaly",
-            Self::CloudInvoice => "oya.audit.cloud_invoice",
-            Self::CloudInterconnect => "oya.audit.cloud_interconnect",
-            Self::CloudCellRebalanced => "oya.audit.cloud_cell_rebalanced",
+            Self::CloudResourceCreated => "oyatie.audit.cloud_resource_created",
+            Self::CloudResourceTerminated => "oyatie.audit.cloud_resource_terminated",
+            Self::CloudIamAssume => "oyatie.audit.cloud_iam_assume",
+            Self::CloudIamPolicy => "oyatie.audit.cloud_iam_policy",
+            Self::CloudRegionRegister => "oyatie.audit.cloud_region_register",
+            Self::CloudKmsUse => "oyatie.audit.cloud_kms_use",
+            Self::CloudReplication => "oyatie.audit.cloud_replication",
+            Self::CloudFlowAnomaly => "oyatie.audit.cloud_flow_anomaly",
+            Self::CloudInvoice => "oyatie.audit.cloud_invoice",
+            Self::CloudInterconnect => "oyatie.audit.cloud_interconnect",
+            Self::CloudCellRebalanced => "oyatie.audit.cloud_cell_rebalanced",
         }
     }
 
@@ -1643,10 +1643,10 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use audit_chain_domain::Plane;
+    use data_boundary_kernel::{OperationalDataClass, Purpose};
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
-    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 
@@ -1654,7 +1654,7 @@ mod tests {
     const REGION: &str = "region-alpha1";
     const CELL: &str = "cell-region-alpha1-a-001";
     const SIGNED_EXPORT: &str = "s3+signed://region-alpha1/ten_alpha/audit?sig=abc123";
-    const RESOURCE_ID: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
+    const RESOURCE_ID: &str = "oyatie:cloud:region-alpha1:ten_alpha:instance:vm-a";
     const HASH_A: &str = "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
     const HASH_B: &str = "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
 
@@ -1678,7 +1678,7 @@ mod tests {
         ObservabilityResidency::new(ObservabilityResidencyCreate {
             tenant_id: TENANT.to_string(),
             region: REGION.to_string(),
-            regional_pack: "oya-pack-alpha".to_string(),
+            regional_pack: "pack-alpha".to_string(),
             residency: residency_class(),
             metric_storage_region: REGION.to_string(),
             log_storage_region: REGION.to_string(),
@@ -1799,7 +1799,7 @@ mod tests {
             ..ObservabilityResidencyCreate {
                 tenant_id: TENANT.to_string(),
                 region: REGION.to_string(),
-                regional_pack: "oya-pack-alpha".to_string(),
+                regional_pack: "pack-alpha".to_string(),
                 residency: residency_class(),
                 metric_storage_region: REGION.to_string(),
                 log_storage_region: REGION.to_string(),
@@ -1959,7 +1959,7 @@ mod tests {
 
         let mut wrong_resource = envelopes();
         wrong_resource[0].resource_id =
-            Some("oya:cloud:region-alpha1:ten_other:instance:vm-a".to_string());
+            Some("oyatie:cloud:region-alpha1:ten_other:instance:vm-a".to_string());
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&chain(), wrong_resource, &residency)

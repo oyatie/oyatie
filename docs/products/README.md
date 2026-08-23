@@ -54,7 +54,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 | Localization pack catalog | [`../localization-packs/INDEX.md`](../localization-packs/INDEX.md) | Region/pack traceability only; not a runtime readiness claim. |
 | Engineering teams | [`../teams/`](../teams/) | One charter per team. |
 
-## Required sections per product PRD (validated by the product PRD Rust gate in `oya-ci-required`)
+## Required sections per product PRD (validated by the product PRD Rust gate in `presubmit`)
 
 1. **North star** — what + who + why
 2. **Target users** — personas + value-exchange

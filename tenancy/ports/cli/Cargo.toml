@@ -4,14 +4,14 @@ edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 publish = false
-default-run = "oya-tenant"
+default-run = "tenant"
 license = "Apache-2.0"
 
 # Skeleton authored 2026-05-18 per ADR-0167 (tenant-facing CLI).
-# Tier-A semver-protected tenant binary distributed as `oya` to tenant
+# Tier-A semver-protected tenant binary distributed as `tenant` to tenant
 # artifact channels (Homebrew, apt, winget, ghcr). The workspace bin name is
-# unique (`oya-tenant`) so `cargo build --workspace` never collides with the
-# internal `oya-dev-cli` binary.
+# unique (`tenant`) so `cargo build --workspace` never collides with the
+# internal `dev-cli` binary.
 #
 # Full impl tracked under registry/placeholder-debt/adr-follow-ups.yaml
 # #adr-0167-tenant-cli-commands. The v0.1 surface ships only `auth`,
@@ -23,7 +23,7 @@ clap = { version = "4", features = ["derive", "env"] }
 clap_complete = "4"
 
 [[bin]]
-name = "oya-tenant"
+name = "tenant"
 path = "src/main.rs"
 
 [lints]

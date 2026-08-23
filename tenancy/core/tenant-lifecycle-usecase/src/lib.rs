@@ -2,9 +2,9 @@
 //! uniform resource provider.
 //!
 //! Implements the locked G001 `ResourceProvider` contract
-//! (`oya-shared-resource-provider-contract-kernel`) over the
+//! (`shared-resource-provider-contract-kernel`) over the
 //! `TenantLifecycleStore` port, with the tenant aggregate and closed
-//! lifecycle state machine from `oya-shared-platform-contracts-kernel`.
+//! lifecycle state machine from `shared-platform-contracts-kernel`.
 //! Precedent: Azure ARM resource providers and Google AIP-151/155 — one
 //! uniform contract per resource, client-UUID idempotency, and async
 //! mutations as pollable operation resources.
@@ -29,10 +29,10 @@ pub mod reconcile;
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
-use oya_shared_resource_provider_contract_kernel::{
+use shared_resource_provider_contract_kernel::{
     CancellationMetadata, CompensationMetadata, CreateOutcome, IdempotencyKey, ListEntry,
     Operation, OperationError, OperationLedgerEntry, OperationPhase, OperationState, Page,
     PageRequest, PageToken, ProviderError, PutOutcome, ResourceName, ResourceProvider, RetryPolicy,
@@ -52,7 +52,7 @@ fn store_error(error: StoreError) -> ProviderError {
 }
 
 fn shape_error(
-    error: oya_shared_resource_provider_contract_kernel::ContractShapeError,
+    error: shared_resource_provider_contract_kernel::ContractShapeError,
 ) -> ProviderError {
     ProviderError::Internal {
         message: error.to_string(),

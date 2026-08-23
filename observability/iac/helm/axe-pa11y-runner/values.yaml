@@ -1,8 +1,8 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers (per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oyatie-helpers (per ADR-0064)
 # axe-core + pa11y CI runner per ADR-0207.
 
 image:
-  repository: oya/axe-pa11y-runner          # in-house image; published via release-musl pipeline (per ADR-0181)
+  repository: oyatie/axe-pa11y-runner          # in-house image; published via release-musl pipeline (per ADR-0181)
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 

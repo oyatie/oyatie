@@ -1,6 +1,6 @@
 # Spec: webauthn-packtier-attestation-policy-gate
 
-**Crate**: `oya-shared-webauthn-server-kernel`
+**Crate**: `shared-webauthn-server-kernel`
 **Authority**: ADR-0188 §"Attestation policy"
 **Kind**: Additive pure function — no I/O, no new dependencies
 

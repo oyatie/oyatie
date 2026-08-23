@@ -1,10 +1,10 @@
-# oya-shuffle-sharding
+# shuffle-sharding
 
 Pure Rust shuffle-sharding library for deterministic tenant-to-cell selection.
 
 ## Purpose
 
-`oya-shuffle-sharding` preserves the ADR-0248 cellular architecture doctrine
+`shuffle-sharding` preserves the ADR-0248 cellular architecture doctrine
 without keeping a standalone `cell` microservice. The crate has no service
 runtime, storage adapter, network client, or global registry. It ranks candidate
 cells supplied by callers and returns a deterministic shard for one tenant.
@@ -13,7 +13,7 @@ cells supplied by callers and returns a deterministic shard for one tenant.
 
 - `tenancy` calls the crate during tenant provisioning and records the
   tenant-to-cell assignment.
-- `cloud-iac` owns the candidate registry through OpenTofu state and lifecycle
+- `iac-app` owns the candidate registry through OpenTofu state and lifecycle
   operations.
 - `observability` owns health, SLO burn, and blast-radius signals that decide
   whether a cell is eligible for new tenants.
@@ -38,8 +38,8 @@ evidence.
 ## Commands
 
 ```sh
-RUSTC_WRAPPER= cargo test --manifest-path crates/oya-shuffle-sharding/Cargo.toml
-RUSTC_WRAPPER= cargo doc --manifest-path crates/oya-shuffle-sharding/Cargo.toml --no-deps
+RUSTC_WRAPPER= cargo test --manifest-path crates/shuffle-sharding/Cargo.toml
+RUSTC_WRAPPER= cargo doc --manifest-path crates/shuffle-sharding/Cargo.toml --no-deps
 ```
 
 `RUSTC_WRAPPER=` avoids local `sccache` permission failures in this workspace.

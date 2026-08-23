@@ -1,16 +1,16 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: cloud-intelligence-ttft
+  name: intelligence-app-ttft
   displayName: "Cloud Intelligence Time-To-First-Token (HEADLINE SLI)"
   labels:
-    microservice: cloud-intelligence
+    microservice: intelligence-app
     surface: chat-completions-stream
     sli_role: headline
     adr: "ADR-0373"
-    research_brief: "microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md#4"
+    research_brief: "microservices/intelligence-app/design/hyperscaler-best-practice-brief.md#4"
 spec:
-  service: cloud-intelligence
+  service: intelligence-app
   description: |
     HEADLINE streaming SLI (brief §4): for a streaming gateway, total latency is the WRONG
     primary signal — time-to-first-token (TTFT) is. This SLO is the ratio of streamed
@@ -33,16 +33,16 @@ spec:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_ttft_seconds_bucket{
-                  service="cloud-intelligence",stream="true",outcome!="client_cancelled",le="1.5"
+                sum(rate(intelligence_app_ttft_seconds_bucket{
+                  service="intelligence-app",stream="true",outcome!="client_cancelled",le="1.5"
                 }[5m])) by (provider)
         total:
           metricSource:
             type: prometheus
             spec:
               query: |
-                sum(rate(oya_cloud_intelligence_ttft_seconds_count{
-                  service="cloud-intelligence",stream="true",outcome!="client_cancelled"
+                sum(rate(intelligence_app_ttft_seconds_count{
+                  service="intelligence-app",stream="true",outcome!="client_cancelled"
                 }[5m])) by (provider)
   timeWindow:
     - duration: 30d
@@ -52,7 +52,7 @@ spec:
     - displayName: "TTFT p95 < 1500ms (provisional — replace with measured baseline)"
       target: 0.95
   alertPolicies:
-    - name: cloud-intelligence-ttft-burnrate-fastburn
+    - name: intelligence-app-ttft-burnrate-fastburn
       kind: AlertPolicy
       spec:
         conditions:
@@ -60,23 +60,23 @@ spec:
             metadata: { name: fastburn }
             spec: { op: gte, threshold: 14.4, lookbackWindow: 1h, alertAfter: 2m }
         notificationTargets:
-          - target: pagerduty-cloud-intelligence
-          - target: opsgenie-cloud-intelligence
-    - name: cloud-intelligence-ttft-burnrate-mediumburn
+          - target: pagerduty-intelligence-app
+          - target: opsgenie-intelligence-app
+    - name: intelligence-app-ttft-burnrate-mediumburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: mediumburn }
             spec: { op: gte, threshold: 6.0, lookbackWindow: 6h, alertAfter: 15m }
-    - name: cloud-intelligence-ttft-burnrate-slowburn
+    - name: intelligence-app-ttft-burnrate-slowburn
       kind: AlertPolicy
       spec:
         conditions:
           - kind: AlertCondition
             metadata: { name: slowburn }
             spec: { op: gte, threshold: 3.0, lookbackWindow: 1d, alertAfter: 1h }
-    - name: cloud-intelligence-ttft-burnrate-trickleburn
+    - name: intelligence-app-ttft-burnrate-trickleburn
       kind: AlertPolicy
       spec:
         conditions:

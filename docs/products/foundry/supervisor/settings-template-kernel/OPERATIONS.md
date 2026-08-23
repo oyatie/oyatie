@@ -18,7 +18,7 @@ doc_status: published
 
 ```bash
 # Local bridge only — pass a live template path when one exists:
-cargo run -p oya-dev-cli -- gate validate settings-template \
+cargo run -p dev-cli -- gate validate settings-template \
   --template <live-settings-template.toml>
 
 # Expected: pass if:
@@ -54,7 +54,7 @@ SettingsRenderer::verify()
 
 ```bash
 # Render once (requires a live template path — templates/foundry-supervisor/ deleted)
-cargo run -p oya-dev-cli -- settings-template render \
+cargo run -p dev-cli -- settings-template render \
   --template <live-settings-template.toml> \
   --account-id test-account
 
@@ -65,7 +65,7 @@ cat .omc/state/settings-template-manifest.json
 echo '"extra_field": true' >> ~/.claude/settings.json
 
 # Verify detects drift (pass a live templates root)
-cargo run -p oya-dev-cli -- gate validate settings-drift \
+cargo run -p dev-cli -- gate validate settings-drift \
   --templates-root <live-templates-root> \
   --accounts-root registry/accounts
 
@@ -111,5 +111,5 @@ cargo run -p oya-dev-cli -- gate validate settings-drift \
 ## References
 
 - **Drift detection:** v5 § B.5 (CI lane spec)
-- **Kernel source:** `crates/oya-intelligence-settings-template-kernel/src/lib.rs`
+- **Kernel source:** `crates/intelligence-settings-template-kernel/src/lib.rs`
 - **Adapter:** `docs/products/foundry/supervisor/settings-template-adapter/OPERATIONS.md`

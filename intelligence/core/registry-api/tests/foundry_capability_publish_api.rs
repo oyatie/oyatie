@@ -48,7 +48,7 @@ fn publish_body(capability_id: &str) -> FoundryCapabilityPublishRequest {
         },
         autonomy_tier_required: "T2".to_string(),
         data_classes_touched: vec!["INTERNAL_ONLY".to_string(), "PII_QUASI_IDENTIFIER".to_string()],
-        evidence_emission_topic: "oya.foundry.capability.invoked".to_string(),
+        evidence_emission_topic: "oyatie.foundry.capability.invoked".to_string(),
         cost_profile: FoundryCapabilityCostProfileRequest {
             per_invocation_limit_micros: 50_000,
             per_tenant_monthly_limit_micros: 10_000_000,
@@ -88,7 +88,7 @@ fn publish_body(capability_id: &str) -> FoundryCapabilityPublishRequest {
         eval_linguistic_passed: true,
         signed_eval_run: true,
         owner_team: "axis-foundry".to_string(),
-        catalog_record_path: "registry/catalog/oya-workflow-payroll.yaml".to_string(),
+        catalog_record_path: "registry/catalog/workflow-payroll.yaml".to_string(),
         docs_path: "docs.oyatie.com/capabilities/cap.workflow.approve-payroll/".to_string(),
         published_at_epoch_seconds: 1_778_413_600,
     }
@@ -167,7 +167,7 @@ fn foundry_capability_publish_exports_surface_contract_and_status_codes() {
             autonomy_tier_required: "T2".to_string(),
             data_classes_touched: vec!["INTERNAL_ONLY".to_string()],
             provider_preference: vec!["foundation-local".to_string()],
-            evidence_emission_topic: "oya.foundry.capability.invoked".to_string(),
+            evidence_emission_topic: "oyatie.foundry.capability.invoked".to_string(),
             eval_set_version: "eval-2026-05-12".to_string(),
             eval_pass_rate_percent: 96,
             eval_p95_score_percent: 91,

@@ -129,7 +129,7 @@ The workflow engine exposes:
 
 - `GET /sagas/{saga_run_id}` — current state.
 - `GET /sagas/{saga_run_id}/audit-rows` — audit-chain rows.
-- Prometheus gauge `oya_saga_in_flight{saga_id="..."}`.
+- Prometheus gauge `saga_in_flight{saga_id="..."}`.
 
 ## Compensation kinds
 

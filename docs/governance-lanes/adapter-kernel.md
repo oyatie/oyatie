@@ -6,17 +6,17 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every adapter crate depends only on the sanctioned `oya-intelligence-adapter-kernel` for shaping outbound provider IO.
-- enforces: STANDARD/adapter-shape; existing crate `oya-intelligence-adapter-kernel` (EXISTING).
+- purpose: Verify every adapter crate depends only on the sanctioned `intelligence-adapter-kernel` for shaping outbound provider IO.
+- enforces: STANDARD/adapter-shape; existing crate `intelligence-adapter-kernel` (EXISTING).
 - adr_citations: ADR-0053 (sanctioned primitives — adapter crates must route through the kernel, not call provider SDKs directly)
-- kernel_crate: `oya-intelligence-adapter-kernel` (EXISTING) — extend with `AdapterCrate { crate_id, depends_on_adapter_kernel, calls_provider_sdk }`, verdict `AdapterKernelFitnessReport { adapters_checked }`.
-- runner_path: `tools/oya-governance-adapter-kernel`
+- kernel_crate: `intelligence-adapter-kernel` (EXISTING) — extend with `AdapterCrate { crate_id, depends_on_adapter_kernel, calls_provider_sdk }`, verdict `AdapterKernelFitnessReport { adapters_checked }`.
+- runner_path: `tools/governance-adapter-kernel`
 - inputs: workspace dep graph, provider-SDK token list.
 - failure_modes:
-  - adapter crate calls SDK but does not depend on `oya-intelligence-adapter-kernel`
-  - non-adapter crate depends on `oya-intelligence-adapter-kernel`
+  - adapter crate calls SDK but does not depend on `intelligence-adapter-kernel`
+  - non-adapter crate depends on `intelligence-adapter-kernel`
   - adapter crate exposes provider type publicly
-- ci_invocation: `cargo run -p oya-governance-adapter-kernel`
+- ci_invocation: `cargo run -p governance-adapter-kernel`
 - runtime_budget: 800 ms
 - severity: BLOCKER
 - kernel_sketch:

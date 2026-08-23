@@ -5,9 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )
 
@@ -19,9 +19,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":audit-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )
 
@@ -33,8 +33,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":audit-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )

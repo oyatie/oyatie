@@ -52,17 +52,17 @@
 # a CA bundle into the pod is the precondition. The bucket identity stays reserved
 # at OpenBao `oya/ci/nativelink-cas-s3` (dedicated `nativelink-cas` bucket, keyed
 # separately from the sccache bucket identity); its ExternalSecret + the
-# `oya.io/seaweedfs-client` egress label return with that revisit rather than
+# `oyatie.io/seaweedfs-client` egress label return with that revisit rather than
 # projecting credentials the process never reads.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nativelink-cas-config
-  namespace: oya-ci
+  namespace: ci
   labels:
-    app.kubernetes.io/part-of: oya-substrate
+    app.kubernetes.io/part-of: substrate
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 data:
   cas.json: |
     {
@@ -173,17 +173,17 @@ data:
 # therefore requires a deliberate Deployment rollout and readiness proof before
 # identity traffic; it is not a hot reload. No key bytes live in git.
 # The server leaf must cover both client-dialed service names:
-# nativelink-cas-writer.oya-ci.svc.cluster.local and
-# nativelink-cas-reader.oya-ci.svc.cluster.local. The no-echo import preflight
+# nativelink-cas-writer.ci.svc.cluster.local and
+# nativelink-cas-reader.ci.svc.cluster.local. The no-echo import preflight
 # in infra/external-secrets/RUNBOOK.md rejects any other certificate.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: nativelink-cas-tls
-  namespace: oya-ci
+  namespace: ci
   labels:
-    app.kubernetes.io/part-of: oya-substrate
-    oya.io/adr: ADR-0560
+    app.kubernetes.io/part-of: substrate
+    oyatie.io/adr: ADR-0560
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -210,11 +210,11 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nativelink-cas-data
-  namespace: oya-ci
+  namespace: ci
   labels:
     app: nativelink-cas
-    app.kubernetes.io/part-of: oya-substrate
-    oya.io/adr: ADR-0560
+    app.kubernetes.io/part-of: substrate
+    oyatie.io/adr: ADR-0560
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: local-path
@@ -226,12 +226,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nativelink-cas
-  namespace: oya-ci
+  namespace: ci
   labels:
     app: nativelink-cas
-    app.kubernetes.io/part-of: oya-substrate
-    oya.io/adr: ADR-0560
-    oya.adr/decided-by: ADR-0560
+    app.kubernetes.io/part-of: substrate
+    oyatie.io/adr: ADR-0560
+    oyatie.adr/decided-by: ADR-0560
 spec:
   # One ReadWriteOnce filesystem store must never have overlapping NativeLink
   # processes during the mandatory TLS/client-CA restart. Prefer bounded cache
@@ -358,10 +358,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nativelink-cas-writer
-  namespace: oya-ci
+  namespace: ci
   labels:
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   selector:
     app: nativelink-cas
@@ -373,10 +373,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nativelink-cas-reader
-  namespace: oya-ci
+  namespace: ci
   labels:
     app: nativelink-cas
-    oya.io/adr: ADR-0560
+    oyatie.io/adr: ADR-0560
 spec:
   selector:
     app: nativelink-cas
@@ -389,7 +389,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: nativelink-cas-ingress
-  namespace: oya-ci
+  namespace: ci
 spec:
   podSelector:
     matchLabels:
@@ -400,14 +400,14 @@ spec:
         - namespaceSelector: {}
           podSelector:
             matchLabels:
-              oya.io/nativelink-cas-writer: "true"
+              oyatie.io/nativelink-cas-writer: "true"
       ports:
         - { protocol: TCP, port: 50051 }
     - from:
         - namespaceSelector: {}
           podSelector:
             matchLabels:
-              oya.io/nativelink-cas-reader: "true"
+              oyatie.io/nativelink-cas-reader: "true"
       ports:
         - { protocol: TCP, port: 50052 }
     - from:

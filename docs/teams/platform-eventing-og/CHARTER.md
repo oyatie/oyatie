@@ -10,16 +10,16 @@ This team owns the eventing backbone (outbox pattern, Kafka topic contracts, eve
 ## Owned axes / surfaces / contracts
 - **Axis(es):** Cross-cutting (SaaS primary, consumed by all axes)
 - **Surfaces:**
-  - `oya-platform-eventing-kernel` — `EventEnvelope`, `TopicName`, `PartitionKey`, `OutboxEntry`, `EventSchema`
-  - `oya-platform-eventing-app` — outbox relay, topic provisioning, schema registration
-  - `oya-platform-eventing-adapter-kafka` — Kafka producer/consumer adapters
-  - `oya-platform-eventing-api` — topic management REST/gRPC surface
-  - `oya-platform-object-graph-kernel` — `OgNode`, `OgEdge`, `PropertyTier`, `OgSchema` (ADR-0006..0112)
-  - `oya-platform-object-graph-domain` — property-tier lifecycle, schema evolution use-cases
+  - `platform-eventing-kernel` — `EventEnvelope`, `TopicName`, `PartitionKey`, `OutboxEntry`, `EventSchema`
+  - `platform-eventing-app` — outbox relay, topic provisioning, schema registration
+  - `platform-eventing-adapter-kafka` — Kafka producer/consumer adapters
+  - `platform-eventing-api` — topic management REST/gRPC surface
+  - `platform-object-graph-kernel` — `OgNode`, `OgEdge`, `PropertyTier`, `OgSchema` (ADR-0006..0112)
+  - `platform-object-graph-domain` — property-tier lifecycle, schema evolution use-cases
 - **Cross-axis contracts (DESIGN §10):**
   - `Eventing backbone (outbox + Kafka topic)` (owner) — topic shape changes require cross-axis review
   - `Object Graph property tier` (co-owner with `platform-privacy-dub`) — tier changes trigger Data Use Boundary check
-- **Catalog records:** `crates/oya-platform-eventing-*`, `crates/oya-platform-object-graph-*`
+- **Catalog records:** `crates/platform-eventing-*`, `crates/platform-object-graph-*`
 - **Runbooks:** `runbooks/kafka-topic-provisioning.md`, `runbooks/outbox-relay-lag.md`, `runbooks/og-schema-rollback.md`
 - **ADRs:** ADR-0006..0112 (Object Graph property tiers)
 
@@ -33,7 +33,7 @@ This team owns the eventing backbone (outbox pattern, Kafka topic contracts, eve
 - OG schema evolution with backward-compatible migration policy
 - Backpressure and admission control on Kafka consumers
 - Partition key conventions for tenant isolation
-- Fitness function `oya-governance-eventing-topic` — rejects topic shape changes without schema registration
+- Fitness function `governance-eventing-topic` — rejects topic shape changes without schema registration
 
 ## Out-of-scope (anti-scope)
 - Audit chain append (→ `platform-audit-evidence` — separate append path)
@@ -94,7 +94,7 @@ This team owns the eventing backbone (outbox pattern, Kafka topic contracts, eve
 |---|---|---|
 | Kafka consumer lag spikes cross-tenant due to shared partition | High | Per-tenant partition key convention; capacity planning with `ops-dr-capacity` |
 | Event-schema backward-incompatible change breaks consumers | High | Schema registry compatibility gate; CI rejects incompatible schemas |
-| OG property tier misclassified → PHI enters search index | Catastrophic | `oya-governance-data-use-boundary` CI gate; co-owned with `platform-privacy-dub` |
+| OG property tier misclassified → PHI enters search index | Catastrophic | `governance-data-use-boundary` CI gate; co-owned with `platform-privacy-dub` |
 
 ## Sources scanned
 DESIGN.md §10 (eventing backbone row, OG property tier row), PRD.md §5 (cohesion thesis OG reference), ADR-0006..0112, DOC-CATALOG.md §2.1.

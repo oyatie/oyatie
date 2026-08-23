@@ -4,7 +4,7 @@ doc_class: Index
 status: published
 date: 2026-05-20
 authority: documentation-rigor.md §6 anti-patterns (aspirational performance numbers without evidence)
-enforced_by: oya-governance-doc-rigor
+enforced_by: governance-doc-rigor
 ---
 
 # Performance Budgets — Modeling Notes Index
@@ -94,7 +94,7 @@ When a new ADR introduces a performance claim without a benchmark commit:
    ```
    (modeled; assumptions in docs/performance-budgets/<slug>.md)
    ```
-5. CI lane `oya-governance-doc-rigor` will verify the citation is present and the
+5. CI lane `governance-doc-rigor` will verify the citation is present and the
    modeling note exists.
 
 ---

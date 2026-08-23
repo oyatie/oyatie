@@ -1,4 +1,4 @@
-//! oya-identity — identity service for oyatie.
+//! identity — identity service for oyatie.
 //!
 //! Single-crate-per-service pattern per ADR-0509.
 //! Subsystems: auth, oidc, oauth2, realms, users, storage, rest, grpc, observability.
@@ -27,7 +27,7 @@ pub mod decision_authz {
     //! caller may obtain a decision ONLY within its own tenant. A cross-tenant
     //! request (caller in tenant A asking for a decision over tenant B's subject) is
     //! DENIED regardless of action — closing the cross-tenant-entitlement / IDOR
-    //! axis. It is the W5-shaped default; a richer Cedar-policy-backed cloud-iam PDP
+    //! axis. It is the W5-shaped default; a richer Cedar-policy-backed iam PDP
     //! swaps in behind the same port without touching the delivery surfaces.
     //!
     //! ADR-0083 Tier 3: panic-free; `#![forbid(unsafe_code)]` inherited at crate root.

@@ -1,7 +1,0 @@
-val	0	Half
-val	1	Full
-val	255	Unknown
-parse	Half	0
-parse	Full	1
-parse	Unknown	255
-parse	__nope__	ERR

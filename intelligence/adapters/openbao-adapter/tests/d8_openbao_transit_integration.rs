@@ -34,7 +34,7 @@ use scripted_http_server::{ScriptedResponse, ScriptedServer};
 // Helpers
 // ---------------------------------------------------------------------------
 
-const KEY: &str = "cloud-intelligence-rt";
+const KEY: &str = "intelligence-app-rt";
 
 /// One OpenBao endpoint: the method and path that reach it, and what it answers.
 type VaultRoute = (&'static str, String, ScriptedResponse);

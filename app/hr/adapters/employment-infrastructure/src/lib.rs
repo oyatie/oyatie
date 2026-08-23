@@ -32,9 +32,9 @@ use hr_employment_app::{
     plan_leave_payroll_impact_envelope, prepare_sensitive_hr_read_envelope,
 };
 use hr_employment_domain::HrDomainError;
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
 };
 use serde::Serialize;
@@ -235,7 +235,7 @@ struct SensitiveReadHandler;
 struct LeavePayrollImpactHandler;
 struct HealthHandler;
 
-impl oya_http_middleware_kernel::Handler for OnboardEmployeeHandler {
+impl http_middleware_kernel::Handler for OnboardEmployeeHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -255,7 +255,7 @@ impl oya_http_middleware_kernel::Handler for OnboardEmployeeHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for LaborComplianceHandler {
+impl http_middleware_kernel::Handler for LaborComplianceHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -283,7 +283,7 @@ impl oya_http_middleware_kernel::Handler for LaborComplianceHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for SensitiveReadHandler {
+impl http_middleware_kernel::Handler for SensitiveReadHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -298,7 +298,7 @@ impl oya_http_middleware_kernel::Handler for SensitiveReadHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for LeavePayrollImpactHandler {
+impl http_middleware_kernel::Handler for LeavePayrollImpactHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -313,7 +313,7 @@ impl oya_http_middleware_kernel::Handler for LeavePayrollImpactHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for HealthHandler {
+impl http_middleware_kernel::Handler for HealthHandler {
     type Error = HttpResponse;
 
     fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {

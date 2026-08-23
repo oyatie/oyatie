@@ -11,19 +11,19 @@ doc_status: published
 ## 12-Layer Placement
 
 ```
-L1: Kernel          ← oya-intelligence-settings-template-kernel (THIS CRATE)
+L1: Kernel          ← intelligence-settings-template-kernel (THIS CRATE)
     ├─ SettingsTemplate (value type)
     ├─ HookRef, HookEvent (value types)
     ├─ SkillRef, McpServerRef (value types)
     ├─ RenderManifest, DriftReport (value types)
     └─ SettingsRenderer (port trait)
 
-L4: Adapter         ← oya-intelligence-settings-template-adapter
+L4: Adapter         ← intelligence-settings-template-adapter
     ├─ ClaudeRenderer (impl SettingsRenderer)
     ├─ CodexRenderer (impl SettingsRenderer)
     └─ GeminiRenderer (impl SettingsRenderer)
 
-L5: Application     ← oya-intelligence-supervisor-app
+L5: Application     ← intelligence-supervisor-app
     └─ CompositeAccountSnapshotProvider (composes renderers)
 ```
 

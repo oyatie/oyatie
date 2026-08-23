@@ -1,0 +1,25 @@
+rust_library(
+    name = "iam-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iam_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cell/core/region:cell-region",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//iam/core/identity-domain:iam-identity-domain",
+    ],
+)
+
+rust_test(
+    name = "iam-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "iam_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cell/core/region:cell-region",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//iam/core/identity-domain:iam-identity-domain",
+    ],
+)

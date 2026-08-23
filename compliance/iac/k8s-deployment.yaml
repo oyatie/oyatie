@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: compliance-evidence-collector
-  namespace: oya-compliance
+  namespace: compliance
   labels:
     app.kubernetes.io/name: compliance
     app.kubernetes.io/component: evidence-collector

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-cloud-k8s-csi-file
+name: cloud-k8s-csi-file
 description: Oyatie cloud-k8s CSI file controller for OCI File Storage and CephFS backends
 type: application
 version: 0.1.0
