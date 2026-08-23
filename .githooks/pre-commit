@@ -1,8 +1,9 @@
 #!/bin/sh
-# D-10: cargo fmt --check on staged *.rs only. Not workspace nextest.
+# D-10: rustfmt --check on staged *.rs only. Not workspace nextest.
+# Use rustfmt (not cargo fmt): `cargo fmt -- files` formats the whole workspace.
 set -eu
 if ! git diff --cached --name-only --diff-filter=ACMR -- '*.rs' | grep -q .; then
   exit 0
 fi
 git diff --cached --name-only -z --diff-filter=ACMR -- '*.rs' \
-  | xargs -0 cargo fmt --check --
+  | xargs -0 rustfmt --check --config-path rustfmt.toml --
