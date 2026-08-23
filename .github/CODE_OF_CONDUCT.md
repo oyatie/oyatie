@@ -58,10 +58,8 @@ public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the repository maintainers (`@teams/council-architecture`, see
-[`CODEOWNERS`](CODEOWNERS)) by opening a private report to the
-repository owner via GitHub. All complaints will be reviewed and investigated
-promptly and fairly.
+reported privately to the repository owner (`@jason931225`) via GitHub.
+All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

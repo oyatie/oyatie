@@ -1,8 +1,1 @@
-# D-8 roots. Org team handles until GitHub teams exist as written.
-* @teams/council-architecture
-docs/decisions/ @teams/crew-adr-promotion @teams/council-architecture
-AGENTS.md @teams/council-architecture
-CLAUDE.md @teams/council-architecture
-Cargo.toml @teams/council-architecture
-.github/ @teams/council-architecture
-pipeline/ @teams/council-architecture
+* @jason931225

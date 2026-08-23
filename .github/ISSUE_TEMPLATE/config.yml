@@ -1,10 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability report
-    url: https://github.com/jason931225/oyatie/security/advisories/new
-    about: >-
-      Do not open a public issue for security problems. Report privately via a
-      GitHub security advisory (see docs/security-program/security-program.json).
-  - name: Operating contract (docs/AGENTS.md)
-    url: https://github.com/jason931225/oyatie/blob/dev/docs/AGENTS.md
-    about: Read the canonical operating contract before filing or fixing.
+    url: https://github.com/oyatie/oyatie/security/advisories/new
+    about: Do not open a public issue for security problems. Report privately via a GitHub security advisory.
+  - name: Agent procedure
+    url: https://github.com/oyatie/oyatie/blob/dev/AGENTS.md
+    about: Read AGENTS.md before filing or fixing. Path law is ADR.md, PRD.md, SPEC.md, PLAN.md on the owner directory.

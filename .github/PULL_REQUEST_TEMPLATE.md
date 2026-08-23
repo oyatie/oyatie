@@ -12,7 +12,7 @@ trusted server-side/pipeline producer.
 ## Summary
 
 - 1-3 bullets on **what + why**. The diff already shows the *what*; this section adds the *why*.
-- Cite the canonical authority read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
+- Cite the path’s `ADR.md` / `PRD.md` / `SPEC.md` / `PLAN.md` for what you changed.
 
 ## Verification
 

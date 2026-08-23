@@ -7,7 +7,7 @@ planning_impact: true
 deciders: founder
 date: 2026-08-21
 door: two-way
-owner: council-architecture
+owner: oyatie
 supersedes: []
 superseded_by: []
 amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708, ADR-0716]
