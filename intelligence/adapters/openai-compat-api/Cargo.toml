@@ -14,8 +14,8 @@ doctest = false
 [dependencies]
 intelligence-provider-pool-kernel = { path = "../../core/provider-pool-kernel" }
 intelligence-account-kernel = { path = "../../core/account-kernel" }
-http-router-kernel = { path = "../../../libs/http-router-kernel" }
-http-sse-kernel = { path = "../../../libs/http-sse-kernel" }
+
+
 
 [lints]
 workspace = true

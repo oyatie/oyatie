@@ -40,7 +40,7 @@ tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time
 # First-party scripted HTTP test server. Replaces `httpmock`, which ADR-0709 D-6
 # Rule 2 fails on what it DRAGS IN (async-std, hyper 0.14, http 0.2, winapi 0.3.9,
 # syn 1.0.109) rather than on the crate itself.
-scripted-http-server = { path = "../../testing/scripted-http-server" }
+
 serde_json.workspace = true
 tower = { version = "0.5", features = ["util"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }

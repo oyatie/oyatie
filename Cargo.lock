@@ -114,10 +114,7 @@ dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
- "check-cost-budget",
- "data-boundary-kernel",
  "data-ontology-domain",
- "governance-eval-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
  "intelligence-adapter-kernel",
@@ -149,8 +146,6 @@ dependencies = [
  "leptos_axum",
  "serde",
  "serde_json",
- "shared-oidc-client-kernel",
- "shared-platform-contracts-kernel",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -352,7 +347,6 @@ dependencies = [
 name = "audit-chain-domain"
 version = "0.2.0"
 dependencies = [
- "data-boundary-kernel",
  "ed25519-dalek",
  "sha2",
 ]
@@ -380,7 +374,6 @@ name = "audit-file-adapter"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -437,7 +430,6 @@ name = "audit-usecase"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "data-boundary-kernel",
  "messaging-domain",
 ]
 
@@ -587,7 +579,6 @@ name = "billing-accounting-app"
 version = "0.1.0"
 dependencies = [
  "billing-accounting-journal",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -596,9 +587,6 @@ version = "0.1.0"
 dependencies = [
  "billing-accounting-api",
  "billing-accounting-app",
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -606,9 +594,6 @@ dependencies = [
 [[package]]
 name = "billing-accounting-journal"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "billing-accounting-storage-inmemory-adapter"
@@ -632,7 +617,6 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -643,7 +627,6 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -653,7 +636,6 @@ dependencies = [
  "billing-domain",
  "billing-finops",
  "billing-metering",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -674,9 +656,6 @@ dependencies = [
 [[package]]
 name = "billing-metering"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "billing-metering-pipeline-kernel"
@@ -688,7 +667,6 @@ version = "0.1.0"
 dependencies = [
  "billing-domain",
  "billing-metering",
- "data-boundary-kernel",
  "tokio",
 ]
 
@@ -702,7 +680,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
 dependencies = [
- "bit-vec 0.8.0",
+ "bit-vec",
 ]
 
 [[package]]
@@ -710,15 +688,6 @@ name = "bit-vec"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
-
-[[package]]
-name = "bit-vec"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b71798fca2c1fe1086445a7258a4bc81e6e49dcd24c8d0dd9a1e57395b603f51"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "bitflags"
@@ -775,28 +744,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bstr"
-version = "1.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f7dc094d718f2e1c1559ad110e27eeaae14a5465d3d56dd6dbd793079fbd530"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "buck-syntax-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "buck-test-wiring-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "workspace-members-kernel",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -819,21 +766,6 @@ name = "camino"
 version = "1.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb1307f12aa967b5a58416e87b3653360e0fd614a016b6e970db08fecbb1b80d"
-
-[[package]]
-name = "cargo-lock-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "toml_edit",
-]
-
-[[package]]
-name = "cargo-lock-transform-kernel"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "toml_edit",
-]
 
 [[package]]
 name = "cc"
@@ -927,7 +859,6 @@ dependencies = [
  "billing-metering",
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -939,7 +870,6 @@ name = "cell-region"
 version = "0.1.0"
 dependencies = [
  "cell-routing",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -955,7 +885,6 @@ dependencies = [
 name = "cell-regional-pack"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-residency",
  "serde",
  "serde_json",
@@ -973,7 +902,6 @@ dependencies = [
 name = "cell-routing"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1001,20 +929,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "check-cost-budget"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
-
-[[package]]
-name = "checkout-guard-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1037,12 +951,6 @@ dependencies = [
 [[package]]
 name = "ci-path-resolver-ports"
 version = "0.1.0"
-
-[[package]]
-name = "cityhash-rs"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93a719913643003b84bd13022b4b7e703c09342cd03b679c4641c7d2e50dc34d"
 
 [[package]]
 name = "clap"
@@ -1094,48 +1002,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
-name = "clickhouse"
-version = "0.13.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a9a81a1dffadd762ee662635ce409232258ce9beebd7cc0fa227df0b5e7efc0"
-dependencies = [
- "bstr",
- "bytes",
- "cityhash-rs",
- "clickhouse-derive",
- "futures",
- "futures-channel",
- "http-body-util",
- "hyper",
- "hyper-util",
- "lz4_flex",
- "replace_with",
- "sealed",
- "serde",
- "static_assertions",
- "thiserror 1.0.69",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "clickhouse-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d70f3e2893f7d3e017eeacdc9a708fbc29a10488e3ebca21f9df6a5d2b616dbb"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde_derive_internals",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "cloud-surface-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "cmake"
@@ -1186,9 +1054,6 @@ dependencies = [
 [[package]]
 name = "community-post-store-api"
 version = "0.1.0"
-dependencies = [
- "shared-protocol-parity-kernel",
-]
 
 [[package]]
 name = "community-post-store-app"
@@ -1198,18 +1063,11 @@ dependencies = [
  "community-post-store-domain",
  "community-post-store-postgres",
  "community-post-store-usecase",
- "shared-postgres-command-kernel",
- "shared-protocol-parity-kernel",
- "shared-protocol-transport-kernel",
- "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
 name = "community-post-store-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "community-post-store-grpc"
@@ -1218,16 +1076,11 @@ dependencies = [
  "community-post-store-api",
  "community-post-store-app",
  "community-post-store-domain",
- "shared-postgres-command-kernel",
- "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-post-store-postgres"
 version = "0.1.0"
-dependencies = [
- "shared-postgres-command-kernel",
-]
 
 [[package]]
 name = "community-post-store-rest"
@@ -1237,8 +1090,6 @@ dependencies = [
  "community-post-store-app",
  "community-post-store-domain",
  "community-post-store-usecase",
- "shared-hyperscaler-metrics-kernel",
- "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -1256,25 +1107,15 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
- "shared-postgres-command-kernel",
- "shared-protocol-parity-kernel",
- "shared-protocol-transport-kernel",
- "shared-transactional-outbox-kernel",
 ]
 
 [[package]]
 name = "community-social-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "community-social-post-composition-api"
 version = "0.1.0"
-dependencies = [
- "shared-protocol-parity-kernel",
-]
 
 [[package]]
 name = "community-social-post-composition-grpc"
@@ -1282,16 +1123,11 @@ version = "0.1.0"
 dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
- "shared-postgres-command-kernel",
- "shared-protocol-transport-kernel",
 ]
 
 [[package]]
 name = "community-social-post-composition-postgres"
 version = "0.1.0"
-dependencies = [
- "shared-postgres-command-kernel",
-]
 
 [[package]]
 name = "community-social-post-composition-rest"
@@ -1300,8 +1136,6 @@ dependencies = [
  "community-social-app",
  "community-social-post-composition-api",
  "community-social-post-composition-usecase",
- "shared-hyperscaler-metrics-kernel",
- "shared-postgres-command-kernel",
 ]
 
 [[package]]
@@ -1315,23 +1149,16 @@ dependencies = [
 [[package]]
 name = "compliance-dlp"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "compliance-dsr"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "compliance-dsr-usecase"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1339,22 +1166,17 @@ name = "compliance-ediscovery"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "data-boundary-kernel",
 ]
 
 [[package]]
 name = "compliance-retention"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "compliance-retention-dsr"
 version = "0.1.0"
 dependencies = [
  "compliance-retention",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1362,7 +1184,6 @@ name = "compliance-trust-portal"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1372,7 +1193,6 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1381,7 +1201,6 @@ name = "compute-dcops"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -1390,7 +1209,6 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
  "iam-cloud-domain",
  "network-domain",
  "network-residency",
@@ -1402,7 +1220,6 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1412,7 +1229,6 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1422,7 +1238,6 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1431,7 +1246,6 @@ name = "compute-resource"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1441,7 +1255,6 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -1454,8 +1267,8 @@ dependencies = [
  "convert_case 0.6.0",
  "pathdiff",
  "serde_core",
- "toml 1.1.4+spec-1.1.0",
- "winnow 1.0.4",
+ "toml",
+ "winnow",
 ]
 
 [[package]]
@@ -1673,7 +1486,6 @@ dependencies = [
  "data-analytics-usecase",
  "serde",
  "serde_json",
- "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -1686,8 +1498,6 @@ dependencies = [
  "data-analytics-usecase",
  "serde",
  "serde_json",
- "shared-olap-clickhouse-adapter",
- "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1697,7 +1507,6 @@ name = "data-analytics-domain"
 version = "0.1.0"
 dependencies = [
  "serde",
- "shared-olap-client-kernel",
 ]
 
 [[package]]
@@ -1708,8 +1517,6 @@ dependencies = [
  "data-analytics-domain",
  "serde",
  "serde_json",
- "shared-olap-clickhouse-adapter",
- "shared-olap-client-kernel",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1720,12 +1527,7 @@ version = "0.1.0"
 dependencies = [
  "data-analytics-domain",
  "serde",
- "shared-olap-client-kernel",
 ]
-
-[[package]]
-name = "data-boundary-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "data-encoding"
@@ -1737,7 +1539,6 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 name = "data-ontology-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "data-ontology-domain",
 ]
 
@@ -1751,15 +1552,11 @@ dependencies = [
 [[package]]
 name = "data-ontology-kernel"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "data-ontology-query-engine-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "data-ontology-kernel",
 ]
 
@@ -1767,7 +1564,6 @@ dependencies = [
 name = "data-ontology-query-engine-usecase"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "data-ontology-kernel",
  "data-ontology-query-engine-domain",
 ]
@@ -1781,26 +1577,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "data-outbox-adapter-postgres"
-version = "0.1.0"
-dependencies = [
- "data-outbox-kernel",
- "data-sql-kernel",
- "shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "data-outbox-kernel"
-version = "0.1.0"
-dependencies = [
- "data-sql-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "data-pipeline-lineage-replay-service"
 version = "0.1.0"
 dependencies = [
@@ -1809,24 +1585,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "data-sql-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "data-sql-kernel",
- "shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "data-sql-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -1961,9 +1719,6 @@ dependencies = [
 [[package]]
 name = "docs-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "dotenvy"
@@ -2148,10 +1903,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fabric-loop-state-app"
-version = "0.1.0"
-
-[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2174,13 +1925,6 @@ name = "fixedbitset"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
-
-[[package]]
-name = "fixup-ledger-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
 
 [[package]]
 name = "flags-evaluation-domain"
@@ -2329,72 +2073,42 @@ dependencies = [
 [[package]]
 name = "gateway-adp-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-epic-fhir-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-gusto-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-netsuite-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-quickbooks-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-rippling-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-salesforce-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-slack-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-teams-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "gateway-workday-connector"
 version = "0.1.0"
-dependencies = [
- "shared-connector-kernel",
-]
 
 [[package]]
 name = "generic-array"
@@ -2489,13 +2203,6 @@ dependencies = [
  "serde_json",
  "wasm-bindgen",
  "web-sys",
-]
-
-[[package]]
-name = "governance-eval-domain"
-version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -2630,16 +2337,12 @@ dependencies = [
 name = "hr-employment-app"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "hr-employment-domain",
 ]
 
 [[package]]
 name = "hr-employment-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "hr-employment-infrastructure"
@@ -2648,9 +2351,6 @@ dependencies = [
  "hr-employment-api",
  "hr-employment-app",
  "hr-employment-domain",
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "serde",
  "serde_json",
 ]
@@ -2703,58 +2403,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-middleware-kernel"
-version = "0.1.0"
-dependencies = [
- "http-router-kernel",
-]
-
-[[package]]
 name = "http-range-header"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9171a2ea8a68358193d15dd5d70c1c10a2afc3e7e4c5bc92bc9f025cebd7359c"
-
-[[package]]
-name = "http-router-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "http-runtime-hyper-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "http-body-util",
- "http-middleware-kernel",
- "http-router-kernel",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "rcgen",
- "rustls",
- "tokio",
-]
-
-[[package]]
-name = "http-sse-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "http-telemetry-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
-]
-
-[[package]]
-name = "http-tenant-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "tenancy-kernel",
-]
 
 [[package]]
 name = "httparse"
@@ -2870,9 +2522,6 @@ dependencies = [
 name = "iac-app"
 version = "0.1.0"
 dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-infrastructure",
@@ -2887,9 +2536,6 @@ version = "0.1.0"
 name = "iac-infrastructure"
 version = "0.1.0"
 dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "iac-api",
  "iac-domain",
  "iac-rest",
@@ -2898,9 +2544,6 @@ dependencies = [
 [[package]]
 name = "iac-rest"
 version = "0.1.0"
-dependencies = [
- "http-router-kernel",
-]
 
 [[package]]
 name = "iam-authn-device-firmware"
@@ -2910,7 +2553,6 @@ version = "0.1.0"
 name = "iam-cloud-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-cloud-domain",
 ]
 
@@ -2918,7 +2560,6 @@ dependencies = [
 name = "iam-cloud-app"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-cloud-domain",
  "iam-policy-cedar-domain",
 ]
@@ -2928,7 +2569,6 @@ name = "iam-cloud-domain"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "data-boundary-kernel",
  "iam-identity-domain",
 ]
 
@@ -2949,7 +2589,6 @@ dependencies = [
  "base64",
  "futures-core",
  "http-body-util",
- "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "iam-cloud-pdp-bundle-file",
@@ -2960,18 +2599,12 @@ dependencies = [
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
  "iam-pdp-cedar",
- "os-trustd-domain",
  "prost",
  "protoc-bin-vendored",
  "reqwest 0.13.4",
  "rustls",
  "serde",
  "serde_json",
- "shared-audit-digest-adapter-awslc",
- "shared-audit-event-kernel",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
- "shared-ulid-id-kernel",
  "tokio",
  "tokio-rustls",
  "tonic",
@@ -2990,19 +2623,11 @@ dependencies = [
  "iam-cloud-pdp-kernel",
  "serde",
  "serde_json",
- "shared-audit-digest-adapter-awslc",
- "shared-audit-event-kernel",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
 ]
 
 [[package]]
 name = "iam-cloud-pdp-kernel"
 version = "0.1.0"
-dependencies = [
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
-]
 
 [[package]]
 name = "iam-cloud-selfhosted"
@@ -3025,9 +2650,6 @@ dependencies = [
 [[package]]
 name = "iam-identity-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "iam-identity-oidc-issuer-kernel"
@@ -3050,7 +2672,6 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
- "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tonic",
@@ -3064,7 +2685,6 @@ dependencies = [
 name = "iam-identity-usecase"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-identity-domain",
 ]
 
@@ -3167,7 +2787,6 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "os-trustd-domain",
  "serde_json",
  "tokio",
  "tracing",
@@ -3186,7 +2805,6 @@ name = "iam-identity-workload-svid-trustd"
 version = "0.1.0"
 dependencies = [
  "iam-identity-workload-svid-kernel",
- "os-trustd-domain",
  "x509-parser",
 ]
 
@@ -3197,11 +2815,7 @@ dependencies = [
  "audit-chain-domain",
  "audit-file-adapter",
  "cedar-policy",
- "data-boundary-kernel",
  "serde_json",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
- "shared-ulid-id-kernel",
 ]
 
 [[package]]
@@ -3230,7 +2844,6 @@ dependencies = [
 name = "iam-tenant-rbac-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
  "serde",
@@ -3241,16 +2854,11 @@ dependencies = [
 name = "iam-tenant-rbac-app"
 version = "0.1.0"
 dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "iam-tenant-rbac-api",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
  "serde",
  "serde_json",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
 ]
 
 [[package]]
@@ -3330,9 +2938,6 @@ version = "0.1.0"
 [[package]]
 name = "iam-tenant-rbac-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "iam-tenant-rbac-erp-parity-map"
@@ -3434,7 +3039,6 @@ version = "0.1.0"
 name = "iam-tenant-rbac-storage-inmemory"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-tenant-rbac-domain",
  "iam-tenant-rbac-usecase",
 ]
@@ -3533,7 +3137,6 @@ dependencies = [
 name = "iam-tenant-rbac-usecase"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "iam-tenant-rbac-domain",
 ]
 
@@ -3670,9 +3273,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "shared-postgres-command-adapter-sqlx",
- "shared-postgres-command-kernel",
- "shared-scim-server-kernel",
  "sqlx",
  "tokio",
  "tracing",
@@ -3744,8 +3344,6 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
- "check-cost-budget",
- "data-boundary-kernel",
  "intelligence-capability-domain",
  "secrets-domain",
 ]
@@ -3754,8 +3352,6 @@ dependencies = [
 name = "intelligence-anthropic-compat-api"
 version = "0.1.0"
 dependencies = [
- "http-router-kernel",
- "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -3767,7 +3363,6 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
- "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-domain",
@@ -3844,7 +3439,6 @@ dependencies = [
  "intelligence-rest",
  "reqwest 0.13.4",
  "serde",
- "shared-olap-clickhouse-adapter",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3855,7 +3449,6 @@ name = "intelligence-architecture-map-app"
 version = "0.1.0"
 dependencies = [
  "intelligence-architecture-map-kernel",
- "workspace-members-kernel",
 ]
 
 [[package]]
@@ -4015,11 +3608,6 @@ dependencies = [
  "community-social-post-composition-api",
  "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
- "shared-postgres-command-adapter-sqlx",
- "shared-postgres-command-kernel",
- "shared-protocol-parity-kernel",
- "shared-transactional-outbox-adapter-sqlx",
- "shared-transactional-outbox-kernel",
  "sqlx",
  "tokio",
 ]
@@ -4028,7 +3616,6 @@ dependencies = [
 name = "intelligence-bypass-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4039,9 +3626,6 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-capability-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-capability-registry-app"
@@ -4069,9 +3653,6 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-catalog-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-claude-agent-sdk"
@@ -4107,7 +3688,6 @@ dependencies = [
  "futures-util",
  "intelligence-kernel",
  "reqwest 0.13.4",
- "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -4131,9 +3711,6 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-collab-runtime-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-context-aware-retrieval-adapter"
@@ -4238,7 +3815,6 @@ dependencies = [
 name = "intelligence-document-format-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
 ]
 
@@ -4298,8 +3874,6 @@ version = "0.1.0"
 dependencies = [
  "intelligence-kernel",
  "serde",
- "shared-olap-clickhouse-adapter",
- "shared-olap-client-kernel",
  "tokio",
  "tracing",
 ]
@@ -4318,15 +3892,11 @@ dependencies = [
 [[package]]
 name = "intelligence-evidence-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-evidence-domain",
 ]
 
@@ -4386,7 +3956,6 @@ dependencies = [
 name = "intelligence-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4421,7 +3990,6 @@ name = "intelligence-mutation-domain"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
 ]
@@ -4437,8 +4005,6 @@ dependencies = [
 name = "intelligence-openai-compat-api"
 version = "0.1.0"
 dependencies = [
- "http-router-kernel",
- "http-sse-kernel",
  "intelligence-account-kernel",
  "intelligence-provider-pool-kernel",
 ]
@@ -4462,9 +4028,6 @@ dependencies = [
 [[package]]
 name = "intelligence-openapi-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-openbao-adapter"
@@ -4476,7 +4039,6 @@ dependencies = [
  "intelligence-kernel",
  "intelligence-rest",
  "reqwest 0.13.4",
- "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -4495,7 +4057,6 @@ dependencies = [
 name = "intelligence-policy-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-policy-domain",
 ]
@@ -4504,7 +4065,6 @@ dependencies = [
 name = "intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4525,9 +4085,6 @@ dependencies = [
  "bytes",
  "futures-util",
  "http-body-util",
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "hyper",
  "hyper-util",
  "intelligence-account-kernel",
@@ -4559,9 +4116,6 @@ dependencies = [
 [[package]]
 name = "intelligence-rag-api"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-rag-endpoint-app"
@@ -4590,8 +4144,6 @@ dependencies = [
 name = "intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "governance-eval-domain",
  "intelligence-capability-domain",
 ]
 
@@ -4607,7 +4159,6 @@ dependencies = [
  "intelligence-gemini-adapter",
  "intelligence-kernel",
  "reqwest 0.13.4",
- "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -4626,7 +4177,6 @@ dependencies = [
 name = "intelligence-run-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
 ]
 
@@ -4634,7 +4184,6 @@ dependencies = [
 name = "intelligence-run-file-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-capability-domain",
  "intelligence-run-domain",
 ]
@@ -4665,15 +4214,11 @@ version = "0.1.0"
 [[package]]
 name = "intelligence-step-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "intelligence-step-file-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-step-domain",
 ]
 
@@ -4737,13 +4282,6 @@ dependencies = [
  "intelligence-autonomy-ceiling-kernel",
  "intelligence-capability-registry-kernel",
  "intelligence-supervisor-kernel",
-]
-
-[[package]]
-name = "intelligence-third-party-test-deps"
-version = "0.1.0"
-dependencies = [
- "proptest",
 ]
 
 [[package]]
@@ -5368,17 +4906,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lane-supervisor-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5708,12 +5235,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
-name = "lz4_flex"
-version = "0.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "373f5eceeeab7925e0c1098212f2fbc4d416adec9d35051a6ab251e824c1854a"
-
-[[package]]
 name = "manyhow"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5743,7 +5264,6 @@ dependencies = [
  "billing-domain",
  "billing-metering",
  "cell-region",
- "data-boundary-kernel",
 ]
 
 [[package]]
@@ -5799,15 +5319,11 @@ dependencies = [
 [[package]]
 name = "messaging-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "messaging-file-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "messaging-domain",
 ]
 
@@ -5912,7 +5428,6 @@ checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 name = "network-dns"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5923,7 +5438,6 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -5931,7 +5445,6 @@ dependencies = [
 name = "network-lb"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5940,7 +5453,6 @@ dependencies = [
 name = "network-oci"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5948,15 +5460,11 @@ dependencies = [
 [[package]]
 name = "network-residency"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "network-selfhosted"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -5973,7 +5481,6 @@ dependencies = [
 name = "network-vpc"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-domain",
  "network-residency",
 ]
@@ -6068,7 +5575,6 @@ dependencies = [
  "audit-chain-domain",
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
  "iam-cloud-domain",
  "network-residency",
  "observability-domain",
@@ -6079,7 +5585,6 @@ name = "observability-api"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
- "data-boundary-kernel",
  "network-residency",
  "observability-aggregate",
 ]
@@ -6087,9 +5592,6 @@ dependencies = [
 [[package]]
 name = "observability-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "observability-kernel"
@@ -6157,355 +5659,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "os-apid-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-proto-api",
-]
-
-[[package]]
-name = "os-archiver-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-attestation-relying-party"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "os-block-domain"
-version = "0.1.0"
-dependencies = [
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-board-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-cluster-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-conditions-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-config-docs-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-config-v1alpha1-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-controllers-domain"
-version = "0.1.0"
-dependencies = [
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
- "os-network-domain",
-]
-
-[[package]]
-name = "os-cosi-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-difftest-app"
-version = "0.1.0"
-dependencies = [
- "os-controllers-domain",
- "os-init-app",
- "os-kernel",
- "os-kubernetes-domain",
- "os-machine-config-domain",
- "os-network-domain",
- "os-platform-domain",
- "os-runtime-cri-domain",
- "os-secrets-domain",
-]
-
-[[package]]
-name = "os-etcd-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-events-logging-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-extensions-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-hardware-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-imager-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-init-app"
-version = "0.1.0"
-dependencies = [
- "libc",
- "os-block-domain",
- "os-controllers-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-kernel-abi",
- "os-machine-config-domain",
- "os-machined-domain",
- "os-network-domain",
- "os-platform-domain",
- "os-runtime-cri-domain",
-]
-
-[[package]]
-name = "os-install-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-k8s-control-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-kubelet-domain",
- "os-runtime-cri-domain",
-]
-
-[[package]]
-name = "os-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "os-kernel-abi"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-kubelet-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "os-secrets-domain",
-]
-
-[[package]]
-name = "os-kubespan-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-machine-config-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-machined-domain"
-version = "0.1.0"
-dependencies = [
- "os-block-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-runtime-cri-domain",
-]
-
-[[package]]
-name = "os-maintenance-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-meta-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-network-domain"
-version = "0.1.0"
-dependencies = [
- "libc",
- "os-kernel",
- "os-kernel-abi",
-]
-
-[[package]]
-name = "os-oci-executor-oracle"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "os-perf-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-platform-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-proto-api"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-resources-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-runtime-cri-domain"
-version = "0.1.0"
-dependencies = [
- "os-block-domain",
- "os-cosi-domain",
- "os-kernel",
- "os-machine-config-domain",
-]
-
-[[package]]
-name = "os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-security-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-siderolink-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-syslogd-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-time-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "os-kernel",
- "rcgen",
- "time",
- "x509-parser",
-]
-
-[[package]]
-name = "os-upgrade-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
 name = "parking"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6560,24 +5713,17 @@ dependencies = [
 name = "payroll-run-app"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "payroll-run-domain",
 ]
 
 [[package]]
 name = "payroll-run-domain"
 version = "0.1.0"
-dependencies = [
- "data-boundary-kernel",
-]
 
 [[package]]
 name = "payroll-run-infrastructure"
 version = "0.1.0"
 dependencies = [
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
  "payroll-run-api",
  "payroll-run-app",
  "serde",
@@ -6987,27 +6133,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "prometheus"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
-dependencies = [
- "cfg-if",
- "fnv",
- "lazy_static",
- "memchr",
- "parking_lot",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "proptest"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b45fcc2344c680f5025fe57779faef368840d0bd1f42f216291f0dc4ace4744"
 dependencies = [
  "bit-set",
- "bit-vec 0.8.0",
+ "bit-vec",
  "bitflags 2.13.1",
  "num-traits",
  "rand 0.9.5",
@@ -7367,20 +6499,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rcgen"
-version = "0.14.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57f6d249aad744e274e682777a50283a225a32705394ee6d5fcc01efa25e4055"
-dependencies = [
- "aws-lc-rs",
- "pem",
- "rustls-pki-types",
- "time",
- "x509-parser",
- "yasna",
-]
-
-[[package]]
 name = "reactive_graph"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7522,22 +6640,6 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
-
-[[package]]
-name = "reorg-codemod-app"
-version = "0.1.0"
-dependencies = [
- "cargo-lock-transform-kernel",
- "serde_json",
- "toml_edit",
- "workspace-members-kernel",
-]
-
-[[package]]
-name = "replace_with"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51743d3e274e2b18df81c4dc6caf8a5b8e15dbe799e0dca05c7617380094e884"
 
 [[package]]
 name = "reqwest"
@@ -7850,27 +6952,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
-name = "scripted-http-server"
-version = "0.1.0"
-dependencies = [
- "futures",
- "reqwest 0.13.4",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "sealed"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22f968c5ea23d555e670b449c1c5e7b2fc399fdaec1d304a17cd48e288abc107"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "secrecy"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7883,8 +6964,6 @@ dependencies = [
 name = "secrets-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "shared-platform-contracts-kernel",
  "zeroize",
 ]
 
@@ -7900,7 +6979,6 @@ name = "secrets-kms-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
 ]
@@ -7911,7 +6989,6 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -7929,7 +7006,6 @@ dependencies = [
 name = "secrets-kms-oci"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "secrets-kms-domain",
 ]
 
@@ -7938,7 +7014,6 @@ name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
  "base64",
- "data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
  "zeroize",
@@ -7961,7 +7036,6 @@ dependencies = [
 name = "secrets-kms-operator-k8s"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "futures",
  "k8s-openapi",
  "kube",
@@ -8061,17 +7135,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_derive_internals"
-version = "0.29.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "serde_json"
 version = "1.0.151"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8105,15 +7168,6 @@ dependencies = [
  "percent-encoding",
  "serde",
  "thiserror 2.0.20",
-]
-
-[[package]]
-name = "serde_spanned"
-version = "0.6.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -8290,204 +7344,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared-audit-chain-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-audit-digest-adapter-awslc"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "shared-audit-event-kernel",
-]
-
-[[package]]
-name = "shared-audit-event-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "shared-backup-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-compliance-evidence-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-connector-kernel"
-version = "0.1.0"
-dependencies = [
- "sha2",
-]
-
-[[package]]
-name = "shared-hyperscaler-metrics-adapter-prometheus"
-version = "0.1.0"
-dependencies = [
- "prometheus",
- "shared-hyperscaler-metrics-kernel",
-]
-
-[[package]]
-name = "shared-hyperscaler-metrics-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-i18n-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-idempotency-key-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-oidc-client-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "shared-olap-clickhouse-adapter"
-version = "0.1.0"
-dependencies = [
- "clickhouse",
- "serde",
- "serde_json",
- "shared-olap-client-kernel",
-]
-
-[[package]]
-name = "shared-olap-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-pdp-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "shared-platform-contracts-kernel",
-]
-
-[[package]]
-name = "shared-platform-contracts-kernel"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "shared-postgres-command-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "shared-postgres-command-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "shared-postgres-command-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-protocol-parity-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-protocol-transport-kernel"
-version = "0.1.0"
-dependencies = [
- "shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "shared-realtime-transport-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-resource-provider-contract-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "shared-scim-server-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "shared-tracing-client-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-transactional-outbox-adapter-sqlx"
-version = "0.1.0"
-dependencies = [
- "shared-postgres-command-kernel",
- "shared-transactional-outbox-kernel",
- "sqlx",
-]
-
-[[package]]
-name = "shared-transactional-outbox-dispatch-app"
-version = "0.1.0"
-dependencies = [
- "shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "shared-transactional-outbox-kernel"
-version = "0.1.0"
-dependencies = [
- "shared-postgres-command-kernel",
- "shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "shared-transactional-outbox-poller-app"
-version = "0.1.0"
-dependencies = [
- "shared-transactional-outbox-kernel",
- "shared-transactional-outbox-worker-app",
-]
-
-[[package]]
-name = "shared-transactional-outbox-worker-app"
-version = "0.1.0"
-dependencies = [
- "shared-transactional-outbox-adapter-sqlx",
- "shared-transactional-outbox-dispatch-app",
- "shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "shared-ulid-id-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-wasm-runtime-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "sheets-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "intelligence-collab-runtime-domain",
 ]
 
@@ -8738,16 +7597,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
-
-[[package]]
 name = "storage-block-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-residency",
  "storage-domain",
 ]
@@ -8758,7 +7610,6 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
 ]
@@ -8768,7 +7619,6 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
- "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
  "storage-domain",
@@ -8785,7 +7635,6 @@ dependencies = [
 name = "storage-oci-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -8793,7 +7642,6 @@ dependencies = [
 name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -8959,7 +7807,6 @@ version = "0.1.0"
 name = "tenancy-domain"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
  "network-residency",
 ]
 
@@ -9007,8 +7854,6 @@ dependencies = [
  "http-body-util",
  "serde",
  "serde_json",
- "shared-platform-contracts-kernel",
- "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-authz-pdp",
  "tenancy-tenant-lifecycle-authz-port",
  "tenancy-tenant-lifecycle-kernel",
@@ -9030,9 +7875,6 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
- "shared-pdp-kernel",
- "shared-platform-contracts-kernel",
- "shared-ulid-id-kernel",
  "tenancy-tenant-lifecycle-authz-port",
 ]
 
@@ -9045,8 +7887,6 @@ name = "tenancy-tenant-lifecycle-domain"
 version = "0.1.0"
 dependencies = [
  "serde",
- "shared-platform-contracts-kernel",
- "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
@@ -9055,16 +7895,12 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "shared-platform-contracts-kernel",
- "shared-resource-provider-contract-kernel",
 ]
 
 [[package]]
 name = "tenancy-tenant-lifecycle-store-inmemory"
 version = "0.1.0"
 dependencies = [
- "shared-platform-contracts-kernel",
- "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
 ]
@@ -9075,10 +7911,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "shared-platform-contracts-kernel",
- "shared-postgres-command-adapter-sqlx",
- "shared-postgres-command-kernel",
- "shared-resource-provider-contract-kernel",
  "sqlx",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -9089,8 +7921,6 @@ name = "tenancy-tenant-lifecycle-usecase"
 version = "0.1.0"
 dependencies = [
  "serde_json",
- "shared-platform-contracts-kernel",
- "shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-domain",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
@@ -9311,36 +8141,15 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
-dependencies = [
- "serde",
- "serde_spanned 0.6.9",
- "toml_datetime 0.6.11",
- "toml_edit",
-]
-
-[[package]]
-name = "toml"
 version = "1.1.4+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3aace63f4bbcdfc2c965b059de67119c89c4017a70d633be6c104910f67056f5"
 dependencies = [
  "serde_core",
- "serde_spanned 1.1.1",
- "toml_datetime 1.1.1+spec-1.1.0",
+ "serde_spanned",
+ "toml_datetime",
  "toml_parser",
- "winnow 1.0.4",
-]
-
-[[package]]
-name = "toml_datetime"
-version = "0.6.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
-dependencies = [
- "serde",
+ "winnow",
 ]
 
 [[package]]
@@ -9353,33 +8162,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "toml_edit"
-version = "0.22.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
-dependencies = [
- "indexmap 2.14.0",
- "serde",
- "serde_spanned 0.6.9",
- "toml_datetime 0.6.11",
- "toml_write",
- "winnow 0.7.15",
-]
-
-[[package]]
 name = "toml_parser"
 version = "1.1.3+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d38ac1cf9b95face32296c0a3ede1fdc270627c9d9c02a7274dd6d960dc4d56"
 dependencies = [
- "winnow 1.0.4",
+ "winnow",
 ]
-
-[[package]]
-name = "toml_write"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "tonic"
@@ -9448,10 +8237,6 @@ dependencies = [
  "tempfile",
  "tonic-build",
 ]
-
-[[package]]
-name = "tooling-agent-read"
-version = "0.1.0"
 
 [[package]]
 name = "tower"
@@ -10258,15 +9043,6 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
-version = "0.7.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "winnow"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
@@ -10279,14 +9055,6 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
-
-[[package]]
-name = "workspace-members-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
- "toml 0.8.23",
-]
 
 [[package]]
 name = "writeable"
@@ -10313,19 +9081,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "xtask-metadata-augment-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cargo-lock-transform-kernel",
- "clap",
- "serde_json",
- "tempfile",
- "toml_edit",
- "workspace-members-kernel",
-]
-
-[[package]]
 name = "xxhash-rust"
 version = "0.8.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10336,16 +9091,6 @@ name = "yansi"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
-
-[[package]]
-name = "yasna"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5f6765e852b9b4dc8e2a76843e4d64d1cea8e79bcde0b6901aea8e7c7f08282"
-dependencies = [
- "bit-vec 0.9.1",
- "time",
-]
 
 [[package]]
 name = "yoke"

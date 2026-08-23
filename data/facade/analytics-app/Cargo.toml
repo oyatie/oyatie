@@ -30,8 +30,8 @@ path = "src/main.rs"
 data-analytics-api = { path = "../../ports/analytics-api" }
 data-analytics-domain = { path = "../../core/analytics-domain" }
 data-analytics-usecase = { path = "../../core/analytics-usecase" }
-shared-olap-client-kernel = { path = "../../../libs/shared-olap-client-kernel" }
-shared-olap-clickhouse-adapter = { path = "../../../libs/shared-olap-clickhouse-adapter" }
+
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }

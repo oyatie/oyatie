@@ -11,10 +11,10 @@ community-post-store-postgres = { path = "../../adapters/post-store-postgres" }
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-domain = { path = "../../core/post-store-domain" }
 community-post-store-usecase = { path = "../../core/post-store-usecase" }
-shared-postgres-command-kernel = { path = "../../../../libs/shared-postgres-command-kernel" }
-shared-protocol-parity-kernel = { path = "../../../../libs/shared-protocol-parity-kernel" }
-shared-protocol-transport-kernel = { path = "../../../../libs/shared-protocol-transport-kernel" }
-shared-transactional-outbox-kernel = { path = "../../../../libs/shared-transactional-outbox-kernel" }
+
+
+
+
 
 [lib]
 name = "community_post_store_app"

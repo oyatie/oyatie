@@ -7,7 +7,7 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 
 [lib]
 name = "intelligence_rag_api"

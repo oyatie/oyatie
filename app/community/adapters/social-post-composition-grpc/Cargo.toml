@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-shared-postgres-command-kernel = { path = "../../../../libs/shared-postgres-command-kernel" }
-shared-protocol-transport-kernel = { path = "../../../../libs/shared-protocol-transport-kernel" }
+
+
 community-social-app = { path = "../../facade/social-app" }
 community-social-post-composition-api = { path = "../../ports/social-post-composition-api" }
 

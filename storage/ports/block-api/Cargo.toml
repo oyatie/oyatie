@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 storage-domain = { path = "../../core/domain" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

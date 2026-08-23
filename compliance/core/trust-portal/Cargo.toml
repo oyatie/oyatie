@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 compliance-dsr = { path = "../dsr" }
 network-residency = { path = "../../../network/core/residency" }
 

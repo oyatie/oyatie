@@ -1,5 +1,5 @@
 [package]
-name = "intelligence-policy-domain"
+name = "cloud-surface-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,12 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-intelligence-capability-domain = { path = "../capability-domain" }
-
 
 
 [lib]
-name = "intelligence_policy_domain"
+name = "cloud_surface_domain"
 path = "src/lib.rs"
 doctest = false
 

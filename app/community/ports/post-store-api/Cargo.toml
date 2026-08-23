@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-shared-protocol-parity-kernel = { path = "../../../../libs/shared-protocol-parity-kernel" }
+
 
 [lib]
 name = "community_post_store_api"

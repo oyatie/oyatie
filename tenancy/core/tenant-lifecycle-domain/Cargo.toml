@@ -12,8 +12,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
-shared-resource-provider-contract-kernel = { path = "../../../libs/shared-resource-provider-contract-kernel" }
+
+
 serde = { workspace = true }
 
 [lints]

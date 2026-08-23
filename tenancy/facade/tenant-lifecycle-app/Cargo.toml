@@ -14,8 +14,8 @@ tenancy-tenant-lifecycle-store-inmemory = { path = "../../adapters/tenant-lifecy
 tenancy-tenant-lifecycle-store-postgres = { path = "../../adapters/tenant-lifecycle-store-postgres" }
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
 tenancy-tenant-lifecycle-authz-pdp = { path = "../../adapters/tenant-lifecycle-authz-pdp" }
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
-shared-resource-provider-contract-kernel = { path = "../../../libs/shared-resource-provider-contract-kernel" }
+
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 # "sync" adds tokio::sync::Mutex (the async composition-root lock held across

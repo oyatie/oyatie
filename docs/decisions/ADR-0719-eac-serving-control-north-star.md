@@ -653,15 +653,49 @@ Agent entry is `AGENTS.md` / `CLAUDE.md`.
 
 **Not repo-root (gone this wave):** `contracts/`, `plan/`, `tasks/`, `scripts/`,
 `specs/`, `registry/`, `evidence/`, `governance/`, `oya/`, `cloud/`.
-**Shrink-only (DON'T+HAVE, not on the DO allowlist):** `libs/`, `tools/`, `infra/`,
-`kernel/`, `os/`. D-8 admission lists them separately; they must not grow; they
-must hit 0.
+**Removed this wave (not shrink-only):** `libs/`, `tools/`, `infra/`, `kernel/`,
+`os/`, `contracts/`, `plan/`, `tasks/`, `scripts/`. Last leg is **gone**, not
+tolerated.
 
-**Capability and `app/<product>/` (same closed children):** `core/`, `ports/`,
-`adapters/`, `facade/` (business logic in `core`, IO in adapters — D-25). Plus
-`cedar/`, `observability/slos/` (from IR), `iac/` (IR only), `OWNERS`, short
-`README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. No cap-root `contracts/`
-or `policy/`. Apps do not import cloud `core/`/`ports/`. Nested leftover service trees become faces or go. Cedar here is unique to this cap; platform templates wait on `policy/` the capability. SLO YAML is generated from IR. `iac/` is IR the reconciler applies, not Helm/Tofu source. IDL is Rust → proto on `ports/`.
+**Capability and `app/<product>/` — identical closed children.** Caps and apps
+use the **same** four faces. Hyperscaler analog: one API (ports), one engine
+(core), N backends (adapters), one serving process (facade). Google Stubby
+service + impls; AWS control-plane vs data-plane as engines, not dump folders.
+
+| Child | Belongs | Does not belong |
+|---|---|---|
+| `core/` | Domain + use cases. No IO. | sqlx, HTTP, S3, Helm, IPs |
+| `ports/` | Traits: blob, records, mailbox, clock, pack-id, … | Adapter impls, proto dumps as SSOT |
+| `adapters/` | One impl per backend: sqlite, postgres, s3, oyatie, imap, onprem, stripe | Business rules |
+| `facade/` | The process / Connect surface you run | Cloud SKU implementation |
+| `cedar/` | This cap/app’s Cedar only | Platform templates (those wait `policy/` cap) |
+| `observability/slos/` | Generated from IR | Hand OpenSLO, dashboards JSON |
+| `iac/` | IR the reconciler applies | Helm/Tofu/charts as source |
+| `OWNERS`, short `README.md`, `BUCK` | Yes | — |
+| `PRD.md` | **`app/<product>/` only** | Cap roots |
+
+**Inside each face (leaf crates).** One crate per directory. Only `Cargo.toml`,
+`src/`, `tests/`, `OWNERS`, `BUCK`. No nested IPs, catalog.yaml, Helm.
+
+Grammar (no `oya-`, no `cloud-` prefix):
+
+```
+owner     := <capability> | <product>          # kebab, registered / D-22
+engine    := kebab                             # lifecycle, evaluate, journal
+port      := kebab                             # blob, records, mailbox, clock
+backend   := sqlite|postgres|s3|oyatie|imap|smtp|jmap|stripe|onprem|…
+surface   := kebab                             # optional facade qualifier
+
+core crate      := owner "-" engine
+ports crate     := owner "-" port
+adapters crate  := owner "-" port "-" backend
+facade crate    := owner ["-" surface] "-app"
+```
+
+Examples: `storage-blob`, `storage-blob-sqlite`, `storage-blob-s3`,
+`foundry-ontology`, `payroll-run-app`, `iam-pdp`. One primary `core/` engine
+per cap/app unless a §7 split names a second. `app/foundry/{pages,grid}` fold
+into these faces on the Foundry BUILD PR — they are not a third layout.
 
 **Must not exist at cap/app root:** `manifest.json` census, `catalog.yaml`, `IPs/`,
 `IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
@@ -1133,7 +1167,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `gateway/` Workday/Slack/Salesforce/… connectors
 - `flags/` dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
 - Nested census; a root named `ci/` (retired; do not recreate)
-- Repo-root leftovers: `contracts/`, `plan/`, `tasks/`, `scripts/` **deleted this wave**. Shrink-only until 0: `libs/`, `infra/`, `tools/`, `kernel/`, `os/`. Already gone: `oya/`, `evidence/`, `registry/`, `specs/`, `governance/`.
+- Repo-root leftovers **deleted:** `contracts/`, `plan/`, `tasks/`, `scripts/`, `libs/`, `infra/`, `tools/`, `kernel/`, `os/`, `oya/`, `evidence/`, `registry/`, `specs/`, `governance/`. Not shrink-only.
 - A root named `messaging/` (retired; do not recreate)
 - `cloud-*` crates; cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product, `catalog.yaml`
 

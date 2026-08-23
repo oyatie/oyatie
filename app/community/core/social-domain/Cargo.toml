@@ -6,7 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 [dependencies]
-data-boundary-kernel = { path = "../../../../libs/data-boundary-kernel" }
+
 [lib]
 name = "community_social_domain"
 path = "src/lib.rs"

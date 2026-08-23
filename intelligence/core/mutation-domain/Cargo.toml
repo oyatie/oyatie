@@ -10,7 +10,7 @@ license = "Apache-2.0"
 intelligence-capability-domain = { path = "../capability-domain" }
 intelligence-policy-domain = { path = "../policy-domain" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 
 [lib]
 name = "intelligence_mutation_domain"

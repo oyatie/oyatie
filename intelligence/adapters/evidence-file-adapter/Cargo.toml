@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-evidence-domain = { path = "../../core/evidence-domain" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 
 [lib]
 name = "intelligence_evidence_file_adapter"

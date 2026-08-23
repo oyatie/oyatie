@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 compute-domain = { path = "../../core/domain" }
 compute-resource = { path = "../../core/resource" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

@@ -32,10 +32,6 @@ pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "third-party",
 ];
 
-/// DON'T+HAVE (D-19 REMOVE). Still on disk until empty. Not forever-allowed.
-/// Absence is GREEN (they should vanish). Presence is GREEN until gone.
-pub const SHRINK_ONLY_ROOT_DIRS: &[&str] = &["infra", "kernel", "libs", "os", "tools"];
-
 #[cfg(test)]
 mod tests {
     use super::ALLOWED_ROOT_DIRS;
@@ -51,11 +47,7 @@ mod tests {
 
     #[test]
     fn unknown_root_dir_is_red() {
-        let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS
-            .iter()
-            .chain(SHRINK_ONLY_ROOT_DIRS.iter())
-            .copied()
-            .collect();
+        let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS.iter().copied().collect();
         let mut unknown = Vec::new();
         for entry in std::fs::read_dir(repo_root()).expect("read root") {
             let entry = entry.expect("entry");

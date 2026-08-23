@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 billing-domain = { path = "../../core/billing" }
 billing-finops = { path = "../../core/finops" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 billing-metering = { path = "../../core/metering" }
 
 [lib]

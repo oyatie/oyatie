@@ -20,9 +20,9 @@ description = "Provider-pool composition root (usecase layer per ADR-0105). Wire
 [dependencies]
 intelligence-provider-pool-kernel = { path = "../provider-pool-kernel" }
 intelligence-account-kernel = { path = "../account-kernel" }
-http-runtime-hyper-adapter = { path = "../../../libs/http-runtime-hyper-adapter" }
-http-router-kernel = { path = "../../../libs/http-router-kernel" }
-http-middleware-kernel = { path = "../../../libs/http-middleware-kernel" }
+
+
+
 intelligence-anthropic-compat-api = { path = "../../adapters/anthropic-compat-api" }
 intelligence-openai-compat-api = { path = "../../adapters/openai-compat-api" }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time", "net"] }

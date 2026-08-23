@@ -22,7 +22,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-shared-olap-client-kernel = { path = "../../../libs/shared-olap-client-kernel" }
+
 serde = { workspace = true }
 
 [lints]

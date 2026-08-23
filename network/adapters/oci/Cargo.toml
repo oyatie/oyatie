@@ -15,7 +15,7 @@ doctest = false
 network-domain = { path = "../../core/domain" }
 
 [dev-dependencies]
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 network-residency = { path = "../../core/residency" }
 
 [lints]

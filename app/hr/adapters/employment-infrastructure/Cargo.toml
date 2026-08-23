@@ -7,9 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-http-middleware-kernel = { path = "../../../../libs/http-middleware-kernel" }
-http-router-kernel = { path = "../../../../libs/http-router-kernel" }
-http-runtime-hyper-adapter = { path = "../../../../libs/http-runtime-hyper-adapter" }
+
+
+
 hr-employment-api = { path = "../../ports/employment-api" }
 hr-employment-app = { path = "../../facade/employment-app" }
 hr-employment-domain = { path = "../../core/employment-domain" }

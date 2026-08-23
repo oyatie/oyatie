@@ -9,10 +9,10 @@ description = "PDP-backed authorization adapter for the tenant-lifecycle deliver
 
 [dependencies]
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
-shared-pdp-kernel = { path = "../../../libs/shared-pdp-kernel" }
+
 iam-pdp-cedar = { path = "../../../iam/adapters/pdp-cedar" }
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
-shared-ulid-id-kernel = { path = "../../../libs/shared-ulid-id-kernel" }
+
+
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 reqwest = { workspace = true }

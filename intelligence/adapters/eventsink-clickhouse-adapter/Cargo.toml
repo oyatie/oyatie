@@ -22,8 +22,8 @@ doctest = false
 
 [dependencies]
 intelligence-kernel = { path = "../../core/kernel" }
-shared-olap-clickhouse-adapter = { path = "../../../libs/shared-olap-clickhouse-adapter" }
-shared-olap-client-kernel = { path = "../../../libs/shared-olap-client-kernel" }
+
+
 serde.workspace = true
 tracing.workspace = true
 

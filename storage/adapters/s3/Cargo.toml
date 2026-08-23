@@ -15,7 +15,7 @@ doctest = false
 storage-domain = { path = "../../core/domain" }
 
 [dev-dependencies]
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 
 [lints]
 workspace = true

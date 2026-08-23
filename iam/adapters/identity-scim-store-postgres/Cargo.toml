@@ -8,9 +8,9 @@ license = "Apache-2.0"
 description = "Real async sqlx/Postgres SCIM UserStore/GroupStore adapters: per-transaction tenant GUC (oyatie.tenant_id) + RLS isolation over a PgPool, per-tenant userName uniqueness. Transient adapter behind the owned-shaped kernel ports; aws-lc-rs TLS only (ADR-0506)."
 
 [dependencies]
-shared-scim-server-kernel = { path = "../../../libs/shared-scim-server-kernel" }
-shared-postgres-command-kernel = { path = "../../../libs/shared-postgres-command-kernel" }
-shared-postgres-command-adapter-sqlx = { path = "../../../libs/shared-postgres-command-adapter-sqlx" }
+
+
+
 sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true

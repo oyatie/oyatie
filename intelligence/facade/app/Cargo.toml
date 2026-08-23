@@ -30,7 +30,7 @@ intelligence-authz-cedar-adapter = { path = "../../adapters/authz-cedar-adapter"
 intelligence-openbao-adapter = { path = "../../adapters/openbao-adapter" }
 intelligence-eventsink-clickhouse-adapter = { path = "../../adapters/eventsink-clickhouse-adapter" }
 intelligence-eventsink-valkey-adapter = { path = "../../adapters/eventsink-valkey-adapter" }
-shared-olap-clickhouse-adapter = { path = "../../../libs/shared-olap-clickhouse-adapter" }
+
 tokio.workspace = true
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

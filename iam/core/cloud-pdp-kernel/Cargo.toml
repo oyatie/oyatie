@@ -8,8 +8,8 @@ license = "Apache-2.0"
 description = "Cloud IAM PDP service kernel (ADR-0559, G004 slice 1): the pure ports of the cloud-iam policy-decision-point service — the PolicyBundleStore port (policy-store backend seam, destination = signed content-addressed bundle distribution per ADR-0536 D-2), the DecisionAuditSink port (one attributable record per decision, same shape as identity's audit seam), and the twelve-factor service configuration parser. Zero transient-tech dependencies (ADR-0547/ADR-0550 kernel purity)."
 
 [dependencies]
-shared-pdp-kernel = { path = "../../../libs/shared-pdp-kernel" }
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
+
+
 
 [lib]
 name = "iam_cloud_pdp_kernel"

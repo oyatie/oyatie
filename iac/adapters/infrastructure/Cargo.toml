@@ -10,9 +10,9 @@ license = "Apache-2.0"
 iac-api = { path = "../../core/api" }
 iac-domain = { path = "../../core/domain" }
 iac-rest = { path = "../../ports/rest" }
-http-middleware-kernel = { path = "../../../libs/http-middleware-kernel" }
-http-router-kernel = { path = "../../../libs/http-router-kernel" }
-http-runtime-hyper-adapter = { path = "../../../libs/http-runtime-hyper-adapter" }
+
+
+
 
 [lib]
 name = "iac_infrastructure"

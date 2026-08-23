@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-step-domain = { path = "../../core/step-domain" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 
 [lib]
 name = "intelligence_step_file_adapter"

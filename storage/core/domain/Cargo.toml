@@ -10,7 +10,7 @@ license = "Apache-2.0"
 secrets-kms-domain = { path = "../../../secrets/core/kms-domain" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]

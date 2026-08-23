@@ -35,18 +35,8 @@ members = [
   "app/*/ports/*",
   "app/*/adapters/*",
   "app/*/facade/*",
-  "app/*/crates/*",
   "app/foundry/pages/crates/*",
   "app/foundry/grid/core/*",
-
-  # LEGACY roots, retained until their capability moves land. Narrowed so non-crate
-  # siblings (scripts, completions, vendored trees) cannot break cargo resolution.
-  "libs/*",
-  "tools/*-app",
-  "tools/tooling-agent-read",
-
-  "intelligence/testing/*",
-  "os/harness/*",
 
   # The owned deterministic port engine (ADR-0637 D1, archived; live via apex ADR-0704). This ONE
   # entry is the ADR-0538 exception that decision authorizes by name: `build/port-engine/` is a new
@@ -87,7 +77,6 @@ exclude = [
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
-  "kernel",
   "storage/adapters/nativelink",
 ]
 resolver = "2"

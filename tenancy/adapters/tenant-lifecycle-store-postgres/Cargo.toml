@@ -9,9 +9,9 @@ description = "Real async sqlx/Postgres TenantLifecycleStore adapter: per-transa
 
 [dependencies]
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
-shared-postgres-command-kernel = { path = "../../../libs/shared-postgres-command-kernel" }
-shared-postgres-command-adapter-sqlx = { path = "../../../libs/shared-postgres-command-adapter-sqlx" }
+
+
+
 sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -19,7 +19,7 @@ serde_json.workspace = true
 [dev-dependencies]
 # Live integration tests `.await` the boxed-future methods behind an env gate.
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-shared-resource-provider-contract-kernel = { path = "../../../libs/shared-resource-provider-contract-kernel" }
+
 
 [lib]
 name = "tenancy_tenant_lifecycle_store_postgres"

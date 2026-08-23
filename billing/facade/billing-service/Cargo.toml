@@ -18,4 +18,4 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [dev-dependencies]
 billing-metering = { path = "../../core/metering" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+

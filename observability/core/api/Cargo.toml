@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 observability-aggregate = { path = "../aggregate" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
+
 network-residency = { path = "../../../network/core/residency" }
 
 [lints]

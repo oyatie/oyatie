@@ -10,8 +10,8 @@ license = "Apache-2.0"
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-app = { path = "../../facade/post-store-app" }
 community-post-store-domain = { path = "../../core/post-store-domain" }
-shared-postgres-command-kernel = { path = "../../../../libs/shared-postgres-command-kernel" }
-shared-protocol-transport-kernel = { path = "../../../../libs/shared-protocol-transport-kernel" }
+
+
 
 [lib]
 name = "community_post_store_grpc"

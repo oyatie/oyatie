@@ -11,10 +11,10 @@ description = "Embedded cedar-policy PDP adapter (G004 / ADR-0536 D-2): the de-b
 cedar-policy = { workspace = true }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }
-data-boundary-kernel = { path = "../../../libs/data-boundary-kernel" }
-shared-pdp-kernel = { path = "../../../libs/shared-pdp-kernel" }
-shared-platform-contracts-kernel = { path = "../../../libs/shared-platform-contracts-kernel" }
-shared-ulid-id-kernel = { path = "../../../libs/shared-ulid-id-kernel" }
+
+
+
+
 serde_json = { workspace = true }
 
 [lib]
