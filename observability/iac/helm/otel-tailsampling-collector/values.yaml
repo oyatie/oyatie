@@ -60,8 +60,9 @@ opentelemetry-collector:
           - name: audit-event
             type: string_attribute
             string_attribute:
+              # Collector regex matching searches substrings; ADR-0145 requires this prefix.
               key: oyatie.audit.event_id_prefix
-              values: ["EVT-"]
+              values: ["^EVT-"]
               enabled_regex_matching: true
               invert_match: false
           # 5) New-endpoint warm-up — sampled at 100% for 30 days post-launch.
