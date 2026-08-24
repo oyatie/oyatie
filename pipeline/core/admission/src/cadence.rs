@@ -21,7 +21,9 @@ pub const LIVE_POSTGRES_CRATES: &[&str] = &[
 
 /// Occupants of the presubmit workflow (sorted).
 pub const PRESUBMIT_JOBS: &[&str] = &[
+    "clippy",
     "deny",
+    "layout",
     "lint",
     "live-postgres",
     "occupancy",
