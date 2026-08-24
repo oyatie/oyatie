@@ -1,7 +1,7 @@
 rust_library(
-    name = "data-analytics-tenant-bootstrap",
+    name = "data-analytics-tenant-bootstrap-app",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "data_analytics_tenant_bootstrap",
+    crate = "data_analytics_tenant_bootstrap_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -17,12 +17,12 @@ rust_library(
 )
 
 rust_binary(
-    name = "data-analytics-tenant-bootstrap-bin",
+    name = "data-analytics-tenant-bootstrap-app-bin",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//data/facade/analytics-tenant-bootstrap:data-analytics-tenant-bootstrap",
+        "//data/facade/analytics-tenant-bootstrap-app:data-analytics-tenant-bootstrap-app",
         "//libs/shared-olap-clickhouse-adapter:shared-olap-clickhouse-adapter",
         "//libs/shared-olap-client-kernel:shared-olap-client-kernel",
         "//data/core/analytics-domain:data-analytics-domain",
@@ -35,9 +35,9 @@ rust_binary(
 )
 
 rust_test(
-    name = "data-analytics-tenant-bootstrap-unittest",
+    name = "data-analytics-tenant-bootstrap-app-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "data_analytics_tenant_bootstrap",
+    crate = "data_analytics_tenant_bootstrap_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
