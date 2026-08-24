@@ -49,7 +49,7 @@ const DEFAULT_SIGNING_KID: &str = "identity-k1";
 const DEFAULT_LIFECYCLE_CALLER_ID: &str = "lifecycle-control-plane";
 
 /// Service configuration resolved from the environment.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Config {
     /// REST (axum) bind address.
     pub rest_addr: String,
@@ -78,6 +78,26 @@ pub struct Config {
     pub lifecycle_caller_tenant: String,
     /// Stable identity label for the verified lifecycle caller.
     pub lifecycle_caller_id: String,
+}
+
+/// Redact the lifecycle control-plane credential from logs and panic output.
+impl fmt::Debug for Config {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Config")
+            .field("rest_addr", &self.rest_addr)
+            .field("grpc_addr", &self.grpc_addr)
+            .field("issuer", &self.issuer)
+            .field("audience", &self.audience)
+            .field("jwks_path", &self.jwks_path)
+            .field("cedar_policy_path", &self.cedar_policy_path)
+            .field("principals_path", &self.principals_path)
+            .field("signing_key_path", &self.signing_key_path)
+            .field("signing_kid", &self.signing_kid)
+            .field("lifecycle_bearer", &"[REDACTED]")
+            .field("lifecycle_caller_tenant", &self.lifecycle_caller_tenant)
+            .field("lifecycle_caller_id", &self.lifecycle_caller_id)
+            .finish()
+    }
 }
 
 /// A missing required environment variable.
@@ -172,6 +192,16 @@ mod tests {
         assert_eq!(config.lifecycle_bearer, "super-secret-lifecycle-bearer");
         assert_eq!(config.lifecycle_caller_tenant, "ten_platform");
         assert_eq!(config.lifecycle_caller_id, DEFAULT_LIFECYCLE_CALLER_ID);
+    }
+
+    #[test]
+    fn debug_redacts_lifecycle_bearer() {
+        let config = Config::from_lookup(full_lookup).expect("config");
+        let debug = format!("{config:?}");
+
+        assert!(!debug.contains("super-secret-lifecycle-bearer"));
+        assert!(debug.contains("[REDACTED]"));
+        assert!(debug.contains("https://idp.oyatie.com"));
     }
 
     #[test]
