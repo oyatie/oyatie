@@ -5,11 +5,14 @@ use super::path_parts;
 
 /// Reject dependencies that escape an owner's local draft contract stage.
 /// Workspace-inherited path dependencies are resolved from the root manifest
-/// so `workspace = true` cannot hide the coupling.
+/// so `workspace = true` cannot hide the coupling. `validate_path` receives
+/// every traversed repository prefix, including a component removed by a later
+/// `..`, so the adapter can refuse filesystem indirection before classification.
 pub fn draft_dependency_violations(
     path: &str,
     contents: &str,
     workspace_contents: &str,
+    mut validate_path: impl FnMut(&[String]) -> Result<(), String>,
 ) -> Vec<String> {
     let consumer = manifest_owner(path);
     let Ok(manifest) = contents.parse::<toml::Value>() else {
@@ -43,8 +46,8 @@ pub fn draft_dependency_violations(
             } else {
                 return;
             };
-        let components = match resolved_dependency_path(declaring_manifest, dependency_path) {
-            Ok(components) => components,
+        let resolved = match resolved_dependency_path(declaring_manifest, dependency_path) {
+            Ok(resolved) => resolved,
             Err(reason) => {
                 violations.push(format!(
                     "{path}: dependency `{name}` has invalid path `{dependency_path}`: {reason}"
@@ -52,7 +55,13 @@ pub fn draft_dependency_violations(
                 return;
             }
         };
-        let Some(provider) = draft_dependency_owner(&components) else {
+        if let Err(reason) = validate_path(&resolved.visited) {
+            violations.push(format!(
+                "{path}: dependency `{name}` has unsafe path `{dependency_path}`: {reason}"
+            ));
+            return;
+        }
+        let Some(provider) = draft_dependency_owner(&resolved.components) else {
             return;
         };
         if consumer.as_deref() != Some(provider.as_str()) {
@@ -68,7 +77,10 @@ pub fn draft_dependency_violations(
 /// Root workspace dependencies cannot point at any owner-local draft. A root
 /// alias has no owner boundary, and would let an unchanged consumer inherit a
 /// newly redirected draft dependency without changing its own manifest.
-pub fn workspace_draft_dependency_violations(contents: &str) -> Vec<String> {
+pub fn workspace_draft_dependency_violations(
+    contents: &str,
+    mut validate_path: impl FnMut(&[String]) -> Result<(), String>,
+) -> Vec<String> {
     let Ok(workspace) = contents.parse::<toml::Value>() else {
         return vec!["Cargo.toml: invalid workspace manifest".to_owned()];
     };
@@ -78,7 +90,12 @@ pub fn workspace_draft_dependency_violations(contents: &str) -> Vec<String> {
         .and_then(|workspace| workspace.get("dependencies"))
         .and_then(toml::Value::as_table)
     {
-        inspect_root_dependency_table("workspace dependency", dependencies, &mut violations);
+        inspect_root_dependency_table(
+            "workspace dependency",
+            dependencies,
+            &mut validate_path,
+            &mut violations,
+        );
     }
     if let Some(patches) = workspace.get("patch").and_then(toml::Value::as_table) {
         for (source, dependencies) in patches {
@@ -86,13 +103,14 @@ pub fn workspace_draft_dependency_violations(contents: &str) -> Vec<String> {
                 inspect_root_dependency_table(
                     &format!("patch source `{source}`"),
                     dependencies,
+                    &mut validate_path,
                     &mut violations,
                 );
             }
         }
     }
     if let Some(replacements) = workspace.get("replace").and_then(toml::Value::as_table) {
-        inspect_root_dependency_table("replace", replacements, &mut violations);
+        inspect_root_dependency_table("replace", replacements, &mut validate_path, &mut violations);
     }
     violations
 }
@@ -100,14 +118,15 @@ pub fn workspace_draft_dependency_violations(contents: &str) -> Vec<String> {
 fn inspect_root_dependency_table(
     surface: &str,
     dependencies: &toml::map::Map<String, toml::Value>,
+    validate_path: &mut impl FnMut(&[String]) -> Result<(), String>,
     violations: &mut Vec<String>,
 ) {
     for (name, dependency) in dependencies {
         let Some(dependency_path) = dependency.get("path").and_then(toml::Value::as_str) else {
             continue;
         };
-        let components = match resolved_dependency_path("Cargo.toml", dependency_path) {
-            Ok(components) => components,
+        let resolved = match resolved_dependency_path("Cargo.toml", dependency_path) {
+            Ok(resolved) => resolved,
             Err(reason) => {
                 violations.push(format!(
                     "Cargo.toml: {surface} `{name}` has invalid path `{dependency_path}`: {reason}"
@@ -115,7 +134,13 @@ fn inspect_root_dependency_table(
                 continue;
             }
         };
-        let Some(provider) = draft_dependency_owner(&components) else {
+        if let Err(reason) = validate_path(&resolved.visited) {
+            violations.push(format!(
+                "Cargo.toml: {surface} `{name}` has unsafe path `{dependency_path}`: {reason}"
+            ));
+            continue;
+        }
+        let Some(provider) = draft_dependency_owner(&resolved.components) else {
             continue;
         };
         violations.push(format!(
@@ -124,10 +149,16 @@ fn inspect_root_dependency_table(
     }
 }
 
+pub(super) struct ResolvedDependencyPath {
+    pub(super) components: Vec<String>,
+    /// Every path prefix traversed before lexical normalization completes.
+    visited: Vec<String>,
+}
+
 pub(super) fn resolved_dependency_path(
     manifest_path: &str,
     dependency_path: &str,
-) -> Result<Vec<String>, &'static str> {
+) -> Result<ResolvedDependencyPath, &'static str> {
     if dependency_path_is_absolute(dependency_path) {
         return Err("absolute paths are forbidden");
     }
@@ -143,6 +174,7 @@ pub(super) fn resolved_dependency_path(
         .filter(|component| !component.is_empty())
         .map(str::to_owned)
         .collect();
+    let mut visited = path_prefixes(&components);
     for component in dependency_path.split('/') {
         match component {
             "" | "." => {}
@@ -151,10 +183,22 @@ pub(super) fn resolved_dependency_path(
                     return Err("path escapes the repository root");
                 }
             }
-            component => components.push(component.to_owned()),
+            component => {
+                components.push(component.to_owned());
+                visited.push(components.join("/"));
+            }
         }
     }
-    Ok(components)
+    Ok(ResolvedDependencyPath {
+        components,
+        visited,
+    })
+}
+
+fn path_prefixes(components: &[String]) -> Vec<String> {
+    (1..=components.len())
+        .map(|length| components[..length].join("/"))
+        .collect()
 }
 
 fn dependency_path_is_absolute(path: &str) -> bool {

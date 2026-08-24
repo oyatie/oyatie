@@ -2,7 +2,7 @@
 
 use std::process::{Command, Output};
 
-use pipeline_repository_draft::RepositoryRead;
+use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitRepository;
@@ -30,6 +30,21 @@ impl RepositoryRead for GitRepository {
 
     fn directory_exists(&self, commit: &str, path: &str) -> Result<bool, String> {
         exact_tree_path(commit, path, true)
+    }
+
+    fn entry_kind(&self, commit: &str, path: &str) -> Result<Option<RepositoryEntryKind>, String> {
+        let output = git_output(&["ls-tree", "--format=%(objectmode)", commit, "--", path])?;
+        let mode = String::from_utf8(output.stdout)
+            .map_err(|_| format!("git ls-tree returned non-UTF-8 mode for {path}"))?;
+        match mode.trim_end() {
+            "" => Ok(None),
+            "040000" => Ok(Some(RepositoryEntryKind::Tree)),
+            "100644" => Ok(Some(RepositoryEntryKind::Blob)),
+            "100755" => Ok(Some(RepositoryEntryKind::ExecutableBlob)),
+            "120000" => Ok(Some(RepositoryEntryKind::Symlink)),
+            "160000" => Ok(Some(RepositoryEntryKind::Gitlink)),
+            other => Err(format!("unexpected git mode for {path}: {other:?}")),
+        }
     }
 }
 

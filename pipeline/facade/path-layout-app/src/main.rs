@@ -10,7 +10,7 @@ use pipeline_admission::{
     draft_dependency_violations, git_change_paths_from_name_status_z, proto_package_violations,
     workspace_draft_dependency_violations,
 };
-use pipeline_repository_draft::RepositoryRead;
+use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 use pipeline_repository_git_draft::GitRepository;
 
 fn main() -> ExitCode {
@@ -34,7 +34,10 @@ fn run() -> Result<(), String> {
     let existing_owner_dirs = existing_owner_dirs(&repository, &merge_base)?;
     let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
     let mut violations = changed_layout_violations(&changes, &existing_owner_dirs);
-    violations.extend(workspace_draft_dependency_violations(&workspace_contents));
+    violations.extend(workspace_draft_dependency_violations(
+        &workspace_contents,
+        |visited| reject_indirect_dependency_components(&repository, &head, visited),
+    ));
     let mut manifests = Vec::new();
     for path in changes
         .layout_candidates
@@ -47,6 +50,7 @@ fn run() -> Result<(), String> {
             path,
             &contents,
             &workspace_contents,
+            |visited| reject_indirect_dependency_components(&repository, &head, visited),
         ));
         manifests.push((path.clone(), contents));
     }
@@ -110,6 +114,25 @@ fn run() -> Result<(), String> {
             violations.join("\n")
         ))
     }
+}
+
+fn reject_indirect_dependency_components(
+    repository: &impl RepositoryRead,
+    head: &str,
+    visited: &[String],
+) -> Result<(), String> {
+    for path in visited {
+        match repository.entry_kind(head, path)? {
+            Some(RepositoryEntryKind::Symlink) => {
+                return Err(format!("tracked symlink component `{path}` is forbidden"));
+            }
+            Some(RepositoryEntryKind::Gitlink) => {
+                return Err(format!("tracked gitlink component `{path}` is forbidden"));
+            }
+            _ => {}
+        }
+    }
+    Ok(())
 }
 
 fn required_sha(name: &str) -> Result<String, String> {

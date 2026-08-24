@@ -115,7 +115,7 @@ fn dependency_table_targets(
                     return false;
                 };
                 resolved_dependency_path(declaring_manifest, dependency_path)
-                    .is_ok_and(|components| components == target)
+                    .is_ok_and(|resolved| resolved.components == target)
             })
         })
 }

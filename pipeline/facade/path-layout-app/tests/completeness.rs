@@ -122,3 +122,51 @@ fn touched_face_leaf_must_be_complete_unless_fully_deleted() {
     );
     let _ = std::fs::remove_dir_all(root);
 }
+
+#[cfg(unix)]
+#[test]
+fn tracked_symlink_cannot_disguise_an_owner_draft_dependency() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(
+        &root,
+        "storage/ports/draft/blob/Cargo.toml",
+        "[package]\nname='storage-blob-draft'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "storage/ports/draft/blob/src/lib.rs",
+        "pub fn blob() {}\n",
+    );
+    write(
+        &root,
+        "network/core/route/Cargo.toml",
+        "[package]\nname='network-route'\nversion='0.1.0'\nedition='2024'\n[dependencies]\nblob={path='src/blob.rs'}\n",
+    );
+    write(
+        &root,
+        "network/core/route/src/lib.rs",
+        "pub fn route() {}\n",
+    );
+    symlink(
+        "../../../../storage/ports/draft/blob",
+        root.join("network/core/route/src/blob.rs"),
+    )
+    .expect("create dependency-path symlink");
+    let disguised = commit(&root, "disguised draft dependency");
+
+    let rejected = admit(&root, &base, &disguised);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(
+        error.contains("dependency `blob` has unsafe path `src/blob.rs`"),
+        "{error}"
+    );
+    assert!(
+        error.contains("tracked symlink component `network/core/route/src/blob.rs`"),
+        "{error}"
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
