@@ -84,17 +84,26 @@ fn config_from_env() -> Result<Config, String> {
     {
         return Err("OYATIE_REPOSITORY contains an invalid byte".to_owned());
     }
-    let pull_request = required_env("OYATIE_PULL_REQUEST")?
-        .parse::<u64>()
-        .map_err(|_| "OYATIE_PULL_REQUEST must be a positive integer".to_owned())?;
-    if pull_request == 0 {
-        return Err("OYATIE_PULL_REQUEST must be a positive integer".to_owned());
-    }
+    let pull_request = pull_request_number(&required_env("GITHUB_REF")?)?;
     Ok(Config {
         repository,
         pull_request,
         token: required_env("GH_TOKEN")?,
     })
+}
+
+fn pull_request_number(reference: &str) -> Result<u64, String> {
+    let raw = reference
+        .strip_prefix("refs/pull/")
+        .and_then(|value| value.strip_suffix("/merge"))
+        .ok_or_else(|| "GITHUB_REF must be `refs/pull/<positive integer>/merge`".to_owned())?;
+    let number = raw
+        .parse::<u64>()
+        .map_err(|_| "GITHUB_REF must contain a positive pull request number".to_owned())?;
+    if number == 0 || raw.starts_with('0') {
+        return Err("GITHUB_REF must contain a canonical positive pull request number".to_owned());
+    }
+    Ok(number)
 }
 
 fn required_env(name: &str) -> Result<String, String> {
@@ -255,5 +264,19 @@ mod tests {
             pull_refspec(2223),
             "+refs/pull/2223/head:refs/oyatie-occupancy/pr-2223"
         );
+    }
+
+    #[test]
+    fn pull_request_number_comes_from_the_automatic_merge_ref() {
+        assert_eq!(pull_request_number("refs/pull/2223/merge"), Ok(2223));
+        for reference in [
+            "refs/pull/0/merge",
+            "refs/pull/02223/merge",
+            "refs/pull/2223/head",
+            "refs/heads/dev",
+            "refs/pull/not-a-number/merge",
+        ] {
+            assert!(pull_request_number(reference).is_err(), "{reference}");
+        }
     }
 }

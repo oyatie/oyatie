@@ -25,8 +25,10 @@ pub fn occupancy_ok(result: &str, pull_request: bool) -> bool {
 
 /// Merge-blocking fan-in inputs. Occupants match `presubmit.yml`.
 pub struct FanIn<'a> {
+    pub layout: &'a str,
     pub occupancy: &'a str,
     pub lint: &'a str,
+    pub clippy: &'a str,
     pub test: &'a str,
     pub deny: &'a str,
     pub pg_gate: &'a str,
@@ -36,8 +38,10 @@ pub struct FanIn<'a> {
 }
 
 pub fn fan_in_ok(g: FanIn<'_>) -> bool {
-    occupancy_ok(g.occupancy, g.pull_request)
+    required_success(g.layout)
+        && occupancy_ok(g.occupancy, g.pull_request)
         && required_success(g.lint)
+        && required_success(g.clippy)
         && required_success(g.test)
         && required_success(g.deny)
         && required_success(g.pg_gate)
@@ -55,8 +59,10 @@ mod tests {
 
     fn green() -> FanIn<'static> {
         FanIn {
+            layout: "success",
             occupancy: "success",
             lint: "success",
+            clippy: "success",
             test: "success",
             deny: "success",
             pg_gate: "success",
@@ -75,6 +81,20 @@ mod tests {
     fn occupancy_skipped_on_pr_is_red() {
         let mut g = green();
         g.occupancy = "skipped";
+        assert!(!fan_in_ok(g));
+    }
+
+    #[test]
+    fn layout_failure_is_red() {
+        let mut g = green();
+        g.layout = "failure";
+        assert!(!fan_in_ok(g));
+    }
+
+    #[test]
+    fn clippy_skipped_is_red() {
+        let mut g = green();
+        g.clippy = "skipped";
         assert!(!fan_in_ok(g));
     }
 
