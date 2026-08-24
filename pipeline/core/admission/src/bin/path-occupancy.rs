@@ -9,7 +9,10 @@ use std::collections::BTreeSet;
 use std::env;
 use std::process::{Command, ExitCode, Output};
 
-use pipeline_admission::{OccupiedSet, admit, paths_from_name_status_z};
+use pipeline_admission::{
+    GitChangePaths, OccupiedSet, admit, changed_layout_violations,
+    git_change_paths_from_name_status_z,
+};
 
 const REMOTE: &str = "origin";
 const TRUNK_REF: &str = "refs/remotes/origin/dev";
@@ -49,7 +52,15 @@ fn run() -> Result<(), String> {
         &config.token,
         &["merge-base", current_head.as_str(), TRUNK_REF],
     )?;
-    let this = git_path_set(&config.token, &current_base, &current_head)?;
+    let current = git_change_paths(&config.token, &current_base, &current_head)?;
+    let layout_violations = changed_layout_violations(&current);
+    if !layout_violations.is_empty() {
+        return Err(format!(
+            "ADR-0719 D-8 layout refused:\n{}",
+            layout_violations.join("\n")
+        ));
+    }
+    let this = current.occupied;
 
     let mut in_flight = Vec::with_capacity(open.len().saturating_sub(1));
     for number in open {
@@ -58,7 +69,7 @@ fn run() -> Result<(), String> {
         }
         let head = pull_head_ref(number);
         let merge_base = git_text(&config.token, &["merge-base", head.as_str(), TRUNK_REF])?;
-        let paths = git_path_set(&config.token, &merge_base, &head)?;
+        let paths = git_change_paths(&config.token, &merge_base, &head)?.occupied;
         if !paths.is_empty() {
             in_flight.push(OccupiedSet {
                 id: format!("pr-{number}"),
@@ -169,12 +180,12 @@ fn pull_head_ref(number: u64) -> String {
     format!("refs/oyatie-occupancy/pr-{number}")
 }
 
-fn git_path_set(token: &str, merge_base: &str, head: &str) -> Result<BTreeSet<String>, String> {
+fn git_change_paths(token: &str, merge_base: &str, head: &str) -> Result<GitChangePaths, String> {
     let output = git_output(
         token,
         &["diff", "--name-status", "-z", "-M", merge_base, head, "--"],
     )?;
-    paths_from_name_status_z(&output.stdout).map_err(|error| error.message())
+    git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())
 }
 
 fn git_text(token: &str, args: &[&str]) -> Result<String, String> {

@@ -84,6 +84,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("\"-z\""));
     assert!(collector.contains("\"-M\""));
     assert!(collector.contains("x-access-token"));
+    assert!(collector.contains("changed_layout_violations"));
+    assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
 }
 

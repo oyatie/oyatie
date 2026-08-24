@@ -3,7 +3,6 @@
 //! records, not prompts or newline-delimited API projections.
 
 use std::collections::BTreeSet;
-use std::str;
 
 /// Closed hub set. A hop that touches any of these is N=1 at trunk HEAD.
 pub const OYATIE_HUBS: &[&str] = &[
@@ -23,8 +22,11 @@ pub const OYATIE_HUBS: &[&str] = &[
     ".github/workflows/presubmit.yml",
     "pipeline/core/admission/src/cadence.rs",
     "pipeline/core/admission/src/fanin.rs",
+    "pipeline/core/admission/src/git_change.rs",
+    "pipeline/core/admission/src/layout.rs",
     "pipeline/core/admission/src/lib.rs",
     "pipeline/core/admission/src/occupancy.rs",
+    "pipeline/core/admission/src/bin/path-occupancy.rs",
     ".gitignore",
 ];
 
@@ -63,87 +65,6 @@ pub fn hits_hub(paths: &BTreeSet<String>) -> bool {
                 .iter()
                 .any(|prefix| p.starts_with(prefix))
     })
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum PathSetParseError {
-    Unterminated,
-    InvalidStatus(String),
-    MissingPath(String),
-    EmptyPath,
-    NonUtf8Path,
-}
-
-impl PathSetParseError {
-    pub fn message(&self) -> String {
-        match self {
-            Self::Unterminated => "git name-status output is not NUL-terminated".to_owned(),
-            Self::InvalidStatus(status) => format!("invalid git name-status field {status:?}"),
-            Self::MissingPath(status) => {
-                format!("git name-status field {status:?} is missing a path")
-            }
-            Self::EmptyPath => "git name-status output contains an empty path".to_owned(),
-            Self::NonUtf8Path => {
-                "git name-status output contains a non-UTF-8 path; refusing closed".to_owned()
-            }
-        }
-    }
-}
-
-fn path(field: &[u8]) -> Result<String, PathSetParseError> {
-    if field.is_empty() {
-        return Err(PathSetParseError::EmptyPath);
-    }
-    str::from_utf8(field)
-        .map(str::to_owned)
-        .map_err(|_| PathSetParseError::NonUtf8Path)
-}
-
-/// Parse `git diff --name-status -z -M`. Rename and copy records carry two
-/// paths; both are occupied so a skipped/changed classification cannot admit
-/// a writer to either endpoint. Unknown, truncated, or lossy input is red.
-pub fn paths_from_name_status_z(input: &[u8]) -> Result<BTreeSet<String>, PathSetParseError> {
-    if input.is_empty() {
-        return Ok(BTreeSet::new());
-    }
-    if input.last() != Some(&0) {
-        return Err(PathSetParseError::Unterminated);
-    }
-
-    let fields: Vec<&[u8]> = input[..input.len() - 1].split(|b| *b == 0).collect();
-    let mut paths = BTreeSet::new();
-    let mut i = 0;
-    while i < fields.len() {
-        let status = str::from_utf8(fields[i])
-            .map_err(|_| PathSetParseError::InvalidStatus("<non-UTF-8>".to_owned()))?;
-        i += 1;
-        let Some(code) = status.as_bytes().first().copied() else {
-            return Err(PathSetParseError::InvalidStatus(status.to_owned()));
-        };
-        let scored = matches!(code, b'R' | b'C');
-        let valid = if scored {
-            status.len() > 1 && status.as_bytes()[1..].iter().all(u8::is_ascii_digit)
-        } else {
-            status.len() == 1 && matches!(code, b'A' | b'D' | b'M' | b'T' | b'U' | b'X' | b'B')
-        };
-        if !valid {
-            return Err(PathSetParseError::InvalidStatus(status.to_owned()));
-        }
-
-        let Some(first) = fields.get(i) else {
-            return Err(PathSetParseError::MissingPath(status.to_owned()));
-        };
-        paths.insert(path(first)?);
-        i += 1;
-        if scored {
-            let Some(second) = fields.get(i) else {
-                return Err(PathSetParseError::MissingPath(status.to_owned()));
-            };
-            paths.insert(path(second)?);
-            i += 1;
-        }
-    }
-    Ok(paths)
 }
 
 /// `in_flight` is other open PRs targeting `dev` (not this PR).
@@ -232,53 +153,6 @@ mod tests {
         assert_eq!(
             admit(&BTreeSet::new(), &[], false),
             Err(OccupancyRefused::EmptyPathSet)
-        );
-    }
-
-    #[test]
-    fn rename_occupies_both_ends_and_refuses_an_old_path_editor() {
-        let this = paths_from_name_status_z(b"R100\0old/name.rs\0new/name.rs\0").unwrap();
-        let other = occupied("pr-7", &["old/name.rs"]);
-        assert_eq!(
-            admit(&this, &[other], true),
-            Err(OccupancyRefused::Overlap {
-                path: "old/name.rs".into(),
-                other: "pr-7".into(),
-            })
-        );
-        assert!(this.contains("new/name.rs"));
-    }
-
-    #[test]
-    fn parser_has_no_three_thousand_file_ceiling() {
-        let mut input = Vec::new();
-        for i in 0..=3_000 {
-            input.extend_from_slice(b"A\0");
-            input.extend_from_slice(format!("cap/core/item-{i}.rs").as_bytes());
-            input.push(0);
-        }
-        assert_eq!(paths_from_name_status_z(&input).unwrap().len(), 3_001);
-    }
-
-    #[test]
-    fn nul_protocol_preserves_newlines_and_tabs_in_paths() {
-        let paths = paths_from_name_status_z(b"M\0cap/core/line\nwith\ttab.rs\0").unwrap();
-        assert!(paths.contains("cap/core/line\nwith\ttab.rs"));
-    }
-
-    #[test]
-    fn malformed_git_records_refuse_closed() {
-        assert_eq!(
-            paths_from_name_status_z(b"R100\0old.rs\0"),
-            Err(PathSetParseError::MissingPath("R100".into()))
-        );
-        assert_eq!(
-            paths_from_name_status_z(b"M\0unterminated.rs"),
-            Err(PathSetParseError::Unterminated)
-        );
-        assert_eq!(
-            paths_from_name_status_z(b"M\0bad-\xff.rs\0"),
-            Err(PathSetParseError::NonUtf8Path)
         );
     }
 
