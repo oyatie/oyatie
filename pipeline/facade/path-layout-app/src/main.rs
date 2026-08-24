@@ -7,8 +7,8 @@ use pipeline_admission::{
     base_admission_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
     cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
     git_change_paths_from_name_status_z, owner_core_regression_violations,
-    proto_package_violations, workspace_draft_dependency_violations,
-    workspace_membership_violations,
+    owner_law_regression_violations, proto_package_violations,
+    workspace_draft_dependency_violations, workspace_membership_violations,
 };
 use pipeline_repository_draft::RepositoryRead;
 use pipeline_repository_git_draft::GitRepository;
@@ -46,6 +46,13 @@ fn run() -> Result<(), String> {
         &owners_before.complete,
         &owners_after.live,
         &owners_after.complete,
+    ));
+    violations.extend(owner_law_regression_violations(
+        &changes,
+        &owners_before.complete,
+        &owners_after.live,
+        &owners_after.complete,
+        &owners_after.lawful,
     ));
     violations.extend(workspace_membership_violations(&workspace_contents));
     violations.extend(workspace_draft_dependency_violations(

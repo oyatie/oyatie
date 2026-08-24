@@ -77,15 +77,59 @@ fn production_dependency_targets(
         .get("target")
         .and_then(toml::Value::as_table)
         .is_some_and(|targets| {
-            targets.values().any(|target_manifest| {
-                dependency_table_targets(
-                    manifest_path,
-                    target_manifest.get("dependencies"),
-                    workspace_dependencies,
-                    target,
-                )
+            targets.iter().any(|(selector, target_manifest)| {
+                reachable_production_target(selector)
+                    && dependency_table_targets(
+                        manifest_path,
+                        target_manifest.get("dependencies"),
+                        workspace_dependencies,
+                        target,
+                    )
             })
         })
+}
+
+/// Count target-specific consumers only when the selector itself proves a
+/// reachable production target. Complex Boolean predicates are deliberately
+/// fail-closed: a base primitive can instead use an unconditional dependency
+/// or one of these single, independently satisfiable target selectors.
+fn reachable_production_target(selector: &str) -> bool {
+    let selector = selector.trim();
+    if let Some(predicate) = selector
+        .strip_prefix("cfg(")
+        .and_then(|value| value.strip_suffix(')'))
+        .map(str::trim)
+    {
+        return predicate == "unix" || reachable_cfg_value(predicate);
+    }
+    matches!(
+        selector,
+        "x86_64-unknown-linux-gnu" | "aarch64-unknown-linux-gnu"
+    )
+}
+
+fn reachable_cfg_value(predicate: &str) -> bool {
+    let Some((key, value)) = predicate.split_once('=') else {
+        return false;
+    };
+    let Some(value) = value
+        .trim()
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+    else {
+        return false;
+    };
+    matches!(
+        (key.trim(), value),
+        ("panic", "abort" | "unwind")
+            | ("target_arch", "aarch64" | "x86_64")
+            | ("target_endian", "little")
+            | ("target_env", "gnu")
+            | ("target_family", "unix")
+            | ("target_os", "linux")
+            | ("target_pointer_width", "64")
+            | ("target_vendor", "unknown")
+    )
 }
 
 fn dependency_table_targets(
@@ -163,5 +207,30 @@ mod tests {
             base_admission_violations("base/core/bytes/Cargo.toml", &manifests, workspace)
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn impossible_or_unproved_target_predicates_do_not_satisfy_quorum() {
+        for predicate in [
+            "cfg(any())",
+            "cfg(all(unix, windows))",
+            "cfg(not(all()))",
+            "cfg(target_os = \"never\")",
+            "not-a-real-target",
+        ] {
+            let manifests = ["network", "storage", "compute"].map(|owner| {
+                (
+                    format!("{owner}/core/engine/Cargo.toml"),
+                    format!(
+                        "[package]\nname='{owner}-engine'\n[target.'{predicate}'.dependencies]\nbase={{path='../../../base/core/bytes'}}\n"
+                    ),
+                )
+            });
+            assert_eq!(
+                base_admission_violations("base/core/bytes/Cargo.toml", &manifests, "").len(),
+                1,
+                "{predicate}"
+            );
+        }
     }
 }

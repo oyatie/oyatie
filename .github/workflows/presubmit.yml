@@ -1,5 +1,5 @@
 # TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
-# Graph: D-8 layout (PR + merge_group), occupancy (path-set, PR only), lint, deny, test
+# Graph: occupancy (path-set, pull_request only) + lint + deny + test (nextest workspace)
 # + pg-gate + live-postgres (path-gated on pull_request and merge_group).
 name: presubmit
 
@@ -26,6 +26,7 @@ concurrency:
 jobs:
   occupancy:
     name: occupancy (path-set)
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -40,22 +41,15 @@ jobs:
         with:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
-      - name: Build admission applications
+      - name: Build path occupancy application
         working-directory: ${{ runner.temp }}
         run: >-
           cargo build --locked
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --target x86_64-unknown-linux-gnu
           --target-dir "$RUNNER_TEMP/oyatie-admission"
-          -p pipeline-path-layout-app
           -p pipeline-path-occupancy-app
-      - name: Admit D-8 changed paths
-        run: >-
-          "$RUNNER_TEMP/oyatie-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app"
-          "${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}"
-          "${{ github.sha }}"
       - name: Admit complete Git path-set
-        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
@@ -172,9 +166,13 @@ jobs:
       - name: Fan-in verdict
         env:
           LIVE: ${{ needs.pg-gate.outputs.live }}
+          EVENT: ${{ github.event_name }}
         run: |
           req() { [ "$1" = "success" ]; }
           pg() {
             if [ "${LIVE}" = "true" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          req "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
+          occ() {
+            if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
+          }
+          occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1

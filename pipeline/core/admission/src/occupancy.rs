@@ -20,6 +20,9 @@ pub const OYATIE_HUBS: &[&str] = &[
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/branch-protection.yaml",
     ".github/workflows/presubmit.yml",
+    ".config/nextest.toml",
+    ".githooks/pre-commit",
+    ".githooks/pre-push",
     ".gitignore",
 ];
 
@@ -163,6 +166,8 @@ mod tests {
             "docs/AGENTS.md",
             "docs/decisions/ADR-0719-eac-serving-control-north-star.md",
             ".github/branch-protection.yaml",
+            ".config/nextest.toml",
+            ".githooks/pre-push",
             "pipeline/core/admission/src/lib.rs",
         ] {
             assert!(hits_hub(&set(&[hub])), "missing hub {hub}");

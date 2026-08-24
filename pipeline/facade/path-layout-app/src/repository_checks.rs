@@ -10,6 +10,7 @@ use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 pub(super) struct OwnerTreeState {
     pub(super) live: BTreeSet<String>,
     pub(super) complete: BTreeSet<String>,
+    pub(super) lawful: BTreeSet<String>,
 }
 
 pub(super) fn owner_tree_state(
@@ -32,10 +33,26 @@ pub(super) fn owner_tree_state(
         }
         state.live.insert(owner.clone());
         if owner_has_complete_core(repository, commit, &owner)? {
-            state.complete.insert(owner);
+            state.complete.insert(owner.clone());
+        }
+        if owner_has_complete_law(repository, commit, &owner)? {
+            state.lawful.insert(owner);
         }
     }
     Ok(state)
+}
+
+fn owner_has_complete_law(
+    repository: &impl RepositoryRead,
+    commit: &str,
+    owner: &str,
+) -> Result<bool, String> {
+    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
+        if !regular_blob(repository.entry_kind(commit, &format!("{owner}/{law}"))?) {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
 
 fn owner_has_complete_core(

@@ -68,6 +68,38 @@ pub fn owner_core_regression_violations(
         .collect()
 }
 
+/// Owner law follows implementation state, not merely directory creation. The
+/// first complete core on an existing scaffold must make all four D-36 files
+/// live, and a retained owner cannot delete a canonical law file.
+pub fn owner_law_regression_violations(
+    changes: &GitChangePaths,
+    complete_before: &BTreeSet<String>,
+    live_after: &BTreeSet<String>,
+    complete_after: &BTreeSet<String>,
+    lawful_after: &BTreeSet<String>,
+) -> Vec<String> {
+    let mut violations = Vec::new();
+    for owner in complete_after
+        .iter()
+        .filter(|owner| !complete_before.contains(*owner) && !lawful_after.contains(*owner))
+    {
+        violations.push(format!(
+            "{owner}: first complete core requires all four D-36 law files at the head commit"
+        ));
+    }
+    for owner in live_after {
+        for law in OWNER_LAW_FILES {
+            let path = format!("{owner}/{law}");
+            if changes.occupied.contains(&path) && !changes.layout_candidates.contains(&path) {
+                violations.push(format!(
+                    "{owner}: retained owner cannot delete canonical D-36 law file `{law}`"
+                ));
+            }
+        }
+    }
+    violations
+}
+
 fn owner_is_new_and_touched(
     owner: &str,
     changes: &GitChangePaths,
@@ -157,6 +189,44 @@ mod tests {
                 &BTreeSet::new(),
             )
             .is_empty()
+        );
+    }
+
+    #[test]
+    fn implementation_transition_and_law_deletion_fail_closed() {
+        let implementation = crate::git_change_paths_from_name_status_z(
+            b"A\0app/calendar/core/events/Cargo.toml\0A\0app/calendar/core/events/src/lib.rs\0",
+        )
+        .unwrap();
+        let live = ["app/calendar".to_owned()].into();
+        let complete = ["app/calendar".to_owned()].into();
+        assert_eq!(
+            owner_law_regression_violations(
+                &implementation,
+                &BTreeSet::new(),
+                &live,
+                &complete,
+                &BTreeSet::new(),
+            )
+            .len(),
+            1
+        );
+
+        let deletion = crate::git_change_paths_from_name_status_z(
+            b"D\0network/PRD.md\0M\0network/core/route/src/lib.rs\0",
+        )
+        .unwrap();
+        let network = ["network".to_owned()].into();
+        assert_eq!(
+            owner_law_regression_violations(
+                &deletion,
+                &network,
+                &network,
+                &network,
+                &BTreeSet::new(),
+            )
+            .len(),
+            1
         );
     }
 }

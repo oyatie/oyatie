@@ -54,12 +54,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
-    assert!(y.contains("\"${{ github.sha }}\""));
-    assert!(!y.contains(
-        "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}"
-    ));
     assert!(y.contains("pipeline-path-occupancy-app"));
-    assert!(y.contains("pipeline-path-layout-app"));
+    assert!(!y.contains("pipeline-path-layout-app"));
     assert!(!y.contains("OYATIE_LAYOUT_BASE"));
     assert!(!y.contains("OYATIE_LAYOUT_HEAD"));
     assert!(y.contains("cargo build --locked"));
@@ -71,15 +67,14 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("--manifest-path \"$GITHUB_WORKSPACE/Cargo.toml\""));
     assert!(y.contains("--target x86_64-unknown-linux-gnu"));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-admission\""));
-    assert!(y.contains("debug/pipeline-path-layout-app\""));
     assert!(y.contains("debug/pipeline-path-occupancy-app\""));
     assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
     assert!(!y.contains("cargo run -p pipeline-path-occupancy-app"));
     assert!(y.contains("cargo-nextest nextest run"));
     assert!(!y.contains("cargo nextest run"));
-    assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
-    assert!(!y.contains("occ()"));
-    assert!(y.contains("req \"${{ needs.occupancy.result }}\""));
+    assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
+    assert!(y.contains("occ()"));
+    assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(

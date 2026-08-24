@@ -20,7 +20,9 @@ mod workspace;
 
 pub use base::base_admission_violations;
 pub use cargo_config::cargo_config_violations;
-pub use change::{changed_layout_violations, owner_core_regression_violations};
+pub use change::{
+    changed_layout_violations, owner_core_regression_violations, owner_law_regression_violations,
+};
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
 pub use manifest::{
@@ -85,7 +87,7 @@ pub const APP_PRODUCT_DIRS: &[&str] = &[
 
 /// Closed dot-directory set. Existing dot-root debt is removal-only rather
 /// than a wildcard exemption for new tracked paths.
-pub const ALLOWED_DOT_ROOT_DIRS: &[&str] = &[".cargo", ".github"];
+pub const ALLOWED_DOT_ROOT_DIRS: &[&str] = &[".cargo", ".config", ".github", ".githooks"];
 
 pub const ALLOWED_ROOT_FILES: &[&str] = &[
     "Cargo.toml",
@@ -195,6 +197,12 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         }
         if root == ".cargo" {
             root_meta::validate_cargo_path(file, &parts, &mut violations);
+        } else if root == ".config" {
+            root_meta::validate_config_path(file, &parts, &mut violations);
+        } else if root == ".github" {
+            root_meta::validate_github_path(file, &parts, &mut violations);
+        } else if root == ".githooks" {
+            root_meta::validate_githook_path(file, &parts, &mut violations);
         } else if root == "app" {
             validate_app_path(file, &parts, &mut violations);
         } else if root == "base" {
