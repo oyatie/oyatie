@@ -26,6 +26,17 @@ use crate::{
     validate_path_segment,
 };
 
+fn import_root_key<E>(
+    source: &mut [u8; 32],
+    import: impl FnOnce([u8; 32]) -> Result<EnclaveRoot, E>,
+) -> Result<EnclaveRoot, E> {
+    // Arrays are Copy, so the by-value importer can only wipe its copy.
+    // Scrub this caller-owned buffer before either outcome escapes.
+    let result = import(*source);
+    source.zeroize();
+    result
+}
+
 /// Errors from root-custody command building and material ingestion.
 #[derive(Debug)]
 pub enum RootCustodyError {
@@ -189,9 +200,9 @@ impl OpenBaoRootCustody {
         let mut bytes = [0u8; 32];
         bytes.copy_from_slice(&decoded);
         decoded.zeroize();
-        // `from_key_bytes` zeroizes `bytes`; material now lives only in
-        // locked enclave memory.
-        let root = EnclaveRoot::from_key_bytes(root_id, bytes)?;
+        let root = import_root_key(&mut bytes, |candidate| {
+            EnclaveRoot::from_key_bytes(root_id, candidate)
+        })?;
         let provenance = RootProvenance::OpenBaoTransitionalSingleCustodian {
             ceremony_evidence_ref: ceremony_evidence_ref.to_owned(),
         };
@@ -206,5 +217,32 @@ impl OpenBaoRootCustody {
             self.key_name,
             operation
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EnclaveRoot, SealingRootId, import_root_key};
+
+    #[test]
+    fn import_root_key_zeroizes_source_after_success() {
+        let mut source = [0x5a; 32];
+        let root_id = SealingRootId::new("test-root").expect("root id");
+        let result = import_root_key(&mut source, |candidate| {
+            assert_eq!(candidate, [0x5a; 32]);
+            EnclaveRoot::from_key_bytes(root_id, candidate)
+        });
+
+        assert_eq!(result.expect("root").root_id().value(), "test-root");
+        assert_eq!(source, [0; 32]);
+    }
+
+    #[test]
+    fn import_root_key_zeroizes_source_after_failure() {
+        let mut source = [0xa5; 32];
+        let result = import_root_key(&mut source, |_| Err::<EnclaveRoot, _>("ingress refused"));
+
+        assert_eq!(result.expect_err("ingress must fail"), "ingress refused");
+        assert_eq!(source, [0; 32]);
     }
 }
