@@ -65,8 +65,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("cargo build --locked"));
     assert_eq!(
         y.matches("working-directory: ${{ runner.temp }}").count(),
-        3,
-        "admission build, rustfmt, and nextest must ignore checkout Cargo configuration"
+        2,
+        "admission build and rustfmt must ignore checkout Cargo configuration"
     );
     assert!(y.contains("--manifest-path \"$GITHUB_WORKSPACE/Cargo.toml\""));
     assert!(y.contains("--target x86_64-unknown-linux-gnu"));

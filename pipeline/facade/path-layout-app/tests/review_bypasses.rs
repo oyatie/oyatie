@@ -147,7 +147,7 @@ fn repository_cargo_substitutions_are_forbidden() {
         ),
         (
             "[target.x86_64-unknown-linux-gnu]\nrunner = 'true'\n",
-            "target runner configuration",
+            "target configuration is forbidden",
         ),
         (
             "[alias]\nnextest = '!true'\n",
@@ -155,7 +155,11 @@ fn repository_cargo_substitutions_are_forbidden() {
         ),
         (
             "[build]\nrustc-wrapper = 'true'\n",
-            "compiler substitution is forbidden",
+            "build configuration is forbidden",
+        ),
+        (
+            "[env]\nRUSTC_WRAPPER = 'true'\n",
+            "environment override `RUSTC_WRAPPER` is forbidden",
         ),
     ] {
         assert_config_rejected(config, expected);

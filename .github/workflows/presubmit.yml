@@ -119,7 +119,6 @@ jobs:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
       - name: Workspace tests
-        working-directory: ${{ runner.temp }}
         run: >-
           cargo-nextest nextest run
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"

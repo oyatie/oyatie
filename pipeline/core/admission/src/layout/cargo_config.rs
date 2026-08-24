@@ -1,8 +1,8 @@
 //! Cargo configuration surfaces that can bypass admission or redirect dependencies.
 
-/// Repository Cargo configuration may tune builds, but it cannot replace dependency sources or
-/// commands. Protected workflow commands run outside this configuration as the primary trust
-/// boundary; these checks keep the same substitutions from reaching other Cargo callers.
+/// Repository Cargo configuration may bind named Oyatie fixtures, but it cannot replace
+/// dependency sources, commands, build tools, or targets. The admission build runs outside this
+/// configuration; these checks make it safe for the dependent workspace-test job to load.
 pub fn cargo_config_violations(path: &str, contents: &str) -> Vec<String> {
     let Ok(config) = contents.parse::<toml::Value>() else {
         return vec![format!("{path}: invalid Cargo configuration")];
@@ -24,35 +24,34 @@ pub fn cargo_config_violations(path: &str, contents: &str) -> Vec<String> {
             "{path}: repository Cargo command aliases are forbidden; protected tools are invoked directly"
         ));
     }
-    if config
-        .get("build")
-        .and_then(toml::Value::as_table)
-        .is_some_and(|build| {
-            ["rustc", "rustc-wrapper", "rustc-workspace-wrapper"]
-                .iter()
-                .any(|key| build.contains_key(*key))
-        })
-    {
+    if config.contains_key("build") {
         violations.push(format!(
-            "{path}: repository Cargo compiler substitution is forbidden; protected builds use the pinned toolchain directly"
+            "{path}: repository Cargo build configuration is forbidden; protected builds use the pinned toolchain directly"
         ));
     }
-    if config.get("target").is_some_and(contains_runner) {
+    if config.contains_key("target") {
         violations.push(format!(
-            "{path}: repository Cargo target runner configuration is forbidden; protected executables run directly"
+            "{path}: repository Cargo target configuration is forbidden; protected builds and executables select their target directly"
         ));
+    }
+    if let Some(environment) = config.get("env") {
+        match environment.as_table() {
+            Some(environment) => {
+                for name in environment
+                    .keys()
+                    .filter(|name| !name.starts_with("OYATIE_"))
+                {
+                    violations.push(format!(
+                        "{path}: repository Cargo environment override `{name}` is forbidden; only named OYATIE_ fixture bindings are admitted"
+                    ));
+                }
+            }
+            None => violations.push(format!(
+                "{path}: repository Cargo environment bindings must be a TOML table"
+            )),
+        }
     }
     violations
-}
-
-fn contains_runner(value: &toml::Value) -> bool {
-    match value {
-        toml::Value::Table(table) => table
-            .iter()
-            .any(|(key, value)| key == "runner" || contains_runner(value)),
-        toml::Value::Array(values) => values.iter().any(contains_runner),
-        _ => false,
-    }
 }
 
 #[cfg(test)]
@@ -73,37 +72,37 @@ mod tests {
             );
         }
         assert!(
-            cargo_config_violations(".cargo/config.toml", "[env]\nRUST_BACKTRACE = '1'\n")
-                .is_empty()
+            cargo_config_violations(
+                ".cargo/config.toml",
+                "[env]\nOYATIE_FIXTURE = { value = 'fixture.json', relative = true }\n"
+            )
+            .is_empty()
         );
     }
 
     #[test]
-    fn target_runner_substitution_is_closed() {
+    fn build_target_and_environment_substitution_are_closed() {
         for config in [
             "[target.x86_64-unknown-linux-gnu]\nrunner = 'true'\n",
-            "[target.'cfg(unix)']\nrunner = ['true']\n",
+            "[target.x86_64-unknown-linux-gnu]\nlinker = 'true'\n",
+            "[target.'cfg(unix)']\nrustflags = ['-C', 'linker=true']\n",
+            "[build]\nrustc = 'true'\n",
+            "[build]\nrustc-wrapper = 'true'\n",
+            "[build]\nrustc-workspace-wrapper = 'true'\n",
+            "[env]\nRUSTC_WRAPPER = 'true'\n",
+            "[env]\nPATH = 'malicious'\n",
         ] {
             let violations = cargo_config_violations(".cargo/config.toml", config);
-            assert!(
-                violations.iter().any(|item| item.contains("target runner")),
-                "{config}"
-            );
+            assert!(!violations.is_empty(), "{config}");
         }
     }
 
     #[test]
-    fn command_and_compiler_substitution_are_closed() {
-        for config in [
-            "[alias]\nnextest = '!true'\n",
-            "[build]\nrustc = 'true'\n",
-            "[build]\nrustc-wrapper = 'true'\n",
-            "[build]\nrustc-workspace-wrapper = 'true'\n",
-        ] {
-            assert!(
-                !cargo_config_violations(".cargo/config.toml", config).is_empty(),
-                "{config}"
-            );
-        }
+    fn command_alias_substitution_is_closed() {
+        let config = "[alias]\nnextest = '!true'\n";
+        assert!(
+            !cargo_config_violations(".cargo/config.toml", config).is_empty(),
+            "{config}"
+        );
     }
 }
