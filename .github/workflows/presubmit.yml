@@ -4,7 +4,6 @@
 name: presubmit
 
 on:
-  workflow_dispatch:
   pull_request:
     branches: [dev]
     types: [opened, reopened, synchronize]
@@ -42,12 +41,20 @@ jobs:
         with:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
+      - name: Build path occupancy application
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo build --locked
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --target x86_64-unknown-linux-gnu
+          --target-dir "$RUNNER_TEMP/oyatie-admission"
+          -p pipeline-path-occupancy-app
       - name: Admit complete Git path-set
         env:
           GH_TOKEN: ${{ github.token }}
           OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
           OYATIE_REPOSITORY: ${{ github.repository }}
-        run: cargo run -p pipeline-admission --bin path-occupancy --locked
+        run: "$RUNNER_TEMP/oyatie-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app"
 
   lint:
     name: lint (format)
@@ -63,7 +70,11 @@ jobs:
           toolchain: "1.98.0"
           components: rustfmt
       - name: Check formatting
-        run: cargo fmt --all --check
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo fmt
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --all --check
 
   deny:
     name: deny (licenses bans sources)
@@ -102,7 +113,10 @@ jobs:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
       - name: Workspace tests
-        run: cargo nextest run --locked --workspace --profile ci
+        run: >-
+          cargo-nextest nextest run
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --locked --workspace --profile ci
 
   pg-gate:
     name: pg-gate
