@@ -160,6 +160,24 @@ fn cedar_and_iac_descendants_are_closed_payloads() {
 }
 
 #[test]
+fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
+    for path in [
+        "network/facade/proto/network/draft/v1/service.proto",
+        "network/facade/proto/network/blob_draft/v1/service.proto",
+        "network/docs/design/decisions/ADR-copy.md",
+        "network/docs/design/IPs/note.md",
+        "network/docs/concepts/ADR-copy.md",
+        "network/docs/runbooks/catalog.yaml",
+        "network/docs/design/scorecards/weekly.md",
+    ] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    assert!(!rejected(
+        "network/docs/design/cache/invalidation_strategy.md"
+    ));
+}
+
+#[test]
 fn changed_manifests_bind_package_and_rustc_identity() {
     let path = "network/ports/blob/Cargo.toml";
     assert!(cargo_manifest_violations(path, "[package]\nname = 'network-blob'\n").is_empty());

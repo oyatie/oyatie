@@ -97,6 +97,10 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("BUILD_ROOT_DIRS"));
     assert!(layout.contains("APP_PRODUCT_DIRS"));
     assert!(layout.contains("cargo_manifest_violations"));
+    assert!(layout.contains("changes.occupied"));
+    assert!(layout.contains("cargo_manifest_for_entrypoint"));
+    assert!(layout.contains("draft_dependency_violations"));
+    assert!(layout.contains("workspace_draft_dependency_violations"));
     assert!(layout.contains("RepositoryRead"));
     assert!(layout.contains("GitRepository"));
 

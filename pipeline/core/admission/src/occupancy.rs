@@ -25,6 +25,7 @@ pub const OYATIE_HUBS: &[&str] = &[
     "pipeline/core/admission/src/git_change.rs",
     "pipeline/core/admission/src/layout.rs",
     "pipeline/core/admission/src/layout/change.rs",
+    "pipeline/core/admission/src/layout/dependency.rs",
     "pipeline/core/admission/src/layout/inner.rs",
     "pipeline/core/admission/src/layout/manifest.rs",
     "pipeline/core/admission/src/layout/payload.rs",

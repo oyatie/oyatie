@@ -185,6 +185,12 @@ fn validate_proto(file: &str, owner: &str, parts: &[&str], violations: &mut Vec<
         && snake_case(parts[1])
         && snake_case(parts[2])
         && parts[3] == "v1";
+    if valid_shape && parts[2].contains("draft") {
+        violations.push(format!(
+            "{file}: sold proto package names must not contain `draft`"
+        ));
+        return;
+    }
     let valid_file =
         valid_shape && (matches!(parts[4], "OWNERS" | "BUCK") || snake_case_proto(parts[4]));
     if !valid_file {
@@ -232,12 +238,36 @@ fn validate_docs(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         violations.push(format!("{file}: `{section}` is not an owner docs section"));
     } else if parts.len() == 1 {
         violations.push(format!("{file}: `docs/{section}` must be a directory"));
-    } else if parts[1..parts.len() - 1]
-        .iter()
-        .any(|part| INNER_DUMP_DIRS.contains(part))
-    {
+    } else if parts[1..].iter().any(|part| forbidden_doc_dump(part)) {
         violations.push(format!(
-            "{file}: owner docs must not contain `plan/` or `tasks/` dumps"
+            "{file}: owner docs must not contain law copies, IPs, catalogs, scorecards, plan/tasks, or evidence dumps"
         ));
     }
+}
+
+fn forbidden_doc_dump(part: &str) -> bool {
+    let normalized = part.to_ascii_lowercase();
+    let stem = normalized.split('.').next().unwrap_or(&normalized);
+    matches!(
+        stem,
+        "adr"
+            | "adrs"
+            | "prd"
+            | "spec"
+            | "plan"
+            | "tasks"
+            | "decisions"
+            | "ips"
+            | "catalog"
+            | "catalogs"
+            | "scorecard"
+            | "scorecards"
+            | "dpia"
+            | "capabilities"
+            | "evidence"
+            | "handoff"
+    ) || stem.starts_with("adr-")
+        || stem.starts_with("ip-")
+        || stem.starts_with("audit-findings-")
+        || stem.starts_with("remediation-notes-")
 }

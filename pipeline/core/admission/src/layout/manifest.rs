@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 
+use super::dependency::resolved_dependency_path;
 use super::{is_capability_root, path_parts};
 
 pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
@@ -84,6 +85,14 @@ pub fn cargo_entrypoint(path: &str) -> Option<String> {
     Some(format!("{directory}/{source}"))
 }
 
+pub fn cargo_manifest_for_entrypoint(path: &str) -> Option<String> {
+    let directory = path
+        .strip_suffix("/src/lib.rs")
+        .or_else(|| path.strip_suffix("/src/main.rs"))?;
+    let manifest = format!("{directory}/Cargo.toml");
+    (cargo_entrypoint(&manifest).as_deref() == Some(path)).then_some(manifest)
+}
+
 /// A first `base/` crate is below the capability graph only when at least
 /// three distinct capability manifests consume it as a production path
 /// dependency in the same reviewed change.
@@ -126,30 +135,19 @@ fn production_dependency_targets_base(path: &str, manifest: &toml::Value) -> boo
 }
 
 fn resolves_under_base(manifest_path: &str, dependency_path: &str) -> bool {
-    if dependency_path.starts_with('/') || dependency_path.contains('\\') {
-        return false;
-    }
-    let Some(directory) = manifest_path.strip_suffix("/Cargo.toml") else {
+    let Some(components) = resolved_dependency_path(manifest_path, dependency_path) else {
         return false;
     };
-    let mut components: Vec<&str> = directory.split('/').collect();
-    for component in dependency_path.split('/') {
-        match component {
-            "" | "." => {}
-            ".." => {
-                if components.pop().is_none() {
-                    return false;
-                }
-            }
-            component => components.push(component),
-        }
-    }
-    components.first() == Some(&"base")
-        && components.get(1) == Some(&"core")
+    components
+        .first()
+        .is_some_and(|component| component == "base")
+        && components
+            .get(1)
+            .is_some_and(|component| component == "core")
         && components.get(2).is_some_and(|leaf| !leaf.is_empty())
 }
 
-fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
+pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
     let parts = path_parts(path);
     let (owner, face_index) = if parts.first() == Some(&"app") {
         (*parts.get(1)?, 2)
@@ -237,6 +235,11 @@ mod tests {
             cargo_entrypoint("network/facade/edge-app/Cargo.toml").as_deref(),
             Some("network/facade/edge-app/src/main.rs")
         );
+        assert_eq!(
+            cargo_manifest_for_entrypoint("network/facade/edge-app/src/main.rs").as_deref(),
+            Some("network/facade/edge-app/Cargo.toml")
+        );
+        assert!(cargo_manifest_for_entrypoint("network/facade/edge-app/src/lib.rs").is_none());
     }
 
     #[test]
