@@ -1,6 +1,6 @@
 # TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
-# Graph: occupancy (path-set, pull_request only) + lint + deny + test (nextest workspace)
-# + pg-gate + live-postgres (path-gated on pull_request and merge_group).
+# Graph: trusted D-8 layout + occupancy (pull_request only) + lint + clippy
+# + deny + test (nextest workspace) + path-gated live Postgres.
 name: presubmit
 
 on:
@@ -19,21 +19,66 @@ env:
   CARGO_PROFILE_TEST_DEBUG: "0"
   CARGO_INCREMENTAL: "0"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
+  layout:
+    name: layout (D-8)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          path: candidate
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check out protected admission source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          path: trusted
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+      - name: Build protected path-layout application
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo build --locked
+          --manifest-path "$GITHUB_WORKSPACE/trusted/Cargo.toml"
+          --target x86_64-unknown-linux-gnu
+          --target-dir "$RUNNER_TEMP/oyatie-layout-admission"
+          -p pipeline-path-layout-app
+      - name: Admit candidate tree
+        working-directory: candidate
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+        run: >-
+          "$RUNNER_TEMP/oyatie-layout-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app"
+          "$BASE_SHA" "$HEAD_SHA"
+
   occupancy:
     name: occupancy (path-set)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Check out candidate tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          path: candidate
           persist-credentials: false
           fetch-depth: 0
+      - name: Check out protected admission source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+          fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.98.0"
@@ -45,16 +90,17 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: >-
           cargo build --locked
-          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --manifest-path "$GITHUB_WORKSPACE/trusted/Cargo.toml"
           --target x86_64-unknown-linux-gnu
-          --target-dir "$RUNNER_TEMP/oyatie-admission"
+          --target-dir "$RUNNER_TEMP/oyatie-occupancy-admission"
           -p pipeline-path-occupancy-app
       - name: Admit complete Git path-set
+        working-directory: candidate
         env:
           GH_TOKEN: ${{ github.token }}
           OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
           OYATIE_REPOSITORY: ${{ github.repository }}
-        run: "$RUNNER_TEMP/oyatie-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app"
+        run: "$RUNNER_TEMP/oyatie-occupancy-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app"
 
   lint:
     name: lint (format)
@@ -63,6 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -76,13 +123,39 @@ jobs:
           --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --all --check
 
+  clippy:
+    name: clippy (workspace)
+    needs: [layout]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.98.0"
+          components: clippy
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-x86
+          cache-workspace-crates: "true"
+      - name: Workspace clippy
+        run: >-
+          cargo clippy --locked --workspace --all-targets
+          -- -D warnings
+
   deny:
     name: deny (licenses bans sources)
+    needs: [layout]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
@@ -93,13 +166,14 @@ jobs:
 
   test:
     name: test (workspace)
-    needs: [occupancy]
-    if: always() && (needs.occupancy.result == 'success' || needs.occupancy.result == 'skipped')
+    needs: [layout, occupancy]
+    if: always() && needs.layout.result == 'success' && (needs.occupancy.result == 'success' || needs.occupancy.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -126,6 +200,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
       - id: g
@@ -152,8 +227,8 @@ jobs:
           fi
 
   live-postgres:
-    needs: pg-gate
-    if: needs.pg-gate.outputs.live == 'true'
+    needs: [layout, pg-gate]
+    if: needs.layout.result == 'success' && needs.pg-gate.outputs.live == 'true'
     uses: ./.github/workflows/live-postgres.yml
 
   # Mirrors pipeline_admission::fan_in_ok (tested).
@@ -161,7 +236,7 @@ jobs:
     name: presubmit
     runs-on: ubuntu-24.04
     if: always()
-    needs: [occupancy, lint, test, deny, pg-gate, live-postgres]
+    needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]
     steps:
       - name: Fan-in verdict
         env:
@@ -175,4 +250,4 @@ jobs:
           occ() {
             if [ "${EVENT}" = "pull_request" ]; then [ "$1" = "success" ]; else [ "$1" = "skipped" ] || [ "$1" = "success" ]; fi
           }
-          occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
+          req "${{ needs.layout.result }}" && occ "${{ needs.occupancy.result }}" && req "${{ needs.lint.result }}" && req "${{ needs.clippy.result }}" && req "${{ needs.test.result }}" && req "${{ needs.deny.result }}" && req "${{ needs.pg-gate.result }}" && pg "${{ needs.live-postgres.result }}" && exit 0 || exit 1
