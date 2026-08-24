@@ -160,6 +160,21 @@ fn cedar_and_iac_descendants_are_closed_payloads() {
 }
 
 #[test]
+fn observability_accepts_only_direct_generated_openslo_outputs() {
+    for path in [
+        "network/observability/slos/dashboard.json",
+        "network/observability/slos/availability.openslo.yaml",
+        "network/observability/slos/dashboards/availability.generated.openslo.yaml",
+        "network/observability/slos/availability.generated.json",
+    ] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    assert!(!rejected(
+        "network/observability/slos/availability.generated.openslo.yaml"
+    ));
+}
+
+#[test]
 fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
     for path in [
         "network/facade/proto/network/draft/v1/service.proto",

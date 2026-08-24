@@ -1,4 +1,4 @@
-//! Cargo differential for source-marker workspace globs containing a literal parent segment.
+//! Cargo differential for bounded source-marker workspace globs.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -78,12 +78,12 @@ fn cargo_member_dirs(root: &Path) -> BTreeSet<String> {
 }
 
 #[test]
-fn source_marker_parent_segments_match_cargo_for_capability_and_app_drafts() {
+fn bounded_source_markers_match_cargo_and_tolerate_zero_drafts() {
     let root = fixture_root();
     write(
         &root,
         "Cargo.toml",
-        "[workspace]\nmembers=[\"*/ports/**/src/..\",\"*/adapters/**/src/..\",\"*/facade/*/src/..\",\"app/*/ports/**/src/..\",\"app/*/adapters/**/src/..\",\"app/*/facade/*/src/..\"]\nresolver='2'\n",
+        "[workspace]\nmembers=[\"*/ports/*/src/..\",\"*/adapters/*/src/..\",\"*/facade/*/src/..\",\"*/ports/draft/*/src/..\",\"*/adapters/draft/*/src/..\",\"app/*/ports/*/src/..\",\"app/*/adapters/*/src/..\",\"app/*/ports/draft/*/src/..\",\"app/*/adapters/draft/*/src/..\",\"app/*/facade/*/src/..\"]\nexclude=[\"*/ports/draft/*\",\"*/adapters/draft/*\",\"app/*/ports/draft/*\",\"app/*/adapters/draft/*\"]\nresolver='2'\n",
     );
     write_crate(&root, "network/ports/blob", "network-blob");
     write_crate(&root, "network/ports/draft/blob", "network-blob-draft");
@@ -113,6 +113,19 @@ fn source_marker_parent_segments_match_cargo_for_capability_and_app_drafts() {
         "app/drive/facade/proto/drive/api/v1/service.proto",
         "syntax = \"proto3\";\n",
     );
+    for nested_source in [
+        "network/ports/blob/tests/fixture/src/lib.rs",
+        "network/ports/blob/src/nested/src/lib.rs",
+        "network/ports/draft/blob/tests/fixture/src/lib.rs",
+        "network/adapters/blob-s3/tests/fixture/src/lib.rs",
+        "network/adapters/draft/blob-s3/src/nested/src/lib.rs",
+        "app/drive/ports/blob/tests/fixture/src/lib.rs",
+        "app/drive/ports/draft/blob/src/nested/src/lib.rs",
+        "app/drive/adapters/blob-s3/tests/fixture/src/lib.rs",
+        "app/drive/adapters/draft/blob-s3/src/nested/src/lib.rs",
+    ] {
+        write(&root, nested_source, "pub fn nested_marker() {}\n");
+    }
 
     let expected = BTreeSet::from([
         "app/drive/adapters/blob-s3".to_owned(),
@@ -126,13 +139,15 @@ fn source_marker_parent_segments_match_cargo_for_capability_and_app_drafts() {
         "network/ports/blob".to_owned(),
         "network/ports/draft/blob".to_owned(),
     ]);
+    let cargo = cargo_member_dirs(&root);
     let owned = resolve_member_dirs(&root)
         .expect("owned resolver")
         .into_iter()
         .collect::<BTreeSet<_>>();
 
+    assert_eq!(cargo, expected);
     assert_eq!(owned, expected);
-    assert_eq!(owned, cargo_member_dirs(&root));
+    assert_eq!(owned, cargo);
 
     std::fs::remove_dir_all(root.join("network/ports/draft")).expect("sell capability draft");
     std::fs::remove_dir_all(root.join("network/adapters/draft"))

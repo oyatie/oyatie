@@ -6,7 +6,7 @@ use std::process::ExitCode;
 
 use pipeline_admission::{
     APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations, cargo_entrypoint,
-    cargo_manifest_for_entrypoint, cargo_manifest_violations, changed_layout_violations,
+    cargo_manifest_for_crate_path, cargo_manifest_violations, changed_layout_violations,
     draft_dependency_violations, git_change_paths_from_name_status_z, proto_package_violations,
     workspace_draft_dependency_violations,
 };
@@ -48,25 +48,41 @@ fn run() -> Result<(), String> {
             &contents,
             &workspace_contents,
         ));
-        if let Some(entrypoint) = cargo_entrypoint(path)
-            && !repository.path_exists(&head, &entrypoint)?
-        {
-            violations.push(format!(
-                "{path}: canonical entry point `{entrypoint}` is absent at the head commit"
-            ));
-        }
         manifests.push((path.clone(), contents));
     }
-    for entrypoint in &changes.occupied {
-        let Some(manifest) = cargo_manifest_for_entrypoint(entrypoint) else {
+    let touched_manifests: BTreeSet<String> = changes
+        .occupied
+        .iter()
+        .filter_map(|path| cargo_manifest_for_crate_path(path))
+        .collect();
+    let mut added_base_manifests = Vec::new();
+    for manifest in touched_manifests {
+        let directory = manifest
+            .strip_suffix("/Cargo.toml")
+            .expect("canonical crate manifest suffix");
+        if !repository.directory_exists(&head, directory)? {
             continue;
-        };
-        if repository.path_exists(&head, &manifest)?
-            && !repository.path_exists(&head, entrypoint)?
-        {
+        }
+        let manifest_exists = repository.path_exists(&head, &manifest)?;
+        if !manifest_exists {
+            violations.push(format!(
+                "{directory}: touched face leaf must contain `Cargo.toml` at the head commit"
+            ));
+        }
+        let entrypoint = cargo_entrypoint(&manifest).expect("canonical crate manifest");
+        let entrypoint_exists = repository.path_exists(&head, &entrypoint)?;
+        if !entrypoint_exists {
             violations.push(format!(
                 "{manifest}: canonical entry point `{entrypoint}` is absent at the head commit"
             ));
+        }
+        if manifest.starts_with("base/core/")
+            && manifest_exists
+            && entrypoint_exists
+            && (!repository.path_exists(&merge_base, &manifest)?
+                || !repository.path_exists(&merge_base, &entrypoint)?)
+        {
+            added_base_manifests.push(manifest);
         }
     }
     for path in changes
@@ -77,13 +93,12 @@ fn run() -> Result<(), String> {
         let contents = repository.blob_text(&head, path)?;
         violations.extend(proto_package_violations(path, &contents));
     }
-    let first_base = !existing_owner_dirs.contains("base")
-        && changes
-            .layout_candidates
-            .iter()
-            .any(|path| path.starts_with("base/"));
-    if first_base {
-        violations.extend(base_admission_violations(&manifests));
+    for base_manifest in added_base_manifests {
+        violations.extend(base_admission_violations(
+            &base_manifest,
+            &manifests,
+            &workspace_contents,
+        ));
     }
     violations.sort();
     violations.dedup();

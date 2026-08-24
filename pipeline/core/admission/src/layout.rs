@@ -6,6 +6,7 @@
 
 use std::collections::BTreeSet;
 
+mod base;
 mod change;
 mod dependency;
 mod inner;
@@ -13,11 +14,12 @@ mod manifest;
 mod payload;
 mod proto;
 
+pub use base::base_admission_violations;
 pub use change::changed_layout_violations;
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
 pub use manifest::{
-    base_admission_violations, cargo_entrypoint, cargo_manifest_for_entrypoint,
+    cargo_entrypoint, cargo_manifest_for_crate_path, cargo_manifest_for_entrypoint,
     cargo_manifest_violations,
 };
 pub use proto::proto_package_violations;

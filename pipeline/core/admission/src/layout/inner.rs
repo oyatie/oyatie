@@ -103,7 +103,7 @@ fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut 
     }
 }
 
-fn crate_leaf_ok(face: &str, name: &str) -> bool {
+pub(super) fn crate_leaf_ok(face: &str, name: &str) -> bool {
     if !kebab_case(name)
         || name.starts_with("cloud-")
         || name.starts_with("oyatie-")
@@ -223,6 +223,14 @@ fn validate_observability(file: &str, parts: &[&str], violations: &mut Vec<Strin
         ));
     } else if parts.len() == 1 {
         violations.push(format!("{file}: `observability/slos` must be a directory"));
+    } else if parts.len() != 2
+        || !parts[1]
+            .strip_suffix(".generated.openslo.yaml")
+            .is_some_and(kebab_case)
+    {
+        violations.push(format!(
+            "{file}: SLO payloads must be direct `<name>.generated.openslo.yaml` outputs from IR"
+        ));
     }
 }
 

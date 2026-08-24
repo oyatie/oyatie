@@ -22,14 +22,12 @@ members = [
   # The canonical resolver remains pipeline/core/workspace-members-kernel; gates must resolve
   # members there, never by parsing this array.
   "*/core/*",
-  # Ports and adapters select a canonical `src/` marker and normalize back to
-  # the package directory. Recursion admits direct and D-28 `draft/<crate>`
-  # leaves through one always-matched shape, so selling the final draft cannot
-  # leave Cargo with a dangling future-only member glob. D-8 rejects any other
-  # grouping depth before admission.
-  "*/ports/**/src/..",
-  "*/adapters/**/src/..",
-  # Facades also require the crate's source marker. A broad `facade/*` would
+  # Source markers are bounded to a direct leaf. D-28 draft leaves get their
+  # own exact depth below; neither shape can descend into a crate's Rust or
+  # integration-test tree and mistake a nested `src/` fixture for a package.
+  "*/ports/*/src/..",
+  "*/adapters/*/src/..",
+  # Facades use the same source marker. A broad `facade/*` would
   # enroll the non-crate `facade/proto/` contract tree and break Cargo loading.
   "*/facade/*/src/..",
   # ADR-0562 composition ring. The layer globs above are single-segment and cannot reach
@@ -37,10 +35,12 @@ members = [
   # build — which evaluation_gate.forbidden calls move_now_fix_later. app/calendar landed
   # only because it holds zero crates.
   "app/*/core/*",
-  # App-scoped recursion covers both direct and future `draft/<crate>` depth without
-  # leaving an unmatched future-only glob that Cargo would interpret as a literal path.
-  "app/*/ports/**/src/..",
-  "app/*/adapters/**/src/..",
+  "*/ports/draft/*/src/..",
+  "*/adapters/draft/*/src/..",
+  "app/*/ports/*/src/..",
+  "app/*/adapters/*/src/..",
+  "app/*/ports/draft/*/src/..",
+  "app/*/adapters/draft/*/src/..",
   "app/*/facade/*/src/..",
   "app/foundry/pages/crates/*",
   "app/foundry/grid/core/*",
@@ -62,6 +62,15 @@ members = [
   # reviewer's call to make knowingly, not one to discover.
   #
   "build/port-engine/*/*",
+]
+# Cargo retains an unmatched member glob as a literal path. These exact
+# exclusions suppress only that literal fallback after the final draft is
+# promoted; Cargo does not apply them to real expanded draft directories.
+exclude = [
+  "*/ports/draft/*",
+  "*/adapters/draft/*",
+  "app/*/ports/draft/*",
+  "app/*/adapters/draft/*",
 ]
 resolver = "2"
 

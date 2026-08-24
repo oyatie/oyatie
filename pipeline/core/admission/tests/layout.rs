@@ -258,17 +258,32 @@ fn new_build_root_requires_core_source_not_owner_paperwork() {
 }
 
 #[test]
-fn workspace_globs_load_draft_leaf_crates_not_grouping_directories() {
+fn workspace_globs_bound_direct_and_draft_crate_depths() {
     let workspace = std::fs::read_to_string(repo_root().join("Cargo.toml")).expect("Cargo.toml");
     for member in [
-        "*/ports/**/src/..",
-        "*/adapters/**/src/..",
+        "*/ports/*/src/..",
+        "*/adapters/*/src/..",
         "*/facade/*/src/..",
-        "app/*/ports/**/src/..",
-        "app/*/adapters/**/src/..",
+        "*/ports/draft/*/src/..",
+        "*/adapters/draft/*/src/..",
+        "app/*/ports/*/src/..",
+        "app/*/adapters/*/src/..",
+        "app/*/ports/draft/*/src/..",
+        "app/*/adapters/draft/*/src/..",
         "app/*/facade/*/src/..",
     ] {
         assert!(workspace.contains(&format!("\"{member}\"")), "{member}");
+    }
+    for recursive in [
+        "*/ports/**/src/..",
+        "*/adapters/**/src/..",
+        "app/*/ports/**/src/..",
+        "app/*/adapters/**/src/..",
+    ] {
+        assert!(
+            !workspace.contains(&format!("\"{recursive}\"")),
+            "{recursive}"
+        );
     }
     for forbidden_parent in [
         "\"*/ports/*\"",

@@ -1,8 +1,5 @@
 //! Cargo identity and dependency-shape checks for changed ADR-0719 manifests.
 
-use std::collections::BTreeSet;
-
-use super::dependency::resolved_dependency_path;
 use super::{is_capability_root, path_parts};
 
 pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
@@ -50,16 +47,41 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
             ));
         }
     }
-    if face == "facade"
-        && manifest
-            .get("package")
-            .and_then(|package| package.get("autobins"))
-            .and_then(toml::Value::as_bool)
-            == Some(false)
+    let package = manifest.get("package");
+    let discovery_switch = if face == "facade" {
+        "autobins"
+    } else {
+        "autolib"
+    };
+    if package
+        .and_then(|package| package.get(discovery_switch))
+        .and_then(toml::Value::as_bool)
+        == Some(false)
     {
         violations.push(format!(
-            "{path}: facade packages must discover the canonical `src/main.rs` target"
+            "{path}: package `{discovery_switch} = false` disables the canonical face target"
         ));
+    }
+    if package
+        .and_then(|package| package.get("autotests"))
+        .and_then(toml::Value::as_bool)
+        == Some(false)
+    {
+        violations.push(format!(
+            "{path}: package `autotests = false` disables D-30 integration-test discovery"
+        ));
+    }
+    for switch in ["test"] {
+        if manifest
+            .get("lib")
+            .and_then(|library| library.get(switch))
+            .and_then(toml::Value::as_bool)
+            == Some(false)
+        {
+            violations.push(format!(
+                "{path}: `[lib].{switch} = false` disables required test discovery"
+            ));
+        }
     }
     if let Some(build_path) = manifest
         .get("package")
@@ -93,58 +115,17 @@ pub fn cargo_manifest_for_entrypoint(path: &str) -> Option<String> {
     (cargo_entrypoint(&manifest).as_deref() == Some(path)).then_some(manifest)
 }
 
-/// A first `base/` crate is below the capability graph only when at least
-/// three distinct capability manifests consume it as a production path
-/// dependency in the same reviewed change.
-pub fn base_admission_violations(manifests: &[(String, String)]) -> Vec<String> {
-    let consumers: BTreeSet<&str> = manifests
-        .iter()
-        .filter_map(|(path, contents)| {
-            let parts = path_parts(path);
-            let owner = *parts.first()?;
-            if !is_capability_root(owner) {
-                return None;
-            }
-            let manifest = contents.parse::<toml::Value>().ok()?;
-            production_dependency_targets_base(path, &manifest).then_some(owner)
-        })
-        .collect();
-    if consumers.len() >= 3 {
-        Vec::new()
-    } else {
-        vec![format!(
-            "base: first crate requires production path dependencies from at least three distinct capabilities in the same change; found {} ({})",
-            consumers.len(),
-            consumers.iter().copied().collect::<Vec<_>>().join(", ")
-        )]
-    }
-}
-
-fn production_dependency_targets_base(path: &str, manifest: &toml::Value) -> bool {
-    manifest
-        .get("dependencies")
-        .and_then(toml::Value::as_table)
-        .is_some_and(|dependencies| {
-            dependencies.values().any(|dependency| {
-                dependency
-                    .get("path")
-                    .and_then(toml::Value::as_str)
-                    .is_some_and(|dependency_path| resolves_under_base(path, dependency_path))
-            })
-        })
-}
-
-fn resolves_under_base(manifest_path: &str, dependency_path: &str) -> bool {
-    let Ok(components) = resolved_dependency_path(manifest_path, dependency_path) else {
-        return false;
-    };
-    components
-        .first()
-        .is_some_and(|component| component == "base")
-        && components
-            .get(1)
-            .is_some_and(|component| component == "core")
-        && components.get(2).is_some_and(|leaf| !leaf.is_empty())
+/// Map any path below a canonical face leaf back to that crate's manifest.
+pub fn cargo_manifest_for_crate_path(path: &str) -> Option<String> {
+    let parts = path_parts(path);
+    (1..=parts.len()).find_map(|end| {
+        let manifest = format!("{}/Cargo.toml", parts[..end].join("/"));
+        if expected_manifest_identity(&manifest).is_some() {
+            Some(manifest)
+        } else {
+            None
+        }
+    })
 }
 
 pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
@@ -171,6 +152,9 @@ pub(super) fn expected_manifest_identity(path: &str) -> Option<(String, &str)> {
         return None;
     }
     let leaf = parts[leaf_index];
+    if !super::inner::crate_leaf_ok(face, leaf) {
+        return None;
+    }
     let suffix = if draft { "-draft" } else { "" };
     Some((format!("{owner}-{leaf}{suffix}"), face))
 }
@@ -220,6 +204,9 @@ mod tests {
             "[package]\nname='network-route'\n[lib]\npath='src/other.rs'\n",
             "[package]\nname='network-route'\n[[bin]]\nname='route'\npath='src/route.rs'\n",
             "[package]\nname='network-route'\nbuild='tools/generate.rs'\n",
+            "[package]\nname='network-route'\nautolib=false\n",
+            "[package]\nname='network-route'\nautotests=false\n",
+            "[package]\nname='network-route'\n[lib]\ntest=false\n",
         ] {
             assert!(!cargo_manifest_violations(path, manifest).is_empty());
         }
@@ -243,16 +230,21 @@ mod tests {
     }
 
     #[test]
-    fn base_requires_three_distinct_production_consumers() {
-        let manifests = ["network", "storage", "compute"].map(|owner| {
-            (
-                format!("{owner}/core/engine/Cargo.toml"),
-                format!(
-                    "[package]\nname='{owner}-engine'\n[dependencies]\nbase-bytes={{path='../../../base/core/bytes'}}\n"
-                ),
-            )
-        });
-        assert!(base_admission_violations(&manifests[..2]).len() == 1);
-        assert!(base_admission_violations(&manifests).is_empty());
+    fn every_path_below_a_face_leaf_maps_to_its_manifest() {
+        for path in [
+            "network/ports/blob/tests/fixture.rs",
+            "network/ports/blob/OWNERS",
+            "network/ports/blob/build.rs",
+            "network/ports/draft/blob/src/lib.rs",
+            "app/drive/adapters/blob-s3/tests/live.rs",
+        ] {
+            assert!(cargo_manifest_for_crate_path(path).is_some(), "{path}");
+        }
+        assert!(
+            cargo_manifest_for_crate_path("network/facade/proto/network/api/v1/a.proto").is_none()
+        );
+        assert!(
+            cargo_manifest_for_crate_path("build/port-engine/core/analysis/src/lib.rs").is_none()
+        );
     }
 }

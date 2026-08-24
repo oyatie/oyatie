@@ -11,9 +11,7 @@ pub fn draft_dependency_violations(
     contents: &str,
     workspace_contents: &str,
 ) -> Vec<String> {
-    let Some(consumer) = manifest_owner(path) else {
-        return Vec::new();
-    };
+    let consumer = manifest_owner(path);
     let Ok(manifest) = contents.parse::<toml::Value>() else {
         return Vec::new();
     };
@@ -57,7 +55,8 @@ pub fn draft_dependency_violations(
         let Some(provider) = draft_dependency_owner(&components) else {
             return;
         };
-        if provider != consumer {
+        if consumer.as_deref() != Some(provider.as_str()) {
+            let consumer = consumer.as_deref().unwrap_or("unclassified manifest");
             violations.push(format!(
                 "{path}: dependency `{name}` crosses from `{consumer}` into owner-local draft `{provider}`"
             ));
@@ -224,67 +223,5 @@ fn visit_dependency_table(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn draft_dependencies_cannot_cross_owner_boundaries() {
-        let path = "network/core/route/Cargo.toml";
-        let workspace = "[workspace.dependencies]\nshared={path='storage/ports/draft/blob'}\n";
-        let direct = "[package]\nname='network-route'\n[dependencies]\nblob={path='../../../storage/ports/draft/blob'}\n";
-        assert!(!draft_dependency_violations(path, direct, workspace).is_empty());
-
-        let inherited = "[package]\nname='network-route'\n[target.'cfg(unix)'.dev-dependencies]\nshared.workspace=true\n";
-        assert!(!draft_dependency_violations(path, inherited, workspace).is_empty());
-
-        let local = "[package]\nname='network-route'\n[dependencies]\nrepo={path='../../ports/draft/repository'}\n";
-        assert!(draft_dependency_violations(path, local, workspace).is_empty());
-
-        assert!(!workspace_draft_dependency_violations(workspace).is_empty());
-        assert!(
-            workspace_draft_dependency_violations(
-                "[workspace.dependencies]\nshared={path='storage/ports/blob'}\n"
-            )
-            .is_empty()
-        );
-        for override_manifest in [
-            "[patch.crates-io]\nshared={path='storage/ports/draft/blob'}\n",
-            "[replace]\n'shared:1.0.0'={path='storage/ports/draft/blob'}\n",
-        ] {
-            assert!(!workspace_draft_dependency_violations(override_manifest).is_empty());
-        }
-    }
-
-    #[test]
-    fn unsafe_dependency_paths_fail_closed() {
-        let owner_manifest = "network/core/route/Cargo.toml";
-        for dependency_path in [
-            "/tmp/storage/ports/draft/blob",
-            "C:/workspace/storage/ports/draft/blob",
-            r"..\..\..\storage\ports\draft\blob",
-            "../../../../storage/ports/draft/blob",
-        ] {
-            let manifest = format!(
-                "[package]\nname='network-route'\n[dependencies]\nblob={{path='{dependency_path}'}}\n"
-            );
-            assert!(
-                !draft_dependency_violations(owner_manifest, &manifest, "").is_empty(),
-                "expected invalid dependency path rejection: {dependency_path}"
-            );
-        }
-
-        for dependency_path in [
-            "/tmp/storage/ports/draft/blob",
-            "C:/workspace/storage/ports/draft/blob",
-            r"storage\ports\draft\blob",
-            "../storage/ports/draft/blob",
-        ] {
-            let workspace =
-                format!("[workspace.dependencies]\nshared={{path='{dependency_path}'}}\n");
-            assert!(
-                !workspace_draft_dependency_violations(&workspace).is_empty(),
-                "expected invalid root dependency path rejection: {dependency_path}"
-            );
-        }
-    }
-}
+#[path = "dependency_tests.rs"]
+mod tests;
