@@ -1,6 +1,7 @@
 //! Inner owner grammar for ADR-0719 D-8.
 
 use super::payload::{validate_cedar, validate_iac};
+use super::test_fixture::validate_test_tree;
 use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 
 // D-41 explicitly amends the earlier closed list with a tiny owned build.rs
@@ -94,8 +95,10 @@ fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut 
         } else if !CRATE_FILES.contains(entry) {
             violations.push(format!("{file}: `{entry}` is not allowed at a crate root"));
         }
-    } else if matches!(*entry, "src" | "tests") {
-        validate_rust_tree(file, face, entry, descendants, violations);
+    } else if *entry == "src" {
+        validate_rust_tree(file, face, descendants, violations);
+    } else if *entry == "tests" {
+        validate_test_tree(file, descendants, violations);
     } else {
         violations.push(format!(
             "{file}: crate content must live under `src/` or `tests/`"
@@ -136,23 +139,17 @@ fn kebab_case(name: &str) -> bool {
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
-fn validate_rust_tree(
-    file: &str,
-    face: &str,
-    tree: &str,
-    parts: &[&str],
-    violations: &mut Vec<String>,
-) {
+fn validate_rust_tree(file: &str, face: &str, parts: &[&str], violations: &mut Vec<String>) {
     let Some((source, directories)) = parts.split_last() else {
         return;
     };
-    if tree == "src" && directories.first() == Some(&"bin") {
+    if directories.first() == Some(&"bin") {
         violations.push(format!(
             "{file}: `src/bin/` bypasses the canonical face entry point"
         ));
         return;
     }
-    if tree == "src" && directories.is_empty() && *source == "main.rs" && face != "facade" {
+    if directories.is_empty() && *source == "main.rs" && face != "facade" {
         violations.push(format!(
             "{file}: `{face}` is a library face and must use `src/lib.rs`, not `src/main.rs`"
         ));

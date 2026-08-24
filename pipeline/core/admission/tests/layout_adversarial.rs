@@ -97,7 +97,7 @@ fn crate_leaves_follow_the_face_grammar() {
 }
 
 #[test]
-fn crate_trees_reject_nested_dumps_and_non_rust_files() {
+fn crate_trees_reject_dumps_but_admit_bounded_test_fixtures() {
     for path in [
         "pipeline/core/admission/src/plan/note.rs",
         "pipeline/core/admission/src/BadName.rs",
@@ -105,6 +105,9 @@ fn crate_trees_reject_nested_dumps_and_non_rust_files() {
         "pipeline/core/admission/src/main.rs",
         "pipeline/core/admission/src/bin/helper.rs",
         "pipeline/core/admission/tests/tasks/example.rs",
+        "pipeline/core/admission/tests/fixtures/case/input.yaml",
+        "pipeline/core/admission/tests/fixtures/too/deep/input.json",
+        "pipeline/core/admission/tests/random/input.json",
     ] {
         assert!(rejected(path), "expected rejection: {path}");
     }
@@ -115,6 +118,8 @@ fn crate_trees_reject_nested_dumps_and_non_rust_files() {
         "network/facade/edge-app/src/main.rs",
         "network/facade/edge-app/src/lib.rs",
         "network/facade/edge-app/tests/e2e/main.rs",
+        "cell/core/regional-pack/tests/fixtures/sovereign-airgap/kr-fsc-deployment-model.json",
+        "iac/facade/app/tests/release-index.json",
     ] {
         assert!(!rejected(path), "unexpected rejection: {path}");
     }

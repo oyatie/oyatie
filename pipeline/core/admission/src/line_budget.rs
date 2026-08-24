@@ -28,8 +28,38 @@ fn exempt(path: &str) -> bool {
         || path.starts_with("third-party/")
         || matches!(name, "AGENTS.md" | "CLAUDE.md")
         || name.contains(".generated.")
+        || vendored_lock_step_snapshot(path)
         || live_apex_adr(path)
         || owner_law(&parts)
+}
+
+fn vendored_lock_step_snapshot(path: &str) -> bool {
+    const SNAPSHOT_PREFIX: &str = "build/port-engine/adapters/snapshot/src/fixture-snapshot-";
+    const PORT_GO_PREFIX: &str = "build/port-engine/facade/app/src/port-go-golden-v";
+    path.strip_prefix(SNAPSHOT_PREFIX)
+        .and_then(|name| name.strip_suffix(".json"))
+        .is_some_and(lowercase_versioned_name)
+        || path
+            .strip_prefix(PORT_GO_PREFIX)
+            .and_then(|version| version.strip_suffix(".txt"))
+            .is_some_and(|version| {
+                !version.is_empty() && version.bytes().all(|byte| byte.is_ascii_digit())
+            })
+}
+
+fn lowercase_versioned_name(name: &str) -> bool {
+    let version = name.strip_prefix('v').or_else(|| {
+        name.rsplit_once("-v")
+            .and_then(|(stem, version)| (!stem.is_empty()).then_some(version))
+    });
+    !name.is_empty()
+        && !name.contains('/')
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+        && version.is_some_and(|version| {
+            !version.is_empty() && version.bytes().all(|byte| byte.is_ascii_digit())
+        })
 }
 
 fn live_apex_adr(path: &str) -> bool {
@@ -71,6 +101,9 @@ mod tests {
             "network/ADR.md",
             "app/payroll/SPEC.md",
             "network/observability/slos/a.generated.openslo.yaml",
+            "build/port-engine/adapters/snapshot/src/fixture-snapshot-v1.json",
+            "build/port-engine/adapters/snapshot/src/fixture-snapshot-interface-v1.json",
+            "build/port-engine/facade/app/src/port-go-golden-v1.txt",
         ] {
             assert!(
                 file_budget_violations(path, text.as_bytes()).is_empty(),
@@ -86,6 +119,9 @@ mod tests {
             "base/ADR.md",
             "app/not-a-product/PLAN.md",
             "docs/decisions/ADR-0719evil.md",
+            "build/port-engine/adapters/other/src/fixture-snapshot-v1.json",
+            "build/port-engine/adapters/snapshot/src/not-a-snapshot-v1.json",
+            "build/port-engine/facade/app/src/port-go-golden-vnext.txt",
         ] {
             assert!(
                 !file_budget_violations(path, text.as_bytes()).is_empty(),

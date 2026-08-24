@@ -103,6 +103,16 @@ fn admit(root: &Path, base: &str, head: &str) -> Output {
 #[test]
 fn touched_face_leaf_must_be_complete_unless_fully_deleted() {
     let root = fixture();
+    write(
+        &root,
+        "network/core/existing/Cargo.toml",
+        "[package]\nname='network-existing'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "network/core/existing/src/lib.rs",
+        "pub fn existing() {}\n",
+    );
     let base = commit(&root, "base");
     write(
         &root,

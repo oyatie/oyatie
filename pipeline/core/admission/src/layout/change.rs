@@ -4,7 +4,9 @@ use std::collections::BTreeSet;
 
 use crate::GitChangePaths;
 
-use super::{APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, layout_violations};
+use super::{
+    ALLOWED_ROOT_DIRS, APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, is_capability_root, layout_violations,
+};
 
 const OWNER_LAW_FILES: &[&str] = &["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"];
 
@@ -22,12 +24,18 @@ pub fn changed_layout_violations(
             .cloned()
             .collect::<Vec<_>>(),
     );
-    for root in BUILD_ROOT_DIRS {
+    if owner_is_new_and_touched("base", changes, existing_owner_dirs) {
+        require_core_crate("base", "BUILD root", changes, &mut violations);
+    }
+    for root in ALLOWED_ROOT_DIRS
+        .iter()
+        .chain(BUILD_ROOT_DIRS)
+        .copied()
+        .filter(|root| is_capability_root(root))
+    {
         if owner_is_new_and_touched(root, changes, existing_owner_dirs) {
-            require_core_crate(root, "BUILD root", changes, &mut violations);
-            if *root != "base" {
-                require_owner_law(root, changes, &mut violations);
-            }
+            require_core_crate(root, "capability owner", changes, &mut violations);
+            require_owner_law(root, changes, &mut violations);
         }
     }
     for product in APP_PRODUCT_DIRS {

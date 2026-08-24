@@ -183,3 +183,74 @@ fn touched_handwritten_files_obey_the_three_hundred_line_budget() {
     assert_rejected(&root, &base, &head, "300-line budget");
     let _ = std::fs::remove_dir_all(root);
 }
+
+#[test]
+fn a_new_ordinary_capability_requires_complete_owner_shape() {
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(&root, "network/README.md", "paperwork only\n");
+    let paperwork = commit(&root, "incomplete network owner");
+    assert_rejected(
+        &root,
+        &base,
+        &paperwork,
+        "new capability owner requires one core crate",
+    );
+
+    git(&root, &["reset", "--hard", &base]);
+    write(
+        &root,
+        "network/core/route/Cargo.toml",
+        "[package]\nname='network-route'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "network/core/route/src/lib.rs",
+        "pub fn route() {}\n",
+    );
+    for law in ["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"] {
+        write(&root, &format!("network/{law}"), "law\n");
+    }
+    let complete = commit(&root, "complete network owner");
+    let admitted = admit(&root, &base, &complete);
+    assert!(
+        admitted.status.success(),
+        "{}",
+        String::from_utf8_lossy(&admitted.stderr)
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn loaded_test_data_can_change_inside_the_bounded_fixture_grammar() {
+    let root = fixture();
+    write(
+        &root,
+        "cell/core/regional-pack/Cargo.toml",
+        "[package]\nname='cell-regional-pack'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(
+        &root,
+        "cell/core/regional-pack/src/lib.rs",
+        "pub fn pack() {}\n",
+    );
+    write(
+        &root,
+        "cell/core/regional-pack/tests/fixtures/kr/manifest.json",
+        "{}\n",
+    );
+    let base = commit(&root, "fixture base");
+    write(
+        &root,
+        "cell/core/regional-pack/tests/fixtures/kr/manifest.json",
+        "{\"version\":1}\n",
+    );
+    let head = commit(&root, "refresh loaded fixture");
+    let admitted = admit(&root, &base, &head);
+    assert!(
+        admitted.status.success(),
+        "{}",
+        String::from_utf8_lossy(&admitted.stderr)
+    );
+    let _ = std::fs::remove_dir_all(root);
+}

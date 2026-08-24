@@ -20,47 +20,19 @@ pub const OYATIE_HUBS: &[&str] = &[
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/branch-protection.yaml",
     ".github/workflows/presubmit.yml",
-    "pipeline/core/admission/src/cadence.rs",
-    "pipeline/core/admission/src/fanin.rs",
-    "pipeline/core/admission/src/git_change.rs",
-    "pipeline/core/admission/src/layout.rs",
-    "pipeline/core/admission/src/layout/base.rs",
-    "pipeline/core/admission/src/layout/cargo_config.rs",
-    "pipeline/core/admission/src/layout/change.rs",
-    "pipeline/core/admission/src/layout/dependency.rs",
-    "pipeline/core/admission/src/layout/dependency_tests.rs",
-    "pipeline/core/admission/src/layout/inner.rs",
-    "pipeline/core/admission/src/layout/manifest.rs",
-    "pipeline/core/admission/src/layout/payload.rs",
-    "pipeline/core/admission/src/layout/proto.rs",
-    "pipeline/core/admission/src/layout/workspace.rs",
-    "pipeline/core/admission/src/lib.rs",
-    "pipeline/core/admission/src/occupancy.rs",
-    "pipeline/core/admission/tests/cadence_graph.rs",
-    "pipeline/core/admission/tests/layout.rs",
-    "pipeline/core/admission/tests/layout_adversarial.rs",
-    "pipeline/core/workspace-members-kernel/Cargo.toml",
-    "pipeline/core/workspace-members-kernel/src/lib.rs",
-    "pipeline/core/workspace-members-kernel/src/member_glob.rs",
-    "pipeline/core/workspace-members-kernel/src/tests/mod.rs",
-    "pipeline/core/workspace-members-kernel/src/tests/expansion.rs",
-    "pipeline/core/workspace-members-kernel/src/tests/policy.rs",
-    "pipeline/core/workspace-members-kernel/tests/cargo_differential.rs",
-    "pipeline/core/workspace-members-kernel/tests/cargo_parent_segments.rs",
-    "pipeline/facade/path-layout-app/Cargo.toml",
-    "pipeline/facade/path-layout-app/src/main.rs",
-    "pipeline/facade/path-layout-app/tests/completeness.rs",
-    "pipeline/facade/path-occupancy-app/Cargo.toml",
-    "pipeline/facade/path-occupancy-app/src/main.rs",
-    "pipeline/ports/draft/repository/Cargo.toml",
-    "pipeline/ports/draft/repository/src/lib.rs",
-    "pipeline/adapters/draft/repository-git/Cargo.toml",
-    "pipeline/adapters/draft/repository-git/src/lib.rs",
     ".gitignore",
 ];
 
 /// Repo-root law is a hub even when the individual ADR filename is new.
-pub const OYATIE_HUB_PREFIXES: &[&str] = &["docs/decisions/ADR-07"];
+pub const OYATIE_HUB_PREFIXES: &[&str] = &[
+    "docs/decisions/ADR-07",
+    "pipeline/adapters/draft/repository-git/",
+    "pipeline/core/admission/",
+    "pipeline/core/workspace-members-kernel/",
+    "pipeline/facade/path-layout-app/",
+    "pipeline/facade/path-occupancy-app/",
+    "pipeline/ports/draft/repository/",
+];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OccupiedSet {
@@ -194,6 +166,18 @@ mod tests {
             "pipeline/core/admission/src/lib.rs",
         ] {
             assert!(hits_hub(&set(&[hub])), "missing hub {hub}");
+        }
+    }
+
+    #[test]
+    fn every_admission_implementation_file_is_a_hub() {
+        for hub in [
+            "pipeline/core/admission/src/layout/root_meta.rs",
+            "pipeline/core/admission/src/line_budget.rs",
+            "pipeline/facade/path-layout-app/src/repository_checks.rs",
+            "pipeline/adapters/draft/repository-git/src/future_reader.rs",
+        ] {
+            assert!(hits_hub(&set(&[hub])), "missing admission hub {hub}");
         }
     }
 }

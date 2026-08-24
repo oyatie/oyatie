@@ -16,7 +16,7 @@ fn repo_root() -> PathBuf {
 
 #[test]
 fn changed_layout_checks_only_paths_present_after_the_change() {
-    let existing_build_roots = BTreeSet::new();
+    let existing_build_roots: BTreeSet<String> = ["pipeline".to_owned()].into();
     let deletion = git_change_paths_from_name_status_z(b"D\0plan/legacy.md\0").unwrap();
     assert!(deletion.occupied.contains("plan/legacy.md"));
     assert!(changed_layout_violations(&deletion, &existing_build_roots).is_empty());
@@ -38,6 +38,21 @@ fn changed_layout_checks_only_paths_present_after_the_change() {
             .iter()
             .any(|violation| violation.contains("plan/legacy.md"))
     );
+}
+
+#[test]
+fn every_new_capability_requires_core_and_owner_law() {
+    let paperwork =
+        git_change_paths_from_name_status_z(b"A\0network/OWNERS\0A\0network/README.md\0").unwrap();
+    let violations = changed_layout_violations(&paperwork, &BTreeSet::new());
+    assert!(violations.iter().any(|item| item.contains("core crate")));
+    assert!(violations.iter().any(|item| item.contains("D-36")));
+
+    let implementation = git_change_paths_from_name_status_z(
+        b"A\0network/OWNERS\0A\0network/ADR.md\0A\0network/PRD.md\0A\0network/SPEC.md\0A\0network/PLAN.md\0A\0network/core/route/Cargo.toml\0A\0network/core/route/src/lib.rs\0",
+    )
+    .unwrap();
+    assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
 }
 
 #[test]

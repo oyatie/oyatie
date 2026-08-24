@@ -15,6 +15,7 @@ mod manifest;
 mod payload;
 mod proto;
 mod root_meta;
+mod test_fixture;
 mod workspace;
 
 pub use base::base_admission_violations;
