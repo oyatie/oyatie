@@ -94,11 +94,24 @@ fn presubmit_jobs_are_the_occupant_set() {
     let layout = read("pipeline/facade/path-layout-app/src/main.rs");
     assert!(layout.contains("changed_layout_violations"));
     assert!(layout.contains("git_change_paths_from_name_status_z"));
-    assert!(layout.contains("merge-base"));
     assert!(layout.contains("BUILD_ROOT_DIRS"));
     assert!(layout.contains("APP_PRODUCT_DIRS"));
     assert!(layout.contains("cargo_manifest_violations"));
-    assert!(layout.contains("cat-file"));
+    assert!(layout.contains("RepositoryRead"));
+    assert!(layout.contains("GitRepository"));
+
+    let repository_port = read("pipeline/ports/draft/repository/src/lib.rs");
+    assert!(repository_port.contains("pub trait RepositoryRead"));
+    assert!(repository_port.contains("changed_name_status"));
+    assert!(repository_port.contains("blob_text"));
+
+    let git_adapter = read("pipeline/adapters/draft/repository-git/src/lib.rs");
+    assert!(git_adapter.contains("merge-base"));
+    assert!(git_adapter.contains("--name-status"));
+    assert!(git_adapter.contains("\"-z\""));
+    assert!(git_adapter.contains("\"-M\""));
+    assert!(git_adapter.contains("cat-file"));
+    assert!(git_adapter.contains("ls-tree"));
 }
 
 #[test]

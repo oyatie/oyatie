@@ -14,26 +14,31 @@ members = [
   # `<capability>/{core,ports,adapters,facade}/<leaf>` is ADR-0562 §1's shape, so a conforming
   # capability — present or future — is a member by construction and needs ZERO edit here.
   #
-  # Measured on the tree at the time of this change: the four globs select 466 directories, of
-  # which 465 hold a [package] manifest. Non-crate layer-glob matches are carried in `exclude`
-  # below. The old `<cap>/*/*` form matched EVERY non-crate subdir (`<cap>/observability/`,
-  # `<cap>/slos/`, ...), and cargo errors on a matched directory with no manifest — which is
-  # why each satellite dir needed a hand-written exclude entry. Under the layer globs those
-  # directories no longer match at all, so ~23 exclude entries simply cease to be necessary.
+  # The old `<cap>/*/*` form matched EVERY non-crate subdir (`<cap>/observability/`,
+  # `<cap>/slos/`, ...), and Cargo errors on a matched directory with no manifest. The
+  # face-specific globs below select package-shaped paths, so satellite and grouping
+  # directories do not need a hand-maintained exclusion list.
   #
   # The canonical resolver remains libs/workspace-members-kernel; gates must resolve
   # members there, never by parsing this array.
   "*/core/*",
-  "*/ports/*",
-  "*/adapters/*",
+  # Ports and adapters select a canonical `src/` marker and normalize back to
+  # the package directory. That admits every D-30 crate but does not mistake
+  # the D-28 `draft/` grouping directory itself for a package.
+  "*/ports/*/src/..",
+  "*/adapters/*/src/..",
   "*/facade/*",
+  # D-28/D-30 draft crates live one segment deeper. Recursive face globs cover
+  # both capability and app owners through the same canonical source marker.
+  "**/ports/draft/*/src/..",
+  "**/adapters/draft/*/src/..",
   # ADR-0562 composition ring. The layer globs above are single-segment and cannot reach
   # `app/<product>/<face>/<crate>`, so without these an app absorb lands crates OUTSIDE the
   # build — which evaluation_gate.forbidden calls move_now_fix_later. app/calendar landed
   # only because it holds zero crates.
   "app/*/core/*",
-  "app/*/ports/*",
-  "app/*/adapters/*",
+  "app/*/ports/*/src/..",
+  "app/*/adapters/*/src/..",
   "app/*/facade/*",
   "app/foundry/pages/crates/*",
   "app/foundry/grid/core/*",
@@ -55,29 +60,6 @@ members = [
   # reviewer's call to make knowingly, not one to discover.
   #
   "build/port-engine/*/*",
-]
-exclude = [
-  # Workspace carve-outs and non-crate directories the layer globs over-match.
-  #
-  # `kernel` is its own workspace (ADR-0512 carve-out) — excluded
-  # because they are separate roots, not because a glob over-matched them.
-  #
-  # `ci/facade/harness` and `storage/adapters/nativelink` are directories the layer globs
-  # match that hold no [package] manifest (harness holds process-kit JSON mirrors only;
-  # nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
-  # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
-  # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0716 so the
-  # rust-first ratchet is enforced by the cargo merge path.)
-  #
-    # `governance/check/integ-envelope` was excluded here while it held only
-    # judgments/waivers DATA. ADR-0711 Phase B gives it an evaluator, so it is a
-    # crate now and rejoins the `governance/check/*` member glob.
-  #
-  # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
-  # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
-  # above do not match them. That is the point of the change — a capability move no longer adds
-  # an exclusion for satellite dirs outside the four faces.
-  "storage/adapters/nativelink",
 ]
 resolver = "2"
 

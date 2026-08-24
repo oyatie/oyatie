@@ -139,6 +139,27 @@ fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
 }
 
 #[test]
+fn cedar_and_iac_descendants_are_closed_payloads() {
+    for path in [
+        "network/cedar/tasks/todo.cedar",
+        "network/cedar/policy.json",
+        "network/iac/plan/todo.textproto",
+        "network/iac/helm/values.yaml",
+        "network/iac/state.yaml",
+    ] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    for path in [
+        "network/cedar/policies.cedar",
+        "network/cedar/network_schema.cedarschema",
+        "network/iac/network_state.proto",
+        "network/iac/cells/us_east.textproto",
+    ] {
+        assert!(!rejected(path), "unexpected rejection: {path}");
+    }
+}
+
+#[test]
 fn changed_manifests_bind_package_and_rustc_identity() {
     let path = "network/ports/blob/Cargo.toml";
     assert!(cargo_manifest_violations(path, "[package]\nname = 'network-blob'\n").is_empty());

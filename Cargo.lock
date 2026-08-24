@@ -6258,6 +6258,8 @@ name = "pipeline-path-layout-app"
 version = "0.1.0"
 dependencies = [
  "pipeline-admission",
+ "pipeline-repository-draft",
+ "pipeline-repository-git-draft",
 ]
 
 [[package]]
@@ -6265,6 +6267,17 @@ name = "pipeline-path-occupancy-app"
 version = "0.1.0"
 dependencies = [
  "pipeline-admission",
+]
+
+[[package]]
+name = "pipeline-repository-draft"
+version = "0.1.0"
+
+[[package]]
+name = "pipeline-repository-git-draft"
+version = "0.1.0"
+dependencies = [
+ "pipeline-repository-draft",
 ]
 
 [[package]]

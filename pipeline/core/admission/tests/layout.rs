@@ -256,3 +256,26 @@ fn new_build_root_requires_core_source_not_owner_paperwork() {
     let existing: BTreeSet<String> = ["policy".to_owned()].into();
     assert!(changed_layout_violations(&paperwork, &existing).is_empty());
 }
+
+#[test]
+fn workspace_globs_load_draft_leaf_crates_not_grouping_directories() {
+    let workspace = std::fs::read_to_string(repo_root().join("Cargo.toml")).expect("Cargo.toml");
+    for member in [
+        "*/ports/*/src/..",
+        "*/adapters/*/src/..",
+        "app/*/ports/*/src/..",
+        "app/*/adapters/*/src/..",
+        "**/ports/draft/*/src/..",
+        "**/adapters/draft/*/src/..",
+    ] {
+        assert!(workspace.contains(&format!("\"{member}\"")), "{member}");
+    }
+    for forbidden_parent in [
+        "\"*/ports/*\"",
+        "\"*/adapters/*\"",
+        "\"app/*/ports/*\"",
+        "\"app/*/adapters/*\"",
+    ] {
+        assert!(!workspace.contains(forbidden_parent), "{forbidden_parent}");
+    }
+}

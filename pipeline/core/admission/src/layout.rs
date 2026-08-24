@@ -9,10 +9,13 @@ use std::collections::BTreeSet;
 mod change;
 mod inner;
 mod manifest;
+mod payload;
+mod proto;
 
 pub use change::changed_layout_violations;
 use inner::validate_owner_path;
-pub use manifest::{base_admission_violations, cargo_manifest_violations};
+pub use manifest::{base_admission_violations, cargo_entrypoint, cargo_manifest_violations};
+pub use proto::proto_package_violations;
 
 /// Admitted root directories that are present on `dev` and therefore require
 /// OWNERS/CODEOWNERS coverage.

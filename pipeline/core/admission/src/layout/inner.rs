@@ -1,5 +1,6 @@
 //! Inner owner grammar for ADR-0719 D-8.
 
+use super::payload::{validate_cedar, validate_iac};
 use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 
 // D-41 explicitly amends the earlier closed list with a tiny owned build.rs
@@ -40,7 +41,8 @@ pub(super) fn validate_owner_path(
                 violations,
             );
         }
-        "cedar" | "iac" => {}
+        "cedar" => validate_cedar(file, &parts[child_index + 1..], violations),
+        "iac" => validate_iac(file, &parts[child_index + 1..], violations),
         "observability" => {
             validate_observability(file, &parts[child_index + 1..], violations);
         }

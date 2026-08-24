@@ -73,6 +73,17 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
     violations
 }
 
+pub fn cargo_entrypoint(path: &str) -> Option<String> {
+    let (_, face) = expected_manifest_identity(path)?;
+    let directory = path.strip_suffix("/Cargo.toml")?;
+    let source = if face == "facade" {
+        "src/main.rs"
+    } else {
+        "src/lib.rs"
+    };
+    Some(format!("{directory}/{source}"))
+}
+
 /// A first `base/` crate is below the capability graph only when at least
 /// three distinct capability manifests consume it as a production path
 /// dependency in the same reviewed change.
@@ -214,6 +225,18 @@ mod tests {
         ] {
             assert!(!cargo_manifest_violations(path, manifest).is_empty());
         }
+    }
+
+    #[test]
+    fn canonical_entrypoint_follows_the_face() {
+        assert_eq!(
+            cargo_entrypoint("network/core/route/Cargo.toml").as_deref(),
+            Some("network/core/route/src/lib.rs")
+        );
+        assert_eq!(
+            cargo_entrypoint("network/facade/edge-app/Cargo.toml").as_deref(),
+            Some("network/facade/edge-app/src/main.rs")
+        );
     }
 
     #[test]

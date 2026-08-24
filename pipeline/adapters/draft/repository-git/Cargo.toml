@@ -1,0 +1,13 @@
+[package]
+name = "pipeline-repository-git-draft"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+pipeline-repository-draft = { path = "../../../ports/draft/repository" }
+
+[lints]
+workspace = true

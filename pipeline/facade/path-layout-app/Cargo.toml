@@ -8,6 +8,8 @@ license = "Apache-2.0"
 
 [dependencies]
 pipeline-admission = { path = "../../core/admission" }
+pipeline-repository-draft = { path = "../../ports/draft/repository" }
+pipeline-repository-git-draft = { path = "../../adapters/draft/repository-git" }
 
 [lints]
 workspace = true
