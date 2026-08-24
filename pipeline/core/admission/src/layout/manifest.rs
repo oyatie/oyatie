@@ -83,15 +83,19 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
             ));
         }
     }
-    if let Some(build_path) = manifest
+    if let Some(build) = manifest
         .get("package")
         .and_then(|package| package.get("build"))
-        .and_then(toml::Value::as_str)
-        && build_path != "build.rs"
     {
-        violations.push(format!(
-            "{path}: package build target must be the D-41 `build.rs`, got `{build_path}`"
-        ));
+        match build.as_str() {
+            Some("build.rs") => {}
+            Some(build_path) => violations.push(format!(
+                "{path}: package build target must be the D-41 `build.rs`, got `{build_path}`"
+            )),
+            None => violations.push(format!(
+                "{path}: package build target must be the D-41 `build.rs`; boolean or non-string overrides are forbidden"
+            )),
+        }
     }
     violations
 }
@@ -204,6 +208,7 @@ mod tests {
             "[package]\nname='network-route'\n[lib]\npath='src/other.rs'\n",
             "[package]\nname='network-route'\n[[bin]]\nname='route'\npath='src/route.rs'\n",
             "[package]\nname='network-route'\nbuild='tools/generate.rs'\n",
+            "[package]\nname='network-route'\nbuild=false\n",
             "[package]\nname='network-route'\nautolib=false\n",
             "[package]\nname='network-route'\nautotests=false\n",
             "[package]\nname='network-route'\n[lib]\ntest=false\n",
