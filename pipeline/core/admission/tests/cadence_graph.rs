@@ -59,11 +59,17 @@ fn presubmit_jobs_are_the_occupant_set() {
         y.contains("needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]")
     );
     assert!(y.contains("needs: [layout, occupancy]"));
-    assert!(y.contains("ref: ${{ github.workflow_sha }}"));
+    let protected_source = "ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'refs/oyatie/invalid-admission-source' }}";
+    assert_eq!(
+        y.matches(protected_source).count(),
+        2,
+        "layout and occupancy must compile from the protected base commit"
+    );
+    assert!(!y.contains("github.workflow_sha"));
     assert!(y.contains("ref: ${{ github.sha }}"));
     assert!(y.contains("git rev-parse --verify 'HEAD^1^{commit}'"));
-    assert!(!y.contains("github.event.pull_request."));
-    assert!(!y.contains("github.event.merge_group."));
+    assert!(!y.contains("github.event.pull_request.head.sha"));
+    assert!(!y.contains("github.event.merge_group.head_sha"));
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
     assert!(y.contains("path: candidate"));
@@ -107,7 +113,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("occ()"));
     assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
-    assert!(!y.contains("OYATIE_PULL_REQUEST"));
+    assert!(y.contains("OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(
         !y.contains("gh pr diff"),
