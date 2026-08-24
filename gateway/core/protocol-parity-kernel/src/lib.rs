@@ -176,9 +176,11 @@ fn is_semver_core(value: &str) -> bool {
     if parts.next().is_some() {
         return false;
     }
-    [major, minor, patch]
-        .iter()
-        .all(|part| !part.is_empty() && part.chars().all(|character| character.is_ascii_digit()))
+    [major, minor, patch].iter().all(|part| {
+        !part.is_empty()
+            && part.chars().all(|character| character.is_ascii_digit())
+            && (*part == "0" || !part.starts_with('0'))
+    })
 }
 
 #[cfg(test)]
@@ -252,6 +254,14 @@ mod tests {
             ),
             Err(ProtocolParityError::InvalidSchemaVersion { value: "v1".into() })
         );
+    }
+
+    #[test]
+    fn schema_version_rejects_leading_zeroes() {
+        assert!(is_semver_core("0.0.0"));
+        for invalid in ["01.0.0", "1.00.0", "1.0.00"] {
+            assert!(!is_semver_core(invalid));
+        }
     }
 
     #[test]
