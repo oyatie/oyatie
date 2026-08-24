@@ -2,7 +2,7 @@
 //! reads the repo, not because it needs a private API.
 
 use pipeline_admission::{
-    ALLOWED_ROOT_DIRS, cap_root_file_ok, changed_layout_violations,
+    ALLOWED_ROOT_DIRS, BUILD_ROOT_DIRS, cap_root_file_ok, changed_layout_violations,
     git_change_paths_from_name_status_z, layout_violations,
 };
 use std::collections::BTreeSet;
@@ -17,7 +17,11 @@ fn repo_root() -> PathBuf {
 
 #[test]
 fn unknown_root_dir_is_red() {
-    let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS.iter().copied().collect();
+    let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS
+        .iter()
+        .chain(BUILD_ROOT_DIRS)
+        .copied()
+        .collect();
     let mut unknown = Vec::new();
     for entry in std::fs::read_dir(repo_root()).expect("read root") {
         let entry = entry.expect("entry");
@@ -35,7 +39,7 @@ fn unknown_root_dir_is_red() {
     }
     assert!(
         unknown.is_empty(),
-        "unknown root names (not in ALLOWED_ROOT_DIRS): {unknown:?}"
+        "unknown root names (not admitted by D-8): {unknown:?}"
     );
 }
 

@@ -2,7 +2,8 @@
 //! through the public occupant map.
 
 use pipeline_admission::{
-    ALLOWED_ROOT_DIRS, META_ROOTS, ROOT_OCCUPANT, is_capability_root, owners_occupant,
+    ALLOWED_ROOT_DIRS, BUILD_ROOT_DIRS, META_ROOTS, ROOT_OCCUPANT, is_capability_root,
+    owners_occupant,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -61,8 +62,10 @@ fn app_products() -> BTreeSet<String> {
 fn capabilities() -> BTreeSet<&'static str> {
     ALLOWED_ROOT_DIRS
         .iter()
+        .chain(BUILD_ROOT_DIRS)
         .copied()
         .filter(|d| is_capability_root(d))
+        .filter(|capability| repo_root().join(capability).is_dir())
         .collect()
 }
 
