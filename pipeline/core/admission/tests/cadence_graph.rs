@@ -80,6 +80,15 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("--target x86_64-unknown-linux-gnu"));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-layout-admission\""));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-occupancy-admission\""));
+    let protected_builds = y
+        .split("name: Build protected path-layout application")
+        .nth(1)
+        .and_then(|rest| rest.split("  lint:").next())
+        .expect("protected admission jobs");
+    assert!(
+        !protected_builds.contains("rust-cache"),
+        "protected admission must not restore candidate-writable caches"
+    );
     assert!(y.contains("debug/pipeline-path-layout-app\""));
     assert!(y.contains("debug/pipeline-path-occupancy-app\""));
     assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
