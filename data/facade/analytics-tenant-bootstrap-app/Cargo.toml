@@ -1,5 +1,5 @@
 [package]
-name = "data-analytics-tenant-bootstrap"
+name = "data-analytics-tenant-bootstrap-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -18,13 +18,7 @@ container_image = "ghcr.io/oyatie/analytics-tenant-bootstrap:<sha> (non_claim: n
 data_classification = "INTERNAL_ONLY"
 
 [lib]
-name = "data_analytics_tenant_bootstrap"
-path = "src/lib.rs"
 doctest = false
-
-[[bin]]
-name = "data-analytics-tenant-bootstrap"
-path = "src/main.rs"
 
 [dependencies]
 shared-olap-clickhouse-adapter = { path = "../../adapters/olap-clickhouse" }

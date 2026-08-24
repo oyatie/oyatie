@@ -1653,7 +1653,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "data-analytics-tenant-bootstrap"
+name = "data-analytics-tenant-bootstrap-app"
 version = "0.1.0"
 dependencies = [
  "clap",
