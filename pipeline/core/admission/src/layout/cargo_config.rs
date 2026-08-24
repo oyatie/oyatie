@@ -1,8 +1,8 @@
 //! Cargo configuration surfaces that can bypass admission or redirect dependencies.
 
-/// Repository Cargo configuration may tune builds, but it cannot replace dependency sources.
-/// It also cannot substitute a runner for protected admission executables. Root-manifest path
-/// dependencies are checked separately by the draft-boundary admission.
+/// Repository Cargo configuration may tune builds, but it cannot replace dependency sources or
+/// commands. Protected workflow commands run outside this configuration as the primary trust
+/// boundary; these checks keep the same substitutions from reaching other Cargo callers.
 pub fn cargo_config_violations(path: &str, contents: &str) -> Vec<String> {
     let Ok(config) = contents.parse::<toml::Value>() else {
         return vec![format!("{path}: invalid Cargo configuration")];
@@ -19,6 +19,24 @@ pub fn cargo_config_violations(path: &str, contents: &str) -> Vec<String> {
             )
         })
         .collect();
+    if config.contains_key("alias") {
+        violations.push(format!(
+            "{path}: repository Cargo command aliases are forbidden; protected tools are invoked directly"
+        ));
+    }
+    if config
+        .get("build")
+        .and_then(toml::Value::as_table)
+        .is_some_and(|build| {
+            ["rustc", "rustc-wrapper", "rustc-workspace-wrapper"]
+                .iter()
+                .any(|key| build.contains_key(*key))
+        })
+    {
+        violations.push(format!(
+            "{path}: repository Cargo compiler substitution is forbidden; protected builds use the pinned toolchain directly"
+        ));
+    }
     if config.get("target").is_some_and(contains_runner) {
         violations.push(format!(
             "{path}: repository Cargo target runner configuration is forbidden; protected executables run directly"
@@ -69,6 +87,21 @@ mod tests {
             let violations = cargo_config_violations(".cargo/config.toml", config);
             assert!(
                 violations.iter().any(|item| item.contains("target runner")),
+                "{config}"
+            );
+        }
+    }
+
+    #[test]
+    fn command_and_compiler_substitution_are_closed() {
+        for config in [
+            "[alias]\nnextest = '!true'\n",
+            "[build]\nrustc = 'true'\n",
+            "[build]\nrustc-wrapper = 'true'\n",
+            "[build]\nrustc-workspace-wrapper = 'true'\n",
+        ] {
+            assert!(
+                !cargo_config_violations(".cargo/config.toml", config).is_empty(),
                 "{config}"
             );
         }

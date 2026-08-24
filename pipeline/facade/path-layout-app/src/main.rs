@@ -39,7 +39,7 @@ fn run() -> Result<(), String> {
         |visited| reject_indirect_dependency_components(&repository, &head, visited),
     ));
     violations.extend(repository_cargo_config_violations(&repository, &head)?);
-    violations.extend(crate_candidate_kind_violations(
+    violations.extend(live_candidate_kind_violations(
         &repository,
         &head,
         &changes.layout_candidates,
@@ -156,23 +156,20 @@ fn repository_cargo_config_violations(
     Ok(violations)
 }
 
-fn crate_candidate_kind_violations(
+fn live_candidate_kind_violations(
     repository: &impl RepositoryRead,
     head: &str,
     candidates: &BTreeSet<String>,
 ) -> Result<Vec<String>, String> {
     let mut violations = Vec::new();
     for path in candidates {
-        if cargo_manifest_for_crate_path(path).is_none() {
-            continue;
-        }
         match repository.entry_kind(head, path)? {
             Some(kind) if regular_blob(Some(kind)) => {}
             Some(kind) => violations.push(format!(
-                "{path}: live crate content must be a regular Git blob, got {kind:?}"
+                "{path}: live changed content must be a regular Git blob, got {kind:?}"
             )),
             None => violations.push(format!(
-                "{path}: live changed crate path is absent at the head commit"
+                "{path}: live changed path is absent at the head commit"
             )),
         }
     }

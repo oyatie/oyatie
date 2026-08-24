@@ -41,8 +41,10 @@ jobs:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
       - name: Build admission applications
+        working-directory: ${{ runner.temp }}
         run: >-
           cargo build --locked
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
           --target x86_64-unknown-linux-gnu
           --target-dir "$RUNNER_TEMP/oyatie-admission"
           -p pipeline-path-layout-app
@@ -51,7 +53,7 @@ jobs:
         run: >-
           "$RUNNER_TEMP/oyatie-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app"
           "${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}"
-          "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}"
+          "${{ github.sha }}"
       - name: Admit complete Git path-set
         if: github.event_name == 'pull_request'
         env:
@@ -74,7 +76,11 @@ jobs:
           toolchain: "1.98.0"
           components: rustfmt
       - name: Check formatting
-        run: cargo fmt --all --check
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo fmt
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --all --check
 
   deny:
     name: deny (licenses bans sources)
@@ -113,7 +119,11 @@ jobs:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
       - name: Workspace tests
-        run: cargo nextest run --locked --workspace --profile ci
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo-nextest nextest run
+          --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --locked --workspace --profile ci
 
   pg-gate:
     name: pg-gate

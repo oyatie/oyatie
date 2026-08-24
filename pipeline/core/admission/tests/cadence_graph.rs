@@ -54,17 +54,29 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
+    assert!(y.contains("\"${{ github.sha }}\""));
+    assert!(!y.contains(
+        "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}"
+    ));
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
     assert!(!y.contains("OYATIE_LAYOUT_BASE"));
     assert!(!y.contains("OYATIE_LAYOUT_HEAD"));
     assert!(y.contains("cargo build --locked"));
+    assert_eq!(
+        y.matches("working-directory: ${{ runner.temp }}").count(),
+        3,
+        "admission build, rustfmt, and nextest must ignore checkout Cargo configuration"
+    );
+    assert!(y.contains("--manifest-path \"$GITHUB_WORKSPACE/Cargo.toml\""));
     assert!(y.contains("--target x86_64-unknown-linux-gnu"));
     assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-admission\""));
     assert!(y.contains("debug/pipeline-path-layout-app\""));
     assert!(y.contains("debug/pipeline-path-occupancy-app\""));
     assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
     assert!(!y.contains("cargo run -p pipeline-path-occupancy-app"));
+    assert!(y.contains("cargo-nextest nextest run"));
+    assert!(!y.contains("cargo nextest run"));
     assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
@@ -115,7 +127,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("workspace_draft_dependency_violations"));
     assert!(layout.contains("workspace_membership_violations"));
     assert!(layout.contains("repository_cargo_config_violations"));
-    assert!(layout.contains("crate_candidate_kind_violations"));
+    assert!(layout.contains("live_candidate_kind_violations"));
     assert!(layout.contains("entry_kind(&head"));
     assert!(layout.contains("RepositoryRead"));
     assert!(layout.contains("GitRepository"));
