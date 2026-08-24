@@ -16,6 +16,10 @@ pub trait RepositoryRead {
 
     fn blob_text(&self, commit: &str, path: &str) -> Result<String, String>;
 
+    fn blob_bytes(&self, commit: &str, path: &str) -> Result<Vec<u8>, String>;
+
+    fn files_under(&self, commit: &str, path: &str) -> Result<Vec<String>, String>;
+
     fn path_exists(&self, commit: &str, path: &str) -> Result<bool, String>;
 
     fn directory_exists(&self, commit: &str, path: &str) -> Result<bool, String>;

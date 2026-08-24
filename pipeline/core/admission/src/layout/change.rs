@@ -40,16 +40,39 @@ pub fn changed_layout_violations(
     violations
 }
 
+/// A conditional owner that had a complete core at the merge base may be
+/// removed as a unit, but it cannot survive as paperwork-only scaffolding.
+pub fn owner_core_regression_violations(
+    changes: &GitChangePaths,
+    complete_before: &BTreeSet<String>,
+    live_after: &BTreeSet<String>,
+    complete_after: &BTreeSet<String>,
+) -> Vec<String> {
+    complete_before
+        .iter()
+        .filter(|owner| owner_touched(owner, changes))
+        .filter(|owner| live_after.contains(*owner) && !complete_after.contains(*owner))
+        .map(|owner| {
+            format!(
+                "{owner}: deleting the last complete core crate while retaining the owner is forbidden"
+            )
+        })
+        .collect()
+}
+
 fn owner_is_new_and_touched(
     owner: &str,
     changes: &GitChangePaths,
     existing_owner_dirs: &BTreeSet<String>,
 ) -> bool {
-    !existing_owner_dirs.contains(owner)
-        && changes
-            .layout_candidates
-            .iter()
-            .any(|path| path == owner || path.starts_with(&format!("{owner}/")))
+    !existing_owner_dirs.contains(owner) && owner_touched(owner, changes)
+}
+
+fn owner_touched(owner: &str, changes: &GitChangePaths) -> bool {
+    changes
+        .occupied
+        .iter()
+        .any(|path| path == owner || path.starts_with(&format!("{owner}/")))
 }
 
 fn require_core_crate(
@@ -94,5 +117,38 @@ fn require_owner_law(owner: &str, changes: &GitChangePaths, violations: &mut Vec
             "{owner}: new owner requires D-36 law files in the same change; missing {}",
             missing.join(", ")
         ));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retained_owner_cannot_lose_its_last_core_crate() {
+        let changes = crate::git_change_paths_from_name_status_z(
+            b"D\0policy/core/evaluate/Cargo.toml\0D\0policy/core/evaluate/src/lib.rs\0",
+        )
+        .unwrap();
+        let complete_before = ["policy".to_owned()].into();
+        let live_after = ["policy".to_owned()].into();
+        assert!(
+            !owner_core_regression_violations(
+                &changes,
+                &complete_before,
+                &live_after,
+                &BTreeSet::new(),
+            )
+            .is_empty()
+        );
+        assert!(
+            owner_core_regression_violations(
+                &changes,
+                &complete_before,
+                &BTreeSet::new(),
+                &BTreeSet::new(),
+            )
+            .is_empty()
+        );
     }
 }

@@ -28,6 +28,14 @@ fn conditional_base_requires_real_core_content() {
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
+    for path in [
+        "base/ports/blob/Cargo.toml",
+        "base/adapters/blob-s3/src/lib.rs",
+        "base/facade/app/src/main.rs",
+        "base/ADR.md",
+    ] {
+        assert!(rejected(path), "expected base rejection: {path}");
+    }
 }
 
 #[test]
@@ -199,6 +207,29 @@ fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
     assert!(!rejected(
         "network/docs/design/cache/invalidation_strategy.md"
     ));
+}
+
+#[test]
+fn root_docs_cargo_config_and_pack_payloads_are_closed() {
+    for path in [
+        "docs/scratch/Cargo.toml",
+        "docs/scratch/src/lib.rs",
+        "docs/decisions/ADR.md",
+        ".cargo/bypass.toml",
+        "templates/notes/new.md",
+        "packs/eu/plan/todo.md",
+        "packs/eu/new-overlay.yaml",
+    ] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    for path in [
+        "docs/decisions/ADR-0720-example.md",
+        "docs/standards/code-style.md",
+        "packs/eu/gdpr/policy.cedar",
+        "packs/kr/csap/data_residency.textproto",
+    ] {
+        assert!(!rejected(path), "unexpected rejection: {path}");
+    }
 }
 
 #[test]

@@ -14,11 +14,12 @@ mod inner;
 mod manifest;
 mod payload;
 mod proto;
+mod root_meta;
 mod workspace;
 
 pub use base::base_admission_violations;
 pub use cargo_config::cargo_config_violations;
-pub use change::changed_layout_violations;
+pub use change::{changed_layout_violations, owner_core_regression_violations};
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
 pub use manifest::{
@@ -128,8 +129,6 @@ pub const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-pa
 /// Root data loaded by capabilities but not itself a capability or Cargo face.
 pub const DATA_ROOTS: &[&str] = &["packs"];
 
-const PACK_NAMESPACES: &[&str] = &["us", "eu", "jp", "kr"];
-
 pub(crate) fn path_parts(path: &str) -> Vec<&str> {
     path.split('/').filter(|part| !part.is_empty()).collect()
 }
@@ -193,48 +192,28 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
             violations.push(format!("{file}: unknown root `{root}`"));
             continue;
         }
-        if root == "app" {
+        if root == ".cargo" {
+            root_meta::validate_cargo_path(file, &parts, &mut violations);
+        } else if root == "app" {
             validate_app_path(file, &parts, &mut violations);
+        } else if root == "base" {
+            root_meta::validate_base_path(file, &parts, &mut violations);
+        } else if root == "docs" {
+            root_meta::validate_docs_path(file, &parts, &mut violations);
         } else if root == "packs" {
-            validate_packs_path(file, &parts, &mut violations);
+            root_meta::validate_packs_path(file, &parts, &mut violations);
+        } else if root == "templates" {
+            root_meta::validate_templates_path(file, &parts, &mut violations);
         } else if is_meta_root(root) && parts.get(1).is_some_and(|child| FACES.contains(child)) {
             violations.push(format!(
                 "{file}: meta root `{root}` cannot contain owner Cargo face `{}`",
                 parts[1]
             ));
-        } else if root == "base" || is_capability_root(root) {
+        } else if is_capability_root(root) {
             validate_owner_path(file, &parts, 1, &mut violations);
         }
     }
     violations
-}
-
-fn validate_packs_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    if parts.len() == 2 {
-        if !matches!(parts[1], "OWNERS" | "README.md") {
-            violations.push(format!(
-                "{file}: packs root admits only ownership metadata and namespace directories"
-            ));
-        }
-        return;
-    }
-    let namespace = parts[1];
-    if !PACK_NAMESPACES.contains(&namespace) {
-        violations.push(format!(
-            "{file}: unknown pack namespace `{namespace}`; expected one of us, eu, jp, kr"
-        ));
-        return;
-    }
-    if parts[2..].iter().any(|part| {
-        matches!(
-            *part,
-            "core" | "ports" | "adapters" | "facade" | "Cargo.toml" | "build.rs"
-        ) || part.ends_with(".rs")
-    }) {
-        violations.push(format!(
-            "{file}: packs are Cedar/IR data and cannot contain a capability, Cargo crate, or Rust engine"
-        ));
-    }
 }
 
 fn invalid_git_path(path: &str) -> bool {

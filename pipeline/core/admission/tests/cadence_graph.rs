@@ -78,6 +78,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("cargo-nextest nextest run"));
     assert!(!y.contains("cargo nextest run"));
     assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
+    assert!(!y.contains("occ()"));
+    assert!(y.contains("req \"${{ needs.occupancy.result }}\""));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(
@@ -114,7 +116,11 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
 
-    let layout = read("pipeline/facade/path-layout-app/src/main.rs");
+    let layout = format!(
+        "{}\n{}",
+        read("pipeline/facade/path-layout-app/src/main.rs"),
+        read("pipeline/facade/path-layout-app/src/repository_checks.rs")
+    );
     assert!(layout.contains("changed_layout_violations"));
     assert!(layout.contains("git_change_paths_from_name_status_z"));
     assert!(layout.contains("BUILD_ROOT_DIRS"));
@@ -127,7 +133,9 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("workspace_draft_dependency_violations"));
     assert!(layout.contains("workspace_membership_violations"));
     assert!(layout.contains("repository_cargo_config_violations"));
-    assert!(layout.contains("live_candidate_kind_violations"));
+    assert!(layout.contains("live_candidate_violations"));
+    assert!(layout.contains("file_budget_violations"));
+    assert!(layout.contains("owner_core_regression_violations"));
     assert!(layout.contains("entry_kind(&head"));
     assert!(layout.contains("RepositoryRead"));
     assert!(layout.contains("GitRepository"));
@@ -136,6 +144,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(repository_port.contains("pub trait RepositoryRead"));
     assert!(repository_port.contains("changed_name_status"));
     assert!(repository_port.contains("blob_text"));
+    assert!(repository_port.contains("blob_bytes"));
+    assert!(repository_port.contains("files_under"));
 
     let git_adapter = read("pipeline/adapters/draft/repository-git/src/lib.rs");
     assert!(git_adapter.contains("merge-base"));

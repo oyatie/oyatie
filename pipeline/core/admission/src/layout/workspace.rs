@@ -31,11 +31,21 @@ pub const WORKSPACE_EXCLUDES: &[&str] = &[
 
 /// Refuse missing, added, or duplicate workspace membership policy entries.
 pub fn workspace_membership_violations(contents: &str) -> Vec<String> {
+    let document = match contents.parse::<toml::Value>() {
+        Ok(document) => document,
+        Err(error) => return vec![format!("Cargo.toml: {error}")],
+    };
+    let mut violations = Vec::new();
+    if document.get("package").is_some() {
+        violations.push(
+            "Cargo.toml: the repository workspace root must remain virtual; `[package]` is forbidden"
+                .to_owned(),
+        );
+    }
     let entries = match workspace_manifest_entries_from_str(contents) {
         Ok(entries) => entries,
         Err(error) => return vec![format!("Cargo.toml: {error}")],
     };
-    let mut violations = Vec::new();
     compare_closed_entries(
         "member glob",
         &entries.members,
@@ -128,6 +138,19 @@ mod tests {
             workspace_membership_violations(&manifest(&reordered, WORKSPACE_EXCLUDES))
                 .iter()
                 .any(|item| item.contains("canonical order"))
+        );
+    }
+
+    #[test]
+    fn workspace_root_cannot_become_an_implicit_member() {
+        let contents = format!(
+            "{}\n[package]\nname = 'shadow-root'\nversion = '0.1.0'\nedition = '2024'\n[lib]\npath = 'README.md'\n",
+            manifest(WORKSPACE_MEMBER_GLOBS, WORKSPACE_EXCLUDES)
+        );
+        assert!(
+            workspace_membership_violations(&contents)
+                .iter()
+                .any(|violation| violation.contains("must remain virtual"))
         );
     }
 }

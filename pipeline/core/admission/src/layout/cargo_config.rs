@@ -19,6 +19,11 @@ pub fn cargo_config_violations(path: &str, contents: &str) -> Vec<String> {
             )
         })
         .collect();
+    if config.contains_key("include") {
+        violations.push(format!(
+            "{path}: repository Cargo configuration includes are forbidden; protected configuration must be reviewable in one file"
+        ));
+    }
     if config.contains_key("alias") {
         violations.push(format!(
             "{path}: repository Cargo command aliases are forbidden; protected tools are invoked directly"
@@ -103,6 +108,16 @@ mod tests {
         assert!(
             !cargo_config_violations(".cargo/config.toml", config).is_empty(),
             "{config}"
+        );
+    }
+
+    #[test]
+    fn indirect_configuration_is_closed() {
+        let config = "include = 'bypass.toml'\n";
+        assert!(
+            cargo_config_violations(".cargo/config.toml", config)
+                .iter()
+                .any(|violation| violation.contains("includes are forbidden"))
         );
     }
 }

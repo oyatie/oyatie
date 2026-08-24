@@ -18,10 +18,33 @@ impl RepositoryRead for GitRepository {
     }
 
     fn blob_text(&self, commit: &str, path: &str) -> Result<String, String> {
+        String::from_utf8(self.blob_bytes(commit, path)?)
+            .map_err(|_| format!("git cat-file returned non-UTF-8 for {path}"))
+    }
+
+    fn blob_bytes(&self, commit: &str, path: &str) -> Result<Vec<u8>, String> {
         let object = format!("{commit}:{path}");
         let output = git_output(&["cat-file", "blob", &object])?;
-        String::from_utf8(output.stdout)
-            .map_err(|_| format!("git cat-file returned non-UTF-8 for {path}"))
+        Ok(output.stdout)
+    }
+
+    fn files_under(&self, commit: &str, path: &str) -> Result<Vec<String>, String> {
+        let output = git_output(&["ls-tree", "-r", "-z", "--name-only", commit, "--", path])?;
+        if !output.stdout.is_empty() && output.stdout.last() != Some(&0) {
+            return Err(format!(
+                "git ls-tree returned unterminated paths for {path}"
+            ));
+        }
+        output
+            .stdout
+            .split(|byte| *byte == 0)
+            .filter(|field| !field.is_empty())
+            .map(|field| {
+                std::str::from_utf8(field)
+                    .map(str::to_owned)
+                    .map_err(|_| format!("git ls-tree returned non-UTF-8 path under {path}"))
+            })
+            .collect()
     }
 
     fn path_exists(&self, commit: &str, path: &str) -> Result<bool, String> {

@@ -4,6 +4,7 @@ pub mod cadence;
 pub mod fanin;
 pub mod git_change;
 pub mod layout;
+pub mod line_budget;
 pub mod occupancy;
 pub mod owners;
 
@@ -24,9 +25,10 @@ pub use layout::{
     cargo_config_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
     cargo_manifest_for_entrypoint, cargo_manifest_violations, changed_layout_violations,
     draft_dependency_violations, face_dir_ok, is_capability_root, layout_violations,
-    proto_package_violations, workspace_draft_dependency_violations,
-    workspace_membership_violations,
+    owner_core_regression_violations, proto_package_violations,
+    workspace_draft_dependency_violations, workspace_membership_violations,
 };
+pub use line_budget::file_budget_violations;
 pub use occupancy::{
     OYATIE_HUB_PREFIXES, OYATIE_HUBS, OccupancyRefused, OccupiedSet, admit, hits_hub,
 };

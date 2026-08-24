@@ -4,14 +4,21 @@ use std::collections::BTreeSet;
 use std::process::ExitCode;
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations, cargo_config_violations,
-    cargo_entrypoint, cargo_manifest_for_crate_path, cargo_manifest_violations,
-    changed_layout_violations, draft_dependency_violations, git_change_paths_from_name_status_z,
+    base_admission_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
+    cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
+    git_change_paths_from_name_status_z, owner_core_regression_violations,
     proto_package_violations, workspace_draft_dependency_violations,
     workspace_membership_violations,
 };
-use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
+use pipeline_repository_draft::RepositoryRead;
 use pipeline_repository_git_draft::GitRepository;
+
+mod repository_checks;
+
+use repository_checks::{
+    live_candidate_violations, owner_tree_state, regular_blob,
+    reject_indirect_dependency_components, repository_cargo_config_violations,
+};
 
 fn main() -> ExitCode {
     match run() {
@@ -30,16 +37,23 @@ fn run() -> Result<(), String> {
     let name_status = repository.changed_name_status(&merge_base, &head)?;
     let changes =
         git_change_paths_from_name_status_z(&name_status).map_err(|error| error.message())?;
-    let existing_owner_dirs = existing_owner_dirs(&repository, &merge_base)?;
+    let owners_before = owner_tree_state(&repository, &merge_base)?;
+    let owners_after = owner_tree_state(&repository, &head)?;
     let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
-    let mut violations = changed_layout_violations(&changes, &existing_owner_dirs);
+    let mut violations = changed_layout_violations(&changes, &owners_before.live);
+    violations.extend(owner_core_regression_violations(
+        &changes,
+        &owners_before.complete,
+        &owners_after.live,
+        &owners_after.complete,
+    ));
     violations.extend(workspace_membership_violations(&workspace_contents));
     violations.extend(workspace_draft_dependency_violations(
         &workspace_contents,
         |visited| reject_indirect_dependency_components(&repository, &head, visited),
     ));
     violations.extend(repository_cargo_config_violations(&repository, &head)?);
-    violations.extend(live_candidate_kind_violations(
+    violations.extend(live_candidate_violations(
         &repository,
         &head,
         &changes.layout_candidates,
@@ -136,72 +150,6 @@ fn run() -> Result<(), String> {
     }
 }
 
-fn repository_cargo_config_violations(
-    repository: &impl RepositoryRead,
-    head: &str,
-) -> Result<Vec<String>, String> {
-    let mut violations = Vec::new();
-    for path in [".cargo/config.toml", ".cargo/config"] {
-        match repository.entry_kind(head, path)? {
-            None => {}
-            Some(kind) if regular_blob(Some(kind)) => {
-                let contents = repository.blob_text(head, path)?;
-                violations.extend(cargo_config_violations(path, &contents));
-            }
-            Some(kind) => violations.push(format!(
-                "{path}: Cargo configuration must be a regular Git blob, got {kind:?}"
-            )),
-        }
-    }
-    Ok(violations)
-}
-
-fn live_candidate_kind_violations(
-    repository: &impl RepositoryRead,
-    head: &str,
-    candidates: &BTreeSet<String>,
-) -> Result<Vec<String>, String> {
-    let mut violations = Vec::new();
-    for path in candidates {
-        match repository.entry_kind(head, path)? {
-            Some(kind) if regular_blob(Some(kind)) => {}
-            Some(kind) => violations.push(format!(
-                "{path}: live changed content must be a regular Git blob, got {kind:?}"
-            )),
-            None => violations.push(format!(
-                "{path}: live changed path is absent at the head commit"
-            )),
-        }
-    }
-    Ok(violations)
-}
-
-fn regular_blob(kind: Option<RepositoryEntryKind>) -> bool {
-    matches!(
-        kind,
-        Some(RepositoryEntryKind::Blob | RepositoryEntryKind::ExecutableBlob)
-    )
-}
-
-fn reject_indirect_dependency_components(
-    repository: &impl RepositoryRead,
-    head: &str,
-    visited: &[String],
-) -> Result<(), String> {
-    for path in visited {
-        match repository.entry_kind(head, path)? {
-            Some(RepositoryEntryKind::Symlink) => {
-                return Err(format!("tracked symlink component `{path}` is forbidden"));
-            }
-            Some(RepositoryEntryKind::Gitlink) => {
-                return Err(format!("tracked gitlink component `{path}` is forbidden"));
-            }
-            _ => {}
-        }
-    }
-    Ok(())
-}
-
 fn required_shas() -> Result<(String, String), String> {
     let mut arguments = std::env::args().skip(1);
     let base = arguments
@@ -224,35 +172,4 @@ fn validated_sha(name: &str, value: String) -> Result<String, String> {
         return Err(format!("{name} must be a 40-digit Git object id"));
     }
     Ok(value)
-}
-
-fn existing_owner_dirs(
-    repository: &impl RepositoryRead,
-    merge_base: &str,
-) -> Result<BTreeSet<String>, String> {
-    let mut owners = BTreeSet::new();
-    for root in BUILD_ROOT_DIRS {
-        record_existing_dir(repository, merge_base, root, &mut owners)?;
-    }
-    for product in APP_PRODUCT_DIRS {
-        record_existing_dir(
-            repository,
-            merge_base,
-            &format!("app/{product}"),
-            &mut owners,
-        )?;
-    }
-    Ok(owners)
-}
-
-fn record_existing_dir(
-    repository: &impl RepositoryRead,
-    merge_base: &str,
-    owner: &str,
-    existing: &mut BTreeSet<String>,
-) -> Result<(), String> {
-    if repository.directory_exists(merge_base, owner)? {
-        existing.insert(owner.to_owned());
-    }
-    Ok(())
 }

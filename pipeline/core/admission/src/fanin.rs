@@ -14,13 +14,9 @@ pub fn postgres_ok(result: &str, live: bool) -> bool {
     }
 }
 
-/// Occupancy: required on pull_request; skip is ok on merge_group/dispatch.
-pub fn occupancy_ok(result: &str, pull_request: bool) -> bool {
-    if pull_request {
-        result == "success"
-    } else {
-        result == "skipped" || result == "success"
-    }
+/// Occupancy and layout admission must prove every PR and merge-group tree.
+pub fn occupancy_ok(result: &str) -> bool {
+    required_success(result)
 }
 
 /// Merge-blocking fan-in inputs. Occupants match `presubmit.yml`.
@@ -32,11 +28,10 @@ pub struct FanIn<'a> {
     pub pg_gate: &'a str,
     pub pg_live: &'a str,
     pub live: bool,
-    pub pull_request: bool,
 }
 
 pub fn fan_in_ok(g: FanIn<'_>) -> bool {
-    occupancy_ok(g.occupancy, g.pull_request)
+    occupancy_ok(g.occupancy)
         && required_success(g.lint)
         && required_success(g.test)
         && required_success(g.deny)
@@ -62,7 +57,6 @@ mod tests {
             pg_gate: "success",
             pg_live: "success",
             live: true,
-            pull_request: true,
         }
     }
 
@@ -72,19 +66,18 @@ mod tests {
     }
 
     #[test]
-    fn occupancy_skipped_on_pr_is_red() {
+    fn occupancy_skipped_is_red() {
         let mut g = green();
         g.occupancy = "skipped";
         assert!(!fan_in_ok(g));
     }
 
     #[test]
-    fn occupancy_skipped_on_merge_group_is_green() {
+    fn occupancy_skipped_on_merge_group_is_red() {
         let mut g = green();
         g.occupancy = "skipped";
         g.live = false;
-        g.pull_request = false;
-        assert!(fan_in_ok(g));
+        assert!(!fan_in_ok(g));
     }
 
     #[test]
