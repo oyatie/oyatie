@@ -24,6 +24,9 @@ pub fn owners_occupant(rel: &str) -> Option<String> {
         }
         return Some(parts[1].to_owned());
     }
+    if root == "base" {
+        return Some(ROOT_OCCUPANT.to_owned());
+    }
     if META_ROOTS.contains(&root) {
         return Some(ROOT_OCCUPANT.to_owned());
     }
@@ -50,6 +53,7 @@ mod tests {
             ("iam/adapters/x/OWNERS", "iam"),
             ("docs/decisions/OWNERS", "oyatie"),
             ("build/toolchains/OWNERS", "oyatie"),
+            ("base/OWNERS", "oyatie"),
             ("templates/OWNERS", "oyatie"),
             ("third-party/OWNERS", "oyatie"),
             (".github/OWNERS", "oyatie"),

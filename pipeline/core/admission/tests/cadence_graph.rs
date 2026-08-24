@@ -80,7 +80,7 @@ fn presubmit_jobs_are_the_occupant_set() {
         "occupancy cargo run must reach crates.io on a cold cache"
     );
 
-    let collector = read("pipeline/core/admission/src/bin/path-occupancy.rs");
+    let collector = read("pipeline/core/admission/src/bin/path_occupancy.rs");
     assert!(collector.contains("Command::new(\"gh\")"));
     assert!(collector.contains("--paginate"));
     assert!(collector.contains("refs/pull/{number}/head"));
@@ -91,11 +91,12 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
 
-    let layout = read("pipeline/core/admission/src/bin/path-layout.rs");
+    let layout = read("pipeline/core/admission/src/bin/path_layout.rs");
     assert!(layout.contains("changed_layout_violations"));
     assert!(layout.contains("git_change_paths_from_name_status_z"));
     assert!(layout.contains("merge-base"));
     assert!(layout.contains("BUILD_ROOT_DIRS"));
+    assert!(layout.contains("APP_PRODUCT_DIRS"));
 }
 
 #[test]

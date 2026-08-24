@@ -92,6 +92,7 @@ fn owner_law_files_are_the_four() {
 #[test]
 fn do_have_not_capability_roots_are_admitted_when_built() {
     let violations = layout_violations(&[
+        "base/core/bytes/src/lib.rs".into(),
         "policy/core/evaluate/src/lib.rs".into(),
         "workflow/core/saga/src/lib.rs".into(),
         "notify/core/send/src/lib.rs".into(),
@@ -116,8 +117,8 @@ fn tests_live_in_the_crate_not_an_owner_tests_root() {
         "e2e/foo.rs".into(),
         "network/tests/proxy.rs".into(),
         "app/foundry/tests/e2e.rs".into(),
-        "network/facade/edge/tests/proxy.rs".into(),
-        "network/facade/edge/tests/e2e/main.rs".into(),
+        "network/facade/edge-app/tests/proxy.rs".into(),
+        "network/facade/edge-app/tests/e2e/main.rs".into(),
         "iam/adapters/identity-scim-store-postgres/tests/live_rls.rs".into(),
     ]);
     assert!(violations.iter().any(|item| item.contains("tests/foo.rs")));
@@ -127,7 +128,7 @@ fn tests_live_in_the_crate_not_an_owner_tests_root() {
     assert!(
         !violations
             .iter()
-            .any(|item| item.contains("facade/edge/tests/proxy"))
+            .any(|item| item.contains("facade/edge-app/tests/proxy"))
     );
     assert!(
         !violations
@@ -142,7 +143,7 @@ fn iac_and_observability_are_capabilities_not_meta_roots() {
     let violations = layout_violations(&[
         "iac/src/lib.rs".into(),
         "iac/core/domain/src/lib.rs".into(),
-        "observability/adapters/tracing/src/lib.rs".into(),
+        "observability/adapters/telemetry-tracing/src/lib.rs".into(),
         "docs/foo.md".into(),
     ]);
     assert!(violations.iter().any(|item| item.contains("iac/src")));

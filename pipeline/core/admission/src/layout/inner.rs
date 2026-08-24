@@ -2,8 +2,9 @@
 
 use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 
-const CRATE_FILES: &[&str] = &["Cargo.toml", "OWNERS", "BUCK"];
+const CRATE_FILES: &[&str] = &["Cargo.toml", "OWNERS", "BUCK", "build.rs"];
 const DOC_DIRS: &[&str] = &["concepts", "runbooks", "design"];
+const INNER_DUMP_DIRS: &[&str] = &["plan", "tasks"];
 
 pub(super) fn validate_owner_path(
     file: &str,
@@ -54,14 +55,19 @@ fn validate_face_path(file: &str, face: &str, rest: &[&str], violations: &mut Ve
     } else {
         rest
     };
-    validate_crate_path(file, crate_path, violations);
+    validate_crate_path(file, face, crate_path, violations);
 }
 
-fn validate_crate_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    let Some((_crate_name, tail)) = parts.split_first() else {
+fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut Vec<String>) {
+    let Some((crate_name, tail)) = parts.split_first() else {
         violations.push(format!("{file}: face requires a crate directory"));
         return;
     };
+    if !crate_leaf_ok(face, crate_name) {
+        violations.push(format!(
+            "{file}: `{crate_name}` does not match the `{face}` crate-leaf grammar"
+        ));
+    }
     let Some((entry, descendants)) = tail.split_first() else {
         violations.push(format!("{file}: crate name must be a directory"));
         return;
@@ -72,15 +78,74 @@ fn validate_crate_path(file: &str, parts: &[&str], violations: &mut Vec<String>)
         } else if !CRATE_FILES.contains(entry) {
             violations.push(format!("{file}: `{entry}` is not allowed at a crate root"));
         }
-    } else if !matches!(*entry, "src" | "tests") {
+    } else if matches!(*entry, "src" | "tests") {
+        validate_rust_tree(file, descendants, violations);
+    } else {
         violations.push(format!(
             "{file}: crate content must live under `src/` or `tests/`"
         ));
     }
 }
 
+fn crate_leaf_ok(face: &str, name: &str) -> bool {
+    if !kebab_case(name)
+        || name.starts_with("cloud-")
+        || name.starts_with("oyatie-")
+        || name.ends_with("-rs")
+        || name.ends_with("-rust")
+    {
+        return false;
+    }
+    match face {
+        "adapters" => name.contains('-'),
+        "facade" => name
+            .strip_suffix("-app")
+            .is_some_and(|surface| !surface.is_empty() && kebab_case(surface)),
+        "core" | "ports" => true,
+        _ => false,
+    }
+}
+
+fn kebab_case(name: &str) -> bool {
+    !name.is_empty()
+        && !name.starts_with('-')
+        && !name.ends_with('-')
+        && !name.contains("--")
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
+fn validate_rust_tree(file: &str, parts: &[&str], violations: &mut Vec<String>) {
+    let Some((source, directories)) = parts.split_last() else {
+        return;
+    };
+    for directory in directories {
+        if INNER_DUMP_DIRS.contains(directory) {
+            violations.push(format!("{file}: forbidden inner directory `{directory}`"));
+            return;
+        }
+        if !snake_case(directory) {
+            violations.push(format!(
+                "{file}: Rust module directory `{directory}` must be snake_case"
+            ));
+            return;
+        }
+    }
+    let valid_source = source.strip_suffix(".rs").is_some_and(snake_case);
+    if !valid_source {
+        violations.push(format!(
+            "{file}: crate source and integration-test files must be snake_case `.rs` files"
+        ));
+    }
+}
+
 fn validate_proto(file: &str, parts: &[&str], violations: &mut Vec<String>) {
-    let valid_shape = parts.len() == 5 && parts[0] == "proto" && parts[3] == "v1";
+    let valid_shape = parts.len() == 5
+        && parts[0] == "proto"
+        && snake_case(parts[1])
+        && snake_case(parts[2])
+        && parts[3] == "v1";
     let valid_file =
         valid_shape && (matches!(parts[4], "OWNERS" | "BUCK") || snake_case_proto(parts[4]));
     if !valid_file {
@@ -94,8 +159,14 @@ fn snake_case_proto(name: &str) -> bool {
     let Some(stem) = name.strip_suffix(".proto") else {
         return false;
     };
-    !stem.is_empty()
-        && stem
+    stem != "v1" && snake_case(stem)
+}
+
+fn snake_case(name: &str) -> bool {
+    name.as_bytes().first().is_some_and(u8::is_ascii_lowercase)
+        && !name.ends_with('_')
+        && !name.contains("__")
+        && name
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
 }

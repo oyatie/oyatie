@@ -43,9 +43,27 @@ pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "third-party",
 ];
 
-/// ADR-0719 D-19 DO + HAVE NOT roots. They are valid only once a real face is
-/// added; absence must not require an empty OWNERS scaffold.
-pub const BUILD_ROOT_DIRS: &[&str] = &["notify", "policy", "workflow"];
+/// Conditional roots that are valid only once a real core lands. `base` also
+/// requires the ADR-0719 three-capability review; absence never requires an
+/// empty OWNERS scaffold.
+pub const BUILD_ROOT_DIRS: &[&str] = &["base", "notify", "policy", "workflow"];
+
+/// ADR-0719 D-22's closed v1 product roster. Missing products are BUILD, not
+/// membership ghosts, and must arrive with implementation content.
+pub const APP_PRODUCT_DIRS: &[&str] = &[
+    "accounting",
+    "application",
+    "calendar",
+    "community",
+    "drive",
+    "foundry",
+    "hr",
+    "ledger",
+    "mail",
+    "messenger",
+    "payments",
+    "payroll",
+];
 
 /// Closed dot-directory set. Existing dot-root debt is removal-only rather
 /// than a wildcard exemption for new tracked paths.
@@ -100,7 +118,9 @@ fn is_meta_root(root: &str) -> bool {
 }
 
 pub fn is_capability_root(root: &str) -> bool {
-    (ALLOWED_ROOT_DIRS.contains(&root) || BUILD_ROOT_DIRS.contains(&root)) && !is_meta_root(root)
+    (ALLOWED_ROOT_DIRS.contains(&root) || BUILD_ROOT_DIRS.contains(&root))
+        && root != "base"
+        && !is_meta_root(root)
 }
 
 pub fn cap_root_file_ok(name: &str) -> bool {
@@ -153,7 +173,7 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         }
         if root == "app" {
             validate_app_path(file, &parts, &mut violations);
-        } else if is_capability_root(root) {
+        } else if root == "base" || is_capability_root(root) {
             validate_owner_path(file, &parts, 1, &mut violations);
         }
     }
@@ -177,6 +197,11 @@ fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         }
         return;
     }
+    let product = parts[1];
+    if !APP_PRODUCT_DIRS.contains(&product) {
+        violations.push(format!("{file}: unknown app product `{product}`"));
+        return;
+    }
     validate_owner_path(file, parts, 2, violations);
 }
 
@@ -184,7 +209,7 @@ fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
 /// absent at the merge base must carry a real core source in the same change.
 pub fn changed_layout_violations(
     changes: &GitChangePaths,
-    existing_build_roots: &BTreeSet<String>,
+    existing_owner_dirs: &BTreeSet<String>,
 ) -> Vec<String> {
     let mut violations = layout_violations(
         &changes
@@ -206,9 +231,30 @@ pub fn changed_layout_violations(
                 && parts[3] == "src"
                 && path.ends_with(".rs")
         });
-        if touches_root && !existing_build_roots.contains(*root) && !carries_core_source {
+        if touches_root && !existing_owner_dirs.contains(*root) && !carries_core_source {
             violations.push(format!(
                 "{root}: new BUILD root requires a core source in the same change"
+            ));
+        }
+    }
+    for product in APP_PRODUCT_DIRS {
+        let owner = format!("app/{product}");
+        let touches_owner = changes.layout_candidates.iter().any(|path| {
+            let parts = path_parts(path);
+            parts.first() == Some(&"app") && parts.get(1) == Some(product)
+        });
+        let carries_core_source = changes.layout_candidates.iter().any(|path| {
+            let parts = path_parts(path);
+            parts.len() >= 6
+                && parts[0] == "app"
+                && parts[1] == *product
+                && parts[2] == "core"
+                && parts[4] == "src"
+                && path.ends_with(".rs")
+        });
+        if touches_owner && !existing_owner_dirs.contains(&owner) && !carries_core_source {
+            violations.push(format!(
+                "{owner}: new BUILD product requires a core source in the same change"
             ));
         }
     }

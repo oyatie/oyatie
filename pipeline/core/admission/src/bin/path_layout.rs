@@ -5,7 +5,8 @@ use std::env;
 use std::process::{Command, ExitCode, Output};
 
 use pipeline_admission::{
-    BUILD_ROOT_DIRS, changed_layout_violations, git_change_paths_from_name_status_z,
+    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, changed_layout_violations,
+    git_change_paths_from_name_status_z,
 };
 
 fn main() -> ExitCode {
@@ -33,8 +34,8 @@ fn run() -> Result<(), String> {
     ])?;
     let changes =
         git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())?;
-    let existing_build_roots = existing_build_roots(&merge_base)?;
-    let violations = changed_layout_violations(&changes, &existing_build_roots);
+    let existing_owner_dirs = existing_owner_dirs(&merge_base)?;
+    let violations = changed_layout_violations(&changes, &existing_owner_dirs);
     if violations.is_empty() {
         Ok(())
     } else {
@@ -53,25 +54,35 @@ fn required_sha(name: &str) -> Result<String, String> {
     Ok(value)
 }
 
-fn existing_build_roots(merge_base: &str) -> Result<BTreeSet<String>, String> {
-    let mut roots = BTreeSet::new();
+fn existing_owner_dirs(merge_base: &str) -> Result<BTreeSet<String>, String> {
+    let mut owners = BTreeSet::new();
     for root in BUILD_ROOT_DIRS {
-        let output = git_output(&["ls-tree", "-d", "--name-only", merge_base, "--", root])?;
-        let path = String::from_utf8(output.stdout)
-            .map_err(|_| format!("git ls-tree returned non-UTF-8 for {root}"))?;
-        match path.trim_end() {
-            "" => {}
-            present if present == *root => {
-                roots.insert((*root).to_owned());
-            }
-            other => {
-                return Err(format!(
-                    "unexpected git ls-tree output for {root}: {other:?}"
-                ));
-            }
-        }
+        record_existing_dir(merge_base, root, &mut owners)?;
     }
-    Ok(roots)
+    for product in APP_PRODUCT_DIRS {
+        record_existing_dir(merge_base, &format!("app/{product}"), &mut owners)?;
+    }
+    Ok(owners)
+}
+
+fn record_existing_dir(
+    merge_base: &str,
+    owner: &str,
+    existing: &mut BTreeSet<String>,
+) -> Result<(), String> {
+    let output = git_output(&["ls-tree", "-d", "--name-only", merge_base, "--", owner])?;
+    let path = String::from_utf8(output.stdout)
+        .map_err(|_| format!("git ls-tree returned non-UTF-8 for {owner}"))?;
+    match path.trim_end() {
+        "" => Ok(()),
+        present if present == owner => {
+            existing.insert(owner.to_owned());
+            Ok(())
+        }
+        other => Err(format!(
+            "unexpected git ls-tree output for {owner}: {other:?}"
+        )),
+    }
 }
 
 fn git_text(args: &[&str]) -> Result<String, String> {

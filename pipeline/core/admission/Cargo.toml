@@ -5,11 +5,20 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
+autobins = false
 
 [lib]
 name = "pipeline_admission"
 path = "src/lib.rs"
 doctest = false
+
+[[bin]]
+name = "path-layout"
+path = "src/bin/path_layout.rs"
+
+[[bin]]
+name = "path-occupancy"
+path = "src/bin/path_occupancy.rs"
 
 [lints]
 workspace = true

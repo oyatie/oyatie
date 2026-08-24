@@ -1,5 +1,5 @@
 # TAP presubmit (ADR-0719 D-9/D-10). Occupant of the required context: job `presubmit`.
-# Graph: occupancy (path-set, pull_request only) + lint + deny + test (nextest workspace)
+# Graph: D-8 layout (PR + merge_group), occupancy (path-set, PR only), lint, deny, test
 # + pg-gate + live-postgres (path-gated on pull_request and merge_group).
 name: presubmit
 

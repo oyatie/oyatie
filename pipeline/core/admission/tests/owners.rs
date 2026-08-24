@@ -114,6 +114,13 @@ fn required_owners_files_exist() {
     for cap in capabilities() {
         require(format!("{cap}/OWNERS"));
     }
+    for owner in BUILD_ROOT_DIRS
+        .iter()
+        .copied()
+        .filter(|owner| !is_capability_root(owner) && root.join(owner).is_dir())
+    {
+        require(format!("{owner}/OWNERS"));
+    }
     for product in app_products() {
         require(format!("app/{product}/OWNERS"));
     }
