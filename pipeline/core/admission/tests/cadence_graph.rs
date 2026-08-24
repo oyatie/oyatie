@@ -97,6 +97,11 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("-- -D warnings"));
     assert!(y.contains("req \"${{ needs.layout.result }}\""));
     assert!(y.contains("req \"${{ needs.clippy.result }}\""));
+    assert!(y.contains("uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev"));
+    assert!(
+        !y.contains("uses: ./.github/workflows/live-postgres.yml"),
+        "the ruleset-required caller must not resolve reusable workflow code from the candidate"
+    );
     assert!(y.contains("cargo-nextest nextest run"));
     assert!(!y.contains("cargo nextest run"));
     assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));

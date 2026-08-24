@@ -211,7 +211,7 @@ jobs:
   live-postgres:
     needs: [layout, pg-gate]
     if: needs.layout.result == 'success' && needs.pg-gate.outputs.live == 'true'
-    uses: ./.github/workflows/live-postgres.yml
+    uses: oyatie/oyatie/.github/workflows/live-postgres.yml@dev
 
   # Mirrors pipeline_admission::fan_in_ok (tested).
   presubmit:
