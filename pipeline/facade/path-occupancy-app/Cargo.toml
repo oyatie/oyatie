@@ -1,5 +1,5 @@
 [package]
-name = "pipeline-admission"
+name = "pipeline-path-occupancy-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,11 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-toml.workspace = true
-workspace-members-kernel = { path = "../workspace-members-kernel" }
-
-[lib]
-doctest = false
+pipeline-admission = { path = "../../core/admission" }
 
 [lints]
 workspace = true

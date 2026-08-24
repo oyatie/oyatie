@@ -2,7 +2,8 @@
 //! through the public occupant map.
 
 use pipeline_admission::{
-    ALLOWED_ROOT_DIRS, META_ROOTS, ROOT_OCCUPANT, is_capability_root, owners_occupant,
+    ALLOWED_ROOT_DIRS, BUILD_ROOT_DIRS, DATA_ROOTS, META_ROOTS, ROOT_OCCUPANT, is_capability_root,
+    owners_occupant,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -61,8 +62,10 @@ fn app_products() -> BTreeSet<String> {
 fn capabilities() -> BTreeSet<&'static str> {
     ALLOWED_ROOT_DIRS
         .iter()
+        .chain(BUILD_ROOT_DIRS)
         .copied()
         .filter(|d| is_capability_root(d))
+        .filter(|capability| repo_root().join(capability).is_dir())
         .collect()
 }
 
@@ -102,14 +105,21 @@ fn required_owners_files_exist() {
     };
     require("OWNERS".into());
     require("app/OWNERS".into());
-    for meta in META_ROOTS {
-        if *meta == "app" {
+    for root_name in META_ROOTS.iter().chain(DATA_ROOTS) {
+        if *root_name == "app" {
             continue;
         }
-        require(format!("{meta}/OWNERS"));
+        require(format!("{root_name}/OWNERS"));
     }
     for cap in capabilities() {
         require(format!("{cap}/OWNERS"));
+    }
+    for owner in BUILD_ROOT_DIRS
+        .iter()
+        .copied()
+        .filter(|owner| !is_capability_root(owner) && root.join(owner).is_dir())
+    {
+        require(format!("{owner}/OWNERS"));
     }
     for product in app_products() {
         require(format!("app/{product}/OWNERS"));
@@ -145,6 +155,9 @@ fn codeowners_is_the_github_adapter_of_occupants() {
     let mut want = BTreeMap::new();
     want.insert("*".into(), "@jason931225".into());
     want.insert(".github/workflows/".into(), "@oyatie/pipeline".into());
+    for data_root in DATA_ROOTS {
+        want.insert(format!("{data_root}/"), format!("@oyatie/{data_root}"));
+    }
     for cap in capabilities() {
         want.insert(format!("{cap}/"), format!("@oyatie/{cap}"));
     }

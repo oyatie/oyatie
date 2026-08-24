@@ -46,11 +46,35 @@ fn job_ids(yaml: &str) -> Vec<String> {
 fn presubmit_jobs_are_the_occupant_set() {
     let y = read(".github/workflows/presubmit.yml");
     assert_eq!(job_ids(&y), PRESUBMIT_JOBS);
+    assert!(
+        !y.contains("workflow_dispatch:"),
+        "the authoritative required-check workflow needs an immutable PR or merge-group base"
+    );
     assert!(y.contains("needs: [occupancy, lint, test, deny, pg-gate, live-postgres]"));
     assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
-    assert!(y.contains("path-occupancy"));
+    assert!(y.contains("pipeline-path-occupancy-app"));
+    assert!(!y.contains("pipeline-path-layout-app"));
+    assert!(!y.contains("OYATIE_LAYOUT_BASE"));
+    assert!(!y.contains("OYATIE_LAYOUT_HEAD"));
+    assert!(y.contains("cargo build --locked"));
+    assert_eq!(
+        y.matches("working-directory: ${{ runner.temp }}").count(),
+        2,
+        "admission build and rustfmt must ignore checkout Cargo configuration"
+    );
+    assert!(y.contains("--manifest-path \"$GITHUB_WORKSPACE/Cargo.toml\""));
+    assert!(y.contains("--target x86_64-unknown-linux-gnu"));
+    assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-admission\""));
+    assert!(y.contains("debug/pipeline-path-occupancy-app\""));
+    assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
+    assert!(!y.contains("cargo run -p pipeline-path-occupancy-app"));
+    assert!(y.contains("cargo-nextest nextest run"));
+    assert!(!y.contains("cargo nextest run"));
+    assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
+    assert!(y.contains("occ()"));
+    assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(
@@ -72,11 +96,11 @@ fn presubmit_jobs_are_the_occupant_set() {
         "correctness-critical collection belongs in Rust"
     );
     assert!(
-        !y.contains("path-occupancy --locked --offline"),
-        "occupancy cargo run must reach crates.io on a cold cache"
+        !y.contains("pipeline-path-occupancy-app --locked --offline"),
+        "the admission build must reach crates.io on a cold cache"
     );
 
-    let collector = read("pipeline/core/admission/src/bin/path-occupancy.rs");
+    let collector = read("pipeline/facade/path-occupancy-app/src/main.rs");
     assert!(collector.contains("Command::new(\"gh\")"));
     assert!(collector.contains("--paginate"));
     assert!(collector.contains("refs/pull/{number}/head"));
@@ -84,7 +108,47 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("\"-z\""));
     assert!(collector.contains("\"-M\""));
     assert!(collector.contains("x-access-token"));
+    assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
+
+    let layout = format!(
+        "{}\n{}",
+        read("pipeline/facade/path-layout-app/src/main.rs"),
+        read("pipeline/facade/path-layout-app/src/repository_checks.rs")
+    );
+    assert!(layout.contains("changed_layout_violations"));
+    assert!(layout.contains("git_change_paths_from_name_status_z"));
+    assert!(layout.contains("BUILD_ROOT_DIRS"));
+    assert!(layout.contains("APP_PRODUCT_DIRS"));
+    assert!(layout.contains("cargo_manifest_violations"));
+    assert!(layout.contains("touched_manifests"));
+    assert!(layout.contains("cargo_manifest_for_crate_path"));
+    assert!(layout.contains("directory_exists(&head"));
+    assert!(layout.contains("draft_dependency_violations"));
+    assert!(layout.contains("workspace_draft_dependency_violations"));
+    assert!(layout.contains("workspace_membership_violations"));
+    assert!(layout.contains("repository_cargo_config_violations"));
+    assert!(layout.contains("live_candidate_violations"));
+    assert!(layout.contains("file_budget_violations"));
+    assert!(layout.contains("owner_core_regression_violations"));
+    assert!(layout.contains("entry_kind(&head"));
+    assert!(layout.contains("RepositoryRead"));
+    assert!(layout.contains("GitRepository"));
+
+    let repository_port = read("pipeline/ports/draft/repository/src/lib.rs");
+    assert!(repository_port.contains("pub trait RepositoryRead"));
+    assert!(repository_port.contains("changed_name_status"));
+    assert!(repository_port.contains("blob_text"));
+    assert!(repository_port.contains("blob_bytes"));
+    assert!(repository_port.contains("files_under"));
+
+    let git_adapter = read("pipeline/adapters/draft/repository-git/src/lib.rs");
+    assert!(git_adapter.contains("merge-base"));
+    assert!(git_adapter.contains("--name-status"));
+    assert!(git_adapter.contains("\"-z\""));
+    assert!(git_adapter.contains("\"-M\""));
+    assert!(git_adapter.contains("cat-file"));
+    assert!(git_adapter.contains("ls-tree"));
 }
 
 #[test]
