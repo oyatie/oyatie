@@ -6249,6 +6249,9 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 [[package]]
 name = "pipeline-admission"
 version = "0.1.0"
+dependencies = [
+ "toml 0.8.23",
+]
 
 [[package]]
 name = "pkcs8"

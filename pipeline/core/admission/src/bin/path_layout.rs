@@ -5,7 +5,7 @@ use std::env;
 use std::process::{Command, ExitCode, Output};
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, changed_layout_violations,
+    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, cargo_manifest_violations, changed_layout_violations,
     git_change_paths_from_name_status_z,
 };
 
@@ -35,7 +35,15 @@ fn run() -> Result<(), String> {
     let changes =
         git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())?;
     let existing_owner_dirs = existing_owner_dirs(&merge_base)?;
-    let violations = changed_layout_violations(&changes, &existing_owner_dirs);
+    let mut violations = changed_layout_violations(&changes, &existing_owner_dirs);
+    for path in changes
+        .layout_candidates
+        .iter()
+        .filter(|path| path.ends_with("/Cargo.toml"))
+    {
+        let contents = git_blob_text(&head, path)?;
+        violations.extend(cargo_manifest_violations(path, &contents));
+    }
     if violations.is_empty() {
         Ok(())
     } else {
@@ -44,6 +52,13 @@ fn run() -> Result<(), String> {
             violations.join("\n")
         ))
     }
+}
+
+fn git_blob_text(commit: &str, path: &str) -> Result<String, String> {
+    let object = format!("{commit}:{path}");
+    let output = git_output(&["cat-file", "blob", &object])?;
+    String::from_utf8(output.stdout)
+        .map_err(|_| format!("git cat-file returned non-UTF-8 for {path}"))
 }
 
 fn required_sha(name: &str) -> Result<String, String> {

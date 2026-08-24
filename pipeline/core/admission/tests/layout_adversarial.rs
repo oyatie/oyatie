@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, changed_layout_violations, git_change_paths_from_name_status_z,
-    layout_violations,
+    APP_PRODUCT_DIRS, cargo_manifest_violations, changed_layout_violations,
+    git_change_paths_from_name_status_z, layout_violations,
 };
 
 fn rejected(path: &str) -> bool {
@@ -59,6 +59,8 @@ fn crate_leaves_follow_the_face_grammar() {
         "network/core/bad_name/Cargo.toml",
         "network/core/cloud-cache/Cargo.toml",
         "network/adapters/sqlite/Cargo.toml",
+        "network/ports/blob-draft/Cargo.toml",
+        "network/adapters/blob-s3-draft/Cargo.toml",
         "network/facade/edge/Cargo.toml",
     ] {
         assert!(rejected(path), "expected rejection: {path}");
@@ -67,6 +69,9 @@ fn crate_leaves_follow_the_face_grammar() {
         "network/core/query-engine/Cargo.toml",
         "network/ports/blob/Cargo.toml",
         "network/adapters/blob-s3/Cargo.toml",
+        "network/ports/draft/blob/Cargo.toml",
+        "network/adapters/draft/blob-s3/Cargo.toml",
+        "network/facade/app/Cargo.toml",
         "network/facade/edge-app/Cargo.toml",
     ] {
         assert!(!rejected(path), "unexpected rejection: {path}");
@@ -99,7 +104,43 @@ fn proto_paths_reject_package_and_filename_shortcuts() {
     assert!(rejected(
         "network/facade/proto/Network/edge/v1/edge_service.proto"
     ));
+    assert!(rejected(
+        "network/facade/proto/iam/edge/v1/edge_service.proto"
+    ));
     assert!(!rejected(
         "network/facade/proto/network/edge/v1/edge_service.proto"
     ));
+}
+
+#[test]
+fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
+    assert!(rejected("network/docs/design/plan/todo.md"));
+    assert!(rejected("network/docs/runbooks/tasks/todo.md"));
+    assert!(!rejected("network/docs/design/routing.md"));
+    for path in ["app/ADR.md", "app/PRD.md", "app/SPEC.md", "app/PLAN.md"] {
+        assert!(rejected(path), "expected rejection: {path}");
+    }
+    assert!(!rejected("app/OWNERS"));
+    assert!(!rejected("app/README.md"));
+}
+
+#[test]
+fn changed_manifests_bind_package_and_rustc_identity() {
+    let path = "network/ports/blob/Cargo.toml";
+    assert!(cargo_manifest_violations(path, "[package]\nname = 'network-blob'\n").is_empty());
+    assert!(!cargo_manifest_violations(path, "[package]\nname = 'other'\n").is_empty());
+    assert!(
+        !cargo_manifest_violations(
+            path,
+            "[package]\nname = 'network-blob'\n[lib]\nname = 'alias'\n"
+        )
+        .is_empty()
+    );
+    assert!(
+        cargo_manifest_violations(
+            "network/ports/draft/blob/Cargo.toml",
+            "[package]\nname = 'network-blob-draft'\n"
+        )
+        .is_empty()
+    );
 }

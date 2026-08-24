@@ -30,7 +30,13 @@ pub(super) fn validate_owner_path(
 
     match child {
         "core" | "ports" | "adapters" | "facade" => {
-            validate_face_path(file, child, &parts[child_index + 1..], violations);
+            validate_face_path(
+                file,
+                parts[child_index - 1],
+                child,
+                &parts[child_index + 1..],
+                violations,
+            );
         }
         "cedar" | "iac" => {}
         "observability" => {
@@ -41,9 +47,15 @@ pub(super) fn validate_owner_path(
     }
 }
 
-fn validate_face_path(file: &str, face: &str, rest: &[&str], violations: &mut Vec<String>) {
+fn validate_face_path(
+    file: &str,
+    owner: &str,
+    face: &str,
+    rest: &[&str],
+    violations: &mut Vec<String>,
+) {
     if face == "facade" && rest.first() == Some(&"proto") {
-        validate_proto(file, rest, violations);
+        validate_proto(file, owner, rest, violations);
         return;
     }
     let crate_path = if matches!(face, "ports" | "adapters") && rest.first() == Some(&"draft") {
@@ -93,14 +105,18 @@ fn crate_leaf_ok(face: &str, name: &str) -> bool {
         || name.starts_with("oyatie-")
         || name.ends_with("-rs")
         || name.ends_with("-rust")
+        || matches!(face, "ports" | "adapters") && name.ends_with("-draft")
     {
         return false;
     }
     match face {
         "adapters" => name.contains('-'),
-        "facade" => name
-            .strip_suffix("-app")
-            .is_some_and(|surface| !surface.is_empty() && kebab_case(surface)),
+        "facade" => {
+            name == "app"
+                || name
+                    .strip_suffix("-app")
+                    .is_some_and(|surface| !surface.is_empty() && kebab_case(surface))
+        }
         "core" | "ports" => true,
         _ => false,
     }
@@ -140,9 +156,10 @@ fn validate_rust_tree(file: &str, parts: &[&str], violations: &mut Vec<String>) 
     }
 }
 
-fn validate_proto(file: &str, parts: &[&str], violations: &mut Vec<String>) {
+fn validate_proto(file: &str, owner: &str, parts: &[&str], violations: &mut Vec<String>) {
     let valid_shape = parts.len() == 5
         && parts[0] == "proto"
+        && parts[1] == owner
         && snake_case(parts[1])
         && snake_case(parts[2])
         && parts[3] == "v1";
@@ -193,5 +210,12 @@ fn validate_docs(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         violations.push(format!("{file}: `{section}` is not an owner docs section"));
     } else if parts.len() == 1 {
         violations.push(format!("{file}: `docs/{section}` must be a directory"));
+    } else if parts[1..parts.len() - 1]
+        .iter()
+        .any(|part| INNER_DUMP_DIRS.contains(part))
+    {
+        violations.push(format!(
+            "{file}: owner docs must not contain `plan/` or `tasks/` dumps"
+        ));
     }
 }

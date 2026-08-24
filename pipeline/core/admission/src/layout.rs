@@ -9,8 +9,10 @@ use std::collections::BTreeSet;
 use crate::GitChangePaths;
 
 mod inner;
+mod manifest;
 
 use inner::validate_owner_path;
+pub use manifest::cargo_manifest_violations;
 
 /// Admitted root directories that are present on `dev` and therefore require
 /// OWNERS/CODEOWNERS coverage.
@@ -192,7 +194,7 @@ fn invalid_git_path(path: &str) -> bool {
 
 fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     if parts.len() == 2 {
-        if !cap_root_file_ok(parts[1]) {
+        if !matches!(parts[1], "OWNERS" | "README.md") {
             violations.push(format!("{file}: app-root file `{}` not allowed", parts[1]));
         }
         return;

@@ -97,6 +97,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("merge-base"));
     assert!(layout.contains("BUILD_ROOT_DIRS"));
     assert!(layout.contains("APP_PRODUCT_DIRS"));
+    assert!(layout.contains("cargo_manifest_violations"));
+    assert!(layout.contains("cat-file"));
 }
 
 #[test]
