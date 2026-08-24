@@ -48,6 +48,28 @@ fn usage_record(
 }
 
 #[test]
+fn accepted_usage_replay_stays_idempotent_after_lateness_window() {
+    let sink = InMemorySink::new(LatenessPolicy::default());
+    let hour = UsageHour::from_epoch_seconds(7200);
+    let first_arrival = hour.start_epoch_seconds() + 60;
+    let usage = usage_record("ten_replay", "meter", "requests", hour, 5_000_000);
+
+    assert_eq!(
+        sink.ingest(usage.clone(), first_arrival),
+        Ok(IngestOutcome::Recorded)
+    );
+
+    let replay_after_cutoff = hour.end_epoch_seconds() + sink.lateness_policy().window_seconds;
+    assert_eq!(
+        sink.ingest(usage.clone(), replay_after_cutoff),
+        Ok(IngestOutcome::Duplicate),
+        "an already-recorded replay must deduplicate before lateness admission"
+    );
+    assert_eq!(sink.lookup(&usage.dedup_key()).unwrap(), Some(usage));
+    assert_eq!(sink.len().unwrap(), 1);
+}
+
+#[test]
 fn batch_ingest_fixture_records_duplicates_and_rejects_late_rows() {
     let sink = InMemorySink::new(LatenessPolicy::default());
     let hour = UsageHour::from_epoch_seconds(7200);

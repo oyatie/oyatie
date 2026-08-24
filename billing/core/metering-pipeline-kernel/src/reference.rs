@@ -74,13 +74,15 @@ impl MeteringSink for InMemorySink {
         record: UsageRecord,
         arrived_at_epoch_seconds: u64,
     ) -> Result<IngestOutcome, MeteringPipelineError> {
-        self.policy
-            .admit(record.usage_hour, arrived_at_epoch_seconds)
-            .map_err(MeteringPipelineError::Rejected)?;
         let key = record.dedup_key();
         let mut records = self.locked()?;
         match records.get(&key) {
             None => {
+                // Lateness admits first writes only; accepted replays must
+                // remain idempotent after the window closes.
+                self.policy
+                    .admit(record.usage_hour, arrived_at_epoch_seconds)
+                    .map_err(MeteringPipelineError::Rejected)?;
                 records.insert(key, record);
                 Ok(IngestOutcome::Recorded)
             }
