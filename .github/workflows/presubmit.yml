@@ -28,14 +28,14 @@ jobs:
       - name: Check out candidate tree
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           path: candidate
           persist-credentials: false
           fetch-depth: 0
       - name: Check out protected admission source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          ref: ${{ github.workflow_sha }}
           path: trusted
           persist-credentials: false
           fetch-depth: 1
@@ -52,12 +52,11 @@ jobs:
           -p pipeline-path-layout-app
       - name: Admit candidate tree
         working-directory: candidate
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-          HEAD_SHA: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
-        run: >-
-          "$RUNNER_TEMP/oyatie-layout-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app"
-          "$BASE_SHA" "$HEAD_SHA"
+        run: |
+          set -euo pipefail
+          base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
+          head_sha="$(git rev-parse --verify 'HEAD^{commit}')"
+          "$RUNNER_TEMP/oyatie-layout-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-layout-app" "$base_sha" "$head_sha"
 
   occupancy:
     name: occupancy (path-set)
@@ -68,14 +67,14 @@ jobs:
       - name: Check out candidate tree
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           path: candidate
           persist-credentials: false
           fetch-depth: 0
       - name: Check out protected admission source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.workflow_sha }}
           path: trusted
           persist-credentials: false
           fetch-depth: 1
@@ -98,7 +97,6 @@ jobs:
         working-directory: candidate
         env:
           GH_TOKEN: ${{ github.token }}
-          OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
           OYATIE_REPOSITORY: ${{ github.repository }}
         run: "$RUNNER_TEMP/oyatie-occupancy-admission/x86_64-unknown-linux-gnu/debug/pipeline-path-occupancy-app"
 
@@ -109,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -131,7 +129,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -155,7 +153,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
@@ -173,7 +171,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -200,27 +198,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.event.merge_group.head_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 0
       - id: g
         name: Path-gate live Postgres
         run: |
           set -euo pipefail
-          event="${{ github.event_name }}"
-          case "$event" in
-            pull_request)
-              range="${{ github.event.pull_request.base.sha }}...HEAD"
-              ;;
-            merge_group)
-              range="${{ github.event.merge_group.base_sha }}...${{ github.event.merge_group.head_sha }}"
-              ;;
-            *)
-              echo "live=true" >> "$GITHUB_OUTPUT"
-              exit 0
-              ;;
-          esac
-          if git diff --name-only "$range" | grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)'; then
+          base_sha="$(git rev-parse --verify 'HEAD^1^{commit}')"
+          if git diff --name-only "$base_sha" HEAD -- | grep -Eq '^(tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|\.github/workflows/presubmit\.yml|\.github/workflows/live-postgres\.yml|\.github/workflows/postsubmit\.yml|\.config/nextest\.toml)'; then
             echo "live=true" >> "$GITHUB_OUTPUT"
           else
             echo "live=false" >> "$GITHUB_OUTPUT"

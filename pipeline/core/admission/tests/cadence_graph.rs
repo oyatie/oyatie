@@ -59,15 +59,16 @@ fn presubmit_jobs_are_the_occupant_set() {
         y.contains("needs: [layout, occupancy, lint, clippy, test, deny, pg-gate, live-postgres]")
     );
     assert!(y.contains("needs: [layout, occupancy]"));
-    assert!(y.contains("github.event.merge_group.base_sha"));
-    assert!(y.contains("github.event.pull_request.base.sha"));
+    assert!(y.contains("ref: ${{ github.workflow_sha }}"));
+    assert!(y.contains("ref: ${{ github.sha }}"));
+    assert!(y.contains("git rev-parse --verify 'HEAD^1^{commit}'"));
+    assert!(!y.contains("github.event.pull_request."));
+    assert!(!y.contains("github.event.merge_group."));
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
     assert!(y.contains("path: candidate"));
     assert!(y.contains("path: trusted"));
     assert!(y.contains("name: Check out protected admission source"));
-    assert!(y.contains("BASE_SHA:"));
-    assert!(y.contains("HEAD_SHA:"));
     assert!(y.contains("cargo build --locked"));
     assert_eq!(
         y.matches("working-directory: ${{ runner.temp }}").count(),
@@ -92,7 +93,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("occ()"));
     assert!(y.contains("occ \"${{ needs.occupancy.result }}\""));
-    assert!(y.contains("OYATIE_PULL_REQUEST"));
+    assert!(!y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(
         !y.contains("gh pr diff"),
@@ -126,6 +127,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("\"-M\""));
     assert!(collector.contains("x-access-token"));
     assert!(collector.contains("git_change_paths_from_name_status_z"));
+    assert!(collector.contains("required_env(\"GITHUB_REF\")"));
     assert!(!collector.contains("/files"));
 
     let layout = format!(
