@@ -51,6 +51,10 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
     assert!(y.contains("path-occupancy"));
+    assert!(y.contains("--bin path-layout"));
+    assert!(y.contains("OYATIE_LAYOUT_BASE"));
+    assert!(y.contains("OYATIE_LAYOUT_HEAD"));
+    assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
     assert!(
@@ -84,9 +88,14 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("\"-z\""));
     assert!(collector.contains("\"-M\""));
     assert!(collector.contains("x-access-token"));
-    assert!(collector.contains("changed_layout_violations"));
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
+
+    let layout = read("pipeline/core/admission/src/bin/path-layout.rs");
+    assert!(layout.contains("changed_layout_violations"));
+    assert!(layout.contains("git_change_paths_from_name_status_z"));
+    assert!(layout.contains("merge-base"));
+    assert!(layout.contains("BUILD_ROOT_DIRS"));
 }
 
 #[test]

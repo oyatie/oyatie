@@ -9,10 +9,7 @@ use std::collections::BTreeSet;
 use std::env;
 use std::process::{Command, ExitCode, Output};
 
-use pipeline_admission::{
-    GitChangePaths, OccupiedSet, admit, changed_layout_violations,
-    git_change_paths_from_name_status_z,
-};
+use pipeline_admission::{GitChangePaths, OccupiedSet, admit, git_change_paths_from_name_status_z};
 
 const REMOTE: &str = "origin";
 const TRUNK_REF: &str = "refs/remotes/origin/dev";
@@ -52,15 +49,7 @@ fn run() -> Result<(), String> {
         &config.token,
         &["merge-base", current_head.as_str(), TRUNK_REF],
     )?;
-    let current = git_change_paths(&config.token, &current_base, &current_head)?;
-    let layout_violations = changed_layout_violations(&current);
-    if !layout_violations.is_empty() {
-        return Err(format!(
-            "ADR-0719 D-8 layout refused:\n{}",
-            layout_violations.join("\n")
-        ));
-    }
-    let this = current.occupied;
+    let this = git_change_paths(&config.token, &current_base, &current_head)?.occupied;
 
     let mut in_flight = Vec::with_capacity(open.len().saturating_sub(1));
     for number in open {

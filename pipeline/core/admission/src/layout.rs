@@ -8,6 +8,10 @@ use std::collections::BTreeSet;
 
 use crate::GitChangePaths;
 
+mod inner;
+
+use inner::validate_owner_path;
+
 /// Admitted root directories that are present on `dev` and therefore require
 /// OWNERS/CODEOWNERS coverage.
 pub const ALLOWED_ROOT_DIRS: &[&str] = &[
@@ -43,6 +47,10 @@ pub const ALLOWED_ROOT_DIRS: &[&str] = &[
 /// added; absence must not require an empty OWNERS scaffold.
 pub const BUILD_ROOT_DIRS: &[&str] = &["notify", "policy", "workflow"];
 
+/// Closed dot-directory set. Existing dot-root debt is removal-only rather
+/// than a wildcard exemption for new tracked paths.
+pub const ALLOWED_DOT_ROOT_DIRS: &[&str] = &[".cargo", ".github"];
+
 pub const ALLOWED_ROOT_FILES: &[&str] = &[
     "Cargo.toml",
     "Cargo.lock",
@@ -55,6 +63,10 @@ pub const ALLOWED_ROOT_FILES: &[&str] = &[
     "rustfmt.toml",
     "deny.toml",
     "reindeer.toml",
+    ".buckconfig",
+    ".buckroot",
+    ".gitattributes",
+    ".gitignore",
 ];
 
 pub const FACES: &[&str] = &["core", "ports", "adapters", "facade"];
@@ -80,10 +92,7 @@ pub const FORBIDDEN_NAMES: &[&str] = &[
 pub const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-party"];
 
 pub(crate) fn path_parts(path: &str) -> Vec<&str> {
-    path.trim_start_matches("./")
-        .split(['/', '\\'])
-        .filter(|part| !part.is_empty())
-        .collect()
+    path.split('/').filter(|part| !part.is_empty()).collect()
 }
 
 fn is_meta_root(root: &str) -> bool {
@@ -97,16 +106,7 @@ pub fn is_capability_root(root: &str) -> bool {
 pub fn cap_root_file_ok(name: &str) -> bool {
     matches!(
         name,
-        "OWNERS"
-            | "README.md"
-            | "BUCK"
-            | "ADR.md"
-            | "PRD.md"
-            | "SPEC.md"
-            | "PLAN.md"
-            | "Cargo.toml"
-            | "Cargo.lock"
-            | "LICENSE"
+        "OWNERS" | "README.md" | "BUCK" | "ADR.md" | "PRD.md" | "SPEC.md" | "PLAN.md"
     )
 }
 
@@ -120,19 +120,23 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
     let allowed_dirs: BTreeSet<&str> = ALLOWED_ROOT_DIRS
         .iter()
         .chain(BUILD_ROOT_DIRS)
+        .chain(ALLOWED_DOT_ROOT_DIRS)
         .copied()
         .collect();
     let allowed_files: BTreeSet<&str> = ALLOWED_ROOT_FILES.iter().copied().collect();
     let forbidden: BTreeSet<&str> = FORBIDDEN_NAMES.iter().copied().collect();
     let mut violations = Vec::new();
     for file in changed_files {
+        if invalid_git_path(file) {
+            violations.push(format!(
+                "{file}: invalid Git path spelling; `/` is the only separator"
+            ));
+            continue;
+        }
         let parts = path_parts(file);
         let Some(root) = parts.first().copied() else {
             continue;
         };
-        if root.starts_with('.') || root == "target" {
-            continue;
-        }
         if forbidden.contains(root) {
             violations.push(format!("{file}: forbidden root `{root}`"));
             continue;
@@ -148,72 +152,65 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
             continue;
         }
         if root == "app" {
-            validate_app_path(file, &parts, &forbidden, &mut violations);
+            validate_app_path(file, &parts, &mut violations);
         } else if is_capability_root(root) {
-            validate_capability_path(file, &parts, &forbidden, &mut violations);
+            validate_owner_path(file, &parts, 1, &mut violations);
         }
     }
     violations
 }
 
-fn validate_app_path(
-    file: &str,
-    parts: &[&str],
-    forbidden: &BTreeSet<&str>,
-    violations: &mut Vec<String>,
-) {
+fn invalid_git_path(path: &str) -> bool {
+    path.is_empty()
+        || path.starts_with('/')
+        || path.ends_with('/')
+        || path.contains('\\')
+        || path
+            .split('/')
+            .any(|part| part.is_empty() || matches!(part, "." | ".."))
+}
+
+fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
     if parts.len() == 2 {
         if !cap_root_file_ok(parts[1]) {
             violations.push(format!("{file}: app-root file `{}` not allowed", parts[1]));
         }
         return;
     }
-    let child = parts[2];
-    if forbidden.contains(child) {
-        violations.push(format!("{file}: forbidden child `{child}`"));
-    } else if parts.len() == 3 {
-        if face_dir_ok(child) {
-            violations.push(format!(
-                "{file}: `app/<product>/{child}` must be a directory"
-            ));
-        } else if !cap_root_file_ok(child) {
-            violations.push(format!("{file}: `app/<product>/{child}` is not a face"));
-        }
-    } else if !face_dir_ok(child) {
-        violations.push(format!("{file}: `app/<product>/{child}` is not a face"));
-    }
+    validate_owner_path(file, parts, 2, violations);
 }
 
-fn validate_capability_path(
-    file: &str,
-    parts: &[&str],
-    forbidden: &BTreeSet<&str>,
-    violations: &mut Vec<String>,
-) {
-    let child = parts[1];
-    if forbidden.contains(child) {
-        violations.push(format!("{file}: forbidden child `{child}`"));
-    } else if parts.len() == 2 {
-        if face_dir_ok(child) {
-            violations.push(format!(
-                "{file}: `{}/{child}` must be a directory",
-                parts[0]
-            ));
-        } else if !cap_root_file_ok(child) {
-            violations.push(format!("{file}: `{}/{child}` is not a face", parts[0]));
-        }
-    } else if !face_dir_ok(child) {
-        violations.push(format!("{file}: `{}/{child}` is not a face", parts[0]));
-    }
-}
-
-/// Apply D-8 only to changed paths that remain after the Git diff.
-pub fn changed_layout_violations(changes: &GitChangePaths) -> Vec<String> {
-    layout_violations(
+/// Apply D-8 only to changed paths that remain after the Git diff. BUILD roots
+/// absent at the merge base must carry a real core source in the same change.
+pub fn changed_layout_violations(
+    changes: &GitChangePaths,
+    existing_build_roots: &BTreeSet<String>,
+) -> Vec<String> {
+    let mut violations = layout_violations(
         &changes
             .layout_candidates
             .iter()
             .cloned()
             .collect::<Vec<_>>(),
-    )
+    );
+    for root in BUILD_ROOT_DIRS {
+        let touches_root = changes.layout_candidates.iter().any(|path| {
+            let parts = path_parts(path);
+            parts.first() == Some(root)
+        });
+        let carries_core_source = changes.layout_candidates.iter().any(|path| {
+            let parts = path_parts(path);
+            parts.len() >= 5
+                && parts[0] == *root
+                && parts[1] == "core"
+                && parts[3] == "src"
+                && path.ends_with(".rs")
+        });
+        if touches_root && !existing_build_roots.contains(*root) && !carries_core_source {
+            violations.push(format!(
+                "{root}: new BUILD root requires a core source in the same change"
+            ));
+        }
+    }
+    violations
 }
