@@ -46,6 +46,10 @@ fn job_ids(yaml: &str) -> Vec<String> {
 fn presubmit_jobs_are_the_occupant_set() {
     let y = read(".github/workflows/presubmit.yml");
     assert_eq!(job_ids(&y), PRESUBMIT_JOBS);
+    assert!(
+        !y.contains("workflow_dispatch:"),
+        "the authoritative required-check workflow needs an immutable PR or merge-group base"
+    );
     assert!(y.contains("needs: [occupancy, lint, test, deny, pg-gate, live-postgres]"));
     assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));

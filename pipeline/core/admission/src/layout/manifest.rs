@@ -135,7 +135,7 @@ fn production_dependency_targets_base(path: &str, manifest: &toml::Value) -> boo
 }
 
 fn resolves_under_base(manifest_path: &str, dependency_path: &str) -> bool {
-    let Some(components) = resolved_dependency_path(manifest_path, dependency_path) else {
+    let Ok(components) = resolved_dependency_path(manifest_path, dependency_path) else {
         return false;
     };
     components

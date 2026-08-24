@@ -45,8 +45,14 @@ pub fn draft_dependency_violations(
             } else {
                 return;
             };
-        let Some(components) = resolved_dependency_path(declaring_manifest, dependency_path) else {
-            return;
+        let components = match resolved_dependency_path(declaring_manifest, dependency_path) {
+            Ok(components) => components,
+            Err(reason) => {
+                violations.push(format!(
+                    "{path}: dependency `{name}` has invalid path `{dependency_path}`: {reason}"
+                ));
+                return;
+            }
         };
         let Some(provider) = draft_dependency_owner(&components) else {
             return;
@@ -101,8 +107,14 @@ fn inspect_root_dependency_table(
         let Some(dependency_path) = dependency.get("path").and_then(toml::Value::as_str) else {
             continue;
         };
-        let Some(components) = resolved_dependency_path("Cargo.toml", dependency_path) else {
-            continue;
+        let components = match resolved_dependency_path("Cargo.toml", dependency_path) {
+            Ok(components) => components,
+            Err(reason) => {
+                violations.push(format!(
+                    "Cargo.toml: {surface} `{name}` has invalid path `{dependency_path}`: {reason}"
+                ));
+                continue;
+            }
         };
         let Some(provider) = draft_dependency_owner(&components) else {
             continue;
@@ -116,13 +128,17 @@ fn inspect_root_dependency_table(
 pub(super) fn resolved_dependency_path(
     manifest_path: &str,
     dependency_path: &str,
-) -> Option<Vec<String>> {
-    if dependency_path.starts_with('/') || dependency_path.contains('\\') {
-        return None;
+) -> Result<Vec<String>, &'static str> {
+    if dependency_path_is_absolute(dependency_path) {
+        return Err("absolute paths are forbidden");
+    }
+    if dependency_path.contains('\\') {
+        return Err("backslash separators are forbidden");
     }
     let directory = manifest_path
         .strip_suffix("/Cargo.toml")
-        .or_else(|| (manifest_path == "Cargo.toml").then_some(""))?;
+        .or_else(|| (manifest_path == "Cargo.toml").then_some(""))
+        .ok_or("declaring manifest is not repository-relative")?;
     let mut components: Vec<String> = directory
         .split('/')
         .filter(|component| !component.is_empty())
@@ -132,12 +148,24 @@ pub(super) fn resolved_dependency_path(
         match component {
             "" | "." => {}
             ".." => {
-                components.pop()?;
+                if components.pop().is_none() {
+                    return Err("path escapes the repository root");
+                }
             }
             component => components.push(component.to_owned()),
         }
     }
-    Some(components)
+    Ok(components)
+}
+
+fn dependency_path_is_absolute(path: &str) -> bool {
+    let bytes = path.as_bytes();
+    path.starts_with(['/', '\\'])
+        || matches!(
+            bytes,
+            [drive, b':', separator, ..]
+                if drive.is_ascii_alphabetic() && matches!(separator, b'/' | b'\\')
+        )
 }
 
 fn manifest_owner(path: &str) -> Option<String> {
@@ -224,6 +252,39 @@ mod tests {
             "[replace]\n'shared:1.0.0'={path='storage/ports/draft/blob'}\n",
         ] {
             assert!(!workspace_draft_dependency_violations(override_manifest).is_empty());
+        }
+    }
+
+    #[test]
+    fn unsafe_dependency_paths_fail_closed() {
+        let owner_manifest = "network/core/route/Cargo.toml";
+        for dependency_path in [
+            "/tmp/storage/ports/draft/blob",
+            "C:/workspace/storage/ports/draft/blob",
+            r"..\..\..\storage\ports\draft\blob",
+            "../../../../storage/ports/draft/blob",
+        ] {
+            let manifest = format!(
+                "[package]\nname='network-route'\n[dependencies]\nblob={{path='{dependency_path}'}}\n"
+            );
+            assert!(
+                !draft_dependency_violations(owner_manifest, &manifest, "").is_empty(),
+                "expected invalid dependency path rejection: {dependency_path}"
+            );
+        }
+
+        for dependency_path in [
+            "/tmp/storage/ports/draft/blob",
+            "C:/workspace/storage/ports/draft/blob",
+            r"storage\ports\draft\blob",
+            "../storage/ports/draft/blob",
+        ] {
+            let workspace =
+                format!("[workspace.dependencies]\nshared={{path='{dependency_path}'}}\n");
+            assert!(
+                !workspace_draft_dependency_violations(&workspace).is_empty(),
+                "expected invalid root dependency path rejection: {dependency_path}"
+            );
         }
     }
 }

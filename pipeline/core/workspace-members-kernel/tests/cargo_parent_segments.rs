@@ -83,15 +83,47 @@ fn source_marker_parent_segments_match_cargo_for_capability_and_app_drafts() {
     write(
         &root,
         "Cargo.toml",
-        "[workspace]\nmembers=[\"*/ports/draft/*/src/..\",\"app/*/ports/**/src/..\"]\nresolver='2'\n",
+        "[workspace]\nmembers=[\"*/ports/**/src/..\",\"*/adapters/**/src/..\",\"*/facade/*/src/..\",\"app/*/ports/**/src/..\",\"app/*/adapters/**/src/..\",\"app/*/facade/*/src/..\"]\nresolver='2'\n",
     );
+    write_crate(&root, "network/ports/blob", "network-blob");
     write_crate(&root, "network/ports/draft/blob", "network-blob-draft");
+    write_crate(&root, "network/adapters/blob-s3", "network-blob-s3");
+    write_crate(
+        &root,
+        "network/adapters/draft/blob-s3",
+        "network-blob-s3-draft",
+    );
+    write_crate(&root, "network/facade/edge-app", "network-edge-app");
+    write(
+        &root,
+        "network/facade/proto/network/edge/v1/service.proto",
+        "syntax = \"proto3\";\n",
+    );
     write_crate(&root, "app/drive/ports/blob", "drive-blob");
     write_crate(&root, "app/drive/ports/draft/blob", "drive-blob-draft");
+    write_crate(&root, "app/drive/adapters/blob-s3", "drive-blob-s3");
+    write_crate(
+        &root,
+        "app/drive/adapters/draft/blob-s3",
+        "drive-blob-s3-draft",
+    );
+    write_crate(&root, "app/drive/facade/api-app", "drive-api-app");
+    write(
+        &root,
+        "app/drive/facade/proto/drive/api/v1/service.proto",
+        "syntax = \"proto3\";\n",
+    );
 
     let expected = BTreeSet::from([
+        "app/drive/adapters/blob-s3".to_owned(),
+        "app/drive/adapters/draft/blob-s3".to_owned(),
+        "app/drive/facade/api-app".to_owned(),
         "app/drive/ports/blob".to_owned(),
         "app/drive/ports/draft/blob".to_owned(),
+        "network/adapters/blob-s3".to_owned(),
+        "network/adapters/draft/blob-s3".to_owned(),
+        "network/facade/edge-app".to_owned(),
+        "network/ports/blob".to_owned(),
         "network/ports/draft/blob".to_owned(),
     ]);
     let owned = resolve_member_dirs(&root)
@@ -101,5 +133,21 @@ fn source_marker_parent_segments_match_cargo_for_capability_and_app_drafts() {
 
     assert_eq!(owned, expected);
     assert_eq!(owned, cargo_member_dirs(&root));
+
+    std::fs::remove_dir_all(root.join("network/ports/draft")).expect("sell capability draft");
+    std::fs::remove_dir_all(root.join("network/adapters/draft"))
+        .expect("sell capability adapter draft");
+    std::fs::remove_dir_all(root.join("app/drive/ports/draft")).expect("sell app draft");
+    std::fs::remove_dir_all(root.join("app/drive/adapters/draft")).expect("sell app adapter draft");
+    let sold_expected = expected
+        .into_iter()
+        .filter(|member| !member.contains("/draft/"))
+        .collect::<BTreeSet<_>>();
+    let sold_owned = resolve_member_dirs(&root)
+        .expect("owned resolver after final draft is sold")
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    assert_eq!(sold_owned, sold_expected);
+    assert_eq!(sold_owned, cargo_member_dirs(&root));
     let _ = std::fs::remove_dir_all(root);
 }

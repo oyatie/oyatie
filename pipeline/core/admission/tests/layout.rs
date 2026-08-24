@@ -261,20 +261,22 @@ fn new_build_root_requires_core_source_not_owner_paperwork() {
 fn workspace_globs_load_draft_leaf_crates_not_grouping_directories() {
     let workspace = std::fs::read_to_string(repo_root().join("Cargo.toml")).expect("Cargo.toml");
     for member in [
-        "*/ports/*/src/..",
-        "*/adapters/*/src/..",
-        "*/ports/draft/*/src/..",
-        "*/adapters/draft/*/src/..",
+        "*/ports/**/src/..",
+        "*/adapters/**/src/..",
+        "*/facade/*/src/..",
         "app/*/ports/**/src/..",
         "app/*/adapters/**/src/..",
+        "app/*/facade/*/src/..",
     ] {
         assert!(workspace.contains(&format!("\"{member}\"")), "{member}");
     }
     for forbidden_parent in [
         "\"*/ports/*\"",
         "\"*/adapters/*\"",
+        "\"*/facade/*\"",
         "\"app/*/ports/*\"",
         "\"app/*/adapters/*\"",
+        "\"app/*/facade/*\"",
     ] {
         assert!(!workspace.contains(forbidden_parent), "{forbidden_parent}");
     }

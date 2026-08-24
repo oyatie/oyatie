@@ -254,7 +254,9 @@ fn forbidden_doc_dump(part: &str) -> bool {
             | "adrs"
             | "prd"
             | "spec"
+            | "specs"
             | "plan"
+            | "plans"
             | "tasks"
             | "decisions"
             | "ips"
@@ -266,8 +268,14 @@ fn forbidden_doc_dump(part: &str) -> bool {
             | "capabilities"
             | "evidence"
             | "handoff"
-    ) || stem.starts_with("adr-")
-        || stem.starts_with("ip-")
+    ) || reserved_doc_prefix(stem)
         || stem.starts_with("audit-findings-")
         || stem.starts_with("remediation-notes-")
+}
+
+fn reserved_doc_prefix(stem: &str) -> bool {
+    ["adr", "prd", "spec", "plan", "ip"].iter().any(|name| {
+        stem.strip_prefix(name)
+            .is_some_and(|tail| tail.starts_with('-') || tail.starts_with('_'))
+    })
 }

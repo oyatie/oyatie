@@ -23,15 +23,15 @@ members = [
   # members there, never by parsing this array.
   "*/core/*",
   # Ports and adapters select a canonical `src/` marker and normalize back to
-  # the package directory. That admits every D-30 crate but does not mistake
-  # the D-28 `draft/` grouping directory itself for a package.
-  "*/ports/*/src/..",
-  "*/adapters/*/src/..",
-  "*/facade/*",
-  # D-28/D-30 draft crates live one segment deeper. Capability and app owner
-  # shapes are explicit so a recursive glob cannot enroll a meta-root crate.
-  "*/ports/draft/*/src/..",
-  "*/adapters/draft/*/src/..",
+  # the package directory. Recursion admits direct and D-28 `draft/<crate>`
+  # leaves through one always-matched shape, so selling the final draft cannot
+  # leave Cargo with a dangling future-only member glob. D-8 rejects any other
+  # grouping depth before admission.
+  "*/ports/**/src/..",
+  "*/adapters/**/src/..",
+  # Facades also require the crate's source marker. A broad `facade/*` would
+  # enroll the non-crate `facade/proto/` contract tree and break Cargo loading.
+  "*/facade/*/src/..",
   # ADR-0562 composition ring. The layer globs above are single-segment and cannot reach
   # `app/<product>/<face>/<crate>`, so without these an app absorb lands crates OUTSIDE the
   # build — which evaluation_gate.forbidden calls move_now_fix_later. app/calendar landed
@@ -41,7 +41,7 @@ members = [
   # leaving an unmatched future-only glob that Cargo would interpret as a literal path.
   "app/*/ports/**/src/..",
   "app/*/adapters/**/src/..",
-  "app/*/facade/*",
+  "app/*/facade/*/src/..",
   "app/foundry/pages/crates/*",
   "app/foundry/grid/core/*",
 
