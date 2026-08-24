@@ -21,7 +21,7 @@ pub use layout::{
     ALLOWED_DOT_ROOT_DIRS, ALLOWED_ROOT_DIRS, ALLOWED_ROOT_FILES, APP_PRODUCT_DIRS,
     BUILD_ROOT_DIRS, CAP_EXTRAS, DATA_ROOTS, FACES, FORBIDDEN_NAMES, META_ROOTS,
     WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS, base_admission_violations, cap_root_file_ok,
-    cargo_config_dependency_override_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
+    cargo_config_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
     cargo_manifest_for_entrypoint, cargo_manifest_violations, changed_layout_violations,
     draft_dependency_violations, face_dir_ok, is_capability_root, layout_violations,
     proto_package_violations, workspace_draft_dependency_violations,

@@ -58,7 +58,13 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("pipeline-path-layout-app"));
     assert!(!y.contains("OYATIE_LAYOUT_BASE"));
     assert!(!y.contains("OYATIE_LAYOUT_HEAD"));
-    assert!(y.contains("pipeline-path-layout-app --locked --"));
+    assert!(y.contains("cargo build --locked"));
+    assert!(y.contains("--target x86_64-unknown-linux-gnu"));
+    assert!(y.contains("--target-dir \"$RUNNER_TEMP/oyatie-admission\""));
+    assert!(y.contains("debug/pipeline-path-layout-app\""));
+    assert!(y.contains("debug/pipeline-path-occupancy-app\""));
+    assert!(!y.contains("cargo run -p pipeline-path-layout-app"));
+    assert!(!y.contains("cargo run -p pipeline-path-occupancy-app"));
     assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
@@ -82,7 +88,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     );
     assert!(
         !y.contains("pipeline-path-occupancy-app --locked --offline"),
-        "occupancy cargo run must reach crates.io on a cold cache"
+        "the admission build must reach crates.io on a cold cache"
     );
 
     let collector = read("pipeline/facade/path-occupancy-app/src/main.rs");
@@ -108,7 +114,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("draft_dependency_violations"));
     assert!(layout.contains("workspace_draft_dependency_violations"));
     assert!(layout.contains("workspace_membership_violations"));
-    assert!(layout.contains("cargo_config_violations"));
+    assert!(layout.contains("repository_cargo_config_violations"));
+    assert!(layout.contains("crate_candidate_kind_violations"));
     assert!(layout.contains("entry_kind(&head"));
     assert!(layout.contains("RepositoryRead"));
     assert!(layout.contains("GitRepository"));

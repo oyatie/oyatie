@@ -246,11 +246,22 @@ fn validate_docs(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         violations.push(format!("{file}: `{section}` is not an owner docs section"));
     } else if parts.len() == 1 {
         violations.push(format!("{file}: `docs/{section}` must be a directory"));
+    } else if parts[1..].iter().any(|part| cargo_or_rust_payload(part)) {
+        violations.push(format!(
+            "{file}: owner docs must not contain Cargo or Rust payloads"
+        ));
     } else if parts[1..].iter().any(|part| forbidden_doc_dump(part)) {
         violations.push(format!(
             "{file}: owner docs must not contain law copies, IPs, catalogs, scorecards, plan/tasks, or evidence dumps"
         ));
     }
+}
+
+fn cargo_or_rust_payload(part: &str) -> bool {
+    matches!(
+        part,
+        "Cargo.toml" | "Cargo.lock" | "build.rs" | "rust-toolchain.toml" | "rustfmt.toml"
+    ) || part.ends_with(".rs")
 }
 
 fn forbidden_doc_dump(part: &str) -> bool {

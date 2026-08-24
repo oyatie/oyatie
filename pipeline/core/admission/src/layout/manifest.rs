@@ -71,7 +71,7 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
             "{path}: package `autotests = false` disables D-30 integration-test discovery"
         ));
     }
-    for switch in ["test"] {
+    for switch in ["test", "harness"] {
         if manifest
             .get("lib")
             .and_then(|library| library.get(switch))
@@ -207,6 +207,7 @@ mod tests {
             "[package]\nname='network-route'\nautolib=false\n",
             "[package]\nname='network-route'\nautotests=false\n",
             "[package]\nname='network-route'\n[lib]\ntest=false\n",
+            "[package]\nname='network-route'\n[lib]\nharness=false\n",
         ] {
             assert!(!cargo_manifest_violations(path, manifest).is_empty());
         }

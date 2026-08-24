@@ -130,6 +130,9 @@ fn proto_paths_reject_package_and_filename_shortcuts() {
 fn owner_docs_and_app_meta_do_not_reintroduce_global_law() {
     assert!(rejected("network/docs/design/plan/todo.md"));
     assert!(rejected("network/docs/runbooks/tasks/todo.md"));
+    assert!(rejected("network/docs/design/shadow/Cargo.toml"));
+    assert!(rejected("network/docs/design/shadow/src/lib.rs"));
+    assert!(rejected("network/docs/runbooks/example/build.rs"));
     assert!(!rejected("network/docs/design/routing.md"));
     for path in ["app/ADR.md", "app/PRD.md", "app/SPEC.md", "app/PLAN.md"] {
         assert!(rejected(path), "expected rejection: {path}");

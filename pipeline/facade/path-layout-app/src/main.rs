@@ -4,11 +4,11 @@ use std::collections::BTreeSet;
 use std::process::ExitCode;
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations,
-    cargo_config_dependency_override_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
-    cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
-    git_change_paths_from_name_status_z, proto_package_violations,
-    workspace_draft_dependency_violations, workspace_membership_violations,
+    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations, cargo_config_violations,
+    cargo_entrypoint, cargo_manifest_for_crate_path, cargo_manifest_violations,
+    changed_layout_violations, draft_dependency_violations, git_change_paths_from_name_status_z,
+    proto_package_violations, workspace_draft_dependency_violations,
+    workspace_membership_violations,
 };
 use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 use pipeline_repository_git_draft::GitRepository;
@@ -38,7 +38,12 @@ fn run() -> Result<(), String> {
         &workspace_contents,
         |visited| reject_indirect_dependency_components(&repository, &head, visited),
     ));
-    violations.extend(cargo_config_violations(&repository, &head)?);
+    violations.extend(repository_cargo_config_violations(&repository, &head)?);
+    violations.extend(crate_candidate_kind_violations(
+        &repository,
+        &head,
+        &changes.layout_candidates,
+    )?);
     let mut manifests = Vec::new();
     for path in changes
         .layout_candidates
@@ -131,7 +136,7 @@ fn run() -> Result<(), String> {
     }
 }
 
-fn cargo_config_violations(
+fn repository_cargo_config_violations(
     repository: &impl RepositoryRead,
     head: &str,
 ) -> Result<Vec<String>, String> {
@@ -141,10 +146,33 @@ fn cargo_config_violations(
             None => {}
             Some(kind) if regular_blob(Some(kind)) => {
                 let contents = repository.blob_text(head, path)?;
-                violations.extend(cargo_config_dependency_override_violations(path, &contents));
+                violations.extend(cargo_config_violations(path, &contents));
             }
             Some(kind) => violations.push(format!(
                 "{path}: Cargo configuration must be a regular Git blob, got {kind:?}"
+            )),
+        }
+    }
+    Ok(violations)
+}
+
+fn crate_candidate_kind_violations(
+    repository: &impl RepositoryRead,
+    head: &str,
+    candidates: &BTreeSet<String>,
+) -> Result<Vec<String>, String> {
+    let mut violations = Vec::new();
+    for path in candidates {
+        if cargo_manifest_for_crate_path(path).is_none() {
+            continue;
+        }
+        match repository.entry_kind(head, path)? {
+            Some(kind) if regular_blob(Some(kind)) => {}
+            Some(kind) => violations.push(format!(
+                "{path}: live crate content must be a regular Git blob, got {kind:?}"
+            )),
+            None => violations.push(format!(
+                "{path}: live changed crate path is absent at the head commit"
             )),
         }
     }

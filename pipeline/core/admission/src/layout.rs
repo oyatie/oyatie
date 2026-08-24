@@ -17,7 +17,7 @@ mod proto;
 mod workspace;
 
 pub use base::base_admission_violations;
-pub use cargo_config::cargo_config_dependency_override_violations;
+pub use cargo_config::cargo_config_violations;
 pub use change::changed_layout_violations;
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
