@@ -7,14 +7,17 @@
 use std::collections::BTreeSet;
 
 mod base;
+mod cargo_config;
 mod change;
 mod dependency;
 mod inner;
 mod manifest;
 mod payload;
 mod proto;
+mod workspace;
 
 pub use base::base_admission_violations;
+pub use cargo_config::cargo_config_dependency_override_violations;
 pub use change::changed_layout_violations;
 pub use dependency::{draft_dependency_violations, workspace_draft_dependency_violations};
 use inner::validate_owner_path;
@@ -23,6 +26,7 @@ pub use manifest::{
     cargo_manifest_violations,
 };
 pub use proto::proto_package_violations;
+pub use workspace::{WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS, workspace_membership_violations};
 
 /// Admitted root directories that are present on `dev` and therefore require
 /// OWNERS/CODEOWNERS coverage.
@@ -121,6 +125,11 @@ pub const FORBIDDEN_NAMES: &[&str] = &[
 
 pub const META_ROOTS: &[&str] = &["app", "build", "docs", "templates", "third-party"];
 
+/// Root data loaded by capabilities but not itself a capability or Cargo face.
+pub const DATA_ROOTS: &[&str] = &["packs"];
+
+const PACK_NAMESPACES: &[&str] = &["us", "eu", "jp", "kr"];
+
 pub(crate) fn path_parts(path: &str) -> Vec<&str> {
     path.split('/').filter(|part| !part.is_empty()).collect()
 }
@@ -133,6 +142,7 @@ pub fn is_capability_root(root: &str) -> bool {
     (ALLOWED_ROOT_DIRS.contains(&root) || BUILD_ROOT_DIRS.contains(&root))
         && root != "base"
         && !is_meta_root(root)
+        && !DATA_ROOTS.contains(&root)
 }
 
 pub fn cap_root_file_ok(name: &str) -> bool {
@@ -185,6 +195,8 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         }
         if root == "app" {
             validate_app_path(file, &parts, &mut violations);
+        } else if root == "packs" {
+            validate_packs_path(file, &parts, &mut violations);
         } else if is_meta_root(root) && parts.get(1).is_some_and(|child| FACES.contains(child)) {
             violations.push(format!(
                 "{file}: meta root `{root}` cannot contain owner Cargo face `{}`",
@@ -195,6 +207,34 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         }
     }
     violations
+}
+
+fn validate_packs_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
+    if parts.len() == 2 {
+        if !matches!(parts[1], "OWNERS" | "README.md") {
+            violations.push(format!(
+                "{file}: packs root admits only ownership metadata and namespace directories"
+            ));
+        }
+        return;
+    }
+    let namespace = parts[1];
+    if !PACK_NAMESPACES.contains(&namespace) {
+        violations.push(format!(
+            "{file}: unknown pack namespace `{namespace}`; expected one of us, eu, jp, kr"
+        ));
+        return;
+    }
+    if parts[2..].iter().any(|part| {
+        matches!(
+            *part,
+            "core" | "ports" | "adapters" | "facade" | "Cargo.toml" | "build.rs"
+        ) || part.ends_with(".rs")
+    }) {
+        violations.push(format!(
+            "{file}: packs are Cedar/IR data and cannot contain a capability, Cargo crate, or Rust engine"
+        ));
+    }
 }
 
 fn invalid_git_path(path: &str) -> bool {

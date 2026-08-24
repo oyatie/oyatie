@@ -41,10 +41,10 @@ jobs:
           shared-key: cargo-ci-x86
           cache-workspace-crates: "true"
       - name: Admit D-8 changed paths
-        env:
-          OYATIE_LAYOUT_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.sha }}
-          OYATIE_LAYOUT_HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
-        run: cargo run -p pipeline-path-layout-app --locked
+        run: >-
+          cargo run -p pipeline-path-layout-app --locked --
+          "${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}"
+          "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}"
       - name: Admit complete Git path-set
         if: github.event_name == 'pull_request'
         env:

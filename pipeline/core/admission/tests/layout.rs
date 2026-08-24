@@ -157,6 +157,25 @@ fn iac_and_observability_are_capabilities_not_meta_roots() {
 }
 
 #[test]
+fn packs_are_closed_root_data_not_a_capability() {
+    assert!(!pipeline_admission::is_capability_root("packs"));
+    let violations = layout_violations(&[
+        "packs/eu/policy/gdpr.cedar".into(),
+        "packs/kr/placement/data_residency.textproto".into(),
+        "packs/kr-eu/policy/combined.cedar".into(),
+        "packs/eu/core/evaluator/src/lib.rs".into(),
+    ]);
+    assert!(!violations.iter().any(|item| item.contains("gdpr.cedar")));
+    assert!(
+        !violations
+            .iter()
+            .any(|item| item.contains("data_residency.textproto"))
+    );
+    assert!(violations.iter().any(|item| item.contains("kr-eu")));
+    assert!(violations.iter().any(|item| item.contains("Rust engine")));
+}
+
+#[test]
 fn changed_layout_checks_only_paths_present_after_the_change() {
     let existing_build_roots = BTreeSet::new();
     let deletion = git_change_paths_from_name_status_z(b"D\0plan/legacy.md\0").unwrap();
@@ -260,6 +279,10 @@ fn new_build_root_requires_core_source_not_owner_paperwork() {
 #[test]
 fn workspace_globs_bound_direct_and_draft_crate_depths() {
     let workspace = std::fs::read_to_string(repo_root().join("Cargo.toml")).expect("Cargo.toml");
+    assert!(
+        pipeline_admission::workspace_membership_violations(&workspace).is_empty(),
+        "the live root workspace must equal the closed admission policy"
+    );
     for member in [
         "*/ports/*/src/..",
         "*/adapters/*/src/..",

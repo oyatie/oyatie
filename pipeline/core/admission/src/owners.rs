@@ -1,7 +1,7 @@
 //! Path → occupant. GitHub team is `@oyatie/<occupant>` except the org
 //! occupant `oyatie`, whose review identity is the CODEOWNERS `*` user.
 
-use crate::{META_ROOTS, is_capability_root, path_parts};
+use crate::{DATA_ROOTS, META_ROOTS, is_capability_root, path_parts};
 
 pub const ROOT_OCCUPANT: &str = "oyatie";
 
@@ -26,6 +26,9 @@ pub fn owners_occupant(rel: &str) -> Option<String> {
     }
     if root == "base" {
         return Some(ROOT_OCCUPANT.to_owned());
+    }
+    if DATA_ROOTS.contains(&root) {
+        return Some(root.to_owned());
     }
     if META_ROOTS.contains(&root) {
         return Some(ROOT_OCCUPANT.to_owned());

@@ -56,8 +56,9 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("github.event.pull_request.base.sha"));
     assert!(y.contains("pipeline-path-occupancy-app"));
     assert!(y.contains("pipeline-path-layout-app"));
-    assert!(y.contains("OYATIE_LAYOUT_BASE"));
-    assert!(y.contains("OYATIE_LAYOUT_HEAD"));
+    assert!(!y.contains("OYATIE_LAYOUT_BASE"));
+    assert!(!y.contains("OYATIE_LAYOUT_HEAD"));
+    assert!(y.contains("pipeline-path-layout-app --locked --"));
     assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
     assert!(y.contains("OYATIE_PULL_REQUEST"));
     assert!(y.contains("OYATIE_REPOSITORY"));
@@ -106,6 +107,9 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(layout.contains("directory_exists(&head"));
     assert!(layout.contains("draft_dependency_violations"));
     assert!(layout.contains("workspace_draft_dependency_violations"));
+    assert!(layout.contains("workspace_membership_violations"));
+    assert!(layout.contains("cargo_config_violations"));
+    assert!(layout.contains("entry_kind(&head"));
     assert!(layout.contains("RepositoryRead"));
     assert!(layout.contains("GitRepository"));
 

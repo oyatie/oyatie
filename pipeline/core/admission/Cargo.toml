@@ -8,6 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 toml.workspace = true
+workspace-members-kernel = { path = "../workspace-members-kernel" }
 
 [lib]
 doctest = false

@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use pipeline_admission::{WORKSPACE_EXCLUDES, WORKSPACE_MEMBER_GLOBS};
+
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn fixture() -> PathBuf {
@@ -15,12 +17,21 @@ fn fixture() -> PathBuf {
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(&root).expect("create fixture");
     git(&root, &["init", "--quiet"]);
-    write(
-        &root,
-        "Cargo.toml",
-        "[workspace]\nmembers=[]\nresolver='2'\n",
-    );
+    write(&root, "Cargo.toml", &workspace_manifest(&[]));
     root
+}
+
+fn workspace_manifest(extra_excludes: &[&str]) -> String {
+    let members = WORKSPACE_MEMBER_GLOBS
+        .iter()
+        .map(|entry| format!("  {entry:?},\n"))
+        .collect::<String>();
+    let excludes = WORKSPACE_EXCLUDES
+        .iter()
+        .chain(extra_excludes)
+        .map(|entry| format!("  {entry:?},\n"))
+        .collect::<String>();
+    format!("[workspace]\nmembers = [\n{members}]\nexclude = [\n{excludes}]\nresolver = '2'\n")
 }
 
 fn write(root: &Path, relative: &str, contents: &str) {
@@ -80,8 +91,11 @@ fn git_text(root: &Path, args: &[&str]) -> String {
 fn admit(root: &Path, base: &str, head: &str) -> Output {
     Command::new(env!("CARGO_BIN_EXE_pipeline-path-layout-app"))
         .current_dir(root)
+        .args([base, head])
+        // A repository Cargo config can force these legacy variables. Conflicting values
+        // prove that the trusted event SHAs now travel as process arguments instead.
         .env("OYATIE_LAYOUT_BASE", base)
-        .env("OYATIE_LAYOUT_HEAD", head)
+        .env("OYATIE_LAYOUT_HEAD", base)
         .output()
         .expect("run path layout admission")
 }
@@ -166,6 +180,97 @@ fn tracked_symlink_cannot_disguise_an_owner_draft_dependency() {
     );
     assert!(
         error.contains("tracked symlink component `network/core/route/src/blob.rs`"),
+        "{error}"
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn trusted_sha_arguments_cannot_be_overridden_by_cargo_environment() {
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(&root, "plan/forbidden.md", "must not admit\n");
+    let head = commit(&root, "forbidden path");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    assert!(
+        String::from_utf8_lossy(&rejected.stderr).contains("forbidden root `plan`"),
+        "{}",
+        String::from_utf8_lossy(&rejected.stderr)
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn workspace_excludes_cannot_hide_a_member_from_workspace_tests() {
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(
+        &root,
+        "Cargo.toml",
+        &workspace_manifest(&["network/core/route"]),
+    );
+    let head = commit(&root, "hide workspace member");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(error.contains("unexpected workspace exclude `network/core/route`"));
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[cfg(unix)]
+#[test]
+fn canonical_entrypoint_must_be_a_regular_git_blob() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(
+        &root,
+        "storage/core/blob/Cargo.toml",
+        "[package]\nname='storage-blob'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    write(&root, "storage/core/blob/src/lib.rs", "pub fn blob() {}\n");
+    write(
+        &root,
+        "network/core/route/Cargo.toml",
+        "[package]\nname='network-route'\nversion='0.1.0'\nedition='2024'\n",
+    );
+    std::fs::create_dir_all(root.join("network/core/route/src"))
+        .expect("create consumer source directory");
+    symlink(
+        "../../../../storage/core/blob/src/lib.rs",
+        root.join("network/core/route/src/lib.rs"),
+    )
+    .expect("create cross-owner entrypoint symlink");
+    let head = commit(&root, "symlinked entrypoint");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(error.contains("canonical entry point"), "{error}");
+    assert!(error.contains("regular Git blob"), "{error}");
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn repository_cargo_dependency_overrides_are_forbidden() {
+    let root = fixture();
+    let base = commit(&root, "base");
+    write(
+        &root,
+        ".cargo/config.toml",
+        "[patch.crates-io]\nblob = { path = 'storage/ports/draft/blob' }\n",
+    );
+    let head = commit(&root, "cargo dependency override");
+
+    let rejected = admit(&root, &base, &head);
+    assert!(!rejected.status.success());
+    let error = String::from_utf8_lossy(&rejected.stderr);
+    assert!(
+        error.contains("repository Cargo dependency override `patch` is forbidden"),
         "{error}"
     );
     let _ = std::fs::remove_dir_all(root);

@@ -1,14 +1,14 @@
 //! Event-independent ADR-0719 D-8 changed-path admission facade.
 
 use std::collections::BTreeSet;
-use std::env;
 use std::process::ExitCode;
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations, cargo_entrypoint,
-    cargo_manifest_for_crate_path, cargo_manifest_violations, changed_layout_violations,
-    draft_dependency_violations, git_change_paths_from_name_status_z, proto_package_violations,
-    workspace_draft_dependency_violations,
+    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations,
+    cargo_config_dependency_override_violations, cargo_entrypoint, cargo_manifest_for_crate_path,
+    cargo_manifest_violations, changed_layout_violations, draft_dependency_violations,
+    git_change_paths_from_name_status_z, proto_package_violations,
+    workspace_draft_dependency_violations, workspace_membership_violations,
 };
 use pipeline_repository_draft::{RepositoryEntryKind, RepositoryRead};
 use pipeline_repository_git_draft::GitRepository;
@@ -24,8 +24,7 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<(), String> {
-    let base = required_sha("OYATIE_LAYOUT_BASE")?;
-    let head = required_sha("OYATIE_LAYOUT_HEAD")?;
+    let (base, head) = required_shas()?;
     let repository = GitRepository;
     let merge_base = repository.merge_base(&base, &head)?;
     let name_status = repository.changed_name_status(&merge_base, &head)?;
@@ -34,10 +33,12 @@ fn run() -> Result<(), String> {
     let existing_owner_dirs = existing_owner_dirs(&repository, &merge_base)?;
     let workspace_contents = repository.blob_text(&head, "Cargo.toml")?;
     let mut violations = changed_layout_violations(&changes, &existing_owner_dirs);
+    violations.extend(workspace_membership_violations(&workspace_contents));
     violations.extend(workspace_draft_dependency_violations(
         &workspace_contents,
         |visited| reject_indirect_dependency_components(&repository, &head, visited),
     ));
+    violations.extend(cargo_config_violations(&repository, &head)?);
     let mut manifests = Vec::new();
     for path in changes
         .layout_candidates
@@ -67,22 +68,36 @@ fn run() -> Result<(), String> {
         if !repository.directory_exists(&head, directory)? {
             continue;
         }
-        let manifest_exists = repository.path_exists(&head, &manifest)?;
-        if !manifest_exists {
-            violations.push(format!(
+        let manifest_kind = repository.entry_kind(&head, &manifest)?;
+        let manifest_exists = manifest_kind.is_some();
+        let manifest_is_blob = regular_blob(manifest_kind);
+        match manifest_kind {
+            None => violations.push(format!(
                 "{directory}: touched face leaf must contain `Cargo.toml` at the head commit"
-            ));
+            )),
+            Some(kind) if !regular_blob(Some(kind)) => violations.push(format!(
+                "{manifest}: canonical manifest must be a regular Git blob, got {kind:?}"
+            )),
+            Some(_) => {}
         }
         let entrypoint = cargo_entrypoint(&manifest).expect("canonical crate manifest");
-        let entrypoint_exists = repository.path_exists(&head, &entrypoint)?;
-        if !entrypoint_exists {
-            violations.push(format!(
+        let entrypoint_kind = repository.entry_kind(&head, &entrypoint)?;
+        let entrypoint_exists = entrypoint_kind.is_some();
+        let entrypoint_is_blob = regular_blob(entrypoint_kind);
+        match entrypoint_kind {
+            None => violations.push(format!(
                 "{manifest}: canonical entry point `{entrypoint}` is absent at the head commit"
-            ));
+            )),
+            Some(kind) if !regular_blob(Some(kind)) => violations.push(format!(
+                "{manifest}: canonical entry point `{entrypoint}` must be a regular Git blob, got {kind:?}"
+            )),
+            Some(_) => {}
         }
         if manifest.starts_with("base/core/")
             && manifest_exists
+            && manifest_is_blob
             && entrypoint_exists
+            && entrypoint_is_blob
             && (!repository.path_exists(&merge_base, &manifest)?
                 || !repository.path_exists(&merge_base, &entrypoint)?)
         {
@@ -116,6 +131,33 @@ fn run() -> Result<(), String> {
     }
 }
 
+fn cargo_config_violations(
+    repository: &impl RepositoryRead,
+    head: &str,
+) -> Result<Vec<String>, String> {
+    let mut violations = Vec::new();
+    for path in [".cargo/config.toml", ".cargo/config"] {
+        match repository.entry_kind(head, path)? {
+            None => {}
+            Some(kind) if regular_blob(Some(kind)) => {
+                let contents = repository.blob_text(head, path)?;
+                violations.extend(cargo_config_dependency_override_violations(path, &contents));
+            }
+            Some(kind) => violations.push(format!(
+                "{path}: Cargo configuration must be a regular Git blob, got {kind:?}"
+            )),
+        }
+    }
+    Ok(violations)
+}
+
+fn regular_blob(kind: Option<RepositoryEntryKind>) -> bool {
+    matches!(
+        kind,
+        Some(RepositoryEntryKind::Blob | RepositoryEntryKind::ExecutableBlob)
+    )
+}
+
 fn reject_indirect_dependency_components(
     repository: &impl RepositoryRead,
     head: &str,
@@ -135,8 +177,24 @@ fn reject_indirect_dependency_components(
     Ok(())
 }
 
-fn required_sha(name: &str) -> Result<String, String> {
-    let value = env::var(name).map_err(|_| format!("{name} is required"))?;
+fn required_shas() -> Result<(String, String), String> {
+    let mut arguments = std::env::args().skip(1);
+    let base = arguments
+        .next()
+        .ok_or_else(|| "usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned())?;
+    let head = arguments
+        .next()
+        .ok_or_else(|| "usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned())?;
+    if arguments.next().is_some() {
+        return Err("usage: pipeline-path-layout-app <base-sha> <head-sha>".to_owned());
+    }
+    Ok((
+        validated_sha("base-sha", base)?,
+        validated_sha("head-sha", head)?,
+    ))
+}
+
+fn validated_sha(name: &str, value: String) -> Result<String, String> {
     if value.len() != 40 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
         return Err(format!("{name} must be a 40-digit Git object id"));
     }
