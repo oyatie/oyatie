@@ -164,7 +164,7 @@ impl InMemoryEventQueue {
         &mut self,
         controller: &mut TenantBootstrapController<'_>,
     ) -> Vec<(TenantEvent, Result<(), ReconcileError>)> {
-        let events: Vec<TenantEvent> = self.events.drain(..).collect();
+        let events = std::mem::take(&mut self.events);
         events
             .into_iter()
             .map(|e| {

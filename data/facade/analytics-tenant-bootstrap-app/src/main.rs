@@ -10,7 +10,7 @@
 
 #![forbid(unsafe_code)]
 
-use data_analytics_tenant_bootstrap::TenantBootstrapController;
+use data_analytics_tenant_bootstrap_app::TenantBootstrapController;
 use shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
 
 fn main() {
@@ -32,7 +32,7 @@ fn main() {
     let _ctrl = TenantBootstrapController::new(&mut adapter);
 
     tracing::info!(
-        target: "data_analytics_tenant_bootstrap::boot",
+        target: "data_analytics_tenant_bootstrap_app::boot",
         "tenant bootstrap controller boot complete (Kafka consumer deferred: IP-002)"
     );
     // non_claim: event-loop start is deferred. Exit 0 for smoke-test CI.
