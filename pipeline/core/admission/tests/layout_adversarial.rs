@@ -169,6 +169,8 @@ fn sold_proto_and_owner_docs_reject_draft_and_law_dumps() {
         "network/docs/concepts/ADR-copy.md",
         "network/docs/runbooks/catalog.yaml",
         "network/docs/design/scorecards/weekly.md",
+        "docs/ports/draft/blob/Cargo.toml",
+        "templates/adapters/draft/blob-s3/src/lib.rs",
     ] {
         assert!(rejected(path), "expected rejection: {path}");
     }

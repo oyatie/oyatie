@@ -183,6 +183,11 @@ pub fn layout_violations(changed_files: &[String]) -> Vec<String> {
         }
         if root == "app" {
             validate_app_path(file, &parts, &mut violations);
+        } else if is_meta_root(root) && parts.get(1).is_some_and(|child| FACES.contains(child)) {
+            violations.push(format!(
+                "{file}: meta root `{root}` cannot contain owner Cargo face `{}`",
+                parts[1]
+            ));
         } else if root == "base" || is_capability_root(root) {
             validate_owner_path(file, &parts, 1, &mut violations);
         }

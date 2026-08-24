@@ -67,24 +67,50 @@ pub fn workspace_draft_dependency_violations(contents: &str) -> Vec<String> {
     let Ok(workspace) = contents.parse::<toml::Value>() else {
         return vec!["Cargo.toml: invalid workspace manifest".to_owned()];
     };
-    let Some(dependencies) = workspace
+    let mut violations = Vec::new();
+    if let Some(dependencies) = workspace
         .get("workspace")
         .and_then(|workspace| workspace.get("dependencies"))
         .and_then(toml::Value::as_table)
-    else {
-        return Vec::new();
-    };
-    dependencies
-        .iter()
-        .filter_map(|(name, dependency)| {
-            let dependency_path = dependency.get("path").and_then(toml::Value::as_str)?;
-            let components = resolved_dependency_path("Cargo.toml", dependency_path)?;
-            let provider = draft_dependency_owner(&components)?;
-            Some(format!(
-                "Cargo.toml: workspace dependency `{name}` exposes owner-local draft `{provider}`"
-            ))
-        })
-        .collect()
+    {
+        inspect_root_dependency_table("workspace dependency", dependencies, &mut violations);
+    }
+    if let Some(patches) = workspace.get("patch").and_then(toml::Value::as_table) {
+        for (source, dependencies) in patches {
+            if let Some(dependencies) = dependencies.as_table() {
+                inspect_root_dependency_table(
+                    &format!("patch source `{source}`"),
+                    dependencies,
+                    &mut violations,
+                );
+            }
+        }
+    }
+    if let Some(replacements) = workspace.get("replace").and_then(toml::Value::as_table) {
+        inspect_root_dependency_table("replace", replacements, &mut violations);
+    }
+    violations
+}
+
+fn inspect_root_dependency_table(
+    surface: &str,
+    dependencies: &toml::map::Map<String, toml::Value>,
+    violations: &mut Vec<String>,
+) {
+    for (name, dependency) in dependencies {
+        let Some(dependency_path) = dependency.get("path").and_then(toml::Value::as_str) else {
+            continue;
+        };
+        let Some(components) = resolved_dependency_path("Cargo.toml", dependency_path) else {
+            continue;
+        };
+        let Some(provider) = draft_dependency_owner(&components) else {
+            continue;
+        };
+        violations.push(format!(
+            "Cargo.toml: {surface} `{name}` exposes owner-local draft `{provider}`"
+        ));
+    }
 }
 
 pub(super) fn resolved_dependency_path(
@@ -193,5 +219,11 @@ mod tests {
             )
             .is_empty()
         );
+        for override_manifest in [
+            "[patch.crates-io]\nshared={path='storage/ports/draft/blob'}\n",
+            "[replace]\n'shared:1.0.0'={path='storage/ports/draft/blob'}\n",
+        ] {
+            assert!(!workspace_draft_dependency_violations(override_manifest).is_empty());
+        }
     }
 }

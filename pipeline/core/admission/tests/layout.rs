@@ -263,10 +263,10 @@ fn workspace_globs_load_draft_leaf_crates_not_grouping_directories() {
     for member in [
         "*/ports/*/src/..",
         "*/adapters/*/src/..",
-        "app/*/ports/*/src/..",
-        "app/*/adapters/*/src/..",
-        "**/ports/draft/*/src/..",
-        "**/adapters/draft/*/src/..",
+        "*/ports/draft/*/src/..",
+        "*/adapters/draft/*/src/..",
+        "app/*/ports/**/src/..",
+        "app/*/adapters/**/src/..",
     ] {
         assert!(workspace.contains(&format!("\"{member}\"")), "{member}");
     }
