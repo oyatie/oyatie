@@ -6254,6 +6254,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pipeline-path-layout-app"
+version = "0.1.0"
+dependencies = [
+ "pipeline-admission",
+]
+
+[[package]]
+name = "pipeline-path-occupancy-app"
+version = "0.1.0"
+dependencies = [
+ "pipeline-admission",
+]
+
+[[package]]
 name = "pkcs8"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

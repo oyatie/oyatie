@@ -19,9 +19,9 @@ pub use git_change::{
 pub(crate) use layout::path_parts;
 pub use layout::{
     ALLOWED_DOT_ROOT_DIRS, ALLOWED_ROOT_DIRS, ALLOWED_ROOT_FILES, APP_PRODUCT_DIRS,
-    BUILD_ROOT_DIRS, CAP_EXTRAS, FACES, FORBIDDEN_NAMES, META_ROOTS, cap_root_file_ok,
-    cargo_manifest_violations, changed_layout_violations, face_dir_ok, is_capability_root,
-    layout_violations,
+    BUILD_ROOT_DIRS, CAP_EXTRAS, FACES, FORBIDDEN_NAMES, META_ROOTS, base_admission_violations,
+    cap_root_file_ok, cargo_manifest_violations, changed_layout_violations, face_dir_ok,
+    is_capability_root, layout_violations,
 };
 pub use occupancy::{
     OYATIE_HUB_PREFIXES, OYATIE_HUBS, OccupancyRefused, OccupiedSet, admit, hits_hub,

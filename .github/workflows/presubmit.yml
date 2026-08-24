@@ -45,14 +45,14 @@ jobs:
         env:
           OYATIE_LAYOUT_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.sha }}
           OYATIE_LAYOUT_HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
-        run: cargo run -p pipeline-admission --bin path-layout --locked
+        run: cargo run -p pipeline-path-layout-app --locked
       - name: Admit complete Git path-set
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           OYATIE_PULL_REQUEST: ${{ github.event.pull_request.number }}
           OYATIE_REPOSITORY: ${{ github.repository }}
-        run: cargo run -p pipeline-admission --bin path-occupancy --locked
+        run: cargo run -p pipeline-path-occupancy-app --locked
 
   lint:
     name: lint (format)

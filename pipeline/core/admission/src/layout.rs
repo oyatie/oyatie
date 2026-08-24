@@ -6,13 +6,13 @@
 
 use std::collections::BTreeSet;
 
-use crate::GitChangePaths;
-
+mod change;
 mod inner;
 mod manifest;
 
+pub use change::changed_layout_violations;
 use inner::validate_owner_path;
-pub use manifest::cargo_manifest_violations;
+pub use manifest::{base_admission_violations, cargo_manifest_violations};
 
 /// Admitted root directories that are present on `dev` and therefore require
 /// OWNERS/CODEOWNERS coverage.
@@ -205,60 +205,4 @@ fn validate_app_path(file: &str, parts: &[&str], violations: &mut Vec<String>) {
         return;
     }
     validate_owner_path(file, parts, 2, violations);
-}
-
-/// Apply D-8 only to changed paths that remain after the Git diff. BUILD roots
-/// absent at the merge base must carry a real core source in the same change.
-pub fn changed_layout_violations(
-    changes: &GitChangePaths,
-    existing_owner_dirs: &BTreeSet<String>,
-) -> Vec<String> {
-    let mut violations = layout_violations(
-        &changes
-            .layout_candidates
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>(),
-    );
-    for root in BUILD_ROOT_DIRS {
-        let touches_root = changes.layout_candidates.iter().any(|path| {
-            let parts = path_parts(path);
-            parts.first() == Some(root)
-        });
-        let carries_core_source = changes.layout_candidates.iter().any(|path| {
-            let parts = path_parts(path);
-            parts.len() >= 5
-                && parts[0] == *root
-                && parts[1] == "core"
-                && parts[3] == "src"
-                && path.ends_with(".rs")
-        });
-        if touches_root && !existing_owner_dirs.contains(*root) && !carries_core_source {
-            violations.push(format!(
-                "{root}: new BUILD root requires a core source in the same change"
-            ));
-        }
-    }
-    for product in APP_PRODUCT_DIRS {
-        let owner = format!("app/{product}");
-        let touches_owner = changes.layout_candidates.iter().any(|path| {
-            let parts = path_parts(path);
-            parts.first() == Some(&"app") && parts.get(1) == Some(product)
-        });
-        let carries_core_source = changes.layout_candidates.iter().any(|path| {
-            let parts = path_parts(path);
-            parts.len() >= 6
-                && parts[0] == "app"
-                && parts[1] == *product
-                && parts[2] == "core"
-                && parts[4] == "src"
-                && path.ends_with(".rs")
-        });
-        if touches_owner && !existing_owner_dirs.contains(&owner) && !carries_core_source {
-            violations.push(format!(
-                "{owner}: new BUILD product requires a core source in the same change"
-            ));
-        }
-    }
-    violations
 }

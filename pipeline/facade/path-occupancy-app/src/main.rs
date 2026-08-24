@@ -1,4 +1,4 @@
-//! Fail-closed GitHub path occupancy collector and verdict.
+//! Fail-closed GitHub path occupancy facade and verdict.
 //!
 //! Success means every open pull request targeting `dev` was enumerated, its
 //! Git head was fetched, and its complete NUL-delimited Git path-set was

@@ -245,10 +245,10 @@ fn new_build_root_requires_core_source_not_owner_paperwork() {
     )
     .unwrap();
     let violations = changed_layout_violations(&paperwork, &BTreeSet::new());
-    assert!(violations.iter().any(|item| item.contains("core source")));
+    assert!(violations.iter().any(|item| item.contains("core crate")));
 
     let implementation = git_change_paths_from_name_status_z(
-        b"A\0policy/OWNERS\0A\0policy/core/evaluate/Cargo.toml\0A\0policy/core/evaluate/src/lib.rs\0",
+        b"A\0policy/OWNERS\0A\0policy/ADR.md\0A\0policy/PRD.md\0A\0policy/SPEC.md\0A\0policy/PLAN.md\0A\0policy/core/evaluate/Cargo.toml\0A\0policy/core/evaluate/src/lib.rs\0",
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());

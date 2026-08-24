@@ -2,6 +2,8 @@
 
 use super::{FORBIDDEN_NAMES, cap_root_file_ok, face_dir_ok};
 
+// D-41 explicitly amends the earlier closed list with a tiny owned build.rs
+// that writes generated module membership to OUT_DIR.
 const CRATE_FILES: &[&str] = &["Cargo.toml", "OWNERS", "BUCK", "build.rs"];
 const DOC_DIRS: &[&str] = &["concepts", "runbooks", "design"];
 const INNER_DUMP_DIRS: &[&str] = &["plan", "tasks"];
@@ -91,7 +93,7 @@ fn validate_crate_path(file: &str, face: &str, parts: &[&str], violations: &mut 
             violations.push(format!("{file}: `{entry}` is not allowed at a crate root"));
         }
     } else if matches!(*entry, "src" | "tests") {
-        validate_rust_tree(file, descendants, violations);
+        validate_rust_tree(file, face, entry, descendants, violations);
     } else {
         violations.push(format!(
             "{file}: crate content must live under `src/` or `tests/`"
@@ -132,10 +134,28 @@ fn kebab_case(name: &str) -> bool {
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
-fn validate_rust_tree(file: &str, parts: &[&str], violations: &mut Vec<String>) {
+fn validate_rust_tree(
+    file: &str,
+    face: &str,
+    tree: &str,
+    parts: &[&str],
+    violations: &mut Vec<String>,
+) {
     let Some((source, directories)) = parts.split_last() else {
         return;
     };
+    if tree == "src" && directories.first() == Some(&"bin") {
+        violations.push(format!(
+            "{file}: `src/bin/` bypasses the canonical face entry point"
+        ));
+        return;
+    }
+    if tree == "src" && directories.is_empty() && *source == "main.rs" && face != "facade" {
+        violations.push(format!(
+            "{file}: `{face}` is a library face and must use `src/lib.rs`, not `src/main.rs`"
+        ));
+        return;
+    }
     for directory in directories {
         if INNER_DUMP_DIRS.contains(directory) {
             violations.push(format!("{file}: forbidden inner directory `{directory}`"));

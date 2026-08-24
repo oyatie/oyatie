@@ -50,8 +50,8 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(y.contains("needs: [occupancy]"));
     assert!(y.contains("github.event.merge_group.base_sha"));
     assert!(y.contains("github.event.pull_request.base.sha"));
-    assert!(y.contains("path-occupancy"));
-    assert!(y.contains("--bin path-layout"));
+    assert!(y.contains("pipeline-path-occupancy-app"));
+    assert!(y.contains("pipeline-path-layout-app"));
     assert!(y.contains("OYATIE_LAYOUT_BASE"));
     assert!(y.contains("OYATIE_LAYOUT_HEAD"));
     assert!(!y.contains("name: occupancy (path-set)\n    if: github.event_name == 'pull_request'"));
@@ -76,11 +76,11 @@ fn presubmit_jobs_are_the_occupant_set() {
         "correctness-critical collection belongs in Rust"
     );
     assert!(
-        !y.contains("path-occupancy --locked --offline"),
+        !y.contains("pipeline-path-occupancy-app --locked --offline"),
         "occupancy cargo run must reach crates.io on a cold cache"
     );
 
-    let collector = read("pipeline/core/admission/src/bin/path_occupancy.rs");
+    let collector = read("pipeline/facade/path-occupancy-app/src/main.rs");
     assert!(collector.contains("Command::new(\"gh\")"));
     assert!(collector.contains("--paginate"));
     assert!(collector.contains("refs/pull/{number}/head"));
@@ -91,7 +91,7 @@ fn presubmit_jobs_are_the_occupant_set() {
     assert!(collector.contains("git_change_paths_from_name_status_z"));
     assert!(!collector.contains("/files"));
 
-    let layout = read("pipeline/core/admission/src/bin/path_layout.rs");
+    let layout = read("pipeline/facade/path-layout-app/src/main.rs");
     assert!(layout.contains("changed_layout_violations"));
     assert!(layout.contains("git_change_paths_from_name_status_z"));
     assert!(layout.contains("merge-base"));

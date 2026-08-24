@@ -1,12 +1,12 @@
-//! Event-independent ADR-0719 D-8 changed-path admission.
+//! Event-independent ADR-0719 D-8 changed-path admission facade.
 
 use std::collections::BTreeSet;
 use std::env;
 use std::process::{Command, ExitCode, Output};
 
 use pipeline_admission::{
-    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, cargo_manifest_violations, changed_layout_violations,
-    git_change_paths_from_name_status_z,
+    APP_PRODUCT_DIRS, BUILD_ROOT_DIRS, base_admission_violations, cargo_manifest_violations,
+    changed_layout_violations, git_change_paths_from_name_status_z,
 };
 
 fn main() -> ExitCode {
@@ -36,6 +36,7 @@ fn run() -> Result<(), String> {
         git_change_paths_from_name_status_z(&output.stdout).map_err(|error| error.message())?;
     let existing_owner_dirs = existing_owner_dirs(&merge_base)?;
     let mut violations = changed_layout_violations(&changes, &existing_owner_dirs);
+    let mut manifests = Vec::new();
     for path in changes
         .layout_candidates
         .iter()
@@ -43,6 +44,15 @@ fn run() -> Result<(), String> {
     {
         let contents = git_blob_text(&head, path)?;
         violations.extend(cargo_manifest_violations(path, &contents));
+        manifests.push((path.clone(), contents));
+    }
+    let first_base = !existing_owner_dirs.contains("base")
+        && changes
+            .layout_candidates
+            .iter()
+            .any(|path| path.starts_with("base/"));
+    if first_base {
+        violations.extend(base_admission_violations(&manifests));
     }
     if violations.is_empty() {
         Ok(())

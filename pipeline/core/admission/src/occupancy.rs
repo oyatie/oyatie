@@ -24,12 +24,15 @@ pub const OYATIE_HUBS: &[&str] = &[
     "pipeline/core/admission/src/fanin.rs",
     "pipeline/core/admission/src/git_change.rs",
     "pipeline/core/admission/src/layout.rs",
+    "pipeline/core/admission/src/layout/change.rs",
     "pipeline/core/admission/src/layout/inner.rs",
     "pipeline/core/admission/src/layout/manifest.rs",
     "pipeline/core/admission/src/lib.rs",
     "pipeline/core/admission/src/occupancy.rs",
-    "pipeline/core/admission/src/bin/path_layout.rs",
-    "pipeline/core/admission/src/bin/path_occupancy.rs",
+    "pipeline/facade/path-layout-app/Cargo.toml",
+    "pipeline/facade/path-layout-app/src/main.rs",
+    "pipeline/facade/path-occupancy-app/Cargo.toml",
+    "pipeline/facade/path-occupancy-app/src/main.rs",
     ".gitignore",
 ];
 

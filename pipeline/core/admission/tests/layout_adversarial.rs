@@ -20,7 +20,7 @@ fn conditional_base_requires_real_core_content() {
     assert!(
         changed_layout_violations(&paperwork, &BTreeSet::new())
             .iter()
-            .any(|item| item.contains("base") && item.contains("core source"))
+            .any(|item| item.contains("base") && item.contains("core crate"))
     );
 
     let implementation = git_change_paths_from_name_status_z(
@@ -43,11 +43,21 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
     assert!(
         changed_layout_violations(&paperwork, &BTreeSet::new())
             .iter()
-            .any(|item| item.contains("app/ledger") && item.contains("core source"))
+            .any(|item| item.contains("app/ledger") && item.contains("core crate"))
+    );
+
+    let implementation_without_law = git_change_paths_from_name_status_z(
+        b"A\0app/ledger/OWNERS\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
+    )
+    .unwrap();
+    assert!(
+        changed_layout_violations(&implementation_without_law, &BTreeSet::new())
+            .iter()
+            .any(|item| item.contains("D-36") && item.contains("ADR.md"))
     );
 
     let implementation = git_change_paths_from_name_status_z(
-        b"A\0app/ledger/OWNERS\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
+        b"A\0app/ledger/OWNERS\0A\0app/ledger/ADR.md\0A\0app/ledger/PRD.md\0A\0app/ledger/SPEC.md\0A\0app/ledger/PLAN.md\0A\0app/ledger/core/posting/Cargo.toml\0A\0app/ledger/core/posting/src/lib.rs\0",
     )
     .unwrap();
     assert!(changed_layout_violations(&implementation, &BTreeSet::new()).is_empty());
@@ -84,6 +94,8 @@ fn crate_trees_reject_nested_dumps_and_non_rust_files() {
         "pipeline/core/admission/src/plan/note.rs",
         "pipeline/core/admission/src/BadName.rs",
         "pipeline/core/admission/src/README.md",
+        "pipeline/core/admission/src/main.rs",
+        "pipeline/core/admission/src/bin/helper.rs",
         "pipeline/core/admission/tests/tasks/example.rs",
     ] {
         assert!(rejected(path), "expected rejection: {path}");
@@ -92,6 +104,8 @@ fn crate_trees_reject_nested_dumps_and_non_rust_files() {
         "pipeline/core/admission/src/items/quota.rs",
         "pipeline/core/admission/src/domain/value.rs",
         "pipeline/core/admission/build.rs",
+        "network/facade/edge-app/src/main.rs",
+        "network/facade/edge-app/src/lib.rs",
         "network/facade/edge-app/tests/e2e/main.rs",
     ] {
         assert!(!rejected(path), "unexpected rejection: {path}");
