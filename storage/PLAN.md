@@ -16,8 +16,11 @@ date: 2026-08-25
 - A tenant-scoped BLAKE3 CAS contract, bounded payload traits, caller-supplied
   WORM/audit fields, conformance suite, and in-memory reference store. The
   authorization, clock, and audit inputs are self-asserted test models today.
-- S3 and OCI command/receipt projections plus an inherited NativeLink deployment
-  artifact.
+- S3 and OCI command/receipt projections.
+- P0a retired the unconsumed NativeLink fleet deployment and obsolete laptop-lab
+  runbook bundle, hand-authored Helm/OpenSLO files, and their deleted-corpus BUCK
+  loader. No replacement deployment or SLO source is claimed until a storage
+  reconciler or SLO IR consumes it.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -38,9 +41,10 @@ Class: structural; do not mix behavior.
   models or claim the current `path = .../core/...` edges are legal.
 - Rename legacy `cloud-*`, `*-api`, provider, and explicit `[lib]` fossils to the
   ADR-0719 grammar; split every touched hand-written file above 300 lines.
-- Remove or regenerate hand-authored Helm/OpenSLO residue and disposition the
-  NativeLink YAML. Preserve only artifacts loaded by build, runtime, policy,
-  SLO controller, or reconciler.
+- **Landed in P0a:** removed the hand-authored Helm/OpenSLO residue, retired the
+  NativeLink fleet YAML and its obsolete laptop-lab runbook bundle, and deleted
+  their stale corpus-only BUCK loader after proving no build, runtime, policy,
+  SLO controller, or reconciler consumes them.
 - Rehome filesystem, archive, backup, and restore product models that fall
   outside ADR-0719 D-14 behind their eventual owning facades. P0 retains
   deprecated compatibility re-exports/shims and identical behavior for every
