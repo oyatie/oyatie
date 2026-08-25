@@ -27,6 +27,11 @@ date: 2026-08-25
   CAS and HTTP package identities remain thin re-export shims. S3 and combined
   OCI retain behavior-equivalent compatibility packages at D-8-valid paths for
   the advertised support window.
+- P0c moved the object/block backend traits, request and receipt types, and
+  behavior-equivalent validation into `ports/draft/provider`. Every retained
+  S3/OCI backend adapter now consumes that port, while `storage-domain`
+  preserves its public source surface through compatibility re-exports. The
+  draft port's foreign core-model edges remain explicit P0 debt.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -42,7 +47,14 @@ Class: structural; do not mix behavior.
 - **Landed in P0b:** reconciled the two implementation-bearing core crates into
   one primary `core/domain` package. The deprecated
   `core/object-store-kernel` identity is now a re-export-only compatibility
-  shim. Provider traits still move out of `core/domain` in the next P0 lane.
+  shim.
+- **Landed in P0c:** moved provider traits, request/receipt DTOs, validation,
+  and compatibility errors out of `core/domain` into the owner-local
+  `ports/draft/provider` seam. `storage-domain` re-exports the existing public
+  names during the P0 support window, and every S3/OCI provider adapter depends
+  on the new seam rather than the core package. This is not P0 completion: the
+  draft port still imports foreign core models and the primary core retains
+  non-provider foreign edges.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
   Reconcile required data-boundary, KMS, cell, compute, and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
@@ -345,10 +357,10 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 
 <next_lane>
 
-The next implementation lane remains P0: move provider traits from
-`core/domain` into agreed or owner-local draft ports, reconcile the direct
-data/KMS/cell/compute/residency core edges without copying foreign models, and
-rehome filesystem/archive/backup/restore product models. P1 begins only after
-those structural obligations merge and `dev` is refreshed.
+The next implementation lane remains P0: reconcile the direct
+data/KMS/cell/compute/residency core edges onto agreed provider contracts
+without copying foreign models, then rehome filesystem/archive/backup/restore
+product models. P1 begins only after those structural obligations merge and
+`dev` is refreshed.
 
 </next_lane>

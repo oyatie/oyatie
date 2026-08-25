@@ -8247,6 +8247,7 @@ dependencies = [
  "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
+ "storage-provider-draft",
 ]
 
 [[package]]
@@ -8281,40 +8282,46 @@ dependencies = [
 name = "storage-oci-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "storage-domain",
+ "storage-provider-draft",
 ]
 
 [[package]]
 name = "storage-provider-block-oci-draft"
 version = "0.1.0"
 dependencies = [
+ "storage-provider-draft",
+]
+
+[[package]]
+name = "storage-provider-draft"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "compute-resource",
  "data-boundary-kernel",
- "storage-domain",
+ "network-residency",
+ "secrets-kms-domain",
 ]
 
 [[package]]
 name = "storage-provider-object-oci-draft"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "storage-domain",
+ "storage-provider-draft",
 ]
 
 [[package]]
 name = "storage-provider-object-s3-draft"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "storage-domain",
+ "storage-provider-draft",
 ]
 
 [[package]]
 name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
- "storage-domain",
+ "storage-provider-draft",
 ]
 
 [[package]]
