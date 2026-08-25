@@ -916,14 +916,12 @@ version = "0.1.0"
 [[package]]
 name = "cell-location"
 version = "0.1.0"
-dependencies = [
- "cell-region",
-]
 
 [[package]]
 name = "cell-region"
 version = "0.1.0"
 dependencies = [
+ "cell-location",
  "cell-routing",
  "data-boundary-kernel",
  "network-residency",

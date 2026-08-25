@@ -33,11 +33,12 @@ date: 2026-08-25
   preserves its public source surface through compatibility re-exports. The
   draft port's foreign core-model edges remain explicit P0 debt.
 - P0d introduced the agreed `cell-location` value-contract port and routed both
-  storage core and the provider draft through it. The port re-exports Cell's
-  existing validated `RegionCode`, `AzCode`, and `CellId` identities so the
-  cross-owner import changes without copying models or changing behavior. The
-  Cell engine remains their defining crate during its compatibility window;
-  direct data/KMS/compute/residency core edges remain P0 debt.
+  storage core and the provider draft through it. The port now defines the
+  validated `RegionCode`, `AzCode`, and `CellId` identities plus their narrow,
+  nameable error contract. Cell's region engine consumes and re-exports those
+  same types, mapping location errors losslessly into its broader catalog error
+  at aggregate boundaries. Direct data/KMS/compute/residency core edges remain
+  P0 debt.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -62,10 +63,11 @@ Class: structural; do not mix behavior.
   draft port still imports foreign core models and the primary core retains
   non-provider foreign edges.
 - **Landed in P0d:** replaced every direct storage-to-Cell core dependency with
-  the agreed `cell-location` port. The exact validated identity types remain
-  source- and behavior-compatible through re-export; this does not claim the
-  Cell engine's internal defining-crate inversion complete. Data-boundary, KMS,
-  compute-resource, and residency imports remain direct foreign-core debt.
+  the agreed `cell-location` port. The exact validated identity values and
+  fail-closed rules remain behavior-compatible, while the narrow constructor
+  error and defining type now belong to the port. Cell core consumes and
+  re-exports that contract. Data-boundary, KMS, compute-resource, and residency
+  imports remain direct foreign-core debt.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
   Reconcile required data-boundary, KMS, compute, and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
@@ -370,7 +372,7 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 <next_lane>
 
 The next implementation lane remains P0: reconcile the direct
-data/KMS/cell/compute/residency core edges onto agreed provider contracts
+data/KMS/compute/residency core edges onto agreed provider contracts
 without copying foreign models, then rehome filesystem/archive/backup/restore
 product models. P1 begins only after those structural obligations merge and
 `dev` is refreshed.

@@ -4,9 +4,7 @@ rust_library(
     crate = "cell_location",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//cell/core/region:cell-region",
-    ],
+    deps = [],
 )
 
 rust_test(
