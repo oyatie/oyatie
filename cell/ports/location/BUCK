@@ -1,0 +1,21 @@
+rust_library(
+    name = "cell-location",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "cell_location",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cell/core/region:cell-region",
+    ],
+)
+
+rust_test(
+    name = "cell-location-location",
+    srcs = ["tests/location.rs"],
+    crate = "cell_location_location",
+    crate_root = "tests/location.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":cell-location",
+    ],
+)

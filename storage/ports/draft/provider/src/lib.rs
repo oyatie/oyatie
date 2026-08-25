@@ -8,7 +8,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use cell_region::{AzCode, CellId, RegionCode};
+use cell_location::{AzCode, CellId, RegionCode};
 pub use compute_resource::VolumeTier;
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 pub use data_boundary_kernel::DataClass;
