@@ -7,7 +7,7 @@
 # Health (plaintext ops only):
 #   curl -sf http://127.0.0.1:50061/status || true
 #
-# Image digest pinned to the same v1.6.2 used by storage/adapters/nativelink.
+# Image digest pinned for this standalone laptop lab; no fleet parity is claimed.
 
 name: oyatie-cas-lab
 
@@ -16,8 +16,8 @@ services:
     image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:6750ab337eb1835ebe8452ddb76786641a80e23de71d8a5e630469399219b6ea
     container_name: oyatie-nativelink-cas
     restart: unless-stopped
-    # Image ENTRYPOINT is the nativelink binary (no shell). Pass config only —
-    # same as storage/adapters/nativelink/nativelink-cas.k8s.yaml args.
+    # Image ENTRYPOINT is the nativelink binary (no shell). Pass this lab's
+    # committed config only; it is independent of the retired fleet manifest.
     command: ["/config/cas.json"]
     ports:
       - "50051:50051" # writer (mTLS)
