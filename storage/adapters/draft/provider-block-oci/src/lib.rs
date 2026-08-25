@@ -2,7 +2,7 @@
 
 #![forbid(unsafe_code)]
 
-use storage_domain::{
+use storage_provider_draft::{
     EncryptionMode, StorageProviderBlockCreateVolumeRequest, StorageProviderBlockError,
     StorageProviderBlockPort, StorageProviderBlockReceipt, StorageProviderKind, VolumeTier,
 };

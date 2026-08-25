@@ -1,8 +1,7 @@
 mod object {
     use crate::{OciObjectStorageAdapter, OciObjectStorageAdapterConfigError};
-    use data_boundary_kernel::DataClass;
-    use storage_domain::{
-        CloudStorageError, StorageProviderKind, StorageProviderObjectError,
+    use storage_provider_draft::{
+        CloudStorageError, DataClass, StorageProviderKind, StorageProviderObjectError,
         StorageProviderObjectGetRequest, StorageProviderObjectPort,
         StorageProviderObjectPutRequest,
     };

@@ -5,7 +5,7 @@
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use storage_domain::{
+use storage_provider_draft::{
     StorageProviderKind, StorageProviderObjectError, StorageProviderObjectGetRequest,
     StorageProviderObjectPort, StorageProviderObjectPutRequest, StorageProviderObjectReceipt,
 };

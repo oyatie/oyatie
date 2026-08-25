@@ -1,6 +1,5 @@
 use super::*;
-use data_boundary_kernel::DataClass;
-use storage_domain::{CloudStorageError, StorageProviderObjectPort};
+use storage_provider_draft::{CloudStorageError, DataClass, StorageProviderObjectPort};
 
 const REGION: &str = "ap-northeast-2";
 const BUCKET: &str = "oyatie-s3-cold-backup";
