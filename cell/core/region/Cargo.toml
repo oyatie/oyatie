@@ -14,8 +14,6 @@ cell-routing = { path = "../routing" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "cell_region"
-path = "src/lib.rs"
 doctest = false
 
 [lints]
