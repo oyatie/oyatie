@@ -14,12 +14,9 @@ The live session hubs are root [`AGENTS.md`](../AGENTS.md) and [`CLAUDE.md`](../
 
 For a capability or `app/<product>/`, follow those hubs and open the owner's `ADR.md`, `PRD.md`, `SPEC.md`, and `PLAN.md`.
 
-The owner-law migration is staged. If any of those four files is absent, do
-not substitute the old root wiki or deleted `specs/` corpus. Load the owner's
-files that exist plus the root hubs and applicable accepted 07xx decisions; add missing law only in that owner's structural lane.
+The owner-law migration is staged. If any of those four files is absent, do not substitute the old root wiki or deleted `specs/` corpus. Load the owner's files that exist plus the root hubs and applicable accepted 07xx decisions; add missing law only in that owner's structural lane.
 
-[ADR-0719 D-17](decisions/ADR-0719-eac-serving-control-north-star.md#d-17--presubmit-is-the-graph-not-a-json-product)
-deleted `specs/` with no replacement JSON hub; D-27 retains this file only as a thin operating-contract pointer.
+[ADR-0719 D-17](decisions/ADR-0719-eac-serving-control-north-star.md#d-17--presubmit-is-the-graph-not-a-json-product) deleted `specs/` with no replacement JSON hub; D-27 retains this file only as a thin operating-contract pointer.
 
 ## Compatibility anchors
 
@@ -28,6 +25,10 @@ These headings route legacy references; they do not restore the old contract.
 ## Doctrine survival
 
 Live law survives in the [root hubs](../AGENTS.md) and migrated owner files, not in a global plan, catalog, or chat transcript.
+
+### Per-dispatch ritual
+
+Use the retained [swarm agent ritual](../templates/checklists/swarm-agent-ritual.md) as a checklist; it does not create a separate authority hub.
 
 ## Repository topology
 
@@ -47,8 +48,7 @@ Use the fenced required sequence in [root `AGENTS.md`](../AGENTS.md#merge).
 
 ## Per-change-class reviewer agents
 
-The named reviewer registry is retired. Select an independent reviewer for the
-risk surface; observation is not APPROVE.
+The named reviewer registry is retired. Select an independent reviewer for the risk surface; observation is not APPROVE.
 
 ## PR shape
 
