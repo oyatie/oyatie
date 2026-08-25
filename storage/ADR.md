@@ -22,8 +22,7 @@ claim that the target implementation has landed.
 | `core/object-store-kernel` | Tenant-scoped BLAKE3 CAS, caller-supplied WORM/audit fields, bounded payload traits, conformance suite, and in-memory store | Syntactic/self-asserted reference model; not trusted-clock, audit-receipt, persistent, or distributed enforcement |
 | `ports/object-api`, `ports/block-api` | Rust request validation, caller-constructed authorization projection checks, idempotency, status/error projection | Syntactic reference boundaries; no verified PDP provenance and not the canonical proto/Connect facade |
 | `adapters/s3`, `adapters/oci` | Validated provider command/receipt projections | No network or durable backend execution |
-| `adapters/nativelink` | Deployment residue for a transitional CAS | Not the owned engine |
-| `iac/`, `observability/slos/` | Hand-authored Helm/OpenSLO remnants | Retirement or generated-output migration debt |
+| Deployment/SLO artifacts | No storage-owned deployment or SLO source is loaded yet | Future artifacts must be reconciler- or IR-generated |
 
 </current_state>
 
