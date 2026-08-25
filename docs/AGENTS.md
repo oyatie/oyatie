@@ -1,7 +1,7 @@
 ---
 doc_class: Redirect
 shape: redirect
-length_cap: 30
+length_cap: 90
 authority_tier: 3
 status: Accepted
 purpose: Route legacy docs/AGENTS readers to the live ADR-0719 authority surfaces.
@@ -22,6 +22,62 @@ the owner-local law for the path.
 deleted the former `specs/` authority corpus, including
 `root-hub-pointers.json`, and requires no replacement JSON hub. D-27 retains
 this file only as a thin operating-contract pointer.
+
+## Compatibility anchors
+
+The headings below route retained legacy references; they do not restore the
+former numbered contract.
+
+## Doctrine survival
+
+Live law survives in the [root session hubs](../AGENTS.md) and the four owner
+files named above, not in a global plan, catalog, or chat transcript.
+
+## Repository topology
+
+Use the owner-root and four-file discovery rule in [root `AGENTS.md`](../AGENTS.md#work).
+
+## Pre-flight checklist
+
+Use items 1–2 under [Work](../AGENTS.md#work). The former numbered checklist is retired.
+
+## During-change discipline
+
+Use items 3–6 under [Work](../AGENTS.md#work).
+
+## Sanctioned primitives
+
+Use the fenced required sequence in [root `AGENTS.md`](../AGENTS.md#merge).
+
+## Per-change-class reviewer agents
+
+The named reviewer registry is retired. Select an independent reviewer for the
+risk surface; observation is not APPROVE.
+
+## PR shape
+
+Use the live [pull-request template](../.github/PULL_REQUEST_TEMPLATE.md).
+
+## Boundaries
+
+Stay within the user's authorized scope and the [root work and merge contract](../AGENTS.md).
+
+## Done-Definition
+
+The former D1–D18 labels are retired. Done means exact-head cargo evidence,
+independent APPROVE, resolved threads, green `presubmit`, and protected squash merge.
+
+## RFC-2119
+
+Every load-bearing MUST uses the five fields required by [root `AGENTS.md`](../AGENTS.md#work).
+
+## Per-agent appendices
+
+There is no separate repo-local agent appendix; use the two root session hubs.
+
+## changeset
+
+Changeset evidence follows [Work](../AGENTS.md#work) and [Merge](../AGENTS.md#merge).
 
 ## Authority survival
 

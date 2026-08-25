@@ -101,27 +101,6 @@
       ],
       "agent_authoring_allowed": false
     },
-    "doc.agents_operating_contract_refs": {
-      "path": "docs/AGENTS-OPERATING-CONTRACT.md",
-      "owner_team": [
-        "axis-foundry",
-        "council-architecture"
-      ],
-      "tier": 2,
-      "update_trigger": [
-        "Wave 15-ZF operating-contract doctrine propagation",
-        "ADR-0346..ADR-0349 doctrine update"
-      ],
-      "update_cadence": "per ADR-0346..ADR-0349 doctrine update",
-      "dependent_docs": [
-        "doc.agents"
-      ],
-      "validation_check": [
-        "doc-catalog-self-coverage",
-        "authority-cohesion"
-      ],
-      "agent_authoring_allowed": false
-    },
     "doc.prd_oyatie_from_scratch_canonical": {
       "path": "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
       "owner_team": [
