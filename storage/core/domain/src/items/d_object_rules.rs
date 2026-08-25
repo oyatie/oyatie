@@ -8,22 +8,20 @@ impl ReplicationPolicy {
     }
 }
 
-impl EncryptionMode {
-    const fn required_key_origin(self) -> Option<KmsKeyOrigin> {
-        match self {
-            Self::Sse => None,
-            Self::SseKms => Some(KmsKeyOrigin::OyatieManaged),
-            Self::Byok => Some(KmsKeyOrigin::Byok),
-            Self::Hyok => Some(KmsKeyOrigin::Hyok),
-        }
+const fn required_key_origin(mode: EncryptionMode) -> Option<KmsKeyOrigin> {
+    match mode {
+        EncryptionMode::Sse => None,
+        EncryptionMode::SseKms => Some(KmsKeyOrigin::OyatieManaged),
+        EncryptionMode::Byok => Some(KmsKeyOrigin::Byok),
+        EncryptionMode::Hyok => Some(KmsKeyOrigin::Hyok),
     }
+}
 
-    const fn object_key_origin(self) -> KmsKeyOrigin {
-        match self {
-            Self::Sse | Self::SseKms => KmsKeyOrigin::OyatieManaged,
-            Self::Byok => KmsKeyOrigin::Byok,
-            Self::Hyok => KmsKeyOrigin::Hyok,
-        }
+const fn object_key_origin(mode: EncryptionMode) -> KmsKeyOrigin {
+    match mode {
+        EncryptionMode::Sse | EncryptionMode::SseKms => KmsKeyOrigin::OyatieManaged,
+        EncryptionMode::Byok => KmsKeyOrigin::Byok,
+        EncryptionMode::Hyok => KmsKeyOrigin::Hyok,
     }
 }
 
@@ -163,7 +161,7 @@ impl ObjectEncryptionBinding {
         if kms_key
             .origin()
             .map_err(|_| CloudStorageError::InvalidKmsKeyId)?
-            != bucket.encryption.value.object_key_origin()
+            != object_key_origin(bucket.encryption.value)
         {
             return Err(CloudStorageError::KmsKeyModeMismatch);
         }

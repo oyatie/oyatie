@@ -10,10 +10,7 @@ license = "Apache-2.0"
 doctest = false
 
 [dependencies]
-storage-domain = { path = "../../../core/domain" }
-
-[dev-dependencies]
-data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+storage-provider-draft = { path = "../../../ports/draft/provider" }
 
 [lints]
 workspace = true

@@ -14,6 +14,7 @@ cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
 
 network-residency = { path = "../../../network/core/residency" }
+storage-provider-draft = { path = "../../ports/draft/provider" }
 
 [lib]
 doctest = false

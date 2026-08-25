@@ -132,36 +132,6 @@ fn looks_secret_like(value: &str) -> bool {
     .any(|marker| lower.contains(marker))
 }
 
-fn validate_provider_ref(
-    value: &str,
-    error: StorageProviderObjectError,
-) -> Result<(), StorageProviderObjectError> {
-    if value.trim().is_empty()
-        || value
-            .bytes()
-            .any(|byte| byte.is_ascii_control() || byte == b' ')
-    {
-        Err(error)
-    } else {
-        Ok(())
-    }
-}
-
-fn validate_provider_block_ref(
-    value: &str,
-    error: StorageProviderBlockError,
-) -> Result<(), StorageProviderBlockError> {
-    if value.trim().is_empty()
-        || value
-            .bytes()
-            .any(|byte| byte.is_ascii_control() || byte == b' ')
-    {
-        Err(error)
-    } else {
-        Ok(())
-    }
-}
-
 fn validate_size(value: u64) -> Result<(), CloudStorageError> {
     if value > 0 {
         Ok(())

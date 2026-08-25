@@ -196,7 +196,7 @@ fn encryption_key(
     region: &RegionCode,
     tenant_id: &str,
 ) -> Result<Option<KmsKeyId>, CloudStorageError> {
-    let Some(expected_origin) = mode.required_key_origin() else {
+    let Some(expected_origin) = required_key_origin(mode) else {
         if key.is_some() {
             return Err(CloudStorageError::UnexpectedKmsKey);
         }

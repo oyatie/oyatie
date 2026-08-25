@@ -2,7 +2,7 @@
 
 #![forbid(unsafe_code)]
 
-use storage_domain::{
+use storage_provider_draft::{
     StorageProviderKind, StorageProviderObjectError, StorageProviderObjectGetRequest,
     StorageProviderObjectPort, StorageProviderObjectPutRequest, StorageProviderObjectReceipt,
 };

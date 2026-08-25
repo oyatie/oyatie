@@ -6,7 +6,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use storage_domain::{
+use storage_provider_draft::{
     EncryptionMode, StorageProviderBlockCreateVolumeRequest, StorageProviderBlockError,
     StorageProviderBlockPort, StorageProviderBlockReceipt, StorageProviderKind,
     StorageProviderObjectError, StorageProviderObjectGetRequest, StorageProviderObjectPort,

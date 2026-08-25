@@ -66,59 +66,6 @@ pub enum ReplicationPolicy {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum EncryptionMode {
-    Sse,
-    SseKms,
-    Byok,
-    Hyok,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum StorageProviderKind {
-    OciObjectStorage,
-    OciBlockStorage,
-    S3ObjectStorage,
-}
-
-impl StorageProviderKind {
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::OciObjectStorage => "oci_object_storage",
-            Self::OciBlockStorage => "oci_block_storage",
-            Self::S3ObjectStorage => "s3_object_storage",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum StorageObjectOperation {
-    PutObject,
-    GetObject,
-}
-
-impl StorageObjectOperation {
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::PutObject => "put_object",
-            Self::GetObject => "get_object",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum StorageBlockOperation {
-    CreateVolume,
-}
-
-impl StorageBlockOperation {
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::CreateVolume => "create_volume",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ObjectLockMode {
     Governance,
     Compliance,
@@ -177,12 +124,6 @@ pub enum SnapshotState {
     Complete,
     Deleting,
     Error,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct VolumePerformance {
-    pub iops: u64,            // data_class: PUBLIC
-    pub throughput_mbps: u64, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

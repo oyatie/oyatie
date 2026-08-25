@@ -1,10 +1,9 @@
 mod block {
     use crate::{OciBlockStorageAdapter, OciBlockStorageAdapterConfigError};
-    use data_boundary_kernel::DataClass;
-    use storage_domain::{
-        CloudStorageError, EncryptionMode, ResidencyClass, StorageProviderBlockCreateVolumeRequest,
-        StorageProviderBlockError, StorageProviderBlockPort, StorageProviderKind,
-        VolumePerformance, VolumeTier,
+    use storage_provider_draft::{
+        CloudStorageError, DataClass, EncryptionMode, ResidencyClass,
+        StorageProviderBlockCreateVolumeRequest, StorageProviderBlockError,
+        StorageProviderBlockPort, StorageProviderKind, VolumePerformance, VolumeTier,
     };
 
     const COMPARTMENT_REF: &str = "ocid1.compartment.oc1..cloud";

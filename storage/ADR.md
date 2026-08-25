@@ -14,15 +14,16 @@ claim that the target implementation has landed.
 
 <current_state>
 
-## Evidence after P0b
+## Evidence after P0c
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references | Contract/reference only; provider traits and direct data/KMS/cell/compute/residency core edges remain P0 debt |
+| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references; provider types are compatibility re-exports | Contract/reference only; direct data/KMS/cell/compute/residency core edges and out-of-bound product models remain P0 debt |
 | `core/object-store-kernel` | Deprecated package-identity shim that re-exports `storage_domain::cas` | Compatibility window only; it contains no independent engine |
 | `ports/object-api`, `ports/block-api` | Deprecated package-identity shims for the pre-P0 Rust HTTP contracts | Compatibility window only; not the canonical proto/Connect facade |
+| `ports/draft/provider` | Owner-local object/block backend traits, DTOs, validation, and receipts used by every retained S3/OCI backend adapter | Draft compatibility only; foreign data/KMS/cell/compute/residency model edges still require agreed ports before P0 completes |
 | `adapters/draft/object-http-legacy`, `adapters/draft/block-http-legacy` | Quarantined request validation, caller-constructed authorization projection, idempotency, and HTTP status/error behavior | Test fixture only; no verified PDP provenance |
-| `adapters/draft/provider-object-s3`, `provider-object-oci`, `provider-block-oci` | Independent provider command/receipt projections | Draft compatibility only; no network or durable backend execution |
+| `adapters/draft/provider-object-s3`, `provider-object-oci`, `provider-block-oci` | Independent provider command/receipt projections routed through `ports/draft/provider` | Draft compatibility only; no network or durable backend execution |
 | `adapters/s3-adapter`, `adapters/oci-adapter` | Deprecated package/target compatibility implementations at D-8-valid paths | Compatibility window only; new consumers are forbidden |
 | Deployment/SLO artifacts | No storage-owned deployment or SLO source is loaded yet | Future artifacts must be reconciler- or IR-generated |
 

@@ -50,7 +50,7 @@ rust_library(
     crate_root = "src/lib.rs",
     env = {"OUT_DIR": "$(location :storage-provider-block-oci-draft-build-script-run[out_dir])"},
     visibility = ["PUBLIC"],
-    deps = ["//storage/core/domain:storage-domain"],
+    deps = ["//storage/ports/draft/provider:storage-provider-draft"],
 )
 
 rust_test(
@@ -62,7 +62,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":storage-provider-block-oci-draft",
-        "//storage/core/domain:storage-domain",
-        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//storage/ports/draft/provider:storage-provider-draft",
     ],
 )

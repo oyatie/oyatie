@@ -43,10 +43,7 @@ buildscript_run(
     manifest_dir = ":storage-provider-object-oci-draft-manifest-dir",
 )
 
-_DEPS = [
-    "//storage/core/domain:storage-domain",
-    "//data/core/data-boundary-kernel:data-boundary-kernel",
-]
+_DEPS = ["//storage/ports/draft/provider:storage-provider-draft"]
 
 rust_library(
     name = "storage-provider-object-oci-draft",
