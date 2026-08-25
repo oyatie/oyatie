@@ -1,0 +1,69 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "storage-provider-object-s3-draft-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "storage-provider-object-s3-draft-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-provider-object-s3-draft-test-items",
+    srcs = glob(["src/test_items/*.rs"]),
+    out = "test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-provider-object-s3-draft-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":storage-provider-object-s3-draft-source-items",
+        ":storage-provider-object-s3-draft-test-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/src/test_items && cp $(location :build.rs) $OUT/ && cp -R $(location :storage-provider-object-s3-draft-source-items)/. $OUT/src/items/ && cp -R $(location :storage-provider-object-s3-draft-test-items)/. $OUT/src/test_items/",
+)
+
+buildscript_run(
+    name = "storage-provider-object-s3-draft-build-script-run",
+    buildscript_rule = ":storage-provider-object-s3-draft-build-script",
+    package_name = "storage-provider-object-s3-draft",
+    version = "0.1.0",
+    manifest_dir = ":storage-provider-object-s3-draft-manifest-dir",
+)
+
+_DEPS = [
+    "//storage/core/domain:storage-domain",
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+]
+
+rust_library(
+    name = "storage-provider-object-s3-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_provider_object_s3_draft",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-provider-object-s3-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)
+
+rust_test(
+    name = "storage-provider-object-s3-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_provider_object_s3_draft",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-provider-object-s3-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)

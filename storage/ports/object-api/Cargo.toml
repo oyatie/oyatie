@@ -7,18 +7,14 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
-secrets-kms-domain = { path = "../../../secrets/core/kms-domain" }
-compute-resource = { path = "../../../compute/core/resource" }
-storage-domain = { path = "../../core/domain" }
-
+storage-object-http-legacy-draft = { path = "../../adapters/draft/object-http-legacy" }
 
 [dev-dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 network-residency = { path = "../../../network/core/residency" }
+storage-domain = { path = "../../core/domain" }
 
 [lib]
-name = "storage_object_api"
-path = "src/lib.rs"
 doctest = false
 
 [lints]

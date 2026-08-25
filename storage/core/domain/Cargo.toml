@@ -7,6 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+blake3 = "1.8.5"
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 secrets-kms-domain = { path = "../../../secrets/core/kms-domain" }
 cell-region = { path = "../../../cell/core/region" }
@@ -15,8 +16,6 @@ compute-resource = { path = "../../../compute/core/resource" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "storage_domain"
-path = "src/lib.rs"
 doctest = false
 
 [lints]
