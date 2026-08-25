@@ -10,28 +10,24 @@ redirect_to: ../AGENTS.md
 
 # Moved
 
-The live session hubs are the repository-root [`AGENTS.md`](../AGENTS.md) and
-[`CLAUDE.md`](../CLAUDE.md). They define the trust boundary, delivery ritual,
-verification commands, and protected merge path.
+The live session hubs are root [`AGENTS.md`](../AGENTS.md) and [`CLAUDE.md`](../CLAUDE.md); they define the trust boundary and merge path.
 
-For work inside a capability or `app/<product>/`, follow those hubs and open
-that owner's `ADR.md`, `PRD.md`, `SPEC.md`, and `PLAN.md`. Those four files are
-the owner-local law for the path.
+For a capability or `app/<product>/`, follow those hubs and open the owner's `ADR.md`, `PRD.md`, `SPEC.md`, and `PLAN.md`.
+
+The owner-law migration is staged. If any of those four files is absent, do
+not substitute the old root wiki or deleted `specs/` corpus. Load the owner's
+files that exist plus the root hubs and applicable accepted 07xx decisions; add missing law only in that owner's structural lane.
 
 [ADR-0719 D-17](decisions/ADR-0719-eac-serving-control-north-star.md#d-17--presubmit-is-the-graph-not-a-json-product)
-deleted the former `specs/` authority corpus, including
-`root-hub-pointers.json`, and requires no replacement JSON hub. D-27 retains
-this file only as a thin operating-contract pointer.
+deleted `specs/` with no replacement JSON hub; D-27 retains this file only as a thin operating-contract pointer.
 
 ## Compatibility anchors
 
-The headings below route retained legacy references; they do not restore the
-former numbered contract.
+These headings route legacy references; they do not restore the old contract.
 
 ## Doctrine survival
 
-Live law survives in the [root session hubs](../AGENTS.md) and the four owner
-files named above, not in a global plan, catalog, or chat transcript.
+Live law survives in the [root hubs](../AGENTS.md) and migrated owner files, not in a global plan, catalog, or chat transcript.
 
 ## Repository topology
 
@@ -85,9 +81,9 @@ Changeset evidence follows [Work](../AGENTS.md#work) and [Merge](../AGENTS.md#me
   hub or duplicated operating contract.
 - **origin:** the former contract continued to route agents through deleted
   `specs/` and `registry/` files after ADR-0719 D-17 removed them.
-- **rule:** agents MUST load the root session hubs, then the exact four law
-  files for the owner they are changing; this redirect MUST NOT grow a second
-  copy of that law or recreate a catch-all machine-readable authority tree.
+- **rule:** agents MUST load the root hubs, then each migrated owner-law file;
+  when one is absent they MUST use the staged fallback above. This pointer
+  MUST NOT duplicate law or recreate a machine-readable authority tree.
 - **ensure:** review resolves every link in this file against the protected
   tree and rejects references to the deleted authority corpus.
 - **overturn_when:** a founder-accepted ADR replaces D-17 and updates both root

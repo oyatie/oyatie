@@ -13,12 +13,14 @@ former root wiki, catch-all specs tree, or machine-readable document catalog.
 
 1. Load the repository-root [`AGENTS.md`](../AGENTS.md) and
    [`CLAUDE.md`](../CLAUDE.md).
-2. For a capability or `app/<product>/`, open that owner's `ADR.md`, `PRD.md`,
-   `SPEC.md`, and `PLAN.md`.
+2. For a capability or `app/<product>/`, use the owner-law route and staged
+   migration fallback in [`AGENTS.md`](AGENTS.md).
 3. Read applicable accepted 07xx decisions under [`decisions/`](decisions/).
    [ADR-0719](decisions/ADR-0719-eac-serving-control-north-star.md) defines the
    current repository and documentation shape.
-4. Apply the direct cross-cutting guidance under [`standards/`](standards/).
+4. Use a standard only when a root hub, an accepted 07xx decision, or migrated
+   owner law cites that exact file. D-27 retains [`standards/`](standards/),
+   but the directory is not a blanket current authority set.
 
 ## Scope
 
