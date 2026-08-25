@@ -15,7 +15,8 @@ former root wiki, catch-all specs tree, or machine-readable document catalog.
    [`CLAUDE.md`](../CLAUDE.md).
 2. For a capability or `app/<product>/`, use the owner-law route and staged
    migration fallback in [`AGENTS.md`](AGENTS.md).
-3. Read applicable accepted 07xx decisions under [`decisions/`](decisions/).
+3. Read applicable accepted 07xx decisions through the status-aware
+   [`decisions/README.md`](decisions/README.md) navigation.
    [ADR-0719](decisions/ADR-0719-eac-serving-control-north-star.md) defines the
    current repository and documentation shape.
 4. Use a standard only when a root hub, an accepted 07xx decision, or migrated
