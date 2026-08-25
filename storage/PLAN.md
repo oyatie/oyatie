@@ -24,9 +24,9 @@ date: 2026-08-25
 - P0b established one primary `storage-domain` core package, moved the HTTP
   and provider projections into owner-local draft adapters, split OCI object
   and block projections, and adopted sorted compile-time item scanners. The old
-  CAS and HTTP package identities remain thin re-export shims; the unchanged S3
-  and combined OCI packages remain only for the advertised compatibility
-  window.
+  CAS and HTTP package identities remain thin re-export shims. S3 and combined
+  OCI retain behavior-equivalent compatibility packages at D-8-valid paths for
+  the advertised support window.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.

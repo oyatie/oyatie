@@ -7,16 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 [lib]
-name = "storage_oci_adapter"
-path = "src/lib.rs"
 doctest = false
 
 [dependencies]
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 storage-domain = { path = "../../core/domain" }
-
-[dev-dependencies]
-
 
 [lints]
 workspace = true

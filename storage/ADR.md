@@ -23,7 +23,7 @@ claim that the target implementation has landed.
 | `ports/object-api`, `ports/block-api` | Deprecated package-identity shims for the pre-P0 Rust HTTP contracts | Compatibility window only; not the canonical proto/Connect facade |
 | `adapters/draft/object-http-legacy`, `adapters/draft/block-http-legacy` | Quarantined request validation, caller-constructed authorization projection, idempotency, and HTTP status/error behavior | Test fixture only; no verified PDP provenance |
 | `adapters/draft/provider-object-s3`, `provider-object-oci`, `provider-block-oci` | Independent provider command/receipt projections | Draft compatibility only; no network or durable backend execution |
-| `adapters/s3`, `adapters/oci` | Unchanged pre-P0 package/target compatibility implementations | Deprecated support window; new consumers are forbidden |
+| `adapters/s3-adapter`, `adapters/oci-adapter` | Deprecated package/target compatibility implementations at D-8-valid paths | Compatibility window only; new consumers are forbidden |
 | Deployment/SLO artifacts | No storage-owned deployment or SLO source is loaded yet | Future artifacts must be reconciler- or IR-generated |
 
 </current_state>
