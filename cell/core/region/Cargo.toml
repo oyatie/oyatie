@@ -7,14 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+cell-location = { path = "../../ports/location" }
 data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
 cell-routing = { path = "../routing" }
 
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "cell_region"
-path = "src/lib.rs"
 doctest = false
 
 [lints]

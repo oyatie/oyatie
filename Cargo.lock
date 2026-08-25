@@ -914,9 +914,14 @@ name = "cell-clock-api"
 version = "0.1.0"
 
 [[package]]
+name = "cell-location"
+version = "0.1.0"
+
+[[package]]
 name = "cell-region"
 version = "0.1.0"
 dependencies = [
+ "cell-location",
  "cell-routing",
  "data-boundary-kernel",
  "network-residency",
@@ -8242,7 +8247,7 @@ name = "storage-domain"
 version = "0.1.0"
 dependencies = [
  "blake3",
- "cell-region",
+ "cell-location",
  "compute-resource",
  "data-boundary-kernel",
  "network-residency",
@@ -8296,7 +8301,7 @@ dependencies = [
 name = "storage-provider-draft"
 version = "0.1.0"
 dependencies = [
- "cell-region",
+ "cell-location",
  "compute-resource",
  "data-boundary-kernel",
  "network-residency",
