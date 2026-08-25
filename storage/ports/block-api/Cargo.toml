@@ -7,14 +7,12 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+storage-block-http-legacy-draft = { path = "../../adapters/draft/block-http-legacy" }
+
+[dev-dependencies]
 storage-domain = { path = "../../core/domain" }
 
-network-residency = { path = "../../../network/core/residency" }
-
 [lib]
-name = "storage_block_api"
-path = "src/lib.rs"
 doctest = false
 
 [lints]

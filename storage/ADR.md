@@ -14,14 +14,16 @@ claim that the target implementation has landed.
 
 <current_state>
 
-## Evidence after P0a
+## Evidence after P0b
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/domain` | Typed bucket, object, volume, filesystem, archive, snapshot, residency, encryption, and provider-port models backed by an in-memory catalog | Contract/reference only; oversized and structurally stale |
-| `core/object-store-kernel` | Tenant-scoped BLAKE3 CAS, caller-supplied WORM/audit fields, bounded payload traits, conformance suite, and in-memory store | Syntactic/self-asserted reference model; not trusted-clock, audit-receipt, persistent, or distributed enforcement |
-| `ports/object-api`, `ports/block-api` | Rust request validation, caller-constructed authorization projection checks, idempotency, status/error projection | Syntactic reference boundaries; no verified PDP provenance and not the canonical proto/Connect facade |
-| `adapters/s3`, `adapters/oci` | Validated provider command/receipt projections | No network or durable backend execution |
+| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references | Contract/reference only; provider traits and direct data/KMS/cell/compute/residency core edges remain P0 debt |
+| `core/object-store-kernel` | Deprecated package-identity shim that re-exports `storage_domain::cas` | Compatibility window only; it contains no independent engine |
+| `ports/object-api`, `ports/block-api` | Deprecated package-identity shims for the pre-P0 Rust HTTP contracts | Compatibility window only; not the canonical proto/Connect facade |
+| `adapters/draft/object-http-legacy`, `adapters/draft/block-http-legacy` | Quarantined request validation, caller-constructed authorization projection, idempotency, and HTTP status/error behavior | Test fixture only; no verified PDP provenance |
+| `adapters/draft/provider-object-s3`, `provider-object-oci`, `provider-block-oci` | Independent provider command/receipt projections | Draft compatibility only; no network or durable backend execution |
+| `adapters/s3-adapter`, `adapters/oci-adapter` | Deprecated package/target compatibility implementations at D-8-valid paths | Compatibility window only; new consumers are forbidden |
 | Deployment/SLO artifacts | No storage-owned deployment or SLO source is loaded yet | Future artifacts must be reconciler- or IR-generated |
 
 </current_state>

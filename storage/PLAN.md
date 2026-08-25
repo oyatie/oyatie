@@ -21,6 +21,12 @@ date: 2026-08-25
   runbook bundle, hand-authored Helm/OpenSLO files, and their deleted-corpus BUCK
   loader. No replacement deployment or SLO source is claimed until a storage
   reconciler or SLO IR consumes it.
+- P0b established one primary `storage-domain` core package, moved the HTTP
+  and provider projections into owner-local draft adapters, split OCI object
+  and block projections, and adopted sorted compile-time item scanners. The old
+  CAS and HTTP package identities remain thin re-export shims. S3 and combined
+  OCI retain behavior-equivalent compatibility packages at D-8-valid paths for
+  the advertised support window.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -33,8 +39,10 @@ repair, or production durability evidence.
 
 Class: structural; do not mix behavior.
 
-- Reconcile the two current core crates into the one-engine owner grammar and
-  move provider traits out of `core/domain` into agreed or draft ports.
+- **Landed in P0b:** reconciled the two implementation-bearing core crates into
+  one primary `core/domain` package. The deprecated
+  `core/object-store-kernel` identity is now a re-export-only compatibility
+  shim. Provider traits still move out of `core/domain` in the next P0 lane.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
   Reconcile required data-boundary, KMS, cell, compute, and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
@@ -45,6 +53,11 @@ Class: structural; do not mix behavior.
   NativeLink fleet YAML and its obsolete laptop-lab runbook bundle, and deleted
   their stale corpus-only BUCK loader after proving no build, runtime, policy,
   SLO controller, or reconciler consumes them.
+- **Landed in P0b:** quarantined HTTP-shaped object/block behavior and provider
+  projections under `adapters/draft`, split OCI object and block packages,
+  retained old public package identities for the compatibility window, removed
+  explicit `[lib]` identity/path overrides from destination packages, and
+  split touched Rust sources to the 300-line budget without behavior drift.
 - Rehome filesystem, archive, backup, and restore product models that fall
   outside ADR-0719 D-14 behind their eventual owning facades. P0 retains
   deprecated compatibility re-exports/shims and identical behavior for every
@@ -52,10 +65,10 @@ Class: structural; do not mix behavior.
   removal requires a separately scoped, explicitly versioned deprecation and
   consumer-migration change after the advertised support window. Object
   recovery internals remain storage behavior, not a separately sold product.
-- Keep `object-store-kernel` classified as an internal reference and
-  compatibility boundary while P1 introduces the sold facade. Remove any
-  remaining direct application call sites or guidance; app cores own blob ports
-  and adapters rather than linking this storage core.
+- Keep `object-store-kernel` as a deprecated package-identity re-export only
+  while P1 introduces the sold facade. Remove any remaining direct application
+  call sites or guidance; app cores own blob ports and adapters rather than
+  linking this storage core.
 
 Success: path-layout admission and exact storage crate tests pass; no behavior
 is claimed changed; the owner has one primary engine, explicit ports/adapters,
@@ -332,8 +345,10 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 
 <next_lane>
 
-The next implementation lane is P0 only: normalize the storage crate/face shape
-and remove unconsumed authoring residue without changing behavior. P1 begins
-after that structural diff merges and `dev` is refreshed.
+The next implementation lane remains P0: move provider traits from
+`core/domain` into agreed or owner-local draft ports, reconcile the direct
+data/KMS/cell/compute/residency core edges without copying foreign models, and
+rehome filesystem/archive/backup/restore product models. P1 begins only after
+those structural obligations merge and `dev` is refreshed.
 
 </next_lane>

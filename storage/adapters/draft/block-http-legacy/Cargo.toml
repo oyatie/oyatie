@@ -1,0 +1,19 @@
+[package]
+name = "storage-block-http-legacy-draft"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+storage-domain = { path = "../../../core/domain" }
+
+network-residency = { path = "../../../../network/core/residency" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

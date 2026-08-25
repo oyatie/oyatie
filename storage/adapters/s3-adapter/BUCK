@@ -1,0 +1,69 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "storage-s3-adapter-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "storage-s3-adapter-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-s3-adapter-test-items",
+    srcs = glob(["src/test_items/*.rs"]),
+    out = "test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-s3-adapter-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":storage-s3-adapter-source-items",
+        ":storage-s3-adapter-test-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/src/test_items && cp $(location :build.rs) $OUT/ && cp -R $(location :storage-s3-adapter-source-items)/. $OUT/src/items/ && cp -R $(location :storage-s3-adapter-test-items)/. $OUT/src/test_items/",
+)
+
+buildscript_run(
+    name = "storage-s3-adapter-build-script-run",
+    buildscript_rule = ":storage-s3-adapter-build-script",
+    package_name = "storage-s3-adapter",
+    version = "0.1.0",
+    manifest_dir = ":storage-s3-adapter-manifest-dir",
+)
+
+_DEPS = [
+    "//storage/core/domain:storage-domain",
+    "//data/core/data-boundary-kernel:data-boundary-kernel",
+]
+
+rust_library(
+    name = "storage-s3-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_s3_adapter",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-s3-adapter-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)
+
+rust_test(
+    name = "storage-s3-adapter-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_s3_adapter",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-s3-adapter-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)

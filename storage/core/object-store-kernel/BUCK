@@ -1,21 +1,17 @@
 rust_library(
     name = "storage-object-store-kernel",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = ["src/lib.rs"],
     crate = "storage_object_store_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "third-party//:blake3",
-    ],
+    deps = ["//storage/core/domain:storage-domain"],
 )
 
 rust_test(
     name = "storage-object-store-kernel-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = ["src/lib.rs"],
     crate = "storage_object_store_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "third-party//:blake3",
-    ],
+    deps = ["//storage/core/domain:storage-domain"],
 )
