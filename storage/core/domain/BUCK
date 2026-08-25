@@ -1,31 +1,94 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "storage-domain-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+export_file(
+    name = "build.rs",
+    visibility = [],
+)
+
+genrule(
+    name = "storage-domain-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-domain-cas-items",
+    srcs = glob(["src/cas_items/*.rs"]),
+    out = "cas_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-domain-test-items",
+    srcs = glob(["src/test_items/*.rs"]),
+    out = "test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-domain-cas-test-items",
+    srcs = glob(["src/cas_test_items/*.rs"]),
+    out = "cas_test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-domain-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":storage-domain-items",
+        ":storage-domain-cas-items",
+        ":storage-domain-test-items",
+        ":storage-domain-cas-test-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/src/cas_items $OUT/src/test_items $OUT/src/cas_test_items && cp $(location :build.rs) $OUT/ && cp -R $(location :storage-domain-items)/. $OUT/src/items/ && cp -R $(location :storage-domain-cas-items)/. $OUT/src/cas_items/ && cp -R $(location :storage-domain-test-items)/. $OUT/src/test_items/ && cp -R $(location :storage-domain-cas-test-items)/. $OUT/src/cas_test_items/",
+)
+
+buildscript_run(
+    name = "storage-domain-build-script-run",
+    buildscript_rule = ":storage-domain-build-script",
+    package_name = "storage-domain",
+    version = "0.1.0",
+    manifest_dir = ":storage-domain-manifest-dir",
+)
+
+_DEPS = [
+    "//cell/core/region:cell-region",
+    "//compute/core/resource:compute-resource",
+    "//secrets/core/kms-domain:secrets-kms-domain",
+    "//network/core/residency:network-residency",
+    "//libs/data-boundary-kernel:data-boundary-kernel",
+    "third-party//:blake3",
+]
+
 rust_library(
     name = "storage-domain",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "storage_domain",
     crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-domain-build-script-run[out_dir])"},
     visibility = ["PUBLIC"],
-    deps = [
-        "//cell/core/region:cell-region",
-        "//compute/core/resource:compute-resource",
-        "//secrets/core/kms-domain:secrets-kms-domain",
-        "//network/core/residency:network-residency",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
-    ],
+    deps = _DEPS,
 )
 
 rust_test(
     name = "storage-domain-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = glob(["src/**/*.rs"]),
     crate = "storage_domain",
     crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-domain-build-script-run[out_dir])"},
     visibility = ["PUBLIC"],
-    deps = [
-        "//cell/core/region:cell-region",
-        "//compute/core/resource:compute-resource",
-        "//secrets/core/kms-domain:secrets-kms-domain",
-        "//network/core/residency:network-residency",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
-    ],
+    deps = _DEPS,
 )
 
 rust_test(
@@ -34,12 +97,5 @@ rust_test(
     crate = "storage_domain_cloud_storage_foundation",
     crate_root = "tests/cloud_storage_foundation.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        ":storage-domain",
-        "//cell/core/region:cell-region",
-        "//compute/core/resource:compute-resource",
-        "//secrets/core/kms-domain:secrets-kms-domain",
-        "//network/core/residency:network-residency",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
-    ],
+    deps = [":storage-domain"] + _DEPS,
 )

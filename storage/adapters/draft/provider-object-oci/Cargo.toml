@@ -1,0 +1,19 @@
+[package]
+name = "storage-provider-object-oci-draft"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+doctest = false
+
+[dependencies]
+storage-domain = { path = "../../../core/domain" }
+
+[dev-dependencies]
+data-boundary-kernel = { path = "../../../../data/core/data-boundary-kernel" }
+
+[lints]
+workspace = true

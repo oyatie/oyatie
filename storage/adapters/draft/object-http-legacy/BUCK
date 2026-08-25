@@ -1,0 +1,90 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "storage-object-http-legacy-draft-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "storage-object-http-legacy-draft-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-object-http-legacy-draft-test-items",
+    srcs = glob(["src/test_items/*.rs"]),
+    out = "test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-object-http-legacy-draft-integration-items",
+    srcs = glob(["tests/items/*.rs"]),
+    out = "integration_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-object-http-legacy-draft-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":storage-object-http-legacy-draft-source-items",
+        ":storage-object-http-legacy-draft-test-items",
+        ":storage-object-http-legacy-draft-integration-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/src/test_items $OUT/tests/items && cp $(location :build.rs) $OUT/ && cp -R $(location :storage-object-http-legacy-draft-source-items)/. $OUT/src/items/ && cp -R $(location :storage-object-http-legacy-draft-test-items)/. $OUT/src/test_items/ && cp -R $(location :storage-object-http-legacy-draft-integration-items)/. $OUT/tests/items/",
+)
+
+buildscript_run(
+    name = "storage-object-http-legacy-draft-build-script-run",
+    buildscript_rule = ":storage-object-http-legacy-draft-build-script",
+    package_name = "storage-object-http-legacy-draft",
+    version = "0.1.0",
+    manifest_dir = ":storage-object-http-legacy-draft-manifest-dir",
+)
+
+_DEPS = [
+    "//compute/core/resource:compute-resource",
+    "//secrets/core/kms-domain:secrets-kms-domain",
+    "//network/core/residency:network-residency",
+    "//storage/core/domain:storage-domain",
+    "//libs/data-boundary-kernel:data-boundary-kernel",
+]
+
+rust_library(
+    name = "storage-object-http-legacy-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_object_http_legacy_draft",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-object-http-legacy-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)
+
+rust_test(
+    name = "storage-object-http-legacy-draft-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_object_http_legacy_draft",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-object-http-legacy-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = _DEPS,
+)
+
+rust_test(
+    name = "storage-object-http-legacy-draft-contract",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "storage_object_http_legacy_draft_contract",
+    crate_root = "tests/cloud_storage_object_api.rs",
+    env = {"OUT_DIR": "$(location :storage-object-http-legacy-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = [":storage-object-http-legacy-draft"] + _DEPS,
+)

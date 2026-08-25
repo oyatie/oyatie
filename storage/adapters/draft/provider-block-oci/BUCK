@@ -1,0 +1,68 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "storage-provider-block-oci-draft-build-script",
+    srcs = ["build.rs"],
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    visibility = [],
+)
+
+export_file(name = "build.rs", visibility = [])
+
+genrule(
+    name = "storage-provider-block-oci-draft-source-items",
+    srcs = glob(["src/items/*.rs"]),
+    out = "source_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-provider-block-oci-draft-test-items",
+    srcs = glob(["tests/items/*.rs"]),
+    out = "test_items",
+    cmd = "mkdir -p $OUT && cp $SRCS $OUT/",
+)
+
+genrule(
+    name = "storage-provider-block-oci-draft-manifest-dir",
+    srcs = [
+        ":build.rs",
+        ":storage-provider-block-oci-draft-source-items",
+        ":storage-provider-block-oci-draft-test-items",
+    ],
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/src/items $OUT/tests/items && cp $(location :build.rs) $OUT/ && cp -R $(location :storage-provider-block-oci-draft-source-items)/. $OUT/src/items/ && cp -R $(location :storage-provider-block-oci-draft-test-items)/. $OUT/tests/items/",
+)
+
+buildscript_run(
+    name = "storage-provider-block-oci-draft-build-script-run",
+    buildscript_rule = ":storage-provider-block-oci-draft-build-script",
+    package_name = "storage-provider-block-oci-draft",
+    version = "0.1.0",
+    manifest_dir = ":storage-provider-block-oci-draft-manifest-dir",
+)
+
+rust_library(
+    name = "storage-provider-block-oci-draft",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "storage_provider_block_oci_draft",
+    crate_root = "src/lib.rs",
+    env = {"OUT_DIR": "$(location :storage-provider-block-oci-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = ["//storage/core/domain:storage-domain"],
+)
+
+rust_test(
+    name = "storage-provider-block-oci-draft-contract",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "storage_provider_block_oci_draft_contract",
+    crate_root = "tests/oci.rs",
+    env = {"OUT_DIR": "$(location :storage-provider-block-oci-draft-build-script-run[out_dir])"},
+    visibility = ["PUBLIC"],
+    deps = [
+        ":storage-provider-block-oci-draft",
+        "//storage/core/domain:storage-domain",
+        "//libs/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
