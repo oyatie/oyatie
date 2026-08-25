@@ -17,8 +17,6 @@ storage-domain = { path = "../../core/domain" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "storage_object_api"
-path = "src/lib.rs"
 doctest = false
 
 [lints]

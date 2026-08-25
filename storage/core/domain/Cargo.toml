@@ -15,8 +15,6 @@ compute-resource = { path = "../../../compute/core/resource" }
 network-residency = { path = "../../../network/core/residency" }
 
 [lib]
-name = "storage_domain"
-path = "src/lib.rs"
 doctest = false
 
 [lints]
