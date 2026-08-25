@@ -32,6 +32,13 @@ date: 2026-08-25
   S3/OCI backend adapter now consumes that port, while `storage-domain`
   preserves its public source surface through compatibility re-exports. The
   draft port's foreign core-model edges remain explicit P0 debt.
+- P0d introduced the agreed `cell-location` value-contract port and routed both
+  storage core and the provider draft through it. The port now defines the
+  validated `RegionCode`, `AzCode`, and `CellId` identities plus their narrow,
+  nameable error contract. Cell's region engine consumes and re-exports those
+  same types, mapping location errors losslessly into its broader catalog error
+  at aggregate boundaries. Direct data/KMS/compute/residency core edges remain
+  P0 debt.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -55,10 +62,17 @@ Class: structural; do not mix behavior.
   on the new seam rather than the core package. This is not P0 completion: the
   draft port still imports foreign core models and the primary core retains
   non-provider foreign edges.
+- **Landed in P0d:** replaced every direct storage-to-Cell core dependency with
+  the agreed `cell-location` port. The exact validated identity values and
+  fail-closed rules remain behavior-compatible, while the narrow constructor
+  error and defining type now belong to the port. Cell core consumes and
+  re-exports that contract. Data-boundary, KMS, compute-resource, and residency
+  imports remain direct foreign-core debt.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
-  Reconcile required data-boundary, KMS, cell, compute, and residency types onto
+  Reconcile required data-boundary, KMS, compute, and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
-  models or claim the current `path = .../core/...` edges are legal.
+  models or claim the current `path = .../core/...` edges are legal. Cell
+  location identity now uses its agreed port.
 - Rename legacy `cloud-*`, `*-api`, provider, and explicit `[lib]` fossils to the
   ADR-0719 grammar; split every touched hand-written file above 300 lines.
 - **Landed in P0a:** removed the hand-authored Helm/OpenSLO residue, retired the
@@ -358,7 +372,7 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 <next_lane>
 
 The next implementation lane remains P0: reconcile the direct
-data/KMS/cell/compute/residency core edges onto agreed provider contracts
+data/KMS/compute/residency core edges onto agreed provider contracts
 without copying foreign models, then rehome filesystem/archive/backup/restore
 product models. P1 begins only after those structural obligations merge and
 `dev` is refreshed.

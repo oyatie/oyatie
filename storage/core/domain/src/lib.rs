@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use cell_region::{AzCode, CellId, RegionCode};
+use cell_location::{AzCode, CellId, RegionCode};
 pub use compute_resource::{BucketTier, FilesystemTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
