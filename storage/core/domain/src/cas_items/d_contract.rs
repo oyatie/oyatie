@@ -107,7 +107,7 @@ impl std::error::Error for ObjectStoreError {}
 // Trait
 // =====================================================================
 
-/// Owned object-store/CAS seam per ADR-0520 and ADR-0536 D-11.
+/// Owned object-store/CAS compatibility seam; P1 freezes the sold facade.
 ///
 /// Every implementation — transitional adapters and the future owned object
 /// store — implements this trait. The trait shape is the destination CAS

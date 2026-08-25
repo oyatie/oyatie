@@ -1,10 +1,12 @@
-/// Write-path durability locked by ADR-0536 D-11.
+/// Compatibility write-path durability mode retained until P1 freezes the
+/// canonical storage contract.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CasWritePath {
     ChainReplication3x,
 }
 
-/// Background repair/space efficiency path locked by ADR-0536 D-11.
+/// Compatibility repair/space-efficiency mode retained until P1 freezes the
+/// canonical storage contract.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CasRepairPath {
     LrcErasureCoding,

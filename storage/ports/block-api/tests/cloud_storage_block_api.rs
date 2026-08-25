@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use storage_block_http_legacy_draft::{
+use storage_block_api::{
     CloudStorageBlockApiAuthorization, CloudStorageBlockApiBoundaryContext,
     CloudStorageBlockApiError, CloudStorageBlockApiPrincipal, CloudStorageBlockCreateApiStatus,
     CloudStorageBlockCreateIdempotencyLedger, CloudStorageBlockVolumeCreateApiRequest,
@@ -76,7 +76,7 @@ fn create_request(
 }
 
 #[test]
-fn legacy_http_runtime_binding_contracts_are_covered() {
+fn openapi_runtime_binding_contracts_are_covered() {
     assert_eq!(STORAGE_BLOCK_CREATE_SURFACE, "storage.block.create");
     assert_eq!(CloudStorageBlockCreateApiStatus::Created.code(), 201);
     assert_eq!(CloudStorageBlockCreateApiStatus::BadRequest.code(), 400);

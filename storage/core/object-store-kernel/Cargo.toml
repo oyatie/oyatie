@@ -1,0 +1,16 @@
+[package]
+name = "storage-object-store-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+storage-domain = { path = "../domain" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

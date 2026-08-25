@@ -1,0 +1,20 @@
+rust_library(
+    name = "storage-block-api",
+    srcs = ["src/lib.rs"],
+    crate = "storage_block_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//storage/adapters/draft/block-http-legacy:storage-block-http-legacy-draft"],
+)
+
+rust_test(
+    name = "storage-block-api-cloud-storage-block-api",
+    srcs = ["tests/cloud_storage_block_api.rs"],
+    crate = "storage_block_api_cloud_storage_block_api",
+    crate_root = "tests/cloud_storage_block_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":storage-block-api",
+        "//storage/core/domain:storage-domain",
+    ],
+)

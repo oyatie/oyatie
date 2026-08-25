@@ -33,9 +33,8 @@ fn shred_proof_ref_change_yields_idempotency_key_reused_conflict() {
     );
 }
 
-/// `IdempotencyKeyReused` maps to HTTP 422 and the canonical error code string
-/// `CLOUD_STORAGE_OBJECT_IDEMPOTENCY_KEY_REUSED`.  This pins the OpenAPI
-/// contract for idempotency-key conflict responses.
+/// `IdempotencyKeyReused` maps to HTTP 422 and the retained compatibility
+/// error code string `CLOUD_STORAGE_OBJECT_IDEMPOTENCY_KEY_REUSED`.
 #[test]
 fn idempotency_key_reused_error_maps_to_422_and_canonical_error_code() {
     let mut catalog = catalog_with_active_bucket();
@@ -52,7 +51,7 @@ fn idempotency_key_reused_error_maps_to_422_and_canonical_error_code() {
     assert_eq!(
         err.object_status_code(),
         422,
-        "IdempotencyKeyReused must map to 422 Unprocessable Entity per OpenAPI contract"
+        "the legacy HTTP fixture maps IdempotencyKeyReused to 422"
     );
     assert_eq!(
         err.code(),
@@ -62,7 +61,7 @@ fn idempotency_key_reused_error_maps_to_422_and_canonical_error_code() {
     assert_eq!(
         err.code().as_str(),
         "CLOUD_STORAGE_OBJECT_IDEMPOTENCY_KEY_REUSED",
-        "canonical error code string must match OpenAPI spec"
+        "the legacy HTTP fixture retains its error code string"
     );
 
     let response = err.error_response("req-ec-2");

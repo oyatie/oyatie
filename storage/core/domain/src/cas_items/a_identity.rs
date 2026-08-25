@@ -83,7 +83,8 @@ impl fmt::Display for Blake3Digest {
 /// The owned content address: `(tenant_id, blake3(payload))`.
 ///
 /// The tenant component is not decoration. It is the anti-dedup boundary that
-/// preserves ADR-0536 D-8 crypto-shred and prevents cross-tenant side channels.
+/// preserves the storage owner contract's crypto-shred boundary and prevents
+/// cross-tenant side channels.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct TenantScopedBlake3Address {
     pub tenant_id: TenantId,  // data_class: INTERNAL_ONLY

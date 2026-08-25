@@ -1,0 +1,21 @@
+[package]
+name = "storage-object-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+storage-object-http-legacy-draft = { path = "../../adapters/draft/object-http-legacy" }
+
+[dev-dependencies]
+data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+network-residency = { path = "../../../network/core/residency" }
+storage-domain = { path = "../../core/domain" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

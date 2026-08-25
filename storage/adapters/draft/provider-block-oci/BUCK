@@ -63,6 +63,6 @@ rust_test(
     deps = [
         ":storage-provider-block-oci-draft",
         "//storage/core/domain:storage-domain",
-        "//libs/data-boundary-kernel:data-boundary-kernel",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
     ],
 )

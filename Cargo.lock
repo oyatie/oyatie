@@ -8221,6 +8221,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
+name = "storage-block-api"
+version = "0.1.0"
+dependencies = [
+ "storage-block-http-legacy-draft",
+ "storage-domain",
+]
+
+[[package]]
 name = "storage-block-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
@@ -8242,6 +8250,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "storage-object-api"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "network-residency",
+ "storage-domain",
+ "storage-object-http-legacy-draft",
+]
+
+[[package]]
 name = "storage-object-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
@@ -8249,6 +8267,21 @@ dependencies = [
  "data-boundary-kernel",
  "network-residency",
  "secrets-kms-domain",
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-object-store-kernel"
+version = "0.1.0"
+dependencies = [
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-oci-adapter"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
  "storage-domain",
 ]
 
@@ -8270,6 +8303,14 @@ dependencies = [
 
 [[package]]
 name = "storage-provider-object-s3-draft"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-s3-adapter"
 version = "0.1.0"
 dependencies = [
  "data-boundary-kernel",

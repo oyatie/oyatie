@@ -1,0 +1,17 @@
+rust_library(
+    name = "storage-object-store-kernel",
+    srcs = ["src/lib.rs"],
+    crate = "storage_object_store_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//storage/core/domain:storage-domain"],
+)
+
+rust_test(
+    name = "storage-object-store-kernel-unittest",
+    srcs = ["src/lib.rs"],
+    crate = "storage_object_store_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//storage/core/domain:storage-domain"],
+)

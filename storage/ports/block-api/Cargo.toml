@@ -1,0 +1,19 @@
+[package]
+name = "storage-block-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+storage-block-http-legacy-draft = { path = "../../adapters/draft/block-http-legacy" }
+
+[dev-dependencies]
+storage-domain = { path = "../../core/domain" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

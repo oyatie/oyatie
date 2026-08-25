@@ -1,0 +1,22 @@
+rust_library(
+    name = "storage-object-api",
+    srcs = ["src/lib.rs"],
+    crate = "storage_object_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = ["//storage/adapters/draft/object-http-legacy:storage-object-http-legacy-draft"],
+)
+
+rust_test(
+    name = "storage-object-api-cloud-storage-object-api",
+    srcs = ["tests/cloud_storage_object_api.rs"],
+    crate = "storage_object_api_cloud_storage_object_api",
+    crate_root = "tests/cloud_storage_object_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":storage-object-api",
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+        "//network/core/residency:network-residency",
+        "//storage/core/domain:storage-domain",
+    ],
+)
