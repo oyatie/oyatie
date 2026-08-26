@@ -61,19 +61,96 @@ Move the already-agreed classification surface into its provider port and make
 the legacy core exact-re-export it. Preserve the exact public type identities,
 derives, constructors, conversion errors, label constants, parser trimming and
 accepted/rejected labels, and `Classified<T>` field shape. This is an ownership
-inversion, not a new taxonomy.
+inversion plus behavior-preserving D-35/D-41 preparation, not a new taxonomy.
+The same slice splits every over-budget handwritten file in both worked
+packages; it cannot leave the 1,306-line legacy root or its 644/390-line
+policy/retention modules as the next conflict point.
 
-The first-slice writable path set is closed to:
+The provider-port writable path set is exactly:
 
-- `data/ports/classification/{Cargo.toml,BUCK,src/lib.rs,tests/classification.rs}`
-  plus new item files
-  `src/{classified,data_class,data_classification,parsers,privacy_data_class}.rs`;
-- `data/core/data-boundary-kernel/{Cargo.toml,BUCK,src/lib.rs}`; and
-- root `Cargo.lock`, held by this slice as the single lockfile writer.
+```text
+data/ports/classification/Cargo.toml
+data/ports/classification/BUCK
+data/ports/classification/build.rs
+data/ports/classification/src/lib.rs
+data/ports/classification/src/items/a_data_class.rs
+data/ports/classification/src/items/b_privacy_data_class.rs
+data/ports/classification/src/items/c_classification_axes.rs
+data/ports/classification/src/items/d_parsers.rs
+data/ports/classification/src/items/e_classified.rs
+data/ports/classification/tests/classification.rs
+data/ports/classification/tests/items/a_labels.rs
+data/ports/classification/tests/items/b_privacy.rs
+data/ports/classification/tests/items/c_classified.rs
+```
 
-No consumer, root manifest, policy, purpose, consent, retention, or generated
-file is writable. The lockfile change is required and limited to reversing the
-local edge: `data-boundary-kernel` depends on `data-classification`, while
+The legacy-core writable path set is exactly:
+
+```text
+data/core/data-boundary-kernel/Cargo.toml
+data/core/data-boundary-kernel/BUCK
+data/core/data-boundary-kernel/build.rs
+data/core/data-boundary-kernel/src/lib.rs
+data/core/data-boundary-kernel/src/policy_gate.rs
+data/core/data-boundary-kernel/src/retention_policy.rs
+data/core/data-boundary-kernel/src/items/a_purpose.rs
+data/core/data-boundary-kernel/src/items/b_data_use_contract.rs
+data/core/data-boundary-kernel/src/items/c_consent_scope.rs
+data/core/data-boundary-kernel/src/items/d_data_use_evaluator.rs
+data/core/data-boundary-kernel/src/test_items/a_classification_compatibility.rs
+data/core/data-boundary-kernel/src/test_items/b_purpose_and_consent.rs
+data/core/data-boundary-kernel/src/test_items/c_data_use_denials.rs
+data/core/data-boundary-kernel/src/test_items/d_subject_policy.rs
+data/core/data-boundary-kernel/src/policy_gate_items/a_contract.rs
+data/core/data-boundary-kernel/src/policy_gate_items/b_lineage_and_risk.rs
+data/core/data-boundary-kernel/src/policy_gate_items/c_evaluation.rs
+data/core/data-boundary-kernel/src/policy_gate_test_items/a_policy_gate.rs
+data/core/data-boundary-kernel/src/policy_gate_test_items/b_lineage_and_risk.rs
+data/core/data-boundary-kernel/src/retention_policy_items/a_classification_level.rs
+data/core/data-boundary-kernel/src/retention_policy_items/b_matcher.rs
+data/core/data-boundary-kernel/src/retention_policy_items/c_retention_policy.rs
+data/core/data-boundary-kernel/src/retention_policy_test_items/a_retention_policy.rs
+Cargo.lock
+```
+
+Each package-root `build.rs` is owned, standard-library-only, and
+emits `rerun-if-changed` for every scanned directory before deterministically
+sorting regular `*.rs` entries by filename. The provider
+scanner writes one generated source stream for `src/items/` and one contract-
+test stream for `tests/items/` under `OUT_DIR`. `src/lib.rs` and
+`tests/classification.rs` become stable include roots, each with one fixed
+`include!(concat!(env!("OUT_DIR"), ...))`; adding, renaming, or removing an
+item never edits either root. Their exact outputs are
+`classification.generated.rs` and `classification_contract_tests.generated.rs`.
+
+The legacy scanner independently sorts six streams: `src/items/`,
+`src/test_items/`, `src/policy_gate_items/`,
+`src/policy_gate_test_items/`, `src/retention_policy_items/`, and
+`src/retention_policy_test_items/`. `src/lib.rs` keeps the stable public root;
+`src/policy_gate.rs` and `src/retention_policy.rs` remain fixed compatibility
+namespace roots with one source and one test `OUT_DIR` include each. These
+fixed namespaces preserve existing public paths but are not item inventories;
+all future membership comes only from the sorted directories. No generated
+stream or module list is tracked. The six exact outputs are
+`boundary.generated.rs`, `boundary_tests.generated.rs`,
+`policy_gate.generated.rs`, `policy_gate_tests.generated.rs`,
+`retention_policy.generated.rs`, and
+`retention_policy_tests.generated.rs`.
+
+Both package `BUCK` files define the build-script binary, export `build.rs`,
+stage every source/test-item glob into a synthetic manifest directory, run
+`buildscript_run`, and pass its `OUT_DIR` to the library and test targets. Buck
+and Cargo therefore execute the same scanner over the same named streams.
+Cross-fragment tests deliberately use a symbol from every source stream and run
+under both graphs; acceptance also adds, renames, and removes a temporary item
+and proves both generated memberships follow the directory without an index
+edit.
+
+No consumer, root workspace manifest, generated file, or path outside the
+enumerated set is writable. Policy, purpose, consent, and retention code may
+only move into the enumerated fragments; its symbols and behavior cannot
+change. The lockfile change is required and limited to reversing the local
+edge: `data-boundary-kernel` depends on `data-classification`, while
 `data-classification` no longer depends on the legacy core. Cargo and Buck must
 encode that same acyclic edge.
 
@@ -87,23 +164,31 @@ Logical verification closure is both provider packages and their tests, every
 existing `data-classification` reverse consumer in Network and Storage, and the
 legacy core's reverse build closure through both Cargo and Buck. A compile-time
 compatibility fixture must accept one value through both public namespaces as
-the same Rust type.
+the same Rust type. The provider/root/test targets plus all six legacy generated
+streams are explicit Buck closure; no green Cargo-only result substitutes for
+that closure.
 
 Success: the port is the defining crate; the legacy namespace remains source-
 compatible through exact re-exports; valid and invalid label/parser matrices,
 privacy conversion errors, ordering, hashing, and serialized ledger labels are
-unchanged; Cargo/Buck closure and the lockfile freshness gate pass.
+unchanged; every touched handwritten file is at or below 300 lines; add/rename/
+remove scanner canaries compile and test identically through Cargo and Buck;
+and the lockfile freshness gate passes.
 
 Failure: the graph is cyclic, a compatibility wrapper creates a second type or
 error identity, any parser/label behavior changes, a policy symbol leaks into
-the narrow port, or the lockfile records unrelated churn.
+the narrow port, a tracked/manual module inventory appears, a stable include
+root changes to add an item, Cargo/Buck membership differs, an over-budget
+touched file remains, or the lockfile records unrelated churn.
 
 Rollback: restore the original local dependency direction and definitions in
 the legacy core before any D1b-C2 consumer migration lands.
 
 Fault evidence: negative fixtures exercise whitespace, unknown privacy labels,
 operational/subject labels on the privacy parser, and non-privacy conversion;
-a Buck fixture restoring the old reverse edge must fail cycle/parity checks.
+a Buck fixture restoring the old reverse edge must fail cycle/parity checks;
+and disposable add/rename/remove/non-Rust-item fixtures prove deterministic
+membership, stable include roots, and identical Cargo/Buck refusal behavior.
 
 ### D1b-C2 — Migrate classification consumers as one D-29 LSC
 
@@ -165,17 +250,94 @@ window.
 
 ### D1b-P1 — Repair Data-local Postgres structure
 
-Repair `data/BUCK`; add Buck targets for the Postgres command kernel, SQLx
-adapter, transactional-outbox kernel, and outbox SQLx adapter; and split only
-the two greater-than-300-line Postgres roots into owner-local item files.
-Preserve package names, manifests, public types, validation order, SQL order,
-error mapping, transaction boundaries, and tenant-context behavior.
+Delete the unconsumed root `data/BUCK` corpus loader; add Buck targets for the
+Postgres command kernel, SQLx adapter, transactional-outbox kernel, and outbox
+SQLx adapter; and install D-35/D-41 structure in all four worked packages.
+Their current crate roots are respectively 1,053, 1,077, 459, and 485 lines,
+so limiting the split to the first two would leave two touched packages over
+budget. Preserve package names, manifests, public types and errors, validation
+and SQL order, transaction boundaries, rollback, and tenant-context behavior.
 
-The writable envelope is only `data/BUCK`, the four Data package `BUCK` files,
-and `src/**/*.rs` in `data/core/postgres-command-kernel` and
-`data/adapters/postgres-command-sqlx`. Cargo manifests and `Cargo.lock` are
-read-only. This slice proves only the Data-local build closure; it does not
-claim that foreign reverse consumers are repaired.
+The writable envelope is exactly:
+
+```text
+data/BUCK
+data/core/postgres-command-kernel/BUCK
+data/core/postgres-command-kernel/build.rs
+data/core/postgres-command-kernel/src/lib.rs
+data/core/postgres-command-kernel/src/items/a_sql_contract.rs
+data/core/postgres-command-kernel/src/items/b_execution.rs
+data/core/postgres-command-kernel/src/items/c_migration_parser.rs
+data/core/postgres-command-kernel/src/items/d_rls_validation.rs
+data/core/postgres-command-kernel/src/test_items/a_command_contract.rs
+data/core/postgres-command-kernel/src/test_items/b_rls.rs
+data/core/postgres-command-kernel/src/test_items/c_migration_parser.rs
+data/adapters/postgres-command-sqlx/BUCK
+data/adapters/postgres-command-sqlx/build.rs
+data/adapters/postgres-command-sqlx/src/lib.rs
+data/adapters/postgres-command-sqlx/src/items/a_contract.rs
+data/adapters/postgres-command-sqlx/src/items/b_executor.rs
+data/adapters/postgres-command-sqlx/src/items/c_harness_config.rs
+data/adapters/postgres-command-sqlx/src/items/d_plan_validation.rs
+data/adapters/postgres-command-sqlx/src/items/e_live_rls_probe.rs
+data/adapters/postgres-command-sqlx/src/test_items/a_plan_validation.rs
+data/adapters/postgres-command-sqlx/src/test_items/b_harness_config.rs
+data/adapters/postgres-command-sqlx/src/test_items/c_live_postgres.rs
+data/core/transactional-outbox-kernel/BUCK
+data/core/transactional-outbox-kernel/build.rs
+data/core/transactional-outbox-kernel/src/lib.rs
+data/core/transactional-outbox-kernel/src/items/a_sql_and_contract.rs
+data/core/transactional-outbox-kernel/src/items/b_commands.rs
+data/core/transactional-outbox-kernel/src/test_items/a_outbox.rs
+data/adapters/outbox-sqlx/BUCK
+data/adapters/outbox-sqlx/build.rs
+data/adapters/outbox-sqlx/src/lib.rs
+data/adapters/outbox-sqlx/src/items/a_contract.rs
+data/adapters/outbox-sqlx/src/items/b_drain.rs
+data/adapters/outbox-sqlx/src/items/c_validation_and_sql.rs
+data/adapters/outbox-sqlx/src/test_items/a_outbox_drain.rs
+```
+
+Each package owns the same standard-library-only scanner shape: lexically sort
+regular `src/items/*.rs` into one package-specific generated source file, sort
+`src/test_items/*.rs` into one generated test file, emit directory-level
+`rerun-if-changed`, and write both only beneath `OUT_DIR`. Each `src/lib.rs`
+becomes a stable root with one source include and
+one fixed `#[cfg(test)]` test include. No tracked generated file or manual
+`mod`/membership list is permitted, and adding, renaming, or deleting an item
+does not edit the root.
+
+The exact output pairs are `postgres_command.generated.rs` /
+`postgres_command_tests.generated.rs`, `postgres_command_sqlx.generated.rs` /
+`postgres_command_sqlx_tests.generated.rs`,
+`transactional_outbox.generated.rs` /
+`transactional_outbox_tests.generated.rs`, and `outbox_sqlx.generated.rs` /
+`outbox_sqlx_tests.generated.rs`. Output names and include sites freeze in P1;
+subsequent behavior is a unique source/test-item file only.
+
+Each new package `BUCK` stages both item globs in a synthetic manifest
+directory, runs the package-root script through `buildscript_run`, and supplies
+that output directory to both `rust_library` and `rust_test`. The same
+cross-fragment behavior tests act as membership canaries under Cargo and Buck;
+acceptance also exercises a disposable item add, rename, and removal in both
+graphs. Green compilation from a broad Buck `srcs` glob without the generated
+include is not parity.
+
+Cargo manifests and `Cargo.lock` are read-only: Cargo auto-discovers each
+dependency-free package-root `build.rs`, and no dependency or package identity
+changes. This slice proves only the Data-local closure:
+
+```text
+shared-postgres-command-kernel
+  -> shared-postgres-command-adapter-sqlx
+  -> shared-transactional-outbox-kernel
+       -> shared-transactional-outbox-adapter-sqlx
+  -> shared-transactional-outbox-adapter-sqlx
+shared-protocol-parity-kernel
+  -> shared-transactional-outbox-kernel
+```
+
+It does not claim that foreign reverse consumers are repaired.
 
 P1 writes only Data paths, but its packages are consumed externally and
 therefore require escalated D-29 review from Data, Community, IAM,
@@ -184,17 +346,22 @@ write any consumer path.
 
 Success: `buck2 targets //data/...` parses without the deleted corpus loader;
 all four Data packages build/test under Cargo and Buck; the structural split is
-behavior-equivalent; touched non-exempt source files meet the line budget.
+behavior-equivalent; every touched non-exempt source/test file meets the line
+budget; and add/rename/remove membership canaries produce the same compiled and
+tested source set under both graphs without a parent-root edit.
 
 Failure: a stale `//libs` or deleted-corpus edge survives in Data, a downstream
 type/error/SQL ordering changes, tenant context moves outside the transaction,
-or any manifest/lockfile changes.
+any of the four roots remains over budget, a tracked/manual inventory appears,
+Cargo and Buck scan different members, an item addition edits `lib.rs`, or any
+manifest/lockfile changes.
 
 Rollback: revert the file split and Data-local Buck repair only.
 
-Fault evidence: negative fixtures omit an item scanner entry or inject a stale
-target edge; existing SQL rollback, atomicity, validation, and RLS probes run
-before and after the split.
+Fault evidence: disposable non-Rust, add, rename, remove, and staged-item-drift
+fixtures exercise the scanners in both graphs; a stale target edge fails target
+analysis; existing SQL rollback, atomicity, validation, outbox ordering, and RLS
+probes run before and after the split.
 
 ### D1b-P2 — Repair Postgres reverse consumers under D-29
 
