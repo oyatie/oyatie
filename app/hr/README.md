@@ -39,11 +39,25 @@ independent-oracle closure. Keyring membership is provider-authoritative and
 frozen into a rotation fence, so a missing repository cannot be omitted before
 an old generation is revoked. Repository decommission first closes a durable
 SQLite write-admission fence and the matching provider admission fence, then
-produces a bounded, authenticated zero-reference/unresolved proof before
-membership removal; an old member cannot write or rejoin while that fence is
-active or after removal. The
-real SQLite-to-record-encryption-to-key-service traversal is exercised from a
-dev-only composition target with no adapter-to-repository runtime edge.
+produces a bounded, authenticated zero-reference/unresolved proof. The
+repository subsequently performs typed provider removal, local completion,
+status, and recovery operations: the provider's signed removal receipt binds
+that proof, and SQLite remains closed until its matching local terminal receipt
+is durably recorded. Response loss, crash, local drain/delete/quarantine
+failure, or partition therefore converges through the same receipt rather than
+reopening or re-registering an old member. The `Removed` status carries that
+receipt; it is never a bare terminal label. A sole member receives a typed
+retirement handoff rather than an impossible empty membership snapshot:
+retirement fences all writers, revokes every generation only after zero
+references/unresolved authorizations, and ends in a separate no-member
+`Retired` keyring state. A begin operation has a provider-side abort tombstone,
+and recovery sends a persisted begin through that tombstone CAS rather than
+treating `NotStarted` as permission to reopen, so a late begin cannot resurrect
+a locally aborted fence. Minimal concrete
+key-adapter open/seal, authorization/resolution, and decommission-fence behavior
+is implemented and reviewed before the dev-only real
+SQLite-to-record-encryption-to-key-service composition target runs; that target
+has no adapter-to-repository runtime edge.
 Required-authority outages fail closed and consume availability budget for
 eligible traffic until recovery or acknowledged routing withdrawal.
 

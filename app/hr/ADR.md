@@ -181,9 +181,11 @@ over-budget files are debt, not precedent.
   `authorize_commit`/idempotent `resolve_commit` semantics, L2i.0d.1 first
   admits the key-service adapter graph, L2i.0f prepares the closed protocol/
   repository/SQLite/adapter file set, L2i.0g.0 freezes the HR port contracts,
-  L2i.0g.1 implements the selected key-service adapter, L2i.0g.2 only then
-  implements repository/SQLite behavior and its real composition target, and
-  L2i.0h implements bounded
+  L2i.0g.1 implements selected replay/membership/decommission provider
+  behavior, L2i.0g.1a implements and reviews the minimal concrete open/seal,
+  commit-authorization/resolution, and decommission-fence behavior, L2i.0g.2
+  only then implements repository/SQLite behavior and its real composition
+  target, and L2i.0h implements bounded
   repository rekey/recovery. Provider authorization, repository-
   epoch fencing, keyring repository enrollment/removal, and generation
   transitions MUST share one linearizable order: a transition denies new
@@ -197,8 +199,14 @@ over-budget files are debt, not precedent.
   absence is never classified before fencing. A decommission intent is first
   durable in the repository's SQLite writer, so all later write/authorization
   attempts see its admission epoch; the matching provider CAS then fences new
-  replay, seal, and commit authorization until atomic membership removal. The
-  matching HR adapter remains draft while the port is draft. Plaintext fallback,
+  replay, seal, and commit authorization. After proof, the repository performs
+  typed provider removal, local completion, status, and recovery: provider
+  membership removal is the global linearization point and returns a signed
+  proof-bound terminal receipt, while SQLite remains fenced until a local
+  `BEGIN IMMEDIATE` completion CAS records that same receipt. This is not
+  narrated as a distributed transaction. A local drain/delete/quarantine fault
+  leaves a receipt-bound terminal-pending state rather than reopening admission.
+  The matching HR adapter remains draft while the port is draft. Plaintext fallback,
   caller-provided keys,
   process-local production keys, provider-internal imports, and logging key/
   plaintext material are forbidden.
@@ -283,9 +291,29 @@ over-budget files are debt, not precedent.
   repository/member/epoch, membership snapshot/version, rotation state, live-
   generation digest, admission-fence id/epoch, and terminal write sequence.
   `RemoveKeyringRepositoryV1` atomically rechecks all of them before membership
-  change and leaves the old member fenced. Response loss,
-  crash, partition, abort, resume, and rejoin are typed state transitions; no
-  later durable write can commit after the terminal observation or removal.
+  change and returns a proof-bound signed removal receipt. The repository then
+  runs `CompleteRepositoryDecommissionV1` under its still-closed admission epoch;
+  only that local CAS may record `Removed`, and it binds the same proof/receipt
+  identity. `GetRepositoryDecommissionV1::Removed` carries the receipt rather
+  than a unit label, while `GetRepositoryDecommissionStatusV1` and
+  `RecoverRepositoryDecommissionV1` converge a response loss, crash, or local
+  drain/delete/quarantine failure without re-registering the old member. The
+  provider CAS is the global removal linearization point; the local CAS is
+  independently atomic and deliberately fenced across the remote/local gap.
+  An abort—including recovery that observes provider `NotStarted` for a
+  persisted local intent—sends the stored begin tuple through the provider
+  begin-operation tombstone CAS and then records a strictly greater local
+  reopened-admission epoch before local admission can reopen. A delayed original
+  begin therefore cannot resurrect that `NotStarted` race.
+  A non-last remove yields the successor snapshot. A last remove instead yields
+  a typed retirement handoff; `BeginKeyringRetirementV1` fences all writers and
+  `CompleteKeyringRetirementV1` revokes every generation only after the same
+  proof shows zero references/unresolved authorizations, producing a distinct
+  no-member `Retired` state. The repository binds both provider retirement
+  operation ids to its outer remove operation and records local completion only
+  after the signed retirement receipt. Response loss, crash, partition, abort,
+  resume, and rejoin are typed state transitions; no later durable write can
+  commit after the terminal observation, provider removal, or retirement.
 
   A later format is non-dispatchable until a separately accepted codec,
   writer-authority, reader-cohort, admission/retirement, migration, and
@@ -313,10 +341,12 @@ over-budget files are debt, not precedent.
   zero-match creation. The current V1 set has exactly one canonical format; a
   future format may not expand locator work and cannot be admitted until the
   oldest format has a durable compatibility-retirement receipt. Adapter
-  structure, file-slot admission, port freeze, provider behavior,
-  repository/SQLite behavior plus its dev-only real composition target, and
-  rekey remain separate L2i.0d.1, L2i.0f, L2i.0g.0, L2i.0g.1, L2i.0g.2, and
-  L2i.0h changes.
+  structure, file-slot admission, port freeze, provider behavior, minimal
+  concrete adapter behavior, repository/SQLite behavior plus its dev-only real
+  composition target, and rekey remain separate L2i.0d.1, L2i.0f, L2i.0g.0,
+  L2i.0g.1, L2i.0g.1a, L2i.0g.2, and L2i.0h changes. The g.2 target may execute
+  real open/seal/authorization/decommission behavior only after g.1a accepts it;
+  L2i.2d does not backfill that prerequisite.
 - **ensure:** independent Cargo and Buck encoders share typed inputs but not an
   encoder, and assert exact idempotency-locator and `CommitBinding` preimages,
   semantic-equivalence and changed-field vectors, unknown/omitted/reordered
@@ -339,12 +369,15 @@ over-budget files are debt, not precedent.
   the port and selected adapter, including `AcquireReplayGenerationSetV1`,
   returned-authority locator derivation, and stale/replayed/provider-loss errors;
   its matching Cargo/Buck test target is the only dev edge to SQLite and reverse
-  scans reject a library/runtime adapter-to-repository edge. Decommission tests
-  race authorization/commit before and after local intent, provider fence, each
-  scan page, terminal observation, proof issuance, and removal; response loss,
-  crash, partition, stale membership/live-generation state, concurrent rotation,
-  abort/resume, and rejoin all preserve the fenced member or return a typed
-  refusal.
+  scans reject a library/runtime adapter-to-repository edge. That target is
+  enabled only after the g.1a adapter open/seal, authorization/resolution, and
+  decommission-fence tests are accepted. Decommission tests race
+  authorization/commit before and after local intent, provider fence, each scan
+  page, terminal observation, proof issuance, provider removal, local completion,
+  and recovery; response loss, crash, partition, local drain/delete/quarantine
+  fault, stale membership/live-generation state, concurrent rotation,
+  tombstoned-begin abort/resume, last-member retirement, and rejoin all preserve
+  the fenced member or return a typed refusal.
 - **overturn_when:** an independently reviewed repository or encrypted-SQLite
   design proves equivalent cross-version replay identity, complete staged-
   effect authentication, bounded crash-resumable re-encryption, and

@@ -164,14 +164,31 @@ transport/provider field order, unknown field, omitted effect, implicit
   `ProduceDecommissionProofV1` first durably closes a repository write-admission
   epoch, then CASes the matching provider decommission fence; the fenced SQLite
   scan must prove zero references for every live generation and zero unresolved
-  authorizations before the provider issues an authenticated proof. Removal
-  atomically rechecks that proof, the
-  membership snapshot/version, repository/member instance/epoch, and admission
-  fence, and leaves the old member closed through removal. A response loss,
-  crash, partition, or rejoin has a typed resume/abort/refusal outcome, never a
-  path that can omit a referenced member. Removal is refused during a drain.
-  Emergency drain, source loss, or partition withdraws readiness and blocks
-  normal rotation; it is never a route around this invariant.
+  authorizations before the provider issues an authenticated proof. The
+  repository then uses typed `AbortRepositoryDecommissionIntentV1`,
+  `RemoveRepositoryDecommissionV1`, `CompleteRepositoryDecommissionV1`,
+  `GetRepositoryDecommissionStatusV1`, and `RecoverRepositoryDecommissionV1`
+  operations. Provider removal atomically
+  rechecks the proof, snapshot/version, repository/member instance/epoch, and
+  admission fence and returns a signed proof-bound receipt; the locally fenced
+  SQLite writer records `Removed` only by an atomic matching completion CAS.
+  A lost response, crash, partition, or local drain/delete/quarantine failure is
+  a receipt-bound pending/recovery state with readiness withdrawn, never a path
+  that can omit a referenced member or reopen its old epoch. `Removed` status
+  carries that receipt. A delayed begin cannot resurrect after abort because the
+  provider atomically persists a begin-operation tombstone and SQLite CASes a
+  strictly greater reopened admission epoch before local admission reopens.
+  Recovery treats a provider `NotStarted` for a persisted intent only as input
+  to that stored-begin abort-tombstone CAS; it never opens from the observation
+  alone. For a sole member, the repository binds distinct provider
+  begin/complete-retirement operation ids to the outer removal before it records
+  a signed terminal retirement receipt locally.
+  Removing a sole member returns a typed retirement handoff rather than
+  an empty snapshot; provider retirement fences all writers, revokes every
+  generation only after all-zero reference/unresolved evidence, and ends in a
+  separate `Retired` keyring state with no rejoin. Removal is refused during a
+  drain. Emergency drain, source loss, or partition withdraws readiness and
+  blocks normal rotation; it is never a route around this invariant.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -305,10 +322,16 @@ authenticated staged descriptor.
   enroll/remove/rejoin or G+2 request, and permits revocation only after both
   snapshot-bound terminal zero-reference receipts and provider unresolved counts
   reach zero. Decommission evidence persists an intent and write fence before
-  provider fencing, races authorization/commit/proof/removal at every boundary,
-  and proves that an observed or removed member cannot commit a durable
-  reference. A partitioned or omitted repository has no receipt and therefore
-  cannot be removed or let G advance to G+2.
+  provider fencing; races authorization/commit/proof/provider-removal/local-
+  completion/recovery at every boundary; and proves that an observed, provider-
+  removed, or locally terminal member cannot commit a durable reference. A lost
+  response or local storage drain/delete/quarantine fault resumes only from the
+  signed proof-bound terminal receipt. It exercises the begin-tombstone race so
+  a delayed begin cannot resurrect after abort. A sole-member removal returns a
+  typed retirement handoff and reaches a no-member `Retired` state only after
+  every generation is revoked with all-zero reference/unresolved evidence. A
+  partitioned or omitted repository has no receipt and therefore cannot be
+  removed or let G advance to G+2.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
   oversized state produces no partial response or sensitive fallback error.
@@ -342,8 +365,9 @@ authenticated staged descriptor.
   generation repository reference.
 - A decommission proof is produced without a current provider/local admission
   fence, does not bind the repository/member/epoch/snapshot/rotation state and
-  terminal write sequence, or permits a durable write after its observation or
-  removal.
+  terminal write sequence, permits a durable write after its observation,
+  provider removal, or local terminal completion, treats a bare `Removed` as
+  recoverable truth, or reopens after a terminal-local-storage fault.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 - An eligible request is removed from the availability denominator because a
@@ -403,19 +427,29 @@ authenticated staged descriptor.
   partition one enrolled repository, retry after crash, and attempt a rejoin with
   a stale membership version or decommission proof. For decommission, race an
   authorization immediately before and after the durable intent, provider fence,
-  each bounded SQLite scan page, terminal zero observation, proof issuance, and
-  atomic removal; inject response loss, provider partition, process crash, stale
+  each bounded SQLite scan page, terminal zero observation, proof issuance,
+  provider removal, local drain, local completion, and recovery; inject response
+  loss before/after each provider/local boundary, provider partition, process
+  crash, database busy/full/I/O/commit/quarantine/delete faults, stale
   live-generation digest, concurrent rotation, and changed-operation-id replay.
-  A resumed operation either returns its identical result or a typed refusal;
-  the old member remains write-closed and cannot rejoin until a fresh registration.
-  Each schedule preserves the frozen fence snapshot; a zero-reference,
-  unresolved-authorization, decommission, or retirement receipt from another
-  snapshot, member instance, generation set, fence/epoch, or unresolved count is
-  rejected.
-- Execute the dev-only key-service composition target against a real SQLite file
-  and the accepted provider contract server. It must exercise
-  `AcquireReplayGenerationSetV1`, returned-authority locator derivation, typed
-  stale/replayed/changed-request/provider-loss outcomes, and the reverse-edge
-  scan that permits repository/SQLite dependencies only in that test target.
+  Exercise `NotStarted` plus abort-tombstone plus delayed-begin delivery and
+  prove the delayed begin cannot mutate membership after local reopen. Exercise
+  both a multi-member removal and a sole-member typed retirement handoff, then
+  fail its all-generation-zero/reference/unresolved preconditions. A resumed
+  operation either returns its identical proof-bound receipt/result or a typed
+  refusal; the old member remains write-closed and cannot rejoin until a fresh
+  registration on a new active keyring. Each schedule preserves the frozen fence
+  snapshot; a zero-reference, unresolved-authorization, decommission, removal,
+  local-completion, or retirement receipt from another snapshot, member instance,
+  generation set, fence/epoch, or unresolved count is rejected.
+- First accept standalone Cargo/Buck key-adapter tests for real envelope
+  open/seal, authorization/resolution, and decommission-fence behavior. Only
+  then execute the dev-only key-service composition target against a real SQLite
+  file and the accepted provider contract server. It must exercise
+  `AcquireReplayGenerationSetV1`, returned-authority locator derivation,
+  authenticated open/tamper behavior, decommission-versus-durable-write,
+  typed stale/replayed/changed-request/provider-loss outcomes, and the
+  reverse-edge scan that permits repository/SQLite dependencies only in that
+  test target.
 
 </acceptance>
