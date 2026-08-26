@@ -14,7 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use cell_location::{AzCode, CellId, RegionCode};
 pub use compute_resource::{BucketTier, FilesystemTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
-use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_classification::{Classified, DataClass, PrivacyDataClass};
 pub use network_residency::ResidencyClass;
 use network_residency::residency_class_allows_home_region_label;
 use secrets_kms_domain::{

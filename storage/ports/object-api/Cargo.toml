@@ -10,7 +10,7 @@ license = "Apache-2.0"
 storage-object-http-legacy-draft = { path = "../../adapters/draft/object-http-legacy" }
 
 [dev-dependencies]
-data-boundary-kernel = { path = "../../../data/core/data-boundary-kernel" }
+data-classification = { path = "../../../data/ports/classification" }
 network-residency = { path = "../../../network/core/residency" }
 storage-domain = { path = "../../core/domain" }
 

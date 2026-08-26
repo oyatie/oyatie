@@ -1,4 +1,4 @@
-use data_boundary_kernel::DataClass;
+use data_classification::DataClass;
 use network_residency::ResidencyClass;
 use storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,

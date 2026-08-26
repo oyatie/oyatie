@@ -1685,6 +1685,13 @@ name = "data-boundary-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "data-classification"
+version = "0.1.0"
+dependencies = [
+ "data-boundary-kernel",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8237,7 +8244,7 @@ dependencies = [
 name = "storage-block-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
+ "data-classification",
  "network-residency",
  "storage-domain",
 ]
@@ -8249,7 +8256,7 @@ dependencies = [
  "blake3",
  "cell-location",
  "compute-resource",
- "data-boundary-kernel",
+ "data-classification",
  "network-residency",
  "secrets-kms-domain",
  "storage-provider-draft",
@@ -8259,7 +8266,7 @@ dependencies = [
 name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
- "data-boundary-kernel",
+ "data-classification",
  "network-residency",
  "storage-domain",
  "storage-object-http-legacy-draft",
@@ -8270,7 +8277,7 @@ name = "storage-object-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
- "data-boundary-kernel",
+ "data-classification",
  "network-residency",
  "secrets-kms-domain",
  "storage-domain",
@@ -8303,7 +8310,7 @@ version = "0.1.0"
 dependencies = [
  "cell-location",
  "compute-resource",
- "data-boundary-kernel",
+ "data-classification",
  "network-residency",
  "secrets-kms-domain",
 ]

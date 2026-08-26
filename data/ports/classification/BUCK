@@ -1,0 +1,21 @@
+rust_library(
+    name = "data-classification",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "data_classification",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-boundary-kernel:data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "data-classification-classification",
+    srcs = ["tests/classification.rs"],
+    crate = "data_classification_classification",
+    crate_root = "tests/classification.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":data-classification",
+    ],
+)
