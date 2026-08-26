@@ -19,7 +19,7 @@ rust_test(
     deps = [
         ":storage-object-api",
         "//data/ports/classification:data-classification",
-        "//network/core/residency:network-residency",
+        "//network/ports/residency-policy:network-residency-policy",
         "//storage/core/domain:storage-domain",
     ],
 )

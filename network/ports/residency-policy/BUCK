@@ -1,0 +1,22 @@
+rust_library(
+    name = "network-residency-policy",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "network_residency_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/ports/classification:data-classification",
+        "//network/core/residency:network-residency",
+    ],
+)
+
+rust_test(
+    name = "network-residency-policy-contract",
+    srcs = ["tests/residency_policy_contract.rs"],
+    crate = "network_residency_policy_contract",
+    crate_root = "tests/residency_policy_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":network-residency-policy",
+    ],
+)

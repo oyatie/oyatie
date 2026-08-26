@@ -1,5 +1,5 @@
 use data_classification::DataClass;
-use network_residency::ResidencyClass;
+use network_residency_policy::ResidencyClass;
 pub(super) use storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,

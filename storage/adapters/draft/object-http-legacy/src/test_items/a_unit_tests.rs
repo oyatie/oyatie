@@ -23,7 +23,7 @@ fn bucket_create() -> BucketCreate {
         tenant_id: "ten_unit".to_string(),
         name: "unit-assets".to_string(),
         region: "region-home".to_string(),
-        residency: network_residency::ResidencyClass::StrictHomeRegion,
+        residency: network_residency_policy::ResidencyClass::StrictHomeRegion,
         tier: BucketTier::Standard,
         replication: ReplicationPolicyCreate::Regional,
         encryption: EncryptionMode::SseKms,
