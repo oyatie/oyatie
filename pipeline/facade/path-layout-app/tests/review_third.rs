@@ -1,4 +1,5 @@
-//! Exact regressions from the third independent ADR-0719 admission review.
+//! Exact regressions from the third independent repository-layout review.
+//! Provenance: ADR-0719.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -162,7 +163,7 @@ fn retained_implemented_owner_cannot_delete_law() {
     let base = commit(&root, "implemented owner");
     git(&root, &["rm", "--quiet", "network/PRD.md"]);
     let head = commit(&root, "delete law");
-    assert_rejected(&root, &base, &head, "cannot delete canonical D-36 law");
+    assert_rejected(&root, &base, &head, "cannot delete canonical owner-law");
     let _ = std::fs::remove_dir_all(root);
 }
 

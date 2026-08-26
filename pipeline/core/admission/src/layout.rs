@@ -1,4 +1,4 @@
-//! ADR-0719 D-8 changed-path layout admission.
+//! Changed-path repository-layout admission. Provenance: ADR-0719 D-8.
 //!
 //! Unknown top-level names are red. Absence of a listed name is not red
 //! (BUILD vs DONE). Capability and `app/<product>/` children are hexagonal

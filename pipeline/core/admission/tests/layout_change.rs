@@ -46,7 +46,11 @@ fn every_new_capability_requires_core_and_owner_law() {
         git_change_paths_from_name_status_z(b"A\0network/OWNERS\0A\0network/README.md\0").unwrap();
     let violations = changed_layout_violations(&paperwork, &BTreeSet::new());
     assert!(violations.iter().any(|item| item.contains("core crate")));
-    assert!(violations.iter().any(|item| item.contains("D-36")));
+    assert!(
+        violations
+            .iter()
+            .any(|item| item.contains("canonical owner-law"))
+    );
 
     let implementation = git_change_paths_from_name_status_z(
         b"A\0network/OWNERS\0A\0network/ADR.md\0A\0network/PRD.md\0A\0network/SPEC.md\0A\0network/PLAN.md\0A\0network/core/route/Cargo.toml\0A\0network/core/route/src/lib.rs\0",

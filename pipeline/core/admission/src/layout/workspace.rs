@@ -1,4 +1,4 @@
-//! Closed root-workspace membership policy for ADR-0719 D-8/D-41.
+//! Closed root-workspace membership policy. Provenance: ADR-0719 D-8/D-41.
 
 use std::collections::BTreeSet;
 

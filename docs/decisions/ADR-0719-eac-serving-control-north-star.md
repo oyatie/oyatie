@@ -1714,6 +1714,21 @@ module names are ordinary `snake_case` as the code needs them.
 - **overturn_when:** a five-field ADR cites a different *established*
   (Cargo or AIP or google3) convention and lands same-wave.
 
+#### Semantic operational naming
+
+- **achieves:** executable surfaces communicate behavior directly instead of
+  requiring operators to translate a decision number.
+- **origin:** workflow labels and admission diagnostics promoted D/ADR identifiers
+  from historical provenance into primary operational names.
+- **rule:** executable, check, job, error, test, and code-facing names MUST be
+  semantic. D/ADR identifiers remain valid only as provenance in citations,
+  comments, and metadata; historical ADR filenames, headings, and records are
+  not renamed or renumbered.
+- **ensure:** workflow-name and diagnostic regressions reject numbered primary
+  labels while positive tests preserve ADR citations and decision-file paths.
+- **overturn_when:** an external protocol demonstrably requires a stable numbered
+  identifier and the same surface retains a semantic operator-facing label.
+
 ### D-31 — Ephemeral out-of-tree sandbox (owner-writable only)
 
 D-29 is policy. This is **physical**. A default implement/review worker
