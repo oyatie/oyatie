@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 
 use compute_resource::ResourceId;
-use data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_classification::{DataClass, parse_data_class_label};
 use secrets_kms_domain::KmsPurpose;
 use storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,

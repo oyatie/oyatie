@@ -39,6 +39,12 @@ date: 2026-08-25
   same types, mapping location errors losslessly into its broader catalog error
   at aggregate boundaries. Direct data/KMS/compute/residency core edges remain
   P0 debt.
+- P0e introduced the agreed `data-classification` compatibility port and
+  routed every Storage classification import through it. The port re-exports
+  Data's established exact types and parsers, so the cross-owner path changes
+  without a type fork or behavior drift; the legacy core remains their defining
+  crate until a dedicated Data structural lane migrates its package identity.
+  Direct KMS/compute/residency core edges remain P0 debt.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -68,8 +74,16 @@ Class: structural; do not mix behavior.
   error and defining type now belong to the port. Cell core consumes and
   re-exports that contract. Data-boundary, KMS, compute-resource, and residency
   imports remain direct foreign-core debt.
+- **Landed in P0e:** replaced every direct Storage-to-Data-core dependency with
+  the agreed `data-classification` port. The compatibility port re-exports
+  Data's established classification vocabulary, privacy refinement, field
+  wrapper, and stable label parsers while keeping purpose-bound policy behavior
+  inaccessible to Storage. Moving the defining values out of the legacy Data
+  core is a separate Data package-identity migration, not a copied model in
+  Storage. KMS, compute-resource, and residency imports remain direct
+  foreign-core debt.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
-  Reconcile required data-boundary, KMS, compute, and residency types onto
+  Reconcile required KMS, compute, and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
   models or claim the current `path = .../core/...` edges are legal. Cell
   location identity now uses its agreed port.
@@ -372,7 +386,7 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 <next_lane>
 
 The next implementation lane remains P0: reconcile the direct
-data/KMS/compute/residency core edges onto agreed provider contracts
+KMS/compute/residency core edges onto agreed provider contracts
 without copying foreign models, then rehome filesystem/archive/backup/restore
 product models. P1 begins only after those structural obligations merge and
 `dev` is refreshed.

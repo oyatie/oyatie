@@ -11,8 +11,8 @@
 use cell_location::{AzCode, CellId, RegionCode};
 pub use compute_resource::VolumeTier;
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
-pub use data_boundary_kernel::DataClass;
-use data_boundary_kernel::PrivacyDataClass;
+pub use data_classification::DataClass;
+use data_classification::PrivacyDataClass;
 pub use network_residency::ResidencyClass;
 use network_residency::residency_class_allows_home_region_label;
 use secrets_kms_domain::{CiphertextRef, KmsKeyId, KmsKeyOrigin};

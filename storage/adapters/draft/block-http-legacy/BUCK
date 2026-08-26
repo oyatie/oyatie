@@ -38,7 +38,7 @@ buildscript_run(
 _DEPS = [
     "//network/core/residency:network-residency",
     "//storage/core/domain:storage-domain",
-    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//data/ports/classification:data-classification",
 ]
 
 rust_library(

@@ -67,7 +67,7 @@ _DEPS = [
     "//compute/core/resource:compute-resource",
     "//secrets/core/kms-domain:secrets-kms-domain",
     "//network/core/residency:network-residency",
-    "//data/core/data-boundary-kernel:data-boundary-kernel",
+    "//data/ports/classification:data-classification",
     "//storage/ports/draft/provider:storage-provider-draft",
     "third-party//:blake3",
 ]
