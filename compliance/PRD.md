@@ -108,7 +108,14 @@ these are current-state facts, not availability or conformance claims.
 
 - Own immutable, versioned entries keyed by the exact `data-classification`
   value identity, with aliases, applicability, evidence obligations, source
-  pack/schema/digest, validity, state, and monotonic registry generation.
+  pack/schema/digest, validity, state, and monotonic registry generation. A
+  request's source fields are selectors, never catalog authority.
+- Before prepare or activate, resolve the current immutable `ADMITTED` catalog
+  descriptor. Require exact equality for pack id, version, content digest,
+  descriptor digest, and schema revision; bind its admitted catalog generation
+  and observed current pack-head generation into the entry, Policy decision,
+  and durable Audit receipt. Compare-and-swap the registry transition only
+  while that pack head still names the same admitted descriptor.
 - Admit registry changes through compare-and-swap. Duplicate aliases,
   conflicting values, stale generations, lower/equal conflicting versions,
   unknown classification values, and unsupported schema fail before mutation.
@@ -116,6 +123,12 @@ these are current-state facts, not availability or conformance claims.
   separately. Policy and Audit receipts bind the exact classification value,
   source pack/digest, transition, expected entry/registry generations, actor,
   tenant scope, and idempotency fingerprint before compare-and-swap.
+- A revoke or supersede that wins the catalog fence makes a concurrent registry
+  transition fail with a stable typed outcome. If registry activation wins
+  first, the later catalog transition durably schedules reconciliation and the
+  affected registry generation is unavailable to new bind, projection, or
+  export work until a separately authorized and audited registry transition
+  resolves it. Immutable history remains verifiable in either order.
 - Never copy or wrap the classification types. A provider-identity move remains
   a separate Data-led D-29 migration across every consumer.
 
@@ -126,8 +139,12 @@ these are current-state facts, not availability or conformance claims.
 - Mark coverage complete only when every required evidence class is present,
   tenant-bound, digest-verified, and within its required interval.
 - Export a deterministic manifest and referenced artifacts through a bounded
-  job. Audit remains event authority and Storage may hold export bytes; CaS
-  does not create a fifth operational record store.
+  job. Admission durably records the immutable input generations, request
+  fingerprint, idempotency outcome, Policy/Audit receipts, job state, and
+  publication result before acknowledging queue acceptance. Restart resumes
+  that same job and cannot publish duplicate or generation-mismatched output.
+  Audit remains event authority and Storage may hold export bytes; CaS does not
+  create a fifth operational record store.
 - Preserve lineage across rebinding, supersession, export retry, key rotation,
   and schema upgrade. An old manifest always names the old immutable inputs.
 
@@ -159,7 +176,12 @@ these are current-state facts, not availability or conformance claims.
   and cannot gain external consumers without D-29 review.
 - Support deterministic replay, snapshots, point-in-time restore, mixed-version
   upgrades, schema negotiation, drain, and cell-loss recovery before
-  production promotion.
+  production promotion. The durable and snapshot root set includes immutable
+  catalog history/current pack heads, immutable registry history/current
+  generation, bindings, projections/acknowledgements, manifests/evidence
+  cursors, export jobs/publication/idempotency outcomes, and catalog-to-registry
+  reconciliation; restore validates their cross-generation references before
+  readiness.
 - Publish one Protobuf source of truth at
   `compliance/facade/proto/compliance/cas/v1/` through Connect. Do not create a
   parallel gRPC/tonic contract, duplicate Data's engine-neutral records port,
@@ -212,7 +234,8 @@ Production promotion requires:
   key/preimage digest, public-key, Ed25519-signature, one-byte corruption,
   key-revocation, and hard-bound limit/limit-plus-one fixtures;
 - registry compare-and-swap, supersession, replay, alias-conflict, and exact-
-  type compatibility fixtures;
+  type compatibility fixtures, including deterministic prepare/activate versus
+  catalog revoke/supersede races and exact typed loser outcomes;
 - deterministic binding/projection replay and stale-generation fencing;
 - default-deny contract tests through the ordinary gateway and Policy path;
 - catalog and registry transition matrices proving Policy denial, forged/stale
@@ -225,7 +248,9 @@ Production promotion requires:
   process-death evidence from the runnable CaS process;
 - Audit-gap and target-receipt reconciliation under loss, duplication, reorder,
   outage, and recovery;
-- snapshot restore plus N/N+1 protocol/schema upgrade and rollback barriers;
+- snapshot restore plus N/N+1 protocol/schema upgrade and rollback barriers,
+  including immutable registry history, queued/running export-job replay, and
+  catalog-to-registry reconciliation across generations;
 - noisy-tenant tests proving bounded queues and isolation; and
 - removal of every off-charter package and unconsumed artifact named in
   `PLAN.md`.

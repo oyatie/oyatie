@@ -37,8 +37,10 @@ Connect CaS facade -> catalog/binding/projection engine -> Policy compiler port
   handlers testable. It authenticates, authorizes, meters, admits, and
   translates one semantic contract; it is a control-plane surface, never a
   serving authorization shortcut or in-process Gateway plugin.
-- The engine owns catalog descriptors, tenant bindings, projection generations,
-  evidence coverage/manifests, target acknowledgement state, and idempotency.
+- The engine owns immutable catalog history/current pack heads, immutable
+  registry history/current generation, tenant bindings, projection generations,
+  evidence coverage/manifests, target acknowledgement state, durable export
+  jobs/outcomes, catalog-to-registry reconciliation, and idempotency.
 - A pack-source adapter supplies bounded envelope and payload bytes. The engine
   invokes the owner-local `pack-auth` port for trusted-key resolution and
   verification; callers cannot construct or assert a verification receipt.
@@ -105,11 +107,24 @@ A classification-registry entry contains:
 registry_id, exact DataClassification value
 canonical label and bounded aliases
 applicability and evidence obligations
-source pack id/version/digest and schema revision
+source pack id/version/content digest, descriptor digest and schema revision
+admitted catalog generation and observed current pack-head generation
 validity interval, predecessor and entry generation
 registry generation
 policy and pre-ACK Audit receipt bindings
 state: PREPARED | ACTIVE | SUPERSEDED | REVOKED
+```
+
+An export job contains:
+
+```text
+tenant_id, export_job_id, manifest generation and digest
+catalog, registry, binding and projection generations
+idempotency key/fingerprint and immutable outcome
+policy and pre-ACK Audit receipt bindings
+expected job generation and bounded attempt state
+state: QUEUED | WRITING | PUBLISHED | FAILED_RETRYABLE | CANCELLED
+Storage receipt and output digest when published
 ```
 
 Identifiers are tenant-scoped. Versions never decrement. Retrying the same
@@ -138,7 +153,7 @@ new protocol version.
 | Canonical id/key/namespace bytes | n/a | 128 each |
 | Semantic-version bytes | n/a | 64 |
 | Alias bytes / aliases per registry entry | n/a | 64 / 32 |
-| Registry entries per admitted pack | n/a | 4,096 |
+| Registry entries per immutable admitted descriptor generation | n/a | 4,096 |
 | Projection targets per binding | 4 | 16 |
 | List page entries | 100 | 1,000 |
 | Pagination-token bytes | n/a | 4 KiB |
@@ -389,32 +404,66 @@ ABSENT -> PREPARED -> ACTIVE -> SUPERSEDED
                          \----> REVOKED
 ```
 
-1. Preparation first validates a default-deny Policy decision and durable Audit
-   receipt bound to actor, tenant/scope, `PREPARE`, exact classification and
-   source digest, expected entry/registry generations, and idempotency
-   fingerprint. It then validates the exact classification value, canonical
-   label, aliases, applicability, evidence obligations, source
-   pack/schema/digest, trusted interval, expected prior entry/registry
-   generations, and the hard limits above.
-2. Canonical labels and aliases are unique within the registry snapshot. An
-   alias cannot identify two values or shadow another canonical label.
-3. Activation obtains separate Policy and durable Audit receipts bound to
-   `ACTIVATE` and the prepared digest/generation. One compare-and-swap persists
-   those receipts, publishes the immutable entry, and advances the registry
-   generation. The same idempotency key/fingerprint returns the same result;
-   changed fingerprints conflict.
-4. Supersession or revocation independently obtains transition-bound Policy and
-   durable Audit receipts, then publishes a higher entry and registry
-   generation. It never edits or deletes a prior entry and cannot activate a
-   lower/equal conflicting source version.
-5. Bindings, projections, manifests, and exports name the exact registry
-   generation used. A stale or missing generation fails before publication;
-   old evidence remains verifiable against immutable history.
+1. Request source fields are selectors, not authority. Before `PREPARE`, the
+   engine resolves this immutable catalog fence from its current catalog root:
 
-Unknown classification values, duplicate/conflicting aliases, stale expected
-generations, invalid intervals, unsupported schemas, source-digest mismatch,
-cross-tenant scope, Policy denial/forgery/expiry, Audit outage, and a receipt
-bound to another transition are typed failures with no mutation.
+   ```text
+   ResolvedAdmittedCatalogFence {
+     pack_id, semantic_version, schema_revision,
+     content_digest, descriptor_digest,
+     admitted_catalog_generation,
+     observed_pack_head_generation,
+     state: ADMITTED
+   }
+   ```
+
+   Pack id, version, schema revision, content digest, and descriptor digest must
+   equal the caller-selected source exactly. The entry, default-deny Policy
+   decision, and durable Audit receipt bind every fence field plus actor,
+   tenant/scope, `PREPARE`, exact classification, expected entry/registry
+   generations, and idempotency fingerprint. The engine then validates the
+   exact classification value, canonical label, aliases, applicability,
+   evidence obligations, trusted interval, and all hard limits.
+2. Canonical labels and aliases are unique within the registry snapshot. An
+   alias cannot identify two values or shadow another canonical label. The
+   4,096-entry ceiling is counted atomically per immutable admitted descriptor
+   generation, never across a caller-provided pack label.
+3. Activation resolves the same current `ADMITTED` descriptor again and
+   requires exact equality with the fence stored by `PREPARE`. It obtains
+   separate Policy and durable Audit receipts bound to `ACTIVATE`, the prepared
+   digest/generation, and that catalog fence. One compare-and-swap verifies both
+   the expected registry generation and that the current catalog pack head
+   still equals the observed admitted fence, persists the receipts, publishes
+   the immutable entry, and advances the registry generation. The same
+   idempotency key/fingerprint returns the same result; changed fingerprints
+   conflict.
+4. Catalog and registry mutations have a deterministic order. If catalog revoke
+   or supersede changes the pack head before the registry CAS, prepare/activate
+   loses without registry mutation. If activation commits first, the later
+   catalog transition durably enqueues catalog-to-registry reconciliation in
+   the same catalog transaction. The affected active registry generation is
+   unavailable to new bind, projection, manifest, or export work until a
+   registry-specific Policy-authorized, pre-ACK-Audited supersede or revoke
+   publishes a terminal successor. History is immutable in either order.
+5. Registry supersession or revocation independently obtains transition-bound
+   Policy and durable Audit receipts, then publishes a higher entry and
+   registry generation. It never edits or deletes a prior entry and cannot
+   activate a lower/equal conflicting source version.
+6. Bindings, projections, manifests, and exports name and revalidate the exact
+   registry generation and its admitted source fence. A stale, missing, or
+   reconciliation-blocked generation fails before publication; old evidence
+   remains verifiable against immutable history.
+
+Source resolution returns only these stable source-fence outcomes:
+`RegistrySourceError::CatalogEntryNotFound`, `CatalogEntryNotAdmitted`,
+`SourceIdentityMismatch`, `StaleCatalogGeneration`, `SourceRevoked`,
+`SourceSuperseded`, or `FenceChangedBeforeCommit`. Unknown classification
+values, duplicate/conflicting aliases, stale expected registry generations,
+invalid intervals, unsupported schemas, cross-tenant scope, Policy denial/
+forgery/expiry, Audit outage, and a receipt bound to another transition remain
+separate typed failures. Every failure mutates neither registry history nor its
+current generation; a catalog transition may only create its required durable
+reconciliation record.
 
 </classification_registry>
 
@@ -462,11 +511,19 @@ catalog generation used so callers can detect staleness.
 3. `COMPLETE` is reachable only when every requirement has verified coverage.
    Exclusions are versioned obligations with reasons; they are not silent gap
    suppression.
-4. Export admission durably records a bounded job and idempotency result. The
-   worker writes immutable output through the Storage facade, verifies its
-   digest, obtains required Audit evidence, and atomically publishes
-   `EXPORTED` with the Storage receipt.
-5. Retry resumes the same generation. Cleanup failure leaks unreachable export
+4. Export admission durably records the bounded job defined under
+   `<identity_and_versions>` and its idempotency outcome before queue
+   acknowledgement. The frozen input binds the exact catalog, registry,
+   binding, projection, and manifest generations plus Policy/Audit receipt
+   digests. Admission and every state transition compare the expected job
+   generation; queue capacity and the job record commit atomically.
+5. The worker writes immutable output through the Storage facade, verifies its
+   digest, obtains required Audit evidence, and atomically publishes `EXPORTED`
+   with the Storage receipt. Process death before queue commit returns no
+   acknowledgement; death after it resumes the same durable job. Death around
+   Storage publication reconciles the immutable receipt before retry, so one
+   idempotency identity cannot publish two outcomes.
+6. Retry resumes the same generation. Cleanup failure leaks unreachable export
    bytes instead of publishing an incomplete or mismatched manifest.
 
 An export is evidence packaging, not a trust portal or eDiscovery search
@@ -485,8 +542,8 @@ tenant and verified principal
 operation and resource scope
 policy issuer/revision/audience/expiry
 request, correlation and idempotency identity
-catalog, binding, projection and schema generations
-pack digest and signer/key generation
+catalog/current pack-head, registry, binding, projection and schema generations
+pack content/descriptor digests and signer/key generation
 exact `cell_clock_api::Interval` from injected `Clock` where validity matters
 ```
 
@@ -509,19 +566,34 @@ queues. Overload rejects early with typed retry information.
 
 ## Authority and restore
 
-Catalog, binding, projection, manifest, and idempotency state must use Data's
-accepted engine-neutral `data-records` provider through Compliance's narrower
-owner-local `catalog-store` port and `catalog-store-data` adapter. Compliance
-does not fork the generic records contract or import a Data core. The provider
-must expose commit ordinals and consensus-backed authority inside bounded
-cells. Compliance consumes trusted Cell intervals for validity and lease
-decisions; wall time is not a generation.
+Compliance's complete durable root set is:
 
-Snapshots bind the last commit ordinal, schema versions, catalog/binding roots,
-projection acknowledgements, evidence cursors, and manifest digests. Recovery
-validates framing, checksums, monotonic generations, and referential integrity
-before serving. Ambiguous or corrupt state is quarantined; it is never repaired
-by accepting a lower pack or binding version.
+```text
+immutable catalog history and current pack heads
+immutable registry history and current registry generation
+bindings, projections and target acknowledgements
+evidence manifests and source cursors
+export admission, job, publication and idempotency outcomes
+catalog-to-registry reconciliation work and terminal outcomes
+Policy, pre-ACK Audit, signer and Storage receipt bindings for those records
+```
+
+That root set must use Data's accepted engine-neutral `data-records` provider
+through Compliance's narrower owner-local `catalog-store` port and
+`catalog-store-data` adapter. Compliance does not fork the generic records
+contract or import a Data core. The provider must expose commit ordinals and
+consensus-backed authority inside bounded cells. Compliance consumes trusted
+Cell intervals for validity and lease decisions; wall time is not a generation.
+
+Snapshots bind the last commit ordinal, schema versions, and every root above;
+snapshot creation cannot omit queued/running export jobs or reconciliation.
+Recovery validates framing, checksums, monotonic generations, immutable catalog
+and registry history, current-head references, export-job/output receipts, and
+cross-generation referential integrity before serving. It resumes accepted
+export jobs by immutable idempotency identity and completes or blocks catalog-
+to-registry reconciliation before affected state is available. Ambiguous or
+corrupt state is quarantined; it is never repaired by accepting a lower pack,
+registry, binding, job, or reconciliation generation.
 
 Until that persistence port is agreed and implemented, L3d remains an unrouted
 in-memory/deterministic oracle and cannot claim acknowledged durability,
@@ -572,8 +644,10 @@ ProcessBootError::DrainTimeout
 Before readiness they produce no listener and a nonzero process result. After
 readiness, mandatory dependency loss atomically withdraws readiness, stops new
 admission, drains bounded in-flight work, and exits; it never switches to a fake
-or memory authority. Restart replays durable idempotency/receipt state before
-readiness. A second instance cannot bypass the catalog/store authority epoch.
+or memory authority. Restart replays durable catalog and registry history,
+idempotency/receipt state, accepted export jobs, and catalog-to-registry
+reconciliation before readiness. A second instance cannot bypass the catalog/
+store authority epoch.
 
 Contract tests cover cold start, every missing adapter, corrupt configuration,
 failed restore, signer-fence refusal, bind conflict, dependency loss at each
@@ -620,8 +694,12 @@ transport, and adapter decision lands.
 - Lower versions, equal versions with different digests, stale expected
   catalog/binding generations, rollback attempts, concurrent bind/revoke, and
   both signer resolve/revoke/commit linearization orders.
-- Process death before and after candidate, prepare, Audit receipt, active
-  publication, projection target acknowledgement, manifest completion, export
+- Registry prepare/activate interleaved immediately before and after catalog
+  revoke/supersede, including stale source fences, exact typed loser outcomes,
+  durable reconciliation, and blocked downstream use.
+- Process death before and after candidate, registry prepare/activate, Audit
+  receipt, active publication, projection target acknowledgement, manifest
+  completion, export-job/idempotency commit, queue acknowledgement, export
   write, and export publication.
 - Lost, duplicated, delayed, and reordered Policy compiler, Audit source,
   projection target, and Storage export receipts.
@@ -629,10 +707,12 @@ transport, and adapter decision lands.
   identifiers, revoked keys, Secrets fence outage/staleness/replay, Cell
   clock rollback/widening, checked Unix-ms overflow, intervals before/on/across
   inclusive/exclusive validity boundaries, Audit outage, and noisy tenants.
-- Corrupt snapshots, missing Audit ranges, schema N/N+1 and downgrade barriers,
-  quorum loss, cell loss, restore, repeated replay, malformed process
-  composition, cold-start dependency outage, listener bind failure, drain,
-  cancellation, and process death.
+- Corrupt snapshots, missing registry history/current generation, missing
+  accepted export jobs or reconciliation work, cross-generation reference
+  corruption, missing Audit ranges, schema N/N+1 and downgrade barriers,
+  quorum loss, cell loss, interrupted restore, repeated replay, malformed
+  process composition, cold-start dependency outage, listener bind failure,
+  drain, cancellation, and process death.
 
 Any malformed/stale admission, permit/forbid decision emitted by CaS,
 cross-tenant access, complete manifest with a gap, acknowledged binding loss,

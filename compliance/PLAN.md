@@ -41,17 +41,19 @@ The executable dependency chain is:
 L3a owner law
   -> L3b terminal burn
   -> L3c-S empty/scanner package structure + dependency ports + Cell edge
+  -> L3c-B fail-closed uncomposed process content
   -> L3c-C bounded semantic and dependency-port contracts
-       -> L3d-P pack authentication/admission
-       -> L3d-R data-class registry
-            -> L3d-B bind/project/evidence oracle
-                 -> L3d-F unrouted facade oracle
-                      -> L4 decision-gated production slices
+  -> L3d-P pack authentication/admission
+  -> L3d-R admitted-catalog-fenced data-class registry
+  -> L3d-B bind/project/evidence oracle
+  -> L3d-F unrouted facade oracle
+  -> L4 decision-gated production slices
 ```
 
-L3d-P and L3d-R can run concurrently after L3c-C because their unique files are
-disjoint. L3d-B consumes both. Structure, behavior, external-owner integration,
-and promotion evidence never share one slice.
+L3d-R follows L3d-P because registry prepare/activate resolves the admission
+oracle's immutable `ADMITTED` descriptor and current catalog pack-head fence.
+L3d-B consumes both. Structure, behavior, external-owner integration, and
+promotion evidence never share one slice.
 
 </baseline>
 
@@ -179,6 +181,7 @@ compliance/facade/cas-app/BUCK
 compliance/facade/cas-app/build.rs
 compliance/facade/cas-app/src/lib.rs
 compliance/facade/cas-app/src/main.rs
+compliance/facade/cas-app/tests/process_boot.rs
 Cargo.lock
 ```
 
@@ -194,12 +197,18 @@ exact sorted, missing/empty-tolerant, directory-rerun, fixed-output, Cargo/Buck-
 parity rule is the **L3c-S D-41 scanner contract** inherited by every later
 new Compliance package. Each structural family proves disposable Rust add,
 rename, removal, and non-Rust canaries in both graphs before behavior lands.
-The facade is the one D-8 process root: Cargo and Buck also build
-`compliance-cas-app` from `src/main.rs`. At this structural stage that file is a
-dependency-free, non-listening, non-ready stub which exits with the frozen
-`UNCOMPOSED` failure and contains no handler or configuration logic. L4a-P
-replaces only this stub after production composition exists; Gateway never
-loads the library as an in-process plugin.
+The facade is the one D-8 process root: Cargo and Buck build
+`compliance-cas-app` from a minimal dependency-free `src/main.rs` and compile
+an empty `tests/process_boot.rs` integration-test target under the same binary
+identity. The exact Buck targets are `compliance-cas-app-bin` and
+`compliance-cas-app-process-boot-test`; the latter receives only the former's
+resolved executable location. Cargo exposes the matching `process_boot`
+integration target. Both source files are compiler-only structural shells: they
+emit no diagnostic, assert no process behavior, open no listener, publish no
+readiness, and accept no configuration. Executing either target is outside this
+slice's acceptance evidence. L3c-B alone installs the first fail-closed process
+outcome without changing package/build structure; Gateway never loads the
+library as an in-process plugin.
 
 The five added local port package names are
 `compliance-policy-client-draft`, `compliance-evidence-source-draft`,
@@ -268,20 +277,62 @@ Pipeline/Buck, and architecture. This is D-29 because it binds agreed Data and
 Cell ports and freezes future provider-adapter seams.
 
 Success: both graphs expose the same eleven empty/scanner packages and
-dependency edges plus one non-serving facade binary; every handwritten file is
-at or below 300 lines, the exact lock delta is fresh, and no product type,
-parser, limit, state transition, listener, or route exists. Executing the stub
-returns `UNCOMPOSED` and cannot report readiness.
+dependency edges plus one compiler-only facade binary and empty process-test
+target; every handwritten file is at or below 300 lines, the exact lock delta
+is fresh, and no product type, parser, limit, state transition, diagnostic,
+listener, readiness result, executable process assertion, or route exists.
 
-Failure: semantic behavior/tests land, the stub listens or exits success,
-dependency direction differs, core imports `aws-lc-rs`, a draft port gains an
-external consumer, a manual inventory is tracked, or the lockfile contains
-unrelated churn.
+Failure: semantic behavior/tests or any asserted boot/exit/refusal outcome
+lands, the stub emits a diagnostic/listens/reports readiness, dependency
+direction differs, core imports `aws-lc-rs`, a draft port gains an external
+consumer, a manual inventory is tracked, or the lockfile contains unrelated
+churn.
 
 Rollback: remove the eleven unrouted packages and exact lock blocks.
 
 Fault evidence: scanner-only disposable add/rename/remove/non-Rust fixtures
 prove Cargo/Buck membership parity without editing any stable root.
+
+## L3c-B — Install the fail-closed uncomposed process refusal
+
+Class: content-only process behavior; depends on L3c-S and freezes every
+package, manifest, build target, dependency, and lock edge admitted there.
+
+Exact changed paths are:
+
+```text
+compliance/facade/cas-app/src/main.rs
+compliance/facade/cas-app/src/items/uncomposed_boot.rs
+compliance/facade/cas-app/src/test_items/uncomposed_boot.rs
+compliance/facade/cas-app/tests/process_boot.rs
+```
+
+The scanner-discovered item defines `ProcessBootError::Uncomposed`; `main`
+returns fixed nonzero exit code 78 and writes exactly the bounded, redacted
+stderr line `compliance-cas-app: process composition unavailable\n`. The unit
+and actual-binary integration tests assert that typed error, exact bytes, exit
+code, no stdout, and process termination. Cargo uses its admitted binary test
+location; Buck uses the frozen `compliance-cas-app-process-boot-test` target and
+resolved `compliance-cas-app-bin` location. No listener, readiness, handler,
+configuration parser, provider selection, route, manifest, BUCK, `build.rs`,
+`Cargo.toml`, `Cargo.lock`, or foreign file changes. All four handwritten files
+remain at or below 300 lines.
+
+Success: Cargo and Buck retain the L3c-S graph, both tests execute the same
+typed refusal, and the actual D-8 binary deterministically terminates before
+configuration, adapter, listener, or readiness work. Failure: exit success,
+different or unbounded output, a listener/readiness side effect, a test-only
+binary path, structure/build movement, or any second process identity.
+
+Rollback: restore the minimal compiler-only `src/main.rs` and empty structural
+`tests/process_boot.rs`, and remove the two scanner-discovered content files;
+the L3c-S package graph stays intact and unrouted.
+
+Fault evidence: execute the real binary under closed stdout/stderr consumers,
+repeated invocation, cancellation immediately before process start, and an
+environment containing malformed/oversized would-be configuration; every run
+returns the same bounded refusal without reading configuration, allocating an
+adapter, binding a socket, or publishing readiness.
 
 ## L3c-C — Freeze the bounded semantic contract
 
@@ -404,7 +455,7 @@ outage.
 
 ## L3d-P — Cryptographic verification and pack admission oracle
 
-Class: behavioral admission; may run beside L3d-R after L3c-C.
+Class: behavioral admission; depends on L3c-C and precedes L3d-R.
 
 ```text
 compliance/adapters/draft/pack-auth-awslc/src/items/a_verifier.rs
@@ -469,56 +520,90 @@ limit-plus-one, stale catalog generation, and concurrent conflicting admission.
 
 ## L3d-R — Data-class registry state machine
 
-Class: behavioral registry; may run beside L3d-P after L3c-C.
+Class: behavioral registry; depends on L3d-P because it consumes the immutable
+admitted-catalog descriptor and current pack-head fence.
 
 ```text
-compliance/core/evidence-domain/src/items/h_classification_registry.rs
-compliance/core/evidence-domain/src/test_items/e_classification_registry.rs
+compliance/core/evidence-domain/src/items/g_pack_admission.rs
+compliance/core/evidence-domain/src/items/h_registry_source_fence.rs
+compliance/core/evidence-domain/src/items/i_classification_registry.rs
+compliance/core/evidence-domain/src/test_items/d_pack_admission.rs
+compliance/core/evidence-domain/src/test_items/e_registry_source_fence.rs
+compliance/core/evidence-domain/src/test_items/f_classification_registry.rs
 ```
 
 Implement `ABSENT -> PREPARED -> ACTIVE -> SUPERSEDED|REVOKED` with immutable
 history, exact Data classification values, canonical labels/aliases,
-applicability/evidence obligations, source pack/schema/digest, idempotency, and
-entry/registry compare-and-swap generations. No alternate enum/parser/wrapper
-is allowed. The 32-alias/64-byte/4,096-entry hard bounds apply.
+applicability/evidence obligations, idempotency, and entry/registry compare-and-
+swap generations. The source-fence file resolves the authoritative immutable
+`ADMITTED` catalog descriptor and freezes exact pack id/version/content digest,
+descriptor digest, schema revision, admitted catalog generation, and observed
+current pack-head generation. Caller source metadata is only a selector. No
+alternate enum/parser/wrapper is allowed. The 32-alias/64-byte bounds and the
+4,096-entry ceiling per immutable admitted descriptor generation apply.
 
 Every prepare, activate, supersede, and revoke transition consumes the frozen
 `policy-client` and `audit-sink` ports with operation, classification, source-
 digest, actor/tenant, idempotency, and expected-generation bindings before CAS.
-Cargo/Buck closure is `data-classification`, `cell-clock-api`, `pack-source`,
-`pack-auth`, `policy-client`, `audit-sink`, `cas`, `evidence-domain`, and the
-empty auth adapter; no external reverse consumer or manifest/lock change.
-Required reviewers are Compliance, Data, Cell, Packs, Policy, Audit, and
-architecture. Both files are at or below 300 lines.
+Prepare and activate resolve the current descriptor; activation requires exact
+equality with the prepared fence. Their atomic CAS verifies both the expected
+registry generation and unchanged catalog pack head. A catalog revoke or
+supersede ordered first returns the exact source-state/fence error with no
+registry mutation. If registry activation commits first, the later catalog
+transition atomically creates the oracle's reconciliation record and blocks the
+affected registry generation from new bind/project/manifest/export use until
+an independently authorized and pre-ACK-Audited registry successor lands. The
+exact stable `RegistrySourceError` variants are those in `SPEC.md`. This slice
+models ordering and replay in memory; only L4b-C makes the history and
+reconciliation root durable, and no L3 process or route may claim that property.
+The two existing L3d-P files change only to make catalog revoke/supersede invoke
+the registry reconciliation handoff in the same in-memory transition and to
+exercise its ordering; signature, signer-fence, admission, and receipt behavior
+remain frozen. Their sequential overlap is why L3d-P and L3d-R do not commute.
+
+Cargo/Buck closure is L3d-P's admitted catalog oracle plus
+`data-classification`, `cell-clock-api`, `pack-source`, `pack-auth`,
+`policy-client`, `audit-sink`, `cas`, `evidence-domain`, and the empty auth
+adapter; no external reverse consumer or manifest/lock change. Required
+reviewers are Compliance, Data, Cell, Packs, Policy, Audit, and architecture.
+All six files are at or below 300 lines.
 
 Success: replay converges; stale/lower/equal-conflicting generations, duplicate
 or shadowing aliases, unknown classifications, invalid intervals, source-digest
 drift, cross-tenant scope, Policy denial/forgery/staleness, Audit outage, and a
 receipt for another transition mutate nothing; historical generations remain
-addressable.
+addressable. Exact prepare/activate versus revoke/supersede schedules return the
+typed winner/loser outcomes, and no affected reconciliating generation can feed
+new binding, projection, manifest, or export work.
 
 Failure: type identity forks, aliases are ambiguous, a privileged edge can CAS
-without both exact receipts, old history is rewritten, or a projection can
-omit its registry generation.
+without both exact receipts and the unchanged admitted catalog fence, caller
+metadata becomes authority, old history is rewritten, reconciliation is lost,
+or downstream work can omit/reuse a stale registry generation.
 
-Rollback: remove the two unique files; no external registry route/state exists.
+Rollback: restore the two L3d-P files to their admission-only content and remove
+the four unique registry files; no external registry route or durable state
+exists.
 
 Fault evidence: concurrent prepare/activate/revoke, stale CAS, alias collision,
-pack supersession/revocation, idempotency fingerprint reuse, denied/forged/
-expired Policy evidence, Audit outage, cross-transition receipt replay, and
-exact bound edges.
+pack supersession/revocation immediately before and after registry CAS,
+idempotency fingerprint reuse, denied/forged/expired Policy evidence, Audit
+outage, cross-transition receipt replay, deterministic in-memory replay of
+immutable history/reconciliation inputs, and exact bound edges. Process death,
+snapshot/restore, and acknowledged reconciliation durability remain unavailable
+until L4b.
 
 ## L3d-B — Binding, projection, and evidence oracle
 
 Class: behavioral engine; requires L3d-P and L3d-R.
 
 ```text
-compliance/core/evidence-domain/src/items/i_binding.rs
-compliance/core/evidence-domain/src/items/j_projection.rs
-compliance/core/evidence-domain/src/items/k_evidence_manifest.rs
-compliance/core/evidence-domain/src/test_items/f_binding.rs
-compliance/core/evidence-domain/src/test_items/g_projection.rs
-compliance/core/evidence-domain/src/test_items/h_evidence_manifest.rs
+compliance/core/evidence-domain/src/items/j_binding.rs
+compliance/core/evidence-domain/src/items/k_projection.rs
+compliance/core/evidence-domain/src/items/l_evidence_manifest.rs
+compliance/core/evidence-domain/src/test_items/g_binding.rs
+compliance/core/evidence-domain/src/test_items/h_projection.rs
+compliance/core/evidence-domain/src/test_items/i_evidence_manifest.rs
 ```
 
 Implement deterministic in-memory compare-and-swap oracles for binding,
@@ -670,7 +755,7 @@ decision and implementation land.
    disabled-state corruption, and missing schema/service identity.
 5. **L4a-P production process boot:** behavior is non-dispatchable until L4a-A/
    G, L4b-R, every mandatory L4c behavior row, and exact Cell composition have
-   landed. Edit only the L3c-S structural stub
+   landed. Edit only the L3c-B fail-closed refusal
    `compliance/facade/cas-app/src/main.rs` and add
    `compliance/facade/cas-app/src/items/q_process_boot.rs` plus
    `compliance/facade/cas-app/src/test_items/q_process_boot.rs`. No manifest,
@@ -684,8 +769,9 @@ decision and implementation land.
    **Failure:** a missing/corrupt config, failed restore, unavailable adapter,
    stale signer fence, or bind error still produces readiness/listener state;
    any of the three handwritten files exceeds 300 lines. **Rollback:** restore
-   the `UNCOMPOSED` main stub and remove the two unique scanner files, leaving
-   registration disabled. **Faults available:** malformed composition, every
+   the exact L3c-B `ProcessBootError::Uncomposed` exit-78 refusal and remove the
+   two unique scanner files, leaving registration disabled. **Faults
+   available:** malformed composition, every
    adapter outage, restore failure, port bind conflict, cancellation, signal-
    driven drain, process death before/after listener bind, and restart replay.
 6. **L4a-R route activation:** this provider-owned D-29 behavior lane is not
@@ -739,10 +825,13 @@ non-dispatchable.
    `compliance/core/evidence-domain/{Cargo.toml,BUCK}` and
    `compliance/facade/cas-app/{Cargo.toml,BUCK}`, and take the sole exact
    `Cargo.lock` delta. `catalog-store` is a Compliance-shaped repository for
-   catalog/binding/projection/manifest/idempotency compare-and-swap state, not
-   another generic records contract. Under both graphs the exact directions
-   are `evidence-domain <- catalog-store`, `catalog-store-data <-
-   catalog-store + data-records`, and `cas-app <- catalog-store-data`. Both new
+   immutable catalog history/current pack heads, immutable registry history/
+   current generation, bindings, projections/acknowledgements, manifests/
+   evidence cursors, export admission/jobs/publication/idempotency outcomes,
+   and catalog-to-registry reconciliation, not another generic records
+   contract. Under both graphs the exact directions are
+   `evidence-domain <- catalog-store`, `catalog-store-data <- catalog-store +
+   data-records`, and `cas-app <- catalog-store-data`. Both new
    roots inherit the full L3c-S D-41 scanner contract with fixed
    `lib.generated.rs` / `tests.generated.rs` outputs, equivalent Buck
    `buildscript_run` inputs, and disposable add/rename/remove/non-Rust parity
@@ -754,41 +843,76 @@ non-dispatchable.
    four consumer graph files, and exact two-block lock delta. **Faults
    available:** scanner add/rename/remove/non-Rust parity, old/wrong provider
    labels, reversed edges, and one-graph-only dependencies.
-2. **L4b-C persistence behavior:** add only
-   `compliance/ports/draft/catalog-store/src/items/a_contract.rs`,
-   `compliance/ports/draft/catalog-store/src/test_items/a_contract.rs`,
-   `compliance/adapters/draft/catalog-store-data/src/items/a_store.rs`,
-   `compliance/adapters/draft/catalog-store-data/src/test_items/a_store.rs`,
-   `compliance/core/evidence-domain/src/items/l_durable_repository.rs`,
-   `compliance/core/evidence-domain/src/test_items/i_durable_repository.rs`,
-   `compliance/facade/cas-app/src/items/f_durable_composition.rs`, and
-   `compliance/facade/cas-app/src/test_items/f_durable_composition.rs`.
+2. **L4b-C persistence behavior:** add only these scanner-discovered files:
+
+   ```text
+   compliance/ports/draft/catalog-store/src/items/a_catalog_binding.rs
+   compliance/ports/draft/catalog-store/src/items/b_registry_history.rs
+   compliance/ports/draft/catalog-store/src/items/c_projection_manifest.rs
+   compliance/ports/draft/catalog-store/src/items/d_export_job.rs
+   compliance/ports/draft/catalog-store/src/items/e_reconciliation.rs
+   compliance/ports/draft/catalog-store/src/test_items/a_contract.rs
+   compliance/ports/draft/catalog-store/src/test_items/b_registry_export.rs
+   compliance/adapters/draft/catalog-store-data/src/items/a_store.rs
+   compliance/adapters/draft/catalog-store-data/src/items/b_registry_history.rs
+   compliance/adapters/draft/catalog-store-data/src/items/c_export_job.rs
+   compliance/adapters/draft/catalog-store-data/src/items/d_reconciliation.rs
+   compliance/adapters/draft/catalog-store-data/src/test_items/a_store.rs
+   compliance/adapters/draft/catalog-store-data/src/test_items/b_registry_export.rs
+   compliance/core/evidence-domain/src/items/m_durable_repository.rs
+   compliance/core/evidence-domain/src/items/n_registry_repository.rs
+   compliance/core/evidence-domain/src/items/o_export_repository.rs
+   compliance/core/evidence-domain/src/items/p_catalog_registry_reconciliation.rs
+   compliance/core/evidence-domain/src/test_items/j_durable_repository.rs
+   compliance/core/evidence-domain/src/test_items/k_registry_repository.rs
+   compliance/core/evidence-domain/src/test_items/l_export_repository.rs
+   compliance/core/evidence-domain/src/test_items/m_reconciliation.rs
+   compliance/facade/cas-app/src/items/f_durable_composition.rs
+   compliance/facade/cas-app/src/test_items/f_durable_composition.rs
+   ```
+
    Contract suites prove atomic generations, idempotency, durable Policy/Audit/
-   signer-receipt binding, encryption references, and refusal before the routed
-   facade. **Success:** every catalog/registry/binding/projection/manifest
-   transition survives adapter round trips with one commit ordinal and exact
-   receipts. **Failure:** acknowledgement before durable CAS, receipt loss,
-   cross-tenant state, behavior outside the unique files, or any handwritten
-   file above 300 lines. **Rollback:** remove only these eight scanner files;
-   the empty persistence seam stays unrouted. **Faults available:** transaction
-   abort, duplicate/reordered CAS, stale generation, idempotency mismatch,
-   encryption-reference mismatch, adapter timeout, and cancellation.
+   signer/Storage-receipt binding, encryption references, and refusal before
+   the routed facade. **Success:** every catalog, registry, binding, projection,
+   acknowledgement, manifest/cursor, export-job/publication/idempotency, and
+   catalog-to-registry reconciliation transaction survives adapter round trips
+   with one commit ordinal, immutable history, and exact receipts. Queue
+   acknowledgement follows durable export-job/idempotency commit; a catalog
+   transition atomically records required registry reconciliation. **Failure:**
+   acknowledgement before durable CAS, receipt or registry history loss, an
+   export job absent after accepted admission, an affected registry generation
+   usable before reconciliation, cross-tenant state, behavior outside the
+   unique files, or any handwritten file above 300 lines. **Rollback:** remove
+   only these 23 scanner files; the empty persistence seam stays unrouted.
+   **Faults available:** transaction interruption immediately before/after each
+   catalog/registry/export/reconciliation commit, duplicate/reordered CAS,
+   stale source or registry generation, idempotency mismatch, process death
+   around export queue/publication, encryption-reference mismatch, adapter
+   timeout, and cancellation.
 3. **L4b-R recovery:** add only
-   `compliance/adapters/draft/catalog-store-data/src/items/b_snapshot_restore.rs`,
-   `compliance/adapters/draft/catalog-store-data/src/test_items/b_snapshot_restore.rs`,
-   `compliance/core/evidence-domain/src/items/m_recovery.rs`,
-   `compliance/core/evidence-domain/src/test_items/j_recovery.rs`,
+   `compliance/adapters/draft/catalog-store-data/src/items/e_snapshot_restore.rs`,
+   `compliance/adapters/draft/catalog-store-data/src/test_items/c_snapshot_restore.rs`,
+   `compliance/core/evidence-domain/src/items/q_recovery.rs`,
+   `compliance/core/evidence-domain/src/test_items/n_recovery.rs`,
    `compliance/facade/cas-app/src/items/g_recovery_gate.rs`, and
-   `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. **Success:** it
-   proves process-death/durable-barrier, corrupt WAL/snapshot quarantine, quorum
-   loss, point-in-time restore, N/N+1 format, downgrade barriers, cell loss, and
-   RPO 0 within the declared tolerance before process readiness. **Failure:**
-   ambiguous/corrupt state serves, a lower generation repairs history, restore
-   is unverified, readiness precedes recovery, or a handwritten file exceeds
-   300 lines. **Rollback:** remove only these six scanner files and keep the
-   route/process unready. **Faults available:** death at every durable boundary,
-   torn/corrupt WAL and snapshot, missing generation, quorum/cell loss, replay,
-   N/N+1, downgrade, and restore interruption.
+   `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. Snapshot and
+   restore cover the exact L4b-C root set; they cannot omit registry history/
+   current generation, accepted export jobs/idempotent outcomes, or catalog-to-
+   registry reconciliation. **Success:** it proves process-death/durable-
+   barrier, corrupt WAL/snapshot quarantine, cross-generation referential
+   integrity, queued/writing export replay without duplicate publication,
+   reconciliation completion or affected-generation blocking, quorum loss,
+   point-in-time restore, N/N+1 format, downgrade barriers, cell loss, and RPO 0
+   within the declared tolerance before process readiness. **Failure:**
+   ambiguous/corrupt state serves, a lower catalog/registry/job generation
+   repairs history, an accepted export job or reconciliation item disappears,
+   stale registry state becomes usable, restore is unverified, readiness
+   precedes recovery, or a handwritten file exceeds 300 lines. **Rollback:**
+   remove only these six scanner files and keep the route/process unready.
+   **Faults available:** death at every durable and export-publication boundary,
+   torn/corrupt WAL and snapshot, missing catalog/registry/job generation,
+   revoke/supersede during restore/reconciliation, quorum/cell loss, repeated
+   replay, N/N+1, downgrade, and restore interruption.
 
 Required reviewers are Compliance, Data, Cell, Secrets, Audit, security, and
 architecture. Every handwritten Rust file is at or below 300 lines. Failure or
@@ -802,8 +926,8 @@ Compliance ports express its required use cases, and adapters translate an
 accepted provider port into them. Draft ports remain owner-local.
 
 The five owner-local use-case ports and their contracts already exist from
-L3c-S/C before any oracle behavior. L4c neither recreates them nor moves traits
-out of core/facade after the fact.
+L3c-S/B/C before any oracle behavior. L4c neither recreates them nor moves
+traits out of core/facade after the fact.
 
 1. **L4c-A-S adapter structure:** each following row is a separate sole-lock
    D-29/D-30 slice after L3d-F. It creates exactly the named four-file package
@@ -985,21 +1109,25 @@ certification, or compliance-conformance claim is valid.
 - L3b is next. It is terminal deletion, not retention refactoring.
 - L3c-S follows L3b and owns `Cargo.lock`; it serializes with every monorepo
   package-add/delete lane. It creates every L3 dependency port and the exact
-  Cell edge before behavior. L3c-C freezes contracts across the eleven-package
-  closure and is behavior-only and lock-free.
-- L3d-P and L3d-R commute after L3c-C. L3d-B joins them; L3d-F follows the
-  engine contract. Their scanner-discovered file sets are disjoint and no lane
-  edits a parent root, manifest, build file, or lockfile.
+  Cell edge before behavior. L3c-B is the separate frozen-face content hop that
+  installs/tests only the uncomposed boot refusal. L3c-C then freezes contracts
+  across the eleven-package closure and is behavior-only and lock-free.
+- L3d-P follows L3c-C; L3d-R follows L3d-P because the registry resolves and
+  fences the admitted catalog oracle. L3d-B then joins the admission and
+  registry contracts; L3d-F follows the engine contract. Their scanner-
+  discovered file sets are disjoint and no lane edits a parent root, manifest,
+  build file, or lockfile.
 - Every L4 structural dependency/package hop is a sole lock writer. L4a's proto
   and Connect-codegen structure owns its exact app build/lock delta; schema,
   app binding, and disabled Gateway registration follow as three distinct
   behavior/foreign-owner hops. L4b structure precedes persistence behavior and
   recovery. L4c provider adapters serialize only their structure/lock hops and
   then fan out on unique behavior files because their local ports already froze
-  in L3. L3c-S creates the non-serving D-8 `src/main.rs`; L4a-P alone replaces
-  that stub after L4b-R, every mandatory L4c adapter behavior, and Cell interval
-  evidence. L4a-R activation follows process boot/readiness and never precedes
-  it. L4d IR structure precedes IR behavior, the separate one-way Observability
+  in L3. L3c-S creates the compiler-only D-8 `src/main.rs` and empty process-
+  test target; L3c-B installs their fail-closed uncomposed behavior. L4a-P alone
+  replaces that refusal after L4b-R, every mandatory L4c adapter behavior, and
+  Cell interval evidence. L4a-R activation follows process boot/readiness and
+  never precedes it. L4d IR structure precedes IR behavior, the separate one-way Observability
   materializer structure/behavior, generated publication, and operations. Every
   new L4 Rust package explicitly inherits the L3c-S D-41
   scanner/Buck/canary contract; L4a codegen preserves the two existing scanner

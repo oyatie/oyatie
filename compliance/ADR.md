@@ -192,13 +192,22 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   current exact classification values and parsers are exposed by the agreed
   `data-classification` compatibility port.
 - **rule:** Compliance MUST own registry entries that bind classification value,
-  pack/schema revision, aliases, applicability, and evidence obligations. It
+  aliases, applicability, and evidence obligations. Before prepare or activate,
+  it MUST resolve an authoritative immutable `ADMITTED` catalog descriptor and
+  bind its exact pack id, version, content and descriptor digests, schema
+  revision, admitted catalog generation, and current pack-head generation into
+  the registry entry plus its Policy and Audit receipts. The registry CAS MUST
+  fence that pack head against concurrent revoke or supersede; a losing race
+  fails closed, and a later catalog transition creates durable reconciliation
+  work rather than silently leaving an active registry generation usable. It
   MUST consume the agreed value contract and MUST NOT copy or wrap those Rust
   types. Moving the defining value package requires a separate D-29 provider
   migration with Data and every consumer; L3 work MUST NOT hide that transfer.
 - **ensure:** one value crosses registry, projection, and consumer tests with
-  identical type/error/parser identity; dependency review rejects a second
-  enum or label parser in Compliance.
+  identical type/error/parser identity; deterministic prepare/activate versus
+  revoke/supersede races produce the stable typed outcomes in `SPEC.md`; restore
+  replays immutable registry history and catalog-to-registry reconciliation;
+  dependency review rejects a second enum or label parser in Compliance.
 - **overturn_when:** a cross-owner contract amendment names another registry
   and value owner and migrates all Cargo/Buck consumers without dual identity.
 
@@ -240,6 +249,36 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 
 </interfaces_and_security>
 
+<durable_authority>
+
+## Decision: every acknowledged control state shares one durable root set
+
+- **achieves:** restore can reproduce catalog and registry authority, accepted
+  export work, and every idempotent outcome without accepting a lower generation
+  or forgetting work that was acknowledged before process death.
+- **origin:** the first persistence contract named catalog, binding,
+  projection, manifest, and idempotency state, but omitted registry history,
+  catalog-to-registry reconciliation, and durable export jobs even though the
+  facade can acknowledge registry transitions and export admission.
+- **rule:** the `catalog-store` port MUST durably persist immutable catalog
+  history/current pack heads, immutable registry history/current generation,
+  bindings, projections and acknowledgements, manifests/evidence cursors,
+  export admission/job/publication state, transition idempotency outcomes, and
+  catalog-to-registry reconciliation work. Snapshots, point-in-time restore,
+  process replay, and schema upgrades MUST cover the same root set. An affected
+  registry generation MUST remain unavailable to bind/project/export while its
+  source-pack transition is unreconciled.
+- **ensure:** death at every catalog/registry/export transaction boundary,
+  corrupt or partial snapshots, queued/running export replay, supersede/revoke
+  during registry activation, and N/N+1 restore prove one monotonic result with
+  no lost acknowledged job, resurrected source, duplicate output publication,
+  or lowered generation before route eligibility.
+- **overturn_when:** an independently reviewed persistence design proves an
+  equivalent atomic root and recovery join with fewer records while preserving
+  RPO 0, immutable history, export replay, and fail-closed reconciliation.
+
+</durable_authority>
+
 <process_boundary>
 
 ## Decision: `cas-app` is a fail-closed process
@@ -257,10 +296,13 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   any mandatory dependency or restore fence is absent. It MUST NOT become an
   in-process Gateway plugin, accept CLI authority, or let process existence
   satisfy route activation.
-- **ensure:** structure and boot behavior land in separate D-33 stages; cold
-  start, malformed configuration, missing adapter, failed restore, bind error,
-  dependency loss, drain, cancellation, and process-death tests prove that an
-  unready process cannot receive admitted traffic or acknowledge mutations.
+- **ensure:** L3c-S admits only a compiler shell and empty process-test target;
+  the separate content-only L3c-B stage installs and executes the typed
+  `ProcessBootError::Uncomposed` refusal while freezing the package/build face.
+  Later cold start, malformed configuration, missing adapter, failed restore,
+  bind error, dependency loss, drain, cancellation, and process-death tests
+  prove that an unready process cannot receive admitted traffic or acknowledge
+  mutations.
 - **overturn_when:** a founder-accepted D-8 amendment replaces the process with
   another failure-isolated facade and updates Gateway, Compliance, and the
   canonical tree contract in the same change.
@@ -280,9 +322,12 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 - **rule:** Compliance MUST first burn all seven current packages and
   unconsumed artifacts in one exact lock-writing structural deletion. It MUST
   then land empty/scanner CaS package structure and dependencies separately
-  from contract, admission, registry, engine, and facade behavior. The oracle
-  stages MUST remain unrouted; production proto, persistence, owner adapters,
-  restore, and generated-SLO promotion MUST each have an explicit later gate.
+  from the content-only uncomposed boot refusal, contract, admission, registry,
+  engine, and facade behavior. The structural `src/main.rs` MUST remain a
+  dependency-free compiler shell with no specified or tested boot outcome, and
+  its execution MUST NOT be acceptance evidence. The oracle stages MUST remain
+  unrouted; production proto, persistence, owner adapters, restore, and
+  generated-SLO promotion MUST each have an explicit later gate.
   Every owner-local dependency port and the exact Cell edge MUST exist before
   L3 behavior uses a fake. Every new L4 package MUST inherit the D-41 scanner/
   Buck parity contract, and adding Connect codegen MUST preserve the existing
