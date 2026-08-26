@@ -358,6 +358,12 @@ protocol and destination read/write probes complete.
   snapshot/delete state machines. Existing Rust block types do not mean the
   service is sold.
 
+The historical `CloudFilesystem` and `StorageTenantCellGuardrail` Rust names
+are source-compatibility inventory, not wire contracts or advertised services.
+They accept no new consumers and may leave only through a separately versioned
+consumer migration or an owner-boundary amendment. They do not define Drive;
+Drive owns people-facing file and folder semantics over its own blob port.
+
 There is no additional hand-authored JSON/REST source of truth; the accepted S3
 HTTP facade derives from the protobuf semantic model. There is no per-byte
 cross-runtime FFI boundary.
