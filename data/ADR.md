@@ -194,16 +194,77 @@ tests.
 
 </bounded_contract>
 
+<request_authority>
+
+## Decision: server-derived request identity and authenticated continuation
+
+- **achieves:** one replay, idempotency, authorization, and scan-resumption
+  identity that cannot be chosen, confused, or extended by a caller.
+- **origin:** an unversioned `request_fingerprint` and an unspecified
+  continuation token leave field order, normalization, tenant/snapshot
+  binding, integrity, expiry, and key rollover to each adapter.
+- **rule:** records-contract v1 MUST derive the request fingerprint on the
+  trusted side from the canonical, domain-separated frame in `SPEC.md`; body
+  claims are never authority. Scan continuation MUST be an opaque,
+  authenticated, expiry-bounded capability bound to tenant, principal, query,
+  snapshot, tablet epoch, and hard limits. Unknown, retired, or unavailable
+  key generations, uncertain time, tamper, and foreign-context replay MUST
+  fail closed with the frozen public error mapping. Protobuf is a wire mapping,
+  not the fingerprint grammar, and no protobuf accounting claim is executable
+  until its D-33 schema/toolchain/codegen gate has landed in Cargo and Buck.
+- **ensure:** independent canonical-frame encoders produce the same golden
+  digests; permutation, normalization, tamper, cross-tenant, cross-snapshot,
+  expiry-boundary, replay, key-roll, unknown-field, and Cargo/Buck codegen-
+  parity campaigns run before any routed facade.
+- **overturn_when:** a versioned records contract replaces both grammars while
+  preserving idempotency compatibility, bounded work, tenant/snapshot
+  confinement, an explicit rollover window, and downgrade refusal.
+
+</request_authority>
+
+<record_security>
+
+## Decision: owner-local security ports, encrypted durable state, gated providers
+
+- **achieves:** default-deny authorization, durable audit, and tenant-bound
+  encryption without importing another capability's core or treating a test
+  double as production authority.
+- **origin:** generic references to IAM, Audit, Secrets/KMS, rotation, and
+  zeroization do not identify a lawful dependency graph, ciphertext format,
+  key-generation fence, recovery rule, or readiness withdrawal condition; the
+  currently visible provider packages are not accepted Data consumption faces.
+- **rule:** Data MUST own implementation-free policy-client, audit-sink,
+  record-key, and record-protection ports. Concrete provider adapters MUST
+  depend only on those ports and separately accepted provider-owned sold ports
+  or facades, never provider core or internal API packages. Every durable
+  record, WAL entry, segment, snapshot, repair copy, and migration artifact
+  MUST use the versioned AEAD envelope and AAD in `SPEC.md`; plaintext or
+  unaudited fallback is forbidden. Key issue, nonce-range lease, rotation,
+  revocation, re-encryption, restore, and zeroization MUST be fail closed and
+  observable. No process may publish a route or readiness until real provider
+  conformance receipts and an encrypt-active generation are present.
+- **ensure:** the D1c security gate names the exact provider decisions and
+  Cargo/Buck graph before structure; known-answer, wrong-AAD, nonce-reuse,
+  tamper, KMS/PDP/Audit outage, rotation/revocation race, crash-resume,
+  ciphertext-only recovery, and secret-remanence campaigns precede the D4
+  route join.
+- **overturn_when:** accepted provider contracts and a versioned cryptographic
+  migration replace these ports or format while retaining tenant isolation,
+  durable pre-ACK evidence, rollback fencing, and recoverability.
+
+</record_security>
+
 <operational_identity>
 
 ## Decision: semantic operational names, provenance-only decision identifiers
 
 - **achieves:** operators and callers can understand a Data process, error,
   test, or log without consulting the historical decision-number index.
-- **origin:** four live compatibility surfaces emit or assert `IP-002`,
-  `IP-003`, `IP-004`, `IP-013`, or `IP-015` as runtime status: the ClickHouse
-  adapter, analytics usecase, tenant-bootstrap facade, and analytics process.
-  Those identifiers record provenance but do not describe the failed operation.
+- **origin:** four compatibility cones contain five live runtime emissions or
+  assertions of `IP-002`, `IP-003`, `IP-004`, `IP-013`, or `IP-015`: the
+  ClickHouse adapter, analytics usecase, tenant-bootstrap library,
+  tenant-bootstrap process, and analytics process. Those identifiers record
+  provenance but do not describe the failed operation.
 - **rule:** Data executable, process, job, error, test, log, metric, and other
   code-facing names MUST be semantic. Decision identifiers MAY remain in ADR
   citations, comments, rustdoc, and package metadata, but MUST NOT be the
@@ -211,9 +272,10 @@ tests.
   compatibility residue and MUST pass through D1b-N's behavior-preserving
   structure-then-content sequence before feature work touches that cone.
 - **ensure:** the D1b-N suite exercises every emitted deferred adapter error,
-  export refusal, quota-reconciliation refusal, and analytics boot status using
-  semantic identities; source review separately proves that retained `IP-*`
-  text occurs only in provenance-bearing comments, documentation, or metadata.
+  export refusal, quota-reconciliation refusal, and both process boot statuses
+  using semantic identities and exact exit/output contracts; source review
+  separately proves that retained `IP-*` text occurs only in provenance-bearing
+  comments, documentation, or metadata.
 - **overturn_when:** an accepted external protocol requires a stable numbered
   identifier and the same surface retains a semantic operator-facing label
   alongside it.

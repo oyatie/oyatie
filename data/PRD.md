@@ -105,8 +105,12 @@ facts, not destination endorsements.
 ## Interfaces and portability
 
 - Define one versioned protobuf semantic contract served through the platform
-  Connect gateway. A separately accepted compatibility facade must translate
-  that model rather than create a second transaction truth.
+  Connect gateway. Its schema, generator/runtime choice, generated-output
+  identities, descriptor, unknown-field policy, deterministic encoding rules,
+  and Cargo/Buck generation parity land through the D-33 structural gate before
+  any frame-size, decode, encode, handler, or compatibility claim. A separately
+  accepted compatibility facade must translate that model rather than create a
+  second transaction truth.
 - Ship one signed, reproducible Rust distribution with no mandatory external
   PostgreSQL, ClickHouse, etcd, Kafka, Redis, or proprietary database runtime.
 - Keep foreign engines behind adapters with explicit compatibility and removal
@@ -133,10 +137,27 @@ facts, not destination endorsements.
 
 - Authenticate and authorize before record disclosure or mutation. Bind the
   decision to tenant, operation, resource range, policy revision, issuer,
-  audience, request, and expiry.
-- Encrypt records and logs with tenant-bound key references; rotate keys online;
-  zeroize secret material; audit privileged and irreversible operations before
-  acknowledgement where policy requires it.
+  audience, server-derived canonical request fingerprint, and expiry. A
+  caller-supplied fingerprint, tenant, principal, snapshot, or key generation
+  is never authority.
+- Resume a scan only from the bounded authenticated v1 continuation capability
+  in `SPEC.md`. It binds the verified tenant/principal, normalized query,
+  snapshot ordinal, tablet/ownership epoch, page maxima, issuance/expiry
+  interval, and key generation; tamper, foreign replay, stale snapshots,
+  retired keys, and uncertain time fail closed.
+- Consume policy, audit, key, and cryptographic behavior only through Data-owned
+  implementation-free ports and provider adapters to separately accepted sold
+  provider faces. Current IAM, Audit, or Secrets core/internal API packages are
+  not an implied dependency, and a fake or fixture cannot satisfy production
+  composition or readiness.
+- Encrypt records, WAL/log entries, segments, snapshots, repair copies, and
+  migration artifacts with the tenant-bound versioned AEAD envelope and AAD in
+  `SPEC.md`. Rotate generations online with a non-reusing nonce-range lease,
+  bounded resumable re-encryption, durable audit, ciphertext-only restore, and
+  revocation fencing; zeroize plaintext key buffers on every terminal path.
+  Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time
+  evidence withdraws the affected route and readiness. Plaintext, stale-key,
+  unaudited, or fail-open fallback is forbidden.
 - Tenant deletion freezes writes, inventories every table/tablet/projection,
   respects retention holds, proves logical erasure, and only then reclaims
   physical generations.
@@ -164,6 +185,8 @@ is at the sold facade under the declared production capacity profile.
 | Pipeline admission | p99.9 accepted job to durable queued state at or below 1 second |
 | Repair | p99 under-replicated tablet restored within 15 minutes after eligible capacity exists |
 | Tenant isolation | Zero cross-tenant disclosure or mutation; a saturated tenant causes less than 2x p99.9 latency for other admitted tenants |
+| Authorization and encryption coverage | 100% of routed disclosures and mutations carry accepted policy evidence; 100% of durable record artifacts verify a supported tenant-bound AEAD envelope |
+| Key rotation | 100% of eligible artifacts migrate before retirement; revoked-generation encryptions and nonce reuse are zero |
 
 No durability probability, throughput, or clock-epsilon marketing claim is
 allowed until the production plant, workload, and fault evidence measure it.

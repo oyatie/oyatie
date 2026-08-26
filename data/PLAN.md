@@ -17,8 +17,10 @@ date: 2026-08-26
   one service and does not enable the optional Citus distribution probe.
 - In-memory OLAP contract behavior, ClickHouse adapter scaffolding that fails
   explicitly as deferred, and analytics binaries without a serving listener.
-  Four of those compatibility surfaces still emit decision-number identifiers
-  as runtime status; that is named residue, not an accepted operational API.
+  Four compatibility cones contain five runtime emissions/assertions that
+  still expose decision-number identifiers: ClickHouse, analytics usecase,
+  tenant-bootstrap library and process, and analytics process. That is named
+  residue, not an accepted operational API.
 - A `data-classification` compatibility port consumed by Network and Storage.
   It still exact-re-exports its values and parsers from the legacy
   `data-boundary-kernel`; its 94 other direct package consumers partition into
@@ -69,6 +71,17 @@ D1b-P1 -> D1b-PA-S -> D1b-PA-C -> D1b-PA-B -> D1b-PA-X
                                            -> D1b-COB-S -> D1b-COB-C
 
 D1b-N-C + D1b-O2L + D1b-BR -> D1c join gate
+
+D1c join + persistence/wire decisions + D1c-WG + D1c-KG
+  -> D1c-S -> D1c-WS -> D1c-KS -> D1c-C
+D1c-C -> D1c-O
+D1c-C -> D1c-KC
+D1c-C + D1c-KC -> D1c-WC
+accepted provider faces -> D1c-KP-S/C + D1c-KA-S/C + D1c-KK-S/C
+D1c-C + D1c-O + D1c-KC -> D1d -> D1e
+D1e + D1c-KC -> D1c-KR
+D1c-WC + D1c-KP-C + D1c-KA-C + D1c-KK-C + D1e + D1c-KR
+  -> D1c-KJ-S -> D1c-KJ-C -> D4 route eligibility
 ```
 
 N-S/N-C are a third Data-local chain and may run beside C1 or P1 because their
@@ -102,6 +115,7 @@ data/core/analytics-usecase/src/test_items/d_tenant_isolation.rs
 data/ports/analytics-api/BUCK
 data/adapters/olap-clickhouse/BUCK
 data/facade/analytics-tenant-bootstrap-app/BUCK
+data/facade/analytics-tenant-bootstrap-app/tests/process_boot.rs
 data/facade/analytics-app/BUCK
 ```
 
@@ -127,7 +141,13 @@ dependency. The analytics-app Buck graph
 also drops its unmatched ClickHouse dependency so Cargo and Buck close exactly
 as OLAP client -> analytics domain/usecase/API and OLAP client -> ClickHouse ->
 tenant-bootstrap, with analytics-app consuming API/domain/usecase only. No Rust
-or Cargo behavior changes in this graph repair.
+or Cargo behavior changes in this graph repair. The tenant-bootstrap `BUCK`
+also adds a compiler-only `process_boot` integration-test target over the empty
+test file and the existing binary. Its identities are Cargo
+`-p data-analytics-tenant-bootstrap-app --test process_boot` and Buck
+`//data/facade/analytics-tenant-bootstrap-app:process_boot_test`. Cargo
+auto-discovery and Buck therefore establish the real-process evidence face
+before its content; no manifest or runtime claim changes.
 
 Success: the current public types, variants, queries, emitted strings, and the
 OLAP-client/domain/usecase/API/ClickHouse/two-facade closure build and test with
@@ -151,33 +171,42 @@ data/adapters/olap-clickhouse/src/lib.rs
 data/core/analytics-usecase/src/items/e_data_export.rs
 data/core/analytics-usecase/src/test_items/c_data_export.rs
 data/facade/analytics-tenant-bootstrap-app/src/lib.rs
+data/facade/analytics-tenant-bootstrap-app/src/main.rs
+data/facade/analytics-tenant-bootstrap-app/tests/process_boot.rs
 data/facade/analytics-app/src/lib.rs
 data/facade/analytics-app/src/main.rs
 ```
 
-Replace only emitted/asserted numbered runtime wording with the four semantic
+Replace only emitted/asserted numbered runtime wording with the five semantic
 identities frozen in `SPEC.md`: `clickhouse_adapter_unavailable` plus its
 operation, `data_export_unavailable`,
 `tenant_quota_reconciliation_unavailable`, and
-`analytics_listener_unrouted`. The analytics library exposes the bounded boot
-status used by `main.rs` and its inline test. Existing error variants, return
-values outside process boot, listener absence, adapter absence, comments,
-rustdoc, and package `ip_anchor` provenance remain unchanged. The analytics
-binary replaces its current exit-zero “boot complete” fiction with the bounded
-unrouted status, no readiness, and a nonzero exit. No route, adapter, manifest,
-build rule, generated file, or production-readiness claim changes.
+`analytics_listener_unrouted`. The tenant-bootstrap library and process use the
+distinct `analytics_tenant_bootstrap_unrouted` identity. Its real binary writes
+the exact bounded `SPEC.md` line only to stderr, writes nothing to stdout,
+exits 78, opens no listener, and publishes no readiness; the process test runs
+the actual Cargo/Buck binary with sentinel endpoint/user/password/environment
+values and proves none is emitted. The analytics library separately exposes
+the bounded boot status used by its `main.rs` and inline test. Existing error
+variants, return values outside process boot, listener/adapter absence,
+comments, rustdoc, and package `ip_anchor` provenance remain unchanged. Both
+binaries replace exit-zero “boot complete” fiction with bounded unrouted
+status and nonzero exit. No route, adapter, manifest, generated file, or
+production-readiness claim changes.
 
 Success: every affected operation returns/logs the exact semantic identity,
-existing tests plus the analytics boot-status test assert it, and no emitted
-value contains `IP-`. Failure: an identifier changes, a decision token remains
-runtime-visible, provenance is erased, a request/tenant/secret is interpolated,
-or any deferred path becomes available. Rollback restores only the old text
-after the scanner split. The SLO objective is 100% stable, bounded semantic
-refusal for unsupported operations with zero false readiness. Fault evidence
-exercises all seven ClickHouse operations, export, suspended/reactivated tenant
-events, valid/invalid analytics boot, and asserts exact text, no secret/context
-interpolation in the semantic identity/detail, unchanged variants, and
-unchanged fail-closed behavior outside the corrected process exit.
+existing tests plus both boot-status tests assert it, and no emitted value
+contains `IP-`; both real processes exit nonzero without a listener/readiness.
+Failure: an identifier changes, a decision token remains runtime-visible,
+provenance is erased, a request/tenant/credential/endpoint is interpolated, or
+any deferred path becomes available. Rollback restores only the old text after
+the scanner split. The SLO objective is 100% stable, bounded semantic refusal
+for unsupported operations with zero false readiness. Fault evidence exercises
+all seven ClickHouse operations, export, suspended/reactivated tenant events,
+valid/invalid analytics boot, and tenant-bootstrap real-process runs with
+missing and sentinel configuration; it asserts exact stream bytes/exit code,
+no secret/context interpolation, unchanged variants, and unchanged fail-closed
+behavior outside the corrected process exits.
 
 ### D1b-C1 — Invert the classification compatibility port
 
@@ -1688,10 +1717,77 @@ it.
 
 ## D1c — Freeze the engine-neutral records shape and contract
 
-D1c is blocked until the two decisions in `<decision_gates>` are recorded. The
-following Data-internal persistence branch is the only executable envelope in
-this plan. If Storage is selected as hot-path authority, D1c-S stops and this
-plan must be amended with the accepted Storage port and exact reverse closure.
+D1c is blocked until the persistence/wire decisions and the two no-write gates
+below are recorded. The following Data-internal persistence branch is the only
+executable envelope in this plan. If Storage is selected as hot-path authority,
+D1c-S stops and this plan must be amended with the accepted Storage port and
+exact reverse closure. A target contract in ADR/PRD/SPEC is not an
+implementation receipt: no protobuf, Policy, Audit, KMS, encryption, or
+readiness claim is executable until its structural and content stages below
+land.
+
+### D1c-WG — Protobuf/Connect toolchain and schema gate
+
+Class: no-write, non-dispatchable D-33 decision gate. Current evidence contains
+no accepted records-v1 schema, Connect/protobuf generator/runtime selection, or
+Cargo/Buck byte-parity graph. Before D1c-WS, Data, Gateway, API compatibility,
+Pipeline/build, security, and architecture must sign one immutable receipt
+that names:
+
+1. the exact generator, protobuf runtime, Connect runtime, descriptor tool,
+   versions, licenses, provenance, root `Cargo.toml`/`Cargo.lock` and
+   `third-party/BUCK` labels, host/target split, and offline inputs;
+2. schema package `data.records.v1`, source
+   `data/facade/proto/data/records/v1/records.proto`, Buck target
+   `//data/facade/proto/data/records/v1:data-records-v1`, Cargo package
+   `data-records-app`, and fixed `OUT_DIR` products
+   `records.v1.messages.generated.rs`,
+   `records.v1.connect.generated.rs`, and
+   `records.v1.descriptor.generated.bin`;
+3. one `build.rs` invocation and one Buck generation rule over the same schema,
+   include roots, flags, descriptor inputs, normal-form/unknown-field policy,
+   and byte-for-byte output canaries, with no tracked/manual generated source;
+4. compatibility/downgrade policy, generator update/rollback boundary, and the
+   exact command/target closure used by local and remote presubmit.
+
+Success is a reproducible offline minimal-schema fixture whose three named
+outputs and descriptor bytes match in Cargo and Buck under clean and warm
+builds. Failure is an inferred tool, network fetch, host binary in a target
+closure, output-name drift, tracked generated Rust, one-graph-only dependency,
+or a schema/handler/frame claim before the receipt. Rollback removes only the
+accepted toolchain amendment before D1c-WS. SLO is deterministic bounded
+generation; faults delete/rename the schema, skew one flag/version/include
+root, corrupt a descriptor, and require both graphs to fail identically.
+
+### D1c-KG — Policy, Audit, key, and cryptography provider gate
+
+Class: no-write, non-dispatchable D-29/security decision gate. Current evidence
+does not provide an accepted Data consumption face for Policy, durable pre-ACK
+Audit, or KMS operations. The existing `iam/ports/policy-cedar-api`,
+`audit/ports/emission-api`, `secrets/ports/kms`, and
+`secrets/ports/kms-api` are explicitly forbidden here because their present
+graphs are implementation/core-backed or do not sell the required operation.
+
+Before D1c-KS, Policy/IAM, Audit, Secrets, Cell, security, Data, build/dependency,
+and architecture owners must accept or exactly replace these provider-owned
+faces: `policy/ports/check` (`policy-check`),
+`audit/ports/emission` (`audit-emission`), and
+`secrets/ports/kms-use` (`secrets-kms-use`). Each owner amendment names typed
+request/receipt/error/revision semantics, Cargo and Buck targets, reverse
+closure, authentication, outage behavior, rollout/rollback, SLO, and fault
+evidence. A separate root D-29 dependency receipt must approve the already
+pinned `aws-lc-rs` target plus direct `zeroize` workspace/Buck exposure, exact
+versions/features/licenses, lock delta, and no-default-feature policy; D1c-KS
+does not write root manifests or `third-party/**`.
+
+Success is three provider conformance receipts plus the cryptography dependency
+receipt, with no provider-core/internal-API edge and exact Cargo/Buck parity.
+Failure is a guessed provider, raw key/provider client in a Data contract,
+test fake as authority, implicit transitive `zeroize`, fail-open outage, or
+foreign write hidden in a Data PR. Rollback is provider-owned and precedes any
+Data adapter merge. SLO is 100% fail-closed authority and key-material
+containment; faults cover deny/malformed/stale receipts, provider outage,
+revocation races, crypto feature skew, and missing Buck/Cargo edges.
 
 ### D1c-S — Empty/scanner faces and dependency graph
 
@@ -1749,72 +1845,276 @@ parity, or unrelated lock movement. Rollback removes the six packages/lock
 blocks and edges. Fault evidence is scanner add/rename/remove/non-Rust parity
 plus wrong-provider and legacy-core edge rejection.
 
+### D1c-WS — Records-v1 schema/codegen structure
+
+Class: structural D-33 and sole lock writer after D1c-S and accepted D1c-WG.
+Create only:
+
+```text
+data/facade/proto/data/records/v1/BUCK
+data/facade/proto/data/records/v1/records.proto
+data/facade/records-app/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+Cargo.lock
+```
+
+The proto contains only syntax/package identity; it declares no message,
+service, route, or behavior. Package `data-records-app` is library-only and
+unrouted. Its standard scanner owns sorted `src/items/*.rs` and
+`src/test_items/*.rs`, emits fixed library/test membership plus the three
+D1c-WG products beneath one stable `OUT_DIR` include root, and tolerates absent
+content. Cargo and Buck invoke the accepted toolchain over the same proto,
+flags, includes, descriptors, and staged scanner globs. Exact initial graph is:
+
+```text
+data-records-draft + data-records-domain -> data-records-app
+accepted protobuf/Connect runtime -> data-records-app
+accepted generator/descriptor tools -> build dependencies only
+records.proto -> //data/facade/proto/data/records/v1:data-records-v1
+```
+
+The lock adds one local package and only D1c-WG-approved tool/runtime blocks;
+root and third-party files were already handled by their separate receipt.
+Build closure is the six D1c-S packages, schema target, generator tools,
+runtime, and `data-records-app`; reverse closure remains empty. Reviewers are
+Data, Gateway, API compatibility, Pipeline/build, security, and architecture.
+Success is a behavior-free library and minimal descriptor with byte-identical
+three-product Cargo/Buck generation. Failure is a message/service/handler/main,
+manual inventory, generated tracked source, network input, target-only tool in
+runtime closure, one-graph edge, or unrelated lock churn. Rollback removes this
+package/schema structure. Faults add/rename/remove/non-Rust scanner members,
+remove/rename the proto, skew each generator input, and verify identical graph
+failure. No request-frame claim is enabled by this stage.
+
+### D1c-KS — Security ports and cryptography structure
+
+Class: structural D-29/D-33 and sole lock writer after D1c-WS and accepted
+D1c-KG. Create these five four-file scanner package roots:
+
+```text
+data/ports/draft/policy-client/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/audit-sink/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/record-keys/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/record-protection/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/record-protection-awslc/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+```
+
+and update only:
+
+```text
+data/core/records-domain/{Cargo.toml,BUCK}
+data/ports/draft/tablet-persistence/{Cargo.toml,BUCK}
+data/adapters/draft/tablet-persistence-file/{Cargo.toml,BUCK}
+data/facade/records-app/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+Package names are `data-policy-client-draft`, `data-audit-sink-draft`,
+`data-record-keys-draft`, `data-record-protection-draft`, and
+`data-record-protection-awslc-draft`. Scanners and Buck canaries match D1c-S.
+Exact graph parity is:
+
+```text
+policy-client + audit-sink + record-keys + record-protection
+  -> data-records-domain
+record-keys + record-protection -> data-tablet-persistence-draft
+record-protection -> data-tablet-persistence-file-draft
+record-protection + approved aws-lc-rs + approved zeroize
+  -> data-record-protection-awslc-draft
+the four Data ports -> data-records-app
+```
+
+No concrete crypto or foreign provider reaches core; the AWS-LC adapter does
+not depend on Policy, Audit, or Secrets. The lock adds exactly five local
+blocks and D1c-KG-approved direct dependency edges, not a new version. Closure
+is D1c-S/WS plus these packages and the accepted third-party targets; reverse
+closure is empty. Reviewers are Data, security, build/dependency, Cell,
+Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
+exact parity, and zero secret/algorithm behavior. Failure is content, raw-key
+type in a general records port, provider/internal edge, implicit transitive
+dependency, app route, one-graph edge, or unrelated lock churn. Rollback
+removes only these packages/edges. Faults cover scanner parity, forbidden
+provider-core edges, dependency-feature skew, and lock/target canaries.
+
 ### D1c-C — Bounded semantic contracts
 
-Class: content-only behavior after D1c-S; no manifest/build/lock/route change.
+Class: content-only behavior after D1c-KS; no manifest/build/lock/route change.
 The exact unique-file envelope is:
 
 ```text
-data/ports/draft/records/src/items/{a_identifiers,b_requests,c_responses,d_errors,e_durability_profile,f_change_envelope,g_resource_limits}.rs
-data/ports/draft/records/src/test_items/{a_contract,b_errors,c_limits,d_classification_identity,e_validation_order,f_response_bounds}.rs
-data/ports/draft/tablet-persistence/src/items/{a_log_record,b_manifest,c_durable_receipt}.rs
+data/ports/draft/records/src/items/{a_identifiers,b_requests,c_responses,d_errors,e_durability_profile,f_change_envelope,g_resource_limits,h_request_fingerprint,i_scan_continuation,j_security_context}.rs
+data/ports/draft/records/src/test_items/{a_contract,b_errors,c_limits,d_classification_identity,e_validation_order,f_response_bounds,g_request_fingerprint,h_scan_continuation,i_security_context}.rs
+data/ports/draft/tablet-persistence/src/items/{a_log_record,b_manifest,c_durable_receipt,d_ciphertext_envelope}.rs
 data/ports/draft/tablet-persistence/src/test_items/a_contract.rs
-data/core/records-domain/src/items/{a_schema,b_transaction,c_tablet,d_idempotency,e_request_context,y_response_admission,z_resource_admission}.rs
-data/core/records-domain/src/test_items/{a_contract,b_identity,c_refusal,y_response_matrix,z_resource_matrix}.rs
+data/core/records-domain/src/items/{a_schema,b_transaction,c_tablet,d_idempotency,e_request_context,m_request_authority,n_security_context,y_response_admission,z_resource_admission}.rs
+data/core/records-domain/src/test_items/{a_contract,b_identity,c_refusal,j_request_authority,k_scan_continuation,y_response_matrix,z_resource_matrix}.rs
 data/core/tablet-consensus-domain/src/items/a_replication_contract.rs
 data/core/tablet-consensus-domain/src/test_items/a_contract.rs
 ```
 
 Freeze engine-neutral transaction/schema/tablet/change/error/idempotency,
-authorization/audit/Cell evidence, durability profile, WAL record, manifest,
-receipt, and every exact v1 request, result, response-frame, allocation,
-in-flight-credit, validation, and refusal semantic from `SPEC.md`.
+canonical server-derived request-fingerprint and continuation grammars,
+Policy/Audit/Cell/key evidence value contracts, durability profile, ciphertext
+envelope, WAL record, manifest, receipt, and every exact v1 request, result,
+logical-result, allocation, in-flight-credit, validation, and refusal semantic
+from `SPEC.md`.
 `d_classification_identity.rs` passes a
 `data_classification::DataClass` through records-port input, committed version,
-change envelope, and domain validation function signatures with no conversion,
-parse, wrapper, or second enum; its compile-time assignments run in Cargo and
-Buck. No SQL/client type or crypto/storage implementation appears. Build/
-reverse closure is the six-package D1c-S graph plus the exact classification
-and Cell providers; required reviewers are Data, Cell, Audit, IAM/Policy,
-Storage, and architecture.
+change envelope, ciphertext AAD, and domain validation function signatures with
+no conversion, parse, wrapper, or second enum; its compile-time assignments run
+in Cargo and Buck. The canonical frame encoders produce bytes for the
+`RecordProtection` digest/seal interface but implement no cryptography. No
+protobuf/generated, SQL/client, crypto, key-provider, or storage implementation
+appears. Build/reverse closure is D1c-S/WS/KS plus exact classification and Cell
+providers; required reviewers are Data, Cell, Audit, Policy/IAM, Secrets,
+Storage, security, and architecture.
 
-After request-side authorization, the deterministic size-only pass evaluates
-the immutable MVCC snapshot, uses checked `u64` accumulation in stable result
-order, computes exact response-frame and encoder-allocation demand, and
-reserves tenant response credit before `PREPARED`, mutating/durable adapter
-I/O, or externally visible mutation. Snapshot revision, request fingerprint,
-result digest, computed lengths, and reservation form one prepare input; a
-conflict releases the reservation and repeats the full pass. The independent
-bounded streaming encoder consumes that reservation with response-credit
-backpressure and releases it exactly once on success, refusal, cancellation,
-or retry. A deterministic size refusal is impossible after commit. Scans stop
-before their byte bound and return the frozen continuation rather than
-materializing an oversized page.
+After request-side authorization, the engine-neutral accounting contract
+evaluates the immutable MVCC snapshot, uses checked `u64` accumulation in
+stable result order, and requires the D1c-WC wire sizer to return exact frame
+and encoder-allocation demand before reserving response credit. Snapshot
+revision, server-derived request fingerprint, result digest, computed lengths,
+and reservation form one prepare input; a conflict releases the reservation
+and repeats the full pass. D1c-C does not implement or claim a protobuf decoder,
+size-only encoder, streaming encoder, descriptor, or token cryptography. Scans
+stop before their logical bound and carry the frozen continuation plaintext
+state to D1c-WC/KC rather than materializing an oversized page.
 
-Success: malformed/unknown frames, unsupported durability, stale revisions,
-forged context, fingerprint reuse, and every exact-limit/limit-plus-one case
-follow the SPEC order and stable error identity before allocation/adapter/
-mutation; checked `u64` overflow never wraps; concurrency/in-flight refusals
-release reservations; the size-only and streaming encoders agree; Cargo/Buck
-run identical members and exact classification types. Failure is a vendor
-type, second classification/time identity, raised/configurable hard maximum,
-unchecked `usize` conversion, decode or encode amplification, result work
-before authorization, post-commit deterministic refusal, validation
-reordering, unbounded collection, or draft external consumer. Rollback removes
-only these files. SLO signals are bounded decode/encode/allocation work,
-response-credit occupancy/backpressure, and stable per-limit/saturation
-refusal counters; production latency and availability remain unavailable.
-Fault evidence is contract fuzz/property plus exact and plus-one cases for
-1,024 result items, 16-MiB logical results, 32-MiB frames, 8-MiB encoder
-allocation, and 64-MiB tenant response credit; it also covers 1,025 items,
-every bound plus one byte, `u64::MAX` and sum overflow, the 1,024-by-4-MiB
-amplification attack, mismatched size-only/streaming encoders, scan
-continuation, cancellation, idempotent retry, the 257th request, and
-reservation release.
+Success: unsupported durability, stale revisions, forged context, fingerprint
+reuse, field permutation/normalization, and every engine-neutral exact-limit/
+limit-plus-one case follow the SPEC order before adapter/mutation; checked
+`u64` overflow never wraps; concurrency/in-flight refusals release
+reservations; both independent fingerprint encoders match; Cargo/Buck run
+identical members and exact classification types. Failure is a vendor or
+generated wire type, second classification/time identity, caller-chosen
+fingerprint, ambiguous canonical frame, raised/configurable hard maximum,
+unchecked conversion, result work before authorization, post-commit
+deterministic refusal, validation reordering, unbounded collection, or draft
+external consumer. Rollback removes only these files. SLO signals are bounded
+semantic/accounting work, response-credit occupancy, and stable refusal
+counters; wire and production latency remain unavailable. Fault evidence is
+contract fuzz/property plus fingerprint golden/permutation/collision-domain,
+continuation-state binding, exact/plus-one logical bounds, `u64::MAX`/sum
+overflow, 1,024-by-4-MiB amplification, cancellation, idempotent retry, the
+257th request, and reservation release. Protobuf/frame/encoder faults belong
+to D1c-WC and cryptographic/tamper/key faults to D1c-KC.
+
+### D1c-KC — Security contracts and owned cryptography behavior
+
+Class: content-only after D1c-C; no manifest/build/lock/route change. Write
+exactly:
+
+```text
+data/ports/draft/policy-client/src/items/{a_request,b_receipt,c_errors}.rs
+data/ports/draft/policy-client/src/test_items/a_contract.rs
+data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_errors}.rs
+data/ports/draft/audit-sink/src/test_items/a_contract.rs
+data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_generation,c_nonce_lease,d_key_receipt,e_errors}.rs
+data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine}.rs
+data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_zeroizing_key,d_errors}.rs
+data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames}.rs
+data/adapters/draft/record-protection-awslc/src/items/{a_sha256,b_aes_gcm,c_zeroizing_buffer,d_nonce_counter}.rs
+data/adapters/draft/record-protection-awslc/src/test_items/{a_known_answers,b_tamper,c_zeroization,d_nonce}.rs
+```
+
+Implement only the Data-owned contracts and AWS-LC/zeroize adapter frozen in
+`SPEC.md`: receipt binding, exact fingerprint/AAD/token frames, SHA-256,
+AES-256-GCM, purpose-separated key leases, checked nonce ranges, stable errors,
+and bounded non-cloneable key material. It does not call a provider, persist a
+record, decode protobuf, compose a process, or claim readiness. Every file stays
+at or below 300 handwritten lines; scanner outputs and Cargo/Buck target
+membership are identical.
+
+Success is independent golden frame encoders plus published SHA/AES-GCM known-
+answer vectors, byte-exact ciphertext/token envelopes, verified zeroization on
+success/error/cancel/panic boundaries supported by the runtime, and no nonce
+reuse. Failure is custom cryptography, algorithm defaulting, raw-key clone/
+log/serialization, allocator remanence, unchecked counter/length, unknown
+field acceptance, plaintext fallback, provider edge, or production claim.
+Rollback removes only these content files. SLO is bounded crypto work and zero
+observed key/remanence/nonce violations. Faults flip every header/AAD/ciphertext/
+tag byte, cross tenant/purpose/generation, exhaust/wrap counters, interrupt
+every terminal path, and run known answers through Cargo and Buck.
+
+### D1c-WC — Records-v1 schema, codec, and accounting behavior
+
+Class: content-only after D1c-C/KC and accepted D1c-WG; no manifest/build/lock/
+route change. Write exactly:
+
+```text
+data/facade/proto/data/records/v1/records.proto
+data/facade/records-app/src/items/{a_wire_mapping,b_request_decoder,c_size_only_encoder,d_streaming_encoder,e_continuation_codec}.rs
+data/facade/records-app/src/test_items/{a_descriptor,b_canonical_request,c_frame_bounds,d_encoder_parity,e_continuation}.rs
+```
+
+Replace the structure-only proto with the complete versioned messages and
+service for transaction, point read, first scan, resumed scan, typed result,
+stable error, receipt, and continuation bytes. Tags/types/reserved ranges and
+the generated descriptor are frozen in this slice. Maps, recursive messages,
+groups, extensions, unknown request fields, duplicate singulars,
+non-minimal/out-of-order encoding, and trailing bytes are rejected as specified.
+The decoder enforces every length/count/allocation check before reserve/copy;
+the independent size-only and bounded streaming encoders enforce exact frame,
+result, allocation, and response-credit accounting before preparation. The
+continuation codec calls `RecordProtection`; it contains no key/provider
+implementation. No handler, listener, route, or `main.rs` exists.
+
+Closure is D1c-S/WS/KS/C/KC, the accepted generator/runtime, and proto target;
+reverse closure is empty. Reviewers are Data, Gateway, API compatibility,
+security, build/Pipeline, and architecture. Success is descriptor/generator
+byte parity, exact normal-form decode/encode, size-only/streaming byte equality,
+and all SPEC hard bounds in Cargo/Buck. Failure is hand-modeled wire type,
+generator drift, one encoder shared with the other, hidden complete-frame
+buffer, post-commit frame refusal, unknown preservation, compression-dependent
+accounting, handler/route, or D4 dependency. Rollback restores the minimal
+schema and removes only these members while D1c-C remains. SLO is constant
+bounded decode/encode work; faults cover each malformed protobuf form,
+exact/+1 frame/allocation/result/continuation bounds, malicious prefixes,
+amplification, cancellation/backpressure, descriptor skew, and Cargo/Buck
+codegen canaries.
+
+### D1c-KA — Real provider adapters
+
+Structure is three serialized sole-lock D-29 sublanes after the corresponding
+provider-owned face has merged and D1c-KG is satisfied:
+
+| Lane | Exact new four-file root / package | Exact provider edge | Exact updated consumer |
+|---|---|---|---|
+| `D1c-KP-S` | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
+| `D1c-KA-S` | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KK-S` | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+
+Each scanner matches D1c-S, each lock delta is one local block plus already
+accepted provider edges, and Cargo/Buck close identically. No lane may substitute
+the currently forbidden internal packages, write the provider tree, or merge
+beside another lock writer. Content fans out afterward on exact files:
+
+```text
+D1c-KP-C: data/adapters/draft/policy-client-policy/src/items/a_adapter.rs
+           data/adapters/draft/policy-client-policy/src/test_items/a_conformance.rs
+D1c-KA-C: data/adapters/draft/audit-sink-audit/src/items/a_adapter.rs
+           data/adapters/draft/audit-sink-audit/src/test_items/a_conformance.rs
+D1c-KK-C: data/adapters/draft/record-keys-secrets/src/items/a_adapter.rs
+           data/adapters/draft/record-keys-secrets/src/test_items/a_conformance.rs
+```
+
+Content only maps Data-owned requests/receipts/errors to the accepted provider
+contract and preserves revision, integrity, deadline, tenant, purpose,
+generation, nonce-lease, and revocation fences. Provider-owned conformance
+services/fixtures and live fault plants supply evidence; a Data fake, in-memory
+double, direct provider client, or provider core cannot satisfy it. Success is
+byte/type-exact mapping and fail-closed deny/outage/staleness in both graphs.
+Failure is lost context, widened authority, retry after a terminal fence,
+secret logging, hidden fallback, or provider/API leakage into core. Rollback
+removes one adapter/edge before composition. SLO signals are provider latency,
+deadline/refusal class, receipt age/revision, key/nonce lease headroom, and no
+false allow/ACK. Faults cover malformed/stale/wrong-tenant receipts, network
+loss/timeout/reorder, Audit durability loss, KMS rotation/revocation between
+lease and use, and provider N/N+1 skew.
 
 ### D1c-O — Parameterized in-memory oracle
 
-Class: content-only behavior; no graph change.
+Class: content-only behavior after D1c-C; no graph change and may run beside
+D1c-KC/WC/KA on its disjoint files.
 
 ```text
 data/adapters/draft/records-inmemory/src/items/a_store.rs
@@ -1824,17 +2124,21 @@ data/core/records-domain/src/items/f_contract_harness.rs
 data/core/records-domain/src/test_items/d_adapter_parity.rs
 ```
 
-It implements only the frozen contract and reusable adapter suite; it is not
-durable or routed. Closure is `records-draft`, `records-domain`, and
-`records-inmemory-draft` in both graphs; reverse closure remains empty. Required
-reviewers are Data and architecture. Success is deterministic parity and zero
-partial mutation; failure is durability/availability wording or vendor leakage.
-Rollback removes five files. SLO signals are bounded operations and test work;
-faults cover malformed input, replay, conditional conflicts, and cancellation.
+It implements only the engine-neutral frozen contract and reusable adapter
+suite; verified Policy/Audit/key value fixtures can exercise domain types, but
+the oracle neither implements a provider nor satisfies provider conformance,
+composition, readiness, durability, encryption-at-rest, or routing. Closure is
+`records-draft`, `records-domain`, and `records-inmemory-draft` in both graphs;
+reverse closure remains empty. Required reviewers are Data, security, and
+architecture. Success is deterministic parity and zero partial mutation;
+failure is a fake-provider/readiness claim, durability/availability wording,
+or vendor leakage. Rollback removes five files. SLO signals are bounded
+operations and test work; faults cover malformed input, replay, conditional
+conflicts, cancellation, and refusal of absent verified security receipts.
 
 ## D1d — Deterministic single-tablet state machine
 
-Class: content-only behavior after D1c-C/O. Exact files:
+Class: content-only behavior after D1c-C/O/KC. Exact files:
 
 ```text
 data/core/records-domain/src/items/{g_mvcc,h_snapshot,i_serializable_transaction,j_fencing,k_commit_ordinal}.rs
@@ -1862,33 +2166,139 @@ concurrent histories.
 
 ## D1e — Owned single-tablet durability and replication oracle
 
-Class: content-only behavior after D1d; no manifest/build/lock/route change.
+Class: content-only behavior after D1d/KC; no manifest/build/lock/route change.
 
 ```text
-data/adapters/draft/tablet-persistence-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction}.rs
-data/adapters/draft/tablet-persistence-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade}.rs
+data/adapters/draft/tablet-persistence-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction,g_ciphertext,h_nonce_checkpoint}.rs
+data/adapters/draft/tablet-persistence-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade,e_ciphertext,f_nonce_recovery}.rs
 data/core/tablet-consensus-domain/src/items/{b_log,c_membership,d_leader,e_snapshot_transfer,f_repair,g_admission}.rs
 data/core/tablet-consensus-domain/src/test_items/{b_partition,c_leader_change,d_snapshot_transfer,e_repair_budget}.rs
-data/core/records-domain/src/items/l_durable_commit.rs
-data/core/records-domain/src/test_items/i_durable_commit.rs
+data/core/records-domain/src/items/{l_durable_commit,o_security_commit}.rs
+data/core/records-domain/src/test_items/{i_durable_commit,l_security_commit}.rs
 ```
 
-Implement checksummed append-only records, explicit durable barriers,
-generation manifests, snapshots/recovery/compaction, three-voter consensus,
-leader change/catch-up, epoch fencing, repair states, and bounded queues. This
-is an unrouted library/oracle; separately deployable roles and sold SLO evidence
-belong to D4.
+Implement AEAD-sealed, checksummed append-only records, explicit durable
+barriers, generation manifests, encrypted snapshots/recovery/compaction,
+durable non-reusing nonce checkpoints, three-voter consensus, leader
+change/catch-up, epoch fencing, repair states, and bounded queues. Every WAL,
+segment, snapshot, repair, and migration byte is sealed through the Data
+record-protection/key ports before provider I/O and validates envelope/AAD/tag/
+generation before decode; recovery is ciphertext-only and quarantines
+undecryptable/revoked/corrupt state. The key-generation fence is revalidated
+before durable prepare and before visibility/ACK. This is an unrouted library/
+oracle; separately deployable roles and sold SLO evidence belong to D4.
 
-Build closure is all six D1c packages plus Cell clock. Required reviewers are
-Data, Cell, Storage for the persistence boundary, security for corruption/key
-references, and architecture. Success is RPO 0 in the declared one-node/device
-tolerance, no stale leader commit, verified rebuild, and p99 leader recovery at
-or below the PRD 30-second target in the declared simulator/plant profile.
-Failure is page-cache durability, trusted corruption, lost ACK, split brain, or
-unbounded repair. Rollback removes the 23 unique files while PostgreSQL remains
-authority. Fault evidence includes kill/power-cut around every barrier,
-partial/full/corrupt devices, partition/reorder, voter/leader loss, snapshot
-corruption, repair saturation, and N/N+1 format barriers.
+Build closure is D1c-S/WS/KS/C/KC plus the in-memory/file/consensus packages and
+Cell clock; no real provider adapter or route is claimed. Required reviewers
+are Data, Cell, Storage, Secrets, Audit, security, and architecture. Success is
+RPO 0 in the declared one-node/device tolerance, no plaintext durable bytes,
+nonce reuse, stale/revoked-key commit, stale leader commit, or unverified
+rebuild, plus p99 leader recovery at or below the PRD 30-second target in the
+declared simulator/plant profile. Failure is page-cache durability, plaintext
+or unauthenticated artifact, trusted corruption, lost ACK, split brain,
+nonce/checkpoint rollback, or unbounded repair. Rollback removes only this
+content while PostgreSQL remains authority. Fault evidence includes kill/
+power-cut around every data/nonce/audit barrier, partial/full/corrupt devices,
+wrong AAD/key/tenant, revocation between each commit phase, ciphertext-only
+restore, partition/reorder, voter/leader loss, snapshot corruption, repair
+saturation, and N/N+1 format barriers.
+
+### D1c-KR — Rotation, re-encryption, and recovery behavior
+
+Class: content-only after D1e/KC; no manifest/build/lock/route change. Write
+exactly:
+
+```text
+data/core/records-domain/src/items/{p_key_rotation,q_reencryption_state}.rs
+data/core/records-domain/src/test_items/{m_key_rotation,n_reencryption_state}.rs
+data/adapters/draft/tablet-persistence-file/src/items/{i_reencryption,j_rotation_checkpoint}.rs
+data/adapters/draft/tablet-persistence-file/src/test_items/{g_reencryption,h_rotation_recovery}.rs
+```
+
+Implement the one-way generation state machine, fixed-manifest inventory,
+bounded checkpointed re-encryption, verify-before-CAS publication, retirement
+barrier, restore inventory, durable Audit binding, and revocation linearization
+from `SPEC.md` through Data ports only. Work is bounded by a frozen per-cell
+records/bytes/concurrency budget; exhaustion checkpoints and yields. Old
+verified ciphertext remains authoritative until the replacement verifies and
+CAS publishes, so cancellation/failure leaks work or space, never plaintext or
+loss. Contract fixtures can exercise transitions, but only D1c-KP-C,
+D1c-KA-C, and D1c-KK-C provider conformance plus D1c-KJ may establish
+production evidence.
+
+Success is crash-resumable monotonic progress, exact old-generation inventory,
+zero new encryption after the rotation fence, zero old references before
+retirement, and ciphertext-only restore. Failure is in-place overwrite,
+unchecked counters, mixed authority, lost checkpoint, nonce reuse, decrypt
+after revocation, unaudited transition, or unbounded scan. Rollback pauses the
+worker while preserving the last verified ciphertext/checkpoint; it never
+reverses a revocation. SLO signals are remaining records/bytes, oldest old-key
+age, checkpoint age, retry/refusal, lease headroom, and estimated completion
+under the declared budget. Faults crash every read/seal/flush/verify/CAS/audit
+barrier, revoke/rotate concurrently, corrupt inventory/checkpoint/ciphertext,
+exhaust capacity/nonce lease, restore a stale snapshot, and repeat repair.
+
+### D1c-KJ-S — Production composition/readiness structure
+
+Class: structural D-29/D-33 and sole lock writer after D1c-KP-C, D1c-KA-C,
+D1c-KK-C, D1c-WC, D1e, and D1c-KR. Write exactly:
+
+```text
+data/facade/records-app/{Cargo.toml,BUCK}
+data/facade/records-app/src/items/{f_composition,g_readiness}.rs
+data/facade/records-app/src/test_items/{f_composition,g_readiness}.rs
+Cargo.lock
+```
+
+The four scanner-owned Rust files are empty structural members. Cargo/Buck add
+identical app-only concrete edges:
+
+```text
+data-records-domain
+data-tablet-consensus-domain
+data-tablet-persistence-file-draft
+data-record-protection-awslc-draft
+data-policy-client-policy-draft
+data-audit-sink-audit-draft
+data-record-keys-secrets-draft
+  -> data-records-app
+```
+
+No concrete adapter reaches core, and no `main.rs`, listener, handler, route,
+deployment, readiness publication, or behavior lands. The lock delta is only
+the app dependency list because all packages already exist. Reviewers are all
+provider owners plus Data, Gateway, Cell, security, operations, and
+architecture. Success is an empty compiler-checked composition/readiness face
+and exact graph parity. Failure is behavior, provider internal/core edge, test
+fake dependency, route, one-graph edge, or unrelated lock movement. Rollback
+removes these four members/edges. Scanner and forbidden-edge canaries are the
+fault evidence.
+
+### D1c-KJ-C — Fail-closed composition and readiness behavior
+
+Class: content-only after KJ-S; write only the four KJ-S Rust files. Compose the
+engine and real provider adapters, validate compatible contract revisions,
+require verified Policy/Audit/KMS conformance receipts, an encrypt-active
+record and continuation generation, durable nonce headroom, usable Cell
+interval, clean recovery/quarantine state, and current rotation inventory. The
+library exposes a typed `NotReady` reason and admission gate, not a listener;
+loss or staleness of any prerequisite atomically withdraws admission/readiness
+before new work. Policy deny/outage precedes data-dependent work, mutation ACK
+requires durable Audit, and a key/revocation fence is revalidated before
+prepare and visibility. No fake, in-memory provider, fixture, or reference
+oracle can be selected by production composition or count as readiness proof.
+
+Success is zero route/readiness while any prerequisite is missing and stable
+recovery after real provider revalidation; failure is false readiness,
+plaintext/unaudited/stale-key fallback, partial provider selection, or a test
+double in the production graph. Rollback withdraws admission and returns to the
+unrouted library; it cannot undo a durable audit/key fence. SLO signals are
+readiness reason/age, provider revision/latency, receipt age, nonce headroom,
+quarantine count, and rotation backlog. Provider test plants inject deny,
+timeout, malformed/stale receipt, Audit durability loss, KMS outage/rotation/
+revocation, time uncertainty, nonce exhaustion, corrupt recovery, and N/N+1
+skew; each must withdraw before request acceptance. D4 route work is blocked
+until this exact receipt is independently accepted.
 
 ## D2 — Range scale and transaction breadth
 
@@ -2060,16 +2470,20 @@ future delivery adapter (not used here), and architecture.
 ## D4 — Cohort migration and production operations
 
 Class: explicitly decision-gated and non-dispatchable. D4 cannot start from
-this document alone. It requires both `<decision_gates>` receipts, D1e/D2/D3
-evidence, an accepted home-cell-directory owner, and a named first cohort.
+this document alone. It requires every `<decision_gates>` receipt, accepted
+D1c-WC/KJ-C evidence, D1e/KR/D2/D3 evidence, an accepted home-cell-directory
+owner, and a named first cohort.
 
 The accepted amendment must split and enumerate, at minimum:
 
-1. `D4-FS` structural Connect/protobuf and app packages, their exact
-   `data/facade/**` paths, package/proto version, gateway/IAM/Audit dependencies,
+1. `D4-FS` structural process/listener, Gateway route, deployment, readiness,
+   and SLO-evidence faces over the already frozen `data-records-app` and
+   `data.records.v1` schema; it names exact paths, provider/public-facade edges,
    Cargo/Buck graph, sole lock writer, and generated-vs-handwritten boundary.
-2. `D4-FB` content-only schema/handler files and default-deny contract tests;
-   a PostgreSQL wire package exists only if the founder decision accepts it.
+2. `D4-FB` content-only Connect handlers, production boot/refusal, and
+   default-deny contract tests. It MUST NOT redefine the D1c-WC schema,
+   fingerprint/token grammar, crypto/provider graph, or hard bounds; a
+   PostgreSQL wire package exists only if the founder decision accepts it.
 3. `D4-C<n>-S` one cohort's exact source adapter, consumer files, authority
    epoch/journal, shadow/cutover/rollback deadline, and owner reviewers;
    `D4-C<n>-B` contains behavior only after its shape lands.
@@ -2078,9 +2492,11 @@ The accepted amendment must split and enumerate, at minimum:
    backup/restore, deletion, drain, upgrade, capacity, and evacuation state.
 
 Until those file-level amendments land, no worker may infer facade, Gateway,
-IAM, Storage, Observability, Cell, deployment, or consumer paths. Success for a
-D4 cohort is one write authority, durable parity, tested pre-expiry rollback,
-and eventual source retirement. Failure is dual authority, lost ACK, shadow
+Policy/IAM, Audit, Secrets, Storage, Observability, Cell, deployment, or
+consumer paths. No route may publish before KJ-C's real-provider/readiness join.
+Success for a D4 cohort is one write authority, durable parity, tested
+pre-expiry rollback, and eventual source retirement. Failure is dual authority,
+false readiness, plaintext/unaudited/stale-key service, lost ACK, shadow
 serving, an unfenced rollback, or any PRD SLO/isolation miss. Rollback returns
 the exact cohort to its prior authority at a higher epoch; format and contract
 barriers never decrement. Required SLO signals are every PRD target at the sold
@@ -2103,8 +2519,12 @@ clear this gate.
    precedes BS, BC, and then BX-I; CO-X plus BX-I enable BR. BC reaches only
    the blocked BF-G; accepted BF-G owner amendments enable BF-S/C. CO-X plus
    BF-C reaches only blocked COB-G; its accepted Community amendment enables
-   COB-S/C. N-C, O2L, and BR join before D1c; D1c-S precedes C/O, then D1d,
-   then D1e.
+   COB-S/C. N-C, O2L, and BR join before D1c. Accepted WG/KG and the persistence
+   decisions enable D1c-S; lock writers run S -> WS -> KS. C then enables O,
+   KC, and WC's C/KC join; KP/KA/KK structural lanes serialize after their
+   provider receipts and their content lanes fan out. C/O/KC enable D1d, then
+   D1e; D1e/KC enable KR. WC, all three provider-content receipts, D1e, and KR
+   enable KJ-S, then KJ-C. D4 cannot route before KJ-C.
 2. Consensus, fencing, and durable recovery precede broad sharding, OLAP,
    performance tuning, `io_uring`, or hardware specialization.
 3. One stage owns each shared manifest or `Cargo.lock`; behavioral lanes use
@@ -2124,8 +2544,11 @@ clear this gate.
    PA-C/B, P2R-C, O2C/B, GA-C, CO-C, BC, and—only after their gates—BF-C and
    COB-C may fan out after their structure on disjoint unique files. O1/O2T are
    lock-free mechanical preparation and may run beside a disjoint provider
-   lane. D2-S and D3-S may be prepared in parallel but merge one lock writer at
-   a time; their content lanes then commute.
+   lane. D1c-S/WS/KS, KP-S/KA-S/KK-S, and KJ-S are separate lock-writing LSCs
+   and serialize with every other lock writer; C/O/KC/WC, provider content,
+   D1d/D1e/KR, and KJ-C write unique files and may fan out only after their
+   stated joins. D2-S and D3-S may be prepared in parallel but merge one lock
+   writer at a time; their content lanes then commute.
 
 </ordering_rules>
 
@@ -2140,11 +2563,18 @@ record an immutable receipt:
   future accepted Storage contract. The current Storage draft port is not a
   legal cross-owner dependency.
 
+D1c-WG and D1c-KG are additional mandatory immutable receipts, not defaults.
+WG selects the exact protobuf/Connect generator/runtime and Cargo/Buck codegen
+graph. KG accepts exact Policy, Audit, Secrets key-use, AWS-LC, and zeroization
+provider/dependency faces. Current internal/core-backed provider packages and
+transitive-only cryptography dependencies do not satisfy KG.
+
 No fallback is inferred. Connect-only plus Data-internal persistence activates
-the exact D1c-S envelope above. A PostgreSQL wire decision adds only a later D4
-facade branch. A Storage-authority decision makes D1c-S non-dispatchable until
-this plan names the accepted provider port, adapter, target/reverse closure,
-reviewers, and rollback.
+the exact D1c-S envelope above, but WS/KS remain blocked on WG/KG. A PostgreSQL
+wire decision adds only a later D4 facade branch. A Storage-authority decision
+makes D1c-S non-dispatchable until this plan names the accepted provider port,
+adapter, target/reverse closure, reviewers, and rollback. Any provider or
+toolchain identity differing from WG/KG amends this plan before dispatch.
 
 </decision_gates>
 
@@ -2163,7 +2593,9 @@ no accepted Connect generator/runtime/auth graph exists. They remain behind
 BF-G/COB-G until exact owner-law, codegen, IAM/Policy, Gateway route, build, and
 review receipts land. Every cross-owner app/Foundry/Gateway/Bus lane needs its
 own named D-29 dispatch; this Data PR grants no foreign write. D1c remains
-blocked until N-C, O2L, BR, and both cross-owner Data decision receipts are
-complete.
+blocked until N-C, O2L, BR, the two persistence/wire decisions, D1c-WG, and
+D1c-KG are complete. Once unblocked, S/WS/KS are the structural chain; C, O,
+KC, WC, provider adapters, D1d/e, KR, and KJ follow the exact joins above. No
+stage may substitute a test fake or route before KJ-C.
 
 </next_lane>
