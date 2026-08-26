@@ -60,6 +60,13 @@ these are current-state facts, not availability or conformance claims.
   preimage digest derivations. The engine invokes the owner-local `pack-auth`
   port; requests cannot supply a verification receipt. Resolve trusted keys
   through its provider adapter; envelope-provided keys are never trust.
+- Immediately before catalog compare-and-swap, obtain a key-use commit receipt
+  from the Secrets-backed `pack-auth` adapter. Secrets serializes that operation
+  with revocation for the same key. A revocation ordered first refuses with the
+  stable concurrent outcome; an authorization ordered first is bound to one
+  expected catalog generation, request fingerprint, Policy decision, durable
+  Audit receipt, trusted interval, and monotonic key-use ordinal. A copied
+  revocation generation is not commit authority.
 - Consume the exact `cell_clock_api::Interval` obtained from an injected
   `cell_clock_api::Clock`; callers cannot submit trusted time or a local point/
   interval DTO.
@@ -72,6 +79,10 @@ these are current-state facts, not availability or conformance claims.
 - Preserve immutable historical descriptors for evidence verification. A
   changed payload requires a new digest and version; a lower or reused version
   with different content fails closed.
+- Require default-deny Policy evidence and durable pre-ACK Audit evidence for
+  catalog admit, revoke, and supersede. Each receipt binds actor/namespace,
+  operation, pack digest/version, expected generation, and fingerprint; outage,
+  forgery, staleness, or transition mismatch mutates nothing.
 - Treat root `packs/` as external CaC input. No facade request reads git or the
   pack filesystem, and no current Markdown/YAML scaffold is called admitted.
 
@@ -101,6 +112,10 @@ these are current-state facts, not availability or conformance claims.
 - Admit registry changes through compare-and-swap. Duplicate aliases,
   conflicting values, stale generations, lower/equal conflicting versions,
   unknown classification values, and unsupported schema fail before mutation.
+- Authorize and durably audit registry prepare, activate, supersede, and revoke
+  separately. Policy and Audit receipts bind the exact classification value,
+  source pack/digest, transition, expected entry/registry generations, actor,
+  tenant scope, and idempotency fingerprint before compare-and-swap.
 - Never copy or wrap the classification types. A provider-identity move remains
   a separate Data-led D-29 migration across every consumer.
 
@@ -118,13 +133,14 @@ these are current-state facts, not availability or conformance claims.
 
 ## Security and isolation
 
-- Authenticate and authorize before catalog disclosure, binding mutation,
-  projection publication, target acknowledgement, or export admission.
+- Authenticate and authorize before catalog disclosure; every catalog or
+  registry transition; binding mutation; projection publication; target
+  acknowledgement; or export admission.
 - Bind decisions to tenant, principal, operation, resource scope, policy
   revision, issuer, audience, request, idempotency identity, and expiry.
 - Use mTLS internally, tenant-scoped encryption references, trusted Cell time,
-  bounded queues, and durable pre-ACK Audit evidence for privileged control
-  operations.
+  bounded queues, and durable transition-bound pre-ACK Audit evidence for every
+  privileged catalog, registry, binding, projection, and export mutation.
 - Reject cross-tenant ids, forged or expired policy evidence, stale binding
   epochs, digest/signature mismatch, unavailable Audit authority, and changed
   idempotency fingerprints before mutation or disclosure.
@@ -148,6 +164,14 @@ these are current-state facts, not availability or conformance claims.
   `compliance/facade/proto/compliance/cas/v1/` through Connect. Do not create a
   parallel gRPC/tonic contract, duplicate Data's engine-neutral records port,
   or place handwritten Rust under `observability/slos`.
+- Run `compliance/facade/cas-app` as the D-8 process with `src/main.rs`; the
+  process composes accepted adapters and exposes no ready listener until durable
+  restore and every mandatory dependency fence passes. Gateway remains a
+  separate disabled-then-activated route, not an in-process plugin host.
+- Publish bounded Compliance SLO IR as the provider contract. The accepted
+  Observability materializer consumes that package; the IR package never
+  depends on the materializer, and Pipeline only executes the accepted
+  materialization graph.
 - Expose catalog/binding revision, projection lag, evidence gaps, export queue
   age, stale refusals, signature failures, per-tenant work/bytes, and unit cost.
 
@@ -191,8 +215,14 @@ Production promotion requires:
   type compatibility fixtures;
 - deterministic binding/projection replay and stale-generation fencing;
 - default-deny contract tests through the ordinary gateway and Policy path;
+- catalog and registry transition matrices proving Policy denial, forged/stale
+  evidence, Audit outage, and receipt mismatch mutate nothing;
+- deterministic signer resolve/revoke/commit races proving the Secrets order
+  and stable typed loser outcome;
 - disabled-route refusal followed by activation only after the durable restore,
   production dependency-adapter, and Cell-interval evidence join;
+- cold-start, malformed-composition, dependency-loss, drain, cancellation, and
+  process-death evidence from the runnable CaS process;
 - Audit-gap and target-receipt reconciliation under loss, duplication, reorder,
   outage, and recovery;
 - snapshot restore plus N/N+1 protocol/schema upgrade and rollback barriers;

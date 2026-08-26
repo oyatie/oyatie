@@ -130,16 +130,26 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   `cell_clock_api::Clock`; requests MUST NOT assert trusted time and Compliance
   MUST NOT define a point-clock or interval DTO. A pack/key window is valid
   only when the whole Cell interval is contained by its inclusive-lower,
-  exclusive-upper Unix-millisecond bounds after checked conversion.
+  exclusive-upper Unix-millisecond bounds after checked conversion. A copied
+  signer-revocation generation MUST NOT authorize catalog commit. Immediately
+  before catalog compare-and-swap, Compliance MUST invoke commit authorization
+  through `pack-auth`; the production Secrets adapter MUST serialize that
+  operation with key revocation under one per-key authority. A successful
+  receipt binds the verified pack, expected catalog generation, Policy and
+  Audit receipts, Cell interval, and a monotonic key-use ordinal. A revocation
+  ordered first returns the stable typed refusal in `SPEC.md` and permits no
+  catalog mutation; a key-use authorization ordered first remains valid only
+  for that exact idempotent commit and is persisted with it.
 - **ensure:** a production encoder and an independently implemented test
   encoder share only the frozen input record and match exact preimage, payload
   digest, key digest, preimage digest, public key, and signature golden bytes;
   field/header bit flips plus byte, depth, count, identifier, fan-out, and queue
   limit-plus-one cases fail closed. Cargo/Buck bind the exact Cell package and
   type identities; pre-epoch/overflow conversion, reversed uncertainty, and
-  intervals before/on/across either boundary fail before mutation. Crypto and
-  trusted-key adapters require Packs, Secrets/IAM security, Cell, and
-  architecture review.
+  intervals before/on/across either boundary fail before mutation. Deterministic
+  race tests force both resolve/revoke/commit orderings and reject a stale,
+  expired, mismatched, replayed, or unavailable fence. Crypto and trusted-key
+  adapters require Packs, Secrets/IAM security, Cell, and architecture review.
 - **overturn_when:** an accepted Packs/Security/Compliance decision replaces
   the algorithm or canonicalization while preserving deterministic identity,
   domain separation, key provenance, bounded work, and rollback refusal.
@@ -205,25 +215,57 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 - **rule:** the sold CaS contract MUST have one protobuf source of truth at
   `compliance/facade/proto/compliance/cas/v1/` with package
   `compliance.cas.v1`, served through the normal Connect gateway. A standing
-  gRPC/tonic contract or transport MUST NOT be introduced. Every bind,
-  projection publication, and evidence export
-  MUST authenticate, obtain a verified Policy decision, bind tenant and
-  idempotency identity, enforce bounded admission, and persist required Audit
-  evidence before acknowledgement. Preview MUST disclose no foreign-tenant
-  catalog or binding state. Gateway registration MUST remain traffic-disabled
+  gRPC/tonic contract or transport MUST NOT be introduced. Every pack admit/
+  revoke/supersede, registry prepare/activate/supersede/revoke, bind,
+  projection publication, and evidence export MUST authenticate, obtain a
+  verified Policy decision bound to the exact transition and expected
+  generation, bind tenant or pack-namespace authority plus idempotency identity,
+  enforce bounded admission, and persist a transition-bound Audit receipt
+  before the authoritative compare-and-swap and acknowledgement. Preview MUST
+  disclose no foreign-tenant catalog or binding state. Gateway registration
+  MUST remain traffic-disabled
   until durable catalog authority and restore are proven and the required
   Pack/Secrets, Policy, Audit, projection-target, export, and Cell dependencies
   have production adapters/composition plus fail-closed outage evidence.
 - **ensure:** forged/expired decisions, wrong audience, tenant mismatch,
-  reused idempotency keys with changed fingerprints, Audit outage, and stale
-  binding generations fail before mutation or disclosure; tenant #0 runs the
-  same tests. Route admission checks the immutable durability/restore/adapter
-  join and cannot accept an in-memory fake as production authority.
+  reused idempotency keys with changed fingerprints, Audit outage, stale
+  catalog/registry/binding generations, and a receipt for another transition
+  fail before mutation or disclosure; tenant #0 runs the same tests. Contract
+  tests enumerate every privileged catalog and registry edge. Route admission
+  checks the immutable durability/restore/adapter join and cannot accept an
+  in-memory fake as production authority.
 - **overturn_when:** an independently reviewed contract supplies equivalent
   authentication, authorization, audit, isolation, compatibility, and
   retirement properties.
 
 </interfaces_and_security>
+
+<process_boundary>
+
+## Decision: `cas-app` is a fail-closed process
+
+- **achieves:** one runnable D-8 facade whose boot, readiness, drain, and crash
+  behavior can be tested independently from Gateway routing.
+- **origin:** a library-only handler crate or in-process Gateway plugin has no
+  process boundary, cannot prove production composition, and contradicts the
+  canonical `facade/<surface>-app` shape.
+- **rule:** `compliance/facade/cas-app` MUST contain `src/main.rs` and build as
+  the CaS process; `src/lib.rs` MAY retain testable handlers and composition.
+  The process MUST consume declarative cell configuration, compose only the
+  accepted durable store, Pack/Secrets, Policy, Audit, projection, export,
+  Cell, and Connect adapters, and refuse readiness/listener publication when
+  any mandatory dependency or restore fence is absent. It MUST NOT become an
+  in-process Gateway plugin, accept CLI authority, or let process existence
+  satisfy route activation.
+- **ensure:** structure and boot behavior land in separate D-33 stages; cold
+  start, malformed configuration, missing adapter, failed restore, bind error,
+  dependency loss, drain, cancellation, and process-death tests prove that an
+  unready process cannot receive admitted traffic or acknowledge mutations.
+- **overturn_when:** a founder-accepted D-8 amendment replaces the process with
+  another failure-isolated facade and updates Gateway, Compliance, and the
+  canonical tree contract in the same change.
+
+</process_boundary>
 
 <migration>
 
@@ -245,10 +287,11 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   L3 behavior uses a fake. Every new L4 package MUST inherit the D-41 scanner/
   Buck parity contract, and adding Connect codegen MUST preserve the existing
   library and test scanner outputs.
-- **ensure:** `PLAN.md` fixes the path/build envelope and success/failure for
-  each hop; no current retention type is rehomed or copied; D-41 scanners make
-  later behavior unique-file additions; one lock writer and exact Cargo/Buck
-  closures hold at every structural stage.
+- **ensure:** `PLAN.md` fixes the path/build envelope plus success, failure,
+  rollback, and stage-available fault evidence for each hop; no current
+  retention type is rehomed or copied; D-41 scanners make later behavior
+  unique-file additions; one lock writer and exact Cargo/Buck closures hold at
+  every structural stage.
 - **overturn_when:** an independently reviewed dependency graph proves another
   order is smaller while preserving behavior, lock serialization, review
   jurisdiction, and rollback.

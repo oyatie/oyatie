@@ -32,9 +32,11 @@ Connect CaS facade -> catalog/binding/projection engine -> Policy compiler port
           +-> bounded export jobs -> Storage export bytes
 ```
 
-- The facade authenticates, authorizes, meters, admits, and translates one
-  versioned semantic contract. It is a control-plane surface, never a serving
-  authorization shortcut.
+- `compliance/facade/cas-app` is the D-8 process. Its `src/main.rs` composes the
+  versioned Connect service with accepted adapters, while its library keeps
+  handlers testable. It authenticates, authorizes, meters, admits, and
+  translates one semantic contract; it is a control-plane surface, never a
+  serving authorization shortcut or in-process Gateway plugin.
 - The engine owns catalog descriptors, tenant bindings, projection generations,
   evidence coverage/manifests, target acknowledgement state, and idempotency.
 - A pack-source adapter supplies bounded envelope and payload bytes. The engine
@@ -59,6 +61,8 @@ pack_id: namespace/instrument
 semantic_version, schema_revision, plane
 projection_dimensions: principal/action/resource/context attributes
 content_digest, signature/key_generation, validity_interval
+policy and pre-ACK Audit receipt bindings
+key-use authorization ordinal and receipt digest when admitted
 state: CANDIDATE | ADMITTED | REVOKED | SUPERSEDED
 catalog_generation
 ```
@@ -104,6 +108,7 @@ applicability and evidence obligations
 source pack id/version/digest and schema revision
 validity interval, predecessor and entry generation
 registry generation
+policy and pre-ACK Audit receipt bindings
 state: PREPARED | ACTIVE | SUPERSEDED | REVOKED
 ```
 
@@ -213,12 +218,13 @@ before candidate, queue, or binding mutation.
    digest, public key, and signature bytes are part of the v1 contract.
 6. The engine invokes `PackAuthenticator` through the owner-local `pack-auth`
    port. That port resolves a trusted 32-byte public key by namespace, key id,
-   and key generation and returns a receipt bound to the request, both digests,
-   key validity/revocation generation, and the exact
+   and key generation and returns verification evidence bound to the request,
+   both digests, key validity/revocation generation, and the exact
    `cell_clock_api::Interval` obtained from composition's injected
    `cell_clock_api::Clock`. The engine never accepts caller-constructed time or
-   receipt; production composition supplies the clock, crypto, and key
-   adapters. A key carried by the envelope is never a trust source.
+   evidence; production composition supplies the clock, crypto, and key
+   adapters. Verification evidence is not catalog-commit authority, and a key
+   carried by the envelope is never a trust source.
 7. It accepts only v1 namespaces `us`, `eu`, `jp`, and `kr`; a package id is one
    namespace plus one granular instrument, never a combinatoric jurisdiction.
 8. `plane` is `serving` or `control`. Every projection dimension maps to a
@@ -226,10 +232,20 @@ before candidate, queue, or binding mutation.
    strings are invalid.
 9. A serving fragment must be consumable by the agreed Policy compiler port.
    CaS records the compiler receipt but does not evaluate the policy.
-10. Admission compare-and-swaps the catalog generation. A lower version, reused
+10. Before admit, revoke, or supersede, the engine validates a default-deny
+   Policy decision and obtains a durable Audit receipt bound to actor or pack-
+   namespace authority, exact transition, pack digest/version, expected catalog
+   generation, request fingerprint, and Policy receipt digest. Denial, outage,
+   forgery, expiry, or binding mismatch mutates nothing.
+11. Immediately before an admit compare-and-swap, the engine executes the
+   `<signer_revocation>` commit-authorization operation. The catalog mutation
+   requires and atomically persists its exact receipt. A lower version, reused
    version with another digest, stale expected generation, revoked signer,
    expired interval, or unsupported schema fails before `CANDIDATE` is durable.
-11. Only an `ADMITTED` immutable descriptor can be bound. Candidate cleanup may
+12. Revoke and supersede use the same Policy/Audit gate but do not mint new key-
+   use authority. They append a higher immutable catalog generation and never
+   rewrite the admitted receipt or descriptor.
+13. Only an `ADMITTED` immutable descriptor can be bound. Candidate cleanup may
    leak bounded work after failure; it cannot make the pack visible.
 
 Malformed includes truncation, trailing/duplicate canonical fields, oversized
@@ -244,12 +260,21 @@ CaC.
 
 ## Exact Cell interval and validity
 
-The only trusted time input is `cell_clock_api::Interval { earliest:
-SystemTime, latest: SystemTime, logical: u64 }` returned by an injected
-`cell_clock_api::Clock`. Compliance defines no clock trait, instant wrapper,
-interval DTO, midpoint, or caller request field for trusted time. The same
-exact Rust type crosses pack-auth, core, and facade composition; `logical`
-never turns the uncertain interval into a point timestamp.
+The only trusted time input is the exact Rust type:
+
+```text
+cell_clock_api::Interval {
+  earliest: SystemTime,
+  latest: SystemTime,
+  logical: u64,
+}
+```
+
+It is returned by an injected `cell_clock_api::Clock`. Compliance defines no
+clock trait, instant wrapper, interval DTO, midpoint, or caller request field
+for trusted time. The same exact Rust type crosses pack-auth, core, and facade
+composition; `logical` never turns the uncertain interval into a point
+timestamp.
 
 Signed `i64` Unix-millisecond endpoints convert to `SystemTime` by checked
 addition or subtraction from `UNIX_EPOCH`. The negative magnitude, duration,
@@ -280,6 +305,77 @@ discard uncertainty to manufacture acceptance.
 
 </trusted_time>
 
+<signer_revocation>
+
+## Linearizable signer commit authorization
+
+Resolution returns a `ResolvedKeyFence` containing namespace, key id and
+generation, key digest, observed revocation generation, verified preimage and
+payload digests, request fingerprint, key validity window, and the exact Cell
+interval used for verification. It proves what was checked; it does not fence a
+later revoke.
+
+After parsing, cryptographic verification, schema/Policy compilation checks,
+default-deny Policy authorization, and durable pre-ACK Audit, Compliance calls:
+
+```text
+TrustedKeyResolver::authorize_catalog_commit(
+  resolved_key_fence,
+  expected_catalog_generation,
+  policy_receipt_digest,
+  audit_receipt_digest,
+  current_cell_interval,
+)
+```
+
+The production Secrets provider linearizes this operation and key revocation in
+one per-key authoritative order. Success durably returns:
+
+```text
+KeyUseCommitReceipt {
+  namespace, key_id, key_generation, key_digest,
+  revocation_generation, key_use_ordinal,
+  preimage_digest, payload_digest, request_fingerprint,
+  expected_catalog_generation,
+  policy_receipt_digest, audit_receipt_digest,
+  authorized_interval,
+}
+```
+
+The receipt is usable only for that exact idempotent catalog compare-and-swap
+while the current Cell interval remains within both pack and key windows.
+Catalog state persists the complete receipt binding atomically with admission.
+
+The stable losing outcomes are:
+
+```text
+SignerCommitError::RevokedBeforeCommit
+SignerCommitError::StaleFence
+SignerCommitError::FenceExpired
+SignerCommitError::BindingMismatch
+SignerCommitError::ReceiptReplayMismatch
+SignerCommitError::AuthorityUnavailable
+```
+
+Each carries the key generation and observed/current revocation generation when
+available. If revocation linearizes first, authorization returns
+`RevokedBeforeCommit` and no catalog mutation is legal. If authorization
+linearizes first, the receipt is the admission operation's key-use
+linearization point; a later key revocation does not rewrite that immutable
+descriptor and uses a separately authorized/audited catalog revoke transition.
+A failed catalog CAS may retry the receipt only with the same fingerprint and
+expected generation; any changed binding is `ReceiptReplayMismatch`.
+
+Deterministic barriers exercise both orders: resolve → revoke → authorize must
+refuse, while resolve → authorize → revoke may commit only the receipt-bound
+generation. Process death before/after authorization, duplicate delivery,
+stale-generation retry, Cell-window expiry, forged receipt, and Secrets outage
+leave no ambiguous catalog state. L3 fakes model this total order; production
+evidence is unavailable until the L4 Secrets adapter proves the provider
+linearization contract.
+
+</signer_revocation>
+
 <classification_registry>
 
 ## Exact-type registry state machine
@@ -293,25 +389,32 @@ ABSENT -> PREPARED -> ACTIVE -> SUPERSEDED
                          \----> REVOKED
 ```
 
-1. Preparation validates the exact classification value, canonical label,
-   aliases, applicability, evidence obligations, source pack/schema/digest,
-   trusted interval, expected prior entry/registry generations, and the hard
-   limits above.
+1. Preparation first validates a default-deny Policy decision and durable Audit
+   receipt bound to actor, tenant/scope, `PREPARE`, exact classification and
+   source digest, expected entry/registry generations, and idempotency
+   fingerprint. It then validates the exact classification value, canonical
+   label, aliases, applicability, evidence obligations, source
+   pack/schema/digest, trusted interval, expected prior entry/registry
+   generations, and the hard limits above.
 2. Canonical labels and aliases are unique within the registry snapshot. An
    alias cannot identify two values or shadow another canonical label.
-3. One compare-and-swap publishes the immutable entry and advances the registry
+3. Activation obtains separate Policy and durable Audit receipts bound to
+   `ACTIVATE` and the prepared digest/generation. One compare-and-swap persists
+   those receipts, publishes the immutable entry, and advances the registry
    generation. The same idempotency key/fingerprint returns the same result;
    changed fingerprints conflict.
-4. Supersession or revocation publishes a higher entry and registry generation.
-   It never edits or deletes a prior entry and cannot activate a lower/equal
-   conflicting source version.
+4. Supersession or revocation independently obtains transition-bound Policy and
+   durable Audit receipts, then publishes a higher entry and registry
+   generation. It never edits or deletes a prior entry and cannot activate a
+   lower/equal conflicting source version.
 5. Bindings, projections, manifests, and exports name the exact registry
    generation used. A stale or missing generation fails before publication;
    old evidence remains verifiable against immutable history.
 
 Unknown classification values, duplicate/conflicting aliases, stale expected
 generations, invalid intervals, unsupported schemas, source-digest mismatch,
-and cross-tenant scope are typed failures with no mutation.
+cross-tenant scope, Policy denial/forgery/expiry, Audit outage, and a receipt
+bound to another transition are typed failures with no mutation.
 
 </classification_registry>
 
@@ -388,8 +491,12 @@ exact `cell_clock_api::Interval` from injected `Clock` where validity matters
 ```
 
 Missing, forged, expired, cross-tenant, stale, or ambiguous context fails before
-state change or response data. Tenant zero uses the same contract. Internal
-traffic uses mTLS; secret and key references are tenant-scoped and rotatable.
+state change or response data. Pack admit/revoke/supersede; registry prepare/
+activate/supersede/revoke; bind; projection publish; and export admission each
+require an operation/generation-bound Policy decision and durable pre-ACK Audit
+receipt. One transition's receipt cannot authorize another. Tenant zero uses
+the same contract. Internal traffic uses mTLS; secret and key references are
+tenant-scoped and rotatable.
 
 Admission is bounded by cell, tenant, operation, requests, bytes, concurrency,
 in-flight memory, parser work, projection fan-out, and export jobs. Catalog
@@ -424,12 +531,56 @@ become executable in the later persistence slice; they are not acceptance
 evidence for an in-memory lane.
 
 An early Gateway service registration is structurally disabled and cannot
-receive traffic. Activation requires the durable store and restore campaign,
-production pack/key, Policy, Audit source/sink, projection-target, export-store
-adapters, exact Cell clock composition, and their fail-closed outage evidence.
-No in-memory store or fake dependency satisfies that join.
+receive traffic. The CaS process may publish readiness or bind its internal
+listener only after declarative composition, durable restore, production pack/
+key, Policy, Audit source/sink, projection-target, export-store, exact Cell
+clock, and signer-fence checks pass. Activation additionally requires the same
+join and its fail-closed outage evidence. No in-memory store or fake dependency
+satisfies either gate, and process existence is not route eligibility.
 
 </persistence_and_recovery>
+
+<process_lifecycle>
+
+## CaS process boot and drain
+
+```text
+UNCOMPOSED -> RECOVERING -> READY -> DRAINING -> STOPPED
+       \-----------> FAILED <-----------/
+```
+
+`compliance-cas-app` starts from declarative cell configuration and accepts no
+CLI authority. `RECOVERING` validates config/version, constructs the accepted
+durable store and every Pack/Secrets, Policy, Audit, projection, export, Cell,
+and Connect adapter, completes restore, and proves the signer commit-fence
+operation. It binds the internal listener and publishes readiness only after all
+checks pass. Gateway registration remains independently disabled until L4a-R.
+
+Stable boot refusals are:
+
+```text
+ProcessBootError::Uncomposed
+ProcessBootError::MalformedConfiguration
+ProcessBootError::MissingAdapter
+ProcessBootError::RestoreUnready
+ProcessBootError::SignerFenceUnavailable
+ProcessBootError::ListenerBind
+ProcessBootError::DependencyLost
+ProcessBootError::DrainTimeout
+```
+
+Before readiness they produce no listener and a nonzero process result. After
+readiness, mandatory dependency loss atomically withdraws readiness, stops new
+admission, drains bounded in-flight work, and exits; it never switches to a fake
+or memory authority. Restart replays durable idempotency/receipt state before
+readiness. A second instance cannot bypass the catalog/store authority epoch.
+
+Contract tests cover cold start, every missing adapter, corrupt configuration,
+failed restore, signer-fence refusal, bind conflict, dependency loss at each
+request phase, cancellation, bounded drain timeout, process death before/after
+listener bind and mutation commit, restart replay, and stale instance fencing.
+
+</process_lifecycle>
 
 <observability>
 
@@ -442,7 +593,9 @@ coverage/gaps, Audit cursor lag, export age/bytes, recovery state, per-tenant
 work, and unit cost.
 
 The numeric objectives are in `PRD.md`. Their sole handwritten Rust IR lives in
-the accepted `compliance/ports/slo` package; only materializer-produced
+the accepted `compliance/ports/slo` package. The IR package has no materializer
+dependency; the accepted Observability materializer consumes it through the
+one-way Cargo/Buck edge frozen in `PLAN.md`. Only materializer-produced
 `*.generated.openslo.yaml` files may live under
 `compliance/observability/slos`. Aggregate throughput or current unit tests
 cannot substitute for tail latency, gap detection, isolation, restore, and
@@ -465,17 +618,21 @@ transport, and adapter decision lands.
   unknown-plane/dimension, digest-mismatched, unsigned, revoked, expired, and
   cross-namespace packs.
 - Lower versions, equal versions with different digests, stale expected
-  catalog/binding generations, rollback attempts, and concurrent bind/revoke.
+  catalog/binding generations, rollback attempts, concurrent bind/revoke, and
+  both signer resolve/revoke/commit linearization orders.
 - Process death before and after candidate, prepare, Audit receipt, active
   publication, projection target acknowledgement, manifest completion, export
   write, and export publication.
 - Lost, duplicated, delayed, and reordered Policy compiler, Audit source,
   projection target, and Storage export receipts.
-- Forged/expired authorization, cross-tenant identifiers, revoked keys, Cell
+- Forged/expired or transition-mismatched Policy/Audit evidence, cross-tenant
+  identifiers, revoked keys, Secrets fence outage/staleness/replay, Cell
   clock rollback/widening, checked Unix-ms overflow, intervals before/on/across
   inclusive/exclusive validity boundaries, Audit outage, and noisy tenants.
 - Corrupt snapshots, missing Audit ranges, schema N/N+1 and downgrade barriers,
-  quorum loss, cell loss, restore, and repeated replay.
+  quorum loss, cell loss, restore, repeated replay, malformed process
+  composition, cold-start dependency outage, listener bind failure, drain,
+  cancellation, and process death.
 
 Any malformed/stale admission, permit/forbid decision emitted by CaS,
 cross-tenant access, complete manifest with a gap, acknowledged binding loss,

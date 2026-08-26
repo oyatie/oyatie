@@ -178,6 +178,7 @@ compliance/facade/cas-app/Cargo.toml
 compliance/facade/cas-app/BUCK
 compliance/facade/cas-app/build.rs
 compliance/facade/cas-app/src/lib.rs
+compliance/facade/cas-app/src/main.rs
 Cargo.lock
 ```
 
@@ -193,6 +194,12 @@ exact sorted, missing/empty-tolerant, directory-rerun, fixed-output, Cargo/Buck-
 parity rule is the **L3c-S D-41 scanner contract** inherited by every later
 new Compliance package. Each structural family proves disposable Rust add,
 rename, removal, and non-Rust canaries in both graphs before behavior lands.
+The facade is the one D-8 process root: Cargo and Buck also build
+`compliance-cas-app` from `src/main.rs`. At this structural stage that file is a
+dependency-free, non-listening, non-ready stub which exits with the frozen
+`UNCOMPOSED` failure and contains no handler or configuration logic. L4a-P
+replaces only this stub after production composition exists; Gateway never
+loads the library as an in-process plugin.
 
 The five added local port package names are
 `compliance-policy-client-draft`, `compliance-evidence-source-draft`,
@@ -261,13 +268,15 @@ Pipeline/Buck, and architecture. This is D-29 because it binds agreed Data and
 Cell ports and freezes future provider-adapter seams.
 
 Success: both graphs expose the same eleven empty/scanner packages and
-dependency edges, every handwritten file is at or below 300 lines, the exact
-lock delta is fresh, and no product type, parser, limit, state transition, or
-route exists.
+dependency edges plus one non-serving facade binary; every handwritten file is
+at or below 300 lines, the exact lock delta is fresh, and no product type,
+parser, limit, state transition, listener, or route exists. Executing the stub
+returns `UNCOMPOSED` and cannot report readiness.
 
-Failure: behavior/tests land, dependency direction differs, core imports
-`aws-lc-rs`, a draft port gains an external consumer, a manual inventory is
-tracked, or the lockfile contains unrelated churn.
+Failure: semantic behavior/tests land, the stub listens or exits success,
+dependency direction differs, core imports `aws-lc-rs`, a draft port gains an
+external consumer, a manual inventory is tracked, or the lockfile contains
+unrelated churn.
 
 Rollback: remove the eleven unrouted packages and exact lock blocks.
 
@@ -288,8 +297,10 @@ compliance/ports/draft/pack-auth/src/items/a_contract.rs
 compliance/ports/draft/pack-auth/src/items/b_key_resolution.rs
 compliance/ports/draft/pack-auth/src/items/c_receipt.rs
 compliance/ports/draft/pack-auth/src/items/d_frame.rs
+compliance/ports/draft/pack-auth/src/items/e_commit_authorization.rs
 compliance/ports/draft/pack-auth/src/test_items/a_contract.rs
 compliance/ports/draft/pack-auth/src/test_items/b_golden_frame.rs
+compliance/ports/draft/pack-auth/src/test_items/c_revocation_order.rs
 compliance/ports/draft/cas/src/items/a_requests.rs
 compliance/ports/draft/cas/src/items/b_responses.rs
 compliance/ports/draft/cas/src/items/c_errors.rs
@@ -322,11 +333,13 @@ Freeze the records and typed errors from `SPEC.md`, exact
 SemVer, the complete tagged v1 frame/type/tag/enum/collection grammar,
 millisecond interval endpoints, SHA-256 payload/key/preimage derivations,
 32-byte trusted-key contract, 64-byte Ed25519 signature, key-resolution
-refusal, and immutable registry record. `pack-auth` defines both
+refusal, signer commit-fence records/outcomes, and immutable registry record.
+`pack-auth` defines both
 `TrustedKeyResolver` and `PackAuthenticator`; only an authenticator invocation
 can produce the receipt the core accepts. A caller-supplied receipt is not a
 request field. The five dependency ports freeze Policy compiler/decision
-evidence, verified Audit source references, durable pre-ACK Audit receipts,
+evidence, verified Audit source references, transition-bound durable pre-ACK
+Audit receipts,
 generation-bound projection acknowledgements, and immutable export receipts.
 L3 tests implement fakes only against these traits; core/facade packages may
 not hide substitute traits.
@@ -344,6 +357,14 @@ boundary, choosing a midpoint, truncating uncertainty, or replacing the Cell
 type with a local DTO is invalid. This slice does not perform cryptography.
 Protobuf is not added and the facade remains an owner-local semantic trait.
 
+`TrustedKeyResolver` also freezes `authorize_catalog_commit` exactly as
+`SPEC.md`: resolution evidence is not authority; the commit request binds the
+fence, expected catalog generation, Policy/Audit receipt digests, and current
+Cell interval; success carries a monotonic key-use ordinal. The stable
+`SignerCommitError` variants and idempotent receipt-replay rule are public
+contract. L3 fakes implement one per-key total order so both race outcomes are
+executable without claiming production Secrets authority.
+
 Cargo/Buck closure is all eleven L3c-S packages plus the exact
 `data-classification` and `cell-clock-api` targets; the empty auth adapter must
 still build so dependency drift is visible. No external reverse consumer is
@@ -358,15 +379,17 @@ freezes expected payload/key/preimage digest, public-key, and Ed25519-signature
 byte arrays for one deterministic seed; L3d-P performs the crypto comparison.
 Every tag/type/length/value byte has a one-byte corruption fixture;
 limit and limit-plus-one fixtures return stable errors before allocation/state;
-the exact classification and Cell interval types cross port/core/facade; every
-dependency fake implements a frozen local port; both build graphs run every
-scanner member.
+the exact classification and Cell interval types cross port/core/facade; both
+signer race orders return the exact receipt/refusal; every dependency fake
+implements a frozen local port; both build graphs run every scanner member.
 
 Failure: protobuf/JSON/YAML bytes become the preimage, a self-supplied key is
 trusted, a bound is configurable above its maximum, a second classification
 type appears, behavior imports the crypto adapter, or Cargo/Buck membership
 differs. A local clock type, caller-supplied trusted time, unchecked Unix-ms
 conversion, midpoint decision, or boundary-straddling acceptance also fails.
+A copied revocation generation, signer receipt without the Policy/Audit/
+catalog-generation binding, or changed-fingerprint replay also fails.
 
 Rollback: remove only these scanner-discovered files; the empty packages remain
 unrouted.
@@ -375,6 +398,9 @@ Fault evidence: truncation, duplicate/trailing fields, noncanonical ids/SemVer,
 unknown enums, overflow, every exact-limit/limit-plus-one pair, changed
 fingerprints, cross-namespace references, pre-epoch/overflowing timestamps,
 reversed/widened intervals, and intervals just below/on/across both boundaries.
+Signer fixtures force resolve-then-revoke and authorize-then-revoke orders,
+stale fences, expiry, binding mismatch, duplicate delivery, and authority
+outage.
 
 ## L3d-P — Cryptographic verification and pack admission oracle
 
@@ -391,43 +417,55 @@ compliance/facade/cas-app/src/test_items/d_pack_auth_composition.rs
 
 The adapter uses the already-admitted `aws-lc-rs` edge for SHA-256 and Ed25519
 verification and implements the owner-local `PackAuthenticator` trait. It
-invokes an injected `TrustedKeyResolver` from the same port and accepts only a
-result bound to namespace, key id/generation, key digest,
+invokes an injected `TrustedKeyResolver` from the same port and accepts only
+verification evidence bound to namespace, key id/generation, key digest,
 validity/revocation generation, and the exact trusted
 `cell_clock_api::Interval` supplied by composition. The engine
 invokes that port, validates the returned request/preimage/key binding, and
 enforces canonical framing, bounds, the L3c-C full-interval validity predicate,
-compiler-receipt shape through `policy-client`, catalog compare-and-swap, and
-lower/equal-conflicting/stale refusal. The facade composition selects the
+compiler-receipt shape plus default-deny transition authorization through
+`policy-client`, durable transition evidence through `audit-sink`, commit-time
+`authorize_catalog_commit`, catalog compare-and-swap, and lower/equal-
+conflicting/stale refusal. Admit, revoke, and supersede each bind their exact
+operation and expected generation; only admit consumes the signer receipt. The
+facade composition selects the
 aws-lc implementation and obtains time from an injected `cell_clock_api::Clock`
 but remains unrouted and has no production resolver until L4c. No request can
 inject a receipt or time value. Tests may inject fake authenticator, resolver,
-Policy client, or Clock implementations only through their frozen ports. This
+Policy client, Audit sink, or Clock implementations only through their frozen
+ports. This
 is not a production Secrets adapter or pack filesystem loader.
 
 Exact build closure is `pack-source`, `pack-auth`, `pack-auth-awslc`,
-`policy-client`, `evidence-domain`, `cas`, `cas-app`, `cell-clock-api`, and
+`policy-client`, `audit-sink`, `evidence-domain`, `cas`, `cas-app`,
+`cell-clock-api`, and
 their dependency targets under both graphs. There are no reverse consumers.
-Required reviewers are Compliance, Cell, Packs, Secrets/IAM security, Policy
-for the compiler-receipt boundary, and architecture. No manifest/lock/root/
-generated path changes; every file is at or below 300 lines.
+Required reviewers are Compliance, Cell, Packs, Secrets/IAM security, Policy,
+Audit, and architecture. No manifest/lock/root/generated path changes; every
+file is at or below 300 lines.
 
 Success: aws-lc digest/verification results for the production frame and the
 independent reference frame match every frozen golden digest/public-key/
 signature byte; golden valid envelopes admit deterministically. Malformed,
 oversized, unknown, unsigned, digest/signature-mismatched,
 untrusted/revoked/expired-key, unsupported-schema, stale, and conflicting
-versions mutate nothing. Checked pre-epoch conversion and intervals before,
-on, or straddling either pack/key boundary follow the frozen refusal matrix.
+versions, denied/forged/stale Policy decisions, Audit outage, transition-
+mismatched receipts, and revoke-before-commit mutate nothing. Checked pre-epoch
+conversion and intervals before, on, or straddling either pack/key boundary
+follow the frozen refusal matrix. Authorize-before-revoke can commit only the
+exact receipt-bound catalog generation and persists its key-use ordinal.
 
 Failure: another algorithm/preimage is accepted, parser work exceeds a hard
-bound, Policy evaluation appears, or a test key becomes production trust.
+bound, Policy evaluation appears, a catalog transition lacks Policy/Audit, a
+copied revocation generation reaches CAS, or a test key becomes production
+trust.
 
 Rollback: remove the six unique files; the contract/scaffold remains unrouted.
 
 Fault evidence: bit flips across every preimage field/signature/payload,
-key-generation races, revocation between resolve/admit, limit-plus-one, stale
-catalog generation, and concurrent conflicting admission.
+barrier-controlled resolve/revoke/authorize orderings, stale/expired/replayed
+fences, Secrets/Policy/Audit outage, forged or cross-transition receipts,
+limit-plus-one, stale catalog generation, and concurrent conflicting admission.
 
 ## L3d-R — Data-class registry state machine
 
@@ -444,25 +482,31 @@ applicability/evidence obligations, source pack/schema/digest, idempotency, and
 entry/registry compare-and-swap generations. No alternate enum/parser/wrapper
 is allowed. The 32-alias/64-byte/4,096-entry hard bounds apply.
 
+Every prepare, activate, supersede, and revoke transition consumes the frozen
+`policy-client` and `audit-sink` ports with operation, classification, source-
+digest, actor/tenant, idempotency, and expected-generation bindings before CAS.
 Cargo/Buck closure is `data-classification`, `cell-clock-api`, `pack-source`,
-`pack-auth`, `cas`, `evidence-domain`, and the empty auth adapter; no external
-reverse consumer or manifest/lock change. Required reviewers are Compliance,
-Data, Cell, Packs, Policy, and architecture. Both files are at or below 300
-lines.
+`pack-auth`, `policy-client`, `audit-sink`, `cas`, `evidence-domain`, and the
+empty auth adapter; no external reverse consumer or manifest/lock change.
+Required reviewers are Compliance, Data, Cell, Packs, Policy, Audit, and
+architecture. Both files are at or below 300 lines.
 
 Success: replay converges; stale/lower/equal-conflicting generations, duplicate
 or shadowing aliases, unknown classifications, invalid intervals, source-digest
-drift, and cross-tenant scope mutate nothing; historical generations remain
+drift, cross-tenant scope, Policy denial/forgery/staleness, Audit outage, and a
+receipt for another transition mutate nothing; historical generations remain
 addressable.
 
-Failure: type identity forks, aliases are ambiguous, old history is rewritten,
-or a projection can omit its registry generation.
+Failure: type identity forks, aliases are ambiguous, a privileged edge can CAS
+without both exact receipts, old history is rewritten, or a projection can
+omit its registry generation.
 
 Rollback: remove the two unique files; no external registry route/state exists.
 
 Fault evidence: concurrent prepare/activate/revoke, stale CAS, alias collision,
-pack supersession/revocation, idempotency fingerprint reuse, and exact bound
-edges.
+pack supersession/revocation, idempotency fingerprint reuse, denied/forged/
+expired Policy evidence, Audit outage, cross-transition receipt replay, and
+exact bound edges.
 
 ## L3d-B — Binding, projection, and evidence oracle
 
@@ -552,7 +596,11 @@ token swaps, exact bound edges, fake dependency outage, and queue saturation.
 ## L4 — Decision-gated production path
 
 L3 ends at an unrouted, in-memory oracle. The following are real remaining
-work, not deferred acceptance evidence for L3.
+work, not deferred acceptance evidence for L3. Every L4 handwritten non-exempt
+file is at or below 300 physical lines. No sub-hop is dispatchable without its
+exact success, failure, rollback, and stage-available fault evidence below;
+future persistence/provider/foreign faults stay unavailable until their named
+decision and implementation land.
 
 ### L4a — Protobuf/Connect and gateway publication
 
@@ -571,7 +619,13 @@ work, not deferred acceptance evidence for L3.
    handwritten generated file lands. This stage is non-dispatchable until the
    D-30 receipt records exact Cargo packages, Buck labels, all three outputs,
    Rust add/rename/remove/non-Rust plus proto add/remove/change canary parity,
-   reverse closure, and compatibility/removal.
+   reverse closure, and compatibility/removal. **Success:** both graphs produce
+   the same three outputs while the schema is absent and all existing scanner
+   canaries still pass. **Failure:** a second crate/schema, generated tracked
+   Rust, output drift, behavior, or unrelated lock movement. **Rollback:**
+   revert the three app build files, proto Buck target, and exact lock delta.
+   **Faults available:** Rust/proto add/remove/rename/non-Rust drift, missing
+   generator input, stale generated output, and incompatible generator version.
 2. **L4a-C frozen schema:** add only
    `compliance/facade/proto/compliance/cas/v1/cas.proto`, with protobuf package
    `compliance.cas.v1`. The accepted repository compatibility checker consumes
@@ -579,6 +633,12 @@ work, not deferred acceptance evidence for L3.
    L3c semantics and limits; it is never the pack-signing preimage. Protobuf
    API review freezes field identities, reserved numbers, pagination,
    idempotency, typed errors, compatibility, and retirement before behavior.
+   **Success:** generated descriptors preserve all L3 semantics and the accepted
+   compatibility checker passes. **Failure:** the file exceeds 300 lines,
+   signing uses protobuf bytes, a field is reused, or a second wire truth lands.
+   **Rollback:** remove this one unrouted schema. **Faults available:** missing/
+   unknown fields, limit-plus-one frames, incompatible field reuse, and proto
+   add/remove/change generator parity.
 3. **L4a-A Connect application binding:** add only
    `compliance/facade/cas-app/src/items/e_connect_service.rs` and
    `compliance/facade/cas-app/src/test_items/e_connect_service.rs`. The existing
@@ -586,7 +646,13 @@ work, not deferred acceptance evidence for L3.
    frozen semantic handlers. Public ingress is HTTP/3 and east-west ingress is
    HTTP/2 through the canonical Connect contract. No `tonic`, standing gRPC
    service/status/trailers, second semantic model, manifest, or lock delta is
-   allowed.
+   allowed. **Success:** every generated request reaches the existing semantic
+   handler with identical typed results under both graphs. **Failure:** either
+   transport bypasses auth/admission, handler semantics fork, or either file
+   exceeds 300 lines. **Rollback:** remove the two scanner files; schema/codegen
+   remain unrouted. **Faults available:** malformed frames, cancellation,
+   deadline, unknown version, forged tenant context, and generated/semantic
+   conversion mismatch.
 4. **L4a-G disabled registration:** after L4a-A, a separately dispatched D-29
    Gateway/IAM structural lane may register the accepted schema, service
    identity, and version metadata only in an explicit disabled state. Its
@@ -595,9 +661,36 @@ work, not deferred acceptance evidence for L3.
    reviewers. Disabled means no listener/VIP/path can select the handler and an
    accidental invocation fails closed before disclosure or mutation. This
    Compliance envelope grants no foreign path and the registration cannot
-   advertise service availability.
-5. **L4a-R route activation:** this provider-owned D-29 behavior lane is not
-   dispatchable after L4a-G alone. It joins on L4b-R durable recovery/restore
+   advertise service availability. **Success:** Gateway analysis resolves the
+   schema/service in a disabled state and every selection path refuses before a
+   handler call. **Failure:** a listener/VIP/path is selectable, Policy/audit is
+   optional, a foreign path is unnamed, or a touched handwritten file exceeds
+   300 lines. **Rollback:** revert only the exact provider registration files.
+   **Faults available:** accidental invocation, stale version, wrong audience,
+   disabled-state corruption, and missing schema/service identity.
+5. **L4a-P production process boot:** behavior is non-dispatchable until L4a-A/
+   G, L4b-R, every mandatory L4c behavior row, and exact Cell composition have
+   landed. Edit only the L3c-S structural stub
+   `compliance/facade/cas-app/src/main.rs` and add
+   `compliance/facade/cas-app/src/items/q_process_boot.rs` plus
+   `compliance/facade/cas-app/src/test_items/q_process_boot.rs`. No manifest,
+   build, lock, route, or foreign file changes. `main` accepts no CLI authority;
+   it loads declarative cell composition, verifies durable restore and every
+   adapter/fence, then binds the internal Connect listener and publishes
+   readiness. Loss of a mandatory dependency withdraws readiness and drains
+   admitted work before exit; it never substitutes an in-memory fake.
+   **Success:** the actual `compliance-cas-app` process cold-starts, serves only
+   after the complete join, drains deterministically, and keeps Gateway disabled.
+   **Failure:** a missing/corrupt config, failed restore, unavailable adapter,
+   stale signer fence, or bind error still produces readiness/listener state;
+   any of the three handwritten files exceeds 300 lines. **Rollback:** restore
+   the `UNCOMPOSED` main stub and remove the two unique scanner files, leaving
+   registration disabled. **Faults available:** malformed composition, every
+   adapter outage, restore failure, port bind conflict, cancellation, signal-
+   driven drain, process death before/after listener bind, and restart replay.
+6. **L4a-R route activation:** this provider-owned D-29 behavior lane is not
+   dispatchable after L4a-G alone. It joins on L4a-P process/readiness evidence,
+   L4b-R durable recovery/restore
    evidence and every required L4c adapter behavior row: pack source, trusted-
    key resolution, Policy client, Audit evidence source, pre-ACK Audit sink,
    all three projection targets, and Storage export. The join also requires
@@ -608,14 +701,23 @@ work, not deferred acceptance evidence for L3.
    adapter-outage tests. Any missing/unavailable dependency keeps the route
    disabled; no fake or in-memory authority can satisfy the join. Activation
    makes only a declared pre-production cell eligible for fault/SLO trials;
-   L4d-O remains the separate gate for production tenant promotion.
+   L4d-O remains the separate gate for production tenant promotion. **Success:**
+   one declared pre-production cell admits the ordinary tenant contract only
+   while both process readiness and the full dependency join are current.
+   **Failure:** stale readiness, missing adapter/restore evidence, private route,
+   auth/audit after handler logic, or any over-300-line handwritten foreign
+   edit. **Rollback:** restore the exact disabled registration without changing
+   process/state formats. **Faults available:** every adapter outage, readiness
+   withdrawal race, Gateway restart, version rollback, mTLS/Policy/Audit
+   failure, quota saturation, and route-cache staleness.
 
 Required reviewers: Compliance, Gateway, IAM/Policy, Audit, API compatibility,
-Connect/codegen owner, security, and architecture. Promotion fails on a second
+Connect/codegen owner, security, and architecture. Every handwritten Rust and
+proto file in L4a is at or below 300 lines. Promotion fails on a second
 semantic model, JSON SSOT, gRPC/tonic substitute, private tenant-zero route, or
 auth/audit after handler logic. L4a-S, L4a-C, L4a-A, and disabled L4a-G are
-ordered; L4a-R waits for the L4b/L4c/Cell join. None shares a structure,
-behavior, or foreign-owner write.
+ordered; L4a-P waits for the L4b/L4c/Cell join and L4a-R follows its process
+evidence. None shares a structure, behavior, or foreign-owner write.
 
 ### L4b — Durable records, recovery, and restore
 
@@ -645,7 +747,13 @@ non-dispatchable.
    `lib.generated.rs` / `tests.generated.rs` outputs, equivalent Buck
    `buildscript_run` inputs, and disposable add/rename/remove/non-Rust parity
    evidence. The lock adds exactly two local blocks/edges and no provider or
-   third-party version.
+   third-party version. **Success:** both graphs expose the two empty packages
+   and exact three-edge closure with no behavior or draft external consumer.
+   **Failure:** a Data core/draft edge, generic-records fork, behavior, scanner
+   drift, or unrelated lock movement. **Rollback:** remove only the two roots,
+   four consumer graph files, and exact two-block lock delta. **Faults
+   available:** scanner add/rename/remove/non-Rust parity, old/wrong provider
+   labels, reversed edges, and one-graph-only dependencies.
 2. **L4b-C persistence behavior:** add only
    `compliance/ports/draft/catalog-store/src/items/a_contract.rs`,
    `compliance/ports/draft/catalog-store/src/test_items/a_contract.rs`,
@@ -655,24 +763,36 @@ non-dispatchable.
    `compliance/core/evidence-domain/src/test_items/i_durable_repository.rs`,
    `compliance/facade/cas-app/src/items/f_durable_composition.rs`, and
    `compliance/facade/cas-app/src/test_items/f_durable_composition.rs`.
-   Contract suites prove atomic generations, idempotency, durable receipt
-   binding, encryption references, and refusal before the routed facade.
+   Contract suites prove atomic generations, idempotency, durable Policy/Audit/
+   signer-receipt binding, encryption references, and refusal before the routed
+   facade. **Success:** every catalog/registry/binding/projection/manifest
+   transition survives adapter round trips with one commit ordinal and exact
+   receipts. **Failure:** acknowledgement before durable CAS, receipt loss,
+   cross-tenant state, behavior outside the unique files, or any handwritten
+   file above 300 lines. **Rollback:** remove only these eight scanner files;
+   the empty persistence seam stays unrouted. **Faults available:** transaction
+   abort, duplicate/reordered CAS, stale generation, idempotency mismatch,
+   encryption-reference mismatch, adapter timeout, and cancellation.
 3. **L4b-R recovery:** add only
    `compliance/adapters/draft/catalog-store-data/src/items/b_snapshot_restore.rs`,
    `compliance/adapters/draft/catalog-store-data/src/test_items/b_snapshot_restore.rs`,
    `compliance/core/evidence-domain/src/items/m_recovery.rs`,
    `compliance/core/evidence-domain/src/test_items/j_recovery.rs`,
    `compliance/facade/cas-app/src/items/g_recovery_gate.rs`, and
-   `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. It proves
-   process-death/durable-barrier, corrupt WAL/snapshot quarantine, quorum loss,
-   point-in-time restore, N/N+1 format, downgrade barriers, and cell loss.
+   `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. **Success:** it
+   proves process-death/durable-barrier, corrupt WAL/snapshot quarantine, quorum
+   loss, point-in-time restore, N/N+1 format, downgrade barriers, cell loss, and
+   RPO 0 within the declared tolerance before process readiness. **Failure:**
+   ambiguous/corrupt state serves, a lower generation repairs history, restore
+   is unverified, readiness precedes recovery, or a handwritten file exceeds
+   300 lines. **Rollback:** remove only these six scanner files and keep the
+   route/process unready. **Faults available:** death at every durable boundary,
+   torn/corrupt WAL and snapshot, missing generation, quorum/cell loss, replay,
+   N/N+1, downgrade, and restore interruption.
 
 Required reviewers are Compliance, Data, Cell, Secrets, Audit, security, and
-architecture. Success requires RPO 0 within the declared tolerance and an
-independently verified restore; failure or an unpromoted/draft provider keeps
-the service unrouted. Each stage is independently revertible; L4b-S removes
-only the two packages/graph delta, while later rollback removes only its unique
-scanner files.
+architecture. Every handwritten Rust file is at or below 300 lines. Failure or
+an unpromoted/draft provider keeps the process unready and service unrouted.
 
 ### L4c — Production owner adapters
 
@@ -700,7 +820,7 @@ out of core/facade after the fact.
    | Local port | Exact adapter package root | App prefix | Provider decision/review owners |
    |---|---|---:|---|
    | `pack-source` | `compliance/adapters/draft/pack-source-repository` | `h_pack_source_repository` | Repository/Packs, Compliance, security, architecture |
-   | `pack-auth` (`TrustedKeyResolver`) | `compliance/adapters/draft/pack-auth-secrets` | `i_pack_auth_secrets` | Secrets, Packs, Compliance, security, architecture |
+   | `pack-auth` (`TrustedKeyResolver`) | `compliance/adapters/draft/pack-auth-secrets` | `i_pack_auth_secrets` | Secrets per-key resolve/revoke/authorize authority, Packs, Compliance, security, architecture |
    | `policy-client` | `compliance/adapters/draft/policy-client-policy` | `j_policy_client` | IAM/Policy, Compliance, architecture |
    | `evidence-source` | `compliance/adapters/draft/evidence-source-audit` | `k_evidence_source` | Audit, Compliance, security, architecture |
    | `audit-sink` | `compliance/adapters/draft/audit-sink-audit` | `l_audit_sink` | Audit, Compliance, security, architecture |
@@ -711,7 +831,18 @@ out of core/facade after the fact.
 
    A row is non-dispatchable until its receipt records the provider's exact
    Cargo/Buck target, target/reverse closure, compatibility/removal policy, and
-   named reviewers. No table row grants a foreign write or provider-core edge.
+   named reviewers. For `pack-auth-secrets`, that receipt must freeze the one
+   provider operation which serializes `authorize_catalog_commit` with revoke,
+   its durable ordinal/receipt, idempotent retry, and typed outage/stale/revoked
+   outcomes; a read-only key lookup is insufficient. No table row grants a
+   foreign write or provider-core edge. **Per-row success:** both graphs expose
+   one empty adapter with exactly the two provider edges and app edge.
+   **Per-row failure:** provider-core/draft access, one-graph-only edge,
+   behavior, manual inventory, or unrelated lock/version movement. **Per-row
+   rollback:** remove that four-file root, two app graph files, and its exact
+   lock block/edges. **Per-row faults available:** scanner add/rename/remove/
+   non-Rust parity, wrong/reversed provider labels, missing reverse target, and
+   duplicate provider selection.
 2. **L4c-A-C adapter behavior:** after a row's L4c-A-S structure merges, add only
    scanner-discovered `<adapter>/src/items/a_adapter.rs`,
    `<adapter>/src/test_items/a_contract.rs`, and the exact
@@ -719,6 +850,18 @@ out of core/facade after the fact.
    `compliance/facade/cas-app/src/test_items/<app-prefix>.rs` from that row. Its
    provider conformance suite must prove tenant/generation/receipt binding,
    idempotent replay, loss/duplication/reorder, timeout, and fail-closed outage.
+   Every handwritten file is at or below 300 lines. **Per-row success:** the
+   adapter translates the frozen local use case to the accepted provider with
+   exact result/error identity and the process readiness join recognizes it.
+   **Per-row failure:** fallback, receipt weakening, cross-tenant conversion,
+   acknowledgement during outage, process-ready without the adapter, graph
+   change, or over-budget file. **Per-row rollback:** remove exactly the four
+   scanner files for that row and withdraw readiness; its empty package remains.
+   **Per-row faults available:** provider outage/timeout/cancellation, loss,
+   duplicate, reorder, stale generation, forged receipt, tenant swap, and
+   restart replay. The Secrets row additionally forces both revocation/
+   authorization orders, stale/expired/replayed fences, and process death after
+   key-use authorization but before catalog CAS.
 
 Trusted time uses the L3c-S exact `cell-clock-api` Cargo/Buck edge directly;
 `cas-app` injects `cell_clock_api::Clock` and passes its exact `Interval`
@@ -735,14 +878,23 @@ Handwritten Rust never lives under `observability/slos`. Sequence is:
 1. **L4d-S canonical IR port:** after Observability and Pipeline accept the
    provider contract, create exactly
    `compliance/ports/slo/{Cargo.toml,BUCK,build.rs,src/lib.rs}` as package
-   `compliance-slo`, plus the sole `Cargo.lock` block. Its D-30 receipt freezes
-   the exact accepted materializer target and reverse closure; this stage is
-   non-dispatchable before that decision. It contains structure only and
+   `compliance-slo`, plus its sole `Cargo.lock` block. Its D-29/D-30 receipt
+   accepts the exact downstream target
+   `//observability/adapters/compliance-slo-openslo:observability-compliance-slo-openslo`
+   and Pipeline as executor/reviewer; this stage is non-dispatchable before
+   those owners accept that contract. It contains structure only and
    inherits the complete L3c-S D-41 contract: sorted missing/empty-tolerant
    item/test-item scans, directory rerun, fixed `lib.generated.rs` /
    `tests.generated.rs`, equivalent Buck staging/`buildscript_run`, and
-   disposable add/rename/remove/non-Rust membership parity. The lock adds one
-   local block plus only the accepted materializer edge.
+   disposable add/rename/remove/non-Rust membership parity. The lock adds
+   exactly one dependency-free local `compliance-slo` block: the IR has no
+   materializer dependency and no reverse edge is written in a Compliance
+   manifest. **Success:** an empty agreed IR package builds in both graphs with
+   identical scanner membership. **Failure:** any materializer/provider edge
+   enters the IR, behavior lands, a graph differs, or unrelated lock/version
+   movement occurs. **Rollback:** remove only the four-file root and one local
+   lock block. **Faults available:** scanner parity, wrong/reversed dependency
+   canaries, and forbidden materializer-edge analysis.
 2. **L4d-C bounded IR behavior:** add only
 
    ```text
@@ -757,19 +909,66 @@ Handwritten Rust never lives under `observability/slos`. Sequence is:
    The IR is the sole hand-edited Compliance SLO source and freezes bounded-cell
    capacity/admission profiles, metric identity, units/windows, queue/unit-cost
    signals, recovery objectives, and promotion gates. No materialized file is
-   edited here.
-3. **L4d-M materialization:** a separately dispatched D-29 Pipeline/
-   Observability lane changes only its accepted provider-owned integration
-   files and consumes `compliance-slo`. The repository materializer, never an
-   author, writes exactly
+   edited here. Each file is at or below 300 lines. **Success:** exact PRD
+   objectives and units round-trip through a bounded, versioned IR under both
+   graphs. **Failure:** YAML becomes authoring truth, an unbounded collection or
+   second objective identity appears, graph files change, or a file exceeds the
+   budget. **Rollback:** remove these six scanner files while leaving the empty
+   port. **Faults available:** exact/limit-plus-one objectives, invalid units/
+   windows, overflow, duplicate metric identity, and incompatible IR version.
+3. **L4d-M-S provider materializer structure:** a separate Observability-owned
+   D-29/D-30 sole-lock lane creates exactly
+   `observability/adapters/compliance-slo-openslo/{Cargo.toml,BUCK,build.rs,src/lib.rs}`
+   as package `observability-compliance-slo-openslo` and applies its one exact
+   `Cargo.lock` block. Both graphs encode only
+   `observability-compliance-slo-openslo <- compliance-slo`; neither
+   `compliance-slo` manifest/Buck file is touched and there is no reverse/cyclic
+   edge. The new package inherits the L3c-S scanner outputs and canaries.
+   Build closure is those two exact targets; reverse Rust closure is empty,
+   because Pipeline invokes the accepted Buck materialization target rather
+   than linking a second library. Reviewers are Compliance, Observability,
+   Pipeline, API/IR compatibility, and architecture. **Success:** the empty
+   provider target and one-way edge analyze identically. **Failure:** an IR-to-
+   materializer edge, third package, behavior, manual inventory, or unrelated
+   lock change. **Rollback:** remove the provider root and its one block/edge.
+   **Faults available:** old/wrong/reversed labels, one-graph-only edge, scanner
+   drift, and duplicate target creation.
+4. **L4d-M-C provider materializer behavior:** after M-S, add only
+   `observability/adapters/compliance-slo-openslo/src/items/a_materializer.rs`
+   and
+   `observability/adapters/compliance-slo-openslo/src/test_items/a_contract.rs`.
+   Both handwritten files are at or below 300 lines. The neutral encoder accepts
+   only `compliance-slo` v1 and deterministically emits the six bounded OpenSLO
+   documents; it owns no Compliance objective. **Success:** independent golden
+   encoding and permutation tests produce byte-identical outputs. **Failure:**
+   author YAML is read, unknown IR is guessed, output escapes the six paths,
+   graph changes, or a file exceeds budget. **Rollback:** remove the two unique
+   files. **Faults available:** truncation, unknown version/unit, reordered IR,
+   duplicate objective, limit-plus-one, output-path traversal, and partial emit.
+5. **L4d-M-G generated publication:** Pipeline invokes the accepted M-C Buck
+   target and the repository materializer, never an author, writes exactly
    `compliance/observability/slos/{cas-availability,cas-latency,projection-freshness,evidence-coverage,durability-recovery,tenant-isolation}.generated.openslo.yaml`.
    Cargo/Buck freshness and generator canaries prove those six outputs derive
-   from the IR. The 13 handwritten files burned in L3b stay absent.
-4. **L4d-O operations/promotion:** separately accepted Cell/Observability/
+   from the IR. The 13 handwritten files burned in L3b stay absent. **Success:**
+   clean regeneration is byte-identical and freshness passes. **Failure:** a
+   handwritten/non-generated file, stale output, seventh path, partial publish,
+   or input other than the IR is accepted. **Rollback:** remove the six outputs;
+   the IR/materializer remain valid and regeneration restores them. **Faults
+   available:** stale/missing/extra output, interrupted atomic publish, planted
+   golden mismatch, and destination escape.
+6. **L4d-O operations/promotion:** separately accepted Cell/Observability/
    deployment envelopes add metrics/traces/logs, reconciled snapshot/restore
    runbooks, mixed-version upgrade/rollback barriers, repair/reconciliation,
    regional evacuation, and recurring fault campaigns. Exact foreign files and
-   reviewers are named by those D-29 receipts; this plan grants none.
+   reviewers are named by those D-29 receipts; this plan grants none and O is
+   non-dispatchable before them. **Success:** every PRD objective is measured at
+   the sold facade under steady/noisy/fault load and recurring restore/upgrade/
+   evacuation campaigns pass. **Failure:** missing signal/owner/runbook,
+   unmeasured claim, failed recovery/adapter campaign, or over-budget handwritten
+   file. **Rollback:** withdraw production eligibility and revert only the exact
+   provider-owned operational envelope; do not roll back durable formats.
+   **Faults available:** every PRD/fault-model campaign plus telemetry loss,
+   alert delay, runbook cancellation, and regional evacuation reversal.
 
 Production promotion requires all PRD SLOs measured at the sold facade under
 steady/noisy/fault load; signed pack/key rotation; registry replay; projection
@@ -797,13 +996,19 @@ certification, or compliance-conformance claim is valid.
   behavior/foreign-owner hops. L4b structure precedes persistence behavior and
   recovery. L4c provider adapters serialize only their structure/lock hops and
   then fan out on unique behavior files because their local ports already froze
-  in L3. L4a-R activation waits at the join of L4b-R, every mandatory L4c
-  adapter behavior, and Cell interval evidence; it never precedes them. L4d IR
-  structure precedes IR behavior, provider-owned materialization, and
-  operations. Every new L4 Rust package explicitly inherits the L3c-S D-41
+  in L3. L3c-S creates the non-serving D-8 `src/main.rs`; L4a-P alone replaces
+  that stub after L4b-R, every mandatory L4c adapter behavior, and Cell interval
+  evidence. L4a-R activation follows process boot/readiness and never precedes
+  it. L4d IR structure precedes IR behavior, the separate one-way Observability
+  materializer structure/behavior, generated publication, and operations. Every
+  new L4 Rust package explicitly inherits the L3c-S D-41
   scanner/Buck/canary contract; L4a codegen preserves the two existing scanner
   outputs while adding its third. Cross-owner work is never inferred from a
   Compliance path allowance.
+- `compliance-slo` never depends on its materializer. L4d-S owns only the
+  dependency-free IR block; L4d-M-S separately owns the exact
+  `observability-compliance-slo-openslo <- compliance-slo` block/edge. Those are
+  two serialized lock writers and no Compliance PR writes an Observability path.
 - Any root `packs/`, Data, Audit, Storage, Cell, IAM/Policy, Secrets, Gateway,
   Observability, deployment, protobuf-root, generated, or foreign consumer
   write needs a separately dispatched exact D-29/D-30 envelope and named
