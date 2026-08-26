@@ -45,7 +45,7 @@ buildscript_run(
 
 _DEPS = [
     "//cell/ports/location:cell-location",
-    "//compute/core/resource:compute-resource",
+    "//compute/ports/resource-metadata:compute-resource-metadata",
     "//data/ports/classification:data-classification",
     "//network/core/residency:network-residency",
     "//secrets/ports/kms:secrets-kms",
