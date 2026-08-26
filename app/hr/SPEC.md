@@ -354,27 +354,34 @@ those stated here. Checked `u64` accounting rejects an overlong component or a
 complete preimage over 288 KiB before any PRF call. The accepted L2i.0d PRF
 authenticates these bytes without parsing or rewriting them.
 
-V1 writers remain the only writers until a later accepted V2 decision records
-a format barrier. An N+1 reader MUST read V1 plus its own V2; an N reader seeing
-V2 returns `CanonicalFormatUnsupported` and never guesses equality. Before any
-row lookup, `ReplayGenerationSetV1` supplies an authenticated, bounded matrix
-of admitted canonical-format versions for each active/draining generation. One
-typed semantic command is encoded once for every distinct format in that matrix,
-then a candidate is derived for every `(generation, format)` matrix entry. Thus
-stored format/version discovery is not circular: a V2 retry derives the V1
-candidate that can locate a retained V1 row before the row selects the V1
-reader for the in-memory comparison. The v1 matrix permits at most two sorted
-distinct formats, at most two sorted entries per generation, at most two
-generations, and therefore at most four derivations. A missing/duplicate/
-unreadable format, a format absent from its generation's authenticated matrix,
-or more than these bounds is a closed replay refusal. A V3 writer cannot enter
-a cohort until every repository under the keyring has durably crossed the V1
-compatibility-retirement barrier: no retained V1 canonical request or
-generation-scoped V1 blind index remains, all epoch-eligible readers support
-V2/V3, and the provider has issued the matching retirement receipt. Golden
-vectors fix every byte above and prove transport-field reordering and
-absent/default-equivalent optionals produce the same bytes, while every changed
-semantic field produces different bytes.
+The executable baseline admits and writes only format `u16be(1)`.
+`ReplayGenerationSetV1.active_writer_format` is therefore exactly `1`, and each
+returned generation entry has exactly `[1]` as its sorted canonical-format list.
+Before any row lookup, the repository encodes the typed semantic command once as
+`CanonicalRequestV1` and obtains one candidate per active/draining generation
+from that entry's returned opaque authority. Two generations therefore permit at
+most two V1 derivations; the broader two-formats/four-derivations ceiling is not
+enabled by V1. A missing, duplicate, unreadable, or non-V1 format is a closed
+`CanonicalFormatUnsupported` refusal, never a guessed equality or a zero-match
+creation.
+
+`V1FormatEvolutionBarrier` is a future admission condition, not an executable V2
+codec or an implied V2 retry. No V2 format may appear in a generation set, be
+chosen by a writer, be required by replay/rekey, or be named in a V1 test until a
+separately accepted owner decision and structural/content lane graph defines all
+of: the V2 semantic fields and byte grammar; an independent encoder oracle or
+fixed external fixtures distinct from the production encoder; provider-authoritative
+active-writer-format and reader-cohort admission values; bounded format-admission
+CAS and repository migration evidence; an authenticated per-repository format-
+retirement receipt; and the exact Cargo/Buck paths/tests. That future decision may
+admit only V1+one new format, requires an N+1 reader to retain the V1 reader
+through the admitted overlap, and may retire V1 only after every snapshot-bound
+repository proves no retained V1 canonical request or V1 blind index, every
+epoch-eligible reader admits the successor, and the provider issues the matching
+retirement receipt. A third format remains prohibited until the oldest retired
+format has that complete evidence. Golden vectors fix every V1 byte above and
+prove transport-field reordering and absent/default-equivalent optionals produce
+the same bytes, while every changed semantic field produces different bytes.
 
 ### HR staged-write descriptor v1
 
@@ -469,13 +476,13 @@ omitted, duplicated, reordered, padded, or normalized; fixed-width payloads
 with any other length fail `CommitBindingFormatInvalid` before provider
 authorization. Checked `u64` accounting rejects a complete preimage over 96
 KiB. The provider treats the complete bytes as opaque. SQLite stores descriptor
-format/version and binding with its receipt. N/N+1 reader and writer barriers
-match `CanonicalRequestV1`; an unsupported descriptor keeps recovery and
+format/version and binding with its receipt. Schema N/N+1 reader and writer
+barriers retain `CanonicalRequestV1`; an unsupported descriptor keeps recovery and
 readiness closed. Independent Cargo and Buck encoders share only typed semantic
 inputs and fixed vector fixtures, never a preimage encoder: both assert exact
 full-preimage bytes (including domain, count, tags, lengths, and payloads), not
 only descriptor bytes. Their vectors cover every component, changed purpose,
-N/N+1 dispatch, a reordered or omitted outer component, and every exact and
+schema N/N+1 dispatch, a reordered or omitted outer component, and every exact and
 limit-plus-one component and total bound; deliberately divergent typed input or
 encoder output must fail the independent-vector comparison.
 
@@ -489,26 +496,29 @@ key. Processing is:
 1. Validate syntax, tenant binding, verified authorization, and overlay
    generation without mutation.
 2. Evaluate the deterministic domain command.
-3. Encode the typed semantic command in every distinct format admitted by the
-   provider-authenticated, repository-epoch-bound `ReplayGenerationSetV1`.
-   The exact `AcquireReplayGenerationSetV1` result contains the active generation
-   and, only during normal drain, its immediately prior draining generation;
-   sorted generation state, lease, rotation-fence id, authenticated per-
-   generation format matrix, and opaque generation-scoped PRF authority are
-   all in that one result. The provider returns neither a stable locator nor an
-   arbitrary historical generation. A missing, revoked, malformed, stale, or
-   oversized set is `ReplayGenerationSetUnavailable` and admits no mutation.
-4. Before opening SQLite, derive one `CanonicalRequestReplayV1` candidate for
-   every returned `(generation, format)` entry using the exact full preimage
-   above and that entry's opaque PRF authority. The hard bound is two
-   generations × two formats = four derivations and four fixed-width
-   candidates; the complete matrix is derived before any candidate is selected.
-   Begin one `BEGIN IMMEDIATE` SQLite writer transaction, validate repository
-   epoch, lease, matrix digest, and rotation-fence id, and query only these
-   candidates. The query reads at most five rows solely to distinguish zero,
-   one, and multiple matches; it opens no row while multiple candidates match.
+3. Encode the typed semantic command once as `CanonicalRequestV1`, then acquire
+   the provider-authenticated, repository-epoch/fence/membership-bound
+   `ReplayGenerationSetV1`. Its exact result contains the active generation and,
+   only during normal drain, its immediately prior draining generation; sorted
+   generation state, lease, rotation-fence id, immutable membership snapshot,
+   active writer format `1`, and opaque generation-scoped PRF authority are all
+   in that one result. The provider returns neither a stable locator nor an
+   arbitrary historical generation. A missing, revoked, malformed, stale,
+   unregistered, or oversized set is `ReplayGenerationSetUnavailable` and
+   admits no mutation.
+4. Before opening SQLite, call `derive_replay_candidate_v1` once for every
+   returned generation, passing that generation's opaque authority and the
+   already-encoded V1 bytes. The repository supplies no raw PRF authority,
+   caller-selected generation, or caller-selected format to `blind_index`.
+   The hard V1 bound is two derivations and two fixed-width candidates; both are
+   derived before any candidate is selected. Begin one `BEGIN IMMEDIATE` SQLite
+   writer transaction, validate repository epoch, lease, matrix digest,
+   rotation-fence id, membership snapshot id/version, and active writer format,
+   and query only these candidates. The query reads at most five rows solely to
+   distinguish zero, one, and multiple matches; it opens no row while multiple
+   candidates match.
 5. Zero matches may reserve a new entry only with the lease's active-generation
-   candidate for the active writer format. Exactly one match must authenticate
+   V1 candidate. Exactly one match must authenticate
    and open its envelope using recorded generation and associated data, select
    the request's candidate bytes for that row's recorded format, then constant-
    time compare complete canonical plaintext bytes in memory. Ciphertext bytes,
@@ -563,74 +573,170 @@ The SQLite format permits cleartext only for schema/migration version, opaque
 row identity, bounded timestamps and counters, ciphertext-envelope metadata,
 and keyed blind indexes. Employee, person, manager, evidence, policy, pack,
 lifecycle, canonical request, stored outcome, and audit/outbox payload values
-are sensitive and must never be stored as cleartext. The
-final `hr-record-encryption-draft` port exposes bounded `seal`, `open`,
-`blind_index`, `commit_binding`, `acquire_repository_epoch`,
-`acquire_replay_generation_set`,
-`list_unresolved`, `authorize_commit`, and idempotent `resolve_commit`
-plus `begin_normal_rotation`, `list_incomplete_rotations`, `bind_rekey_checkpoint`,
-`verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` operations
-over HR-owned values. Its envelope contains an
-algorithm identifier, provider/key reference, monotonically ordered key
-generation, unique nonce, ciphertext, and authentication tag; provider or
-cipher types do not cross the port. A blind index is a fixed-width keyed PRF
-output scoped exactly to the detailed
+are sensitive and must never be stored as cleartext. The final
+`hr-record-encryption-draft` port exposes bounded `seal`, `open`, `blind_index`,
+`commit_binding`, `acquire_repository_epoch`, `acquire_replay_generation_set_v1`,
+`derive_replay_candidate_v1`, keyring-membership operations, `list_unresolved`,
+`authorize_commit`, and idempotent `resolve_commit` plus
+`begin_normal_rotation_v1`, `list_incomplete_rotations`, `bind_rekey_checkpoint`,
+`verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` over
+HR-owned values. Its envelope contains an algorithm identifier, provider/key
+reference, monotonically ordered key generation, unique nonce, ciphertext, and
+authentication tag; provider or cipher types do not cross the port. A blind
+index is a fixed-width keyed PRF output scoped exactly to the detailed
 `(repository, tenant, operation kind, idempotency key, schema version,
 canonical-format version, key generation)` order plus the fixed
 `CanonicalRequestReplayV1 = u16be(1)` purpose tag and
 `hr.people.blind-index/canonical-request/v1\0` domain above, with the canonical-
 request bytes as the PRF message. The exact full preimage is the nine-component
-SPEC grammar, not an adapter-specific field label. Length-prefixing and domain separation are canonical; it
-permits equality only inside that logical replay slot and never permits cross-
-tenant, cross-operation, or cross-idempotency-key matching. The accepted
-primitive, encoding, and width are decision-gated at L2i.0d.
+SPEC grammar, not an adapter-specific field label. Length-prefixing and domain
+separation are canonical; it permits equality only inside that logical replay
+slot and never permits cross-tenant, cross-operation, or cross-idempotency-key
+matching. After L2i.0g, a repository MUST NOT invoke `blind_index` directly for
+replay lookup: `derive_replay_candidate_v1` is the only replay-candidate edge.
+The accepted primitive, encoding, and width are decision-gated at L2i.0d.
 
 `AcquireReplayGenerationSetV1` is the sole executable provider-truth edge for
-replay. Its exact request is
+replay; its Rust port method is `acquire_replay_generation_set_v1`. Its exact request is
 `{ repository_id: OpaqueBytes<=256, repository_epoch: u64, replay_contract: u16be(1) }`;
 its successful result is
 `ReplayGenerationSetV1 { repository_id, repository_epoch, lease_id:
-OpaqueBytes<=128, matrix_digest: FixedBytes, rotation_fence_id:
-OpaqueBytes<=128, keyring_id: OpaqueBytes<=128, entries }`. `entries` is one
+OpaqueBytes<=128, matrix_digest: FixedBytes<=64, rotation_fence_id:
+OpaqueBytes<=128, keyring_id: OpaqueBytes<=128, membership_snapshot_id:
+OpaqueBytes<=128, membership_version: u64, repository_member_instance_id:
+OpaqueBytes<=128, active_writer_format: u16be(1), entries,
+provider_authenticator: OpaqueBytes<=512 }`. `entries` is one
 or two ascending, distinct `ReplayGenerationAuthorityV1` values:
-`{ generation: u64, state: Active | Draining, canonical_formats: [u16; 1..=2],
+`{ generation: u64, state: Active | Draining, canonical_formats: [u16be(1)],
 replay_prf_authority: OpaqueBytes<=256 }`. The set has exactly one `Active`, at
-most one `Draining`, no `Revoked`/`EmergencyDraining` entry, at most two distinct
-format versions across all entries, and at most four `(generation, format)`
-derivations. `blind_index` accepts only one returned `replay_prf_authority` for
-one matrix entry and the already-fixed full preimage; it cannot derive a
-candidate for a caller-selected generation or format. The closed error is
-`ReplayGenerationSetError::{RepositoryEpochStale, RotationFenceStale,
-LeaseStale, GenerationSetMalformed, GenerationSetTooLarge,
-GenerationStateInvalid, FormatMatrixInvalid, NormalRotationBlocked,
-ProviderUnavailable, ProviderCorrupt}`. The result is provider-authenticated
-and repository/epoch/fence-bound; the SQLite repository calls this port before
-lookup, validates it inside its writer transaction, and has no alternate cache,
-database narration, or provider-internal import. The key-service adapter
-implements this call against its accepted facade but has no repository runtime
-edge.
+most one `Draining`, no `Revoked`/`EmergencyDraining` entry, and at most two V1
+derivations. `matrix_digest` commits to every returned field, including the
+membership binding and active writer format; `provider_authenticator` authenticates
+that digest and every result field. The repository is admitted only if
+its member-instance id appears in the current immutable snapshot. The closed
+error is `ReplayGenerationSetError::{RepositoryNotRegistered,
+RepositoryEpochStale, RotationFenceStale, MembershipSnapshotStale, LeaseStale,
+GenerationSetMalformed, GenerationSetTooLarge, GenerationStateInvalid,
+FormatMatrixInvalid, NormalRotationBlocked, ProviderUnavailable,
+ProviderCorrupt}`. The result is provider-authenticated and repository/epoch/
+fence/membership-bound; the SQLite repository calls this port before lookup,
+validates it inside its writer transaction, and has no alternate cache, database
+narration, or provider-internal import. The key-service adapter implements this
+call against its accepted facade but has no repository runtime edge. A set and
+its authorities are single logical-replay-attempt values: they are never stored
+in SQLite or reused after response loss, retry, restart, lease/fence change, or
+membership change. Each retry reacquires a set; a stale authority/set/lease is
+the corresponding closed result and cannot fall through to zero-match creation.
+
+`derive_replay_candidate_v1` is the Rust port method for the
+`DeriveReplayCandidateV1` domain operation. It has request
+`{ generation_authority: ReplayGenerationAuthorityV1, repository_id,
+tenant_id, operation_kind, idempotency_key, request_schema_version,
+canonical_request_v1: OpaqueBytes<=256KiB }` and result
+`ReplayCandidateV1 { generation: u64, canonical_format: u16be(1),
+bytes: FixedBytes<=64, matrix_digest: FixedBytes<=64,
+provider_authenticator: OpaqueBytes<=512 }`. `FixedBytes<=64` is an
+immutable exact-length value whose width is fixed by the accepted L2i.0d port
+decision and cannot vary by row, generation, or request. `generation_authority` is the
+opaque value returned by the same unexpired `AcquireReplayGenerationSetV1`
+result; callers cannot construct, substitute, replay across a repository/epoch/
+matrix digest, or inspect its PRF authority. The adapter validates that binding,
+uses its opaque authority for the exact nine-component V1 preimage, and returns
+only the bounded provider-authenticated candidate. Its closed error is
+`ReplayCandidateDerivationError::{AuthorityNotFromGenerationSet,
+AuthoritySetStale, RepositoryEpochStale, LeaseStale, CanonicalFormatUnsupported,
+CanonicalFormatInvalid, CandidateLimitExceeded, ProviderUnavailable,
+ProviderCorrupt}`. This operation, rather than a frozen caller-selected
+`blind_index` input, is the real repository-to-port-to-provider traversal.
+
+`KeyringMembershipSnapshotV1` is
+`{ keyring_id: OpaqueBytes<=128, membership_snapshot_id: OpaqueBytes<=128,
+membership_version: u64, members: [KeyringRepositoryMemberV1; 1..=4096],
+provider_authenticator: OpaqueBytes<=512 }`, where members are strictly
+sorted/distinct by `(repository_id, member_instance_id)` and each value is
+`{ repository_id: OpaqueBytes<=256, member_instance_id: OpaqueBytes<=128 }`.
+The authenticator covers every field and its member ordering. The domain
+operations `RegisterKeyringRepositoryV1`, `AcquireKeyringMembershipSnapshotV1`,
+and `RemoveKeyringRepositoryV1` are exposed as the Rust port methods
+`register_keyring_repository_v1`, `acquire_keyring_membership_snapshot_v1`, and
+`remove_keyring_repository_v1`.
+
+`RegisterKeyringRepositoryV1` accepts `{ keyring_id, repository_id,
+repository_epoch, expected_membership_version, operation_id: OpaqueBytes<=128 }`
+and returns `KeyringMembershipMutationResultV1 { member_instance_id, snapshot:
+KeyringMembershipSnapshotV1 }`. `AcquireKeyringMembershipSnapshotV1` accepts
+`{ keyring_id }` and returns the current provider-authenticated snapshot.
+`DecommissionProofV1` is `{ keyring_id, repository_id, member_instance_id,
+repository_epoch, membership_snapshot_id, membership_version,
+live_generation_digest, durable_ciphertext_references: u64be(0),
+durable_blind_index_references: u64be(0), unresolved_authorizations: u64be(0),
+provider_authenticator }`; `live_generation_digest` commits to every non-revoked
+generation in sorted order. `RemoveKeyringRepositoryV1` accepts `{ keyring_id,
+repository_id, member_instance_id, repository_epoch, expected_membership_version,
+decommission_proof: DecommissionProofV1, operation_id }` and returns the new
+`KeyringMembershipSnapshotV1`. Register and remove are one provider CAS and are
+refused whenever any normal or emergency drain exists.
+
+An operation is idempotent only for byte-identical payload and `operation_id`;
+after response loss, repeating that exact call returns its original result, while
+a changed reuse returns `MembershipOperationConflict`. A
+`MembershipVersionStale`, `MembershipSnapshotStale`, `RepositoryEpochStale`,
+`MembershipMutationBlocked`, or provider-unavailable result changes no state:
+the caller must reacquire the current signed snapshot and, where applicable, a
+fresh repository epoch and decommission proof before a new attempt. It cannot
+retry removal from a stale proof or silently omit a member. The closed error is
+`KeyringMembershipError::{MembershipVersionStale, MembershipSnapshotStale,
+RepositoryAlreadyRegistered, RepositoryNotRegistered, MemberInstanceStale,
+MembershipMutationBlocked, RepositoryEpochStale, DecommissionProofMissing,
+DecommissionProofInvalid, MembershipOperationConflict, ProviderUnavailable,
+ProviderCorrupt}`. A partitioned, omitted, or stale member cannot be removed to
+evade a drain; a later rejoin receives a new member instance only after its
+prior instance has been removed by a valid proof.
+
+`ZeroReferenceReceiptV1` is `{ keyring_id, source_generation: u64,
+rotation_fence_id: OpaqueBytes<=128, membership_snapshot_id,
+membership_version, repository_id, member_instance_id, repository_epoch,
+terminal_checkpoint_digest: FixedBytes<=64, durable_ciphertext_references: u64be(0),
+durable_blind_index_references: u64be(0), unresolved_authorizations: u64be(0),
+provider_authenticator }`. `RetirementReceiptV1` is `{ keyring_id,
+source_generation: u64, rotation_fence_id, membership_snapshot_id,
+membership_version, member_receipt_digests: [FixedBytes<=64; 1..=4096 in exact
+snapshot-member order], provider_unresolved_authorizations: u64be(0), state: Revoked,
+provider_authenticator }`. The provider issues the latter only after it verifies
+one exact former receipt from every frozen snapshot member; neither receipt can
+be reused across fence, snapshot, member instance, source generation, or epoch.
 
 `NormalRotationBlocked` carries
 `{ source_generation: u64, reason: NormalRotationBlockReason }`, where
 `NormalRotationBlockReason::{DrainingGenerationPresent, EmergencyDrainPresent,
 IncompleteRekey, DurableReferencesRemain, UnresolvedAuthorization,
-ZeroReferenceReceiptMissing, RetirementReceiptMissing, SourceUnavailable}`.
+ZeroReferenceReceiptMissing, MembershipTerminalReceiptMissing,
+RetirementReceiptMissing, MembershipSnapshotStale, SourceUnavailable}`.
 `ReplayCandidateCollision` carries the bounded matched-row count; a candidate
-or format matrix exceeding four derivations/five row reads returns
-`ReplayCandidateLimitExceeded`; `ReplayCandidateDivergence` carries only
-generation/format identifiers and never ciphertext or plaintext. These are
-closed typed outcomes, not diagnostic strings or retry-to-create hints.
+query exceeding five row reads returns `ReplayCandidateLimitExceeded`;
+`ReplayCandidateDivergence` carries only generation/format identifiers and never
+ciphertext or plaintext. These are closed typed outcomes, not diagnostic strings
+or retry-to-create hints.
 
-`BeginNormalRotationV1` is the provider CAS operation:
+`BeginNormalRotationV1` is the provider CAS operation, exposed by
+`begin_normal_rotation_v1`:
 `{ keyring_id: OpaqueBytes<=128, expected_active_generation: u64,
-expected_rotation_fence_id: OpaqueBytes<=128 }`. It returns exactly
+expected_rotation_fence_id: OpaqueBytes<=128, expected_membership_snapshot_id:
+OpaqueBytes<=128, expected_membership_version: u64,
+operation_id: OpaqueBytes<=128 }`. It returns exactly
 `NormalRotationResult::{Started { active_generation, draining_generation,
-rotation_fence_id }, Blocked { source_generation, reason }}` or
-`NormalRotationError::{RotationFenceStale, GenerationNotActive,
-ProviderUnavailable, ProviderCorrupt}`. `Started` is possible only for the
-one permitted `G -> G+1` transition; a G+2 attempt reports the typed `Blocked`
-result and does not change the provider state. This operator, not repository
-narration, owns global keyring transition truth.
+rotation_fence_id, membership_snapshot_id, membership_version }, Blocked {
+source_generation, reason }}` or
+`NormalRotationError::{RotationFenceStale, MembershipSnapshotStale,
+GenerationNotActive, RotationOperationConflict, ProviderUnavailable,
+ProviderCorrupt}`. `Started` atomically
+freezes the exact current membership snapshot with the new rotation fence and is
+possible only for the one permitted `G -> G+1` transition. A G+2 attempt reports
+the typed `Blocked` result and does not change provider or membership state. A
+lost response retries only with the byte-identical request and `operation_id`,
+which returns the original result; a stale fence/snapshot requires a fresh signed
+snapshot and a new operation id, never an automatic successor attempt. This
+operator, not repository narration, owns global keyring transition truth.
 
 `CommitBinding` is a fixed-width provider-authenticated value over the exact
 eight-component outer preimage and canonical staged-write descriptor specified
@@ -653,15 +759,18 @@ L2i.0d is a non-dispatchable decision gate until it names the exact accepted
 authenticated-encryption primitive/library and commodity or sold key-service
 facade, versions/features/licenses, generated client and Cargo/Buck targets,
 key custody and zeroization boundary, nonce source, retry/deadline bounds,
-blind-index PRF, exact `AcquireReplayGenerationSetV1` request/result/error and
-signature/lease validation, per-generation canonical-format matrix and
-compatibility-retirement barrier, global normal-rotation CAS/refusal semantics,
-generation and commit-authorization linearization semantics, bounded unresolved-
-receipt enumeration, repository-epoch fencing, recovery/administrative
-resolution, and removal path. L2i.0f must then prepare the exact
-unique files, L2i.0g must freeze commit semantics into HR port/repository/
-SQLite content, and L2i.0h must implement bounded repository rekey/recovery
-before the selected adapter behavior or production composition is dispatchable. The
+  blind-index PRF, exact `AcquireReplayGenerationSetV1` and
+  `derive_replay_candidate_v1` request/result/error and signature/lease validation,
+  V1-only active-writer format, future-format evolution barrier, exact keyring
+  enrollment/removal/snapshot/decommission semantics, global normal-rotation
+  CAS/refusal semantics, generation and commit-authorization linearization
+  semantics, bounded unresolved-receipt enumeration, repository-epoch fencing,
+  recovery/administrative resolution, and removal path. L2i.0d.1 must first admit
+  the key-service adapter structure; L2i.0f must then prepare the exact unique
+  port/repository/SQLite/adapter file slots; L2i.0g.0 freezes only the typed port
+  contract; L2i.0g.1 implements and tests the provider adapter; L2i.0g.2 only
+  then freezes repository/SQLite behavior; and L2i.0h implements bounded
+  repository rekey/recovery before production composition is dispatchable. The
 selected adapter is owner-local and remains
 `app/hr/adapters/draft/record-encryption-key-service` /
 `hr-record-encryption-key-service-draft` while its port is draft.
@@ -678,8 +787,8 @@ reordered, oversized, or non-progressing continuation fails closed.
 
 The provider state machine is
 `Active -> Draining | EmergencyDraining -> Revoked`. `authorize_commit`,
-`AcquireReplayGenerationSetV1`, and those transitions share one provider-side
-linearization order. Authorization
+`AcquireReplayGenerationSetV1`, `derive_replay_candidate_v1`, membership CAS, and
+those transitions share one provider-side linearization order. Authorization
 is allowed only in `Active` and returns an opaque single-use receipt bound to
 the repository epoch, transaction id, generation, and commit binding. A
 rotation/revocation request that wins first denies authorization. An
@@ -693,13 +802,20 @@ fences N before the new writer may classify N's pending receipts.
 One generation is active for new seals. Normal rotation has one global
 per-keyring CAS rule: it may transition `Active(G)` to
 `Active(G+1) + Draining(G)` only when the keyring has no other `Draining` or
-`EmergencyDraining` generation. A normal `G+2` request while G is draining, has an
-incomplete rekey, durable ciphertext/blind-index reference, unresolved earlier
-authorization, missing zero-reference receipt, or missing provider retirement
-receipt returns `NormalRotationBlocked` and changes nothing. The provider may
-issue the G retirement receipt only after it verifies every registered
-repository's terminal zero-reference receipt and its own unresolved count is
-zero; only then may it CAS G to `Revoked` and admit a new normal rotation.
+`EmergencyDraining` generation and the caller's exact membership snapshot/version
+is still current. The successful CAS freezes that snapshot, disallows enrollment,
+removal, and rejoin until terminal retirement, and binds it to both the rotation
+fence and every zero-reference receipt. A normal `G+2` request while G is
+draining, has an incomplete rekey, durable ciphertext/blind-index reference,
+unresolved earlier authorization, missing snapshot-member receipt, missing
+zero-reference receipt, or missing provider retirement receipt returns
+`NormalRotationBlocked` and changes nothing. The provider may issue the G
+retirement receipt only after it verifies one terminal receipt from every member
+instance in the frozen snapshot, each bound to that snapshot/fence/source
+generation and reporting zero durable references plus zero unresolved
+authorizations, and its own unresolved count is zero; only then may it CAS G to
+`Revoked` and admit a new normal rotation. A partitioned repository cannot be
+omitted: it blocks retirement and G+2 rather than becoming removable.
 Draining G issues no seals or commit authorizations. Emergency drain immediately
 denies new seal/open/authorization/replay admissions, returns no replay set, and
 withdraws affected readiness; it also blocks normal rotation until the source is
@@ -755,6 +871,7 @@ returns `RekeyYielded` with its last durable checkpoint. There is no unbounded
 loop, recursive retry, or retry while holding a SQLite transaction.
 
 The durable checkpoint contains format version, job and rotation-fence ids,
+frozen membership snapshot id/version and repository member-instance id,
 repository id/epoch, source and target generations, phase, the exclusive
 `(logical_table_tag, opaque_row_identity)` cursor, page/item/byte/provider-call
 counters, the consecutive-CAS counter for that cursor, and a provider-
@@ -782,15 +899,16 @@ durably increments the cursor's counter, and the fourth attempt returns
 or spinning.
 
 Replay and rekey share that single SQLite writer order. A replay first obtains
-its provider-authenticated matrix and derives every one-to-four candidate
-indexes before `BEGIN IMMEDIATE`; inside that transaction it validates epoch,
-lease, digest, and fence before either zero-match reservation or authenticated
-open. A page rekey enters the same writer before it replaces an idempotency
-row's source-generation indexes with target-generation indexes. If replay wins,
-rekey observes its committed row/revision on the next scan; if rekey wins, the
-already-derived matrix includes the target format/generation candidate and
-locates the same row. The global no-overlap CAS returns at most active G+1 plus
-draining G; G+2 is refused until G is zero-reference and revoked. A rotation
+its provider-authenticated V1 generation set and derives every one-to-two V1
+candidate indexes through `derive_replay_candidate_v1` before `BEGIN IMMEDIATE`;
+inside that transaction it validates epoch, lease, digest, fence, and membership
+snapshot before either zero-match reservation or authenticated open. A page rekey
+enters the same writer before it replaces an idempotency row's source-generation
+indexes with target-generation indexes. If replay wins, rekey observes its
+committed row/revision on the next scan; if rekey wins, the already-derived target
+generation V1 candidate locates the same row. The global no-overlap CAS returns
+at most active G+1 plus draining G; G+2 is refused until G is zero-reference,
+all frozen-snapshot members have terminal receipts, and G is revoked. A rotation
 that wins before a new request invalidates a stale matrix rather than allowing
 a reservation; a request that wins authorization before the transition has its
 receipt resolved before the transition barrier. Consequently a retry immediately
@@ -809,12 +927,15 @@ After an end-of-keyspace page, one SQLite transaction repeats the complete
 source-generation reference count across ciphertext and blind-index columns.
 Because the provider drain fence forbids new source-generation seals and commit
 authorizations, a zero count is monotonic under the fenced repository epoch.
-That transaction writes a provider-authenticated `ZeroReferenceReceipt` bound
-to the terminal checkpoint and repository sequence. The provider may CAS the
-source to `Revoked` only when that exact receipt verifies and its own earlier
-authorization count is zero. A crash after provider revocation but before the
-SQLite completion row is recovered by matching the immutable provider receipt;
-a mismatch remains corruption. `ReferencesRemain` never advances the phase.
+That transaction writes a provider-authenticated `ZeroReferenceReceiptV1` bound
+to the terminal checkpoint, repository sequence, source generation, frozen
+membership snapshot id/version, and member-instance id; it attests zero durable
+references and zero unresolved authorizations. The provider may CAS the source
+to `Revoked` only when it has that exact receipt from every snapshot member and
+its own earlier authorization count is zero. A crash after provider revocation
+but before the SQLite completion row is recovered by matching the immutable
+provider receipt; a membership/snapshot mismatch remains corruption.
+`ReferencesRemain` never advances the phase.
 
 The closed rekey result/error vocabulary is
 `RekeyResult::{Progressed, Yielded, Complete}` and
@@ -835,14 +956,15 @@ RotationFenceStale, NormalRotationBlocked}`. A collision, stale lease/fence,
 source loss, malformed/oversized set, incompatible format matrix, provider loss,
 or source-generation/index mismatch never falls through to zero-match creation.
 Contract and real-file recovery evidence must independently exercise Cargo and
-Buck full-preimage vectors; every one-to-four candidate matrix; V1 write then
-V2 retry after response loss, rotation/page CAS, hard close, rekey, and fresh
-restart; changed-purpose conflict; encrypted-canonical plaintext equality under
+  Buck full-preimage vectors; every active-only and active-plus-draining V1 set;
+  V1 replay after response loss, rotation/page CAS, hard close, rekey, and fresh
+  restart; changed-purpose conflict; encrypted-canonical plaintext equality under
 different nonce/generation; ciphertext/tag/associated-data tampering; attempted
-G+2 during G drain; emergency drain/source loss; stale matrix/fence; and replay
-versus rekey immediately before/during/after page CAS and zero-reference
-revocation. Each schedule proves the same semantic retry returns its original
-outcome or a closed typed refusal and no second effect commits.
+  G+2 during G drain; emergency drain/source loss; stale matrix/fence/membership
+  snapshot; concurrent enrollment/removal/rejoin/partition; and replay versus
+  rekey immediately before/during/after page CAS and zero-reference revocation.
+  Each schedule proves the same semantic retry returns its original outcome or a
+  closed typed refusal and no second effect commits.
 
 Before a first cohort, readiness is false while any normal rekey job is
 incomplete. For an already-routed cohort, normal rotation may keep reads ready
@@ -854,7 +976,7 @@ repository/provider outage withdraws the affected cohort. Software rollback is
 allowed before a production rotation only by
 removing the unrouted additive files/migrations and scratch databases. Once
 migration `0003` opens any non-scratch database or a rotation fence is admitted,
-rollback means an N/N+1
+rollback means a schema N/N+1
 reader that preserves and resumes the job; it may not delete the checkpoint,
 downgrade either preimage format, reactivate a generation with target
 references, or undo revocation. Normal rotation starts only after every epoch-
@@ -890,8 +1012,8 @@ failure.
 | unauthenticated | missing, invalid, expired, or unbound principal proof | none |
 | forbidden | PDP deny, tenant mismatch, absent legal basis, stale/conflicting overlay | none |
 | conflict | employee version mismatch, duplicate identity, idempotency blind-index mismatch, commit-resolution conflict, bounded rekey page CAS conflict | none |
-| unavailable | SQLite busy/full/unopenable, audit/key/runtime-context precondition unavailable, commit authorization unresolved, selected adapter unhealthy, key generation draining/revoked, source/target key outage, rekey retry exhaustion | none acknowledged |
-| internal/corrupt | schema/preimage incompatibility, corrupt stored outcome, invalid canonical request or staged descriptor, stale/corrupt rekey cursor/checkpoint/fence, ciphertext/tag/nonce/generation/commit-binding mismatch, impossible state | fail closed; readiness false |
+| unavailable | SQLite busy/full/unopenable, Packs/Policy/IAM/Audit/key/runtime-context precondition unavailable, commit authorization unresolved, selected adapter unhealthy, key generation draining/revoked, source/target key outage, membership partition, rekey retry exhaustion | none acknowledged; eligible required-authority failure burns availability budget |
+| internal/corrupt | schema/preimage incompatibility, corrupt stored outcome, invalid canonical request or staged descriptor, stale/corrupt rekey cursor/checkpoint/fence/membership snapshot, ciphertext/tag/nonce/generation/commit-binding mismatch, impossible state | fail closed; readiness false |
 
 Wire adapters map these typed classes to their protocol without making status
 codes the domain model. Logs carry class, operation, correlation id, policy and
@@ -916,12 +1038,21 @@ the same suite. It proves:
   no partial state, plaintext persistence, or sensitive disclosure;
 - schema N/N+1 open, migrate, reopen, and supported rollback boundaries are
   explicit.
-- canonical-request and staged-descriptor N/N+1 bytes, exact bounds, semantic
-  default/reordering equivalence, changed-field conflict, and rejection of
+- canonical-request and staged-descriptor schema N/N+1 reader behavior over
+  fixed V1 bytes, exact bounds, semantic default/reordering equivalence,
+  changed-field conflict, current V1-only format admission, and rejection of
   unknown, omitted, duplicated, or reordered same-version fields are explicit;
 - bounded rekey pages atomically replace envelope plus all blind indexes,
   advance no checkpoint on CAS failure, resume from the last committed cursor,
-  and produce a zero-reference receipt before normal revocation.
+  and produce a snapshot/member-instance-bound zero-reference receipt before
+  normal revocation;
+- enrollment, duplicate enrollment, stale membership CAS, removal, rejoin, and
+  partition preserve an immutable rotation snapshot; G+2 stays refused until each
+  exact snapshot member produces its terminal receipt and the provider has zero
+  unresolved authorizations;
+- an eligible request whose required provider is unavailable preserves no mutation
+  or disclosure and increments the availability denominator, authority-failure,
+  and error-budget signals until recovery or router-withdrawal acknowledgement.
 
 SQLite fault injection uses a real file and a fresh process or connection after
 each interruption. Failpoints cover after `BEGIN`, idempotency insertion,
@@ -939,16 +1070,18 @@ receipt state. A provider transition cannot report `Revoked` while an earlier
 receipt is unresolved, and an unresolved or provider-unavailable receipt cannot
 produce an acknowledgement.
 
-Rekey fault injection pauses before/after incomplete-rotation discovery, job
+Rekey fault injection pauses before/after enrollment, membership snapshot,
+incomplete-rotation discovery, job
 creation, page scan, source open, target seal, blind-index derivation, page CAS,
 checkpoint commit, terminal reference count, provider revoke, and local
 completion. It then hard-closes all connections, constructs a new repository
 and provider client, fences the older epoch, and resumes. Exact/limit-plus-one
 items, bytes, pages, calls, cursor and checkpoint sizes; stale epochs/fences;
 three conflicts plus the refused fourth attempt; full/busy media; source/target
-key and provider loss; and nonzero ciphertext or blind-index references all
-produce the closed result/error vocabulary without skipping a row, advancing a
-failed checkpoint, or reporting `Revoked`.
+key and provider loss; duplicate/missing/partitioned/rejoining snapshot members;
+and nonzero ciphertext or blind-index references all produce the closed result/
+error vocabulary without skipping a row, advancing a failed checkpoint, silently
+removing a member, or reporting `Revoked`.
 
 </conformance_and_faults>
 
@@ -960,8 +1093,14 @@ The facade measures admitted request latency, result class, policy/overlay
 generation age, selected adapter, transaction phase/latency, replay/conflict,
 outbox lag/redelivery, reopen/migration result, rekey phase/checkpoint age,
 bounded rows/bytes/pages/provider calls, CAS conflicts, remaining-generation
-references, typed rekey refusal, and saturation. Cardinality is
-bounded; employee, person, evidence, and idempotency values are not labels.
+references, membership snapshot/version/refusal, typed rekey refusal, saturation,
+and the availability `eligible_total`, `good_total`,
+`required_authority_failure_total`, `error_budget_burn`, readiness transition,
+and router-withdrawal-acknowledgement signals. The denominator is decided at
+request admission and cannot be retroactively reduced after a provider recovers;
+only a caller-caused validation/unauthenticated/forbidden result determined by an
+available authority is excluded. Cardinality is bounded; employee, person,
+evidence, and idempotency values are not labels.
 
 Production implements `hr-runtime-context-draft` only through
 `hr-runtime-context-oyatie-draft`, an HR-owned consumer adapter for the accepted
@@ -977,10 +1116,15 @@ Readiness is false when the selected durable adapter cannot open or commit, its
 schema is outside the supported window, the active encryption key generation
 cannot seal/open/authorize/resolve or is draining/revoked, trusted interval or
 bounded telemetry health is unavailable, policy authority is unusable, or a
-required pre-ack audit path cannot satisfy the request class. It is also false
+  required pre-ack audit path cannot satisfy the request class, the repository is
+  not an admitted current membership instance, or its frozen rotation snapshot
+  cannot be authenticated. It is also false
 for a first cohort with an incomplete rekey job and for a routed cohort whose
 normal rekey checkpoint exceeds the PRD 60-second objective, exhausts its CAS
-budget, or loses either generation/provider/repository. Health does not
+  budget, loses either generation/provider/repository, or detects a required-
+  authority outage. The outage's eligible failures continue to burn availability
+  until recovery or router withdrawal is acknowledged; readiness alone does not
+  reclassify them. Health does not
 claim durable, network, or downstream capability merely because pure domain
 tests pass. The PRD SLO remains unqualified until these signals and the declared
 load envelope are exercised in promotion evidence.

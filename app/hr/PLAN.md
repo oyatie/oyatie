@@ -499,7 +499,8 @@ commitments, 64-KiB/count/width bounds, version dispatch, and closed omission/
 duplication/order errors. Their test items and the two memory parity paths fix
 byte goldens, transport-field reordering, absent/default equivalence, every
 changed semantic field, unknown/omitted/duplicate/out-of-order/trailing fields,
-descriptor-effect omission, and N/N+1 reads/writer barriers. They expose
+  descriptor-effect omission, V1 reader/writer behavior, and unadmitted-format
+  refusal. They expose
 bounded bytes to the encryption port; neither port chooses a cipher/PRF or
 imports the other.
 
@@ -507,7 +508,7 @@ imports the other.
 ciphertext-envelope, provider-authenticated envelope-commitment, blind-index,
 associated-data, key-generation, and typed failure values plus `seal`, `open`,
 and `blind_index`; `seal` returns the envelope and its bounded commitment. Its
-blind-index input
+  blind-index input
 requires repository, tenant, operation kind, idempotency key, schema, canonical
 format version, the fixed `CanonicalRequestReplayV1 = u16be(1)` purpose tag,
 key generation, the fixed HR domain tag, and the already-encoded bounded
@@ -516,11 +517,16 @@ neither a caller input nor an alternative law. The literal nine-component full-p
 every component width/order/bound/normalization, and the 288-KiB cap are
 exactly SPEC-owned; this port receives typed components and must neither parse
 nor normalize the resulting bytes. An unkeyed request digest is not part of the
-port. It chooses no primitive, key provider, nonce source, cache, commit fence,
-or production adapter. No other owner may consume this draft port; L2i.0d must
-accept the production implementation and L2i.0f must add the structural slots,
-L2i.0g must freeze the provider-supported commit protocol, and L2i.0h must
-complete repository rekey before production adapter behavior.
+  port. It chooses no primitive, key provider, nonce source, cache, commit fence,
+  or production adapter. This frozen operation is not a replay-generation selector:
+  after L2i.0g.0, repository replay derives candidates only through the dedicated
+  returned-authority-bound `derive_replay_candidate_v1` operation in the later
+  replay-generation item. No other owner may consume this draft port; L2i.0d must
+  accept the production implementation, L2i.0d.1 must admit the adapter face,
+  L2i.0f must add the structural slots, L2i.0g.0 must freeze typed replay/
+  membership contracts, L2i.0g.1 must implement adapter behavior, L2i.0g.2 must
+  freeze repository/SQLite behavior, and L2i.0h must complete repository rekey
+  before production composition.
 
 The only existing source paths that may be rewritten are the ten exact L2b.1
 domain items, the four L2c.1 use-case items,
@@ -735,22 +741,27 @@ contract/recovery targets, all HR, and five IAM packages. Required review is HR
 plus independent Data durability, security/audit, migration, and fault-
 injection reviewers.
 
-The request comparison token comes only from the test encryption-port oracle's
-tenant/key-scoped `blind_index`; SQLite contains no unkeyed SHA-256 or other
-canonical-request fingerprint. This unrouted lane does not claim a production
-rotation/revocation fence: L2i.0d must accept it, L2i.0f must prepare the exact
-protocol/rekey file set, L2i.0g must add commit authorization, and L2i.0h must
-add bounded rekey behavior before provider adapter behavior.
+The test-only pre-L2i comparison oracle may use its tenant/key-scoped
+`blind_index` to populate an unrouted storage fixture; SQLite contains no
+unkeyed SHA-256 or other canonical-request fingerprint. That fixture is not a
+production replay selector and creates no authority for later repository lookup:
+after L2i.0g.2, replay candidates come only from the returned-authority-bound
+`derive_replay_candidate_v1` port operation. This unrouted lane does not claim a
+production rotation/revocation fence: L2i.0d must accept it, L2i.0d.1 must admit
+the adapter structure, L2i.0f must prepare the exact slots, L2i.0g.0 must freeze
+the port, L2i.0g.1 must implement provider behavior, L2i.0g.2 must add
+repository/SQLite behavior, and L2i.0h must add bounded rekey behavior.
 
 The two format items consume only the frozen repository-port codecs from
 L2d.1. SQLite stores their explicit versions, builds the staged descriptor by
 enumerating the actual four-row write set, and refuses an unrepresentable,
 omitted, duplicate, or reordered effect before commit. It passes the exact
-canonical bytes plus scope to `blind_index`; it never serializes from a map or
-provider type. Contract/recovery evidence runs the repository and SQLite
-goldens in both graphs, reopens stored V1 with an N+1 reader, refuses unsupported
-V2 in an N reader, proves transport-order/default equivalence and changed-field
-conflict, and covers every exact/limit-plus-one request/descriptor bound.
+canonical bytes plus scope to the test-only `blind_index` fixture to populate a
+V1 row; it never serializes from a map or provider type. Contract/recovery evidence runs the repository and SQLite
+  goldens in both graphs, reopens stored V1 with the V1 reader, refuses every
+  unadmitted format, proves transport-order/default equivalence and changed-field
+  conflict, and covers every exact/limit-plus-one request/descriptor bound. No
+  V2 encoder, writer, retry, or migration behavior is claimed in this lane.
 
 Success: acknowledged mutation survives hard close/reopen; every persisted
 sensitive sentinel is absent from the SQLite file and backup; every pre-commit
@@ -1303,12 +1314,14 @@ owner's core, port, adapter, or in-process facade. The five gates are:
   `resolve_commit`, and generation transitions; pending-page item/byte/cursor
   bounds; immutable normal-rotation fence plus bounded incomplete-rotation
   discovery; provider-authenticated rekey checkpoint and zero-reference receipt
-  operations; exact `AcquireReplayGenerationSetV1` request/result/error,
-  repository/epoch/lease/fence binding, generation-scoped opaque PRF authority,
-  active/draining canonical-format matrix, signature/lease validation, cache
-  lifetime, exact `BeginNormalRotationV1` CAS/result/error, global per-keyring
-  no-overlapping-normal-rotation refusal,
-  compatibility-retirement barrier; rotation/re-encryption; normal/emergency
+  operations; exact `AcquireReplayGenerationSetV1` and returned-authority-bound
+  `derive_replay_candidate_v1` request/result/error, repository/epoch/lease/fence/
+  membership binding, generation-scoped opaque PRF authority, V1-only active-
+  writer format, signature/lease validation, cache lifetime, typed keyring
+  repository register/snapshot/remove CAS and decommission proof, exact
+  `BeginNormalRotationV1` snapshot-bound CAS/result/error, global per-keyring
+  no-overlapping-normal-rotation refusal, and a future-only format-evolution
+  barrier (not a V2 codec claim); rotation/re-encryption; normal/emergency
   drain;
   crash resolution; and administrative recovery. It accepts the HR-owned
   canonical/descriptor/checkpoint/zero-reference domain bytes as opaque bounded
@@ -1319,10 +1332,12 @@ owner's core, port, adapter, or in-process facade. The five gates are:
   caller key authoritative. It must also prove the provider can fence an old
   writer before classifying missing local receipts and hold `Revoked` behind
   unresolved earlier receipts. It must refuse G+2 until G is zero-reference,
-  every registered repository has durable retirement evidence, and G is
-  revoked; emergency drain/source loss must withdraw readiness rather than
-  bypassing this fence. Provider selection alone is not permission to claim an
-  adapter-only fence.
+  every member instance in the immutable rotation snapshot has durable terminal
+  evidence, and G is revoked; it must forbid membership mutation during that
+  drain and require zero-reference/zero-unresolved decommission proof before
+  removal or rejoin. Emergency drain/source loss/partition must withdraw
+  readiness rather than bypassing this fence. Provider selection alone is not
+  permission to claim an adapter-only fence.
 - **L2i.0e — Runtime context:** accept the exact sold Cell trusted-interval and
   Observability signal/health facades consumed by an HR-owned
   `hr-runtime-context-oyatie-draft` adapter. The decision fixes interval units
@@ -1343,9 +1358,39 @@ consumer translation. A missing field, internal provider import, JSON/second
 codec, or test fake rejects the gate. Rejection changes no repository path and
 keeps People unrouted.
 
-## L2i.0f — Prepare commit-fence and rekey file membership
+## L2i.0d.1 — Admit the key-service adapter graph before replay behavior
 
-Class: serialized D-33 structural/D-41 file-slot lane after accepted L2i.0d.
+Class: serialized D-33 structural adapter lane; depends only on accepted L2i.0d
+and precedes L2i.0f. It admits the key-service structure early because no
+repository/SQLite lane may claim a provider traversal before the selected adapter
+exists in both build graphs. Its complete write set is:
+
+```text
+app/hr/adapters/draft/record-encryption-key-service/Cargo.toml
+app/hr/adapters/draft/record-encryption-key-service/BUCK
+app/hr/adapters/draft/record-encryption-key-service/build.rs
+app/hr/adapters/draft/record-encryption-key-service/src/lib.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/a_face.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/contract.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/a_face.rs
+Cargo.lock
+```
+
+The runtime edge is exactly `hr-record-encryption-draft` plus the literal accepted
+key-service facade/client targets. The dedicated integration-test target, and no
+production target, additionally names `hr-employment-repository-draft`,
+`hr-employment-repository-sqlite-draft`, and `tempfile.workspace = true` with the
+matching Buck labels. Its owned scanner emits an empty stable `OUT_DIR` membership
+when `src/items` is absent. No request translation, PRF, membership, SQLite,
+repository, readiness, or provider behavior appears in this structural lane.
+Cargo/Buck prove the exact runtime/dev split and reverse scan proves no
+adapter-to-repository runtime edge. Rollback removes only this empty face and its
+accepted dependency closure.
+
+## L2i.0f — Prepare commit-fence, replay, membership, and rekey file membership
+
+Class: serialized D-33 structural/D-41 file-slot lane after accepted L2i.0d and
+completed L2i.0d.1 adapter structure.
 It creates only these compiler-visible empty unique files inside already-
 admitted scanner-owned faces:
 
@@ -1354,12 +1399,16 @@ app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
 app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
 app/hr/ports/draft/record-encryption/src/items/e_replay_generation_set.rs
 app/hr/ports/draft/record-encryption/src/test_items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/test_items/f_keyring_membership.rs
 app/hr/ports/draft/record-encryption/src/items/d_rekey_generation.rs
 app/hr/ports/draft/record-encryption/src/test_items/d_rekey_generation.rs
 app/hr/ports/draft/employment-repository/src/items/e_commit_authorization.rs
 app/hr/ports/draft/employment-repository/src/test_items/e_commit_authorization.rs
 app/hr/ports/draft/employment-repository/src/items/g_replay_generation_set.rs
 app/hr/ports/draft/employment-repository/src/test_items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/test_items/h_keyring_membership.rs
 app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
 app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
 app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
@@ -1368,15 +1417,32 @@ app/hr/core/employment-usecase/tests/items/c_rekey_reconciler.rs
 app/hr/adapters/draft/employment-repository-memory/src/items/c_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/src/test_items/d_rekey_repository.rs
 app/hr/adapters/draft/employment-repository-memory/tests/items/d_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/d_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/e_keyring_membership.rs
 app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/src/items/l_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/m_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/n_keyring_membership.rs
 app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/src/test_items/h_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/i_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/j_keyring_membership.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/e_rekey_repository.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/g_keyring_membership.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/n_rekey_restart.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/o_rekey_faults.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/q_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/i_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/e_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/f_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/i_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/j_keyring_membership.rs
 ```
 
 Each file is empty except for a package-private structural marker when rustc
@@ -1386,118 +1452,176 @@ manifest, BUCK, build-script, root, lock, generated, migration, provider, route,
 or runtime edit. In particular `migrations/*.sql` was already admitted as a
 resource glob at L2e.0b; semantic migrations remain absent here.
 
-Build closure is the employment use case, both ports, memory repository,
-SQLite library/unit/contract/recovery targets, full HR, accepted key-service
-contract, and zero-edge IAM proof through Cargo and Buck. Required review is
+Build closure is the employment use case, both ports, memory repository, SQLite
+library/unit/contract/recovery targets, the already-admitted key-service adapter
+face, full HR, accepted key-service contract, and zero-edge IAM proof through
+Cargo and Buck. Required review is
 HR, Build/D-41, architecture, Data/SQLite durability, and security. Success is
 unchanged behavior with exact Cargo/Buck membership and add/rename/remove
 canaries. Any type, operation, SQL, test assertion, dependency, format,
 readiness value, or parent-index edit is failure. Rollback removes only these
 empty files; no schema or runtime state exists.
 
-## L2i.0g — Freeze canonical commit authorization across port and SQLite
+## L2i.0g.0 — Freeze typed commit, replay, and membership port contracts
 
-Class: content-only HR protocol lane; depends on L2i.0f. The complete write set
-is the following frozen files plus one additive semantic migration:
+Class: content-only HR contract lane; depends on L2i.0f. The complete write set
+is only the following already-admitted port files:
 
 ```text
 app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
 app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/test_items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/items/f_keyring_membership.rs
+app/hr/ports/draft/record-encryption/src/test_items/f_keyring_membership.rs
 app/hr/ports/draft/employment-repository/src/items/e_commit_authorization.rs
 app/hr/ports/draft/employment-repository/src/test_items/e_commit_authorization.rs
-app/hr/adapters/draft/employment-repository-sqlite/migrations/0002_commit_authorization.sql
-app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorization.rs
-app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
-app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
-app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
-app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
-app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/test_items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/items/h_keyring_membership.rs
+app/hr/ports/draft/employment-repository/src/test_items/h_keyring_membership.rs
 ```
 
-The encryption item defines HR-owned `CommitAuthorizationId`, `CommitBinding`,
+The encryption items define HR-owned `CommitAuthorizationId`, `CommitBinding`,
 `CommitAuthorization`, `CommitResolution::{Committed,Aborted}`,
 `CommitFenceResolution::{CommittedBeforeFence,AbortedBeforeCommit}`,
 `CommitFenceReceipt`, `RepositoryEpochLease`, bounded pending-receipt pages,
-generation state, and the closed
-`CommitFenceError::{GenerationNotActive,AuthorizationDenied,
-AuthorizationUnresolved,CommitBindingMismatch,RepositoryEpochStale,
-ResolutionConflict,ProviderUnavailable,ProviderCorrupt}`. Its provider-neutral
-operations are `acquire_repository_epoch`, `acquire_replay_generation_set`,
-`begin_normal_rotation`,
-`list_unresolved`, `authorize_commit`, and idempotent `resolve_commit`. It
-accepts only exact bounded `StagedWriteDescriptorV1` bytes and fixed domain/
-scope from the repository port; it cannot parse, reorder, normalize, or omit
-effects. `acquire_replay_generation_set` has the exact SPEC request/result/
-error contract: the repository is its caller, the adapter is its provider
-translation, and neither a SQLite cache nor a provider internal is an alternate
-truth edge. The result has one/two ascending generations, exactly one active and
-optional draining entry, repository epoch, lease, matrix digest, rotation fence,
-and each entry's accepted canonical formats plus opaque PRF authority. From one
-typed semantic command the repository encodes every admitted distinct format,
-derives every one-to-four `(generation,format)` candidates before SQLite, and
-never reads a row to discover format or generation. The SQLite item/migration
-stores canonical and descriptor format versions, repository identity/epoch,
-descriptor-derived binding, opaque authorization receipt, and generation-scoped
-idempotency index in the same transaction as exact employee/lifecycle/
-idempotency/outbox rows. One `BEGIN IMMEDIATE` writer validates epoch/lease/
-matrix-digest/fence, reads at most five candidate rows, and opens at most one
-authenticated envelope. It constant-time compares the located row's
-recorded-format canonical plaintext, never randomized ciphertext, and returns
-`IdempotencyConflict`, `ReplayCandidateCollision`,
-`ReplayCandidateDivergence`, `ReplaySourceUnavailable`, `ReplayLeaseStale`,
-`RotationFenceStale`, or `ReplayFormatMatrixInvalid` without reservation as
-appropriate. A zero match reserves only with the lease active-generation/
-current-writer-format candidate; there is no stable cross-generation token.
-The corresponding Cargo and Buck closure is literal: repository-port and SQLite
-targets depend inward on `hr-record-encryption-draft` for this operation;
-`hr-record-encryption-key-service-draft` implements the port against only the
-accepted provider client/contract target; it has no repository runtime edge.
-The only repository↔key-adapter composition is the listed dev/contract test
-edge, which proves repository-to-port-to-adapter traversal and rejects a reverse
-adapter-to-repository production dependency.
+`ReplayGenerationSetV1`, `ReplayGenerationAuthorityV1`,
+`ReplayCandidateV1`, `KeyringMembershipSnapshotV1`, member-instance and
+decommission-proof values, and their closed SPEC errors. Their provider-neutral
+operations are `acquire_repository_epoch`, `acquire_replay_generation_set_v1`,
+`derive_replay_candidate_v1`, `register_keyring_repository_v1`,
+`acquire_keyring_membership_snapshot_v1`, `remove_keyring_repository_v1`,
+`begin_normal_rotation_v1`, `list_unresolved`, `authorize_commit`, and idempotent
+`resolve_commit`. They accept exact bounded V1 bytes and fixed domain/scope from
+the repository port; they cannot parse, reorder, normalize, or omit effects.
 
-The linearization rule remains provider authorization ordered with
-`Active -> Draining | EmergencyDraining -> Revoked`. A transition that wins
-denies new authorization; an authorization that wins keeps `Revoked` blocked
-until idempotently resolved. After local commit,
-`CommittedBeforeFence` is required before acknowledgement; after rollback a
-fresh process holding the exclusive recovery epoch resolves `Aborted`. On boot,
-epoch N+1 fences N before bounded unresolved-page classification. Exact local
-descriptor format/binding/receipt resolves committed; absence resolves aborted
-only after fencing; mismatch or an unsupported format is corrupt. Duplicate
-pages are idempotent; skipped/reordered/non-progressing cursors fail closed.
-Normal rotation has the global per-keyring no-overlap rule: a CAS from
-`Active(G)` to `Active(G+1)+Draining(G)` is permitted only with no existing
-draining/emergency generation. Any G+2 request while G has an incomplete job,
-durable ciphertext/blind-index reference, unresolved earlier authorization,
-missing retirement evidence, or non-revoked state returns
-`NormalRotationBlocked` unchanged. Emergency drain/source loss returns no
-replay matrix and withdraws readiness; it cannot activate a normal successor.
+The replay item freezes an exact V1-only set: one active and optional one
+draining generation, `active_writer_format = 1`, `[1]` for every entry, and only
+one returned opaque authority per generation. The repository operation accepts
+that returned authority as an unconstructible typed value and exposes no raw
+generation, format, or PRF parameter. The membership item freezes versioned
+register/snapshot/remove CAS, immutable rotation snapshots, decommission proof,
+and typed stale/duplicate/partition/rejoin outcomes. This lane declares only
+values and trait signatures. It does not call a provider, derive a candidate,
+open SQLite, create a migration, or claim a repository-to-adapter traversal.
 
-All other L2i.0f files, manifests, Buck/build scripts, stable parents,
-lock/root/generated, provider adapter, routes, and readiness behavior are
-frozen. Each Rust file is at most 300 lines. Build closure and reviewers are the
-L2i.0f closure plus external API/format compatibility and fault injection.
-Success is byte-golden parity, N/N+1 replay, one complete descriptor-derived
-binding and resolved receipt per durable transaction, no acknowledgement before
-resolution, no completed revocation with an earlier receipt pending, and
-authoritative one/two-generation replay lookup with no duplicate effect.
-Failure is provider-selected preimage semantics, an omitted/reordered effect,
-unknown same-version field, unkeyed equality, receipt outside SQLite, implicit
-expiry/abort, stale epoch, or frozen-path edit. Unrouted rollback removes the
-one migration and restores the empty structural files. After format admission,
-rollback for any non-scratch database requires a reader that preserves V1 rows;
-it never deletes receipts or downgrades formats. Faults include every format
-exact/limit-plus-one and N/N+1 full-preimage golden (including domain, purpose,
-outer count, tags, lengths, fixed widths, omission and reordering), plus replay
-before/during/after rotation and response-loss/hard-close recovery; they use
-independent Cargo and Buck encoders sharing only typed inputs and vectors.
-golden plus pause-before/after authorize, commit, resolve, drain, process kill,
-and exclusive recovery.
+## L2i.0g.1 — Implement provider replay and membership behavior before repository use
+
+Class: content-only key-service-adapter lane; depends on L2i.0g.0 and writes only:
+
+```text
+app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/i_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/e_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/f_keyring_membership.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/i_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/j_keyring_membership.rs
+```
+
+The adapter translates only the accepted provider facade into the exact V1 port
+contract. It validates signed repository/epoch/lease/fence/membership bindings,
+returns one active and optional one draining V1 authority, derives candidates
+only from that returned authority, and implements membership CAS/decommission
+proof and snapshot-bound normal-rotation refusal. Tests cover valid active-only
+and active+draining sets; malformed, duplicate, oversized, stale, replayed, and
+provider-loss inputs; returned-authority substitution and prohibited cross-retry/
+SQLite caching; active-writer format other
+than V1; duplicate/missing/stale membership; concurrent register/remove/rotate;
+response loss with same-operation idempotent replay versus changed-id conflict;
+stale-CAS refresh/fencing; partition, crash/retry, and rejoin; G+2 refusal;
+emergency/source loss; and the two-candidate/five-row/one-open limits. The
+adapter's runtime graph still has
+only the record-encryption port plus accepted provider client; its repository/
+SQLite dev edges are unused except for compile closure, so no repository
+traversal is claimed here and reverse-dependency scans reject an adapter runtime
+edge.
+
+## L2i.0g.2 — Freeze canonical commit, replay, and membership behavior across repository and SQLite
+
+Class: content-only HR repository/SQLite lane; depends on L2i.0g.1. Its complete
+write set is the following frozen files plus one additive semantic migration:
+
+```text
+app/hr/adapters/draft/employment-repository-sqlite/migrations/0002_commit_authorization.sql
+app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/m_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/items/n_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/i_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/src/test_items/j_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/g_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/q_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/items/d_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/src/test_items/e_keyring_membership.rs
+app/hr/adapters/draft/employment-repository-memory/tests/items/e_keyring_membership.rs
+```
+
+SQLite persists canonical/descriptor V1 versions, repository/member-instance,
+membership snapshot/version, descriptor-derived binding, opaque authorization
+receipt, and generation-scoped idempotency index atomically with employee,
+lifecycle, idempotency, and outbox rows. Before first replay it registers through
+the port; it cannot open or reserve when unregistered. For a retry it calls the
+real adapter through `hr-record-encryption-draft`, encodes V1 once, passes each
+returned opaque authority to `derive_replay_candidate_v1`, and derives one or two V1
+candidates before `BEGIN IMMEDIATE`. The transaction validates epoch, lease,
+matrix digest, fence, and membership snapshot; it reads at most five candidate
+rows, opens exactly one envelope, and constant-time compares recorded V1
+canonical plaintext. A zero match reserves only with active-generation V1.
+Collision, divergence, source loss, stale membership/lease/fence, unregistered
+repository, or provider loss returns a typed refusal without reservation or a
+second effect.
+
+The memory adapter implements the same membership state machine only as a
+semantic conformance oracle; the real zero-reference/decommission/restart proof
+uses SQLite and the concrete key-service adapter.
+
+The required real-file composition is repository/SQLite -> record-encryption
+port -> key-service adapter -> accepted provider facade. Cargo and Buck directly
+build that path and reverse scans prove there is no key-adapter -> repository
+runtime path. Every retry/restart reacquires its provider-authenticated set and
+cannot reuse a prior set, authority, or candidate from SQLite or memory. Tests
+cover response loss, page-CAS/hard-close/restart,
+stale/malformed/replayed set, provider loss, V1 active/draining lookup, candidate
+bounds, ciphertext/AD tamper, and membership enroll/remove/partition/rejoin
+races. They prove a member cannot be removed without all-live-generation zero-
+reference/zero-unresolved proof and that a rotation fence binds an immutable
+member snapshot. All L2i.0f structural paths other than the explicitly deferred
+L2i.0h rekey files, plus manifests, Buck/build scripts, parents, lock/root/
+generated, routes, and readiness implementation, are frozen.
+
+Provider authorization, replay acquisition/derivation, membership CAS, and
+`Active -> Draining | EmergencyDraining -> Revoked` share one order. A transition
+that wins denies new authorization and freezes membership; an authorization that
+wins keeps `Revoked` blocked until resolved. `CommittedBeforeFence` is required
+before acknowledgement; a fresh recovery epoch resolves an absent receipt only
+after fencing. Exact local V1 descriptor/binding/receipt resolves committed;
+mismatch or unadmitted format is corrupt. G+2 remains blocked until every
+frozen-snapshot member instance submits its exact zero-reference receipt and the
+provider unresolved count is zero. Emergency drain, source loss, or membership
+partition returns no replay set and withdraws readiness; none activates a normal
+successor.
+
+Success is V1 byte-golden parity, one complete descriptor-derived binding and
+resolved receipt per durable transaction, no acknowledgement before resolution,
+no completed revocation with an earlier receipt pending, authoritative one/two-
+generation V1 replay with no duplicate effect, and an executable forward-only
+provider adapter traversal. Failure is provider-selected preimage semantics,
+caller-selected PRF authority, omitted/reordered effect, unkeyed equality,
+receipt outside SQLite, stale membership/epoch, undefined V2 behavior, or a
+frozen-path edit. Unrouted rollback removes `0002` and restores the empty
+structural files. Faults include all V1 exact/limit-plus-one preimage vectors,
+replay before/during/after rotation, response-loss/hard-close recovery, and
+membership snapshot races; Cargo and Buck use independent V1 encoders sharing
+only typed inputs and fixed vectors.
 
 ## L2i.0h — Implement bounded repository rekey and zero-reference revocation
 
-Class: content-only HR durability behavior; depends on L2i.0g. The complete
+Class: content-only HR durability behavior; depends on L2i.0g.2. The complete
 write set is:
 
 ```text
@@ -1520,8 +1644,8 @@ app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/o_rekey_
 ```
 
 The encryption item owns immutable rotation-fence discovery, target/source
-generation operations, checkpoint authentication, and zero-reference
-revocation receipt values; the repository item owns bounded scan/CAS/
+generation operations, checkpoint authentication, frozen membership-snapshot
+binding, and zero-reference revocation receipt values; the repository item owns bounded scan/CAS/
 checkpoint/result/error values; the use case owns the provider-neutral
 reconciler; the memory adapter remains only semantic reference evidence; and
 SQLite owns the real scan, page transaction, persistence, resume, and reference
@@ -1531,10 +1655,11 @@ The exact repository-port calls are `begin_or_resume_rekey`,
 `scan_rekey_page`, `compare_and_swap_rekey_page`,
 `count_generation_references`, `record_revocation_authorized`, and
 `complete_rekey`; the usecase exposes bounded `advance_rekey`. The encryption
-port supplies `acquire_replay_generation_set`, `list_incomplete_rotations`,
+port supplies `acquire_replay_generation_set_v1`, `list_incomplete_rotations`,
 `bind_rekey_checkpoint`,
 `verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` alongside
-its already frozen open/seal/blind-index/commit operations. Every call accepts
+its already frozen replay-candidate, membership, open/seal/blind-index/commit
+operations. Every call accepts
 one bounded value/page and returns the closed SPEC result/error vocabulary;
 none leaks a SQLite or provider type.
 
@@ -1546,21 +1671,24 @@ and reseals outside SQL, recomputes canonical-request blind indexes, then one
 `BEGIN IMMEDIATE` transaction CAS-checks row identity/revision/source
 generation/envelope commitment/old indexes and atomically installs the complete
 page plus checkpoint. A mismatch aborts the page; the deterministic same-cursor
-counter refuses the fourth attempt. Replay uses that same SQLite writer: it
-calls the encryption port for the authenticated generation-and-format matrix,
-derives every one-to-four generation/format candidates from one typed semantic
-command before lookup, authenticates/opens at most one located envelope, and
-constant-time compares matching canonical plaintext rather than ciphertext. It
-refuses collision/divergence/source-loss/stale lease without reservation. If
-replay commits first, the page retries its same cursor; if rekey commits first,
-the target format/generation candidate locates the same row. G+2 is refused
-until G is zero-reference and revoked; no stable cross-generation locator
-exists. Terminal reference counting covers every
-ciphertext and blind-index generation column and produces a provider-
-authenticated receipt; provider revoke also requires zero earlier unresolved
-authorizations. Fresh-process epoch fencing discovers a provider rotation whose
-local job was never created, resumes the last durable checkpoint, and reconciles
-revoke-before-local-completion without guessing.
+counter refuses the fourth attempt. Replay uses that same SQLite writer: it calls
+the encryption port for the authenticated V1 generation set, passes each returned
+opaque authority to the dedicated derivation operation, derives one or two V1
+candidates from one typed command before lookup, authenticates/opens at most one
+located envelope, and constant-time compares matching canonical plaintext rather
+than ciphertext. It refuses collision/divergence/source-loss/stale lease or
+membership snapshot without reservation. If replay commits first, the page retries
+its same cursor; if rekey commits first, the target-generation V1 candidate
+locates the same row. G+2 is refused until G is zero-reference, every frozen
+member instance has a terminal receipt, and G is revoked; no stable cross-
+generation locator exists. Terminal reference counting covers every ciphertext
+and blind-index generation column and produces a provider-authenticated receipt
+bound to the fence, membership snapshot/version, member instance, source
+generation, zero references, and zero unresolved authorizations; provider revoke
+also requires its own zero earlier unresolved authorizations. Fresh-process epoch
+fencing discovers a provider rotation whose local job was never created, resumes
+the last durable checkpoint, and reconciles revoke-before-local-completion
+without guessing.
 
 All L2i.0g paths are frozen. Apart from the additive `0003` migration, every
 manifest/BUCK/build/root/lock/generated path, provider adapter, composition,
@@ -1574,31 +1702,33 @@ cryptography, migration/format compatibility, fault injection, and SRE/
 operability.
 
 Success is bounded forward progress, atomic envelope plus blind-index
-replacement, durable checkpoint/resume, and provider `Revoked` only after the
-exact terminal zero-reference receipt and unresolved count zero. At the PRD
+replacement, durable checkpoint/resume, and provider `Revoked` only after every
+frozen-snapshot member instance supplies the exact terminal zero-reference/
+zero-unresolved receipt and provider unresolved count is zero. At the PRD
 load envelope, evidence also holds p99 bounded-step latency to five seconds and
 checkpoint age to sixty seconds without violating foreground objectives; these
 remain unqualified test objectives until L2k promotion. Failure is a
 skipped row, checkpoint advance on failed CAS, unbounded page/retry/call work,
-stale/corrupt cursor/epoch/fence accepted, unavailable source/target/provider/
-repository treated as progress, plaintext/fallback, or nonzero-reference
-revocation. Before routing, rollback removes `0003` and restores the empty
+stale/corrupt cursor/epoch/fence/membership snapshot accepted, unavailable
+source/target/provider/repository or partitioned member treated as progress,
+plaintext/fallback, or nonzero-reference revocation. Before routing, rollback removes `0003` and restores the empty
 files using only scratch databases. After `0003` opens any non-scratch database
 or a rotation fence is admitted, rollback
-is forward-only through an N/N+1 reader that retains the checkpoint and current
-formats; it cannot reactivate an old generation or downgrade/delete rekey state.
-Faults hard-close before/after rotation discovery, job creation, scan, open,
+is forward-only through a schema-compatible reader that retains the checkpoint
+and current V1 format; it cannot reactivate an old generation or downgrade/delete
+rekey state. Faults hard-close before/after membership snapshot, rotation discovery, job creation, scan, open,
 seal, reindex, page CAS, checkpoint, terminal count, provider revoke, and local
 completion; cover every bound and typed error; reopen with a new process/client;
 and prove the last committed checkpoint is the only resume point. The matrix
-adds same semantic replay immediately before/during/after page CAS, response
-loss, hard close, source drain/loss, terminal revocation, and N/N+1 restart;
+adds same semantic V1 replay immediately before/during/after page CAS, response
+loss, hard close, source drain/loss, terminal revocation, membership partition/
+rejoin, and schema-compatible restart;
 every schedule returns the original outcome or the closed refusal and proves no
 second employee/lifecycle/idempotency/outbox effect commits.
 
-## L2i.1a through L2i.1e — Admit production authority adapter structures
+## L2i.1a, L2i.1b, L2i.1c, and L2i.1e — Admit the remaining production authority adapter structures
 
-Class: five serialized structural package/dependency/build/lock lanes; each
+Class: four serialized structural package/dependency/build/lock lanes; each
 depends on its matching accepted L2i.0 gate and exact owner-law amendment. They
 serialize on `Cargo.lock` and any root/generated dependency faces and contain no
 provider request, validation, retry, policy, audit, route, or readiness behavior.
@@ -1608,10 +1738,11 @@ provider request, validation, retry, policy, audit, route, or readiness behavior
 | L2i.1a | `app/hr/adapters/draft/installed-overlay-packs` | `hr-installed-overlay-packs-draft` | `hr-installed-overlay-draft` |
 | L2i.1b | `app/hr/adapters/draft/authorization-evidence-policy` | `hr-authorization-evidence-policy-draft` | `hr-authorization-evidence-draft` |
 | L2i.1c | `app/hr/adapters/draft/audit-outbox-audit` | `hr-audit-outbox-audit-draft` | `hr-audit-outbox-draft` |
-| L2i.1d | `app/hr/adapters/draft/record-encryption-key-service` | `hr-record-encryption-key-service-draft` | `hr-record-encryption-draft` |
 | L2i.1e | `app/hr/adapters/draft/runtime-context-oyatie` | `hr-runtime-context-oyatie-draft` | `hr-runtime-context-draft` |
 
-L2i.1d additionally depends on completed L2i.0h. L2i.1e's non-HR inputs are
+The record-encryption adapter structure is completed at L2i.0d.1 and its replay/
+membership behavior at L2i.0g.1 before repository/SQLite behavior at L2i.0g.2;
+those paths are frozen here. L2i.1e's non-HR inputs are
 only the exact generated Cell/Observability consumer targets accepted at
 L2i.0e; it may not path-depend either provider's Rust core or port.
 
@@ -1634,41 +1765,23 @@ accepted globs. The complete write envelope for each lane is its seven files,
 its exact workspace-package lock entry, and only the root/generated dependency
 files named by the matching gate. Every hand-written file is at most 300 lines.
 
-The L2i.1d encryption adapter keeps the record-encryption port as its sole HR
-runtime edge. For the later provider/repository integration target only, its
-dev graph also declares exactly
-`hr-employment-repository-draft`,
-`hr-employment-repository-sqlite-draft`, and `tempfile.workspace = true`; Buck
-declares the matching repository-port, SQLite-adapter, and
-`third-party//:tempfile` labels directly on that test. This is test composition,
-not a provider runtime repository edge. Missing or additional HR dev/runtime
-edges stop the structural lane.
-
-L2i.1d's `h_replay_generation_set` implementation and
-`e_replay_generation_set`/`i_replay_generation_set` test envelopes are the
-only key-adapter files that translate `AcquireReplayGenerationSetV1`. They
-exercise valid active-only and active+draining matrices; malformed, duplicate,
-oversized, stale-epoch/fence/lease, replayed, and provider-loss responses; PRF
-authority/format mismatch; G+2 refusal; emergency drain/source loss; restart;
-and exact four-candidate/five-row/one-open limits. The paired repository and
-SQLite files above prove the actual repository→port→adapter edge and zero
-adapter→repository runtime edges through Cargo/Buck reverse-dependency scans.
-
-Build closure is the new empty adapter, matching HR port, accepted provider
+Build closure is each new empty adapter, matching HR port, accepted provider
 client/contract targets, all remaining HR, and the zero-edge IAM proof through
 Cargo and Buck. Required review is HR, the provider owner, Architecture/API,
-Build, security/privacy, supply chain, and operability. Success is one empty
-adapter with exact graph parity and no runtime value. Failure is behavior,
+Build, security/privacy, supply chain, and operability. Success is four empty
+adapters with exact graph parity and no runtime value. Failure is behavior,
 placeholder/transitive-only dependency, cross-owner internal edge, manual
 index, over-budget file, unrelated lock churn, or readiness fiction. Rollback
 removes only that empty adapter and exact dependency closure.
 
 ## L2i.2a through L2i.2e — Implement production authority adapters
 
-Class: five content-only adapter behavior lanes; each depends on its matching
-L2i.1 structure. Their changed paths are disjoint, but the fixed full-HR
-verification closure overlaps, so implementation dispatches serialize; review
-and read-only recon may run concurrently.
+Class: five content-only adapter behavior lanes. L2i.2a, L2i.2b, L2i.2c, and
+L2i.2e each depend on their matching L2i.1 structure; L2i.2d depends on the
+already-complete L2i.0h replay/membership/rekey sequence. Their changed paths
+are disjoint, but the fixed full-HR verification closure overlaps, so
+implementation dispatches serialize; review and read-only recon may run
+concurrently.
 
 The complete unique-file envelopes are:
 
@@ -1686,9 +1799,8 @@ app/hr/adapters/draft/audit-outbox-audit/src/test_items/b_contract.rs
 app/hr/adapters/draft/audit-outbox-audit/tests/items/{b_parity,c_outages}.rs
 
 app/hr/adapters/draft/record-encryption-key-service/src/items/{b_envelope,c_blind_index,d_key_generation,e_commit_authorization,f_rotation,g_rekey_generation}.rs
-app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
-app/hr/adapters/draft/record-encryption-key-service/src/test_items/{b_contract,c_preimage_goldens,d_rekey,e_replay_generation_set}.rs
-app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_commit_order,d_rotation,e_outages,f_preimage_goldens,g_rekey_sqlite,h_rekey_outages,i_replay_generation_set}.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/{b_contract,c_preimage_goldens,d_rekey}.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_commit_order,d_rotation,e_outages,f_preimage_goldens,g_rekey_sqlite,h_rekey_outages}.rs
 
 app/hr/adapters/draft/runtime-context-oyatie/src/items/{b_trusted_interval,c_signal_emission,d_correlation,e_health}.rs
 app/hr/adapters/draft/runtime-context-oyatie/src/test_items/b_contract.rs
@@ -1706,15 +1818,13 @@ evidence fails before mutation/disclosure, while an allowed asynchronous class
 commits one durable outbox intent and redelivers without a second effect.
 Record encryption implements only the accepted primitive/key-service contract,
 binds canonical associated data, produces unique nonces and bounded blind
-indexes, implements the L2i.0g provider-serialized authorization/resolution
-order, `AcquireReplayGenerationSetV1` matrix/PRF validation, global no-overlap
-rotation refusal, and L2i.0h rotation/checkpoint/zero-reference provider
-operations, and
+indexes, implements the L2i.0g.2 provider-serialized authorization/resolution
+order and L2i.0h rotation/checkpoint/zero-reference provider operations, and
 supports idempotent re-encryption plus fail-closed revocation. It authenticates
 the exact HR-owned canonical-request, staged-descriptor, checkpoint, and zero-
 reference domain bytes without parsing or rewriting them and never supplies a
 plaintext or process-local fallback. Its provider integration target composes
-the real SQLite adapter through the L2i.1d dev edges, exercises the exact SPEC
+  the real SQLite adapter through the L2i.0d.1 adapter dev edges, exercises the exact SPEC
 page/step bounds and crash/reopen sequence, and proves the key adapter itself
 has no repository runtime edge. Runtime context
 translates only the accepted generated Cell/Observability clients into trusted
@@ -1725,13 +1835,14 @@ Each lane builds its adapter/port/provider contract plus full HR through Cargo
 and Buck. Required review is HR, matching provider, security/privacy, fault/
 retry, and adapter-parity reviewers. Success is semantic parity and bounded
 translation against the accepted contract. For L2i.2d that includes Cargo/Buck
-byte-golden parity for both protected preimages; N/N+1 stored-format replay
-including V1 write then V2 retry after response loss, page-CAS, hard close,
-rekey, and restart; authenticated-open constant-time plaintext equality under
-different nonce/generation; normal rotation to zero references; attempted G+2,
-emergency drain/source loss, malformed/stale/replayed matrix, and provider-loss
-refusal through a real SQLite file; and a provider revoke receipt matching the
-repository checkpoint. Failure is cached allow on outage,
+byte-golden parity for both protected preimages; V1 replay after response loss,
+page-CAS, hard close, rekey, and restart; authenticated-open constant-time
+plaintext equality under different nonce/generation; normal rotation to zero
+references; attempted G+2, frozen-membership receipt mismatch, emergency drain/
+source loss/partition, malformed/stale/replayed V1 set, and provider-loss refusal
+through a real SQLite file; and a provider revoke receipt matching the repository
+checkpoint and frozen membership snapshot. V2 remains non-dispatchable until its
+separate codec/lifecycle decision. Failure is cached allow on outage,
 unsigned/stale pack use, cross-tenant proof, lost/duplicate audit effect,
 provider type leaking inward, plaintext persistence, nonce reuse, stale or
 revoked key use, an unresolved acknowledgement, false time precision, unbounded
@@ -1824,12 +1935,23 @@ also requires `hr-runtime-context-oyatie-draft`. It injects the concrete
 encryption adapter into SQLite, the concrete runtime context into every
 authority/effective-window and telemetry call, and its production type cannot
 accept the memory oracle or any provider/key/time/telemetry fake. It enforces
-provider health, L2i.0g commit authorization/resolution, L2i.0h bounded rekey
+provider health, L2i.0g.2 commit authorization/resolution, L2i.0h bounded rekey
 resume/zero-reference completion, active key-generation fencing, trusted-
 interval boundary refusal, bounded signal delivery, and the
 audit operation-class matrix before dispatch. `src/main.rs` and
 `a_unrouted.rs` remain unchanged, so no process can instantiate the composition
 or bind a listener.
+
+The composition also owns the future listener's availability-accounting input:
+every syntactically valid, capacity-admitted operation remains an eligible
+observation once it reaches the authority barrier. A required Packs, Policy/IAM,
+Audit, encryption/key-service, SQLite, or runtime-context failure is a typed
+security-correct refusal **and** an availability failure; retries, readiness
+changes, and later recovery cannot delete it from the denominator. Only an
+available authority may identify a caller-caused invalid/unauthenticated/
+forbidden request before it is counted. The composition emits the bound outcome
+and outage interval needed for the route layer to terminate burn only after
+provider recovery or an observed router-withdrawal acknowledgement.
 All manifests/build/root/lock/generated/proto, adapters, provider paths, and
 deployment files are frozen.
 
@@ -1845,7 +1967,10 @@ boundary; hard-closes at each rekey page/checkpoint/revoke boundary, rotates and
 revokes the key generation only after zero references; widens trusted-time intervals
 across expiry/effective boundaries; requests fail closed, durable outbox
 semantics follow the accepted matrix, reservations drain, and no listener
-exists. Rollback removes only these sixteen unique files.
+exists. Each required-authority campaign separately asserts the security refusal
+and the eligible-denominator, required-authority-failure, and error-budget-burn
+signals; the burn ends only on recovery or a route-layer withdrawal acknowledgement,
+never a readiness flip. Rollback removes only these sixteen unique files.
 
 ## L2k.0 — Accept the listener, deployment, and cohort contract
 
@@ -1865,7 +1990,17 @@ context—remain the only authority/runtime implementations. It also fixes the
 boot-time active key-generation receipt, commit-authorization reconciliation,
 trusted-time/telemetry health, canonical/descriptor reader-version barrier,
 incomplete-rekey checkpoint/progress SLO, rotation/revocation readiness
-barrier, and cohort withdrawal signal.
+barrier, and cohort withdrawal signal. It MUST additionally freeze the monthly
+facade-availability numerator as successful eligible operations and its
+denominator as every syntactically valid, capacity-admitted operation except
+one classified caller-caused invalid/unauthenticated/forbidden by an available
+required authority. It names the exact emitted eligible, good,
+required-authority-failure, error-budget-burn, readiness-transition, and
+router-withdrawal-acknowledgement signals; required Packs, Policy/IAM, Audit,
+encryption/key-service, SQLite, or runtime-context unavailability remains in
+the denominator. The decision fixes the outage interval from first eligible
+failure through provider recovery or observed router acknowledgement; readiness
+false, queue shedding, retry, and later recovery are not retroactive exclusion.
 Placeholder paths,
 handwritten HTTP, a global/all-tenant default, mutable CLI activation, or a
 second codec rejects the gate and leaves main `Unrouted`.
@@ -1925,7 +2060,10 @@ routes, concrete production adapters, bounded request/response accounting, and
 readiness false until all mandatory authorities, trusted runtime context, and
 the active encryption key generation/commit-resolution path are healthy, every
 stored preimage format is readable, and no initial-cohort rekey job is
-incomplete. It
+incomplete. It records the frozen eligible/good/required-authority-failure/
+error-budget-burn signals even while the cohort is empty, and it cannot use an
+empty cohort, readiness false, or a provider failure to omit a syntactically
+valid capacity-admitted fault-injection request from those signals. It
 cannot serve a tenant yet. All manifests, build scripts, lock/root/generated,
 proto, adapters, provider code, and cohort/deployment values are frozen.
 
@@ -1938,7 +2076,10 @@ with ciphertext and blind indexes, removes/widens runtime-context time and
 telemetry, corrupts cohort input, saturates request and response budgets,
 interrupts encode before headers, and kills the process during seal/commit/
 resolve/drain; no unauthorized mutation/disclosure, plaintext persistence, or
-partial response occurs and fresh-process restart/replay converges. Rollback
+partial response occurs and fresh-process restart/replay converges. Every
+required-authority outage proves both the closed response and the continued
+availability/error-budget burn until provider recovery or the observed router
+withdrawal acknowledgement; readiness alone is insufficient. Rollback
 restores the typed `Unrouted` main; no tenant cohort or format downgrade is
 involved.
 
@@ -1955,12 +2096,18 @@ The first cohort is one named home-cell tenant within the declared capacity
 profile. Promotion requires healthy concrete Packs, Policy/IAM, Audit, record-
 encryption/key service, SQLite, Connect, telemetry, drain, encrypted backup/
 fresh-process reopen, commit-fence resolution, trusted interval/runtime-context,
-canonical/descriptor N/N+1 formats, bounded rekey checkpoint/resume,
+canonical/descriptor schema reader compatibility and the current V1-only
+canonical-request format, bounded rekey checkpoint/resume,
 zero-reference rotation/revocation, and rollback evidence; request and
 response exact/limit-plus-one campaigns; zero IAM-to-HR graph edges; no
 compatibility packages; and measured SLO signals without advertising the
-objective early. Provider, runtime-context, or required key-generation outage
-removes the cohort before retry traffic can exhaust queues. Rollback sets the
+objective early. A future second canonical format requires its separately
+accepted codec/active-writer/reader-admission/migration/oracle/retirement
+evidence before this lane can rely on it. Provider, runtime-context, or required
+key-generation outage produces user-visible required-authority availability
+failures and burns the error budget until recovery or observed router withdrawal;
+the cohort is then removed before retry traffic can exhaust queues, but removal
+does not erase already eligible failures. Rollback sets the
 cohort empty and drains before binary or format rollback; committed SQLite
 records remain readable and replayable.
 Success is one bounded cohort with qualified evidence. Failure is all-tenant
@@ -1988,10 +2135,14 @@ content paths.
 L2g.0a, L2g.0b, and L2g.1 are IAM-owner lanes: the scanner/file-budget split
 serializes before the eight content paths, four graph files, and `Cargo.lock`;
 L2h returns to the HR owner. The five L2i.0 provider decisions may be reviewed
-independently. L2i.0f is the single structural scanner/file-slot join after
-L2i.0d; L2i.0g fills only the commit-format paths; and L2i.0h fills only the
-disjoint rekey/recovery paths plus additive `0003`, all before the encryption
-adapter. L2i.1a-e are
+independently. L2i.0d.1 first admits the key-service adapter structure;
+L2i.0f is then the single structural scanner/file-slot join; L2i.0g.0 freezes
+only port contracts; L2i.0g.1 implements provider replay/membership behavior;
+L2i.0g.2 alone performs the repository/SQLite traversal and additive `0002`;
+and L2i.0h fills only the disjoint rekey/recovery paths plus additive `0003`.
+That order is mandatory: no repository or SQLite claim of provider replay,
+opaque-authority derivation, or membership fencing may precede L2i.0g.1.
+L2i.1a, L2i.1b, L2i.1c, and L2i.1e are
 structurally disjoint except for `Cargo.lock` and any ratified root/generated
 dependency hub, so those structural writers serialize. L2i.2a-e have disjoint
 changed paths but share the mandatory all-HR practical build closure, so their

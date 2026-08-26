@@ -115,14 +115,17 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
 - Derive replay equality only from the HR-owned canonical-request format and
 bind commit authorization only to the HR-owned staged-write descriptor. A
 transport/provider field order, unknown field, omitted effect, implicit
-default, or provider-local normalization MUST NOT change either protected
-preimage. New format writers remain disabled until every cohort reader admits
-N/N+1 and stored byte-golden compatibility.
+  default, or provider-local normalization MUST NOT change either protected
+  preimage. The executable baseline writes CanonicalRequestV1 only. A new-format
+  writer remains disabled until a separately accepted codec/lifecycle decision
+  supplies active-writer authority, reader-cohort admission, repository migration,
+  retirement evidence, and independent byte-oracle compatibility; this owner law
+  does not claim V2 behavior.
 - During normal rotation, resolve replay only through the record-encryption
-  port's provider-authenticated repository/epoch/fence-bound active-plus-
-  draining generation-and-format matrix. From one typed semantic command,
-  derive every admitted canonical-format candidate for each returned generation
-  before one SQLite writer lookup. The bounded lookup authenticates/decrypts
+  port's provider-authenticated repository/epoch/fence/membership-bound active-
+  plus-draining generation set. From one typed semantic command, use each
+  returned generation-scoped opaque authority to derive the V1 candidate for each
+  returned generation before one SQLite writer lookup. The bounded lookup authenticates/decrypts
   the one located ciphertext envelope, then constant-time compares matching
   canonical plaintext in memory; it never uses randomized ciphertext equality
   and never persists plaintext or a stable cross-generation token. Matrix/format
@@ -146,8 +149,13 @@ N/N+1 and stored byte-golden compatibility.
   Globally for one keyring, normal G+2 activation is refused until G has no
   durable ciphertext or blind-index reference, no incomplete rekey or earlier
   unresolved authorization, and a provider retirement receipt marks G revoked.
-  Emergency drain/source loss withdraws readiness and blocks normal rotation;
-  it is never a route around this invariant.
+  The retirement receipt is bound to the immutable keyring-membership snapshot
+  captured with the rotation fence and includes every enrolled repository
+  instance's terminal zero-reference receipt. A repository can enroll, remove,
+  or rejoin only through provider-versioned CAS; removal needs a zero-reference,
+  zero-unresolved-authorization decommission proof across live generations and
+  is refused during a drain. Emergency drain, source loss, or partition withdraws
+  readiness and blocks normal rotation; it is never a route around this invariant.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -162,7 +170,10 @@ N/N+1 and stored byte-golden compatibility.
   generation without employee identifiers or sensitive values.
 - Provide readiness only when the selected adapter is open, migrations are
   admitted, installed-pack and encryption/key authorities are usable, and
-  required policy/audit paths satisfy the operation's fail-closed contract.
+  required policy/audit paths satisfy the operation's fail-closed contract. A
+  required-authority outage is a correct fail-closed refusal but an availability
+  failure for eligible traffic until recovery or acknowledged cohort withdrawal;
+  a readiness flip alone does not erase that budget burn.
 - Bound one rekey page and one reconciler step by item count, ciphertext bytes,
   provider calls, pages, and CAS attempts. A new cohort is unready while a
   rotation job is incomplete; an already-routed cohort may continue normal
@@ -170,10 +181,10 @@ N/N+1 and stored byte-golden compatibility.
   readable, new writes use the target generation, and durable progress remains
   within its declared SLO. Emergency drain or a non-progressing/corrupt job
   withdraws the affected cohort.
-- Bound replay to two generations, two formats per generation/two distinct
-  formats, four PRF derivations, five candidate-row reads, and one authenticated
-  open. A V3 writer remains disabled until the oldest format crosses its
-  compatibility-retirement barrier and replay retention is provably gone.
+- Bound the executable V1 replay path to two generations, one format (V1) per
+  generation, two PRF derivations, five candidate-row reads, and one authenticated
+  open. Two formats/four derivations are a future hard ceiling only after a
+  separately accepted format lifecycle; no V2/V3 writer is admitted by this plan.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
 - Evaluate expiry/effective-window boundaries from a trusted interval. If the
@@ -188,8 +199,16 @@ N/N+1 and stored byte-golden compatibility.
 
 For an admitted home-cell tenant at no more than 70% declared capacity:
 
-- monthly facade availability objective: **99.95%**, excluding requests
-  correctly rejected for invalid or unavailable authority;
+- monthly facade availability objective: **99.95%**. Its denominator is every
+  syntactically valid, capacity-admitted facade request unless an available
+  authority determines the request is caller-caused validation,
+  unauthenticated, or forbidden traffic; its numerator is those requests that
+  complete successfully within the declared operation objective. Required Packs,
+  Policy/IAM/PDP, Audit, encryption/key-service, durable-adapter, or runtime-
+  context authority unavailability counts as an eligible failure and consumes
+  error budget. It is never retroactively excluded after recovery. The burn
+  interval ends only at provider recovery or an observed router acknowledgement
+  that withdrew the affected cohort, not when readiness merely changes;
 - p99 single-employee read: **100 ms** and p99 single-record command commit:
   **250 ms**, measured at the facade and excluding asynchronous downstream
   workflow/payroll delivery;
@@ -221,7 +240,10 @@ objectives as unqualified rather than manufacturing availability evidence.
 - Policy, overlay, and downstream failures have typed outcomes and leave no
   ambiguous partial HR mutation or sensitive disclosure.
 - SLO signals and readiness truthfully identify the selected adapter and policy
-  generation.
+  generation. They expose the eligible-request denominator, successful numerator,
+  required-authority failures, error-budget burn, readiness transition, and
+  router-withdrawal acknowledgement without sensitive labels; an authority
+  failure cannot be classified as excluded availability traffic.
 - Cargo/Buck and byte-golden tests prove the sold People proto, accepted
   generated Connect service/runtime, request/success/error mapping, and absence
   of HR-written framing, gRPC framing, or trailers before any listener
@@ -240,7 +262,8 @@ objectives as unqualified rather than manufacturing availability evidence.
   Fresh boot fences the prior repository epoch and resolves every bounded
   provider-side pending receipt before readiness.
 - Canonical-request and staged-write-descriptor goldens are identical through
-Cargo and Buck and across N/N+1 readers. A same semantic request with reordered
+Cargo and Buck and across schema N/N+1 readers while the executable canonical
+format remains V1. A same semantic request with reordered
 transport fields or explicit/default-equivalent optionals replays; a changed
 semantic field conflicts. Every committed employee, lifecycle,
 idempotency/outcome, and audit/outbox effect appears exactly once in the
@@ -249,13 +272,19 @@ authenticated staged descriptor.
   commit-binding preimages, including domains, purpose, component count, tags,
   lengths, fixed widths, omission/reordering, and exact/limit-plus-one bounds.
   Replay scheduled before/during/after page CAS, response loss, hard close,
-  source drain/loss, revocation, and N/N+1 restart returns the original outcome
+  source drain/loss, revocation, and schema N/N+1 restart returns the original outcome
   or a typed refusal and never commits a second effect.
 - A normal rotation hard-closes at every scan/open/seal/reindex/page-CAS/
   checkpoint/zero-count/revoke boundary and a fresh process deterministically
   resumes from the last committed page. Old-generation ciphertext and blind-
   index references reach zero before the provider reports `Revoked`; page and
   whole-step work remain inside the declared hard limits.
+- Keyring membership evidence registers two repositories, freezes their exact
+  membership instances in a G-to-G+1 fence, refuses a concurrent
+  enroll/remove/rejoin or G+2 request, and permits revocation only after both
+  snapshot-bound terminal zero-reference receipts and provider unresolved counts
+  reach zero. A partitioned or omitted repository has no receipt and therefore
+  cannot be removed or let G advance to G+2.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
   oversized state produces no partial response or sensitive fallback error.
@@ -289,6 +318,9 @@ authenticated staged descriptor.
   generation repository reference.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
+- An eligible request is removed from the availability denominator because a
+  mandatory provider was unavailable, because readiness changed without a router
+  withdrawal acknowledgement, or after the provider later recovers.
 
 ## Named fault campaigns
 
@@ -310,8 +342,12 @@ authenticated staged descriptor.
   service reachability plus trusted time and telemetry before process boot and
   during an admitted request; readiness drops, required operations fail closed,
   reservations drain, and no cohort is routed on a fake or system-clock
-  fallback. Inject interval uncertainty that straddles every effective/expiry
-  boundary and require the stable refusal.
+  fallback. For each outage, establish syntactically valid capacity-admitted
+  traffic, assert its typed refusal has no mutation/disclosure, increments the
+  availability denominator and required-authority-failure/error-budget counters,
+  then prove the burn ends only on recovery or an observed router-withdrawal
+  acknowledgement. Inject interval uncertainty that straddles every effective/
+  expiry boundary and require the stable refusal.
 - Crash before and after ciphertext persistence and each key-rotation CAS;
   reopen from the same database and backup with a fresh process, replay the
   request, race provider `authorize_commit` and idempotent `resolve_commit`
@@ -322,14 +358,20 @@ authenticated staged descriptor.
   value or a typed fail-closed result—never plaintext, an unkeyed equality token,
   mixed generations without metadata, a completed revocation with pending
   authorization, or an implicit fallback key.
-- Exercise canonical-request and descriptor byte goldens with transport-field
+- Exercise canonical-request and descriptor V1 byte goldens with transport-field
   reordering, absent versus explicit defaults, changed fields, same-version
-  unknowns, descriptor effect omission/duplication/reordering, N/N+1 readers,
-  and every exact/limit-plus-one byte/count ceiling. During rotation inject a
+  unknowns, descriptor effect omission/duplication/reordering, unadmitted-format
+  refusal, and every exact/limit-plus-one byte/count ceiling. During rotation inject a
   stale repository epoch, stale/corrupt/non-progressing cursor, page CAS race,
   retry exhaustion, source/target-key loss, database busy/full, provider outage,
   crash after page commit and after provider revoke, and a terminal nonzero
   reference; fresh-process recovery either advances one durable checkpoint or
   returns the specified typed refusal without acknowledgement or revocation.
+- Register duplicate/missing repositories, race enrollment/removal/rotation,
+  partition one enrolled repository, retry after crash, and attempt a rejoin with
+  a stale membership version or decommission proof. Each schedule preserves the
+  frozen fence snapshot; a zero-reference or retirement receipt from another
+  snapshot, member instance, generation set, or unresolved-authorization count
+  is rejected.
 
 </acceptance>
