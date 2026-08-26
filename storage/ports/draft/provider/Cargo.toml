@@ -10,7 +10,7 @@ license = "Apache-2.0"
 cell-location = { path = "../../../../cell/ports/location" }
 compute-resource-metadata = { path = "../../../../compute/ports/resource-metadata" }
 data-classification = { path = "../../../../data/ports/classification" }
-network-residency = { path = "../../../../network/core/residency" }
+network-residency-policy = { path = "../../../../network/ports/residency-policy" }
 secrets-kms = { path = "../../../../secrets/ports/kms" }
 
 [lib]
