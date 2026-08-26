@@ -22,6 +22,7 @@ its scale properties have landed.
 | PostgreSQL command path | Rust command contracts plus a SQLx adapter owning one `PgPool`; IAM and Tenancy have live PostgreSQL-backed stores and RLS tests | Transient compatibility path |
 | PostgreSQL CI | One PostgreSQL 16 service exercises transaction and tenant-RLS behavior | Single service; no product sharding or cell failover |
 | Citus probe | The SQLx live harness can optionally call `create_distributed_table` when `OYATIE_BACKBONE_REQUIRE_CITUS` is enabled | Opt-in probe; disabled by the normal live workflow and not horizontal-scale evidence |
+| Classification contract | `data/ports/classification` exact-re-exports the established classification values and parsers from `data/core/data-boundary-kernel`; Network and Storage already consume the port | Compatibility bridge only; the dependency still points port-to-legacy-core, and 94 other direct package consumers still name at least one classification symbol through the legacy core |
 | OLAP | In-memory OLAP reference behavior and a ClickHouse-shaped adapter whose operations return `IP-003 deferred` | Contract/scaffold only; no live ClickHouse store |
 | Analytics facade | Configuration and boot validation; the listener is explicitly deferred | Not a served Data product |
 | Placement debt | Ontology packages and transactional-outbox packages remain under `data/` | They are not in the target Data charter and move only through separately reviewed owner lanes |

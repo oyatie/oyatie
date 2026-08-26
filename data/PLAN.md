@@ -17,8 +17,11 @@ date: 2026-08-26
   one service and does not enable the optional Citus distribution probe.
 - In-memory OLAP contract behavior, ClickHouse adapter scaffolding that fails
   explicitly as deferred, and analytics binaries without a serving listener.
-- Classification, ontology, and transactional-outbox packages with substantial
-  existing fan-in.
+- A `data-classification` compatibility port consumed by Network and Storage.
+  It still exact-re-exports its values and parsers from the legacy
+  `data-boundary-kernel`; 94 other direct package consumers still name at
+  least one of those classification symbols through the legacy core.
+- Ontology and transactional-outbox packages with substantial existing fan-in.
 
 ## What does not exist
 
@@ -37,32 +40,193 @@ staged owned-Rust migration.
 
 <sequence>
 
-## D1b — Repair the Postgres seam and local build graph
+## D1b — Close structural dependency debt
 
-Class: structural; no feature or package-identity change.
+Class: structural join barrier; no feature, schema, route, or sold behavior.
 
-- Repair `data/BUCK` and add/repair the Postgres command kernel and SQLx adapter
-  Buck targets without restoring deleted corpus/governance dependencies.
-- Split the oversized Postgres kernel and adapter roots into owner-local items
-  while preserving public types, validation order, SQL order, error mapping,
-  and transaction behavior.
-- Keep existing package names and manifests unchanged so reverse consumers and
-  `Cargo.lock` do not move.
+Two dependency chains may run concurrently because their first-slice path sets
+are disjoint:
 
-Success: `buck2 targets //data/...` parses; the two Postgres packages and their
-Cargo/Buck reverse closure pass; IAM/Tenancy live RLS behavior is unchanged;
-touched non-exempt files meet the 300-line budget.
+```text
+D1b-C1 classification provider inversion -> D1b-C2 classification consumer LSC
+D1b-P1 Data-local Postgres repair         -> D1b-P2 Postgres consumer Buck LSC
+                                           \_______________________________/
+                                                          |
+                                                     D1c join gate
+```
 
-Failure: a stale `//libs` or deleted-corpus edge survives, a downstream type or
-error changes, tenant context is set outside the transaction, or a structural
-change is described as new database behavior.
+### D1b-C1 — Invert the classification compatibility port
 
-Rollback: revert the file split and Buck repair only; no schema, route, or data
-format changes exist.
+Move the already-agreed classification surface into its provider port and make
+the legacy core exact-re-export it. Preserve the exact public type identities,
+derives, constructors, conversion errors, label constants, parser trimming and
+accepted/rejected labels, and `Classified<T>` field shape. This is an ownership
+inversion, not a new taxonomy.
+
+The first-slice writable path set is closed to:
+
+- `data/ports/classification/{Cargo.toml,BUCK,src/lib.rs,tests/classification.rs}`
+  plus new item files
+  `src/{classified,data_class,data_classification,parsers,privacy_data_class}.rs`;
+- `data/core/data-boundary-kernel/{Cargo.toml,BUCK,src/lib.rs}`; and
+- root `Cargo.lock`, held by this slice as the single lockfile writer.
+
+No consumer, root manifest, policy, purpose, consent, retention, or generated
+file is writable. The lockfile change is required and limited to reversing the
+local edge: `data-boundary-kernel` depends on `data-classification`, while
+`data-classification` no longer depends on the legacy core. Cargo and Buck must
+encode that same acyclic edge.
+
+C1 amends an agreed provider port and root lockfile, so it is an escalated D-29
+lane even though its code writes stay inside Data. Required reviewers are Data,
+the current Network and Storage consumers, and architecture. Founder review is
+not required unless the slice changes taxonomy or sold semantics, which is
+outside this envelope and is a failure rather than an implicit widening.
+
+Logical verification closure is both provider packages and their tests, every
+existing `data-classification` reverse consumer in Network and Storage, and the
+legacy core's reverse build closure through both Cargo and Buck. A compile-time
+compatibility fixture must accept one value through both public namespaces as
+the same Rust type.
+
+Success: the port is the defining crate; the legacy namespace remains source-
+compatible through exact re-exports; valid and invalid label/parser matrices,
+privacy conversion errors, ordering, hashing, and serialized ledger labels are
+unchanged; Cargo/Buck closure and the lockfile freshness gate pass.
+
+Failure: the graph is cyclic, a compatibility wrapper creates a second type or
+error identity, any parser/label behavior changes, a policy symbol leaks into
+the narrow port, or the lockfile records unrelated churn.
+
+Rollback: restore the original local dependency direction and definitions in
+the legacy core before any D1b-C2 consumer migration lands.
+
+Fault evidence: negative fixtures exercise whitespace, unknown privacy labels,
+operational/subject labels on the privacy parser, and non-privacy conversion;
+a Buck fixture restoring the old reverse edge must fail cycle/parity checks.
+
+### D1b-C2 — Migrate classification consumers as one D-29 LSC
+
+After D1b-C1, one mechanical large-scale change moves direct classification
+imports from `data_boundary_kernel` to `data_classification`. It may retain a
+legacy-core dependency in a package that also uses purpose, consent, policy, or
+retention symbols. It must not rename values, change construction, translate
+errors, or edit behavior.
+
+The maximum D-29 envelope is `Cargo.toml`, `BUCK`, and only the Rust source or
+test files importing the C1 classification symbol set inside these exact 94
+package directories, plus root `Cargo.lock` as the one lockfile writer:
+
+| Consumer owner | Exact package directories at the D1a head |
+|---|---|
+| Application | `app/application/facade/application-app`, `app/application/facade/surface-domain` |
+| Community | `app/community/core/post-store-domain`, `app/community/core/social-domain` |
+| Foundry | `app/foundry/grid/core/sheets-domain`, `app/foundry/pages/crates/docs-domain` |
+| HR | `app/hr/core/employment-domain`, `app/hr/facade/employment-app` |
+| Payroll | `app/payroll/core/run-domain`, `app/payroll/facade/run-app` |
+| Audit | `audit/adapters/file`, `audit/core/chain-domain`, `audit/core/usecase` |
+| Billing | `billing/core/accounting-app`, `billing/core/accounting-journal`, `billing/core/billing`, `billing/core/check-cost-budget`, `billing/core/finops`, `billing/core/metering`, `billing/facade/billing-service`, `billing/ports/finops-api` |
+| Bus | `bus/adapters/file`, `bus/core/domain` |
+| Cell | `cell/core/capacity-commercial`, `cell/core/region`, `cell/core/regional-pack`, `cell/core/routing` |
+| Compliance | `compliance/core/dlp`, `compliance/core/dsr`, `compliance/core/ediscovery`, `compliance/core/retention-dsr`, `compliance/core/retention`, `compliance/core/trust-portal`, `compliance/ports/dsr-usecase` |
+| Compute | `compute/adapters/aws`, `compute/adapters/oci`, `compute/core/dcops`, `compute/core/domain`, `compute/core/resource`, `compute/facade/functions`, `compute/facade/k8s`, `compute/facade/vm` |
+| Data | `data/core/ontology-kernel`, `data/core/ontology-query-engine-domain`, `data/core/ontology-query-engine-usecase`, `data/ports/ontology-api` |
+| IAM | `iam/adapters/pdp-cedar`, `iam/adapters/tenant-rbac-storage-inmemory`, `iam/core/app-control`, `iam/core/domain-control`, `iam/core/identity-domain`, `iam/core/identity-usecase`, `iam/core/tenant-rbac-domain`, `iam/core/tenant-rbac-usecase`, `iam/ports/api`, `iam/ports/tenant-rbac-api` |
+| Intelligence | `intelligence/adapters/evidence-file-adapter`, `intelligence/adapters/run-file-adapter`, `intelligence/adapters/step-file-adapter`, `intelligence/core/adapter-kernel`, `intelligence/core/bypass-domain`, `intelligence/core/capability-domain`, `intelligence/core/catalog-domain`, `intelligence/core/collab-runtime-domain`, `intelligence/core/document-format-domain`, `intelligence/core/evidence-domain`, `intelligence/core/mcp-gateway-domain`, `intelligence/core/mutation-domain`, `intelligence/core/openapi-domain`, `intelligence/core/policy-api`, `intelligence/core/policy-domain`, `intelligence/core/rag-api`, `intelligence/core/registry-api`, `intelligence/core/run-domain`, `intelligence/core/step-domain` |
+| Marketplace | `marketplace/core/domain` |
+| Network | `network/adapters/oci`, `network/adapters/selfhosted`, `network/core/domain`, `network/core/residency`, `network/ports/dns`, `network/ports/lb`, `network/ports/vpc` |
+| Observability | `observability/core/aggregate`, `observability/core/api`, `observability/core/domain` |
+| Pipeline | `pipeline/core/eval-domain` |
+| Secrets | `secrets/adapters/kms-oci`, `secrets/adapters/kms-openbao`, `secrets/adapters/kms-operator-k8s`, `secrets/core/domain`, `secrets/core/kms-domain`, `secrets/ports/kms-api` |
+| Tenancy | `tenancy/core/domain` |
+
+This is an escalated D-29 external-contract lane. Required reviewers are the
+Data provider owner, every consuming owner named in the table, and architecture.
+The implementation dispatch must resolve the table to a file-level occupancy
+receipt before spawning; it may use disjoint caller shards, but only one shard
+may write `Cargo.lock`, and no feature lane may edit an occupied caller file.
+
+Success: every listed classification import resolves through the provider
+port; Cargo and Buck name the same edge; packages needing other legacy boundary
+symbols retain only that narrower old edge; workspace and reverse-closure tests
+observe identical values, errors, labels, and parsers.
+
+Failure: a consumer is missed, a broad core dependency is replaced where a
+non-classification symbol still requires it, a second classification model is
+introduced, behavior changes, or review omits any affected owner.
+
+Rollback: revert the mechanical callers and lockfile while leaving the C1
+compatibility re-export direction intact.
+
+Fault evidence: an injected legacy classification import or stale Buck label
+must fail the parity gate; representative consumer contract tests cover every
+classification axis and both namespace directions during the compatibility
+window.
+
+### D1b-P1 — Repair Data-local Postgres structure
+
+Repair `data/BUCK`; add Buck targets for the Postgres command kernel, SQLx
+adapter, transactional-outbox kernel, and outbox SQLx adapter; and split only
+the two greater-than-300-line Postgres roots into owner-local item files.
+Preserve package names, manifests, public types, validation order, SQL order,
+error mapping, transaction boundaries, and tenant-context behavior.
+
+The writable envelope is only `data/BUCK`, the four Data package `BUCK` files,
+and `src/**/*.rs` in `data/core/postgres-command-kernel` and
+`data/adapters/postgres-command-sqlx`. Cargo manifests and `Cargo.lock` are
+read-only. This slice proves only the Data-local build closure; it does not
+claim that foreign reverse consumers are repaired.
+
+P1 writes only Data paths, but its packages are consumed externally and
+therefore require escalated D-29 review from Data, Community, IAM,
+Intelligence, Tenancy, and architecture. That review does not authorize P1 to
+write any consumer path.
+
+Success: `buck2 targets //data/...` parses without the deleted corpus loader;
+all four Data packages build/test under Cargo and Buck; the structural split is
+behavior-equivalent; touched non-exempt source files meet the line budget.
+
+Failure: a stale `//libs` or deleted-corpus edge survives in Data, a downstream
+type/error/SQL ordering changes, tenant context moves outside the transaction,
+or any manifest/lockfile changes.
+
+Rollback: revert the file split and Data-local Buck repair only.
 
 Fault evidence: negative fixtures omit an item scanner entry or inject a stale
-target edge and prove Buck fails; live probes repeat rollback, RLS, and atomic
-transaction failures before and after the split.
+target edge; existing SQL rollback, atomicity, validation, and RLS probes run
+before and after the split.
+
+### D1b-P2 — Repair Postgres reverse consumers under D-29
+
+After D1b-P1 publishes the Data Buck labels, four disjoint consumer-owner
+shards replace only stale `//libs/shared-postgres-command-*` labels:
+
+| Shard | Exact writable files | Required reviewers |
+|---|---|---|
+| Community | `app/community/adapters/post-store-grpc/BUCK`, `app/community/adapters/post-store-postgres/BUCK`, `app/community/adapters/post-store-rest/BUCK`, `app/community/adapters/social-post-composition-grpc/BUCK`, `app/community/adapters/social-post-composition-postgres/BUCK`, `app/community/adapters/social-post-composition-rest/BUCK`, `app/community/facade/post-store-app/BUCK`, `app/community/facade/social-app/BUCK` | Data provider + Community + architecture |
+| IAM | `iam/adapters/identity-scim-store-postgres/BUCK` | Data provider + IAM + architecture |
+| Intelligence | `intelligence/core/backbone-workload-live-app/BUCK` | Data provider + Intelligence + architecture |
+| Tenancy | `tenancy/adapters/tenant-lifecycle-store-postgres/BUCK` | Data provider + Tenancy + architecture |
+
+The four shards may run concurrently. Rust, Cargo manifests, root files,
+generated files, and `Cargo.lock` are read-only. Their existing Cargo manifests
+already point to the Data packages; this LSC restores Buck parity without a
+semantic or dependency-identity migration.
+
+Success: all 11 Buck files use the D1b-P1 labels; their Cargo/Buck dependency
+sets agree; Community, IAM, Intelligence, and Tenancy reverse targets pass; IAM
+and Tenancy live PostgreSQL/RLS behavior remains unchanged at the D1b join.
+
+Failure: any stale label remains, a caller source or manifest changes, a shard
+self-widens, an affected consumer owner is absent from review, or green Cargo
+is presented as Buck closure.
+
+Rollback: revert only the label replacements; D1b-P1 remains a valid Data-local
+repair.
+
+Fault evidence: each shard injects one deleted label and proves target analysis
+fails; the join reruns transaction rollback, RLS isolation, and atomic failure
+paths against the unchanged Cargo implementations.
 
 ## D1c — Freeze the engine-neutral records contract
 
@@ -196,8 +360,8 @@ retirement claim is valid until its cohort and promotion evidence land.
 
 <ordering_rules>
 
-1. D1b structural repair precedes contract mutation; D1c contract structure
-   precedes D1d/D1e behavior.
+1. D1b-C1 precedes D1b-C2 and D1b-P1 precedes D1b-P2. Both structural chains
+   must join before D1c; D1c contract structure precedes D1d/D1e behavior.
 2. Consensus, fencing, and durable recovery precede broad sharding, OLAP,
    performance tuning, `io_uring`, or hardware specialization.
 3. One stage owns each shared manifest or `Cargo.lock`; behavioral lanes use
@@ -206,6 +370,10 @@ retirement claim is valid until its cohort and promotion evidence land.
    owner-reviewed large-scale changes, not hidden inside a database feature.
 5. Unit-green is never stage completion. Every stage carries explicit success,
    failure, rollback, SLO signals, and named fault evidence.
+6. D1b-C1 and D1b-P1 commute. D1b-C2 may run beside D1b-P2 because their
+   caller files and lock ownership are disjoint. A policy extraction touching
+   `data-boundary-kernel` cannot overlap D1b-C1, and an app structural lane may
+   run only when its exact files are outside the active C2/P2 occupancy set.
 
 </ordering_rules>
 
@@ -223,8 +391,10 @@ Before D1c implementation, founder/provider-owner review must decide:
 
 <next_lane>
 
-The next dispatchable Data lane is D1b only: repair the Postgres command build
-closure and split its oversized Rust files without behavior, manifest, package,
-or lockfile change. D1c remains blocked on the two cross-owner decisions.
+The next dispatchable fanout is D1b-C1 and D1b-P1. C1 owns the exact
+classification inversion paths and `Cargo.lock`; P1 owns only the disjoint
+Data-local Postgres paths and cannot claim reverse closure. C2 and P2 dispatch
+only after their respective providers land. D1c remains blocked on both D1b
+chains and the two cross-owner decisions.
 
 </next_lane>
