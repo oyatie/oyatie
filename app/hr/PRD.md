@@ -166,9 +166,16 @@ transport/provider field order, unknown field, omitted effect, implicit
   scan must authenticate a complete bounded checkpoint and zero ciphertext,
   locator, and non-replay field-index references across every live generation,
   plus zero unresolved authorizations, before the provider issues one explicit
-  `Issued { proof, proof_reference }` value. The provider-ledger issuance is
-  immutable and response-loss Get/replay returns the byte-identical proof and
-  authenticated reference; SQLite persists it and never mints a reference.
+  `Issued { issuance: DecommissionProofIssuanceV1 }` value. The provider-ledger
+  issuance is immutable and response-loss Get/replay returns byte-identical
+  issuance bytes, including the authenticated proof and reference; SQLite
+  persists it and never mints a reference. Proof, reference, and issuance use
+  canonical kinds `0x07`, `0x08`, and `0x09`; provider signing encodes the body
+  without authenticator, signs that body, appends the authenticator to the final
+  wire, and only then calculates an external proof/reference digest. Their
+  maxima are respectively 1,805, 1,265, and 3,092 bytes. Missing, mismatch,
+  corrupt, and authenticator-invalid outcomes are separately typed and fail
+  closed.
   Before its first provider removal side effect,
   `RemoveRepositoryDecommissionV1` writes a durable immutable pre-Remove plan
   that binds that proof reference/fence, `Quarantine` or `Delete` local
@@ -177,6 +184,11 @@ transport/provider field order, unknown field, omitted effect, implicit
   tagged-field preimage and digest that excludes itself and every subsequently
   derived request byte/digest; a sibling exact-request journal is atomically
   derived and persisted only after the plan digest, before that side effect.
+  Its immutable header kinds are Removal `0x01`, Begin `0x02`, Complete `0x03`,
+  LocalDisposition `0x04`, and LocalCompletion `0x05`; a kind substitution,
+  receipt kind `0x06`, or every other byte is rejected before digest, journal,
+  or side effect. Fixed port/key-service/memory/SQLite vectors cover all five
+  plan/request kinds, min/max/+1, and kind/tag/parent/id mutation.
   The plan/journal pair is the sole source of values on retry or recovery; a
   changed id reuse is a typed `MembershipOperationConflict`, not a new attempt.
   A sole-member Remove
@@ -205,8 +217,8 @@ transport/provider field order, unknown field, omitted effect, implicit
   The provider retains the proof and its authenticated immutable
   `DecommissionProofReferenceV1` as one ledger issuance through exact-operation
   replay and terminal-receipt GC; Remove and Complete resolve that bounded
-  reference and reject Missing, Mismatch, or bad-authenticator variants without
-  a membership transition. The 2,273-byte signed Begin fence carries the plan
+  reference and reject named Missing, Mismatch, Corrupt, or
+  AuthenticatorInvalid variants without a membership transition. The 2,273-byte signed Begin fence carries the plan
   digest, making the dependent Complete-plan maximum 3,832 bytes. Provider Begin atomically commits
   its idempotency cell, Decommissioning member state, and signed `Fenced` value,
   so provider status has no `IntentPending` variant. SQLite `IntentPending` is
@@ -230,11 +242,20 @@ transport/provider field order, unknown field, omitted effect, implicit
   recovery state with readiness withdrawn, never a path that can omit a
   referenced member, invent an id/disposition, or reopen its old epoch.
   `LocalDecommissionStorageReceiptV1` remains a separately retained 870-byte
-  SQLite receipt addressed by its canonical key and 32-byte digest; completion
-  and recovery rederive it before using the sole `storage_receipt_digest` plan
-  field. The completion-plan maximum is 253 bytes, not a receipt-wire embedding;
-  missing, duplicate, or changed receipts are `LocalDispositionReceiptInvalid`
-  and keep the member closed.
+  SQLite receipt addressed by its canonical key and 32-byte external digest;
+  completion and recovery never use its sole `storage_receipt_digest` plan field
+  until they have also resolved the trusted 1,246-byte
+  `LocalDecommissionStorageReceiptBindingV1`. In the same atomic transition that
+  publishes `LocalDispositionApplied`, that binding commits the receipt lookup
+  key, expected digest, all repository/keyring/member/epoch and parent fields,
+  terminal/local operation ids, disposition/manifest, admission epoch, and
+  key-id/epoch plus detached metadata-commit authenticator. The signer encodes
+  its body before appending that authenticator, is rotation-aware, and fails
+  closed on unavailability, unknown key epoch, or invalid signature. Fresh
+  recovery verifies receipt bytes/digest and binding before it derives the
+  253-byte plan; missing, duplicate, corrupt, changed, or unauthenticated
+  receipt/binding inputs are `LocalDispositionReceiptInvalid` and keep the
+  member closed.
   Recovery replays only plan-bound steps after pre-Remove plan, provider
   handoff, handoff persistence, Begin-plan, Begin, `Retiring`, Complete-plan,
   Complete, provider terminal receipt, disposition-plan/disposition,

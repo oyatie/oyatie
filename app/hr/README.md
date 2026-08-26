@@ -42,9 +42,14 @@ SQLite write-admission fence and the matching provider admission fence, then
 produces a bounded, authenticated proof of zero ciphertext, locator, and
 non-replay field-index references across every live generation plus zero
 unresolved authorizations. `IssueDecommissionProofV1` returns one explicit
-`Issued { proof, proof_reference }` provider-ledger value; `ProofIssued` Get
-recovery returns those same canonical proof/reference bytes and authenticators,
-not a proof-only value or a repository-minted reference. Before Remove, SQLite durably records an immutable
+`Issued { issuance: DecommissionProofIssuanceV1 }` provider-ledger value;
+`ProofIssued` Get recovery returns byte-identical issuance bytes, including the
+same canonical proof/reference bytes and authenticators, not a proof-only value
+or a repository-minted reference. Proof/reference/issuance have immutable
+canonical kinds `0x07`/`0x08`/`0x09`: sign the body without an authenticator,
+append that authenticator to the final proof/reference wire, then calculate the
+external digest. Their maxima are 1,805/1,265/3,092 bytes, and missing,
+mismatch, corrupt, or bad-authenticator values fail closed. Before Remove, SQLite durably records an immutable
 known-input removal plan that binds a bounded authenticated proof
 reference/fences, fixed `Quarantine` or `Delete` disposition and manifest,
 preallocated retirement fence, and distinct scoped provider/local ids. Every
@@ -85,13 +90,28 @@ membership-mutation and local Abort/Remove/Complete result sums; every status
 and error branch is explicitly matched in port/adapter/SQLite tests, including
 `DecommissionObservationStale`. Thus `NotStarted` is not
 permission to reopen and a late begin cannot resurrect a locally aborted fence.
-The full proof and its bounded authenticated `DecommissionProofReferenceV1` are
+The five plans also have immutable header kinds: Removal `0x01`, Begin `0x02`,
+Complete `0x03`, LocalDisposition `0x04`, and LocalCompletion `0x05`; a
+substituted, receipt, or unknown kind is rejected before digest/journal/effect.
+Port, key-service, memory, and SQLite vectors cover all plan/request kinds,
+min/max/+1, and kind/tag/parent/id mutation. The full proof and its bounded authenticated `DecommissionProofReferenceV1` are
 retained as one provider-issued ledger value through exact-operation replay and
 terminal-receipt GC; Issue/Get response loss returns that exact value, while
-Missing, Mismatch, or bad-authenticator fail closed. A separately retained
+named Missing, Mismatch, Corrupt, or AuthenticatorInvalid variants fail closed.
+A separately retained
 SQLite `LocalDecommissionStorageReceiptV1` is re-resolved by its canonical key
-and 32-byte digest before completion/recovery; a missing or changed receipt is
-`LocalDispositionReceiptInvalid`, not an 870-byte completion-plan input.
+and 32-byte digest before completion/recovery. In the same atomic transition
+that records `LocalDispositionApplied`, SQLite also persists a signed 1,246-byte
+`LocalDecommissionStorageReceiptBindingV1` covering the receipt lookup/digest,
+identity/parent/operation/disposition/manifest/admission fields, and metadata
+signing key id/epoch. A fresh process verifies receipt and binding
+bytes/digests/key/signature before it derives the 253-byte completion plan; a
+missing, changed, corrupt, duplicate, or unauthenticated receipt/binding is
+`LocalDispositionReceiptInvalid`, not an 870-byte completion-plan input. The
+g.0-owned metadata-commit signer/verify port is implemented by the key-service
+adapter with retained verification keys through receipt GC; unavailable, unknown
+key, or bad-signature outcomes withdraw readiness and there is no reverse
+adapter-to-repository runtime edge.
 The fence wire is 2,273 bytes, the dependent Complete plan is 3,832 bytes, and
 the digest-addressed completion plan is 253 bytes; the Begin request remains
 its already-frozen 1,758-byte four-record wire. Provider Begin atomically

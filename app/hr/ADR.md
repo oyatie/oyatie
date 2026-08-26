@@ -307,11 +307,20 @@ over-budget files are debt, not precedent.
   `IssueDecommissionProofV1` authenticates repository/member/epoch, membership
   snapshot/version, rotation state, live-generation digest, admission-fence
   id/epoch, terminal write sequence, scan checkpoint, and all three counts.
-  Its exhaustive success sum is exactly `Issued { proof, proof_reference }`;
-  the provider ledger writes that one immutable issuance under the reference's
-  canonical lookup key, and exact Issue replay or `ProofIssued` status returns
-  byte-identical proof/reference bytes and authenticators. SQLite persists that
-  provider result and cannot mint or reconstruct a reference.
+  Its exhaustive success sum is exactly `Issued { issuance:
+  DecommissionProofIssuanceV1 }`; the provider ledger writes that one immutable
+  issuance under the reference's canonical lookup key, and exact Issue replay
+  or `ProofIssued` status returns byte-identical issuance bytes, including the
+  nested proof/reference bytes and authenticators. SQLite persists that provider
+  result and cannot mint or reconstruct a reference. `DecommissionProofV1`,
+  `DecommissionProofReferenceV1`, and their issuance have canonical kinds
+  `0x07`, `0x08`, and `0x09`: each authenticated value is encoded as a body
+  without its authenticator, signed over `domain || 0x00 || body`, emitted with
+  the authenticator appended as its final tag, then externally digested over
+  that final wire. A proof/reference digest never includes itself. The issuance
+  nests those exact final wires and is valid only when the reference binds the
+  proof digest. Their frozen maxima are 1,805, 1,265, and 3,092 bytes;
+  Missing/Mismatch/Corrupt/AuthenticatorInvalid are named fail-closed results.
 
   After that proof but before any provider side effect,
   `RemoveRepositoryDecommissionV1` durably CASes an immutable
@@ -333,17 +342,21 @@ over-budget files are debt, not precedent.
   Complete resolve and reauthenticate that bounded reference rather than
   serialize an unbounded full proof. The ledger retains both exact canonical
   values through Issue/Remove/Complete/Get/recovery replay and terminal-receipt
-  GC, and Missing/Mismatch/AuthenticatorInvalid are typed fail-closed results.
+  GC; Missing, Mismatch, Corrupt, and AuthenticatorInvalid remain distinct typed
+  fail-closed results for proof and reference verification.
   The typed Begin request, exact request journal/idempotency cell, and signed
   `KeyringRetirementFenceV1` carry the same `begin_plan_digest`; a changed
   digest is `MembershipOperationConflict`, while Complete must match the
   authenticated fence binding. The fence maximum is 2,273 bytes and the
   dependent Complete plan maximum is 3,832 bytes.
-  The canonical plan codecs have fixed domain tags, ascending required field
-  tags, u16 lengths, and a 4,096-byte body ceiling whose maximum typed
+  The canonical plan codecs have immutable kind bytes `Removal=0x01`,
+  `BeginRetirement=0x02`, `CompleteRetirement=0x03`,
+  `LocalDisposition=0x04`, and `LocalCompletion=0x05`, fixed domain tags,
+  ascending required field tags, u16 lengths, and a 4,096-byte body ceiling whose maximum typed
   Removal/Begin/Complete/Disposition/Completion plans and request journals are
-  proven by fixed minimum/maximum vectors, plus-one, mutation, parent, and
-  independent-rederivation tests.
+  proven by fixed minimum/maximum vectors, plus-one, kind-substitution/unknown-
+  kind, mutation, parent, and independent-rederivation tests. `0x00`, `0x06`,
+  and every other byte are rejected before a digest, journal, or effect.
   `RemoveKeyringRepositoryV1` rechecks its plan digest together with that proof
   before membership change. A non-last removal yields a proof-and-plan-bound
   receipt; a sole member first receives provider `RetirementHandoffReady`,
@@ -373,10 +386,21 @@ over-budget files are debt, not precedent.
   terminal CASes are independently atomic and deliberately fenced across the
   remote/local gap.
   `LocalDecommissionStorageReceiptV1` is separately retained by canonical
-  local-receipt key and 32-byte digest; the only completion-plan field is that
-  digest. Recovery rederives it before completion, so a missing, duplicate, or
-  changed receipt is `LocalDispositionReceiptInvalid`, not a way to substitute
-  its 870-byte wire. The completion-plan maximum is 253 bytes.
+  local-receipt key and 32-byte external digest; the only completion-plan field
+  is that digest. No later than the atomic `LocalDispositionApplied` transition,
+  SQLite stores `LocalDecommissionStorageReceiptBindingV1`: a 1,246-byte,
+  signed kind-`0x0c` record that names the receipt lookup key, expected receipt
+  digest, repository/keyring/member/epoch, removal/disposition/terminal parents,
+  terminal and local operation ids, disposition/manifest, admission epoch, and
+  metadata key id/epoch. Its signer input is the sixteen-tag binding body and
+  its detached authenticator is appended only afterward. Fresh recovery resolves
+  the receipt and binding, verifies the receipt digest, parent fields, key epoch
+  and signature, then derives the 253-byte plan. A missing, duplicate, corrupt,
+  mismatched, or bad-authenticator receipt/binding is the named
+  `LocalDispositionReceiptInvalid` branch, not a way to substitute its 870-byte
+  wire. The repository metadata-commit signer/verify port is g.0-owned,
+  key-service implemented, rotation-aware, fail-closed on unavailable/unknown
+  key/signature failure, and has no reverse adapter-to-repository edge.
   Provider Begin and Abort serialize through one provider transaction: Begin
   commits its idempotency cell, member Decommissioning state, and signed Fenced
   value atomically, so provider status is never IntentPending. Before that

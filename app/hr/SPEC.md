@@ -720,24 +720,43 @@ opaque_id: OpaqueBytes<=128 }` cannot be used as a provider id.
 `ProviderOperationIdV1` and cannot reach a provider side effect.
 
 `DecommissionDigestV1` is the exact 32-byte output of `H`, carried in the
-existing `FixedBytes<=64` container. `CanonicalDecommissionPlanEncodingV1` is
-the only encoder for the five durable decommission plans below. Its
-non-self-referential digest preimage is `ASCII(domain) || 0x00 || header ||
-records`, where `domain` is the exact plan-specific ASCII literal named below,
-`header` is exactly `0x4f 0x59 0x48 0x52 || 0x01 || plan_kind:u8 ||
+existing `FixedBytes<=64` container. `CanonicalDecommissionWireEncodingV1` is
+the only encoder for the decommission records in this section; the
+`CanonicalDecommissionPlanEncodingV1` plan subset delegates to it. Its header
+is exactly `0x4f 0x59 0x48 0x52 || 0x01 || wire_kind:u8 ||
 record_count:u16be || 0:u64be`, and each record is exactly `tag:u8 ||
 length:u16be || value`. Tags are strictly ascending, no tag repeats,
 `record_count` equals the declared tag set exactly, and an unknown, omitted,
-duplicated, out-of-order, or non-canonical-length tag is rejected before
-hashing. A `u64` value has `length = 8` and big-endian bytes; an enum has
-`length = 1`; a digest has `length = 32`; and a provider or local operation id
-has `length = 1 + opaque_id_length`, with its kind byte first and a nonempty
-`opaque_id<=128`. Every other opaque identity named in the tables is nonempty
-and is bounded by its declared type: keyring/snapshot/fence ids `<=128`,
-repository id `<=256`, provider authenticator `<=512`, and storage-manifest
-digest `=32`. In this decommission subsection every `*_digest` field is the
-`DecommissionDigestV1` 32-byte subtype, including a legacy display spelling of
-`FixedBytes<=64`; no decommission digest may use the remaining width. A nested
+duplicated, out-of-order, or non-canonical-length tag is rejected before any
+hash or signature check. A `u64` value has `length = 8` and big-endian bytes;
+an enum has `length = 1`; a digest has `length = 32`; and a provider or local
+operation id has `length = 1 + opaque_id_length`, with its kind byte first and
+a nonempty `opaque_id<=128`. Every other opaque identity named in the tables is
+nonempty and is bounded by its declared type: keyring/snapshot/fence ids
+`<=128`, repository id `<=256`, provider authenticator `<=512`, and
+storage-manifest digest `=32`. In this decommission subsection every
+`*_digest` field is the `DecommissionDigestV1` 32-byte subtype, including a
+legacy display spelling of `FixedBytes<=64`; no decommission digest may use the
+remaining width.
+
+`DecommissionCanonicalWireKindV1` is an exhaustive immutable map: `RemovalPlan
+= 0x01`, `BeginRetirementPlan = 0x02`, `CompleteRetirementPlan = 0x03`,
+`LocalDispositionPlan = 0x04`, `LocalCompletionPlan = 0x05`,
+`LocalStorageReceipt = 0x06`, `DecommissionProof = 0x07`,
+`DecommissionProofReference = 0x08`, `DecommissionProofIssuance = 0x09`,
+`DecommissionObservation = 0x0a`, `IssueDecommissionProofRequest = 0x0b`, and
+`LocalStorageReceiptBinding = 0x0c`. The five values `0x01..=0x05` are the
+only legal `DecommissionPlanKindV1` bytes; `0x00` and `0x0d..=0xff` are
+rejected as `DecommissionCanonicalWireKindInvalid` by port, key-service,
+memory, and SQLite encoders/decoders before persistence or a side effect. A
+nested value is the exact final canonical wire of its declared kind, not a
+re-encoded struct or a byte prefix; its outer TLV length is that complete nested
+wire length. This rule makes a plan-kind substitution, an unknown kind, and a
+kind-valid body under the wrong header distinct typed refusals.
+
+For a plan with `domain`, its non-self-referential digest preimage is exactly
+`ASCII(domain) || 0x00 || final_plan_wire`, where `final_plan_wire` has one of
+the five plan-kind bytes above and only the listed input tags. A nested
 `KeyringRetirementFenceV1` wire is exactly five top-level records
 `(handoff_wire, retirement_fence_id, retirement_begin_operation_id,
 begin_plan_digest, provider_authenticator)`, in that ascending tag order. The
@@ -745,13 +764,81 @@ fence authenticator covers the already-derived `begin_plan_digest` as well as
 the full previously authenticated handoff, so it binds the accepted Begin plan
 without a recursive plan preimage.
 
-The complete canonical wire of `DecommissionProofReferenceV1`,
+Authenticated proof and reference construction has one non-recursive order.
+First the provider encodes the named **body wire** with the immutable header,
+the body tag count, and every listed tag except its authenticator. It signs that
+body only. It then encodes the **final wire** with the same kind, the count that
+includes the authenticator tag, the same body tags, and the authenticator as the
+last tag. Only after that does it compute an external digest over the final
+wire. No digest is a field in its own body or final wire, and neither phrase
+means a wire that includes its later external digest. The provider attestation
+preimage is exactly `ASCII(auth_domain) || 0x00 || body_wire`; its bounded
+`provider_authenticator` is the key-service's detached provider-attestation
+envelope. The adapter's `ProviderDecommissionAttestationKeyRegistryV1` selects
+the verification key from the retained provider key epoch for the keyring and
+retains a verification-only draining key through the corresponding issuance GC
+horizon. Missing key, corrupt envelope, or failed verification is fail closed.
+
+The proof codec is kind `0x07`, tags `1..=20` in this exact order:
+`keyring_id`, `repository_id`, `member_instance_id`, `repository_epoch`,
+`membership_snapshot_id`, `membership_version`, `rotation_fence_id`,
+`live_generation_digest`, `decommission_fence_id`, `admission_epoch`,
+`terminal_write_sequence`, `scan_checkpoint_digest`,
+`unresolved_receipt_digest`, `issue_proof_operation_id`,
+`issue_proof_request_digest`, `durable_ciphertext_references`,
+`durable_locator_references`, `durable_non_replay_index_references`,
+`unresolved_authorizations`, and `provider_authenticator`. Tags `1..=19` are
+the body; tag `20` is a `<=512` authenticator. Its body maximum is
+`16 + 19*3 + 128+256+128+8+128+8+128+32+128+8+8+32+32+129+32+8+8+8+8 =
+1,290`; its final maximum is `16 + 20*3 + 1,729 = 1,805`; and
+`decommission_proof_digest = H(ASCII("hr.decommission.proof.v1") || 0x00 ||
+final_proof_wire)` is computed only after the final wire exists. The reference
+codec is kind `0x08`, tags `1..=8` in order: `keyring_id`, `repository_id`,
+`member_instance_id`, `repository_epoch`, `decommission_proof_digest`,
+`issue_proof_operation_id`, `issue_proof_request_digest`, and
+`provider_authenticator`. Its body is tags `1..=7`, maximum `750`; its final
+maximum is `16 + 8*3 + 1,225 = 1,265`; and
+`decommission_proof_reference_digest = H(ASCII("hr.decommission.proof-reference.v1")
+|| 0x00 || final_reference_wire)`. The reference body binds the proof digest,
+lookup identity, and exact Issue request digest before it is signed.
+
+The issuance codec is unauthenticated only because both nested values are
+already authenticated: kind `0x09`, exactly two tags, `1 proof_final_wire` and
+`2 proof_reference_final_wire`. It has no issuance digest field, no
+authenticator field, and no alternate nesting rule. It is valid only when tag
+1 is a valid kind-`0x07` final wire, tag 2 is a valid kind-`0x08` final wire,
+and the reference proof digest equals the external digest of those exact tag-1
+bytes. Its maximum is exactly `16 + 2*3 + 1,805 + 1,265 = 3,092`. The durable
+provider ledger stores those exact `3,092`-bounded issuance bytes by the
+reference lookup key; Issue, exact Issue replay, and `ProofIssued` Get return
+the byte-identical issuance bytes, rather than independently serializing either
+nested value. `DecommissionProofIssuanceV1` decodes only that wire and
+`IssueDecommissionProofResultV1` has one success shape, `Issued { issuance:
+DecommissionProofIssuanceV1 }`.
+
+`DecommissionObservationV1` has kind `0x0a`, exactly tags `1..=17` in the
+field order declared below, no authenticator, and maximum
+`16 + 17*3 + 128+256+128+8+128+8+128+32+128+8+8+32+32+8+8+8+8 = 1,123`.
+`IssueDecommissionProofRequestV1` has kind `0x0b`, exactly tag `1` containing
+that final observation wire and tag `2` containing the kind-scoped provider
+operation id; its maximum is `16 + 2*3 + 1,123 + 129 = 1,274`.
+`issue_proof_request_digest = H(ASCII("hr.decommission.issue-proof-request.v1")
+|| 0x00 || final_issue_request_wire)` is external and is persisted before the
+provider Issue call. g.0, g.1, and g.2 maintain independently written codecs
+and must produce identical minimum/maximum issuance, observation, and Issue
+request vectors; mutation of any tag, nested header, count, length, operation
+id, proof/reference authenticator, or parent digest is a named typed refusal.
+
+The complete canonical wire of `DecommissionProofV1`,
+`DecommissionProofReferenceV1`, `DecommissionProofIssuanceV1`,
+`DecommissionObservationV1`, `IssueDecommissionProofRequestV1`,
 `KeyringRetirementHandoffV1`, `KeyringRetirementFenceV1`,
-`ProviderDecommissionTerminalReceiptV1`, and
-`LocalDecommissionStorageReceiptV1` is respectively at most `1,265`, `1,441`,
-`2,273`, `1,919`, and `870` bytes, including its own 16-byte header and
-records. These are closed maxima from the field bounds in this section, not
-sampling targets. The maximum plan-wire lengths (not including the fixed domain
+`ProviderDecommissionTerminalReceiptV1`, `LocalDecommissionStorageReceiptV1`,
+and `LocalDecommissionStorageReceiptBindingV1` is respectively at most
+`1,805`, `1,265`, `3,092`, `1,123`, `1,274`, `1,441`, `2,273`, `1,919`,
+`870`, and `1,246` bytes, including its own 16-byte header and records. These
+are closed maxima from the field bounds in this section, not sampling targets.
+The maximum plan-wire lengths (not including the fixed domain
 literal and terminating zero) are Removal `3,096`, Begin `1,793`, Complete
 `3,832`, Disposition `2,179`, and Completion `253` bytes. Thus every
 individual `u16be` length and the `4,096`-byte plan/request-wire ceiling admits
@@ -778,15 +865,17 @@ does not create an empty snapshot or remove the final member. Exact replay of
 Remove and Get therefore returns the same authenticated handoff rather than
 asking SQLite to reconstruct or mint one after a crash.
 
-`DecommissionProofIssuanceV1` is exactly `{ proof: DecommissionProofV1,
-proof_reference: DecommissionProofReferenceV1 }`, one immutable provider-ledger
-value rather than two independently produced values.
+`DecommissionProofIssuanceV1` is exactly the decoded view `{ proof:
+DecommissionProofV1, proof_reference: DecommissionProofReferenceV1 }` of its
+one immutable kind-`0x09` provider-ledger wire, rather than two independently
+produced values.
 `IssueDecommissionProofResultV1` is exactly `Issued { issuance:
 DecommissionProofIssuanceV1 }`; its named error is the closed
 `KeyringMembershipError` sum below. The provider writes the issuance once under
 the reference's canonical lookup key, and exact Issue replay or Get returns the
-byte-identical proof and reference canonical bytes, including their provider
-authenticators. Neither result branch creates a repository-owned identifier.
+byte-identical issuance wire, including its nested proof/reference canonical
+bytes and provider authenticators. Neither result branch creates a
+repository-owned identifier.
 
 `ProviderDecommissionStatusV1` is exactly `NotStarted | Aborted { begin_operation_id:
 ProviderOperationIdV1, abort_tombstone: DecommissionBeginTombstoneV1 } | Fenced
@@ -863,8 +952,8 @@ DecommissionProofIssuanceV1 }`. Before this provider call, SQLite persists
 `DecommissionProofIssuePlanV1 { observation, issue_proof_operation_id:
 ProviderOperationIdV1, issue_proof_request_digest: FixedBytes<=64 }`, where the id
 is the one already reserved in the immutable intent and the digest is
-`H("hr.decommission.issue-proof-request.v1" || exact
-IssueDecommissionProofV1 request bytes)`. The provider recomputes that digest
+`H(ASCII("hr.decommission.issue-proof-request.v1") || 0x00 || final
+IssueDecommissionProofRequestV1 wire)`. The provider recomputes that digest
 from its exact request before signing and durably storing one issuance; exact
 replay returns the same issuance and changed reuse is
 `MembershipOperationConflict`. `ProviderDecommissionStatusV1::ProofIssued`
@@ -939,8 +1028,8 @@ provider_authenticator: OpaqueBytes<=512 }`. Its canonical lookup key is
 exactly `(keyring_id, repository_id, member_instance_id, repository_epoch,
 issue_proof_operation_id)`; the adapter's durable provider decommission ledger
 owns one corresponding `DecommissionProofIssuanceV1` record. Its immutable
-value is the exact returned proof canonical bytes followed by the exact returned
-reference canonical bytes; it verifies both authenticators, the reference
+value is the exact kind-`0x09` issuance wire with tag 1 equal to the returned
+proof final wire and tag 2 equal to the returned reference final wire; it verifies both authenticators, the reference
 lookup identity, issue request digest, and full-proof digest before every use.
 That ledger is introduced by the g.1 key-service adapter implementation behind
 the g.0 port; the repository carries only this port type, so it adds no
@@ -950,11 +1039,19 @@ The ledger retains the complete issuance record at least through every accepted
 exact Issue/Remove/Complete/Get/recovery replay and the associated terminal
 receipt-retention/GC horizon. It may collect that record only after a matching
 terminal receipt is durable and all accepted replay keys that could name it have
-expired; it never reconstructs a proof or reference from observation. A missing
-record is `DecommissionProofReferenceMissing`, an identity/digest/request
-mismatch is `DecommissionProofReferenceMismatch`, and a bad reference or proof
-authenticator is `DecommissionProofReferenceAuthenticatorInvalid`; each is fail
-closed and changes no membership state. Thus the reference is sufficient for
+expired; it never reconstructs a proof or reference from observation. The
+closed verification map is `DecommissionProofMissing` for a missing nested
+proof, `DecommissionProofCorrupt` for a malformed proof wire,
+`DecommissionProofAuthenticatorInvalid` for a bad proof authenticator,
+`DecommissionProofReferenceMissing` for a missing ledger/reference,
+`DecommissionProofReferenceCorrupt` for a malformed reference wire,
+`DecommissionProofReferenceMismatch` for lookup/identity/digest/request
+mismatch, `DecommissionProofReferenceAuthenticatorInvalid` for a bad reference
+authenticator, and `MembershipOperationConflict` for a reused Issue operation
+id with changed request bytes. Each is fail closed and changes no membership
+state. A malformed outer kind-`0x09` wire is
+`DecommissionProofIssuanceCorrupt`; a valid outer issuance with nested values
+that disagree is `DecommissionProofIssuanceMismatch`. Thus the reference is sufficient for
 both initial verification and exact Complete replay: the provider resolves the
 same immutable issuance by its canonical key, reauthenticates it, and rechecks
 the same identity, zero-reference, unresolved, fence, and plan predicates.
@@ -1065,7 +1162,11 @@ MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
 RepositoryAdmissionEpochStale, DecommissionPending, DecommissionFenceStale,
 DecommissionScanIncomplete, DecommissionObservationStale,
 DecommissionProofIssuePlanMismatch, DecommissionProofAlreadyIssued,
+DecommissionProofMissing, DecommissionProofCorrupt,
+DecommissionProofAuthenticatorInvalid, DecommissionProofIssuanceCorrupt,
+DecommissionProofIssuanceMismatch,
 DecommissionProofReferenceMissing, DecommissionProofReferenceMismatch,
+DecommissionProofReferenceCorrupt,
 DecommissionProofReferenceAuthenticatorInvalid, MembershipMutationBlocked,
 LocalStorageBusy, LocalStorageFull, LocalStorageIo, LocalCommitFailed,
 MembershipOperationConflict, ProviderUnavailable, ProviderCorrupt}`.
@@ -1141,8 +1242,13 @@ RepositoryAdmissionEpochStale, DecommissionIntentMismatch, BeginTombstoneMismatc
 LocalStorageFull, LocalStorageIo, LocalCommitFailed, MembershipOperationConflict,
 ProviderUnavailable, ProviderCorrupt}` and leaves local admission closed.
 
-`DecommissionPlanKindV1` is exactly `Removal | BeginRetirement |
-CompleteRetirement | LocalDisposition | LocalCompletion`.
+`DecommissionPlanKindV1` is exactly `Removal(0x01) | BeginRetirement(0x02) |
+CompleteRetirement(0x03) | LocalDisposition(0x04) | LocalCompletion(0x05)`;
+these bytes are part of the immutable canonical plan header, not a display enum
+or an implementation choice. Every plan/request fixed vector starts with its
+matching header byte, and the port, key-service adapter, memory oracle, and
+SQLite reject a kind substitution, `0x00`, `0x06`, or any `0x07..=0xff` before
+digest, signature, journal, or side-effect handling.
 `DecommissionPlanRequestJournalV1` is a sibling record, never an input to a
 plan digest: `{ plan_kind: DecommissionPlanKindV1, plan_digest:
 DecommissionDigestV1, exact_request_bytes: OpaqueBytes<=4096,
@@ -1286,20 +1392,90 @@ RepositoryLocalOperationIdV1, storage_manifest_digest: FixedBytes<=64,
 disposition: LocalDecommissionStorageDispositionV1::{Quarantined | Deleted},
 local_admission_epoch: u64, local_metadata_commit_digest: FixedBytes<=64 }`.
 It is a separately persisted immutable SQLite metadata receipt, not a field in
-a completion-plan wire. Its canonical lookup key is exactly `(keyring_id,
-repository_id, member_instance_id, repository_epoch, removal_plan_digest,
-local_disposition_operation_id)`. `CanonicalDecommissionStorageReceiptEncodingV1`
-is distinct from `DecommissionPlanKindV1`: its exact 16-byte header is
+a completion-plan wire. Before receipt tag 12 exists,
+`local_metadata_commit_digest` is exactly
+`H(ASCII("hr.decommission.local-storage-metadata-commit.v1") || 0x00 ||
+metadata_commit_body_wire)`, where `metadata_commit_body_wire` is kind `0x06`,
+count `11`, and receipt tags `1..=11` only. It therefore binds the immutable
+repository/keyring/member/epoch, proof/removal/terminal parents, disposition
+operation, manifest, disposition, and local admission epoch without containing
+itself, a receipt digest, or an authenticator. Its canonical receipt lookup key
+is exactly `(keyring_id, repository_id, member_instance_id, repository_epoch,
+removal_plan_digest, local_disposition_operation_id)`.
+`CanonicalDecommissionStorageReceiptEncodingV1` is distinct from
+`DecommissionPlanKindV1`: its exact 16-byte header is
 `0x4f 0x59 0x48 0x52 || 0x01 || 0x06 || 12:u16be || 0:u64be`, where `0x06`
 means only `LocalDecommissionStorageReceiptV1`. Its twelve listed fields use
 ascending tags `1..=12` and the same nonempty/bounded TLV length rules, so its
 maximum is exactly `16 + 12*3 + 128+256+128+8+32+32+32+129+32+1+8+32 = 870`.
-`storage_receipt_digest =
-H("hr.decommission.local-storage-receipt.v1" || canonical_receipt_wire)`.
-SQLite retains the receipt bytes and lookup row through every accepted exact
-completion/recovery/status replay and the matching local-terminal-receipt GC
-horizon. A missing, duplicate, malformed, or digest/identity/metadata-commit
-mismatch is `LocalDispositionReceiptInvalid`, leaves admission closed, and
+`storage_receipt_digest = H(ASCII("hr.decommission.local-storage-receipt.v1")
+|| 0x00 || final_storage_receipt_wire)` is external and is computed only after
+that complete 870-byte-bounded receipt wire exists.
+
+`LocalDecommissionStorageReceiptBindingV1` is the separately retained trusted
+metadata-commit record that makes a fresh process safe before it derives the
+253-byte completion plan. Its canonical lookup key is the receipt lookup key
+above and its exact kind-`0x0c` tags are: `1 keyring_id<=128`, `2
+repository_id<=256`, `3 member_instance_id<=128`, `4 repository_epoch:u64be`,
+`5 removal_plan_digest:32`, `6 disposition_plan_digest:32`, `7
+provider_terminal_receipt_digest:32`, `8 provider_terminal_operation_id<=129`,
+`9 local_disposition_operation_id<=129`, `10 disposition_enum:1`, `11
+storage_manifest_digest:32`, `12 expected_storage_receipt_digest:32`, `13
+local_metadata_commit_digest:32`, `14 local_admission_epoch:u64be`, `15
+metadata_commit_key_id<=128`, `16 metadata_commit_key_epoch:u64be`, and `17
+metadata_commit_authenticator:64`. The body wire is kind `0x0c`, count `16`,
+and tags `1..=16`; the signer encodes and signs that body first with exactly
+`ASCII("hr.decommission.local-storage-receipt-binding-authenticator.v1") ||
+0x00 || binding_body_wire`. It then appends tag 17 and re-encodes the final
+kind-`0x0c`, count-`17` binding wire. No binding digest is a tag in either
+wire. The mechanical maxima are body `16 + 16*3 +
+128+256+128+8+32+32+32+129+129+1+32+32+32+8+128+8 = 1,179`, then final
+`16 + 17*3 +
+128+256+128+8+32+32+32+129+129+1+32+32+32+8+128+8+64 = 1,246`.
+
+`RepositoryMetadataCommitAuthenticatorV1` is a named repository-facing port
+owned by g.0 `record-encryption/src/items/j_decommission.rs`; it exposes
+`sign_local_storage_receipt_binding_v1 { key_id, key_epoch, binding_body_wire
+}-> { metadata_commit_authenticator: FixedBytes=64 }` and
+`verify_local_storage_receipt_binding_v1 { final_binding_wire } -> Verified`.
+The g.1 record-encryption-key-service adapter owns its implementation and the
+active signing-key selection. A rotation makes the old key verification-only
+through the receipt/binding retention and GC horizon; only the active key can
+sign a new binding. `MetadataCommitSignerUnavailable`,
+`MetadataCommitKeyEpochUnknown`, `MetadataCommitSignatureInvalid`,
+`LocalDispositionReceiptBindingMissing`,
+`LocalDispositionReceiptBindingMismatch`, and
+`LocalDispositionReceiptBindingAuthenticatorInvalid` are closed typed results;
+the first three withdraw repository readiness rather than counting as available
+user work. The normal runtime graph is repository/SQLite -> record-encryption
+port -> key-service adapter; g.0 has no SQLite edge and the adapter has no
+repository/SQLite runtime edge.
+
+After a local disposition has produced the canonical receipt bytes, SQLite
+derives the external receipt digest, obtains the binding signature over the
+already fixed body, and commits the receipt row, binding row, and
+`LocalDispositionApplied` status in one `BEGIN IMMEDIATE` transaction. That
+transaction binds the exact receipt digest and the repository/keyring/member/
+epoch, removal and disposition plan parents, provider terminal id/digest, local
+disposition id, disposition, manifest, and local admission epoch before any
+completion plan may be derived. If signing or that transaction fails, no
+`LocalDispositionApplied` state exists; a staged physical disposition remains
+write-closed and is recovered only by the stored disposition plan, never by a
+caller-provided receipt.
+
+SQLite retains the receipt bytes, binding bytes, binding key epoch, and lookup
+rows through every accepted exact completion/recovery/status replay and the
+matching local-terminal-receipt GC horizon. Fresh recovery first resolves both
+rows by that canonical key; it independently parses the kind/header/tag counts,
+recomputes the metadata-commit and final receipt digests, requires the binding's
+expected receipt digest to match, verifies its key epoch/signature and all
+parent fields, and only then derives the completion plan. The closed
+`LocalDispositionReceiptErrorV1` map is exactly `ReceiptMissing |
+ReceiptDuplicate | ReceiptCorrupt | ReceiptMismatch | BindingMissing |
+BindingCorrupt | BindingMismatch | BindingAuthenticatorInvalid |
+MetadataCommitSignerUnavailable | MetadataCommitKeyEpochUnknown |
+MetadataCommitSignatureInvalid`; repository APIs expose it as
+`LocalDispositionReceiptInvalid(error)`. Each leaves admission closed and
 cannot be repaired by caller input or a newly constructed receipt.
 
 `LocalDecommissionCompletionPlanV1` is the immutable **post-storage-receipt/
@@ -1356,7 +1532,20 @@ Those suites additionally freeze independent minimum/maximum canonical
 local-storage-receipt bytes and digest vectors, their exact lookup key, and
 maximum-plus-one/field-order/tag/length failures before deriving the completion
 plan; neither implementation may generate those receipt vectors from its
-production encoder.
+production encoder. The same g.0 vectors freeze each five-plan kind byte and
+its corresponding request header (`0x01`/Remove, `0x02`/Begin,
+`0x03`/Complete, `0x04`/Disposition, `0x05`/Completion), min/max and max-plus-
+one exact bytes, and kind-substitution/unknown-kind rejection. g.1 and g.2
+must derive the same vectors with independently maintained codecs, including
+memory and SQLite conformance paths; no decoder may normalize a different kind
+to the intended plan. They also freeze proof (`1,805`), reference (`1,265`),
+issuance (`3,092`), observation (`1,123`), Issue request (`1,274`), receipt
+(`870`), and binding (`1,246`) min/max vectors; nested/field/tag/length/
+authenticator/request-id mutation, duplicate/omitted/reordered tags, every
+maximum-plus-one input, reference lookup conflict, Missing/Mismatch/Corrupt/
+AuthenticatorInvalid mapping, and Issue response loss must be covered. The
+lost-response Get vector must be byte-identical to the initial `Issued {
+issuance }` vector, not merely structurally equal.
 `LocalDecommissionCompletionReceiptV1` is `{ keyring_id,
 repository_id, member_instance_id, repository_epoch,
 decommission_proof_digest: FixedBytes<=64, removal_plan_digest: FixedBytes<=64,
@@ -1400,10 +1589,12 @@ ProviderDecommissionTerminalReceiptV1, disposition_plan:
 LocalDecommissionDispositionPlanV1 } | LocalDispositionApplied { plan_receipt:
 RepositoryDecommissionRemovalPlanReceiptV1, terminal_receipt:
 ProviderDecommissionTerminalReceiptV1, storage_receipt:
-LocalDecommissionStorageReceiptV1 } | LocalCompletionPlanned { plan_receipt:
+LocalDecommissionStorageReceiptV1, storage_receipt_binding:
+LocalDecommissionStorageReceiptBindingV1 } | LocalCompletionPlanned { plan_receipt:
 RepositoryDecommissionRemovalPlanReceiptV1, terminal_receipt:
 ProviderDecommissionTerminalReceiptV1, storage_receipt:
-LocalDecommissionStorageReceiptV1, completion_plan:
+LocalDecommissionStorageReceiptV1, storage_receipt_binding:
+LocalDecommissionStorageReceiptBindingV1, completion_plan:
 LocalDecommissionCompletionPlanV1 }`.
 `RepositoryDecommissionCompleteResultV1` is exactly `Progress { status:
 RepositoryDecommissionCompletionProgressV1 } | Terminal { terminal:
@@ -1415,9 +1606,10 @@ operation_id: RepositoryLocalOperationIdV1 }` and returns
 `RepositoryDecommissionCompleteResultV1`. Its id must equal the removal plan's
 LocalCompletion id; it supplies neither a terminal receipt nor a new
 disposition. Under `BEGIN IMMEDIATE`, it first writes the disposition plan,
-starts only its stored disposition, records `LocalDispositionApplied`, writes
-the completion plan, and only then performs the one matching terminal CAS. The
-admission row stays closed. Busy/timeout, full disk, I/O, transaction-commit,
+starts only its stored disposition, atomically records the receipt, trusted
+receipt binding, and `LocalDispositionApplied`, verifies that retained binding
+before it writes the completion plan, and only then performs the one matching
+terminal CAS. The admission row stays closed. Busy/timeout, full disk, I/O, transaction-commit,
 quarantine, or deletion failure is respectively `DecommissionLocalDrainBusy`,
 `DecommissionLocalDrainTimeout`, `DecommissionLocalStorageFull`,
 `DecommissionLocalStorageIo`, `DecommissionLocalCommitFailed`,
@@ -1435,8 +1627,9 @@ begin_plan, retirement_fence, complete_plan } |
 ProviderTerminalPendingLocalDisposition { plan_receipt, terminal_receipt } |
 LocalDispositionPlanned { plan_receipt, terminal_receipt, disposition_plan } |
 LocalDispositionInProgress { plan_receipt, terminal_receipt, disposition_plan } |
-LocalDispositionApplied { plan_receipt, terminal_receipt, storage_receipt } |
-LocalCompletionPlanned { plan_receipt, terminal_receipt, storage_receipt,
+LocalDispositionApplied { plan_receipt, terminal_receipt, storage_receipt,
+storage_receipt_binding } | LocalCompletionPlanned { plan_receipt,
+terminal_receipt, storage_receipt, storage_receipt_binding,
 completion_plan } | Removed { plan_receipt, removal_receipt, storage_receipt,
 local_completion } | KeyringRetired { plan_receipt, retirement_receipt,
 storage_receipt, local_completion }`. `GetRepositoryDecommissionStatusV1`
@@ -1464,8 +1657,8 @@ The persisted removal recovery table is total for every local state:
 | `ProviderTerminalPendingLocalDisposition` | plan and matching terminal receipt | atomically write only the derived disposition plan |
 | `LocalDispositionPlanned` | plan, terminal receipt, disposition plan and matching disposition journal | start or resume only that stored disposition |
 | `LocalDispositionInProgress` | plan, terminal receipt, disposition plan/id | resume only that disposition |
-| `LocalDispositionApplied` | plan, terminal receipt, retained storage receipt and its exact digest | resolve and rederive only that receipt, then atomically write the derived completion plan |
-| `LocalCompletionPlanned` | plan, terminal receipt, retained storage receipt, completion plan and matching completion journal | re-resolve the matching receipt digest, then replay only the stored local completion |
+| `LocalDispositionApplied` | plan, terminal receipt, retained storage receipt, trusted binding, canonical lookup key, and exact digest | resolve and verify the receipt plus binding before atomically writing the derived completion plan |
+| `LocalCompletionPlanned` | plan, terminal receipt, retained storage receipt, trusted binding, completion plan and matching completion journal | re-resolve and verify the matching receipt/binding before replaying only the stored local completion |
 | `Removed` / `KeyringRetired` | plan, provider, storage, and local-completion receipts | return the stored terminal value |
 
 `RecoverRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
@@ -1543,10 +1736,13 @@ error is `KeyringMembershipError::{MembershipVersionStale,
 MembershipSnapshotStale, RepositoryAlreadyRegistered, RepositoryNotRegistered,
 MemberInstanceStale, MembershipMutationBlocked, RepositoryEpochStale,
 DecommissionFenceStale, DecommissionPending, DecommissionBeginTombstoned,
-DecommissionProofMissing, DecommissionProofInvalid,
+DecommissionProofMissing, DecommissionProofInvalid, DecommissionProofCorrupt,
+DecommissionProofAuthenticatorInvalid,
+DecommissionProofIssuanceCorrupt, DecommissionProofIssuanceMismatch,
 DecommissionProofAlreadyIssued, DecommissionScanIncomplete,
 DecommissionObservationStale, DecommissionProofReferenceMissing,
-DecommissionProofReferenceMismatch, DecommissionProofReferenceAuthenticatorInvalid,
+DecommissionProofReferenceMismatch, DecommissionProofReferenceCorrupt,
+DecommissionProofReferenceAuthenticatorInvalid,
 KeyringRetiring, KeyringRetired, KeyringRetirementFenceStale,
 KeyringRetirementPreconditionFailed, MembershipOperationConflict,
 ProviderUnavailable, ProviderCorrupt}`. The repository removal error is
@@ -1556,7 +1752,8 @@ RemovalPlanInvalid, StorageManifestMismatch, MembershipVersionStale,
 MembershipSnapshotStale, RepositoryEpochStale, MembershipMutationBlocked,
 DecommissionFenceStale, DecommissionObservationStale, ProviderStatusMismatch,
 DecommissionProofReferenceMissing, DecommissionProofReferenceMismatch,
-DecommissionProofReferenceAuthenticatorInvalid,
+DecommissionProofReferenceCorrupt, DecommissionProofReferenceAuthenticatorInvalid,
+DecommissionProofCorrupt, DecommissionProofAuthenticatorInvalid,
 RetirementHandoffMismatch, RetirementBeginPlanMissing,
 RetirementBeginPlanMismatch, RetirementCompletePlanMissing,
 RetirementCompletePlanMismatch, LocalDispositionPlanMissing,
@@ -1590,9 +1787,12 @@ variants (`MembershipVersionStale`, `MembershipSnapshotStale`,
 `MembershipMutationBlocked`, `DecommissionFenceStale`) map to the same named
 proof/abort/removal error where that operation admits it; proof variants
 (`DecommissionPending`, `DecommissionProofMissing`,
-`DecommissionProofInvalid`, `DecommissionProofAlreadyIssued`,
+`DecommissionProofInvalid`, `DecommissionProofCorrupt`,
+`DecommissionProofAuthenticatorInvalid`, `DecommissionProofAlreadyIssued`,
+`DecommissionProofIssuanceCorrupt`, `DecommissionProofIssuanceMismatch`,
 `DecommissionScanIncomplete`, `DecommissionObservationStale`,
 `DecommissionProofReferenceMissing`, `DecommissionProofReferenceMismatch`,
+`DecommissionProofReferenceCorrupt`,
 `DecommissionProofReferenceAuthenticatorInvalid`) map to the same-named proof
 or removal error; terminal/retirement variants
 (`DecommissionBeginTombstoned`, `KeyringRetiring`, `KeyringRetired`,
