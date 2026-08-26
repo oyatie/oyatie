@@ -738,29 +738,33 @@ repository id `<=256`, provider authenticator `<=512`, and storage-manifest
 digest `=32`. In this decommission subsection every `*_digest` field is the
 `DecommissionDigestV1` 32-byte subtype, including a legacy display spelling of
 `FixedBytes<=64`; no decommission digest may use the remaining width. A nested
-`KeyringRetirementFenceV1` wire is exactly four top-level records
+`KeyringRetirementFenceV1` wire is exactly five top-level records
 `(handoff_wire, retirement_fence_id, retirement_begin_operation_id,
-provider_authenticator)`, so the full previously authenticated handoff remains
-bound without a recursive plan preimage.
+begin_plan_digest, provider_authenticator)`, in that ascending tag order. The
+fence authenticator covers the already-derived `begin_plan_digest` as well as
+the full previously authenticated handoff, so it binds the accepted Begin plan
+without a recursive plan preimage.
 
 The complete canonical wire of `DecommissionProofReferenceV1`,
 `KeyringRetirementHandoffV1`, `KeyringRetirementFenceV1`,
 `ProviderDecommissionTerminalReceiptV1`, and
 `LocalDecommissionStorageReceiptV1` is respectively at most `1,265`, `1,441`,
-`2,238`, `1,919`, and `870` bytes, including its own 16-byte header and
+`2,273`, `1,919`, and `870` bytes, including its own 16-byte header and
 records. These are closed maxima from the field bounds in this section, not
 sampling targets. The maximum plan-wire lengths (not including the fixed domain
 literal and terminating zero) are Removal `3,096`, Begin `1,793`, Complete
-`3,797`, Disposition `2,179`, and Completion `1,091` bytes. Thus every
+`3,832`, Disposition `2,179`, and Completion `253` bytes. Thus every
 individual `u16be` length and the `4,096`-byte plan/request-wire ceiling admits
 the maximum typed value; a `4,097`th byte is rejected before a plan, request
 journal, or side effect is written. The exact maximum request-wire lengths are
 Remove `2,267`, Begin `1,758`, Complete `2,184`, Disposition `292`, and
-Completion `288` bytes. The adapter and SQLite independently rederive these
-sums and reject a wire whose declared count, field length, total, domain, or
-byte vector differs. The hash is always `H(ASCII(domain) || 0x00 ||
-canonical_wire)`; no plan digest contains itself, a request digest, or request
-bytes derived after it.
+Completion `288` bytes. Begin remains `1,758` because its already-frozen
+four-record request wire always carried the plan digest; this revision makes
+that same fourth record part of the typed provider request and signed fence.
+The adapter and SQLite independently rederive these sums and reject a wire
+whose declared count, field length, total, domain, or byte vector differs. The
+hash is always `H(ASCII(domain) || 0x00 || canonical_wire)`; no plan digest
+contains itself, a request digest, or request bytes derived after it.
 
 `KeyringMembershipMutationResultV1` is exactly `Registered {
 member_instance_id: OpaqueBytes<=128, snapshot: KeyringMembershipSnapshotV1 } |
@@ -774,16 +778,26 @@ does not create an empty snapshot or remove the final member. Exact replay of
 Remove and Get therefore returns the same authenticated handoff rather than
 asking SQLite to reconstruct or mint one after a crash.
 
+`DecommissionProofIssuanceV1` is exactly `{ proof: DecommissionProofV1,
+proof_reference: DecommissionProofReferenceV1 }`, one immutable provider-ledger
+value rather than two independently produced values.
+`IssueDecommissionProofResultV1` is exactly `Issued { issuance:
+DecommissionProofIssuanceV1 }`; its named error is the closed
+`KeyringMembershipError` sum below. The provider writes the issuance once under
+the reference's canonical lookup key, and exact Issue replay or Get returns the
+byte-identical proof and reference canonical bytes, including their provider
+authenticators. Neither result branch creates a repository-owned identifier.
+
 `ProviderDecommissionStatusV1` is exactly `NotStarted | Aborted { begin_operation_id:
 ProviderOperationIdV1, abort_tombstone: DecommissionBeginTombstoneV1 } | Fenced
-{ fence: DecommissionAdmissionFenceV1 } | ProofIssued { proof:
-DecommissionProofV1 } | RetirementHandoffReady { handoff:
+{ fence: DecommissionAdmissionFenceV1 } | ProofIssued { issuance:
+DecommissionProofIssuanceV1 } | RetirementHandoffReady { handoff:
 KeyringRetirementHandoffV1 } | Retiring { retirement_fence:
 KeyringRetirementFenceV1 } | Removed { removal_receipt:
 DecommissionRemovalReceiptV1 } | KeyringRetired { retirement_receipt:
 KeyringRetirementReceiptV1 }`. `ProviderDecommissionClosedStatusV1` is exactly
-`Fenced { fence: DecommissionAdmissionFenceV1 } | ProofIssued { proof:
-DecommissionProofV1 } | RetirementHandoffReady { handoff:
+`Fenced { fence: DecommissionAdmissionFenceV1 } | ProofIssued { issuance:
+DecommissionProofIssuanceV1 } | RetirementHandoffReady { handoff:
 KeyringRetirementHandoffV1 } | Retiring { retirement_fence:
 KeyringRetirementFenceV1 } | Removed { removal_receipt:
 DecommissionRemovalReceiptV1 } | KeyringRetired { retirement_receipt:
@@ -843,15 +857,19 @@ complete bounded reference scan: every `(logical_table_tag, opaque_row_identity,
 reference_kind, admitted_column_tag)` in stable order, including each admitted
 generation-scoped non-replay field-index column and its checked per-kind count.
 `IssueDecommissionProofV1` accepts `{ observation: DecommissionObservationV1,
-operation_id: ProviderOperationIdV1 }` and returns the provider-authenticated
-`DecommissionProofV1` below. Before this provider call, SQLite persists
+operation_id: ProviderOperationIdV1 }` returns
+`IssueDecommissionProofResultV1::Issued { issuance:
+DecommissionProofIssuanceV1 }`. Before this provider call, SQLite persists
 `DecommissionProofIssuePlanV1 { observation, issue_proof_operation_id:
 ProviderOperationIdV1, issue_proof_request_digest: FixedBytes<=64 }`, where the id
 is the one already reserved in the immutable intent and the digest is
 `H("hr.decommission.issue-proof-request.v1" || exact
 IssueDecommissionProofV1 request bytes)`. The provider recomputes that digest
-from its exact request before signing the proof; exact replay returns the same
-proof and changed reuse is `MembershipOperationConflict`.
+from its exact request before signing and durably storing one issuance; exact
+replay returns the same issuance and changed reuse is
+`MembershipOperationConflict`. `ProviderDecommissionStatusV1::ProofIssued`
+returns that same stored issuance on response loss, never a proof without its
+provider-authenticated reference and never a repository-minted reference.
 
 `GetRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch }` and returns
@@ -920,25 +938,26 @@ issue_proof_request_digest: DecommissionDigestV1,
 provider_authenticator: OpaqueBytes<=512 }`. Its canonical lookup key is
 exactly `(keyring_id, repository_id, member_instance_id, repository_epoch,
 issue_proof_operation_id)`; the adapter's durable provider decommission ledger
-owns the corresponding full `DecommissionProofV1` record and verifies the
-reference authenticator, lookup identity, issue request digest, and full-proof
-digest before every use. That ledger is introduced by the g.1 key-service
-adapter implementation behind the g.0 port; the repository carries only this
-port type, so it adds no adapter-to-repository runtime edge or g.0-to-g.2
-dependency.
+owns one corresponding `DecommissionProofIssuanceV1` record. Its immutable
+value is the exact returned proof canonical bytes followed by the exact returned
+reference canonical bytes; it verifies both authenticators, the reference
+lookup identity, issue request digest, and full-proof digest before every use.
+That ledger is introduced by the g.1 key-service adapter implementation behind
+the g.0 port; the repository carries only this port type, so it adds no
+adapter-to-repository runtime edge or g.0-to-g.2 dependency.
 
-The ledger retains the full proof record and reference at least through every
-accepted exact Remove/Complete/Get/recovery replay and the associated terminal
+The ledger retains the complete issuance record at least through every accepted
+exact Issue/Remove/Complete/Get/recovery replay and the associated terminal
 receipt-retention/GC horizon. It may collect that record only after a matching
 terminal receipt is durable and all accepted replay keys that could name it have
-expired; it never reconstructs a reference from observation. A missing record
-is `DecommissionProofReferenceMissing`, an identity/digest/request mismatch is
-`DecommissionProofReferenceMismatch`, and a bad reference authenticator is
-`DecommissionProofReferenceAuthenticatorInvalid`; each is fail closed and
-changes no membership state. Thus the reference is sufficient for both initial
-verification and exact Complete replay: the provider resolves the same
-immutable full proof by its canonical key, reauthenticates it, and rechecks the
-same identity, zero-reference, unresolved, fence, and plan predicates.
+expired; it never reconstructs a proof or reference from observation. A missing
+record is `DecommissionProofReferenceMissing`, an identity/digest/request
+mismatch is `DecommissionProofReferenceMismatch`, and a bad reference or proof
+authenticator is `DecommissionProofReferenceAuthenticatorInvalid`; each is fail
+closed and changes no membership state. Thus the reference is sufficient for
+both initial verification and exact Complete replay: the provider resolves the
+same immutable issuance by its canonical key, reauthenticates it, and rechecks
+the same identity, zero-reference, unresolved, fence, and plan predicates.
 `RemoveKeyringRepositoryV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, expected_membership_snapshot_id,
 expected_membership_version, decommission_fence_id, admission_epoch,
@@ -966,7 +985,8 @@ membership_snapshot_id, membership_version, rotation_fence_id,
 live_generation_digest, removal_plan_digest: FixedBytes<=64,
 provider_authenticator }`. `KeyringRetirementFenceV1` is that handoff identity
 plus `{ retirement_fence_id: OpaqueBytes<=128,
-retirement_begin_operation_id: ProviderOperationIdV1, provider_authenticator }`.
+retirement_begin_operation_id: ProviderOperationIdV1,
+begin_plan_digest: DecommissionDigestV1, provider_authenticator }`.
 `KeyringRetirementReceiptV1` is `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, decommission_proof_digest,
 membership_snapshot_id, membership_version, rotation_fence_id,
@@ -979,20 +999,27 @@ durable_non_replay_index_references: u64be(0),
 unresolved_authorizations: u64be(0), state: Retired, provider_authenticator }`.
 
 `BeginKeyringRetirementV1` accepts `{ handoff, retirement_fence_id:
-OpaqueBytes<=128, operation_id: ProviderOperationIdV1 }` and CASes
+OpaqueBytes<=128, begin_plan_digest: DecommissionDigestV1,
+operation_id: ProviderOperationIdV1 }` and CASes
 the active sole-member keyring to `Retiring`, returning
 `KeyringRetirementFenceV1`. It denies enrollment, rejoin, replay acquisition,
 locator derivation, seal, commit authorization, removal, and normal/emergency
 rotation. It is legal only from the identical persisted provider
-`RetirementHandoffReady` state and rejects a changed reuse of either id or
-handoff bytes. The provider authenticates the returned fence against the
-handoff/plan. `CompleteKeyringRetirementV1`
+`RetirementHandoffReady` state and rejects a changed reuse of its operation id,
+handoff bytes, or `begin_plan_digest`. Its SQLite sibling journal stores the
+exact four-record `hr.decommission.begin-retirement-request.v1` wire and
+`H(ASCII("hr.decommission.begin-retirement-request.v1") || 0x00 || wire)`;
+the provider idempotency cell stores that byte-identical wire under its scoped
+provider-operation digest. Neither digest substitutes for the other, and both
+bind the same already-derived `begin_plan_digest`; the returned fence carries
+and authenticates that exact plan digest. `CompleteKeyringRetirementV1`
 accepts `{ keyring_id, repository_id, member_instance_id, repository_epoch,
 retirement_fence_id, decommission_proof_reference:
 DecommissionProofReferenceV1, removal_plan_digest: DecommissionDigestV1,
 begin_plan_digest: DecommissionDigestV1, complete_plan_digest:
 DecommissionDigestV1, operation_id: ProviderOperationIdV1 }`;
-it looks up and reauthenticates the stored fence by its preplanned id, then
+it looks up and reauthenticates the stored fence by its preplanned id, requires
+its `begin_plan_digest` to equal the stored fence's authenticated digest, then
 atomically resolves/rechecks the same sole-member full proof, proof reference,
 and all three plan digests,
 zero ciphertext/locator/non-replay-index references, the proof's complete
@@ -1029,15 +1056,17 @@ issue_proof_operation_id: ProviderOperationIdV1, abort_operation_id:
 ProviderOperationIdV1 }`; its success result is
 `DecommissionProofProductionV1 { admission_fence:
 DecommissionAdmissionFenceV1, proof_issue_plan: DecommissionProofIssuePlanV1,
-proof: DecommissionProofV1, proof_reference: DecommissionProofReferenceV1 }`.
-SQLite accepts the reference only when the provider's authenticated reference
-matches the returned full proof and the persisted proof-issue plan; it stores
-both before any removal plan is admissible. Its closed error is
+issuance: DecommissionProofIssuanceV1 }`. SQLite accepts the issuance only when
+the provider's authenticated reference matches its returned full proof and the
+persisted proof-issue plan; it stores the one exact issuance before any removal
+plan is admissible. Its closed error is
 `DecommissionProofProductionError::{RepositoryNotRegistered, MemberInstanceStale,
 MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
 RepositoryAdmissionEpochStale, DecommissionPending, DecommissionFenceStale,
 DecommissionScanIncomplete, DecommissionObservationStale,
-DecommissionProofIssuePlanMismatch, DecommissionProofAlreadyIssued, MembershipMutationBlocked,
+DecommissionProofIssuePlanMismatch, DecommissionProofAlreadyIssued,
+DecommissionProofReferenceMissing, DecommissionProofReferenceMismatch,
+DecommissionProofReferenceAuthenticatorInvalid, MembershipMutationBlocked,
 LocalStorageBusy, LocalStorageFull, LocalStorageIo, LocalCommitFailed,
 MembershipOperationConflict, ProviderUnavailable, ProviderCorrupt}`.
 
@@ -1072,8 +1101,9 @@ unresolved receipts. In that same transaction it persists the
 request digest, then and only then calls `issue_decommission_proof_v1` from that
 plan. The provider rechecks its current fence, snapshot/version, generation
 digest, scan checkpoint and all three reference counts, unresolved count, and
-recomputes the exact Issue id/digest before returning the authenticated proof;
-SQLite accepts that proof only if those values match its local proof-issue plan.
+recomputes the exact Issue id/digest before returning the authenticated
+issuance; SQLite accepts that issuance only if both its proof and reference
+match its local proof-issue plan.
 
 `AbortRepositoryDecommissionIntentV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, response_operation_id:
@@ -1255,15 +1285,31 @@ provider_terminal_receipt_digest: FixedBytes<=64, local_disposition_operation_id
 RepositoryLocalOperationIdV1, storage_manifest_digest: FixedBytes<=64,
 disposition: LocalDecommissionStorageDispositionV1::{Quarantined | Deleted},
 local_admission_epoch: u64, local_metadata_commit_digest: FixedBytes<=64 }`.
+It is a separately persisted immutable SQLite metadata receipt, not a field in
+a completion-plan wire. Its canonical lookup key is exactly `(keyring_id,
+repository_id, member_instance_id, repository_epoch, removal_plan_digest,
+local_disposition_operation_id)`. `CanonicalDecommissionStorageReceiptEncodingV1`
+is distinct from `DecommissionPlanKindV1`: its exact 16-byte header is
+`0x4f 0x59 0x48 0x52 || 0x01 || 0x06 || 12:u16be || 0:u64be`, where `0x06`
+means only `LocalDecommissionStorageReceiptV1`. Its twelve listed fields use
+ascending tags `1..=12` and the same nonempty/bounded TLV length rules, so its
+maximum is exactly `16 + 12*3 + 128+256+128+8+32+32+32+129+32+1+8+32 = 870`.
+`storage_receipt_digest =
+H("hr.decommission.local-storage-receipt.v1" || canonical_receipt_wire)`.
+SQLite retains the receipt bytes and lookup row through every accepted exact
+completion/recovery/status replay and the matching local-terminal-receipt GC
+horizon. A missing, duplicate, malformed, or digest/identity/metadata-commit
+mismatch is `LocalDispositionReceiptInvalid`, leaves admission closed, and
+cannot be repaired by caller input or a newly constructed receipt.
 
 `LocalDecommissionCompletionPlanV1` is the immutable **post-storage-receipt/
 pre-local-completion** record `{ removal_plan_digest,
-provider_terminal_receipt_digest, storage_receipt_digest: FixedBytes<=64,
+provider_terminal_receipt_digest, storage_receipt_digest: DecommissionDigestV1,
 local_completion_operation_id: RepositoryLocalOperationIdV1,
 completion_plan_digest: DecommissionDigestV1 }`. SQLite computes its digest
-only from the four ordered plan fields below, then commits it and its separately
-derived completion journal in `LocalCompletionPlanned` before its terminal local
-CAS.
+only from the four ordered plan fields below, after resolving and rederiving the
+retained storage receipt digest, then commits it and its separately derived
+completion journal in `LocalCompletionPlanned` before its terminal local CAS.
 
 The plan preimages, in their only legal tag order, and their later request
 journals are:
@@ -1274,7 +1320,7 @@ journals are:
 | BeginRetirement / hr.decommission.begin-retirement-plan.v1 | 1 removal_plan_digest, 2 handoff_wire, 3 handoff_digest, 4 retirement_begin_operation_id, 5 retirement_fence_id | hr.decommission.begin-retirement-request.v1: 1 handoff_wire, 2 retirement_fence_id, 3 retirement_begin_operation_id, 4 begin_plan_digest |
 | CompleteRetirement / hr.decommission.complete-retirement-plan.v1 | 1 removal_plan_digest, 2 begin_plan_digest, 3 handoff_digest, 4 retirement_fence_wire, 5 retirement_fence_digest, 6 proof_reference_wire, 7 retirement_complete_operation_id | hr.decommission.complete-retirement-request.v1: 1 keyring_id, 2 repository_id, 3 member_instance_id, 4 repository_epoch, 5 retirement_fence_id, 6 proof_reference_wire, 7 removal_plan_digest, 8 begin_plan_digest, 9 complete_plan_digest, 10 retirement_complete_operation_id |
 | LocalDisposition / hr.decommission.local-disposition-plan.v1 | 1 removal_plan_digest, 2 provider_terminal_receipt_wire, 3 provider_terminal_receipt_digest, 4 local_disposition_operation_id, 5 disposition_enum, 6 storage_manifest_digest | hr.decommission.local-disposition-request.v1: 1 removal_plan_digest, 2 provider_terminal_receipt_digest, 3 local_disposition_operation_id, 4 disposition_enum, 5 storage_manifest_digest, 6 disposition_plan_digest |
-| LocalCompletion / hr.decommission.local-completion-plan.v1 | 1 removal_plan_digest, 2 provider_terminal_receipt_digest, 3 storage_receipt_wire, 4 local_completion_operation_id | hr.decommission.local-completion-request.v1: 1 removal_plan_digest, 2 provider_terminal_receipt_digest, 3 storage_receipt_digest, 4 local_completion_operation_id, 5 completion_plan_digest |
+| LocalCompletion / hr.decommission.local-completion-plan.v1 | 1 removal_plan_digest, 2 provider_terminal_receipt_digest, 3 storage_receipt_digest, 4 local_completion_operation_id | hr.decommission.local-completion-request.v1: 1 removal_plan_digest, 2 provider_terminal_receipt_digest, 3 storage_receipt_digest, 4 local_completion_operation_id, 5 completion_plan_digest |
 
 For avoidance of doubt, a plan's final plan digest is not a plan tag in its own
 preimage; it is H(domain || 0x00 || wire) after all and only the listed input
@@ -1286,9 +1332,9 @@ arithmetic behind the frozen maxima is:
 | --- | --- |
 | Removal plan | 16 + 19*3 + 128+256+128+8+1265+128+8+128+8+128+32+129+129+129+128+129+129+1+32 = 3096 |
 | Begin plan | 16 + 5*3 + 32+1441+32+129+128 = 1793 |
-| Complete plan | 16 + 7*3 + 32+32+32+2238+32+1265+129 = 3797 |
+| Complete plan | 16 + 7*3 + 32+32+32+2273+32+1265+129 = 3832 |
 | Disposition plan | 16 + 6*3 + 32+1919+32+129+1+32 = 2179 |
-| Completion plan | 16 + 4*3 + 32+32+870+129 = 1091 |
+| Completion plan | 16 + 4*3 + 32+32+32+129 = 253 |
 | Remove request | 16 + 11*3 + 128+256+128+8+128+8+128+8+1265+32+129 = 2267 |
 | Begin request | 16 + 4*3 + 1441+128+129+32 = 1758 |
 | Complete request | 16 + 10*3 + 128+256+128+8+128+1265+32+32+32+129 = 2184 |
@@ -1302,12 +1348,20 @@ single-field mutation, id mutation, parent-digest/receipt mutation, record
 reordering/duplicate/omission, and exact maximum versus maximum-plus-one
 bytes. The g.1 adapter and g.2 SQLite suites use a separately maintained
 encoder oracle and must obtain the same ten vectors/digests; neither may use
-the production encoder to generate its oracle.
+the production encoder to generate its oracle. Completion vectors resolve the
+same retained storage-receipt key first and prove that a missing, changed,
+duplicate, or metadata-commit-mismatched receipt is
+`LocalDispositionReceiptInvalid`, never an alternate 870-byte plan input.
+Those suites additionally freeze independent minimum/maximum canonical
+local-storage-receipt bytes and digest vectors, their exact lookup key, and
+maximum-plus-one/field-order/tag/length failures before deriving the completion
+plan; neither implementation may generate those receipt vectors from its
+production encoder.
 `LocalDecommissionCompletionReceiptV1` is `{ keyring_id,
 repository_id, member_instance_id, repository_epoch,
 decommission_proof_digest: FixedBytes<=64, removal_plan_digest: FixedBytes<=64,
 provider_terminal_receipt_digest: FixedBytes<=64,
-storage_receipt_digest: FixedBytes<=64, local_admission_epoch: u64,
+storage_receipt_digest: DecommissionDigestV1, local_admission_epoch: u64,
 local_completion_operation_id: RepositoryLocalOperationIdV1,
 local_metadata_commit_digest: FixedBytes<=64 }`; it binds the matching storage
 receipt and is the local terminal-CAS evidence.
@@ -1373,7 +1427,7 @@ returns the same named result; changed reuse is `MembershipOperationConflict`.
 
 `RepositoryDecommissionStatusV1` is exactly `Active | IntentPending
 { intent } | Fenced { fence } | ProofIssuePlanned { proof_issue_plan } |
-ProofIssued { proof } | RemovalPlanned { plan_receipt } |
+ProofIssued { issuance: DecommissionProofIssuanceV1 } | RemovalPlanned { plan_receipt } |
 RetirementHandoffPersisted { plan_receipt, handoff, handoff_digest } |
 RetirementBeginPlanned { plan_receipt, begin_plan } | Retiring { plan_receipt,
 begin_plan, retirement_fence } | RetirementCompletePlanned { plan_receipt,
@@ -1400,8 +1454,8 @@ The persisted removal recovery table is total for every local state:
 | `Active` | current admission epoch | return `Active`; no provider call |
 | `IntentPending` (repository-local only) | immutable Begin/abort tuple and both request digests | query provider: `NotStarted` invokes only the persisted Abort CAS; `Aborted` installs only the matching tombstone and may reopen; `Fenced` installs only the exact signed fence; every later signed closed status installs the matching closed local state; mismatch/changed bytes is `ProviderStatusMismatch` or `MembershipOperationConflict` and remains closed |
 | `Fenced` | provider admission fence and any persisted bounded scan checkpoint | resume only the fenced bounded scan; atomically persist `ProofIssuePlanned` before any Issue call |
-| `ProofIssuePlanned` | immutable observation, Issue id, and Issue request digest | query provider; replay only stored Issue while provider remains `Fenced`, otherwise persist/return the matching signed proof |
-| `ProofIssued` | authenticated proof, no plan | return `ProofIssued`; only the byte-identical Remove request may create the pre-provider plan |
+| `ProofIssuePlanned` | immutable observation, Issue id, and Issue request digest | query provider; replay only stored Issue while provider remains `Fenced`, otherwise persist/return the matching signed issuance |
+| `ProofIssued` | byte-identical authenticated proof/reference issuance, no plan | return `ProofIssued`; only the byte-identical Remove request may create the pre-provider plan |
 | `RemovalPlanned` | immutable plan receipt and matching Remove request journal | query provider; replay only stored Remove journal if provider remains `ProofIssued`; if it is `RetirementHandoffReady`, atomically persist that identical signed handoff; if it is `Removed`, persist only the matching terminal receipt; every other status is `ProviderStatusMismatch` |
 | `RetirementHandoffPersisted` | plan receipt, signed handoff, handoff digest | query `ProviderDecommissionStatusV1`; require the identical `RetirementHandoffReady`, then atomically write only the derived Begin plan |
 | `RetirementBeginPlanned` | plan receipt, exact signed handoff, Begin plan and matching Begin journal | replay only the stored Begin journal; persist `Retiring` only when its signed fence matches that plan |
@@ -1410,8 +1464,8 @@ The persisted removal recovery table is total for every local state:
 | `ProviderTerminalPendingLocalDisposition` | plan and matching terminal receipt | atomically write only the derived disposition plan |
 | `LocalDispositionPlanned` | plan, terminal receipt, disposition plan and matching disposition journal | start or resume only that stored disposition |
 | `LocalDispositionInProgress` | plan, terminal receipt, disposition plan/id | resume only that disposition |
-| `LocalDispositionApplied` | plan, terminal receipt, storage receipt | atomically write only the derived completion plan |
-| `LocalCompletionPlanned` | plan, terminal receipt, storage receipt, completion plan and matching completion journal | replay only the stored local completion |
+| `LocalDispositionApplied` | plan, terminal receipt, retained storage receipt and its exact digest | resolve and rederive only that receipt, then atomically write the derived completion plan |
+| `LocalCompletionPlanned` | plan, terminal receipt, retained storage receipt, completion plan and matching completion journal | re-resolve the matching receipt digest, then replay only the stored local completion |
 | `Removed` / `KeyringRetired` | plan, provider, storage, and local-completion receipts | return the stored terminal value |
 
 `RecoverRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,

@@ -41,7 +41,10 @@ an old generation is revoked. Repository decommission first closes a durable
 SQLite write-admission fence and the matching provider admission fence, then
 produces a bounded, authenticated proof of zero ciphertext, locator, and
 non-replay field-index references across every live generation plus zero
-unresolved authorizations. Before Remove, SQLite durably records an immutable
+unresolved authorizations. `IssueDecommissionProofV1` returns one explicit
+`Issued { proof, proof_reference }` provider-ledger value; `ProofIssued` Get
+recovery returns those same canonical proof/reference bytes and authenticators,
+not a proof-only value or a repository-minted reference. Before Remove, SQLite durably records an immutable
 known-input removal plan that binds a bounded authenticated proof
 reference/fences, fixed `Quarantine` or `Delete` disposition and manifest,
 preallocated retirement fence, and distinct scoped provider/local ids. Every
@@ -52,7 +55,9 @@ only after that digest and before its side effect. A sole-member provider result
 is `RetirementHandoffReady`, a durable, queryable signed handoff; SQLite
 persists that handoff and a separate post-handoff Begin plan/journal with exact
 handoff bytes/authenticator, Begin id, fence id, and request digest before it
-calls Begin. It similarly persists post-Begin Complete, post-terminal
+calls Begin. The typed Begin request, its exact journal/idempotency record, and
+the returned signed retirement fence all carry the same `begin_plan_digest`;
+changed bytes or digest are a typed conflict. It similarly persists post-Begin Complete, post-terminal
 disposition, and post-storage completion plan/journal pairs before each later
 side effect. The repository performs typed provider
 removal, local completion, status, and recovery only from those records. Its
@@ -80,18 +85,24 @@ membership-mutation and local Abort/Remove/Complete result sums; every status
 and error branch is explicitly matched in port/adapter/SQLite tests, including
 `DecommissionObservationStale`. Thus `NotStarted` is not
 permission to reopen and a late begin cannot resurrect a locally aborted fence.
-The full proof is retained in the provider's durable ledger under a bounded
-authenticated `DecommissionProofReferenceV1` through exact-operation replay and
-terminal-receipt GC; Remove/Complete fail closed on Missing, Mismatch, or bad
-authenticator rather than carrying an unbounded proof. Provider Begin atomically
+The full proof and its bounded authenticated `DecommissionProofReferenceV1` are
+retained as one provider-issued ledger value through exact-operation replay and
+terminal-receipt GC; Issue/Get response loss returns that exact value, while
+Missing, Mismatch, or bad-authenticator fail closed. A separately retained
+SQLite `LocalDecommissionStorageReceiptV1` is re-resolved by its canonical key
+and 32-byte digest before completion/recovery; a missing or changed receipt is
+`LocalDispositionReceiptInvalid`, not an 870-byte completion-plan input.
+The fence wire is 2,273 bytes, the dependent Complete plan is 3,832 bytes, and
+the digest-addressed completion plan is 253 bytes; the Begin request remains
+its already-frozen 1,758-byte four-record wire. Provider Begin atomically
 commits its replay cell, Decommissioning membership state, and signed `Fenced`
 result, so provider status never exposes `IntentPending`. That name is solely
 the write-closed SQLite pre-Begin state: response loss resolves by Get/exact
 replay to `NotStarted`, signed `Aborted`, or a signed closed state, and only the
 stored Abort tuple may act on `NotStarted`. g.0/g.1/g.2 tests freeze minimum and
-maximum plan/request byte vectors, every field/id/parent mutation, max-plus-one,
-independent rederivation, and crashes before/after plan, journal, and side
-effect persistence.
+maximum plan/request byte vectors, every field/id/parent/receipt mutation,
+max-plus-one, independent rederivation, and crashes before/after plan, journal,
+issuance, and side-effect persistence.
 Minimal concrete
 key-adapter open/seal, authorization/resolution, and decommission-fence behavior
 is implemented and reviewed before the dev-only real

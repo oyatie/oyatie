@@ -307,6 +307,11 @@ over-budget files are debt, not precedent.
   `IssueDecommissionProofV1` authenticates repository/member/epoch, membership
   snapshot/version, rotation state, live-generation digest, admission-fence
   id/epoch, terminal write sequence, scan checkpoint, and all three counts.
+  Its exhaustive success sum is exactly `Issued { proof, proof_reference }`;
+  the provider ledger writes that one immutable issuance under the reference's
+  canonical lookup key, and exact Issue replay or `ProofIssued` status returns
+  byte-identical proof/reference bytes and authenticators. SQLite persists that
+  provider result and cannot mint or reconstruct a reference.
 
   After that proof but before any provider side effect,
   `RemoveRepositoryDecommissionV1` durably CASes an immutable
@@ -323,12 +328,17 @@ over-budget files are debt, not precedent.
   then persist an immutable `RepositoryDecommissionRetirementCompletePlanV1`
   plus its journal before Complete; later provider-terminal and storage receipts
   similarly precede immutable local disposition and completion plan/journal
-  pairs. The provider-owned durable proof ledger returns
-  `DecommissionProofReferenceV1`, a bounded authenticated lookup for the
-  immutable full proof; Remove and Complete resolve and reauthenticate that
-  reference rather than serialize an unbounded full proof. It is retained through
-  replay and terminal-receipt GC, and Missing/Mismatch/AuthenticatorInvalid are
-  typed fail-closed results.
+  pairs. The provider-owned durable proof ledger returns one issuance containing
+  `DecommissionProofReferenceV1` and its immutable full proof; Remove and
+  Complete resolve and reauthenticate that bounded reference rather than
+  serialize an unbounded full proof. The ledger retains both exact canonical
+  values through Issue/Remove/Complete/Get/recovery replay and terminal-receipt
+  GC, and Missing/Mismatch/AuthenticatorInvalid are typed fail-closed results.
+  The typed Begin request, exact request journal/idempotency cell, and signed
+  `KeyringRetirementFenceV1` carry the same `begin_plan_digest`; a changed
+  digest is `MembershipOperationConflict`, while Complete must match the
+  authenticated fence binding. The fence maximum is 2,273 bytes and the
+  dependent Complete plan maximum is 3,832 bytes.
   The canonical plan codecs have fixed domain tags, ascending required field
   tags, u16 lengths, and a 4,096-byte body ceiling whose maximum typed
   Removal/Begin/Complete/Disposition/Completion plans and request journals are
@@ -362,6 +372,11 @@ over-budget files are debt, not precedent.
   receipt is the global removal linearization point; local plan/intermediate/
   terminal CASes are independently atomic and deliberately fenced across the
   remote/local gap.
+  `LocalDecommissionStorageReceiptV1` is separately retained by canonical
+  local-receipt key and 32-byte digest; the only completion-plan field is that
+  digest. Recovery rederives it before completion, so a missing, duplicate, or
+  changed receipt is `LocalDispositionReceiptInvalid`, not a way to substitute
+  its 870-byte wire. The completion-plan maximum is 253 bytes.
   Provider Begin and Abort serialize through one provider transaction: Begin
   commits its idempotency cell, member Decommissioning state, and signed Fenced
   value atomically, so provider status is never IntentPending. Before that

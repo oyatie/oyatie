@@ -165,7 +165,10 @@ transport/provider field order, unknown field, omitted effect, implicit
   epoch, then CASes the matching provider decommission fence. Its fenced SQLite
   scan must authenticate a complete bounded checkpoint and zero ciphertext,
   locator, and non-replay field-index references across every live generation,
-  plus zero unresolved authorizations, before the provider issues a proof.
+  plus zero unresolved authorizations, before the provider issues one explicit
+  `Issued { proof, proof_reference }` value. The provider-ledger issuance is
+  immutable and response-loss Get/replay returns the byte-identical proof and
+  authenticated reference; SQLite persists it and never mints a reference.
   Before its first provider removal side effect,
   `RemoveRepositoryDecommissionV1` writes a durable immutable pre-Remove plan
   that binds that proof reference/fence, `Quarantine` or `Delete` local
@@ -181,7 +184,9 @@ transport/provider field order, unknown field, omitted effect, implicit
   SQLite first durably
   stores that handoff, then a separate immutable Begin plan and exact Begin
   journal containing the handoff bytes/authenticator, Begin id, fence id, and
-  already-derived Begin request digest before Begin. It persists corresponding
+  already-derived Begin request digest before Begin. The typed Begin request,
+  provider idempotency record, and returned signed retirement fence bind that
+  same `begin_plan_digest`; a changed reuse is conflict. It persists corresponding
   post-Begin Complete, post-terminal disposition, and post-storage completion
   plan/journal pairs before the later local side effects.
 
@@ -197,11 +202,12 @@ transport/provider field order, unknown field, omitted effect, implicit
   Abort/Remove/Complete results; every provider status/error is explicitly
   matched by port, adapter, and SQLite tests. `DecommissionObservationStale` is
   a provider error and stays that exact typed error in proof/removal paths.
-  The provider also retains an authenticated immutable
-  `DecommissionProofReferenceV1` lookup for the full proof through
-  exact-operation replay and terminal-receipt GC; Remove and Complete resolve
-  that bounded reference and reject missing, mismatch, or bad-authenticator
-  variants without a membership transition. Provider Begin atomically commits
+  The provider retains the proof and its authenticated immutable
+  `DecommissionProofReferenceV1` as one ledger issuance through exact-operation
+  replay and terminal-receipt GC; Remove and Complete resolve that bounded
+  reference and reject Missing, Mismatch, or bad-authenticator variants without
+  a membership transition. The 2,273-byte signed Begin fence carries the plan
+  digest, making the dependent Complete-plan maximum 3,832 bytes. Provider Begin atomically commits
   its idempotency cell, Decommissioning member state, and signed `Fenced` value,
   so provider status has no `IntentPending` variant. SQLite `IntentPending` is
   exclusively a write-closed local pre-Begin state: Get/Begin response loss
@@ -223,6 +229,12 @@ transport/provider field order, unknown field, omitted effect, implicit
   partition, or local drain/delete/quarantine failure is a plan/receipt-bound
   recovery state with readiness withdrawn, never a path that can omit a
   referenced member, invent an id/disposition, or reopen its old epoch.
+  `LocalDecommissionStorageReceiptV1` remains a separately retained 870-byte
+  SQLite receipt addressed by its canonical key and 32-byte digest; completion
+  and recovery rederive it before using the sole `storage_receipt_digest` plan
+  field. The completion-plan maximum is 253 bytes, not a receipt-wire embedding;
+  missing, duplicate, or changed receipts are `LocalDispositionReceiptInvalid`
+  and keep the member closed.
   Recovery replays only plan-bound steps after pre-Remove plan, provider
   handoff, handoff persistence, Begin-plan, Begin, `Retiring`, Complete-plan,
   Complete, provider terminal receipt, disposition-plan/disposition,

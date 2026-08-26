@@ -1595,7 +1595,9 @@ values, `RepositoryDecommissionRemovalPlanV1`/receipt,
 variants, bounded all-reference scan/checkpoint, and the local admission-epoch
   write fence; the encryption-port item owns `ProviderOperationKindV1`,
   `ProviderOperationIdV1`, provider fence, begin-tombstone,
-  `DecommissionProofReferenceV1`, `CanonicalDecommissionPlanEncodingV1`,
+  `DecommissionProofReferenceV1`, `DecommissionProofIssuanceV1`, the exhaustive
+  `IssueDecommissionProofResultV1::Issued { issuance }` result, and
+  `ProofIssued { issuance }` status; `CanonicalDecommissionPlanEncodingV1`,
   named provider status/Abort/membership-mutation result sums, issue/get/abort/
   remove, and last-member-retirement binding. The repository item owns distinct
   local-operation and response-id namespaces; named exhaustive repository
@@ -1612,7 +1614,9 @@ variants, bounded all-reference scan/checkpoint, and the local admission-epoch
   committed with the plan before its side effect. A provider
   `RetirementHandoffReady` response is first persisted byte-for-byte; only then
   may SQLite atomically write the post-handoff Begin plan/journal with that
-  exact signed handoff/authenticator and Begin id/fence. It records `Retiring`,
+  exact signed handoff/authenticator and Begin id/fence/plan digest. The typed
+  Begin request, provider idempotency cell, `Retiring` status, and signed fence
+  carry that same digest. It records `Retiring`,
   then atomically writes the post-Begin Complete plan/journal before Complete.
   A provider terminal receipt similarly precedes disposition and completion
   plan/journal pairs; every later effect uses only its already-durable journal. A
@@ -1632,6 +1636,16 @@ matching SQLite plan/intermediate/completion CASes may finish local
 removal/retirement; it never claims a distributed transaction. This lane declares
 only values and trait signatures. It does not call a provider, derive a locator,
 open SQLite, create a migration, or claim a repository-to-adapter traversal.
+It freezes the receipt-addressed completion plan:
+`CanonicalDecommissionStorageReceiptEncodingV1` owns the fixed `0x06` receipt
+header, twelve tag order, and 870-byte maximum for
+`LocalDecommissionStorageReceiptV1`, which is separately persisted and
+re-resolved by canonical key plus 32-byte digest. `LocalDecommissionCompletionPlanV1`
+encodes only that digest. The g.0 ledger is fence `2,273`, Complete plan `3,832`,
+and Completion plan `253` bytes; the pre-existing four-record Begin request
+remains `1,758` bytes. Its contract tests prove receipt and plan minimum/maximum
+plus-one, field/id/parent/receipt mutation, independent rederivation, and
+missing/mismatched receipt refusal before g.1/g.2 implement it.
 
 ## L2i.0g.1 — Implement provider replay, decommission, and membership behavior before repository use
 
@@ -1660,10 +1674,14 @@ transaction: Begin atomically commits its replay cell, Decommissioning member
 state, and signed `Fenced` result, so provider Get never returns IntentPending;
 Abort-first records the exact begin-operation tombstone even from `NotStarted`,
 and a delayed matching Begin is `DecommissionBeginTombstoned`. Begin-first makes
-Abort return the exact signed closed status. The adapter durably owns the
-full-proof ledger and bounded authenticated `DecommissionProofReferenceV1`
-lookup, retaining it through exact replay and terminal-receipt GC; its
-Missing/Mismatch/AuthenticatorInvalid outcomes are typed fail closed. Remove
+Abort return the exact signed closed status. The adapter durably owns one
+immutable `DecommissionProofIssuanceV1` ledger value containing the full proof
+and bounded authenticated `DecommissionProofReferenceV1`, keyed and retained
+through exact Issue/Remove/Complete/Get/recovery replay and terminal-receipt
+GC. Initial Issue, exact Issue replay, and `ProofIssued` Get return the same
+canonical proof/reference bytes and authenticators; Missing/Mismatch/
+AuthenticatorInvalid outcomes are typed fail closed. The repository only
+persists or validates that value and never mints it. Remove
 accepts/rechecks a pre-persisted plan digest with that reference and
   returns a proof-and-plan-bound signed receipt for a non-last member and, for a
   sole member, atomically stores and returns named
@@ -1671,7 +1689,9 @@ accepts/rechecks a pre-persisted plan digest with that reference and
   an empty snapshot. Get must return that same exact signed handoff after crash
   or lost Remove response. Begin retirement records an observable signed
   `Retiring` fence only from that stored handoff using the Begin plan's stored
-  Begin and preallocated fence ids; Complete rechecks the same plan digest,
+  Begin id, preallocated fence id, and `begin_plan_digest`; its exact typed
+  Begin bytes/idempotency digest and returned fence carry the same plan digest.
+  Complete rechecks the same plan digest,
 preallocated fence and complete ids, all-live-
 generation scan checkpoint, and separate zero ciphertext/locator/non-replay-
 index/unresolved counts before it revokes. It refuses an issue attempt unless the
@@ -1691,13 +1711,15 @@ partition, crash/retry, and rejoin; G+2 refusal; emergency/source loss; the two-
 locator/five-row/one-open limits; every decommission response-loss/fence
 boundary; plan-digest mismatch; provider-remove receipt replay;
 `NotStarted`/abort-tombstone/delayed-begin races, including recovery invoking
-abort from the persisted Begin/abort tuple rather than opening from `NotStarted`
+  abort from the persisted Begin/abort tuple rather than opening from `NotStarted`
 or substituting its response id; proof-issue-plan persistence and Issue
 same-replay versus changed-id conflict; and
   provider-handoff-ready/handoff-persistence/Begin-plan/Begin/`Retiring`/
-  Complete-plan/Complete response-loss; canonical plan/request golden vectors,
-  exact max and max-plus-one wire accounting, field/id/parent mutations, and
-  independent-encoder rederivation; exact handoff/authenticator and
+  Complete-plan/Complete response-loss; Issue initial/lost-response/fresh-Get
+  issuance identity, proof-reference missing/mismatch/authenticator failures,
+  and Begin plan-digest request/fence/replay mutation; canonical plan/request
+  golden vectors, exact max and max-plus-one wire accounting, field/id/parent/
+  receipt mutations, and independent-encoder rederivation; exact handoff/authenticator and
   request-journal tamper; operation-kind scoped same-replay versus changed-id/
   changed-bytes conflict; checkpoint/count mismatch; and no-revoke-with-
   non-replay-index-reference cases.
@@ -1864,7 +1886,8 @@ receipts may become `ProviderTerminalPendingLocalDisposition`.
 `complete_repository_decommission_v1` accepts the stored plan digest and local
 completion id only; it writes the canonical post-terminal disposition plan plus
 its journal before starting the stored disposition, records a storage receipt,
-writes the canonical post-storage completion plan plus its journal, then
+retains that receipt under its canonical local key, rederives its 32-byte digest,
+writes the canonical 253-byte post-storage completion plan plus its journal, then
 performs the one matching terminal `BEGIN IMMEDIATE` CAS. If provider
 removal/retirement succeeds but local drain, delete,
 quarantine, or completion fails, the database retains the exact
@@ -1899,9 +1922,12 @@ receipt. For
 it replays only stored Begin; for `Retiring` it writes the Complete plan; for
 `RetirementCompletePlanned` it replays only stored Complete. For a provider
 terminal it writes only the disposition plan; for a planned/in-progress local
-disposition it repeats only the stored disposition; for disposition-applied it
-writes only the completion plan; and for completion-planned it repeats only
-stored local completion. It returns stored terminal receipts unchanged. A
+  disposition it repeats only the stored disposition; for disposition-applied it
+  resolves and rederives only the retained storage receipt before writing the
+  completion plan; and for completion-planned it re-resolves that receipt before
+  repeating only stored local completion. Missing, duplicate, or changed local
+  receipt is `LocalDispositionReceiptInvalid` and remains closed. It returns
+  stored terminal receipts unchanged. A
 `NotStarted` result with a plan is a typed provider-status mismatch rather than
 an abort/open path. Recovery tests hard-close after intent persistence, Begin
 mutation/response, bounded scan checkpoint, proof-issue-plan persistence, Issue
@@ -1927,17 +1953,20 @@ plan-codec/tag/size types, atomic Begin/Abort status routing, plan-digest
 binding, and all-reference proof fields;
 `record-encryption-key-service/src/items/j_decommission.rs` plus
 `test_items/g_decommission.rs` and `tests/items/l_decommission.rs` own their
-provider proof-ledger retention/reference validation, exact Begin/Abort/
-Complete/receipt replay cases, and no-provider-IntentPending tests.
+provider proof-issuance ledger retention/reference validation, exact Issue
+initial/replay/Get identity, exact Begin/Abort/Complete/receipt replay cases,
+and no-provider-IntentPending tests.
 `employment-repository/src/items/i_decommission.rs` and its test item own the
 known-input pre-Remove plan plus journal, post-handoff Begin, post-Begin
 Complete, post-terminal disposition, and post-storage completion plan/journal
 pairs; exhaustive local
-Abort/Remove/Complete result matches; local status; storage/completion receipts;
-and recovery port types. `employment-repository-sqlite/src/items/o_decommission.rs` owns their
+  Abort/Remove/Complete result matches; local status; canonical local-storage
+  receipt lookup/retention/digest validation; storage/completion receipts; and
+  recovery port types. `employment-repository-sqlite/src/items/o_decommission.rs` owns their
 SQLite CAS/journal implementation; `src/test_items/k_decommission.rs` and
 `tests/contract_items/h_decommission.rs` own type/operation, fixed-vector,
-max-plus-one, mutation, independent-encoder, and plan/journal-binding contract
+max-plus-one, mutation, independent-encoder, issuance/status identity, Begin
+digest/fence binding, local-receipt lookup, and plan/journal-binding contract
 tests; `tests/recovery_items/r_decommission.rs` owns every listed fresh-process
 crash/response-loss/plan-journal/disposition and Begin/Abort serialization
 schedule. The matching memory
@@ -2115,7 +2144,8 @@ most 300 lines.
 The L2i.0h rekey/replay fault matrix consumes, but does not alter, the frozen
 g.0/g.1/g.2 decommission codec: it carries the same independent
 Removal/Begin/Complete/disposition/completion plan and request-journal vectors,
-max-plus-one and parent/fence/reference mutation refusal, and verifies that a
+max-plus-one and parent/fence/reference/receipt mutation refusal, explicit
+Issue-issuance/Get byte identity, Begin-digest/fence binding, and verifies that a
 rekey/decommission race never changes a stored journal. It also runs the
 fresh-process atomic Begin/Abort response-loss schedules against its provider
 oracle: provider status cannot be IntentPending, while repository-local
