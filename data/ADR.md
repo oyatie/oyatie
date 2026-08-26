@@ -276,7 +276,10 @@ tests.
   loser could become stranded after its observed H1 advanced to H2, that H1
   could be skipped by Audit after a post-CAS crash, that a horizon-expired pin
   had no lawful recovery authority, and that aggregate quota arithmetic had
-  incorrectly charged record-only AAD/transaction maxima.
+  incorrectly charged record-only AAD/transaction maxima. The next receipt
+  proved that replacing a current terminal-recovery row bounds retries for one
+  pin but not a sequence of released pins: retained terminal rows T1..TN would
+  still grow forever when admission counts only nonterminal pins.
 - **rule:** `secrets-kms-use` is the required accepted provider face for an
   opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only
   non-serializable operation handles, encrypted opaque key-generation binding,
@@ -317,8 +320,21 @@ tests.
   only a durable, fenced, non-renewable terminal-recovery authority may
   re-attest/append that already-successful receipt or terminally release a
   decidable pin; it cannot Put, Bind, renew, CAS, rebase, or publish. Only
-  one current terminal-recovery row exists per pin and fenced takeover replaces
-  it rather than creating a recovery list. Only
+  one current terminal-recovery row exists per nonterminal pin and fenced
+  takeover replaces it rather than creating a recovery list. Every transition
+  to `RELEASED` atomically writes or validates its immutable decision and
+  terminal cause, records the release epoch, detaches all members, and deletes
+  that active terminal row in the same cell consensus transaction. A released
+  pin has no terminal-row or tombstone authority. The retained pin decision,
+  receipt, and accepted-history proof answer a lost response through the next
+  safe-GC proof; after compaction an old terminal credential still fails
+  because `pin_id` is a coordinator-minted, never-reused allocation and the
+  terminal operation requires an exact current row for a nonterminal pin. The
+  durable allocation high-water survives restore and compaction, so deletion
+  cannot recreate publishing power. Active terminal rows are charged one-for-
+  one to nonterminal admission and are bounded at 8/64/256 per locator,
+  tenant-cell, and cell (1,840/14,720/58,880 bytes); no terminal row survives
+  release. Only
   genuinely undecidable recovery is retained under bounded pin/byte/backlog
   admission. Aggregate pin quotas use only aggregate-legal maxima: migration
   AAD `1,572`, envelope overhead `3,156`, empty-transaction commit `2,040`,
@@ -343,7 +359,8 @@ tests.
   `2,040`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 226-byte
   accepted-history row, 266-byte pin-decision, 203-byte pin, and 230-byte
   durable terminal-recovery lease; it also fixes the `3,156` aggregate envelope
-  overhead and exact derived pin quotas. It supplies request/receipt/error
+  overhead, exact derived pin quotas, and active-terminal-row count/byte
+  quotas. It supplies request/receipt/error
   fields and the bootstrap/acquire/reserve/pin-renew/takeover/terminal-recovery/
   CAS/Audit/seal/persist/publish/release/ACK/reacquire crash matrix.
   `PLAN.md` puts KC's
@@ -360,6 +377,9 @@ tests.
   successor takeover, delayed loser H1-to-H2, H0-to-H1 pre-Audit recovery and
   ordered H1/H2 append, `+1,023/+1,024/+1,025` horizon fencing, coordinator
   epoch re-attestation, cell-local snapshot refresh, pin/GC races,
+  terminal-release atomic delete, response-loss retry, stale terminal
+  credentials before and after safe-GC, and N/N+1 sequential horizon recovery
+  across crash/restore and failed cleanup,
   aggregate purpose/AAD/transaction quota exact-plus-one boundaries,
   stale/idempotent CAS, every crash boundary, concurrent
   allocation, N/N+1 counter/chunk, lease burn, bootstrap catalog source loss,

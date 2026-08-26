@@ -192,10 +192,22 @@ facts, not destination endorsements.
   renewal horizon, only a durable, fenced, non-renewable terminal-recovery
   authority may reconcile/release an existing decidable pin or append its
   already-successful Audit receipt; it cannot put, bind, renew, CAS, rebase, or
-  publish. There is one current terminal-recovery row per pin; a fenced
-  successor replaces it rather than accumulating recovery state. Only genuinely
-  undecidable recovery remains safely quarantined under
-  bounded pin/byte/backlog admission. Aggregate publication admission charges
+  publish. There is one current terminal-recovery row per nonterminal pin; a
+  fenced successor replaces it rather than accumulating recovery state. The
+  terminal consensus transition atomically validates or writes its immutable
+  decision/cause, records `released_gc_epoch`, detaches all members, marks
+  `RELEASED`, and deletes that active terminal row. It leaves no released-row
+  or tombstone authority. The retained decision/receipt/history proof makes a
+  lost reply observable until safe GC; both before and after that compaction an
+  old terminal credential is rejected because an exact active row for a
+  nonterminal, never-reused coordinator-minted pin ID is required. The durable
+  pin-allocation high-water survives restore and compaction, so deleting a row
+  cannot recreate publication authority. Active terminal rows are charged
+  one-for-one to the existing 8/64/256 locator/tenant-cell/cell nonterminal
+  limits and therefore cap at 1,840/14,720/58,880 bytes; no terminal row
+  survives a successful release. Only genuinely undecidable recovery remains
+  safely quarantined under bounded pin/byte/backlog admission. Aggregate
+  publication admission charges
   the aggregate-legal migration maximum only: `3,156` envelope overhead,
   `2,040` empty-transaction commit, and exactly `68,732,871,254` bytes per pin,
   with `549,862,970,032`, `4,398,903,760,256`, and

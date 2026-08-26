@@ -2036,7 +2036,9 @@ The port is Data-owned and internal: it is the sole shape for tuple CAS,
 pin/member, decision/receipt/accepted-high-water history, safe-GC, bounded
 enumeration, normal and terminal-only fenced takeover, and read-snapshot
 operations. Its durable terminal-recovery type is non-renewable and not usable
-where the work-lease type is required. It contains no provider mapping,
+where the work-lease type is required. It also carries the read-only retained
+terminal-outcome query and the internal terminal-release transition that deletes
+an active terminal row; it contains no provider mapping,
 encrypted frame definition, tuple value, storage call, Audit call, listener,
 route, or fake.
 The Cell adapter is the only future persistent implementation and is constrained
@@ -2079,15 +2081,39 @@ values through one capability-authenticated Data port. The core owns
 `FinalizePublicationAudit`, current-owner `ReconcilePin`, safe abandon, normal
 lease-epoch/fence takeover, durable terminal-only takeover/reconciliation,
 bounded reconciliation/enumeration, safe-GC epoch, and publication-read-
-snapshot validation. The Cell adapter persists every transition and
+snapshot validation, plus coordinator-authenticated
+`ReadPublicationTerminalOutcome` and its internal-only
+`CommitTerminalRelease`. The Cell adapter persists every transition and
 pin/member/receipt/decision/accepted-history/terminal-lease relation in the
 tablet consensus log, including `coordinator_epoch`, `cas_index`, terminal
-release epoch, and each retained accepted-predecessor proof; it never infers a
-CAS from an object or a caller-supplied receipt. `records-app` mints the scoped
+release epoch, nonreusable pin-allocation high-water, and each retained
+accepted-predecessor proof; it never infers a CAS from an object or a
+caller-supplied receipt. `records-app` mints the scoped
 work lease, the durable fenced non-renewable terminal-recovery authority, and
 the Audit-only callback capability. The Audit callback can resolve/re-attest a
 recorded receipt by `(pin_id, desired_anchor_digest)` but cannot mutate a tuple,
 pin, or member; stale term/capability and foreign tenant/context are refused.
+
+The exact Cell adapter operations are `InsertOrReplaceTerminalRecoveryLease`,
+`CommitTerminalRelease`, `ReadPublicationTerminalOutcome`, and
+`AdvanceSafeGcAndCompactReleasedPublicationState`. The first writes at most one
+230-byte current row per nonterminal pin and atomically replaces it only with a
+higher terminal fence. `CommitTerminalRelease` reads the current pin,
+authorizing work or terminal lease, immutable decision/receipt/history proof,
+member set, coordinator epoch, and GC epoch; in one consensus transaction it
+writes or validates the terminal decision/cause and release epoch, sets
+`RELEASED`, detaches every member, decrements active-terminal counters, and
+deletes the exact active terminal row. A terminal caller must match every row
+field; a normal caller must match its work pair and cannot race a newer terminal
+owner. An abort writes none of those values, leaving exactly one current row
+and a nonterminal pin. `ReadPublicationTerminalOutcome` is same-context,
+coordinator-capability-only and read-only; it takes `(pin_id,
+publication_context_digest)` and returns only the retained immutable decision
+digest plus `RELEASED`/release epoch or `NotRetained`, never a lease. Safe-GC may compact the released
+pin/decision/receipt/history only after its existing anchored-chain and epoch
+proof; it never retains a terminal-row/tombstone and it preserves the monotonic
+pin-allocation high-water. Thus deletion cannot reissue a pin or resurrect a
+terminal credential as publishing authority.
 
 The precise behavior is SPEC's table: A/B and N writers from H0 get one CAS per
 pin only after their expected anchor is locally current, fresh Audit
@@ -2107,9 +2133,16 @@ cannot Put, Bind, renew, CAS, rebase, or publish. A rebase first
 `AbandonPin`s an unattempted pin or uses the already-released lost pin, then
 acquires a fresh snapshot/pin; it never rewrites an old desired tuple. This
 lane owns no Audit provider call; KA-C maps the callback on the already-created
-port. The Cell adapter stores one current terminal lease row per pin and
-atomically replaces it with a higher fenced row on takeover, so recovery retry
-cannot create an unbounded terminal-lease list.
+port. The Cell adapter stores one active terminal lease row per nonterminal pin and
+atomically replaces it with a higher fenced row on takeover, but
+`CommitTerminalRelease` deletes it in the same transaction as terminal
+decision/cause, member detach, release epoch, and `RELEASED`. Active terminal
+rows are explicitly bounded at 8/64/256 per locator/tenant-cell/cell and
+1,840/14,720/58,880 bytes (`230` each), charged one-for-one to nonterminal
+pins; a released pin has zero such rows/bytes. A stale terminal credential
+requires an exact current row and is `ArtifactPublicationTerminalRecoveryLeaseLost`
+both before and after safe-GC, while the retained read-only outcome makes a
+lost terminal response idempotently observable.
 
 `RefreshPublicationReadSnapshot` obtains Audit only at boot, recovery,
 post-publication, term change, or expiry; it validates and installs the
@@ -2133,7 +2166,15 @@ H0 restore after H1, maximum per-pin and
 `17,595,615,041,024` aggregate byte caps and plus-ones, aggregate record-AAD
 or nonempty-transaction rejection, release/GC anchored-chain races,
 coordinator/device loss, and snapshot hit/expiry/term/tuple behavior in both
-Cargo and Buck. Success is a durable bounded state machine with no immortal
+Cargo and Buck. For each active-terminal scope, the terminal suite admits N
+rows at N=`8`, `64`, or `256`, rejects N+1, and then runs N+1 sequential
+`+1,024` horizon recoveries with crash/restore, response-loss, release-cleanup
+abort, retry, fenced replacement, and safe-GC compaction. It proves a
+successful release leaves zero terminal rows/bytes for that pin; a failed
+atomic release leaks only its one active 230-byte row and nonterminal pin
+inside the 1,840/14,720/58,880-byte bound; no T1..TN released-row list exists;
+the allocation high-water prevents pin-ID reuse; and old terminal credentials
+are rejected both before and after compaction. Success is a durable bounded state machine with no immortal
 normal loser, no skipped Audit predecessor, durable terminal-only recovery,
 and no remote Audit read hit; failure is local-head freshness guessing, receipt
 forgery, term-blind retry, mutable pin tuple, unfenced stale worker, a terminal
@@ -2266,8 +2307,11 @@ Within that write set, audit-sink
 `c_publication_high_water.rs` owns the typed high-water request/receipt and the
 fixed `LocalPublicationCasReceiptV1`; record-protection
 `f_publication_state.rs` owns the anchor/pin/accepted-history/pin-decision/
-terminal-recovery-lease state whose digest fields it names. KC defines values
-only: D1c-PC-C, not tablet persistence,
+terminal-recovery-lease state whose digest fields it names, including the
+coordinator-minted never-reused pin-ID allocation high-water, the active-only
+230-byte lease relation, and the rule that `RELEASED` is represented by the
+pin decision/release epoch rather than a terminal lease or tombstone. KC defines
+values only: D1c-PC-C, not tablet persistence,
 owns their durable coordinator operations, term re-attestation, takeover,
 release, and in-cell snapshot behavior through the new direct port edges. This
 keeps a record-protection envelope out of D1c-C while preventing later content
@@ -2278,6 +2322,7 @@ vectors, byte-exact envelope/token/WAL-summary/plan/final-manifest/commit/
 anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease
 framing, record/WAL count-one, count-two rejection, purpose-total exact/plus-
 one totals and AAD bounds, aggregate-only `3,156`/`2,040` and pinned-byte quota
+boundaries, active-terminal 8/64/256-row and 1,840/14,720/58,880-byte quota
 boundaries, opaque-handle containment, bootstrap-based DecryptOnly
 reacquisition, and no nonce reuse.
 Failure is custom keyed cryptography, algorithm defaulting,
@@ -2293,7 +2338,7 @@ aggregate count-4,097/total-plus-one, plan/final-manifest/commit/head/context/
 anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease field,
 and chunk order; exercise every purpose exact/plus-one AAD, summary, plan,
 manifest, commit, anchor, local-CAS receipt, accepted history, decision, pin,
-terminal lease, and bootstrap bound; substitute/replay/truncate/
+terminal lease, pin-allocation high-water, and bootstrap bound; substitute/replay/truncate/
 duplicate uniform/mixed/metadata/control WALs, final manifests, commits,
 anchors, local-CAS and high-water receipts; race stale/idempotent CAS heads and
 pins; replay H0 after H1 across crash/restore/failover; exhaust/wrap counters;
