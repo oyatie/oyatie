@@ -11,7 +11,7 @@ blake3 = "1.8.5"
 data-classification = { path = "../../../data/ports/classification" }
 secrets-kms = { path = "../../../secrets/ports/kms" }
 cell-location = { path = "../../../cell/ports/location" }
-compute-resource = { path = "../../../compute/core/resource" }
+compute-resource-metadata = { path = "../../../compute/ports/resource-metadata" }
 
 network-residency = { path = "../../../network/core/residency" }
 storage-provider-draft = { path = "../../ports/draft/provider" }

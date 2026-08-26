@@ -9,8 +9,8 @@
 #![forbid(unsafe_code)]
 
 use cell_location::{AzCode, CellId, RegionCode};
-pub use compute_resource::VolumeTier;
-use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
+pub use compute_resource_metadata::VolumeTier;
+use compute_resource_metadata::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 pub use data_classification::DataClass;
 use data_classification::PrivacyDataClass;
 pub use network_residency::ResidencyClass;

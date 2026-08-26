@@ -1,0 +1,17 @@
+[package]
+name = "compute-resource-metadata"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+cell-location = { path = "../../../cell/ports/location" }
+compute-resource = { path = "../../core/resource" }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true

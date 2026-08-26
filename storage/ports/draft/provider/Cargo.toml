@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 cell-location = { path = "../../../../cell/ports/location" }
-compute-resource = { path = "../../../../compute/core/resource" }
+compute-resource-metadata = { path = "../../../../compute/ports/resource-metadata" }
 data-classification = { path = "../../../../data/ports/classification" }
 network-residency = { path = "../../../../network/core/residency" }
 secrets-kms = { path = "../../../../secrets/ports/kms" }

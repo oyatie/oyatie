@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 data-classification = { path = "../../../../data/ports/classification" }
 secrets-kms = { path = "../../../../secrets/ports/kms" }
-compute-resource = { path = "../../../../compute/core/resource" }
+compute-resource-metadata = { path = "../../../../compute/ports/resource-metadata" }
 storage-domain = { path = "../../../core/domain" }
 
 

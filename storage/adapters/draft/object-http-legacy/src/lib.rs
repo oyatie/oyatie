@@ -5,7 +5,7 @@
 
 use std::collections::BTreeMap;
 
-use compute_resource::ResourceId;
+use compute_resource_metadata::ResourceId;
 use data_classification::{DataClass, parse_data_class_label};
 use secrets_kms::KmsPurpose;
 use storage_domain::{

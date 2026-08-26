@@ -1,0 +1,22 @@
+rust_library(
+    name = "compute-resource-metadata",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "compute_resource_metadata",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cell/ports/location:cell-location",
+        "//compute/core/resource:compute-resource",
+    ],
+)
+
+rust_test(
+    name = "compute-resource-metadata-contract",
+    srcs = ["tests/resource_metadata_contract.rs"],
+    crate = "compute_resource_metadata_contract",
+    crate_root = "tests/resource_metadata_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":compute-resource-metadata",
+    ],
+)

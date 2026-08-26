@@ -1394,6 +1394,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "compute-resource-metadata"
+version = "0.1.0"
+dependencies = [
+ "cell-location",
+ "compute-resource",
+]
+
+[[package]]
 name = "compute-vm-api"
 version = "0.1.0"
 dependencies = [
@@ -8262,7 +8270,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "cell-location",
- "compute-resource",
+ "compute-resource-metadata",
  "data-classification",
  "network-residency",
  "secrets-kms",
@@ -8283,7 +8291,7 @@ dependencies = [
 name = "storage-object-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
- "compute-resource",
+ "compute-resource-metadata",
  "data-classification",
  "network-residency",
  "secrets-kms",
@@ -8316,7 +8324,7 @@ name = "storage-provider-draft"
 version = "0.1.0"
 dependencies = [
  "cell-location",
- "compute-resource",
+ "compute-resource-metadata",
  "data-classification",
  "network-residency",
  "secrets-kms",
