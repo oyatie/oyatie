@@ -158,11 +158,18 @@ facts, not destination endorsements.
   evidence. Rotate generations online with a non-reusing `NonceLeaseId` range
   durably reserved and allocated by one exclusive linearizable CAS/fsync owner
   before each use, bounded resumable re-encryption, durable audit,
-  ciphertext-only restore, and revocation fencing. Data persists only an
-  encrypted opaque provider key-generation binding and reacquires a fresh
-  authorized Open/DecryptOnly handle after restart; it never persists a handle
-  or raw key. An uncertain recovered lease/binding is burned and withdraws
-  readiness rather than being reused.
+  ciphertext-only restore, and revocation fencing. Every durable envelope
+  carries a bounded authenticated bootstrap locator with the tenant, purpose,
+  key, generation, fence, provider revision/catalog, and recovery-policy
+  binding needed to reacquire a fresh authorized Open/DecryptOnly handle before
+  decrypting the encrypted opaque key-generation binding; Data never persists a
+  handle or raw key. `RecordKeySource` is the only acquisition/reacquisition
+  owner, while record protection consumes its typed lease for Seal/Open. Each
+  artifact, including a one-entry record or WAL artifact, has the exact
+  purpose-valid 19-field AAD, a count-one-or-more plan, final manifest, sealed
+  commit record, and atomic CAS head; a reader publishes only after that
+  authenticated chain agrees. An uncertain recovered lease/binding/bootstrap is
+  burned and withdraws readiness rather than being reused.
   Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time
   evidence withdraws the affected route and readiness. Plaintext, stale-key,
   unaudited, or fail-open fallback is forbidden.

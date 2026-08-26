@@ -1780,9 +1780,11 @@ faces: `policy/ports/check` (`policy-check`),
 `secrets/ports/kms-use` (`secrets-kms-use`). The KMS amendment chooses the
 opaque-handle AEAD contract in `SPEC.md`: durable `ReserveNonceRange`,
 tenant/purpose/generation/fence-bound `Seal`, restart/restore-authorized
-`AcquireOpenHandle` and `Open`, a persistable opaque key-generation binding,
-non-serializable operation handles with no raw-byte accessor, and provider-owned
-zeroization proof. Each
+`AcquireOpenHandle(KeyBootstrapLocatorV1)` and `Open`, an authenticated bounded
+pre-decryption bootstrap catalog/locator plus encrypted opaque key-generation
+binding, non-serializable operation handles with no raw-byte accessor, and
+provider-owned zeroization proof. KK alone owns acquisition/reacquisition; KX
+only consumes its typed result and maps Seal/Open. Each
 owner amendment names typed request/receipt/error/revision semantics, Cargo
 and Buck targets, reverse closure, authentication, outage behavior,
 rollout/rollback, SLO, and fault evidence. A separate root D-29 dependency
@@ -1953,7 +1955,8 @@ closure is empty. Reviewers are Data, security, build/dependency, Cell,
 Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
 exact parity, and zero secret/keyed-algorithm behavior. Failure is content,
 raw-key type in a general records port, a missing `record-keys ->
-record-protection` Cargo/Buck edge, provider/internal edge, implicit
+record-protection` Cargo/Buck edge for `KeyUseLease`, `ReacquiredOpenLease`,
+and `KeyGenerationBinding`, provider/internal edge, implicit
 keyed-crypto dependency, app route, one-graph edge, or unrelated lock churn. Rollback
 removes only these packages/edges. Faults cover scanner parity, forbidden
 provider-core edges, dependency-feature skew, and lock/target canaries.
@@ -1966,7 +1969,7 @@ The exact unique-file envelope is:
 ```text
 data/ports/draft/records/src/items/{a_identifiers,b_requests,c_responses,d_errors,e_durability_profile,f_change_envelope,g_resource_limits,h_request_fingerprint,i_scan_continuation,j_security_context}.rs
 data/ports/draft/records/src/test_items/{a_contract,b_errors,c_limits,d_classification_identity,e_validation_order,f_response_bounds,g_request_fingerprint,h_scan_continuation,i_security_context}.rs
-data/ports/draft/tablet-persistence/src/items/{a_log_record,b_manifest,c_durable_receipt,d_ciphertext_envelope}.rs
+data/ports/draft/tablet-persistence/src/items/{a_log_record,b_manifest,c_durable_receipt}.rs
 data/ports/draft/tablet-persistence/src/test_items/a_contract.rs
 data/core/records-domain/src/items/{a_schema,b_transaction,c_tablet,d_idempotency,e_request_context,m_request_authority,n_security_context,y_response_admission,z_resource_admission}.rs
 data/core/records-domain/src/test_items/{a_contract,b_identity,c_refusal,j_request_authority,k_scan_continuation,y_response_matrix,z_resource_matrix}.rs
@@ -1976,16 +1979,21 @@ data/core/tablet-consensus-domain/src/test_items/a_contract.rs
 
 Freeze engine-neutral transaction/schema/tablet/change/error/idempotency,
 canonical server-derived request-fingerprint and continuation grammars,
-Policy/Audit/Cell/key evidence value contracts, durability profile, ciphertext
-envelope, WAL record, manifest, receipt, and every exact v1 request, result,
-logical-result, allocation, in-flight-credit, validation, and refusal semantic
-from `SPEC.md`.
+Policy/Audit/Cell/key evidence value contracts, durability profile, WAL record,
+manifest reference, receipt, and every exact v1 request,
+result, logical-result, allocation, in-flight-credit, validation, and refusal
+semantic from `SPEC.md`. D1c-C does not freeze a ciphertext-envelope, KMS
+bootstrap, artifact-plan, final-manifest, or commit-record type: its
+`b_manifest.rs` is an engine-neutral unsealed manifest reference only. KC owns
+the canonical record-protection envelope and every encrypted control frame
+after this lane.
 `d_classification_identity.rs` passes a
 `data_classification::DataClass` through records-port input, committed version,
-change envelope, ciphertext AAD, and domain validation function signatures with
-no conversion, parse, wrapper, or second enum; its compile-time assignments run
-in Cargo and Buck. The canonical frame encoders produce bytes for the
-`RecordProtection` digest/seal interface but implement no cryptography. No
+change envelope, opaque security-context attachment, and domain validation
+function signatures with no conversion, parse, wrapper, or second enum; its
+compile-time assignments run in Cargo and Buck. D1c-C's canonical encoders are
+only request/fingerprint/continuation semantic frames; KC alone emits
+envelope/AAD/plan/manifest/commit bytes. No
 protobuf/generated, SQL/client, crypto, key-provider, or storage implementation
 appears. Build/reverse closure is D1c-S/WS/KS plus exact classification and Cell
 providers; required reviewers are Data, Cell, Audit, Policy/IAM, Secrets,
@@ -2012,7 +2020,8 @@ generated wire type, second classification/time identity, caller-chosen
 fingerprint, ambiguous canonical frame, raised/configurable hard maximum,
 unchecked conversion, result work before authorization, post-commit
 deterministic refusal, validation reordering, unbounded collection, or draft
-external consumer. Rollback removes only these files. SLO signals are bounded
+external consumer, or a frozen ciphertext/control frame. Rollback removes only
+these files. SLO signals are bounded
 semantic/accounting work, response-credit occupancy, and stable refusal
 counters; wire and production latency remain unavailable. Fault evidence is
 contract fuzz/property plus fingerprint golden/permutation/collision-domain,
@@ -2031,10 +2040,10 @@ data/ports/draft/policy-client/src/items/{a_request,b_receipt,c_errors}.rs
 data/ports/draft/policy-client/src/test_items/a_contract.rs
 data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_errors}.rs
 data/ports/draft/audit-sink/src/test_items/a_contract.rs
-data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_generation_binding,c_nonce_lease,d_key_receipt,e_opaque_operation_handle,f_errors}.rs
-data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine}.rs
-data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_errors}.rs
-data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames}.rs
+data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_bootstrap_locator,c_key_generation_binding,d_nonce_lease,e_key_receipt,f_opaque_operation_handle,g_errors}.rs
+data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine,c_cold_recovery}.rs
+data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_artifact_commit,d_errors}.rs
+data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames,c_artifact_commit}.rs
 data/adapters/draft/record-digest-awslc/src/items/a_sha256.rs
 data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
 ```
@@ -2042,9 +2051,13 @@ data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
 Implement only the Data-owned contracts and the unkeyed AWS-LC SHA-256 adapter
 frozen in `SPEC.md`: receipt binding, exact fingerprint/AAD/token frames,
 SHA-256, opaque KMS key-generation-binding/operation-handle/key-use/
-nonce-reservation types, stable errors, the exact classification codepoint
-table, artifact-plan/final-manifest grammar, and the pre-use durable
-linearizable nonce state machine. KC defines the complete request,
+nonce-reservation types, the authenticated bounded bootstrap-locator/catalog
+grammar, stable errors, the exact classification codepoint table and
+per-purpose ContextAadV1 matrix/formulas, canonical count-one-or-more
+artifact-plan/final-manifest/commit/head grammars, and the pre-use durable
+linearizable nonce state machine. KC owns `CiphertextEnvelopeV1`,
+`ArtifactCommitRecordV1`, and all encrypted-control types before any
+tablet-persistence lane can consume them. It defines the complete request,
 receipt, and error types that every provider adapter maps; it does not call a
 provider, hold a raw key, perform AES-GCM, persist a record, decode protobuf,
 compose a process, or claim readiness. Every file stays at or below 300
@@ -2052,20 +2065,24 @@ handwritten lines; scanner outputs and Cargo/Buck target membership are
 identical.
 
 Success is two independent golden-frame encoders, published SHA-256 known-answer
-vectors, byte-exact envelope/token/final-manifest framing, opaque-handle
-containment, restartable DecryptOnly reacquisition, and no nonce reuse. Failure
-is custom keyed cryptography, algorithm defaulting,
+vectors, byte-exact envelope/token/plan/final-manifest/commit framing,
+purpose-realizable exact/plus-one AAD bounds, opaque-handle containment,
+bootstrap-based DecryptOnly reacquisition, authenticated CAS publication, and
+no nonce reuse. Failure is custom keyed cryptography, algorithm defaulting,
 raw-key clone/log/serialization, a raw-key-shaped type or async state,
 unchecked counter/length, unknown-field acceptance, plaintext fallback,
-provider edge before KX-C, or production claim. Rollback removes only these
-content files. SLO is bounded contract/hash work and zero observed
-opaque-handle/nonce violations. Faults flip every header/AAD/ciphertext/tag
-byte, classification codepoint, plan/final-manifest field, and chunk order;
-cross tenant/purpose/generation; exhaust/wrap counters; race concurrent CAS
-allocators; crash at acquire, reserve, local checkpoint, allocation CAS/fsync,
-Seal, persist, publish, and ACK; restart into EncryptActive/DecryptOnly/source
-loss; then run known answers and N/N+1 counters/chunks through Cargo and Buck. KMS AEAD
-known-answer, tamper, zeroization, and terminal-path evidence belong to KX-C.
+provider edge before KX-C, a D1c-C envelope type, or production claim. Rollback
+removes only these content files. SLO is bounded contract/hash work and zero
+observed opaque-handle/nonce violations. Faults flip every header/AAD/
+ciphertext/tag/bootstrap byte, classification codepoint, plan/final-manifest/
+commit/head field, and chunk order; exercise every purpose exact/plus-one AAD,
+plan, manifest, commit, and bootstrap bound; substitute/replay/truncate/duplicate
+the final manifest and commit; race stale/idempotent CAS heads; exhaust/wrap
+counters; race concurrent CAS allocators; crash at acquire, reserve, local
+checkpoint, allocation CAS/fsync, Seal, persist, final manifest, commit, CAS,
+and ACK; restart into EncryptActive/DecryptOnly/catalog-source loss; then run
+known answers and N/N+1 counters/chunks through Cargo and Buck. KMS AEAD known-
+answer, tamper, zeroization, and terminal-path evidence belong to KX-C.
 
 ### D1c-WC — Records-v1 schema, codec, and accounting behavior
 
@@ -2143,10 +2160,13 @@ D1c-KX-C: data/adapters/draft/record-protection-secrets/src/items/a_adapter.rs
 Content only maps Data-owned requests/receipts/errors to the accepted provider
 contract and preserves revision, integrity, deadline, tenant, purpose,
 generation, opaque-handle containment, durable pre-use nonce reservation, and
-revocation fences. KX-C consumes the record-keys binding/operation-handle types
-and maps KMS `AcquireOpenHandle`, `Seal`, and `Open`, never local AES-GCM or a
-raw key; it requires provider KAT, tamper, raw-key-zeroization, restart/restore
-reacquisition, duplicate-nonce refusal, and terminal-path evidence. Provider-owned conformance
+revocation fences. KK-C is the sole mapper of `AcquireOpenHandle` and its
+`KeyBootstrapLocatorV1 -> ReacquiredOpenLease` transition. KX-C consumes the
+record-keys binding/operation-handle types through the direct port edge and maps
+only KMS `Seal` and `Open`, never local AES-GCM, handle acquisition, or a raw
+key; it requires provider KAT, tamper, raw-key-zeroization, bootstrap
+restart/restore reacquisition, duplicate-nonce refusal, and terminal-path
+evidence. Provider-owned conformance
 services/fixtures and live fault plants supply evidence; a Data fake, in-memory
 double, direct provider client, or provider core cannot satisfy it. Success is
 byte/type-exact mapping and fail-closed deny/outage/staleness in both graphs;
@@ -2333,23 +2353,28 @@ Class: content-only after KJ-S; write only the four KJ-S Rust files. Compose the
 engine and real provider adapters, validate compatible contract revisions,
 require verified Policy/Audit/KMS conformance receipts, an encrypt-active
 record and continuation generation, durable nonce headroom, usable Cell
-interval, clean recovery/quarantine state, and current rotation inventory. The
-library exposes a typed `NotReady` reason and admission gate, not a listener;
-loss or staleness of any prerequisite atomically withdraws admission/readiness
-before new work. Policy deny/outage precedes data-dependent work, mutation ACK
-requires durable Audit, and a key/revocation fence is revalidated before
-prepare and visibility. No fake, in-memory provider, fixture, or reference
-oracle can be selected by production composition or count as readiness proof.
+interval, a valid authenticated bootstrap locator/provider catalog for each
+recoverable generation, clean recovery/quarantine state, and current rotation
+inventory. The library exposes a typed `NotReady` reason and admission gate,
+not a listener; loss or staleness of any prerequisite atomically withdraws
+admission/readiness before new work. Policy deny/outage precedes data-dependent
+work, mutation ACK requires durable Audit, a key/revocation fence is revalidated
+before prepare and visibility, and an artifact is visible only through the
+validated sealed commit/head CAS chain. No fake, in-memory provider, fixture,
+or reference oracle can be selected by production composition or count as
+readiness proof.
 
 Success is zero route/readiness while any prerequisite is missing and stable
 recovery after real provider revalidation; failure is false readiness,
 plaintext/unaudited/stale-key fallback, partial provider selection, or a test
-double in the production graph. Rollback withdraws admission and returns to the
-unrouted library; it cannot undo a durable audit/key fence. SLO signals are
-readiness reason/age, provider revision/latency, receipt age, nonce headroom,
-quarantine count, and rotation backlog. Provider test plants inject deny,
-timeout, malformed/stale receipt, Audit durability loss, KMS outage/rotation/
-revocation, time uncertainty, nonce exhaustion, corrupt recovery, and N/N+1
+double in the production graph, an unauthenticated commit root, or unavailable
+bootstrap catalog. Rollback withdraws admission and returns to the unrouted
+library; it cannot undo a durable audit/key fence. SLO signals are readiness
+reason/age, provider revision/latency, receipt age, nonce headroom, bootstrap-
+catalog health, quarantine count, and rotation backlog. Provider test plants
+inject deny, timeout, malformed/stale receipt, Audit durability loss, KMS
+outage/rotation/revocation, bootstrap tamper/source loss, time uncertainty,
+nonce exhaustion, corrupt recovery, commit-head stale-CAS/replay, and N/N+1
 skew; each must withdraw before request acceptance. D4 route work is blocked
 until this exact receipt is independently accepted.
 

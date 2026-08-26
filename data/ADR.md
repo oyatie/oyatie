@@ -252,37 +252,53 @@ tests.
   migration replace these ports or format while retaining tenant isolation,
   durable pre-ACK evidence, rollback fencing, and recoverability.
 
-### Amendment — opaque KMS AEAD boundary and pre-use nonce reservation
+### Amendment — opaque KMS bootstrap, authenticated artifact root, and pre-use nonce reservation
 
 - **achieves:** removes the contradiction between rejecting raw Data key
-  material and requiring locally held AES key bytes, while making AES-GCM
-  nonce reuse impossible across a crash boundary.
+  material and requiring locally held AES key bytes, makes opaque KMS recovery
+  executable after a cold restart, authenticates the published artifact root,
+  and makes AES-GCM nonce reuse impossible across a crash boundary.
 - **origin:** the first D1c draft both prohibited a raw key/provider client in
   a Data contract and described a Data-visible zeroizing 32-byte key lease;
   it also advanced the nonce checkpoint only before acknowledgement, after a
-  ciphertext could already exist.
+  ciphertext could already exist. The next draft made an encrypted
+  `KeyGenerationBinding` the sole provider reference, which cannot reacquire an
+  Open handle needed to decrypt the record containing it; its artifact commit
+  root was prose rather than an authenticated frame.
 - **rule:** `secrets-kms-use` is the required accepted provider face for an
   opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only
-  non-serializable operation handles, an encrypted opaque key-generation
-  binding sufficient for authorized post-restart `Open` reacquisition,
-  generation/fence metadata, and a durable nonce-reservation receipt; they
-  MUST NOT expose raw key bytes or a provider client. `NonceLeaseId:u32` is the
-  sole nonce identity. The provider MUST durably reserve a disjoint range before
+  non-serializable operation handles, encrypted opaque key-generation binding,
+  and a bounded authenticated `KeyBootstrapLocatorV1` in the envelope header.
+  The bootstrap locator, not encrypted binding alone, authorizes provider
+  catalog resolution of the exact tenant/purpose/key/generation/fence/revision
+  before the first post-restart Open. KK/`RecordKeySource` is the sole owner of
+  `AcquireOpenHandle`; KX/`RecordProtection` consumes its typed lease and maps
+  only Seal/Open over the direct Cargo/Buck port edge. Data MUST NOT expose raw
+  key bytes or a provider client. Every legal purpose uses the exact
+  19-field `ContextAadV1` grammar and a count-one-or-more plan; each artifact
+  becomes visible only through a sealed canonical `ArtifactCommitRecordV1` and
+  atomic compare-and-swap head whose context, final manifest, plan, AAD,
+  locator, key, generation, and fence all agree. `NonceLeaseId:u32` is the sole
+  nonce identity. The provider MUST durably reserve a disjoint range before
   returning it; one exclusive lease owner MUST atomically CAS+fsync `next` past
   a counter before submitting that nonce to Seal. If recovery cannot prove the
-  binding, ownership, or latest state, it burns the whole lease and withdraws
-  readiness. KMS owns raw-key lifetime and zeroization proof.
+  bootstrap/binding, ownership, or latest state, it burns the whole lease and
+  withdraws readiness. KMS owns raw-key lifetime and zeroization proof.
 - **ensure:** `SPEC.md` fixes the satisfiable byte formulas, closed AAD
-  codepoints/field count/final-manifest grammar, request/receipt/error fields,
-  and acquire/reserve/CAS/seal/persist/publish/ACK/reacquire crash matrix;
-  `PLAN.md` schedules KC's record-keys types and direct Cargo/Buck edge before
-  the KMS protection adapter. Conformance scans reject raw-key-shaped Data
-  values and test every crash boundary, concurrent allocation, N/N+1
-  counter/chunk, lease burn, restart/source-loss/rotation, and refusal path.
+  codepoints/field count/purpose maxima (record 1,825 and migration 1,572),
+  count-one plan/final-manifest/commit grammars, request/receipt/error fields,
+  and bootstrap/acquire/reserve/CAS/seal/persist/publish/ACK/reacquire crash
+  matrix; `PLAN.md` puts KC's canonical envelope before any persistence content
+  and gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
+  edge. Conformance scans reject raw-key-shaped Data values and test every
+  malformed/tampered/replayed/truncated/substituted frame, stale/idempotent
+  commit CAS, crash boundary, concurrent allocation, N/N+1 counter/chunk,
+  lease burn, bootstrap catalog source loss, restart/rotation/revocation, and
+  refusal path.
 - **overturn_when:** an accepted replacement provider contract proves an
-  equally opaque, tenant-bound operation with durable non-reuse, raw-key
-  containment, zeroization evidence, and the same crash/rotation refusal
-  coverage.
+  equally opaque, tenant-bound operation with independently authenticated cold
+  recovery and publication, durable non-reuse, raw-key containment, zeroization
+  evidence, and the same crash/rotation refusal coverage.
 
 </record_security>
 

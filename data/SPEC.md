@@ -499,7 +499,7 @@ Data owns four implementation-free use-case ports:
 PolicyClient        authorize(canonical request context) -> PolicyReceipt
 AuditSink           append_pre_ack(canonical event) -> DurableAuditReceipt
 RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> KeyUseLease;
-                    reacquire an authorized opaque decrypt operation -> OpaqueOpenHandle
+                    bootstrap-reacquire an authorized decrypt operation -> ReacquiredOpenLease
 RecordProtection    digest/seal/open using RecordKeySource operation handles, explicit purpose,
                     lease identity, and envelope -> result
 ```
@@ -525,39 +525,89 @@ core-backed/internal shapes, and Data MUST NOT depend on them or any provider
 adapters land, the provider owner must accept these v1 operations and their
 typed Cargo/Buck faces: `ReserveNonceRange(tenant, purpose, requested_count,
 minimum_generation, request_fence) -> KeyUseLease`,
-`AcquireOpenHandle(tenant, purpose, KeyGenerationBinding, request_fence,
-recovery_authorization) -> OpaqueOpenHandle`,
+`AcquireOpenHandle(tenant, purpose, KeyBootstrapLocatorV1, request_fence,
+recovery_authorization) -> ReacquiredOpenLease`,
 `Seal(OpaqueSealHandle, tenant, purpose, generation, fence_sequence,
-nonce_lease_id, counter, aad, plaintext) -> ciphertext_and_tag`, and
-`Open(OpaqueOpenHandle, tenant, purpose, KeyGenerationBinding, envelope) ->
-plaintext`. `KeyGenerationBinding` is the sole persistable recovery reference:
-tenant, purpose, canonical key ID, generation, fence sequence, opaque provider
-key-generation reference, provider contract revision, and provider integrity.
-It contains no key bytes, usable operation handle, or provider client. The
-opaque provider reference is a provider-defined stable identifier, serialized
-only in the encrypted Data recovery record and passed back only to the accepted
-provider face; Data never interprets it.
+nonce_lease_id, counter, envelope_associated_data, plaintext) ->
+ciphertext_and_tag`, and `Open(OpaqueOpenHandle, tenant, purpose,
+KeyGenerationBinding, envelope) -> plaintext`. `AcquireOpenHandle` is owned
+only by `RecordKeySource` and the KK adapter: it parses no plaintext, verifies
+the bootstrap locator against the provider catalog and current authorization,
+and returns `ReacquiredOpenLease { binding, opaque_open_handle }`. The KX
+adapter consumes that typed lease and maps only `Seal` and `Open`; it neither
+reacquires a handle nor interprets a provider locator. Thus there is one
+acquisition authority and one `data-record-protection-draft ->
+data-record-keys-draft` type edge, mirrored in Cargo and Buck.
 
-`KeyUseLease` contains that binding plus exactly one `NonceLeaseId:u32`,
-`start:u64`, `end_exclusive:u64`, `not_after`, reservation integrity, and a
-non-serializable `OpaqueSealHandle`. `OpaqueSealHandle` and `OpaqueOpenHandle`
-have no byte accessor, cannot be cloned, displayed, serialized, logged,
-persisted, or supplied to another tenant/purpose/generation/fence. Data
-persists the binding and lease receipt but never either handle. On restart,
-restore, or a `DecryptOnly` generation, Data authorizes recovery against the
-persisted binding and calls `AcquireOpenHandle`; the provider verifies tenant,
-purpose, key ID, generation, fence, state, authorization, and binding
-integrity before returning a fresh operation-local open handle. Source loss, a
-missing/corrupt/foreign binding, unavailable provider, revoked generation, or
-an authorization/fence mismatch returns a typed refusal and withdraws affected
-readiness; ciphertext alone never causes a raw-key fallback.
+`KeyBootstrapLocatorV1` is the bounded, pre-decryption recovery reference
+carried in every durable envelope header. Its exact canonical grammar is:
+
+```text
+domain_len:u8 = 35
+domain:[u8;35] = "oyatie.data.record.key-bootstrap.v1"
+separator:u8 = 0 | version:u8 = 1 | field_count:u16 = 10
+repeated exactly field_count times in increasing-tag order:
+  tag:u8 | type:u8 | length:u32 | value:[u8;length]
+where each listed tag occurs exactly once:
+  01 tenant:ASCII(1..=256)                 06 provider_contract_revision:U64
+  02 purpose:ENUM8(1..=6)                  07 provider_catalog_id:DIGEST32
+  03 canonical_key_id:ASCII(1..=256)       08 provider_generation_locator:BYTES(1..=512)
+  04 key_generation:U64                    09 recovery_policy_digest:DIGEST32
+  05 fence_sequence:U64                    0a provider_locator_authenticator:AUTH32
+```
+
+`BYTES=5` and `AUTH32=6` are permitted only in this bootstrap grammar.
+`provider_locator_authenticator` is exactly
+`HMAC-SHA-256(provider_catalog_authentication_key, canonical bytes through
+field 09)`, generated and verified only by the provider catalog; no Data value
+contains that authentication key. The header is
+`1 + 35 + 1 + 1 + 2 = 40` bytes, ten field prefixes add `60`, and the largest
+values add `256 + 1 + 256 + 8 + 8 + 8 + 32 + 512 + 32 + 32 = 1,145`; therefore
+`MAX_KEY_BOOTSTRAP_LOCATOR_BYTES = 1,245`. The provider catalog authenticates
+`provider_locator_authenticator`, resolves the opaque locator, and checks all
+tenant/purpose/key/generation/fence/revision/catalog/policy fields before it
+returns a handle. A count other than ten, unknown/duplicate/omitted/out-of-
+order tag, wrong type/width, noncanonical ASCII, bad HMAC, or truncation/
+trailing byte is `KeyBootstrapMalformed` or `KeyBootstrapIntegrityInvalid`;
+Data checks this frame, its bound header/AAD context, and all lengths before
+allocation, acquisition, Open, or publication, but never interprets the opaque
+locator or authenticator.
+
+`KeyGenerationBinding` remains encrypted Data recovery state containing the
+provider-defined generation reference, its revision, and integrity; it is not
+the sole restart reference and is never required to obtain the first post-crash
+open handle. `KeyUseLease` contains a matching binding, bootstrap locator,
+exactly one `NonceLeaseId:u32`, `start:u64`, `end_exclusive:u64`, `not_after`,
+reservation integrity, and a non-serializable `OpaqueSealHandle`. An
+`OpaqueSealHandle` or `OpaqueOpenHandle` has no byte accessor and cannot be
+cloned, displayed, serialized, logged, persisted, or supplied to another
+tenant/purpose/generation/fence. Data persists neither handle.
+
+On restart, restore, or a `DecryptOnly` generation, Data first parses the
+envelope and bootstrap locator without allocating ciphertext/plaintext, checks
+that locator fields equal the envelope AAD/header context, obtains a fresh
+`recovery_authorization`, and calls the RecordKeySource-owned
+`AcquireOpenHandle`. The provider rechecks authorization, catalog integrity,
+tenant, purpose, key ID, generation, fence, revision, generation state, and
+revocation before returning the fresh operation-local binding/handle. Rotation
+emits a new bootstrap locator for the new generation while old valid
+DecryptOnly locators remain usable; restore requires the authenticated catalog;
+revocation invalidates acquisition. Source loss, a malformed/corrupt/foreign
+locator, unavailable catalog/provider, policy denial, revision/fence/context
+mismatch, or revoked generation returns respectively
+`KeyBootstrapMalformed`, `KeyBootstrapIntegrityInvalid`,
+`KeyBootstrapContextMismatch`, `KeyBootstrapCatalogUnavailable`,
+`KeyBootstrapAuthorizationDenied`, or `KeyGenerationUnavailable`, quarantines
+the affected recovery, and withdraws readiness. Ciphertext alone never causes
+a raw-key, stale-binding, or alternate-provider fallback.
 
 The provider durably records the disjoint reservation before returning the
-lease and rejects a Seal/Open whose handle, tenant, purpose, binding, fence,
-nonce-lease identity, counter range, or key state does not match. KMS owns
-raw-key storage, cryptographic key lifetime, and zeroization evidence; Data's
-source/type and serialization scans prove that no raw-key-shaped value exists
-in any Data contract, receipt, event, envelope, error, log, or async state.
+lease and rejects a Seal/Open whose handle, tenant, purpose, binding, bootstrap
+locator, fence, nonce-lease identity, counter range, or key state does not
+match. KMS owns raw-key storage, cryptographic key lifetime, and zeroization
+evidence; Data's source/type and serialization scans prove that no raw-key-
+shaped value exists in any Data contract, receipt, event, envelope, error,
+log, or async state.
 
 `PolicyReceipt` binds tenant, principal, operation, resource/range,
 request fingerprint, issuer, audience, policy revision, decision, issued Cell
@@ -589,20 +639,27 @@ purpose:u8                                # record=1, wal=2, segment=3,
 key_id_length:u16 | key_id:[u8;length]    # canonical ASCII, 1..256 bytes
 key_generation:u64
 nonce:[u8;12]                             # nonce_lease_id:u32 || counter:u64
+bootstrap_locator_length:u16 | bootstrap_locator:[u8;length]
 aad_length:u32 | aad:[u8;length]
 ciphertext_length:u64 | ciphertext:[u8;length]
 tag:[u8;16]
 ```
 
-Header values through `aad` are authenticated. The exact AAD frame, including
-its purpose-domain table and zero/empty representations, follows below.
-Unsupported format, algorithm, purpose, key state, length, AAD/context
-mismatch, tag failure, or trailing bytes fails before plaintext decode or
-publication.
+`bootstrap_locator` is exactly one `KeyBootstrapLocatorV1`, `1..=1,245` bytes.
+The AEAD associated-data input is `EnvelopeAssociatedDataV1`: the exact bytes
+from `domain_len` through and including `ciphertext_length`, with no tag or
+ciphertext bytes. The plaintext length is known before Seal, so the length is
+included in the authenticated input. `aad` within that input is the distinct
+19-field `ContextAadV1` below. Thus an alteration of algorithm, purpose, key,
+generation, nonce, bootstrap locator, context AAD, or ciphertext length fails
+the provider AEAD verification; changing ciphertext or tag likewise fails.
+Unsupported format, algorithm, purpose, key state, bootstrap length, AAD/context
+mismatch, tag failure, truncation, or trailing bytes fails before plaintext
+decode or publication.
 
-The envelope AAD is this complete tagged frame; it is byte-exact and distinct
-for every purpose. All integers are unsigned big-endian and the only accepted
-field encodings are `ASCII=1`, `U64=2`, `DIGEST32=3`, and `ENUM8=4`.
+`ContextAadV1` is byte-exact and distinct for every purpose. All integers are
+unsigned big-endian and the only accepted field encodings in this grammar are
+`ASCII=1`, `U64=2`, `DIGEST32=3`, and `ENUM8=4`.
 
 ```text
 domain_len:u8 | domain:[u8;domain_len] | separator:u8 = 0 | version:u8 = 1
@@ -627,8 +684,9 @@ U64, `0d` key ID ASCII, `0e` key generation U64, `0f` artifact role ENUM8,
 total plaintext bytes U64, and `13` artifact-plan digest DIGEST32.
 Tenant/database/table/tablet/key ID are canonical ASCII `1..=256`; transaction
 ID is canonical ASCII `1..=256` when present and exactly zero bytes when empty;
-fixed-width values have their stated width. `key ID` and key generation exactly
-match the envelope header. Every tag `01..13` occurs exactly once: a decoder
+fixed-width values have their stated width. The outer envelope purpose must
+select exactly this AAD's purpose-domain row, and `key ID` and key generation
+exactly match the envelope header. Every tag `01..13` occurs exactly once: a decoder
 rejects a field count other than 19 before looking at a field, and rejects an
 unknown, duplicate, omitted, out-of-order, wrong-type, wrong-width, trailing,
 or purpose-inapplicable field before allocation, Open, or publication.
@@ -644,26 +702,71 @@ other byte: `Public=1`, `InternalOnly=2`, `PiiIdentifying=3`, `PiiSensitive=4`,
 variants and retain the listed byte; a future source variant requires a new
 versioned AAD grammar rather than an unassigned codepoint.
 
-For a field not meaningful to a purpose, zero means eight zero bytes for U64,
-32 zero bytes for DIGEST32, `artifact_role=1` (`single`), and zero length for
-transaction ID; it is never omitted. `artifact_role` is closed: `1=single`,
-`2=chunk`, `3=final_manifest`. A single record/WAL artifact has ordinal `0`,
-count `1`, its exact plaintext byte length, and a one-entry plan digest.
-Multi-chunk segment, snapshot, repair, and migration artifacts use role `2`,
-zero-based ordinal, common nonzero count, common total plaintext bytes, and a
-common plan digest. Their final manifest uses role `3`, ordinal exactly equal
-to count, and the same count/total/plan digest. Record uses its real primary-key
-digest, commit ordinal, and transaction ID; WAL uses zero primary-key digest
-and real commit/transaction; the other artifact purposes use zero primary-key
-digest, commit ordinal, and transaction ID with real artifact generation.
-`aad_length` is the exact frame length, at most
-`MAX_RECORD_AAD_BYTES`, and SHA-256 of those bytes is stored in the
-manifest/commit record. The largest purpose-domain header is `40` bytes; the
-nineteen field prefixes are `114`; six ASCII values contribute at most `1,536`;
-nine U64 values `72`; two digests `64`; and two ENUM8 values `2`. Therefore the
-largest legal AAD is `1,828` bytes, safely within the 4,096-byte hard maximum.
-KATs include that exact maximum, a 1,829-byte attempted legal-field expansion,
-and `u64::MAX` checked-length overflow; neither may allocate or invoke Open.
+The following table is the complete purpose-applicability rule. `real` means a
+nonzero/current value, `zero` means the listed fixed-width all-zero value or a
+zero-length transaction ID, and `phase` is the exact nonzero artifact control
+defined immediately after the table. Nothing is omitted.
+
+| tag | field | record | WAL | segment | snapshot | repair | migration |
+|---|---|---|---|---|---|---|---|
+| `01` | tenant | real | real | real | real | real | real |
+| `02` | database | real | real | real | real | real | real |
+| `03` | table | real | real | real | real | real | real |
+| `04` | tablet | real | real | real | real | real | real |
+| `05` | ownership epoch | real | real | real | real | real | real |
+| `06` | schema revision | real | real | real | real | real | real |
+| `07` | classification code | real | real | derived | derived | derived | derived |
+| `08` | classification revision | real | real | derived | derived | derived | derived |
+| `09` | primary-key digest | real | zero | zero | zero | zero | zero |
+| `0a` | commit ordinal | real | real | zero | zero | zero | zero |
+| `0b` | transaction ID | real | real | zero | zero | zero | zero |
+| `0c` | artifact generation | zero | zero | real | real | real | real |
+| `0d` | key ID | real | real | real | real | real | real |
+| `0e` | key generation | real | real | real | real | real | real |
+| `0f` | artifact role | phase | phase | phase | phase | phase | phase |
+| `10` | artifact chunk ordinal | phase | phase | phase | phase | phase | phase |
+| `11` | artifact chunk count | phase | phase | phase | phase | phase | phase |
+| `12` | artifact total plaintext bytes | phase | phase | phase | phase | phase | phase |
+| `13` | artifact-plan digest | phase | phase | phase | phase | phase | phase |
+
+For `derived`, every contributing record must have the same exact
+`(classification_code, classification_revision)` pair. The aggregate uses that
+pair; an empty or mixed pair is rejected as `AggregateClassificationMixed`
+before plan construction, and mixed data must be partitioned into separate
+artifacts. This is the aggregate-classification rule--there is no rank-based,
+best-effort, or caller-chosen aggregate label. For `zero`, U64 is eight zero
+bytes, DIGEST32 is 32 zero bytes, and transaction ID has length zero. For
+`phase`, every artifact has `chunk_count` in `1..=4,096`, a checked total, and
+one common plan digest: data uses `artifact_role=1` (`single`) iff count is one
+or `2` (`chunk`) iff count is at least two with ordinal `0..count-1`; its final
+manifest uses `3` with ordinal exactly `count`; its commit record uses `4`
+(`commit_record`) with ordinal exactly `count+1`. Record and WAL artifacts are
+therefore not exceptional: both use a one-entry canonical plan, final manifest,
+and commit root. Any other role, ordinal, count, total, or phase combination is
+purpose-inapplicable and rejected.
+
+`aad_length` is the exact `ContextAadV1` frame length, at most
+`MAX_RECORD_AAD_BYTES`; `ContextAadDigest = SHA-256(aad)` is bound in the final
+manifest and commit record below. The precise satisfiable maxima are:
+
+| purpose | formula | maximum | plus-one refusal |
+|---|---|---:|---:|
+| record | `37 + 114 + (6 * 256) + 72 + 64 + 2` | 1,825 | 1,826 |
+| WAL | `34 + 114 + (6 * 256) + 72 + 64 + 2` | 1,822 | 1,823 |
+| segment | `38 + 114 + (5 * 256) + 72 + 64 + 2` | 1,570 | 1,571 |
+| snapshot | `39 + 114 + (5 * 256) + 72 + 64 + 2` | 1,571 | 1,572 |
+| repair | `37 + 114 + (5 * 256) + 72 + 64 + 2` | 1,569 | 1,570 |
+| migration | `40 + 114 + (5 * 256) + 72 + 64 + 2` | 1,572 | 1,573 |
+
+The domain/header contribution is `1 + domain_len + 1 + 1 + 2`; the 19 fixed
+field prefixes total `114`; record/WAL have six bounded ASCII fields while the
+four aggregate purposes have five because transaction ID is empty; the nine
+U64s total `72`, two digests `64`, and two ENUM8 values `2`. Hence every legal
+v1 AAD is at most 1,825 bytes, within the 4,096-byte hard ceiling. Independent
+encoder KATs cover each table-row exact maximum and its listed plus-one case
+(a 257-byte otherwise canonical ASCII field), all zero/real/phase combinations,
+and `u64::MAX` checked-length overflow. Each refusal happens before allocation,
+handle acquisition/Open, Seal, or publication.
 
 `CiphertextEnvelopeV1` seals one bounded artifact chunk, not an unbounded
 stream. `ciphertext_length` is checked before allocation and is at most 4 MiB
@@ -673,51 +776,137 @@ AES-GCM plaintext. Larger durable artifacts are pre-split into such chunks and
 bind their stable zero-based chunk ordinal, count, total, role, and plan digest
 in AAD; no decoder accumulates more than one accepted data chunk.
 
-For a multi-chunk artifact, `ArtifactPlanV1` is the exact pre-encryption frame
-whose SHA-256 is the AAD plan digest:
+For every artifact, including a one-entry record or WAL artifact,
+`ArtifactPlanV1` is the exact pre-encryption frame whose SHA-256 is the AAD
+plan digest:
 
 ```text
 domain_len:u8 = 35
 domain:[u8;35] = "oyatie.data.record.artifact-plan.v1"
 separator:u8 = 0 | version:u8 = 1
-purpose:u8 | artifact_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64
+purpose:u8 | artifact_generation:u64 | classification_code:u8 |
+classification_revision:u64 | chunk_count:u64 | total_plaintext_bytes:u64
 repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
   ordinal:u64 | plaintext_length:u64
 ```
 
-Count is `2..=4,096`; every ordinal is exactly its zero-based position; checked
+Count is `1..=4,096`; every ordinal is exactly its zero-based position; the
+classification pair equals the applicable `ContextAadV1` pair; checked
 addition of entry lengths must equal the total; and total is at most 64 GiB.
-Its exact maximum is `63 + (4,096 * 16) = 65,599` bytes. The final manifest is
-a separately sealed role-`3` envelope whose plaintext is this exact
+The fixed frame is `1 + 35 + 1 + 1 + 1 + 8 + 1 + 8 + 8 + 8 = 72` bytes, so its
+exact maximum is `72 + (4,096 * 16) = 65,608` bytes. A count of one is canonical
+only for the single data envelope plus its final-manifest and commit envelopes;
+it is not an omitted plan. The final manifest is a separately sealed role-`3`
+envelope for every count whose plaintext is this exact
 `ArtifactFinalManifestV1` frame:
 
 ```text
 domain_len:u8 = 39
 domain:[u8;39] = "oyatie.data.record.artifact-manifest.v1"
 separator:u8 = 0 | version:u8 = 1
-purpose:u8 | artifact_generation:u64 | key_id_length:u16 | key_id:[u8;key_id_length]
-key_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64 | plan_digest:[u8;32]
+purpose:u8 | artifact_generation:u64 | classification_code:u8 |
+classification_revision:u64 | key_id_length:u16 | key_id:[u8;key_id_length] |
+key_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64 |
+plan_digest:[u8;32] | final_manifest_aad_digest:[u8;32]
 repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
   ordinal:u64 | plaintext_length:u64 | ciphertext_digest:[u8;32] |
-  serialized_envelope_digest:[u8;32]
+  serialized_envelope_digest:[u8;32] | context_aad_digest:[u8;32]
 ```
 
-Its exact maximum is `365 + (4,096 * 80) = 328,045` bytes. The only publishable
-artifact root is an atomic CAS `ArtifactCommitRecordV1` containing the
-final-manifest serialized-envelope digest, count, total, and plan digest; it is
-published only after every listed chunk and final manifest are durable.
+The fixed portion is `406` bytes and each entry is `112` bytes, so its exact
+maximum is `406 + (4,096 * 112) = 459,158` bytes. The final-manifest envelope's
+own `ContextAadDigest` must equal `final_manifest_aad_digest`; each entry's
+digest must equal the actual data envelope's `ContextAadDigest`. This is not a
+claim about an unframed manifest: both digests are concrete bytes in the stated
+canonical frame.
 
-A reader treats a commit record as a locator, opens the final manifest first,
-then requires every ordinal `0..count-1` exactly once in order, verifies each
-envelope digest, AAD, plaintext length, and the checked total. It rejects a
-missing, extra, duplicate, reordered, unknown-role, unknown-codepoint, wrong
-count/total/plan, truncated manifest, or uncommitted final manifest before any
-artifact publication. Required KATs include independent N and N+1 chunk plans
-and final manifests, every field/tag/type permutation, exact/plus-one count,
-total, manifest, and chunk bounds, and tamper/reorder/delete/duplicate vectors
-for both a chunk and the final manifest. Exact-limit and N+1 tests also run
-independently for every purpose, along with each header/AAD/ciphertext/tag
-tamper vector.
+The only publishable artifact root is a sealed role-`4`
+`ArtifactCommitRecordV1`. It is a canonical, bounded, versioned tagged frame:
+
+```text
+domain_len:u8 = 37
+domain:[u8;37] = "oyatie.data.record.artifact-commit.v1"
+separator:u8 = 0 | version:u8 = 1 | field_count:u16 = 23
+repeated exactly field_count times in increasing-tag order:
+  tag:u8 | type:u8 | length:u32 | value:[u8;length]
+where each listed tag occurs exactly once:
+  01 artifact_locator_id:ASCII(1..=256)       0d key_generation:U64
+  02 tenant:ASCII(1..=256)                    0e fence_sequence:U64
+  03 database:ASCII(1..=256)                  0f bootstrap_locator_digest:DIGEST32
+  04 table:ASCII(1..=256)                     10 chunk_count:U64
+  05 tablet:ASCII(1..=256)                    11 total_plaintext_bytes:U64
+  06 purpose:ENUM8(1..=6)                     12 plan_digest:DIGEST32
+  07 ownership_epoch:U64                      13 final_manifest_envelope_digest:DIGEST32
+  08 schema_revision:U64                      14 final_manifest_aad_digest:DIGEST32
+  09 classification_code:ENUM8(1..=19)        15 commit_aad_digest:DIGEST32
+  0a classification_revision:U64              16 predecessor_commit_envelope_digest:DIGEST32
+  0b artifact_generation:U64                  17 commit_sequence:U64
+  0c key_id:ASCII(1..=256)
+```
+
+The header is `42` bytes and 23 prefixes add `138`. Six ASCII values add at
+most `1,536`, nine U64 values `72`, two ENUM8 values `2`, and six DIGEST32
+values `192`, so `MAX_ARTIFACT_COMMIT_RECORD_BYTES = 42 + 138 + 1,536 + 72 +
+2 + 192 = 1,982`. The commit plaintext is encrypted/authenticated in a
+`CiphertextEnvelopeV1` whose purpose, key ID/generation, bootstrap locator,
+classification, artifact generation, count, total, plan digest, role, and
+ordinal agree with the record. Its `ContextAadDigest` equals field `15`; the
+actual bootstrap bytes hash to field `0f`; field `13` hashes the complete
+serialized final-manifest envelope; and field `14` equals both the final-
+manifest plaintext field and the final-manifest envelope's actual context AAD.
+The final manifest and all data envelopes must agree with the record on every
+common field. A count other than 23, unknown/duplicate/omitted/out-of-order
+tag, wrong type/width, noncanonical ASCII, bad enum, truncation, or trailing
+byte is `ArtifactCommitMalformed` before any head mutation or publication. An
+initial commit uses sequence zero and an all-zero predecessor;
+a later commit uses exactly its predecessor sequence plus one and its
+serialized-commit-envelope digest. No committed field is advisory.
+
+The linearizable storage key is `(tenant, artifact_locator_id)`. Its exact
+CAS value is `ArtifactCommitHeadV1`:
+
+```text
+domain_len:u8 = 35
+domain:[u8;35] = "oyatie.data.record.artifact-head.v1"
+separator:u8 = 0 | version:u8 = 1 | commit_sequence:u64 |
+serialized_commit_envelope_digest:[u8;32]
+```
+
+It is exactly 78 bytes. The head is only an authenticated-candidate pointer:
+readers recompute its digest over the fetched complete commit envelope, Open
+that envelope, and require the sealed commit's tenant/locator/sequence and all
+bindings above before treating anything as published. Thus a substituted,
+replayed, or corrupted head cannot publish an unauthenticated artifact.
+
+Publication first durably writes and verifies all data envelopes, the final
+manifest, and the commit envelope; validates the complete commit chain; then
+performs one atomic CAS from either no head or the exact prior 78-byte head to
+the desired head. For no head, the desired sequence is zero and predecessor is
+all zero. For an existing head `(s,d)`, the desired commit must contain
+`sequence=s+1` and predecessor `d`. If the current head already equals the
+desired head, retry returns the typed idempotent `ArtifactAlreadyPublished`;
+if it differs from the expected head it returns `ArtifactCommitConflict`; no
+weaker overwrite is allowed. A crash before CAS leaves only unreachable,
+garbage-collectable ciphertext; a crash after CAS but before ACK is retried
+against the same desired head; neither state exposes plaintext or a partially
+published artifact.
+
+A reader first fetches and validates the head and sealed commit, then opens the
+final manifest, and finally requires every ordinal `0..count-1` exactly once in
+order. It verifies every serialized-envelope digest, context AAD digest,
+classification/context binding, plaintext length, and checked total. It rejects
+a missing, extra, duplicate, reordered, substituted, replayed, unknown-role,
+unknown-codepoint, wrong-count/total/plan, wrong-locator/key/generation/fence,
+truncated, or uncommitted frame before artifact publication; publishers refuse
+a stale-CAS before changing the head.
+Independent encoders and decoders supply N/N+1 goldens for count one through
+4,096, every purpose, and every plan/final-manifest/commit field/tag/type.
+They cover exact/plus-one plan, manifest, commit, count, total, and bootstrap
+bounds; header/AAD/ciphertext/tag and each digest substitution; delete,
+duplicate, reorder, replay, and cross-tenant/locator/key/purpose vectors;
+stale-CAS/idempotent retry; and every persist/final-manifest/commit/CAS/ACK
+crash-recovery barrier. Malformed frames are rejected before a buffer,
+acquisition/Open, or publication can be reached.
 
 `NonceLeaseId:u32` is the only lease identity in a nonce and in every receipt,
 checkpoint, error, envelope, and provider call; the AES-GCM nonce is exactly
@@ -763,7 +952,8 @@ transition exists and exactly one generation per tenant/purpose is
 encrypt-active. Rotation first publishes a new active generation and durable
 Audit fence, then bounded workers scan a fixed manifest snapshot, decrypt with
 the old generation, re-encrypt with a fresh nonce under the new generation,
-verify read-back/AAD/tag, and CAS the artifact manifest from old to new. A
+verify read-back/AAD/tag, and CAS the sealed artifact publication head from old
+to new. A
 durable checkpoint contains snapshot generation, last artifact ID, counts,
 byte total, old/new generations, and rolling manifest digest. Crash resumes
 after revalidation. A failed conversion leaks the verified old ciphertext;
@@ -790,23 +980,29 @@ Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `KeyServiceUnavailable`, `NoEncryptActiveGeneration`, `NonceLeaseExhausted`,
 `NonceLeaseOwnershipLost`, `NonceCheckpointUnavailable`,
 `NonceCheckpointConflict`, `NonceReservationInvalid`, `KeyGenerationUnavailable`,
-`CryptoUnavailable`, `CiphertextMalformed`,
-`AuthenticationFailed`, and `ContextMismatch`. There is no plaintext, stale-key,
-unaudited, or best-effort fallback.
+`KeyBootstrapMalformed`, `KeyBootstrapIntegrityInvalid`,
+`KeyBootstrapContextMismatch`, `KeyBootstrapCatalogUnavailable`,
+`KeyBootstrapAuthorizationDenied`, `AggregateClassificationMixed`,
+`ArtifactCommitMalformed`, `ArtifactCommitConflict`,
+`ArtifactAlreadyPublished`, `ArtifactCommitHeadInvalid`, `CryptoUnavailable`,
+`CiphertextMalformed`, `AuthenticationFailed`, and `ContextMismatch`. There is
+no plaintext, stale-key, unaudited, or best-effort fallback.
 
 Production composition remains unrouted and not ready unless real provider
 adapters attest compatible contract revisions, Policy/Audit/KMS are reachable,
 an encrypt-active record and continuation generation plus sufficient durable
-nonce lease and recoverable encrypted `KeyGenerationBinding` exist, trusted
-Cell time is usable, recovery has no quarantine,
-and the latest rotation/inventory audit is within its capacity profile. Loss
-of any condition withdraws admission/readiness before accepting new work.
+nonce lease, encrypted `KeyGenerationBinding`, and authenticated
+`KeyBootstrapLocatorV1`/provider catalog exist, trusted Cell time is usable,
+recovery has no quarantine, and the latest rotation/inventory audit is within
+its capacity profile. Loss of any condition withdraws admission/readiness
+before accepting new work.
 Independent SHA-256 and KMS-AEAD known-answer vectors, independent AAD
 encoders, wrong-AAD/tag/tenant/purpose/key tests, N/N+1 final-manifest tests,
 nonce duplicate/exhaustion/concurrent-CAS refusal, raw-key-containment and
 provider-zeroization evidence, PDP/Audit/KMS outage, rotation/revocation at
 every barrier, restart reacquisition for EncryptActive and DecryptOnly,
-ciphertext-only restore, provider-reference source loss, corrupt backup, and
+ciphertext-only restore, bootstrap catalog/locator tamper and source loss,
+commit-head substitution/stale-CAS/crash recovery, corrupt backup, and
 readiness-withdrawal campaigns are mandatory before D4.
 
 ## Fail-closed request context
@@ -849,7 +1045,7 @@ lower value, but no implementation may raise these maxima:
 | `MAX_RECORD_VALUE_BYTES` | 4 MiB | one encoded value or tombstone payload |
 | `MAX_REQUEST_FINGERPRINT_FRAME_BYTES` | 4,241,449 bytes | complete server-derived canonical fingerprint preimage after set values become fixed digests |
 | `MAX_SCAN_CONTINUATION_TOKEN_BYTES` | 6,022 bytes | complete authenticated opaque continuation frame |
-| `MAX_RECORD_AAD_BYTES` | 4 KiB | complete canonical AEAD associated-data frame |
+| `MAX_RECORD_AAD_BYTES` | 4 KiB | complete canonical ContextAadV1 frame; every legal v1 purpose is at most 1,825 bytes |
 | `MAX_TRANSACTION_OPERATIONS` | 1,024 | reads plus writes plus conditions |
 | `MAX_TRANSACTION_LOGICAL_BYTES` | 16 MiB | checked sum of every encoded key, value, condition, and schema reference |
 | `MAX_COLLECTION_ITEMS` | 4,096 | any other repeated request collection |
