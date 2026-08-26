@@ -221,7 +221,17 @@ facts, not destination endorsements.
   tag is verified. A fixed 243-byte `CellRecoveryAttestationV1` binds the exact
   locator digest, cell/context/root, recovery incarnation/generation, provider
   epoch, fence, root revision, authorization revision, operation nonce, and
-  integrity tag.
+  integrity tag. The associated public
+  `CellRecoveryAttestationResultV1` success is exactly 391 bytes: its canonical
+  pre-tag result prefix plus `provider_integrity_tag_id:u8=1`,
+  `provider_integrity_tag_length:u16be=32`, and `provider_integrity_tag:[32]`.
+  Its outer `HMAC-SHA-256(K_cell_recovery_result_v1, P)` covers the exact
+  result prefix through `result_nonce` plus the tag ID and length under the
+  result-integrity domain. The non-restorable Cell root keeps that revisioned
+  key and gives Data only an opaque verify capability. Exact framing and outer
+  tag verification precede request-digest/inner-attestation checks and every
+  source mutation, so a captured A result cannot bind B's request ID,
+  challenge, nonce, or issuer revision.
   A `pin_id` contains that 16-byte nonce, its 8-byte authority incarnation, and
   its 8-byte allocation index. Before any snapshot import or full cell/device
   recovery accepts a pin, the Data-owned recovery-authority port obtains an
@@ -242,9 +252,15 @@ facts, not destination endorsements.
   recovery principal and exact cell/context/root/operation policy. It alone can
   authorize first `INITIALIZE` from source absence or post-loss `ROTATE`/
   `RESERVE`; neither path reads the authority being replaced or accepts a
-  quarantined Cell as authority. The sole Audit adapter maps the canonical
+  quarantined Cell as authority. The semantic, provider-neutral
+  `RecoveryAuthorityContract` agreed port is admitted before D1c-KG (the
+  D1c-prefixed label is provenance only): it exports only fixed carriers and
+  the opaque Cell-result verifier. Cell and Audit public faces import that
+  agreed port, never `data/ports/draft/artifact-publication`, a Data core, or a
+  runtime read-hit client. KC later owns the grammar and the local publication
+  port owns coordinator methods; the sole Audit adapter maps the canonical
   `Initialize`/`Read`/`Reserve`/`Rotate` request/result/error frames to the
-  accepted public Cell and Audit provider faces; `Read` is bounded and cannot
+  accepted public Cell and Audit provider faces. `Read` is bounded and cannot
   mint a capability. Full Cell loss starts only from that external root and its
   configured locator, rotates the Audit source, reconciles, then reserves;
   absence, tamper, rollback, stale generation/epoch, rotation race, exhaustion,

@@ -72,8 +72,8 @@ D1b-P1 -> D1b-PA-S -> D1b-PA-C -> D1b-PA-B -> D1b-PA-X
 
 D1b-N-C + D1b-O2L + D1b-BR -> D1c join gate
 
-D1c join + persistence/wire decisions + D1c-WG + D1c-KG
-  -> D1c-S -> D1c-WS -> D1c-KS -> D1c-C
+D1c join + persistence/wire decisions + D1c-WG
+  -> RecoveryAuthorityContract-S -> D1c-KG -> D1c-S -> D1c-WS -> D1c-KS -> D1c-C
 D1c-C -> D1c-O
 D1c-C -> D1c-KC
 D1c-KS -> D1c-PC-S
@@ -81,7 +81,7 @@ D1c-KC + D1c-PC-S -> D1c-PC-C  # Data port/core/cell mirror and atomic pin accou
 D1c-C + D1c-KC -> D1c-WC
 accepted provider face + D1c-KG + D1c-KS + D1c-PC-S (therefore D1c-S/WS)
   -> D1c-KP-S + D1c-KK-S + D1c-KX-S
-accepted Audit face + accepted Cell recovery-attestation face + D1c-KG + D1c-KS + D1c-PC-S
+accepted Audit face + accepted Cell recovery-attestation face + RecoveryAuthorityContract-S + D1c-KG + D1c-KS + D1c-PC-S
   -> D1c-KA-S
 D1c-KC + D1c-KP-S -> D1c-KP-C
 D1c-KC + D1c-PC-C + D1c-KG + D1c-KA-S -> D1c-KA-C  # real Audit + Cell recovery-authority mapping
@@ -1770,6 +1770,65 @@ accepted toolchain amendment before D1c-WS. SLO is deterministic bounded
 generation; faults delete/rename the schema, skew one flag/version/include
 root, corrupt a descriptor, and require both graphs to fail identically.
 
+### RecoveryAuthorityContract-S — agreed recovery-authority type contract
+
+Class: one semantic structural D-28/D-29/D-33 predecessor and sole
+`Cargo.lock` writer before D1c-KG. It creates the reviewed, provider-neutral
+recovery-authority contract before any Cell or Audit provider face is admitted;
+it is not a local draft and it does not wait for D1c-PC-S.
+
+`RecoveryAuthorityContract-S` is the canonical lane identity in this plan,
+types, targets, and dependency graph. `D1c-RecoveryAuthorityContract-S` is
+only its D1c sequencing/provenance alias; it is not a package, target, or
+public-interface name.
+
+```text
+data/ports/recovery-authority-contract/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+Cargo.lock
+```
+
+The Cargo package and Buck target are respectively
+`data-recovery-authority-contract` and
+`//data/ports/recovery-authority-contract:data-recovery-authority-contract`.
+The structure exports stable fixed-byte carrier newtypes only for the 143-byte
+locator, 279-byte authority, 243-byte Cell attestation,
+`CellRecoveryAttestationRequestV1`/`CellRecoveryAttestationResultV1`/
+`CellRecoveryAttestationErrorV1` (227/391/186 bytes), and 594/463/207-byte
+Audit source request/result/error, plus the opaque verify-only
+`CellRecoveryAttestationResultVerifier` interface.
+It does not encode/decode, retain a root key, sign, call a provider, expose a
+`Read` method, or define a Data coordinator type. D1c-KC later supplies the
+checked grammar and verifier use without changing this public type layout; that
+keeps KC before provider mapping/content while allowing the provider faces to
+compile at admission.
+
+The exact export-flow graph is
+`data-recovery-authority-contract -> cell-recovery-attestation`,
+`data-recovery-authority-contract -> audit-emission`, and later
+`data-recovery-authority-contract -> data-audit-sink-draft` plus
+`data-recovery-authority-contract -> data-artifact-publication-draft`; the
+right-hand target alone declares the direct Cargo/Buck dependency. There is no
+`data/ports/draft/recovery-authority-contract`, no Cell/Audit dependency on
+`data-artifact-publication-draft`, and no core-to-core edge. The D1c-KG
+provider receipt must build the contract with each public provider face under
+both Cargo and Buck and statically reject a `ports/draft/**`, `*/core/**`,
+provider client, or runtime `Read`/head/high-water call. Its build closure is
+only this target plus the two public faces; its reverse closure is empty.
+The admission canaries are exactly
+
+```text
+cargo check --locked --offline -p data-recovery-authority-contract -p cell-recovery-attestation -p audit-emission
+buck2 build //data/ports/recovery-authority-contract:data-recovery-authority-contract //cell/ports/recovery-attestation:cell-recovery-attestation //audit/ports/emission:audit-emission
+```
+
+and each rejects an added cross-owner draft/core edge or a runtime Cell/Audit
+read-hit call before a provider receipt can be accepted.
+Success is a byte-size/type-identical, provider-neutral contract available
+before admission. Failure is a copied provider wire shape, missing 391-byte
+carrier, a cross-owner draft/core edge, a hidden runtime read hit, a provider
+mapping, or unrelated lock churn. Fault canaries delete/rename each carrier,
+skew one Cargo/Buck edge, and prove both provider faces fail at admission.
+
 ### D1c-KG — Policy, Audit, Cell-recovery, key, and cryptography provider gate
 
 Class: no-write, non-dispatchable D-29/security decision gate. Current evidence
@@ -1779,30 +1838,35 @@ Audit, or KMS operations. The existing `iam/ports/policy-cedar-api`,
 `secrets/ports/kms-api` are explicitly forbidden here because their present
 graphs are implementation/core-backed or do not sell the required operation.
 
-Before D1c-KS, Policy/IAM, Audit, Secrets, Cell, security, Data, build/dependency,
-and architecture owners must accept or exactly replace these provider-owned
+After `RecoveryAuthorityContract-S` and before D1c-S/D1c-KS, Policy/IAM,
+Audit, Secrets, Cell, security, Data, build/dependency, and architecture owners
+must accept or exactly replace these provider-owned
 faces: `policy/ports/check` (`policy-check`),
 `audit/ports/emission` (`audit-emission`),
 `cell/ports/recovery-attestation` (`cell-recovery-attestation`), and
 `secrets/ports/kms-use` (`secrets-kms-use`). The Cell face is a public,
 non-restorable recovery-root issuer, not `cell/core/**`: it accepts the
-Data-owned canonical `CellRecoveryAttestationRequestV1` and returns only the
-typed 243-byte attestation or 186-byte authenticated error, while retaining
-its root/configuration outside every restored Cell/tablet snapshot. Its exact
+agreed `CellRecoveryAttestationRequestV1` carrier and returns only the typed
+391-byte self-authenticating success result (containing its 243-byte
+attestation) or a 186-byte authenticated error, while retaining its
+root/configuration outside every restored Cell/tablet snapshot. Its exact
 authorization is the configured `data-records-app` mTLS recovery principal plus
 the root's cell/context/root/operation policy; `INITIALIZE` is permitted only
 in the root's external `UNINITIALIZED` state, while `ROTATE` and `RESERVE`
 require the current external authorization and cannot read a quarantined Cell or
-mint authority from a query. The public faces may consume the Data-owned type
-contract only through these one-way Cargo/Buck edges:
+mint authority from a query. The public Cell and Audit faces may consume only
+the agreed type contract through these one-way Cargo/Buck edges:
 
 ```text
-data-artifact-publication-draft -> cell-recovery-attestation
-data-artifact-publication-draft -> audit-emission
+data-recovery-authority-contract -> cell-recovery-attestation
+data-recovery-authority-contract -> audit-emission
 ```
 
-Those are port-to-public-face imports; neither permits a Data core -> provider
-core or provider core -> Data core edge. The KMS amendment chooses the
+Those are agreed-port-to-public-face imports; neither permits a Data
+draft/core -> provider core edge, a provider core -> Data core edge, or a
+runtime Cell/Audit read hit. The D1c-KG receipt proves both provider public
+faces build with the agreed contract before any D1c-KS or D1c-PC-S Data draft
+target exists. The KMS amendment chooses the
 opaque-handle AEAD contract in `SPEC.md`: durable `ReserveNonceRange`,
 tenant/purpose/generation/fence-bound `Seal`, restart/restore-authorized
 `AcquireOpenHandle(KeyBootstrapLocatorV1)` and `Open`, an authenticated bounded
@@ -1839,7 +1903,7 @@ or foreign high-water is a fail-closed refresh/publication refusal, never
 permission to use the local head. This is a required accepted Audit face, not a
 Data fake or a best-effort event after ACK.
 
-The same accepted Audit face must sell the Data-owned
+The same accepted Audit face must sell the agreed
 `InitializePublicationRecoveryAuthority`, `ReadPublicationRecoveryAuthority`,
 `ReservePublicationPinAllocation`, and `RotatePublicationRecoveryAuthority`
 families exactly as specified in `SPEC.md`: 594-byte request, 463-byte success
@@ -1853,7 +1917,12 @@ rotation, or reservation; it rejects source/root loss, tamper, rollback, stale
 generation/provider epoch, foreign root/context, exhaustion, and a competing
 nonce as the exact typed error, and never creates a source from a snapshot. Its
 adapter receives the Cell frame only through the accepted public Cell target;
-neither Audit nor Data imports `cell/core/**`.
+neither Audit nor Data imports `cell/core/**`. The receipt's Cargo/Buck canary
+builds `data-recovery-authority-contract`, `cell-recovery-attestation`, and
+`audit-emission` together before D1c-S/D1c-KS and rejects a direct
+`data-artifact-publication-draft`, `data/core/**`, `cell/core/**`,
+`audit/core/**`, or runtime `Read`/head/high-water import in either public
+provider face.
 
 Success is four provider conformance receipts (including the Audit high-water
 receipt) plus the cryptography dependency receipt, with no provider-core/
@@ -1972,8 +2041,9 @@ is enabled by this stage.
 
 ### D1c-KS — Security ports and cryptography structure
 
-Class: structural D-29/D-33 and sole lock writer after D1c-WS and accepted
-D1c-KG. Create these five four-file scanner package roots:
+Class: structural D-29/D-33 and sole lock writer after D1c-WS,
+`RecoveryAuthorityContract-S`, and accepted D1c-KG. Create these five
+four-file scanner package roots:
 
 ```text
 data/ports/draft/policy-client/{Cargo.toml,BUCK,build.rs,src/lib.rs}
@@ -2001,6 +2071,8 @@ Exact graph parity is:
 ```text
 policy-client + audit-sink + record-keys + record-protection
   -> data-records-domain
+data-recovery-authority-contract -> data-audit-sink-draft
+data-recovery-authority-contract -> data-record-protection-draft
 record-keys -> record-protection
 record-protection -> audit-sink  # Audit requests import KC-owned recovery-authority frames
 record-keys + record-protection -> data-tablet-persistence-draft
@@ -2013,13 +2085,14 @@ record-keys + record-protection + policy-client + audit-sink -> data-records-app
 No keyed crypto or foreign provider reaches core; the AWS-LC digest adapter
 does not depend on Policy, Audit, or Secrets. The lock adds exactly five local
 blocks and D1c-KG-approved direct dependency edges, not a new version. Closure
-is D1c-S/WS plus these packages and the accepted third-party targets; reverse
-closure is empty. In particular, `data-audit-sink-draft`,
+is RecoveryAuthorityContract-S/S/WS plus these packages and the accepted
+third-party targets; reverse closure is empty. In particular, `data-audit-sink-draft`,
 `data-record-keys-draft`, `data-record-protection-draft`, and both
 `data-records-app` targets exist before any provider `*-S` manifest names them;
-the Audit package owns high-water/recovery-authority operation request/receipt
-shapes but imports the KC-owned fixed recovery-authority frames through the
-explicit `record-protection -> audit-sink` edge; KK owns acquisition, and KX
+the Audit package owns high-water/recovery-authority operation methods but
+imports the KC-owned fixed recovery-authority frames through the explicit
+agreed-contract edge; the retained `record-protection -> audit-sink` edge owns
+the KC recovery-authority state relation. KK owns acquisition, and KX
 sees only the direct record-keys types. Reviewers are Data, security, build/dependency, Cell,
 Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
 exact parity, and zero secret/keyed-algorithm behavior. Failure is content,
@@ -2033,8 +2106,9 @@ provider-core edges, dependency-feature skew, and lock/target canaries.
 
 ### D1c-PC-S — Publication-coordinator structure
 
-Class: structural D-29/D-33 and sole `Cargo.lock` writer after D1c-KS. Create
-these three four-file scanner package roots:
+Class: structural D-29/D-33 and sole `Cargo.lock` writer after D1c-KS and
+`RecoveryAuthorityContract-S`. Create these three four-file scanner package
+roots:
 
 ```text
 data/ports/draft/artifact-publication/{Cargo.toml,BUCK,build.rs,src/lib.rs}
@@ -2059,6 +2133,7 @@ graph is:
 
 ```text
 data-record-protection-draft -> data-audit-sink-draft
+data-recovery-authority-contract -> data-artifact-publication-draft
 data-record-protection-draft + data-audit-sink-draft
   -> data-artifact-publication-draft
 data-artifact-publication-draft -> data-artifact-publication-domain
@@ -2073,11 +2148,12 @@ data-artifact-publication-domain + data-artifact-publication-cell-draft
 
 The port is Data-owned and internal: it is the sole shape for tuple CAS,
 pin/member, decision/receipt/accepted-high-water history, safe-GC, bounded
-enumeration, normal and terminal-only fenced takeover, read-snapshot operations,
-and the `CellRecoveryAttestationV1`,
-`PublicationRecoveryAuthorityLocatorV1`, and
-`PublicationRecoveryAuthorityV1` values plus their exact initialization/read/
-reserve/rotate request/result/error families. Its durable terminal-
+enumeration, normal and terminal-only fenced takeover, and read-snapshot
+operations. It imports the agreed `CellRecoveryAttestationV1`,
+`PublicationRecoveryAuthorityLocatorV1`, `PublicationRecoveryAuthorityV1`, and
+their exact initialization/read/reserve/rotate request/result/error families
+from `data-recovery-authority-contract`; it defines no cross-owner recovery
+wire value. Its durable terminal-
 recovery type is non-renewable and not usable where the work-lease type is
 required. It carries the read-only retained terminal-outcome and recovery-
 authority queries, `RequestCellRecoveryAttestation`,
@@ -2095,7 +2171,7 @@ local blocks and these direct Data edges. D1c-KA-S serializes after this lane so
 its Audit adapter can add the reverse callback edge without naming a missing
 package.
 
-Build closure is D1c-S/WS/KS plus these three packages, records domain,
+Build closure is RecoveryAuthorityContract-S/S/WS/KS plus these three packages, records domain,
 tablet-persistence file adapter, records-app library/bin, and both direct
 security ports. Required reviewers are Data, Cell, Audit, security,
 build/dependency, and architecture. Success is empty/scanner faces and exact
@@ -2213,20 +2289,27 @@ cell. The ordinary read path performs only the local term+tuple+expiry check
 and fails or queues one bounded refresh on mismatch. This is the ADR-0719 D1
 cell-local serving rule, not a per-read Audit dependency.
 
-Cargo/Buck closure is PC-S plus KC, records domain, tablet consensus/persistence,
-record protection, audit-sink port, records-app, and the D1c-WG generated
-include root; KA-C joins only after this lane. The direct graph is
-`data-record-protection-draft -> data-audit-sink-draft` for the KC-owned
-recovery-authority frames, then `data-audit-sink-draft +
-data-record-protection-draft -> data-artifact-publication-draft ->
-data-artifact-publication-domain`, with
+Cargo/Buck closure is PC-S plus KC, `data-recovery-authority-contract`, records
+domain, tablet consensus/persistence, record protection, audit-sink port,
+records-app, and the D1c-WG generated include root; KA-C joins only after this
+lane. The direct graph is `data-recovery-authority-contract ->
+data-audit-sink-draft`, `data-recovery-authority-contract ->
+data-record-protection-draft`, and `data-recovery-authority-contract ->
+data-artifact-publication-draft`; `data-record-protection-draft ->
+data-audit-sink-draft` remains the KC-owned recovery-state relation. Then
+`data-audit-sink-draft + data-record-protection-draft ->
+data-artifact-publication-draft -> data-artifact-publication-domain`, with
 `data-artifact-publication-draft + data-record-protection-draft +
 data-tablet-persistence-draft + data-tablet-consensus-domain ->
-data-artifact-publication-cell-draft` and domain+cell -> records-app. KA-C is
-the reverse adapter edge `data-audit-sink-draft +
-data-artifact-publication-draft + audit-emission ->
-data-audit-sink-audit-draft -> records-app`; PC-C never depends on that provider
-adapter or an Audit core. Required tests independently encode decision/pin/
+data-artifact-publication-cell-draft` and domain+cell -> records-app. KA-C has
+two exact, separately owned input edges:
+`data-recovery-authority-contract + audit-emission +
+cell-recovery-attestation -> data-audit-sink-audit-draft`, and the later
+Data-local `data-audit-sink-draft + data-artifact-publication-draft ->
+data-audit-sink-audit-draft -> records-app`. The two provider public faces
+import only the agreed contract; the second edge is introduced only after PC-S.
+PC-C never depends on that provider adapter or an Audit core. Required
+tests independently encode decision/pin/
 accepted-history/terminal-lease/recovery-authority-locator/recovery-authority
 frames; model A/B/N-writer
 loss, stale CAS, rebase limit, each crash edge, lease/term takeover, pre/post-
@@ -2362,12 +2445,14 @@ data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_bootstrap_locator,c_
 data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine,c_cold_recovery}.rs
 data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_wal_classification,d_artifact_plan,e_artifact_commit,f_publication_state,g_errors}.rs
 data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames,c_wal_classification,d_artifact_commit,e_publication_state,f_publication_gc}.rs
+data/ports/recovery-authority-contract/src/items/{a_cell_attestation,b_cell_result_authentication,c_publication_recovery_authority,d_errors,e_result_verifier}.rs
+data/ports/recovery-authority-contract/src/test_items/{a_golden_frames,b_result_authentication,c_contract_canary,d_provider_face_canary}.rs
 data/adapters/draft/record-digest-awslc/src/items/a_sha256.rs
 data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
 ```
 
-Implement only the Data-owned contracts and the unkeyed AWS-LC SHA-256 adapter
-frozen in `SPEC.md`: receipt binding, exact fingerprint/AAD/token frames,
+Implement only the Data-owned contracts, the agreed recovery-authority contract
+grammar, and the unkeyed AWS-LC SHA-256 adapter frozen in `SPEC.md`: receipt binding, exact fingerprint/AAD/token frames,
 SHA-256, opaque KMS key-generation-binding/operation-handle/key-use/
 nonce-reservation types, the authenticated bounded bootstrap-locator/catalog
 grammar, stable errors, the exact classification codepoint table and
@@ -2376,14 +2461,16 @@ classification-summary and WAL-only mixed sentinel, purpose-specific
 record/WAL count-one and aggregate count-1..4,096 artifact-plan/final-manifest/
 commit/head/immutable-context/anchor/pin grammars, the coordinator-only
 local-CAS, accepted-history, pin-decision, terminal-recovery-lease, recovery-
-authority-locator, and recovery-authority frames plus Audit high-water and
-recovery-authority request/receipt types, and the pre-use durable
+authority-locator, and recovery-authority frames plus the 227/391/186-byte
+Cell issuer and 594/463/207-byte Audit source request/receipt/error types,
+including the exact result outer-tag ID, unsigned-big-endian length, preimage,
+and opaque Cell-bound verifier capability, and the pre-use durable
 linearizable nonce state machine. KC owns
 `CiphertextEnvelopeV1`,
 `ArtifactCommitRecordV1`, `ArtifactPublicationAnchorV1`, and all encrypted/
 publication-control types before any tablet-persistence lane can consume them.
-It defines the complete request,
-receipt, and error types that every provider adapter maps; it does not call a
+It defines the complete request, receipt, and error grammar in the already
+agreed contract before any provider adapter content maps it; it does not call a
 provider, hold a raw key, perform AES-GCM, persist a record, decode protobuf,
 compose a process, or claim readiness. Every file stays at or below 300
 handwritten lines; scanner outputs and Cargo/Buck target membership are
@@ -2393,14 +2480,16 @@ Within that write set, audit-sink
 `c_publication_high_water.rs` owns the typed high-water request/receipt and the
 fixed `LocalPublicationCasReceiptV1`; audit-sink
 `d_publication_recovery_authority.rs` owns only the typed external-source
-read/reserve/rotate request/receipt and maps no Audit provider; record-protection
+Initialize/Read/Reserve/Rotate operation methods and imports their fixed wire
+frames from `data-recovery-authority-contract`; it maps no Audit provider and
+defines no duplicate wire type. Record-protection
 `f_publication_state.rs` owns the anchor/pin/accepted-history/pin-decision/
-terminal-recovery-lease/recovery-authority state whose digest fields it names,
-including the coordinator-minted never-reused pin-ID allocation high-water,
-the 143-byte locator, 279-byte out-of-snapshot authority, 243-byte
-non-restorable Cell attestation, active-only 230-byte
-lease relation, and the rule that `RELEASED` is represented by the pin decision/
-release epoch rather than a terminal lease or tombstone. KC defines
+terminal-recovery-lease/recovery-authority *references* and digest fields it
+names while importing the fixed 143/279/243/227/391/186 values from that same
+agreed contract, including the coordinator-minted never-reused pin-ID allocation
+high-water, the active-only 230-byte lease relation, and the rule that
+`RELEASED` is represented by the pin decision/release epoch rather than a
+terminal lease or tombstone. KC defines
 values only: D1c-PC-C, not tablet persistence,
 owns their durable coordinator operations, term re-attestation, takeover,
 release, and in-cell snapshot behavior through the new direct port edges. This
@@ -2410,7 +2499,10 @@ from inventing a coordinator or an Audit callback.
 Success is two independent golden-frame encoders, published SHA-256 known-answer
 vectors, byte-exact envelope/token/WAL-summary/plan/final-manifest/commit/
 anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease/
-recovery-authority-locator/recovery-authority framing, record/WAL count-one,
+recovery-authority-locator/recovery-authority framing, and a 391-byte
+`CellRecoveryAttestationResultV1` whose outer `id=1 | len=32 | tag:[32]`
+provider-root HMAC preimage authenticates every durable success byte,
+record/WAL count-one,
 count-two rejection, purpose-total exact/plus-
 one totals and AAD bounds, aggregate-only `3,156`/`2,040` and pinned-byte quota
 boundaries, active-terminal 8/64/256-row and 1,840/14,720/58,880-byte quota
@@ -2420,14 +2512,17 @@ Failure is custom keyed cryptography, algorithm defaulting,
 raw-key clone/log/serialization, a raw-key-shaped type or async state,
 unchecked counter/length, unknown-field acceptance, plaintext fallback,
 provider edge before KX-C, a D1c-C envelope type, caller/default/ranked WAL
-class, local-head freshness guess, unpinned persistence, or production claim.
+class, local-head freshness guess, an unauthenticated or rebindable Cell result,
+unpinned persistence, or production claim.
 Rollback removes only these content files. SLO is bounded contract/hash work and
 zero observed opaque-handle/nonce/publication-rollback violations. Faults flip
 every header/AAD/ciphertext/tag/bootstrap byte, classification codepoint,
 WAL-summary subject/kind/order/pair, record/WAL count-two and total-plus-one,
 aggregate count-4,097/total-plus-one, plan/final-manifest/commit/head/context/
 anchor/local-CAS-receipt/accepted-history/pin-decision/pin/terminal-lease/
-recovery-authority-locator/recovery-authority field, and chunk order; exercise
+recovery-authority-locator/recovery-authority field, every Cell result header,
+request digest, 243-byte attestation, issuer revision, result nonce, tag ID,
+tag length, and tag byte, and chunk order; exercise
 every purpose exact/plus-one AAD, summary, plan, manifest, commit, anchor,
 local-CAS receipt, accepted history, decision, pin, terminal lease, external
 authority namespace/incarnation/index/fence/revision, and bootstrap bound;
@@ -2440,7 +2535,9 @@ put, verify, bind, CAS, Audit append, finalize, release, and ACK; crash at
 acquire, renew, reserve, local checkpoint, allocation CAS/fsync, Seal, pinned
 persist, final manifest, commit, bind, CAS, durable local-CAS receipt, Audit,
 finalize, and ACK; restart into EncryptActive/DecryptOnly/catalog-source loss;
-then run known answers and N/N+1 counters/chunks through Cargo and Buck. KMS
+then run independent 391/390/392 encoder vectors and captured-A-to-B request
+ID/challenge/nonce/revision substitution vectors through Cargo and Buck; each
+must refuse before a source mutation. KMS
 AEAD known-answer, tamper, zeroization, and terminal-path evidence belong to
 KX-C; coordinator behavior belongs to PC-C.
 
@@ -2486,7 +2583,8 @@ Cargo/Buck codegen canaries.
 ### D1c-KA — Real provider adapters
 
 Structure is four serialized sole-lock D-29 sublanes only after the
-corresponding provider-owned face, D1c-KG, D1c-KS, and D1c-PC-S have merged.
+corresponding provider-owned face, `RecoveryAuthorityContract-S`, D1c-KG,
+D1c-KS, and D1c-PC-S have merged.
 D1c-PC-S is the shared `Cargo.lock`/records-app-manifest serialization
 predecessor; the Audit sub-lane additionally consumes the publication port.
 D1c-KS
@@ -2500,7 +2598,7 @@ before D1c-KC defines those types:
 | Lane | Mandatory Data precondition | Exact new four-file root / package | Exact provider edge | Exact updated consumer |
 |---|---|---|---|---|
 | `D1c-KP-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted Policy face | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
-| `D1c-KA-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted Audit and Cell recovery-attestation faces | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + data-artifact-publication-draft + audit-emission + cell-recovery-attestation -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KA-S` | `RecoveryAuthorityContract-S`, D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted Audit and Cell recovery-attestation faces | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-recovery-authority-contract + audit-emission + cell-recovery-attestation -> adapter` | same app manifests, `Cargo.lock` |
 | `D1c-KK-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted KMS face | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
 | `D1c-KX-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted KMS face | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
 
@@ -2508,9 +2606,16 @@ Each scanner matches D1c-S, each lock delta is one local block plus already
 accepted provider edges, and Cargo/Buck close identically. Exact structure
 build closure is D1c-S/WS/KS, that adapter's Data port, its accepted provider
 target, `data-records-app` library and bin targets, and its codegen include
-root; KA-S additionally includes D1c-PC-S, the publication port, and both
-accepted public `audit-emission` and `cell-recovery-attestation` targets. Its reverse
-closure is only `data-records-app` until KJ-S composes it.
+root; KA-S additionally includes `RecoveryAuthorityContract-S`, D1c-PC-S, the
+publication port, and both accepted public `audit-emission` and
+`cell-recovery-attestation` targets. Its reverse closure is only
+`data-records-app` until KJ-S composes it. The public Audit/Cell faces depend
+only on the agreed contract; the local publication-port edge belongs solely to
+this later Data-owned adapter after PC-S and cannot be pulled into D1c-KG.
+KA-S's one additional local Data edge is exactly
+`data-audit-sink-draft + data-artifact-publication-draft ->
+data-audit-sink-audit-draft`; it is not an input edge of either public provider
+face.
 The corresponding provider receipt plus D1c-KG is insufficient without this
 closure: before KS the named Data package paths and app targets do not exist.
 No lane may substitute the currently forbidden internal packages, write the
@@ -2540,8 +2645,10 @@ re-attestation, and the no-rollback receipt. It is also the sole mapper of
 `ReadPublicationRecoveryAuthority`, `ReservePublicationPinAllocation`, and
 `RotatePublicationRecoveryAuthority`. It first maps only a Data-owned
 227-byte attestation request to the accepted public
-`cell-recovery-attestation` target and verifies its 356-byte result/243-byte
-attestation or 186-byte authenticated error; it then maps the Data-owned
+`cell-recovery-attestation` target and, before any Audit source operation or
+local mutation, verifies its exact 391-byte result outer `id=1 | len=32` tag,
+request digest, 243-byte attestation, issuer revision, and result nonce, or its
+186-byte authenticated error; it then maps the Data-owned
 594-byte recovery-authority request to the accepted Audit quorum and verifies
 the 463-byte result/279-byte authority or 207-byte authenticated error. It
 verifies the fixed 143-byte locator, canonical tagged headers, integrity tags,
@@ -2555,9 +2662,12 @@ must still perform PC-C's local consensus transition. Missing/tampered/foreign/
 stale/rolled-back/exhausted/root-outage/rotation-race outcomes are typed
 fail-closed refusals. KA-C cannot accept supplied receipt bytes, a restored
 Cell mirror, or invoke a tuple/pin/member mutation. No other adapter may
-synthesize these operations. Its direct Cargo/Buck edge is only the stated
-Data ports plus the accepted public `audit-emission` and
-`cell-recovery-attestation` targets; it cannot import either provider core.
+synthesize these operations. Its direct Cargo/Buck closure is exactly the two
+edges `data-recovery-authority-contract + audit-emission +
+cell-recovery-attestation -> data-audit-sink-audit-draft` and the later
+Data-local `data-audit-sink-draft + data-artifact-publication-draft ->
+data-audit-sink-audit-draft`; it cannot import either provider core. The
+provider public faces retain only their agreed-contract import.
 KK-C is the sole mapper of `AcquireOpenHandle` and its
 `KeyBootstrapLocatorV1 -> ReacquiredOpenLease` transition. KX-C consumes the
 record-keys binding/operation-handle types through the direct port edge and maps
@@ -2578,7 +2688,9 @@ lease headroom, and no false allow/ACK. Faults cover malformed/stale/wrong-
 tenant receipts, network loss/timeout/reorder, Audit durability/high-water
 challenge replay/loss, forged/supplied receipt and coordinator callback/term
 loss, recovery-authority locator/attestation/request/result/error frame tamper,
-independent 143/279/243/227/356/186/594/463/207 exact/max/+1 encoding,
+independent 143/279/243/227/391/186/594/463/207 exact/max/+1 encoding,
+outer-tag ID/length/bit mutation and captured-A-to-B request-ID/challenge/
+nonce/revision substitution before any source mutation,
 source/root loss/tamper/rollback/revision regression, stale Cell recovery
 generation/provider epoch, foreign root, first-initialize source absence,
 same-incarnation nonce race, incarnation/index/fence exhaustion, and source-CAS
@@ -2754,6 +2866,7 @@ pre-existing Cargo/Buck composition closure is:
 data-records-domain
 data-tablet-consensus-domain
 data-tablet-persistence-file-draft
+data-recovery-authority-contract
 data-artifact-publication-draft
 data-artifact-publication-domain
 data-artifact-publication-cell-draft
@@ -2784,8 +2897,9 @@ require verified Policy/Audit/KMS conformance receipts, an encrypt-active
 record and continuation generation, durable nonce headroom, usable Cell
 interval, a valid authenticated bootstrap locator/provider catalog for each
 recoverable generation, a reachable non-restorable Cell recovery root with a
-current authorized 243-byte attestation path and the admitted public Cell/Audit
-adapter closure, an externally authenticated current
+current authorized 391-byte self-authenticating result carrying its 243-byte
+attestation and the admitted public Cell/Audit adapter closure, an externally
+authenticated current
 `PublicationRecoveryAuthorityV1` for each served locator/context, a current
 coordinator term with no over-capacity reconciliation backlog, and a fresh
 matching publication read snapshot for each served locator. An undecidable pin withdraws that locator while the
@@ -3060,8 +3174,11 @@ clear this gate.
    precedes BS, BC, and then BX-I; CO-X plus BX-I enable BR. BC reaches only
    the blocked BF-G; accepted BF-G owner amendments enable BF-S/C. CO-X plus
    BF-C reaches only blocked COB-G; its accepted Community amendment enables
-   COB-S/C. N-C, O2L, and BR join before D1c. Accepted WG/KG and the persistence
-   decisions enable D1c-S; lock writers run S -> WS -> KS. C then enables O,
+   COB-S/C. N-C, O2L, and BR join before D1c. The semantic
+   `RecoveryAuthorityContract-S` lock writer is the D1c structural predecessor
+   of KG; its D1c provenance alias is not a public interface. Accepted WG/KG
+   and the persistence decisions then enable D1c-S; lock writers run S -> WS
+   -> KS. C then enables O,
    KC, and WC's C/KC join; KP/KA/KK/KX structural lanes serialize only after
    their provider receipts, KG, KS (therefore S/WS), and PC-S have landed.
    Every
@@ -3089,9 +3206,10 @@ clear this gate.
    PA-C/B, P2R-C, O2C/B, GA-C, CO-C, BC, and—only after their gates—BF-C and
    COB-C may fan out after their structure on disjoint unique files. O1/O2T are
    lock-free mechanical preparation and may run beside a disjoint provider
-   lane. D1c-S/WS/KS and KP-S/KA-S/KK-S/KX-S are separate lock-writing LSCs
-   and serialize with every other lock writer; provider structure never enters
-   the lock queue until KS has created its port/app closure and PC-S has
+   lane. RecoveryAuthorityContract-S, D1c-S/WS/KS, and
+   KP-S/KA-S/KK-S/KX-S are separate lock-writing LSCs and serialize with every
+   other lock writer; provider structure never enters the lock queue until KS
+   has created its port/app closure and PC-S has
    serialized the records-app/Cargo.lock publication closure. C/O/KC/WC, provider content,
    D1d, PC-C-gated D1e, PC-C-gated KR, and KJ-C write unique files and may fan
    out only after their stated joins. D2-S and D3-S may be prepared in parallel but merge one lock

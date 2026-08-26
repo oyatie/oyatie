@@ -517,18 +517,29 @@ The first four draft homes are respectively `data/ports/draft/policy-client`,
 `data/facade/records-app` is the sole production composition owner. It is not
 a sold cross-owner provider, object-store adapter, or in-memory authority.
 The Data-owned `ArtifactPublicationRecoveryAuthorityPort` (inside
-`artifact-publication`) owns the canonical recovery-attestation and
-recovery-authority request/result/error shapes. `AuditSink` consumes those
-shapes and imports the fixed `PublicationRecoveryAuthorityLocatorV1` and
-`PublicationRecoveryAuthorityV1` values from `RecordProtection` through the
-direct Cargo/Buck edge `data-record-protection-draft -> data-audit-sink-draft`.
-KC therefore remains the only grammar owner; the publication port owns no
-provider implementation, and no reverse Audit-to-protection or provider/core
-edge is permitted. The accepted public Cell and Audit faces consume these
-Data-owned port types only through the one-way contract edges
-`data-artifact-publication-draft -> cell-recovery-attestation` and
-`data-artifact-publication-draft -> audit-emission`; no Data core or Cell/Audit
-core is imported in either direction.
+`artifact-publication`) owns local coordinator operations, but the canonical
+recovery-attestation and recovery-authority wire values live in the reviewed,
+provider-neutral, type-only agreed port
+`data/ports/recovery-authority-contract` (`data-recovery-authority-contract`).
+`AuditSink` consumes those values and retains the direct
+`data-record-protection-draft -> data-audit-sink-draft` edge for KC-owned
+recovery-authority state; KC remains the only grammar owner. The semantic
+`RecoveryAuthorityContract-S` structural predecessor (D1c sequencing/
+provenance alias: `D1c-RecoveryAuthorityContract-S`) creates that agreed port
+before D1c-KG provider admission. `RecoveryAuthorityContract` is the canonical
+lane/interface identity; the D1c alias names neither a type nor a target. It is
+never
+`data/ports/draft/artifact-publication`, which remains Data-local and which no
+other owner may import. The one-way Cargo/Buck export edges are
+`data-recovery-authority-contract -> cell-recovery-attestation`,
+`data-recovery-authority-contract -> audit-emission`,
+`data-recovery-authority-contract -> data-audit-sink-draft`, and
+`data-recovery-authority-contract -> data-artifact-publication-draft`; here and
+in PLAN, `A -> B` means that B declares the sole direct Cargo/Buck dependency
+on A. The agreed port contains fixed-byte carrier types and the opaque,
+verify-only Cell-result verifier interface; it contains no provider client,
+provider implementation/core, `Read` operation, cache lookup, or runtime
+read-hit. No Data core or Cell/Audit core is imported in either direction.
 Data provider adapters for the first four ports are
 `data/adapters/draft/policy-client-policy`,
 `data/adapters/draft/audit-sink-audit`,
@@ -1159,10 +1170,11 @@ The issuer has one exact canonical request/result/error family. Its request is
 `request_id:[16]`, operation, cell ID, context digest, locator digest, root ID,
 requested recovery generation, request nonce, and freshness challenge. Its
 success result is `CellRecoveryAttestationResultV1` (`1 + 54 + 1 + 1 + 32 +
-243 + 8 + 16 = 356` bytes): domain
+243 + 8 + 16 + 1 + 2 + 32 = 391` bytes): domain
 `oyatie.data.record.cell-recovery-attestation-result.v1`, separator/version,
 the SHA-256 digest of the exact request bytes, the exact 243-byte attestation,
-issuer revision, and result nonce. Its authenticated error is
+issuer revision, result nonce, and one canonical tagged outer provider
+integrity tag. Its authenticated error is
 `CellRecoveryAttestationErrorV1` (`1 + 53 + 1 + 1 + 32 + 16 + 1 + 1 + 8 + 8 +
 32 + 32 = 186` bytes): domain
 `oyatie.data.record.cell-recovery-attestation-error.v1`, separator/version,
@@ -1189,7 +1201,9 @@ CellRecoveryAttestationRequestV1:
   request_nonce:[16] | freshness_challenge:[32]
 CellRecoveryAttestationResultV1:
   domain_len:u8=54 | domain:[54] | separator=0 | version=1 |
-  request_digest:[32] | attestation:[243] | issuer_revision:u64 | result_nonce:[16]
+  request_digest:[32] | attestation:[243] | issuer_revision:u64 | result_nonce:[16] |
+  provider_integrity_tag_id:u8=1 | provider_integrity_tag_length:u16=32 |
+  provider_integrity_tag:[32]
 CellRecoveryAttestationErrorV1:
   domain_len:u8=53 | domain:[53] | separator=0 | version=1 |
   request_digest:[32] | request_id:[16] | operation:ENUM8 |
@@ -1200,11 +1214,35 @@ CellRecoveryAttestationErrorV1:
 ```
 
 `request_digest` is `SHA-256` of the exact received request bytes, including its
-request ID and challenge; `result_nonce` equals the request nonce only for an
-idempotent reissue, otherwise it is fresh and nonzero. A caller validates the
-request digest, operation, challenge, all locator bindings, issuer/root revision,
-provider epoch, and tag
-before it forwards a mutation. It never converts a typed error into a locally
+request ID, request nonce, and challenge; `result_nonce` equals the request
+nonce only for an idempotent reissue, otherwise it is fresh and nonzero. The
+outer tag has no implicit field framing: its ID is exactly `1`, its unsigned
+big-endian length is exactly `32`, and it adds `1 + 2 + 32 = 35` bytes. It is
+`HMAC-SHA-256(K_cell_recovery_result_v1, P)`, where
+`K_cell_recovery_result_v1` is the CellRecoveryRootStore's non-restorable,
+root-revisioned result-authentication key selected by the attestation's
+`authority_root_id` and `issuer_revision`, and `P` is the exact concatenation
+of `"oyatie.data.record.cell-recovery-attestation-result-integrity.v1"`, one
+zero separator, every result byte from `domain_len` through `result_nonce`, and
+the exact tag ID and two-byte length. The key never serializes, enters a Data
+value, or grants signing: the agreed contract exposes only the Cell-bound,
+opaque `CellRecoveryAttestationResultVerifier::verify(P, tag)` capability to
+the configured `data-records-app` recovery principal. It is a local
+cryptographic verification operation, not a Cell/Audit `Read`, cache lookup,
+or source mutation.
+
+A caller first rejects any non-391-byte, wrong-domain/version, noncanonical tag
+ID/length, or truncated/trailing result; it selects the opaque verifier only
+from the request's expected authority root and a configured allowed issuer
+revision (selection is not a public `Read`); then it invokes that verify-only
+capability; then it compares the exact request digest and validates the inner
+243-byte attestation tag, operation, request nonce, cell/context/locator/root,
+generation, provider epoch, and fence. `issuer_revision` must equal the
+attestation root revision selected by that verifier. A bad outer tag, any
+request-ID/challenge/nonce/revision substitution, or any inner mismatch is
+`CellRecoveryAttestationResultIntegrityInvalid` before an
+`INITIALIZE`/`RESERVE`/`ROTATE` source call, allocation, Cell mirror write, or
+readiness publication. A caller never converts a typed error into a locally
 invented attestation.
 
 `PublicationRecoveryAuthorityLocatorV1` is the immutable, authenticated
@@ -1904,12 +1942,19 @@ safe-GC -> full Cell/device loss -> old-snapshot restore independently for
 terminal credential, cannot take over/recreate any old-incarnation pin, and
 permits fresh allocation only after external authority rotation and local
 reconciliation. Two independent encoders accept exactly the 143-byte locator,
-279-byte authority, 243-byte Cell attestation, and 227/356/186 and
+279-byte authority, 243-byte Cell attestation, and 227/391/186 and
 594/463/207-byte issuer/source request-result-error families; each rejects
 length-minus-one, exact-plus-one, bad domain/version/separator, unknown enum,
 noncanonical operation-inapplicable zero/value, field/tag/context/fence/
 revision/incarnation/index mutation, truncation, and trailing bytes before
-allocation or source Open. The campaign tests exact-absent initialization,
+allocation or source Open. The Cell-result campaign accepts exactly 391 bytes,
+rejects 390 and 392, a tag ID other than `1`, or a tag length other than `32`,
+and flips one bit in every durable result field and in its tag. It then rebinds
+a captured A result to B requests differing only in request ID, freshness
+challenge, request nonce, or issuer revision; every vector refuses before a
+source mutation. The independently authenticated 186-byte issuer error and
+463/207-byte Audit source result/error families are unchanged. The campaign
+tests exact-absent initialization,
 source-atomic rotation/index/fence/root-incarnation exhaustion, root/source
 loss/tamper/rollback, old attestation, foreign root, provider-epoch regression,
 same-incarnation competing nonce, crash/lost reply before and after source

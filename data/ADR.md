@@ -353,17 +353,35 @@ tests.
   incarnation. The snapshot is then recovery-quarantined: old work and terminal
   credentials fail, old pins may only be boundedly terminalized, and only
   externally authenticated current state plus fresh allocations may re-enter
-  service. This is intentionally not a claim that all allocation indexes below
+  service. Its public success envelope is the fixed 391-byte
+  `CellRecoveryAttestationResultV1`: the canonical pre-tag result prefix
+  followed by exactly `provider_integrity_tag_id:u8=1 | tag_length:u16be=32 |
+  tag:[32]`.
+  The outer tag is `HMAC-SHA-256(K_cell_recovery_result_v1, P)`, where `P` is
+  the exact result prefix through `result_nonce` plus that ID and length under
+  the named result-integrity domain. The Cell root retains the revisioned key;
+  Data receives only the opaque Cell-bound verify capability. A caller checks
+  exact length/domain/version/tag framing, then the outer tag, then request
+  digest and inner attestation before any source mutation, allocation, mirror
+  write, or readiness publication. Thus a captured A result cannot be rebound
+  to B's request ID, challenge, nonce, or issuer revision. This is intentionally
+  not a claim that all allocation indexes below
   a high-water are terminal. The authority is reacquired through its authenticated
   bootstrap locator from the independent Audit control-plane quorum. The root
   is outside Cell/tablet/pin snapshots, checks the configured `data-records-app`
   mTLS recovery principal and exact cell/context/root/operation authorization,
   and alone authorizes source-absent `INITIALIZE` or post-loss `ROTATE`/
-  `RESERVE`; a bounded `READ` never mints authority. The Data-owned
-  recovery-authority port defines the canonical attestation and
-  Initialize/Read/Reserve/Rotate request/result/error families; only the Audit
-  adapter maps them to accepted public Cell and Audit faces, without a
-  Data-to-provider-core edge or read-hit RPC cycle. Missing, tampered,
+  `RESERVE`; a bounded `READ` never mints authority. The semantic,
+  provider-neutral `RecoveryAuthorityContract` agreed port is a structural
+  predecessor of D1c-KG (the `D1c-RecoveryAuthorityContract-S` label is only
+  sequencing provenance): `data/ports/recovery-authority-contract` exports the
+  fixed carrier types and opaque Cell-result verifier before either public
+  provider face is admitted. Cell and Audit public faces import only that
+  agreed port; neither imports `data/ports/draft/artifact-publication`, a Data
+  core, or a runtime read-hit client. KC later owns the canonical grammar and
+  Data's local publication port owns coordinator methods only; the sole Audit
+  adapter maps the already-agreed Initialize/Read/Reserve/Rotate frames without
+  a Data-to-provider-core edge or read-hit RPC cycle. Missing, tampered,
   rolled-back, foreign, stale, raced, unavailable, or exhausted root/source
   fails closed rather than recreating a pin. Active terminal rows are charged one-for-one to nonterminal
   admission and are bounded at 8/64/256 per locator, tenant-cell, and cell
@@ -392,8 +410,10 @@ tests.
   `2,040`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 226-byte
   accepted-history row, 266-byte pin-decision, 203-byte pin, 230-byte durable
   terminal-recovery lease, 143-byte recovery-authority locator, 279-byte
-  out-of-snapshot recovery authority, and 243-byte Cell recovery attestation;
-  it also fixes the `3,156` aggregate
+  out-of-snapshot recovery authority, 243-byte Cell recovery attestation, and
+  227/391/186-byte Cell request/self-authenticating-success/error family; the
+  391-byte result includes its exact `1+2+32` outer tag field and verifies
+  before source mutation. It also fixes the `3,156` aggregate
   envelope overhead, exact derived pin quotas, and active-terminal-row count/
   byte quotas. It supplies request/receipt/error
   fields and the bootstrap/acquire/reserve/pin-renew/takeover/terminal-recovery/
@@ -405,8 +425,10 @@ tests.
   before Audit callback, durable persistence, records-app readiness, D1e,
   and D1c-KR, gives the Audit operation port an explicit one-way
   `record-protection -> audit-sink` Cargo/Buck import for KC-owned recovery
-  frames, admits the non-restorable Cell recovery-attestation provider face in
-  D1c-KG before KA-C, and
+  frames, establishes the semantic `RecoveryAuthorityContract` agreed port
+  before D1c-KG (with the D1c label only as ordering provenance), admits the
+  non-restorable Cell recovery-attestation provider face over that port before
+  KA-C, and
   gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
   edge. Conformance scans reject raw-key-shaped Data
   values and test malformed/tampered/replayed/truncated/substituted frames,
@@ -416,7 +438,9 @@ tests.
   ordered H1/H2 append, `+1,023/+1,024/+1,025` horizon fencing, coordinator
   epoch re-attestation, cell-local snapshot refresh, pin/GC races,
   terminal-release atomic delete, all four active-row accounting branches,
-  response-loss retry, stale terminal credentials before and after safe-GC, and
+  response-loss retry, stale terminal credentials before and after safe-GC,
+  Cell-result exact/plus-one/tag-bit mutation and A-to-B request-ID/challenge/
+  nonce/revision substitution before source mutation, and
   N/N+1 sequential horizon recovery across crash/restore and failed cleanup,
   snapshot-before-release then safe-GC then old-snapshot recovery for every
   decision outcome, external-authority source loss/tamper/rollback/exhaustion,
