@@ -67,10 +67,12 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 - **origin:** current artifacts describe an evidence collector and audit-chain
   seal as though Compliance owns collection, storage, and the Merkle record.
 - **rule:** `audit/` MUST remain the authoritative tamper-evident event record.
-  Compliance MUST consume verified Audit references, evaluate evidence
-  coverage against a bound pack revision, and publish versioned manifests and
-  exports. It MUST NOT seal a second Merkle log, fabricate missing events, or
-  acknowledge an export as complete when required evidence is absent.
+  Compliance MUST consume verified Audit references through its owner-local
+  `evidence-source` port, obtain privileged pre-ACK evidence through
+  `audit-sink`, evaluate coverage against a bound pack revision, and publish
+  versioned manifests and exports. It MUST NOT seal a second Merkle log,
+  fabricate missing events, or acknowledge an export as complete when required
+  evidence is absent.
 - **ensure:** every manifest binds tenant, pack/binding generation, policy and
   schema revisions, source Audit cursor/range, item digests, gaps, and export
   generation; tests prove a missing, foreign-tenant, unverified, or reordered
@@ -123,13 +125,21 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   caller-constructed verification receipt. The port MUST resolve a trusted key
   by namespace, key id, and key generation and reject unknown, ambiguous,
   revoked, expired, or self-asserted keys before catalog mutation. Protobuf is
-  the facade wire contract, not the signing preimage.
+  the facade wire contract, not the signing preimage. Validity MUST consume the
+  exact `cell_clock_api::Interval` obtained from an injected
+  `cell_clock_api::Clock`; requests MUST NOT assert trusted time and Compliance
+  MUST NOT define a point-clock or interval DTO. A pack/key window is valid
+  only when the whole Cell interval is contained by its inclusive-lower,
+  exclusive-upper Unix-millisecond bounds after checked conversion.
 - **ensure:** a production encoder and an independently implemented test
   encoder share only the frozen input record and match exact preimage, payload
   digest, key digest, preimage digest, public key, and signature golden bytes;
   field/header bit flips plus byte, depth, count, identifier, fan-out, and queue
-  limit-plus-one cases fail closed. Crypto and trusted-key adapters require
-  Packs, Secrets/IAM security, and architecture review.
+  limit-plus-one cases fail closed. Cargo/Buck bind the exact Cell package and
+  type identities; pre-epoch/overflow conversion, reversed uncertainty, and
+  intervals before/on/across either boundary fail before mutation. Crypto and
+  trusted-key adapters require Packs, Secrets/IAM security, Cell, and
+  architecture review.
 - **overturn_when:** an accepted Packs/Security/Compliance decision replaces
   the algorithm or canonicalization while preserving deterministic identity,
   domain separation, key provenance, bounded work, and rollback refusal.
@@ -150,7 +160,8 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   binding generation, classification selector, obligation, effective interval,
   source digest, and supersession rule. Compliance MUST NOT directly erase,
   hold, move, or duplicate Audit/Data/Storage state and MUST NOT report their
-  work complete without a verified target receipt.
+  work complete without a verified receipt through its owner-local
+  `projection-target` port.
 - **ensure:** conformance uses fake Audit/Data/Storage consumers to prove
   idempotent apply, stale-generation refusal, gap visibility, and no
   cross-tenant target; production adapters require separate provider-owner and
@@ -199,11 +210,15 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   MUST authenticate, obtain a verified Policy decision, bind tenant and
   idempotency identity, enforce bounded admission, and persist required Audit
   evidence before acknowledgement. Preview MUST disclose no foreign-tenant
-  catalog or binding state.
+  catalog or binding state. Gateway registration MUST remain traffic-disabled
+  until durable catalog authority and restore are proven and the required
+  Pack/Secrets, Policy, Audit, projection-target, export, and Cell dependencies
+  have production adapters/composition plus fail-closed outage evidence.
 - **ensure:** forged/expired decisions, wrong audience, tenant mismatch,
   reused idempotency keys with changed fingerprints, Audit outage, and stale
   binding generations fail before mutation or disclosure; tenant #0 runs the
-  same tests.
+  same tests. Route admission checks the immutable durability/restore/adapter
+  join and cannot accept an in-memory fake as production authority.
 - **overturn_when:** an independently reviewed contract supplies equivalent
   authentication, authorization, audit, isolation, compatibility, and
   retirement properties.
@@ -226,6 +241,10 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   from contract, admission, registry, engine, and facade behavior. The oracle
   stages MUST remain unrouted; production proto, persistence, owner adapters,
   restore, and generated-SLO promotion MUST each have an explicit later gate.
+  Every owner-local dependency port and the exact Cell edge MUST exist before
+  L3 behavior uses a fake. Every new L4 package MUST inherit the D-41 scanner/
+  Buck parity contract, and adding Connect codegen MUST preserve the existing
+  library and test scanner outputs.
 - **ensure:** `PLAN.md` fixes the path/build envelope and success/failure for
   each hop; no current retention type is rehomed or copied; D-41 scanners make
   later behavior unique-file additions; one lock writer and exact Cargo/Buck

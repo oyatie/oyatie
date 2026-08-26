@@ -60,6 +60,13 @@ these are current-state facts, not availability or conformance claims.
   preimage digest derivations. The engine invokes the owner-local `pack-auth`
   port; requests cannot supply a verification receipt. Resolve trusted keys
   through its provider adapter; envelope-provided keys are never trust.
+- Consume the exact `cell_clock_api::Interval` obtained from an injected
+  `cell_clock_api::Clock`; callers cannot submit trusted time or a local point/
+  interval DTO.
+  Checked Unix-millisecond conversion and whole-interval containment apply to
+  both pack and key `[inclusive, exclusive)` validity windows. Any interval
+  that touches/straddles the upper boundary, straddles the lower boundary, is
+  reversed, or cannot convert fails before mutation.
 - Support the v1 namespaces `us`, `eu`, `jp`, and `kr`; reject combinatoric
   country ids and unknown namespace, plane, dimension, or schema values.
 - Preserve immutable historical descriptors for evidence verification. A
@@ -121,6 +128,11 @@ these are current-state facts, not availability or conformance claims.
 - Reject cross-tenant ids, forged or expired policy evidence, stale binding
   epochs, digest/signature mismatch, unavailable Audit authority, and changed
   idempotency fingerprints before mutation or disclosure.
+- Keep any early Gateway service registration explicitly traffic-disabled.
+  Route activation waits for durable catalog authority and restore evidence,
+  production Pack/Secrets, Policy, Audit, projection-target and export
+  adapters, exact Cell clock composition, and their outage/refusal campaigns;
+  an in-memory fake never satisfies that join.
 
 ## Portability and operations
 
@@ -179,6 +191,8 @@ Production promotion requires:
   type compatibility fixtures;
 - deterministic binding/projection replay and stale-generation fencing;
 - default-deny contract tests through the ordinary gateway and Policy path;
+- disabled-route refusal followed by activation only after the durable restore,
+  production dependency-adapter, and Cell-interval evidence join;
 - Audit-gap and target-receipt reconciliation under loss, duplication, reorder,
   outage, and recovery;
 - snapshot restore plus N/N+1 protocol/schema upgrade and rollback barriers;

@@ -40,8 +40,8 @@ The executable dependency chain is:
 ```text
 L3a owner law
   -> L3b terminal burn
-  -> L3c-S empty/scanner package structure + dependencies + Cargo.lock
-  -> L3c-C bounded semantic contract
+  -> L3c-S empty/scanner package structure + dependency ports + Cell edge
+  -> L3c-C bounded semantic and dependency-port contracts
        -> L3d-P pack authentication/admission
        -> L3d-R data-class registry
             -> L3d-B bind/project/evidence oracle
@@ -131,7 +131,7 @@ evidence only.
 
 Class: structure only; depends on L3b and is the next sole `Cargo.lock` writer.
 
-Create six package identities with scanners and empty semantic streams:
+Create eleven package identities with scanners and empty semantic streams:
 
 ```text
 compliance/ports/draft/pack-source/Cargo.toml
@@ -146,6 +146,26 @@ compliance/ports/draft/cas/Cargo.toml
 compliance/ports/draft/cas/BUCK
 compliance/ports/draft/cas/build.rs
 compliance/ports/draft/cas/src/lib.rs
+compliance/ports/draft/policy-client/Cargo.toml
+compliance/ports/draft/policy-client/BUCK
+compliance/ports/draft/policy-client/build.rs
+compliance/ports/draft/policy-client/src/lib.rs
+compliance/ports/draft/evidence-source/Cargo.toml
+compliance/ports/draft/evidence-source/BUCK
+compliance/ports/draft/evidence-source/build.rs
+compliance/ports/draft/evidence-source/src/lib.rs
+compliance/ports/draft/audit-sink/Cargo.toml
+compliance/ports/draft/audit-sink/BUCK
+compliance/ports/draft/audit-sink/build.rs
+compliance/ports/draft/audit-sink/src/lib.rs
+compliance/ports/draft/projection-target/Cargo.toml
+compliance/ports/draft/projection-target/BUCK
+compliance/ports/draft/projection-target/build.rs
+compliance/ports/draft/projection-target/src/lib.rs
+compliance/ports/draft/export-store/Cargo.toml
+compliance/ports/draft/export-store/BUCK
+compliance/ports/draft/export-store/build.rs
+compliance/ports/draft/export-store/src/lib.rs
 compliance/core/evidence-domain/Cargo.toml
 compliance/core/evidence-domain/BUCK
 compliance/core/evidence-domain/build.rs
@@ -168,7 +188,17 @@ structural stage's missing/empty directories, and writes only
 `src/lib.rs` contains the fixed includes and no semantic record, validation, or
 test. Each Buck file stages the same two globs, creates the synthetic manifest
 directories, runs `buildscript_run`, and supplies its `OUT_DIR` to library/test
-targets. No tracked generated or hand-maintained membership file exists.
+targets. No tracked generated or hand-maintained membership file exists. This
+exact sorted, missing/empty-tolerant, directory-rerun, fixed-output, Cargo/Buck-
+parity rule is the **L3c-S D-41 scanner contract** inherited by every later
+new Compliance package. Each structural family proves disposable Rust add,
+rename, removal, and non-Rust canaries in both graphs before behavior lands.
+
+The five added local port package names are
+`compliance-policy-client-draft`, `compliance-evidence-source-draft`,
+`compliance-audit-sink-draft`, `compliance-projection-target-draft`, and
+`compliance-export-store-draft`. Their path leaf, Cargo package, rustc crate,
+and Buck target identities follow D-30 exactly.
 
 Exact Cargo and Buck dependency directions are frozen here; each line reads
 `consumer <- provider`:
@@ -177,13 +207,26 @@ Exact Cargo and Buck dependency directions are frozen here; each line reads
 compliance-evidence-domain <- compliance-pack-source-draft
 compliance-evidence-domain <- compliance-pack-auth-draft
 compliance-evidence-domain <- compliance-cas-draft
+compliance-evidence-domain <- compliance-policy-client-draft
+compliance-evidence-domain <- compliance-evidence-source-draft
+compliance-evidence-domain <- compliance-audit-sink-draft
+compliance-evidence-domain <- compliance-projection-target-draft
+compliance-evidence-domain <- compliance-export-store-draft
 compliance-evidence-domain <- data-classification
+compliance-evidence-domain <- cell-clock-api
 compliance-evidence-domain <- semver
+compliance-pack-auth-draft <- cell-clock-api
 compliance-pack-auth-awslc-draft <- compliance-pack-auth-draft
 compliance-pack-auth-awslc-draft <- aws-lc-rs
 compliance-cas-app <- compliance-cas-draft
 compliance-cas-app <- compliance-evidence-domain
 compliance-cas-app <- compliance-pack-auth-awslc-draft
+compliance-cas-app <- compliance-policy-client-draft
+compliance-cas-app <- compliance-evidence-source-draft
+compliance-cas-app <- compliance-audit-sink-draft
+compliance-cas-app <- compliance-projection-target-draft
+compliance-cas-app <- compliance-export-store-draft
+compliance-cas-app <- cell-clock-api
 ```
 
 `pack-source` and `pack-auth` are distinct owner-local ports: the former
@@ -192,27 +235,41 @@ supplies bounded bytes, while the latter owns the `TrustedKeyResolver` and
 `PackAuthenticator` and consumes an injected `TrustedKeyResolver`; the core
 depends on the auth port and invokes the authenticator, never the crypto
 adapter. `cas-app` is the composition boundary and is the only edge that
-selects `pack-auth-awslc`. `data-classification`, `semver`, and `aws-lc-rs`
-already exist
-in the workspace/lock; the lock delta adds exactly six local package
-blocks/edges and no dependency version. Root workspace globs discover the
-packages; root `Cargo.toml` is unchanged.
+selects `pack-auth-awslc`. The other five owner-local ports freeze the use cases
+required by L3 fake composition: Policy compiler/decision evidence, verified
+Audit reads, pre-ACK Audit writes, generation-bound target application, and
+immutable export storage. They have no provider adapter yet.
 
-Build/test closure is all six packages under Cargo and Buck plus the exact
-`data-classification` provider target. There are no reverse consumers outside
-this set. Required reviewers are Compliance, Data, root Packs ownership,
-Secrets/IAM security, Pipeline/Buck, and architecture. This is D-29 because it
-binds an agreed Data port and freezes the future cryptographic dependency seam.
+The exact Cell provider is Cargo package `cell-clock-api` at
+`cell/ports/clock` and Buck target `//cell/ports/clock:cell-clock-api`.
+`compliance/ports/draft/pack-auth`, `compliance/core/evidence-domain`, and
+`compliance/facade/cas-app` name that same dependency in both manifests and
+Buck targets. The Rust identities are exactly `cell_clock_api::Clock` and
+`cell_clock_api::Interval`; no local clock trait, point-time wrapper, or
+trusted-time DTO is admitted.
 
-Success: both graphs expose the same six empty/scanner packages and dependency
-edges, every handwritten file is at or below 300 lines, the exact lock delta is
-fresh, and no product type, parser, limit, state transition, or route exists.
+`data-classification`, `cell-clock-api`, `semver`, and `aws-lc-rs` already
+exist in the workspace/lock. The lock delta adds exactly eleven local package
+blocks and their edges, but no Data/Cell block or dependency version. Root
+workspace globs discover the packages; root `Cargo.toml` is unchanged.
+
+Build/test closure is all eleven packages under Cargo and Buck plus the exact
+`data-classification` and `cell-clock-api` provider targets. There are no
+reverse consumers outside this set. Required reviewers are Compliance, Data,
+Cell, root Packs ownership, Policy, Audit, Storage, Secrets/IAM security,
+Pipeline/Buck, and architecture. This is D-29 because it binds agreed Data and
+Cell ports and freezes future provider-adapter seams.
+
+Success: both graphs expose the same eleven empty/scanner packages and
+dependency edges, every handwritten file is at or below 300 lines, the exact
+lock delta is fresh, and no product type, parser, limit, state transition, or
+route exists.
 
 Failure: behavior/tests land, dependency direction differs, core imports
 `aws-lc-rs`, a draft port gains an external consumer, a manual inventory is
 tracked, or the lockfile contains unrelated churn.
 
-Rollback: remove the six unrouted packages and exact lock blocks.
+Rollback: remove the eleven unrouted packages and exact lock blocks.
 
 Fault evidence: scanner-only disposable add/rename/remove/non-Rust fixtures
 prove Cargo/Buck membership parity without editing any stable root.
@@ -237,13 +294,25 @@ compliance/ports/draft/cas/src/items/a_requests.rs
 compliance/ports/draft/cas/src/items/b_responses.rs
 compliance/ports/draft/cas/src/items/c_errors.rs
 compliance/ports/draft/cas/src/test_items/a_contract.rs
+compliance/ports/draft/policy-client/src/items/a_contract.rs
+compliance/ports/draft/policy-client/src/test_items/a_contract.rs
+compliance/ports/draft/evidence-source/src/items/a_contract.rs
+compliance/ports/draft/evidence-source/src/test_items/a_contract.rs
+compliance/ports/draft/audit-sink/src/items/a_contract.rs
+compliance/ports/draft/audit-sink/src/test_items/a_contract.rs
+compliance/ports/draft/projection-target/src/items/a_contract.rs
+compliance/ports/draft/projection-target/src/test_items/a_contract.rs
+compliance/ports/draft/export-store/src/items/a_contract.rs
+compliance/ports/draft/export-store/src/test_items/a_contract.rs
 compliance/core/evidence-domain/src/items/a_identifiers.rs
 compliance/core/evidence-domain/src/items/b_catalog_binding.rs
 compliance/core/evidence-domain/src/items/c_projection_manifest.rs
 compliance/core/evidence-domain/src/items/d_registry.rs
 compliance/core/evidence-domain/src/items/e_limits.rs
+compliance/core/evidence-domain/src/items/f_time_validity.rs
 compliance/core/evidence-domain/src/test_items/a_contract.rs
 compliance/core/evidence-domain/src/test_items/b_limits.rs
+compliance/core/evidence-domain/src/test_items/c_time_validity.rs
 compliance/facade/cas-app/src/items/a_service_contract.rs
 compliance/facade/cas-app/src/test_items/a_service_contract.rs
 ```
@@ -256,16 +325,31 @@ millisecond interval endpoints, SHA-256 payload/key/preimage derivations,
 refusal, and immutable registry record. `pack-auth` defines both
 `TrustedKeyResolver` and `PackAuthenticator`; only an authenticator invocation
 can produce the receipt the core accepts. A caller-supplied receipt is not a
-request field. This slice does
-not perform cryptography. Protobuf is not added and the facade remains an
-owner-local semantic trait.
+request field. The five dependency ports freeze Policy compiler/decision
+evidence, verified Audit source references, durable pre-ACK Audit receipts,
+generation-bound projection acknowledgements, and immutable export receipts.
+L3 tests implement fakes only against these traits; core/facade packages may
+not hide substitute traits.
 
-Cargo/Buck closure is `pack-source`, `pack-auth`, `cas`, `evidence-domain`, and
-`cas-app`; the empty auth adapter must still build so dependency drift is
-visible. No
-external reverse consumer is allowed. Required reviewers are Compliance, Data,
-Packs, Secrets/IAM security, Audit/Policy contract owners, and architecture.
-Every source/test file is at or below 300 lines.
+The time contract accepts the exact `cell_clock_api::Interval` obtained by
+`cas-app` from an injected `cell_clock_api::Clock`; no request or caller receipt
+contains trusted time. Signed Unix-millisecond endpoints convert to
+`SystemTime` with checked signed add/subtract from `UNIX_EPOCH`. Conversion
+overflow, `earliest > latest`, or any interval not wholly contained by both the
+pack and resolved-key windows is a typed refusal before mutation. For each
+inclusive-lower/exclusive-upper window `[not_before, not_after)`, acceptance is
+exactly `not_before <= interval.earliest && interval.latest < not_after`.
+Touching or straddling the exclusive upper boundary, straddling the lower
+boundary, choosing a midpoint, truncating uncertainty, or replacing the Cell
+type with a local DTO is invalid. This slice does not perform cryptography.
+Protobuf is not added and the facade remains an owner-local semantic trait.
+
+Cargo/Buck closure is all eleven L3c-S packages plus the exact
+`data-classification` and `cell-clock-api` targets; the empty auth adapter must
+still build so dependency drift is visible. No external reverse consumer is
+allowed. Required reviewers are Compliance, Data, Cell, Packs, Secrets/IAM
+security, Audit/Policy contract owners, Storage, and architecture. Every
+source/test file is at or below 300 lines.
 
 Success: the production frame encoder and a test-only reference encoder share
 only the frozen input record, not framing helpers or constants, and produce the
@@ -274,20 +358,23 @@ freezes expected payload/key/preimage digest, public-key, and Ed25519-signature
 byte arrays for one deterministic seed; L3d-P performs the crypto comparison.
 Every tag/type/length/value byte has a one-byte corruption fixture;
 limit and limit-plus-one fixtures return stable errors before allocation/state;
-the same exact classification value crosses port/core/facade; both build graphs
-run every scanner member.
+the exact classification and Cell interval types cross port/core/facade; every
+dependency fake implements a frozen local port; both build graphs run every
+scanner member.
 
 Failure: protobuf/JSON/YAML bytes become the preimage, a self-supplied key is
 trusted, a bound is configurable above its maximum, a second classification
 type appears, behavior imports the crypto adapter, or Cargo/Buck membership
-differs.
+differs. A local clock type, caller-supplied trusted time, unchecked Unix-ms
+conversion, midpoint decision, or boundary-straddling acceptance also fails.
 
 Rollback: remove only these scanner-discovered files; the empty packages remain
 unrouted.
 
 Fault evidence: truncation, duplicate/trailing fields, noncanonical ids/SemVer,
 unknown enums, overflow, every exact-limit/limit-plus-one pair, changed
-fingerprints, and cross-namespace references.
+fingerprints, cross-namespace references, pre-epoch/overflowing timestamps,
+reversed/widened intervals, and intervals just below/on/across both boundaries.
 
 ## L3d-P — Cryptographic verification and pack admission oracle
 
@@ -296,8 +383,8 @@ Class: behavioral admission; may run beside L3d-R after L3c-C.
 ```text
 compliance/adapters/draft/pack-auth-awslc/src/items/a_verifier.rs
 compliance/adapters/draft/pack-auth-awslc/src/test_items/a_verifier.rs
-compliance/core/evidence-domain/src/items/f_pack_admission.rs
-compliance/core/evidence-domain/src/test_items/c_pack_admission.rs
+compliance/core/evidence-domain/src/items/g_pack_admission.rs
+compliance/core/evidence-domain/src/test_items/d_pack_admission.rs
 compliance/facade/cas-app/src/items/d_pack_auth_composition.rs
 compliance/facade/cas-app/src/test_items/d_pack_auth_composition.rs
 ```
@@ -306,28 +393,32 @@ The adapter uses the already-admitted `aws-lc-rs` edge for SHA-256 and Ed25519
 verification and implements the owner-local `PackAuthenticator` trait. It
 invokes an injected `TrustedKeyResolver` from the same port and accepts only a
 result bound to namespace, key id/generation, key digest,
-validity/revocation generation, and trusted Cell interval. The engine
+validity/revocation generation, and the exact trusted
+`cell_clock_api::Interval` supplied by composition. The engine
 invokes that port, validates the returned request/preimage/key binding, and
-enforces canonical framing, bounds, compiler-receipt shape, catalog
-compare-and-swap, and lower/equal-conflicting/stale refusal. The facade
-composition selects the aws-lc implementation but remains unrouted and has no
-production resolver until L4c. No request can inject a receipt. Tests may
-inject a fake authenticator or resolver only through test composition. This is
-not a production Secrets adapter or pack filesystem loader.
+enforces canonical framing, bounds, the L3c-C full-interval validity predicate,
+compiler-receipt shape through `policy-client`, catalog compare-and-swap, and
+lower/equal-conflicting/stale refusal. The facade composition selects the
+aws-lc implementation and obtains time from an injected `cell_clock_api::Clock`
+but remains unrouted and has no production resolver until L4c. No request can
+inject a receipt or time value. Tests may inject fake authenticator, resolver,
+Policy client, or Clock implementations only through their frozen ports. This
+is not a production Secrets adapter or pack filesystem loader.
 
 Exact build closure is `pack-source`, `pack-auth`, `pack-auth-awslc`,
-`evidence-domain`, `cas`, `cas-app`, and their dependency targets under both
-graphs. There are no reverse consumers.
-Required reviewers are Compliance, Packs, Secrets/IAM security, Policy for the
-compiler-receipt boundary, and architecture. No manifest/lock/root/generated
-path changes; every file is at or below 300 lines.
+`policy-client`, `evidence-domain`, `cas`, `cas-app`, `cell-clock-api`, and
+their dependency targets under both graphs. There are no reverse consumers.
+Required reviewers are Compliance, Cell, Packs, Secrets/IAM security, Policy
+for the compiler-receipt boundary, and architecture. No manifest/lock/root/
+generated path changes; every file is at or below 300 lines.
 
 Success: aws-lc digest/verification results for the production frame and the
 independent reference frame match every frozen golden digest/public-key/
 signature byte; golden valid envelopes admit deterministically. Malformed,
 oversized, unknown, unsigned, digest/signature-mismatched,
 untrusted/revoked/expired-key, unsupported-schema, stale, and conflicting
-versions mutate nothing.
+versions mutate nothing. Checked pre-epoch conversion and intervals before,
+on, or straddling either pack/key boundary follow the frozen refusal matrix.
 
 Failure: another algorithm/preimage is accepted, parser work exceeds a hard
 bound, Policy evaluation appears, or a test key becomes production trust.
@@ -343,8 +434,8 @@ catalog generation, and concurrent conflicting admission.
 Class: behavioral registry; may run beside L3d-P after L3c-C.
 
 ```text
-compliance/core/evidence-domain/src/items/g_classification_registry.rs
-compliance/core/evidence-domain/src/test_items/d_classification_registry.rs
+compliance/core/evidence-domain/src/items/h_classification_registry.rs
+compliance/core/evidence-domain/src/test_items/e_classification_registry.rs
 ```
 
 Implement `ABSENT -> PREPARED -> ACTIVE -> SUPERSEDED|REVOKED` with immutable
@@ -353,10 +444,11 @@ applicability/evidence obligations, source pack/schema/digest, idempotency, and
 entry/registry compare-and-swap generations. No alternate enum/parser/wrapper
 is allowed. The 32-alias/64-byte/4,096-entry hard bounds apply.
 
-Cargo/Buck closure is `data-classification`, `pack-source`, `pack-auth`, `cas`,
-`evidence-domain`, and the empty auth adapter; no external reverse consumer or
-manifest/lock change. Required reviewers are Compliance, Data, Packs, Policy,
-and architecture. Both files are at or below 300 lines.
+Cargo/Buck closure is `data-classification`, `cell-clock-api`, `pack-source`,
+`pack-auth`, `cas`, `evidence-domain`, and the empty auth adapter; no external
+reverse consumer or manifest/lock change. Required reviewers are Compliance,
+Data, Cell, Packs, Policy, and architecture. Both files are at or below 300
+lines.
 
 Success: replay converges; stale/lower/equal-conflicting generations, duplicate
 or shadowing aliases, unknown classifications, invalid intervals, source-digest
@@ -377,25 +469,28 @@ edges.
 Class: behavioral engine; requires L3d-P and L3d-R.
 
 ```text
-compliance/core/evidence-domain/src/items/h_binding.rs
-compliance/core/evidence-domain/src/items/i_projection.rs
-compliance/core/evidence-domain/src/items/j_evidence_manifest.rs
-compliance/core/evidence-domain/src/test_items/e_binding.rs
-compliance/core/evidence-domain/src/test_items/f_projection.rs
-compliance/core/evidence-domain/src/test_items/g_evidence_manifest.rs
+compliance/core/evidence-domain/src/items/i_binding.rs
+compliance/core/evidence-domain/src/items/j_projection.rs
+compliance/core/evidence-domain/src/items/k_evidence_manifest.rs
+compliance/core/evidence-domain/src/test_items/f_binding.rs
+compliance/core/evidence-domain/src/test_items/g_projection.rs
+compliance/core/evidence-domain/src/test_items/h_evidence_manifest.rs
 ```
 
 Implement deterministic in-memory compare-and-swap oracles for binding,
 target-ready projections, generation-bound acknowledgements, verified Audit-
-reference coverage, manifest completion, and export admission. Target adapters
-are fakes and Compliance never executes retention. The hard fan-out, page,
+reference coverage, manifest completion, and export admission. Test-only fakes
+implement the already frozen `policy-client`, `evidence-source`, `audit-sink`,
+`projection-target`, and `export-store` ports; production code depends only on
+those traits and Compliance never executes retention. The hard fan-out, page,
 queue, idempotency, evidence-reference, and export limits apply.
 
 Cargo/Buck closure is `pack-source`, `pack-auth`, `pack-auth-awslc`, `cas`,
-`evidence-domain`, and `data-classification`; `cas-app` also compiles as the
-only local reverse consumer. Required reviewers are Compliance, Audit, Data,
-Storage, Policy, Packs, and architecture. No manifest/lock/build/root/generated
-changes; all files are at or below 300 lines.
+all five dependency ports, `evidence-domain`, `data-classification`, and
+`cell-clock-api`; `cas-app` also compiles as the only local reverse consumer.
+Required reviewers are Compliance, Audit, Data, Storage, Cell, Policy, Packs,
+and architecture. No manifest/lock/build/root/generated changes; all files are
+at or below 300 lines.
 
 Success: same inputs replay byte-identically; duplicate receipts converge;
 stale/skipped/reordered/incomplete/foreign-tenant input remains visible and
@@ -425,17 +520,22 @@ compliance/facade/cas-app/src/test_items/c_handlers.rs
 
 Implement default-deny handlers against fake ports: authenticate, verify Policy
 provenance, bind tenant/idempotency/admission context, enforce all request/page/
-queue bounds, and map typed engine results. Do not add protobuf, Connect,
+queue bounds, obtain the exact interval from an injected
+`cell_clock_api::Clock`, and map typed engine results. The Policy and Audit
+fakes implement the L3c-C ports; no handler-local trait or caller-supplied
+decision, receipt, or trusted time is allowed. Do not add protobuf, Connect,
 gateway registration, persistence, or production adapters.
 
 Cargo/Buck closure is `cas-app`, `cas`, `evidence-domain`, and all transitive
-local contracts. There are no external reverse consumers. Required reviewers
-are Compliance, IAM/Policy, Audit, Packs, and architecture. All files are at or
-below 300 lines; manifests/lock/build/root/generated paths are read-only.
+local contracts plus `cell-clock-api`. There are no external reverse consumers.
+Required reviewers are Compliance, Cell, IAM/Policy, Audit, Packs, and
+architecture. All files are at or below 300 lines; manifests/lock/build/root/
+generated paths are read-only.
 
 Success: tenant zero and ordinary tenants share one contract; forged/expired/
 wrong-audience Policy evidence, Audit outage, changed fingerprints, tenant
-mismatch, pagination drift, and overload fail before disclosure/mutation.
+mismatch, pagination drift, clock widening/boundary straddling, and overload
+fail before disclosure/mutation.
 
 Failure: a private route, caller-asserted authorization, permit/forbid response,
 unbounded work, or external owner import lands.
@@ -463,11 +563,15 @@ work, not deferred acceptance evidence for L3.
    `compliance/facade/cas-app/{Cargo.toml,BUCK,build.rs}`, and apply the sole
    exact `Cargo.lock` delta. The existing app build script gains the accepted
    Connect generator/runtime edge, tolerates the structurally absent schema,
-   and writes only `connect.generated.rs` under its stable `OUT_DIR`; Buck uses
-   the same input and include root. No second Rust/proto crate, RPC schema,
-   handler, route, or handwritten generated file lands. This stage is
-   non-dispatchable until the D-30 receipt records exact Cargo packages, Buck
-   labels, output/canary parity, reverse closure, and compatibility/removal.
+   preserves its L3c-S sorted `src/items` and `src/test_items` inputs and
+   `lib.generated.rs` / `tests.generated.rs` outputs, and adds only
+   `connect.generated.rs` under the same stable `OUT_DIR`. Buck stages the same
+   scanner inputs plus the accepted proto input and produces the same three
+   outputs. No second Rust/proto crate, RPC schema, handler, route, or
+   handwritten generated file lands. This stage is non-dispatchable until the
+   D-30 receipt records exact Cargo packages, Buck labels, all three outputs,
+   Rust add/rename/remove/non-Rust plus proto add/remove/change canary parity,
+   reverse closure, and compatibility/removal.
 2. **L4a-C frozen schema:** add only
    `compliance/facade/proto/compliance/cas/v1/cas.proto`, with protobuf package
    `compliance.cas.v1`. The accepted repository compatibility checker consumes
@@ -483,18 +587,35 @@ work, not deferred acceptance evidence for L3.
    HTTP/2 through the canonical Connect contract. No `tonic`, standing gRPC
    service/status/trailers, second semantic model, manifest, or lock delta is
    allowed.
-4. **L4a-R route:** a separately dispatched D-29 Gateway/IAM lane must name its
-   exact foreign files and reverse closure for gateway registration,
-   default-deny Policy action, mTLS, quota, pre-ACK Audit, version negotiation,
-   and retirement. This Compliance envelope grants no foreign path. No route
-   change is authorized until that provider-owned file envelope and reviewers
-   are accepted.
+4. **L4a-G disabled registration:** after L4a-A, a separately dispatched D-29
+   Gateway/IAM structural lane may register the accepted schema, service
+   identity, and version metadata only in an explicit disabled state. Its
+   receipt names every foreign file, reverse closure, generated input, default-
+   deny Policy action, mTLS/quota/audit requirements, compatibility, and
+   reviewers. Disabled means no listener/VIP/path can select the handler and an
+   accidental invocation fails closed before disclosure or mutation. This
+   Compliance envelope grants no foreign path and the registration cannot
+   advertise service availability.
+5. **L4a-R route activation:** this provider-owned D-29 behavior lane is not
+   dispatchable after L4a-G alone. It joins on L4b-R durable recovery/restore
+   evidence and every required L4c adapter behavior row: pack source, trusted-
+   key resolution, Policy client, Audit evidence source, pre-ACK Audit sink,
+   all three projection targets, and Storage export. The join also requires
+   exact `cell_clock_api::Clock` composition and the L3c-C interval-boundary
+   refusal campaign. Only then may its separately accepted exact Gateway/IAM
+   files change disabled registration to admitted traffic with default-deny
+   authn/Policy, mTLS, quota, pre-ACK Audit, version negotiation, rollback, and
+   adapter-outage tests. Any missing/unavailable dependency keeps the route
+   disabled; no fake or in-memory authority can satisfy the join. Activation
+   makes only a declared pre-production cell eligible for fault/SLO trials;
+   L4d-O remains the separate gate for production tenant promotion.
 
 Required reviewers: Compliance, Gateway, IAM/Policy, Audit, API compatibility,
 Connect/codegen owner, security, and architecture. Promotion fails on a second
 semantic model, JSON SSOT, gRPC/tonic substitute, private tenant-zero route, or
-auth/audit after handler logic. L4a-S, L4a-C, L4a-A, and L4a-R are ordered;
-none shares a structure/behavior/foreign-owner write.
+auth/audit after handler logic. L4a-S, L4a-C, L4a-A, and disabled L4a-G are
+ordered; L4a-R waits for the L4b/L4c/Cell join. None shares a structure,
+behavior, or foreign-owner write.
 
 ### L4b — Durable records, recovery, and restore
 
@@ -519,14 +640,19 @@ non-dispatchable.
    catalog/binding/projection/manifest/idempotency compare-and-swap state, not
    another generic records contract. Under both graphs the exact directions
    are `evidence-domain <- catalog-store`, `catalog-store-data <-
-   catalog-store + data-records`, and `cas-app <- catalog-store-data`.
+   catalog-store + data-records`, and `cas-app <- catalog-store-data`. Both new
+   roots inherit the full L3c-S D-41 scanner contract with fixed
+   `lib.generated.rs` / `tests.generated.rs` outputs, equivalent Buck
+   `buildscript_run` inputs, and disposable add/rename/remove/non-Rust parity
+   evidence. The lock adds exactly two local blocks/edges and no provider or
+   third-party version.
 2. **L4b-C persistence behavior:** add only
    `compliance/ports/draft/catalog-store/src/items/a_contract.rs`,
    `compliance/ports/draft/catalog-store/src/test_items/a_contract.rs`,
    `compliance/adapters/draft/catalog-store-data/src/items/a_store.rs`,
    `compliance/adapters/draft/catalog-store-data/src/test_items/a_store.rs`,
-   `compliance/core/evidence-domain/src/items/k_durable_repository.rs`,
-   `compliance/core/evidence-domain/src/test_items/h_durable_repository.rs`,
+   `compliance/core/evidence-domain/src/items/l_durable_repository.rs`,
+   `compliance/core/evidence-domain/src/test_items/i_durable_repository.rs`,
    `compliance/facade/cas-app/src/items/f_durable_composition.rs`, and
    `compliance/facade/cas-app/src/test_items/f_durable_composition.rs`.
    Contract suites prove atomic generations, idempotency, durable receipt
@@ -534,8 +660,8 @@ non-dispatchable.
 3. **L4b-R recovery:** add only
    `compliance/adapters/draft/catalog-store-data/src/items/b_snapshot_restore.rs`,
    `compliance/adapters/draft/catalog-store-data/src/test_items/b_snapshot_restore.rs`,
-   `compliance/core/evidence-domain/src/items/l_recovery.rs`,
-   `compliance/core/evidence-domain/src/test_items/i_recovery.rs`,
+   `compliance/core/evidence-domain/src/items/m_recovery.rs`,
+   `compliance/core/evidence-domain/src/test_items/j_recovery.rs`,
    `compliance/facade/cas-app/src/items/g_recovery_gate.rs`, and
    `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. It proves
    process-death/durable-barrier, corrupt WAL/snapshot quarantine, quorum loss,
@@ -555,40 +681,21 @@ closure. The ports and adapters are not aliases for provider contracts:
 Compliance ports express its required use cases, and adapters translate an
 accepted provider port into them. Draft ports remain owner-local.
 
-1. **L4c-S local port structure:** one sole-lock D-30 slice creates exactly
-   these five four-file roots, plus updates
-   `compliance/core/evidence-domain/{Cargo.toml,BUCK}` and
-   `compliance/facade/cas-app/{Cargo.toml,BUCK}` and the exact `Cargo.lock`
-   blocks:
+The five owner-local use-case ports and their contracts already exist from
+L3c-S/C before any oracle behavior. L4c neither recreates them nor moves traits
+out of core/facade after the fact.
 
-   ```text
-   compliance/ports/draft/policy-client/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-   compliance/ports/draft/evidence-source/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-   compliance/ports/draft/audit-sink/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-   compliance/ports/draft/projection-target/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-   compliance/ports/draft/export-store/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-   Cargo.lock
-   ```
-
-   Package names are `compliance-policy-client-draft`,
-   `compliance-evidence-source-draft`, `compliance-audit-sink-draft`,
-   `compliance-projection-target-draft`, and
-   `compliance-export-store-draft`. Both graphs set only
-   `evidence-domain <- each local port` and `cas-app <- each local port`; no
-   provider edge or behavior exists.
-2. **L4c-C local port contracts:** after L4c-S, add exactly
-   `src/items/a_contract.rs` and `src/test_items/a_contract.rs` inside each of
-   the five L4c-S port roots. The build closure is those ports,
-   `evidence-domain`, and `cas-app`; there is no provider, manifest, lock, or
-   route write. The contracts freeze compiler/decision evidence, Audit source,
-   pre-ACK sink, generation-bound target, and immutable export semantics before
-   any provider dependency.
-3. **L4c-A-S adapter structure:** each following row is a separate sole-lock
-   D-29/D-30 slice after L4c-C. It creates exactly the named four-file package
+1. **L4c-A-S adapter structure:** each following row is a separate sole-lock
+   D-29/D-30 slice after L3d-F. It creates exactly the named four-file package
    root, updates only `compliance/facade/cas-app/{Cargo.toml,BUCK}`, and applies
    its exact `Cargo.lock` block. Dependency direction is always `adapter <-
    named local port + accepted provider port`, then `cas-app <- adapter` in
-   Cargo and Buck.
+   Cargo and Buck. Every new adapter root inherits the complete L3c-S D-41
+   scanner contract: fixed `lib.generated.rs` / `tests.generated.rs`, missing/
+   empty tolerance, directory rerun, equivalent Buck `buildscript_run`, and
+   per-row disposable Rust add/rename/remove/non-Rust parity evidence. A row
+   adds exactly one local lock block plus its accepted provider edges and no
+   unrelated dependency version.
 
    | Local port | Exact adapter package root | App prefix | Provider decision/review owners |
    |---|---|---:|---|
@@ -605,7 +712,7 @@ accepted provider port into them. Draft ports remain owner-local.
    A row is non-dispatchable until its receipt records the provider's exact
    Cargo/Buck target, target/reverse closure, compatibility/removal policy, and
    named reviewers. No table row grants a foreign write or provider-core edge.
-4. **L4c-A-C adapter behavior:** after a row's L4c-A-S structure merges, add only
+2. **L4c-A-C adapter behavior:** after a row's L4c-A-S structure merges, add only
    scanner-discovered `<adapter>/src/items/a_adapter.rs`,
    `<adapter>/src/test_items/a_contract.rs`, and the exact
    `compliance/facade/cas-app/src/items/<app-prefix>.rs` and
@@ -613,11 +720,13 @@ accepted provider port into them. Draft ports remain owner-local.
    provider conformance suite must prove tenant/generation/receipt binding,
    idempotent replay, loss/duplication/reorder, timeout, and fail-closed outage.
 
-Trusted time consumes the already agreed `cell-clock-api` directly; it does not
-invent a `cell-clock` adapter. Tenant identity and PDP evidence arrive through
-the canonical Gateway/Policy contract; Compliance does not add an `iam`
-adapter. Target receipts remain generation-bound, and Compliance never executes
-an owner workflow.
+Trusted time uses the L3c-S exact `cell-clock-api` Cargo/Buck edge directly;
+`cas-app` injects `cell_clock_api::Clock` and passes its exact `Interval`
+through the frozen validity contract. It does not invent a `cell-clock`
+adapter, point clock, or local DTO. Tenant identity and PDP evidence arrive
+through the canonical Gateway/Policy contract; Compliance does not add an
+`iam` adapter. Target receipts remain generation-bound, and Compliance never
+executes an owner workflow.
 
 ### L4d — Generated SLOs, operations, and promotion
 
@@ -628,7 +737,12 @@ Handwritten Rust never lives under `observability/slos`. Sequence is:
    `compliance/ports/slo/{Cargo.toml,BUCK,build.rs,src/lib.rs}` as package
    `compliance-slo`, plus the sole `Cargo.lock` block. Its D-30 receipt freezes
    the exact accepted materializer target and reverse closure; this stage is
-   non-dispatchable before that decision. It contains scanner structure only.
+   non-dispatchable before that decision. It contains structure only and
+   inherits the complete L3c-S D-41 contract: sorted missing/empty-tolerant
+   item/test-item scans, directory rerun, fixed `lib.generated.rs` /
+   `tests.generated.rs`, equivalent Buck staging/`buildscript_run`, and
+   disposable add/rename/remove/non-Rust membership parity. The lock adds one
+   local block plus only the accepted materializer edge.
 2. **L4d-C bounded IR behavior:** add only
 
    ```text
@@ -671,18 +785,25 @@ certification, or compliance-conformance claim is valid.
 
 - L3b is next. It is terminal deletion, not retention refactoring.
 - L3c-S follows L3b and owns `Cargo.lock`; it serializes with every monorepo
-  package-add/delete lane. L3c-C is behavior-only and lock-free.
+  package-add/delete lane. It creates every L3 dependency port and the exact
+  Cell edge before behavior. L3c-C freezes contracts across the eleven-package
+  closure and is behavior-only and lock-free.
 - L3d-P and L3d-R commute after L3c-C. L3d-B joins them; L3d-F follows the
   engine contract. Their scanner-discovered file sets are disjoint and no lane
   edits a parent root, manifest, build file, or lockfile.
 - Every L4 structural dependency/package hop is a sole lock writer. L4a's proto
   and Connect-codegen structure owns its exact app build/lock delta; schema,
-  app binding, and route follow as three distinct behavior/foreign-owner hops.
-  L4b structure precedes
-  persistence behavior and recovery; L4c local ports precede serialized adapter
-  structures and their unique-file behaviors; L4d IR structure precedes IR
-  behavior, provider-owned materialization, and operations. Cross-owner work is
-  never inferred from a Compliance path allowance.
+  app binding, and disabled Gateway registration follow as three distinct
+  behavior/foreign-owner hops. L4b structure precedes persistence behavior and
+  recovery. L4c provider adapters serialize only their structure/lock hops and
+  then fan out on unique behavior files because their local ports already froze
+  in L3. L4a-R activation waits at the join of L4b-R, every mandatory L4c
+  adapter behavior, and Cell interval evidence; it never precedes them. L4d IR
+  structure precedes IR behavior, provider-owned materialization, and
+  operations. Every new L4 Rust package explicitly inherits the L3c-S D-41
+  scanner/Buck/canary contract; L4a codegen preserves the two existing scanner
+  outputs while adding its third. Cross-owner work is never inferred from a
+  Compliance path allowance.
 - Any root `packs/`, Data, Audit, Storage, Cell, IAM/Policy, Secrets, Gateway,
   Observability, deployment, protobuf-root, generated, or foreign consumer
   write needs a separately dispatched exact D-29/D-30 envelope and named

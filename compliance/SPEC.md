@@ -214,10 +214,11 @@ before candidate, queue, or binding mutation.
 6. The engine invokes `PackAuthenticator` through the owner-local `pack-auth`
    port. That port resolves a trusted 32-byte public key by namespace, key id,
    and key generation and returns a receipt bound to the request, both digests,
-   key validity/revocation generation, and trusted Cell interval. The engine
-   never accepts a caller-constructed receipt; production composition supplies
-   the crypto and key adapters. A key carried by the envelope is never a trust
-   source.
+   key validity/revocation generation, and the exact
+   `cell_clock_api::Interval` obtained from composition's injected
+   `cell_clock_api::Clock`. The engine never accepts caller-constructed time or
+   receipt; production composition supplies the clock, crypto, and key
+   adapters. A key carried by the envelope is never a trust source.
 7. It accepts only v1 namespaces `us`, `eu`, `jp`, and `kr`; a package id is one
    namespace plus one granular instrument, never a combinatoric jurisdiction.
 8. `plane` is `serving` or `control`. Every projection dimension maps to a
@@ -238,6 +239,46 @@ No parser fallback interprets the current Markdown/YAML scaffold as admitted
 CaC.
 
 </pack_admission>
+
+<trusted_time>
+
+## Exact Cell interval and validity
+
+The only trusted time input is `cell_clock_api::Interval { earliest:
+SystemTime, latest: SystemTime, logical: u64 }` returned by an injected
+`cell_clock_api::Clock`. Compliance defines no clock trait, instant wrapper,
+interval DTO, midpoint, or caller request field for trusted time. The same
+exact Rust type crosses pack-auth, core, and facade composition; `logical`
+never turns the uncertain interval into a point timestamp.
+
+Signed `i64` Unix-millisecond endpoints convert to `SystemTime` by checked
+addition or subtraction from `UNIX_EPOCH`. The negative magnitude, duration,
+and `SystemTime` operation are checked; overflow is a typed refusal. The Cell
+interval is invalid when `earliest > latest`.
+
+The stable refusal identities are `TimeValidityError::EndpointOverflow`,
+`ReversedInterval`, `NotYetValid`, `Expired`, `UncertainAcrossLowerBound`, and
+`UncertainAcrossUpperBound`. Pack, key, binding, and registry callers preserve
+these identities rather than collapsing them into a boolean or transport
+status.
+
+For every pack, key, binding, or registry validity window
+`[not_before_unix_ms, not_after_unix_ms)`, acceptance is exactly:
+
+```text
+not_before_instant <= interval.earliest
+interval.latest < not_after_instant
+```
+
+Equality at the inclusive lower bound is valid. Equality at the exclusive
+upper bound is invalid. An interval partly before the lower bound, partly at or
+after the upper bound, wholly before/after the window, reversed by clock
+behavior, or widened across either boundary fails before candidate, binding,
+registry, projection, or key-use mutation. Implementations cannot floor/
+truncate endpoints to milliseconds, choose the midpoint/latest value, or
+discard uncertainty to manufacture acceptance.
+
+</trusted_time>
 
 <classification_registry>
 
@@ -281,8 +322,8 @@ and cross-tenant scope are typed failures with no mutation.
 1. The facade verifies identity and Policy provenance and admits tenant work.
 2. It resolves an immutable admitted descriptor and current binding generation.
 3. The engine validates expected generation, scope, cell/capability
-   compatibility, trusted interval, idempotency fingerprint, and requested
-   target set before writing `PREPARED`.
+   compatibility, the exact Cell interval under `<trusted_time>`, idempotency
+   fingerprint, and requested target set before writing `PREPARED`.
 4. It derives projections deterministically from the descriptor and binding.
    The same inputs produce byte-identical canonical payload digests.
 5. A privileged bind/publish obtains a durable Audit receipt bound to tenant,
@@ -343,7 +384,7 @@ policy issuer/revision/audience/expiry
 request, correlation and idempotency identity
 catalog, binding, projection and schema generations
 pack digest and signer/key generation
-trusted Cell interval where validity matters
+exact `cell_clock_api::Interval` from injected `Clock` where validity matters
 ```
 
 Missing, forged, expired, cross-tenant, stale, or ambiguous context fails before
@@ -381,6 +422,12 @@ availability, snapshot/restore, or production CaS service. Corrupt-WAL,
 snapshot, quorum-loss, process-death durability, and recovery evidence first
 become executable in the later persistence slice; they are not acceptance
 evidence for an in-memory lane.
+
+An early Gateway service registration is structurally disabled and cannot
+receive traffic. Activation requires the durable store and restore campaign,
+production pack/key, Policy, Audit source/sink, projection-target, export-store
+adapters, exact Cell clock composition, and their fail-closed outage evidence.
+No in-memory store or fake dependency satisfies that join.
 
 </persistence_and_recovery>
 
@@ -425,7 +472,8 @@ transport, and adapter decision lands.
 - Lost, duplicated, delayed, and reordered Policy compiler, Audit source,
   projection target, and Storage export receipts.
 - Forged/expired authorization, cross-tenant identifiers, revoked keys, Cell
-  clock rollback/widening, Audit outage, and noisy tenants.
+  clock rollback/widening, checked Unix-ms overflow, intervals before/on/across
+  inclusive/exclusive validity boundaries, Audit outage, and noisy tenants.
 - Corrupt snapshots, missing Audit ranges, schema N/N+1 and downgrade barriers,
   quorum loss, cell loss, restore, and repeated replay.
 
