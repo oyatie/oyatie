@@ -1779,8 +1779,10 @@ faces: `policy/ports/check` (`policy-check`),
 `audit/ports/emission` (`audit-emission`), and
 `secrets/ports/kms-use` (`secrets-kms-use`). The KMS amendment chooses the
 opaque-handle AEAD contract in `SPEC.md`: durable `ReserveNonceRange`,
-tenant/purpose/generation/fence-bound `Seal` and `Open`, a non-serializable
-handle with no raw-byte accessor, and provider-owned zeroization proof. Each
+tenant/purpose/generation/fence-bound `Seal`, restart/restore-authorized
+`AcquireOpenHandle` and `Open`, a persistable opaque key-generation binding,
+non-serializable operation handles with no raw-byte accessor, and provider-owned
+zeroization proof. Each
 owner amendment names typed request/receipt/error/revision semantics, Cargo
 and Buck targets, reverse closure, authentication, outage behavior,
 rollout/rollback, SLO, and fault evidence. A separate root D-29 dependency
@@ -1792,8 +1794,9 @@ D1c-KS does not write root manifests or `third-party/**`.
 Success is three provider conformance receipts plus the cryptography dependency
 receipt, with no provider-core/internal-API edge and exact Cargo/Buck parity.
 Failure is a guessed provider, raw key/provider client in a Data contract,
-test fake as authority, Data-visible key material/local AES-GCM, fail-open outage, or
-foreign write hidden in a Data PR. Rollback is provider-owned and precedes any
+test fake as authority, Data-visible key material/local AES-GCM, an
+unrecoverable opaque handle, fail-open outage, or foreign write hidden in a
+Data PR. Rollback is provider-owned and precedes any
 Data adapter merge. SLO is 100% fail-closed authority and key-material
 containment; faults cover deny/malformed/stale receipts, provider outage,
 revocation races, crypto feature skew, and missing Buck/Cargo edges.
@@ -1934,11 +1937,12 @@ Exact graph parity is:
 ```text
 policy-client + audit-sink + record-keys + record-protection
   -> data-records-domain
+record-keys -> record-protection
 record-keys + record-protection -> data-tablet-persistence-draft
-record-protection -> data-tablet-persistence-file-draft
+record-keys + record-protection -> data-tablet-persistence-file-draft
 record-protection + approved aws-lc-rs (SHA-256 only)
   -> data-record-digest-awslc-draft
-the four Data ports -> data-records-app
+record-keys + record-protection + policy-client + audit-sink -> data-records-app
 ```
 
 No keyed crypto or foreign provider reaches core; the AWS-LC digest adapter
@@ -1948,7 +1952,8 @@ is D1c-S/WS plus these packages and the accepted third-party targets; reverse
 closure is empty. Reviewers are Data, security, build/dependency, Cell,
 Policy/IAM, Audit, Secrets, and architecture. Success is empty/scanner faces,
 exact parity, and zero secret/keyed-algorithm behavior. Failure is content,
-raw-key type in a general records port, provider/internal edge, implicit
+raw-key type in a general records port, a missing `record-keys ->
+record-protection` Cargo/Buck edge, provider/internal edge, implicit
 keyed-crypto dependency, app route, one-graph edge, or unrelated lock churn. Rollback
 removes only these packages/edges. Faults cover scanner parity, forbidden
 provider-core edges, dependency-feature skew, and lock/target canaries.
@@ -2026,9 +2031,9 @@ data/ports/draft/policy-client/src/items/{a_request,b_receipt,c_errors}.rs
 data/ports/draft/policy-client/src/test_items/a_contract.rs
 data/ports/draft/audit-sink/src/items/{a_event,b_receipt,c_errors}.rs
 data/ports/draft/audit-sink/src/test_items/a_contract.rs
-data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_generation,c_nonce_lease,d_key_receipt,e_errors}.rs
+data/ports/draft/record-keys/src/items/{a_key_purpose,b_key_generation_binding,c_nonce_lease,d_key_receipt,e_opaque_operation_handle,f_errors}.rs
 data/ports/draft/record-keys/src/test_items/{a_contract,b_state_machine}.rs
-data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_opaque_key_handle,d_errors}.rs
+data/ports/draft/record-protection/src/items/{a_digest,b_envelope,c_errors}.rs
 data/ports/draft/record-protection/src/test_items/{a_contract,b_golden_frames}.rs
 data/adapters/draft/record-digest-awslc/src/items/a_sha256.rs
 data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
@@ -2036,8 +2041,10 @@ data/adapters/draft/record-digest-awslc/src/test_items/a_known_answers.rs
 
 Implement only the Data-owned contracts and the unkeyed AWS-LC SHA-256 adapter
 frozen in `SPEC.md`: receipt binding, exact fingerprint/AAD/token frames,
-SHA-256, opaque KMS-handle/key-use/nonce-reservation types, stable errors, and
-the pre-use durable nonce state machine. KC defines the complete request,
+SHA-256, opaque KMS key-generation-binding/operation-handle/key-use/
+nonce-reservation types, stable errors, the exact classification codepoint
+table, artifact-plan/final-manifest grammar, and the pre-use durable
+linearizable nonce state machine. KC defines the complete request,
 receipt, and error types that every provider adapter maps; it does not call a
 provider, hold a raw key, perform AES-GCM, persist a record, decode protobuf,
 compose a process, or claim readiness. Every file stays at or below 300
@@ -2045,16 +2052,19 @@ handwritten lines; scanner outputs and Cargo/Buck target membership are
 identical.
 
 Success is two independent golden-frame encoders, published SHA-256 known-answer
-vectors, byte-exact envelope/token framing, opaque-handle containment, and no
-nonce reuse. Failure is custom keyed cryptography, algorithm defaulting,
+vectors, byte-exact envelope/token/final-manifest framing, opaque-handle
+containment, restartable DecryptOnly reacquisition, and no nonce reuse. Failure
+is custom keyed cryptography, algorithm defaulting,
 raw-key clone/log/serialization, a raw-key-shaped type or async state,
 unchecked counter/length, unknown-field acceptance, plaintext fallback,
 provider edge before KX-C, or production claim. Rollback removes only these
 content files. SLO is bounded contract/hash work and zero observed
 opaque-handle/nonce violations. Faults flip every header/AAD/ciphertext/tag
-byte, cross tenant/purpose/generation, exhaust/wrap counters, crash at acquire,
-reserve, local checkpoint, pre-Seal advance, Seal, persist, publish, and ACK,
-then run known answers and N/N+1 counters through Cargo and Buck. KMS AEAD
+byte, classification codepoint, plan/final-manifest field, and chunk order;
+cross tenant/purpose/generation; exhaust/wrap counters; race concurrent CAS
+allocators; crash at acquire, reserve, local checkpoint, allocation CAS/fsync,
+Seal, persist, publish, and ACK; restart into EncryptActive/DecryptOnly/source
+loss; then run known answers and N/N+1 counters/chunks through Cargo and Buck. KMS AEAD
 known-answer, tamper, zeroization, and terminal-path evidence belong to KX-C.
 
 ### D1c-WC — Records-v1 schema, codec, and accounting behavior
@@ -2092,8 +2102,9 @@ accounting, handler/route, or D4 dependency. Rollback restores the minimal
 schema and removes only these members while D1c-C remains. SLO is constant
 bounded decode/encode work; faults cover each malformed protobuf form,
 exact/+1 frame/allocation/result/continuation bounds, malicious prefixes,
-amplification, cancellation/backpressure, descriptor skew, and Cargo/Buck
-codegen canaries.
+amplification, the exact `4,241,449` fingerprint and `6,022` continuation
+limits plus one/overflow, cancellation/backpressure, descriptor skew, and
+Cargo/Buck codegen canaries.
 
 ### D1c-KA — Real provider adapters
 
@@ -2107,7 +2118,7 @@ Data-owned request, receipt, or error before D1c-KC defines those types:
 | `D1c-KP-S` | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
 | `D1c-KA-S` | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
 | `D1c-KK-S` | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
-| `D1c-KX-S` | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KX-S` | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
 
 Each scanner matches D1c-S, each lock delta is one local block plus already
 accepted provider edges, and Cargo/Buck close identically. Exact structure
@@ -2132,9 +2143,10 @@ D1c-KX-C: data/adapters/draft/record-protection-secrets/src/items/a_adapter.rs
 Content only maps Data-owned requests/receipts/errors to the accepted provider
 contract and preserves revision, integrity, deadline, tenant, purpose,
 generation, opaque-handle containment, durable pre-use nonce reservation, and
-revocation fences. KX-C maps KMS `Seal`/`Open`, never local AES-GCM or a raw
-key; it requires provider KAT, tamper, raw-key-zeroization, and terminal-path
-evidence. Provider-owned conformance
+revocation fences. KX-C consumes the record-keys binding/operation-handle types
+and maps KMS `AcquireOpenHandle`, `Seal`, and `Open`, never local AES-GCM or a
+raw key; it requires provider KAT, tamper, raw-key-zeroization, restart/restore
+reacquisition, duplicate-nonce refusal, and terminal-path evidence. Provider-owned conformance
 services/fixtures and live fault plants supply evidence; a Data fake, in-memory
 double, direct provider client, or provider core cannot satisfy it. Success is
 byte/type-exact mapping and fail-closed deny/outage/staleness in both graphs;
@@ -2146,9 +2158,9 @@ into core. Rollback removes one adapter/edge before composition. SLO signals
 are provider latency, deadline/refusal class, receipt age/revision, key/nonce
 lease headroom, and no false allow/ACK. Faults cover malformed/stale/wrong-
 tenant receipts, network loss/timeout/reorder, Audit durability loss, KMS
-crash at reserve/checkpoint/Seal/persist/publish/ACK, rotation/revocation
-between lease and use, raw-key containment/zeroization, and provider N/N+1
-skew.
+crash at reserve/checkpoint/allocation-CAS/Seal/persist/publish/ACK, restart
+and source loss before Open, rotation/revocation between lease and use, raw-key
+containment/zeroization, duplicate-nonce rejection, and provider N/N+1 skew.
 
 ### D1c-O — Parameterized in-memory oracle
 

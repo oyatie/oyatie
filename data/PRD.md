@@ -152,13 +152,16 @@ facts, not destination endorsements.
   composition or readiness.
 - Encrypt records, WAL/log entries, segments, snapshots, repair copies, and
   migration artifacts with the tenant-bound versioned AEAD envelope and AAD in
-  `SPEC.md`. Data uses an accepted KMS AEAD operation through an opaque,
-  non-serializable handle; it never receives, serializes, logs, or zeroizes raw
-  key bytes. The KMS contract owns raw-key lifetime/zeroization evidence.
-  Rotate generations online with a non-reusing nonce-range lease that is
-  durably reserved and locally advanced before each use, bounded resumable
-  re-encryption, durable audit, ciphertext-only restore, and revocation
-  fencing. An uncertain recovered nonce lease is burned and withdraws
+  `SPEC.md`. Data uses accepted KMS AEAD operations through opaque,
+  non-serializable operation handles; it never receives, serializes, logs, or
+  zeroizes raw key bytes. The KMS contract owns raw-key lifetime/zeroization
+  evidence. Rotate generations online with a non-reusing `NonceLeaseId` range
+  durably reserved and allocated by one exclusive linearizable CAS/fsync owner
+  before each use, bounded resumable re-encryption, durable audit,
+  ciphertext-only restore, and revocation fencing. Data persists only an
+  encrypted opaque provider key-generation binding and reacquires a fresh
+  authorized Open/DecryptOnly handle after restart; it never persists a handle
+  or raw key. An uncertain recovered lease/binding is burned and withdraws
   readiness rather than being reused.
   Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time
   evidence withdraws the affected route and readiness. Plaintext, stale-key,

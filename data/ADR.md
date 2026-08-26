@@ -262,19 +262,23 @@ tests.
   it also advanced the nonce checkpoint only before acknowledgement, after a
   ciphertext could already exist.
 - **rule:** `secrets-kms-use` is the required accepted provider face for an
-  opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only its
-  non-serializable handle reference, generation/fence metadata, and durable
-  nonce-reservation receipt; they MUST NOT expose raw key bytes or a provider
-  client. The provider MUST durably reserve a disjoint nonce range before it
-  returns the receipt. Data MUST durably record the lease and then durably
-  advance `next` past a counter before submitting that nonce to Seal; if
-  recovery cannot prove the latest state, it burns the whole lease and
-  withdraws readiness. KMS owns any raw-key lifetime and zeroization proof.
-- **ensure:** `SPEC.md` fixes the request/receipt/error fields and the
-  acquire/reserve/seal/persist/publish/ACK crash matrix; `PLAN.md` schedules
-  the KMS AEAD adapter content only after KC defines those Data types.
-  Conformance scans reject raw-key-shaped Data values and test every crash
-  boundary, N/N+1 nonce counter, lease burn, rotation, and refusal path.
+  opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only
+  non-serializable operation handles, an encrypted opaque key-generation
+  binding sufficient for authorized post-restart `Open` reacquisition,
+  generation/fence metadata, and a durable nonce-reservation receipt; they
+  MUST NOT expose raw key bytes or a provider client. `NonceLeaseId:u32` is the
+  sole nonce identity. The provider MUST durably reserve a disjoint range before
+  returning it; one exclusive lease owner MUST atomically CAS+fsync `next` past
+  a counter before submitting that nonce to Seal. If recovery cannot prove the
+  binding, ownership, or latest state, it burns the whole lease and withdraws
+  readiness. KMS owns raw-key lifetime and zeroization proof.
+- **ensure:** `SPEC.md` fixes the satisfiable byte formulas, closed AAD
+  codepoints/field count/final-manifest grammar, request/receipt/error fields,
+  and acquire/reserve/CAS/seal/persist/publish/ACK/reacquire crash matrix;
+  `PLAN.md` schedules KC's record-keys types and direct Cargo/Buck edge before
+  the KMS protection adapter. Conformance scans reject raw-key-shaped Data
+  values and test every crash boundary, concurrent allocation, N/N+1
+  counter/chunk, lease burn, restart/source-loss/rotation, and refusal path.
 - **overturn_when:** an accepted replacement provider contract proves an
   equally opaque, tenant-bound operation with durable non-reuse, raw-key
   containment, zeroization evidence, and the same crash/rotation refusal

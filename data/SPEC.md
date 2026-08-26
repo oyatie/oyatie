@@ -258,8 +258,9 @@ repeated count times, in caller transaction order:
   ordinal:u32 | item_kind:u8 | key_length:u32 | key:[u8;key_length] | variant
 ```
 
-`count` is the number of items supplied for that set and is at most
-`MAX_TRANSACTION_OPERATIONS`; its first item has `ordinal=0`, and each later
+`count` is the number of items supplied for that set and is at most the
+transaction-wide remaining `MAX_TRANSACTION_OPERATIONS`; its first item has
+`ordinal=0`, and each later
 item has the preceding ordinal plus one. `item_kind` is `1` for read, `2` for
 write, and `3` for condition and MUST equal `set_kind`; a typed collection that
 mixes kinds, has a missing/repeated/skipped ordinal, or has a count/order
@@ -283,11 +284,14 @@ tombstone with a value, trailing bytes, or an alternate Unicode/byte
 normalization fails. Independent implementations may share input fixtures and
 constants but MUST use separate framing/accumulation code. Golden vectors cover
 each variant, all zero/empty forms, permutation and normalization refusal,
-truncation/unknown code, exact limits, plus-one limits, and N/N+1 count/order.
+truncation/unknown code, exact limits, plus-one limits, the `4,241,449`-byte
+worst-case set preimage and its one-byte overflow, and N/N+1 count/order. The
+independent encoders also inject `u64::MAX` into every length/count accumulator
+and prove the typed overflow refusal occurs before allocation or digest output.
 
 ## Authenticated scan continuation v1
 
-The public continuation is raw opaque bytes, at most 4 KiB. Its outer frame is:
+The public continuation is raw opaque bytes, at most 6,022 bytes. Its outer frame is:
 
 ```text
 domain_len:u8 = 33
@@ -296,14 +300,14 @@ separator:u8 = 0
 version:u8 = 1
 algorithm:u8 = 1                 # AES-256-GCM
 key_generation:u64
-nonce:[u8;12]                    # lease_id:u32 || checked counter:u64
+nonce:[u8;12]                    # nonce_lease_id:u32 || checked counter:u64
 ciphertext_length:u32
 ciphertext:[u8;ciphertext_length]
 tag:[u8;16]
 ```
 
 AAD is the complete header through `ciphertext_length` (exactly 61 bytes);
-unknown version/algorithm, a length above 4,019, truncation, or trailing bytes
+unknown version/algorithm, a ciphertext length above 5,945, truncation, or trailing bytes
 fails before an AEAD operation. The plaintext has its own, independently
 framed grammar--it is not a bare reuse of the request frame:
 
@@ -345,15 +349,27 @@ is the zero-length BYTES value; a resumed page has its exact prior opaque key.
 Boundary-straddling or widened intervals return `TimeUncertain`. The token
 supplies no new tenant, principal, limit, map, schema, or snapshot authority.
 
+The continuation bounds are derived rather than rounded. The maximum plaintext
+is exactly `38` fixed header bytes + `19 * 6` field prefixes + `6 * 256`
+identifier bytes + `5 * 8` U64 bytes + `3 * 32` digest bytes + `1` direction
+byte + `4,096` last-key bytes + `3 * 8` I64 bytes = `5,945` bytes. AES-GCM
+does not expand ciphertext, and the outer header/tag adds `61 + 16 = 77`
+bytes, so `MAX_SCAN_CONTINUATION_TOKEN_BYTES = 5,945 + 77 = 6,022`. All
+summands use checked `u64` arithmetic before a `usize` conversion; each
+summand's exact maximum, its plus-one input, and overflow are separate golden
+vectors. A valid 4-KiB primary key is therefore representable in a resumed
+continuation, not a nominally legal request that cannot be continued.
+
 Keys have purpose `ScanContinuation` and states `EncryptActive`,
 `DecryptOnly`, `RetirePending`, or `Revoked`. Exactly one generation is
 encrypt-active; prior decrypt-only generations survive at least maximum TTL
 plus the bounded request drain. Retirement first rejects new decrypt leases,
 waits for issued leases to drain, and then is fenced by a durable Audit receipt.
-Secrets durably reserves a unique nonce range per generation before returning
-it. Data durably records `lease_id/start/next/end` before first use and
-durably advances `next` past a counter before submitting that nonce to AEAD;
-on any uncertain recovery it burns the entire range and withdraws readiness.
+Secrets durably reserves a unique `NonceLeaseId` range per generation before
+returning it. Data durably creates the exclusive checkpoint before first use
+and advances `next` with the linearizable CAS/fsync transition before
+submitting that nonce to AEAD; on any uncertain recovery it burns the entire
+range and withdraws readiness.
 Unknown or revoked generations,
 authentication failure, malformed/cross-context input, and foreign replay all
 map publicly to `ScanContinuationError::Invalid`; expiry, uncertain time,
@@ -370,8 +386,8 @@ permutation, exact/plus-one plaintext and outer-token boundaries,
 truncation/unknown-tag/type refusal, header/AAD/ciphertext/tag tamper,
 cross-tenant/principal/query/tablet/snapshot replay, expiry-boundary,
 interval-widening, active-to-decrypt-only rollover, revoked/unknown generation,
-N/N+1 nonce/count vectors, nonce exhaustion, every crash/restore point, and
-repeated-token campaigns.
+N/N+1 nonce/count vectors, concurrent allocation/duplicate refusal, nonce
+exhaustion, every crash/restore point, and repeated-token campaigns.
 
 </request_authority>
 
@@ -482,8 +498,10 @@ Data owns four implementation-free use-case ports:
 ```text
 PolicyClient        authorize(canonical request context) -> PolicyReceipt
 AuditSink           append_pre_ack(canonical event) -> DurableAuditReceipt
-RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> KeyUseReceipt
-RecordProtection    digest/seal/open using KeyUseLease, explicit purpose, and envelope -> result
+RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> KeyUseLease;
+                    reacquire an authorized opaque decrypt operation -> OpaqueOpenHandle
+RecordProtection    digest/seal/open using RecordKeySource operation handles, explicit purpose,
+                    lease identity, and envelope -> result
 ```
 
 Their draft homes are respectively `data/ports/draft/policy-client`,
@@ -506,20 +524,40 @@ core-backed/internal shapes, and Data MUST NOT depend on them or any provider
 `secrets-kms-use` is the only planned Data key/AEAD boundary. Before its Data
 adapters land, the provider owner must accept these v1 operations and their
 typed Cargo/Buck faces: `ReserveNonceRange(tenant, purpose, requested_count,
-minimum_generation, request_fence) -> KeyUseReceipt`,
-`Seal(opaque_handle, tenant, purpose, generation, fence_sequence, nonce,
-aad, plaintext) -> ciphertext_and_tag`, and `Open` over the corresponding
-envelope. `KeyUseReceipt` contains only `key_id`, `generation`,
-`fence_sequence`, `lease_id`, `start`, `end_exclusive`, `not_after`, integrity,
-and an opaque non-serializable handle; a handle has no byte accessor, cannot be
-cloned, displayed, serialized, logged, persisted, or supplied to another
-tenant/purpose/generation. It contains no key bytes and no provider client.
+minimum_generation, request_fence) -> KeyUseLease`,
+`AcquireOpenHandle(tenant, purpose, KeyGenerationBinding, request_fence,
+recovery_authorization) -> OpaqueOpenHandle`,
+`Seal(OpaqueSealHandle, tenant, purpose, generation, fence_sequence,
+nonce_lease_id, counter, aad, plaintext) -> ciphertext_and_tag`, and
+`Open(OpaqueOpenHandle, tenant, purpose, KeyGenerationBinding, envelope) ->
+plaintext`. `KeyGenerationBinding` is the sole persistable recovery reference:
+tenant, purpose, canonical key ID, generation, fence sequence, opaque provider
+key-generation reference, provider contract revision, and provider integrity.
+It contains no key bytes, usable operation handle, or provider client. The
+opaque provider reference is a provider-defined stable identifier, serialized
+only in the encrypted Data recovery record and passed back only to the accepted
+provider face; Data never interprets it.
+
+`KeyUseLease` contains that binding plus exactly one `NonceLeaseId:u32`,
+`start:u64`, `end_exclusive:u64`, `not_after`, reservation integrity, and a
+non-serializable `OpaqueSealHandle`. `OpaqueSealHandle` and `OpaqueOpenHandle`
+have no byte accessor, cannot be cloned, displayed, serialized, logged,
+persisted, or supplied to another tenant/purpose/generation/fence. Data
+persists the binding and lease receipt but never either handle. On restart,
+restore, or a `DecryptOnly` generation, Data authorizes recovery against the
+persisted binding and calls `AcquireOpenHandle`; the provider verifies tenant,
+purpose, key ID, generation, fence, state, authorization, and binding
+integrity before returning a fresh operation-local open handle. Source loss, a
+missing/corrupt/foreign binding, unavailable provider, revoked generation, or
+an authorization/fence mismatch returns a typed refusal and withdraws affected
+readiness; ciphertext alone never causes a raw-key fallback.
+
 The provider durably records the disjoint reservation before returning the
-receipt and rejects a Seal/Open whose handle, tenant, purpose, generation,
-fence, nonce range, or key state does not match. KMS owns raw-key storage,
-cryptographic key lifetime, and zeroization evidence; Data's source/type and
-serialization scans prove that no raw-key-shaped value exists in any Data
-contract, receipt, event, envelope, error, log, or async state.
+lease and rejects a Seal/Open whose handle, tenant, purpose, binding, fence,
+nonce-lease identity, counter range, or key state does not match. KMS owns
+raw-key storage, cryptographic key lifetime, and zeroization evidence; Data's
+source/type and serialization scans prove that no raw-key-shaped value exists
+in any Data contract, receipt, event, envelope, error, log, or async state.
 
 `PolicyReceipt` binds tenant, principal, operation, resource/range,
 request fingerprint, issuer, audience, policy revision, decision, issued Cell
@@ -550,7 +588,7 @@ purpose:u8                                # record=1, wal=2, segment=3,
                                           # snapshot=4, repair=5, migration=6
 key_id_length:u16 | key_id:[u8;length]    # canonical ASCII, 1..256 bytes
 key_generation:u64
-nonce:[u8;12]                             # lease_id:u32 || counter:u64
+nonce:[u8;12]                             # nonce_lease_id:u32 || counter:u64
 aad_length:u32 | aad:[u8;length]
 ciphertext_length:u64 | ciphertext:[u8;length]
 tag:[u8;16]
@@ -568,8 +606,8 @@ field encodings are `ASCII=1`, `U64=2`, `DIGEST32=3`, and `ENUM8=4`.
 
 ```text
 domain_len:u8 | domain:[u8;domain_len] | separator:u8 = 0 | version:u8 = 1
-field_count:u16 = 15
-repeated exactly once in increasing order:
+field_count:u16 = 19
+repeated exactly field_count times, tags strictly increasing:
   tag:u8 | type:u8 | length:u32 | value:[u8;length]
 ```
 
@@ -584,52 +622,140 @@ The purpose/domain table is closed: record=`1` and
 `05` ownership epoch U64, `06` schema revision U64, `07` classification code
 ENUM8, `08` classification revision U64, `09` primary-key digest DIGEST32,
 `0a` commit ordinal U64, `0b` transaction ID ASCII, `0c` artifact generation
-U64, `0d` key ID ASCII, `0e` key generation U64, and `0f` artifact chunk
-ordinal U64. Tenant/database/table/tablet/key ID are canonical ASCII `1..=256`;
-transaction ID is canonical ASCII `1..=256` when present and exactly zero
-bytes when empty; fixed-width values have their stated width. `key ID` and key
-generation exactly match the envelope header. For a field not meaningful to a
-purpose, zero means eight zero bytes for U64, 32 zero bytes for DIGEST32, and
-zero length for transaction ID; it is never omitted. Record uses its real
-primary-key digest, commit ordinal, and transaction ID with artifact/chunk
-ordinal zero. WAL uses zero primary-key digest, real commit/transaction, and
-zero artifact/chunk ordinal. Segment, snapshot, repair, and migration use zero
-primary-key digest, commit ordinal, and transaction ID, real artifact
-generation, and a zero-based chunk ordinal. Unknown/duplicate/out-of-order
-tag/type, wrong width, noncanonical ASCII, omitted field, trailing byte, or a
-purpose-specific nonzero/empty mismatch fails before allocation, Open, or
-publication. `aad_length` is the exact frame length, at most
+U64, `0d` key ID ASCII, `0e` key generation U64, `0f` artifact role ENUM8,
+`10` artifact chunk ordinal U64, `11` artifact chunk count U64, `12` artifact
+total plaintext bytes U64, and `13` artifact-plan digest DIGEST32.
+Tenant/database/table/tablet/key ID are canonical ASCII `1..=256`; transaction
+ID is canonical ASCII `1..=256` when present and exactly zero bytes when empty;
+fixed-width values have their stated width. `key ID` and key generation exactly
+match the envelope header. Every tag `01..13` occurs exactly once: a decoder
+rejects a field count other than 19 before looking at a field, and rejects an
+unknown, duplicate, omitted, out-of-order, wrong-type, wrong-width, trailing,
+or purpose-inapplicable field before allocation, Open, or publication.
+
+The classification ENUM8 conversion is closed and is not Rust declaration
+order or a `repr` cast. KC implements this exact total match and refuses every
+other byte: `Public=1`, `InternalOnly=2`, `PiiIdentifying=3`, `PiiSensitive=4`,
+`Phi=5`, `Pci=6`, `PipaArticle23=7`, `Children=8`, `Financial=9`, `Usage=10`,
+`Secret=11`, `Audit=12`, `PiiQuasiIdentifier=13`,
+`FinancialRegulatedCredit=14`, `BehavioralTenantProduct=15`,
+`BehavioralAds=16`, `DeclaredPreference=17`, `SearchQuery=18`, and
+`SensitivePipaArticle23=19`. Compatibility aliases remain distinct source
+variants and retain the listed byte; a future source variant requires a new
+versioned AAD grammar rather than an unassigned codepoint.
+
+For a field not meaningful to a purpose, zero means eight zero bytes for U64,
+32 zero bytes for DIGEST32, `artifact_role=1` (`single`), and zero length for
+transaction ID; it is never omitted. `artifact_role` is closed: `1=single`,
+`2=chunk`, `3=final_manifest`. A single record/WAL artifact has ordinal `0`,
+count `1`, its exact plaintext byte length, and a one-entry plan digest.
+Multi-chunk segment, snapshot, repair, and migration artifacts use role `2`,
+zero-based ordinal, common nonzero count, common total plaintext bytes, and a
+common plan digest. Their final manifest uses role `3`, ordinal exactly equal
+to count, and the same count/total/plan digest. Record uses its real primary-key
+digest, commit ordinal, and transaction ID; WAL uses zero primary-key digest
+and real commit/transaction; the other artifact purposes use zero primary-key
+digest, commit ordinal, and transaction ID with real artifact generation.
+`aad_length` is the exact frame length, at most
 `MAX_RECORD_AAD_BYTES`, and SHA-256 of those bytes is stored in the
-manifest/commit record.
+manifest/commit record. The largest purpose-domain header is `40` bytes; the
+nineteen field prefixes are `114`; six ASCII values contribute at most `1,536`;
+nine U64 values `72`; two digests `64`; and two ENUM8 values `2`. Therefore the
+largest legal AAD is `1,828` bytes, safely within the 4,096-byte hard maximum.
+KATs include that exact maximum, a 1,829-byte attempted legal-field expansion,
+and `u64::MAX` checked-length overflow; neither may allocate or invoke Open.
 
 `CiphertextEnvelopeV1` seals one bounded artifact chunk, not an unbounded
 stream. `ciphertext_length` is checked before allocation and is at most 4 MiB
 for record/tombstone purpose and at most 16 MiB for WAL, segment, snapshot,
 repair, and migration purpose; the ciphertext is the same length as its
 AES-GCM plaintext. Larger durable artifacts are pre-split into such chunks and
-bind their stable zero-based chunk ordinal in AAD; no decoder accumulates more
-than one accepted chunk. Exact-limit and N+1 tests run independently for every
-purpose, along with each field/tag/type/length and header/AAD/ciphertext/tag
+bind their stable zero-based chunk ordinal, count, total, role, and plan digest
+in AAD; no decoder accumulates more than one accepted data chunk.
+
+For a multi-chunk artifact, `ArtifactPlanV1` is the exact pre-encryption frame
+whose SHA-256 is the AAD plan digest:
+
+```text
+domain_len:u8 = 35
+domain:[u8;35] = "oyatie.data.record.artifact-plan.v1"
+separator:u8 = 0 | version:u8 = 1
+purpose:u8 | artifact_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64
+repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
+  ordinal:u64 | plaintext_length:u64
+```
+
+Count is `2..=4,096`; every ordinal is exactly its zero-based position; checked
+addition of entry lengths must equal the total; and total is at most 64 GiB.
+Its exact maximum is `63 + (4,096 * 16) = 65,599` bytes. The final manifest is
+a separately sealed role-`3` envelope whose plaintext is this exact
+`ArtifactFinalManifestV1` frame:
+
+```text
+domain_len:u8 = 39
+domain:[u8;39] = "oyatie.data.record.artifact-manifest.v1"
+separator:u8 = 0 | version:u8 = 1
+purpose:u8 | artifact_generation:u64 | key_id_length:u16 | key_id:[u8;key_id_length]
+key_generation:u64 | chunk_count:u64 | total_plaintext_bytes:u64 | plan_digest:[u8;32]
+repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
+  ordinal:u64 | plaintext_length:u64 | ciphertext_digest:[u8;32] |
+  serialized_envelope_digest:[u8;32]
+```
+
+Its exact maximum is `365 + (4,096 * 80) = 328,045` bytes. The only publishable
+artifact root is an atomic CAS `ArtifactCommitRecordV1` containing the
+final-manifest serialized-envelope digest, count, total, and plan digest; it is
+published only after every listed chunk and final manifest are durable.
+
+A reader treats a commit record as a locator, opens the final manifest first,
+then requires every ordinal `0..count-1` exactly once in order, verifies each
+envelope digest, AAD, plaintext length, and the checked total. It rejects a
+missing, extra, duplicate, reordered, unknown-role, unknown-codepoint, wrong
+count/total/plan, truncated manifest, or uncommitted final manifest before any
+artifact publication. Required KATs include independent N and N+1 chunk plans
+and final manifests, every field/tag/type permutation, exact/plus-one count,
+total, manifest, and chunk bounds, and tamper/reorder/delete/duplicate vectors
+for both a chunk and the final manifest. Exact-limit and N+1 tests also run
+independently for every purpose, along with each header/AAD/ciphertext/tag
 tamper vector.
 
-`RecordKeySource` returns only a purpose/tenant-bound, generation-fenced
-`KeyUseLease` carrying the opaque handle plus `fence_sequence:u64`, `lease_id`,
-`not_after`, and a disjoint nonce range
-`nonce_lease_id:u32,start:u64,end_exclusive:u64`. The provider has already
-durably reserved that range. Before first use Data writes and fsyncs the lease
-receipt and `next=start`; before each Seal it checked-increments `next`, writes
-and fsyncs the advanced value, and only then submits the prior counter. Thus a
-crash can burn counters but cannot reuse one. Recovery accepts a lease only
-when its durable reservation, provider receipt, generation/fence, and local
-next state agree; any missing/corrupt/rolled-back/uncertain state burns the
-whole lease through KMS, quarantines affected recovery, and withdraws
-admission/readiness. A crash at acquire, provider reserve, local reservation,
-pre-Seal advance, Seal, ciphertext persist, publish, or ACK has an explicit
-test: recovery either proves that counter consumed or refuses/burns it. Rotation,
-ownership transfer, restore, and revocation obey the same rule. No Data code
-receives a raw 32-byte key; therefore there is no Data zeroizing-key buffer to
-expose or test. Provider conformance proves raw-key zeroization and Data
-conformance proves opaque-handle containment and terminal-path refusal.
+`NonceLeaseId:u32` is the only lease identity in a nonce and in every receipt,
+checkpoint, error, envelope, and provider call; the AES-GCM nonce is exactly
+`nonce_lease_id:u32 || counter:u64`. `RecordKeySource` returns a tenant/purpose
+bound, generation-fenced `KeyUseLease` carrying that one identity, range,
+binding, and opaque seal handle. The provider durably reserves a disjoint range
+before return. Before first use, one designated local lease owner atomically
+creates and fsyncs `NonceLeaseCheckpoint { binding digest, nonce_lease_id,
+start, next=start, end_exclusive, reservation integrity, epoch }`.
+
+`AllocateNonce` is the only transition that returns a counter to Seal. It is a
+linearizable compare-and-swap on that checkpoint under exclusive lease-owner
+identity: if `next < end_exclusive`, it durably replaces `next=x` with
+`next=x+1`, fsyncs the replacement, and only then returns `(nonce_lease_id,x,
+epoch)` to one caller. A failed CAS retries from durable state; a stale owner,
+lost exclusivity, range exhaustion, fence/key state mismatch, or durability
+failure returns a typed refusal and never a nonce. The provider independently
+rejects a duplicate `(binding, nonce_lease_id, counter)` Seal. Thus two live
+workers cannot issue the same nonce even without a crash; after a crash the
+unconfirmed allocation is burned rather than replayed. The checkpoint is
+durably reserved before first use, and rotation/restore obtains a new owner and
+range rather than resurrecting an old checkpoint.
+
+Recovery accepts a lease only when the durable reservation, provider receipt,
+binding, owner epoch, and local checkpoint agree. Any missing, corrupt,
+rolled-back, source-lost, or uncertain state burns the whole lease through KMS,
+quarantines recovery, and withdraws admission/readiness. Typed terminal
+outcomes are `NonceLeaseExhausted`, `NonceLeaseOwnershipLost`,
+`NonceCheckpointUnavailable`, `NonceCheckpointConflict`,
+`NonceReservationInvalid`, and `KeyGenerationUnavailable`; only an explicit
+fresh lease can resume encryption. Tests cover concurrent workers and CAS
+races, retry, every crash barrier (acquire, provider reserve, checkpoint
+create, allocation CAS/fsync, Seal, ciphertext persist, publish, ACK),
+exhaustion/wrap, rotation, restore, duplicate-use refusal, and source-loss.
+No Data code receives a raw 32-byte key; therefore there is no Data
+zeroizing-key buffer to expose or test. Provider conformance proves raw-key
+zeroization and Data conformance proves opaque-handle containment and terminal
+path refusal.
 
 Key generations transition
 `EncryptActive -> DecryptOnly -> RevocationPending -> Revoked`; no reverse
@@ -662,21 +788,26 @@ yields `RecordSecurityError::KeyRevoked`.
 Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `PolicyReceiptInvalid`, `AuditUnavailable`, `AuditReceiptInvalid`,
 `KeyServiceUnavailable`, `NoEncryptActiveGeneration`, `NonceLeaseExhausted`,
-`CryptoUnavailable`, `KeyBufferUnavailable`, `CiphertextMalformed`,
+`NonceLeaseOwnershipLost`, `NonceCheckpointUnavailable`,
+`NonceCheckpointConflict`, `NonceReservationInvalid`, `KeyGenerationUnavailable`,
+`CryptoUnavailable`, `CiphertextMalformed`,
 `AuthenticationFailed`, and `ContextMismatch`. There is no plaintext, stale-key,
 unaudited, or best-effort fallback.
 
 Production composition remains unrouted and not ready unless real provider
 adapters attest compatible contract revisions, Policy/Audit/KMS are reachable,
 an encrypt-active record and continuation generation plus sufficient durable
-nonce lease exist, trusted Cell time is usable, recovery has no quarantine,
+nonce lease and recoverable encrypted `KeyGenerationBinding` exist, trusted
+Cell time is usable, recovery has no quarantine,
 and the latest rotation/inventory audit is within its capacity profile. Loss
 of any condition withdraws admission/readiness before accepting new work.
 Independent SHA-256 and KMS-AEAD known-answer vectors, independent AAD
-encoders, wrong-AAD/tag/tenant/purpose/key tests, nonce duplicate/exhaustion,
-raw-key-containment and provider-zeroization evidence, PDP/Audit/KMS outage,
-rotation/revocation at every barrier, crash-resume, ciphertext-only restore,
-corrupt backup, and readiness-withdrawal campaigns are mandatory before D4.
+encoders, wrong-AAD/tag/tenant/purpose/key tests, N/N+1 final-manifest tests,
+nonce duplicate/exhaustion/concurrent-CAS refusal, raw-key-containment and
+provider-zeroization evidence, PDP/Audit/KMS outage, rotation/revocation at
+every barrier, restart reacquisition for EncryptActive and DecryptOnly,
+ciphertext-only restore, provider-reference source loss, corrupt backup, and
+readiness-withdrawal campaigns are mandatory before D4.
 
 ## Fail-closed request context
 
@@ -716,8 +847,8 @@ lower value, but no implementation may raise these maxima:
 | `MAX_IDEMPOTENCY_KEY_BYTES` | 128 bytes | one canonical caller retry key |
 | `MAX_PRIMARY_KEY_BYTES` | 4 KiB | one opaque primary-key byte string |
 | `MAX_RECORD_VALUE_BYTES` | 4 MiB | one encoded value or tombstone payload |
-| `MAX_REQUEST_FINGERPRINT_FRAME_BYTES` | 8 KiB | complete server-derived canonical fingerprint preimage after set values become fixed digests |
-| `MAX_SCAN_CONTINUATION_TOKEN_BYTES` | 4 KiB | complete authenticated opaque continuation frame |
+| `MAX_REQUEST_FINGERPRINT_FRAME_BYTES` | 4,241,449 bytes | complete server-derived canonical fingerprint preimage after set values become fixed digests |
+| `MAX_SCAN_CONTINUATION_TOKEN_BYTES` | 6,022 bytes | complete authenticated opaque continuation frame |
 | `MAX_RECORD_AAD_BYTES` | 4 KiB | complete canonical AEAD associated-data frame |
 | `MAX_TRANSACTION_OPERATIONS` | 1,024 | reads plus writes plus conditions |
 | `MAX_TRANSACTION_LOGICAL_BYTES` | 16 MiB | checked sum of every encoded key, value, condition, and schema reference |
@@ -737,6 +868,18 @@ All counters and byte accumulators use checked `u64` arithmetic before any
 conversion to `usize`, `Duration`, or allocator capacity. Overflow is never
 saturation or wraparound. Validation order is observable and fixed:
 
+The fingerprint maximum is an exact satisfiability bound. Its ordered-set
+header is `41` bytes. The largest legal item is a write or condition:
+`4` ordinal + `1` kind + `4` key length + `4,096` key + `1` variant code +
+`4` operand/value length + `32` digest = `4,142` bytes. Therefore
+`MAX_REQUEST_FINGERPRINT_FRAME_BYTES = 41 + (1,024 * 4,142) = 4,241,449`.
+`MAX_TRANSACTION_OPERATIONS` is transaction-wide: one checked counter deducts
+every read, write, and condition, so three independent sets cannot each admit
+1,024 items. The exact maximum, maximum-plus-one, and overflowed multiply/add
+are refused before hashing, allocation, or policy evaluation. The bound permits
+every otherwise legal key and operation-count combination; values are already
+represented by their fixed digest.
+
 1. Using the already authenticated transport tenant (never a body-asserted
    tenant), check the concurrency slot and checked addition of the declared
    frame bytes to the in-flight budget; refusal allocates no body buffer.
@@ -749,7 +892,7 @@ saturation or wraparound. Validation order is observable and fixed:
    addition; reject the first exceeded limit or arithmetic overflow.
 5. Validate canonical protobuf normal form, schema, authenticated tenant/
    principal context, and revisions/epochs; derive the canonical fingerprint
-   and validate its 8-KiB preimage bound; then obtain and verify the Policy
+   and validate its derived 4,241,449-byte preimage bound; then obtain and verify the Policy
    receipt, establish the required Audit obligation, validate idempotency
    reuse, continuation authority where present, and durability profile, in that
    order. Body-asserted identity is ignored. No `PREPARED` state or
@@ -813,7 +956,8 @@ backpressure and cannot consume a transaction ordinal.
 The conformance matrix accepts every exact bound when the request and result are
 otherwise valid and refuses bound plus one. It covers `u64::MAX` length/count
 prefixes, identifier/idempotency/fingerprint/continuation/AAD exact and
-plus-one cases, multi-field sum overflow, a small request frame that amplifies
+plus-one cases, the derived 4,241,449-byte fingerprint and 6,022-byte token
+limits, multi-field sum overflow, a small request frame that amplifies
 beyond the decode-allocation cap, 1,025 result items, a 16-MiB-plus-one logical
 result, a 32-MiB-plus-one encoded response, an encoder-allocation request above
 8 MiB, and a tenant response-credit addition above 64 MiB. It also forces operation/
