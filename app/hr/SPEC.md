@@ -356,14 +356,25 @@ authenticates these bytes without parsing or rewriting them.
 
 V1 writers remain the only writers until a later accepted V2 decision records
 a format barrier. An N+1 reader MUST read V1 plus its own V2; an N reader seeing
-V2 returns `CanonicalFormatUnsupported` and never guesses equality. The stored
-format version selects the authenticated canonical reader and comparison on
-replay; the provider-authenticated generation set selects all candidate
-derivations before any row is read. No V2
-writer may enter a cohort until every process that can acquire its repository
-epoch advertises V2 read support. Golden vectors fix every byte above and prove
-transport-field reordering and absent/default-equivalent optionals produce the
-same bytes, while every changed semantic field produces different bytes.
+V2 returns `CanonicalFormatUnsupported` and never guesses equality. Before any
+row lookup, `ReplayGenerationSetV1` supplies an authenticated, bounded matrix
+of admitted canonical-format versions for each active/draining generation. One
+typed semantic command is encoded once for every distinct format in that matrix,
+then a candidate is derived for every `(generation, format)` matrix entry. Thus
+stored format/version discovery is not circular: a V2 retry derives the V1
+candidate that can locate a retained V1 row before the row selects the V1
+reader for the in-memory comparison. The v1 matrix permits at most two sorted
+distinct formats, at most two sorted entries per generation, at most two
+generations, and therefore at most four derivations. A missing/duplicate/
+unreadable format, a format absent from its generation's authenticated matrix,
+or more than these bounds is a closed replay refusal. A V3 writer cannot enter
+a cohort until every repository under the keyring has durably crossed the V1
+compatibility-retirement barrier: no retained V1 canonical request or
+generation-scoped V1 blind index remains, all epoch-eligible readers support
+V2/V3, and the provider has issued the matching retirement receipt. Golden
+vectors fix every byte above and prove transport-field reordering and
+absent/default-equivalent optionals produce the same bytes, while every changed
+semantic field produces different bytes.
 
 ### HR staged-write descriptor v1
 
@@ -478,32 +489,37 @@ key. Processing is:
 1. Validate syntax, tenant binding, verified authorization, and overlay
    generation without mutation.
 2. Evaluate the deterministic domain command.
-3. Encode `CanonicalRequestV1`, then obtain a provider-authenticated,
-   repository-epoch-bound `ReplayGenerationSetV1`. It contains the active
-   generation and, only during normal drain, its immediately prior draining
-   generation; it is sorted ascending by generation, contains one or two
-   distinct `u64be` values, and is capped at two values. A provider-signed
-   rotation-fence id and generation state accompany the set. The provider
-   returns neither a stable locator nor an arbitrary historical generation.
-   A missing, revoked, malformed, stale, or more-than-two set is
-   `ReplayGenerationSetUnavailable` and admits no mutation.
-4. Before opening SQLite, derive one candidate with `CanonicalRequestReplayV1`
-   for every returned generation, in set order, using the exact full preimage
-   above. Thus a normal drain costs at most two PRF calls and two fixed-width
-   candidates; derivation is performed for the complete returned set before any
-   candidate is selected. Begin one `BEGIN IMMEDIATE` SQLite writer transaction,
-   validate its repository epoch and rotation-fence id against the lease, and
-   query only those one or two candidate indexes. The query reads at most three
-   rows solely to distinguish zero, one, and multiple matches.
+3. Encode the typed semantic command in every distinct format admitted by the
+   provider-authenticated, repository-epoch-bound `ReplayGenerationSetV1`.
+   The exact `AcquireReplayGenerationSetV1` result contains the active generation
+   and, only during normal drain, its immediately prior draining generation;
+   sorted generation state, lease, rotation-fence id, authenticated per-
+   generation format matrix, and opaque generation-scoped PRF authority are
+   all in that one result. The provider returns neither a stable locator nor an
+   arbitrary historical generation. A missing, revoked, malformed, stale, or
+   oversized set is `ReplayGenerationSetUnavailable` and admits no mutation.
+4. Before opening SQLite, derive one `CanonicalRequestReplayV1` candidate for
+   every returned `(generation, format)` entry using the exact full preimage
+   above and that entry's opaque PRF authority. The hard bound is two
+   generations × two formats = four derivations and four fixed-width
+   candidates; the complete matrix is derived before any candidate is selected.
+   Begin one `BEGIN IMMEDIATE` SQLite writer transaction, validate repository
+   epoch, lease, matrix digest, and rotation-fence id, and query only these
+   candidates. The query reads at most five rows solely to distinguish zero,
+   one, and multiple matches; it opens no row while multiple candidates match.
 5. Zero matches may reserve a new entry only with the lease's active-generation
-   candidate. Exactly one match must open that row's encrypted canonical request
-   using its recorded generation and compare the complete canonical bytes in
-   constant time. Equal bytes return its original outcome; unequal bytes return
-   `IdempotencyConflict` without mutation. More than one candidate row is
-   `ReplayCandidateCollision`; an unreadable source, generation/index mismatch,
-   or lost source key is `ReplaySourceUnavailable`. Both fail closed and release
-   the transaction without a new business effect. No code reads an entry to
-   discover a generation before locating it.
+   candidate for the active writer format. Exactly one match must authenticate
+   and open its envelope using recorded generation and associated data, select
+   the request's candidate bytes for that row's recorded format, then constant-
+   time compare complete canonical plaintext bytes in memory. Ciphertext bytes,
+   including nonce/tag/randomized ciphertext, are never compared for equality
+   and no plaintext is persisted. Equal bytes return the original outcome;
+   unequal bytes return `IdempotencyConflict` without mutation. More than one
+   candidate row is `ReplayCandidateCollision`; a matrix/candidate/row format
+   divergence is `ReplayCandidateDivergence`; an unreadable source, generation/
+   index mismatch, or lost source key is `ReplaySourceUnavailable`. Every one
+   fails closed and releases the transaction without a new business effect. No
+   code reads an entry to discover a generation before locating it.
 6. For a zero-match reservation, seal every sensitive employee,
    lifecycle, request/outcome, and audit/outbox value through
    `hr-record-encryption-draft`, derive required blind indexes, and stage the
@@ -550,8 +566,9 @@ lifecycle, canonical request, stored outcome, and audit/outbox payload values
 are sensitive and must never be stored as cleartext. The
 final `hr-record-encryption-draft` port exposes bounded `seal`, `open`,
 `blind_index`, `commit_binding`, `acquire_repository_epoch`,
+`acquire_replay_generation_set`,
 `list_unresolved`, `authorize_commit`, and idempotent `resolve_commit`
-plus `list_incomplete_rotations`, `bind_rekey_checkpoint`,
+plus `begin_normal_rotation`, `list_incomplete_rotations`, `bind_rekey_checkpoint`,
 `verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` operations
 over HR-owned values. Its envelope contains an
 algorithm identifier, provider/key reference, monotonically ordered key
@@ -567,6 +584,53 @@ SPEC grammar, not an adapter-specific field label. Length-prefixing and domain s
 permits equality only inside that logical replay slot and never permits cross-
 tenant, cross-operation, or cross-idempotency-key matching. The accepted
 primitive, encoding, and width are decision-gated at L2i.0d.
+
+`AcquireReplayGenerationSetV1` is the sole executable provider-truth edge for
+replay. Its exact request is
+`{ repository_id: OpaqueBytes<=256, repository_epoch: u64, replay_contract: u16be(1) }`;
+its successful result is
+`ReplayGenerationSetV1 { repository_id, repository_epoch, lease_id:
+OpaqueBytes<=128, matrix_digest: FixedBytes, rotation_fence_id:
+OpaqueBytes<=128, keyring_id: OpaqueBytes<=128, entries }`. `entries` is one
+or two ascending, distinct `ReplayGenerationAuthorityV1` values:
+`{ generation: u64, state: Active | Draining, canonical_formats: [u16; 1..=2],
+replay_prf_authority: OpaqueBytes<=256 }`. The set has exactly one `Active`, at
+most one `Draining`, no `Revoked`/`EmergencyDraining` entry, at most two distinct
+format versions across all entries, and at most four `(generation, format)`
+derivations. `blind_index` accepts only one returned `replay_prf_authority` for
+one matrix entry and the already-fixed full preimage; it cannot derive a
+candidate for a caller-selected generation or format. The closed error is
+`ReplayGenerationSetError::{RepositoryEpochStale, RotationFenceStale,
+LeaseStale, GenerationSetMalformed, GenerationSetTooLarge,
+GenerationStateInvalid, FormatMatrixInvalid, NormalRotationBlocked,
+ProviderUnavailable, ProviderCorrupt}`. The result is provider-authenticated
+and repository/epoch/fence-bound; the SQLite repository calls this port before
+lookup, validates it inside its writer transaction, and has no alternate cache,
+database narration, or provider-internal import. The key-service adapter
+implements this call against its accepted facade but has no repository runtime
+edge.
+
+`NormalRotationBlocked` carries
+`{ source_generation: u64, reason: NormalRotationBlockReason }`, where
+`NormalRotationBlockReason::{DrainingGenerationPresent, EmergencyDrainPresent,
+IncompleteRekey, DurableReferencesRemain, UnresolvedAuthorization,
+ZeroReferenceReceiptMissing, RetirementReceiptMissing, SourceUnavailable}`.
+`ReplayCandidateCollision` carries the bounded matched-row count; a candidate
+or format matrix exceeding four derivations/five row reads returns
+`ReplayCandidateLimitExceeded`; `ReplayCandidateDivergence` carries only
+generation/format identifiers and never ciphertext or plaintext. These are
+closed typed outcomes, not diagnostic strings or retry-to-create hints.
+
+`BeginNormalRotationV1` is the provider CAS operation:
+`{ keyring_id: OpaqueBytes<=128, expected_active_generation: u64,
+expected_rotation_fence_id: OpaqueBytes<=128 }`. It returns exactly
+`NormalRotationResult::{Started { active_generation, draining_generation,
+rotation_fence_id }, Blocked { source_generation, reason }}` or
+`NormalRotationError::{RotationFenceStale, GenerationNotActive,
+ProviderUnavailable, ProviderCorrupt}`. `Started` is possible only for the
+one permitted `G -> G+1` transition; a G+2 attempt reports the typed `Blocked`
+result and does not change the provider state. This operator, not repository
+narration, owns global keyring transition truth.
 
 `CommitBinding` is a fixed-width provider-authenticated value over the exact
 eight-component outer preimage and canonical staged-write descriptor specified
@@ -589,9 +653,12 @@ L2i.0d is a non-dispatchable decision gate until it names the exact accepted
 authenticated-encryption primitive/library and commodity or sold key-service
 facade, versions/features/licenses, generated client and Cargo/Buck targets,
 key custody and zeroization boundary, nonce source, retry/deadline bounds,
-blind-index PRF, generation and commit-authorization linearization semantics,
-bounded unresolved-receipt enumeration, repository-epoch fencing, recovery/
-administrative resolution, and removal path. L2i.0f must then prepare the exact
+blind-index PRF, exact `AcquireReplayGenerationSetV1` request/result/error and
+signature/lease validation, per-generation canonical-format matrix and
+compatibility-retirement barrier, global normal-rotation CAS/refusal semantics,
+generation and commit-authorization linearization semantics, bounded unresolved-
+receipt enumeration, repository-epoch fencing, recovery/administrative
+resolution, and removal path. L2i.0f must then prepare the exact
 unique files, L2i.0g must freeze commit semantics into HR port/repository/
 SQLite content, and L2i.0h must implement bounded repository rekey/recovery
 before the selected adapter behavior or production composition is dispatchable. The
@@ -610,8 +677,9 @@ continuation; duplicate pages and resolutions are idempotent, while a skipped,
 reordered, oversized, or non-progressing continuation fails closed.
 
 The provider state machine is
-`Active -> Draining | EmergencyDraining -> Revoked`. `authorize_commit` and
-those transitions share one provider-side linearization order. Authorization
+`Active -> Draining | EmergencyDraining -> Revoked`. `authorize_commit`,
+`AcquireReplayGenerationSetV1`, and those transitions share one provider-side
+linearization order. Authorization
 is allowed only in `Active` and returns an opaque single-use receipt bound to
 the repository epoch, transaction id, generation, and commit binding. A
 rotation/revocation request that wins first denies authorization. An
@@ -622,17 +690,25 @@ into an assumed outcome. Repository-epoch acquisition and unresolved-receipt
 enumeration participate in the same provider authority: acquiring epoch N+1
 fences N before the new writer may classify N's pending receipts.
 
-One generation is active for new seals. Normal rotation activates the next
-generation and leaves the immediately prior one `Draining` for bounded reads
-and transactionally compare-and-swapped re-encryption, but issues no new seals
-or commit authorizations under it. Normal revocation requires a zero-reference
-scan, zero unresolved authorizations, and fresh-process reopen proof. Emergency
-drain immediately denies new seal/open/authorization admissions and makes the
-affected serving cohort unready; provider resolution remains available only to
-settle already ordered receipts. Such a receipt may acknowledge only after
-`resolve_commit` proves `CommittedBeforeFence`. Final `Revoked` still waits for
-zero unresolved receipts, so "immediate" means admission/readiness withdrawal,
-not retroactive invalidation of an earlier linearization point. There is no
+One generation is active for new seals. Normal rotation has one global
+per-keyring CAS rule: it may transition `Active(G)` to
+`Active(G+1) + Draining(G)` only when the keyring has no other `Draining` or
+`EmergencyDraining` generation. A normal `G+2` request while G is draining, has an
+incomplete rekey, durable ciphertext/blind-index reference, unresolved earlier
+authorization, missing zero-reference receipt, or missing provider retirement
+receipt returns `NormalRotationBlocked` and changes nothing. The provider may
+issue the G retirement receipt only after it verifies every registered
+repository's terminal zero-reference receipt and its own unresolved count is
+zero; only then may it CAS G to `Revoked` and admit a new normal rotation.
+Draining G issues no seals or commit authorizations. Emergency drain immediately
+denies new seal/open/authorization/replay admissions, returns no replay set, and
+withdraws affected readiness; it also blocks normal rotation until the source is
+recovered and retired under the same rule. Source loss, stale matrix/fence,
+rekey/replay races, and provider loss therefore return their typed refusal
+without zero-match reservation. Provider resolution remains available only to
+settle already ordered receipts, which may acknowledge only after
+`resolve_commit` proves `CommittedBeforeFence`. "Immediate" means
+admission/readiness withdrawal, not retroactive invalidation. There is no
 fallback or silent discard.
 
 ### Bounded repository rekey protocol
@@ -705,25 +781,29 @@ durably increments the cursor's counter, and the fourth attempt returns
 `RekeyCasRetryExhausted` until a new operator-admitted run, rather than skipping
 or spinning.
 
-Replay and rekey share that single SQLite writer order. A replay holding its
-provider-authenticated `ReplayGenerationSetV1` lease first derives both (or the
-one) candidate indexes and then enters `BEGIN IMMEDIATE`; a page rekey enters
-the same writer before it replaces an idempotency row's source-generation index
-with its target-generation index. If replay wins, rekey observes its committed
-row/revision on the next scan; if rekey wins, the already-derived active-plus-
-draining candidate set finds the target row. A rotation that wins before a new
-request returns both generations until zero-reference revocation; a request
-that wins authorization before the transition has its receipt resolved before
-the transition barrier. Consequently a retry immediately before, during, or
-after page CAS either returns the original outcome or a typed unavailable/
-corruption result, never a second employee, lifecycle, idempotency, or outbox
-effect. Response loss and hard close repeat this lookup after exclusive-epoch
-recovery. If a draining source is lost before its row rekeys, or the provider
-cannot authenticate the set/lease, readiness withdraws and
-`ReplaySourceUnavailable`/`ReplayGenerationSetUnavailable` is returned; a new
-reservation is forbidden. Source revocation occurs only after the terminal
-count includes every source candidate-index column at zero, so a post-revoke
-retry locates the rekeyed target row without retaining a cross-generation token.
+Replay and rekey share that single SQLite writer order. A replay first obtains
+its provider-authenticated matrix and derives every one-to-four candidate
+indexes before `BEGIN IMMEDIATE`; inside that transaction it validates epoch,
+lease, digest, and fence before either zero-match reservation or authenticated
+open. A page rekey enters the same writer before it replaces an idempotency
+row's source-generation indexes with target-generation indexes. If replay wins,
+rekey observes its committed row/revision on the next scan; if rekey wins, the
+already-derived matrix includes the target format/generation candidate and
+locates the same row. The global no-overlap CAS returns at most active G+1 plus
+draining G; G+2 is refused until G is zero-reference and revoked. A rotation
+that wins before a new request invalidates a stale matrix rather than allowing
+a reservation; a request that wins authorization before the transition has its
+receipt resolved before the transition barrier. Consequently a retry immediately
+before, during, or after page CAS either returns the original outcome or a typed
+unavailable/corruption result, never a second employee, lifecycle, idempotency,
+or outbox effect. Response loss and hard close repeat the complete matrix lookup
+after exclusive-epoch recovery. If a draining source is lost before its row
+rekeys, the provider cannot authenticate the matrix/lease, or format candidates
+diverge from a located row, readiness withdraws and `ReplaySourceUnavailable`,
+`ReplayGenerationSetUnavailable`, or `ReplayCandidateDivergence` is returned;
+a new reservation is forbidden. Source revocation occurs only after terminal
+count includes every source candidate-index column at zero, so post-revoke
+retry locates the rekeyed target row without a cross-generation token.
 
 After an end-of-keyspace page, one SQLite transaction repeats the complete
 source-generation reference count across ciphertext and blind-index columns.
@@ -748,23 +828,30 @@ RepositoryUnavailable, ProviderUnavailable, ProviderCorrupt}`. None is mapped
 to success, conflict-free replay, key fallback, or completed revocation.
 
 The replay result/error vocabulary is closed as
-`ReplayLookupError::{ReplayGenerationSetUnavailable, ReplayCandidateCollision,
-ReplaySourceUnavailable, ReplayLeaseStale}`. A collision, stale lease, source
-loss, malformed set, provider loss, or source-generation/index mismatch never
-falls through to zero-match creation. Contract and real-file recovery evidence
-must independently exercise Cargo and Buck full-preimage vectors, one/two
-generation lookup, changed-purpose conflict, replay versus rekey immediately
-before/during/after page CAS, response loss, hard close, source drain/loss,
-zero-reference revocation, and N/N+1 restart. Each schedule proves the same
-semantic retry returns its original outcome and no second effect commits.
+`ReplayLookupError::{ReplayGenerationSetUnavailable, ReplayGenerationSetMalformed,
+ReplayFormatMatrixInvalid, ReplayCandidateLimitExceeded, ReplayCandidateCollision,
+ReplayCandidateDivergence, ReplaySourceUnavailable, ReplayLeaseStale,
+RotationFenceStale, NormalRotationBlocked}`. A collision, stale lease/fence,
+source loss, malformed/oversized set, incompatible format matrix, provider loss,
+or source-generation/index mismatch never falls through to zero-match creation.
+Contract and real-file recovery evidence must independently exercise Cargo and
+Buck full-preimage vectors; every one-to-four candidate matrix; V1 write then
+V2 retry after response loss, rotation/page CAS, hard close, rekey, and fresh
+restart; changed-purpose conflict; encrypted-canonical plaintext equality under
+different nonce/generation; ciphertext/tag/associated-data tampering; attempted
+G+2 during G drain; emergency drain/source loss; stale matrix/fence; and replay
+versus rekey immediately before/during/after page CAS and zero-reference
+revocation. Each schedule proves the same semantic retry returns its original
+outcome or a closed typed refusal and no second effect commits.
 
 Before a first cohort, readiness is false while any normal rekey job is
 incomplete. For an already-routed cohort, normal rotation may keep reads ready
-only while source opens, target seal/open/index/authorization, repository
-progress, and the declared progress SLO are healthy; all new writes use the
-target. Emergency drain, corrupt/stale checkpoint, exhausted CAS progress,
-source/target loss, or repository/provider outage withdraws the affected
-cohort. Software rollback is allowed before a production rotation only by
+only while source opens, target seal/open/index/authorization, authenticated
+matrix acquisition, repository progress, and declared progress SLO are healthy;
+all new writes use the target. Emergency drain, corrupt/stale checkpoint,
+exhausted CAS progress, source/target loss, stale/malformed matrix, or
+repository/provider outage withdraws the affected cohort. Software rollback is
+allowed before a production rotation only by
 removing the unrouted additive files/migrations and scratch databases. Once
 migration `0003` opens any non-scratch database or a rotation fence is admitted,
 rollback means an N/N+1

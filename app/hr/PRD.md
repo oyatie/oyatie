@@ -118,12 +118,16 @@ transport/provider field order, unknown field, omitted effect, implicit
 default, or provider-local normalization MUST NOT change either protected
 preimage. New format writers remain disabled until every cohort reader admits
 N/N+1 and stored byte-golden compatibility.
-- During normal rotation, resolve replay only through a provider-authenticated
-  set of at most active plus immediately prior draining generations; derive all
-  generation-scoped candidates before one SQLite writer lookup, compare only
-  encrypted canonical bytes, and fail closed on collision, stale lease, source
-  loss, or provider loss. This preserves original-outcome replay without a
-  stable cross-generation equality token or a second business effect.
+- During normal rotation, resolve replay only through the record-encryption
+  port's provider-authenticated repository/epoch/fence-bound active-plus-
+  draining generation-and-format matrix. From one typed semantic command,
+  derive every admitted canonical-format candidate for each returned generation
+  before one SQLite writer lookup. The bounded lookup authenticates/decrypts
+  the one located ciphertext envelope, then constant-time compares matching
+  canonical plaintext in memory; it never uses randomized ciphertext equality
+  and never persists plaintext or a stable cross-generation token. Matrix/format
+  divergence, collision, stale lease, source loss, tampering, or provider loss
+  fail closed without a second business effect.
 
 ## Durability and portability
 
@@ -139,6 +143,11 @@ N/N+1 and stored byte-golden compatibility.
   revocation. Provider or repository outage, stale epoch/cursor, exhausted CAS
   contention, corrupt envelope, missing key, and nonzero references are typed
   fail-closed states, never reasons to skip a row or fall back to plaintext.
+  Globally for one keyring, normal G+2 activation is refused until G has no
+  durable ciphertext or blind-index reference, no incomplete rekey or earlier
+  unresolved authorization, and a provider retirement receipt marks G revoked.
+  Emergency drain/source loss withdraws readiness and blocks normal rotation;
+  it is never a route around this invariant.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -161,6 +170,10 @@ N/N+1 and stored byte-golden compatibility.
   readable, new writes use the target generation, and durable progress remains
   within its declared SLO. Emergency drain or a non-progressing/corrupt job
   withdraws the affected cohort.
+- Bound replay to two generations, two formats per generation/two distinct
+  formats, four PRF derivations, five candidate-row reads, and one authenticated
+  open. A V3 writer remains disabled until the oldest format crosses its
+  compatibility-retirement barrier and replay retention is provably gone.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
 - Evaluate expiry/effective-window boundaries from a trusted interval. If the
@@ -221,10 +234,11 @@ objectives as unqualified rather than manufacturing availability evidence.
 - Real-file and backup inspection finds none of the injected sensitive
   sentinels; fresh-process reopen, key rotation/re-encryption, planned and
   emergency revocation, commit-authorization recovery, and replay preserve the
-  declared durability contract. Canonical-request equality is represented only
-  by its tenant/key-scoped blind index or authenticated ciphertext. Fresh boot
-  fences the prior repository epoch and resolves every bounded provider-side
-  pending receipt before readiness.
+  declared durability contract. The blind index only locates a candidate:
+  equality authenticates/decrypts its ciphertext then constant-time compares
+  matching canonical plaintext in memory; ciphertext equality is forbidden.
+  Fresh boot fences the prior repository epoch and resolves every bounded
+  provider-side pending receipt before readiness.
 - Canonical-request and staged-write-descriptor goldens are identical through
 Cargo and Buck and across N/N+1 readers. A same semantic request with reordered
 transport fields or explicit/default-equivalent optionals replays; a changed

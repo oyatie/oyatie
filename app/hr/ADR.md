@@ -168,7 +168,8 @@ over-budget files are debt, not precedent.
   or normalize their semantic fields. Production use is non-dispatchable until
   L2i.0d accepts one authenticated-encryption
   implementation and one commodity or sold key-service facade with exact
-  dependencies, key custody, nonce, rotation, revocation, outage, and
+  dependencies, key custody, nonce, rotation, revocation, outage, exact
+  `AcquireReplayGenerationSetV1` semantics, and
   `authorize_commit`/idempotent `resolve_commit` semantics, L2i.0f prepares the
   closed protocol/rekey file set, L2i.0g freezes the corresponding HR port/
   repository/SQLite commit protocol, and L2i.0h implements bounded repository
@@ -193,7 +194,11 @@ over-budget files are debt, not precedent.
   restart, revoke old generations, remove the key provider before boot and
   mid-transaction, and race authorization, local receipt durability, commit,
   resolution, repository-epoch takeover, rotation, normal/emergency drain, and
-  crash recovery in every order. Bounded pending-page exact/limit-plus-one,
+  crash recovery in every order. The repository receives active/draining
+  generation, rotation-fence, format-admission, and generation-scoped PRF
+  authority only through the record-encryption port and selected key-service
+  adapter; it never manufactures provider truth or gives that adapter a reverse
+  repository edge. Bounded pending-page exact/limit-plus-one,
   duplicate, missing, reordered, stale-epoch, and non-progressing cases fail
   closed. Tests prove no unkeyed equality token, acknowledgement without a
   resolved receipt, disclosure, partial plaintext, nonce reuse, fallback key,
@@ -222,17 +227,31 @@ normalization, bounds, domain tags, optional/default behavior, and upgrade
 window are fixed in `SPEC.md`; provider code receives bounded bytes and
 authenticates them without reinterpretation. `CanonicalRequestReplayV1` is the
 sole fixed purpose tag for the generation-scoped replay PRF; no undefined field
-label or stable cross-generation equality token exists. Replay first obtains a
-provider-authenticated bounded active-plus-draining generation set, derives all
-candidate indexes, and serializes its encrypted canonical comparison with rekey
-under the repository's SQLite writer. Normal rotation MUST execute
+label or stable cross-generation equality token exists. Replay first obtains the
+provider-authenticated repository/epoch/fence-bound generation-and-format matrix
+through `AcquireReplayGenerationSetV1`; from one typed semantic command it
+derives every admitted format candidate for every active/draining generation
+before SQLite lookup, then authenticates/opens and constant-time compares the
+matching canonical plaintext with rekey under the repository's SQLite writer.
+It MUST NOT compare randomized ciphertext for equality. Normal rotation has a
+global per-keyring no-overlap invariant: G+2 MUST NOT activate while G is
+draining, has durable ciphertext or blind-index references, has an unresolved
+authorization or incomplete rekey, or lacks its terminal provider retirement
+receipt. Only after G is zero-reference and revoked may a new normal rotation
+start. Normal rotation MUST execute
   through a provider-neutral HR rekey contract and the selected repository:
   after the provider drain fence, a bounded cursor scan opens old-generation
   envelopes, seals under the active generation, recomputes generation-scoped
   blind indexes, and atomically CAS-replaces each observed record plus a
   durable checkpoint. Revocation requires a terminal zero-reference receipt,
   zero earlier unresolved commit authorizations, and fresh-process recovery.
-  Structure/file admission, commit-format behavior, and rekey behavior remain
+  The matrix is capped at two generations, two canonical formats per generation,
+  two distinct formats, four derivations, five candidate-row reads, and one
+  authenticated open per replay. A malformed, stale, oversized, colliding, or
+  format-divergent matrix is a typed refusal, never zero-match creation. A third
+  format cannot be admitted until the oldest format has a durable
+  compatibility-retirement receipt. Structure/file admission, commit-format
+  behavior, and rekey behavior remain
   separate L2i.0f, L2i.0g, and L2i.0h changes.
 - **ensure:** byte goldens and N/N+1 tests cover semantic equivalence, changed
 fields, unknown/omitted/reordered descriptor fields, each full outer
@@ -243,9 +262,13 @@ page CAS, checkpoint, zero-count, provider revoke, and completion recording;
 a fresh process resumes from the last committed checkpoint, and stale epochs,
 CAS exhaustion, missing keys, provider/repository outages, corrupt cursors,
 and nonzero references produce closed typed outcomes with no key fallback or
-premature readiness. Replay schedules immediately before/during/after rekey
-CAS, response loss, hard close, source loss/drain, revocation, and N/N+1 restart
-return the original outcome or a typed refusal without a second effect.
+premature readiness. They prove V1 write then semantically equal V2 retry across
+response loss, rotation/page-CAS, hard close, rekey, and fresh restart; equal
+requests sealed under different nonce/generation authenticate/open and compare
+only canonical plaintext, while ciphertext/tag/associated-data tampering
+refuses. They attempt G+2 during G drain, emergency drain, source loss, stale
+matrix/lease, and concurrent replay/rekey schedules. Every replay returns the
+original outcome or a typed refusal without a second effect.
 - **overturn_when:** an independently reviewed repository or encrypted-SQLite
   design proves equivalent cross-version replay identity, complete staged-
   effect authentication, bounded crash-resumable re-encryption, and

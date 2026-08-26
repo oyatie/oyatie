@@ -1303,7 +1303,13 @@ owner's core, port, adapter, or in-process facade. The five gates are:
   `resolve_commit`, and generation transitions; pending-page item/byte/cursor
   bounds; immutable normal-rotation fence plus bounded incomplete-rotation
   discovery; provider-authenticated rekey checkpoint and zero-reference receipt
-  operations; cache lifetime; rotation/re-encryption; normal/emergency drain;
+  operations; exact `AcquireReplayGenerationSetV1` request/result/error,
+  repository/epoch/lease/fence binding, generation-scoped opaque PRF authority,
+  active/draining canonical-format matrix, signature/lease validation, cache
+  lifetime, exact `BeginNormalRotationV1` CAS/result/error, global per-keyring
+  no-overlapping-normal-rotation refusal,
+  compatibility-retirement barrier; rotation/re-encryption; normal/emergency
+  drain;
   crash resolution; and administrative recovery. It accepts the HR-owned
   canonical/descriptor/checkpoint/zero-reference domain bytes as opaque bounded
   inputs and may not choose their semantic fields. Neither binding nor
@@ -1312,8 +1318,11 @@ owner's core, port, adapter, or in-process facade. The five gates are:
   must support fresh-process SQLite reopen without making a process-local or
   caller key authoritative. It must also prove the provider can fence an old
   writer before classifying missing local receipts and hold `Revoked` behind
-  unresolved earlier receipts; provider selection alone is not permission to
-  claim an adapter-only fence.
+  unresolved earlier receipts. It must refuse G+2 until G is zero-reference,
+  every registered repository has durable retirement evidence, and G is
+  revoked; emergency drain/source loss must withdraw readiness rather than
+  bypassing this fence. Provider selection alone is not permission to claim an
+  adapter-only fence.
 - **L2i.0e — Runtime context:** accept the exact sold Cell trusted-interval and
   Observability signal/health facades consumed by an HR-owned
   `hr-runtime-context-oyatie-draft` adapter. The decision fixes interval units
@@ -1343,10 +1352,14 @@ admitted scanner-owned faces:
 ```text
 app/hr/ports/draft/record-encryption/src/items/c_commit_authorization.rs
 app/hr/ports/draft/record-encryption/src/test_items/c_commit_authorization.rs
+app/hr/ports/draft/record-encryption/src/items/e_replay_generation_set.rs
+app/hr/ports/draft/record-encryption/src/test_items/e_replay_generation_set.rs
 app/hr/ports/draft/record-encryption/src/items/d_rekey_generation.rs
 app/hr/ports/draft/record-encryption/src/test_items/d_rekey_generation.rs
 app/hr/ports/draft/employment-repository/src/items/e_commit_authorization.rs
 app/hr/ports/draft/employment-repository/src/test_items/e_commit_authorization.rs
+app/hr/ports/draft/employment-repository/src/items/g_replay_generation_set.rs
+app/hr/ports/draft/employment-repository/src/test_items/g_replay_generation_set.rs
 app/hr/ports/draft/employment-repository/src/items/f_rekey_repository.rs
 app/hr/ports/draft/employment-repository/src/test_items/f_rekey_repository.rs
 app/hr/core/employment-usecase/src/items/f_rekey_reconciler.rs
@@ -1397,6 +1410,8 @@ app/hr/adapters/draft/employment-repository-sqlite/src/items/k_commit_authorizat
 app/hr/adapters/draft/employment-repository-sqlite/src/test_items/g_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/d_commit_authorization.rs
 app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/m_commit_authorization.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/f_replay_generation_set.rs
+app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/p_replay_generation_set.rs
 ```
 
 The encryption item defines HR-owned `CommitAuthorizationId`, `CommitBinding`,
@@ -1407,25 +1422,39 @@ generation state, and the closed
 `CommitFenceError::{GenerationNotActive,AuthorizationDenied,
 AuthorizationUnresolved,CommitBindingMismatch,RepositoryEpochStale,
 ResolutionConflict,ProviderUnavailable,ProviderCorrupt}`. Its provider-neutral
-operations are `acquire_repository_epoch`, `list_unresolved`,
-`authorize_commit`, and idempotent `resolve_commit`. It accepts only the exact
-bounded `StagedWriteDescriptorV1` bytes and fixed domain/scope from the
-repository port; it cannot parse, reorder, normalize, or omit effects. The
-repository item defines exclusive epoch acquisition, commit-state lookup, and
-the provider-authenticated `ReplayGenerationSetV1` lookup lease. The lease
-returns only active plus immediately prior draining generations (one or two
-sorted distinct `u64` values) and its rotation fence; replay derives every
-generation-scoped candidate before SQLite and never reads a row to discover its
-generation. The SQLite item/migration stores canonical and descriptor format
-versions, repository identity/epoch, descriptor-derived binding, opaque
-authorization receipt, and generation-scoped idempotency index in the same
-transaction as the exact employee/lifecycle/idempotency/outbox rows. One
-`BEGIN IMMEDIATE` writer validates the lease/fence, reads at most three
-candidate rows, opens and constant-time compares the encrypted canonical bytes,
-and returns `IdempotencyConflict`, `ReplayCandidateCollision`,
-`ReplaySourceUnavailable`, or `ReplayLeaseStale` without reservation as
-appropriate. A zero match reserves only with the lease active generation;
-there is no stable cross-generation equality token.
+operations are `acquire_repository_epoch`, `acquire_replay_generation_set`,
+`begin_normal_rotation`,
+`list_unresolved`, `authorize_commit`, and idempotent `resolve_commit`. It
+accepts only exact bounded `StagedWriteDescriptorV1` bytes and fixed domain/
+scope from the repository port; it cannot parse, reorder, normalize, or omit
+effects. `acquire_replay_generation_set` has the exact SPEC request/result/
+error contract: the repository is its caller, the adapter is its provider
+translation, and neither a SQLite cache nor a provider internal is an alternate
+truth edge. The result has one/two ascending generations, exactly one active and
+optional draining entry, repository epoch, lease, matrix digest, rotation fence,
+and each entry's accepted canonical formats plus opaque PRF authority. From one
+typed semantic command the repository encodes every admitted distinct format,
+derives every one-to-four `(generation,format)` candidates before SQLite, and
+never reads a row to discover format or generation. The SQLite item/migration
+stores canonical and descriptor format versions, repository identity/epoch,
+descriptor-derived binding, opaque authorization receipt, and generation-scoped
+idempotency index in the same transaction as exact employee/lifecycle/
+idempotency/outbox rows. One `BEGIN IMMEDIATE` writer validates epoch/lease/
+matrix-digest/fence, reads at most five candidate rows, and opens at most one
+authenticated envelope. It constant-time compares the located row's
+recorded-format canonical plaintext, never randomized ciphertext, and returns
+`IdempotencyConflict`, `ReplayCandidateCollision`,
+`ReplayCandidateDivergence`, `ReplaySourceUnavailable`, `ReplayLeaseStale`,
+`RotationFenceStale`, or `ReplayFormatMatrixInvalid` without reservation as
+appropriate. A zero match reserves only with the lease active-generation/
+current-writer-format candidate; there is no stable cross-generation token.
+The corresponding Cargo and Buck closure is literal: repository-port and SQLite
+targets depend inward on `hr-record-encryption-draft` for this operation;
+`hr-record-encryption-key-service-draft` implements the port against only the
+accepted provider client/contract target; it has no repository runtime edge.
+The only repository↔key-adapter composition is the listed dev/contract test
+edge, which proves repository-to-port-to-adapter traversal and rejects a reverse
+adapter-to-repository production dependency.
 
 The linearization rule remains provider authorization ordered with
 `Active -> Draining | EmergencyDraining -> Revoked`. A transition that wins
@@ -1437,6 +1466,13 @@ epoch N+1 fences N before bounded unresolved-page classification. Exact local
 descriptor format/binding/receipt resolves committed; absence resolves aborted
 only after fencing; mismatch or an unsupported format is corrupt. Duplicate
 pages are idempotent; skipped/reordered/non-progressing cursors fail closed.
+Normal rotation has the global per-keyring no-overlap rule: a CAS from
+`Active(G)` to `Active(G+1)+Draining(G)` is permitted only with no existing
+draining/emergency generation. Any G+2 request while G has an incomplete job,
+durable ciphertext/blind-index reference, unresolved earlier authorization,
+missing retirement evidence, or non-revoked state returns
+`NormalRotationBlocked` unchanged. Emergency drain/source loss returns no
+replay matrix and withdraws readiness; it cannot activate a normal successor.
 
 All other L2i.0f files, manifests, Buck/build scripts, stable parents,
 lock/root/generated, provider adapter, routes, and readiness behavior are
@@ -1495,7 +1531,8 @@ The exact repository-port calls are `begin_or_resume_rekey`,
 `scan_rekey_page`, `compare_and_swap_rekey_page`,
 `count_generation_references`, `record_revocation_authorized`, and
 `complete_rekey`; the usecase exposes bounded `advance_rekey`. The encryption
-port supplies `list_incomplete_rotations`, `bind_rekey_checkpoint`,
+port supplies `acquire_replay_generation_set`, `list_incomplete_rotations`,
+`bind_rekey_checkpoint`,
 `verify_rekey_checkpoint`, and `authorize_zero_reference_revocation` alongside
 its already frozen open/seal/blind-index/commit operations. Every call accepts
 one bounded value/page and returns the closed SPEC result/error vocabulary;
@@ -1510,12 +1547,15 @@ and reseals outside SQL, recomputes canonical-request blind indexes, then one
 generation/envelope commitment/old indexes and atomically installs the complete
 page plus checkpoint. A mismatch aborts the page; the deterministic same-cursor
 counter refuses the fourth attempt. Replay uses that same SQLite writer: it
-obtains a provider-authenticated active-plus-draining set, derives all one/two
-generation-scoped candidates before lookup, and either returns the one
-encrypted-canonical constant-time match or refuses collision/source-loss/stale
-lease without a reservation. If replay commits first, the page retries its same
-cursor; if rekey commits first, the target candidate locates the same row. No
-stable cross-generation locator exists. Terminal reference counting covers every
+calls the encryption port for the authenticated generation-and-format matrix,
+derives every one-to-four generation/format candidates from one typed semantic
+command before lookup, authenticates/opens at most one located envelope, and
+constant-time compares matching canonical plaintext rather than ciphertext. It
+refuses collision/divergence/source-loss/stale lease without reservation. If
+replay commits first, the page retries its same cursor; if rekey commits first,
+the target format/generation candidate locates the same row. G+2 is refused
+until G is zero-reference and revoked; no stable cross-generation locator
+exists. Terminal reference counting covers every
 ciphertext and blind-index generation column and produces a provider-
 authenticated receipt; provider revoke also requires zero earlier unresolved
 authorizations. Fresh-process epoch fencing discovers a provider rotation whose
@@ -1604,6 +1644,16 @@ declares the matching repository-port, SQLite-adapter, and
 not a provider runtime repository edge. Missing or additional HR dev/runtime
 edges stop the structural lane.
 
+L2i.1d's `h_replay_generation_set` implementation and
+`e_replay_generation_set`/`i_replay_generation_set` test envelopes are the
+only key-adapter files that translate `AcquireReplayGenerationSetV1`. They
+exercise valid active-only and active+draining matrices; malformed, duplicate,
+oversized, stale-epoch/fence/lease, replayed, and provider-loss responses; PRF
+authority/format mismatch; G+2 refusal; emergency drain/source loss; restart;
+and exact four-candidate/five-row/one-open limits. The paired repository and
+SQLite files above prove the actual repository→port→adapter edge and zero
+adapter→repository runtime edges through Cargo/Buck reverse-dependency scans.
+
 Build closure is the new empty adapter, matching HR port, accepted provider
 client/contract targets, all remaining HR, and the zero-edge IAM proof through
 Cargo and Buck. Required review is HR, the provider owner, Architecture/API,
@@ -1636,8 +1686,9 @@ app/hr/adapters/draft/audit-outbox-audit/src/test_items/b_contract.rs
 app/hr/adapters/draft/audit-outbox-audit/tests/items/{b_parity,c_outages}.rs
 
 app/hr/adapters/draft/record-encryption-key-service/src/items/{b_envelope,c_blind_index,d_key_generation,e_commit_authorization,f_rotation,g_rekey_generation}.rs
-app/hr/adapters/draft/record-encryption-key-service/src/test_items/{b_contract,c_preimage_goldens,d_rekey}.rs
-app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_commit_order,d_rotation,e_outages,f_preimage_goldens,g_rekey_sqlite,h_rekey_outages}.rs
+app/hr/adapters/draft/record-encryption-key-service/src/items/h_replay_generation_set.rs
+app/hr/adapters/draft/record-encryption-key-service/src/test_items/{b_contract,c_preimage_goldens,d_rekey,e_replay_generation_set}.rs
+app/hr/adapters/draft/record-encryption-key-service/tests/items/{b_parity,c_commit_order,d_rotation,e_outages,f_preimage_goldens,g_rekey_sqlite,h_rekey_outages,i_replay_generation_set}.rs
 
 app/hr/adapters/draft/runtime-context-oyatie/src/items/{b_trusted_interval,c_signal_emission,d_correlation,e_health}.rs
 app/hr/adapters/draft/runtime-context-oyatie/src/test_items/b_contract.rs
@@ -1656,7 +1707,9 @@ commits one durable outbox intent and redelivers without a second effect.
 Record encryption implements only the accepted primitive/key-service contract,
 binds canonical associated data, produces unique nonces and bounded blind
 indexes, implements the L2i.0g provider-serialized authorization/resolution
-order and L2i.0h rotation/checkpoint/zero-reference provider operations, and
+order, `AcquireReplayGenerationSetV1` matrix/PRF validation, global no-overlap
+rotation refusal, and L2i.0h rotation/checkpoint/zero-reference provider
+operations, and
 supports idempotent re-encryption plus fail-closed revocation. It authenticates
 the exact HR-owned canonical-request, staged-descriptor, checkpoint, and zero-
 reference domain bytes without parsing or rewriting them and never supplies a
@@ -1672,9 +1725,13 @@ Each lane builds its adapter/port/provider contract plus full HR through Cargo
 and Buck. Required review is HR, matching provider, security/privacy, fault/
 retry, and adapter-parity reviewers. Success is semantic parity and bounded
 translation against the accepted contract. For L2i.2d that includes Cargo/Buck
-byte-golden parity for both protected preimages, N/N+1 stored-format reads,
-normal rotation to zero references through a real SQLite file, and a provider
-revoke receipt matching the repository checkpoint. Failure is cached allow on outage,
+byte-golden parity for both protected preimages; N/N+1 stored-format replay
+including V1 write then V2 retry after response loss, page-CAS, hard close,
+rekey, and restart; authenticated-open constant-time plaintext equality under
+different nonce/generation; normal rotation to zero references; attempted G+2,
+emergency drain/source loss, malformed/stale/replayed matrix, and provider-loss
+refusal through a real SQLite file; and a provider revoke receipt matching the
+repository checkpoint. Failure is cached allow on outage,
 unsigned/stale pack use, cross-tenant proof, lost/duplicate audit effect,
 provider type leaking inward, plaintext persistence, nonce reuse, stale or
 revoked key use, an unresolved acknowledgement, false time precision, unbounded
