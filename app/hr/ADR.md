@@ -137,14 +137,19 @@ over-budget files are debt, not precedent.
   `leave_carryover_forfeiture`, and `onboarding` tests,
   `ports/employment-api/src/lib.rs`, and the infrastructure adapter's
   `src/authz.rs`, `src/lib.rs`, and `tests/runtime.rs`; it also has misplaced
-  port/transport responsibilities and illegal dependency direction.
+  port/transport responsibilities and illegal dependency direction. No SQLite
+  dependency or adapter package exists, so admitting that graph and implementing
+  its durability protocol are distinct ADR-0719 D-33 change classes.
 - **rule:** the migration MUST proceed as L2b file-budget splits, L2c
   port/facade/adapter separation, L2d app-owned I/O/transport ports and removal
-  of direct Data/Gateway core edges, L2e SQLite parity and crash proof, then a
-  narrow People feature slice. Structural lanes MUST preserve public behavior.
+  of direct Data/Gateway core edges, L2e.0 serialized SQLite dependency and
+  adapter-face admission, L2e content-only parity and crash proof inside that
+  frozen face, then a narrow People feature slice. Structural lanes MUST
+  preserve public behavior and make no durability/readiness claim.
 - **ensure:** each lane has an exact changed-path envelope, before/after tests,
-  no generated hand edits, and a protected PR; behavior begins only after the
-  dependency and durability prerequisites are green.
+  no generated hand edits, and a protected PR; SQLite behavior begins only after
+  the dependency, workspace/lock, port, adapter face, and Cargo/Buck membership
+  prerequisites are green and frozen.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
   cannot be separated safely and a replacement plan preserves the same rollback
   boundary and proof strength.
@@ -189,5 +194,7 @@ over-budget files are debt, not precedent.
   metering.
 - New People behavior mixed into file moves, crate-graph changes, or SQLite
   introduction.
+- SQLite dependency, package/face, Cargo/Buck, root/lock, or scanner admission
+  mixed with transaction, migration, replay, or recovery behavior.
 - A tracked generated module index, hand-maintained per-item `mod` list, or
   Cargo-only item scan that leaves Buck with different membership.

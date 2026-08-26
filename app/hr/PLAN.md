@@ -187,11 +187,14 @@ serialization, authorization, and storage-reference tests.
 
 ## L2d — Introduce portable HR I/O and transport ports
 
-Class: dependency inversion; depends on L2c.
+Class: structural dependency inversion; depends on L2c.
 
 - Define the minimal HR-owned repository, installed-overlay, authorization-
   evidence, audit/outbox, workflow, payroll-impact, transport, clock, and
   observability port contracts from `SPEC.md`.
+- Land the repository contract at the exact draft face
+  `app/hr/ports/draft/employment-repository`; L2e.0 treats its package identity,
+  manifest, Buck graph, scanner, stable parents, values, and traits as frozen.
 - Replace `data-boundary-kernel` types in HR core/facade with HR-owned semantic
   values and translate them only in a Data adapter.
 - Replace direct Gateway core/runtime imports with an HR transport contract and
@@ -222,35 +225,115 @@ structure; no data format exists yet.
 Fault evidence: compile-fail/dependency fixtures for every forbidden edge,
 forged/cross-tenant proof tests, and adapter-unavailable tests with no mutation.
 
+## L2e.0 — Admit the SQLite dependency and frozen adapter face
+
+Class: serialized structural package/build-graph mutation; depends on L2d.
+
+- Verify that L2d's exact `ports/draft/employment-repository` face and the
+  current `adapters/employment-storage-inmemory` compatibility oracle are green.
+  The port face, in-memory package, and all five named IAM consumers are read-
+  only; absence of the port stops this lane and returns work to L2d rather than
+  creating a second repository contract.
+- Select one dependency-policy-admitted Rust SQLite binding in root
+  `Cargo.toml`, materialize its exact `Cargo.lock` closure, and regenerate
+  `third-party/BUCK` with the repository-owned materializer. Runtime downloads,
+  hand edits to generated output, and unrelated dependency/lock churn are
+  forbidden.
+- Create only the draft package face
+  `app/hr/adapters/draft/employment-repository-sqlite` with `Cargo.toml`, `BUCK`,
+  package-root `build.rs`, stable `src/lib.rs`, and stable
+  `tests/{contract,recovery}.rs` roots. Its manifest predeclares the frozen
+  repository port, admitted SQLite binding, and in-memory test oracle; the
+  existing workspace glob admits the package, so the root member list does not
+  change.
+- The owned scanner accepts absent/empty `src/items`, `src/test_items`,
+  `tests/contract_items`, and `tests/recovery_items` directories, sorts only
+  direct Rust entries when they appear, and emits four named membership files
+  only under `OUT_DIR`. Buck's `buildscript_run` stages the same glob patterns,
+  executes the same script, supplies the same generated outputs to the library
+  and tests, and already stages `migrations/*.sql`. Do not track an index or add
+  a manual per-item `mod` list.
+- This slice adds no item, schema, migration, store, transaction, conformance,
+  recovery, routing, runtime, or readiness behavior. Empty generated membership
+  proves only that the face and both build graphs are ready for unique files.
+
+Closed write envelope: root `Cargo.toml` workspace-dependency entry,
+`Cargo.lock`, generated `third-party/BUCK`, and these exact paths:
+`app/hr/adapters/draft/employment-repository-sqlite/Cargo.toml`,
+`app/hr/adapters/draft/employment-repository-sqlite/BUCK`,
+`app/hr/adapters/draft/employment-repository-sqlite/build.rs`,
+`app/hr/adapters/draft/employment-repository-sqlite/src/lib.rs`,
+`app/hr/adapters/draft/employment-repository-sqlite/tests/contract.rs`, and
+`app/hr/adapters/draft/employment-repository-sqlite/tests/recovery.rs`. Every
+other root, HR, port, adapter, IAM, owner-law, source, test, and migration path
+is frozen. The generated Buck file is materializer-owned, never hand-edited.
+
+Build closure: locked/offline metadata and dependency/license/source policy;
+idempotent third-party generation; Cargo/Buck build plus empty-test discovery for
+`hr-employment-repository-sqlite-draft`; the frozen repository port and in-memory
+packages; and all five IAM packages under `<known_reverse_consumers>`. Required
+review is the HR owner plus independent workspace/build, supply-chain, and Data
+durability reviewers; this author supplies no APPROVE.
+
+Success: one policy-admitted dependency and one empty draft adapter face are
+present, Cargo/Buck resolve identical package and item membership, all frozen HR
+and IAM behavior remains unchanged, and no durability/readiness claim exists.
+
+Failure: database or migration behavior lands, the repository contract moves,
+one graph omits a future item, a generated/manual index appears, root membership
+changes, unrelated lock churn lands, or any read-only HR/IAM path changes.
+
+Rollback: remove the empty adapter face, the one workspace dependency, and its
+exact generated/lock closure together; no schema or runtime state exists.
+
+Fault evidence: dependency/license negative fixtures, idempotent regeneration,
+Cargo/Buck add/rename/remove item canaries without parent edits, missing-port
+fail-closed admission, and before/after HR plus five-IAM compatibility tests.
+
 ## L2e — Add the SQLite durable adapter and parity proof
 
-Class: behavioral durability; depends on L2d.
+Class: content-only behavioral durability; depends on L2e.0.
 
-- Select an approved Rust SQLite dependency behind the repository port; any new
-  dependency, workspace member, and `Cargo.lock` change uses the serialized
-  shared-hub lane and dependency-policy review.
-- Add adapter-private versioned migrations for employee, lifecycle,
-  idempotency-outcome, and audit/outbox records.
-- Implement the atomic commit/replay protocol in `SPEC.md`; retain the in-memory
-  implementation only as a semantic oracle, never a durability claim.
-- Run one parameterized contract against in-memory and SQLite. Add real-file,
-  fresh-process/connection interruption, reopen, migration, and replay tests.
+- Add adapter-private employee, lifecycle, idempotency-outcome, and audit/outbox
+  schema content only in
+  `adapters/draft/employment-repository-sqlite/migrations/0001_hr_repository.sql`.
+- Implement the `SPEC.md` atomic commit/replay protocol only in the unique item
+  `src/items/a_repository.rs`; add local unit/contract evidence only in
+  `src/test_items/a_contract.rs` and unchanged parameterized in-memory/SQLite
+  parity only in `tests/contract_items/a_parity.rs`.
+- Add real-file, hard-close/fresh-process-or-connection interruption, reopen,
+  migration, and replay evidence only in
+  `tests/recovery_items/a_transaction_recovery.rs`.
 - Select exactly one active repository adapter per tenant; do not dual-write to
   a cloud or commodity destination.
 - Keep the current in-memory package surface compatible and compile/test the
   five named IAM reverse consumers without routing IAM to SQLite or editing IAM.
 
-Changed-path envelope: new/updated HR port and adapter packages, HR conformance
-tests, migrations, their Cargo/BUCK manifests, and a serialized workspace/lock
-update if required. IAM remains a read-only verification closure; any required
-consumer change uses the separate D-29 IAM sequence. No People rule change.
+Closed write envelope:
+`app/hr/adapters/draft/employment-repository-sqlite/migrations/0001_hr_repository.sql`,
+`app/hr/adapters/draft/employment-repository-sqlite/src/items/a_repository.rs`,
+`app/hr/adapters/draft/employment-repository-sqlite/src/test_items/a_contract.rs`,
+`app/hr/adapters/draft/employment-repository-sqlite/tests/contract_items/a_parity.rs`,
+and
+`app/hr/adapters/draft/employment-repository-sqlite/tests/recovery_items/a_transaction_recovery.rs`
+only. The adapter's `Cargo.toml`, `BUCK`, `build.rs`, `src/lib.rs`, stable test
+roots, dependency/lock/generated hubs, repository port, in-memory adapter, other
+HR packages, owner law, and five IAM packages are frozen. Any required shape,
+dependency, parent, port, or consumer edit blocks this lane and becomes a
+separately reviewed structural or D-29 dispatch. No People rule change.
+
+Build closure: the frozen repository port, in-memory oracle, and SQLite adapter
+Cargo/Buck library, unit, contract, and recovery targets plus the five named IAM
+packages. Required review is the HR owner plus independent Data durability,
+security/audit, and fault-injection reviewers; this author supplies no APPROVE.
 
 Success: acknowledged mutation survives reopen; faults before commit expose
 nothing; faults after commit plus lost response replay the exact stored outcome;
 same key with changed digest conflicts; in-memory/SQLite semantic parity passes.
 
 Failure: page-cache success is called durable, idempotency and employee writes
-can diverge, migration opens a hybrid schema, or two adapters are authoritative.
+can diverge, migration opens a hybrid schema, two adapters are authoritative,
+or any frozen manifest/build/parent/port/root/lock/consumer path changes.
 
 Rollback: stop routing new tenants to the SQLite adapter, retain the prior
 schema reader and backup, and never downgrade across an admitted format barrier.
@@ -292,12 +375,14 @@ outbox redelivery.
 <parallelism>
 
 HR's L2 chain is sequential because each slice changes the next slice's file or
-dependency surface. It may run beside lanes whose changed paths and practical
-Cargo/Buck closures do not intersect `app/hr/**`, the five named IAM reverse
-consumers, root workspace/lockfiles, generated artifacts, or global CI/owner-
-law hubs. IAM verification does not reserve a writable IAM cone. If D-29 is
-triggered, its named IAM paths serialize only against lanes writing those same
-paths. Within HR, only read-only recon/review may fan out; D-36 owner-law files
-retain one writer.
+dependency surface. L2e.0 additionally serializes against root dependency,
+lockfile, and generated-third-party writers; L2e releases those hubs and writes
+only its five unique content paths. Other HR slices may run beside lanes whose
+changed paths and practical Cargo/Buck closures do not intersect `app/hr/**`,
+the five named IAM reverse consumers, root workspace/lockfiles, generated
+artifacts, or global CI/owner-law hubs. IAM verification does not reserve a
+writable IAM cone. If D-29 is triggered, its named IAM paths serialize only
+against lanes writing those same paths. Within HR, only read-only recon/review
+may fan out; D-36 owner-law files retain one writer.
 
 </parallelism>
