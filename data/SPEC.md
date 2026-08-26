@@ -243,19 +243,47 @@ Operation codes and exact tag sequences are: transaction `1` =
 `SHA-256(0x01 || length:u32 || opaque_bytes)`. Requested page maxima must be
 nonzero and at or below both public hard maxima before fingerprinting.
 
-Set digests are SHA-256 over the 33-byte domain
-`oyatie.data.records.operations.v1`, a zero separator, version `1`, set kind
-(`read=1`, `write=2`, `condition=3`), `count:u32`, then original transaction
-order. Every item starts `ordinal:u32 | item_kind:u8 | key_length:u32 | key`.
-A read appends `expected_version_present:u8` and, when present, one `u64`. A
-write appends `value_kind:u8` (`value=1`, `tombstone=2`), original
-`value_length:u32`, and SHA-256 of the exact value bytes (the tombstone digest
-is SHA-256 of empty bytes). A condition appends predicate code
-(`absent=1`, `present=2`, `version_equal=3`, `value_digest_equal=4`), operand
-length `u32`, and SHA-256 of the exact operand; predicates without an operand
-use zero length and SHA-256 of empty bytes. Counts, lengths, and ordinals are
-checked before hashing. Two independent encoders may share typed inputs and
-constants, but not framing/accumulation code.
+Set digests are SHA-256 over this complete, byte-exact frame. Every integer is
+unsigned big-endian; concatenation means no implicit delimiter, varint, or
+padding.
+
+```text
+domain_len:u8 = 33
+domain:[u8;33] = "oyatie.data.records.operations.v1"
+separator:u8 = 0
+version:u8 = 1
+set_kind:u8                         # read=1, write=2, condition=3
+count:u32
+repeated count times, in caller transaction order:
+  ordinal:u32 | item_kind:u8 | key_length:u32 | key:[u8;key_length] | variant
+```
+
+`count` is the number of items supplied for that set and is at most
+`MAX_TRANSACTION_OPERATIONS`; its first item has `ordinal=0`, and each later
+item has the preceding ordinal plus one. `item_kind` is `1` for read, `2` for
+write, and `3` for condition and MUST equal `set_kind`; a typed collection that
+mixes kinds, has a missing/repeated/skipped ordinal, or has a count/order
+disagreement is rejected before hashing. `key_length` is `1..=MAX_PRIMARY_KEY_BYTES`;
+`key` is opaque bytes, is neither decoded nor normalized, and its stated length
+must exactly match the following bytes.
+
+The `variant` is exactly one of the following; all widths are fixed and no
+variant has an omitted field:
+
+| Item | Exact variant bytes | Required values |
+|---|---|---|
+| read | `expected_version_present:u8 | expected_version:u64` | presence is `0` (absent) or `1` (present); absent encodes `expected_version=0`, present encodes the exact version. |
+| write | `value_kind:u8 | value_length:u32 | value_digest:[u8;32]` | kind is `1` value or `2` tombstone. Value uses `1..=MAX_RECORD_VALUE_BYTES` exact source bytes and their SHA-256. Tombstone encodes length `0` and SHA-256 of empty bytes. |
+| condition | `predicate:u8 | operand_length:u32 | operand_digest:[u8;32]` | predicate is `1` absent, `2` present, `3` version-equal, or `4` value-digest-equal. Absent/present encode length `0` and SHA-256 of empty bytes; version-equal encodes length `8` and SHA-256 of its unsigned-big-endian `u64`; value-digest-equal encodes length `32` and SHA-256 of its exact 32-byte digest. |
+
+Before hashing, checked arithmetic verifies every length, collection count, and
+total preimage is no more than `MAX_REQUEST_FINGERPRINT_FRAME_BYTES`; unknown
+set/item/presence/value/predicate codes, wrong typed operand width, a
+tombstone with a value, trailing bytes, or an alternate Unicode/byte
+normalization fails. Independent implementations may share input fixtures and
+constants but MUST use separate framing/accumulation code. Golden vectors cover
+each variant, all zero/empty forms, permutation and normalization refusal,
+truncation/unknown code, exact limits, plus-one limits, and N/N+1 count/order.
 
 ## Authenticated scan continuation v1
 
@@ -274,9 +302,30 @@ ciphertext:[u8;ciphertext_length]
 tag:[u8;16]
 ```
 
-AAD is the complete header through `ciphertext_length`. Plaintext uses the
-same strict tagged-field grammar, extended with `BYTES=5` and `I64=6`, and
-contains exactly these increasing tags: `0x01` tenant `ASCII`, `0x02` principal
+AAD is the complete header through `ciphertext_length` (exactly 61 bytes);
+unknown version/algorithm, a length above 4,019, truncation, or trailing bytes
+fails before an AEAD operation. The plaintext has its own, independently
+framed grammar--it is not a bare reuse of the request frame:
+
+```text
+domain_len:u8 = 33
+domain:[u8;33] = "oyatie.data.records.scan-state.v1"
+separator:u8 = 0
+version:u8 = 1
+field_count:u16 = 19
+repeated exactly 19 times:
+  tag:u8 | type:u8 | length:u32 | value:[u8;length]
+```
+
+Tags occur once in the stated increasing order. Types are `ASCII=1`, `U64=2`,
+`DIGEST32=3`, `ENUM8=4`, `BYTES=5`, and `I64=6`; `U64` is exactly eight
+unsigned-big-endian bytes, `DIGEST32` exactly 32 bytes, `ENUM8` exactly one
+byte, and `I64` exactly eight two's-complement-big-endian bytes. ASCII is
+`1..=256` bytes from `0x21..0x7e` with no separator or whitespace; BYTES is
+`0..=MAX_PRIMARY_KEY_BYTES` opaque bytes. No Unicode normalization is accepted.
+An unknown/duplicate/out-of-order tag or type, wrong width, missing field,
+noncanonical length, or trailing byte fails; no field is ignored or defaulted.
+The 19 fields are exactly: `0x01` tenant `ASCII`, `0x02` principal
 `ASCII`, `0x03` database `ASCII`, `0x04` table `ASCII`, `0x05` schema revision
 `U64`, `0x06` home cell `ASCII`, `0x07` tablet `ASCII`, `0x08` ownership epoch
 `U64`, `0x09` snapshot commit ordinal `U64`, `0x0a` original request
@@ -284,11 +333,15 @@ fingerprint `DIGEST32`, `0x0b` range-start digest `DIGEST32`, `0x0c` range-end
 digest `DIGEST32`, `0x0d` direction `ENUM8`, `0x0e` page-record maximum `U64`,
 `0x0f` page-byte maximum `U64`, `0x10` last emitted key `BYTES`, `0x11`
 `issued_earliest_ms` `I64`, `0x12` `issued_latest_ms` `I64`, and `0x13`
-`expires_at_ms` `I64`. `BYTES` uses its field length and the primary-key
-maximum; `I64` is exactly eight two's-complement big-endian bytes. The interval
+`expires_at_ms` `I64`. The interval
 must satisfy `issued_earliest <= issued_latest <= expires_at`. TTL is at most
 15 minutes from `issued_latest_ms`; acceptance requires
 `current.earliest >= issued_earliest` and `current.latest <= expires_at`.
+Direction is `1` ascending or `2` descending; page-record and page-byte maxima
+are nonzero and no greater than `MAX_SCAN_PAGE_RECORDS` and
+`MAX_SCAN_PAGE_BYTES` respectively. Range digests use the same present/absent
+encoding as the canonical request fingerprint. A first-page `last emitted key`
+is the zero-length BYTES value; a resumed page has its exact prior opaque key.
 Boundary-straddling or widened intervals return `TimeUncertain`. The token
 supplies no new tenant, principal, limit, map, schema, or snapshot authority.
 
@@ -297,10 +350,11 @@ Keys have purpose `ScanContinuation` and states `EncryptActive`,
 encrypt-active; prior decrypt-only generations survive at least maximum TTL
 plus the bounded request drain. Retirement first rejects new decrypt leases,
 waits for issued leases to drain, and then is fenced by a durable Audit receipt.
-Secrets leases a
-unique nonce range per generation; Data durably checkpoints
-`lease_id/start/next/end`, uses checked increment, never restores a used range,
-and withdraws readiness before exhaustion. Unknown or revoked generations,
+Secrets durably reserves a unique nonce range per generation before returning
+it. Data durably records `lease_id/start/next/end` before first use and
+durably advances `next` past a counter before submitting that nonce to AEAD;
+on any uncertain recovery it burns the entire range and withdraws readiness.
+Unknown or revoked generations,
 authentication failure, malformed/cross-context input, and foreign replay all
 map publicly to `ScanContinuationError::Invalid`; expiry, uncertain time,
 unavailable snapshot, stale epoch, key-service outage, and crypto outage map
@@ -311,10 +365,13 @@ Replaying an intact token is read-only and deterministically replays the same
 snapshot/page; it cannot mutate or advance authority and remains subject to
 ordinary admission.
 
-Golden, permutation, exact/plus-one, truncation, tag-flip, ciphertext/tag
-tamper, cross-tenant/principal/query/tablet/snapshot replay, expiry-boundary,
+Independent plaintext/frame implementations require golden/KAT vectors,
+permutation, exact/plus-one plaintext and outer-token boundaries,
+truncation/unknown-tag/type refusal, header/AAD/ciphertext/tag tamper,
+cross-tenant/principal/query/tablet/snapshot replay, expiry-boundary,
 interval-widening, active-to-decrypt-only rollover, revoked/unknown generation,
-nonce exhaustion, crash/restore, and repeated-token campaigns are required.
+N/N+1 nonce/count vectors, nonce exhaustion, every crash/restore point, and
+repeated-token campaigns.
 
 </request_authority>
 
@@ -425,8 +482,8 @@ Data owns four implementation-free use-case ports:
 ```text
 PolicyClient        authorize(canonical request context) -> PolicyReceipt
 AuditSink           append_pre_ack(canonical event) -> DurableAuditReceipt
-RecordKeySource     acquire/rotate/retire keys and nonce leases -> KeyReceipt
-RecordProtection    digest/seal/open using explicit purpose and envelope -> result
+RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> KeyUseReceipt
+RecordProtection    digest/seal/open using KeyUseLease, explicit purpose, and envelope -> result
 ```
 
 Their draft homes are respectively `data/ports/draft/policy-client`,
@@ -435,8 +492,8 @@ Their draft homes are respectively `data/ports/draft/policy-client`,
 `data/adapters/draft/policy-client-policy`,
 `data/adapters/draft/audit-sink-audit`,
 `data/adapters/draft/record-keys-secrets`, and
-`data/adapters/draft/record-protection-awslc`. The first three cannot be
-implemented until their provider owners accept the exact sold faces reserved
+`data/adapters/draft/record-protection-secrets`. The provider adapters cannot
+implement content until their provider owners accept the exact sold faces reserved
 by D1c-KG: `policy/ports/check` (`policy-check`),
 `audit/ports/emission` (`audit-emission`), and
 `secrets/ports/kms-use` (`secrets-kms-use`), or amend this SPEC with one exact
@@ -445,6 +502,24 @@ replacement each. The current `iam/ports/policy-cedar-api`,
 `secrets/ports/kms-api` do not satisfy this edge: they expose implementation or
 core-backed/internal shapes, and Data MUST NOT depend on them or any provider
 `core/**` package.
+
+`secrets-kms-use` is the only planned Data key/AEAD boundary. Before its Data
+adapters land, the provider owner must accept these v1 operations and their
+typed Cargo/Buck faces: `ReserveNonceRange(tenant, purpose, requested_count,
+minimum_generation, request_fence) -> KeyUseReceipt`,
+`Seal(opaque_handle, tenant, purpose, generation, fence_sequence, nonce,
+aad, plaintext) -> ciphertext_and_tag`, and `Open` over the corresponding
+envelope. `KeyUseReceipt` contains only `key_id`, `generation`,
+`fence_sequence`, `lease_id`, `start`, `end_exclusive`, `not_after`, integrity,
+and an opaque non-serializable handle; a handle has no byte accessor, cannot be
+cloned, displayed, serialized, logged, persisted, or supplied to another
+tenant/purpose/generation. It contains no key bytes and no provider client.
+The provider durably records the disjoint reservation before returning the
+receipt and rejects a Seal/Open whose handle, tenant, purpose, generation,
+fence, nonce range, or key state does not match. KMS owns raw-key storage,
+cryptographic key lifetime, and zeroization evidence; Data's source/type and
+serialization scans prove that no raw-key-shaped value exists in any Data
+contract, receipt, event, envelope, error, log, or async state.
 
 `PolicyReceipt` binds tenant, principal, operation, resource/range,
 request fingerprint, issuer, audience, policy revision, decision, issued Cell
@@ -481,26 +556,80 @@ ciphertext_length:u64 | ciphertext:[u8;length]
 tag:[u8;16]
 ```
 
-AAD is itself a strict tagged frame, domain-separated by purpose, containing
-in increasing tags: tenant, database, table, tablet, ownership epoch, schema
-revision, classification code/revision, primary-key digest, commit ordinal,
-transaction ID, artifact generation, key ID, and key generation. Fields not
-meaningful to an artifact are present with their defined zero/empty value;
-they are never omitted. `aad_length` is at most 4 KiB, checked before
-allocation, and SHA-256 of the exact AAD is stored in the manifest/commit
-record. Header values through `aad` are authenticated. Unsupported format,
-algorithm, purpose, key state, length, AAD/context mismatch, tag failure, or
-trailing bytes fails before plaintext decode or publication.
+Header values through `aad` are authenticated. The exact AAD frame, including
+its purpose-domain table and zero/empty representations, follows below.
+Unsupported format, algorithm, purpose, key state, length, AAD/context
+mismatch, tag failure, or trailing bytes fails before plaintext decode or
+publication.
+
+The envelope AAD is this complete tagged frame; it is byte-exact and distinct
+for every purpose. All integers are unsigned big-endian and the only accepted
+field encodings are `ASCII=1`, `U64=2`, `DIGEST32=3`, and `ENUM8=4`.
+
+```text
+domain_len:u8 | domain:[u8;domain_len] | separator:u8 = 0 | version:u8 = 1
+field_count:u16 = 15
+repeated exactly once in increasing order:
+  tag:u8 | type:u8 | length:u32 | value:[u8;length]
+```
+
+The purpose/domain table is closed: record=`1` and
+`"oyatie.data.record.aad.record.v1"` (32 bytes), wal=`2` and
+`"oyatie.data.record.aad.wal.v1"` (29), segment=`3` and
+`"oyatie.data.record.aad.segment.v1"` (33), snapshot=`4` and
+`"oyatie.data.record.aad.snapshot.v1"` (34), repair=`5` and
+`"oyatie.data.record.aad.repair.v1"` (32), migration=`6` and
+`"oyatie.data.record.aad.migration.v1"` (35). The fields are exactly
+`01` tenant ASCII, `02` database ASCII, `03` table ASCII, `04` tablet ASCII,
+`05` ownership epoch U64, `06` schema revision U64, `07` classification code
+ENUM8, `08` classification revision U64, `09` primary-key digest DIGEST32,
+`0a` commit ordinal U64, `0b` transaction ID ASCII, `0c` artifact generation
+U64, `0d` key ID ASCII, `0e` key generation U64, and `0f` artifact chunk
+ordinal U64. Tenant/database/table/tablet/key ID are canonical ASCII `1..=256`;
+transaction ID is canonical ASCII `1..=256` when present and exactly zero
+bytes when empty; fixed-width values have their stated width. `key ID` and key
+generation exactly match the envelope header. For a field not meaningful to a
+purpose, zero means eight zero bytes for U64, 32 zero bytes for DIGEST32, and
+zero length for transaction ID; it is never omitted. Record uses its real
+primary-key digest, commit ordinal, and transaction ID with artifact/chunk
+ordinal zero. WAL uses zero primary-key digest, real commit/transaction, and
+zero artifact/chunk ordinal. Segment, snapshot, repair, and migration use zero
+primary-key digest, commit ordinal, and transaction ID, real artifact
+generation, and a zero-based chunk ordinal. Unknown/duplicate/out-of-order
+tag/type, wrong width, noncanonical ASCII, omitted field, trailing byte, or a
+purpose-specific nonzero/empty mismatch fails before allocation, Open, or
+publication. `aad_length` is the exact frame length, at most
+`MAX_RECORD_AAD_BYTES`, and SHA-256 of those bytes is stored in the
+manifest/commit record.
+
+`CiphertextEnvelopeV1` seals one bounded artifact chunk, not an unbounded
+stream. `ciphertext_length` is checked before allocation and is at most 4 MiB
+for record/tombstone purpose and at most 16 MiB for WAL, segment, snapshot,
+repair, and migration purpose; the ciphertext is the same length as its
+AES-GCM plaintext. Larger durable artifacts are pre-split into such chunks and
+bind their stable zero-based chunk ordinal in AAD; no decoder accumulates more
+than one accepted chunk. Exact-limit and N+1 tests run independently for every
+purpose, along with each field/tag/type/length and header/AAD/ciphertext/tag
+tamper vector.
 
 `RecordKeySource` returns only a purpose/tenant-bound, generation-fenced
-zeroizing key lease carrying `fence_sequence:u64`, `lease_id`, `not_after`, and
-a disjoint nonce range `nonce_lease_id:u32,start:u64,end_exclusive:u64`. Data
-durably checkpoints the next counter before a ciphertext can be acknowledged,
-uses checked increment, and never reuses a range after crash, restore, snapshot
-rollback, or ownership transfer. The raw 32-byte key may exist only in the bounded
-`record-protection-awslc` call scope, in a non-cloneable buffer whose `Drop` and
-all error/cancellation paths are verified to zeroize; it is never logged,
-serialized, paged into a request/result, or retained by an async task.
+`KeyUseLease` carrying the opaque handle plus `fence_sequence:u64`, `lease_id`,
+`not_after`, and a disjoint nonce range
+`nonce_lease_id:u32,start:u64,end_exclusive:u64`. The provider has already
+durably reserved that range. Before first use Data writes and fsyncs the lease
+receipt and `next=start`; before each Seal it checked-increments `next`, writes
+and fsyncs the advanced value, and only then submits the prior counter. Thus a
+crash can burn counters but cannot reuse one. Recovery accepts a lease only
+when its durable reservation, provider receipt, generation/fence, and local
+next state agree; any missing/corrupt/rolled-back/uncertain state burns the
+whole lease through KMS, quarantines affected recovery, and withdraws
+admission/readiness. A crash at acquire, provider reserve, local reservation,
+pre-Seal advance, Seal, ciphertext persist, publish, or ACK has an explicit
+test: recovery either proves that counter consumed or refuses/burns it. Rotation,
+ownership transfer, restore, and revocation obey the same rule. No Data code
+receives a raw 32-byte key; therefore there is no Data zeroizing-key buffer to
+expose or test. Provider conformance proves raw-key zeroization and Data
+conformance proves opaque-handle containment and terminal-path refusal.
 
 Key generations transition
 `EncryptActive -> DecryptOnly -> RevocationPending -> Revoked`; no reverse
@@ -543,11 +672,11 @@ an encrypt-active record and continuation generation plus sufficient durable
 nonce lease exist, trusted Cell time is usable, recovery has no quarantine,
 and the latest rotation/inventory audit is within its capacity profile. Loss
 of any condition withdraws admission/readiness before accepting new work.
-Known-answer AES-GCM/SHA-256 vectors, independent AAD encoders, wrong-AAD/tag/
-tenant/purpose/key tests, nonce duplicate/exhaustion, key-buffer remanence,
-PDP/Audit/KMS outage, rotation/revocation at every barrier, crash-resume,
-ciphertext-only restore, corrupt backup, and readiness-withdrawal campaigns are
-mandatory before D4.
+Independent SHA-256 and KMS-AEAD known-answer vectors, independent AAD
+encoders, wrong-AAD/tag/tenant/purpose/key tests, nonce duplicate/exhaustion,
+raw-key-containment and provider-zeroization evidence, PDP/Audit/KMS outage,
+rotation/revocation at every barrier, crash-resume, ciphertext-only restore,
+corrupt backup, and readiness-withdrawal campaigns are mandatory before D4.
 
 ## Fail-closed request context
 

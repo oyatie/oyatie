@@ -252,6 +252,34 @@ tests.
   migration replace these ports or format while retaining tenant isolation,
   durable pre-ACK evidence, rollback fencing, and recoverability.
 
+### Amendment — opaque KMS AEAD boundary and pre-use nonce reservation
+
+- **achieves:** removes the contradiction between rejecting raw Data key
+  material and requiring locally held AES key bytes, while making AES-GCM
+  nonce reuse impossible across a crash boundary.
+- **origin:** the first D1c draft both prohibited a raw key/provider client in
+  a Data contract and described a Data-visible zeroizing 32-byte key lease;
+  it also advanced the nonce checkpoint only before acknowledgement, after a
+  ciphertext could already exist.
+- **rule:** `secrets-kms-use` is the required accepted provider face for an
+  opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only its
+  non-serializable handle reference, generation/fence metadata, and durable
+  nonce-reservation receipt; they MUST NOT expose raw key bytes or a provider
+  client. The provider MUST durably reserve a disjoint nonce range before it
+  returns the receipt. Data MUST durably record the lease and then durably
+  advance `next` past a counter before submitting that nonce to Seal; if
+  recovery cannot prove the latest state, it burns the whole lease and
+  withdraws readiness. KMS owns any raw-key lifetime and zeroization proof.
+- **ensure:** `SPEC.md` fixes the request/receipt/error fields and the
+  acquire/reserve/seal/persist/publish/ACK crash matrix; `PLAN.md` schedules
+  the KMS AEAD adapter content only after KC defines those Data types.
+  Conformance scans reject raw-key-shaped Data values and test every crash
+  boundary, N/N+1 nonce counter, lease burn, rotation, and refusal path.
+- **overturn_when:** an accepted replacement provider contract proves an
+  equally opaque, tenant-bound operation with durable non-reuse, raw-key
+  containment, zeroization evidence, and the same crash/rotation refusal
+  coverage.
+
 </record_security>
 
 <operational_identity>
