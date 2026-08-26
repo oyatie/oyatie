@@ -87,21 +87,32 @@ boundary; it does not host HR routes, fixtures, stores, or an HR client crate.
 
 ## Sold People wire contract
 
-The only sold IDL is
-`app/hr/facade/proto/hr/api/v1/people_service.proto`, protobuf package
-`hr.api.v1`. It declares unary onboard and read methods only. The server-side
-adapter `adapters/draft/transport-connect` /
-`hr-transport-connect-draft` implements the matching owner-local
-`ports/draft/transport` / `hr-transport-draft` port, and
+The reserved sold IDL identity is
+`app/hr/facade/proto/hr/people/v1/people_service.proto`, protobuf package
+`hr.people.v1`. It declares only unary `OnboardEmployee` and `GetEmployee`
+methods. The directory matches the semantic package component; literal `api`
+is not used as a placeholder segment. The server-side adapter
+`adapters/draft/transport-connect` / `hr-transport-connect-draft` implements the
+matching owner-local `ports/draft/transport` / `hr-transport-draft` port, and
 `facade/people-app` / `hr-people-app` composes it with the use cases. There is
 no provider-owned People client adapter. No other owner may import either draft
 crate; a future Rust consumer requires a separate D-28 provider-port promotion,
 external API review, and a client adapter owned by that consumer.
 
+This target is not dispatchable today. The reviewed workspace has no accepted
+Connect generator/runtime target. L2f.0a must first record a protocol-owner,
+architecture, and Build accepted implementation with exact versions/features,
+Cargo/Buck targets, generated inputs and outputs, license/removal policy, and
+wire/fault evidence. HR then consumes its generated service bindings. HR source
+does not parse Connect HTTP, frame protobuf, serialize Connect error envelopes,
+or decide trailer behavior. Message-only generation plus hand-written framing
+is not an implementation of this contract.
+
 V1 wire behavior is the Connect unary protocol:
 
 ```text
-POST /hr.api.v1.PeopleService/<Method>
+POST /hr.people.v1.PeopleService/OnboardEmployee
+POST /hr.people.v1.PeopleService/GetEmployee
 Content-Type: application/proto
 Connect-Protocol-Version: 1
 body: one bare protobuf message (no five-byte gRPC envelope)
@@ -115,9 +126,50 @@ protobuf message. A failure uses the stable Connect-code-to-HTTP mapping and an
 `application/grpc*`, `application/connect+proto` streaming envelopes,
 unsupported compression, unknown method paths, missing/wrong protocol version,
 oversized headers or body, malformed protobuf, extra framed messages, and any
-outcome that requires trailers. Deadline, decoded-message, header-count,
-body-byte, concurrent-request, and in-flight-byte bounds are configured before
-dispatch; saturation fails early and performs no HR mutation.
+outcome that requires trailers.
+
+V1 admission uses the following binary units and closed bounds. `KiB` is 1,024
+octets and `MiB` is 1,048,576 octets. Operators may lower a default, but no
+configuration may exceed the hard maximum.
+
+| Resource | Default | Hard maximum |
+|---|---:|---:|
+| decoded HTTP header fields | 24 | 32 |
+| aggregate decoded header-name plus value octets | 12 KiB | 16 KiB |
+| one decoded header value | 4 KiB | 8 KiB |
+| encoded protobuf request body | 128 KiB | 256 KiB |
+| one decoded protobuf string/bytes value | 4 KiB | 8 KiB |
+| aggregate owned string/bytes after protobuf decode | 64 KiB | 128 KiB |
+| known plus unknown protobuf field occurrences | 96 | 128 |
+| entries in any repeated message field | 32 | 64 |
+| protobuf nesting depth | 8 | 8 |
+| active requests per tenant | 32 | 64 |
+| queued requests per tenant | 32 | 64 |
+| active requests per cell | 2,048 | 4,096 |
+| queued requests per cell | 4,096 | 8,192 |
+| reserved request bytes per tenant | 8 MiB | 16 MiB |
+| reserved request bytes per cell | 512 MiB | 1 GiB |
+| request deadline when absent | 5,000 ms | 30,000 ms |
+
+`Connect-Timeout-Ms`, when present, is canonical ASCII decimal
+`[1-9][0-9]{0,4}` in the inclusive range 1..=30,000; sign, whitespace, zero,
+leading zero, overflow, and a longer value are `invalid_argument`. Every count,
+byte sum, and reservation product uses checked `u64` arithmetic; overflow
+rejects the request as `invalid_argument`, while an overflowing or above-hard-
+maximum configuration prevents the process from becoming ready. A missing
+content length reserves the full configured body maximum before reading.
+Cancellation releases queue, active, and byte reservations exactly once.
+
+Validation order is stable: method/path; header-count and byte accounting;
+content/protocol/compression/deadline grammar; channel principal and tenant
+binding; tenant then cell queue/active/byte admission; bounded body read;
+generated protobuf decode plus decoded-work limits; request-resource/PDP/pack
+binding; then use-case dispatch. Invalid protocol is
+`invalid_argument`/400, an exceeded work or queue bound is
+`resource_exhausted`/429, and an expired deadline is
+`deadline_exceeded`/504. All three occur before repository mutation. Exact-limit
+and limit-plus-one vectors cover every row, and saturation/cancellation proves
+reservation recovery without queue growth.
 
 The v1 mapping is fixed: validation is `invalid_argument`/400;
 unauthenticated is `unauthenticated`/401; forbidden is
@@ -128,24 +180,23 @@ corrupt/impossible state is `data_loss` or `internal`/500. Protocol parse errors
 cannot be relabeled as domain success, and error messages contain no employee,
 person, evidence, credential, or raw policy value.
 
-Code generation is deliberately message-only. A serialized dependency lane
-admits direct workspace `prost-build = "=0.14.3"` and its generated Buck alias;
-`protoc-bin-vendored = 3.2.0` supplies the compiler. The adapter build script
-uses `prost-build` to emit messages under `OUT_DIR` and the D-41 scanner emits
-its deterministic item indexes there. Runtime dependencies are exactly
-`hr-transport-draft`, `prost 0.14.3`, `bytes 1`, `serde`, and `serde_json`;
-build-only dependencies are `prost-build 0.14.3` and
-`protoc-bin-vendored 3.2.0`. Neither
-`hr-transport-connect-draft` nor `hr-people-app` may depend on `tonic`,
-`tonic-prost`, `tonic-build`, or `tonic-prost-build`, and no gRPC service/client
-code is generated.
+The accepted generator must emit the Connect service/handler and message
+bindings under `OUT_DIR`; Cargo and Buck stage the same IDL/import inputs and
+compile the same generated membership. The structural generator must tolerate
+the schema being absent so package/build/lock admission can precede the
+schema-only external-contract lane. The exact runtime and build dependencies
+remain deliberately unnamed until L2f.0a accepts them and amends the owner plan;
+placeholders are not dispatch authority. Neither `hr-transport-connect-draft`
+nor `hr-people-app` may depend on `tonic`, `tonic-prost`, `tonic-build`, or
+`tonic-prost-build`, and no gRPC service/client code is generated.
 
-Golden tests compare exact request, success, and error bytes through Cargo and
-Buck. Negative vectors cover truncated/overlong protobuf, a gRPC five-byte
-prefix, two concatenated messages, wrong content/protocol headers, gRPC status
-metadata, attempted trailers, timeout, body/header/in-flight limits, and
-adapter cancellation. Each rejection is bounded, classified, observable
-without sensitive fields, and occurs before repository mutation.
+Golden tests compare exact request, success, and generated Connect error bytes
+through Cargo and Buck. Negative vectors cover truncated/overlong protobuf, a
+gRPC five-byte prefix, two concatenated messages, wrong content/protocol
+headers, gRPC status metadata, attempted trailers, timeout, every exact bound
+and bound-plus-one, queue saturation, and adapter cancellation. Each rejection
+is bounded, classified, observable without sensitive fields, and occurs before
+repository mutation.
 
 </connect_boundary>
 
@@ -153,8 +204,9 @@ without sensitive fields, and occurs before repository mutation.
 
 ## Narrow first feature contract
 
-After L2e, the first People slice is durable employee onboarding using the
-already-landed `onboard_employee` behavior. It adds no new employment-law rule.
+After L2e and the accepted L2f.0a generated-Connect gate, the first People slice
+is durable employee onboarding using the already-landed `onboard_employee`
+behavior. It adds no new employment-law rule.
 
 Input contains tenant, legal entity, employee/person/manager references,
 employment state, tier snapshot, lifecycle event id, evidence reference,
@@ -176,6 +228,13 @@ command must explicitly consume a `Ready` result and its evidence generation.
 
 The SQLite schema is adapter-private and versioned. At minimum it persists
 employee state, lifecycle events, idempotency outcomes, and audit/outbox intent.
+The repository port supplies a versioned canonical request byte sequence; the
+adapter stores its SHA-256 digest plus versioned outcome bytes. The SQLite
+adapter's only runtime dependencies are `hr-employment-repository-draft`,
+`rusqlite.workspace = true`, and `sha2.workspace = true`. Its only
+dev-dependencies are `hr-employment-repository-memory-draft` and
+`tempfile.workspace = true`; recovery targets use the real SQLite adapter and
+`tempfile`, never the memory oracle or `:memory:`.
 The logical idempotency key is:
 
 ```text

@@ -73,6 +73,8 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   facade derived from the same use-case contract, not from adapter internals.
 - Serve that facade as binary-protobuf unary Connect with bounded request work,
   meaningful HTTP/Connect errors, and no gRPC service, envelope, or trailers.
+  Do not dispatch the surface until an accepted generated Connect target owns
+  the protocol envelope; HR must not substitute hand-written framing.
 
 ## Leave, payroll intent, and compliance
 
@@ -160,9 +162,10 @@ objectives as unqualified rather than manufacturing availability evidence.
   ambiguous partial HR mutation or sensitive disclosure.
 - SLO signals and readiness truthfully identify the selected adapter and policy
   generation.
-- Cargo/Buck and byte-golden tests prove the sold People proto, message-only
-  codegen, Connect request/success/error mapping, and absence of gRPC framing or
-  trailers before any listener promotion.
+- Cargo/Buck and byte-golden tests prove the sold People proto, accepted
+  generated Connect service/runtime, request/success/error mapping, and absence
+  of HR-written framing, gRPC framing, or trailers before any listener
+  promotion.
 
 ## Failure
 
@@ -175,7 +178,8 @@ objectives as unqualified rather than manufacturing availability evidence.
 - HR core requires a Data/Gateway/cloud crate, adapter-specific schema, or
   trusted-tenant branch.
 - A cloud IAM package imports any HR package, or an HR facade accepts gRPC,
-  trailer-dependent, malformed, unbounded, or second-codec traffic.
+  trailer-dependent, malformed, unbounded, second-codec, or HR-handwritten
+  Connect traffic.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 

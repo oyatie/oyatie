@@ -85,33 +85,35 @@ over-budget files are debt, not precedent.
 
 <sold_people_boundary>
 
-## Decision: one protobuf contract over unary Connect, without a gRPC runtime
+## Decision: one semantic protobuf contract through generated Connect
 
-- **achieves:** the sold People surface is byte-level interoperable with the
-  platform's one Connect-class HTTP contract instead of merely being described
-  as Connect while generated or served by gRPC machinery.
-- **origin:** the workspace currently admits protobuf/tonic tooling but has no
-  Connect runtime target; `tonic-prost-build` alone generates gRPC service
-  shapes and does not implement Connect framing, HTTP errors, or the no-trailer
-  rule in ADR-0719 D-4.
-- **rule:** `app/hr/facade/proto/hr/api/v1/people_service.proto` is the sole
-  People IDL. The owner-local `hr-transport-draft` port is implemented by the
-  mechanically matching provider adapter `hr-transport-connect-draft`, and
-  `hr-people-app` is the only sold HR facade process. No other owner may import
-  either draft crate; a future Rust consumer requires a separate D-28 promotion
-  and a consumer-owned client adapter. V1 methods are unary Connect POST with
-  `Content-Type: application/proto`, `Connect-Protocol-Version: 1`, a bare
-  protobuf body, meaningful HTTP status, and a Connect JSON error body. HR MUST
-  NOT generate or link a tonic client/server, accept a gRPC content type, emit
-  `grpc-status`/`grpc-message`, use HTTP trailers, or advertise streaming. Proto
-  messages are compiled by the separately admitted message-only `prost-build`
-  plus vendored `protoc` closure; the owned adapter implements the bounded
-  Connect request/response/error envelope.
-- **ensure:** Cargo and Buck dependency scans prove no `tonic`, `tonic-prost`,
-  or tonic-generated service symbol in either new runtime package; byte-golden
-  contract tests cover exact path/headers/bare-body success and Connect error
-  mapping, and reject malformed protobuf, a gRPC five-byte prefix, unsupported
-  streaming content types, `grpc-*` metadata, and trailer-dependent outcomes.
+- **achieves:** the sold People surface uses the platform's one generated
+  Connect contract rather than an HR-specific parser, envelope, or second SDK.
+- **origin:** the reviewed workspace has protobuf and tonic tooling but no
+  accepted Connect generator/runtime target. Message-only `prost-build` plus
+  handwritten request, response, and error framing would violate ADR-0719 D-4
+  even if byte examples happened to resemble Connect.
+- **rule:** the reserved People IDL identity is
+  `app/hr/facade/proto/hr/people/v1/people_service.proto`, package
+  `hr.people.v1`, with unary `OnboardEmployee` and `GetEmployee` methods.
+  The IDL, codegen packages, and behavior are non-dispatchable until L2f.0a
+  records an architecture/Build/protocol-owner accepted Connect generator and
+  runtime with exact Cargo/Buck targets, versions/features, generated-output
+  contract, dependency/removal policy, and fault suite. After that gate, the
+  owner-local `hr-transport-draft` port is implemented by the mechanically
+  matching provider adapter `hr-transport-connect-draft`, and `hr-people-app`
+  is the only sold HR facade process. HR code consumes generated service
+  bindings; it MUST NOT handwrite Connect HTTP parsing, protobuf framing,
+  Connect JSON error framing, or trailer behavior. It also MUST NOT generate or
+  link a tonic client/server, accept a gRPC content type, emit `grpc-status` or
+  `grpc-message`, use HTTP trailers, or advertise streaming. No other owner may
+  import either draft crate; a future Rust consumer requires a separate D-28
+  promotion and a consumer-owned client adapter.
+- **ensure:** the L2f gate fails closed while no accepted target exists. Its
+  acceptance receipt and amended plan prove generated Connect service symbols,
+  Cargo/Buck input/output parity, no tonic/gRPC runtime, and byte/fault vectors
+  for exact paths, bare protobuf success, generated Connect errors, malformed
+  protobuf, framing, saturation, cancellation, and trailer rejection.
 - **overturn_when:** an accepted protocol decision replaces ADR-0719 D-4 and a
   same-wave migration preserves one IDL, equivalent bounded wire evidence, and
   no standing second protocol.
@@ -184,9 +186,10 @@ over-budget files are debt, not precedent.
   separation; L2d structural draft-port/adapter admission, content-only
   dependency inversion, then structural removal of direct Data/Gateway edges;
   serialized SQLite dependency and adapter-face admission; content-only SQLite
-  parity and crash proof; serialized message-only proto dependency admission;
-  structural sold People proto/matching Connect-adapter/facade admission; and a
-  content-only onboarding slice. A mandatory D-29 IAM
+  parity and crash proof; a fail-closed Connect generator/runtime decision
+  gate; structural empty codegen/package/build admission; a separate schema-only
+  People contract; and then a content-only generated-Connect onboarding slice.
+  A mandatory D-29 IAM
   consumer sequence MUST then delete IAM-local HR composition and remove every
   IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
   after which a separate HR structural lane MUST retire the compatibility
@@ -248,7 +251,8 @@ over-budget files are debt, not precedent.
   mixed with transaction, migration, replay, or recovery behavior.
 - A tracked generated module index, hand-maintained per-item `mod` list, or
   Cargo-only item scan that leaves Buck with different membership.
-- A tonic/gRPC client, server, service stub, content type, status trailer, or
-  fake transport presented as the Connect-class People boundary.
+- A tonic/gRPC client, server, service stub, content type, status trailer,
+  hand-written Connect parser/framer/error envelope, or fake transport presented
+  as the generated Connect-class People boundary.
 - Any terminal Cargo, Buck, or Rust edge from `iam/**` into `app/hr/**`, even
   through an HR-owned client adapter.

@@ -395,6 +395,19 @@ Each package receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
 sorted direct-item scanner. Package names are respectively
 `hr-<leaf>-draft`; no other owner may consume them.
 
+The two new adapters predeclare these exact provider-port edges in both build
+graphs before behavior moves:
+
+| Adapter | Cargo runtime dependencies | Buck library dependencies |
+|---|---|---|
+| `hr-employment-repository-memory-draft` | `hr-employment-repository-draft` | `//app/hr/ports/draft/employment-repository:hr-employment-repository-draft` |
+| `hr-transport-employment-compat-draft` | `hr-transport-draft`, `hr-authorization-evidence-draft`, `hr-runtime-context-draft`, `hr-employment-compat-app` | `//app/hr/ports/draft/transport:hr-transport-draft`, `//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft`, `//app/hr/ports/draft/runtime-context:hr-runtime-context-draft`, `//app/hr/facade/employment-compat-app:hr-employment-compat-app` |
+
+Their library, unit, and integration-test targets carry the same direct HR
+edges; no transitive dependency is treated as a declared edge. There are no
+adapter dev-dependencies in this hop. A missing extra edge stops the lane and
+requires a new structural envelope rather than being smuggled into L2d.1.
+
 This structural lane predeclares the new path dependencies, without using them,
 only in:
 
@@ -405,13 +418,14 @@ app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
-The mapping is fixed: `employment-usecase` receives the eight draft port edges;
-the old storage adapter receives only `employment-repository` plus
-`employment-repository-memory`; and the old infrastructure adapter receives
-`authorization-evidence`, `transport`, `runtime-context`, and
-`transport-employment-compat`. This mapping remains frozen when L2f.0b adds the
-second matching transport adapter; an additional existing-package consumer
-stops the lane for a new structural envelope.
+The existing-consumer mapping is fixed: `employment-usecase` receives the eight
+draft port edges; the old storage adapter receives only
+`employment-repository` plus `employment-repository-memory`; and the old
+infrastructure adapter receives `authorization-evidence`, `transport`,
+`runtime-context`, and `transport-employment-compat`. This mapping remains
+frozen when the later accepted Connect lane adds the second matching transport
+adapter; an additional existing-package consumer stops the lane for a new
+structural envelope.
 
 Root membership is unchanged because accepted globs already enroll the faces.
 No trait, value, implementation, schema, route, auth, storage, or readiness
@@ -561,14 +575,30 @@ tests/recovery.rs
 tests/recovery_items/a_face.rs
 ```
 
-Its Cargo direct edges are the frozen
-`hr-employment-repository-draft`, `rusqlite.workspace = true`, and test-only
-`hr-employment-repository-memory-draft`. Its Buck direct edges are the matching
-two HR targets and `third-party//:rusqlite`. The scanner accepts empty direct
-`src/items`, `src/test_items`, `tests/contract_items`, and
-`tests/recovery_items`, emits four named files under `OUT_DIR`, and Buck stages
-the same globs. `migrations/*.sql` is predeclared as a later resource glob but
-no migration exists.
+Its exact Cargo dependency sections are:
+
+```toml
+[dependencies]
+hr-employment-repository-draft = { path = "../../../ports/draft/employment-repository" }
+rusqlite = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+hr-employment-repository-memory-draft = { path = "../employment-repository-memory" }
+tempfile = { workspace = true }
+```
+
+The Buck library depends exactly on
+`//app/hr/ports/draft/employment-repository:hr-employment-repository-draft`,
+`third-party//:rusqlite`, and `third-party//:sha2`. The contract test adds
+`:hr-employment-repository-sqlite-draft`, the matching memory-adapter target,
+and `third-party//:tempfile`; the recovery test adds the SQLite library, the
+repository port, and `third-party//:tempfile` and does **not** substitute the
+memory adapter for recovery. Unit tests use the library dependency set. The
+scanner accepts empty direct `src/items`, `src/test_items`,
+`tests/contract_items`, and `tests/recovery_items`, emits four named files under
+`OUT_DIR`, and Buck stages the same globs. `migrations/*.sql` is predeclared as
+a later resource glob but no migration exists.
 
 Closed write envelope is the ten files above plus only the new workspace-package
 entry in `Cargo.lock`. Root Cargo, generated third party, port/memory packages,
@@ -576,11 +606,13 @@ other HR, IAM, schema, and behavior are frozen. Build closure is the SQLite
 library/empty tests, repository port/memory oracle, all HR, and five IAM
 packages. Required review is HR, Build, Data durability, and security/audit.
 
-Success: one empty unrouted adapter face builds through both graphs with stable
-membership and no durability/readiness claim. Failure is schema/store/transaction
-behavior, graph mismatch, manual index, or frozen-path edit. Rollback removes
+Success: one empty unrouted adapter face and all three exact Buck target classes
+build through both graphs with stable membership and no durability/readiness
+claim. Failure is schema/store/transaction behavior, a missing/extra runtime or
+dev edge, graph mismatch, manual index, or frozen-path edit. Rollback removes
 the empty face and its lock entry; no format or runtime state exists. Fault
-evidence includes add/rename/remove scanner canaries and a missing-port fixture.
+evidence includes add/rename/remove scanner canaries and missing-port,
+memory-oracle, and real-file-test dependency fixtures.
 
 ## L2e — Implement SQLite durability in bounded unique files
 
@@ -636,90 +668,156 @@ Fault evidence interrupts after begin, idempotency insert, employee write,
 lifecycle write, outbox write, before commit, and after commit-before-response;
 each case hard-closes, reopens, checks invariants, and replays. Also inject full
 disk, busy lock, corrupt/old schema, migration interruption, and duplicate
-outbox delivery.
+outbox delivery. `tests/recovery.rs` and its generated item set always create a
+real SQLite file inside `tempfile::TempDir`, invoke the SQLite adapter through
+`hr-employment-repository-draft`, drop every live connection without a graceful
+adapter shutdown at the selected failpoint, construct a new adapter/connection
+from the same path, and then assert state plus idempotent replay. A memory-only,
+`:memory:`, mocked-connection, or same-live-connection test is not recovery
+evidence.
 
-## L2f.0a — Admit message-only protobuf code generation
+## L2f.0a — Accept a generated Connect generator/runtime
 
-Class: serialized repo-root dependency/generated-graph mutation; depends on
-L2e.
+Class: fail-closed D-29 protocol decision gate; depends on L2e. This is not an
+implementation dispatch.
 
-Add exactly this direct workspace build dependency:
+The reviewed repository has no accepted Connect generator or runtime target.
+`prost-build`, `tonic-prost-build`, and hand-written HTTP/protobuf/error framing
+do not satisfy ADR-0719 D-4. Therefore L2f.0b, L2f.0c, and L2f.1 are explicitly
+**NON-DISPATCHABLE** until a protocol-owner/architecture/Build decision lands
+and this owner law is amended at a new exact head.
 
-```toml
-prost-build = "=0.14.3"
+The gate must name all of the following, without placeholders:
+
+- the owning capability and exact generator/runtime package paths, Cargo package
+  names, versions/features, licenses, source provenance, and removal/owned-stack
+  destination;
+- exact Cargo runtime/build dependencies and Buck targets, including the
+  protobuf compiler, IDL/import roots, generated Rust outputs under `OUT_DIR`,
+  stable D-41 membership, and Cargo/Buck parity;
+- generated unary Connect service/handler, request/response, status/error, and
+  no-trailer behavior; HR code may implement a generated service trait but may
+  not parse or frame Connect itself;
+- bounded deadline, header/body/decode, queue, active-request, in-flight-byte,
+  cancellation, and malformed/error hooks sufficient to enforce SPEC;
+- exact byte-golden, gRPC-prefix, streaming, `grpc-*`, trailer, timeout,
+  limit/limit-plus-one, saturation, and cancellation tests in both build graphs;
+  and
+- an explicit ban on tonic/gRPC runtime/service generation and on a second SDK
+  or product codec.
+
+Success is an accepted, built, fault-tested target plus an HR owner-law
+amendment that replaces every formerly unknown dependency/build path below with
+exact names. Failure is choosing a message-only generator, bespoke HR framing,
+an unowned crate, a Cargo-only target, or leaving any dependency/output
+implicit. Rollback is rejection of the decision; no HR/proto/root/build path
+changes and no runtime state exist at this gate.
+
+## L2f.0b — Admit empty Connect codegen/package/build structure
+
+Class: serialized structural dependency/package/build/lock mutation; depends on
+successful L2f.0a and its exact owner-law amendment. It contains no proto schema
+or API behavior.
+
+The fixed HR identity is:
+
+```text
+app/hr/facade/proto/hr/people/v1/{BUCK,OWNERS}
+app/hr/adapters/draft/transport-connect     # hr-transport-connect-draft
+app/hr/facade/people-app                    # hr-people-app
 ```
 
-`prost-build` 0.14.3 is Apache-2.0 from crates.io/upstream
-`github.com/tokio-rs/prost`; it is already locked transitively and present in
-the generated third-party graph, so this hop promotes only its public direct
-alias. The closed write set is root `Cargo.toml` and regenerated
-`third-party/BUCK`; `Cargo.lock` must remain byte-identical. Run the configured
-Reindeer materializer twice and
-require an idempotent diff containing only `third-party//:prost-build`. No HR,
-IAM, proto, package, fixup, or runtime file changes.
+The proto BUCK rule declares the accepted semantic package root but tolerates
+an absent `people_service.proto`. Each Rust package receives only `Cargo.toml`,
+`BUCK`, `build.rs`, stable `src/lib.rs`, `src/items/a_unrouted.rs`,
+`src/test_items/a_face.rs`, stable `tests/contract.rs`, and
+`tests/items/a_face.rs`. Both packages run the owned sorted D-41 scanner. The
+adapter build graph runs the L2f.0a-accepted generator with an empty schema set
+and writes only its declared empty/generated indexes under `OUT_DIR`; Cargo and
+Buck stage identical inputs and outputs. A generator that cannot tolerate the
+absent schema fails this structural lane.
 
-Build closure is locked/offline metadata, the generated prost-build/protoc
-targets, unchanged all-HR, and all five IAM packages. Required review is
-workspace/Build, supply chain, protocol/API, and HR. Success is one exact
-message-codegen alias with no new version or runtime dependency. Failure is a
-new crate/version, tonic alias, hand edit, unrelated generated churn, lock
-change, or behavior change. Rollback removes the workspace alias and reruns the
-materializer; no contract, code, or format exists yet.
+The known HR-side dependency graph is exact:
 
-## L2f.0b — Admit the sold People proto, matching Connect adapter, and facade
+| Target | Cargo direct dependencies | Buck direct dependencies |
+|---|---|---|
+| `hr-transport-connect-draft` runtime | `hr-transport-draft` plus the exact accepted generated-Connect runtime/service targets recorded by L2f.0a | `//app/hr/ports/draft/transport:hr-transport-draft` plus accepted runtime/service Buck targets |
+| `hr-transport-connect-draft` build | exact accepted generator/compiler targets from L2f.0a | matching accepted generator/compiler Buck targets |
+| `hr-people-app` runtime | `hr-employment-usecase`, `hr-employment-repository-draft`, `hr-installed-overlay-draft`, `hr-authorization-evidence-draft`, `hr-audit-outbox-draft`, `hr-transport-draft`, `hr-runtime-context-draft`, `hr-employment-repository-sqlite-draft`, `hr-transport-connect-draft` | the nine literal HR labels below |
+| `hr-people-app` dev | `hr-employment-repository-memory-draft`, `tempfile.workspace = true` | `//app/hr/adapters/draft/employment-repository-memory:hr-employment-repository-memory-draft`, `third-party//:tempfile` |
 
-Class: serialized external-contract/proto/package mutation; depends on L2f.0a.
+The nine `hr-people-app` Buck runtime labels are exactly:
 
-Add the one sold contract at exact path
-`app/hr/facade/proto/hr/api/v1/people_service.proto` with protobuf package
-`hr.api.v1`, plus sibling `BUCK` and `OWNERS`. It declares only versioned unary
-onboard/read messages and service methods; no `draft`, JSON/REST, streaming, or
-second IDL.
+```text
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/ports/draft/employment-repository:hr-employment-repository-draft
+//app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/audit-outbox:hr-audit-outbox-draft
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/adapters/draft/employment-repository-sqlite:hr-employment-repository-sqlite-draft
+//app/hr/adapters/draft/transport-connect:hr-transport-connect-draft
+```
 
-Create exact Rust packages `app/hr/adapters/draft/transport-connect` with
-package `hr-transport-connect-draft`, and `app/hr/facade/people-app` with package
-`hr-people-app`. Each receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
-`src/lib.rs`, `src/items/a_unrouted.rs`, `src/test_items/a_face.rs`, stable
-`tests/contract.rs`, and `tests/items/a_face.rs`. Both build scripts run the
-owned sorted D-41 item scanner. The adapter build script also runs
-`prost-build` over the one staged proto and writes message types only to
-`OUT_DIR`; Buck stages the identical proto/item inputs and generated outputs.
+The L2f.0a amendment must replace the accepted-target descriptions in the first
+two rows with literal package/label names before dispatch; this table is a gate
+condition, not current dependency authority. No tonic/gRPC target is allowed.
+The facade recovery target directly includes the SQLite adapter, repository
+port, and `tempfile`; byte tests directly include the generated Connect adapter
+and accepted runtime. No transitive edge counts as declared.
 
-The adapter's runtime Cargo/Buck edges are exactly `hr-transport-draft`,
-`prost`, `bytes`, `serde`, and `serde_json`; its build edges are exactly
-`prost-build` and `protoc-bin-vendored`. `hr-people-app` depends only on the HR use case,
-required HR-owned ports, and `hr-transport-connect-draft`. Both adapters now
-mechanically name the matching `transport` provider port. Neither package may
-depend on `tonic`, `tonic-prost`, `tonic-build`, or `tonic-prost-build`, and no
-gRPC client/server/service code is generated. Only the two new workspace
-package entries may change `Cargo.lock`.
+The eventual closed structural write set is the two proto directory metadata
+files, the fixed eight-file set inside each new package, the exact root
+dependency/lock/generated/fixup files named by L2f.0a, and nothing else. Until
+those root/generated paths are literal, this lane remains non-dispatchable.
+Existing draft packages, SQLite behavior/schema, all IAM paths, and every proto
+schema are frozen. The only runtime value is typed `Unrouted`; no handler,
+listener, route, authority, storage behavior, deployment, readiness, or SLO
+claim lands.
 
-No other owner may import either draft adapter or `hr-transport-draft`. A future
-Rust consumer must own its client adapter and first dispatch a separate D-28
-external-contract/API-review `git mv` from `ports/draft/transport` to
-`ports/transport`; cloud IAM is not that consumer. The sold v1 proto is the only
-cross-owner contract in this sequence.
+Build closure is the accepted generator/runtime, both empty packages, draft
+transport, full L2d/L2e closure, all HR, and five IAM packages through Cargo and
+Buck. Required D-29 review is protocol owner, HR, architecture/API, Build,
+Gateway, IAM, security, supply chain, and Data durability. Success is exact
+empty structure and graph parity with no schema or request served. Failure is a
+placeholder dependency, behavior/schema, gRPC symbol, cross-owner draft edge,
+manual index, or unrelated generated/lock churn. Rollback removes only the
+empty packages/directory metadata and exact admitted dependency closure; no
+wire or format exists.
 
-Closed write envelope is the three proto files, the fixed eight-file set inside
-each new package, and their exact lock entries. Root Cargo, generated third
-party, all existing draft packages, SQLite behavior, and IAM are frozen. The
-sole runtime value is typed `Unrouted`; no handler, listener, route, authority,
-storage, deployment, readiness, or SLO behavior lands.
+## L2f.0c — Land the semantic People schema only
 
-Build closure is proto lint/compile, both empty packages, the draft transport
-contract, all L2d/L2e packages, all HR, and five IAM packages. Required D-29
-review is HR, architecture/API, Build, Gateway/protocol, IAM, security, and Data
-durability. Success: one `hr.api.v1` contract, one adapter that names its exact
-port, and one correctly named facade compile through Cargo/Buck with identical
-generation and no request can be served. Failure is behavior, a cross-owner
-draft dependency, second protocol, gRPC symbol/dependency, draft in sold IDL,
-manual index, root/generated churn, or readiness fiction. Rollback removes the
-proto, two empty packages, and only their lock entries; no network or format
-change occurs.
+Class: content-only external-contract/API lane; depends on L2f.0b.
 
-## L2f.1 — Implement one unrouted People onboarding slice and Connect envelope
+The complete write set is the one new file:
 
-Class: content-only feature behavior; depends on L2f.0b.
+```text
+app/hr/facade/proto/hr/people/v1/people_service.proto
+```
+
+It declares package `hr.people.v1`, service `PeopleService`, unary methods
+`OnboardEmployee` and `GetEmployee`, and only their versioned request/response
+messages. Generated routes are exactly
+`/hr.people.v1.PeopleService/OnboardEmployee` and
+`/hr.people.v1.PeopleService/GetEmployee`. No literal `api` package segment,
+`draft`, JSON/REST, streaming, second IDL, deployment, or behavior is admitted.
+All BUCK/OWNERS, manifests, build scripts, lock/root/generated inputs, Rust,
+SQLite, IAM, and stable indexes are frozen. Generated output changes only under
+`OUT_DIR` and is never tracked.
+
+Build closure is proto lint plus the accepted generated service/message output,
+both empty L2f packages, full HR, and five IAM packages through Cargo/Buck.
+Required review is HR, external API/AIP, protocol owner, architecture, Build,
+security/privacy, and future consumer representatives. Success is one semantic
+package/path with byte-stable generated symbols in both graphs. Failure is a
+path/package mismatch, schema plus structural edit, second codec, unbounded
+repeated/string field, or behavior claim. Rollback deletes only the schema; the
+empty structural/codegen faces remain.
+
+## L2f.1 — Implement one unrouted People slice on generated Connect
+
+Class: content-only feature behavior; depends on L2f.0c.
 
 The complete write set is:
 
@@ -727,7 +825,7 @@ The complete write set is:
 app/hr/facade/people-app/src/items/b_onboard.rs
 app/hr/facade/people-app/src/items/c_read.rs
 app/hr/facade/people-app/src/items/d_authority.rs
-app/hr/facade/people-app/src/items/e_connect_dispatch.rs
+app/hr/facade/people-app/src/items/e_service_dispatch.rs
 app/hr/facade/people-app/src/items/f_readiness.rs
 app/hr/facade/people-app/src/test_items/b_contract.rs
 app/hr/facade/people-app/src/test_items/c_authority.rs
@@ -736,9 +834,9 @@ app/hr/facade/people-app/tests/items/b_onboarding.rs
 app/hr/facade/people-app/tests/items/c_recovery.rs
 app/hr/facade/people-app/tests/items/d_overload.rs
 app/hr/facade/people-app/tests/items/e_observability.rs
-app/hr/adapters/draft/transport-connect/src/items/b_unary_request.rs
-app/hr/adapters/draft/transport-connect/src/items/c_unary_response.rs
-app/hr/adapters/draft/transport-connect/src/items/d_connect_error.rs
+app/hr/adapters/draft/transport-connect/src/items/b_generated_service.rs
+app/hr/adapters/draft/transport-connect/src/items/c_port_translation.rs
+app/hr/adapters/draft/transport-connect/src/items/d_status_mapping.rs
 app/hr/adapters/draft/transport-connect/src/test_items/b_contract.rs
 app/hr/adapters/draft/transport-connect/tests/items/b_wire.rs
 app/hr/adapters/draft/transport-connect/tests/items/c_malformed.rs
@@ -751,23 +849,32 @@ generation, correlation/idempotency identity, one lifecycle event, and durable
 audit/outbox intent. Creating a record never silently marks onboarding ready or
 dispatches unowned work.
 
-The adapter implements exact unary Connect POST paths, version header,
-`application/proto` bare-message decode/encode, meaningful HTTP status, and the
-bounded Connect JSON error body described by SPEC. It takes and returns
-`hr-transport-draft` values; `people-app` performs dispatch. There is no client,
-listener, socket, tonic service, gRPC envelope, or fake transport claimed as
-wire proof. Header count/bytes, body bytes, decoded message, deadline,
-concurrency, and in-flight bytes are bounded before use-case dispatch.
+The adapter implements the accepted generated `hr.people.v1.PeopleService`
+service/handler trait and translates generated values/status classes to and
+from `hr-transport-draft`; `people-app` performs use-case dispatch. The accepted
+runtime—not HR—owns paths, headers, bare-message decode/encode, Connect JSON
+error serialization, and trailer rejection. HR may supply the SPEC limit
+configuration and typed status mapping but may not parse HTTP, frame protobuf,
+or serialize a Connect envelope. There is no client, listener, socket, tonic
+service, gRPC envelope, or fake transport claimed as wire proof.
 
 All proto, manifests, BUCK/build scripts, stable parents, generated message and
 item indexes, `a_unrouted.rs`, root/lock/generated files, schema, other HR, and
 IAM paths are frozen. The process remains `Unrouted`; this slice supplies no
 listener, deployment, readiness, or advertised SLO.
 
-Build closure is both L2f packages, message generation, the full port/SQLite
-closure, all HR, and five IAM packages. Required review is HR plus independent
-security, protocol, durability, overload/performance, privacy, observability,
-and byte-compatibility reviewers.
+`people-app/tests/items/c_recovery.rs` is wired to the runtime
+`hr-employment-repository-sqlite-draft` edge and `tempfile`, creates a real
+file, loses the response at the selected post-commit failpoint, drops all live
+connections, opens a new SQLite adapter at the same path, and replays through
+the People service. The memory dev adapter is used only by parity tests; it
+cannot satisfy recovery. The byte and malformed targets directly depend on the
+generated Connect adapter/runtime accepted in L2f.0a.
+
+Build closure is both L2f packages, accepted generated service/runtime, the full
+port/SQLite closure, all HR, and five IAM packages. Required review is HR plus
+independent security, protocol, durability, overload/performance, privacy,
+observability, and byte-compatibility reviewers.
 
 Success: an authorized command commits exactly one employee, lifecycle event,
 idempotency outcome, and audit/outbox intent; read/replay after restart returns
@@ -779,11 +886,13 @@ telemetry, or frozen-path edit. Rollback removes only these unique items; the
 unrouted structural faces and SQLite format remain.
 
 Fault evidence covers every transaction interruption, response loss/replay,
-authority expiry, saturation, cancellation, and outbox redelivery. Wire
-negative tests inject truncated/overlong protobuf, a gRPC five-byte prefix, two
-concatenated messages, wrong path/content/version, streaming content type,
-unsupported compression, `grpc-status`/`grpc-message`, attempted trailers, and
-oversized headers/body; every case fails before repository mutation.
+authority expiry, every SPEC exact-limit/limit-plus-one case, tenant/cell queue
+and byte saturation, cancellation with reservation release, and outbox
+redelivery. Wire negative tests inject truncated/overlong protobuf, a gRPC
+five-byte prefix, two concatenated messages, wrong path/content/version,
+streaming content type, unsupported compression, `grpc-status`/`grpc-message`,
+attempted trailers, deadline grammar/expiry, and oversized headers/body; every
+case fails before repository mutation.
 
 ## L2g.0 — Delete HR product composition from IAM
 
@@ -861,23 +970,70 @@ workspace-package entries in `Cargo.lock`:
 
 ```text
 app/hr/facade/employment-app
+app/hr/facade/employment-compat-app
 app/hr/ports/employment-api
 app/hr/adapters/employment-storage-inmemory
 app/hr/adapters/employment-infrastructure
+app/hr/adapters/draft/transport-employment-compat
 ```
 
-The canonical domain, use-case, compatibility facade, HR-owned ports, memory/
-transport/SQLite/Connect adapters, People facade/proto, and all behavior remain
-unchanged. Root membership needs no edit because the existing globs stop
-matching deleted directories. No source is moved or feature changed in this
-lane.
+The canonical domain, use-case, HR-owned ports, repository memory/SQLite
+adapters, generated Connect adapter, People facade/proto, and all non-
+compatibility behavior remain unchanged. Root membership needs no edit because
+the existing globs stop matching deleted directories. No source is moved or
+feature changed in this lane.
+
+The terminal direct graph is frozen and proved in both Cargo and Buck:
+
+```text
+hr-employment-usecase
+  -> hr-employment-domain
+  -> hr-employment-repository-draft
+  -> hr-installed-overlay-draft
+  -> hr-authorization-evidence-draft
+  -> hr-audit-outbox-draft
+  -> hr-workflow-dispatch-draft
+  -> hr-payroll-impact-dispatch-draft
+  -> hr-transport-draft
+  -> hr-runtime-context-draft
+
+hr-employment-repository-memory-draft
+  -> hr-employment-repository-draft
+
+hr-employment-repository-sqlite-draft
+  -> hr-employment-repository-draft + rusqlite + sha2
+
+hr-transport-connect-draft
+  -> hr-transport-draft + the exact generated Connect targets accepted at L2f.0a
+
+hr-people-app
+  -> hr-employment-usecase
+  -> hr-employment-repository-draft
+  -> hr-installed-overlay-draft
+  -> hr-authorization-evidence-draft
+  -> hr-audit-outbox-draft
+  -> hr-transport-draft
+  -> hr-runtime-context-draft
+  -> hr-employment-repository-sqlite-draft
+  -> hr-transport-connect-draft
+```
+
+The People test graph adds only the memory repository oracle and `tempfile`;
+its recovery target still links SQLite directly. The terminal scan must find no
+`employment-app`, `employment-api`, `employment-storage-inmemory`,
+`employment-infrastructure`, `employment-compat-app`, or
+`transport-employment-compat` package/name/label/path; no adapter is allowed to
+survive without a matching provider port and at least one named build-graph
+consumer. It also re-proves zero IAM-to-HR direct and transitive edges.
 
 Build closure is every remaining HR package and all five IAM consumers through
-Cargo and Buck, plus inverse scans proving no old package label/name/path.
+Cargo and Buck, plus inverse scans proving no old/compatibility package
+label/name/path and no orphan adapter.
+
 Required D-29 review is HR, IAM, Build/architecture, API, Data, Gateway, and
 security. Success is deletion with the full replacement closure green; failure
 is a residual consumer, moved behavior, root/generated edit, or route/readiness
-claim. Rollback restores the four complete package trees and lock entries; no
+claim. Rollback restores the six complete package trees and lock entries; no
 SQLite format or live route changes.
 
 Only after L2h may a separately ratified provider lane add a listener,
@@ -893,9 +1049,12 @@ production readiness now.
 The HR chain is sequential because each slice freezes the paths used by the
 next. L2b.0 is a separate multi-owner build prerequisite. L2e.0a is the sole
 root dependency/lock/generated-third-party writer; L2e.0b is the sole adapter-
-face/lock writer. L2f.0a is the sole prost-build root/generated-alias writer;
-L2f.0b is the sold proto/Connect-adapter/facade structural writer; L2e and
-L2f.1 release shared hubs and write only their named unique content paths.
+face/lock writer. L2f.0a is a non-implementation protocol decision gate and
+holds every People RPC lane closed. After its exact amendment, L2f.0b is the
+sole accepted Connect dependency/package/build/lock writer; L2f.0c writes only
+the semantic proto schema; L2f.1 writes only the named unique behavior/test
+items. L2e and L2f.1 release shared hubs and write only their named unique
+content paths.
 L2g.0 and L2g.1 are IAM-owner lanes
 and serialize against their five content paths, four graph files, and
 `Cargo.lock`; L2h returns to the HR owner.
