@@ -212,17 +212,23 @@ state, multi-cell propagation, authorization, kill-switch convergence, or SLOs.
   accidentally depend on retired server or paper infrastructure.
 - **origin:** ADR-0719 explicitly keeps `evaluation-domain`, removes the bundled
   REST/gRPC server and cap-root dump, and separates structural from behavioral
-  work.
+  work. No Flags facade, sold proto, distribution/compatibility runtime,
+  telemetry-IR face, or deployment face exists at L1a, so creating those paths
+  and implementing serving behavior are distinct D-33 change classes.
 - **rule:** migration MUST land as L1b server retirement, L1c consumer-confirmed
   residue cleanup, L1d.0 stable-index/file-budget preparation, L1d bounded
   definition admission, L1e.0 structural port-face promotion, L1e.1 dependency
   admission, L1e.2 structural adapter-face creation, L1e.3 durable-adapter
-  behavior, L1e.4 kill/C0 authority, then L1f facade and distribution.
-  Structural lanes MUST remain separate from behavior, preserve the kernel's
-  current public surface where promised, and add no runtime claims.
+  behavior, L1e.4 kill/C0 authority, L1f.0 unrouted serving/deployment/SLO face
+  creation, L1f.1 content-only serving behavior, L1f.2 D-29 provider wiring,
+  then L1f.3 measured promotion. Structural lanes MUST remain separate from
+  behavior, preserve the kernel's current public surface where promised, and
+  add no runtime claims.
 - **ensure:** `PLAN.md` fixes the sequence and changed-path envelopes; each lane
   has before/after tests, protected review, explicit rollback, and no generated
-  hand edits.
+  hand edits. Observability and IaC remain read-only until their owners publish
+  the exact sold/generated integration path; generated SLO and deployment claims
+  cannot precede live producer, consumer, and fault evidence.
 - **overturn_when:** independently reviewed evidence shows two adjacent steps
   cannot be separated and a replacement sequence retains the same behavior,
   rollback, and false-readiness boundaries.
@@ -244,3 +250,8 @@ state, multi-cell propagation, authorization, kill-switch convergence, or SLOs.
   Cargo-only item scanner whose Buck membership differs.
 - Port moves, crate/face creation, or lockfile mutation mixed with adapter,
   authority, or evaluation behavior.
+- Facade/proto/distribution/compatibility/telemetry/deployment face creation or
+  lock mutation mixed with handler, stream, cache, telemetry, or promotion
+  behavior.
+- Direct Flags dependencies on Observability/IaC core paths, hand-authored SLO
+  output, or deployment IR with no admitted reconciler consumer.

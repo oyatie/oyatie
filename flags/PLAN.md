@@ -389,36 +389,291 @@ Fault evidence: forged/expired/wrong-audience/cross-tenant C0 and PDP proofs,
 kill/update races, response loss/replay, restart while engaged, duplicate/reordered
 snapshots, authority outage, and audit failure before acknowledgement.
 
-## L1f — Publish Connect facade and cell-local distribution
+## L1f.0 — Create unrouted serving, distribution, compatibility, SLO, and deployment faces
 
-Class: serving capability; depends on L1e.4.
+Class: serialized structural proto/package/build-graph mutation; depends on
+L1e.4.
 
-- Author one protobuf/Connect contract, default-deny control/evaluation facade,
-  signed snapshot stream/resync, atomic cell-local cache, and compatibility
-  adapter conformance.
-- Add live telemetry and owner SLO IR only with their consuming Observability
-  path; derive deployment through the IaC reconciler rather than restoring YAML.
-- Qualify readiness and PRD SLO objectives through load, partition, corruption,
-  restart, and kill-switch propagation campaigns.
+- Add the one sold contract at exact package path
+  `flags/facade/proto/flags/runtime/v1/flags_service.proto`, declaring protobuf
+  package `flags.runtime.v1`, plus package-local `BUCK` and `OWNERS`. It contains
+  evaluation, separately authorized control, and authenticated distribution
+  services under one semantic version; it does not create REST, gRPC, or OFREP
+  truth beside Connect.
+- Create these exact Rust package roots:
 
-Success: ordinary evaluation has no remote hop, generations are observable and
-monotonic, and only measured/consumed capabilities report ready.
+  ```text
+  flags/facade/runtime-app
+  flags/ports/draft/runtime-authority
+  flags/ports/draft/runtime-telemetry
+  flags/ports/draft/runtime-deployment
+  flags/adapters/draft/snapshot-connect
+  flags/adapters/draft/openfeature-ofrep-compat
+  flags/adapters/draft/runtime-telemetry-otel
+  flags/adapters/draft/runtime-deployment-iac
+  ```
 
-Failure: REST/gRPC dual truth returns, OFREP owns metadata, stale/corrupt state
-is hidden, or deployment/OpenSLO text precedes runtime evidence.
+  The existing `snapshot-memory` adapter remains the future cell-cache backend.
+- Each Rust package receives its Cargo manifest, Buck library/binary and local
+  contract-test targets, package-root `build.rs`, stable crate/test roots, and a
+  compile-neutral `a_face.rs`; the facade instead has stable `src/main.rs`,
+  `src/lib.rs`, and `src/items/a_wiring.rs` whose only result is typed
+  `Unrouted`. No listener or ready response exists.
+- Every scanner sorts direct Rust entries from declared `src/items`,
+  `src/test_items`, and `tests/items` directories into named files under
+  `OUT_DIR`; the facade also emits its stable main/library membership. Buck
+  stages the identical globs, runs the same scanner, and supplies the same
+  generated sources. There is no tracked/manual index, and add/rename/remove
+  canaries require no parent edit.
+- Reuse the already admitted protobuf, transport, and telemetry dependency
+  closure at L1a. Existing workspace globs admit all new packages, so root
+  `Cargo.toml` and `third-party/BUCK` stay frozen; materialize only the new
+  workspace-package entries in `Cargo.lock`.
+- `runtime-telemetry` and `runtime-deployment` are unrouted owner-local faces,
+  not copied Observability/IaC schemas. Do not add `flags/iac/runtime.textproto`
+  or `flags/observability/slos/runtime.generated.openslo.yaml` until L1f.2/L1f.3
+  has a provider-owned consumer and live producer.
 
-Fault evidence: asymmetric partitions, snapshot loss/reorder/corruption,
-process/cell restart, authority outage, overload, forged auth/C0, and prioritized
-kill propagation under concurrent ordinary updates.
+Closed write envelope: `Cargo.lock` package entries; exact proto paths
+`flags/facade/proto/flags/runtime/v1/flags_service.proto`,
+`flags/facade/proto/flags/runtime/v1/BUCK`, and
+`flags/facade/proto/flags/runtime/v1/OWNERS`; and the eight exact Rust package
+roots named above. Within each of the seven library
+port/adapter roots, only `Cargo.toml`, `BUCK`, `build.rs`, `src/lib.rs`,
+`src/items/a_face.rs`, `src/test_items/a_face.rs`, `tests/contract.rs`, and
+`tests/items/a_face.rs` are writable. Within `flags/facade/runtime-app`, only
+`Cargo.toml`, `BUCK`, `build.rs`, `src/main.rs`, `src/lib.rs`,
+`src/items/a_wiring.rs`, `src/test_items/a_face.rs`, `tests/contract.rs`, and
+`tests/items/a_face.rs` are writable. Core, L1e ports/adapters, root manifest,
+generated third-party/SLO files, owner law, IaC/Observability, and behavior are
+frozen.
+
+Build closure: locked/offline metadata; proto package/lint and Cargo/Buck targets
+for `flags-runtime-app`, the three `flags-runtime-*-draft` ports, the four new
+`flags-*-draft` adapters, evaluation, all L1e ports/adapters, and their empty
+contract tests. Required review is Flags plus independent API/architecture,
+build, Gateway/protocol, IAM/Policy, Observability, and IaC reviewers; the sold
+proto additionally requires every discovered consumer owner under D-29.
+
+Success: one canonical proto and eight unrouted package faces compile through
+Cargo and Buck with identical membership; all current vectors/authority/durable
+contracts remain green; every handwritten file is at most 300 lines; no request
+can be served and no deployment, SLO, or readiness claim exists.
+
+Failure: handler/cache/stream/telemetry behavior lands, a listener starts, a
+draft contract leaks to another owner, root members or third-party closure
+change, Cargo/Buck membership differs, or generated/manual indexes appear.
+
+Rollback: remove the proto, eight empty faces, and only their lock entries as one
+structural revert; no network, deployment, SLO, or durable format state exists.
+
+Fault evidence: proto-package and inverse-consumer checks, add/rename/remove
+scanner canaries in both graphs, manual/tracked-index rejection, compile-neutral
+unrouted-process proof, before/after L1e closure, and forbidden behavior/IR
+fixtures.
+
+## L1f.1 — Implement serving behavior in frozen unique files
+
+Class: content-only behavioral serving; depends on L1f.0.
+
+- Add request-bound default-deny authority and its contract evidence only at
+  `flags/ports/draft/runtime-authority/src/{items,test_items}/b_contract.rs`.
+  Missing, forged, expired, wrong-audience, or cross-tenant authority fails
+  before evaluation or mutation.
+- Add bounded telemetry and deployment-intent values only at
+  `flags/ports/draft/runtime-telemetry/src/items/b_contract.rs`,
+  `flags/ports/draft/runtime-telemetry/src/test_items/b_cardinality.rs`, and
+  `flags/ports/draft/runtime-deployment/src/{items,test_items}/b_contract.rs`.
+  These are local semantic values, not Observability/IaC engine copies.
+- Add the Connect evaluation, control, distribution, and fail-closed readiness
+  handlers only as facade items
+  `src/items/{b_evaluation,c_control,d_distribution,e_readiness}.rs`; add local
+  evidence only as
+  `src/test_items/{b_default_deny,c_contract,d_readiness}.rs` and
+  `tests/items/b_end_to_end.rs` under `flags/facade/runtime-app`.
+- Implement signed stream/resync only in
+  `flags/adapters/draft/snapshot-connect/src/items/b_stream.rs`, with evidence
+  in `src/test_items/b_stream.rs` and `tests/items/b_faults.rs`; implement the
+  atomic cell cache only in existing frozen `snapshot-memory` items
+  `src/items/c_cell_cache.rs` and `src/test_items/d_cell_cache.rs`.
+- Implement OpenFeature and OFREP mappings only in
+  `openfeature-ofrep-compat/src/items/{b_openfeature,c_ofrep}.rs` with
+  `src/test_items/b_conformance.rs`. They derive values, reasons, errors, and
+  generations from the canonical contract and own no metadata or authority.
+- Implement bounded telemetry emission and deployment IR translation only in
+  `runtime-telemetry-otel/src/{items,test_items}/b_emitter.rs` and
+  `runtime-deployment-iac/src/{items,test_items}/b_intent.rs`. Neither writes a
+  generated SLO/deployment file or calls another owner's core.
+
+Closed write envelope: only these 26 unique paths:
+
+```text
+flags/ports/draft/runtime-authority/src/items/b_contract.rs
+flags/ports/draft/runtime-authority/src/test_items/b_contract.rs
+flags/ports/draft/runtime-telemetry/src/items/b_contract.rs
+flags/ports/draft/runtime-telemetry/src/test_items/b_cardinality.rs
+flags/ports/draft/runtime-deployment/src/items/b_contract.rs
+flags/ports/draft/runtime-deployment/src/test_items/b_contract.rs
+flags/facade/runtime-app/src/items/b_evaluation.rs
+flags/facade/runtime-app/src/items/c_control.rs
+flags/facade/runtime-app/src/items/d_distribution.rs
+flags/facade/runtime-app/src/items/e_readiness.rs
+flags/facade/runtime-app/src/test_items/b_default_deny.rs
+flags/facade/runtime-app/src/test_items/c_contract.rs
+flags/facade/runtime-app/src/test_items/d_readiness.rs
+flags/facade/runtime-app/tests/items/b_end_to_end.rs
+flags/adapters/draft/snapshot-connect/src/items/b_stream.rs
+flags/adapters/draft/snapshot-connect/src/test_items/b_stream.rs
+flags/adapters/draft/snapshot-connect/tests/items/b_faults.rs
+flags/adapters/draft/snapshot-memory/src/items/c_cell_cache.rs
+flags/adapters/draft/snapshot-memory/src/test_items/d_cell_cache.rs
+flags/adapters/draft/openfeature-ofrep-compat/src/items/b_openfeature.rs
+flags/adapters/draft/openfeature-ofrep-compat/src/items/c_ofrep.rs
+flags/adapters/draft/openfeature-ofrep-compat/src/test_items/b_conformance.rs
+flags/adapters/draft/runtime-telemetry-otel/src/items/b_emitter.rs
+flags/adapters/draft/runtime-telemetry-otel/src/test_items/b_emitter.rs
+flags/adapters/draft/runtime-deployment-iac/src/items/b_intent.rs
+flags/adapters/draft/runtime-deployment-iac/src/test_items/b_intent.rs
+```
+
+All `Cargo.toml`, `BUCK`, `build.rs`, stable crate/test parents, `a_face.rs`,
+facade `a_wiring.rs`, proto, root/lock, L1e files, owner law, `flags/iac/**`,
+`flags/observability/**`, and every external owner path are frozen. Any missing
+dependency or parent edit stops this lane and dispatches a separate structural
+repair.
+
+Build closure: Cargo/Buck library, facade, unit, contract, and integration
+targets for all L1f.0 packages; the L1e evaluation/authority/durability closure;
+native/proto/OpenFeature/OFREP contract vectors; and dependency checks proving
+no direct IAM/Policy/Gateway/Observability/IaC core edge. Required review is
+Flags plus independent security, protocol, distribution, performance,
+Observability, and IaC reviewers.
+
+Success: authorized requests preserve canonical results and generations;
+ordinary evaluation reads one bounded local snapshot with no remote hop;
+duplicate/reordered/corrupt streams never expose partial state; compatibility
+vectors match; telemetry labels are bounded; the process remains `Unrouted` and
+readiness false pending L1f.2.
+
+Failure: caller fields grant authority, control/evaluation share an auth bypass,
+evaluation performs I/O, stream work is unbounded, cache publication is partial,
+OFREP owns metadata, raw targeting/proof material becomes telemetry, deployment
+is applied, or any frozen structure/parent/build path changes.
+
+Rollback: remove only the new unique items; retain the empty L1f.0 faces and
+L1e authority/data formats. No routed endpoint or external desired state exists.
+
+Fault evidence: forged/replayed/cross-tenant IAM/PDP/C0, maximum+one bodies and
+queue/in-flight bytes, duplicate/drop/reorder/truncate/corrupt stream, resync
+storm, atomic-swap interruption, restart on old generation, compatibility
+default/error parity, telemetry-cardinality overflow, and unavailable deployment
+sink with no readiness or side effect.
+
+## L1f.2 — Obtain D-29 provider integration and route the runtime
+
+Class: escalated provider integration; depends on L1f.1 and is not dispatchable
+at L1a because Observability and IaC have not supplied exact sold/generated
+consumer paths.
+
+- Keep IAM, Policy, Gateway, Observability, and IaC trees read-only. Their owners
+  must first publish and review the exact sold auth/transport, SLO-IR consumer,
+  and IaC-reconciler paths. Flags MUST NOT depend on their core crates, guess
+  provider paths, or widen this lane into another owner.
+- Once those contracts exist, the dispatcher records their exact path/build
+  closures and opens the required D-29 provider PRs. Any Cargo/BUCK/lock change
+  is a separate structural L1f.2.0; it cannot share a PR with wiring behavior.
+- Only after those prerequisites merge may a Flags behavior PR activate
+  `flags/facade/runtime-app/src/items/a_wiring.rs`, emit the exact owner-local
+  `flags/iac/runtime.textproto` consumed by the IaC reconciler, and feed the
+  existing runtime-telemetry port to the provider-owned SLO controller. The
+  generated OpenSLO output remains absent until L1f.3.
+
+Closed Flags write envelope after provider ratification:
+`flags/facade/runtime-app/src/items/a_wiring.rs` and
+`flags/iac/runtime.textproto` only. Provider path sets are supplied by their
+owners and remain separate D-29 PRs; all manifests, lockfiles, proto, handlers,
+adapters, generated SLO, and other Flags paths are frozen.
+
+Build closure: the entire L1f.1 Cargo/Buck closure plus the exact provider sold-
+facade/reconciler targets supplied by their owners and one rendered-but-not-
+applied IaC consumer check. Required review is Flags, every provider/consumer
+owner, architecture/API, security, Observability, and IaC; no single owner or
+hosted check supplies APPROVE.
+
+Success: one default-deny runtime is routed through sold provider boundaries,
+the IaC reconciler consumes exactly one typed desired-state IR, telemetry reaches
+the provider controller, and readiness still refuses until L1f.3 promotion.
+
+Failure: a direct external-core edge, guessed/unreviewed contract, mixed graph
+and behavior diff, hand-authored deployment/SLO output, unrouted telemetry,
+provider outage reported healthy, or external owner edit in the Flags PR.
+
+Rollback: remove routing and withdraw the un-applied desired-state IR; retain
+the unrouted L1f.0 faces and L1f.1 tested behavior. Once applied, rollback uses
+the IaC reconciler and a supported higher desired-state generation, never a
+manual cluster edit.
+
+Fault evidence: provider denial/outage, mTLS/audience/tenant substitution,
+render rejection, stale desired-state generation, telemetry-controller outage,
+and routing restart all keep readiness false and create no bypass or partial
+deployment.
+
+## L1f.3 — Qualify deployment, readiness, and SLOs with measured evidence
+
+Class: content/evidence promotion; depends on L1f.2.
+
+- Add only unique promotion tests
+  `flags/facade/runtime-app/tests/items/{c_capacity,d_partition,e_restart,f_security}.rs`
+  for the declared 70% load envelope, asymmetric partitions, restart/recovery,
+  tenant isolation, and prioritized kill propagation.
+- Exercise the IaC-rendered cell runtime and live metrics. The Observability
+  controller may then materialize exactly
+  `flags/observability/slos/runtime.generated.openslo.yaml` from consumed IR;
+  authors never hand-edit it. Evidence remains in protected checks and provider
+  readback, not a repository evidence dump.
+- Advertise readiness and the PRD objectives only after the selected local
+  snapshot, sold auth path, routed facade, telemetry producer, SLO consumer, and
+  supported desired-state generation all pass together.
+
+Closed write envelope: the four unique promotion-test paths above and the one
+controller-materialized generated OpenSLO output only. Runtime source, proto,
+manifests, scanners, roots, lockfiles, IaC IR, provider trees, and owner law are
+frozen.
+
+Build closure: full L1f.2 graph, generated-artifact freshness/idempotence,
+IaC render/readback, Observability SLO consumption, maximum-definition load,
+partition/recovery/security campaigns, and compatibility conformance. Required
+review is Flags plus independent SRE/performance, security, Observability, IaC,
+Gateway, IAM/Policy, and durability reviewers.
+
+Success: cell-local evaluation meets the unqualified PRD objectives at the
+declared envelope, ordinary evaluation has no remote hop, generations remain
+observable/monotonic, and only produced/consumed capabilities report ready.
+
+Failure: REST/gRPC dual truth returns, stale/corrupt state is hidden, a metric or
+deployment is unconsumed, an SLO is hand-authored, load causes unbounded work,
+or a provider/fault campaign leaves readiness green.
+
+Rollback: route new traffic to the prior admitted runtime generation through
+the reconciler, keep durable definition history readable, and withdraw SLO
+qualification until the full producer/consumer/fault gate is green again.
+
+Fault evidence: asymmetric partition; snapshot loss/reorder/corruption; process,
+cell, and authority restart; overload; forged auth/C0; telemetry/SLO consumer
+outage; IaC rollback; and prioritized kill propagation during ordinary updates.
 
 </sequence>
 
 <parallelism>
 
 The Flags L1 chain is sequential because each slice deletes or stabilizes the
-next slice's build and semantic surface. It may run beside lanes whose changed
-paths and practical Cargo/Buck closures exclude `flags/**`, `Cargo.lock`, root
-workspace/admission files, and generated hubs. Owner-law files retain one
-writer; cloud CI observation and independent review do not occupy this worker.
+next slice's build and semantic surface. L1f.0 serializes on sold proto and
+`Cargo.lock`; L1f.1 releases those hubs and owns only unique files; L1f.2 waits
+for provider-owned D-29 paths without occupying them; L1f.3 alone may materialize
+the generated SLO output. It may run beside lanes whose changed paths and
+practical Cargo/Buck closures exclude the active exact Flags paths, provider
+closures, root workspace/admission files, and generated hubs. Owner-law files
+retain one writer; cloud CI observation and independent review do not occupy
+this worker.
 
 </parallelism>
