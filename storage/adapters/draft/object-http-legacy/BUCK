@@ -52,7 +52,7 @@ buildscript_run(
 )
 
 _DEPS = [
-    "//compute/core/resource:compute-resource",
+    "//compute/ports/resource-metadata:compute-resource-metadata",
     "//secrets/ports/kms:secrets-kms",
     "//network/core/residency:network-residency",
     "//storage/core/domain:storage-domain",
