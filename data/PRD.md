@@ -23,6 +23,11 @@ Shared ontology consumers bind an implementation-free Foundry port or sold
 facade, never Foundry/Data core. The Bus outbox port contains portable contract
 semantics only; SQL, transaction batches, protocol conversion, and delivery
 runtimes remain provider-matching adapters behind agreed ports.
+First-party apps do not link Data or Gateway ports in-process: each app owns
+its business/substrate port, with one adapter for the sold Connect/protobuf
+facade and at least one declared commodity adapter. A source-compatibility
+alias may target that app-owned package only; it cannot launder a cloud port
+into an app graph.
 
 The present repository does not yet supply that product. PostgreSQL 16/SQLx is
 the live relational compatibility path and is not horizontally scaled as
@@ -76,6 +81,10 @@ facts, not destination endorsements.
   treating node membership as a flat ring.
 - Bound admission, queues, background work, and repair so one tenant or failed
   rack cannot consume a cell without limit.
+- Treat v1 request/key/value/transaction/collection/decode/concurrency and
+  in-flight-byte maxima as observable contract semantics. Enforce checked
+  arithmetic and the ordered validation/refusal matrix in `SPEC.md`; a
+  deployment profile may lower but never raise those hard bounds.
 
 ## OLAP and record pipelines
 
@@ -98,6 +107,9 @@ facts, not destination endorsements.
 - Keep foreign engines behind adapters with explicit compatibility and removal
   gates. Apps prove portability against at least the in-memory contract oracle
   and one durable adapter.
+- Keep agreed ports implementation-free. Concrete stores, recording executors,
+  SQL construction/execution, transport normalization, and mutable test
+  oracles live in matching core/adapter/facade packages before promotion.
 - Name each adapter for the provider port and backend it implements; an adapter
   without a matching port, or one that reaches another owner's core, is not a
   portable Data face.

@@ -22,7 +22,7 @@ its scale properties have landed.
 | PostgreSQL command path | Rust command contracts plus a SQLx adapter owning one `PgPool`; IAM and Tenancy have live PostgreSQL-backed stores and RLS tests | Transient compatibility path |
 | PostgreSQL CI | One PostgreSQL 16 service exercises transaction and tenant-RLS behavior | Single service; no product sharding or cell failover |
 | Citus probe | The SQLx live harness can optionally call `create_distributed_table` when `OYATIE_BACKBONE_REQUIRE_CITUS` is enabled | Opt-in probe; disabled by the normal live workflow and not horizontal-scale evidence |
-| Classification contract | `data/ports/classification` exact-re-exports the established classification values and parsers from `data/core/data-boundary-kernel`; Network and Storage already consume the port | Compatibility bridge only; the dependency still points port-to-legacy-core; its 94 other direct package consumers partition into 77 classification-only, 16 mixed classification/policy, and one purpose-only consumer |
+| Classification contract | `data/ports/classification` exact-re-exports the established classification values and parsers from `data/core/data-boundary-kernel`; Network and Storage already consume the port | Compatibility bridge only; the dependency still points port-to-legacy-core; its 94 other direct package consumers partition into 68 non-app classification-only, nine app classification-only, 15 non-app mixed, one app mixed, and one purpose-only consumer |
 | OLAP | In-memory OLAP reference behavior and a ClickHouse-shaped adapter whose operations return `IP-003 deferred` | Contract/scaffold only; no live ClickHouse store |
 | Analytics facade | Configuration and boot validation; the listener is explicitly deferred | Not a served Data product |
 | Placement debt | Ontology packages and transactional-outbox packages remain under `data/` | They are not in the target Data charter and move only through separately reviewed owner lanes |
@@ -54,13 +54,21 @@ tests.
   port; Application MUST bind that port or the sold Foundry facade, never a
   Foundry/Data core. The Bus outbox port MUST remain free of SQL, database,
   Gateway, and delivery-runtime implementation; those dependencies belong in
-  provider-matching adapters behind agreed ports.
+  provider-matching adapters behind agreed ports. An app MUST NOT replace a
+  cloud-core dependency with an in-process cloud-port dependency. App business
+  types and substrate needs belong to app-owned ports; an app adapter translates
+  them either to the sold Connect/protobuf facade or to a declared commodity
+  backend. Compatibility aliases inside an app MAY preserve source spelling but
+  MUST resolve only to that app's package, never `data/ports/**` or
+  `gateway/ports/**`.
 - **ensure:** new Data core packages model records, transactions, queries,
   projections, or dataset transforms; dependency review rejects app-domain,
   generic blob, search, and broker behavior in Data core. Transfer review
   proves all reverse consumers leave old cores, every adapter name identifies
   the port and backend it implements, and Cargo/Buck enforce port-to-consumer
-  rather than port-to-core edges.
+  rather than port-to-core edges. Cross-owner census explicitly separates
+  cloud-capability consumers from apps, and app lanes prove both sold-facade
+  and commodity-adapter conformance before removing an illegal cloud edge.
 - **overturn_when:** a founder-accepted owner-boundary decision updates every
   affected owner's four law files in the same change.
 
@@ -78,10 +86,17 @@ tests.
 - **rule:** the destination records engine MUST be owned Rust behind stable
   Data ports. PostgreSQL, Citus, ClickHouse, SQLite, and other engines MAY be
   compatibility adapters, migration sources, or differential-test oracles;
-  none MAY be canonical metadata, transaction, or analytical authority.
+  none MAY be canonical metadata, transaction, or analytical authority. An
+  agreed Data port MUST contain contract values, errors, and traits only;
+  concrete stores, executors, transport normalization, and in-memory oracles
+  MUST live in matching core, adapter, facade, or test-oracle faces before port
+  promotion.
 - **ensure:** core has no foreign database client or runtime dependency;
   parameterized conformance runs against the owned engine and retained
   adapters; removing an adapter leaves the canonical contract unchanged.
+  Port-promotion review inspects the complete source cone and rejects concrete
+  `BTreeMap` stores, SQL execution, transport status projection, or mutable
+  recording implementations behind the agreed face.
 - **overturn_when:** measured evidence proves an external engine satisfies the
   complete authority, isolation, format, upgrade, and exit contract, and a
   same-wave founder decision records licensing and migration guarantees.
@@ -146,6 +161,30 @@ tests.
   replace ADR-0719's time or cross-cell consistency contract.
 
 </consistency_and_time>
+
+<bounded_contract>
+
+## Decision: public resource bounds are contract semantics
+
+- **achieves:** predictable constant work and fail-closed overload behavior
+  before an owned engine or public facade can be exposed.
+- **origin:** prose requiring bounded requests, bytes, collections,
+  concurrency, and in-flight memory left adapters free to choose incompatible
+  maxima, unchecked arithmetic, and allocation order.
+- **rule:** records-contract v1 MUST freeze hard byte/count/concurrency maxima,
+  accounting units, checked-overflow behavior, validation order, and stable
+  refusal identities before semantic implementation. An adapter MAY configure
+  a lower admitted profile but MUST NOT raise a hard maximum or acknowledge
+  work before all applicable bounds and authority evidence pass.
+- **ensure:** `SPEC.md` is the single v1 bounds table; D1c contract suites run
+  exact-limit, limit-plus-one, malicious length/count, arithmetic-overflow,
+  decode-amplification, concurrency-saturation, and in-flight-byte matrices
+  through Cargo and Buck for every adapter.
+- **overturn_when:** a versioned Data contract replaces the limits with
+  measured values and preserves bounded work, stable compatibility/refusal,
+  tenant isolation, and an explicit migration window.
+
+</bounded_contract>
 
 <olap_and_pipelines>
 
