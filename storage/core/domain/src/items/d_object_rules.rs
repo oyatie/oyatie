@@ -71,31 +71,6 @@ impl VolumeName {
     }
 }
 
-impl FilesystemName {
-    pub fn new(value: impl Into<String>) -> Result<Self, CloudStorageError> {
-        canonical_name(value.into(), CloudStorageError::InvalidResourceId)
-            .map(|value| Self { value })
-    }
-}
-
-impl ArchiveVaultName {
-    pub fn new(value: impl Into<String>) -> Result<Self, CloudStorageError> {
-        canonical_name(value.into(), CloudStorageError::InvalidResourceId)
-            .map(|value| Self { value })
-    }
-}
-
-impl SnapshotId {
-    pub fn new(value: impl Into<String>) -> Result<Self, CloudStorageError> {
-        let value = value.into();
-        if value.starts_with(SNAPSHOT_ID_PREFIX) && value.len() > SNAPSHOT_ID_PREFIX.len() {
-            Ok(Self { value })
-        } else {
-            Err(CloudStorageError::InvalidSnapshotId)
-        }
-    }
-}
-
 impl Bucket {
     pub fn new(input: BucketCreate) -> Result<Self, CloudStorageError> {
         validate_tenant_id(&input.tenant_id)?;

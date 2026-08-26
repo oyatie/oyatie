@@ -64,6 +64,12 @@ date: 2026-08-26
   surface while residency registries, tenant bindings, change plans, transfer
   permits, jurisdiction inference, and data-class conversion remain internal.
   Storage now has no direct cross-owner core dependency.
+- P0i classified archive lifecycle with object behavior and volume snapshots
+  with block behavior, while isolating the ownerless EFS-like filesystem model
+  and its mixed product aggregate in explicit retirement-bound compatibility
+  shards. All existing `storage_domain::*` names and constructor behavior remain
+  unchanged. No standalone backup or restore product model was present; object
+  recovery remains Storage behavior.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -134,13 +140,17 @@ Class: structural; do not mix behavior.
   retained old public package identities for the compatibility window, removed
   explicit `[lib]` identity/path overrides from destination packages, and
   split touched Rust sources to the 300-line budget without behavior drift.
-- Rehome filesystem, archive, backup, and restore product models that fall
-  outside ADR-0719 D-14 behind their eventual owning facades. P0 retains
-  deprecated compatibility re-exports/shims and identical behavior for every
-  currently public storage type; it does not delete a public contract. Final
-  removal requires a separately scoped, explicitly versioned deprecation and
-  consumer-migration change after the advertised support window. Object
-  recovery internals remain storage behavior, not a separately sold product.
+- **Landed in P0i:** classified `ArchiveVault` with object/archive behavior and
+  `VolumeSnapshot` with block behavior. The EFS-like `CloudFilesystem` has no
+  owner in the ADR-0719 roster and is not Drive; the cross-product
+  `StorageTenantCellGuardrail` likewise has no lawful single owner. Both now
+  live in explicit compatibility-only shards without changing any public root
+  name, type identity, constructor validation order, or error. New consumers
+  are forbidden. P0 remains open until those names leave through a separately
+  versioned consumer migration after the advertised support window, or a
+  founder-accepted owner amendment admits and assigns the file-service product.
+  No standalone backup or restore product model was found; object recovery
+  internals remain Storage behavior, not a separately sold product.
 - Keep `object-store-kernel` as a deprecated package-identity re-export only
   while P1 introduces the sold facade. Remove any remaining direct application
   call sites or guidance; app cores own blob ports and adapters rather than
@@ -421,9 +431,11 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 
 <next_lane>
 
-The next implementation lane remains P0: rehome filesystem, archive, backup,
-and restore product models behind their eventual owning facades without
-breaking the advertised Storage compatibility window. P1 begins only after
-that structural obligation merges and `dev` is refreshed.
+The next implementation lane remains P0: resolve the retirement-bound
+`CloudFilesystem` and `StorageTenantCellGuardrail` compatibility obligation
+through a separately versioned consumer migration after the advertised support
+window, or through a founder-accepted owner amendment that admits and assigns an
+EFS-like file-service product. P1 begins only after that structural obligation
+merges and `dev` is refreshed; quarantine alone is not completion evidence.
 
 </next_lane>

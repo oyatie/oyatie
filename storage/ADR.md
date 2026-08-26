@@ -14,11 +14,11 @@ claim that the target implementation has landed.
 
 <current_state>
 
-## Evidence after P0h
+## Evidence after P0i
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references; provider types are compatibility re-exports and foreign values arrive through agreed owner ports | Contract/reference only; out-of-bound product models remain P0 debt |
+| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references; archive lifecycle is classified with object behavior, snapshots are classified with block behavior, and the ownerless EFS-like filesystem model plus its mixed product aggregate are isolated in retirement-bound compatibility shards; provider types are compatibility re-exports and foreign values arrive through agreed owner ports | Contract/reference only; filesystem compatibility removal or an explicit owner-boundary amendment remains P0 debt |
 | `core/object-store-kernel` | Deprecated package-identity shim that re-exports `storage_domain::cas` | Compatibility window only; it contains no independent engine |
 | `ports/object-api`, `ports/block-api` | Deprecated package-identity shims for the pre-P0 Rust HTTP contracts | Compatibility window only; not the canonical proto/Connect facade |
 | `ports/draft/provider` | Owner-local object/block backend traits, DTOs, validation, and receipts used by every retained S3/OCI backend adapter; location, classification, KMS reference, resource-metadata, and residency-policy values arrive through agreed provider contracts | Draft compatibility only; it is not the sold facade |
@@ -38,12 +38,17 @@ claim that the target implementation has landed.
 - **origin:** the old storage PRD mixed object, block, file, archive, backup,
   end-user media, SQL metadata, and provider manifests.
 - **rule:** `storage/` MUST own durable object/CAS bytes and MAY expose an
-  EBS-class block facade only after its separate promotion; it MUST NOT own
-  relational/analytical records, search, Drive, mail, imaging, recordings, or
-  wall-clock identity.
+  EBS-class block facade only after its separate promotion. Archive lifecycle
+  remains object behavior and volume snapshots remain block behavior. Storage
+  MUST NOT own relational/analytical records, search, Drive, mail, imaging,
+  recordings, an EFS-like file-service product, mixed cross-product aggregates,
+  or wall-clock identity.
 - **ensure:** dependencies and review reject SQL/query engines and app business
   models in storage core; app cores reach storage only through their own blob
-  port and an adapter to the sold facade.
+  port and an adapter to the sold facade. The historical filesystem and mixed
+  guardrail names remain source-compatible only in explicitly marked retirement
+  shards, accept no new consumers, and leave only through a versioned migration
+  or a founder-accepted owner amendment.
 - **overturn_when:** a founder-accepted owner-boundary decision replaces this
   allocation and updates the affected owners in the same change.
 

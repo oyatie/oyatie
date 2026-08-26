@@ -27,21 +27,6 @@ pub struct VolumeName {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct FilesystemName {
-    pub value: String, // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct ArchiveVaultName {
-    pub value: String, // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct SnapshotId {
-    pub value: String, // data_class: INTERNAL_ONLY
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ReplicationMode {
     None,
@@ -91,37 +76,6 @@ pub enum VolumeState {
     Creating,
     Available,
     Attached,
-    Deleting,
-    Error,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum FilesystemState {
-    Creating,
-    Available,
-    Mounted,
-    Deleting,
-    Error,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum ArchiveTier {
-    Instant,
-    Cold,
-    DeepCold,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum ArchiveVaultState {
-    Creating,
-    Active,
-    Deleting,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum SnapshotState {
-    Creating,
-    Complete,
     Deleting,
     Error,
 }

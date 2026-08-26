@@ -16,10 +16,12 @@ content-addressable service through native Connect and supported S3-compatible
 facades, provides the pipeline CAS, and may sell an EBS-class block service
 after the object engine clears its production gates.
 
-It does not own relational or analytical records (`data/`), end-user Drive,
-mail, imaging, recording, search, or a wall-clock consistency service. Apps use
-a blob port and treat the Oyatie storage facade as one adapter among S3-compatible
-and on-premises alternatives.
+Archive lifecycle is object behavior; volume snapshots are block behavior only
+within a separately promoted block service. Storage does not own relational or
+analytical records (`data/`), an EFS-like file-service product, mixed
+cross-product aggregates, end-user Drive, mail, imaging, recording, search, or
+a wall-clock consistency service. Apps use a blob port and treat the Oyatie
+storage facade as one adapter among S3-compatible and on-premises alternatives.
 
 </product_boundary>
 
@@ -162,8 +164,9 @@ legal-hold races, and tenant-deletion proof gaps.
 
 <non_goals>
 
-- Building a relational database, OLAP engine, vector store, Drive product, or
-  global active-active namespace with unspecified conflict semantics.
+- Building a relational database, OLAP engine, vector store, EFS-like file
+  service, Drive product, or global active-active namespace with unspecified
+  conflict semantics.
 - Forking a third-party object store as the permanent core, or putting a
   per-payload Go/Rust FFI boundary in the destination data path.
 - Claiming production durability, horizontal scale, or hyperscaler readiness
