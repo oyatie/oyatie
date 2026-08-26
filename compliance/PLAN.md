@@ -403,8 +403,10 @@ Freeze the records and typed errors from `SPEC.md`, exact
 SemVer, the complete tagged v1 frame/type/tag/enum/collection grammar,
 millisecond interval endpoints, SHA-256 payload/key/preimage derivations,
 the equality `descriptor_digest = verified_preimage_digest`, the exact
-domain-separated v1 privileged-request frame and server-only fingerprint
-derivation, the opaque 32-byte pagination handle and complete durable-session
+domain-separated v1 privileged-request frame, exhaustive thirteen-code
+operation table, server-only authoritative-field/fingerprint derivation,
+fresh-versus-replay rules, typed transition errors, and inherited internal-step
+identity, plus the opaque 32-byte pagination handle and complete durable-session
 binding,
 32-byte trusted-key contract, 64-byte Ed25519 signature, key-resolution
 refusal, signer commit-fence records/outcomes, and immutable registry record.
@@ -414,8 +416,12 @@ can produce the receipt the core accepts. A caller-supplied receipt,
 fingerprint, or descriptor digest is not a trusted request field. Five
 dependency ports freeze Policy compiler/decision
 evidence, verified Audit source references, transition-bound durable pre-ACK
-Audit receipts,
-generation-bound projection acknowledgements, and immutable export receipts.
+Audit receipts, generation-bound verified projection acknowledgements, and
+immutable export receipts. The projection-target contract freezes
+`VerifiedTargetAcknowledgement` with its exact tenant, authenticated target
+principal/owner, binding id/generation, projection generation/payload digest,
+and provider-receipt digest. No unverified or caller-assembled acknowledgement
+can reach frame derivation.
 The sixth, `pagination-session`, freezes mint, resolve, consume, expire, and
 restore operations over the complete tenant/principal/list/snapshot/filter/
 cursor/page-size/schema binding; L3 uses an in-memory fake only.
@@ -460,8 +466,12 @@ same byte-identical preimage and frozen expected byte array. The contract also
 freezes expected payload/key/preimage digest, public-key, and Ed25519-signature
 byte arrays for one deterministic seed; L3d-P performs the crypto comparison.
 Every tag/type/length/value byte has a one-byte corruption fixture;
-independent encoders also freeze descriptor-digest equality and every
-privileged-operation fingerprint. Pagination tests prove exact handle length,
+independent encoders also freeze descriptor-digest equality and all thirteen
+privileged-operation fingerprints. The contract tests prove exact committed
+replay, pending retry, fresh identity for binding supersede/revoke and target
+acknowledge, typed same-slot operation/fingerprint conflict, another-key
+receipt duplicate, target receipt verification/binding, and every
+`InheritedTransitionError`. Pagination tests prove exact handle length,
 complete session binding, constant-work redacted lookup, and expiry semantics;
 limit and limit-plus-one fixtures return stable errors before allocation/state;
 the exact classification and Cell interval types cross port/core/facade; both
@@ -475,9 +485,10 @@ differs. A local clock type, caller-supplied trusted time, unchecked Unix-ms
 conversion, midpoint decision, or boundary-straddling acceptance also fails.
 A copied revocation generation, signer receipt without the Policy/Audit/
 catalog-generation binding, or changed-fingerprint replay also fails.
-A caller-selected fingerprint/descriptor digest, ambiguous operation frame,
-page handle containing state, unbound cursor continuation, or a claim that the
-static Cell clock is production-ready also fails.
+A caller-selected fingerprint/descriptor digest, missing operation identity for
+a promised mutation, inherited activation/publication authority, ambiguous
+operation frame, page handle containing state, unbound cursor continuation, or
+a claim that the static Cell clock is production-ready also fails.
 
 Rollback: remove only these scanner-discovered files; the empty packages remain
 unrouted.
@@ -488,7 +499,11 @@ fingerprints, cross-namespace references, pre-epoch/overflowing timestamps,
 reversed/widened intervals, and intervals just below/on/across both boundaries.
 Identity cases also permute every field, corrupt every tag/type/length/value,
 swap descriptor digests, and replay fingerprints across tenant/principal/
-operation/idempotency scopes. Pagination cases cover forged, unknown, expired,
+operation/idempotency scopes for all thirteen codes. They exercise binding
+activate/supersede/revoke catalog/registry/binding fences, target-ack exact and
+another-key duplicates, forged/foreign/wrong-owner receipts, stale binding/
+projection/acknowledgement generations, publication-fingerprint swaps, and
+internal initiator/actor/record/generation swaps. Pagination cases cover forged, unknown, expired,
 foreign-tenant/principal, stale-snapshot, changed-filter/cursor/page-size, and
 limit-plus-one handles with one uniform public refusal.
 Signer fixtures force resolve-then-revoke and authorize-then-revoke orders,
@@ -659,10 +674,18 @@ compliance/core/evidence-domain/src/test_items/h_projection.rs
 compliance/core/evidence-domain/src/test_items/i_evidence_manifest.rs
 ```
 
-Implement deterministic in-memory compare-and-swap oracles for binding,
-target-ready projections, generation-bound acknowledgements, verified Audit-
-reference coverage, manifest completion, and export admission. Test-only fakes
-implement the already frozen `policy-client`, `evidence-source`, `audit-sink`,
+Implement deterministic in-memory compare-and-swap oracles for binding
+activate/supersede/revoke, separately authorized projection publication,
+authenticated generation-bound target acknowledgement, verified Audit-reference
+coverage, manifest completion, and export admission. `j_binding.rs` implements
+the exact `0x20/0x22/0x23` state and generation fences; `k_projection.rs`
+implements `0x21/0x24`, verifies `VerifiedTargetAcknowledgement` through the
+frozen port, and stores the source publication fingerprint and target receipt
+digest. Their tests use the exact operation table and stable
+`TransitionIdentityError`, `BindingTransitionError`,
+`TargetAcknowledgementError`, and `InheritedTransitionError` variants; no new
+identity or error may be invented in this lane. Test-only fakes implement the
+already frozen `policy-client`, `evidence-source`, `audit-sink`,
 `projection-target`, and `export-store` ports; production code depends only on
 those traits and Compliance never executes retention. The hard fan-out, page,
 queue, idempotency, evidence-reference, and export limits apply.
@@ -674,20 +697,38 @@ Required reviewers are Compliance, Audit, Data, Storage, Cell, Policy, Packs,
 and architecture. No manifest/lock/build/root/generated changes; all files are
 at or below 300 lines.
 
-Success: same inputs replay byte-identically; duplicate receipts converge;
-stale/skipped/reordered/incomplete/foreign-tenant input remains visible and
-cannot complete a target or manifest generation.
+Success: every binding mutation authenticates, derives its authoritative frame,
+authorizes, reserves idempotency, obtains pre-ACK Audit, and CASes in the frozen
+order. Exact activate/supersede/revoke retries replay byte-identically; a later
+semantic transition requires a fresh identity. Projection publication cannot
+reuse a binding receipt. Target acknowledgement authenticates the target
+principal, verifies and resolves the provider receipt, and binds the stored
+publication fingerprint before its CAS. Exact same-key acknowledgement replay
+returns the stored result; another-key duplicates, forged/wrong-owner receipts,
+and stale binding/projection/acknowledgement generations return their exact
+typed outcome, advance nothing, and remain visible. Internal prepared/export/
+reconciliation steps accept only their exact inherited identity. Missing,
+skipped, reordered, incomplete, or foreign-tenant input cannot complete a
+target or manifest generation.
 
-Failure: Compliance erases/holds data, fabricates Audit evidence, reports a gap
-complete, applies the wrong tenant/generation, exceeds a bound, or claims
-durability from memory.
+Failure: an operation-table mutation lacks an identity, any binding or target
+transition inherits another operation's authority/idempotency receipt, Policy
+or Audit runs after CAS, unverified provider fields enter the fingerprint, a
+duplicate advances acknowledgement generation, Compliance erases/holds data,
+fabricates Audit evidence, reports a gap complete, applies the wrong tenant/
+generation, exceeds a bound, or claims durability from memory.
 
 Rollback: remove the six unique files. No production state or route exists.
 
-Fault evidence available here is deterministic loss/duplication/reorder of fake
-receipts, concurrent bind/revoke, missing Audit ranges, cross-tenant ids,
-bounded overload, and replay. Process death, WAL/snapshot corruption, quorum,
-and restore are explicitly unavailable until L4b.
+Fault evidence available here is deterministic Policy/Audit order barriers;
+concurrent activate/supersede/revoke; same-slot operation swaps and changed
+fingerprints; exact/pending replay; loss/duplication/reorder of fake target
+receipts; same-receipt/different-key duplication; receipt corruption; target-
+principal/owner/tenant and publication-fingerprint swaps; stale catalog,
+registry, binding, projection, and acknowledgement generations; inherited-step
+initiator/actor/record/generation swaps; missing Audit ranges; bounded overload;
+and retry. Process death, WAL/snapshot corruption, quorum, and restore are
+explicitly unavailable until L4b.
 
 ## L3d-F — Unrouted CaS facade oracle
 
@@ -700,16 +741,21 @@ compliance/facade/cas-app/src/test_items/b_authz.rs
 compliance/facade/cas-app/src/test_items/c_handlers.rs
 ```
 
-Implement default-deny handlers against fake ports: authenticate, verify Policy
-provenance, bind tenant/idempotency/admission context, enforce all request/page/
-queue bounds, obtain the exact interval from an injected
-`cell_clock_api::Clock`, derive the privileged request fingerprint after
-normalization, and map typed engine results. The Policy, Audit, and pagination-
-session fakes implement the L3c-C ports; list continuation resolves the opaque
-handle against the complete frozen session and returns one redacted error for
-forged/unknown/foreign handles. No handler-local trait or caller-supplied
-decision, receipt, fingerprint, descriptor digest, cursor, or trusted time is
-allowed. Do not add protobuf, Connect,
+Implement default-deny handlers against fake ports for all thirteen operation
+codes: authenticate, resolve authority and immutable state without disclosure,
+normalize, derive the fingerprint, authorize, inspect/reserve idempotency,
+obtain pre-ACK Audit, and call the CAS oracle in that exact order. They bind
+tenant/idempotency/admission context, enforce all request/page/queue bounds,
+obtain the exact interval from an injected `cell_clock_api::Clock`, and map
+every frozen typed engine result. The target-acknowledgement handler additionally
+authenticates the service principal, obtains only a verified result from
+`projection-target`, resolves its authoritative binding/projection/publication
+fields, and refuses another operation's identity. The Policy, Audit, and
+pagination-session fakes implement the L3c-C ports; list continuation resolves
+the opaque handle against the complete frozen session and returns one redacted
+error for forged/unknown/foreign handles. No handler-local trait or caller-
+supplied decision, receipt digest, target owner, fingerprint, descriptor digest,
+cursor, or trusted time is allowed. Do not add protobuf, Connect,
 gateway registration, persistence, or production adapters.
 
 Cargo/Buck closure is `cas-app`, `cas`, `evidence-domain`, `pagination-session`,
@@ -719,20 +765,26 @@ Required reviewers are Compliance, Cell, IAM/Policy, Audit, Packs, and
 architecture. All files are at or below 300 lines; manifests/lock/build/root/
 generated paths are read-only.
 
-Success: tenant zero and ordinary tenants share one contract; forged/expired/
-wrong-audience Policy evidence, Audit outage, changed fingerprints, tenant
-mismatch, forged/foreign/expired page handles, pagination drift, clock
-widening/boundary straddling, and overload
-fail before disclosure/mutation.
+Success: tenant zero and ordinary tenants share one contract; all thirteen
+codes reach the matching typed engine edge and no other mutation is routable.
+Exact replay and fresh-transition rules hold; operation swaps, forged/expired/
+wrong-audience Policy evidence, Audit outage, changed fingerprints, unverified
+or wrong-target acknowledgement receipts, stale generations, tenant mismatch,
+forged/foreign/expired page handles, pagination drift, clock widening/boundary
+straddling, and overload fail before disclosure/mutation.
 
 Failure: a private route, caller-asserted authorization, permit/forbid response,
 unbounded work, or external owner import lands.
 
 Rollback: remove the four unique files. The product remains unavailable.
 
-Fault evidence: default-deny contract cases, cancellation/retry, tenant/page
-handle swaps, forged/unknown/expired handles, stale restored snapshots, exact
-bound edges, fake dependency outage, and queue saturation.
+Fault evidence: one handler matrix across every operation code and exact
+Policy/Audit/CAS call order; cross-operation same-key replay; binding
+activate/supersede/revoke; target exact replay, another-key duplicate, receipt
+corruption, target/principal/tenant and publication-fingerprint swaps, every
+stale generation; cancellation/retry; tenant/page-handle swaps; forged/unknown/
+expired handles; stale restored snapshots; exact bound edges; fake dependency
+outage; and queue saturation.
 
 </sequence>
 
@@ -779,9 +831,15 @@ decision and implementation land.
    pack-signing preimage. Protobuf
    API review freezes field identities, reserved numbers, the exact opaque
    32-byte page-handle field, idempotency, typed errors, compatibility, and
-   retirement before behavior. No public request carries a trusted fingerprint,
-   descriptor digest, snapshot ordinal, filter digest, cursor, or pagination-
-   session body; the service derives or resolves each on the trusted side.
+   retirement before behavior. It exposes separate binding activate/supersede/
+   revoke and authenticated target-acknowledge messages matching the thirteen-
+   code table. The target message carries only its opaque provider receipt,
+   idempotency key, schema revision, and expected acknowledgement generation;
+   trusted target, receipt digest, binding/projection fields, and publication
+   fingerprint are resolved behind the port. No public request carries a
+   trusted fingerprint, descriptor digest, snapshot ordinal, filter digest,
+   cursor, or pagination-session body; the service derives or resolves each on
+   the trusted side.
    **Success:** generated descriptors preserve all L3 semantics and the accepted
    compatibility checker passes. **Failure:** the file exceeds 300 lines,
    signing uses protobuf bytes, a field is reused, or a second wire truth lands.
@@ -954,9 +1012,15 @@ non-dispatchable.
    compliance/facade/cas-app/src/test_items/f_durable_composition.rs
    ```
 
-   Contract suites prove atomic generations, idempotency, durable Policy/Audit/
-   signer/Storage-receipt binding, encryption references, and refusal before
-   the routed facade. Pagination-session creation commits the complete frozen
+   Contract suites prove atomic generations, the exhaustive thirteen-operation
+   idempotency table, durable Policy/Audit/signer/Storage-receipt binding,
+   inherited internal-step fences, encryption references, and refusal before
+   the routed facade. Binding activate/supersede/revoke state, projection-
+   publication fingerprints, verified target-receipt digests,
+   acknowledgement generations, and every terminal/pending idempotency outcome
+   live in `a_catalog_binding.rs` / `c_projection_manifest.rs` and the matching
+   adapter/store contract tests already named above; no additional file is
+   implied. Pagination-session creation commits the complete frozen
    session into the same Data-backed snapshot/restore root before a next-page
    handle is returned. Its OS-CSPRNG handle mint retries at most three detected
    collisions, returns `CollisionExhausted` after the third collision and
@@ -966,7 +1030,10 @@ non-dispatchable.
    acknowledgement, manifest/cursor, export-job/publication/idempotency, and
    catalog-to-registry reconciliation transaction and live pagination session
    survives adapter round trips with one commit ordinal, immutable history, and
-   exact receipts. Queue
+   exact receipts. Exact committed replay survives reopen without another CAS;
+   a pending exact retry resumes only its frozen frame; operation/fingerprint
+   conflict, another-key target-receipt duplicate, stale generation, forgery,
+   and inherited-step mismatch survive reopen as the same typed outcome. Queue
    acknowledgement follows durable export-job/idempotency commit; a catalog
    transition atomically records required registry reconciliation. **Failure:**
    acknowledgement before durable CAS, receipt or registry history loss, an
@@ -975,11 +1042,16 @@ non-dispatchable.
    unique files, or any handwritten file above 300 lines. **Rollback:** remove
    only these 27 scanner files; the empty persistence seam stays unrouted.
    **Faults available:** transaction interruption immediately before/after each
-   catalog/registry/export/reconciliation commit, duplicate/reordered CAS,
-   stale source or registry generation, idempotency mismatch, process death
-   around export queue/publication, encryption-reference mismatch, adapter
-   timeout, cancellation, entropy outage, three consecutive collision results,
-   forged/unknown/foreign handles, and process death before/after session commit.
+   catalog/registry/binding/projection/target-acknowledgement/export/
+   reconciliation receipt, idempotency reservation, and state CAS; reopen and
+   repeated replay at each barrier; duplicate/reordered CAS; same-key operation
+   swap; changed fingerprint; same-target-receipt/different-key duplication;
+   forged or wrong-target receipt; stale catalog/registry/binding/projection/
+   acknowledgement generation; publication-fingerprint and inherited-step
+   actor/record/generation mismatch; process death around export queue/
+   publication; encryption-reference mismatch; adapter timeout; cancellation;
+   entropy outage; three consecutive collision results; forged/unknown/foreign
+   handles; and process death before/after session commit.
 3. **L4b-R recovery:** add only
    `compliance/adapters/draft/catalog-store-data/src/items/e_snapshot_restore.rs`,
    `compliance/adapters/draft/catalog-store-data/src/test_items/c_snapshot_restore.rs`,

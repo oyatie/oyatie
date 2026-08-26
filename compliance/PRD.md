@@ -97,9 +97,13 @@ these are current-state facts, not availability or conformance claims.
 
 ## Bind, list, preview, and project
 
-- Bind a package to a tenant/control scope with compare-and-swap against the
-  expected catalog and binding generations, verified authorization, trusted
-  interval, idempotency fingerprint, and durable audit receipt.
+- Activate, supersede, or revoke a package binding to a tenant/control scope
+  with separate operation codes and fresh idempotency identities. Each
+  compare-and-swap binds the expected catalog, registry, and binding
+  generations, authoritative predecessor/successor descriptor, verified
+  authorization, trusted interval where applicable, server-derived
+  fingerprint, and durable Audit receipt. Supersede/revoke cannot reuse an
+  activate fingerprint or receipt.
 - List only catalog entries and bindings visible to the verified tenant and
   principal. V1 returns only a server-minted opaque 32-byte durable page handle;
   it is not a self-contained bearer claim. A `pagination-session` record binds
@@ -114,9 +118,15 @@ these are current-state facts, not availability or conformance claims.
 - Publish immutable target projections by generation. Retention projections
   carry the classification selector, obligation, target owner, effective
   interval, source pack/binding digest, and supersession rule.
-- A target acknowledgement is idempotent and generation-bound. Missing,
-  duplicate, reordered, stale, or foreign-tenant receipts remain visible as
-  incomplete rather than being inferred away.
+- A target acknowledgement is a distinct authenticated and authorized
+  privileged transition, not inherited projection-publication authority. The
+  server verifies the provider receipt through `projection-target`, resolves
+  tenant, target principal/owner, binding/projection generations and payload
+  from authoritative state, and fingerprints those fields with the stored
+  publication fingerprint plus expected acknowledgement generation. Exact
+  same-key replay returns the stored result; another-key duplicate, reordered,
+  stale, forged, wrong-owner, or foreign-tenant receipts advance nothing and
+  remain visible for reconciliation rather than being inferred away.
 
 ## Data-class registry
 
@@ -165,19 +175,26 @@ these are current-state facts, not availability or conformance claims.
 ## Security and isolation
 
 - Derive every privileged mutation/export `request_fingerprint` on the server
-  from the exact versioned, domain-separated operation frame in `SPEC.md` after
-  semantic normalization. Public requests contain an idempotency key but no
-  trusted fingerprint. Policy, Audit, Secrets commit receipts, compare-and-swap,
-  and durable idempotency outcomes bind the same computed 32-byte value;
-  operation or semantic-field drift conflicts.
+  from the exact versioned, domain-separated thirteen-operation frame table in
+  `SPEC.md` after semantic normalization and authoritative resolution. Public
+  requests contain an idempotency key but no trusted fingerprint. Policy,
+  Audit, Secrets commit receipts, compare-and-swap, and durable idempotency
+  outcomes bind the same computed 32-byte value; operation or semantic-field
+  drift conflicts. Non-request substeps carry the frozen inherited-transition
+  identity and generation fence but cannot reuse that fingerprint as bearer
+  authority.
 - Authenticate and authorize before catalog disclosure; every catalog or
   registry transition; binding mutation; projection publication; target
   acknowledgement; or export admission.
 - Bind decisions to tenant, principal, operation, resource scope, policy
-  revision, issuer, audience, request, idempotency identity, and expiry.
+  revision, issuer, audience, request, idempotency identity, and expiry. The
+  order is authenticate, resolve and normalize authoritative fields, derive
+  the fingerprint, authorize, inspect/reserve idempotency, obtain durable
+  pre-ACK Audit evidence, then recheck generations and atomically commit.
 - Use mTLS internally, tenant-scoped encryption references, trusted Cell time,
   bounded queues, and durable transition-bound pre-ACK Audit evidence for every
-  privileged catalog, registry, binding, projection, and export mutation.
+  privileged catalog, registry, binding, projection, target-acknowledgement,
+  and export mutation.
 - Reject cross-tenant ids, forged or expired policy evidence, stale binding
   epochs, digest/signature mismatch, unavailable Audit authority, and changed
   idempotency fingerprints before mutation or disclosure.
@@ -202,8 +219,9 @@ these are current-state facts, not availability or conformance claims.
   generation, bindings, projections/acknowledgements, manifests/evidence
   cursors, export jobs/publication/idempotency outcomes, and catalog-to-registry
   reconciliation, plus live pagination-session records and retained snapshot
-  ordinals; restore validates their cross-generation references before
-  readiness.
+  ordinals, bounded canonical transition frames, pending/terminal operation
+  slots, and inherited internal-step identities; restore validates their cross-
+  generation references before readiness.
 - Publish one Protobuf source of truth at
   `compliance/facade/proto/compliance/cas/v1/` through Connect. Do not create a
   parallel gRPC/tonic contract, duplicate Data's engine-neutral records port,
@@ -263,10 +281,17 @@ Production promotion requires:
 - registry compare-and-swap, supersession, replay, alias-conflict, and exact-
   type compatibility fixtures, including deterministic prepare/activate versus
   catalog revoke/supersede races and exact typed loser outcomes;
-- deterministic binding/projection replay and stale-generation fencing;
+- deterministic binding activate/supersede/revoke and projection-publication
+  replay, fresh-identity enforcement, and stale catalog/registry/binding/
+  projection fencing;
+- authenticated target-acknowledgement exact replay, another-key duplicate,
+  forged receipt, target/principal/tenant swap, publication-identity swap, and
+  stale binding/projection/acknowledgement-generation fixtures;
 - default-deny contract tests through the ordinary gateway and Policy path;
-- catalog and registry transition matrices proving Policy denial, forged/stale
-  evidence, Audit outage, and receipt mismatch mutate nothing;
+- catalog, registry, binding, projection, target-acknowledgement, and export
+  transition matrices proving cross-operation idempotency/receipt replay,
+  Policy denial, forged/stale evidence, Audit outage, and receipt mismatch
+  mutate nothing;
 - deterministic signer resolve/revoke/commit races proving the Secrets order
   and stable typed loser outcome;
 - disabled-route refusal followed by activation only after the durable restore,

@@ -152,6 +152,8 @@ new protocol version.
 | Projection dimensions | n/a | 64 |
 | Canonical id/key/namespace bytes | n/a | 128 each |
 | Semantic-version bytes | n/a | 64 |
+| Canonical privileged-request frame | n/a | 4 MiB |
+| Opaque target provider receipt | n/a | 64 KiB |
 | Alias bytes / aliases per registry entry | n/a | 64 / 32 |
 | Registry entries per immutable admitted descriptor generation | n/a | 4,096 |
 | Projection targets per binding | 4 | 16 |
@@ -241,6 +243,10 @@ The remaining tag registry is global:
 | `0x34` | expected binding generation | U64_BE |
 | `0x40` | projection payload digest | DIGEST32 |
 | `0x41` | expected projection generation | U64_BE |
+| `0x42` | target owner | ASCII |
+| `0x43` | verified target-receipt digest | DIGEST32 |
+| `0x44` | expected target-acknowledgement generation | U64_BE |
+| `0x45` | source projection-publication fingerprint | DIGEST32 |
 | `0x50` | export job id | ASCII |
 | `0x51` | manifest digest | DIGEST32 |
 | `0x52` / `0x53` | manifest / catalog generation | U64_BE |
@@ -259,14 +265,88 @@ Operation codes and their exact additional required fields are:
 | `0x11` | registry activate | `0x0a` | `0x11,0x20,0x22,0x2a,0x2b,0x2c` |
 | `0x12` | registry supersede | `0x0b` | `0x11,0x20,0x22,0x23,0x2a,0x2b,0x2c` |
 | `0x13` | registry revoke | `0x0b` | `0x11,0x14,0x20,0x22,0x2a,0x2b,0x2c` |
-| `0x20` | binding activate | `0x0c` | `0x11,0x28,0x29,0x30,0x31,0x32,0x33,0x34` |
-| `0x21` | projection publish | `0x09` | `0x30,0x33,0x40,0x41,0x54` |
+| `0x20` | binding activate | `0x0d` | `0x11,0x28,0x29,0x30,0x31,0x32,0x33,0x34,0x53` |
+| `0x21` | projection publish | `0x0b` | `0x30,0x31,0x33,0x40,0x41,0x53,0x54` |
+| `0x22` | binding supersede | `0x0e` | `0x12,0x13,0x28,0x29,0x30,0x31,0x32,0x33,0x34,0x53` |
+| `0x23` | binding revoke | `0x0a` | `0x11,0x14,0x30,0x31,0x34,0x53` |
+| `0x24` | target acknowledge | `0x0e` | `0x30,0x31,0x40,0x41,0x42,0x43,0x44,0x45,0x53,0x54` |
 | `0x30` | export admit | `0x0c` | `0x31,0x50,0x51,0x52,0x53,0x54,0x55,0x56` |
 
 Reason codes are `administrative=0x0001`, `security=0x0002`,
 `superseded=0x0003`, `source_revoked=0x0004`, and `legal=0x0005`; free text is
-not fingerprint input. Digest fields are resolved from immutable authoritative
-records, not copied from requests. The server computes
+not fingerprint input. Binding activate resolves tag `0x11` from the selected
+immutable `ADMITTED` descriptor and verifies request preconditions `0x31`,
+`0x34`, and `0x53` against current registry, binding, and catalog state.
+Binding supersede resolves tag `0x12` from the current active binding and tag
+`0x13` from the selected immutable successor descriptor; binding revoke
+resolves tag `0x11` from the current active binding. Scope, target, and interval
+values are bounded request semantics, but they become fingerprint input only
+after canonical normalization. Supersede and revoke each require a new
+idempotency key and fresh Policy/Audit receipts; neither inherits the activate
+identity. Projection publish resolves tags `0x31`, `0x53`, and `0x54` from the
+binding's immutable registry, catalog, and binding generations and resolves
+its target set, payload digest, and expected projection generation from the
+candidate and request precondition before CAS.
+
+A target acknowledgement is operation `0x24`, never an internal continuation
+of projection publication. It authenticates the target service principal and
+passes the opaque provider receipt through the owner-local `projection-target`
+port. Only a verified result may supply this canonical record:
+
+```text
+VerifiedTargetAcknowledgement {
+  tenant_id, authenticated_target_principal, target_owner,
+  binding_id, binding_generation,
+  projection_generation, projection_payload_digest,
+  provider_receipt_digest,
+}
+```
+
+The server resolves tags `0x30`, `0x31`, `0x40`, `0x41`, `0x42`, `0x43`,
+`0x53`, and `0x54` from that result plus immutable binding/projection state and
+requires exact equality between them. Tags `0x31` and `0x53` are the registry
+and catalog generations frozen into the binding that produced the projection.
+Tag `0x44` is the request's compare-and-swap precondition against current
+acknowledgement state. Tag `0x45` is loaded from the stored successful `0x21`
+outcome which published that exact projection; it is causal input, not
+authority for `0x24`. The verified principal must be authorized for the
+resolved target owner and tenant. A caller cannot supply a trusted target
+owner, receipt digest, payload digest, publication fingerprint, or generation
+by copying fields around an unverified receipt.
+
+These thirteen codes are the exhaustive v1 privileged-mutation set: pack
+admit/revoke/supersede; registry prepare/activate/supersede/revoke; binding
+activate/supersede/revoke; projection publish; target acknowledge; and export
+admit. Catalog `CANDIDATE`, binding `PREPARED`, reconciliation enqueue,
+manifest computation, export worker progression, and pagination collection
+are not independently callable privileged transitions and have no request
+operation code. An internal step may only reference, never adopt as fresh
+authority, its committed initiating operation through:
+
+```text
+InheritedTransitionIdentity {
+  initiating_operation_code, initiating_request_fingerprint,
+  authority_scope, initiating_principal,
+  record_kind, record_id, expected_record_generation,
+  authenticated_internal_actor,
+}
+```
+
+The step must be fixed by the initiating state machine, retain the immutable
+semantic input, and compare the stored authority, fingerprint, record, and
+generation before CAS. Binding prepare/commit is one unacknowledged internal
+phase of its binding operation; catalog-to-registry reconciliation enqueue is
+atomic with the triggering catalog transition and requires a fresh registry
+supersede/revoke operation to resolve; export workers are fenced by the durable
+export-admit job and expected job generation. None may change tenant, resource,
+operation, or semantic input, invoke another privileged edge, or use the
+initiating fingerprint as a bearer token. Stable failures are
+`InheritedTransitionError::{InitiatingOutcomeNotCommitted,AuthorityMismatch,
+ActorNotAllowed,FingerprintMismatch,StaleGeneration,ReceiptBindingMismatch}`
+and mutate no authoritative state.
+
+Digest fields are resolved from immutable authoritative records or a verified
+provider result, not copied from requests. The server computes
 `request_fingerprint = SHA-256(frame)`. Including authority, principal, and
 idempotency identity confines equality to that replay slot. The value is never
 a telemetry label. Policy, Audit, Secrets commit authorization, compare-and-
@@ -274,6 +354,47 @@ swap, and durable idempotency outcomes all consume the same computed bytes.
 Another operation code, normalized semantic value, expected generation, or
 schema revision must conflict. A v2 request uses another domain/version rather
 than ignoring N+1 fields under v1.
+
+The invocation order is fixed: authenticate; perform bounded parsing; resolve
+authority and immutable fields (and verify a target receipt for `0x24`);
+normalize and derive the frame; obtain a current default-deny Policy decision
+bound to the computed fingerprint; inspect or reserve the idempotency slot;
+obtain a transition-bound durable pre-ACK Audit receipt; then atomically
+recheck generations and persist the state change, both receipts, and outcome.
+No response discloses authoritative state before authentication and Policy.
+An exact committed retry must reauthenticate and reauthorize, then returns the
+stored outcome without another CAS; its stored Audit receipt remains the
+pre-ACK transition evidence. An exact pending retry resumes only the same
+frame. A retryable dependency failure may leave that bounded pending slot but
+no product mutation. A fresh semantic transition, including supersede,
+revoke, or acknowledgement after publication, uses a fresh idempotency key.
+
+Each idempotency slot durably stores the authority scope, principal,
+idempotency key, frame version, operation code, bounded canonical frame bytes,
+computed fingerprint, `PENDING | COMMITTED` state, exact Policy/Audit receipt
+bindings, and terminal outcome when committed. This permits byte equality to
+be checked independently from digest equality and survives reopen/restore.
+The common stable identity failures are
+`TransitionIdentityError::{OperationMismatch,IdempotencyConflict,
+FingerprintCollision}`. Same authority/principal/key/code/fingerprint is a
+lawful replay only when the canonical frame bytes also match; the same slot
+under another code is `OperationMismatch`, the same code with changed frame is
+`IdempotencyConflict`, and unequal stored/incoming frames with an equal digest
+fail as `FingerprintCollision`. Binding operations add
+`BindingTransitionError::{StaleCatalogGeneration,StaleRegistryGeneration,
+StaleBindingGeneration,BindingStateConflict,DescriptorFenceChanged}`. Target
+acknowledgement adds
+`TargetAcknowledgementError::{DuplicateReceipt,StaleBindingGeneration,
+StaleProjectionGeneration,StaleAcknowledgementGeneration,ReceiptNotVerified,
+ReceiptBindingMismatch,TargetAuthorityMismatch,
+PublicationFingerprintMismatch}`. An exact same-key acknowledgement replay
+returns the stored result; the same verified provider receipt under another
+key is `DuplicateReceipt` and cannot advance acknowledgement generation.
+Malformed or forged provider evidence is the non-oracular
+`ReceiptNotVerified`; cross-tenant, wrong-owner/principal, wrong payload or
+binding, stale/reordered generation, and publication-identity swaps map to the
+specific remaining variants before mutation. Policy/Audit failures remain
+their separately typed port outcomes.
 
 ## Durable pagination session
 
@@ -319,10 +440,17 @@ accepted Secrets generation/rotation/revocation/outage contract.
 
 Production/reference encoders for descriptor and request identity share only
 typed inputs. Golden, permutation, field/value corruption, operation-swap,
-normalization, and N/N+1 vectors must match exactly. Page tests cover exact 32-
-byte and 31/33-byte handles, collision exhaustion, bit corruption, tenant/
-principal swap, snapshot/filter/page drift, expiry uncertainty, Cell loss,
-process death, snapshot restore, and uniform redacted errors.
+normalization, and N/N+1 vectors must match exactly for all thirteen operation
+codes. The binding vectors cover activate/supersede/revoke with exact catalog,
+registry, binding, descriptor, scope, target, and interval changes. Target-
+acknowledgement vectors cover exact replay, another-key duplicate, receipt
+corruption, target/principal/tenant swap, publication-fingerprint swap, and
+stale binding/projection/acknowledgement generations. Internal-step vectors
+swap initiator, actor, record, fingerprint, and generation and must return the
+exact `InheritedTransitionError`. Page tests cover exact 32-byte and 31/33-byte
+handles, collision exhaustion, bit corruption, tenant/principal swap, snapshot/
+filter/page drift, expiry uncertainty, Cell loss, process death, snapshot
+restore, and uniform redacted errors.
 
 </canonical_identity_and_pagination>
 
@@ -638,22 +766,45 @@ reconciliation record.
 
 ## Bind and publish
 
-1. The facade verifies identity and Policy provenance and admits tenant work.
-2. It resolves an immutable admitted descriptor and current binding generation.
-3. The engine validates expected generation, scope, cell/capability
-   compatibility, the exact Cell interval under `<trusted_time>`, idempotency
-   fingerprint, and requested target set before writing `PREPARED`.
-4. It derives projections deterministically from the descriptor and binding.
-   The same inputs produce byte-identical canonical payload digests.
-5. A privileged bind/publish obtains a durable Audit receipt bound to tenant,
-   actor, pack digest/version, binding/projection generations, authorization,
-   and fingerprint before acknowledgement.
-6. One atomic publication makes the binding `ACTIVE`, projections target-ready,
-   and the idempotent result visible. Partial target acknowledgement does not
-   roll back the binding or masquerade as complete convergence.
-7. Target adapters apply by compare-and-swap. Duplicate receipts converge;
-   stale, skipped, reordered, or foreign-tenant generations fail and remain in
-   reconciliation telemetry.
+1. The facade authenticates the principal, resolves authority without
+   disclosure, and applies the fixed `<canonical_identity_and_pagination>`
+   Policy/Audit/idempotency order before admitting tenant work.
+2. It resolves an immutable admitted descriptor and exact current catalog,
+   registry, and binding generations. An activate is legal only from absent or
+   its exact unacknowledged `PREPARED` attempt. A supersede is legal only from
+   the named current `ACTIVE` generation and appends an immutable
+   `SUPERSEDED` predecessor plus a higher active successor. A revoke is legal
+   only from the named current `ACTIVE` generation and appends a higher
+   `REVOKED` generation with no active successor.
+3. Each activate/supersede/revoke validates its operation-table fields, scope,
+   cell/capability compatibility, exact Cell interval under `<trusted_time>`,
+   fresh transition identity, and requested target set. A hidden `PREPARED`
+   record is part of that one operation's pending idempotency state; it is
+   neither visible nor authority for another operation.
+4. It derives immutable projection candidates deterministically from the
+   descriptor and binding generation. The same inputs produce byte-identical
+   canonical payload digests. A separate `projection publish` operation with
+   its own Policy/Audit receipts and fresh idempotency identity makes that exact
+   candidate target-ready; it cannot publish under a binding-operation receipt.
+5. Every binding operation and projection publication obtains a durable Audit
+   receipt bound to tenant, actor, exact operation code, pack descriptor,
+   catalog/registry/binding/projection generations, Policy authorization, and
+   fingerprint before its CAS and acknowledgement. State, receipts, and the
+   durable idempotency outcome commit atomically.
+6. A committed binding remains valid while projection publication or target
+   application converges. Partial or absent target acknowledgement does not
+   roll back the binding or masquerade as complete convergence. Revocation and
+   supersession publish higher, explicit projection work; they never rewrite a
+   prior applied generation.
+7. Target adapters apply by compare-and-swap and return only a provider receipt
+   which `projection-target` can verify. Recording that result is a fresh
+   authenticated `target acknowledge` operation under the exact `0x24` frame,
+   target principal, Policy decision, durable Audit receipt, expected binding/
+   projection/acknowledgement generations, stored publication fingerprint, and
+   verified receipt digest. Exact same-key retries return the stored outcome;
+   same-receipt/different-key duplicates, stale, skipped, reordered, forged,
+   wrong-owner, or foreign-tenant results return the stable typed errors above,
+   advance no acknowledgement generation, and remain reconciliation telemetry.
 
 Retention projections describe obligations. They do not delete records/bytes,
 create holds, or mutate Audit. Each target owner decides and records application
@@ -716,11 +867,14 @@ exact `cell_clock_api::Interval` from injected `Clock` where validity matters
 
 Missing, forged, expired, cross-tenant, stale, or ambiguous context fails before
 state change or response data. Pack admit/revoke/supersede; registry prepare/
-activate/supersede/revoke; bind; projection publish; and export admission each
-require an operation/generation-bound Policy decision and durable pre-ACK Audit
-receipt. One transition's receipt cannot authorize another. Tenant zero uses
-the same contract. Internal traffic uses mTLS; secret and key references are
-tenant-scoped and rotatable.
+activate/supersede/revoke; binding activate/supersede/revoke; projection
+publish; authenticated target acknowledge; and export admit are exactly the
+thirteen operations in the v1 table. Each requires an operation/generation-
+bound Policy decision and durable pre-ACK Audit receipt in the frozen order.
+One transition's operation, identity, or receipt cannot authorize another.
+Internal substeps obey `InheritedTransitionIdentity` and cannot create a
+fourteenth caller operation. Tenant zero uses the same contract. Internal
+traffic uses mTLS; secret and key references are tenant-scoped and rotatable.
 
 Admission is bounded by cell, tenant, operation, requests, bytes, concurrency,
 in-flight memory, parser work, projection fan-out, and export jobs. Catalog
@@ -738,12 +892,13 @@ Compliance's complete durable root set is:
 ```text
 immutable catalog history and current pack heads
 immutable registry history and current registry generation
-bindings, projections and target acknowledgements
+bindings, projections, publication fingerprints and target acknowledgements
 evidence manifests and source cursors
 export admission, job, publication and idempotency outcomes
 catalog-to-registry reconciliation work and terminal outcomes
 live pagination-session records and their retained snapshot ordinals
 Policy, pre-ACK Audit, signer and Storage receipt bindings for those records
+pending/terminal transition slots and inherited internal-step identities
 ```
 
 That root set must use Data's accepted engine-neutral `data-records` provider
@@ -756,8 +911,10 @@ Cell intervals for validity and lease decisions; wall time is not a generation.
 Snapshots bind the last commit ordinal, schema versions, and every root above;
 snapshot creation cannot omit queued/running export jobs or reconciliation.
 Recovery validates framing, checksums, monotonic generations, immutable catalog
-and registry history, current-head references, export-job/output receipts, and
-cross-generation referential integrity before serving. It also restores every
+and registry history, current-head references, all thirteen operation codes,
+pending/terminal fingerprints, publication-to-acknowledgement receipt bindings,
+inherited-step identities, export-job/output receipts, and cross-generation
+referential integrity before serving. It also restores every
 unexpired pagination record against the exact retained snapshot ordinal; a
 missing or mismatched snapshot invalidates the session rather than moving its
 cursor. It resumes accepted export jobs by immutable idempotency identity and
@@ -881,6 +1038,12 @@ transport, and adapter decision lands.
   write, and export publication.
 - Lost, duplicated, delayed, and reordered Policy compiler, Audit source,
   projection target, and Storage export receipts.
+- Binding activate/supersede/revoke operation swaps, same-key changed frames,
+  supersede/revoke reuse of activation identity, target acknowledgement reuse
+  of publication identity, another-key duplicate target receipts, forged or
+  wrong-target receipts, publication-fingerprint swaps, stale catalog/
+  registry/binding/projection/acknowledgement generations, and inherited-step
+  initiator/actor/record/generation swaps.
 - Forged/expired or transition-mismatched Policy/Audit evidence, cross-tenant
   identifiers, revoked keys, Secrets fence outage/staleness/replay, Cell
   NTP/chrony loss, stale measured bounds, source-generation change, clock

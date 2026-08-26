@@ -171,7 +171,17 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   the exact `verified_preimage_digest` of the canonical signed Pack v1 frame;
   no second descriptor encoder or caller-supplied digest is authoritative.
   Every privileged transition MUST use the server-derived, versioned,
-  domain-separated request frame and operation table frozen in `SPEC.md`.
+  domain-separated request frame and exhaustive operation table frozen in
+  `SPEC.md`. That v1 table MUST separately identify pack admit/revoke/
+  supersede, registry prepare/activate/supersede/revoke, binding activate/
+  supersede/revoke, projection publication, authenticated target
+  acknowledgement, and export admission. A binding successor or revocation
+  MUST use a fresh idempotency identity rather than inherit activation;
+  acknowledgement MUST authenticate and authorize the target principal under
+  a fresh identity and bind the verified provider receipt plus the stored
+  projection-publication fingerprint. Non-request state-machine steps MUST use
+  the frozen inherited-transition record and generation fence and MUST NOT
+  treat an initiating fingerprint as bearer authority.
   Callers MUST NOT supply a trusted fingerprint; Policy, Audit, Secrets commit
   authorization, idempotency state, and durable outcomes MUST bind the same
   computed 32-byte value. CaS v1 pagination MUST use a 32-byte server-minted
@@ -187,12 +197,16 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   token requires a separately accepted D-29 Secrets key-generation, rotation,
   revocation, outage, and compatibility contract before any wire change.
 - **ensure:** independent production/reference encoders share only typed input
-  and match descriptor/fingerprint golden bytes across field permutations,
-  normalization, N/N+1, every byte corruption, changed semantic fields, and
-  operation-code swaps. Handle exact/limit-plus-one, random collision,
-  corruption, tenant/principal swap, filter/page drift, expiry uncertainty,
-  snapshot retention, process death, and restore tests disclose no cursor or
-  foreign state and never resume a different snapshot.
+  and match descriptor/fingerprint golden bytes for all thirteen v1 operation
+  codes across field permutations, normalization, N/N+1, every byte
+  corruption, changed semantic fields, and operation-code swaps. Binding
+  activation/supersession/revocation and target acknowledgement additionally
+  prove exact replay, another-key duplicate, stale generation, forged receipt,
+  target/principal/tenant swap, publication-identity swap, and inherited-step
+  actor/fingerprint/generation mismatch. Handle exact/limit-plus-one, random
+  collision, corruption, tenant/principal swap, filter/page drift, expiry
+  uncertainty, snapshot retention, process death, and restore tests disclose
+  no cursor or foreign state and never resume a different snapshot.
 - **overturn_when:** an independently reviewed identity/session design has one
   canonical server derivation, equal cross-version verification, tenant-safe
   unforgeability, bounded work, complete restore coverage, and an explicit
@@ -306,8 +320,9 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   `compliance/facade/proto/compliance/cas/v1/` with package
   `compliance.cas.v1`, served through the normal Connect gateway. A standing
   gRPC/tonic contract or transport MUST NOT be introduced. Every pack admit/
-  revoke/supersede, registry prepare/activate/supersede/revoke, bind,
-  projection publication, and evidence export MUST authenticate, obtain a
+  revoke/supersede, registry prepare/activate/supersede/revoke, binding
+  activate/supersede/revoke, projection publication, authenticated target
+  acknowledgement, and evidence-export admission MUST authenticate, obtain a
   verified Policy decision bound to the exact transition and expected
   generation, bind tenant or pack-namespace authority plus idempotency identity,
   enforce bounded admission, and persist a transition-bound Audit receipt
@@ -321,9 +336,11 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   reused idempotency keys with changed fingerprints, Audit outage, stale
   catalog/registry/binding generations, and a receipt for another transition
   fail before mutation or disclosure; tenant #0 runs the same tests. Contract
-  tests enumerate every privileged catalog and registry edge. Route admission
-  checks the immutable durability/restore/adapter join and cannot accept an
-  in-memory fake as production authority.
+  tests enumerate every privileged catalog, registry, binding, projection,
+  target-acknowledgement, and export edge plus forbidden cross-operation
+  receipt/idempotency replay. Route admission checks the immutable durability/
+  restore/adapter join and cannot accept an in-memory fake as production
+  authority.
 - **overturn_when:** an independently reviewed contract supplies equivalent
   authentication, authorization, audit, isolation, compatibility, and
   retirement properties.
@@ -346,11 +363,13 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   bindings, projections and acknowledgements, manifests/evidence cursors,
   export admission/job/publication state, transition idempotency outcomes, and
   catalog-to-registry reconciliation work, plus live pagination-session records
-  and the immutable snapshot ordinals they retain. Snapshots, point-in-time
-  restore, process replay, and schema upgrades MUST cover the same root set. An
-  affected registry generation MUST remain unavailable to bind/project/export
-  while its source-pack transition is unreconciled; an unrestored page session
-  MUST never restart at another snapshot.
+  and the immutable snapshot ordinals they retain, bounded canonical transition
+  frames, pending/terminal operation slots, and inherited internal-step
+  identities. Snapshots, point-in-time restore, process replay, and schema
+  upgrades MUST cover the same root set. An affected registry generation MUST
+  remain unavailable to bind/project/export while its source-pack transition is
+  unreconciled; an unrestored page session MUST never restart at another
+  snapshot.
 - **ensure:** death at every catalog/registry/export transaction boundary,
   corrupt or partial snapshots, queued/running export replay, supersede/revoke
   during registry activation, and N/N+1 restore prove one monotonic result with
