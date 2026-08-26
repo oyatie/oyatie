@@ -1,4 +1,5 @@
 //! Cargo identity and dependency-shape checks for changed repository manifests.
+//! Provenance: ADR-0719 D-30/D-41.
 
 use super::{is_capability_root, path_parts};
 

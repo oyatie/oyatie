@@ -6,11 +6,22 @@ On the owner directory you are editing, open `ADR.md`, `PRD.md`, `SPEC.md`, `PLA
 
 ## Semantic operational names
 
-- **achieves:** checks and failures explain their purpose without a decision index.
-- **origin:** provenance numbers leaked into operator-facing names.
-- **rule:** executable, check, job, error, test, and code-facing names MUST be semantic; decision identifiers remain citations, comments, or metadata, and historical ADR records remain unchanged.
-- **ensure:** tests cover workflow display names and emitted diagnostics without banning ADR citations or filenames.
-- **overturn_when:** an external protocol requires a numbered identifier and retains a semantic operator-facing label beside it.
+- **achieves:** operators can understand a check, job, test, or failure without
+  consulting a decision-number index.
+- **origin:** decision identifiers leaked from provenance into workflow labels
+  and diagnostics, turning historical numbering into the user interface.
+- **rule:** executable, check, job, error, test, and code-facing names MUST be
+  semantic. Decision identifiers remain valid provenance in citations, comments,
+  and metadata. Historical ADR filenames, headings, and identifiers MUST NOT be
+  renamed or renumbered merely for naming cleanup; legitimate ADR content
+  amendments remain allowed.
+- **ensure:** regression tests inspect workflow display names and emitted
+  diagnostics for semantic wording while explicitly admitting ADR citations and
+  decision-file paths; review preserves historical provenance without freezing
+  legitimate content amendments.
+- **overturn_when:** a recorded challenge demonstrably shows that an external
+  protocol requires a stable numbered identifier and the same surface retains a
+  semantic operator-facing label alongside that identifier.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:

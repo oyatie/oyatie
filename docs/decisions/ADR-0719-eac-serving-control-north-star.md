@@ -1714,20 +1714,24 @@ module names are ordinary `snake_case` as the code needs them.
 - **overturn_when:** a five-field ADR cites a different *established*
   (Cargo or AIP or google3) convention and lands same-wave.
 
-#### Semantic operational naming
+#### Semantic operational names
 
-- **achieves:** executable surfaces communicate behavior directly instead of
-  requiring operators to translate a decision number.
-- **origin:** workflow labels and admission diagnostics promoted D/ADR identifiers
-  from historical provenance into primary operational names.
+- **achieves:** operators can understand a check, job, test, or failure without
+  consulting a decision-number index.
+- **origin:** decision identifiers leaked from provenance into workflow labels
+  and diagnostics, turning historical numbering into the user interface.
 - **rule:** executable, check, job, error, test, and code-facing names MUST be
-  semantic. D/ADR identifiers remain valid only as provenance in citations,
-  comments, and metadata; historical ADR filenames, headings, and records are
-  not renamed or renumbered.
-- **ensure:** workflow-name and diagnostic regressions reject numbered primary
-  labels while positive tests preserve ADR citations and decision-file paths.
-- **overturn_when:** an external protocol demonstrably requires a stable numbered
-  identifier and the same surface retains a semantic operator-facing label.
+  semantic. Decision identifiers remain valid provenance in citations, comments,
+  and metadata. Historical ADR filenames, headings, and identifiers MUST NOT be
+  renamed or renumbered merely for naming cleanup; legitimate ADR content
+  amendments remain allowed.
+- **ensure:** regression tests inspect workflow display names and emitted
+  diagnostics for semantic wording while explicitly admitting ADR citations and
+  decision-file paths; review preserves historical provenance without freezing
+  legitimate content amendments.
+- **overturn_when:** a recorded challenge demonstrably shows that an external
+  protocol requires a stable numbered identifier and the same surface retains a
+  semantic operator-facing label alongside that identifier.
 
 ### D-31 — Ephemeral out-of-tree sandbox (owner-writable only)
 

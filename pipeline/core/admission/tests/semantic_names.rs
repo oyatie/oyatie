@@ -42,6 +42,21 @@ fn assert_semantic(surface: &str, value: &str) {
     );
 }
 
+fn semantic_naming_rule(relative: &str) -> String {
+    let document = std::fs::read_to_string(repo_root().join(relative)).expect("semantic-name law");
+    let (_, section) = document
+        .split_once("Semantic operational names\n")
+        .expect("semantic operational names section");
+    section
+        .lines()
+        .take_while(|line| !line.starts_with('#') && !line.starts_with("<!--"))
+        .collect::<Vec<_>>()
+        .join(" ")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 #[test]
 fn presubmit_display_names_are_semantic_and_required_fan_in_is_stable() {
     let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/presubmit.yml"))
@@ -107,4 +122,26 @@ fn provenance_citations_and_decision_files_remain_valid() {
         )
         .is_empty()
     );
+
+    let change =
+        std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/change.rs"))
+            .expect("change admission source");
+    let manifest =
+        std::fs::read_to_string(repo_root().join("pipeline/core/admission/src/layout/manifest.rs"))
+            .expect("manifest admission source");
+    assert!(change.contains("Provenance: ADR-0719 D-8/D-36"));
+    assert!(manifest.contains("Provenance: ADR-0719 D-30/D-41"));
+}
+
+#[test]
+fn semantic_naming_rule_is_identical_without_freezing_adr_amendments() {
+    let agents = semantic_naming_rule("AGENTS.md");
+    let claude = semantic_naming_rule("CLAUDE.md");
+    let adr = semantic_naming_rule("docs/decisions/ADR-0719-eac-serving-control-north-star.md");
+
+    assert_eq!(agents, claude);
+    assert_eq!(agents, adr);
+    assert!(agents.contains("legitimate ADR content amendments remain allowed"));
+    assert!(agents.contains("recorded challenge demonstrably shows"));
+    assert!(!agents.contains("records remain unchanged"));
 }

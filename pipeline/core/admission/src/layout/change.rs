@@ -1,4 +1,4 @@
-//! Cross-path completeness checks for new repository owners.
+//! Cross-path completeness checks for new repository owners. Provenance: ADR-0719 D-8/D-36.
 
 use std::collections::BTreeSet;
 
