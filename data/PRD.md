@@ -125,6 +125,9 @@ facts, not destination endorsements.
   public-facade client and canonical proto. They never depend on a cloud Rust
   core, port, or provider implementation; commodity adapters implement the same
   app-owned contract and remain independently selectable.
+- Use semantic executable, process, job, error, test, log, metric, and status
+  names. Decision identifiers remain provenance in citations, comments, and
+  metadata; they are not an operator-facing state or refusal identity.
 
 ## Security, deletion, and operations
 

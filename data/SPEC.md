@@ -30,6 +30,32 @@ or backend behavior.
 
 </maturity>
 
+<operational_identity>
+
+## Semantic compatibility-residue states
+
+Until the corresponding adapter or listener is implemented, the existing
+compatibility surfaces continue to fail closed but expose semantic identities:
+
+| Surface | Required semantic identity |
+|---|---|
+| ClickHouse adapter operations | `clickhouse_adapter_unavailable` plus the attempted operation |
+| Data export usecase | `data_export_unavailable` with object-storage and change-stream adapter absence as detail |
+| Tenant quota reconciliation | `tenant_quota_reconciliation_unavailable` with the missing policy adapter as detail |
+| Analytics process boot | `analytics_listener_unrouted` with authenticated Connect-listener absence as detail; exit nonzero and publish no readiness |
+
+The identity and detail are bounded static strings: no request, tenant,
+credential, endpoint, or adapter payload is interpolated. Compatibility error
+variants remain unchanged in D1b-N; only their operator-facing content changes.
+Tests assert the complete semantic identity, prove the old `IP-*` tokens are
+not emitted, and retain decision references only in comments, rustdoc, and
+package metadata. The rename neither installs an adapter/listener nor changes
+the current no-production-readiness claim. The analytics binary's current
+exit-zero “boot complete” behavior is not a contract: D1b-N replaces it with
+the fail-closed exit above so an unrouted process cannot signal success.
+
+</operational_identity>
+
 <topology>
 
 ## Runtime roles

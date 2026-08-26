@@ -17,6 +17,8 @@ date: 2026-08-26
   one service and does not enable the optional Citus distribution probe.
 - In-memory OLAP contract behavior, ClickHouse adapter scaffolding that fails
   explicitly as deferred, and analytics binaries without a serving listener.
+  Four of those compatibility surfaces still emit decision-number identifiers
+  as runtime status; that is named residue, not an accepted operational API.
 - A `data-classification` compatibility port consumed by Network and Storage.
   It still exact-re-exports its values and parsers from the legacy
   `data-boundary-kernel`; its 94 other direct package consumers partition into
@@ -45,25 +47,137 @@ staged owned-Rust migration.
 
 Class: structural join barrier; no feature, schema, route, or sold behavior.
 
-Two dependency chains may run concurrently because their first-slice path sets
-are disjoint:
+Three dependency chains may run concurrently because their first-slice path
+sets are disjoint:
 
 ```text
+D1b-N-S -> D1b-N-C
 D1b-C1 -> D1b-C2A -> D1b-CA-S -> D1b-CA-C -> D1b-CA-X
                                                 -> D1b-O1 -> D1b-O2S
                                                 -> D1b-O2T -> D1b-O2C
+                                                -> D1b-O2B
                                                 -> D1b-O2L
-D1b-P1 -> D1b-PA-S -> D1b-PA-C -> D1b-PA-X
+D1b-P1 -> D1b-PA-S -> D1b-PA-C -> D1b-PA-B -> D1b-PA-X
           -> D1b-P2R-S -> D1b-P2R-C -> D1b-P2R-X -> D1b-P2
           -> D1b-GA-S -> D1b-GA-C -> D1b-GA-X
                          +-> D1b-CO-S -> D1b-CO-C -> D1b-CO-X --+
                          +-> D1b-BG -> D1b-BS -> D1b-BC         |
                                       +-> D1b-BX-I -------------+-> D1b-BR
-                                      +-> D1b-BF-S -> D1b-BF-C
+                                      +-> D1b-BF-G [blocked owner/toolchain gate]
+                                           -> D1b-BF-S -> D1b-BF-C
+                                           -> D1b-COB-G [blocked app-owner gate]
                                            -> D1b-COB-S -> D1b-COB-C
 
-D1b-O2L + D1b-BR -> D1c join gate
+D1b-N-C + D1b-O2L + D1b-BR -> D1c join gate
 ```
+
+N-S/N-C are a third Data-local chain and may run beside C1 or P1 because their
+first-slice paths, build targets, and lock sets are disjoint. BF-G and COB-G are
+no-write gates, not worker lanes; the arrows after them do not exist until the
+named foreign owners and toolchain decisions amend their own law.
+
+### D1b-N — Retire numbered operational diagnostics
+
+#### D1b-N-S — Analytics build closure and usecase scanner structure
+
+Class: Data-local structural D-35/D-41 preparation with no manifest, lock,
+dependency, runtime-string, public-API, or behavior change. The exact writable
+set is:
+
+```text
+data/core/olap-client-kernel/BUCK
+data/core/analytics-domain/BUCK
+data/core/analytics-usecase/BUCK
+data/core/analytics-usecase/build.rs
+data/core/analytics-usecase/src/lib.rs
+data/core/analytics-usecase/src/items/a_errors.rs
+data/core/analytics-usecase/src/items/b_dashboard.rs
+data/core/analytics-usecase/src/items/c_audit_search.rs
+data/core/analytics-usecase/src/items/d_billing_rollup.rs
+data/core/analytics-usecase/src/items/e_data_export.rs
+data/core/analytics-usecase/src/test_items/a_fixtures.rs
+data/core/analytics-usecase/src/test_items/b_queries.rs
+data/core/analytics-usecase/src/test_items/c_data_export.rs
+data/core/analytics-usecase/src/test_items/d_tenant_isolation.rs
+data/ports/analytics-api/BUCK
+data/adapters/olap-clickhouse/BUCK
+data/facade/analytics-tenant-bootstrap-app/BUCK
+data/facade/analytics-app/BUCK
+```
+
+The owned standard-library-only `build.rs` lexically sorts regular
+`src/items/*.rs` and `src/test_items/*.rs`, emits directory-level
+`rerun-if-changed`, and writes only `analytics_usecase.generated.rs` and
+`analytics_usecase_tests.generated.rs` beneath `OUT_DIR`. `src/lib.rs` becomes
+a stable root with one source include and one test include; no tracked/manual
+module inventory is permitted. Cargo auto-discovers the package-root script.
+The package `BUCK` adds the build-script target, stages both named globs, runs
+the same script through `buildscript_run`, and supplies the same generated
+membership to its existing library and test targets. `Cargo.toml` and
+`Cargo.lock` are read-only.
+
+The same structural lane creates the two currently missing Buck targets
+`//data/core/olap-client-kernel:shared-olap-client-kernel` and
+`//data/adapters/olap-clickhouse:shared-olap-clickhouse-adapter`, then replaces
+only stale `//libs/shared-olap-{client-kernel,clickhouse-adapter}` labels in the
+five listed consumer `BUCK` files. The ClickHouse target exactly mirrors its
+Cargo dependencies on the OLAP client plus `third-party//:clickhouse`,
+`third-party//:serde`, and `third-party//:serde_json`; the OLAP client has no
+dependency. The analytics-app Buck graph
+also drops its unmatched ClickHouse dependency so Cargo and Buck close exactly
+as OLAP client -> analytics domain/usecase/API and OLAP client -> ClickHouse ->
+tenant-bootstrap, with analytics-app consuming API/domain/usecase only. No Rust
+or Cargo behavior changes in this graph repair.
+
+Success: the current public types, variants, queries, emitted strings, and the
+OLAP-client/domain/usecase/API/ClickHouse/two-facade closure build and test with
+identical direct edges in Cargo and Buck; every handwritten touched file is at
+most 300 lines; and add/rename/remove/non-Rust canaries produce identical
+membership. Failure: any semantic rename, stale `//libs` label, missing target,
+manual `mod` list, manifest/lock change, changed public identity, over-budget
+fragment, or graph mismatch.
+Rollback rejoins only this crate's source and test fragments. The SLO objective
+is deterministic bounded build work, not runtime availability. Fault evidence
+removes and renames each fragment class, stages an invalid/non-Rust entry, and
+proves both graphs fail or follow membership identically while the complete
+pre/post analytics-usecase suite remains green.
+
+#### D1b-N-C — Semantic compatibility-residue behavior
+
+Class: Data-local content-only behavior after N-S. Write exactly:
+
+```text
+data/adapters/olap-clickhouse/src/lib.rs
+data/core/analytics-usecase/src/items/e_data_export.rs
+data/core/analytics-usecase/src/test_items/c_data_export.rs
+data/facade/analytics-tenant-bootstrap-app/src/lib.rs
+data/facade/analytics-app/src/lib.rs
+data/facade/analytics-app/src/main.rs
+```
+
+Replace only emitted/asserted numbered runtime wording with the four semantic
+identities frozen in `SPEC.md`: `clickhouse_adapter_unavailable` plus its
+operation, `data_export_unavailable`,
+`tenant_quota_reconciliation_unavailable`, and
+`analytics_listener_unrouted`. The analytics library exposes the bounded boot
+status used by `main.rs` and its inline test. Existing error variants, return
+values outside process boot, listener absence, adapter absence, comments,
+rustdoc, and package `ip_anchor` provenance remain unchanged. The analytics
+binary replaces its current exit-zero “boot complete” fiction with the bounded
+unrouted status, no readiness, and a nonzero exit. No route, adapter, manifest,
+build rule, generated file, or production-readiness claim changes.
+
+Success: every affected operation returns/logs the exact semantic identity,
+existing tests plus the analytics boot-status test assert it, and no emitted
+value contains `IP-`. Failure: an identifier changes, a decision token remains
+runtime-visible, provenance is erased, a request/tenant/secret is interpolated,
+or any deferred path becomes available. Rollback restores only the old text
+after the scanner split. The SLO objective is 100% stable, bounded semantic
+refusal for unsupported operations with zero false readiness. Fault evidence
+exercises all seven ClickHouse operations, export, suspended/reactivated tenant
+events, valid/invalid analytics boot, and asserts exact text, no secret/context
+interpolation in the semantic identity/detail, unchanged variants, and
+unchanged fail-closed behavior outside the corrected process exit.
 
 ### D1b-C1 — Invert the classification compatibility port
 
@@ -573,6 +687,7 @@ app/community/facade/social-app
 
 For each root the writable structural set is `Cargo.toml`, `BUCK`, `build.rs`,
 `src/lib.rs`, a sorted `src/items/` split, and a sorted `src/test_items/` split;
+the two facade roots additionally write their exact `src/main.rs`, and
 `Cargo.lock` is the only shared path. The exact source member names are
 `a_contract.rs`, `b_context.rs`, `c_mapping.rs`, and `d_execution.rs`; exact
 test members are `a_contract.rs` and `b_failures.rs`. A package without one of
@@ -581,12 +696,24 @@ fixed `lib.generated.rs`/`tests.generated.rs` outputs never become inventories.
 Both graphs add `community-records-draft` while retaining the old Data edge as
 a temporary differential oracle; no semantic code changes in this lane.
 
+The facade manifests preserve their existing libraries and add binaries
+`community-post-store-app` and `community-social-app` at `src/main.rs`. Buck
+adds matching `community-post-store-app-bin` and `community-social-app-bin`
+`rust_binary` targets whose complete dependency closure goes through the
+corresponding facade library. Each `main.rs` is a compiler-only structural
+shell with no boot state, argument/environment behavior, listener, readiness,
+log, route, or tested process semantics. PA-B exclusively owns process
+behavior; PA-S outputs cannot be run or deployed.
+
 Success: all eight packages keep byte/error/SQL behavior, every touched file is
-at most 300 lines, and Cargo/Buck scanner membership agrees. Failure: behavior,
-route, proto, Data package promotion, manual inventory, or unrelated lock
-movement. Rollback rejoins the mechanically split files and removes only the
-temporary local-port edges. Fault evidence is add/rename/remove/non-Rust parity
-plus the pre/post REST, protocol, transaction, and SQL golden suites.
+at most 300 lines, Cargo/Buck scanner membership agrees, and both facade
+process targets analyze with identical closed edges. Failure: behavior, route,
+proto, executable/deployment claim, missing binary edge, Data package
+promotion, manual inventory, or unrelated lock movement. Rollback rejoins the
+mechanically split files and removes only the temporary local-port and binary
+edges. The SLO is structural build parity only. Fault evidence is add/rename/
+remove/non-Rust parity, wrong/missing binary edges, plus the pre/post REST,
+protocol, transaction, and SQL golden suites.
 
 #### D1b-PA-C — App-local records behavior and commodity adapters
 
@@ -609,9 +736,42 @@ or an unbounded request. Rollback removes the new unique members and restores
 the old scanner members. Faults cover rollback, cancellation, duplicate,
 malformed context, limit-plus-one, and adapter outage.
 
+#### D1b-PA-B — Community process fail-closed boot behavior
+
+Class: Community-owned content-only D-29 lane after PA-C and before PA-X. Add
+or edit exactly:
+
+```text
+app/community/facade/post-store-app/src/items/z_process_boot.rs
+app/community/facade/post-store-app/src/test_items/z_process_boot.rs
+app/community/facade/post-store-app/src/main.rs
+app/community/facade/social-app/src/items/z_process_boot.rs
+app/community/facade/social-app/src/test_items/z_process_boot.rs
+app/community/facade/social-app/src/main.rs
+```
+
+The library functions return bounded semantic states
+`community_post_store_unrouted` and `community_social_unrouted`; each binary
+calls its matching function, opens no socket, publishes no readiness, and exits
+nonzero without interpolating tenant/request/config material. Neither process
+may be enabled by environment or arguments. Authenticated Connect composition,
+Policy evidence, Audit, and Gateway route activation require separate accepted
+Community/Gateway owner law and are not inferred from these compatibility
+libraries.
+
+Success is exact semantic refusal before network bind while every PA-C library
+contract remains unchanged. Failure is exit zero, listener/readiness, a cloud
+Rust edge, auth/transport behavior, dependency or build edit, or production
+claim. Rollback removes the four unique scanner members and restores both
+compiler-only mains before PA-X. The SLO objective is zero false-ready starts.
+Fault evidence supplies normal, malformed, and route-like configuration to
+both boot functions and proves identical refusal, no bind attempt, exact exit
+mapping, and no sensitive interpolation. Required reviewers are Community,
+Gateway/API compatibility, security, Data, and architecture.
+
 #### D1b-PA-X — Exact Community consumer cut
 
-Class: Community-owned structural D-29 sole-lock LSC after PA-C. Write only
+Class: Community-owned structural D-29 sole-lock LSC after PA-B. Write only
 `Cargo.toml` and `BUCK` in the eight PA-S roots plus `Cargo.lock`. Remove every
 `shared-postgres-command-*` dependency; retain only the Community ports and
 matching app adapters. No Rust/Data path is writable. Required reviewers are
@@ -788,7 +948,7 @@ Create exactly these empty/scanner roots plus `Cargo.lock`:
 ```text
 data/core/ontology-upsert-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/adapters/draft/ontology-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-data/facade/ontology-upsert-app/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/facade/ontology-upsert-app/{Cargo.toml,BUCK,build.rs,src/lib.rs,src/main.rs}
 Cargo.lock
 ```
 
@@ -805,12 +965,23 @@ data-ontology-api + data-ontology-upsert-domain
 ```
 
 These are temporary Data-local extraction faces, so no owner consumes an
-unagreed port.
-Every root inherits O1's fixed scanner/Buck parity and contains no behavior.
-Success is three empty lawful faces; failure is a store/type/normalizer in
-structure, a foreign consumer, port-to-core, or unrelated lock movement.
-Rollback removes the roots/blocks. Reviewers are Data, Foundry as next owner,
-Application as future consumer, and architecture.
+unagreed port. Every library root inherits O1's fixed scanner/Buck parity and
+contains no behavior. The facade manifest declares both its library and the
+`data-ontology-upsert-app` binary at `src/main.rs`; Buck declares matching
+`rust_library`, `rust_binary` (`data-ontology-upsert-app-bin`), and `rust_test`
+targets and closes the binary through the facade library. `src/main.rs` is a
+compiler-only structural shell: it has no boot state, environment parsing,
+listener, readiness, log, route, or tested process semantics. O2B, not O2S,
+owns all process behavior, and no O2S artifact may be run or deployed.
+
+Success is three empty lawful faces plus a Cargo/Buck-analyzable D-8 process
+target with identical scanner/build closure. Failure is a store/type/
+normalizer or boot behavior in structure, a foreign consumer, port-to-core,
+missing binary edge, unrelated lock movement, or an executable/deployment
+claim. Rollback removes the roots/blocks. Scanner and wrong/missing binary-edge
+canaries are the fault evidence; the SLO is structural build parity only.
+Reviewers are Data, Foundry as next owner, Application as future consumer, and
+architecture.
 
 ### D1b-O2T — Mechanical contract/type and implementation separation
 
@@ -860,10 +1031,36 @@ store in the port, caller-visible drift, or facade mutation before domain/store
 admission. Rollback removes four unique tests. Faults cover idempotency reuse,
 cross-tenant keys, malformed labels, store failure, cancellation, and replay.
 
+### D1b-O2B — Ontology process fail-closed boot behavior
+
+Class: Data-local content-only process behavior after O2C and before O2L. Add
+or edit exactly:
+
+```text
+data/facade/ontology-upsert-app/src/items/c_process_boot.rs
+data/facade/ontology-upsert-app/src/test_items/b_process_boot.rs
+data/facade/ontology-upsert-app/src/main.rs
+```
+
+The library returns the bounded semantic state `ontology_upsert_unrouted`; the
+binary calls it, emits no tenant/request/config material, opens no socket,
+publishes no readiness, and exits nonzero. It cannot be enabled by an
+environment variable. This is an extraction/compatibility process only; a
+Foundry-owned authenticated Connect composition and route require later
+Foundry/Gateway owner law and are not inferred here.
+
+Success is deterministic semantic refusal before network bind with the O2C
+library behavior unchanged. Failure is exit zero, a listener/readiness signal,
+transport/auth logic, new dependency, or any graph/manifest/lock edit. Rollback
+removes the two scanner members and restores the compiler-only `main.rs` before
+O2L. The SLO objective is zero false-ready starts. Fault evidence supplies
+valid, malformed, and route-like environment/config inputs and proves identical
+refusal, no bind attempt, exact exit mapping, and no sensitive interpolation.
+
 ### D1b-O2L — Atomic Foundry ontology ownership LSC
 
 Class: one indivisible structural D-28/D-29/D-33 LSC and sole lock writer after
-O2C. Provider promotion, the Application consumer cut, and movement of every
+O2B. Provider promotion, the Application consumer cut, and movement of every
 remaining Data ontology implementation are one candidate tree. They MUST NOT
 be committed, pushed, reviewed, or merged as separately valid O2P/O2A/O2M
 heads: any such intermediate would make a cloud package depend on `app/`, which
@@ -929,7 +1126,7 @@ Required reviewers are Foundry, Data, Application, every agreed-port consumer,
 and architecture. Success: the Foundry port alone defines portable ontology
 types/traits; all nine Foundry packages and unchanged Application source build
 and test in Cargo and Buck; no `data/**ontology**` package/identity or
-Data-to-Foundry edge remains; all O1/O2C and tenant/link/schema/replay goldens
+Data-to-Foundry edge remains; all O1/O2C/O2B and tenant/link/schema/replay goldens
 pass. Failure: any intermediate head is publishable, a Data package depends on
 `app/`, Application resolves a core, a concrete implementation enters the
 port, a duplicate type or compatibility copy remains, behavior changes, an
@@ -1240,12 +1437,60 @@ limit-plus-one inputs against old and new adapters.
 ### D1b-BF — Sell the Bus outbox facade before an app selects it
 
 BF is a separately dispatched Bus/Gateway D-29 sequence after BC. It is not a
-Data write envelope and is non-dispatchable until Bus accepts the exact facade
-contract and Gateway accepts its route/reviewer closure.
+Data write envelope. The apparent path shapes below are reservations, not
+authority to invent a Connect stack or write another owner; BF-S does not
+become a worker card until BF-G is satisfied in repository law.
+
+#### D1b-BF-G — Bus/Gateway owner-law, toolchain, and security gate
+
+Class: no-write, non-dispatchable decision gate. Current evidence is
+fail-closed: `bus/`, `gateway/`, `iam/`, `policy/`, and `app/community/` each
+lack `ADR.md`, `PRD.md`, `SPEC.md`, and `PLAN.md`, and the reviewed Cargo/Buck
+graph contains no accepted Connect generator/runtime. A review comment, chat
+choice, Data plan, proto filename, or standing tonic/gRPC dependency cannot
+satisfy this gate.
+
+Before BF-S, merged owner receipts must establish all of the following:
+
+1. Bus's four law files accept the `bus.outbox.v1` sold contract, bounded
+   request/response/stream semantics, `bus/facade/outbox-app` process identity,
+   implementation-free Bus port, adapter graph, acknowledgement authority, and
+   exact structural/content/route sequence.
+2. Gateway's four law files accept the exact Connect route, TLS/SPIFFE
+   authentication context, listener/deployment ownership, route-disabled
+   structural state, content activation, rollback, and outage evidence. IAM and
+   Policy owner receipts accept the exact package/target paths and
+   authenticated-principal evidence for the default-deny `Check` port/client-
+   provider directions used before Bus handler logic. No foreign owner
+   delegates write authority to Data.
+3. One dependency-policy-accepted Connect/protobuf generator and runtime are
+   named by package, version, license, owner, and removal seam. The amendment
+   freezes exact root `Cargo.toml`, `Cargo.lock`, and `third-party/BUCK` paths
+   (or explicitly proves each unchanged), Cargo normal/build dependencies, Buck
+   third-party/tool labels, proto compiler target, canonical proto input,
+   `build.rs` invocation, generated client/server/descriptor filenames under
+   `OUT_DIR`, stable include sites, and Cargo/Buck byte-parity canaries. A
+   standing tonic/gRPC service stack is a failure.
+4. Bus/Gateway owner law replaces or confirms every reserved BF-S/BF-C path,
+   package, target, generated boundary, forward/reverse build closure, required
+   reviewer, rollout gate, and rollback path. Community's four law files then
+   accept only the generated sold-facade client as COB's cloud input and name
+   its app-port conversion and adapter-selection authority.
+
+Success is four-file D-36 law at all five owner roots and one exact reproducible
+toolchain/security/route graph. Failure is
+any missing file or dependency/target/output, a handwritten client/server,
+gRPC envelope, auth after handler logic, Data-owned foreign path, or inferred
+route. Rollback is rejection or reversion of the owner amendments before BF-S;
+there is no runtime SLO. Fault review removes each owner receipt, codegen input,
+auth edge, Policy edge, generated output, and Gateway route edge in turn and
+requires the gate to remain closed.
 
 #### D1b-BF-S — Bus Connect facade structure
 
-The Bus-owned structural sole-lock lane creates exactly:
+Class: blocked structural template after BF-G, not an executable envelope at
+this head. The accepted BF-G amendment must confirm or replace the following
+reserved set before dispatch:
 
 ```text
 bus/facade/outbox-app/{Cargo.toml,BUCK,build.rs,src/lib.rs,src/main.rs}
@@ -1253,21 +1498,28 @@ bus/facade/proto/bus/outbox/v1/BUCK
 Cargo.lock
 ```
 
-`bus-outbox-app` is a non-listening, non-ready process stub. Its owned scanner
-preserves Cargo/Buck source/test membership, and its declared proto/codegen
-outputs are absent/empty-tolerant until BF-C. Both graphs encode
+`bus-outbox-app` has library/test targets and a D-8 binary whose `src/main.rs`
+is only a compiler shell; it defines no boot, listener, readiness, log, route,
+or tested process behavior. Its D-41 scanner and BF-G-selected codegen prepare
+identical Cargo/Buck source, test, proto, descriptor, client, and server
+membership; generated files remain untracked beneath `OUT_DIR`. Both graphs
+encode
 `bus-outbox-app <- bus-outbox + bus-outbox-domain +
 bus-outbox-postgres-command + bus-outbox-sqlx`; no client or app edge enters a
 Bus Rust port/adapter. The proto Buck target is exactly
 `//bus/facade/proto/bus/outbox/v1:bus-outbox-v1` and is the later app build
-input, not a Rust implementation dependency.
+input, not a Rust implementation dependency. The accepted gate must spell the
+matching Cargo proto input and every generator/runtime/auth dependency; this
+paragraph cannot supply a missing dependency by implication.
 
 Success is an empty process/schema target with exact graph/scanner parity and
-no listener; failure is behavior, a routed endpoint, an app dependency, or
-unrelated lock movement. Rollback removes only the process/proto roots and lock
-block. Faults are scanner/proto add-remove-change parity, wrong/reversed graph
-edges, and accidental-listener refusal. Required reviewers are Bus, Gateway,
-API compatibility, security, Community, and architecture.
+BF-G-frozen generated closure. Failure is behavior in structure, a routed
+endpoint, missing Cargo/Buck/proto/codegen edge, app dependency, tracked output,
+or unrelated lock movement. Rollback removes only the process/proto roots and
+lock block. The SLO is structural reproducibility only. Faults are scanner/
+proto add-remove-change parity, stale generated output, wrong/reversed graph
+edges, and accidental-listener detection. Required reviewers are Bus, Gateway,
+IAM, Policy, API compatibility, security, Community, and architecture.
 
 #### D1b-BF-C — Canonical outbox schema and process behavior
 
@@ -1279,46 +1531,79 @@ bus/facade/outbox-app/src/items/{a_service,b_authorization,c_composition}.rs
 bus/facade/outbox-app/src/test_items/{a_contract,b_fail_closed}.rs
 ```
 
-and replace only the structural `src/main.rs` stub with the Bus-owned process
-boot call. The protobuf package is `bus.outbox.v1`; Connect is the only RPC
-envelope. Handlers authenticate, obtain default-deny Policy evidence, bind
-tenant/idempotency/limits, and durably meet Bus acknowledgement semantics
-before responding. No standing gRPC/REST shape, Data/Gateway implementation
-type, or app business type appears. Generated client/server outputs remain
-untracked and reproducible in Cargo/Buck. Production route activation is a
-separate exact Gateway D-29 receipt; until it lands, the process is a loopback
-conformance oracle and no app may select the cloud adapter in production.
+and replace only the structural `src/main.rs` shell with the Bus-owned process
+boot call. The protobuf package is `bus.outbox.v1`; the BF-G-accepted Connect
+envelope is the only RPC envelope. Handlers consume the exact accepted Gateway/
+IAM authentication evidence, obtain default-deny Policy evidence through the
+accepted direction before handler logic, bind tenant/idempotency/limits, and
+durably meet Bus acknowledgement semantics before responding. No standing
+gRPC/REST shape, Data/Gateway implementation type, or app business type
+appears. Generated client/server/descriptor outputs remain untracked and
+reproducible through the exact BF-G Cargo/Buck toolchain. Production route
+structure and activation are separate Gateway structural then content receipts
+named by BF-G; until both merge, the process is a loopback conformance oracle
+and no app may select the cloud adapter in production.
 
 Success is byte-identical generated descriptors/clients and fail-closed
 loopback contract behavior; failure is a second semantic model, auth after
-handler logic, premature acknowledgement, route inference, or a handwritten
-file above 300 lines. Rollback removes the unique schema/items and restores the
-non-listening stub. Faults cover malformed/oversized frames, forged/expired
-Policy evidence, tenant/idempotency swaps, cancellation, adapter outage,
-process death, and proto compatibility canaries.
+handler logic, missing auth/Policy/codegen edge, premature acknowledgement,
+route inference, generated drift, or a handwritten file above 300 lines.
+Rollback removes the unique schema/items and restores the compiler-only shell.
+The SLO objective is bounded loopback contract work and zero unauthorized
+handler entry; availability remains unavailable. Faults cover malformed/
+oversized frames, forged/expired authentication or Policy evidence, tenant/
+idempotency swaps, cancellation, adapter outage, process death, generated
+client/server disagreement, and proto compatibility canaries.
 
 ### D1b-COB — Add the app-owned Bus Connect client adapter
 
+#### D1b-COB-G — Community ownership and generated-client gate
+
+Class: no-write, non-dispatchable gate after CO-X, BF-C, and BF-G. Community's
+four owner-law files must accept the exact app-owned outbox port, the
+BF-G-selected generated `bus.outbox.v1` client/runtime and authentication
+inputs, the allowed proto-only cloud edge, bounded conversions, one-adapter
+selection state, and production dependence on the separately accepted Gateway
+route. They must confirm or replace every COB-S/COB-C path, package, Cargo/Buck
+edge, generated output/include, reviewer, rollback, and fault matrix. Bus and
+Gateway receipts accept the client contract but do not grant Community a Bus
+Rust dependency or direct endpoint.
+
+Success is an immutable four-file Community receipt joined to the exact BF-G
+toolchain/route contract. Failure is an absent owner file, hand-written client,
+Bus core/port/adapter edge, private endpoint, implicit credential source,
+selection before route health, or Data-authored foreign authority. Rollback
+reverts only the owner amendment before COB-S. The gate has no runtime SLO;
+fault review removes each proto/auth/route/selection edge and requires closure.
+
 #### D1b-COB-S — Community cloud-adapter structure
 
-After CO-X and BF-C, a Community-owned structural D-29/D-33/D-41 sole-lock lane
-creates
+Class: blocked structural template after COB-G. The accepted owner amendment
+must confirm or replace this reserved Community-owned D-29/D-33/D-41 sole-lock
+set before dispatch:
+
+It creates
 `app/community/adapters/draft/outbox-bus-connect/{Cargo.toml,BUCK,build.rs,src/lib.rs}`
 as `community-outbox-bus-connect-draft`, updates only
 `app/community/facade/{post-store-app,social-app}/{Cargo.toml,BUCK}`, and applies
 its exact `Cargo.lock` block. The adapter consumes
 `community-outbox-draft` plus the canonical `bus.outbox.v1` proto/Buck target;
-its build script generates the Connect client under `OUT_DIR`. It has no Cargo
-or Buck Rust edge to `bus/ports/**`, `bus/core/**`, or `bus/adapters/**`.
+its build script invokes the exact BF-G-selected generator and produces the
+COB-G-frozen client/descriptor files under `OUT_DIR`. Cargo carries the same
+canonical proto input and generator/runtime/auth dependency closure that Buck
+does. It has no Cargo or Buck Rust edge to `bus/ports/**`, `bus/core/**`, or
+`bus/adapters/**`.
 
 Success is an empty app-owned adapter whose only cloud input is generated from
-the sold proto and whose scanner/codegen membership matches in both graphs.
-Failure is a Bus Rust dependency, behavior, tracked generated client, manual
-inventory, missing codegen canary, or unrelated lock churn. Rollback removes
-the adapter root, two facade graph edges, and its exact lock block. Faults cover
-proto add/remove/change, wrong package/version, forbidden Bus labels, and
-scanner parity. Reviewers are Community, Bus, Gateway/API compatibility, and
-architecture.
+the sold proto and whose scanner/codegen/auth membership matches in both
+graphs. Failure is a Bus Rust dependency, behavior, tracked/handwritten client,
+manual inventory, unspecified Cargo or Buck dependency/output, missing codegen
+canary, or unrelated lock churn. Rollback removes the adapter root, two facade
+graph edges, and its exact lock block. The SLO is structural reproducibility
+only. Faults cover proto add/remove/change, stale/missing generated output,
+wrong package/version, forbidden Bus labels, auth edge removal, and scanner
+parity. Reviewers are Community, Bus, Gateway, IAM, Policy, API compatibility,
+security, and architecture.
 
 #### D1b-COB-C — Community cloud-adapter behavior
 
@@ -1334,19 +1619,24 @@ app/community/facade/social-app/src/test_items/d_outbox_adapter_selection.rs
 ```
 
 The adapter maps only Community-owned values to/from the generated
-`bus.outbox.v1` client. Parameterized conformance runs the same app contract
-against `community-outbox-postgres-draft` and the loopback Connect adapter.
+`bus.outbox.v1` client accepted by BF-G/COB-G and obtains credentials only
+through the accepted app/Gateway authentication seam. Parameterized
+conformance runs the same app contract against
+`community-outbox-postgres-draft` and the loopback Connect adapter.
 Exactly one adapter is selected per tenant; no dual-write or fallback occurs.
 Production Bus selection remains fail-closed until the separate Gateway route
 receipt is accepted and healthy, while the commodity adapter remains usable.
 
 Success is identical app results/errors/idempotency through both app-owned
 adapters and no app-to-cloud Rust edge. Failure is a Bus implementation type,
-private endpoint, silent fallback, two active adapters, or behavior in the app
-port. Rollback removes only these unique members and leaves the commodity path
-active. Faults cover network loss/duplicate/reorder, deadline/cancellation,
-malformed proto, server denial/outage, tenant swap, idempotency conflict, and
-adapter-selection races.
+private endpoint, implicit credentials, silent fallback, two active adapters,
+selection without the accepted route, or behavior in the app port. Rollback
+removes only these unique members and leaves the commodity path active. The SLO
+objective is contract-parity under bounded mapping work with zero dual writes;
+production availability remains gated. Faults cover network loss/duplicate/
+reorder, deadline/cancellation, malformed proto, authentication/Policy denial,
+server/route outage, tenant swap, idempotency conflict, and adapter-selection
+races.
 
 ### D1b-BX-I — Cut over the non-app outbox reverse consumer
 
@@ -1806,31 +2096,36 @@ clear this gate.
 
 <ordering_rules>
 
-1. C1 precedes non-app C2A and app CA-S/C/X; C2Q is a no-write quarantine.
-   CA-X precedes O1, then O2S/O2T/O2C/O2L. P1 precedes both PA-S/C/X and
-   P2R-S/C/X; P2 joins PA-X and P2R-X, then GA-S/C/X. GA-X enables CO-S/C/X
-   and, with P2, BG. BG precedes BS, BC, and then BX-I; CO-X plus BX-I enable
-   BR. BC separately enables BF-S/C, and CO-X plus BF-C enable COB-S/C. O2L
-   and BR join before D1c; D1c-S precedes C/O, then D1d, then D1e.
+1. N-S precedes N-C and their terminal result joins D1c. C1 precedes non-app
+   C2A and app CA-S/C/X; C2Q is a no-write quarantine. CA-X precedes O1, then
+   O2S/O2T/O2C/O2B/O2L. P1 precedes both PA-S/C/B/X and P2R-S/C/X; P2 joins
+   PA-X and P2R-X, then GA-S/C/X. GA-X enables CO-S/C/X and, with P2, BG. BG
+   precedes BS, BC, and then BX-I; CO-X plus BX-I enable BR. BC reaches only
+   the blocked BF-G; accepted BF-G owner amendments enable BF-S/C. CO-X plus
+   BF-C reaches only blocked COB-G; its accepted Community amendment enables
+   COB-S/C. N-C, O2L, and BR join before D1c; D1c-S precedes C/O, then D1d,
+   then D1e.
 2. Consensus, fencing, and durable recovery precede broad sharding, OLAP,
    performance tuning, `io_uring`, or hardware specialization.
 3. One stage owns each shared manifest or `Cargo.lock`; behavioral lanes use
    unique files after structure freezes.
-4. O1/O2S/O2T/O2C/O2L and PA/P2R/P2/GA/CO/BG/BS/BC/BX-I/BR are the ordered
-   ontology-to-Foundry and app-decoupling/outbox-to-Bus transfers; they are
-   required join inputs, not prose debt or hidden database work. BF/COB is the
-   separately accepted sold-Connect path that must finish before Community can
-   select Bus, but the lawful commodity CO path does not block Data retirement.
+4. N-S/N-C, O1/O2S/O2T/O2C/O2B/O2L, and PA/P2R/P2/GA/CO/BG/BS/BC/BX-I/BR
+   are the ordered semantic-residue, ontology-to-Foundry, and app-decoupling/
+   outbox-to-Bus work; they are required join inputs, not prose debt or hidden
+   database work. BF/COB is the separately accepted sold-Connect path behind
+   BF-G/COB-G and must finish before Community can select Bus, but the lawful
+   commodity CO path does not block Data retirement.
 5. Unit-green is never stage completion. Every stage carries explicit success,
    failure, rollback, SLO signals, and named fault evidence.
-6. C1 and P1 commute, but their lock writes serialize. Every CA row, PA-S/X,
-   P2R-S, P2, O2S/O2L, GA-S/X, CO-S/X, BG, BS, BX-I, BR, BF-S, and COB-S is a
+6. N-S/C commute with C1/P1 and write no lock. C1 and P1 commute, but their
+   lock writes serialize. Every CA row, PA-S/X, P2R-S, P2, O2S/O2L, GA-S/X,
+   CO-S/X, BG, BS, BX-I, BR, and—only after their gates—BF-S and COB-S is a
    separate lock-writing LSC and serializes with the others. Content-only CA-C,
-   PA-C, P2R-C, O2C, GA-C, CO-C, BC, BF-C, and COB-C may fan out only after
-   their structure and on disjoint unique files. O1/O2T are lock-free
-   mechanical preparation and may run beside a disjoint provider lane. D2-S
-   and D3-S may be prepared in parallel but merge one lock writer at a time;
-   their content lanes then commute.
+   PA-C/B, P2R-C, O2C/B, GA-C, CO-C, BC, and—only after their gates—BF-C and
+   COB-C may fan out after their structure on disjoint unique files. O1/O2T are
+   lock-free mechanical preparation and may run beside a disjoint provider
+   lane. D2-S and D3-S may be prepared in parallel but merge one lock writer at
+   a time; their content lanes then commute.
 
 </ordering_rules>
 
@@ -1855,16 +2150,20 @@ reviewers, and rollback.
 
 <next_lane>
 
-The next dispatchable fanout is C1 and P1, with their lock writers serialized.
-After C1, non-app C2A and the five serialized CA owner sequences are eligible;
-C2Q never dispatches. O1 follows CA-X, then O2S/T/C/L. After P1, PA and P2R may
-prepare on disjoint paths; P2 joins their terminal cuts. GA removes Community's
-Gateway edge; CO then establishes and selects its lawful app-owned commodity
-outbox while BG/BS/BC prepare Bus and BX-I cuts the non-app consumer. CO-X and
-BX-I join at BR. BF and COB may proceed after their stated joins, but Community
-cannot select the Bus adapter until the separate Gateway route receipt exists.
-Every cross-owner app/Foundry/Gateway/Bus lane needs its own named D-29
-dispatch; this Data PR grants no foreign write. D1c remains blocked until O2L,
-BR, and both cross-owner decision receipts are complete.
+The next dispatchable fanout is N-S, C1, and P1; their paths/build sets are
+disjoint and only C1/P1 lock writers serialize. N-C follows N-S and joins the
+D1c barrier. After C1, non-app C2A and the five serialized CA owner sequences
+are eligible; C2Q never dispatches. O1 follows CA-X, then O2S/T/C/B/L. After
+P1, PA and P2R may prepare on disjoint paths; PA-B follows PA-C, and P2 joins
+PA-X/P2R-X. GA removes Community's Gateway edge; CO then establishes and
+selects its lawful app-owned commodity outbox while BG/BS/BC prepare Bus and
+BX-I cuts the non-app consumer. CO-X and BX-I join at BR. BF-S/C and COB-S/C
+are **not dispatchable**: Bus, Gateway, and Community lack D-36 owner law and
+no accepted Connect generator/runtime/auth graph exists. They remain behind
+BF-G/COB-G until exact owner-law, codegen, IAM/Policy, Gateway route, build, and
+review receipts land. Every cross-owner app/Foundry/Gateway/Bus lane needs its
+own named D-29 dispatch; this Data PR grants no foreign write. D1c remains
+blocked until N-C, O2L, BR, and both cross-owner Data decision receipts are
+complete.
 
 </next_lane>

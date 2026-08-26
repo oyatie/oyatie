@@ -23,7 +23,7 @@ its scale properties have landed.
 | PostgreSQL CI | One PostgreSQL 16 service exercises transaction and tenant-RLS behavior | Single service; no product sharding or cell failover |
 | Citus probe | The SQLx live harness can optionally call `create_distributed_table` when `OYATIE_BACKBONE_REQUIRE_CITUS` is enabled | Opt-in probe; disabled by the normal live workflow and not horizontal-scale evidence |
 | Classification contract | `data/ports/classification` exact-re-exports the established classification values and parsers from `data/core/data-boundary-kernel`; Network and Storage already consume the port | Compatibility bridge only; the dependency still points port-to-legacy-core; its 94 other direct package consumers partition into 68 non-app classification-only, nine app classification-only, 15 non-app mixed, one app mixed, and one purpose-only consumer |
-| OLAP | In-memory OLAP reference behavior and a ClickHouse-shaped adapter whose operations return `IP-003 deferred` | Contract/scaffold only; no live ClickHouse store |
+| OLAP | In-memory OLAP reference behavior and a ClickHouse-shaped adapter whose emitted errors still expose the provenance label `IP-003 deferred` | Contract/scaffold only; no live ClickHouse store; the numbered runtime wording is explicit D1b-N residue |
 | Analytics facade | Configuration and boot validation; the listener is explicitly deferred | Not a served Data product |
 | Placement debt | Ontology packages and transactional-outbox packages remain under `data/` | They are not in the target Data charter and move only through separately reviewed owner lanes |
 
@@ -193,6 +193,32 @@ tests.
   tenant isolation, and an explicit migration window.
 
 </bounded_contract>
+
+<operational_identity>
+
+## Decision: semantic operational names, provenance-only decision identifiers
+
+- **achieves:** operators and callers can understand a Data process, error,
+  test, or log without consulting the historical decision-number index.
+- **origin:** four live compatibility surfaces emit or assert `IP-002`,
+  `IP-003`, `IP-004`, `IP-013`, or `IP-015` as runtime status: the ClickHouse
+  adapter, analytics usecase, tenant-bootstrap facade, and analytics process.
+  Those identifiers record provenance but do not describe the failed operation.
+- **rule:** Data executable, process, job, error, test, log, metric, and other
+  code-facing names MUST be semantic. Decision identifiers MAY remain in ADR
+  citations, comments, rustdoc, and package metadata, but MUST NOT be the
+  operator-visible error or status identity. Existing numbered diagnostics are
+  compatibility residue and MUST pass through D1b-N's behavior-preserving
+  structure-then-content sequence before feature work touches that cone.
+- **ensure:** the D1b-N suite exercises every emitted deferred adapter error,
+  export refusal, quota-reconciliation refusal, and analytics boot status using
+  semantic identities; source review separately proves that retained `IP-*`
+  text occurs only in provenance-bearing comments, documentation, or metadata.
+- **overturn_when:** an accepted external protocol requires a stable numbered
+  identifier and the same surface retains a semantic operator-facing label
+  alongside it.
+
+</operational_identity>
 
 <olap_and_pipelines>
 
