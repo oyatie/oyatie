@@ -171,20 +171,27 @@ facts, not destination endorsements.
   decrypting the encrypted opaque key-generation binding; Data never persists a
   handle or raw key. `RecordKeySource` is the only acquisition/reacquisition
   owner, while record protection consumes its typed lease for Seal/Open. Each
-  artifact, including a one-entry record or WAL artifact, has the exact
-  purpose-valid 19-field AAD, a count-one-or-more plan, final manifest, sealed
-  commit record, and atomic CAS head; record primary-key and WAL
-  transaction-classification bindings agree through every frame, while WAL
+  artifact has the exact purpose-valid 19-field AAD, final manifest, sealed
+  commit record, and atomic CAS head. Record plans are exactly one entry at at
+  most 4 MiB; WAL plans are exactly one entry at at most 16 MiB; only aggregate
+  artifacts may use the bounded 1..4,096-entry plan. Record primary-key and
+  WAL transaction-classification bindings agree through every frame, while WAL
   transaction identity agrees in each role AAD and the sealed commit root. The
-  head is current only when its immutable-context, strictly
-  monotonic generation/fence anchor matches a fresh durable Audit high-water
-  receipt. A logical-epoch publication pin protects verified chunks, manifest,
-  and commit until CAS and Audit finalization; the trusted coordinator retains a
-  local-CAS receipt so post-CAS recovery can retry Audit without guessing. GC
-  retains any pinned/current chain and recovery quarantines uncertainty rather
-  than returning a valid retained older head. An
-  uncertain recovered lease/binding/bootstrap/publication state is burned or
-  quarantined and withdraws readiness rather than being reused.
+  head is current only when its immutable-context, strictly monotonic
+  generation/fence anchor matches a durable Audit high-water witness. The
+  Data-owned cell-local publication coordinator (`artifact-publication` port,
+  core, and cell adapter) owns the tuple, pins, members, durable CAS
+  decisions/receipts, safe-GC epochs, successor takeover, and an authenticated
+  Audit callback; `records-app` alone composes its core/adapter with Audit. A
+  normal losing CAS reaches a bounded terminal superseded/release
+  path, while only genuinely undecidable recovery remains safely quarantined
+  under bounded pin/byte/backlog admission. Serving reads use a fresh validated
+  in-cell snapshot and never make Audit a per-read dependency; a changed tuple,
+  coordinator term, or expiry refreshes or fails closed. GC retains every
+  pinned/current chain until its terminal safe-epoch release, so it never
+  collects verified publication input or accepts a valid retained older head.
+  An uncertain recovered lease/binding/bootstrap/publication state is burned or
+  locator-scoped quarantined rather than reused.
   Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time
   evidence withdraws the affected route and readiness. Plaintext, stale-key,
   unaudited, or fail-open fallback is forbidden.

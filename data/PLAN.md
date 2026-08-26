@@ -76,16 +76,21 @@ D1c join + persistence/wire decisions + D1c-WG + D1c-KG
   -> D1c-S -> D1c-WS -> D1c-KS -> D1c-C
 D1c-C -> D1c-O
 D1c-C -> D1c-KC
+D1c-KS -> D1c-PC-S
+D1c-KC + D1c-PC-S -> D1c-PC-C
 D1c-C + D1c-KC -> D1c-WC
-accepted provider face + D1c-KG + D1c-KS (therefore D1c-S/WS)
-  -> D1c-KP-S + D1c-KA-S + D1c-KK-S + D1c-KX-S
+accepted provider face + D1c-KG + D1c-KS + D1c-PC-S (therefore D1c-S/WS)
+  -> D1c-KP-S + D1c-KK-S + D1c-KX-S
+accepted Audit face + D1c-KG + D1c-KS + D1c-PC-S
+  -> D1c-KA-S
 D1c-KC + D1c-KP-S -> D1c-KP-C
-D1c-KC + D1c-KA-S -> D1c-KA-C
+D1c-KC + D1c-PC-C + D1c-KA-S -> D1c-KA-C
 D1c-KC + D1c-KK-S -> D1c-KK-C
 D1c-KC + D1c-KX-S -> D1c-KX-C
-D1c-C + D1c-O + D1c-KC -> D1d -> D1e
-D1e + D1c-KC -> D1c-KR
-D1c-WC + D1c-KP-C + D1c-KA-C + D1c-KK-C + D1c-KX-C + D1e + D1c-KR
+D1c-C + D1c-O + D1c-KC -> D1d
+D1d + D1c-KC + D1c-PC-C -> D1e
+D1e + D1c-KC + D1c-PC-C -> D1c-KR
+D1c-WC + D1c-KP-C + D1c-KA-C + D1c-KK-C + D1c-KX-C + D1c-PC-C + D1e + D1c-KR
   -> D1c-KJ-S -> D1c-KJ-C -> D1c-WB -> D4 route eligibility
 ```
 
@@ -1799,16 +1804,21 @@ operation used by `SPEC.md`: challenge-bound
 `GetPublicationHighWater(tenant, artifact_locator_id, context_digest,
 challenge)` and idempotent
 `AppendPublicationHighWater(anchor, LocalPublicationCasReceiptV1)`. Audit must
-resolve the exact 200-byte receipt through the trusted publication coordinator
-and refuse a supplied/missing/foreign/mismatched CAS proof before it appends.
-It must return a durable integrity-protected receipt containing the challenge,
-context/anchor/head, sequence, generation, ownership epoch, fence, Audit
-ordinal, provider revision, and expiry; it must refuse equal-sequence-different
-bytes and any rollback, retain a locator tombstone, and remain independent of
-the object-store restore path. An unavailable, stale, unverifiable, or foreign
-high-water is a fail-closed readiness/publication refusal, never permission to
-use the local head. This is a required accepted Audit face, not a Data fake or a
-best-effort event after ACK.
+resolve the exact 200-byte receipt only through the Data-owned
+`ArtifactPublicationCoordinator` callback introduced by D1c-PC-S/C. The
+callback is facade-capability-authenticated, returns the current-term
+re-attestation plus original receipt, and refuses supplied/missing/foreign/
+mismatched/stale-term proof before Audit appends. Audit must return a durable
+integrity-protected receipt containing the challenge, context/anchor/head,
+sequence, generation, ownership epoch, fence, Audit ordinal, provider revision,
+and expiry; it must refuse equal-sequence-different bytes and any rollback,
+retain a locator tombstone, and remain independent of object-store restore.
+Audit accepts a prior coordinator epoch only after that current-term
+re-attestation, so crash-after-CAS/before-Audit recovery survives leader
+rollover without accepting a stale leader. An unavailable, stale, unverifiable,
+or foreign high-water is a fail-closed refresh/publication refusal, never
+permission to use the local head. This is a required accepted Audit face, not a
+Data fake or a best-effort event after ACK.
 
 Success is three provider conformance receipts (including the Audit high-water
 receipt) plus the cryptography dependency receipt, with no provider-core/
@@ -1983,6 +1993,131 @@ route, one-graph edge, or unrelated lock churn. Rollback
 removes only these packages/edges. Faults cover scanner parity, forbidden
 provider-core edges, dependency-feature skew, and lock/target canaries.
 
+### D1c-PC-S — Publication-coordinator structure
+
+Class: structural D-29/D-33 and sole `Cargo.lock` writer after D1c-KS. Create
+these three four-file scanner package roots:
+
+```text
+data/ports/draft/artifact-publication/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/artifact-publication-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/artifact-publication-cell/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+```
+
+and update only:
+
+```text
+data/core/records-domain/{Cargo.toml,BUCK}
+data/adapters/draft/tablet-persistence-file/{Cargo.toml,BUCK}
+data/facade/records-app/{Cargo.toml,BUCK}
+Cargo.lock
+```
+
+The package names are `data-artifact-publication-draft`,
+`data-artifact-publication-domain`, and
+`data-artifact-publication-cell-draft`. Each scanner/built `OUT_DIR`/Buck
+`buildscript_run` contract is exactly D1c-S. The exact Cargo/Buck dependency
+graph is:
+
+```text
+data-record-protection-draft + data-audit-sink-draft
+  -> data-artifact-publication-draft
+data-artifact-publication-draft -> data-artifact-publication-domain
+data-artifact-publication-draft -> data-records-domain
+data-artifact-publication-draft -> data-tablet-persistence-file-draft
+data-artifact-publication-draft + data-record-protection-draft +
+  data-tablet-persistence-draft + data-tablet-consensus-domain
+  -> data-artifact-publication-cell-draft
+data-artifact-publication-domain + data-artifact-publication-cell-draft
+  -> data-records-app
+```
+
+The port is Data-owned and internal: it is the sole shape for tuple CAS,
+pin/member, decision/receipt, safe-GC, bounded enumeration, takeover, and
+read-snapshot operations. It contains no provider mapping, encrypted frame
+definition, tuple value, storage call, Audit call, listener, route, or fake.
+The Cell adapter is the only future persistent implementation and is constrained
+to the same tablet-consensus/durable-persistence authority; object storage,
+wall time, and a test oracle cannot implement it. The lock adds exactly three
+local blocks and these direct Data edges. D1c-KA-S serializes after this lane so
+its Audit adapter can add the reverse callback edge without naming a missing
+package.
+
+Build closure is D1c-S/WS/KS plus these three packages, records domain,
+tablet-persistence file adapter, records-app library/bin, and both direct
+security ports. Required reviewers are Data, Cell, Audit, security,
+build/dependency, and architecture. Success is empty/scanner faces and exact
+Cargo/Buck parity; failure is content, an Audit/provider reverse edge in a core,
+a fake/in-memory authority, missing consensus/persistence edge, a route, one-
+graph-only membership, or unrelated lock churn. Rollback removes only the three
+package blocks and stated Data edges. Scanner add/rename/remove/non-Rust and
+forbidden object-store/provider-core edge canaries are required fault evidence.
+
+### D1c-PC-C — Publication-coordinator behavior
+
+Class: content-only after D1c-KC and D1c-PC-S; no manifest/build/lock/route
+change. Write exactly:
+
+```text
+data/ports/draft/artifact-publication/src/items/{a_capability,b_coordinator,c_read_snapshot,d_errors}.rs
+data/ports/draft/artifact-publication/src/test_items/{a_contract,b_callback_auth}.rs
+data/core/artifact-publication-domain/src/items/{a_pin,b_decision,c_reconciliation,d_safe_gc,e_read_snapshot}.rs
+data/core/artifact-publication-domain/src/test_items/{a_state_machine,b_losing_cas,c_takeover,d_gc,e_snapshot}.rs
+data/adapters/draft/artifact-publication-cell/src/items/{a_consensus_store,b_tuple_cas,c_receipt_resolution,d_gc_epoch,e_enumeration}.rs
+data/adapters/draft/artifact-publication-cell/src/test_items/{a_durable_transitions,b_failover,c_callback_auth,d_fault_matrix}.rs
+data/facade/records-app/src/items/e_publication_coordinator.rs
+data/facade/records-app/src/test_items/e_publication_coordinator.rs
+```
+
+Implement the exact KC-owned anchor, pin, local-CAS receipt, pin-decision, and
+typed-error values through one capability-authenticated Data port. The core
+owns `AcquirePin`, member insertion, bind, one-shot CAS, current-owner
+`ReconcilePin`, safe abandon, atomic lease-epoch/fence takeover, bounded
+reconciliation/enumeration, safe-GC epoch, and publication-read-snapshot
+validation. The Cell adapter persists every
+transition and pin/member/receipt/decision relation in the tablet consensus
+log, including `coordinator_epoch`, `cas_index`, terminal release epoch, and
+the retained accepted-predecessor proof; it never infers a CAS from an object
+or a caller-supplied receipt. `records-app` mints the scoped publisher lease and
+the Audit-only callback capability. The Audit callback can resolve/re-attest a
+recorded receipt by `(pin_id, desired_anchor_digest)` but cannot mutate a tuple,
+pin, or member; stale term/capability and foreign tenant/context are refused.
+
+The precise behavior is SPEC's table: A/B and N writers from H0 get one CAS per
+pin; the current owner uses `ReconcilePin` and a durable `CAS_LOST` plus
+matching fresh H-other terminalizes and releases; if it is unavailable, a
+successor takes over and reaches that same terminal path. A durable success
+retries Audit across a term rollover only after current-term re-attestation; an
+ancestor-proven success terminalizes after its successor; and only
+missing/foreign/unavailable proof remains bounded quarantine. A rebase first
+`AbandonPin`s an unattempted pin or reconciles a lost pin to
+`SUPERSEDED`/`RELEASED`, then acquires a fresh snapshot/pin; it never rewrites
+an old desired tuple. This lane owns no Audit
+provider call; KA-C maps the callback on the already-created port.
+
+`RefreshPublicationReadSnapshot` obtains Audit only at boot, recovery,
+post-publication, term change, or expiry; it validates and installs the
+context/anchor/Audit-ordinal/expiry/current-term/CAS-index snapshot in the
+cell. The ordinary read path performs only the local term+tuple+expiry check
+and fails or queues one bounded refresh on mismatch. This is the ADR-0719 D1
+cell-local serving rule, not a per-read Audit dependency.
+
+Cargo/Buck closure is PC-S plus KC, records domain, tablet consensus/persistence,
+record protection, audit-sink port, records-app, and the D1c-WG generated
+include root; KA-C joins only after this lane. Required tests independently
+encode decision/pin frames; model A/B/N-writer loss, stale CAS, rebase limit,
+each crash edge, lease/term takeover, pre/post-CAS Audit partition, forged or
+supplied receipt, callback authentication loss, H0 restore after H1, maximum
+per-pin and `8/64/256` locator/tenant/cell pin admission, derived member-byte
+caps, renewal/rebase horizon/backlog admission, release/GC races,
+coordinator/device loss, and snapshot hit/expiry/term/tuple behavior in both
+Cargo and Buck.
+Success is a durable bounded state machine with no immortal normal loser and
+no remote Audit read hit; failure is local-head freshness guessing, receipt
+forgery, term-blind retry, mutable pin tuple, unfenced stale worker, unbounded
+state, object-store authority, provider call in core, or route/readiness claim.
+Rollback removes only these content files.
+
 ### D1c-C — Bounded semantic contracts
 
 Class: content-only behavior after D1c-KS; no manifest/build/lock/route change.
@@ -2088,10 +2223,11 @@ SHA-256, opaque KMS key-generation-binding/operation-handle/key-use/
 nonce-reservation types, the authenticated bounded bootstrap-locator/catalog
 grammar, stable errors, the exact classification codepoint table and
 per-purpose ContextAadV1 matrix/formulas, the bounded ordered WAL
-classification-summary and WAL-only mixed sentinel, canonical count-one-or-more
-artifact-plan/final-manifest/commit/head/immutable-context/anchor/pin grammars,
-the coordinator-only local-CAS proof plus Audit high-water request/receipt
-types, and the pre-use durable linearizable nonce state machine. KC owns
+classification-summary and WAL-only mixed sentinel, purpose-specific
+record/WAL count-one and aggregate count-1..4,096 artifact-plan/final-manifest/
+commit/head/immutable-context/anchor/pin grammars, the coordinator-only
+local-CAS and pin-decision frames plus Audit high-water request/receipt types,
+and the pre-use durable linearizable nonce state machine. KC owns
 `CiphertextEnvelopeV1`,
 `ArtifactCommitRecordV1`, `ArtifactPublicationAnchorV1`, and all encrypted/
 publication-control types before any tablet-persistence lane can consume them.
@@ -2105,17 +2241,18 @@ identical.
 Within that write set, audit-sink
 `c_publication_high_water.rs` owns the typed high-water request/receipt and the
 fixed `LocalPublicationCasReceiptV1`; record-protection
-`f_publication_state.rs` owns the anchor/pin state whose digest fields it names.
-The receipt carries only fixed digests/epochs, so these ports require no new
-cross-port Rust edge; later tablet-persistence content obtains the coordinator
-receipt through the accepted audit-sink/record-protection app composition after
-KC rather than freezing an envelope in D1c-C.
+`f_publication_state.rs` owns the anchor/pin/pin-decision state whose digest
+fields it names. KC defines values only: D1c-PC-C, not tablet persistence,
+owns their durable coordinator operations, term re-attestation, takeover,
+release, and in-cell snapshot behavior through the new direct port edges. This
+keeps a record-protection envelope out of D1c-C while preventing later content
+from inventing a coordinator or an Audit callback.
 
 Success is two independent golden-frame encoders, published SHA-256 known-answer
 vectors, byte-exact envelope/token/WAL-summary/plan/final-manifest/commit/
-anchor/local-CAS-receipt/pin framing, purpose-realizable exact/plus-one AAD
-bounds, opaque-handle containment, bootstrap-based DecryptOnly reacquisition,
-authenticated monotonic-CAS/high-water publication, GC-safe pinning, and no
+anchor/local-CAS-receipt/pin-decision/pin framing, record/WAL count-one,
+count-two rejection, purpose-total exact/plus-one totals and AAD bounds,
+opaque-handle containment, bootstrap-based DecryptOnly reacquisition, and no
 nonce reuse.
 Failure is custom keyed cryptography, algorithm defaulting,
 raw-key clone/log/serialization, a raw-key-shaped type or async state,
@@ -2125,20 +2262,22 @@ class, local-head freshness guess, unpinned persistence, or production claim.
 Rollback removes only these content files. SLO is bounded contract/hash work and
 zero observed opaque-handle/nonce/publication-rollback violations. Faults flip
 every header/AAD/ciphertext/tag/bootstrap byte, classification codepoint,
-WAL-summary subject/kind/order/pair, plan/final-manifest/commit/head/context/
-anchor/local-CAS-receipt/pin field, and chunk order; exercise every purpose
-exact/plus-one AAD, summary, plan, manifest, commit, anchor, local-CAS receipt,
-pin, and bootstrap bound; substitute/replay/truncate/duplicate uniform/mixed/
-metadata/control WALs, final manifests, commits, anchors, local-CAS and high-
-water receipts; race stale/idempotent CAS heads and pins; replay H0 after H1
-across crash/restore/failover; exhaust/wrap counters; race concurrent CAS
-allocators; interleave GC before/after pin acquire, renew, put, verify, bind,
-CAS, Audit append, finalize, release, and ACK; crash at acquire, renew, reserve,
-local checkpoint, allocation CAS/fsync, Seal, pinned persist, final manifest,
-commit, bind, CAS, durable local-CAS receipt, Audit, finalize, and ACK; restart into
-EncryptActive/DecryptOnly/catalog-source loss; then run known answers and
-N/N+1 counters/chunks through Cargo and Buck. KMS AEAD known-answer, tamper,
-zeroization, and terminal-path evidence belong to KX-C.
+WAL-summary subject/kind/order/pair, record/WAL count-two and total-plus-one,
+aggregate count-4,097/total-plus-one, plan/final-manifest/commit/head/context/
+anchor/local-CAS-receipt/pin-decision/pin field, and chunk order; exercise every
+purpose exact/plus-one AAD, summary, plan, manifest, commit, anchor, local-CAS
+receipt, decision, pin, and bootstrap bound; substitute/replay/truncate/
+duplicate uniform/mixed/metadata/control WALs, final manifests, commits,
+anchors, local-CAS and high-water receipts; race stale/idempotent CAS heads and
+pins; replay H0 after H1 across crash/restore/failover; exhaust/wrap counters;
+race concurrent CAS allocators; interleave GC before/after pin acquire, renew,
+put, verify, bind, CAS, Audit append, finalize, release, and ACK; crash at
+acquire, renew, reserve, local checkpoint, allocation CAS/fsync, Seal, pinned
+persist, final manifest, commit, bind, CAS, durable local-CAS receipt, Audit,
+finalize, and ACK; restart into EncryptActive/DecryptOnly/catalog-source loss;
+then run known answers and N/N+1 counters/chunks through Cargo and Buck. KMS
+AEAD known-answer, tamper, zeroization, and terminal-path evidence belong to
+KX-C; coordinator behavior belongs to PC-C.
 
 ### D1c-WC — Records-v1 schema, codec, and accounting behavior
 
@@ -2182,7 +2321,10 @@ Cargo/Buck codegen canaries.
 ### D1c-KA — Real provider adapters
 
 Structure is four serialized sole-lock D-29 sublanes only after the
-corresponding provider-owned face, D1c-KG, and D1c-KS have merged. D1c-KS
+corresponding provider-owned face, D1c-KG, D1c-KS, and D1c-PC-S have merged.
+D1c-PC-S is the shared `Cargo.lock`/records-app-manifest serialization
+predecessor; the Audit sub-lane additionally consumes the publication port.
+D1c-KS
 transitively requires D1c-S and D1c-WS and is the lane that creates the Data
 port/package and `data-records-app` manifest targets these rows name; a
 scheduler must refuse every `*-S` before that prerequisite rather than invent a
@@ -2192,21 +2334,23 @@ before D1c-KC defines those types:
 
 | Lane | Mandatory Data precondition | Exact new four-file root / package | Exact provider edge | Exact updated consumer |
 |---|---|---|---|---|
-| `D1c-KP-S` | D1c-KS (therefore S/WS), D1c-KG, accepted Policy face | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
-| `D1c-KA-S` | D1c-KS (therefore S/WS), D1c-KG, accepted Audit face | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
-| `D1c-KK-S` | D1c-KS (therefore S/WS), D1c-KG, accepted KMS face | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
-| `D1c-KX-S` | D1c-KS (therefore S/WS), D1c-KG, accepted KMS face | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KP-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted Policy face | `data/adapters/draft/policy-client-policy/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-policy-client-policy-draft` | `data-policy-client-draft + policy-check -> adapter` | `data/facade/records-app/{Cargo.toml,BUCK}`, `Cargo.lock` |
+| `D1c-KA-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted Audit face | `data/adapters/draft/audit-sink-audit/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-audit-sink-audit-draft` | `data-audit-sink-draft + data-artifact-publication-draft + audit-emission -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KK-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted KMS face | `data/adapters/draft/record-keys-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-keys-secrets-draft` | `data-record-keys-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
+| `D1c-KX-S` | D1c-KS (therefore S/WS), D1c-PC-S, D1c-KG, accepted KMS face | `data/adapters/draft/record-protection-secrets/{Cargo.toml,BUCK,build.rs,src/lib.rs}` / `data-record-protection-secrets-draft` | `data-record-keys-draft + data-record-protection-draft + secrets-kms-use -> adapter` | same app manifests, `Cargo.lock` |
 
 Each scanner matches D1c-S, each lock delta is one local block plus already
 accepted provider edges, and Cargo/Buck close identically. Exact structure
 build closure is D1c-S/WS/KS, that adapter's Data port, its accepted provider
 target, `data-records-app` library and bin targets, and its codegen include
-root; its reverse closure is only `data-records-app` until KJ-S composes it.
+root; KA-S additionally includes D1c-PC-S and the publication port. Its reverse
+closure is only `data-records-app` until KJ-S composes it.
 The corresponding provider receipt plus D1c-KG is insufficient without this
 closure: before KS the named Data package paths and app targets do not exist.
 No lane may substitute the currently forbidden internal packages, write the
 provider tree, or merge beside another lock writer. Content is a D33 lane and
-is schedulable only after **both** its `*-S` structure lane and D1c-KC:
+is schedulable only after **both** its `*-S` structure lane and D1c-KC; KA-C
+also requires D1c-PC-C:
 
 ```text
 D1c-KP-C: data/adapters/draft/policy-client-policy/src/items/a_adapter.rs
@@ -2223,9 +2367,11 @@ Content only maps Data-owned requests/receipts/errors to the accepted provider
 contract and preserves revision, integrity, deadline, tenant, purpose,
 generation, opaque-handle containment, durable pre-use nonce reservation,
 publication high-water freshness, and revocation fences. KA-C maps both
-publication-high-water operations, including the challenge, coordinator-resolved
-local-CAS proof, and no-rollback receipt; no other adapter may synthesize them.
-KK-C is the sole mapper of `AcquireOpenHandle` and its
+publication-high-water operations, including the challenge, the
+facade-capability-authenticated coordinator receipt resolution/current-term
+re-attestation, and the no-rollback receipt; it cannot accept supplied receipt
+bytes or invoke a tuple/pin/member mutation. No other adapter may synthesize
+those operations. KK-C is the sole mapper of `AcquireOpenHandle` and its
 `KeyBootstrapLocatorV1 -> ReacquiredOpenLease` transition. KX-C consumes the
 record-keys binding/operation-handle types through the direct port edge and maps
 only KMS `Seal` and `Open`, never local AES-GCM, handle acquisition, or a raw
@@ -2235,18 +2381,19 @@ evidence. Provider-owned conformance
 services/fixtures and live fault plants supply evidence; a Data fake, in-memory
 double, direct provider client, or provider core cannot satisfy it. Success is
 byte/type-exact mapping and fail-closed deny/outage/staleness in both graphs;
-content build closure is the stated structure closure plus KC, and its reverse
-closure remains `data-records-app` until KJ-S. Failure is a KC-bypass,
+content build closure is the stated structure closure plus KC (and PC-C for
+KA-C), and its reverse closure remains `data-records-app` until KJ-S. Failure is a KC-bypass,
 lost context, widened authority, retry after a terminal fence, secret logging,
 hidden fallback, local keyed crypto, raw-key exposure, or provider/API leakage
 into core. Rollback removes one adapter/edge before composition. SLO signals
 are provider latency, deadline/refusal class, receipt age/revision, key/nonce
 lease headroom, and no false allow/ACK. Faults cover malformed/stale/wrong-
 tenant receipts, network loss/timeout/reorder, Audit durability/high-water
-challenge replay/loss, KMS crash at reserve/checkpoint/allocation-CAS/Seal/
-persist/publish/ACK, restart and source loss before Open, rotation/revocation
-between lease and use, raw-key containment/zeroization, duplicate-nonce
-rejection, and provider N/N+1 skew.
+challenge replay/loss, forged/supplied receipt and coordinator callback/term
+loss, KMS crash at reserve/checkpoint/allocation-CAS/Seal/persist/publish/ACK,
+restart and source loss before Open, rotation/revocation between lease and use,
+raw-key containment/zeroization, duplicate-nonce rejection, and provider N/N+1
+skew.
 
 ### D1c-O — Parameterized in-memory oracle
 
@@ -2303,15 +2450,16 @@ concurrent histories.
 
 ## D1e — Owned single-tablet durability and replication oracle
 
-Class: content-only behavior after D1d/KC; no manifest/build/lock/route change.
+Class: content-only behavior after D1d/KC/PC-C; no manifest/build/lock/route
+change.
 
 ```text
 data/adapters/draft/tablet-persistence-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction,g_ciphertext,h_nonce_checkpoint}.rs
 data/adapters/draft/tablet-persistence-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade,e_ciphertext,f_nonce_recovery}.rs
 data/core/tablet-consensus-domain/src/items/{b_log,c_membership,d_leader,e_snapshot_transfer,f_repair,g_admission}.rs
 data/core/tablet-consensus-domain/src/test_items/{b_partition,c_leader_change,d_snapshot_transfer,e_repair_budget}.rs
-data/core/records-domain/src/items/{l_durable_commit,o_security_commit}.rs
-data/core/records-domain/src/test_items/{i_durable_commit,l_security_commit}.rs
+data/core/records-domain/src/items/{l_durable_commit,o_security_commit,r_artifact_publication}.rs
+data/core/records-domain/src/test_items/{i_durable_commit,l_security_commit,o_artifact_publication}.rs
 ```
 
 Implement AEAD-sealed, checksummed append-only records, explicit durable
@@ -2322,27 +2470,33 @@ segment, snapshot, repair, and migration byte is sealed through the Data
 record-protection/key ports before provider I/O and validates envelope/AAD/tag/
 generation before decode; recovery is ciphertext-only and quarantines
 undecryptable/revoked/corrupt state. The key-generation fence is revalidated
-before durable prepare and before visibility/ACK. This is an unrouted library/
-oracle; separately deployable roles and sold SLO evidence belong to D4.
+before durable prepare and before visibility/ACK. `r_artifact_publication.rs`
+can publish only through the D1c-PC-C coordinator port: it acquires a bounded
+pin before the first object, persists members through the coordinator, performs
+the one-shot tuple CAS/receipt decision, and delegates Audit resolution to
+KA-C. It cannot store a local head, infer a successful CAS, call Audit directly,
+or advance safe GC. This is an unrouted library/oracle; separately deployable
+roles and sold SLO evidence belong to D4.
 
-Build closure is D1c-S/WS/KS/C/KC plus the in-memory/file/consensus packages and
-Cell clock; no real provider adapter or route is claimed. Required reviewers
-are Data, Cell, Storage, Secrets, Audit, security, and architecture. Success is
-RPO 0 in the declared one-node/device tolerance, no plaintext durable bytes,
-nonce reuse, stale/revoked-key commit, stale leader commit, or unverified
-rebuild, plus p99 leader recovery at or below the PRD 30-second target in the
-declared simulator/plant profile. Failure is page-cache durability, plaintext
-or unauthenticated artifact, trusted corruption, lost ACK, split brain,
-nonce/checkpoint rollback, or unbounded repair. Rollback removes only this
-content while PostgreSQL remains authority. Fault evidence includes kill/
-power-cut around every data/nonce/audit barrier, partial/full/corrupt devices,
-wrong AAD/key/tenant, revocation between each commit phase, ciphertext-only
-restore, partition/reorder, voter/leader loss, snapshot corruption, repair
-saturation, and N/N+1 format barriers.
+Build closure is D1c-S/WS/KS/C/KC/PC-C plus the in-memory/file/consensus
+packages and Cell clock; no real provider adapter or route is claimed. Required
+reviewers are Data, Cell, Storage, Secrets, Audit, security, and architecture.
+Success is RPO 0 in the declared one-node/device tolerance, no plaintext durable
+bytes, nonce reuse, stale/revoked-key commit, stale leader commit, unauthenticated
+publication, immortal normal-loser pin, or unverified rebuild, plus p99 leader
+recovery at or below the PRD 30-second target in the declared simulator/plant
+profile. Failure is page-cache durability, plaintext or unauthenticated artifact,
+trusted corruption, lost ACK, split brain, nonce/checkpoint rollback, direct
+Audit/pin store, or unbounded repair. Rollback removes only this content while
+PostgreSQL remains authority. Fault evidence includes kill/power-cut around every
+data/nonce/coordinator/Audit barrier, partial/full/corrupt devices, wrong
+AAD/key/tenant, revocation between each commit phase, ciphertext-only restore,
+partition/reorder, voter/leader loss, snapshot corruption, repair saturation,
+lost-CAS/takeover/release/GC races, and N/N+1 format barriers.
 
 ### D1c-KR — Rotation, re-encryption, and recovery behavior
 
-Class: content-only after D1e/KC; no manifest/build/lock/route change. Write
+Class: content-only after D1e/KC/PC-C; no manifest/build/lock/route change. Write
 exactly:
 
 ```text
@@ -2361,8 +2515,8 @@ and yields. Old verified ciphertext remains authoritative until the replacement
 has a complete pin, verifies, CASes the head+anchor, and obtains its matching
 high-water receipt, so cancellation/failure leaks work or space, never plaintext
 or loss. Contract fixtures can exercise transitions, but only D1c-KP-C,
-D1c-KA-C, D1c-KK-C, and D1c-KX-C provider conformance plus D1c-KJ may establish
-production evidence.
+D1c-PC-C, D1c-KA-C, D1c-KK-C, and D1c-KX-C provider conformance plus D1c-KJ
+may establish production evidence.
 
 Success is crash-resumable monotonic progress, exact old-generation inventory,
 zero new encryption after the rotation fence, zero old references before
@@ -2374,15 +2528,16 @@ pauses the worker while preserving the last verified ciphertext/checkpoint/pin;
 it never reverses a revocation. SLO signals are remaining records/bytes, oldest
 old-key age, checkpoint age, retry/refusal, lease headroom, publication-pin
 age, high-water receipt age, and estimated completion under the declared budget.
-Faults crash every read/seal/flush/pin/verify/bind/CAS/Audit/finalize barrier,
-revoke/rotate concurrently, corrupt inventory/checkpoint/ciphertext/anchor,
-exhaust capacity/nonce lease, replay H0 after H1, delete a pinned object, race
-GC, restore a stale snapshot, and repeat repair.
+Faults crash every read/seal/flush/pin/verify/bind/CAS/Audit/finalize/release
+barrier, revoke/rotate concurrently, corrupt inventory/checkpoint/ciphertext/
+anchor, exhaust capacity/nonce lease, replay H0 after H1, delete a pinned
+object, race a losing CAS/takeover/GC, restore a stale snapshot, and repeat
+repair.
 
 ### D1c-KJ-S — Production composition/readiness structure
 
 Class: structural D-29/D-33 after D1c-KP-C, D1c-KA-C, D1c-KK-C, D1c-KX-C,
-D1c-WC, D1e, and D1c-KR. Write exactly:
+D1c-PC-C, D1c-WC, D1e, and D1c-KR. Write exactly:
 
 ```text
 data/facade/records-app/src/items/{f_composition,g_readiness}.rs
@@ -2398,6 +2553,9 @@ pre-existing Cargo/Buck composition closure is:
 data-records-domain
 data-tablet-consensus-domain
 data-tablet-persistence-file-draft
+data-artifact-publication-draft
+data-artifact-publication-domain
+data-artifact-publication-cell-draft
 data-record-digest-awslc-draft
 data-policy-client-policy-draft
 data-audit-sink-audit-draft
@@ -2406,8 +2564,8 @@ data-record-protection-secrets-draft
   -> data-records-app
 ```
 
-No concrete adapter reaches core, and no new `main.rs`, listener, handler,
-route, deployment, readiness publication, or behavior lands. Build closure is
+No provider adapter reaches another owner's core, and no new `main.rs`, listener,
+handler, route, deployment, readiness publication, or behavior lands. Build closure is
 the listed packages, both records-app targets, and the D1c-WG codegen closure;
 reverse closure is the process/bin only. Reviewers are all provider owners plus
 Data, Gateway, Cell, security, operations, and architecture. Success is an
@@ -2424,31 +2582,38 @@ engine and real provider adapters, validate compatible contract revisions,
 require verified Policy/Audit/KMS conformance receipts, an encrypt-active
 record and continuation generation, durable nonce headroom, usable Cell
 interval, a valid authenticated bootstrap locator/provider catalog for each
-recoverable generation, fresh matching publication high-water receipts, no
-unresolved publication-pin recovery, clean recovery/quarantine state, and
-current rotation inventory. The library exposes a typed `NotReady` reason and admission gate,
+recoverable generation, a current coordinator term with no over-capacity
+reconciliation backlog, and a fresh matching publication read snapshot for
+each served locator. An undecidable pin withdraws that locator while the
+successor worker holds its bounded reconciliation slot; a normal CAS loser
+must reach terminal superseded/released state and cannot withdraw global
+readiness. The library exposes a typed `NotReady` reason and admission gate,
 not a listener; loss or staleness of any prerequisite atomically withdraws
-admission/readiness before new work. Policy deny/outage precedes data-dependent
-work, mutation ACK requires durable Audit, a key/revocation fence is revalidated
-before prepare and visibility, and an artifact is visible only through the
-validated sealed commit/head+anchor/pin/Audit-high-water chain. No fake, in-memory provider, fixture,
-or reference oracle can be selected by production composition or count as
-readiness proof.
+affected admission/readiness before new work. Policy deny/outage precedes
+data-dependent work, mutation ACK requires durable Audit, a key/revocation
+fence is revalidated before prepare and visibility, and an artifact is visible
+only through the validated sealed commit/head+anchor/pin/Audit-derived
+cell-local snapshot chain. No fake, in-memory provider, fixture, or reference
+oracle can be selected by production composition or count as readiness proof.
 
 Success is zero route/readiness while any prerequisite is missing and stable
 recovery after real provider revalidation; failure is false readiness,
 plaintext/unaudited/stale-key fallback, partial provider selection, or a test
 double in the production graph, an unauthenticated/stale/dangling commit root,
-unavailable bootstrap catalog, or unavailable high-water authority. Rollback withdraws admission and returns to the unrouted
-library; it cannot undo a durable audit/key fence. SLO signals are readiness
-reason/age, provider revision/latency, receipt age, nonce headroom, bootstrap-
-catalog health, high-water receipt age, publication-pin age/quarantine count,
-and rotation backlog. Provider test plants inject deny, timeout, malformed/stale
-receipt, Audit durability/high-water loss, KMS outage/rotation/revocation,
-bootstrap tamper/source loss, time uncertainty, nonce exhaustion, corrupt
-recovery, commit-head stale-CAS/H0-after-H1 replay, pinned-object deletion,
-GC race, and N/N+1 skew; each must withdraw before request acceptance. D4 route work is blocked
-until this exact receipt is independently accepted.
+unavailable bootstrap catalog, unavailable high-water refresh, stale
+coordinator term/snapshot, or unbounded pin state. Rollback withdraws admission
+and returns to the unrouted library; it cannot undo a durable audit/key fence.
+SLO signals are readiness reason/age, provider revision/latency, receipt age,
+nonce headroom, bootstrap-catalog health, snapshot age/refresh outcome,
+publication-pin age/terminalization/backlog, and rotation backlog. Provider
+test plants inject deny, timeout, malformed/stale receipt, Audit durability/
+high-water loss, coordinator/Audit partition and callback-auth loss, KMS outage/
+rotation/revocation, bootstrap tamper/source loss, time uncertainty, nonce
+exhaustion, corrupt recovery, A/B/N-writer stale-CAS/H0-after-H1 replay,
+pinned-object deletion, takeover/release/GC race, snapshot expiry/term change,
+and N/N+1 skew; each must withdraw the affected locator before request
+acceptance. D4 route work is blocked until this exact receipt is independently
+accepted.
 
 ### D1c-WB — Process boot/refusal behavior
 
@@ -2691,7 +2856,8 @@ clear this gate.
    COB-S/C. N-C, O2L, and BR join before D1c. Accepted WG/KG and the persistence
    decisions enable D1c-S; lock writers run S -> WS -> KS. C then enables O,
    KC, and WC's C/KC join; KP/KA/KK/KX structural lanes serialize only after
-   their provider receipts, KG, and KS (therefore S/WS) have landed. Every
+   their provider receipts, KG, KS (therefore S/WS), and PC-S have landed.
+   Every
    provider content lane additionally waits for KC's Data request/receipt/error
    types, then may fan out on its unique files.
    C/O/KC enable D1d, then D1e; D1e/KC enable KR. WC, all four
@@ -2718,7 +2884,8 @@ clear this gate.
    lock-free mechanical preparation and may run beside a disjoint provider
    lane. D1c-S/WS/KS and KP-S/KA-S/KK-S/KX-S are separate lock-writing LSCs
    and serialize with every other lock writer; provider structure never enters
-   the lock queue until KS has created its port/app closure. C/O/KC/WC, provider content,
+   the lock queue until KS has created its port/app closure and PC-S has
+   serialized the records-app/Cargo.lock publication closure. C/O/KC/WC, provider content,
    D1d/D1e/KR, and KJ-C write unique files and may fan out only after their
    stated joins. D2-S and D3-S may be prepared in parallel but merge one lock
    writer at a time; their content lanes then commute.
@@ -2769,9 +2936,10 @@ BF-G/COB-G until exact owner-law, codegen, IAM/Policy, Gateway route, build, and
 review receipts land. Every cross-owner app/Foundry/Gateway/Bus lane needs its
 own named D-29 dispatch; this Data PR grants no foreign write. D1c remains
 blocked until N-C, O2L, BR, the two persistence/wire decisions, D1c-WG, and
-D1c-KG are complete. Once unblocked, S/WS/KS are the structural chain; no
-KP/KA/KK/KX structure lane is dispatchable until KS is complete, even with its
-provider receipt. C, O, KC, WC, provider adapters, D1d/e, KR, and KJ then
+D1c-KG are complete. Once unblocked, S/WS/KS then PC-S are the structural
+chain; no KP/KA/KK/KX structure lane is dispatchable until KS and PC-S are
+complete, even with its provider receipt. C, O, KC, WC, provider adapters,
+D1d/e, KR, and KJ then
 follow the exact joins above. No
 stage may substitute a test fake or route before the KJ-C/WB refusal join.
 

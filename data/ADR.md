@@ -269,7 +269,10 @@ tests.
   root was prose rather than an authenticated frame. The next repair left WAL
   with a caller-selectable-looking single class for a legal mixed transaction,
   allowed a retained valid head to replace a newer one after restore, and let GC
-  collect verified pre-CAS objects.
+  collect verified pre-CAS objects. The subsequent review proved that an
+  ordinary losing CAS could still retain a nonterminal pin forever and that the
+  presumed trusted coordinator had no executable Data owner, term-rollover, or
+  serving-path shape.
 - **rule:** `secrets-kms-use` is the required accepted provider face for an
   opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only
   non-serializable operation handles, encrypted opaque key-generation binding,
@@ -280,8 +283,10 @@ tests.
   `AcquireOpenHandle`; KX/`RecordProtection` consumes its typed lease and maps
   only Seal/Open over the direct Cargo/Buck port edge. Data MUST NOT expose raw
   key bytes or a provider client. Every legal purpose uses the exact
-  19-field `ContextAadV1` grammar and a count-one-or-more plan. Record tag `09`
-  is its canonical primary-key binding; WAL tag `09` is the digest of one
+  19-field `ContextAadV1` grammar and a purpose-valid plan: record is exactly
+  one entry at at most 4 MiB, WAL is exactly one entry at at most 16 MiB, and
+  only aggregate purposes may use 1..4,096 entries. Record tag `09` is its
+  canonical primary-key binding; WAL tag `09` is the digest of one
   bounded ordered transaction-class summary. A uniform WAL carries its sole
   DataClass/revision; a mixed WAL carries WAL-only `(0,0)` plus that exact
   summary digest, never a default/rank/split. The binding digest must agree in
@@ -290,10 +295,21 @@ tests.
   in every role AAD and the sealed commit. Each artifact becomes visible only
   through the 78-byte head plus a durable
   immutable-context/monotonic-generation/fence anchor and a fresh Audit
-  high-water receipt. A durable logical-epoch publication pin and the
-  coordinator-only local-CAS receipt protect every verified data/manifest/commit
-  object through CAS, Audit retry, and finalization; GC never guesses around an
-  expired or crashed pin. `NonceLeaseId:u32` is the sole
+  high-water receipt. Data owns the cell-local `ArtifactPublicationCoordinator`
+  at `data/ports/draft/artifact-publication`,
+  `data/core/artifact-publication-domain`, and
+  `data/adapters/draft/artifact-publication-cell`, composed only by
+  `data/facade/records-app`: it alone owns tuple CAS, pin/member/decision/
+  receipt history, safe-GC epoch, successor takeover, and the authenticated
+  Audit receipt callback. A durable
+  logical-epoch pin plus its coordinator-only local-CAS/decision proof protects
+  every verified data/manifest/commit object through CAS, Audit retry, and
+  finalization. A normal losing CAS has a bounded terminal
+  superseded/released path; only genuinely undecidable recovery is retained
+  under bounded pin/byte/backlog admission. Reads use a fresh validated
+  in-cell snapshot rather than an Audit RPC on every hit, and a changed tuple,
+  term, or expiry fails closed. GC never guesses around an expired or crashed
+  pin. `NonceLeaseId:u32` is the sole
   nonce identity. The provider MUST durably reserve a disjoint range before
   returning it; one exclusive lease owner MUST atomically CAS+fsync `next` past
   a counter before submitting that nonce to Seal. If recovery cannot prove the
@@ -302,26 +318,32 @@ tests.
   raw-key lifetime and zeroization proof.
 - **ensure:** `SPEC.md` fixes the satisfiable byte formulas, closed AAD
   codepoints/field count/purpose maxima (record 1,825 and migration 1,572),
-  `47,414`-byte WAL summary, `65,640`-byte plan, `459,190`-byte manifest,
-  `2,296`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 203-byte
-  pin, request/receipt/error fields, and bootstrap/acquire/reserve/pin-renew/
-  CAS/Audit/seal/persist/publish/ACK/reacquire crash matrix. `PLAN.md` puts KC's
+  `47,414`-byte WAL summary, purpose-specific record/WAL count-one and
+  total-plus-one plan vectors while retaining the `65,640`-byte aggregate plan,
+  `459,190`-byte manifest, `2,296`-byte commit, 177-byte anchor, 200-byte
+  local-CAS receipt, 266-byte pin-decision, and 203-byte pin,
+  request/receipt/error fields, and bootstrap/acquire/reserve/pin-renew/
+  takeover/CAS/Audit/seal/persist/publish/release/ACK/reacquire crash matrix.
+  `PLAN.md` puts KC's
   canonical envelope before any
   persistence content, makes KS (and transitive S/WS) a prerequisite of every
-  provider structure lane, and gives KK--not KX--the sole acquisition mapping
-  over the direct Cargo/Buck edge. Conformance scans reject raw-key-shaped Data
+  provider structure lane, inserts the coordinator structural/content lanes
+  before Audit callback, durable persistence, and records-app readiness, and
+  gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
+  edge. Conformance scans reject raw-key-shaped Data
   values and test malformed/tampered/replayed/truncated/substituted frames,
   mixed/uniform/metadata/control WAL summaries, H0-after-H1 restore replay,
-  immutable-context/generation/fence regressions, pin/GC races, stale/idempotent
-  CAS, every crash boundary, concurrent allocation, N/N+1 counter/chunk, lease
-  burn, bootstrap catalog source loss, restart/rotation/revocation, and refusal
-  paths.
+  immutable-context/generation/fence regressions, A/B/N-writer CAS loss and
+  successor takeover, coordinator epoch re-attestation, cell-local snapshot
+  refresh, pin/GC races, stale/idempotent CAS, every crash boundary, concurrent
+  allocation, N/N+1 counter/chunk, lease burn, bootstrap catalog source loss,
+  restart/rotation/revocation, and refusal paths.
 - **overturn_when:** an accepted replacement provider/publication contract
   proves equally opaque tenant-bound operations, independently authenticated
   cold recovery, purpose-total mixed-transaction classification, rollback-proof
-  monotonic publication and GC reachability, durable non-reuse, raw-key
-  containment, zeroization evidence, and the same crash/rotation refusal
-  coverage.
+  monotonic publication, terminal conflict reconciliation, bounded GC
+  reachability, cell-local freshness, durable non-reuse, raw-key containment,
+  zeroization evidence, and the same crash/rotation refusal coverage.
 
 </record_security>
 

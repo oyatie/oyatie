@@ -493,7 +493,7 @@ transaction and idempotency identity
 
 ## Provider boundary and production authority
 
-Data owns four implementation-free use-case ports:
+Data owns five implementation-free use-case ports:
 
 ```text
 PolicyClient        authorize(canonical request context) -> PolicyReceipt
@@ -503,11 +503,20 @@ RecordKeySource     reserve/rotate/retire opaque key uses and nonce leases -> Ke
                     bootstrap-reacquire an authorized decrypt operation -> ReacquiredOpenLease
 RecordProtection    digest/seal/open using RecordKeySource operation handles, explicit purpose,
                     lease identity, and envelope -> result
+ArtifactPublicationCoordinator
+                    cell-local durable publication tuple, pin/member, receipt-history,
+                    safe-GC, reconciliation, and read-snapshot operations -> result
 ```
 
-Their draft homes are respectively `data/ports/draft/policy-client`,
+The first four draft homes are respectively `data/ports/draft/policy-client`,
 `data/ports/draft/audit-sink`, `data/ports/draft/record-keys`, and
-`data/ports/draft/record-protection`. Data provider adapters are
+`data/ports/draft/record-protection`. The fifth is the Data-owned, cell-local
+`data/ports/draft/artifact-publication` port: its core is
+`data/core/artifact-publication-domain`, its one durable implementation is
+`data/adapters/draft/artifact-publication-cell`, and
+`data/facade/records-app` is the sole production composition owner. It is not
+a sold cross-owner provider, object-store adapter, or in-memory authority.
+Data provider adapters for the first four ports are
 `data/adapters/draft/policy-client-policy`,
 `data/adapters/draft/audit-sink-audit`,
 `data/adapters/draft/record-keys-secrets`, and
@@ -619,8 +628,11 @@ revision, expiry, or Policy outage fails before data-dependent work.
 transaction/snapshot identity, result class, key generation where applicable,
 and durable Audit sequence/digest. `PublicationHighWaterReceipt` is a separate
 challenge-bound durable Audit receipt with the exact anchor/head/context fields
-specified below; it is the only accepted freshness witness for a publication
-locator. Mutations, key-state transitions, tenant deletion, export, restore,
+specified below; it is the only accepted external freshness witness for a
+publication locator. A cell-local publication read snapshot is only a
+validated, expiring derivative installed by the trusted coordinator; it is
+never a caller-supplied or independent freshness authority. Mutations,
+key-state transitions, tenant deletion, export, restore,
 publication-anchor advancement, and policy-designated privileged disclosures do
 not acknowledge or become visible without their required receipt; an Audit
 outage aborts before commit/visibility. Contract fixtures and known-answer
@@ -813,15 +825,18 @@ compatibility alias is converted to its listed canonical DataClass byte before
 the summary is built; it cannot create another serialized class identity.
 
 For `zero`, U64 is eight zero bytes, DIGEST32 is 32 zero bytes, and transaction
-ID has length zero. For `phase`, every artifact has `chunk_count` in
-`1..=4,096`, a checked total, and one common plan digest: data uses
-`artifact_role=1` (`single`) iff count is one or `2` (`chunk`) iff count is at
-least two with ordinal `0..count-1`; its final manifest uses `3` with ordinal
-exactly `count`; its commit record uses `4` (`commit_record`) with ordinal
-exactly `count+1`. Record and WAL artifacts are therefore not exceptional:
-both use a one-entry canonical plan, final manifest, and commit root. Any
+ID has length zero. For `phase`, the decoder first applies the purpose-specific
+plan cardinality below, then requires one common checked plan digest. A record
+or WAL data envelope has `artifact_role=1` (`single`) with ordinal zero and
+count exactly one; neither purpose may use role `2` (`chunk`). An aggregate
+purpose uses role `1` iff its count is one and role `2` iff its count is at
+least two, with data ordinals `0..count-1`. Every final-manifest envelope uses
+role `3` with ordinal exactly `count`; every commit envelope uses role `4`
+(`commit_record`) with ordinal exactly `count+1`. Record and WAL artifacts are
+therefore one-entry canonical plans, not an exception or an optional plan. Any
 other role, ordinal, count, total, summary, or phase combination is
-purpose-inapplicable and rejected.
+purpose-inapplicable and rejected before allocation, provider work, Seal,
+persistence, or publication.
 
 `aad_length` is the exact `ContextAadV1` frame length, at most
 `MAX_RECORD_AAD_BYTES`; `ContextAadDigest = SHA-256(aad)` is bound in the final
@@ -858,9 +873,10 @@ handle acquisition/Open, Seal, persistence, or publication.
 stream. `ciphertext_length` is checked before allocation and is at most 4 MiB
 for record/tombstone purpose and at most 16 MiB for WAL, segment, snapshot,
 repair, and migration purpose; the ciphertext is the same length as its
-AES-GCM plaintext. Larger durable artifacts are pre-split into such chunks and
-bind their stable zero-based chunk ordinal, count, total, role, and plan digest
-in AAD; no decoder accumulates more than one accepted data chunk.
+AES-GCM plaintext. Only aggregate-purpose artifacts may be pre-split into
+multiple such chunks. Record and WAL are each exactly one envelope and bind
+their one zero-based ordinal, count, total, role, and plan digest in AAD; no
+decoder accumulates more than one accepted data chunk.
 
 For every artifact, including a one-entry record or WAL artifact,
 `ArtifactPlanV1` is the exact pre-encryption frame whose SHA-256 is the AAD
@@ -877,22 +893,35 @@ repeated exactly chunk_count times, ordinal order 0..chunk_count-1:
   ordinal:u64 | plaintext_length:u64
 ```
 
-Count is `1..=4,096`; every ordinal is exactly its zero-based position; the
-classification pair and binding digest equal the applicable `ContextAadV1`
-values; checked addition of entry lengths must equal the total; and total is at
-most `min(64 GiB, chunk_count * purpose_chunk_cap)` with checked arithmetic.
-`purpose_chunk_cap` is exactly 4 MiB for record and 16 MiB for WAL, segment,
-snapshot, repair, and migration, so a record plan can never admit an entry that
-its envelope cannot Seal and its maximum total at count 4,096 is 16 GiB. For
-record the binding digest is its record-key digest, for WAL it is its summary
-digest (including the mixed sentinel rule), and for aggregates it is zero. The
-fixed frame is
+Every ordinal is exactly its zero-based position; the classification pair and
+binding digest equal the applicable `ContextAadV1` values; and checked addition
+of entry lengths must equal the total. The decoder then applies this closed
+purpose law before allocating a plan entry, acquiring a provider handle,
+Sealing, persisting, or publishing:
+
+| purpose | `chunk_count` | entry and total law |
+|---|---:|---|
+| record | exactly `1` | ordinal `0`; `0..=4,194,304` bytes (`4 MiB`) |
+| WAL | exactly `1` | ordinal `0`; `1..=16,777,216` bytes (`16 MiB`) |
+| segment, snapshot, repair, migration | `1..=4,096` | every entry is at most `16 MiB`; total is at most `min(64 GiB, chunk_count * 16 MiB)` with checked arithmetic |
+
+A record tombstone is the only legal zero-length record entry; a WAL is
+nonempty because its canonical durable mutation list is nonempty. Thus a
+record/WAL count of two is invalid even though the aggregate grammar admits a
+count of two. For record the binding digest is its record-key digest, for WAL
+it is its summary digest (including the mixed sentinel rule), and for
+aggregates it is zero. The fixed frame is
 `1 + 35 + 1 + 1 + 1 + 8 + 1 + 8 + 32 + 8 + 8 = 104` bytes, so its exact maximum
 is `104 + (4,096 * 16) = 65,640` bytes. A `65,641`-byte trailing form and count
-`4,097` (`65,656` bytes if constructed) are both invalid. A count of one is
-canonical only for the single data envelope plus its final-manifest and commit
-envelopes; it is not an omitted plan. The final manifest is a separately sealed
-role-`3` envelope for every count whose plaintext is this exact
+`4,097` (`65,656` bytes if constructed) are both invalid. Independent encoders
+accept record count `1` at exactly `4,194,304` bytes and WAL count `1` at
+exactly `16,777,216` bytes, reject record/WAL count `2` and their respective
+`4,194,305`/`16,777,217` totals, accept aggregate count `4,096` at exactly
+`64 GiB`, and reject aggregate count `4,097`, total `64 GiB + 1`, and every
+checked multiply/add overflow. A count of one is canonical only for the single
+data envelope plus its final-manifest and commit envelopes; it is not an
+omitted plan. The final manifest is a separately sealed role-`3` envelope for
+every count whose plaintext is this exact
 `ArtifactFinalManifestV1` frame:
 
 ```text
@@ -1005,10 +1034,19 @@ five ASCII values and purpose are exactly the identically named commit fields;
 an unknown purpose, malformed length, noncanonical ASCII, trailing byte, or a
 digest mismatch is `ArtifactPublicationContextInvalid` before object lookup.
 
-The publication coordinator stores the exact 78-byte head and this fixed
-`ArtifactPublicationAnchorV1` in one linearizable durable CAS tuple under
-`(tenant, artifact_locator_id)`; neither object storage nor a wall-clock
-metadata value is an authority:
+The Data-owned `ArtifactPublicationCoordinator` is the only authority that
+stores the exact 78-byte head and this fixed `ArtifactPublicationAnchorV1` in
+one linearizable durable CAS tuple under `(tenant, artifact_locator_id)`. Its
+`artifact-publication-cell` adapter commits tuple, pin, member, decision,
+receipt, safe-GC, and read-snapshot transitions in the same cell/tablet
+consensus log; neither object storage nor a wall-clock metadata value is an
+authority. Its exact authenticated port operations are `AcquirePin`,
+`PutPinnedObject`, `BindPin`, `CompareAndSwapAnchor`, `TakeOverAndReconcile`,
+`ReconcilePin`, `AbandonPin`, `AdvanceSafeGcEpoch`, `EnumerateNonterminalPins`,
+`ReadPublicationSnapshot`, and the Audit-only
+`ResolveLocalPublicationCasReceipt`. A publisher receives only a scoped pin
+lease; Audit receives only a facade-issued callback capability; no operation
+accepts a caller-supplied tuple, receipt, member list, or current-head claim:
 
 ```text
 domain_len:u8 = 40
@@ -1076,13 +1114,40 @@ coordinator_epoch:u64 | cas_index:u64 | gc_epoch:u64
 It is exactly `48 + (4 * 32) + (3 * 8) = 200` bytes. The successful atomic
 tuple-CAS is the only operation that creates it; the coordinator durably binds
 it to the current authenticated tuple and makes it retrievable only through its
-authenticated coordinator port by `(pin_id, desired_anchor_digest)`. Audit
-resolves and compares that record to the supplied anchor before accepting
-`AppendPublicationHighWater`; supplied bytes, a missing receipt, mismatched
-context/anchor, or a receipt from another coordinator epoch is
-`ArtifactPublicationAnchorInvalid`. The coordinator retains this receipt for
-every `COMMITTING` pin and every current anchor, so recovery never has to infer
-whether a local CAS happened.
+authenticated coordinator port by `(pin_id, desired_anchor_digest)`.
+`coordinator_epoch` is the originating durable consensus term, not a
+requirement that Audit contact that departed leader. On failover the current
+term's `ResolveLocalPublicationCasReceipt` atomically checks the immutable
+receipt bytes, context, desired tuple, original `cas_index`, and retained
+decision history, then returns the original receipt together with an
+authenticated re-attestation containing its digest, original epoch, current
+epoch, and current applied index. It cannot re-attest a receipt whose tuple is
+not the recorded desired tuple or whose decision was not `CAS_SUCCEEDED`.
+Audit accepts an older originating epoch only through that current,
+facade-authenticated resolution; it compares the resolved receipt to the
+supplied anchor before accepting `AppendPublicationHighWater`. Supplied receipt
+bytes, a missing/mismatched resolution, a stale coordinator callback
+capability, or a receipt whose current-term re-attestation fails is
+`ArtifactPublicationAnchorInvalid`. The coordinator retains a receipt for every
+`COMMITTING` pin and current anchor, so crash-after-CAS/before-Audit recovery
+can retry after a coordinator failover without guessing or weakening fencing.
+
+For every pin that reaches a CAS decision, the coordinator also writes exactly
+one immutable `PublicationPinDecisionV1` consensus record. It has a `49`-byte
+header (`domain_len=46`,
+`"oyatie.data.record.publication-pin-decision.v1"`, separator, version),
+five 32-byte digests (`pin`, context, expected, desired, observed tuple), a
+one-byte decision, a 32-byte local-receipt digest (zero unless successful),
+and `decision_index`, `coordinator_epoch`, and `decision_gc_epoch` U64s; its
+exact size is `49 + 160 + 1 + 32 + 24 = 266` bytes. `NOT_CAS=1` means the
+coordinator proved this pin never entered its atomic CAS (an explicit safe
+abandon records expected; a stale unattempted pin records the newer observed
+tuple), `CAS_SUCCEEDED=2` means the atomic tuple changed to desired and names
+the exact local receipt, and `CAS_LOST=3` means the tuple was observed at the
+recorded different anchor without mutation. The record is coordinator-authenticated storage,
+never an object-store object or caller assertion. It is the durable proof that
+distinguishes a pin which never CASed, one that successfully CASed and was
+later superseded, and an ordinary losing racer.
 
 Before the first artifact object is persisted, a publisher durably acquires an
 `ArtifactPublicationPinV1` from that coordinator. The pin is not a best-effort
@@ -1094,14 +1159,22 @@ domain:[u8;37] = "oyatie.data.record.publication-pin.v1"
 separator:u8 = 0 | version:u8 = 1
 pin_id:[u8;32] | publication_context_digest:[u8;32]
 expected_anchor_digest:[u8;32] | desired_anchor_digest:[u8;32]
-fence_sequence:u64 | lease_epoch:u64 | acquired_gc_epoch:u64 |
+lease_fence_sequence:u64 | lease_epoch:u64 | acquired_gc_epoch:u64 |
 expires_after_gc_epoch:u64 | expected_object_count:u16 | state:u8
 ```
 
 It is exactly `40 + (4 * 32) + (4 * 8) + 2 + 1 = 203` bytes.
 `expected_anchor_digest` is all zero only for genesis; `desired_anchor_digest`
-is all zero only in `OPEN=1`. The other states are `BOUND=2`,
-`COMMITTING=3`, `COMMITTED=4`, and `ABORTED=5`. The count is exactly
+is all zero only in `OPEN=1`. The states are `OPEN=1`, `BOUND=2`,
+`COMMITTING=3`, `COMMITTED=4`, `ABORTED=5`, `CONFLICTED=6`,
+`SUPERSEDED=7`, and `RELEASED=8`. `OPEN`, `BOUND`, `COMMITTING`, and
+`CONFLICTED` are nonterminal; the others are terminal, but only `RELEASED`
+has atomically detached its member rows. `lease_epoch` and
+`lease_fence_sequence` are the publisher-ownership pair and are not the
+artifact fence: the immutable desired anchor carries the artifact's own fence.
+Every publisher action compares both ownership values; a successor replaces
+both atomically, so a stale owner cannot renew, put, bind, CAS, finalize,
+release, or retry Audit. The count is exactly
 `chunk_count + 2`, therefore `3..=4,098`: data ordinals
 `0..chunk_count-1`, final-manifest ordinal `chunk_count`, and commit ordinal
 `chunk_count+1`. Each
@@ -1111,61 +1184,147 @@ member `(pin_id, ordinal) -> serialized_envelope_digest || put_gc_epoch`; it
 cannot expose an unpinned object to GC. Duplicate, skipped, wrong-digest, or
 out-of-range membership is `ArtifactPublicationPinInvalid` before verification.
 
-Pin acquisition atomically records the current coordinator lease epoch/fence,
-the exact expected anchor digest, and an `expires_after_gc_epoch` strictly above
-the current logical GC epoch (refusing arithmetic exhaustion). A
-`RenewPublicationPin(pin_id, lease_epoch, fence_sequence,
-new_expires_after_gc_epoch)` is linearizable and succeeds only for the current
-owner while the pin is `OPEN`, `BOUND`, or `COMMITTING`; it must preserve pin,
-context, expected/desired-anchor, and membership bytes and strictly advance the
-expiry beyond the current GC epoch. Every Put, verify-to-Bound, tuple CAS, and
-finalize compares that same current lease/fence and unexpired logical epoch.
-Expiry fences an old publisher from further work, but never authorizes GC to
-collect a nonterminal pin; only an authorized successor may reconcile it.
+Pin acquisition atomically records the current coordinator publisher lease
+epoch/fence, the exact expected anchor digest, and an
+`expires_after_gc_epoch` strictly above the current logical GC epoch (refusing
+arithmetic exhaustion). `RenewPublicationPin(pin_id, lease_epoch,
+lease_fence_sequence, new_expires_after_gc_epoch)` is linearizable and succeeds
+only for the current owner while the pin is `OPEN`, `BOUND`, or `COMMITTING`;
+it must preserve pin, context, expected/desired-anchor, and membership bytes
+and strictly advance expiry beyond the current GC epoch but never beyond
+`acquired_gc_epoch + MAX_PUBLICATION_PIN_RENEWAL_EPOCHS`. Every Put,
+verify-to-Bound, tuple CAS, finalize, and release compares that same current
+lease/fence and unexpired logical epoch. `TakeOverAndReconcile` accepts only a
+facade-authorized successor after the old pair is expired, unavailable, or
+fenced; in one consensus transaction it strictly advances both ownership
+values, preserves immutable pin/context/member bytes and its original
+acquisition epoch, sets an unexpired replacement expiry no later than the fixed
+renewal horizon, and begins the reconciliation table below. Expiry fences an old publisher from further work,
+but never authorizes GC to collect a nonterminal pin or lets a successor change
+its expected/desired tuple.
 
-The publisher verifies every pinned envelope, binds the one desired anchor only
-after all `chunk_count+2` members verify, and then atomically CASes the
-head+anchor tuple while changing `BOUND` to `COMMITTING` and creating the exact
-`LocalPublicationCasReceiptV1` in that same transaction. It next appends the
-same anchor with that receipt to Audit and only then makes the pin `COMMITTED`
-and releases its membership. A CAS retry whose desired anchor is already current
-and whose high-water receipt matches is `ArtifactAlreadyPublished`; a different
-current anchor is `ArtifactCommitConflict`. A crash before tuple CAS leaves an
-OPEN or BOUND pin; a crash after tuple CAS but before Audit receipt leaves
-COMMITTING and is not reader-visible; a crash after the receipt is an idempotent
-finalize.
+Publication admission is bounded before pin acquisition or object persistence.
+`MAX_PUBLICATION_NONTERMINAL_PINS_PER_LOCATOR=8`,
+`MAX_PUBLICATION_NONTERMINAL_PINS_PER_TENANT_PER_CELL=64`,
+`MAX_PUBLICATION_NONTERMINAL_PINS_PER_CELL=256`,
+`MAX_PUBLICATION_PIN_RENEWAL_EPOCHS=1,024`,
+`MAX_PUBLICATION_AUDIT_APPEND_ATTEMPTS_PER_LEASE=8`,
+`MAX_PUBLICATION_REBASE_ATTEMPTS_PER_REQUEST=3`, and
+`MAX_PUBLICATION_RECONCILIATION_BATCH=64` with
+`MAX_PUBLICATION_RECONCILIATION_BACKLOG=256`. A maximum-envelope byte overhead is
+`1 + 26 + 1 + 1 + 1 + 1 + 2 + 256 + 8 + 12 + 2 + 1,245 + 4 + 1,825 + 8 + 16 =
+3,409`; therefore one maximum aggregate pin's serialized member bytes are
+exactly `64 GiB + 459,190 + 2,296 + (4,098 * 3,409) = 68,733,908,304`.
+The coordinator rejects a locator above `8 * 68,733,908,304 =
+549,871,266,432` pinned-member bytes or a tenant/cell above
+`64 * 68,733,908,304 = 4,398,970,131,456`, or the whole cell above
+`256 * 68,733,908,304 = 17,595,880,525,824`, before allocating a member
+buffer, and a deployment profile may only lower these maxima. The current
+consensus leader enumerates at most 64 nonterminal pins per bounded
+reconciliation pass; it admits no new pin for a saturated locator, tenant, or
+cell until a terminal release restores capacity. `ArtifactPublicationPinQuotaExceeded`,
+`ArtifactPublicationPinnedBytesExceeded`,
+`ArtifactPublicationPinRenewalHorizonExceeded`,
+`ArtifactPublicationContentionExhausted`, and
+`ArtifactPublicationReconciliationBacklogExceeded` are typed pre-I/O
+refusals, not availability guesses.
 
-A new lease holder deterministically reconciles a nonterminal pin against both
-the fresh high-water and the local tuple: matching desired high-water and tuple
-finalizes; matching expected high-water and expected local tuple aborts/reclaims;
-matching expected high-water but desired local tuple retries the recorded
-`LocalPublicationCasReceiptV1` append and then finalizes. A missing/foreign
-receipt, a different tuple, a changed context, or unavailable high-water is
-`ArtifactPublicationRecoveryQuarantined` and retains the pin. An aborted pin's
-members become GC-eligible only after this expected-tuple proof. GC may reclaim
-only objects older than its safe logical epoch that are referenced by neither a
-current anchored chain nor any nonterminal pin; cleanup failure leaks space,
-never the visible generation.
+The publisher verifies every pinned envelope, binds one immutable desired anchor
+only after all `chunk_count+2` members verify, and gets exactly one logical tuple
+CAS attempt for that pin. A successful attempt atomically changes `BOUND` to
+`COMMITTING`, changes the head+anchor tuple, writes the exact
+`LocalPublicationCasReceiptV1`, and writes a `CAS_SUCCEEDED` decision. A losing
+attempt changes no tuple but atomically writes `CAS_LOST` with the observed
+current anchor and changes the pin to `CONFLICTED`. The one allowed retry is an
+idempotent observation that the same desired anchor is already current with the
+same local receipt and high-water; it is `ArtifactAlreadyPublished`, not a
+second CAS. A publisher that wants to continue after a conflict must terminally
+reconcile its old pin with `ReconcilePin` under its current lease: a matching
+fresh `CAS_LOST` row transitions it to `SUPERSEDED` and atomically releases its
+members before it acquires a fresh pin from a fresh snapshot with a newly
+monotonic generation/fence. If that publisher dies or loses its lease, the
+successor uses `TakeOverAndReconcile` for the same terminal transition. The
+request may rebase at most three times, then receives
+`ArtifactPublicationContentionExhausted`. It cannot retarget an existing pin
+or reuse its lease/members for a different desired tuple.
 
-A reader first obtains a fresh high-water receipt, then requires the local
-head+anchor tuple to equal it, fetches immutable content-addressed envelopes by
-their exact digests, validates the sealed commit and final manifest, and finally
-requires every data ordinal `0..count-1` exactly once in order. It verifies
-every serialized-envelope digest, context AAD digest, classification-binding
-digest, immutable context, monotonic anchor fields, plaintext length, and
-checked total. A retained valid `H0` after `H1` is
+After successful CAS, the current owner makes at most eight idempotent Audit
+append attempts per lease. A crash before CAS leaves `OPEN` or `BOUND`; a crash
+after CAS but before Audit leaves `COMMITTING` and is not reader-visible; a
+crash after the receipt is an idempotent finalize. `AbandonPin` is permitted
+only for `OPEN` or `BOUND` after a fresh expected local tuple and high-water
+match; it writes `NOT_CAS`, transitions `ABORTED`, and cannot discard a pin
+that might have CASed.
+
+The current pin owner through `ReconcilePin`, or an authorized successor after
+takeover, runs this exact reconciliation table under the current coordinator
+term. `H_expected`, `H_desired`, and `H_other` denote the pin's expected,
+desired, and a different same-context anchor; `accepted
+ancestor` is a retained coordinator history proof that every intervening CAS
+had an Audit-accepted predecessor.
+
+| Fresh Audit high-water and local tuple | durable pin decision/history | exact action |
+|---|---|---|
+| `H_expected`, `H_expected` | no decision or `NOT_CAS` | atomically write `NOT_CAS` if needed, transition `ABORTED`, then release members. |
+| `H_other`, `H_other` | no decision while the pin is `OPEN` or `BOUND` | the atomic-decision invariant proves this pin never CASed; write `NOT_CAS` with `H_other`, transition `SUPERSEDED`, then release members. |
+| `H_desired`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | resolve/re-attest the receipt, idempotently append Audit, transition `COMMITTED`, then release members. |
+| `H_expected`, `H_desired` | `CAS_SUCCEEDED` with the matching receipt | retry the resolved/re-attested Audit append, then transition `COMMITTED` and release members. |
+| `H_other`, `H_other` | `CAS_LOST` recording `H_other` | transition `SUPERSEDED`, then release members; this is the ordinary losing-CAS race and is never quarantine. |
+| `H_other`, `H_other` | `CAS_SUCCEEDED` and `H_desired` is an accepted ancestor of `H_other` | transition `COMMITTED` as a successfully published, later superseded pin, then release members. |
+| any mismatch, missing authenticated decision/history, changed context, or unavailable fresh high-water | insufficient proof | retain the pin, return `ArtifactPublicationRecoveryQuarantined`, and enqueue bounded successor reconciliation; it cannot be reclaimed or silently reused. |
+
+The coordinator writes the terminal decision, `released_gc_epoch`, and every
+member detachment atomically; the state becomes `RELEASED` only after that
+transaction. GC may reclaim a released member only after its safe logical epoch
+strictly exceeds `released_gc_epoch`, it is referenced by neither the current
+anchored chain nor a nonterminal pin, and its receipt/decision retention is no
+longer required. A current anchor's receipt is retained; a nonterminal pin
+retains its receipt/decision/history; terminal release retains them through
+the next safe-GC proof and then compacts them. Thus stale workers receive
+`ArtifactPublicationPinLeaseLost`, a normal loser has a finite terminal path,
+and an actually undecidable recovery remains safe but consumes a bounded pin,
+byte, and reconciliation slot rather than immortal state. Readiness withdrawal
+for an undecidable pin is locator-scoped; it does not make unrelated fresh
+cell-local publication snapshots unavailable.
+
+At boot, recovery, post-publication, coordinator-term change, or snapshot
+expiry, `records-app` performs one bounded `GetPublicationHighWater` challenge
+through the real Audit adapter and asks the current coordinator to validate the
+returned anchor against its local tuple. On success it installs an in-cell RAM
+`PublicationReadSnapshot` containing the immutable context digest, complete
+anchor/head digest, Audit ordinal/expiry, coordinator epoch, and applied CAS
+index. An ordinary artifact read makes no Audit RPC: it uses that snapshot only
+when Cell's current interval is within the receipt expiry, the coordinator term
+and tuple still exactly match the snapshot, and the locator has no unresolved
+pin. A tuple or term change, expiry, cache miss, or failed local comparison
+returns `ArtifactPublicationReadSnapshotStale`, triggers at most one bounded
+refresh, and otherwise fails closed; a pre-H1 `H0` snapshot therefore cannot
+serve after local H1. This keeps the serving hit path cell-local while treating
+Audit as the authoritative boot/recovery/refresh witness required by ADR-0719.
+
+The reader then fetches immutable content-addressed envelopes by their exact
+digests, validates the sealed commit and final manifest, and requires every
+data ordinal `0..count-1` exactly once in order. It verifies every serialized-
+envelope digest, context AAD digest, classification-binding digest, immutable
+context, monotonic anchor fields, purpose-specific count/total law, and checked
+total. A retained valid `H0` after `H1` is
 `ArtifactHeadRollbackDetected`; a missing object is
 `ArtifactPublishedObjectMissing`; and a stale pin, context/key/generation/fence
 substitution, or truncated/extra/duplicate/reordered frame returns its typed
 refusal without falling back to a predecessor and preserves or quarantines the
-current state. Independent encoders, model
-checks, and fault plants cover N/N+1 counts, all purpose/classification cases,
-the new exact/plus-one summary/plan/manifest/commit/pin bounds, H0-after-H1
-crash/restore/failover replay, every monotonicity/exhaustion transition,
-concurrent stale writers, and GC interleavings before/after every pin acquire,
-put, verify, bind, CAS, Audit append, finalize, release, and ACK. Malformed
-frames are rejected before a buffer, acquisition/Open, persistence, or
-publication can be reached.
+current state. Independent encoders, model checks, and fault plants cover
+N/N+1 counts, all purpose/classification cases, record/WAL count-one and
+total-plus-one refusal, aggregate count-4,096 maxima, the exact/plus-one
+summary/plan/manifest/commit/pin/decision bounds, H0-after-H1 crash/restore/
+failover replay, every monotonicity/exhaustion transition, A/B and N-writer
+races, successor takeover, stale-owner rejection, and GC interleavings
+before/after every pin acquire, put, verify, bind, CAS, Audit append,
+re-attestation, finalize, release, and ACK. They crash at each losing-CAS,
+takeover, Audit, finalize, release, epoch-rollover, snapshot-refresh, restore,
+and GC edge; verify every safely decidable pin becomes terminal, uncertain
+pins stay safe and bounded, and no read-hit path needs a remote Audit call.
+Malformed frames are rejected before a buffer, acquisition/Open, persistence,
+or publication can be reached.
 
 `NonceLeaseId:u32` is the only lease identity in a nonce and in every receipt,
 checkpoint, error, envelope, and provider call; the AES-GCM nonce is exactly
@@ -1253,7 +1412,12 @@ Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `ArtifactKeyTransitionRefused`, `ArtifactPublicationAnchorUnavailable`,
 `ArtifactPublicationAnchorInvalid`, `ArtifactHeadRollbackDetected`,
 `ArtifactPublicationPinInvalid`, `ArtifactPublishedObjectMissing`,
-`ArtifactPublicationRecoveryQuarantined`, `CryptoUnavailable`,
+`ArtifactPublicationRecoveryQuarantined`, `ArtifactPublicationPinLeaseLost`,
+`ArtifactPublicationPinQuotaExceeded`, `ArtifactPublicationPinnedBytesExceeded`,
+`ArtifactPublicationPinRenewalHorizonExceeded`,
+`ArtifactPublicationContentionExhausted`,
+`ArtifactPublicationReconciliationBacklogExceeded`,
+`ArtifactPublicationReadSnapshotStale`, `CryptoUnavailable`,
 `CiphertextMalformed`, `AuthenticationFailed`, and `ContextMismatch`. There is
 no plaintext, stale-key, unaudited, or best-effort fallback.
 
@@ -1262,10 +1426,13 @@ adapters attest compatible contract revisions, Policy/Audit/KMS are reachable,
 an encrypt-active record and continuation generation plus sufficient durable
 nonce lease, encrypted `KeyGenerationBinding`, and authenticated
 `KeyBootstrapLocatorV1`/provider catalog exist, trusted Cell time is usable,
-recovery has no quarantine or unresolved publication pin, every recovered
-publication locator has a fresh matching Audit high-water anchor, and the
-latest rotation/inventory audit is within its capacity profile. Loss of any
-condition withdraws admission/readiness before accepting new work.
+the Data-owned publication coordinator has a current term and bounded
+reconciliation backlog, and every served publication locator has a fresh
+matching cell-local read snapshot. An undecidable pin withdraws only that
+locator while its bounded successor-reconciliation slot remains; a normal lost
+CAS is terminal and cannot keep global readiness withdrawn. The latest
+rotation/inventory audit must be within its capacity profile. Loss of any
+condition withdraws the affected admission/readiness before accepting new work.
 Independent SHA-256 and KMS-AEAD known-answer vectors, independent AAD
 encoders, wrong-AAD/tag/tenant/purpose/key tests, N/N+1 final-manifest tests,
 nonce duplicate/exhaustion/concurrent-CAS refusal, raw-key-containment and
@@ -1274,9 +1441,11 @@ every barrier, restart reacquisition for EncryptActive and DecryptOnly,
 ciphertext-only restore, bootstrap catalog/locator tamper and source loss,
 commit-head substitution/stale-CAS/crash recovery, H0-after-H1 replay across
 restore/failover, immutable-context/generation/fence regressions, missing
-pinned objects, pin lease/expiry/takeover, and GC races at every put/verify/
-bind/CAS/Audit/finalize barrier, corrupt backup, and readiness-withdrawal
-campaigns are mandatory before D4.
+pinned objects, pin lease/expiry/takeover, A/B/N-writer lost-CAS terminal
+release, coordinator epoch re-attestation, Audit callback authentication,
+cell-local snapshot expiry/refresh, and GC races at every put/verify/bind/CAS/
+Audit/finalize/release barrier, corrupt backup, and locator-scoped
+readiness-withdrawal campaigns are mandatory before D4.
 
 ## Fail-closed request context
 
@@ -1321,14 +1490,20 @@ lower value, but no implementation may raise these maxima:
 | `MAX_RECORD_AAD_BYTES` | 4 KiB | complete canonical ContextAadV1 frame; every legal v1 purpose is at most 1,825 bytes |
 | `MAX_WAL_CLASSIFICATION_SUMMARY_ENTRIES` | 1,024 | complete expanded durable record/metadata/control mutation list before PREPARED |
 | `MAX_WAL_CLASSIFICATION_SUMMARY_BYTES` | 47,414 bytes | complete 1..=1,024-entry canonical WAL mutation-class summary |
-| `MAX_ARTIFACT_PLAN_BYTES` | 65,640 bytes | complete count-one-or-more plan including classification-binding digest |
+| `MAX_ARTIFACT_PLAN_BYTES` | 65,640 bytes | complete purpose-valid plan including classification-binding digest |
 | `MAX_ARTIFACT_FINAL_MANIFEST_BYTES` | 459,190 bytes | complete final manifest including classification-binding digest |
 | `MAX_ARTIFACT_COMMIT_RECORD_BYTES` | 2,296 bytes | complete sealed commit control frame including classification-binding and transaction-identity fields |
 | `MAX_ARTIFACT_PUBLICATION_CONTEXT_BYTES` | 1,335 bytes | immutable locator context preimage |
 | `MAX_ARTIFACT_PUBLICATION_ANCHOR_BYTES` | 177 bytes | fixed durable head/high-water anchor |
 | `MAX_ARTIFACT_PUBLICATION_CAS_RECEIPT_BYTES` | 200 bytes | coordinator-only durable CAS-to-Audit proof |
+| `MAX_ARTIFACT_PUBLICATION_PIN_DECISION_BYTES` | 266 bytes | immutable coordinator proof of no-CAS, successful CAS, or lost CAS |
 | `MAX_ARTIFACT_PUBLICATION_PIN_BYTES` | 203 bytes | fixed durable publication-pin state |
 | `MAX_ARTIFACT_PINNED_OBJECTS` | 4,098 | data envelopes plus final-manifest and commit envelopes |
+| `MAX_ARTIFACT_PUBLICATION_PINNED_MEMBER_BYTES` | 68,733,908,304 bytes | one maximum aggregate pin's serialized envelopes, including bounded overhead |
+| `MAX_PUBLICATION_NONTERMINAL_PINS_PER_LOCATOR` | 8 | admission/reconciliation pins for one locator |
+| `MAX_PUBLICATION_NONTERMINAL_PINS_PER_TENANT_PER_CELL` | 64 | admission/reconciliation pins for one tenant in one cell |
+| `MAX_PUBLICATION_NONTERMINAL_PINS_PER_CELL` | 256 | admission/reconciliation pins across one cell |
+| `MAX_PUBLICATION_RECONCILIATION_BACKLOG` | 256 | persisted nonterminal reconciliation work across one cell |
 | `MAX_TRANSACTION_OPERATIONS` | 1,024 | reads plus writes plus conditions |
 | `MAX_TRANSACTION_LOGICAL_BYTES` | 16 MiB | checked sum of every encoded key, value, condition, and schema reference |
 | `MAX_COLLECTION_ITEMS` | 4,096 | any other repeated request collection |
