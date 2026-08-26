@@ -339,21 +339,33 @@ tests.
   accepted-history proof answer a lost response through the next safe-GC proof.
   A versioned, Audit-authenticated `PublicationRecoveryAuthorityV1` is the
   independent anti-rollback source outside every restorable Cell pin snapshot:
-  it binds the cell/context locator, current namespace/incarnation, issued-index
+  its exact canonical frame is 279 bytes and its immutable bootstrap locator is
+  143 bytes because each tagged header is `domain_len | separator | version`.
+  It binds the cell/context locator, current namespace/incarnation, issued-index
   high-water, retired-incarnation high-water, monotonic authority fence/revision,
   predecessor digest, and integrity tag. The namespace is exactly the first 24
   bytes of every coordinator-minted `pin_id`; the remaining eight bytes are its
   strictly increasing allocation index. Before snapshot import or full-cell
-  recovery can make any pin current, the Audit source atomically retires the
-  restored locator/context incarnation and creates a higher fresh namespace
+  recovery can make any pin current, a fixed 243-byte
+  `CellRecoveryAttestationV1` from the non-restorable Cell
+  `CellRecoveryRootStore` authorizes the Audit source to atomically retire the
+  restored locator/context incarnation and create a higher fresh namespace
   incarnation. The snapshot is then recovery-quarantined: old work and terminal
   credentials fail, old pins may only be boundedly terminalized, and only
   externally authenticated current state plus fresh allocations may re-enter
   service. This is intentionally not a claim that all allocation indexes below
   a high-water are terminal. The authority is reacquired through its authenticated
-  bootstrap locator from the independent Audit control-plane quorum; missing,
-  tampered, rolled-back, foreign, or exhausted authority fails closed rather than
-  recreating a pin. Active terminal rows are charged one-for-one to nonterminal
+  bootstrap locator from the independent Audit control-plane quorum. The root
+  is outside Cell/tablet/pin snapshots, checks the configured `data-records-app`
+  mTLS recovery principal and exact cell/context/root/operation authorization,
+  and alone authorizes source-absent `INITIALIZE` or post-loss `ROTATE`/
+  `RESERVE`; a bounded `READ` never mints authority. The Data-owned
+  recovery-authority port defines the canonical attestation and
+  Initialize/Read/Reserve/Rotate request/result/error families; only the Audit
+  adapter maps them to accepted public Cell and Audit faces, without a
+  Data-to-provider-core edge or read-hit RPC cycle. Missing, tampered,
+  rolled-back, foreign, stale, raced, unavailable, or exhausted root/source
+  fails closed rather than recreating a pin. Active terminal rows are charged one-for-one to nonterminal
   admission and are bounded at 8/64/256 per locator, tenant-cell, and cell
   (1,840/14,720/58,880 bytes); no terminal row survives release. Only
   genuinely undecidable recovery is retained under bounded pin/byte/backlog
@@ -379,8 +391,9 @@ tests.
   `459,190`-byte manifest, general `2,296`-byte commit and aggregate-only
   `2,040`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 226-byte
   accepted-history row, 266-byte pin-decision, 203-byte pin, 230-byte durable
-  terminal-recovery lease, 142-byte recovery-authority locator, and 278-byte
-  out-of-snapshot recovery authority; it also fixes the `3,156` aggregate
+  terminal-recovery lease, 143-byte recovery-authority locator, 279-byte
+  out-of-snapshot recovery authority, and 243-byte Cell recovery attestation;
+  it also fixes the `3,156` aggregate
   envelope overhead, exact derived pin quotas, and active-terminal-row count/
   byte quotas. It supplies request/receipt/error
   fields and the bootstrap/acquire/reserve/pin-renew/takeover/terminal-recovery/
@@ -392,7 +405,8 @@ tests.
   before Audit callback, durable persistence, records-app readiness, D1e,
   and D1c-KR, gives the Audit operation port an explicit one-way
   `record-protection -> audit-sink` Cargo/Buck import for KC-owned recovery
-  frames, and
+  frames, admits the non-restorable Cell recovery-attestation provider face in
+  D1c-KG before KA-C, and
   gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
   edge. Conformance scans reject raw-key-shaped Data
   values and test malformed/tampered/replayed/truncated/substituted frames,

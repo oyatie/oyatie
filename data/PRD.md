@@ -214,16 +214,21 @@ facts, not destination endorsements.
   the exact cell/context bootstrap locator, a fresh 16-byte namespace nonce,
   current and retired-incarnation high-waters, current-incarnation allocation
   high-water, monotonic fence/revision, predecessor digest, and integrity tag.
-  The bootstrap locator and authority are fixed canonical 142-byte and 278-byte
-  frames; the authority also repeats the authenticated Audit root and
+  The bootstrap locator and authority are fixed canonical 143-byte and 279-byte
+  frames (`domain_len | domain | separator | version` is a three-byte tagged
+  header); the authority also repeats the authenticated Audit root and
   non-restorable Cell recovery generation from its locator before its integrity
-  tag is verified.
+  tag is verified. A fixed 243-byte `CellRecoveryAttestationV1` binds the exact
+  locator digest, cell/context/root, recovery incarnation/generation, provider
+  epoch, fence, root revision, authorization revision, operation nonce, and
+  integrity tag.
   A `pin_id` contains that 16-byte nonce, its 8-byte authority incarnation, and
   its 8-byte allocation index. Before any snapshot import or full cell/device
-  recovery accepts a pin, a Cell recovery attestation source-CAS rotates the
-  external locator/context incarnation, retires the old one, and only then
-  recovery-quarantines every old row. It can then reconstruct only externally
-  authenticated current publication state and issue fresh pins in the new
+  recovery accepts a pin, the Data-owned recovery-authority port obtains an
+  authenticated Cell recovery attestation and the Audit source atomically
+  rotates the external locator/context incarnation, retires the old one, and
+  only then recovery-quarantines every old row. It can then reconstruct only
+  externally authenticated current publication state and issue fresh pins in the new
   namespace; an old work or terminal credential can neither take over nor
   recreate a released pin. This rotation, rather than an invalid inference that
   every index below one high-water is retired, closes old-snapshot replay after
@@ -231,10 +236,20 @@ facts, not destination endorsements.
   local authority mirror; ordinary artifact reads remain cell-local. Missing,
   tampered, rolled-back, foreign, or exhausted external authority withdraws
   affected publication admission/readiness, and the read-only terminal-outcome
-  query never mints recovery or publication authority. Full Cell loss
-  reacquires the bootstrap locator and the independently durable Audit-quorum
-  source in that order; absence of either refuses rather than initializing from
-  a restored pin snapshot. Active terminal rows are
+  query never mints recovery or publication authority. The non-restorable trust
+  root is the Cell provider's `CellRecoveryRootStore`, outside Cell/tablet/pin
+  snapshots and authorized only for the configured `data-records-app` mTLS
+  recovery principal and exact cell/context/root/operation policy. It alone can
+  authorize first `INITIALIZE` from source absence or post-loss `ROTATE`/
+  `RESERVE`; neither path reads the authority being replaced or accepts a
+  quarantined Cell as authority. The sole Audit adapter maps the canonical
+  `Initialize`/`Read`/`Reserve`/`Rotate` request/result/error frames to the
+  accepted public Cell and Audit provider faces; `Read` is bounded and cannot
+  mint a capability. Full Cell loss starts only from that external root and its
+  configured locator, rotates the Audit source, reconciles, then reserves;
+  absence, tamper, rollback, stale generation/epoch, rotation race, exhaustion,
+  or outage of either source refuses rather than initializing from a restored
+  pin snapshot. Active terminal rows are
   charged one-for-one to the existing 8/64/256 locator/tenant-cell/cell
   nonterminal limits and therefore cap at 1,840/14,720/58,880 bytes; no terminal
   row survives a successful release. Only genuinely undecidable recovery remains

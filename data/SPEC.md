@@ -516,12 +516,19 @@ The first four draft homes are respectively `data/ports/draft/policy-client`,
 `data/adapters/draft/artifact-publication-cell`, and
 `data/facade/records-app` is the sole production composition owner. It is not
 a sold cross-owner provider, object-store adapter, or in-memory authority.
-`AuditSink` owns the high-water and recovery-authority operation request/reply
-shapes but imports the fixed `PublicationRecoveryAuthorityLocatorV1` and
+The Data-owned `ArtifactPublicationRecoveryAuthorityPort` (inside
+`artifact-publication`) owns the canonical recovery-attestation and
+recovery-authority request/result/error shapes. `AuditSink` consumes those
+shapes and imports the fixed `PublicationRecoveryAuthorityLocatorV1` and
 `PublicationRecoveryAuthorityV1` values from `RecordProtection` through the
 direct Cargo/Buck edge `data-record-protection-draft -> data-audit-sink-draft`.
-KC therefore remains the only grammar owner; no reverse Audit-to-protection
-edge or provider/core edge is permitted.
+KC therefore remains the only grammar owner; the publication port owns no
+provider implementation, and no reverse Audit-to-protection or provider/core
+edge is permitted. The accepted public Cell and Audit faces consume these
+Data-owned port types only through the one-way contract edges
+`data-artifact-publication-draft -> cell-recovery-attestation` and
+`data-artifact-publication-draft -> audit-emission`; no Data core or Cell/Audit
+core is imported in either direction.
 Data provider adapters for the first four ports are
 `data/adapters/draft/policy-client-policy`,
 `data/adapters/draft/audit-sink-audit`,
@@ -530,7 +537,8 @@ Data provider adapters for the first four ports are
 implement content until their provider owners accept the exact sold faces reserved
 by D1c-KG: `policy/ports/check` (`policy-check`),
 `audit/ports/emission` (`audit-emission`, including the publication high-water
-authority), and
+and recovery-authority source), `cell/ports/recovery-attestation`
+(`cell-recovery-attestation`, the non-restorable attestation issuer), and
 `secrets/ports/kms-use` (`secrets-kms-use`), or amend this SPEC with one exact
 replacement each. The current `iam/ports/policy-cedar-api`,
 `audit/ports/emission-api`, `secrets/ports/kms`, and
@@ -1052,6 +1060,7 @@ metadata value is an authority. Its exact authenticated port operations are
 `AcquireTerminalRecoveryLease`, `RecoverTerminalPin`, `ReconcilePin`,
 `AbandonPin`, `AdvanceSafeGcEpoch`, `EnumerateNonterminalPins`,
   `ReadAcceptedAnchorHistory`, `ReadPublicationSnapshot`,
+  `RequestCellRecoveryAttestation`, `InitializePublicationRecoveryAuthority`,
   `ReadPublicationRecoveryAuthority`, `ReservePublicationPinAllocation`,
   `RotatePublicationRecoveryAuthority`, `ReconcileRestoredPublicationState`,
   `ReadPublicationTerminalOutcome`, and the Audit-only
@@ -1109,10 +1118,99 @@ from the returned high-water is `ArtifactPublicationAnchorUnavailable`,
   quarantines the locator and withdraws affected admission/readiness rather than
   guessing that an older valid head is current.
 
+`CellRecoveryAttestationV1` is the fixed, versioned, authenticated proof that
+authorizes a recovery-authority source mutation without consulting restored Cell
+state or the authority being replaced. It is issued only by the accepted public
+`cell-recovery-attestation` face from the non-restorable `CellRecoveryRootStore`;
+that store is outside the Cell/tablet/pin snapshot and is rooted in immutable
+Cell configuration plus the authenticated `data-records-app` workload identity.
+It is not a Cell core import, a query result, a pin snapshot, a raw secret, or
+a provider endpoint. The root durably serializes one prepared transition nonce
+per `(authority_root_id, cell_id, publication_context_digest,
+recovery_incarnation)` and reissues that exact nonce after a lost reply; it
+never issues two different transitions for one incarnation.
+
+```text
+domain_len:u8 = 47
+domain:[u8;47] = "oyatie.data.record.cell-recovery-attestation.v1"
+separator:u8 = 0 | version:u8 = 1
+operation:ENUM8 { INITIALIZE=1, ROTATE=2, RESERVE=3 }
+cell_id:[u8;16] | publication_context_digest:[u8;32] |
+recovery_authority_locator_digest:[u8;32] | authority_root_id:[u8;16] |
+recovery_incarnation:u64 | cell_recovery_generation:u64 |
+cell_provider_epoch:u64 | minimum_authority_fence:u64 |
+root_revision:u64 | authorization_revision:u64 |
+request_nonce:[u8;16] | integrity_tag:[u8;32]
+```
+
+It is exactly `1 + 47 + 1 + 1 + 1 + 16 + 32 + 32 + 16 + (6 * 8) +
+16 + 32 = 243` bytes. `recovery_incarnation`, not an inferred pin-allocation
+frontier, is the Cell-root monotonic transition sequence. `integrity_tag`
+authenticates every prior byte under the named non-restorable root. All IDs,
+the nonce, and both generations/fence are nonzero; unknown operation, a
+noncanonical enum, zero value, truncated/trailing byte, wrong domain/version,
+or bad tag is rejected before allocation, source Open, Cell mirror write, or
+readiness publication.
+
+The issuer has one exact canonical request/result/error family. Its request is
+`CellRecoveryAttestationRequestV1` (`1 + 55 + 1 + 1 + 16 + 1 + 16 + 32 +
+32 + 16 + 8 + 16 + 32 = 227` bytes): domain
+`oyatie.data.record.cell-recovery-attestation-request.v1`, separator/version,
+`request_id:[16]`, operation, cell ID, context digest, locator digest, root ID,
+requested recovery generation, request nonce, and freshness challenge. Its
+success result is `CellRecoveryAttestationResultV1` (`1 + 54 + 1 + 1 + 32 +
+243 + 8 + 16 = 356` bytes): domain
+`oyatie.data.record.cell-recovery-attestation-result.v1`, separator/version,
+the SHA-256 digest of the exact request bytes, the exact 243-byte attestation,
+issuer revision, and result nonce. Its authenticated error is
+`CellRecoveryAttestationErrorV1` (`1 + 53 + 1 + 1 + 32 + 16 + 1 + 1 + 8 + 8 +
+32 + 32 = 186` bytes): domain
+`oyatie.data.record.cell-recovery-attestation-error.v1`, separator/version,
+request ID, operation, error code, root revision, provider epoch, diagnostic
+digest, and integrity tag. The request must be mTLS-authenticated as the
+configured `data-records-app` recovery principal; `INITIALIZE` is additionally
+allowed only while the root's non-restorable state is `UNINITIALIZED`, and
+`ROTATE`/`RESERVE` only while its configured recovery authorization permits the
+named cell/context/root and operation. This authorization is stored and checked
+by `CellRecoveryRootStore`, never recovered from the quarantined Cell or from
+the Audit authority. The issuer returns only `AUTHORIZATION_DENIED`,
+`ROOT_MISSING`, `ROOT_TAMPERED`, `ROOT_ROLLBACK`, `STALE_GENERATION`,
+`STALE_PROVIDER_EPOCH`, `ROTATION_RACE`, `EXHAUSTED`, `UNAVAILABLE`, or
+`MALFORMED`; none is retried as a local initialization or a capability grant.
+
+The field sequence and all codes above are canonical, not a conceptual API:
+
+```text
+CellRecoveryAttestationRequestV1:
+  domain_len:u8=55 | domain:[55] | separator=0 | version=1 | request_id:[16] |
+  operation:ENUM8 { INITIALIZE=1, ROTATE=2, RESERVE=3 } | cell_id:[16] |
+  publication_context_digest:[32] | recovery_authority_locator_digest:[32] |
+  authority_root_id:[16] | requested_recovery_generation:u64 |
+  request_nonce:[16] | freshness_challenge:[32]
+CellRecoveryAttestationResultV1:
+  domain_len:u8=54 | domain:[54] | separator=0 | version=1 |
+  request_digest:[32] | attestation:[243] | issuer_revision:u64 | result_nonce:[16]
+CellRecoveryAttestationErrorV1:
+  domain_len:u8=53 | domain:[53] | separator=0 | version=1 |
+  request_digest:[32] | request_id:[16] | operation:ENUM8 |
+  error:ENUM8 { AUTHORIZATION_DENIED=1, ROOT_MISSING=2, ROOT_TAMPERED=3,
+    ROOT_ROLLBACK=4, STALE_GENERATION=5, STALE_PROVIDER_EPOCH=6,
+    ROTATION_RACE=7, EXHAUSTED=8, UNAVAILABLE=9, MALFORMED=10 } |
+  root_revision:u64 | provider_epoch:u64 | diagnostic_digest:[32] | integrity_tag:[32]
+```
+
+`request_digest` is `SHA-256` of the exact received request bytes, including its
+request ID and challenge; `result_nonce` equals the request nonce only for an
+idempotent reissue, otherwise it is fresh and nonzero. A caller validates the
+request digest, operation, challenge, all locator bindings, issuer/root revision,
+provider epoch, and tag
+before it forwards a mutation. It never converts a typed error into a locally
+invented attestation.
+
 `PublicationRecoveryAuthorityLocatorV1` is the immutable, authenticated
 bootstrap locator for the *separate* Audit control-plane recovery authority; it
-is supplied by the Cell recovery configuration, never by a pin snapshot or
-caller, and contains no network endpoint, secret, work lease, or terminal
+is supplied by that non-restorable Cell recovery root, never by a pin snapshot
+or caller, and contains no network endpoint, secret, work lease, or terminal
 credential:
 
 ```text
@@ -1124,7 +1222,9 @@ authority_root_id:[u8;16] | cell_recovery_generation:u64 |
 minimum_authority_fence:u64
 ```
 
-It is exactly `62 + 16 + 32 + 16 + 8 + 8 = 142` bytes. `authority_root_id`
+It is exactly `1 + 60 + 1 + 1 + 16 + 32 + 16 + 8 + 8 = 143` bytes. The
+three-byte tagged header is `domain_len | separator | version`, so it is not
+permitted to count only two header bytes. `authority_root_id`
 selects an Audit-owned quorum/attestation root through the already accepted
 Audit port; `cell_recovery_generation` is a Cell-authenticated non-restorable
 recovery generation, not time; and `minimum_authority_fence` is a nonzero
@@ -1152,66 +1252,172 @@ issued_pin_allocation_high_water:u64 | authority_fence:u64 | audit_revision:u64 
 previous_authority_digest:[u8;32] | integrity_tag:[u8;32]
 ```
 
-It is exactly `54 + 32 + 16 + 32 + 16 + 8 + 16 + (5 * 8) + 32 + 32 =
-278` bytes.
+It is exactly `1 + 52 + 1 + 1 + 32 + 16 + 32 + 16 + 8 + 16 + (5 * 8) +
+32 + 32 = 279` bytes. The three-byte tagged header is counted exactly once;
+the authority has no optional/trailing field.
 `integrity_tag` authenticates every preceding byte through the Audit port; Data
-holds neither an Audit signing key nor a raw secret. Initialization is the
-idempotent exact-absent transition to `(current_incarnation=1,
+holds neither an Audit signing key nor a raw secret. The Data-owned recovery
+authority port defines exactly four source operations
+`INITIALIZE=1`, `READ=2`, `RESERVE=3`, and `ROTATE=4`. Its canonical fixed
+request is `PublicationRecoveryAuthorityRequestV1` (`1 + 60 + 1 + 1 + 16 +
+1 + 143 + 32 + 8 + 8 + 32 + 243 + 16 + 32 = 594` bytes): domain
+`oyatie.data.record.publication-recovery-authority-request.v1`,
+separator/version, request ID, operation, exact 143-byte locator, expected
+authority digest, expected incarnation, expected fence, attestation digest,
+exact 243-byte attestation (all zero only for `READ`), request nonce, and
+freshness challenge. Its canonical success result is
+`PublicationRecoveryAuthorityResultV1` (`1 + 59 + 1 + 1 + 16 + 1 + 1 + 16 +
+32 + 279 + 8 + 8 + 8 + 32 = 463` bytes): domain
+`oyatie.data.record.publication-recovery-authority-result.v1`,
+separator/version, request ID, operation, `SUCCESS|ALREADY_APPLIED`, source
+result nonce, exact 279-byte authority, allocation index (zero except
+`RESERVE`), source revision/fence, and integrity tag. Its canonical
+authenticated error is `PublicationRecoveryAuthorityErrorV1` (`1 + 58 + 1 +
+1 + 16 + 1 + 1 + 16 + 8 + 8 + 32 + 32 + 32 = 207` bytes): domain
+`oyatie.data.record.publication-recovery-authority-error.v1`,
+separator/version, request ID, operation, error code, root ID, source revision,
+provider epoch, diagnostic digest, and integrity tag. Each frame rejects an
+unknown enum, a noncanonical zero/padding value, malformed length, truncation,
+or trailing byte before allocating, opening, or publishing.
+
+The recovery-authority port's canonical field order and codepoints are:
+
+```text
+PublicationRecoveryAuthorityRequestV1:
+  domain_len:u8=60 | domain:[60] | separator=0 | version=1 | request_id:[16] |
+  operation:ENUM8 { INITIALIZE=1, READ=2, RESERVE=3, ROTATE=4 } |
+  locator:[143] | expected_authority_digest:[32] |
+  expected_incarnation:u64 | expected_fence:u64 |
+  attestation_digest:[32] | attestation:[243] | request_nonce:[16] |
+  freshness_challenge:[32]
+PublicationRecoveryAuthorityResultV1:
+  domain_len:u8=59 | domain:[59] | separator=0 | version=1 | request_id:[16] | operation:ENUM8 |
+  result:ENUM8 { SUCCESS=1, ALREADY_APPLIED=2 } | source_result_nonce:[16] |
+  request_digest:[32] | authority:[279] | allocation_index:u64 | source_revision:u64 |
+  source_fence:u64 | integrity_tag:[32]
+PublicationRecoveryAuthorityErrorV1:
+  domain_len:u8=58 | domain:[58] | separator=0 | version=1 | request_id:[16] | operation:ENUM8 |
+  error:ENUM8 { SOURCE_UNAVAILABLE=1, SOURCE_TAMPERED=2,
+    SOURCE_ROLLBACK=3, CONTEXT_MISMATCH=4, AUTHORIZATION_DENIED=5,
+    ROOT_MISSING=6, ROOT_TAMPERED=7, ROOT_ROLLBACK=8,
+    ATTESTATION_STALE=9, ROTATION_RACE=10, EXHAUSTED=11, MALFORMED=12 } |
+  authority_root_id:[16] | source_revision:u64 | provider_epoch:u64 |
+  request_digest:[32] | diagnostic_digest:[32] | integrity_tag:[32]
+```
+
+The five `READ`-inapplicable fields are canonical zero only for `READ`:
+`expected_authority_digest`, `expected_incarnation`, `expected_fence`,
+`attestation_digest`, and the full 243-byte `attestation`; `READ` still carries
+a nonzero request nonce/challenge. `INITIALIZE` likewise requires only those
+three expected authority fields to be zero, while its attestation digest/frame
+is nonzero and exact. `ROTATE` requires its attestation digest/frame and has
+only the three expected authority fields zero. `RESERVE` requires every binding
+field nonzero and exact. Any other zero/applicability combination is
+`MALFORMED`, not a default or downgrade.
+
+Every recovery-authority success or error likewise binds
+`request_digest=SHA-256(exact received request bytes)` before its integrity tag;
+the adapter verifies that digest and the result's request ID/operation before it
+uses the authority, allocation, error, or retry rule. A mismatched digest is an
+integrity refusal, never a response to another caller's challenge.
+
+`INITIALIZE` requires an `INITIALIZE` attestation, all expected-authority fields
+zero, exact source absence, and `recovery_incarnation=1`; it is the idempotent
+exact-absent transition to `(current_incarnation=1,
 retired_incarnation_high_water=0, issued_pin_allocation_high_water=0,
 authority_fence=locator.minimum_authority_fence, audit_revision=1,
-previous_authority_digest=zero)` with a
-fresh nonzero 16-byte namespace nonce and the exact bootstrap locator's root
-and recovery generation. The source is keyed by `(authority_root_id, cell_id,
+previous_authority_digest=zero)` with a fresh nonzero 16-byte namespace nonce.
+Only the non-restorable root may authorize this first transition. A restored
+Cell, a `READ` response, or an empty/local mirror cannot invoke it.
+
+`READ` requires the exact locator and a nonzero challenge; its attestation and
+all mutation expectations are canonically zero. It is bounded, same-context,
+and read-only: it returns only the authenticated authority frame when the
+locator digest, root, recovery generation, and fence satisfy that exact locator,
+or a typed failure. It never mints a work lease, terminal lease, callback
+capability, publication right, or authorization to initialize/rotate/reserve.
+
+`RESERVE` requires a `RESERVE` attestation whose root/cell/context/locator,
+recovery incarnation, provider epoch, generation, and fence exactly match the
+current authenticated source authority and an expected digest/incarnation/fence
+from that authority. In one source CAS it advances
+`issued_pin_allocation_high_water` once and returns the updated authority plus
+that one index. `AcquirePin` can then write the pin and work lease in one local
+consensus transaction only if its namespace/incarnation/index exactly match that
+result; a source-reserved index whose local transaction crashes is burned. This
+is bounded control-path work, not an artifact read-hit dependency.
+
+`ROTATE` requires a `ROTATE` attestation but deliberately has canonical-zero
+expected authority digest/incarnation/fence: the Audit source, not a restored
+Cell or a caller reading the authority being replaced, atomically selects its
+current frame and performs the transition. It accepts the one durable root
+transition nonce only when its recovery incarnation/generation/provider epoch
+are strictly higher than the source's last accepted Cell attestation, then
+writes a fresh namespace with
+`retired_incarnation_high_water=old.current_incarnation`,
+`current_incarnation=old.current_incarnation+1`,
+`issued_pin_allocation_high_water=0`, predecessor digest equal to the old frame
+digest, and strictly higher fence/revision satisfying the new locator floor.
+The source records the nonce/result atomically: a lost reply returns
+`ALREADY_APPLIED` with byte-identical authority; a different nonce for the same
+recovery incarnation is `ArtifactPublicationCellRecoveryRotationRace`; an old
+nonce/generation/epoch is a typed stale refusal. Thus authorization never
+depends on the quarantined Cell or a non-authoritative read of the authority it
+will replace.
+
+The source is keyed by `(authority_root_id, cell_id,
 publication_context_digest)` and refuses a different cell/context/root, a
 locator-digest/root/recovery-generation mismatch, non-increasing fence or
 revision, a bad predecessor digest/tag, a zero/current-incarnation
 inconsistency, a retired high-water other than exactly
 `current_incarnation-1`, or any `u64` wrap. `authority_fence` and
-`audit_revision` advance on every accepted source mutation; exhaustion is
-`ArtifactPublicationRecoveryAuthorityExhausted`, not reuse or saturation.
+`audit_revision` advance on every accepted source mutation; authority,
+allocation, fence, revision, root-recovery-incarnation, or provider-epoch
+exhaustion is `ArtifactPublicationRecoveryAuthorityExhausted`, not reuse or
+saturation. The exhaustive source outcomes are
+`ArtifactPublicationRecoveryAuthorityUnavailable`,
+`ArtifactPublicationRecoveryAuthorityIntegrityInvalid`,
+`ArtifactPublicationRecoveryAuthorityContextMismatch`,
+`ArtifactPublicationRecoveryAuthorityRollbackDetected`,
+`ArtifactPublicationCellRecoveryAuthorizationDenied`,
+`ArtifactPublicationCellRecoveryRootMissing`,
+`ArtifactPublicationCellRecoveryRootTampered`,
+`ArtifactPublicationCellRecoveryRootRollbackDetected`,
+`ArtifactPublicationCellRecoveryAttestationStale`,
+`ArtifactPublicationCellRecoveryRotationRace`, and
+`ArtifactPublicationRecoveryAuthorityExhausted`; every one withdraws affected
+admission/readiness rather than falling back to local state.
 
-`ReadPublicationRecoveryAuthority(locator)` is bounded, same-context, and
-read-only: it returns only this authenticated frame when its locator digest,
-root, recovery generation, and fence satisfy that exact locator, or a typed
-failure; it never mints a work lease, terminal lease, callback capability, or
-publication right.
-`ReservePublicationPinAllocation` is a source CAS for the *current*
-incarnation: after checking the exact locator, integrity, incarnation, and
-fence, it advances `issued_pin_allocation_high_water` once and returns the
-updated authenticated authority plus that one index. `AcquirePin` can then
-write the pin and work lease in one local consensus transaction only if its
-namespace/incarnation/index exactly match that result; a source-reserved index
-whose local transaction crashes is burned. This is bounded control-path work,
-not an artifact read-hit dependency.
-
-On a Cell snapshot import, quorum/device loss, or Cell-authenticated recovery
-generation change, restore admission first obtains the non-restorable Cell
-recovery attestation and its next locator; it cannot load the snapshot without
-that event. `RotatePublicationRecoveryAuthority` then source-CASes the exact
-current frame: it requires the same root/cell/context, a strictly higher
-Cell-attested recovery generation, and a locator digest matching that next
-locator, then writes that digest/root/generation with a fresh nonzero namespace
-nonce, `retired_incarnation_high_water=old.current_incarnation`,
-`current_incarnation=old.current_incarnation+1`,
-`issued_pin_allocation_high_water=0`, `previous_authority_digest` equal to the
-old frame digest, and strictly higher fence/revision satisfying the new locator
-floor. Only after that durable external result may
+On first boot, initialization obtains the locator and `INITIALIZE` attestation
+only from `CellRecoveryRootStore`, then invokes the exact-absent Audit source
+operation, then records the returned authority in the Cell mirror. On snapshot
+import, quorum/device loss, or Cell-authenticated recovery generation change,
+the root first durably prepares/reissues one `ROTATE` attestation, Audit rotates
+its own current frame atomically, and only then may
 `ReconcileRestoredPublicationState` write the new mirror and examine the
 restored consensus snapshot. It fences every pin and terminal row bearing the
 retired namespace/incarnation before it can become current; it reconstructs a
-published head only from the existing authenticated Audit high-water/accepted
-history and terminalizes or quarantines old pins in bounded batches. It never
-treats an allocation index below a high-water as proof of terminality. A crash
-before the local reconciliation repeats from the already rotated source; a crash
-after it already has the source proof. Thus there is no cross-authority success
-cycle or authority window. The Audit quorum persists the current fixed locator/
-authority pair under its authenticated `authority_root_id`, independently of
-Cell snapshots; after full Cell loss records-app reacquires the Cell bootstrap
-locator, then reads that source through the accepted Audit port. Loss of either
-root/source, a missing recovery attestation, tampering, rollback, foreign root,
-stale generation, or exhaustion fails closed: no pin acquisition, takeover,
-terminal recovery, publication, or readiness for that locator, and no fresh
-local source may be initialized from a snapshot or raw-key/local-state fallback.
+published head only from existing authenticated Audit high-water/accepted
+history and terminalizes or quarantines old pins in bounded batches. A crash
+before local reconciliation repeats from the externally recorded exact result;
+a crash after it has that source proof repeats local reconciliation. The root
+marks its prepared transition consumed only from the matching authenticated
+Audit result; it does not trust a Cell snapshot or an unauthenticated `READ`.
+
+After full Cell/device loss, records-app starts only from its mTLS workload
+identity and the named non-restorable Cell recovery root/configuration; it
+obtains a fresh `ROTATE` attestation and invokes Audit without first loading any
+Cell snapshot, then reconciles, then obtains a `RESERVE` attestation for new
+allocations. The root/source use no query to mint authority and ordinary
+artifact reads still use the local validated snapshot. Loss, tampering,
+rollback, foreign root, stale attestation, rotation race, exhaustion, or outage
+of either root/source fails closed: no pin acquisition, takeover, terminal
+recovery, publication, or readiness for that locator, and no fresh local source
+may be initialized from a snapshot or raw-key/local-state fallback. These
+243/143/279/594/463/207-byte control frames are not pin members and therefore
+do not alter the 203-byte pin, 230-byte terminal-row, or aggregate pinned-byte
+quotas; their admission is independently bounded to one request/result/error
+per caller operation and rejected at each exact maximum plus one.
 
 `LocalPublicationCasReceiptV1` is the coordinator-only durable proof for the
 otherwise cross-authority CAS-to-Audit gap. It is a canonical bounded record in
@@ -1697,10 +1903,17 @@ safe-GC -> full Cell/device loss -> old-snapshot restore independently for
 `NOT_CAS`, `CAS_LOST`, and `CAS_SUCCEEDED`. It accepts neither an old work nor
 terminal credential, cannot take over/recreate any old-incarnation pin, and
 permits fresh allocation only after external authority rotation and local
-reconciliation. It independently encodes the 142-byte locator and 278-byte
-authority, rejects every field/tag/context/fence/revision/incarnation/index
-tamper or truncation, tests initialization/rotation/index/fence exhaustion and
-source loss/tamper/rollback, and races restore with acquire/release/GC. The
+reconciliation. Two independent encoders accept exactly the 143-byte locator,
+279-byte authority, 243-byte Cell attestation, and 227/356/186 and
+594/463/207-byte issuer/source request-result-error families; each rejects
+length-minus-one, exact-plus-one, bad domain/version/separator, unknown enum,
+noncanonical operation-inapplicable zero/value, field/tag/context/fence/
+revision/incarnation/index mutation, truncation, and trailing bytes before
+allocation or source Open. The campaign tests exact-absent initialization,
+source-atomic rotation/index/fence/root-incarnation exhaustion, root/source
+loss/tamper/rollback, old attestation, foreign root, provider-epoch regression,
+same-incarnation competing nonce, crash/lost reply before and after source
+result/local reconciliation, and concurrent restore/acquire/release/GC. The
 read-only authority and terminal-outcome queries prove they cannot mint a
 credential or change a counter.
 Malformed frames are rejected before a buffer, acquisition/Open, persistence,
@@ -1806,6 +2019,12 @@ Other stable failures are `PolicyUnavailable`, `PolicyDenied`,
 `ArtifactPublicationRecoveryAuthorityContextMismatch`,
 `ArtifactPublicationRecoveryAuthorityRollbackDetected`,
 `ArtifactPublicationRecoveryAuthorityIncarnationLost`,
+`ArtifactPublicationCellRecoveryAuthorizationDenied`,
+`ArtifactPublicationCellRecoveryRootMissing`,
+`ArtifactPublicationCellRecoveryRootTampered`,
+`ArtifactPublicationCellRecoveryRootRollbackDetected`,
+`ArtifactPublicationCellRecoveryAttestationStale`,
+`ArtifactPublicationCellRecoveryRotationRace`,
 `ArtifactPublicationRecoveryAuthorityExhausted`,
 `ArtifactPublicationContentionExhausted`,
 `ArtifactPublicationReconciliationBacklogExceeded`,
