@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 blake3 = "1.8.5"
 data-classification = { path = "../../../data/ports/classification" }
-secrets-kms-domain = { path = "../../../secrets/core/kms-domain" }
+secrets-kms = { path = "../../../secrets/ports/kms" }
 cell-location = { path = "../../../cell/ports/location" }
 compute-resource = { path = "../../../compute/core/resource" }
 

@@ -48,7 +48,7 @@ _DEPS = [
     "//compute/core/resource:compute-resource",
     "//data/ports/classification:data-classification",
     "//network/core/residency:network-residency",
-    "//secrets/core/kms-domain:secrets-kms-domain",
+    "//secrets/ports/kms:secrets-kms",
 ]
 
 rust_library(

@@ -45,6 +45,13 @@ date: 2026-08-25
   without a type fork or behavior drift; the legacy core remains their defining
   crate until a dedicated Data structural lane migrates its package identity.
   Direct KMS/compute/residency core edges remain P0 debt.
+- P0f introduced the agreed `secrets-kms` compatibility port and routed every
+  Storage KMS import through it. The narrow surface exposes only established
+  key/reference identities and purpose/origin vocabulary; key material,
+  cryptographic operations, provider clients, and the KMS directory remain
+  inaccessible. The legacy KMS domain remains the defining crate until a
+  dedicated Secrets structural lane decomposes its oversized crate root.
+  Direct compute/residency core edges remain P0 debt.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -82,8 +89,15 @@ Class: structural; do not mix behavior.
   core is a separate Data package-identity migration, not a copied model in
   Storage. KMS, compute-resource, and residency imports remain direct
   foreign-core debt.
+- **Landed in P0f:** replaced every direct Storage-to-Secrets-core dependency
+  with the agreed `secrets-kms` port. The compatibility surface re-exports the
+  exact KMS reference and policy types already used by Storage, so validation,
+  equality, and public type identity do not drift. Moving their definitions out
+  of the legacy KMS domain is separate Secrets decomposition debt, not a copied
+  model in Storage. Compute-resource and residency imports remain direct
+  foreign-core debt.
 - Remove direct cross-owner core imports from storage core, ports, and adapters.
-  Reconcile required KMS, compute, and residency types onto
+  Reconcile required compute and residency types onto
   agreed provider ports plus storage-owned adapters; do not copy their domain
   models or claim the current `path = .../core/...` edges are legal. Cell
   location identity now uses its agreed port.
@@ -386,7 +400,7 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 <next_lane>
 
 The next implementation lane remains P0: reconcile the direct
-KMS/compute/residency core edges onto agreed provider contracts
+compute/residency core edges onto agreed provider contracts
 without copying foreign models, then rehome filesystem/archive/backup/restore
 product models. P1 begins only after those structural obligations merge and
 `dev` is refreshed.
