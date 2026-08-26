@@ -181,15 +181,33 @@ facts, not destination endorsements.
   generation/fence anchor matches a durable Audit high-water witness. The
   Data-owned cell-local publication coordinator (`artifact-publication` port,
   core, and cell adapter) owns the tuple, pins, members, durable CAS
-  decisions/receipts, safe-GC epochs, successor takeover, and an authenticated
-  Audit callback; `records-app` alone composes its core/adapter with Audit. A
-  normal losing CAS reaches a bounded terminal superseded/release
-  path, while only genuinely undecidable recovery remains safely quarantined
-  under bounded pin/byte/backlog admission. Serving reads use a fresh validated
+  decisions/receipts/accepted-high-water history, safe-GC epochs, normal and
+  terminal-only successor takeover, and an authenticated Audit callback;
+  `records-app` alone composes its core/adapter with Audit. A successor cannot
+  CAS until its expected tuple is locally current, fresh Audit high-water, and
+  accepted history with no successful `COMMITTING` predecessor, so recovery
+  completes H1 Audit before H2. A normal losing CAS atomically records its
+  observed anchor and reaches `SUPERSEDED`/`RELEASED`; later H1-to-H2 advance
+  never converts that loss into a permanent quarantine. At the original
+  renewal horizon, only a durable, fenced, non-renewable terminal-recovery
+  authority may reconcile/release an existing decidable pin or append its
+  already-successful Audit receipt; it cannot put, bind, renew, CAS, rebase, or
+  publish. There is one current terminal-recovery row per pin; a fenced
+  successor replaces it rather than accumulating recovery state. Only genuinely
+  undecidable recovery remains safely quarantined under
+  bounded pin/byte/backlog admission. Aggregate publication admission charges
+  the aggregate-legal migration maximum only: `3,156` envelope overhead,
+  `2,040` empty-transaction commit, and exactly `68,732,871,254` bytes per pin,
+  with `549,862,970,032`, `4,398,903,760,256`, and
+  `17,595,615,041,024` byte locator, tenant-cell, and cell ceilings. The
+  general `2,296`-byte record/WAL commit and `1,825`-byte record AAD are
+  rejected for aggregate artifacts. Serving reads use a fresh validated
   in-cell snapshot and never make Audit a per-read dependency; a changed tuple,
   coordinator term, or expiry refreshes or fails closed. GC retains every
   pinned/current chain until its terminal safe-epoch release, so it never
-  collects verified publication input or accepts a valid retained older head.
+  collects verified publication input or accepts a valid retained older head;
+  releasing a losing pin does not permit collection while any anchored chain
+  still names the shared content address.
   An uncertain recovered lease/binding/bootstrap/publication state is burned or
   locator-scoped quarantined rather than reused.
   Missing PDP, Audit, KMS, cryptography, active key generation, or trusted-time

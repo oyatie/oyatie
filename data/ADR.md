@@ -272,7 +272,11 @@ tests.
   collect verified pre-CAS objects. The subsequent review proved that an
   ordinary losing CAS could still retain a nonterminal pin forever and that the
   presumed trusted coordinator had no executable Data owner, term-rollover, or
-  serving-path shape.
+  serving-path shape. The exact-head follow-up then showed that a recorded
+  loser could become stranded after its observed H1 advanced to H2, that H1
+  could be skipped by Audit after a post-CAS crash, that a horizon-expired pin
+  had no lawful recovery authority, and that aggregate quota arithmetic had
+  incorrectly charged record-only AAD/transaction maxima.
 - **rule:** `secrets-kms-use` is the required accepted provider face for an
   opaque, tenant-and-purpose-bound AEAD handle. Data contracts carry only
   non-serializable operation handles, encrypted opaque key-generation binding,
@@ -300,13 +304,28 @@ tests.
   `data/core/artifact-publication-domain`, and
   `data/adapters/draft/artifact-publication-cell`, composed only by
   `data/facade/records-app`: it alone owns tuple CAS, pin/member/decision/
-  receipt history, safe-GC epoch, successor takeover, and the authenticated
-  Audit receipt callback. A durable
-  logical-epoch pin plus its coordinator-only local-CAS/decision proof protects
-  every verified data/manifest/commit object through CAS, Audit retry, and
-  finalization. A normal losing CAS has a bounded terminal
-  superseded/released path; only genuinely undecidable recovery is retained
-  under bounded pin/byte/backlog admission. Reads use a fresh validated
+  receipt/accepted-high-water history, safe-GC epoch, successor takeover, and
+  the authenticated Audit receipt callback. A durable logical-epoch pin plus
+  its coordinator-only local-CAS/decision proof protects every verified
+  data/manifest/commit object through CAS, Audit retry, and finalization.
+  A successor CAS MUST first see its exact expected anchor as both local and
+  fresh Audit high-water, with an accepted-history row and no unresolved
+  successful `COMMITTING` predecessor; H0-to-H1 recovery therefore appends and
+  finalizes H1 before any H1-to-H2 CAS. A losing CAS writes `CAS_LOST`, its
+  observed anchor, a `SUPERSEDED` terminal cause, and release atomically, so a
+  delayed H1-to-H2 history cannot quarantine it. At the original pin horizon,
+  only a durable, fenced, non-renewable terminal-recovery authority may
+  re-attest/append that already-successful receipt or terminally release a
+  decidable pin; it cannot Put, Bind, renew, CAS, rebase, or publish. Only
+  one current terminal-recovery row exists per pin and fenced takeover replaces
+  it rather than creating a recovery list. Only
+  genuinely undecidable recovery is retained under bounded pin/byte/backlog
+  admission. Aggregate pin quotas use only aggregate-legal maxima: migration
+  AAD `1,572`, envelope overhead `3,156`, empty-transaction commit `2,040`,
+  and `64 GiB + 459,190 + 2,040 + (4,098 * 3,156) = 68,732,871,254` bytes per
+  pin (`549,862,970,032`/`4,398,903,760,256`/`17,595,615,041,024` at
+  locator/tenant-cell/cell). The general record/WAL commit maximum remains
+  `2,296` but is purpose-inapplicable to that arithmetic. Reads use a fresh validated
   in-cell snapshot rather than an Audit RPC on every hit, and a changed tuple,
   term, or expiry fails closed. GC never guesses around an expired or crashed
   pin. `NonceLeaseId:u32` is the sole
@@ -320,29 +339,37 @@ tests.
   codepoints/field count/purpose maxima (record 1,825 and migration 1,572),
   `47,414`-byte WAL summary, purpose-specific record/WAL count-one and
   total-plus-one plan vectors while retaining the `65,640`-byte aggregate plan,
-  `459,190`-byte manifest, `2,296`-byte commit, 177-byte anchor, 200-byte
-  local-CAS receipt, 266-byte pin-decision, and 203-byte pin,
-  request/receipt/error fields, and bootstrap/acquire/reserve/pin-renew/
-  takeover/CAS/Audit/seal/persist/publish/release/ACK/reacquire crash matrix.
+  `459,190`-byte manifest, general `2,296`-byte commit and aggregate-only
+  `2,040`-byte commit, 177-byte anchor, 200-byte local-CAS receipt, 226-byte
+  accepted-history row, 266-byte pin-decision, 203-byte pin, and 230-byte
+  durable terminal-recovery lease; it also fixes the `3,156` aggregate envelope
+  overhead and exact derived pin quotas. It supplies request/receipt/error
+  fields and the bootstrap/acquire/reserve/pin-renew/takeover/terminal-recovery/
+  CAS/Audit/seal/persist/publish/release/ACK/reacquire crash matrix.
   `PLAN.md` puts KC's
   canonical envelope before any
   persistence content, makes KS (and transitive S/WS) a prerequisite of every
   provider structure lane, inserts the coordinator structural/content lanes
-  before Audit callback, durable persistence, and records-app readiness, and
+  before Audit callback, durable persistence, records-app readiness, D1e,
+  and D1c-KR, and
   gives KK--not KX--the sole acquisition mapping over the direct Cargo/Buck
   edge. Conformance scans reject raw-key-shaped Data
   values and test malformed/tampered/replayed/truncated/substituted frames,
   mixed/uniform/metadata/control WAL summaries, H0-after-H1 restore replay,
   immutable-context/generation/fence regressions, A/B/N-writer CAS loss and
-  successor takeover, coordinator epoch re-attestation, cell-local snapshot
-  refresh, pin/GC races, stale/idempotent CAS, every crash boundary, concurrent
+  successor takeover, delayed loser H1-to-H2, H0-to-H1 pre-Audit recovery and
+  ordered H1/H2 append, `+1,023/+1,024/+1,025` horizon fencing, coordinator
+  epoch re-attestation, cell-local snapshot refresh, pin/GC races,
+  aggregate purpose/AAD/transaction quota exact-plus-one boundaries,
+  stale/idempotent CAS, every crash boundary, concurrent
   allocation, N/N+1 counter/chunk, lease burn, bootstrap catalog source loss,
   restart/rotation/revocation, and refusal paths.
 - **overturn_when:** an accepted replacement provider/publication contract
   proves equally opaque tenant-bound operations, independently authenticated
   cold recovery, purpose-total mixed-transaction classification, rollback-proof
-  monotonic publication, terminal conflict reconciliation, bounded GC
-  reachability, cell-local freshness, durable non-reuse, raw-key containment,
+  monotonic publication, total safely-decidable terminal reconciliation,
+  ordered Audit recovery, bounded GC reachability, cell-local freshness,
+  durable non-reuse, raw-key containment,
   zeroization evidence, and the same crash/rotation refusal coverage.
 
 </record_security>
