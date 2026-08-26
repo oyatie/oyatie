@@ -162,31 +162,53 @@ transport/provider field order, unknown field, omitted effect, implicit
   instance's terminal zero-reference receipt. A repository can enroll, remove,
   or rejoin only through provider-versioned CAS. The repository-port's
   `ProduceDecommissionProofV1` first durably closes a repository write-admission
-  epoch, then CASes the matching provider decommission fence; the fenced SQLite
-  scan must prove zero references for every live generation and zero unresolved
-  authorizations before the provider issues an authenticated proof. The
-  repository then uses typed `AbortRepositoryDecommissionIntentV1`,
+  epoch, then CASes the matching provider decommission fence. Its fenced SQLite
+  scan must authenticate a complete bounded checkpoint and zero ciphertext,
+  locator, and non-replay field-index references across every live generation,
+  plus zero unresolved authorizations, before the provider issues a proof.
+  Before its first provider removal side effect,
+  `RemoveRepositoryDecommissionV1` writes a durable immutable removal plan that
+  binds that proof/fence, `Quarantine` or `Delete` local disposition and manifest,
+  and preallocated retirement-fence plus distinct provider Remove/Begin/Complete
+  and local disposition/completion ids plus their request bytes. The plan is the
+  sole source of those values on
+  retry or recovery; a changed id reuse is a typed
+  `MembershipOperationConflict`, not a new attempt.
+
+  The earlier durable decommission intent likewise preallocates distinct Begin,
+  Issue-proof, and abort provider-operation ids before the Begin call. Its
+  terminal fenced scan atomically records a `ProofIssuePlanned` observation and
+  exact Issue request digest before Issue-proof. Abort and recovery response ids
+  identify only their local response records; they cannot select, replace, or
+  become any provider side-effect id.
+
+  The repository then uses typed `AbortRepositoryDecommissionIntentV1`,
   `RemoveRepositoryDecommissionV1`, `CompleteRepositoryDecommissionV1`,
   `GetRepositoryDecommissionStatusV1`, and `RecoverRepositoryDecommissionV1`
-  operations. Provider removal atomically
-  rechecks the proof, snapshot/version, repository/member instance/epoch, and
-  admission fence and returns a signed proof-bound receipt; the locally fenced
-  SQLite writer records `Removed` only by an atomic matching completion CAS.
-  A lost response, crash, partition, or local drain/delete/quarantine failure is
-  a receipt-bound pending/recovery state with readiness withdrawn, never a path
-  that can omit a referenced member or reopen its old epoch. `Removed` status
-  carries that receipt. A delayed begin cannot resurrect after abort because the
-  provider atomically persists a begin-operation tombstone and SQLite CASes a
-  strictly greater reopened admission epoch before local admission reopens.
-  Recovery treats a provider `NotStarted` for a persisted intent only as input
-  to that stored-begin abort-tombstone CAS; it never opens from the observation
-  alone. For a sole member, the repository binds distinct provider
-  begin/complete-retirement operation ids to the outer removal before it records
-  a signed terminal retirement receipt locally.
+  operations. Provider removal atomically rechecks proof, plan digest,
+  snapshot/version, repository/member instance/epoch, and admission fence and
+  returns a signed proof-and-plan-bound receipt. The local state is observable
+  as proof-issue-planned, planned, retirement-handoff, `Retiring`, provider-terminal-pending-
+  disposition, disposition-in-progress/applied, or receipt-carrying terminal
+  state. `CompleteRepositoryDecommissionV1` consumes only the stored plan and
+  terminal receipt, applies the bound local disposition, then records `Removed`
+  or `KeyringRetired` by matching atomic completion CAS. A lost response, crash,
+  partition, or local drain/delete/quarantine failure is a plan/receipt-bound
+  recovery state with readiness withdrawn, never a path that can omit a
+  referenced member, invent an id/disposition, or reopen its old epoch.
+  Recovery replays only plan-bound steps after plan write, handoff, Begin,
+  `Retiring`, Complete, provider terminal receipt, local disposition, or local
+  completion. A delayed begin cannot resurrect after abort because the provider
+  atomically persists a begin-operation tombstone and SQLite CASes a strictly
+  greater reopened admission epoch before local admission reopens. Recovery
+  treats provider `NotStarted` for a persisted intent only as input to that
+  stored Begin/abort-tuple tombstone CAS; it never opens from the observation
+  alone or uses a recovery-response id for the provider abort.
   Removing a sole member returns a typed retirement handoff rather than
-  an empty snapshot; provider retirement fences all writers, revokes every
-  generation only after all-zero reference/unresolved evidence, and ends in a
-  separate `Retired` keyring state with no rejoin. Removal is refused during a
+  an empty snapshot; provider retirement fences all writers, reports
+  `Retiring`, verifies the proof's all-generation zero ciphertext/locator/
+  non-replay-index checkpoint before revocation, and ends in a separate
+  `Retired` keyring state with no rejoin. Removal is refused during a
   drain. Emergency drain, source loss, or partition withdraws readiness and
   blocks normal rotation; it is never a route around this invariant.
 - Run the same behavioral and fault contract against the in-memory reference,
@@ -322,14 +344,16 @@ authenticated staged descriptor.
   enroll/remove/rejoin or G+2 request, and permits revocation only after both
   snapshot-bound terminal zero-reference receipts and provider unresolved counts
   reach zero. Decommission evidence persists an intent and write fence before
-  provider fencing; races authorization/commit/proof/provider-removal/local-
-  completion/recovery at every boundary; and proves that an observed, provider-
-  removed, or locally terminal member cannot commit a durable reference. A lost
-  response or local storage drain/delete/quarantine fault resumes only from the
-  signed proof-bound terminal receipt. It exercises the begin-tombstone race so
-  a delayed begin cannot resurrect after abort. A sole-member removal returns a
-  typed retirement handoff and reaches a no-member `Retired` state only after
-  every generation is revoked with all-zero reference/unresolved evidence. A
+  provider fencing; persists a pre-provider plan; races authorization/commit/
+  proof/plan/provider-removal/handoff/Begin/`Retiring`/Complete/terminal/
+  disposition/local-completion/recovery at every boundary; and proves that an
+  observed, provider-removed, or locally terminal member cannot commit a durable
+  reference. A lost response or local storage drain/delete/quarantine fault
+  resumes only from the signed proof-and-plan-bound terminal receipt and stored
+  disposition/id. It exercises the begin-tombstone race so a delayed begin
+  cannot resurrect after abort. A sole-member removal returns a typed retirement
+  handoff and reaches a no-member `Retired` state only after every generation is
+  revoked with all-zero ciphertext/locator/non-replay-index/unresolved evidence. A
   partitioned or omitted repository has no receipt and therefore cannot be
   removed or let G advance to G+2.
 - Success and error responses, stored replay outcomes, returned strings, and
@@ -427,18 +451,22 @@ authenticated staged descriptor.
   partition one enrolled repository, retry after crash, and attempt a rejoin with
   a stale membership version or decommission proof. For decommission, race an
   authorization immediately before and after the durable intent, provider fence,
-  each bounded SQLite scan page, terminal zero observation, proof issuance,
-  provider removal, local drain, local completion, and recovery; inject response
-  loss before/after each provider/local boundary, provider partition, process
-  crash, database busy/full/I/O/commit/quarantine/delete faults, stale
-  live-generation digest, concurrent rotation, and changed-operation-id replay.
+  each bounded SQLite ciphertext/locator/non-replay-index scan page, terminal
+  zero observation, proof issuance, pre-provider removal-plan persistence,
+  provider removal, retirement handoff, Begin, `Retiring`, Complete, provider
+  terminal receipt, local drain/disposition, local completion, and recovery;
+  inject response loss before/after each provider/local boundary, provider
+  partition, process crash, database busy/full/I/O/commit/quarantine/delete
+  faults, stale live-generation digest, concurrent rotation, plan/receipt/count
+  mismatch, and changed-operation-id replay.
   Exercise `NotStarted` plus abort-tombstone plus delayed-begin delivery and
   prove the delayed begin cannot mutate membership after local reopen. Exercise
   both a multi-member removal and a sole-member typed retirement handoff, then
-  fail its all-generation-zero/reference/unresolved preconditions. A resumed
-  operation either returns its identical proof-bound receipt/result or a typed
-  refusal; the old member remains write-closed and cannot rejoin until a fresh
-  registration on a new active keyring. Each schedule preserves the frozen fence
+  fail its all-generation-zero ciphertext/locator/non-replay-index reference or
+  unresolved preconditions. A resumed operation either returns its identical
+  plan-and-proof-bound receipt/result or a typed refusal; the old member remains
+  write-closed and cannot rejoin until a fresh registration on a new active
+  keyring. Each schedule preserves the frozen fence
   snapshot; a zero-reference, unresolved-authorization, decommission, removal,
   local-completion, or retirement receipt from another snapshot, member instance,
   generation set, fence/epoch, or unresolved count is rejected.

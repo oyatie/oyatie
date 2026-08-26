@@ -199,13 +199,18 @@ over-budget files are debt, not precedent.
   absence is never classified before fencing. A decommission intent is first
   durable in the repository's SQLite writer, so all later write/authorization
   attempts see its admission epoch; the matching provider CAS then fences new
-  replay, seal, and commit authorization. After proof, the repository performs
-  typed provider removal, local completion, status, and recovery: provider
-  membership removal is the global linearization point and returns a signed
-  proof-bound terminal receipt, while SQLite remains fenced until a local
-  `BEGIN IMMEDIATE` completion CAS records that same receipt. This is not
-  narrated as a distributed transaction. A local drain/delete/quarantine fault
-  leaves a receipt-bound terminal-pending state rather than reopening admission.
+  replay, seal, and commit authorization. The bounded proof authenticates a
+  complete all-live-generation scan and separate zero ciphertext, locator, and
+  non-replay-index counts. After proof and before provider removal, the
+  repository persists an immutable plan carrying the proof/fences, disposition/
+  manifest, and every provider/local side-effect id/request. It then performs
+  typed provider removal, local completion, status, and recovery only from that
+  plan: provider membership removal is the global linearization point and returns
+  a signed proof-and-plan-bound terminal receipt, while SQLite remains fenced
+  through plan/handoff/`Retiring`/disposition and the matching local
+  `BEGIN IMMEDIATE` completion CAS. This is not narrated as a distributed
+  transaction. A local drain/delete/quarantine fault leaves a plan-and-receipt-
+  bound recoverable state rather than reopening admission.
   The matching HR adapter remains draft while the port is draft. Plaintext fallback,
   caller-provided keys,
   process-local production keys, provider-internal imports, and logging key/
@@ -236,7 +241,8 @@ over-budget files are debt, not precedent.
   only after durable local intent/write fencing, provider admission fencing, a
   bounded real-file all-live-generation scan, and a provider-verified proof
   binding that fence, terminal write sequence, member/epoch, snapshot/version,
-  rotation state, zero references, and zero unresolved authorizations. Tests
+  rotation state, a complete scan checkpoint with zero ciphertext, locator, and
+  non-replay-index references, and zero unresolved authorizations. Tests
   race authorization and commit before/after every fence/proof/removal boundary;
   outage, partition, stale snapshot, duplicate enrollment, or rejoin is a typed
   refusal.
@@ -285,43 +291,75 @@ over-budget files are debt, not precedent.
   `ProduceDecommissionProofV1` producer first commits an intent that closes its
   shared write-admission epoch, then the provider CASes a matching admission
   fence that denies new replay, seal, and commit authorization. A bounded real-
-  file scan under that durable fence produces a terminal observation of every
-  live-generation locator/ciphertext reference and unresolved authorization.
-  `IssueDecommissionProofV1` authenticates that observation, including
-  repository/member/epoch, membership snapshot/version, rotation state, live-
-  generation digest, admission-fence id/epoch, and terminal write sequence.
-  `RemoveKeyringRepositoryV1` atomically rechecks all of them before membership
-  change and returns a proof-bound signed removal receipt. The repository then
-  runs `CompleteRepositoryDecommissionV1` under its still-closed admission epoch;
-  only that local CAS may record `Removed`, and it binds the same proof/receipt
-  identity. `GetRepositoryDecommissionV1::Removed` carries the receipt rather
-  than a unit label, while `GetRepositoryDecommissionStatusV1` and
-  `RecoverRepositoryDecommissionV1` converge a response loss, crash, or local
-  drain/delete/quarantine failure without re-registering the old member. The
-  provider CAS is the global removal linearization point; the local CAS is
-  independently atomic and deliberately fenced across the remote/local gap.
-  An abort—including recovery that observes provider `NotStarted` for a
-  persisted local intent—sends the stored begin tuple through the provider
+  file scan under that durable fence enumerates every live-generation ciphertext,
+  idempotency-locator, and admitted non-replay field-index reference in stable
+  order, then authenticates zero counts, its checkpoint, and unresolved
+  authorizations in `DecommissionObservationV1`/`DecommissionProofV1`.
+  `IssueDecommissionProofV1` authenticates repository/member/epoch, membership
+  snapshot/version, rotation state, live-generation digest, admission-fence
+  id/epoch, terminal write sequence, scan checkpoint, and all three counts.
+
+  After that proof but before any provider side effect,
+  `RemoveRepositoryDecommissionV1` durably CASes an immutable
+  `RepositoryDecommissionRemovalPlanV1`. The plan binds the proof/fences,
+  `Quarantine` or `Delete` disposition and manifest, a preallocated retirement-
+  fence id, and pairwise-distinct provider-remove, Begin-retirement,
+  Complete-retirement, local-disposition, and local-completion operation ids with
+  every request digest. A later
+  cardinality result therefore cannot choose or change an id or disposition.
+  `RemoveKeyringRepositoryV1` rechecks its plan digest together with the proof
+  before membership change. A non-last removal yields a proof-and-plan-bound
+  receipt; a sole member first durably records its handoff, then provider
+  `Retiring`, then a terminal retirement receipt. `CompleteKeyringRetirementV1`
+  verifies the same all-generation zero ciphertext/locator/non-replay-index
+  checkpoint and counts before it revokes every generation.
+
+  The local status type has `ProofIssuePlanned`, `RemovalPlanned`,
+  `RetirementHandoff`, `Retiring`,
+  provider-terminal-pending-disposition, disposition-in-progress,
+  disposition-applied, and receipt-carrying `Removed`/`KeyringRetired` variants.
+  `CompleteRepositoryDecommissionV1` accepts only the stored plan digest and
+  stored local-completion id: it never accepts a caller-provided receipt or new
+  disposition. `GetRepositoryDecommissionStatusV1` validates the corresponding
+  provider state before reporting it. `RecoverRepositoryDecommissionV1` reads
+  the plan and repeats only its stored Remove, Begin, Complete, disposition, or
+  completion step; its response id cannot become a side-effect id. Thus every
+  crash/lost-response edge after plan write, handoff, Begin, Retiring, Complete,
+  terminal receipt, drain/disposition, or local CAS converges without inventing
+  an id, re-registering, or reopening the old epoch. The provider CAS/terminal
+  receipt is the global removal linearization point; local plan/intermediate/
+  terminal CASes are independently atomic and deliberately fenced across the
+  remote/local gap.
+  Each durable intent preallocates distinct Begin, Issue-proof, and abort
+  provider-operation ids before its first provider call. The terminal fenced
+  scan then durably records a `ProofIssuePlanned` observation plus the exact
+  Issue request digest before it invokes Issue-proof. An
+  abort—including recovery that observes provider `NotStarted` for a persisted
+  local intent—sends only that stored Begin/abort tuple through the provider
   begin-operation tombstone CAS and then records a strictly greater local
-  reopened-admission epoch before local admission can reopen. A delayed original
-  begin therefore cannot resurrect that `NotStarted` race.
+  reopened-admission epoch before local admission can reopen. A recovery-response
+  id is never a provider-operation id, so a delayed original begin cannot
+  resurrect that `NotStarted` race.
   A non-last remove yields the successor snapshot. A last remove instead yields
   a typed retirement handoff; `BeginKeyringRetirementV1` fences all writers and
-  `CompleteKeyringRetirementV1` revokes every generation only after the same
-  proof shows zero references/unresolved authorizations, producing a distinct
-  no-member `Retired` state. The repository binds both provider retirement
-  operation ids to its outer remove operation and records local completion only
-  after the signed retirement receipt. Response loss, crash, partition, abort,
-  resume, and rejoin are typed state transitions; no later durable write can
-  commit after the terminal observation, provider removal, or retirement.
+  exposes `Retiring`, while `CompleteKeyringRetirementV1` produces the distinct
+  no-member `Retired` state only after the authenticated all-generation proof
+  has zero ciphertext, locator, non-replay-index, and unresolved counts. The
+  shared `RepositoryDecommissionRemovalError` includes
+  `MembershipOperationConflict`, plan/status/receipt mismatches, and every local
+  drain/disposition failure, so a changed id reuse is not translated into an
+  untyped local conflict. Response loss, crash, partition, abort, resume, and
+  rejoin are typed state transitions; no later durable write can commit after
+  the terminal observation, provider removal, or retirement.
 
   A later format is non-dispatchable until a separately accepted codec,
   writer-authority, reader-cohort, admission/retirement, migration, and
   independent-encoder decision supplies its exact file/build/test closure; V1
   claims no V2 write or retry. Format discovery never changes locator lookup.
   Normal rotation has a global per-keyring no-overlap invariant: G+2 MUST NOT
-  activate while G is draining, has durable ciphertext or locator references,
-  has an unresolved authorization or incomplete rekey, or lacks its terminal
+  activate while G is draining, has durable ciphertext, locator, or non-replay
+  field-index references, has an unresolved authorization or incomplete rekey,
+  or lacks its terminal
   provider retirement receipt. The retirement receipt is bound to the immutable,
   versioned keyring membership snapshot captured by the rotation CAS and
   contains a terminal zero-reference receipt for every enrolled repository

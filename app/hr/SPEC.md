@@ -709,31 +709,50 @@ new replay-set, locator-derivation, seal, and commit authorization for that
 member/fence while allowing only status, unresolved-resolution, proof, abort,
 removal, and retirement operations.
 
-`DecommissionObservationV1` is `{ keyring_id, repository_id,
+`DecommissionReferenceKindV1` is exactly `Ciphertext | IdempotencyLocator |
+NonReplayFieldIndex`. `DecommissionReferenceScanEntryV1` is `{ logical_table_tag:
+OpaqueBytes<=128, opaque_row_identity: OpaqueBytes<=128, reference_kind:
+DecommissionReferenceKindV1, admitted_column_tag: OpaqueBytes<=128 }`; checkpoint
+order is lexicographic over those four fields and is bounded by the page/step
+limits below. `DecommissionObservationV1` is `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, membership_snapshot_id,
 membership_version, rotation_fence_id, live_generation_digest,
 decommission_fence_id, admission_epoch, terminal_write_sequence,
 scan_checkpoint_digest, unresolved_receipt_digest,
 durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
-unresolved_authorizations: u64be(0) }`. `IssueDecommissionProofV1` accepts
-`{ observation: DecommissionObservationV1, operation_id }` and returns the
-provider-authenticated `DecommissionProofV1` below.
+durable_non_replay_index_references: u64be(0),
+unresolved_authorizations: u64be(0) }`. `scan_checkpoint_digest` commits to the
+complete bounded reference scan: every `(logical_table_tag, opaque_row_identity,
+reference_kind, admitted_column_tag)` in stable order, including each admitted
+generation-scoped non-replay field-index column and its checked per-kind count.
+`IssueDecommissionProofV1` accepts `{ observation: DecommissionObservationV1,
+operation_id: OpaqueBytes<=128 }` and returns the provider-authenticated
+`DecommissionProofV1` below. Before this provider call, SQLite persists
+`DecommissionProofIssuePlanV1 { observation, issue_proof_operation_id:
+OpaqueBytes<=128, issue_proof_request_digest: FixedBytes<=64 }`, where the id
+is the one already reserved in the immutable intent and the digest is
+`H("hr.decommission.issue-proof-request.v1" || exact
+IssueDecommissionProofV1 request bytes)`. The provider recomputes that digest
+from its exact request before signing the proof; exact replay returns the same
+proof and changed reuse is `MembershipOperationConflict`.
 
 `GetRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch }` and returns exactly
 `NotStarted | IntentPending { begin_operation_id } | Aborted {
 begin_operation_id, abort_tombstone: DecommissionBeginTombstoneV1 } | Fenced {
 fence: DecommissionAdmissionFenceV1 } | ProofIssued { proof:
-DecommissionProofV1 } | Removed { removal_receipt:
+DecommissionProofV1 } | Retiring { retirement_fence:
+KeyringRetirementFenceV1 } | Removed { removal_receipt:
 DecommissionRemovalReceiptV1 } | KeyringRetired { retirement_receipt:
 KeyringRetirementReceiptV1 }`. `Removed` is deliberately not a unit variant:
 `DecommissionRemovalReceiptV1` includes `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, decommission_proof_digest:
 FixedBytes<=64, prior_membership_snapshot_id, prior_membership_version,
 successor_membership_snapshot_id, successor_membership_version,
-removal_operation_id, provider_authenticator }`, and binds the exact proof used
+removal_operation_id, removal_plan_digest: FixedBytes<=64,
+provider_authenticator }`, and binds the exact proof and durable local plan used
 by the provider membership CAS. It is therefore sufficient to recover a lost
-remove response without inventing a new proof or registration.
+remove response without inventing an id, disposition, proof, or registration.
 
 `AbortRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, expected_membership_snapshot_id,
@@ -741,9 +760,13 @@ expected_membership_version, begin_operation_id, abort_operation_id }`. It
 atomically records `DecommissionBeginTombstoneV1 { keyring_id, repository_id,
 member_instance_id, repository_epoch, begin_operation_id,
 begin_request_digest: FixedBytes<=64, abort_operation_id,
+abort_request_digest: FixedBytes<=64,
 abort_membership_snapshot_id, abort_membership_version, provider_authenticator
 }` before returning `Aborted { tombstone, snapshot }`; exact replay returns that
 same result and changed operation reuse returns `MembershipOperationConflict`.
+The provider recomputes the exact Begin and abort request-digest forms from the
+stored-operation arguments before signing the tombstone; a digest or tuple
+mismatch changes no membership state.
 A delayed or retried `BeginRepositoryDecommissionV1` with the tombstoned
 operation id returns `DecommissionBeginTombstoned` and cannot mutate membership.
 If a concurrent begin won first, abort returns its exact `Fenced`, `ProofIssued`,
@@ -754,13 +777,17 @@ or terminal status and the repository remains closed; it never reopens on a
 repository_epoch, membership_snapshot_id, membership_version, rotation_fence_id,
 live_generation_digest, decommission_fence_id, admission_epoch,
 terminal_write_sequence, scan_checkpoint_digest, unresolved_receipt_digest,
+issue_proof_operation_id: OpaqueBytes<=128,
+issue_proof_request_digest: FixedBytes<=64,
 durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
+durable_non_replay_index_references: u64be(0),
 unresolved_authorizations: u64be(0), provider_authenticator }`.
 `RemoveKeyringRepositoryV1` accepts `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, expected_membership_snapshot_id,
 expected_membership_version, decommission_fence_id, admission_epoch,
-decommission_proof: DecommissionProofV1, operation_id }` and atomically
-rechecks every proof field. With two or more members it returns
+decommission_proof: DecommissionProofV1, removal_plan_digest: FixedBytes<=64,
+operation_id }` and atomically rechecks every proof field and the immutable
+plan digest. With two or more members it returns
 `KeyringMembershipMutationResultV1::Updated { snapshot:
 KeyringMembershipSnapshotV1, removal_receipt: DecommissionRemovalReceiptV1 }`.
 With one member it changes no state and returns
@@ -769,30 +796,43 @@ KeyringRetirementHandoffV1 }`; there is no untyped empty-snapshot result.
 `KeyringRetirementHandoffV1` is `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, decommission_proof_digest: FixedBytes<=64,
 membership_snapshot_id, membership_version, rotation_fence_id,
-live_generation_digest, provider_authenticator }`. `KeyringRetirementFenceV1`
-is that handoff identity plus `{ retirement_fence_id: OpaqueBytes<=128,
-retirement_operation_id: OpaqueBytes<=128, provider_authenticator }`.
+live_generation_digest, removal_plan_digest: FixedBytes<=64,
+provider_authenticator }`. `KeyringRetirementFenceV1` is that handoff identity
+plus `{ retirement_fence_id: OpaqueBytes<=128,
+retirement_begin_operation_id: OpaqueBytes<=128, provider_authenticator }`.
 `KeyringRetirementReceiptV1` is `{ keyring_id, repository_id,
 member_instance_id, repository_epoch, decommission_proof_digest,
 membership_snapshot_id, membership_version, rotation_fence_id,
-retirement_fence_id, all_generation_digest: FixedBytes<=64,
+retirement_fence_id, removal_plan_digest: FixedBytes<=64,
+retirement_begin_operation_id: OpaqueBytes<=128,
+retirement_complete_operation_id: OpaqueBytes<=128,
+all_generation_digest: FixedBytes<=64, scan_checkpoint_digest: FixedBytes<=64,
 durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
 durable_non_replay_index_references: u64be(0),
 unresolved_authorizations: u64be(0), state: Retired, provider_authenticator }`.
 
-`BeginKeyringRetirementV1` accepts that handoff plus `operation_id` and CASes
+`BeginKeyringRetirementV1` accepts `{ handoff, retirement_fence_id:
+OpaqueBytes<=128, operation_id }` and CASes
 the active sole-member keyring to `Retiring`, returning
 `KeyringRetirementFenceV1`. It denies enrollment, rejoin, replay acquisition,
 locator derivation, seal, commit authorization, removal, and normal/emergency
-rotation. `CompleteKeyringRetirementV1` accepts `{ retirement_fence,
-decommission_proof, operation_id }` and atomically verifies the same sole-member
-proof, zero ciphertext/locator/non-replay-index references, zero unresolved
-authorizations, and no normal or emergency drain; it then revokes every remaining
-generation in that same terminal transition before returning
+rotation. The provider rejects a changed reuse of either id and authenticates
+the returned fence against the handoff/plan. `CompleteKeyringRetirementV1`
+accepts `{ keyring_id, repository_id, member_instance_id, repository_epoch,
+retirement_fence_id, decommission_proof, removal_plan_digest, operation_id }`;
+it looks up and reauthenticates the stored fence by its preplanned id, then
+atomically verifies the same sole-member proof, plan digest,
+zero ciphertext/locator/non-replay-index references, the proof's complete
+reference-scan checkpoint digest, zero unresolved authorizations, exact current
+all-live-generation digest, and no normal or emergency drain. It then revokes
+every remaining generation in that same terminal transition before returning
 `KeyringRetirementReceiptV1` and the `Retired` state. The receipt binds the
 handoff, retirement fence, all-generation digest, proof digest, and
 zero-reference/unresolved observations, so the terminal state has no active
-writer or live generation.
+writer or live generation. `Retiring { retirement_fence }` is observable through
+`GetRepositoryDecommissionV1`; exact Begin or Complete replay returns the same
+fence or receipt, while an operation-id reuse with changed bytes is
+`MembershipOperationConflict` and leaves the provider state unchanged.
 Response loss is exact-operation replay; a partition, stale CAS, or changed
 operation is a typed refusal that leaves `Retiring` and readiness withdrawn.
 Register, begin, abort, and remove are refused whenever an ordinary or emergency
@@ -811,40 +851,61 @@ The repository-owned operations are `ProduceDecommissionProofV1`,
 implemented by SQLite. The proof producer request is `{ keyring_id,
 repository_id, member_instance_id, repository_epoch,
 expected_membership_snapshot_id, expected_membership_version,
-expected_admission_epoch, operation_id }`; its success result is
+expected_admission_epoch, begin_operation_id, issue_proof_operation_id,
+abort_operation_id }`; its success result is
 `DecommissionProofProductionV1 { admission_fence:
-DecommissionAdmissionFenceV1, observation: DecommissionObservationV1,
+DecommissionAdmissionFenceV1, proof_issue_plan: DecommissionProofIssuePlanV1,
 proof: DecommissionProofV1 }`. Its closed error is
 `DecommissionProofProductionError::{RepositoryNotRegistered, MemberInstanceStale,
 MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
 RepositoryAdmissionEpochStale, DecommissionPending, DecommissionFenceStale,
 DecommissionScanIncomplete, DecommissionObservationStale,
-DecommissionProofAlreadyIssued, MembershipMutationBlocked,
+DecommissionProofIssuePlanMismatch, DecommissionProofAlreadyIssued, MembershipMutationBlocked,
 LocalStorageBusy, LocalStorageFull, LocalStorageIo, LocalCommitFailed,
 MembershipOperationConflict, ProviderUnavailable, ProviderCorrupt}`.
 
-It first commits `DecommissionIntentV1 { operation_id,
-expected_membership_snapshot_id, expected_membership_version,
-next_admission_epoch }` under `BEGIN IMMEDIATE` in the SQLite metadata row
-shared by every durable write. That intent closes new writes before the provider
-call. After the provider fence is durably recorded,
-`scan_decommission_references_v1` walks every sensitive-table generation and
-idempotency-locator column in stable row order: at most 64 rows/8 MiB per page,
-8 pages/512 rows/64 MiB per step, with checked `u64` counters and a persisted
+It first commits `DecommissionIntentV1 { begin_operation_id,
+issue_proof_operation_id, abort_operation_id, expected_membership_snapshot_id,
+expected_membership_version, next_admission_epoch, begin_request_digest:
+FixedBytes<=64, abort_request_digest: FixedBytes<=64 }` under `BEGIN IMMEDIATE`
+in the SQLite metadata row shared by every durable write. The three non-empty
+ids are pairwise distinct. `begin_request_digest` is
+`H("hr.decommission.begin-request.v1" ||
+exact BeginRepositoryDecommissionV1 request bytes)` and
+`abort_request_digest` is `H("hr.decommission.abort-request.v1" || exact
+AbortRepositoryDecommissionV1 request bytes)` for those stored inputs. That
+immutable intent closes new writes before the provider Begin call, so a later
+abort or recovery cannot mint, select, or change either provider-operation id
+or input. Exact retry returns the stored intent; reuse of any intent id with
+changed bytes returns `MembershipOperationConflict` before a second provider
+side effect. After the provider fence is durably recorded,
+`scan_decommission_references_v1` walks every sensitive-table generation,
+idempotency-locator column, and admitted generation-scoped non-replay
+field-index column in stable `(logical_table_tag, opaque_row_identity,
+reference_kind, admitted_column_tag)` order: at most 64 reference entries/8 MiB
+per page and 8 pages/512 entries/64 MiB per step, with checked `u64` counters
+for ciphertext, locator, and non-replay-index references and a persisted
 checkpoint. A terminal `BEGIN IMMEDIATE` observation binds the same local
 admission epoch, fence, current repository/member/epoch, membership
 snapshot/version, rotation fence, live-generation digest, terminal SQLite write
-sequence, zero ciphertext/locator references, and zero unresolved receipts.
-Only then does the repository call `issue_decommission_proof_v1` with that
-observation. The provider rechecks its current fence, snapshot/version,
-generation digest, and unresolved count before returning the authenticated proof.
+sequence, zero ciphertext/locator/non-replay-index references, and zero
+unresolved receipts. In that same transaction it persists the
+`DecommissionProofIssuePlanV1` with the intent's reserved Issue id and exact
+request digest, then and only then calls `issue_decommission_proof_v1` from that
+plan. The provider rechecks its current fence, snapshot/version, generation
+digest, scan checkpoint and all three reference counts, unresolved count, and
+recomputes the exact Issue id/digest before returning the authenticated proof;
+SQLite accepts that proof only if those values match its local proof-issue plan.
 
 `AbortRepositoryDecommissionIntentV1` accepts `{ keyring_id, repository_id,
-member_instance_id, repository_epoch, expected_membership_snapshot_id,
-expected_membership_version, expected_admission_epoch, begin_operation_id,
-abort_operation_id }`. It first invokes the matching provider abort operation
-and accepts reopening only from its signed `Aborted { tombstone, snapshot }`
-result. SQLite then uses `BEGIN IMMEDIATE` to CAS the exact pending intent and
+member_instance_id, repository_epoch, response_operation_id:
+OpaqueBytes<=128 }`. It loads the exact pending `DecommissionIntentV1`, verifies
+its identity/epoch, and invokes the matching provider abort only with that
+intent's stored expected snapshot/version, Begin id, abort id, and canonical
+abort-request digest. `response_operation_id` identifies only the repository
+response record and is never sent to the provider. It accepts reopening only
+from the signed `Aborted { tombstone, snapshot }` result. SQLite then uses
+`BEGIN IMMEDIATE` to CAS the exact pending intent and
 provider tombstone to `Active(reopened_admission_epoch)`, where
 `reopened_admission_epoch` is strictly greater than the intent's next epoch;
 this fences every pre-intent and pending-intent writer. Its success is
@@ -852,74 +913,208 @@ this fences every pre-intent and pending-intent writer. Its success is
 DecommissionBeginTombstoneV1, previous_admission_epoch,
 reopened_admission_epoch, local_metadata_commit_digest: FixedBytes<=64 }`.
 If provider status is
-`Fenced`, `ProofIssued`, `Removed`, or `KeyringRetired`, the repository returns
-that exact closed status and makes no local reopening write. Exact request/id
-replay returns the same local tombstone receipt; changed reuse,
-membership/epoch/tombstone mismatch, local busy/full/I/O/commit failure, or a
+`Fenced`, `ProofIssued`, `Retiring`, `Removed`, or `KeyringRetired`, the
+repository returns that exact closed status and makes no local reopening write.
+Exact response-operation replay returns the same local tombstone receipt;
+changed response-id reuse, intent/membership/epoch/tombstone mismatch, local
+busy/full/I/O/commit failure, or a
 provider partition is `RepositoryDecommissionAbortError::{IntentNotPending,
 MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
-RepositoryAdmissionEpochStale, BeginTombstoneMismatch, LocalStorageBusy,
+RepositoryAdmissionEpochStale, DecommissionIntentMismatch, BeginTombstoneMismatch, LocalStorageBusy,
 LocalStorageFull, LocalStorageIo, LocalCommitFailed, MembershipOperationConflict,
 ProviderUnavailable, ProviderCorrupt}` and leaves local admission closed.
 
+`RemoveRepositoryDecommissionV1` first makes the removal executable by writing
+the following **pre-provider** record under `BEGIN IMMEDIATE`, while the exact
+proof-issued metadata row and its admission epoch are still closed:
+`RepositoryDecommissionRemovalPlanV1 { keyring_id, repository_id,
+member_instance_id, repository_epoch, decommission_proof_digest:
+FixedBytes<=64, expected_membership_snapshot_id, expected_membership_version,
+decommission_fence_id, admission_epoch, rotation_fence_id,
+live_generation_digest: FixedBytes<=64, removal_operation_id:
+OpaqueBytes<=128, retirement_begin_operation_id: OpaqueBytes<=128,
+retirement_complete_operation_id: OpaqueBytes<=128,
+retirement_fence_id: OpaqueBytes<=128,
+local_disposition_operation_id: OpaqueBytes<=128,
+local_completion_operation_id: OpaqueBytes<=128,
+local_storage_disposition: LocalDecommissionStorageDispositionRequestV1,
+storage_manifest_digest: FixedBytes<=64, provider_remove_request_digest:
+FixedBytes<=64, provider_begin_retirement_request_digest: FixedBytes<=64,
+provider_complete_retirement_request_digest: FixedBytes<=64,
+local_disposition_request_digest: FixedBytes<=64,
+local_completion_request_digest: FixedBytes<=64, plan_digest: FixedBytes<=64
+}`. Its five non-empty operation ids are pairwise distinct and every request
+digest commits to its named id and all its input bytes. The two retirement ids
+and `retirement_fence_id` are compulsory even for a non-last-member plan: they
+are reserved, non-reusable plan data and are never sent if provider removal
+returns `Updated`. The cardinality result therefore cannot cause a later choice
+of an id, fence, disposition, or input. `plan_digest` is the canonical digest of immutable
+identity/proof/fence/snapshot/generation/disposition/manifest/operation-id
+fields, excluding the five derived request-digest fields. Each request digest is
+then `H(domain || plan_digest || exact_operation_request_bytes)`; adapters
+recompute it and reject a mismatch. This explicit derivation avoids a recursive
+plan-digest preimage while binding every input and every stable id before the
+first provider side effect.
+
+`LocalDecommissionStorageDispositionRequestV1` is exactly `Quarantine | Delete`;
+its terminal `LocalDecommissionStorageDispositionV1` is exactly `Quarantined |
+Deleted`. `storage_manifest_digest` commits, in canonical bounded path order, to the local
+durable data affected by that disposition, its byte/row limits, and the
+deterministic quarantine target when applicable. The SQLite recovery journal and
+metadata row that store the plan are outside a delete manifest and remain as a
+tombstone until terminal local completion is durable; deletion cannot erase the
+evidence needed to resume it. `RepositoryDecommissionRemovalPlanReceiptV1` is
+`{ plan, local_admission_epoch, local_metadata_commit_digest: FixedBytes<=64 }`;
+it is the only evidence that permits provider removal or retirement.
+
 `RemoveRepositoryDecommissionV1` accepts `{ decommission_proof,
-expected_membership_snapshot_id, expected_membership_version, operation_id,
-local_storage_disposition: Quarantine | Delete,
-retirement_begin_operation_id: Option<OpaqueBytes<=128>,
-retirement_complete_operation_id: Option<OpaqueBytes<=128> }`. The retirement
-ids are both absent for a non-last member; for a sole member they are both
-present, distinct, and durably bound to the outer operation id. It invokes only
-the matching provider `remove_keyring_repository_v1`. For the sole-member
-`LastMemberRemovalForbidden` result, it passes the returned handoff to
-`begin_keyring_retirement_v1` with the begin id, then to
-`complete_keyring_retirement_v1` with the complete id and the same proof; it
-does not write a local terminal state before the signed retirement receipt.
-Its successful non-last-member result is
-`RepositoryDecommissionRemovalV1 { removal_receipt:
-DecommissionRemovalReceiptV1, local_completion:
-LocalDecommissionCompletionReceiptV1 }`; the sole-member result is
-`RepositoryDecommissionRetirementV1 { retirement_receipt:
-KeyringRetirementReceiptV1, local_completion:
-LocalDecommissionCompletionReceiptV1 }`. `CompleteRepositoryDecommissionV1`
-accepts `{ terminal_receipt, local_storage_disposition, operation_id }` and
-performs a `BEGIN IMMEDIATE` CAS from the matching proof-issued/terminal-pending
-row to the matching `Removed` or `KeyringRetired` row. Its
-`LocalDecommissionCompletionReceiptV1` binds local repository/member/epoch,
-proof digest, provider terminal-receipt digest, local admission epoch,
-completion operation id, and
-`LocalDecommissionStorageDispositionV1::{Quarantined { receipt } | Deleted {
-receipt }}`. It first drains local work while the admission row remains closed;
-busy/timeout, full disk, I/O, transaction-commit, quarantine, or deletion
-failure is respectively `DecommissionLocalDrainBusy`,
+expected_membership_snapshot_id, expected_membership_version,
+removal_operation_id, retirement_begin_operation_id,
+retirement_complete_operation_id, local_disposition_operation_id,
+local_completion_operation_id, local_storage_disposition: Quarantine | Delete,
+storage_manifest_digest: FixedBytes<=64, retirement_fence_id: OpaqueBytes<=128
+}`. It derives the complete plan above
+from the proof and request, CASes `ProofIssued` to `RemovalPlanned { plan_receipt
+}` before a provider side effect, and never mutates a stored plan. Exact replay
+of its byte-identical request returns that plan or its resulting terminal value;
+reuse of any one of those ids with changed bytes is
+`MembershipOperationConflict`. A crash before this CAS has no provider effect
+and leaves `ProofIssued`; retrying the same request is the only way to create a
+plan. A crash after it commits is recoverable without caller-supplied operation
+ids or disposition.
+
+The planned driver invokes only `remove_keyring_repository_v1` with the stored
+remove request digest, proof, and `plan_digest`. A non-last `Updated` result
+must contain a `DecommissionRemovalReceiptV1` with that exact plan digest and is
+persisted by `BEGIN IMMEDIATE` as `ProviderTerminalPendingLocalDisposition`.
+For `LastMemberRemovalForbidden`, it persists `RetirementHandoff { plan_receipt,
+handoff }` before `begin_keyring_retirement_v1` with the stored begin id. It
+persists `Retiring { plan_receipt, retirement_fence }` before
+`complete_keyring_retirement_v1` with the stored complete id, preplanned fence
+id, and plan digest.
+Only a signed `KeyringRetirementReceiptV1` whose plan, preallocated fence id,
+begin-id, complete-id, proof, scan checkpoint, and zero counts match the
+plan/proof is persisted as
+`ProviderTerminalPendingLocalDisposition`. Every provider-visible intermediate
+state thus has a local durable counterpart and no terminal receipt is invented
+after a response loss.
+
+`ProviderDecommissionTerminalReceiptV1` is exactly `Removed {
+removal_receipt: DecommissionRemovalReceiptV1 } | KeyringRetired {
+retirement_receipt: KeyringRetirementReceiptV1 }`. Before local completion,
+SQLite validates that terminal receipt against plan, proof, identity,
+snapshot/version, admission/rotation/decommission fences, live-generation
+digest, and all zero-reference/unresolved fields. `LocalDecommissionStorageReceiptV1`
+is `{ keyring_id, repository_id, member_instance_id, repository_epoch,
+decommission_proof_digest: FixedBytes<=64, removal_plan_digest: FixedBytes<=64,
+provider_terminal_receipt_digest: FixedBytes<=64,
+local_disposition_operation_id: OpaqueBytes<=128,
+storage_manifest_digest: FixedBytes<=64, disposition:
+LocalDecommissionStorageDispositionV1::{Quarantined | Deleted},
+local_admission_epoch: u64, local_metadata_commit_digest: FixedBytes<=64 }`.
+It is written only after the stored terminal receipt validates and the fixed
+disposition completes. `LocalDecommissionCompletionReceiptV1` is `{ keyring_id,
+repository_id, member_instance_id, repository_epoch,
+decommission_proof_digest: FixedBytes<=64, removal_plan_digest: FixedBytes<=64,
+provider_terminal_receipt_digest: FixedBytes<=64,
+storage_receipt_digest: FixedBytes<=64, local_admission_epoch: u64,
+local_completion_operation_id: OpaqueBytes<=128,
+local_metadata_commit_digest: FixedBytes<=64 }`; it binds the matching storage
+receipt and is the local terminal-CAS evidence.
+
+`CompleteRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
+member_instance_id, repository_epoch, removal_plan_digest: FixedBytes<=64,
+operation_id }`. `operation_id` must equal the plan's
+`local_completion_operation_id`; it supplies neither a terminal receipt nor a
+new disposition. Under `BEGIN IMMEDIATE`, it uses the stored terminal receipt
+and plan to move `ProviderTerminalPendingLocalDisposition` to
+`LocalDispositionInProgress`, runs only the stored disposition with the stored
+local-disposition id, records `LocalDispositionApplied { plan_receipt,
+terminal_receipt, storage_receipt }`, and CASes once to the matching terminal
+state. Its result is `RepositoryDecommissionRemovalV1 { removal_receipt,
+storage_receipt, local_completion }` or `RepositoryDecommissionRetirementV1 {
+retirement_receipt, storage_receipt, local_completion }`. The admission row
+remains closed throughout. Busy/timeout, full disk, I/O, transaction-commit,
+quarantine, or deletion failure is respectively `DecommissionLocalDrainBusy`,
 `DecommissionLocalDrainTimeout`, `DecommissionLocalStorageFull`,
 `DecommissionLocalStorageIo`, `DecommissionLocalCommitFailed`,
-`DecommissionLocalQuarantineFailed`, or `DecommissionLocalDeleteFailed`.
-Each leaves a durable `ProviderTerminalPendingLocalCompletion` state, no
-readiness, and no route back to `Active`; exact request/id replay returns the
-same completion receipt and changed reuse is `MembershipOperationConflict`.
+`DecommissionLocalQuarantineFailed`, or `DecommissionLocalDeleteFailed`; each
+leaves a recoverable non-`Active`, non-ready state. Exact request/id replay
+returns the same result or intermediate status; changed reuse is
+`MembershipOperationConflict`.
 
-`GetRepositoryDecommissionStatusV1` returns exactly
-`Active | IntentPending { intent } | Fenced { fence } | ProofIssued { proof } |
-ProviderTerminalPendingLocalCompletion { terminal_receipt } | Removed {
-removal_receipt, local_completion } | KeyringRetired { retirement_receipt,
-local_completion }`. `RecoverRepositoryDecommissionV1` accepts the immutable
-repository/member/epoch identity and `operation_id`, fetches the signed provider
-status, and completes the matching local transition. If a persisted local intent
-observes provider `NotStarted`, recovery invokes
-`abort_repository_decommission_v1` with that persisted begin tuple and its
-`operation_id` as the abort id; it opens locally only from the resulting signed
-`Aborted` tombstone. Thus an abort that wins first tombstones a delayed begin,
-while a begin that wins first returns `Fenced`, `ProofIssued`, or terminal state
-and remains closed. An already `Aborted` provider state repeats the exact
-tombstone/reopened-epoch CAS, while a terminal receipt repeats
-`CompleteRepositoryDecommissionV1`; `Fenced` or `ProofIssued` remains closed.
-Thus a crash or lost response after provider abort/removal but before its local
-CAS converges by the same tombstone or receipt identity; it cannot create a new
-membership operation, re-register, or write under the old instance. The provider
-membership-or-retirement CAS and its signed terminal receipt are the global
-removal linearization point; SQLite's terminal CAS is separately atomic locally
-and accepts only that same proof/receipt identity. The two are not narrated as a
-distributed transaction, and the local fence spans the gap.
+`RepositoryDecommissionStatusV1` is exactly `Active | IntentPending
+{ intent } | Fenced { fence } | ProofIssuePlanned { proof_issue_plan } |
+ProofIssued { proof } | RemovalPlanned {
+plan_receipt } | RetirementHandoff { plan_receipt, handoff } | Retiring {
+plan_receipt, retirement_fence } | ProviderTerminalPendingLocalDisposition {
+plan_receipt, terminal_receipt } | LocalDispositionInProgress { plan_receipt,
+terminal_receipt } | LocalDispositionApplied { plan_receipt, terminal_receipt,
+storage_receipt } | Removed { plan_receipt, removal_receipt, storage_receipt,
+local_completion } | KeyringRetired { plan_receipt, retirement_receipt,
+storage_receipt, local_completion }`. `GetRepositoryDecommissionStatusV1`
+accepts `{ keyring_id, repository_id, member_instance_id, repository_epoch }`
+and returns that type. It verifies the corresponding signed provider status or
+receipt before returning any non-local-only state; a mismatch is a closed error,
+never an inferred state.
+
+The persisted removal recovery table is total for every local state:
+
+| local status | required durable evidence | only recovery action |
+| --- | --- | --- |
+| `Active` | current admission epoch | return `Active`; no provider call |
+| `IntentPending` | immutable Begin/abort tuple and both request digests | run only the persisted-tuple abort/tombstone path when provider is `NotStarted` or `Aborted`; otherwise record/return its matching closed provider state |
+| `Fenced` | provider admission fence and any persisted bounded scan checkpoint | resume only the fenced bounded scan; atomically persist `ProofIssuePlanned` before any Issue call |
+| `ProofIssuePlanned` | immutable observation, Issue id, and Issue request digest | query provider; replay only stored Issue while provider remains `Fenced`, otherwise persist/return the matching signed proof |
+| `ProofIssued` | authenticated proof, no plan | return `ProofIssued`; only the byte-identical Remove request may create the pre-provider plan |
+| `RemovalPlanned` | immutable plan receipt | query provider; replay only stored Remove if provider remains `ProofIssued` |
+| `RetirementHandoff` | plan receipt and signed handoff | replay only stored Begin |
+| `Retiring` | plan receipt and signed retirement fence | replay only stored Complete |
+| `ProviderTerminalPendingLocalDisposition` | plan and matching terminal receipt | start or resume only stored disposition |
+| `LocalDispositionInProgress` | plan, terminal receipt, stored disposition id | resume only that disposition |
+| `LocalDispositionApplied` | plan, terminal receipt, storage receipt | replay only stored local completion |
+| `Removed` / `KeyringRetired` | plan, provider, storage, and local-completion receipts | return the stored terminal value |
+
+`RecoverRepositoryDecommissionV1` accepts `{ keyring_id, repository_id,
+member_instance_id, repository_epoch, recovery_operation_id }` and returns
+`RepositoryDecommissionRecoveryV1 { status:
+RepositoryDecommissionStatusV1 }` or
+`RepositoryDecommissionRecoveryError::{Removal(RepositoryDecommissionRemovalError)
+| Abort(RepositoryDecommissionAbortError) |
+Proof(DecommissionProofProductionError)}`. Its `recovery_operation_id`
+identifies only this response and must be replayed with identical bytes; it is
+never substituted for a plan operation id or any stored intent/provider
+operation id. Recovery reads the immutable intent plus any proof-issue and
+removal plan and applies this total transition table: `Fenced` resumes only its
+bounded scan and atomically persists `ProofIssuePlanned`; `ProofIssuePlanned`
+queries provider status and repeats only stored Issue while the provider remains
+`Fenced`; `RemovalPlanned` queries provider status and repeats the stored remove
+request only if status is still `ProofIssued`; `RetirementHandoff` repeats only
+stored Begin; `Retiring` repeats only stored Complete; either provider terminal
+state records only its matching terminal receipt; `ProviderTerminalPendingLocalDisposition` or
+`LocalDispositionInProgress` repeats only stored local disposition;
+`LocalDispositionApplied` repeats only stored local completion; and a terminal
+state returns its stored terminal value. A provider `NotStarted` is legal only
+for an unplanned `IntentPending` abort path; it is `ProviderStatusMismatch` for
+a removal plan and cannot reopen the local fence. The crash/response-loss
+boundaries after intent write, Begin mutation or response, fenced scan checkpoint,
+proof-issue-plan write, Issue mutation or response, removal-plan write, Remove
+mutation or response, handoff write, retirement Begin mutation or response,
+Retiring write, Complete mutation or response, terminal-receipt write,
+disposition start/mutation/receipt, and final local CAS all converge through
+this table without minting an id, changing disposition, re-registering, or
+writing under the old instance.
+
+If a persisted local intent observes provider `NotStarted`, recovery instead
+invokes `abort_repository_decommission_v1` only with its persisted Begin/abort
+tuple and request digests; `recovery_operation_id` remains response-only. It
+opens locally only from the resulting signed `Aborted` tombstone. Thus an abort
+that wins first tombstones a delayed
+begin, while a begin that wins first returns `Fenced`, `ProofIssued`, `Retiring`,
+or terminal state and remains closed. The provider membership-or-retirement CAS
+and signed terminal receipt are the global removal linearization points;
+SQLite's plan, intermediate, and terminal CASes are independently atomic locally
+and the admission fence spans every remote/local gap.
 
 Every durable transaction reads this same metadata row under `BEGIN IMMEDIATE`,
 requires `state = Active` and the current admission epoch before provider
@@ -950,18 +1145,31 @@ MemberInstanceStale, MembershipMutationBlocked, RepositoryEpochStale,
 DecommissionFenceStale, DecommissionPending, DecommissionBeginTombstoned,
 DecommissionProofMissing, DecommissionProofInvalid,
 DecommissionProofAlreadyIssued, DecommissionScanIncomplete,
-KeyringRetired, KeyringRetirementFenceStale,
+KeyringRetiring, KeyringRetired, KeyringRetirementFenceStale,
 KeyringRetirementPreconditionFailed, MembershipOperationConflict,
 ProviderUnavailable, ProviderCorrupt}`. The repository removal error is
 `RepositoryDecommissionRemovalError::{ProofMissing, ProofInvalid,
-MembershipVersionStale, MembershipSnapshotStale, RepositoryEpochStale,
-MembershipMutationBlocked, KeyringRetirementFenceStale,
-KeyringRetirementPreconditionFailed, ProviderTerminalReceiptInvalid,
-LocalCompletionConflict,
+RemovalPlanMissing, RemovalPlanConflict, RemovalPlanDigestMismatch,
+RemovalPlanInvalid, StorageManifestMismatch, MembershipVersionStale,
+MembershipSnapshotStale, RepositoryEpochStale, MembershipMutationBlocked,
+DecommissionFenceStale, ProviderStatusMismatch, RetirementHandoffMismatch,
+KeyringRetirementFenceStale, KeyringRetirementPreconditionFailed,
+ProviderTerminalReceiptMissing, ProviderTerminalReceiptInvalid,
+LocalDispositionReceiptInvalid, LocalCompletionConflict,
 DecommissionLocalDrainBusy, DecommissionLocalDrainTimeout,
 DecommissionLocalStorageFull, DecommissionLocalStorageIo,
 DecommissionLocalCommitFailed, DecommissionLocalQuarantineFailed,
-DecommissionLocalDeleteFailed, ProviderUnavailable, ProviderCorrupt}`. A
+DecommissionLocalDeleteFailed, MembershipOperationConflict,
+ProviderUnavailable, ProviderCorrupt}`. This is the shared closed error type
+for `RemoveRepositoryDecommissionV1`, `CompleteRepositoryDecommissionV1`,
+and `GetRepositoryDecommissionStatusV1`. `RepositoryDecommissionRecoveryError`
+is exactly `Removal(RepositoryDecommissionRemovalError) |
+Abort(RepositoryDecommissionAbortError) |
+Proof(DecommissionProofProductionError)` and preserves, rather than maps or
+hides, the typed error from its one stored-step recovery action;
+in particular, changed bytes under any intent, plan, provider, local, or
+response operation id are never translated into a new reservation or an untyped
+local conflict. A
 partitioned, omitted, or stale member cannot be removed to evade a drain; after
 removal or retirement the old member remains fenced and cannot rejoin the old
 keyring.
@@ -972,6 +1180,7 @@ membership_version, repository_id, member_instance_id, repository_epoch,
 repository_admission_epoch: u64, repository_admission_state: Active,
 terminal_checkpoint_digest: FixedBytes<=64, unresolved_receipt_digest,
 durable_ciphertext_references: u64be(0), durable_locator_references: u64be(0),
+durable_non_replay_index_references: u64be(0),
 unresolved_authorizations: u64be(0), provider_authenticator }`.
 `RetirementReceiptV1` is `{ keyring_id,
 source_generation: u64, rotation_fence_id, membership_snapshot_id,
@@ -1095,14 +1304,15 @@ per-keyring CAS rule: it may transition `Active(G)` to
 is still current. The successful CAS freezes that snapshot, disallows enrollment,
 removal, and rejoin until terminal retirement, and binds it to both the rotation
 fence and every zero-reference receipt. A normal `G+2` request while G is
-draining, has an incomplete rekey, durable ciphertext/locator reference,
-unresolved earlier authorization, missing snapshot-member receipt, missing
-zero-reference receipt, or missing provider retirement receipt returns
+draining, has an incomplete rekey, durable ciphertext/locator/non-replay-index
+reference, unresolved earlier authorization, missing snapshot-member receipt,
+missing zero-reference receipt, or missing provider retirement receipt returns
 `NormalRotationBlocked` and changes nothing. The provider may issue the G
 retirement receipt only after it verifies one terminal receipt from every member
 instance in the frozen snapshot, each bound to that snapshot/fence/source
-generation and reporting zero durable references plus zero unresolved
-authorizations, and its own unresolved count is zero; only then may it CAS G to
+generation and reporting zero ciphertext, locator, and non-replay-index
+references plus zero unresolved authorizations, and its own unresolved count is
+zero; only then may it CAS G to
 `Revoked` and admit a new normal rotation. A partitioned repository cannot be
 omitted: it blocks retirement and G+2 rather than becoming removable.
 Draining G issues no seals or commit authorizations. Emergency drain immediately
@@ -1352,14 +1562,18 @@ the same suite. It proves:
   exact snapshot member produces its terminal receipt and the provider has zero
   unresolved authorizations;
 - decommission first writes the local intent/admission epoch, then provider
-  fence, each bounded scan checkpoint, terminal zero observation, authenticated
-  proof, provider membership removal/retirement receipt, and matching local
-  completion. Authorization/commit immediately before and after each edge,
-  changed-operation replay, `NotStarted`/abort-tombstone/delayed-Begin, response
-  loss, partition, crash/restart, local drain/delete/quarantine fault, stale
-  live-generation digest, concurrent rotation, abort/resume, last-member
+  fence, each bounded ciphertext/locator/non-replay-index scan checkpoint,
+  terminal all-zero observation, authenticated proof, pre-provider immutable
+  removal plan, provider membership removal or retirement handoff/`Retiring`/
+  terminal receipt, bound local disposition, and matching local completion.
+  Authorization/commit immediately before and after each edge, changed-operation
+  replay, plan/receipt/count mismatch, `NotStarted`/abort-tombstone/delayed-Begin,
+  recovery-response-id substitution, response loss, partition, crash/restart,
+  local drain/delete/quarantine fault,
+  stale live-generation digest, concurrent rotation, abort/resume, last-member
   retirement, and rejoin prove no durable reference can commit after the
-  observation, provider terminal transition, or local completion;
+  observation, provider terminal transition, or local completion and no recovery
+  can invent an id or change disposition;
 - an eligible request whose required provider is unavailable preserves no mutation
   or disclosure and increments the availability denominator, authority-failure,
   and error-budget signals until recovery or router-withdrawal acknowledgement.
@@ -1390,9 +1604,9 @@ and provider client, fences the older epoch, and resumes. Exact/limit-plus-one
 items, bytes, pages, calls, cursor and checkpoint sizes; stale epochs/fences;
 three conflicts plus the refused fourth attempt; full/busy media; source/target
 key and provider loss; duplicate/missing/partitioned/rejoining snapshot members;
-and nonzero ciphertext or locator references all produce the closed result/
-error vocabulary without skipping a row, advancing a failed checkpoint, silently
-removing a member, or reporting `Revoked`.
+and nonzero ciphertext, locator, or non-replay-index references all produce the
+closed result/error vocabulary without skipping a row, advancing a failed
+checkpoint, silently removing a member, or reporting `Revoked`.
 
 </conformance_and_faults>
 
