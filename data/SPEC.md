@@ -14,6 +14,14 @@ in-memory OLAP, ClickHouse scaffolding, and analytics boot code do not satisfy
 it. A stage becomes available only when its implementation, fault evidence,
 SLO signals, and independent promotion review land.
 
+Transfer compatibility does not weaken owner boundaries: shared ontology
+types are defined by the agreed Foundry port, and outbox contract/domain,
+PostgreSQL command construction, SQLx drain, and Gateway-envelope conversion
+remain separate Bus faces. Compatibility aliases may preserve caller spelling
+but never resolve to another application's core. Every Data adapter identifies
+and implements a matching Data port; no orphan adapter becomes a contract by
+convention.
+
 </maturity>
 
 <topology>

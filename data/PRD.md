@@ -19,6 +19,10 @@ bounded cells.
 It does not own object/CAS bytes (`storage/`), ontology and Foundry UX
 (`app/foundry`), queue/bus/outbox delivery (`bus/`), software-delivery
 pipelines (`pipeline/`), search/RAG (`intelligence/`), or BI applications.
+Shared ontology consumers bind an implementation-free Foundry port or sold
+facade, never Foundry/Data core. The Bus outbox port contains portable contract
+semantics only; SQL, transaction batches, protocol conversion, and delivery
+runtimes remain provider-matching adapters behind agreed ports.
 
 The present repository does not yet supply that product. PostgreSQL 16/SQLx is
 the live relational compatibility path and is not horizontally scaled as
@@ -94,6 +98,9 @@ facts, not destination endorsements.
 - Keep foreign engines behind adapters with explicit compatibility and removal
   gates. Apps prove portability against at least the in-memory contract oracle
   and one durable adapter.
+- Name each adapter for the provider port and backend it implements; an adapter
+  without a matching port, or one that reaches another owner's core, is not a
+  portable Data face.
 - Use IAM/PDP, trusted Cell time, packs, audit, secrets/KMS, and telemetry only
   through agreed fail-closed ports. Direct cross-owner core dependencies are
   forbidden.

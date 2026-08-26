@@ -49,11 +49,11 @@ Two dependency chains may run concurrently because their first-slice path sets
 are disjoint:
 
 ```text
-D1b-C1 provider inversion -> D1b-C2A alias LSC -> D1b-O1 -> D1b-O2 Foundry move
-D1b-P1 Postgres/outbox prep -> D1b-P2 agreed Postgres port -> D1b-B Bus move
-                                      \______________________________/
-                                                     |
-                                                D1c join gate
+D1b-C1 -> D1b-C2A -> D1b-O1 -> D1b-O2P -> D1b-O2A -> D1b-O2M
+D1b-P1 -> D1b-P2 -> D1b-BG -> D1b-BS -> D1b-BC -> D1b-BX -> D1b-BR
+                           \_____________________________________/
+                                                |
+                                           D1c join gate
 ```
 
 ### D1b-C1 — Invert the classification compatibility port
@@ -458,13 +458,16 @@ data/core/postgres-command-kernel/**
   -> data/ports/postgres-command/**       package data-postgres-command
 data/adapters/postgres-command-sqlx/{Cargo.toml,BUCK}
                                           package data-postgres-command-sqlx
+data/core/transactional-outbox-kernel/{Cargo.toml,BUCK}
 data/adapters/outbox-sqlx/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
 The provider cone keeps the P1 scanner/items unchanged. The adapter path does
-not move; only its package/dependency identities change. The outbox adapter now
-depends on the agreed `data-postgres-command` port, never a Data core.
+not move; only its package/dependency identities change. Both prepared outbox
+packages now depend on the agreed `data-postgres-command` port, never a Data
+core. This closes the exact local reverse edges before Bus consumes either
+prepared implementation.
 
 The exact reverse-consumer envelope is `Cargo.toml` and `BUCK` in each of these
 11 directories:
@@ -507,9 +510,9 @@ already resolve the provider port.
 
 ### D1b-O1 — Ontology file-budget/scanner preparation
 
-Class: Data-local structural preparation; no move, rename, dependency, behavior,
-manifest, or lock change. Install the same owned sorted scanner/Buck parity
-pattern as C1/P1 in these exact package roots:
+Class: Data-local structural preparation; one internal source-to-item move, no
+package move, dependency, behavior, manifest, or lock change. Install the same
+owned sorted scanner/Buck parity pattern as C1/P1 in these exact package roots:
 
 ```text
 data/core/ontology-kernel/{BUCK,build.rs}
@@ -523,13 +526,21 @@ The stable roots and exact scanner member sets are:
 
 | Stable root | Exact unique member directory/files |
 |---|---|
-| `data/core/ontology-kernel/src/lib.rs` | `src/items/{a_identifiers,b_entity_types,c_link_types,d_action_types,e_object_entities,f_object_graph,g_registration,h_validation,i_errors}.rs`, `src/test_items/{a_registration,b_links,c_actions,d_properties}.rs` |
+| `data/core/ontology-kernel/src/lib.rs` | `src/items/{a_pillar_namespace,b_identifiers,c_entity_types,d_link_types,e_action_types,f_object_entities,g_object_graph,h_registration,i_validation,j_errors}.rs`, `src/test_items/{a_registration,b_links,c_actions,d_properties}.rs` |
 | `data/core/ontology-kernel/tests/link_action_invariants.rs` | `tests/link_action_items/{a_link_invariants,b_action_invariants}.rs` |
 | `data/core/ontology-kernel/tests/schema_evolution.rs` | `tests/schema_evolution_items/{a_additive,b_breaking,c_replay}.rs` |
 | `data/core/ontology-query-engine-domain/src/lib.rs` | `src/items/{a_request,b_response,c_filter,d_traversal,e_pagination,f_plan,g_engine,h_validation,i_errors}.rs`, `src/test_items/{a_traversal,b_filters,c_limits,d_tenant_isolation}.rs` |
 | `data/core/ontology-query-engine-usecase/src/lib.rs` | `src/items/{a_policy,b_execution,c_idempotency,d_errors}.rs`, `src/test_items/{a_authorization,b_execution}.rs` |
 | `data/ports/ontology-api/src/lib.rs` | `src/items/{a_request,b_authentication,c_normalization,d_projection,e_response_errors}.rs`, `src/test_items/{a_contract,b_tenant_binding}.rs` |
 | `data/facade/ontology-scorecards-resolver/src/lib.rs` | `src/items/{a_framework,b_resolution,c_localization,d_errors}.rs`, `src/test_items/{a_resolution,b_overrides}.rs` |
+
+The live `data/core/ontology-kernel/src/pillar.rs` is part of this envelope:
+move its definitions and tests to
+`data/core/ontology-kernel/src/items/a_pillar_namespace.rs`, where that item
+defines the public `pillar` module and root re-exports. Remove the handwritten
+`pub mod pillar` membership line from `src/lib.rs`; the sorted item stream is
+its only membership authority. The `pillar` public path, types, errors, labels,
+and tests remain byte-for-byte behavior-compatible.
 
 Each stable root has one fixed source include and one fixed test include where
 applicable. The two integration roots have their own fixed generated include.
@@ -539,18 +550,105 @@ package `build.rs`, and uses the resulting `OUT_DIR`. The remaining files in
 the five packages are read-only. All listed handwritten files must end at or
 below 300 lines.
 
-Success: Cargo/Buck compile identical members, public identity and all ontology
-behavior remain unchanged, and add/rename/remove/non-Rust canaries fail or
-follow membership identically. Failure is a manual index, changed behavior,
-over-budget touched file, or manifest/lock movement. Rollback restores the five
-single-file roots. SLO signal is structural build/test parity only; no product
-availability is claimed. Fault evidence is scanner drift and full existing
+Success: Cargo/Buck compile identical members including the live pillar
+namespace, public identity and all ontology behavior remain unchanged, and
+add/rename/remove/non-Rust canaries fail or follow membership identically.
+Failure is a manual parent `pillar` membership line, an unscanned live source,
+changed behavior, over-budget touched file, or manifest/lock movement. Rollback
+restores the five single-file roots and `pillar.rs`. SLO signal is structural
+build/test parity only; no product availability is claimed. Fault evidence is
+scanner drift, a canary that removes the pillar item, and full existing
 ontology contract/replay tests before/after.
 
-### D1b-O2 — Foundry structural transfer and compatibility LSC
+### D1b-O2P — Promote the Foundry ontology port and type authority
 
-Class: structural D-29/D-33 move and sole lock writer; depends on O1. The exact
-old-to-new package cones are:
+Class: structural D-28/D-29/D-33 provider promotion and sole lock writer;
+depends on O1 and C2A. First move the complete prepared provider cone:
+
+```text
+data/ports/ontology-api/**
+  -> app/foundry/ports/ontology/**       package foundry-ontology
+```
+
+The agreed port becomes the defining package for the portable ontology values
+and contract. Mechanically move these O1-isolated definitions into unique
+members of the moved port:
+
+```text
+data/core/ontology-kernel/src/items/a_pillar_namespace.rs
+  -> app/foundry/ports/ontology/src/items/f_pillar.rs
+data/core/ontology-kernel/src/items/b_identifiers.rs
+  -> app/foundry/ports/ontology/src/items/g_identifiers.rs
+data/core/ontology-kernel/src/items/c_entity_types.rs
+  -> app/foundry/ports/ontology/src/items/h_entity_types.rs
+data/core/ontology-kernel/src/items/d_link_types.rs
+  -> app/foundry/ports/ontology/src/items/i_link_types.rs
+data/core/ontology-kernel/src/items/e_action_types.rs
+  -> app/foundry/ports/ontology/src/items/j_action_types.rs
+data/core/ontology-kernel/src/items/f_object_entities.rs
+  -> app/foundry/ports/ontology/src/items/k_object_entities.rs
+data/core/ontology-kernel/src/items/j_errors.rs
+  -> app/foundry/ports/ontology/src/items/l_errors.rs
+```
+
+Also write exactly
+`data/core/ontology-kernel/{Cargo.toml,BUCK}`,
+`data/core/ontology-kernel/src/items/a_contract_reexports.rs`,
+`data/core/ontology-domain/{Cargo.toml,BUCK,src/lib.rs}`, and `Cargo.lock`.
+The kernel and temporary domain compatibility surface depend on and exact-
+re-export `foundry-ontology`; the port has no dependency on either core. Its
+existing request/response/trait members keep their O1 scanner and all engine,
+registration, graph, query, and facade behavior stays in core/facade packages.
+No type wrapper, second parser, or semantic change is allowed.
+
+Both graphs encode `foundry-ontology -> data-ontology-kernel -> internal
+Foundry candidates` in provider-to-consumer order; the temporary
+`data-ontology-domain` wrapper also depends only on the agreed port. The lock
+changes only the provider package/path and these local edges. Required
+reviewers are Data, Foundry, Application as the known direct consumer, every
+consumer of the agreed ontology port, and architecture.
+
+Success: one agreed port defines every shared ontology value; its dependency
+closure contains no Foundry/Data core; the kernel/domain compatibility names
+resolve to the exact same Rust types; all O1 Cargo/Buck/golden behavior passes.
+Failure: port-to-core, duplicate types, caller source change, behavior drift,
+manual membership, unrelated lock churn, or missing consumer review. Rollback
+reverses the provider/type moves before O2A. Fault evidence injects the old
+port-to-core edges and a duplicate value definition and proves graph/type
+identity refusal.
+
+### D1b-O2A — Terminate the Application core edge
+
+Class: separate structural D-29 consumer LSC and sole lock writer after O2P.
+Write exactly:
+
+```text
+app/application/facade/application-app/Cargo.toml
+app/application/facade/application-app/BUCK
+Cargo.lock
+```
+
+Cargo keeps the existing `data_ontology_domain` extern spelling only as an
+alias whose package/path is `foundry-ontology` at
+`app/foundry/ports/ontology`; every affected Buck rule uses the equivalent
+`named_deps` mapping to `//app/foundry/ports/ontology:foundry-ontology`.
+Application Rust is unchanged and no alias may resolve to a Foundry or Data
+core. Required reviewers are Application, Foundry, Data, every agreed-port
+consumer, and architecture.
+
+Success: the Application graph contains the agreed Foundry port and no
+`data/**ontology**` or `app/foundry/core/**` dependency; the 3,667-line source
+is untouched and its exact types/behavior compile under Cargo and Buck.
+Failure: any app-to-app/cloud core edge, caller Rust edit, wrapper type, missed
+Buck rule, unrelated lock churn, or compatibility alias to a core. Rollback
+restores the temporary Data-domain edge only before O2M. Fault evidence injects
+the old Data core and proposed Foundry core labels and proves both graphs reject
+them.
+
+### D1b-O2M — Move the remaining ontology implementation to Foundry
+
+Class: structural D-29/D-33 implementation move and sole lock writer after O2A.
+The exact old-to-new package cones are:
 
 | Data source | Foundry destination / package |
 |---|---|
@@ -558,63 +656,194 @@ old-to-new package cones are:
 | `data/core/ontology-domain/**` | `app/foundry/core/ontology-domain/**` / `foundry-ontology-domain` |
 | `data/core/ontology-query-engine-domain/**` | `app/foundry/core/ontology-query-domain/**` / `foundry-ontology-query-domain` |
 | `data/core/ontology-query-engine-usecase/**` | `app/foundry/core/ontology-query-usecase/**` / `foundry-ontology-query-usecase` |
-| `data/ports/ontology-api/**` | `app/foundry/ports/ontology/**` / agreed `foundry-ontology` |
 | `data/facade/ontology-scorecards-resolver/**` | `app/foundry/facade/ontology-scorecards-app/**` / `foundry-ontology-scorecards-app` |
 
-Also write only `app/application/facade/application-app/{Cargo.toml,BUCK}` and
-root `Cargo.lock`. Package-local imports use the new Foundry crate identities;
-Application preserves its existing `data_ontology_domain` source spelling with
-a Cargo package alias and Buck `named_deps`, so its 3,667-line source is not
-touched. Root workspace globs already discover both faces; root `Cargo.toml` is
-read-only. Required reviewers are Data, Foundry, Application, every consumer
-of the agreed ontology port, and architecture.
+Write no Application path. Package-local manifests/Buck files use the new
+Foundry identities and make every Foundry core depend on/re-export the already
+agreed `foundry-ontology` port where compatibility requires it; no port depends
+on core. Root workspace globs already discover the faces, root `Cargo.toml` is
+read-only, and `Cargo.lock` is the only shared file. Required reviewers are
+Data, Foundry, every agreed-port consumer, and architecture.
 
-Success: no `data/**ontology**` package or package identity remains; all six
-Foundry packages build/test under both graphs; Application is source-compatible;
-the lock changes only package names/paths; Foundry is the only ontology owner.
+Success: no `data/**ontology**` package or package identity remains; the agreed
+port plus five Foundry implementation packages build/test under both graphs;
+Application remains bound only to the port; the lock changes only package
+names/paths; Foundry is the only ontology owner.
 Failure: a compatibility copy remains in Data, a second ontology port appears,
-behavior changes, an unprepared over-budget file is edited, or any consumer is
-missed. Rollback is the inverse six `git mv`s plus exact aliases/lock delta
-before a new Foundry contract version ships. SLO signal is unchanged contract
-test latency/coverage, not service availability. Fault evidence injects each
-old Cargo/Buck identity and proves analysis refuses it, then reruns ontology
+behavior changes, Application resolves a core, an unprepared over-budget file
+is edited, or any consumer is missed. Rollback is the inverse five `git mv`s
+and exact lock delta before a new Foundry contract version ships; O2A/P remain
+valid. SLO signal is unchanged contract-test latency/coverage, not service
+availability. Fault evidence injects each old Cargo/Buck identity and a
+port-to-core edge and proves analysis refuses them, then reruns ontology
 tenant/link/schema/replay tests.
 
 ## D1b-B — Transfer transactional outbox authority to Bus
 
-Class: structural D-29/D-33 move and sole lock writer; depends on P2. Move:
+The current `data/core/transactional-outbox-kernel` is not a portable outbox
+contract. It owns PostgreSQL insert SQL and `SqlWriteBatch` construction and it
+depends on `gateway/core/protocol-parity-kernel`. Moving that cone wholesale to
+`bus/ports/outbox` would put implementation and another owner's core behind an
+agreed face. The transfer is therefore the following ordered provider-owned
+sequence after P2.
+
+### D1b-BG — Promote the Gateway protocol envelope
+
+Class: separate Gateway-owned structural D-28/D-29/D-33 LSC and sole lock
+writer after P2. Move the runtime-free protocol value/validation package:
 
 ```text
-data/core/transactional-outbox-kernel/**
-  -> bus/ports/outbox/**                 package bus-outbox
-data/adapters/outbox-sqlx/**
-  -> bus/adapters/outbox-sqlx/**         package bus-outbox-sqlx
+gateway/core/protocol-parity-kernel/**
+  -> gateway/ports/protocol-envelope/**  package gateway-protocol-envelope
+gateway/ports/protocol-envelope/BUCK     create matching one-file target
 ```
 
-The moved scanner roots/items are those frozen by P1. The only additional
-writable consumer paths are:
+Update only `Cargo.toml` and `BUCK` in these seven exact reverse consumers plus
+`Cargo.lock`:
 
 ```text
-app/community/facade/post-store-app/{Cargo.toml,BUCK}
-app/community/facade/social-app/{Cargo.toml,BUCK}
-intelligence/core/backbone-workload-live-app/{Cargo.toml,BUCK}
+app/community/ports/post-store-api
+app/community/ports/social-post-composition-api
+app/community/facade/post-store-app
+app/community/facade/social-app
+gateway/core/protocol-transport-kernel
+data/core/transactional-outbox-kernel
+intelligence/core/backbone-workload-live-app
+```
+
+Cargo aliases and Buck `named_deps` preserve the existing
+`shared_protocol_parity_kernel` extern spelling; no Rust caller changes. The
+new Gateway port owns only bounded transport-envelope values and validation,
+has no core dependency, and is not a Bus contract. Its 296-line `src/lib.rs`
+remains the single-file D-41/YAGNI shape; the new Buck target compiles that same
+root and the lock delta changes only the moved package identity/path and exact
+reverse edges. Required reviewers are Gateway, Data, Community, Intelligence,
+Bus as the next adapter owner, and architecture.
+
+Success: every reverse consumer resolves the agreed Gateway port under both
+graphs, no `gateway/core/protocol-parity-kernel` identity or direct core edge
+remains, and protocol bytes/errors are identical. Failure: caller source edit,
+port-to-core, missed reverse edge, behavior drift, unrelated lock churn, or
+incomplete review. Rollback reverses the move and aliases before BS. Fault
+evidence injects the old Cargo/Buck labels and a port-to-core edge and proves
+analysis refuses them, then runs existing protocol goldens.
+
+### D1b-BS — Freeze Bus outbox faces and graph
+
+Class: Bus-owned structural D-33/D-41 package creation and sole lock writer
+after BG. Create only these four scanner roots and `Cargo.lock`:
+
+```text
+bus/ports/outbox/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+bus/core/outbox-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+bus/adapters/outbox-postgres-command/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+bus/adapters/outbox-sqlx/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 Cargo.lock
 ```
 
-Consumer source keeps the existing extern names through Cargo package aliases
-and Buck `named_deps`; no caller Rust file is touched. `bus/ports/outbox` is an
-agreed provider contract, so required reviewers are Data, Bus, Community,
-Intelligence, and architecture. P2 follows this move; its Intelligence target
-then repairs only the remaining PostgreSQL label.
+Package names are `bus-outbox`, `bus-outbox-domain`,
+`bus-outbox-postgres-command`, and `bus-outbox-sqlx`. Each owned dependency-
+free `build.rs` scans sorted `src/items/*.rs` and `src/test_items/*.rs` into
+fixed `OUT_DIR` includes; each Buck rule stages the same globs and scanner.
+Cargo/Buck encode these provider-to-consumer edges exactly:
 
-Success: Bus owns both identities, all Data outbox paths are absent, Cargo/Buck
-edges agree, SQL ordering/idempotency/rollback are unchanged, and all three
-reverse consumers pass. Failure: a Data compatibility copy remains, delivery
-authority stays in Data, a caller source changes, lock churn is unrelated, or
-review closure is incomplete. Rollback reverses the two moves and aliases before
-a Bus contract version is published. SLO signals are enqueue/drain ordering and
-bounded retry counters only; no Bus availability claim follows. Fault evidence
-reruns atomic rollback/duplicate/reorder tests and injects each old label/path.
+```text
+bus-outbox -> bus-outbox-domain
+bus-outbox + bus-outbox-domain + data-postgres-command
+  + gateway-protocol-envelope -> bus-outbox-postgres-command
+bus-outbox + bus-outbox-domain + data-postgres-command
+  + sqlx -> bus-outbox-sqlx
+```
+
+`bus/ports/outbox` is implementation-free: no SQL, `SqlWriteBatch`, SQLx,
+Gateway type, database transaction, or delivery runtime crosses that face.
+The domain is pure Bus state/validation. PostgreSQL command construction and
+protocol conversion live only in `outbox-postgres-command`; SQLx drain logic
+lives only in `outbox-sqlx`. This is a Bus provider lane, not authorization for
+Data to write Bus paths. Required reviewers are Bus, Data, Gateway, Community,
+Intelligence, and architecture.
+
+Success: all four empty/scanner packages and exact edges analyze in Cargo and
+Buck; the port has no implementation dependency; scanner add/rename/remove and
+non-Rust canaries agree. Failure: behavior in the structural PR, SQL or a
+foreign type in the port, cross-owner core dependency, manual inventory,
+graph drift, or unrelated lock churn. Rollback removes the four roots and lock
+blocks. No availability claim follows from empty faces.
+
+### D1b-BC — Implement Bus outbox behavior behind frozen faces
+
+Class: Bus-owned content-only behavior after BS; no manifest, build, lock, or
+route change. The exact unique-file envelope is:
+
+```text
+bus/ports/outbox/src/items/{a_contract,b_errors,c_claim}.rs
+bus/ports/outbox/src/test_items/{a_contract,b_limits}.rs
+bus/core/outbox-domain/src/items/{a_entry,b_validation,c_idempotency}.rs
+bus/core/outbox-domain/src/test_items/{a_contract,b_replay}.rs
+bus/adapters/outbox-postgres-command/src/items/{a_insert_sql,b_command_builder,c_compatibility}.rs
+bus/adapters/outbox-postgres-command/src/test_items/{a_atomic_batch,b_compatibility}.rs
+bus/adapters/outbox-sqlx/src/items/{a_claim_sql,b_drain,c_state}.rs
+bus/adapters/outbox-sqlx/src/test_items/{a_drain,b_scope}.rs
+```
+
+The portable contract owns bounded records, errors, claim/lease semantics, and
+idempotency only. The pure domain owns state transitions. The two adapters
+provide the existing Data package APIs as compatibility exports while keeping
+SQL, `SqlWriteBatch`, Gateway conversion, and SQLx below their adapter faces.
+The old Data packages remain the routed authority during this differential
+stage.
+
+Success: exact Bus APIs preserve existing outbox type/error/SQL ordering,
+tenant transaction, rollback, duplicate, claim, and drain behavior under the
+shared contract suite; no port leaks implementation. Failure: a second
+delivery authority, changed bytes or SQL order, port implementation leakage,
+unbounded input, or graph edit. Rollback removes only the unique item files.
+SLO signals are enqueue/drain ordering, duplicate/refusal counters, claim age,
+and bounded work; no Bus availability is claimed. Fault evidence covers atomic
+rollback, duplicate/reorder, lease expiry, cancellation, partial drain, and
+limit-plus-one inputs against old and new adapters.
+
+### D1b-BX — Cut over the exact outbox reverse consumers
+
+Class: separate D-29 compatibility LSC and sole lock writer after BC. Write
+only `Cargo.toml` and `BUCK` in these three directories plus `Cargo.lock`:
+
+```text
+app/community/facade/post-store-app
+app/community/facade/social-app
+intelligence/core/backbone-workload-live-app
+```
+
+Cargo package aliases and Buck `named_deps` preserve each existing outbox
+extern spelling while resolving the old kernel name to
+`bus-outbox-postgres-command` and the old SQLx-adapter name to
+`bus-outbox-sqlx`. Caller Rust is unchanged. Required reviewers are Bus, Data,
+Community, Intelligence, Gateway, and architecture.
+
+Success: all three consumers use Bus adapters in both graphs, preserve source
+and behavior, and contain no Data outbox or Gateway-core edge. Failure: caller
+Rust change, port used as a SQL adapter, stale label, missed Buck rule, unrelated
+lock churn, or incomplete owner review. Rollback restores the old Data aliases
+before BR. Fault evidence injects every old label and direct core edge and
+proves analysis rejects them, then runs the differential suite.
+
+### D1b-BR — Retire the Data outbox implementations
+
+Class: Data-owned structural deletion and sole lock writer after BX. Delete:
+
+```text
+data/core/transactional-outbox-kernel/**
+data/adapters/outbox-sqlx/**
+Cargo.lock
+```
+
+No Bus, Gateway, or consumer path changes here. Success: the deleted packages
+have zero Cargo/Buck reverse consumers, no Data outbox identity remains, Bus is
+the sole provider, and the three consumers plus Bus suites pass. Failure: a
+reverse edge remains, compatibility copy survives, route differs from BX, or
+lock churn exceeds the two deleted blocks. Rollback restores the prepared Data
+packages only before a Bus contract version ships. Fault evidence injects each
+deleted Cargo/Buck identity and proves repository analysis refuses it.
 
 ## D1c — Freeze the engine-neutral records shape and contract
 
@@ -634,18 +863,18 @@ data/ports/draft/tablet-persistence/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/records-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/tablet-consensus-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/adapters/draft/records-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-data/adapters/draft/tablet-file/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/tablet-persistence-file/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 Cargo.lock
 ```
 
 Package names are respectively `data-records-draft`,
 `data-tablet-persistence-draft`, `data-records-domain`,
 `data-tablet-consensus-domain`, `data-records-inmemory-draft`, and
-`data-tablet-file-draft`. Every dependency-free owned `build.rs` scans sorted
-`src/items/*.rs` and `src/test_items/*.rs`, tolerates their structural absence,
-and writes fixed `lib.generated.rs`/`tests.generated.rs` under `OUT_DIR`; Buck
-stages the same globs with `buildscript_run`. Stable roots never become module
-inventories.
+`data-tablet-persistence-file-draft`. Every dependency-free owned `build.rs`
+scans sorted `src/items/*.rs` and `src/test_items/*.rs`, tolerates their
+structural absence, and writes fixed `lib.generated.rs`/`tests.generated.rs`
+under `OUT_DIR`; Buck stages the same globs with `buildscript_run`. Stable roots
+never become module inventories.
 
 Exact dependency directions under Cargo and Buck are:
 
@@ -657,7 +886,7 @@ data-records-domain + data-tablet-persistence-draft
   -> data-tablet-consensus-domain
 data-records-draft + data-records-domain
   -> data-records-inmemory-draft
-data-tablet-persistence-draft -> data-tablet-file-draft
+data-tablet-persistence-draft -> data-tablet-persistence-file-draft
 ```
 
 The lock adds exactly six local package blocks/edges and no third-party version.
@@ -753,8 +982,8 @@ concurrent histories.
 Class: content-only behavior after D1d; no manifest/build/lock/route change.
 
 ```text
-data/adapters/draft/tablet-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction}.rs
-data/adapters/draft/tablet-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade}.rs
+data/adapters/draft/tablet-persistence-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction}.rs
+data/adapters/draft/tablet-persistence-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade}.rs
 data/core/tablet-consensus-domain/src/items/{b_log,c_membership,d_leader,e_snapshot_transfer,f_repair,g_admission}.rs
 data/core/tablet-consensus-domain/src/test_items/{b_partition,c_leader_change,d_snapshot_transfer,e_repair_budget}.rs
 data/core/records-domain/src/items/l_durable_commit.rs
@@ -788,17 +1017,18 @@ Class: structural and sole lock writer after D1e. Create only:
 data/ports/draft/home-cell-directory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/placement-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/tablet-transaction-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-data/adapters/draft/home-cell-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/home-cell-directory-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 Cargo.lock
 ```
 
 Use the D1c scanner contract. Packages are `data-home-cell-directory-draft`,
 `data-placement-domain`, `data-tablet-transaction-domain`, and
-`data-home-cell-inmemory-draft`. Dependencies are records/consensus -> placement,
-records/consensus/placement -> tablet-transaction, and directory/placement ->
-home-cell-inmemory. The lock adds exactly four local blocks. Required reviewers
-are Data, Cell, Tenancy, and architecture; no owner may consume the draft port.
-Success/failure/rollback/scanner faults match D1c-S, with no behavior claim.
+`data-home-cell-directory-inmemory-draft`. Dependencies are records/consensus
+-> placement, records/consensus/placement -> tablet-transaction, and
+directory/placement -> home-cell-directory-inmemory. The lock adds exactly
+four local blocks. Required reviewers are Data, Cell, Tenancy, and architecture;
+no owner may consume the draft port. Success/failure/rollback/scanner faults
+match D1c-S, with no behavior claim.
 
 ### D2-R — Split, move, and placement behavior
 
@@ -843,8 +1073,9 @@ placement, records, consensus, and clock under both graphs.
 Exact content-only files are
 `data/ports/draft/home-cell-directory/src/items/{a_contract,b_errors}.rs`,
 `data/ports/draft/home-cell-directory/src/test_items/a_contract.rs`,
-`data/adapters/draft/home-cell-inmemory/src/items/a_directory.rs`, and
-`data/adapters/draft/home-cell-inmemory/src/test_items/a_epoch.rs`. Success is
+`data/adapters/draft/home-cell-directory-inmemory/src/items/a_directory.rs`, and
+`data/adapters/draft/home-cell-directory-inmemory/src/test_items/a_epoch.rs`.
+Success is
 cached lookup with monotonic ownership and no per-query global hop; failure is
 two home cells or stale authority acceptance. Rollback removes the five files.
 Signals are lookup cache age/refusal and transfer duration; faults cover stale
@@ -856,25 +1087,42 @@ production directory ownership is a D4 decision.
 ### D3-S — Derived-plane structure
 
 Class: structural and sole lock writer after D1e; may run beside D2-S only when
-lock writers are serialized. Create five scanner package roots plus lock:
+lock writers are serialized. Create seven scanner package roots plus lock:
 
 ```text
 data/ports/draft/change-stream/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/olap-store/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/record-pipeline-store/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/olap-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 data/core/record-pipeline-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-data/adapters/draft/olap-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
-data/adapters/draft/record-pipeline-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/olap-store-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/record-pipeline-store-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
 Cargo.lock
 ```
 
-The package names are `data-change-stream-draft`, `data-olap-domain`,
-`data-record-pipeline-domain`, `data-olap-inmemory-draft`, and
-`data-record-pipeline-inmemory-draft`. Change-stream depends on the records
-contract; both domains depend on change-stream; each adapter depends on its
-domain. Exactly five local lock blocks are added; the reverse closure is empty.
-Reviewers are Data and architecture; current ClickHouse and analytics packages
-are read-only compatibility inventory. Structural success/failure/rollback/
-fault criteria match D1c-S.
+The package names are `data-change-stream-draft`, `data-olap-store-draft`,
+`data-record-pipeline-store-draft`, `data-olap-domain`,
+`data-record-pipeline-domain`, `data-olap-store-inmemory-draft`, and
+`data-record-pipeline-store-inmemory-draft`. Cargo and Buck encode these
+provider-to-consumer edges exactly:
+
+```text
+data-records-draft -> data-change-stream-draft
+data-change-stream-draft + data-olap-store-draft -> data-olap-domain
+data-change-stream-draft + data-record-pipeline-store-draft
+  -> data-record-pipeline-domain
+data-olap-store-draft + data-olap-domain
+  -> data-olap-store-inmemory-draft
+data-record-pipeline-store-draft + data-record-pipeline-domain
+  -> data-record-pipeline-store-inmemory-draft
+```
+
+The two adapter names now identify the exact provider port and backend they
+implement; neither is an orphan adapter with only a domain dependency. Exactly
+seven local lock blocks are added; the reverse closure is empty. Reviewers are
+Data and architecture; current ClickHouse and analytics packages are read-only
+compatibility inventory. Structural success/failure/rollback/fault criteria
+match D1c-S.
 
 ### D3-C — Ordered change and checkpoint contract
 
@@ -895,10 +1143,12 @@ plus records; reviewers are Data and architecture.
 ### D3-O — Immutable OLAP projection
 
 Exact content-only files are
+`data/ports/draft/olap-store/src/items/{a_contract,b_errors}.rs`,
+`data/ports/draft/olap-store/src/test_items/a_contract.rs`,
 `data/core/olap-domain/src/items/{a_segment,b_projection,c_backfill,d_publication,e_query}.rs`,
 `data/core/olap-domain/src/test_items/{a_replay,b_backfill,c_publication,d_noisy_tenant}.rs`,
-`data/adapters/draft/olap-inmemory/src/items/a_projection_store.rs`, and
-`data/adapters/draft/olap-inmemory/src/test_items/a_contract.rs`. Success is
+`data/adapters/draft/olap-store-inmemory/src/items/a_projection_store.rs`, and
+`data/adapters/draft/olap-store-inmemory/src/test_items/a_contract.rs`. Success is
 deterministic immutable generation publication and p99 freshness at or below
 the PRD 60-second target under the declared profile; failure is partial
 visibility, OLTP authority, gap, or unbounded noisy-tenant impact. Rollback
@@ -910,10 +1160,12 @@ ClickHouse remains an untouched differential oracle.
 ### D3-P — Record-transform pipeline
 
 Exact content-only files are
+`data/ports/draft/record-pipeline-store/src/items/{a_contract,b_errors}.rs`,
+`data/ports/draft/record-pipeline-store/src/test_items/a_contract.rs`,
 `data/core/record-pipeline-domain/src/items/{a_job,b_transform,c_checkpoint,d_generation,e_lineage}.rs`,
 `data/core/record-pipeline-domain/src/test_items/{a_replay,b_partial_failure,c_lineage,d_quota}.rs`,
-`data/adapters/draft/record-pipeline-inmemory/src/items/a_job_store.rs`, and
-`data/adapters/draft/record-pipeline-inmemory/src/test_items/a_contract.rs`.
+`data/adapters/draft/record-pipeline-store-inmemory/src/items/a_job_store.rs`, and
+`data/adapters/draft/record-pipeline-store-inmemory/src/test_items/a_contract.rs`.
 Success is p99.9 durable-admission modeling at or below one second, idempotent
 replay, complete lineage, and atomic generation publication; failure is a
 partial generation, lost lineage, second record authority, or unbounded queue.
@@ -961,22 +1213,25 @@ clear this gate.
 
 <ordering_rules>
 
-1. C1 precedes C2A; C2Q is a no-write quarantine. C2A precedes O1/O2. P1
-   precedes P2, which precedes the Bus transfer. C2A, O2, P2, and B join before
+1. C1 precedes C2A; C2Q is a no-write quarantine. C2A precedes O1, then
+   O2P/O2A/O2M. P1 precedes P2, then BG/BS/BC/BX/BR. O2M and BR join before
    D1c; D1c-S precedes C/O, then D1d, then D1e.
 2. Consensus, fencing, and durable recovery precede broad sharding, OLAP,
    performance tuning, `io_uring`, or hardware specialization.
 3. One stage owns each shared manifest or `Cargo.lock`; behavioral lanes use
    unique files after structure freezes.
-4. O1/O2 and B are the ordered ontology-to-Foundry and outbox-to-Bus transfers;
-   they are required join inputs, not prose debt or hidden database work.
+4. O1/O2P/O2A/O2M and BG/BS/BC/BX/BR are the ordered ontology-to-Foundry and
+   outbox-to-Bus transfers; they are required join inputs, not prose debt or
+   hidden database work.
 5. Unit-green is never stage completion. Every stage carries explicit success,
    failure, rollback, SLO signals, and named fault evidence.
 6. C1 and P1 commute, but their lock writes serialize. After those providers,
-   C2A, P2, B, and O2 are separate lock-writing LSCs and also serialize. O1 is
-   lock-free and may run beside P2/B when paths are disjoint; O2 follows C2A/O1.
-   D2-S and D3-S may be prepared in parallel but merge one lock writer at a
-   time; their content lanes then commute on unique files.
+   C2A, P2, O2P/O2A/O2M, BG, BS, BX, and BR are separate lock-writing LSCs and
+   also serialize. O1 is lock-free and may run beside P2/BG/BS when paths are
+   disjoint; O2P follows C2A/O1. BC is content-only and may run beside an O2
+   lock writer once BS lands because their path sets are disjoint. D2-S and
+   D3-S may be prepared in parallel but merge one lock writer at a time; their
+   content lanes then commute on unique files.
 
 </ordering_rules>
 
@@ -1002,8 +1257,9 @@ reviewers, and rollback.
 <next_lane>
 
 The next dispatchable fanout is C1 and P1, with their lock writers serialized.
-After C1, dispatch C2A; C2Q never dispatches. After P1, dispatch P2, then B.
-O1 may prepare beside P2/B and O2 follows both O1 and C2A. D1c remains blocked
-until C2A, O2, B, P2, and both cross-owner decision receipts are complete.
+After C1, dispatch C2A; C2Q never dispatches. O1 may prepare beside P2 and the
+Gateway/Bus structural lanes. After O1/C2A, serialize O2P, O2A, and O2M. After
+P1, serialize P2, BG, BS, BX, and BR around content-only BC. D1c remains
+blocked until O2M, BR, and both cross-owner decision receipts are complete.
 
 </next_lane>

@@ -50,9 +50,17 @@ tests.
   Grid, Workshop, search/SERP, RAG, a BI application, or a private clock.
   Foundry ontology packages MUST move to `app/foundry`; outbox delivery
   packages MUST move to `bus/` through separately versioned owner changes.
+  Shared ontology values MUST be defined by an implementation-free Foundry
+  port; Application MUST bind that port or the sold Foundry facade, never a
+  Foundry/Data core. The Bus outbox port MUST remain free of SQL, database,
+  Gateway, and delivery-runtime implementation; those dependencies belong in
+  provider-matching adapters behind agreed ports.
 - **ensure:** new Data core packages model records, transactions, queries,
   projections, or dataset transforms; dependency review rejects app-domain,
-  generic blob, search, and broker behavior in Data core.
+  generic blob, search, and broker behavior in Data core. Transfer review
+  proves all reverse consumers leave old cores, every adapter name identifies
+  the port and backend it implements, and Cargo/Buck enforce port-to-consumer
+  rather than port-to-core edges.
 - **overturn_when:** a founder-accepted owner-boundary decision updates every
   affected owner's four law files in the same change.
 
