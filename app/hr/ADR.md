@@ -140,16 +140,25 @@ over-budget files are debt, not precedent.
   port/transport responsibilities and illegal dependency direction. No SQLite
   dependency or adapter package exists, so admitting that graph and implementing
   its durability protocol are distinct ADR-0719 D-33 change classes.
-- **rule:** the migration MUST proceed as L2b file-budget splits, L2c
-  port/facade/adapter separation, L2d app-owned I/O/transport ports and removal
-  of direct Data/Gateway core edges, L2e.0 serialized SQLite dependency and
-  adapter-face admission, L2e content-only parity and crash proof inside that
-  frozen face, then a narrow People feature slice. Structural lanes MUST
-  preserve public behavior and make no durability/readiness claim.
-- **ensure:** each lane has an exact changed-path envelope, before/after tests,
-  no generated hand edits, and a protected PR; SQLite behavior begins only after
-  the dependency, workspace/lock, port, adapter face, and Cargo/Buck membership
-  prerequisites are green and frozen.
+- **rule:** the migration MUST first repair the stale Buck labels in the exact
+  HR plus reverse-consumer build closure, then proceed as L2b file-budget
+  splits; L2c structural face admission followed by content-only role
+  separation; L2d structural draft-port/adapter admission, content-only
+  dependency inversion, then structural removal of direct Data/Gateway edges;
+  serialized SQLite dependency and adapter-face admission; content-only SQLite
+  parity and crash proof; structural sold People proto/Connect/facade admission;
+  and a content-only onboarding slice. A mandatory D-29 IAM consumer sequence
+  MUST then remove every one of the five IAM-to-HR internal dependency paths,
+  after which a separate HR structural lane MUST retire the compatibility
+  surfaces. No live route or production-readiness promotion may precede that
+  zero-inverse-edge proof. Structural lanes MUST preserve public behavior and
+  make no durability, network, or readiness claim.
+- **ensure:** each lane has an exact changed-path envelope, Cargo and Buck build
+  closure, reviewer jurisdiction, rollback, before/after tests, no generated
+  hand edits, and a protected PR. SQLite behavior begins only after the pinned
+  binding, workspace/lock, port, adapter face, and Cargo/Buck membership
+  prerequisites are green and frozen; routing begins only after an inverse
+  Cargo/Buck scan proves the five IAM consumers no longer import HR internals.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
   cannot be separated safely and a replacement plan preserves the same rollback
   boundary and proof strength.
