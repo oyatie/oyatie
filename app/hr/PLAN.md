@@ -95,40 +95,60 @@ and every target claim to an explicit future lane.
 
 Class: structural; this is `<next_lane>`.
 
-- **L2b.1 domain:** split `core/employment-domain/src/lib.rs` and the
-  `leave_balance.rs`, `leave_carryover_forfeiture.rs`, and `onboarding.rs` tests
-  into bounded modules/targets; update only `core/employment-domain/BUCK`.
-- **L2b.2 port, after L2b.1:** split
-  `ports/employment-api/src/lib.rs` after the domain re-export surface is fixed;
-  update only `ports/employment-api/BUCK`.
-- **L2b.3 infrastructure, after L2b.2:** split
-  `adapters/employment-infrastructure/src/authz.rs`, its `src/lib.rs`, and
-  `tests/runtime.rs` after the port surface is fixed; update only
-  `adapters/employment-infrastructure/BUCK`.
-- Each slice may add uniquely named modules/tests only inside its named package;
-  every old public path and result remains available through compatibility
-  re-exports where required.
-- Leave package identities, dependency direction, DTOs, traits, routes, and
-  behavior unchanged.
+- **L2b.1 domain:** add `core/employment-domain/build.rs`; move the production
+  body into bounded `src/items/*.rs`; and split `leave_balance.rs`,
+  `leave_carryover_forfeiture.rs`, and `onboarding.rs` into their respective
+  `tests/<name>_items/*.rs` directories. The owned script scans each declared
+  directory, retains `.rs` entries, sorts paths, and writes
+  `lib.generated.rs` plus one `<name>.generated.rs` per split test to `OUT_DIR`.
+  `src/lib.rs` and the three existing test roots keep stable `include!` lines so
+  their Cargo/Buck target identities and the crate's public root remain fixed.
+- **L2b.2 port, after L2b.1:** add `ports/employment-api/build.rs`; move the
+  production body into bounded `src/items/*.rs`; generate
+  `employment_api.generated.rs` in `OUT_DIR`; and leave one stable `include!`
+  in `src/lib.rs` after the domain re-export surface is fixed.
+- **L2b.3 infrastructure, after L2b.2:** add
+  `adapters/employment-infrastructure/build.rs`; move the production body,
+  including the split private authorization implementation, into bounded
+  `src/items/*.rs`; move extracted unit tests into `src/test_items/*.rs`; and
+  split `tests/runtime.rs` into `tests/items/*.rs`. The existing crate and
+  runtime-test roots become stable includes of `lib.generated.rs`,
+  `tests.generated.rs`, and `runtime.generated.rs` from `OUT_DIR`.
+- In every sub-slice, Buck MUST model the package `build.rs`, glob and stage the
+  exact same item directories used by Cargo, run that script through
+  `buildscript_run`, and provide its `OUT_DIR` to every affected library/test
+  target. A parity check compares the ordered generated membership and proves a
+  unique item is visible through Cargo and Buck without an index edit.
+- Each slice may add uniquely named items/tests only inside its declared item
+  directories. No tracked generated membership or hand-maintained per-item
+  `mod` inventory is admitted. Every old public path and result remains
+  available through the stable root or compatibility re-export where required.
+- Leave package identities, Cargo manifests, dependency direction, DTOs,
+  traits, routes, validation order, errors, serialization, and behavior
+  unchanged; Cargo auto-detects each new package-root `build.rs`.
 
 Changed-path envelopes are closed per sub-slice: L2b.1 owns
-`app/hr/core/employment-domain/{src/**,tests/**,BUCK}`; L2b.2 owns
-`app/hr/ports/employment-api/{src/**,BUCK}`; L2b.3 owns
-`app/hr/adapters/employment-infrastructure/{src/**,tests/**,BUCK}`. No Cargo
-manifest, lockfile, root law, generated artifact, IAM path, or business-rule
-change is admitted.
+`app/hr/core/employment-domain/{build.rs,src/**,tests/**,BUCK}`; L2b.2 owns
+`app/hr/ports/employment-api/{build.rs,src/**,BUCK}`; L2b.3 owns
+`app/hr/adapters/employment-infrastructure/{build.rs,src/**,tests/**,BUCK}`.
+No Cargo manifest, lockfile, root law, tracked generated artifact, IAM path, or
+business-rule change is admitted.
 
 Success: all eight enumerated originals are removed or at most 300 lines, every
 new hand-written file is at most 300 lines, public API and HR test results are
-unchanged, and Cargo and Buck targets retain parity.
+unchanged, each root index remains stable after the split, and Cargo and Buck
+generate the same ordered item membership for every affected target.
 
 Failure: validation order, error identity, serialization, route behavior,
-authorization, or test coverage drifts; a compatibility path disappears.
+authorization, or test coverage drifts; a compatibility path disappears; an
+item compiles in only one graph; or a tracked/manual membership list appears.
 
 Rollback: revert the module/test split as one structural change.
 
-Fault evidence: before/after exact HR tests plus negative path admission for an
-oversized touched fixture.
+Fault evidence: before/after exact HR tests; negative path admission for an
+oversized touched fixture and a manual/tracked inventory fixture; and an
+add/rename/remove canary proving Cargo and Buck both regenerate membership from
+the same item directories without changing a crate or test root.
 
 ## L2c — Separate port, facade, and adapter responsibilities
 

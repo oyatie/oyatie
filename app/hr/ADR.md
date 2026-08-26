@@ -151,6 +151,34 @@ over-budget files are debt, not precedent.
 
 </migration_discipline>
 
+<stable_item_membership>
+
+## Decision: L2b installs owned stable compile-time indexes
+
+- **achieves:** later HR work adds one uniquely named item without editing a
+  shared crate or test index, while Cargo and Buck compile the same membership.
+- **origin:** L2b turns three monolithic crate roots and four oversized tests
+  into multi-file surfaces. ADR-0719 D-41 forbids replacing those monoliths with
+  tracked generated indexes or hand-maintained `mod` lists, and Storage already
+  demonstrates the owned sorted `build.rs` plus `OUT_DIR` pattern.
+- **rule:** each L2b package MUST install its own crate-root `build.rs`. The
+  script MUST enumerate the package's declared `src/items/*.rs` and split-test
+  item directories, retain Rust sources, sort their paths deterministically,
+  and emit named membership files only under `OUT_DIR`. Each affected crate or
+  test root MUST hold a stable `include!(concat!(env!("OUT_DIR"),
+  "/<name>.generated.rs"))` index. No generated membership file may be tracked,
+  and no parent may carry a manual per-item `mod` inventory.
+- **ensure:** Cargo's auto-detected build script and Buck's `buildscript_run`
+  MUST execute the same scanner over the same globbed directory sets; their
+  generated source order and contents must match. L2b evidence adds, renames,
+  and removes a uniquely named item without an index edit, builds it through
+  both graphs, and rejects tracked/generated or manual membership inventories.
+- **overturn_when:** rustc provides deterministic directory membership without
+  a generated index, or a five-field owner decision supplies a smaller owned
+  mechanism that preserves stable parents and Cargo/Buck parity.
+
+</stable_item_membership>
+
 ## Rejected destinations
 
 - HR core importing cloud capability core/ports or another app's internals.
@@ -161,3 +189,5 @@ over-budget files are debt, not precedent.
   metering.
 - New People behavior mixed into file moves, crate-graph changes, or SQLite
   introduction.
+- A tracked generated module index, hand-maintained per-item `mod` list, or
+  Cargo-only item scan that leaves Buck with different membership.
