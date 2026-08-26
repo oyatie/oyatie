@@ -11,7 +11,7 @@ cell-location = { path = "../../../../cell/ports/location" }
 compute-resource = { path = "../../../../compute/core/resource" }
 data-classification = { path = "../../../../data/ports/classification" }
 network-residency = { path = "../../../../network/core/residency" }
-secrets-kms-domain = { path = "../../../../secrets/core/kms-domain" }
+secrets-kms = { path = "../../../../secrets/ports/kms" }
 
 [lib]
 doctest = false
