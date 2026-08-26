@@ -96,6 +96,10 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   an allowed purpose.
 - Never return sensitive payload merely because a caller supplied an allow
   field. Audit/evidence requirements complete before disclosure.
+- Route no production request through a test fake or trait-only composition.
+  Installed-pack resolution, Policy/IAM authorization evidence, and Audit/
+  outbox delivery each require an accepted provider contract and a production
+  HR-owned adapter whose outage behavior fails closed for the operation class.
 - Encrypt durable sensitive fields through a selected adapter and prevent
   secrets, credentials, raw sensitive values, or policy proofs from entering
   logs and metrics.
@@ -166,6 +170,12 @@ objectives as unqualified rather than manufacturing availability evidence.
   generated Connect service/runtime, request/success/error mapping, and absence
   of HR-written framing, gRPC framing, or trailers before any listener
   promotion.
+- The production process composes concrete Packs/install, Policy/IAM evidence,
+  Audit/outbox, SQLite, and generated-Connect adapters; each provider outage is
+  proven before route activation and before a non-empty tenant cohort.
+- Success and error responses, stored replay outcomes, returned strings, and
+  repeated fields stay within exact hard ceilings under checked accounting;
+  oversized state produces no partial response or sensitive fallback error.
 
 ## Failure
 
@@ -180,6 +190,9 @@ objectives as unqualified rather than manufacturing availability evidence.
 - A cloud IAM package imports any HR package, or an HR facade accepts gRPC,
   trailer-dependent, malformed, unbounded, second-codec, or HR-handwritten
   Connect traffic.
+- A routed cohort uses an in-memory/test authority, omits a required production
+  provider adapter, emits a partial oversized response, truncates a collection,
+  or interpolates sensitive state into an error.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 
@@ -195,7 +208,12 @@ objectives as unqualified rather than manufacturing availability evidence.
 - Kill the adapter during migration and prove it reopens at either the prior
   admitted version or the fully committed next version, never a hybrid.
 - Inject malformed/truncated protobuf, a gRPC five-byte prefix, wrong Connect
-  headers/content type, trailer metadata, and body/in-flight saturation; every
-  case fails before repository mutation.
+  headers/content type, trailer metadata, request/response body and in-flight
+  saturation, exact and limit-plus-one output/repeated-field/error sizes, and
+  encode failure before headers; every case fails before repository mutation
+  or partial response.
+- Independently remove Packs/install, Policy/IAM, and Audit service reachability
+  before process boot and during an admitted request; readiness drops, required
+  operations fail closed, reservations drain, and no cohort is routed on a fake.
 
 </acceptance>

@@ -112,8 +112,9 @@ over-budget files are debt, not precedent.
 - **ensure:** the L2f gate fails closed while no accepted target exists. Its
   acceptance receipt and amended plan prove generated Connect service symbols,
   Cargo/Buck input/output parity, no tonic/gRPC runtime, and byte/fault vectors
-  for exact paths, bare protobuf success, generated Connect errors, malformed
-  protobuf, framing, saturation, cancellation, and trailer rejection.
+  for exact paths, bare protobuf success, bounded success/error output,
+  generated Connect errors, malformed protobuf, framing, request/response
+  saturation, cancellation, and trailer rejection.
 - **overturn_when:** an accepted protocol decision replaces ADR-0719 D-4 and a
   same-wave migration preserves one IDL, equivalent bounded wire evidence, and
   no standing second protocol.
@@ -188,13 +189,19 @@ over-budget files are debt, not precedent.
   serialized SQLite dependency and adapter-face admission; content-only SQLite
   parity and crash proof; a fail-closed Connect generator/runtime decision
   gate; structural empty codegen/package/build admission; a separate schema-only
-  People contract; and then a content-only generated-Connect onboarding slice.
+  People contract; a content-only fail-closed `Unrouted` process state; and then
+  a content-only generated-Connect onboarding slice.
   A mandatory D-29 IAM
   consumer sequence MUST then delete IAM-local HR composition and remove every
   IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
   after which a separate HR structural lane MUST retire the compatibility
-  surfaces. No live route or production-readiness promotion may precede that
-  zero-inverse-edge proof. Structural lanes MUST preserve public behavior and
+  surfaces. Production serving then requires decision-gated Packs/install,
+  Policy/IAM authorization-evidence, and Audit/outbox provider contracts;
+  separate structural adapter faces, content-only adapter behavior, structural
+  composition edges, content-only composition, and a separately gated
+  main/route activation before any tenant cohort. No live route or production-
+  readiness promotion may precede the zero-inverse-edge proof or those
+  production authorities. Structural lanes MUST preserve public behavior and
   make no durability, network, or readiness claim.
 - **ensure:** each lane has an exact changed-path envelope, Cargo and Buck build
   closure, reviewer jurisdiction, rollback, before/after tests, no generated
@@ -202,7 +209,9 @@ over-budget files are debt, not precedent.
   binding, workspace/lock, port, adapter face, and Cargo/Buck membership
   prerequisites are green and frozen; routing begins only after an inverse scan
   of the whole IAM cone proves no manifest, Buck label, or Rust import reaches
-  any `app/hr` package.
+  any `app/hr` package and outage tests prove that unavailable Packs, Policy/IAM,
+  or Audit authority prevents routing, mutation, and sensitive disclosure as
+  required by the operation class.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
   cannot be separated safely and a replacement plan preserves the same rollback
   boundary and proof strength.

@@ -130,7 +130,10 @@ outcome that requires trailers.
 
 V1 admission uses the following binary units and closed bounds. `KiB` is 1,024
 octets and `MiB` is 1,048,576 octets. Operators may lower a default, but no
-configuration may exceed the hard maximum.
+configuration may exceed the hard maximum. A configured response-header or
+error-body ceiling must still admit the fixed generated protocol headers and
+the constant fallback error body; otherwise configuration validation keeps the
+process unready.
 
 | Resource | Default | Hard maximum |
 |---|---:|---:|
@@ -138,10 +141,10 @@ configuration may exceed the hard maximum.
 | aggregate decoded header-name plus value octets | 12 KiB | 16 KiB |
 | one decoded header value | 4 KiB | 8 KiB |
 | encoded protobuf request body | 128 KiB | 256 KiB |
-| one decoded protobuf string/bytes value | 4 KiB | 8 KiB |
-| aggregate owned string/bytes after protobuf decode | 64 KiB | 128 KiB |
-| known plus unknown protobuf field occurrences | 96 | 128 |
-| entries in any repeated message field | 32 | 64 |
+| one decoded request string/bytes value | 4 KiB | 8 KiB |
+| aggregate owned request string/bytes after decode | 64 KiB | 128 KiB |
+| request known plus unknown field occurrences | 96 | 128 |
+| entries in any repeated request field | 32 | 64 |
 | protobuf nesting depth | 8 | 8 |
 | active requests per tenant | 32 | 64 |
 | queued requests per tenant | 32 | 64 |
@@ -150,6 +153,18 @@ configuration may exceed the hard maximum.
 | reserved request bytes per tenant | 8 MiB | 16 MiB |
 | reserved request bytes per cell | 512 MiB | 1 GiB |
 | request deadline when absent | 5,000 ms | 30,000 ms |
+| generated response header fields | 16 | 24 |
+| aggregate response header-name plus value octets | 4 KiB | 8 KiB |
+| encoded protobuf success body | 128 KiB | 256 KiB |
+| one returned string/bytes value | 4 KiB | 8 KiB |
+| aggregate returned owned string/bytes | 64 KiB | 128 KiB |
+| response known plus unknown field occurrences | 96 | 128 |
+| entries in any repeated response field | 32 | 64 |
+| stored idempotency outcome bytes | 128 KiB | 256 KiB |
+| redacted Connect error message UTF-8 octets | 256 | 512 |
+| encoded Connect JSON error body | 1 KiB | 2 KiB |
+| reserved response bytes per tenant | 8 MiB | 16 MiB |
+| reserved response bytes per cell | 512 MiB | 1 GiB |
 
 `Connect-Timeout-Ms`, when present, is canonical ASCII decimal
 `[1-9][0-9]{0,4}` in the inclusive range 1..=30,000; sign, whitespace, zero,
@@ -160,6 +175,27 @@ maximum configuration prevents the process from becoming ready. A missing
 content length reserves the full configured body maximum before reading.
 Cancellation releases queue, active, and byte reservations exactly once.
 
+Output accounting is fail-closed and precedes HTTP response commitment. The
+facade validates returned scalar, collection, and field-occurrence counts with
+checked `u64` arithmetic, reserves the configured encoded-response maximum,
+encodes into a capped buffer, verifies the final length, and only then emits
+headers or body. It never truncates a protobuf value or collection. A result
+above the configured ceiling is `resource_exhausted`/429 with no partial body;
+a migrated or stored outcome above a hard maximum is `data_loss`/500 and makes
+the affected serving cohort unready. New outcomes above the stored-outcome
+ceiling abort the transaction before commit. Response reservations are released
+exactly once after send completion, disconnect, cancellation, or encode error.
+
+Connect error messages come only from a fixed, printable-ASCII redacted message
+catalog whose every entry is proven to fit both configured error ceilings;
+domain,
+employee, person, evidence, credential, policy, pack, and adapter strings are
+never interpolated. V1 emits no `details`. The runtime encodes the catalog value
+into the bounded error buffer before committing headers. If even that mapping
+cannot fit, it emits one constant bounded `internal` body and records only the
+typed class plus correlation-safe metadata; it never exposes a partial or raw
+fallback error.
+
 Validation order is stable: method/path; header-count and byte accounting;
 content/protocol/compression/deadline grammar; channel principal and tenant
 binding; tenant then cell queue/active/byte admission; bounded body read;
@@ -168,8 +204,12 @@ binding; then use-case dispatch. Invalid protocol is
 `invalid_argument`/400, an exceeded work or queue bound is
 `resource_exhausted`/429, and an expired deadline is
 `deadline_exceeded`/504. All three occur before repository mutation. Exact-limit
-and limit-plus-one vectors cover every row, and saturation/cancellation proves
-reservation recovery without queue growth.
+and limit-plus-one vectors cover every request and response row. Output vectors
+include the largest allowed `GetEmployee`, every repeated-field boundary,
+stored-outcome migration, error-message and JSON-escaping boundaries, encode
+failure before headers, response loss, and tenant/cell response-byte
+saturation. Saturation/cancellation proves request and response reservation
+recovery without queue growth or partial disclosure.
 
 The v1 mapping is fixed: validation is `invalid_argument`/400;
 unauthenticated is `unauthenticated`/401; forbidden is
@@ -193,10 +233,11 @@ nor `hr-people-app` may depend on `tonic`, `tonic-prost`, `tonic-build`, or
 Golden tests compare exact request, success, and generated Connect error bytes
 through Cargo and Buck. Negative vectors cover truncated/overlong protobuf, a
 gRPC five-byte prefix, two concatenated messages, wrong content/protocol
-headers, gRPC status metadata, attempted trailers, timeout, every exact bound
-and bound-plus-one, queue saturation, and adapter cancellation. Each rejection
-is bounded, classified, observable without sensitive fields, and occurs before
-repository mutation.
+headers, gRPC status metadata, attempted trailers, timeout, every request and
+response exact bound and bound-plus-one, oversized migrated state, queue and
+request/response-byte saturation, encode-before-header failure, and adapter
+cancellation. Each rejection is bounded, classified, observable without
+sensitive fields, and occurs before repository mutation or response commitment.
 
 </connect_boundary>
 

@@ -683,9 +683,9 @@ implementation dispatch.
 
 The reviewed repository has no accepted Connect generator or runtime target.
 `prost-build`, `tonic-prost-build`, and hand-written HTTP/protobuf/error framing
-do not satisfy ADR-0719 D-4. Therefore L2f.0b, L2f.0c, and L2f.1 are explicitly
-**NON-DISPATCHABLE** until a protocol-owner/architecture/Build decision lands
-and this owner law is amended at a new exact head.
+do not satisfy ADR-0719 D-4. Therefore L2f.0b, L2f.0c, L2f.0d, and L2f.1 are
+explicitly **NON-DISPATCHABLE** until a protocol-owner/architecture/Build
+decision lands and this owner law is amended at a new exact head.
 
 The gate must name all of the following, without placeholders:
 
@@ -698,8 +698,10 @@ The gate must name all of the following, without placeholders:
 - generated unary Connect service/handler, request/response, status/error, and
   no-trailer behavior; HR code may implement a generated service trait but may
   not parse or frame Connect itself;
-- bounded deadline, header/body/decode, queue, active-request, in-flight-byte,
-  cancellation, and malformed/error hooks sufficient to enforce SPEC;
+- bounded deadline, request and response header/body/decode/encode, queue,
+  active-request, in-flight-byte, returned-field/repeated-entry, stored-outcome,
+  redacted-error, cancellation, and malformed/error hooks sufficient to enforce
+  SPEC;
 - exact byte-golden, gRPC-prefix, streaming, `grpc-*`, trailer, timeout,
   limit/limit-plus-one, saturation, and cancellation tests in both build graphs;
   and
@@ -728,14 +730,39 @@ app/hr/facade/people-app                    # hr-people-app
 ```
 
 The proto BUCK rule declares the accepted semantic package root but tolerates
-an absent `people_service.proto`. Each Rust package receives only `Cargo.toml`,
-`BUCK`, `build.rs`, stable `src/lib.rs`, `src/items/a_unrouted.rs`,
-`src/test_items/a_face.rs`, stable `tests/contract.rs`, and
-`tests/items/a_face.rs`. Both packages run the owned sorted D-41 scanner. The
-adapter build graph runs the L2f.0a-accepted generator with an empty schema set
-and writes only its declared empty/generated indexes under `OUT_DIR`; Cargo and
-Buck stage identical inputs and outputs. A generator that cannot tolerate the
-absent schema fails this structural lane.
+an absent `people_service.proto`. The adapter package receives only:
+
+```text
+Cargo.toml
+BUCK
+build.rs
+src/lib.rs
+src/test_items/a_face.rs
+tests/contract.rs
+tests/items/a_face.rs
+```
+
+The D-8 facade process package receives only:
+
+```text
+Cargo.toml
+BUCK
+build.rs
+src/main.rs
+src/lib.rs
+src/test_items/a_face.rs
+tests/contract.rs
+tests/items/a_face.rs
+```
+
+`src/main.rs` is only the compiler-required empty `fn main() {}` process
+entrypoint; it declares no state, marker, boot result, handler, route, listener,
+or readiness value. Both packages run the owned sorted D-41 scanner over absent
+or empty `src/items` plus their structural test items. The adapter build graph
+runs the L2f.0a-accepted generator with an empty schema set and writes only its
+declared empty/generated indexes under `OUT_DIR`; Cargo and Buck stage identical
+inputs and outputs. A generator or scanner that cannot tolerate absent schema
+and content items fails this structural lane.
 
 The known HR-side dependency graph is exact:
 
@@ -768,23 +795,27 @@ port, and `tempfile`; byte tests directly include the generated Connect adapter
 and accepted runtime. No transitive edge counts as declared.
 
 The eventual closed structural write set is the two proto directory metadata
-files, the fixed eight-file set inside each new package, the exact root
+files, the seven adapter files and eight process files above, the exact root
 dependency/lock/generated/fixup files named by L2f.0a, and nothing else. Until
 those root/generated paths are literal, this lane remains non-dispatchable.
-Existing draft packages, SQLite behavior/schema, all IAM paths, and every proto
-schema are frozen. The only runtime value is typed `Unrouted`; no handler,
-listener, route, authority, storage behavior, deployment, readiness, or SLO
-claim lands.
+Existing draft packages, SQLite behavior/schema, all IAM paths, every proto
+schema, and every HR runtime value are frozen. No `Unrouted` marker, boot
+refusal, handler, listener, route, authority, storage behavior, deployment,
+readiness, or SLO claim lands. Every hand-written structural file, including
+Cargo, Buck, build scripts, entrypoints, and tests, is at most 300 physical
+lines; generated `OUT_DIR` outputs are not tracked.
 
 Build closure is the accepted generator/runtime, both empty packages, draft
 transport, full L2d/L2e closure, all HR, and five IAM packages through Cargo and
 Buck. Required D-29 review is protocol owner, HR, architecture/API, Build,
 Gateway, IAM, security, supply chain, and Data durability. Success is exact
-empty structure and graph parity with no schema or request served. Failure is a
-placeholder dependency, behavior/schema, gRPC symbol, cross-owner draft edge,
-manual index, or unrelated generated/lock churn. Rollback removes only the
-empty packages/directory metadata and exact admitted dependency closure; no
-wire or format exists.
+D-8-complete empty structure and graph parity with a canonical process main,
+no semantic runtime value, no schema or request served, and every hand-written
+file within budget. Failure is an `Unrouted` or other behavior value, missing
+`src/main.rs`, placeholder dependency, schema, gRPC symbol, cross-owner draft
+edge, over-budget file, manual index, or unrelated generated/lock churn.
+Rollback removes only the empty packages/directory metadata and exact admitted
+dependency closure; no wire or format exists.
 
 ## L2f.0c — Land the semantic People schema only
 
@@ -804,7 +835,9 @@ messages. Generated routes are exactly
 `draft`, JSON/REST, streaming, second IDL, deployment, or behavior is admitted.
 All BUCK/OWNERS, manifests, build scripts, lock/root/generated inputs, Rust,
 SQLite, IAM, and stable indexes are frozen. Generated output changes only under
-`OUT_DIR` and is never tracked.
+`OUT_DIR` and is never tracked. The schema file itself is at most 300 physical
+lines; exceeding the D-35 budget or splitting it through a second IDL fails the
+lane.
 
 Build closure is proto lint plus the accepted generated service/message output,
 both empty L2f packages, full HR, and five IAM packages through Cargo/Buck.
@@ -815,9 +848,44 @@ path/package mismatch, schema plus structural edit, second codec, unbounded
 repeated/string field, or behavior claim. Rollback deletes only the schema; the
 empty structural/codegen faces remain.
 
+## L2f.0d — Install the fail-closed unrouted process state
+
+Class: content-only boot behavior; depends on L2f.0c.
+
+The complete write set is:
+
+```text
+app/hr/facade/people-app/src/main.rs
+app/hr/facade/people-app/src/items/a_unrouted.rs
+app/hr/facade/people-app/src/test_items/z_unrouted.rs
+app/hr/facade/people-app/tests/items/z_unrouted.rs
+```
+
+This is the one planned conversion of the compiler-only structural main into
+the stable process entrypoint; after this hop `src/main.rs` is frozen until the
+separately gated production route-activation lane. The D-41 scanner discovers
+the three new unique content items without an index edit. `a_unrouted.rs`
+defines the typed `Unrouted` boot state and a deterministic, redacted non-zero
+refusal. The process binds no socket, constructs no provider adapter, exposes no
+handler or health endpoint, and cannot be made ready by arguments, environment,
+or a test fake. Every file is at most 300 lines.
+
+All manifests, BUCK/build scripts, lock/root/generated files, proto, adapter,
+SQLite, IAM, and structural test items are frozen. Build closure is
+`hr-people-app`, its structural dependencies, full HR, and five IAM packages in
+both graphs. Required review is HR, Build, security, Gateway/protocol, and
+operability. Success is a D-8 process that always refuses boot with typed
+`Unrouted` and no network effect. Failure is an empty-success exit presented as
+readiness, any bind/route/provider construction, a parent-index edit, sensitive
+diagnostic, or structural-path change. Rollback restores the compiler-only main
+and removes only the three unique content items; no request or format exists.
+Fault evidence executes the binary with valid-looking config, fake provider
+addresses, inherited sockets, and cancellation and proves the same bounded
+non-zero refusal with zero opened listeners.
+
 ## L2f.1 — Implement one unrouted People slice on generated Connect
 
-Class: content-only feature behavior; depends on L2f.0c.
+Class: content-only feature behavior; depends on L2f.0d.
 
 The complete write set is:
 
@@ -859,9 +927,9 @@ or serialize a Connect envelope. There is no client, listener, socket, tonic
 service, gRPC envelope, or fake transport claimed as wire proof.
 
 All proto, manifests, BUCK/build scripts, stable parents, generated message and
-item indexes, `a_unrouted.rs`, root/lock/generated files, schema, other HR, and
-IAM paths are frozen. The process remains `Unrouted`; this slice supplies no
-listener, deployment, readiness, or advertised SLO.
+item indexes, `src/main.rs`, `a_unrouted.rs`, root/lock/generated files, schema,
+other HR, and IAM paths are frozen. The process remains `Unrouted`; this slice
+supplies no listener, deployment, readiness, or advertised SLO.
 
 `people-app/tests/items/c_recovery.rs` is wired to the runtime
 `hr-employment-repository-sqlite-draft` edge and `tempfile`, creates a real
@@ -886,9 +954,12 @@ telemetry, or frozen-path edit. Rollback removes only these unique items; the
 unrouted structural faces and SQLite format remain.
 
 Fault evidence covers every transaction interruption, response loss/replay,
-authority expiry, every SPEC exact-limit/limit-plus-one case, tenant/cell queue
-and byte saturation, cancellation with reservation release, and outbox
-redelivery. Wire negative tests inject truncated/overlong protobuf, a gRPC
+authority expiry, every request and response SPEC exact-limit/limit-plus-one
+case (including returned fields, repeated entries, stored outcomes, and
+redacted errors), tenant/cell request/response queue and byte saturation,
+cancellation with exactly-once reservation release, encode failure before
+headers, and outbox redelivery. Wire negative tests inject truncated/overlong
+protobuf, a gRPC
 five-byte prefix, two concatenated messages, wrong path/content/version,
 streaming content type, unsupported compression, `grpc-status`/`grpc-message`,
 attempted trailers, deadline grammar/expiry, and oversized headers/body; every
@@ -983,7 +1054,8 @@ compatibility behavior remain unchanged. Root membership needs no edit because
 the existing globs stop matching deleted directories. No source is moved or
 feature changed in this lane.
 
-The terminal direct graph is frozen and proved in both Cargo and Buck:
+The post-compatibility, pre-production-provider direct graph is frozen and
+proved in both Cargo and Buck:
 
 ```text
 hr-employment-usecase
@@ -1018,7 +1090,9 @@ hr-people-app
   -> hr-transport-connect-draft
 ```
 
-The People test graph adds only the memory repository oracle and `tempfile`;
+At L2h this graph is intentionally **not routable**: the three mandatory
+production authority adapters have not yet been admitted. The People test graph
+adds only the memory repository oracle and `tempfile`;
 its recovery target still links SQLite directly. The terminal scan must find no
 `employment-app`, `employment-api`, `employment-storage-inmemory`,
 `employment-infrastructure`, `employment-compat-app`, or
@@ -1036,11 +1110,295 @@ is a residual consumer, moved behavior, root/generated edit, or route/readiness
 claim. Rollback restores the six complete package trees and lock entries; no
 SQLite format or live route changes.
 
-Only after L2h may a separately ratified provider lane add a listener,
-deployment desired state, routed tenant cohort, measured SLO, or format-barrier
-rollback. That future lane must name the then-live Gateway/IAM/Policy/
-Observability/IaC sold paths under D-29; this plan does not guess them or claim
-production readiness now.
+## L2i.0a through L2i.0c — Accept three production authority contracts
+
+Class: three fail-closed D-29 provider decisions; depends on L2h. These are not
+implementation dispatches and may be reviewed independently, but all three must
+accept before L2j.0.
+
+The current tree does not provide an automatically acceptable production
+contract for any of these HR ports. Existing Packs files, IAM/Policy internals,
+and Audit ports are evidence to review, not permission for HR to import another
+owner's core, port, adapter, or in-process facade. The three gates are:
+
+- **L2i.0a — Packs/install:** accept one sold install-authority contract that
+  resolves `(tenant, pack_id)` to signed content digest, overlay generation,
+  effective window, revocation state, and bounded HR overlay bytes.
+- **L2i.0b — Policy/IAM:** accept one sold authentication/authorization contract
+  that returns verified channel principal plus tenant/action/resource/request-
+  bound PDP provenance, expiry, policy revision, purpose, and legal-basis
+  evidence. A caller-supplied allow bit is never an input authority.
+- **L2i.0c — Audit:** accept one sold idempotent audit-emission contract and an
+  operation-class matrix distinguishing pre-disclosure/pre-commit evidence from
+  asynchronously deliverable durable outbox intent.
+
+Each accepted decision and same-wave HR law amendment must name exact provider
+owner, sold proto/facade path, semantic package, generated consumer target,
+Cargo package/version/features, literal Buck labels, transport/authentication,
+timeouts/retry/idempotency, hard request/response bounds, source/license,
+removal/owned-stack destination, and the exact root/lock/generated/fixup paths
+needed to consume it. It must also name provider-specific malformed, stale,
+revoked, cross-tenant, replay, timeout, disconnect, and outage vectors in Cargo
+and Buck. No standing client may live in the provider; each HR adapter owns its
+consumer translation. A missing field, internal provider import, JSON/second
+codec, or test fake rejects the gate. Rejection changes no repository path and
+keeps People unrouted.
+
+## L2i.1a through L2i.1c — Admit production authority adapter structures
+
+Class: three serialized structural package/dependency/build/lock lanes; each
+depends on its matching accepted L2i.0 gate and exact owner-law amendment. They
+serialize on `Cargo.lock` and any root/generated dependency faces and contain no
+provider request, validation, retry, policy, audit, route, or readiness behavior.
+
+| Lane | Exact package path | Cargo package | Matching HR port |
+|---|---|---|---|
+| L2i.1a | `app/hr/adapters/installed-overlay-packs` | `hr-installed-overlay-packs` | `hr-installed-overlay-draft` |
+| L2i.1b | `app/hr/adapters/authorization-evidence-policy` | `hr-authorization-evidence-policy` | `hr-authorization-evidence-draft` |
+| L2i.1c | `app/hr/adapters/audit-outbox-audit` | `hr-audit-outbox-audit` | `hr-audit-outbox-draft` |
+
+Each package receives exactly `Cargo.toml`, `BUCK`, `build.rs`, stable
+`src/lib.rs`, `src/test_items/a_face.rs`, stable `tests/contract.rs`, and
+`tests/items/a_face.rs`. Its only HR runtime edge is the matching port above;
+all other runtime/build/dev Cargo and Buck edges must be the literal accepted
+provider targets recorded by its L2i.0 amendment. Each owned D-41 scanner
+tolerates absent `src/items`, emits only stable membership under `OUT_DIR`, and
+has identical Cargo/Buck inputs. Root membership remains unchanged under the
+accepted globs. The complete write envelope for each lane is its seven files,
+its exact workspace-package lock entry, and only the root/generated dependency
+files named by the matching gate. Every hand-written file is at most 300 lines.
+
+Build closure is the new empty adapter, matching HR port, accepted provider
+client/contract targets, all remaining HR, and the zero-edge IAM proof through
+Cargo and Buck. Required review is HR, the provider owner, Architecture/API,
+Build, security/privacy, supply chain, and operability. Success is one empty
+adapter with exact graph parity and no runtime value. Failure is behavior,
+placeholder/transitive-only dependency, cross-owner internal edge, manual
+index, over-budget file, unrelated lock churn, or readiness fiction. Rollback
+removes only that empty adapter and exact dependency closure.
+
+## L2i.2a through L2i.2c — Implement production authority adapters
+
+Class: three content-only adapter behavior lanes; each depends on its matching
+L2i.1 structure. Their changed paths are disjoint, but the fixed full-HR
+verification closure overlaps, so implementation dispatches serialize; review
+and read-only recon may run concurrently.
+
+The complete unique-file envelopes are:
+
+```text
+app/hr/adapters/installed-overlay-packs/src/items/{b_resolve_install,c_overlay_verification}.rs
+app/hr/adapters/installed-overlay-packs/src/test_items/b_contract.rs
+app/hr/adapters/installed-overlay-packs/tests/items/{b_parity,c_outages}.rs
+
+app/hr/adapters/authorization-evidence-policy/src/items/{b_authorization_evidence,c_request_binding}.rs
+app/hr/adapters/authorization-evidence-policy/src/test_items/b_contract.rs
+app/hr/adapters/authorization-evidence-policy/tests/items/{b_parity,c_outages}.rs
+
+app/hr/adapters/audit-outbox-audit/src/items/{b_emit_outbox,c_redelivery}.rs
+app/hr/adapters/audit-outbox-audit/src/test_items/b_contract.rs
+app/hr/adapters/audit-outbox-audit/tests/items/{b_parity,c_outages}.rs
+```
+
+Every file is at most 300 lines and is discovered by the installed D-41
+scanner; stable parents, manifests, Buck/build scripts, root/lock/generated,
+other adapters, People composition, main, routes, IAM, and provider paths are
+frozen. Packs verifies signature/content/generation and never falls back to
+repository defaults. Policy/IAM verifies channel principal, tenant/resource/
+action/request binding, expiry, revision, purpose, and legal basis. Audit uses
+stable idempotency and obeys the accepted operation matrix: required pre-ack
+evidence fails before mutation/disclosure, while an allowed asynchronous class
+commits one durable outbox intent and redelivers without a second effect.
+
+Each lane builds its adapter/port/provider contract plus full HR through Cargo
+and Buck. Required review is HR, matching provider, security/privacy, fault/
+retry, and adapter-parity reviewers. Success is semantic parity and bounded
+translation against the accepted contract. Failure is cached allow on outage,
+unsigned/stale pack use, cross-tenant proof, lost/duplicate audit effect,
+provider type leaking inward, unbounded retry/buffer, or frozen-path edit.
+Fault evidence removes the provider before and during a call, injects malformed,
+stale, revoked, replayed, delayed, and duplicate responses, and proves typed
+fail-closed results, bounded queues, cancellation, and no unauthorized mutation
+or disclosure.
+
+## L2j.0 — Admit the production People composition graph
+
+Class: serialized structural composition dependency lane; depends on all three
+L2i.2 lanes. It changes only:
+
+```text
+app/hr/facade/people-app/Cargo.toml
+app/hr/facade/people-app/BUCK
+Cargo.lock
+```
+
+The `hr-people-app` runtime Cargo graph becomes exactly the existing nine HR
+dependencies plus `hr-installed-overlay-packs`,
+`hr-authorization-evidence-policy`, and `hr-audit-outbox-audit`. Its twelve Buck
+runtime labels are exactly:
+
+```text
+//app/hr/core/employment-usecase:hr-employment-usecase
+//app/hr/ports/draft/employment-repository:hr-employment-repository-draft
+//app/hr/ports/draft/installed-overlay:hr-installed-overlay-draft
+//app/hr/ports/draft/authorization-evidence:hr-authorization-evidence-draft
+//app/hr/ports/draft/audit-outbox:hr-audit-outbox-draft
+//app/hr/ports/draft/transport:hr-transport-draft
+//app/hr/ports/draft/runtime-context:hr-runtime-context-draft
+//app/hr/adapters/draft/employment-repository-sqlite:hr-employment-repository-sqlite-draft
+//app/hr/adapters/draft/transport-connect:hr-transport-connect-draft
+//app/hr/adapters/installed-overlay-packs:hr-installed-overlay-packs
+//app/hr/adapters/authorization-evidence-policy:hr-authorization-evidence-policy
+//app/hr/adapters/audit-outbox-audit:hr-audit-outbox-audit
+```
+
+Dev/test edges remain exactly the memory repository oracle and `tempfile`; no
+provider fake or mock is a runtime edge. All Rust, proto, build scripts, root
+dependency declarations, generated files, IAM/provider paths, deployment,
+route, and behavior are frozen. Build closure is the twelve-edge facade,
+provider adapters/contracts, full HR, and inverse scans through both graphs.
+Required review is HR, all three providers, Build/architecture, security, and
+Data durability. Success is exact graph parity with main still `Unrouted`.
+Failure is source behavior, transitive-only edge, test fake in runtime, extra
+provider dependency, lock churn outside the people-app package entry, or a
+route/readiness claim. Rollback restores only these three graph files.
+
+## L2j.1 — Compose concrete production authorities while remaining unrouted
+
+Class: content-only composition behavior; depends on L2j.0.
+
+The complete write set is:
+
+```text
+app/hr/facade/people-app/src/items/g_production_composition.rs
+app/hr/facade/people-app/src/items/h_authority_barrier.rs
+app/hr/facade/people-app/src/items/i_audit_delivery.rs
+app/hr/facade/people-app/src/test_items/e_composition.rs
+app/hr/facade/people-app/src/test_items/f_provider_outages.rs
+app/hr/facade/people-app/tests/items/g_production_composition.rs
+app/hr/facade/people-app/tests/items/h_provider_outages.rs
+```
+
+The D-41 scanner discovers these bounded files without an index edit. The
+composition constructor requires concrete SQLite, Packs/install, Policy/IAM,
+Audit/outbox, and generated-Connect adapters; its production type cannot accept
+the memory oracle or a provider fake. It enforces provider health and the audit
+operation-class matrix before dispatch. `src/main.rs` and `a_unrouted.rs` remain
+unchanged, so no process can instantiate the composition or bind a listener.
+All manifests/build/root/lock/generated/proto, adapters, provider paths, and
+deployment files are frozen.
+
+Success is a fully constructed but unreachable production composition with
+typed fail-closed authority barriers. Failure is an optional authority, fake
+runtime, direct provider internal import, route/bind, partial provider result,
+unbounded retry, or sensitive telemetry. Fault evidence independently and
+jointly removes Packs, Policy/IAM, Audit, and SQLite before construction and at
+every pre-dispatch/commit/disclosure boundary; requests fail closed, durable
+outbox semantics follow the accepted matrix, reservations drain, and no listener
+exists. Rollback removes only these seven unique files.
+
+## L2k.0 — Accept the listener, deployment, and cohort contract
+
+Class: fail-closed D-29 production-route decision; depends on L2j.1. This is not
+an implementation dispatch.
+
+Before any route lane, a protocol/Gateway/IAM/Observability/IaC decision and
+same-wave HR law amendment must name the exact generated-Connect listener and
+route-registration targets, mTLS/channel-principal source, configuration and
+secret interfaces, cell/tenant cohort authority, OpenTelemetry/SLO source and
+generated outputs, deployment desired-state/IaC paths, Cargo/Buck dependencies,
+root/lock/generated/fixups, health/readiness semantics, drain/shutdown contract,
+capacity profile, rollout and rollback barrier, and reviewers. It must prove
+that listener identity is not an IAM-to-HR Rust edge and that the provider
+adapters from L2i remain the only authority implementations. Placeholder paths,
+handwritten HTTP, a global/all-tenant default, mutable CLI activation, or a
+second codec rejects the gate and leaves main `Unrouted`.
+
+## L2k.1 — Admit route/deployment structure without activation
+
+Class: serialized structural dependency/deployment lane; depends on accepted
+L2k.0 and its literal owner-law amendment. Its fixed HR graph paths are
+`app/hr/facade/people-app/{Cargo.toml,BUCK}` plus `Cargo.lock`; the amendment
+must add the exact HR observability/IaC source/generated paths and any accepted
+root dependency/generated/fixup paths before this lane becomes dispatchable.
+No Rust behavior, main edit, route, listener bind, provider construction,
+non-empty cohort, readiness result, or SLO claim lands.
+
+If the ratified structural envelope creates any multi-file Rust or test face,
+L2k.1 also creates that face's owned sorted `build.rs` scanner, stable
+`include!(OUT_DIR/...)` root, and Cargo/Buck rules with identical discovered
+membership. A tracked generated index, manual `mod` inventory, missing Buck
+scanner input/output, or scanner introduced later with behavior fails D-41 and
+blocks L2k.2.
+
+All admitted structural files are at most 300 lines unless they are generated
+by the accepted owner tool; generated faces are materialized, never hand edited,
+and two consecutive materializations are byte-identical. Cargo and Buck carry
+the same listener/config/telemetry inputs and retain the twelve HR composition
+edges. Build closure is the exact listener/deployment graph, full HR, all three
+providers, and current cell/Gateway/IAM/Observability/IaC consumers. Required
+review is every affected owner plus Architecture, Build, security, SRE, and
+privacy. Success is inert structure with main still `Unrouted`. Failure is
+behavior, unknown path, hand-generated output, graph mismatch, implicit cohort,
+or readiness fiction. Rollback removes only the admitted structure/dependencies.
+
+## L2k.2 — Activate main and routes with an empty cohort
+
+Class: content-only process/route behavior; depends on L2k.1.
+
+The fixed HR content envelope is:
+
+```text
+app/hr/facade/people-app/src/main.rs
+app/hr/facade/people-app/src/items/j_process_composition.rs
+app/hr/facade/people-app/src/items/k_connect_routes.rs
+app/hr/facade/people-app/src/items/l_readiness.rs
+app/hr/facade/people-app/src/items/m_shutdown.rs
+app/hr/facade/people-app/src/test_items/g_route_activation.rs
+app/hr/facade/people-app/src/test_items/h_outages.rs
+app/hr/facade/people-app/tests/items/i_boot.rs
+app/hr/facade/people-app/tests/items/j_outages.rs
+app/hr/facade/people-app/tests/items/k_empty_cohort.rs
+```
+
+This is the single planned main transition from typed `Unrouted` refusal to the
+frozen production composition. D-41 discovers every new item; no parent module
+index changes, and every file is at most 300 lines. The process may bind only
+the accepted listener with an empty/default-deny cohort, generated Connect
+routes, concrete production adapters, bounded request/response accounting, and
+readiness false until all mandatory authorities are healthy. It cannot serve a
+tenant yet. All manifests, build scripts, lock/root/generated, proto, adapters,
+provider code, and cohort/deployment values are frozen.
+
+Success is boot/bind/drain evidence with zero routable tenants and exact
+generated routes. Failure is a fake adapter, implicit tenant, authority bypass,
+partial response, unbounded shutdown, handwritten protocol, or false readiness.
+Fault evidence removes each provider at boot and mid-request, corrupts cohort
+input, saturates request and response budgets, interrupts encode before headers,
+and kills the process during commit/drain; no unauthorized mutation/disclosure
+or partial response occurs and restart/replay converges. Rollback restores the
+typed `Unrouted` main; no tenant cohort or format downgrade is involved.
+
+## L2k.3 — Promote the first bounded tenant cohort
+
+Class: deployment/promotion content only; depends on independent approval of
+L2k.2 fault evidence and green protected admission. The complete write envelope
+must be the exact cohort, observability, and desired-state paths ratified at
+L2k.0; if those paths are not literal in an amended plan, this lane is
+non-dispatchable. Rust, proto, Cargo/Buck/build, lock/root dependency, adapter,
+and generated outputs are frozen.
+
+The first cohort is one named home-cell tenant within the declared capacity
+profile. Promotion requires healthy concrete Packs, Policy/IAM, Audit, SQLite,
+Connect, telemetry, drain, backup/reopen, and rollback evidence; request and
+response exact/limit-plus-one campaigns; zero IAM-to-HR graph edges; no
+compatibility packages; and measured SLO signals without advertising the
+objective early. Provider outage removes the cohort before retry traffic can
+exhaust queues. Rollback sets the cohort empty and drains before binary or
+format rollback; committed SQLite records remain readable and replayable.
+Success is one bounded cohort with qualified evidence. Failure is all-tenant
+activation, fake authority, stale policy/pack, audit bypass, missing telemetry,
+unbounded work, or rollback that risks acknowledged data.
 
 </sequence>
 
@@ -1052,12 +1410,25 @@ root dependency/lock/generated-third-party writer; L2e.0b is the sole adapter-
 face/lock writer. L2f.0a is a non-implementation protocol decision gate and
 holds every People RPC lane closed. After its exact amendment, L2f.0b is the
 sole accepted Connect dependency/package/build/lock writer; L2f.0c writes only
-the semantic proto schema; L2f.1 writes only the named unique behavior/test
-items. L2e and L2f.1 release shared hubs and write only their named unique
+the semantic proto schema; L2f.0d performs the first of exactly two planned
+`src/main.rs` transitions (compiler shell to typed `Unrouted`); and L2f.1 writes
+only the named unique behavior/test items. The second and final main transition
+is L2k.2 (`Unrouted` to the concrete empty-cohort process), after which main is
+frozen. L2e and L2f.1 release shared hubs and write only their named unique
 content paths.
-L2g.0 and L2g.1 are IAM-owner lanes
-and serialize against their five content paths, four graph files, and
-`Cargo.lock`; L2h returns to the HR owner.
+
+L2g.0 and L2g.1 are IAM-owner lanes and serialize against their five content
+paths, four graph files, and `Cargo.lock`; L2h returns to the HR owner. The three
+L2i.0 decisions may be reviewed independently. L2i.1a-c are structurally
+disjoint except for `Cargo.lock` and any ratified root/generated dependency hub,
+so those structural writers serialize. L2i.2a-c have disjoint changed paths but
+share the mandatory all-HR practical build closure, so their implementation
+dispatches also serialize while their independent review/recon can overlap.
+L2j.0 serializes the shared People graph, L2j.1 adds only unique composition
+items, and L2k.0 holds all route work closed.
+L2k.1 serializes admitted route/deployment structure; L2k.2 exclusively changes
+main and route content with an empty cohort; L2k.3 changes only the ratified
+cohort/desired-state envelope.
 
 Other owners may advance concurrently only when both changed paths and practical
 Cargo/Buck build closures are disjoint from the exact sets above. Read-only

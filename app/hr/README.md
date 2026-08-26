@@ -19,7 +19,8 @@ Canonical owner law:
 - [ADR.md](ADR.md) — decisions and portability boundaries
 - [PRD.md](PRD.md) — product requirements, acceptance, and SLO objectives
 - [SPEC.md](SPEC.md) — current contract and target transaction/fault semantics
-- [PLAN.md](PLAN.md) — L2a through L2h implementation and retirement sequence
+- [PLAN.md](PLAN.md) — L2a through L2k.3 implementation, retirement, and
+  bounded-production sequence
 
 HR does not own payroll calculation/disbursement, accounting, workflow
 execution, audit-chain persistence, IAM/PDP, Data/Storage/Gateway engines,
