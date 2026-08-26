@@ -2,7 +2,7 @@
 doc_class: Owner-PLAN
 owner: storage
 status: Active
-date: 2026-08-25
+date: 2026-08-26
 ---
 
 # Storage remaining work
@@ -58,7 +58,12 @@ date: 2026-08-25
   validation errors without exposing registry, repository, lifecycle, policy,
   tag, or metering behavior. The legacy Compute resource core remains the
   defining crate until a dedicated Compute structural lane decomposes it.
-  The direct residency core edge remains P0 debt.
+- P0h introduced the agreed `network-residency-policy` compatibility port and
+  routed every Storage residency value, parser, predicate, Cargo, Buck, and Rust
+  import through it. The port exact-re-exports a signature-closed policy/value
+  surface while residency registries, tenant bindings, change plans, transfer
+  permits, jurisdiction inference, and data-class conversion remain internal.
+  Storage now has no direct cross-owner core dependency.
 
 None of that is a persistent distributed engine, a network facade, automated
 repair, or production durability evidence.
@@ -109,12 +114,15 @@ Class: structural; do not mix behavior.
   validation-error types already used by Storage, so parsing, equality, and
   public type identity do not drift. Moving their definitions out of the legacy
   resource core is separate Compute decomposition debt, not a copied model in
-  Storage. Residency remains direct foreign-core debt.
-- Remove direct cross-owner core imports from storage core, ports, and adapters.
-  Reconcile required residency types onto
-  agreed provider ports plus storage-owned adapters; do not copy their domain
-  models or claim the current `path = .../core/...` edges are legal. Cell
-  location identity now uses its agreed port.
+  Storage.
+- **Landed in P0h:** replaced every direct Storage-to-Network-core dependency
+  with the agreed `network-residency-policy` port. The compatibility surface
+  exact-re-exports every transitively public residency-policy value and typed
+  error Storage uses, preserving parser, predicate, validation, equality, and
+  public type identity. Registry, binding, change-plan, transfer-permit,
+  jurisdiction-inference, and data-class-conversion behavior remains
+  inaccessible. Moving the defining values out of the legacy residency core is
+  separate Network decomposition debt, not a copied model in Storage.
 - Rename legacy `cloud-*`, `*-api`, provider, and explicit `[lib]` fossils to the
   ADR-0719 grammar; split every touched hand-written file above 300 lines.
 - **Landed in P0a:** removed the hand-authored Helm/OpenSLO residue, retired the
@@ -413,10 +421,9 @@ capacity exhaustion, and repeated forward/rollback drills under admitted load.
 
 <next_lane>
 
-The next implementation lane remains P0: reconcile the direct
-residency core edge onto an agreed provider contract
-without copying foreign models, then rehome filesystem/archive/backup/restore
-product models. P1 begins only after those structural obligations merge and
-`dev` is refreshed.
+The next implementation lane remains P0: rehome filesystem, archive, backup,
+and restore product models behind their eventual owning facades without
+breaking the advertised Storage compatibility window. P1 begins only after
+that structural obligation merges and `dev` is refreshed.
 
 </next_lane>

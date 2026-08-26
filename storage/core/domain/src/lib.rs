@@ -15,8 +15,8 @@ use cell_location::{AzCode, CellId, RegionCode};
 pub use compute_resource_metadata::{BucketTier, FilesystemTier};
 use compute_resource_metadata::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use data_classification::{Classified, DataClass, PrivacyDataClass};
-pub use network_residency::ResidencyClass;
-use network_residency::residency_class_allows_home_region_label;
+pub use network_residency_policy::ResidencyClass;
+use network_residency_policy::residency_class_allows_home_region_label;
 use secrets_kms::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,

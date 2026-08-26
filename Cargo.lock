@@ -5841,6 +5841,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "network-residency-policy"
+version = "0.1.0"
+dependencies = [
+ "data-classification",
+ "network-residency",
+]
+
+[[package]]
 name = "network-selfhosted"
 version = "0.1.0"
 dependencies = [
@@ -8260,7 +8268,7 @@ name = "storage-block-http-legacy-draft"
 version = "0.1.0"
 dependencies = [
  "data-classification",
- "network-residency",
+ "network-residency-policy",
  "storage-domain",
 ]
 
@@ -8272,7 +8280,7 @@ dependencies = [
  "cell-location",
  "compute-resource-metadata",
  "data-classification",
- "network-residency",
+ "network-residency-policy",
  "secrets-kms",
  "storage-provider-draft",
 ]
@@ -8282,7 +8290,7 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "data-classification",
- "network-residency",
+ "network-residency-policy",
  "storage-domain",
  "storage-object-http-legacy-draft",
 ]
@@ -8293,7 +8301,7 @@ version = "0.1.0"
 dependencies = [
  "compute-resource-metadata",
  "data-classification",
- "network-residency",
+ "network-residency-policy",
  "secrets-kms",
  "storage-domain",
 ]
@@ -8326,7 +8334,7 @@ dependencies = [
  "cell-location",
  "compute-resource-metadata",
  "data-classification",
- "network-residency",
+ "network-residency-policy",
  "secrets-kms",
 ]
 

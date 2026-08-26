@@ -13,8 +13,8 @@ pub use compute_resource_metadata::VolumeTier;
 use compute_resource_metadata::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 pub use data_classification::DataClass;
 use data_classification::PrivacyDataClass;
-pub use network_residency::ResidencyClass;
-use network_residency::residency_class_allows_home_region_label;
+pub use network_residency_policy::ResidencyClass;
+use network_residency_policy::residency_class_allows_home_region_label;
 use secrets_kms::{CiphertextRef, KmsKeyId, KmsKeyOrigin};
 
 include!(concat!(env!("OUT_DIR"), "/provider.generated.rs"));

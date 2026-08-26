@@ -47,7 +47,7 @@ _DEPS = [
     "//cell/ports/location:cell-location",
     "//compute/ports/resource-metadata:compute-resource-metadata",
     "//data/ports/classification:data-classification",
-    "//network/core/residency:network-residency",
+    "//network/ports/residency-policy:network-residency-policy",
     "//secrets/ports/kms:secrets-kms",
 ]
 

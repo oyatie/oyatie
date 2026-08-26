@@ -13,7 +13,7 @@ secrets-kms = { path = "../../../secrets/ports/kms" }
 cell-location = { path = "../../../cell/ports/location" }
 compute-resource-metadata = { path = "../../../compute/ports/resource-metadata" }
 
-network-residency = { path = "../../../network/core/residency" }
+network-residency-policy = { path = "../../../network/ports/residency-policy" }
 storage-provider-draft = { path = "../../ports/draft/provider" }
 
 [lib]

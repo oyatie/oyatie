@@ -10,7 +10,7 @@ license = "Apache-2.0"
 data-classification = { path = "../../../../data/ports/classification" }
 storage-domain = { path = "../../../core/domain" }
 
-network-residency = { path = "../../../../network/core/residency" }
+network-residency-policy = { path = "../../../../network/ports/residency-policy" }
 
 [lib]
 doctest = false

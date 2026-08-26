@@ -14,7 +14,7 @@ storage-domain = { path = "../../../core/domain" }
 
 
 [dev-dependencies]
-network-residency = { path = "../../../../network/core/residency" }
+network-residency-policy = { path = "../../../../network/ports/residency-policy" }
 
 [lib]
 doctest = false

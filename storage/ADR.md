@@ -2,7 +2,7 @@
 doc_class: Owner-ADR
 owner: storage
 status: Accepted
-date: 2026-08-25
+date: 2026-08-26
 inherits:
   - docs/decisions/ADR-0719-eac-serving-control-north-star.md
 ---
@@ -14,14 +14,14 @@ claim that the target implementation has landed.
 
 <current_state>
 
-## Evidence after P0g
+## Evidence after P0h
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references; provider types are compatibility re-exports | Contract/reference only; the direct residency core edge and out-of-bound product models remain P0 debt |
+| `core/domain` | One primary core package with typed bucket/object/block metadata plus a `cas` namespace containing tenant-scoped BLAKE3 CAS, bounded payload traits, conformance, and in-memory references; provider types are compatibility re-exports and foreign values arrive through agreed owner ports | Contract/reference only; out-of-bound product models remain P0 debt |
 | `core/object-store-kernel` | Deprecated package-identity shim that re-exports `storage_domain::cas` | Compatibility window only; it contains no independent engine |
 | `ports/object-api`, `ports/block-api` | Deprecated package-identity shims for the pre-P0 Rust HTTP contracts | Compatibility window only; not the canonical proto/Connect facade |
-| `ports/draft/provider` | Owner-local object/block backend traits, DTOs, validation, and receipts used by every retained S3/OCI backend adapter; location, classification, KMS reference, and resource-metadata values arrive through agreed provider contracts | Draft compatibility only; the foreign residency model edge still requires an agreed port before P0 completes |
+| `ports/draft/provider` | Owner-local object/block backend traits, DTOs, validation, and receipts used by every retained S3/OCI backend adapter; location, classification, KMS reference, resource-metadata, and residency-policy values arrive through agreed provider contracts | Draft compatibility only; it is not the sold facade |
 | `adapters/draft/object-http-legacy`, `adapters/draft/block-http-legacy` | Quarantined request validation, caller-constructed authorization projection, idempotency, and HTTP status/error behavior | Test fixture only; no verified PDP provenance |
 | `adapters/draft/provider-object-s3`, `provider-object-oci`, `provider-block-oci` | Independent provider command/receipt projections routed through `ports/draft/provider` | Draft compatibility only; no network or durable backend execution |
 | `adapters/s3-adapter`, `adapters/oci-adapter` | Deprecated package/target compatibility implementations at D-8-valid paths | Compatibility window only; new consumers are forbidden |

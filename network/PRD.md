@@ -26,6 +26,10 @@ doc_status: drafted
 - Enforce mTLS and tenant/cell isolation on east-west and north-south paths.
 - Emit flow telemetry and privileged network-control actions to `audit-chain`.
 - Provide reachability, route-health, DDoS, and cross-cell routing diagnostics.
+- Publish the agreed `network-residency-policy` value contract for residency
+  classes, per-pack overlays, region references, typed validation errors, label
+  parsing, and home-region predicates. Residency registries, tenant bindings,
+  change plans, and cross-region transfer permits remain internal aggregates.
 - Support `demo_trial` and `paid` tenant_class envelopes through capacity, context, and compliance-pack policy rather than customer ladder labels.
 
 ## Non-Functional Requirements

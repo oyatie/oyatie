@@ -1,5 +1,5 @@
 [package]
-name = "storage-object-api"
+name = "network-residency-policy"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,12 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-storage-object-http-legacy-draft = { path = "../../adapters/draft/object-http-legacy" }
-
-[dev-dependencies]
 data-classification = { path = "../../../data/ports/classification" }
-network-residency-policy = { path = "../../../network/ports/residency-policy" }
-storage-domain = { path = "../../core/domain" }
+network-residency = { path = "../../core/residency" }
 
 [lib]
 doctest = false

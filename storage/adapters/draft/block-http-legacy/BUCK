@@ -36,7 +36,7 @@ buildscript_run(
 )
 
 _DEPS = [
-    "//network/core/residency:network-residency",
+    "//network/ports/residency-policy:network-residency-policy",
     "//storage/core/domain:storage-domain",
     "//data/ports/classification:data-classification",
 ]

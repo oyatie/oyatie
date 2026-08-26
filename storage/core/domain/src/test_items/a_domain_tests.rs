@@ -1,4 +1,4 @@
-use network_residency::{
+use network_residency_policy::{
     PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
 };
 
