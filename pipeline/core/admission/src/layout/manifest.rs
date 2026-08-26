@@ -1,4 +1,5 @@
-//! Cargo identity and dependency-shape checks for changed ADR-0719 manifests.
+//! Cargo identity and dependency-shape checks for changed repository manifests.
+//! Provenance: ADR-0719 D-30/D-41.
 
 use super::{is_capability_root, path_parts};
 
@@ -68,7 +69,7 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         == Some(false)
     {
         violations.push(format!(
-            "{path}: package `autotests = false` disables D-30 integration-test discovery"
+            "{path}: package `autotests = false` disables required integration-test discovery"
         ));
     }
     for switch in ["test", "harness"] {
@@ -90,10 +91,10 @@ pub fn cargo_manifest_violations(path: &str, contents: &str) -> Vec<String> {
         match build.as_str() {
             Some("build.rs") => {}
             Some(build_path) => violations.push(format!(
-                "{path}: package build target must be the D-41 `build.rs`, got `{build_path}`"
+                "{path}: package build target must be the stable item-scanner `build.rs`, got `{build_path}`"
             )),
             None => violations.push(format!(
-                "{path}: package build target must be the D-41 `build.rs`; boolean or non-string overrides are forbidden"
+                "{path}: package build target must be the stable item-scanner `build.rs`; boolean or non-string overrides are forbidden"
             )),
         }
     }

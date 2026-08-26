@@ -1,4 +1,4 @@
-//! Cross-path completeness checks for new ADR-0719 owners.
+//! Cross-path completeness checks for new repository owners. Provenance: ADR-0719 D-8/D-36.
 
 use std::collections::BTreeSet;
 
@@ -10,9 +10,9 @@ use super::{
 
 const OWNER_LAW_FILES: &[&str] = &["ADR.md", "PRD.md", "SPEC.md", "PLAN.md"];
 
-/// Apply D-8 only to changed paths that remain after the Git diff. A new owner
+/// Apply repository-layout rules only to changed paths that remain after the Git diff. A new owner
 /// must land as an implemented unit, never as paperwork or an unbuilt source
-/// dump. Capability and product owners also land their four D-36 law files.
+/// dump. Capability and product owners also land their four canonical law files.
 pub fn changed_layout_violations(
     changes: &GitChangePaths,
     existing_owner_dirs: &BTreeSet<String>,
@@ -69,7 +69,7 @@ pub fn owner_core_regression_violations(
 }
 
 /// Owner law follows implementation state, not merely directory creation. The
-/// first complete core on an existing scaffold must make all four D-36 files
+/// first complete core on an existing scaffold must make all four canonical law files
 /// live, and a retained owner cannot delete a canonical law file.
 pub fn owner_law_regression_violations(
     changes: &GitChangePaths,
@@ -84,7 +84,7 @@ pub fn owner_law_regression_violations(
         .filter(|owner| !complete_before.contains(*owner) && !lawful_after.contains(*owner))
     {
         violations.push(format!(
-            "{owner}: first complete core requires all four D-36 law files at the head commit"
+            "{owner}: first complete core requires all four canonical owner-law files at the head commit"
         ));
     }
     for owner in live_after {
@@ -92,7 +92,7 @@ pub fn owner_law_regression_violations(
             let path = format!("{owner}/{law}");
             if changes.occupied.contains(&path) && !changes.layout_candidates.contains(&path) {
                 violations.push(format!(
-                    "{owner}: retained owner cannot delete canonical D-36 law file `{law}`"
+                    "{owner}: retained owner cannot delete canonical owner-law file `{law}`"
                 ));
             }
         }
@@ -154,7 +154,7 @@ fn require_owner_law(owner: &str, changes: &GitChangePaths, violations: &mut Vec
         .collect();
     if !missing.is_empty() {
         violations.push(format!(
-            "{owner}: new owner requires D-36 law files in the same change; missing {}",
+            "{owner}: new owner requires canonical owner-law files in the same change; missing {}",
             missing.join(", ")
         ));
     }

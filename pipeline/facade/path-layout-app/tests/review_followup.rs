@@ -180,7 +180,7 @@ fn touched_handwritten_files_obey_the_three_hundred_line_budget() {
     let base = commit(&root, "base");
     write(&root, "README.md", &"line\n".repeat(301));
     let head = commit(&root, "oversized readme");
-    assert_rejected(&root, &base, &head, "300-line budget");
+    assert_rejected(&root, &base, &head, "repository 300-line file budget");
     let _ = std::fs::remove_dir_all(root);
 }
 

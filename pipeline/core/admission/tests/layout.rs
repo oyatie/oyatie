@@ -36,7 +36,7 @@ fn unknown_root_dir_is_red() {
     }
     assert!(
         unknown.is_empty(),
-        "unknown root names (not admitted by D-8): {unknown:?}"
+        "unknown root names (not admitted by repository layout): {unknown:?}"
     );
 }
 

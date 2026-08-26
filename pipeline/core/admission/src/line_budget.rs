@@ -1,4 +1,4 @@
-//! ADR-0719 D-35 touched-file budget.
+//! Touched-file budget. Provenance: ADR-0719 file-budget decision (D-35).
 
 use crate::layout::{APP_PRODUCT_DIRS, is_capability_root};
 
@@ -16,7 +16,7 @@ pub fn file_budget_violations(path: &str, contents: &[u8]) -> Vec<String> {
         Vec::new()
     } else {
         vec![format!(
-            "{path}: {lines} physical lines exceeds the D-35 {MAX_LINES}-line budget"
+            "{path}: {lines} physical lines exceeds the repository {MAX_LINES}-line file budget"
         )]
     }
 }

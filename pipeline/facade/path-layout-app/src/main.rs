@@ -1,4 +1,5 @@
-//! Event-independent ADR-0719 D-8 changed-path admission facade.
+//! Event-independent changed-path repository-layout admission facade.
+//! Provenance: ADR-0719 repository-layout decision (D-8).
 
 use std::collections::BTreeSet;
 use std::process::ExitCode;
@@ -151,7 +152,7 @@ fn run() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "ADR-0719 D-8 layout refused:\n{}",
+            "repository layout refused:\n{}",
             violations.join("\n")
         ))
     }

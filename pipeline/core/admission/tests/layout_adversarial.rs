@@ -1,4 +1,5 @@
-//! Regression coverage for independently reviewed ADR-0719 D-8 bypasses.
+//! Regression coverage for independently reviewed repository-layout bypasses.
+//! Provenance: ADR-0719 D-8.
 
 use std::collections::BTreeSet;
 
@@ -61,7 +62,7 @@ fn app_roster_is_closed_and_missing_products_cannot_be_scaffolds() {
     assert!(
         changed_layout_violations(&implementation_without_law, &BTreeSet::new())
             .iter()
-            .any(|item| item.contains("D-36") && item.contains("ADR.md"))
+            .any(|item| item.contains("canonical owner-law") && item.contains("ADR.md"))
     );
 
     let implementation = git_change_paths_from_name_status_z(
