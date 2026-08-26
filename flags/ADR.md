@@ -19,7 +19,7 @@ landed.
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/evaluation-domain` | Dependency-free Rust model, stable FNV-1a percentage bucketing, ordered targeting, typed variants, disabled/default behavior, safe resolution errors, and a synchronous source trait | Real deterministic kernel with 19 unit tests; no definition admission limits, mutation authority, persistent source, snapshot distribution, facade, or measured performance evidence |
+| `core/evaluation-domain` | Dependency-free Rust model, stable FNV-1a percentage bucketing, ordered targeting, typed variants, disabled/default behavior, safe resolution errors, and a synchronous source trait | Real deterministic kernel with 19 unit tests; its 292-line `src/lib.rs` carries a hand-maintained module index, and it has no complete admission limits, mutation authority, persistent source, snapshot distribution, facade, or measured performance evidence |
 | `core/server` | Default config, no-op observability, empty REST/gRPC/OFREP/storage/tenant modules, and a re-export smoke test | Non-serving scaffold; no listener, protocol, storage, authorization, distribution, or readiness behavior |
 | `cedar/` | Old CI, Argo/Jenkins, and cell-sharding policy fragments | Legacy cross-owner residue; not Flags mutation/evaluation policy |
 | `iac/` | Hand-authored Kubernetes, Helm, Terraform, OpenBao, WAF, ECH, PQC, and secret manifests for an imagined evaluator fleet | Unconsumed deployment fiction for services and dependencies that do not exist |
@@ -62,23 +62,53 @@ state, multi-cell propagation, authorization, kill-switch convergence, or SLOs.
 - **achieves:** identical admitted inputs produce identical outcomes at every
   cell while one malicious definition cannot create unbounded hot-path work.
 - **origin:** the landed kernel is pure and uses a fixed bucketing algorithm,
-  but accepts unbounded vectors and discovers some malformed references only
-  when a subject happens to select them.
+  but accepts unbounded vectors, targeting keys, string/object variant payloads,
+  and non-finite floats, and discovers some malformed references only when a
+  subject happens to select them.
 - **rule:** evaluation MUST be a total, side-effect-free function of an admitted
   definition snapshot, explicit evaluation context, and verified override
-  context. Definition and context size MUST be bounded before the hot path;
-  referenced variants, rollout weights, identifiers, and operator shapes MUST
-  validate completely. No evaluation may read network, storage, wall clock, RNG,
-  or mutable global state. Invalid or unavailable authority MUST return a typed
-  error and the registered safe fallback, never an optimistic variant or panic.
+  context. Definition and context size MUST be bounded before the hot path,
+  including targeting keys, every string/object payload dimension, and aggregate
+  bytes; non-finite floats MUST be rejected. Referenced variants, rollout
+  weights, identifiers, and operator shapes MUST validate completely. No
+  evaluation may read network, storage, wall clock, RNG, or mutable global
+  state. Invalid or unavailable authority MUST return a typed error and the
+  registered safe fallback, never an optimistic variant or panic.
 - **ensure:** golden vectors run across supported architectures/toolchains;
-  property and fuzz campaigns cover malformed and maximum-size inputs; workload
-  tests prove the declared work bound and zero deterministic replay mismatch.
+  property and fuzz campaigns cover every exact boundary, maximum+one, aggregate
+  byte cap, NaN, and positive/negative infinity; workload tests prove the
+  declared work bound and zero deterministic replay mismatch.
 - **overturn_when:** a versioned evaluation algorithm proves equivalent replay,
   bounded work, safe fallback, and migration behavior, with dual-version
   comparison before old vectors retire.
 
 </evaluation_contract>
+
+<stable_item_membership>
+
+## Decision: stabilize evaluation membership before behavior
+
+- **achieves:** bounded Flags changes become unique item files while the crate
+  root, public API, and Cargo/Buck source membership remain stable.
+- **origin:** `core/evaluation-domain/src/lib.rs` is already 292 lines and names
+  four modules manually. D-35 requires the split when this crate is next worked,
+  and D-41 forbids replacing it with a tracked or hand-maintained index.
+- **rule:** L1d.0 MUST be a behavior-preserving structural slice that installs an
+  owned package-root `build.rs`, sorts declared `src/items/*.rs` and
+  `src/test_items/*.rs`, and writes membership only to `OUT_DIR`. `src/lib.rs`
+  MUST retain stable generated `include!` lines; current module and root re-export
+  paths MUST remain source compatible through that slice, all 19 vectors MUST
+  remain unchanged, and no tracked generated or manual per-item `mod` inventory
+  may remain. Later structural port promotion follows its own closed migration.
+- **ensure:** Buck's `buildscript_run` stages the same globbed directories and
+  executes the same scanner as Cargo; generated source order/content is parity-
+  checked, and an add/rename/remove canary compiles through both graphs without
+  a parent-index edit. A compile fixture compares every current public path.
+- **overturn_when:** rustc gains deterministic directory membership without a
+  generated index, or a five-field owner decision provides a smaller owned
+  mechanism that preserves stable parents, public paths, and Cargo/Buck parity.
+
+</stable_item_membership>
 
 <authority_and_distribution>
 
@@ -183,10 +213,13 @@ state, multi-cell propagation, authorization, kill-switch convergence, or SLOs.
 - **origin:** ADR-0719 explicitly keeps `evaluation-domain`, removes the bundled
   REST/gRPC server and cap-root dump, and separates structural from behavioral
   work.
-- **rule:** migration MUST land as L1b server retirement with evaluation-domain
-  preserved, L1c consumer-confirmed legacy dump cleanup, then L1d bounded
-  definition admission as the first behavioral slice. Structural lanes MUST
-  preserve the kernel's current evaluation vectors and add no runtime claims.
+- **rule:** migration MUST land as L1b server retirement, L1c consumer-confirmed
+  residue cleanup, L1d.0 stable-index/file-budget preparation, L1d bounded
+  definition admission, L1e.0 structural port-face promotion, L1e.1 dependency
+  admission, L1e.2 structural adapter-face creation, L1e.3 durable-adapter
+  behavior, L1e.4 kill/C0 authority, then L1f facade and distribution.
+  Structural lanes MUST remain separate from behavior, preserve the kernel's
+  current public surface where promised, and add no runtime claims.
 - **ensure:** `PLAN.md` fixes the sequence and changed-path envelopes; each lane
   has before/after tests, protected review, explicit rollback, and no generated
   hand edits.
@@ -207,3 +240,7 @@ state, multi-cell propagation, authorization, kill-switch convergence, or SLOs.
   as deployed capability.
 - A feature flag that grants first-party/trusted-tenant privilege or bypasses
   IAM, policy, quota, audit, or metering.
+- A tracked generated module index, hand-maintained parent `mod` list, or
+  Cargo-only item scanner whose Buck membership differs.
+- Port moves, crate/face creation, or lockfile mutation mixed with adapter,
+  authority, or evaluation behavior.

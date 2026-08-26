@@ -66,8 +66,9 @@ Cedar, and OpenSLO files do not provide those capabilities.
   safe/off and kill variants, ordered rules, percentage buckets, and schema/
   algorithm version without provider or wire types in core.
 - Validate the entire definition before admission: identifiers and references,
-  unique keys/IDs, operator/operand shape, rollout sums, size/work bounds, and
-  safe fallback must be known before any subject evaluates it.
+  unique keys/IDs, operator/operand shape, rollout sums, targeting-key and
+  variant string/object dimensions, finite floats, aggregate definition/context
+  byte bounds, and safe fallback must be known before any subject evaluates it.
 - For one admitted generation and normalized context, return the same variant,
   value, reason, and error on every supported architecture and replay.
 - Apply precedence as engaged kill switch, disabled definition, verified
@@ -75,8 +76,9 @@ Cedar, and OpenSLO files do not provide those capabilities.
   variant. Malformed or unavailable authority returns a typed failure and safe
   fallback, never an optimistic value.
 - Keep the hot path free of storage, network, policy, pack, audit, clock, RNG,
-  and mutable-global calls. Bound definition and context sizes so peak work is
-  predictable.
+  and mutable-global calls. Enforce every `SPEC.md` v1 maximum and its aggregate
+  byte cap before evaluation so hashing, comparison, and selected-value cloning
+  have a declared worst case.
 
 ## Mutation authority and distribution
 
@@ -182,8 +184,9 @@ multi-cell fault campaign, and Observability promotion gate exist.
 ## Named fault campaigns
 
 - Empty/duplicate variants and rules; unknown off/default/kill/rule/rollout
-  variants; invalid operator shapes; zero/overflow/over-100% weights; maximum+
-  one definition/context dimensions; arbitrary bytes and Unicode boundaries.
+  variants; invalid operator shapes; zero/overflow/over-100% weights; targeting-
+  key, string-value, object-entry/key/value, and aggregate-byte maximum+one;
+  NaN and positive/negative infinity; arbitrary bytes and Unicode boundaries.
 - Snapshot truncation, signature/digest corruption, duplicate/out-of-order/
   missing deltas, atomic-swap interruption, restart on old generation, and
   partition from the control plane.

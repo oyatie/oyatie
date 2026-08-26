@@ -90,14 +90,31 @@ V1 limits are deliberately fixed so evaluation work can be budgeted:
 | conditions per rule | 8 |
 | rollout buckets per rollout | 32 |
 | evaluation attributes | 64 |
+| targeting key | 256 UTF-8 bytes |
 | string attribute or set member | 256 UTF-8 bytes |
 | set members in one condition | 64 |
+| `FlagValue::Str` | 4,096 UTF-8 bytes |
+| `FlagValue::Object` entries | 64 |
+| object key | 128 UTF-8 bytes |
+| object value | 4,096 UTF-8 bytes |
+| total UTF-8 string/payload bytes in one definition | 1,048,576 bytes |
+| total UTF-8 bytes in one normalized evaluation context | 32,768 bytes |
+
+Lengths are UTF-8 byte lengths, not character counts. The definition aggregate
+is the sum of every identifier, salt, string operand/set member, and string or
+object key/value payload; the context aggregate is the targeting key plus every
+attribute key/string value. Scalar booleans and integers are fixed-width.
+`FlagValue::Float` admits finite `f64` values only: NaN and positive/negative
+infinity return a typed validation error and never become wire-visible. The
+existing zero-byte anonymous targeting key remains valid, preserving the landed
+golden vector, but it is still charged to the context count and byte limits.
 
 Admission rejects empty/duplicate flag, variant, or rule identifiers; no
 variants; missing off/default/kill/rule/rollout references; duplicate rollout
 variant entries; individual or cumulative weights above 10,000 basis points;
-integer overflow; operator/operand mismatch; and any maximum+one input. A rollout
-below 10,000 remains valid and its unallocated remainder falls through to the
+integer overflow; non-finite float payloads; operator/operand mismatch; any
+individual maximum+one; and either aggregate-byte maximum+one. A rollout below
+10,000 remains valid and its unallocated remainder falls through to the
 definition default, preserving current behavior.
 
 Successful admission produces a `ValidatedFlag` that alone enters the new hot-
