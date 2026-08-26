@@ -19,8 +19,9 @@ date: 2026-08-26
   explicitly as deferred, and analytics binaries without a serving listener.
 - A `data-classification` compatibility port consumed by Network and Storage.
   It still exact-re-exports its values and parsers from the legacy
-  `data-boundary-kernel`; 94 other direct package consumers still name at
-  least one of those classification symbols through the legacy core.
+  `data-boundary-kernel`; its 94 other direct package consumers partition into
+  77 classification-only, 16 mixed classification/policy, and one purpose-only
+  package.
 - Ontology and transactional-outbox packages with substantial existing fan-in.
 
 ## What does not exist
@@ -48,11 +49,11 @@ Two dependency chains may run concurrently because their first-slice path sets
 are disjoint:
 
 ```text
-D1b-C1 classification provider inversion -> D1b-C2 classification consumer LSC
-D1b-P1 Data-local Postgres repair         -> D1b-P2 Postgres consumer Buck LSC
-                                           \_______________________________/
-                                                          |
-                                                     D1c join gate
+D1b-C1 provider inversion -> D1b-C2A alias LSC -> D1b-O1 -> D1b-O2 Foundry move
+D1b-P1 Postgres/outbox prep -> D1b-P2 agreed Postgres port -> D1b-B Bus move
+                                      \______________________________/
+                                                     |
+                                                D1c join gate
 ```
 
 ### D1b-C1 — Invert the classification compatibility port
@@ -190,63 +191,145 @@ a Buck fixture restoring the old reverse edge must fail cycle/parity checks;
 and disposable add/rename/remove/non-Rust-item fixtures prove deterministic
 membership, stable include roots, and identical Cargo/Buck refusal behavior.
 
-### D1b-C2 — Migrate classification consumers as one D-29 LSC
+### D1b-C2 — Partition the classification closure under D-29
 
-After D1b-C1, one mechanical large-scale change moves direct classification
-imports from `data_boundary_kernel` to `data_classification`. It may retain a
-legacy-core dependency in a package that also uses purpose, consent, policy, or
-retention symbols. It must not rename values, change construction, translate
-errors, or edit behavior.
+The D1a dependency census contains 94 packages outside
+`data/ports/classification`. It is not one homogeneous source-edit lane. The
+closed partition is 77 classification-only dependencies, 16 packages that
+also consume purpose/policy/retention symbols, and one IAM package that uses
+only purpose symbols. C2 uses dependency aliases for the first set and makes
+no Rust edit anywhere. This is the lawful D-35/D-41 path: no current 5,387-line
+Network root, 3,667-line Application root, 3,381-line Compute root, or other
+caller source becomes a touched file.
 
-The maximum D-29 envelope is `Cargo.toml`, `BUCK`, and only the Rust source or
-test files importing the C1 classification symbol set inside these exact 94
-package directories, plus root `Cargo.lock` as the one lockfile writer:
+#### D1b-C2A — Classification-only dependency-alias LSC
 
-| Consumer owner | Exact package directories at the D1a head |
+Class: structural cross-owner dependency change and sole `Cargo.lock` writer;
+depends on C1. The exact 77 package directories are:
+
+| Owner | Exact package directories |
 |---|---|
-| Application | `app/application/facade/application-app`, `app/application/facade/surface-domain` |
+| Application | `app/application/facade/surface-domain` |
 | Community | `app/community/core/post-store-domain`, `app/community/core/social-domain` |
 | Foundry | `app/foundry/grid/core/sheets-domain`, `app/foundry/pages/crates/docs-domain` |
 | HR | `app/hr/core/employment-domain`, `app/hr/facade/employment-app` |
 | Payroll | `app/payroll/core/run-domain`, `app/payroll/facade/run-app` |
-| Audit | `audit/adapters/file`, `audit/core/chain-domain`, `audit/core/usecase` |
-| Billing | `billing/core/accounting-app`, `billing/core/accounting-journal`, `billing/core/billing`, `billing/core/check-cost-budget`, `billing/core/finops`, `billing/core/metering`, `billing/facade/billing-service`, `billing/ports/finops-api` |
+| Billing | `billing/core/accounting-app`, `billing/core/accounting-journal`, `billing/core/billing`, `billing/core/check-cost-budget`, `billing/core/metering`, `billing/facade/billing-service`, `billing/ports/finops-api` |
 | Bus | `bus/adapters/file`, `bus/core/domain` |
 | Cell | `cell/core/capacity-commercial`, `cell/core/region`, `cell/core/regional-pack`, `cell/core/routing` |
-| Compliance | `compliance/core/dlp`, `compliance/core/dsr`, `compliance/core/ediscovery`, `compliance/core/retention-dsr`, `compliance/core/retention`, `compliance/core/trust-portal`, `compliance/ports/dsr-usecase` |
+| Compliance | `compliance/core/dsr`, `compliance/core/ediscovery`, `compliance/core/retention-dsr`, `compliance/core/trust-portal`, `compliance/ports/dsr-usecase` |
 | Compute | `compute/adapters/aws`, `compute/adapters/oci`, `compute/core/dcops`, `compute/core/domain`, `compute/core/resource`, `compute/facade/functions`, `compute/facade/k8s`, `compute/facade/vm` |
 | Data | `data/core/ontology-kernel`, `data/core/ontology-query-engine-domain`, `data/core/ontology-query-engine-usecase`, `data/ports/ontology-api` |
-| IAM | `iam/adapters/pdp-cedar`, `iam/adapters/tenant-rbac-storage-inmemory`, `iam/core/app-control`, `iam/core/domain-control`, `iam/core/identity-domain`, `iam/core/identity-usecase`, `iam/core/tenant-rbac-domain`, `iam/core/tenant-rbac-usecase`, `iam/ports/api`, `iam/ports/tenant-rbac-api` |
-| Intelligence | `intelligence/adapters/evidence-file-adapter`, `intelligence/adapters/run-file-adapter`, `intelligence/adapters/step-file-adapter`, `intelligence/core/adapter-kernel`, `intelligence/core/bypass-domain`, `intelligence/core/capability-domain`, `intelligence/core/catalog-domain`, `intelligence/core/collab-runtime-domain`, `intelligence/core/document-format-domain`, `intelligence/core/evidence-domain`, `intelligence/core/mcp-gateway-domain`, `intelligence/core/mutation-domain`, `intelligence/core/openapi-domain`, `intelligence/core/policy-api`, `intelligence/core/policy-domain`, `intelligence/core/rag-api`, `intelligence/core/registry-api`, `intelligence/core/run-domain`, `intelligence/core/step-domain` |
+| IAM | `iam/adapters/tenant-rbac-storage-inmemory`, `iam/core/app-control`, `iam/core/tenant-rbac-domain`, `iam/core/tenant-rbac-usecase`, `iam/ports/api`, `iam/ports/tenant-rbac-api` |
+| Intelligence | `intelligence/adapters/evidence-file-adapter`, `intelligence/adapters/run-file-adapter`, `intelligence/adapters/step-file-adapter`, `intelligence/core/adapter-kernel`, `intelligence/core/bypass-domain`, `intelligence/core/capability-domain`, `intelligence/core/catalog-domain`, `intelligence/core/collab-runtime-domain`, `intelligence/core/document-format-domain`, `intelligence/core/evidence-domain`, `intelligence/core/mcp-gateway-domain`, `intelligence/core/openapi-domain`, `intelligence/core/registry-api`, `intelligence/core/run-domain`, `intelligence/core/step-domain` |
 | Marketplace | `marketplace/core/domain` |
 | Network | `network/adapters/oci`, `network/adapters/selfhosted`, `network/core/domain`, `network/core/residency`, `network/ports/dns`, `network/ports/lb`, `network/ports/vpc` |
-| Observability | `observability/core/aggregate`, `observability/core/api`, `observability/core/domain` |
+| Observability | `observability/core/domain` |
 | Pipeline | `pipeline/core/eval-domain` |
 | Secrets | `secrets/adapters/kms-oci`, `secrets/adapters/kms-openbao`, `secrets/adapters/kms-operator-k8s`, `secrets/core/domain`, `secrets/core/kms-domain`, `secrets/ports/kms-api` |
 | Tenancy | `tenancy/core/domain` |
 
-This is an escalated D-29 external-contract lane. Required reviewers are the
-Data provider owner, every consuming owner named in the table, and architecture.
-The implementation dispatch must resolve the table to a file-level occupancy
-receipt before spawning; it may use disjoint caller shards, but only one shard
-may write `Cargo.lock`, and no feature lane may edit an occupied caller file.
+For every row, the exact writable suffixes are `Cargo.toml` and `BUCK`; root
+`Cargo.lock` is the 155th and final path. The two currently absent Buck files
+`billing/core/check-cost-budget/BUCK` and
+`pipeline/core/eval-domain/BUCK` are created in this structural LSC. No other
+path is writable.
 
-Success: every listed classification import resolves through the provider
-port; Cargo and Buck name the same edge; packages needing other legacy boundary
-symbols retain only that narrower old edge; workspace and reverse-closure tests
-observe identical values, errors, labels, and parsers.
+Each Cargo manifest replaces the legacy package edge with the exact dependency
+alias:
 
-Failure: a consumer is missed, a broad core dependency is replaced where a
-non-classification symbol still requires it, a second classification model is
-introduced, behavior changes, or review omits any affected owner.
+```toml
+data-boundary-kernel = {
+  package = "data-classification",
+  path = "<relative-path-to-data/ports/classification>"
+}
+```
 
-Rollback: revert the mechanical callers and lockfile while leaving the C1
-compatibility re-export direction intact.
+Thus existing `data_boundary_kernel::...` source keeps the same extern-crate
+name while the linked package and defining types are `data-classification`.
+Every affected Buck `rust_library`, `rust_binary`, and `rust_test` target
+removes the old label and uses:
 
-Fault evidence: an injected legacy classification import or stale Buck label
-must fail the parity gate; representative consumer contract tests cover every
-classification axis and both namespace directions during the compatibility
-window.
+```text
+named_deps = {
+  "data_boundary_kernel":
+    "//data/ports/classification:data-classification",
+}
+```
+
+Buck's owned Rust rule already supports `named_deps`; a candidate canary must
+compile the unchanged import spelling through both graphs and prove the linked
+package identity. The lock delta changes only the 77 local dependency edges;
+it adds no package or third-party version. One LSC owns all 155 paths because
+splitting the lock-writing manifest change would create unmergeable `--locked`
+intermediate states.
+
+Required reviewers are Data, all 19 consumer-owner groups in the table, and
+architecture. A fresh exact-head census is a precondition: a package already
+removed or moved by an accepted owner lane stops this envelope for amendment;
+the worker does not guess its new path.
+
+Success: unchanged Rust sources compile against the provider package in Cargo
+and Buck; exact type/error/parser/label identity remains; the old core is absent
+from the 77 package graphs; lock freshness and every reverse target close.
+
+Failure: any Rust source/test is touched, an affected rule lacks the named
+dependency, a manifest still resolves the old core, an alias points at a
+wrapper, a new package/version enters the lock, or an owner is missing from
+review.
+
+Rollback: revert the 154 manifests/build files and exact lock edge delta while
+C1 continues to provide its compatibility re-export.
+
+Fault evidence: canaries inject the old Cargo path, old Buck label, wrong Buck
+extern name, and simultaneous old/new package edges; graph parity must reject
+each. Representative unchanged callers exercise every C1 classification type,
+parser, error, and constant through the alias.
+
+#### D1b-C2Q — Mixed-symbol compatibility quarantine
+
+These exact 16 packages use both C1 classification symbols and symbols that
+do not belong in the classification port:
+
+| Owner | Exact packages | Non-classification reason |
+|---|---|---|
+| Application | `app/application/facade/application-app` | purpose, consent, subject, data-use policy/evaluator |
+| Audit | `audit/adapters/file`, `audit/core/chain-domain`, `audit/core/usecase` | purpose and purpose parser |
+| Billing | `billing/core/finops` | `DataClassMatcher` |
+| Compliance | `compliance/core/dlp`, `compliance/core/retention` | `DataClassMatcher` |
+| IAM | `iam/adapters/pdp-cedar`, `iam/core/domain-control`, `iam/core/identity-domain` | purpose |
+| Intelligence | `intelligence/core/mutation-domain`, `intelligence/core/policy-api`, `intelligence/core/policy-domain`, `intelligence/core/rag-api` | purpose, consent, subject, age, hard-deny policy |
+| Observability | `observability/core/aggregate`, `observability/core/api` | purpose |
+
+C2Q writes nothing. After C1, their classification names are exact re-exports
+of the provider types, so type authority is already inverted; their remaining
+legacy dependency is lawful only for the named non-classification surface.
+Adding a second dependency and rewriting classification imports would touch 32
+currently over-budget files across these crates and is forbidden without an
+owner-by-owner D-35 scanner preparation. Their spelling is therefore explicit
+compatibility debt, not hidden inside C2A.
+
+`iam/core/identity-usecase` is the 94th census package. It imports only
+`Purpose` and `parse_purpose_pascal_label`; it is not a classification consumer
+and C2 does not alter it.
+
+A later purpose/consent/policy ownership decision must name the provider port,
+all 17 remaining consumers, exact per-crate D-35/D-41 preparation, and D-29
+review before the legacy core can retire. It is non-dispatchable and does not
+block the owned records contract because the legacy core no longer defines
+classification after C1. Compliance packages scheduled for terminal burn are
+deleted by their owner rather than prepared or migrated here.
+
+Success: the partition remains exactly 77/16/1, C1 compatibility fixtures prove
+one classification type identity through both namespaces, and no mixed package
+loses a still-required policy symbol.
+
+Failure: C2A touches a mixed/no-class package, C2Q is described as migrated, a
+second classification type appears, or a later lane edits an over-budget
+caller without its exact structural preparation.
+
+Rollback: C2Q has no code change. Reverting C1 restores the old definition only
+before C2A lands; after C2A, C1 is a hard dependency and cannot roll back alone.
 
 ### D1b-P1 — Repair Data-local Postgres structure
 
@@ -363,190 +446,544 @@ fixtures exercise the scanners in both graphs; a stale target edge fails target
 analysis; existing SQL rollback, atomicity, validation, outbox ordering, and RLS
 probes run before and after the split.
 
-### D1b-P2 — Repair Postgres reverse consumers under D-29
+### D1b-P2 — Promote the Postgres command port and close reverse consumers
 
-After D1b-P1 publishes the Data Buck labels, four disjoint consumer-owner
-shards replace only stale `//libs/shared-postgres-command-*` labels:
+Class: one structural D-28/D-29/D-33 LSC and sole lock writer after P1. The
+current command package is already externally consumed, so moving the outbox
+adapter to Bus while it depends on `data/core/**` would be unlawful. P2 first
+promotes the provider contract:
 
-| Shard | Exact writable files | Required reviewers |
-|---|---|---|
-| Community | `app/community/adapters/post-store-grpc/BUCK`, `app/community/adapters/post-store-postgres/BUCK`, `app/community/adapters/post-store-rest/BUCK`, `app/community/adapters/social-post-composition-grpc/BUCK`, `app/community/adapters/social-post-composition-postgres/BUCK`, `app/community/adapters/social-post-composition-rest/BUCK`, `app/community/facade/post-store-app/BUCK`, `app/community/facade/social-app/BUCK` | Data provider + Community + architecture |
-| IAM | `iam/adapters/identity-scim-store-postgres/BUCK` | Data provider + IAM + architecture |
-| Intelligence | `intelligence/core/backbone-workload-live-app/BUCK` | Data provider + Intelligence + architecture |
-| Tenancy | `tenancy/adapters/tenant-lifecycle-store-postgres/BUCK` | Data provider + Tenancy + architecture |
+```text
+data/core/postgres-command-kernel/**
+  -> data/ports/postgres-command/**       package data-postgres-command
+data/adapters/postgres-command-sqlx/{Cargo.toml,BUCK}
+                                          package data-postgres-command-sqlx
+data/adapters/outbox-sqlx/{Cargo.toml,BUCK}
+Cargo.lock
+```
 
-The four shards may run concurrently. Rust, Cargo manifests, root files,
-generated files, and `Cargo.lock` are read-only. Their existing Cargo manifests
-already point to the Data packages; this LSC restores Buck parity without a
-semantic or dependency-identity migration.
+The provider cone keeps the P1 scanner/items unchanged. The adapter path does
+not move; only its package/dependency identities change. The outbox adapter now
+depends on the agreed `data-postgres-command` port, never a Data core.
 
-Success: all 11 Buck files use the D1b-P1 labels; their Cargo/Buck dependency
-sets agree; Community, IAM, Intelligence, and Tenancy reverse targets pass; IAM
-and Tenancy live PostgreSQL/RLS behavior remains unchanged at the D1b join.
+The exact reverse-consumer envelope is `Cargo.toml` and `BUCK` in each of these
+11 directories:
 
-Failure: any stale label remains, a caller source or manifest changes, a shard
-self-widens, an affected consumer owner is absent from review, or green Cargo
-is presented as Buck closure.
+```text
+app/community/adapters/post-store-grpc
+app/community/adapters/post-store-postgres
+app/community/adapters/post-store-rest
+app/community/adapters/social-post-composition-grpc
+app/community/adapters/social-post-composition-postgres
+app/community/adapters/social-post-composition-rest
+app/community/facade/post-store-app
+app/community/facade/social-app
+iam/adapters/identity-scim-store-postgres
+intelligence/core/backbone-workload-live-app
+tenancy/adapters/tenant-lifecycle-store-postgres
+```
 
-Rollback: revert only the label replacements; D1b-P1 remains a valid Data-local
-repair.
+Cargo package aliases and Buck `named_deps` preserve the existing
+`shared_postgres_command_*` extern spellings; no Rust file is touched. The lock
+delta renames exactly the two Data packages and their local edges, with no
+third-party movement. Required reviewers are Data, Community, IAM,
+Intelligence, Tenancy, Bus as the next outbox owner, and architecture.
 
-Fault evidence: each shard injects one deleted label and proves target analysis
-fails; the join reruns transaction rollback, RLS isolation, and atomic failure
-paths against the unchanged Cargo implementations.
+Success: the agreed port and adapter build under both graphs; all 11 consumers
+and the outbox adapter resolve the provider port with unchanged source; no
+`//libs/shared-postgres-command-*` or Data-core consumer edge remains; live IAM/
+Tenancy RLS and rollback behavior is unchanged. Failure is a direct core edge,
+caller Rust edit, stale label, missing reverse consumer, unrelated lock churn,
+or incomplete owner review. Rollback reverses the provider move and aliases
+before B; P1 remains a valid prepared source. Fault evidence injects each old
+Cargo/Buck identity and direct-core path, then reruns transaction rollback, RLS
+isolation, atomic failure, and Cargo/Buck alias canaries.
 
-## D1c — Freeze the engine-neutral records contract
+## D1b-O — Transfer ontology authority to Foundry
 
-Class: structural contract; blocked on cross-owner decisions below.
+The ontology transfer is part of the D1 join, not later database feature work.
+It starts after C2A so the four classification-consuming ontology packages
+already resolve the provider port.
 
-- Establish one primary records engine under `data/core/records`, a provider-
-  owned contract under `data/ports`, and explicit compatibility adapters.
-- Define transaction, schema, tablet, change-envelope, error, idempotency,
-  durability-profile, authorization, audit, and clock evidence types without a
-  PostgreSQL or ClickHouse client in core.
-- Preserve current `shared-*` identities through a versioned compatibility
-  window and migrate consumers as a mechanical large-scale change.
-- Decide the sold wire compatibility envelope and the hot-path persistence
-  boundary before another owner depends on a draft port.
+### D1b-O1 — Ontology file-budget/scanner preparation
 
-Success: one canonical contract and parameterized in-memory oracle exist;
-adapters cannot leak vendor types; every old consumer has a named migration and
-removal version; Cargo and Buck agree on the package graph.
+Class: Data-local structural preparation; no move, rename, dependency, behavior,
+manifest, or lock change. Install the same owned sorted scanner/Buck parity
+pattern as C1/P1 in these exact package roots:
 
-Failure: a draft Data port gains cross-owner consumers, SQL strings become the
-semantic contract, two wire surfaces define different transactions, or
-`Cargo.lock` is changed by more than the designated single writer.
+```text
+data/core/ontology-kernel/{BUCK,build.rs}
+data/core/ontology-query-engine-domain/{BUCK,build.rs}
+data/core/ontology-query-engine-usecase/{BUCK,build.rs}
+data/ports/ontology-api/{BUCK,build.rs}
+data/facade/ontology-scorecards-resolver/{BUCK,build.rs}
+```
 
-Rollback: keep the new contract unrouted and retain current package identities;
-published contract versions are superseded rather than rewritten.
+The stable roots and exact scanner member sets are:
 
-Fault evidence: malformed/unknown frames, forged policy evidence, reused
-idempotency keys, unsupported durability, stale schema/tablet revisions, and
-adapter error parity all fail before mutation.
+| Stable root | Exact unique member directory/files |
+|---|---|
+| `data/core/ontology-kernel/src/lib.rs` | `src/items/{a_identifiers,b_entity_types,c_link_types,d_action_types,e_object_entities,f_object_graph,g_registration,h_validation,i_errors}.rs`, `src/test_items/{a_registration,b_links,c_actions,d_properties}.rs` |
+| `data/core/ontology-kernel/tests/link_action_invariants.rs` | `tests/link_action_items/{a_link_invariants,b_action_invariants}.rs` |
+| `data/core/ontology-kernel/tests/schema_evolution.rs` | `tests/schema_evolution_items/{a_additive,b_breaking,c_replay}.rs` |
+| `data/core/ontology-query-engine-domain/src/lib.rs` | `src/items/{a_request,b_response,c_filter,d_traversal,e_pagination,f_plan,g_engine,h_validation,i_errors}.rs`, `src/test_items/{a_traversal,b_filters,c_limits,d_tenant_isolation}.rs` |
+| `data/core/ontology-query-engine-usecase/src/lib.rs` | `src/items/{a_policy,b_execution,c_idempotency,d_errors}.rs`, `src/test_items/{a_authorization,b_execution}.rs` |
+| `data/ports/ontology-api/src/lib.rs` | `src/items/{a_request,b_authentication,c_normalization,d_projection,e_response_errors}.rs`, `src/test_items/{a_contract,b_tenant_binding}.rs` |
+| `data/facade/ontology-scorecards-resolver/src/lib.rs` | `src/items/{a_framework,b_resolution,c_localization,d_errors}.rs`, `src/test_items/{a_resolution,b_overrides}.rs` |
 
-## D1d — Deterministic single-cell state machine
+Each stable root has one fixed source include and one fixed test include where
+applicable. The two integration roots have their own fixed generated include.
+Every output name is the root stem plus `.generated.rs` or
+`_tests.generated.rs`; Buck stages the exact directory, invokes the same
+package `build.rs`, and uses the resulting `OUT_DIR`. The remaining files in
+the five packages are read-only. All listed handwritten files must end at or
+below 300 lines.
 
-Class: behavioral correctness.
+Success: Cargo/Buck compile identical members, public identity and all ontology
+behavior remain unchanged, and add/rename/remove/non-Rust canaries fail or
+follow membership identically. Failure is a manual index, changed behavior,
+over-budget touched file, or manifest/lock movement. Rollback restores the five
+single-file roots. SLO signal is structural build/test parity only; no product
+availability is claimed. Fault evidence is scanner drift and full existing
+ontology contract/replay tests before/after.
 
-- Implement the owner-local deterministic MVCC state machine for one tablet:
-  tenant keyspace, schema revisions, snapshots, conditional mutation,
-  serializable single-tablet transactions, tombstones, idempotency, and commit
-  ordinals.
-- Consume the Cell interval port; keep NTP `commit_wait` disabled and make
-  widening uncertainty explicit.
-- Implement map epochs and fencing in the state machine before network or disk
-  optimizations.
-- Build a deterministic simulator and property/model tests against the frozen
-  contract; retain PostgreSQL as a non-authoritative differential oracle.
+### D1b-O2 — Foundry structural transfer and compatibility LSC
 
-Success: histories are linearizable, replay is idempotent, stale epochs and
-cross-tenant keys fail before mutation, and crash boundaries never expose a
-prepared record.
+Class: structural D-29/D-33 move and sole lock writer; depends on O1. The exact
+old-to-new package cones are:
 
-Failure: wall time becomes version identity, a cross-tablet request partially
-prepares, a replay changes its result, or model checking finds two committed
-owners for one epoch.
+| Data source | Foundry destination / package |
+|---|---|
+| `data/core/ontology-kernel/**` | `app/foundry/core/ontology-engine-domain/**` / `foundry-ontology-engine-domain` |
+| `data/core/ontology-domain/**` | `app/foundry/core/ontology-domain/**` / `foundry-ontology-domain` |
+| `data/core/ontology-query-engine-domain/**` | `app/foundry/core/ontology-query-domain/**` / `foundry-ontology-query-domain` |
+| `data/core/ontology-query-engine-usecase/**` | `app/foundry/core/ontology-query-usecase/**` / `foundry-ontology-query-usecase` |
+| `data/ports/ontology-api/**` | `app/foundry/ports/ontology/**` / agreed `foundry-ontology` |
+| `data/facade/ontology-scorecards-resolver/**` | `app/foundry/facade/ontology-scorecards-app/**` / `foundry-ontology-scorecards-app` |
 
-Rollback: the owned state machine remains unrouted; consumers continue through
-the current adapters.
+Also write only `app/application/facade/application-app/{Cargo.toml,BUCK}` and
+root `Cargo.lock`. Package-local imports use the new Foundry crate identities;
+Application preserves its existing `data_ontology_domain` source spelling with
+a Cargo package alias and Buck `named_deps`, so its 3,667-line source is not
+touched. Root workspace globs already discover both faces; root `Cargo.toml` is
+read-only. Required reviewers are Data, Foundry, Application, every consumer
+of the agreed ontology port, and architecture.
 
-Fault evidence: process death at every transaction transition, duplicate and
-reordered commands, stale maps, clock rollback/widening, authorization expiry,
-and concurrent transaction histories.
+Success: no `data/**ontology**` package or package identity remains; all six
+Foundry packages build/test under both graphs; Application is source-compatible;
+the lock changes only package names/paths; Foundry is the only ontology owner.
+Failure: a compatibility copy remains in Data, a second ontology port appears,
+behavior changes, an unprepared over-budget file is edited, or any consumer is
+missed. Rollback is the inverse six `git mv`s plus exact aliases/lock delta
+before a new Foundry contract version ships. SLO signal is unchanged contract
+test latency/coverage, not service availability. Fault evidence injects each
+old Cargo/Buck identity and proves analysis refuses it, then reruns ontology
+tenant/link/schema/replay tests.
 
-## D1e — Owned replicated tablet durability
+## D1b-B — Transfer transactional outbox authority to Bus
 
-Class: behavioral durability and cell authority.
+Class: structural D-29/D-33 move and sole lock writer; depends on P2. Move:
 
-- Implement checksummed WAL/segments, durable barriers, manifests, snapshots,
-  recovery, compaction, and format versions behind the D1c persistence seam.
-- Replicate one tablet across a three-node consensus group with leader change,
-  snapshot transfer, catch-up, placement epochs, repair state, and bounded
-  queues.
-- Separate stateless compute, metadata/placement, tablet data, and repair roles
-  in the one signed distribution and test independent scaling and failure.
-- Expose only durability profiles whose receipt conditions are implemented;
-  reject all others before preparation.
+```text
+data/core/transactional-outbox-kernel/**
+  -> bus/ports/outbox/**                 package bus-outbox
+data/adapters/outbox-sqlx/**
+  -> bus/adapters/outbox-sqlx/**         package bus-outbox-sqlx
+```
 
-Success: acknowledged single-tablet transactions have RPO 0 inside the declared
-node/device tolerance; leader recovery and admitted latency meet `PRD.md`; a
-snapshot can rebuild a replacement replica without split brain.
+The moved scanner roots/items are those frozen by P1. The only additional
+writable consumer paths are:
 
-Failure: page-cache writes are called durable, corrupt recovery is trusted, a
-stale leader commits, repair exhausts foreground budgets, or an acknowledged
-record disappears after an in-tolerance fault.
+```text
+app/community/facade/post-store-app/{Cargo.toml,BUCK}
+app/community/facade/social-app/{Cargo.toml,BUCK}
+intelligence/core/backbone-workload-live-app/{Cargo.toml,BUCK}
+Cargo.lock
+```
 
-Rollback: keep PostgreSQL authority while the owned group is shadow-only;
-disable the new writer before its format barrier and retain the prior reader
-through the declared rollback window.
+Consumer source keeps the existing extern names through Cargo package aliases
+and Buck `named_deps`; no caller Rust file is touched. `bus/ports/outbox` is an
+agreed provider contract, so required reviewers are Data, Bus, Community,
+Intelligence, and architecture. P2 follows this move; its Intelligence target
+then repairs only the remaining PostgreSQL label.
 
-Fault evidence: kill/power cut before and after every flush/commit edge,
-partial/full/corrupt devices, lost/duplicated/reordered consensus traffic,
-leader and rack loss, snapshot corruption, repair storms, and N/N+1 formats.
+Success: Bus owns both identities, all Data outbox paths are absent, Cargo/Buck
+edges agree, SQL ordering/idempotency/rollback are unchanged, and all three
+reverse consumers pass. Failure: a Data compatibility copy remains, delivery
+authority stays in Data, a caller source changes, lock churn is unrelated, or
+review closure is incomplete. Rollback reverses the two moves and aliases before
+a Bus contract version is published. SLO signals are enqueue/drain ordering and
+bounded retry counters only; no Bus availability claim follows. Fault evidence
+reruns atomic rollback/duplicate/reorder tests and injects each old label/path.
+
+## D1c — Freeze the engine-neutral records shape and contract
+
+D1c is blocked until the two decisions in `<decision_gates>` are recorded. The
+following Data-internal persistence branch is the only executable envelope in
+this plan. If Storage is selected as hot-path authority, D1c-S stops and this
+plan must be amended with the accepted Storage port and exact reverse closure.
+
+### D1c-S — Empty/scanner faces and dependency graph
+
+Class: structural D-29/D-33 and sole `Cargo.lock` writer. Create exactly these
+six four-file package roots plus `Cargo.lock`:
+
+```text
+data/ports/draft/records/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/ports/draft/tablet-persistence/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/records-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/tablet-consensus-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/records-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/tablet-file/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+Cargo.lock
+```
+
+Package names are respectively `data-records-draft`,
+`data-tablet-persistence-draft`, `data-records-domain`,
+`data-tablet-consensus-domain`, `data-records-inmemory-draft`, and
+`data-tablet-file-draft`. Every dependency-free owned `build.rs` scans sorted
+`src/items/*.rs` and `src/test_items/*.rs`, tolerates their structural absence,
+and writes fixed `lib.generated.rs`/`tests.generated.rs` under `OUT_DIR`; Buck
+stages the same globs with `buildscript_run`. Stable roots never become module
+inventories.
+
+Exact dependency directions under Cargo and Buck are:
+
+```text
+data-records-draft -> data-records-domain
+data-tablet-persistence-draft -> data-records-domain
+cell-clock-api -> data-records-domain
+data-records-domain + data-tablet-persistence-draft
+  -> data-tablet-consensus-domain
+data-records-draft + data-records-domain
+  -> data-records-inmemory-draft
+data-tablet-persistence-draft -> data-tablet-file-draft
+```
+
+The lock adds exactly six local package blocks/edges and no third-party version.
+Build closure is all six packages plus `cell/ports/clock`; reverse closure is
+empty. Required reviewers are Data, Cell, architecture, and Storage for the
+recorded persistence decision. Success is empty/scanner packages and graph
+parity with no semantic type or test. Failure is behavior, a draft cross-owner
+consumer, missing Buck parity, or unrelated lock movement. Rollback removes the
+six packages/lock blocks. Fault evidence is scanner add/rename/remove/non-Rust
+parity only.
+
+### D1c-C — Bounded semantic contracts
+
+Class: content-only behavior after D1c-S; no manifest/build/lock/route change.
+The exact unique-file envelope is:
+
+```text
+data/ports/draft/records/src/items/{a_identifiers,b_requests,c_responses,d_errors,e_durability_profile,f_change_envelope}.rs
+data/ports/draft/records/src/test_items/{a_contract,b_errors,c_limits}.rs
+data/ports/draft/tablet-persistence/src/items/{a_log_record,b_manifest,c_durable_receipt}.rs
+data/ports/draft/tablet-persistence/src/test_items/a_contract.rs
+data/core/records-domain/src/items/{a_schema,b_transaction,c_tablet,d_idempotency,e_request_context}.rs
+data/core/records-domain/src/test_items/{a_contract,b_identity,c_refusal}.rs
+data/core/tablet-consensus-domain/src/items/a_replication_contract.rs
+data/core/tablet-consensus-domain/src/test_items/a_contract.rs
+```
+
+Freeze engine-neutral transaction/schema/tablet/change/error/idempotency,
+authorization/audit/Cell evidence, durability profile, WAL record, manifest,
+and receipt semantics from `SPEC.md`. No SQL/client type or crypto/storage
+implementation appears. Build/reverse closure is the six-package D1c-S graph;
+required reviewers are Data, Cell, Audit, IAM/Policy, Storage, and architecture.
+
+Success: malformed/unknown frames, unsupported durability, stale revisions,
+forged context, fingerprint reuse, and limit-plus-one inputs return stable
+errors before mutation; Cargo/Buck run identical members. Failure is a vendor
+type, a second classification/time identity, unbounded collection, or draft
+external consumer. Rollback removes only these files. SLO signals are bounded
+decode/allocation work and stable refusal counters; production latency and
+availability remain unavailable. Fault evidence is contract fuzz/property and
+exact-bound matrices.
+
+### D1c-O — Parameterized in-memory oracle
+
+Class: content-only behavior; no graph change.
+
+```text
+data/adapters/draft/records-inmemory/src/items/a_store.rs
+data/adapters/draft/records-inmemory/src/items/b_transaction_oracle.rs
+data/adapters/draft/records-inmemory/src/test_items/a_contract_suite.rs
+data/core/records-domain/src/items/f_contract_harness.rs
+data/core/records-domain/src/test_items/d_adapter_parity.rs
+```
+
+It implements only the frozen contract and reusable adapter suite; it is not
+durable or routed. Closure is `records-draft`, `records-domain`, and
+`records-inmemory-draft` in both graphs; reverse closure remains empty. Required
+reviewers are Data and architecture. Success is deterministic parity and zero
+partial mutation; failure is durability/availability wording or vendor leakage.
+Rollback removes five files. SLO signals are bounded operations and test work;
+faults cover malformed input, replay, conditional conflicts, and cancellation.
+
+## D1d — Deterministic single-tablet state machine
+
+Class: content-only behavior after D1c-C/O. Exact files:
+
+```text
+data/core/records-domain/src/items/{g_mvcc,h_snapshot,i_serializable_transaction,j_fencing,k_commit_ordinal}.rs
+data/core/records-domain/src/test_items/{e_mvcc,f_serializable_history,g_fencing,h_clock_interval}.rs
+data/adapters/draft/records-inmemory/src/items/c_state_machine.rs
+data/adapters/draft/records-inmemory/src/test_items/b_model_histories.rs
+```
+
+Implement tenant keyspaces, schema revisions, snapshots, conditional mutation,
+single-tablet serializability, tombstones, idempotency, ordinal versions, map
+epochs, stale fencing, and explicit Cell interval uncertainty. Cross-tablet
+requests fail before prepare and NTP `commit_wait` remains disabled.
+
+Cargo/Buck closure is records port/domain/in-memory plus `cell-clock-api`; no
+reverse consumer or graph file changes. Required reviewers are Data, Cell,
+IAM/Policy for request-context refusal, and architecture. Success is
+linearizable deterministic histories, stable replay, no visible prepare, and
+one owner per epoch. Failure is wall-time identity, partial cross-tablet work,
+changed replay, or a two-owner history. Rollback removes the 11 unique files;
+the D1c oracle remains. SLO signals are transaction step count, prepared age,
+stale-refusal rate, and simulator work bounds; PRD serving latency remains a
+future promotion target. Fault evidence covers every modeled transition,
+duplicate/reorder, stale maps, interval rollback/widening, auth expiry, and
+concurrent histories.
+
+## D1e — Owned single-tablet durability and replication oracle
+
+Class: content-only behavior after D1d; no manifest/build/lock/route change.
+
+```text
+data/adapters/draft/tablet-file/src/items/{a_wal,b_segments,c_manifest,d_snapshot,e_recovery,f_compaction}.rs
+data/adapters/draft/tablet-file/src/test_items/{a_durable_barriers,b_corruption,c_recovery,d_format_upgrade}.rs
+data/core/tablet-consensus-domain/src/items/{b_log,c_membership,d_leader,e_snapshot_transfer,f_repair,g_admission}.rs
+data/core/tablet-consensus-domain/src/test_items/{b_partition,c_leader_change,d_snapshot_transfer,e_repair_budget}.rs
+data/core/records-domain/src/items/l_durable_commit.rs
+data/core/records-domain/src/test_items/i_durable_commit.rs
+```
+
+Implement checksummed append-only records, explicit durable barriers,
+generation manifests, snapshots/recovery/compaction, three-voter consensus,
+leader change/catch-up, epoch fencing, repair states, and bounded queues. This
+is an unrouted library/oracle; separately deployable roles and sold SLO evidence
+belong to D4.
+
+Build closure is all six D1c packages plus Cell clock. Required reviewers are
+Data, Cell, Storage for the persistence boundary, security for corruption/key
+references, and architecture. Success is RPO 0 in the declared one-node/device
+tolerance, no stale leader commit, verified rebuild, and p99 leader recovery at
+or below the PRD 30-second target in the declared simulator/plant profile.
+Failure is page-cache durability, trusted corruption, lost ACK, split brain, or
+unbounded repair. Rollback removes the 23 unique files while PostgreSQL remains
+authority. Fault evidence includes kill/power-cut around every barrier,
+partial/full/corrupt devices, partition/reorder, voter/leader loss, snapshot
+corruption, repair saturation, and N/N+1 format barriers.
 
 ## D2 — Range scale and transaction breadth
 
-Class: distributed behavior after D1e.
+### D2-S — Placement/coordination structure
 
-- Add online range split/move/rebalance, multi-tablet transaction coordination,
-  global home-cell lookup, ownership transfer, and capacity-aware placement.
-- Prove ordered scans, schema change, transaction recovery, and stale-route
-  behavior throughout split and move.
+Class: structural and sole lock writer after D1e. Create only:
 
-Promotion is blocked by any missing/duplicate scan result, partial transaction,
-two active cells, unbounded rebalancing, or failure to meet the declared cell
-limits.
+```text
+data/ports/draft/home-cell-directory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/placement-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/tablet-transaction-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/home-cell-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+Cargo.lock
+```
+
+Use the D1c scanner contract. Packages are `data-home-cell-directory-draft`,
+`data-placement-domain`, `data-tablet-transaction-domain`, and
+`data-home-cell-inmemory-draft`. Dependencies are records/consensus -> placement,
+records/consensus/placement -> tablet-transaction, and directory/placement ->
+home-cell-inmemory. The lock adds exactly four local blocks. Required reviewers
+are Data, Cell, Tenancy, and architecture; no owner may consume the draft port.
+Success/failure/rollback/scanner faults match D1c-S, with no behavior claim.
+
+### D2-R — Split, move, and placement behavior
+
+Exact content-only files:
+
+```text
+data/core/placement-domain/src/items/{a_topology,b_tablet_map,c_split,d_move,e_rebalance,f_handoff}.rs
+data/core/placement-domain/src/test_items/{a_ordered_scan,b_split_move,c_stale_route,d_capacity}.rs
+data/core/tablet-consensus-domain/src/items/h_placement_epoch.rs
+data/core/tablet-consensus-domain/src/test_items/f_handoff_partition.rs
+```
+
+Success is lossless ordered scans and one owner through copy/catch-up/verify/CAS;
+failure is a gap/duplicate, two owners, stale write, or unbounded background
+work. Rollback disables the unrouted range coordinator and keeps original
+tablets authoritative. SLO signals are split/move duration, map staleness,
+foreground p99.9 impact under the PRD isolation bound, and repair queue age.
+Faults cover crash/partition/reorder at each handoff state, rack loss, full
+targets, schema change, and reads/writes/scans during movement. Reviewers are
+Data, Cell, and architecture; closure is placement plus records/consensus.
+
+### D2-T — Multi-tablet transactions
+
+Exact content-only files:
+
+```text
+data/core/tablet-transaction-domain/src/items/{a_coordinator,b_participant,c_deadlock,d_recovery,e_atomic_visibility}.rs
+data/core/tablet-transaction-domain/src/test_items/{a_serializable_history,b_coordinator_crash,c_timeout_deadlock,d_split_overlap}.rs
+```
+
+Success is cell-local serializability and atomic visibility through coordinator
+recovery; failure is partial commit, leaked prepare, cross-cell acceptance, or
+unfenced participant. Rollback leaves multi-tablet admission disabled and keeps
+D2-R ranges. SLO signals are coordinator latency, prepared age, abort reason,
+and bounded deadlock work; faults kill every coordinator/participant transition,
+drop/reorder messages, move ranges concurrently, and expire authorization.
+Reviewers are Data, Cell, IAM/Policy, and architecture; closure is transaction,
+placement, records, consensus, and clock under both graphs.
+
+### D2-H — Home-cell lookup oracle
+
+Exact content-only files are
+`data/ports/draft/home-cell-directory/src/items/{a_contract,b_errors}.rs`,
+`data/ports/draft/home-cell-directory/src/test_items/a_contract.rs`,
+`data/adapters/draft/home-cell-inmemory/src/items/a_directory.rs`, and
+`data/adapters/draft/home-cell-inmemory/src/test_items/a_epoch.rs`. Success is
+cached lookup with monotonic ownership and no per-query global hop; failure is
+two home cells or stale authority acceptance. Rollback removes the five files.
+Signals are lookup cache age/refusal and transfer duration; faults cover stale
+caches, partition, replay, and concurrent transfer. It stays unrouted/draft;
+production directory ownership is a D4 decision.
 
 ## D3 — Owned OLAP and record-pipeline planes
 
-Class: derived behavioral engines.
+### D3-S — Derived-plane structure
 
-- Build immutable columnar projection and dataset-transform paths from the
-  committed change protocol, with checkpointing, backfill, lineage, generation
-  publication, quotas, and independent compute/storage scaling.
-- Keep ClickHouse as a removable compatibility/differential adapter until the
-  owned implementation clears the same contract.
+Class: structural and sole lock writer after D1e; may run beside D2-S only when
+lock writers are serialized. Create five scanner package roots plus lock:
 
-Promotion requires bounded freshness, deterministic replay, no partial
-generation, noisy-tenant isolation, and adapter removal without caller changes.
+```text
+data/ports/draft/change-stream/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/olap-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/core/record-pipeline-domain/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/olap-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+data/adapters/draft/record-pipeline-inmemory/{Cargo.toml,BUCK,build.rs,src/lib.rs}
+Cargo.lock
+```
+
+The package names are `data-change-stream-draft`, `data-olap-domain`,
+`data-record-pipeline-domain`, `data-olap-inmemory-draft`, and
+`data-record-pipeline-inmemory-draft`. Change-stream depends on the records
+contract; both domains depend on change-stream; each adapter depends on its
+domain. Exactly five local lock blocks are added; the reverse closure is empty.
+Reviewers are Data and architecture; current ClickHouse and analytics packages
+are read-only compatibility inventory. Structural success/failure/rollback/
+fault criteria match D1c-S.
+
+### D3-C — Ordered change and checkpoint contract
+
+Exact content-only files:
+
+```text
+data/ports/draft/change-stream/src/items/{a_envelope,b_cursor,c_checkpoint,d_errors}.rs
+data/ports/draft/change-stream/src/test_items/{a_contract,b_gap_refusal}.rs
+```
+
+Success is idempotent duplicate handling, gap/reorder/checksum refusal, and a
+checkpoint bound to ordinal/schema/generation/predecessor. Failure is source
+acknowledgement or silent gap. Rollback removes six files. Signals are source
+lag, gap count, checkpoint age, and bounded queue work; faults cover loss,
+duplicate, reorder, incompatible schema, and replay. Closure is change-stream
+plus records; reviewers are Data and architecture.
+
+### D3-O — Immutable OLAP projection
+
+Exact content-only files are
+`data/core/olap-domain/src/items/{a_segment,b_projection,c_backfill,d_publication,e_query}.rs`,
+`data/core/olap-domain/src/test_items/{a_replay,b_backfill,c_publication,d_noisy_tenant}.rs`,
+`data/adapters/draft/olap-inmemory/src/items/a_projection_store.rs`, and
+`data/adapters/draft/olap-inmemory/src/test_items/a_contract.rs`. Success is
+deterministic immutable generation publication and p99 freshness at or below
+the PRD 60-second target under the declared profile; failure is partial
+visibility, OLTP authority, gap, or unbounded noisy-tenant impact. Rollback
+retains the prior generation and removes the unrouted projection files. Faults
+cover crash before/after publication, backfill/replay overlap, corruption,
+duplicate/reorder, and saturation. Reviewers are Data and architecture;
+ClickHouse remains an untouched differential oracle.
+
+### D3-P — Record-transform pipeline
+
+Exact content-only files are
+`data/core/record-pipeline-domain/src/items/{a_job,b_transform,c_checkpoint,d_generation,e_lineage}.rs`,
+`data/core/record-pipeline-domain/src/test_items/{a_replay,b_partial_failure,c_lineage,d_quota}.rs`,
+`data/adapters/draft/record-pipeline-inmemory/src/items/a_job_store.rs`, and
+`data/adapters/draft/record-pipeline-inmemory/src/test_items/a_contract.rs`.
+Success is p99.9 durable-admission modeling at or below one second, idempotent
+replay, complete lineage, and atomic generation publication; failure is a
+partial generation, lost lineage, second record authority, or unbounded queue.
+Rollback preserves the prior generation and removes the unrouted pipeline
+files. Faults cover cancellation/retry, crash at every checkpoint/publication,
+gap/reorder, schema change, and noisy tenant. Reviewers are Data, Bus for any
+future delivery adapter (not used here), and architecture.
 
 ## D4 — Cohort migration and production operations
 
-Class: migration and promotion.
+Class: explicitly decision-gated and non-dispatchable. D4 cannot start from
+this document alone. It requires both `<decision_gates>` receipts, D1e/D2/D3
+evidence, an accepted home-cell-directory owner, and a named first cohort.
 
-- Inventory PostgreSQL-backed workloads and migrate one low-risk cohort at a
-  time through oracle, shadow, cutover, rollback-fenced, and retired states.
-- Land online upgrades, downgrade barriers, point-in-time recovery, drain,
-  repair, cell evacuation, multi-cell recovery, deletion, capacity forecasting,
-  and continuous fault campaigns.
+The accepted amendment must split and enumerate, at minimum:
+
+1. `D4-FS` structural Connect/protobuf and app packages, their exact
+   `data/facade/**` paths, package/proto version, gateway/IAM/Audit dependencies,
+   Cargo/Buck graph, sole lock writer, and generated-vs-handwritten boundary.
+2. `D4-FB` content-only schema/handler files and default-deny contract tests;
+   a PostgreSQL wire package exists only if the founder decision accepts it.
+3. `D4-C<n>-S` one cohort's exact source adapter, consumer files, authority
+   epoch/journal, shadow/cutover/rollback deadline, and owner reviewers;
+   `D4-C<n>-B` contains behavior only after its shape lands.
+4. `D4-O-S/B` separately deployable compute, metadata, tablet, repair, OLAP,
+   and pipeline roles; bounded-cell IR; generated SLO source/materializer;
+   backup/restore, deletion, drain, upgrade, capacity, and evacuation state.
+
+Until those file-level amendments land, no worker may infer facade, Gateway,
+IAM, Storage, Observability, Cell, deployment, or consumer paths. Success for a
+D4 cohort is one write authority, durable parity, tested pre-expiry rollback,
+and eventual source retirement. Failure is dual authority, lost ACK, shadow
+serving, an unfenced rollback, or any PRD SLO/isolation miss. Rollback returns
+the exact cohort to its prior authority at a higher epoch; format and contract
+barriers never decrement. Required SLO signals are every PRD target at the sold
+facade plus unit cost/capacity. Required faults are cutover crash at every
+state, journal gap/reorder, adapter outage, restore, N/N+1/downgrade, cell/rack
+loss, repair saturation, deletion/retention, and repeated regional recovery.
 
 No “drop-in”, horizontal-scale, regional availability, or external-runtime
-retirement claim is valid until its cohort and promotion evidence land.
+retirement claim is valid before an exact D4 cohort and production promotion
+clear this gate.
 
 </sequence>
 
 <ordering_rules>
 
-1. D1b-C1 precedes D1b-C2 and D1b-P1 precedes D1b-P2. Both structural chains
-   must join before D1c; D1c contract structure precedes D1d/D1e behavior.
+1. C1 precedes C2A; C2Q is a no-write quarantine. C2A precedes O1/O2. P1
+   precedes P2, which precedes the Bus transfer. C2A, O2, P2, and B join before
+   D1c; D1c-S precedes C/O, then D1d, then D1e.
 2. Consensus, fencing, and durable recovery precede broad sharding, OLAP,
    performance tuning, `io_uring`, or hardware specialization.
 3. One stage owns each shared manifest or `Cargo.lock`; behavioral lanes use
    unique files after structure freezes.
-4. Ontology transfer to `app/foundry` and outbox transfer to `bus/` are separate
-   owner-reviewed large-scale changes, not hidden inside a database feature.
+4. O1/O2 and B are the ordered ontology-to-Foundry and outbox-to-Bus transfers;
+   they are required join inputs, not prose debt or hidden database work.
 5. Unit-green is never stage completion. Every stage carries explicit success,
    failure, rollback, SLO signals, and named fault evidence.
-6. D1b-C1 and D1b-P1 commute. D1b-C2 may run beside D1b-P2 because their
-   caller files and lock ownership are disjoint. A policy extraction touching
-   `data-boundary-kernel` cannot overlap D1b-C1, and an app structural lane may
-   run only when its exact files are outside the active C2/P2 occupancy set.
+6. C1 and P1 commute, but their lock writes serialize. After those providers,
+   C2A, P2, B, and O2 are separate lock-writing LSCs and also serialize. O1 is
+   lock-free and may run beside P2/B when paths are disjoint; O2 follows C2A/O1.
+   D2-S and D3-S may be prepared in parallel but merge one lock writer at a
+   time; their content lanes then commute on unique files.
 
 </ordering_rules>
 
 <decision_gates>
 
-Before D1c implementation, founder/provider-owner review must decide:
+Before D1c-S implementation, founder/provider-owner review must decide and
+record an immutable receipt:
 
 - whether Data sells only the canonical Connect/protobuf facade or also a
   versioned PostgreSQL wire-compatible facade; and
@@ -554,14 +991,19 @@ Before D1c implementation, founder/provider-owner review must decide:
   future accepted Storage contract. The current Storage draft port is not a
   legal cross-owner dependency.
 
+No fallback is inferred. Connect-only plus Data-internal persistence activates
+the exact D1c-S envelope above. A PostgreSQL wire decision adds only a later D4
+facade branch. A Storage-authority decision makes D1c-S non-dispatchable until
+this plan names the accepted provider port, adapter, target/reverse closure,
+reviewers, and rollback.
+
 </decision_gates>
 
 <next_lane>
 
-The next dispatchable fanout is D1b-C1 and D1b-P1. C1 owns the exact
-classification inversion paths and `Cargo.lock`; P1 owns only the disjoint
-Data-local Postgres paths and cannot claim reverse closure. C2 and P2 dispatch
-only after their respective providers land. D1c remains blocked on both D1b
-chains and the two cross-owner decisions.
+The next dispatchable fanout is C1 and P1, with their lock writers serialized.
+After C1, dispatch C2A; C2Q never dispatches. After P1, dispatch P2, then B.
+O1 may prepare beside P2/B and O2 follows both O1 and C2A. D1c remains blocked
+until C2A, O2, B, P2, and both cross-owner decision receipts are complete.
 
 </next_lane>
