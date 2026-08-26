@@ -24,10 +24,50 @@ date: 2026-08-26
 None of this is a durable People service, a sold versioned facade, an installed-
 pack integration, downstream delivery, adapter portability proof, or measured
 SLO. Core/facade still import Data core types, infrastructure imports Gateway
-core/runtime types, the storage trait lives inside its adapter, and five Rust
-files exceed ADR-0719's 300-line budget.
+core/runtime types, the storage trait lives inside its adapter, and eight
+hand-written Rust files exceed ADR-0719's 300-line budget:
+
+| Exact path | Lines | Serialized L2b slice |
+|---|---:|---|
+| `core/employment-domain/src/lib.rs` | 1,600 | L2b.1 domain |
+| `core/employment-domain/tests/leave_balance.rs` | 440 | L2b.1 domain |
+| `core/employment-domain/tests/leave_carryover_forfeiture.rs` | 383 | L2b.1 domain |
+| `core/employment-domain/tests/onboarding.rs` | 360 | L2b.1 domain |
+| `ports/employment-api/src/lib.rs` | 484 | L2b.2 port |
+| `adapters/employment-infrastructure/src/authz.rs` | 448 | L2b.3 infrastructure |
+| `adapters/employment-infrastructure/src/lib.rs` | 372 | L2b.3 infrastructure |
+| `adapters/employment-infrastructure/tests/runtime.rs` | 512 | L2b.3 infrastructure |
 
 </baseline>
+
+<known_reverse_consumers>
+
+## IAM compatibility closure at L2a
+
+The exact locked Cargo inverse graph at head
+`ffc4a5d922944b507b96fa0e8cb4f4cf2feef8ed` contains these IAM consumers:
+
+| IAM path | HR relationship |
+|---|---|
+| `iam/facade/tenant-rbac-local-runtime-composition` | Directly consumes `hr-employment-infrastructure` |
+| `iam/facade/tenant-rbac-local-inmemory-harness` | Directly consumes HR domain, app, and in-memory storage packages |
+| `iam/facade/tenant-rbac-listener-gateway` | Transitively consumes HR through local runtime composition |
+| `iam/facade/tenant-rbac-listener-runtime-evidence` | Transitively consumes HR through listener gateway |
+| `iam/facade/tenant-rbac-readiness-gate` | Transitively consumes both HR-bearing IAM composition paths |
+
+L2c, L2d, and L2e treat all five paths as a **read-only build/test closure**.
+HR retains the package identities, public types, and behavior they consume
+through additive compatibility re-exports; those lanes do not edit IAM.
+
+If compatibility cannot be preserved, the HR lane stops before breaking the
+surface. The only lawful consumer migration is a separately dispatched D-29
+IAM envelope over the five named directories above, owned by an IAM worker and
+reviewed by the IAM owner plus an architecture reviewer. Sequence is: land the
+additive HR compatibility surface, migrate IAM in its protected PR, then remove
+the retired HR surface in a later HR PR after the IAM change merges. No one PR
+writes both owner cones, and “discover consumers later” is not an envelope.
+
+</known_reverse_consumers>
 
 <sequence>
 
@@ -55,23 +95,32 @@ and every target claim to an explicit future lane.
 
 Class: structural; this is `<next_lane>`.
 
-- Split `core/employment-domain/src/lib.rs` into bounded identifier/validation,
-  employment, compliance, leave-impact, leave-balance, carryover, onboarding,
-  privacy, and rulepack modules with `lib.rs` limited to module/re-export policy.
-- Split the over-budget domain tests for leave balance, carryover/forfeiture,
-  and onboarding into focused integration targets; update only their explicit
-  BUCK test declarations.
-- Split the over-budget transport/authorization sources and runtime test into
-  bounded modules/targets while preserving every public path and result.
+- **L2b.1 domain:** split `core/employment-domain/src/lib.rs` and the
+  `leave_balance.rs`, `leave_carryover_forfeiture.rs`, and `onboarding.rs` tests
+  into bounded modules/targets; update only `core/employment-domain/BUCK`.
+- **L2b.2 port, after L2b.1:** split
+  `ports/employment-api/src/lib.rs` after the domain re-export surface is fixed;
+  update only `ports/employment-api/BUCK`.
+- **L2b.3 infrastructure, after L2b.2:** split
+  `adapters/employment-infrastructure/src/authz.rs`, its `src/lib.rs`, and
+  `tests/runtime.rs` after the port surface is fixed; update only
+  `adapters/employment-infrastructure/BUCK`.
+- Each slice may add uniquely named modules/tests only inside its named package;
+  every old public path and result remains available through compatibility
+  re-exports where required.
 - Leave package identities, dependency direction, DTOs, traits, routes, and
-  behavior unchanged; compatibility re-exports are allowed only where needed.
+  behavior unchanged.
 
-Changed-path envelope: `app/hr/**/{src,tests}/**/*.rs` and the corresponding
-`app/hr/**/BUCK` files only. No Cargo manifest, lockfile, root law, generated
-artifact, or business-rule change.
+Changed-path envelopes are closed per sub-slice: L2b.1 owns
+`app/hr/core/employment-domain/{src/**,tests/**,BUCK}`; L2b.2 owns
+`app/hr/ports/employment-api/{src/**,BUCK}`; L2b.3 owns
+`app/hr/adapters/employment-infrastructure/{src/**,tests/**,BUCK}`. No Cargo
+manifest, lockfile, root law, generated artifact, IAM path, or business-rule
+change is admitted.
 
-Success: every touched hand-written non-exempt file is at most 300 lines; public
-API and HR test results are unchanged; Cargo and Buck targets retain parity.
+Success: all eight enumerated originals are removed or at most 300 lines, every
+new hand-written file is at most 300 lines, public API and HR test results are
+unchanged, and Cargo and Buck targets retain parity.
 
 Failure: validation order, error identity, serialization, route behavior,
 authorization, or test coverage drifts; a compatibility path disappears.
@@ -93,13 +142,16 @@ Class: structural package architecture; depends on L2b.
 - Correct the current adapter-owned storage trait and mixed HTTP/auth/runtime
   package responsibilities without yet changing underlying behavior or adding
   a durable backend.
-- Update Cargo/BUCK manifests and consumers in the exact reverse dependency
-  closure; do not add a new feature in this lane.
+- Update HR Cargo/BUCK manifests while preserving the compatibility surface;
+  compile/test the five named IAM reverse consumers without editing them. Do
+  not add a new feature in this lane.
 
-Changed-path envelope: `app/hr/**` plus named existing HR consumers discovered
-by a fresh reverse-dependency scan. Root `Cargo.toml`/`Cargo.lock` are forbidden
-unless the package graph genuinely adds/removes a workspace member and the
-shared-hub lane is serialized.
+Changed-path envelope: `app/hr/**` only. The five IAM paths under
+`<known_reverse_consumers>` are read-only verification inputs. A failed
+compatibility guarantee triggers the separate D-29 IAM sequence above rather
+than widening this lane. Root `Cargo.toml`/`Cargo.lock` remain forbidden unless
+the package graph genuinely adds/removes a workspace member and the shared-hub
+lane is serialized.
 
 Success: each item has one canonical face, compatibility tests preserve the old
 surface, and no business output changes.
@@ -128,10 +180,13 @@ Class: dependency inversion; depends on L2c.
   current JSON/runtime surfaces only as compatibility adapters.
 - Add crate-graph checks proving HR core has no SQLite/HTTP/IAM/Data/Storage/
   Gateway/other-app dependency and app-to-cloud edges terminate at sold facades.
+- Compile/test all five named IAM reverse consumers against the additive HR
+  compatibility surface without editing their files.
 
-Changed-path envelope: `app/hr/**` plus only agreed sold-facade adapter contracts
-and exact consumer updates. Root workspace/lock/generated hubs require a
-separate serialized writer.
+Changed-path envelope: `app/hr/**` only. Agreed sold-facade contracts, the five
+named IAM consumers, and root workspace/lock/generated hubs are read-only. Any
+required IAM edit blocks this HR lane and uses the separately dispatched D-29
+IAM sequence above; any required shared-hub edit uses its serialized writer.
 
 Success: core and use-case tests compile against app-owned values/ports; removing
 Data and Gateway implementations does not require core source changes; current
@@ -162,10 +217,13 @@ Class: behavioral durability; depends on L2d.
   fresh-process/connection interruption, reopen, migration, and replay tests.
 - Select exactly one active repository adapter per tenant; do not dual-write to
   a cloud or commodity destination.
+- Keep the current in-memory package surface compatible and compile/test the
+  five named IAM reverse consumers without routing IAM to SQLite or editing IAM.
 
 Changed-path envelope: new/updated HR port and adapter packages, HR conformance
 tests, migrations, their Cargo/BUCK manifests, and a serialized workspace/lock
-update if required. No People rule change.
+update if required. IAM remains a read-only verification closure; any required
+consumer change uses the separate D-29 IAM sequence. No People rule change.
 
 Success: acknowledged mutation survives reopen; faults before commit expose
 nothing; faults after commit plus lost response replay the exact stored outcome;
@@ -215,9 +273,11 @@ outbox redelivery.
 
 HR's L2 chain is sequential because each slice changes the next slice's file or
 dependency surface. It may run beside lanes whose changed paths and practical
-Cargo/Buck closures do not intersect `app/hr/**`, HR reverse consumers, root
-workspace/lockfiles, generated artifacts, or global CI/owner-law hubs. Within
-HR, only read-only recon/review may fan out; D-36 owner-law files retain one
-writer.
+Cargo/Buck closures do not intersect `app/hr/**`, the five named IAM reverse
+consumers, root workspace/lockfiles, generated artifacts, or global CI/owner-
+law hubs. IAM verification does not reserve a writable IAM cone. If D-29 is
+triggered, its named IAM paths serialize only against lanes writing those same
+paths. Within HR, only read-only recon/review may fan out; D-36 owner-law files
+retain one writer.
 
 </parallelism>

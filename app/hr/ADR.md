@@ -19,11 +19,11 @@ destination implementation has landed.
 
 | Surface | What exists | Maturity |
 |---|---|---|
-| `core/employment-domain` | Typed employee and legal-entity identities; employment lifecycle; Korea-first labor thresholds; leave/payroll-impact, balance, and carryover projections; sensitive-read policy; onboarding readiness; statutory rulepack manifests | Tested domain foundation, but one 1,600-line source file and a direct `data-boundary-kernel` dependency violate the target |
+| `core/employment-domain` | Typed employee and legal-entity identities; employment lifecycle; Korea-first labor thresholds; leave/payroll-impact, balance, and carryover projections; sensitive-read policy; onboarding readiness; statutory rulepack manifests | Tested domain foundation, but its 1,600-line source plus 440-, 383-, and 360-line tests exceed the budget, and its direct `data-boundary-kernel` dependency violates the target |
 | `facade/employment-app` | Pure functions compose onboarding outcomes plus audit, workflow, payroll-impact, and sensitive-read envelopes | In-process composition only; no transaction boundary or durable acknowledgement |
-| `ports/employment-api` | Serde request/response DTOs and conversions to domain/facade inputs | A JSON-shaped compatibility surface, not a sold versioned facade; it depends inward on both facade and domain |
+| `ports/employment-api` | Serde request/response DTOs and conversions to domain/facade inputs | A 484-line JSON-shaped compatibility surface, not a sold versioned facade; it depends inward on both facade and domain |
 | `adapters/employment-storage-inmemory` | Volatile record metadata keyed by idempotency key, with reserve/put/get/list behavior | Reference fixture only; the storage trait is incorrectly owned by this adapter, reservation and write are not one durable transaction, and restart loses all state |
-| `adapters/employment-infrastructure` | In-process HTTP route, bearer verification, tenant-match, PDP-decision, and health behavior | Test adapter only; it imports Gateway core/runtime crates directly and has no deployment or network-listener promotion evidence |
+| `adapters/employment-infrastructure` | In-process HTTP route, bearer verification, tenant-match, PDP-decision, and health behavior | Its 448-line authorization source, 372-line crate root, and 512-line runtime test exceed the budget; it imports Gateway core/runtime crates directly and has no deployment or network-listener promotion evidence |
 | SLO and operations | Capability flags honestly report that no durable backend, workflow call, payroll call, sensitive retrieval, or audit-chain emission is attached | No HR-owned SLO source, persistent recovery proof, or production serving evidence has landed |
 
 The current package and public type names remain compatibility facts until a
@@ -132,8 +132,12 @@ over-budget files are debt, not precedent.
 
 - **achieves:** reviewable changes whose regressions can be attributed and
   reverted without mixing package movement with new employment semantics.
-- **origin:** HR has five hand-written Rust files above ADR-0719's 300-line cap,
-  misplaced port/transport responsibilities, and illegal dependency direction.
+- **origin:** HR has eight hand-written Rust files above ADR-0719's 300-line cap:
+  `core/employment-domain/src/lib.rs`, its `leave_balance`,
+  `leave_carryover_forfeiture`, and `onboarding` tests,
+  `ports/employment-api/src/lib.rs`, and the infrastructure adapter's
+  `src/authz.rs`, `src/lib.rs`, and `tests/runtime.rs`; it also has misplaced
+  port/transport responsibilities and illegal dependency direction.
 - **rule:** the migration MUST proceed as L2b file-budget splits, L2c
   port/facade/adapter separation, L2d app-owned I/O/transport ports and removal
   of direct Data/Gateway core edges, L2e SQLite parity and crash proof, then a
