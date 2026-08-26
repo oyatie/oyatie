@@ -143,6 +143,41 @@ over-budget files are debt, not precedent.
 
 </runtime_state>
 
+<data_at_rest>
+
+## Decision: sensitive HR records are encrypted before persistence
+
+- **achieves:** a copied SQLite file, backup, or page image does not disclose
+  employee, person, evidence, lifecycle, request, outcome, or outbox payloads,
+  while HR remains portable across key providers.
+- **origin:** the PRD requires encrypted durable sensitive fields, but the
+  initial SQLite graph contains only the repository port, `rusqlite`, and
+  `sha2`; that graph can otherwise reach production while persisting plaintext
+  personal data and has no key rotation or revocation contract.
+- **rule:** SQLite and every promoted durable repository MUST pass sensitive
+  values through the owner-local `hr-record-encryption-draft` port before
+  persistence. The port owns bounded ciphertext-envelope, blind-index, key-
+  generation, and associated-data values; it does not own a cipher or KMS.
+  Production use is non-dispatchable until L2i.0d accepts one authenticated-
+  encryption implementation and one commodity or sold key-service facade with
+  exact dependencies, key custody, nonce, rotation, revocation, and outage
+  semantics. The matching HR adapter remains draft while the port is draft.
+  Plaintext fallback, caller-provided keys, process-local production keys,
+  provider-internal imports, and logging key/plaintext material are forbidden.
+- **ensure:** SQLite stores only approved nonsensitive schema metadata, opaque
+  identifiers, blind indexes, and authenticated ciphertext envelopes. Contract
+  and real-file tests scan database and backup bytes for injected sentinels,
+  hard-close/reopen with a fresh adapter, rotate and re-encrypt with idempotent
+  restart, revoke old generations, remove the key provider before boot and
+  mid-transaction, and prove no acknowledgement, disclosure, partial plaintext,
+  nonce reuse, or fallback key.
+- **overturn_when:** an independently reviewed encrypted-SQLite binding or
+  storage adapter proves equivalent full-file confidentiality, key separation,
+  rotation/revocation, crash recovery, portability, and provider-outage failure
+  behavior and replaces the port/adapter sequence in the same wave.
+
+</data_at_rest>
+
 <policy_and_privacy>
 
 ## Decision: installed pack authority and fail-closed sensitive access
@@ -180,25 +215,30 @@ over-budget files are debt, not precedent.
   `src/authz.rs`, `src/lib.rs`, and `tests/runtime.rs`; it also has misplaced
   port/transport responsibilities and illegal dependency direction. No SQLite
   dependency or adapter package exists, so admitting that graph and implementing
-  its durability protocol are distinct ADR-0719 D-33 change classes.
+  its durability protocol are distinct ADR-0719 D-33 change classes. The IAM
+  workload-manifest source is also 618 lines and must be structurally prepared
+  before the IAM content retirement touches it.
 - **rule:** the migration MUST first repair the stale Buck labels in the exact
   HR plus reverse-consumer build closure, then proceed as L2b file-budget
   splits; L2c structural face admission followed by content-only role
   separation; L2d structural draft-port/adapter admission, content-only
   dependency inversion, then structural removal of direct Data/Gateway edges;
-  serialized SQLite dependency and adapter-face admission; content-only SQLite
-  parity and crash proof; a fail-closed Connect generator/runtime decision
+  serialized SQLite dependency and adapter-face admission, including the
+  owner-local record-encryption port; content-only encrypted SQLite parity and
+  crash proof; a fail-closed Connect generator/runtime decision
   gate; structural empty codegen/package/build admission; a separate schema-only
   People contract; a content-only fail-closed `Unrouted` process state; and then
   a content-only generated-Connect onboarding slice.
-  A mandatory D-29 IAM
-  consumer sequence MUST then delete IAM-local HR composition and remove every
+  A mandatory D-29 IAM consumer sequence MUST first install D-35/D-41 stable
+  membership in its oversized tenant-workload-manifest crate, then delete
+  IAM-local HR composition and remove every
   IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
   after which a separate HR structural lane MUST retire the compatibility
   surfaces. Production serving then requires decision-gated Packs/install,
-  Policy/IAM authorization-evidence, and Audit/outbox provider contracts;
-  separate structural adapter faces, content-only adapter behavior, structural
-  composition edges, content-only composition, and a separately gated
+  Policy/IAM authorization-evidence, Audit/outbox, and authenticated record-
+  encryption/key-service provider contracts; D-28/D-30-correct draft adapter
+  faces while their HR ports remain draft; content-only adapter behavior;
+  structural composition edges; content-only composition; and a separately gated
   main/route activation before any tenant cohort. No live route or production-
   readiness promotion may precede the zero-inverse-edge proof or those
   production authorities. Structural lanes MUST preserve public behavior and
@@ -210,8 +250,8 @@ over-budget files are debt, not precedent.
   prerequisites are green and frozen; routing begins only after an inverse scan
   of the whole IAM cone proves no manifest, Buck label, or Rust import reaches
   any `app/hr` package and outage tests prove that unavailable Packs, Policy/IAM,
-  or Audit authority prevents routing, mutation, and sensitive disclosure as
-  required by the operation class.
+  Audit, or encryption/key authority prevents routing, mutation, plaintext
+  persistence, and sensitive disclosure as required by the operation class.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
   cannot be separated safely and a replacement plan preserves the same rollback
   boundary and proof strength.
@@ -265,3 +305,7 @@ over-budget files are debt, not precedent.
   as the generated Connect-class People boundary.
 - Any terminal Cargo, Buck, or Rust edge from `iam/**` into `app/hr/**`, even
   through an HR-owned client adapter.
+- A non-draft adapter path or package implementing an HR `ports/draft/*`
+  contract without a preceding D-28/D-29 port promotion.
+- Plaintext sensitive HR values in SQLite, backups, page images, logs, or
+  fallback process-local keys when the selected encryption/key provider fails.

@@ -66,6 +66,7 @@ The first port set is:
 | Port | Required semantic boundary |
 |---|---|
 | employee repository | atomic employee/lifecycle/idempotency outcome read and write |
+| record encryption | seal/open sensitive values, derive bounded blind indexes, and carry authenticated key-generation metadata without exposing provider types |
 | installed HR overlay | resolve admitted pack-id to verified HR rule content and generation |
 | authorization evidence | supply verified principal/tenant/action/resource/PDP provenance, never caller allow fields |
 | audit/outbox | durably bind pre-ack evidence or intent and retry delivery |
@@ -270,8 +271,9 @@ command must explicitly consume a `Ready` result and its evidence generation.
 The SQLite schema is adapter-private and versioned. At minimum it persists
 employee state, lifecycle events, idempotency outcomes, and audit/outbox intent.
 The repository port supplies a versioned canonical request byte sequence; the
-adapter stores its SHA-256 digest plus versioned outcome bytes. The SQLite
-adapter's only runtime dependencies are `hr-employment-repository-draft`,
+adapter stores its SHA-256 digest plus a record-encryption envelope for the
+versioned outcome bytes. The SQLite adapter's only runtime dependencies are
+`hr-employment-repository-draft`, `hr-record-encryption-draft`,
 `rusqlite.workspace = true`, and `sha2.workspace = true`. Its only
 dev-dependencies are `hr-employment-repository-memory-draft` and
 `tempfile.workspace = true`; recovery targets use the real SQLite adapter and
@@ -291,8 +293,10 @@ commit generation. Processing is:
 3. Begin one SQLite transaction and inspect the idempotency entry.
 4. If the entry is committed with the same digest, return its stored outcome.
    If its digest differs, return `IdempotencyConflict` without mutation.
-5. Otherwise write the idempotency entry, employee mutation, lifecycle event,
-   and durable audit/outbox intent in the same transaction.
+5. Otherwise seal every sensitive employee, lifecycle, request/outcome, and
+   audit/outbox value through `hr-record-encryption-draft`, derive required
+   blind indexes, and write the authenticated envelopes plus the idempotency
+   entry in the same transaction.
 6. Commit durably according to the adapter profile, then acknowledge. A caller
    disconnect after commit does not undo the transaction.
 
@@ -304,6 +308,63 @@ single active adapters, not dual-write.
 
 </durable_transaction>
 
+<data_at_rest>
+
+## Record-encryption and key lifecycle contract
+
+The SQLite format permits cleartext only for schema/migration version, opaque
+row identity, bounded timestamps and counters, ciphertext-envelope metadata,
+and keyed blind indexes. Employee, person, manager, evidence, policy, pack,
+lifecycle, canonical request, stored outcome, and audit/outbox payload values
+are sensitive and must never be stored as cleartext. The
+`hr-record-encryption-draft` port exposes bounded `seal`, `open`, and
+`blind_index` operations over HR-owned values. Its envelope contains an
+algorithm identifier, provider/key reference, monotonically ordered key
+generation, unique nonce, ciphertext, and authentication tag; provider or
+cipher types do not cross the port.
+
+Associated data canonically binds tenant, legal entity, logical table and
+field, opaque row identity, schema version, and record generation. Every size
+sum uses checked arithmetic and the existing stored-outcome/body hard ceilings;
+oversize plaintext or envelope fails before transaction commit. A nonce is
+unique for every `(key generation, seal operation)` and is never caller-
+selected. Authentication failure, unknown algorithm/generation, malformed
+envelope, provider timeout, missing key, and revoked key are typed fail-closed
+errors. There is no plaintext, zero-key, cached-forever, environment, or test-
+fake fallback in a production composition.
+
+L2i.0d is a non-dispatchable decision gate until it names the exact accepted
+authenticated-encryption primitive/library and commodity or sold key-service
+facade, versions/features/licenses, generated client and Cargo/Buck targets,
+key custody and zeroization boundary, nonce source, retry/deadline bounds,
+generation receipt and fencing semantics, and removal path. The selected
+adapter is owner-local and remains
+`app/hr/adapters/draft/record-encryption-key-service` /
+`hr-record-encryption-key-service-draft` while its port is draft.
+
+Rotation is generation-fenced: one generation is active for new seals, and a
+bounded admitted read set may contain the immediately prior generation while
+rows are transactionally compare-and-swapped to the new envelope. Each row
+records its generation. Re-encryption is idempotent across restart and never
+acknowledges an envelope whose generation receipt became stale before commit.
+Normal revocation is admitted only after a zero-reference scan and fresh-process
+reopen proof. Emergency revocation immediately makes affected reads and the
+serving cohort unavailable; it never falls back or silently discards data.
+
+Contract evidence injects unique sentinels into every sensitive field, commits
+to a real SQLite file, checkpoints and copies the backup, and proves neither
+artifact contains a sentinel. It hard-closes every encryption, SQL, commit,
+rotation-CAS, and reply boundary; reopens with a fresh process and provider
+client; verifies authenticated reads and idempotent replay; detects ciphertext,
+tag, nonce, associated-data, and blind-index tampering; rotates under concurrent
+reads/writes; and exercises normal plus emergency revocation and provider loss
+before boot and mid-transaction. Success exposes either the one committed
+authenticated value or no acknowledged effect. Partial plaintext, nonce reuse,
+mixed state without generation metadata, stale-generation acknowledgement, or
+fallback material is failure.
+
+</data_at_rest>
+
 <error_model>
 
 ## Stable failure classes
@@ -314,8 +375,8 @@ single active adapters, not dual-write.
 | unauthenticated | missing, invalid, expired, or unbound principal proof | none |
 | forbidden | PDP deny, tenant mismatch, absent legal basis, stale/conflicting overlay | none |
 | conflict | employee version mismatch, duplicate identity, idempotency digest mismatch | none |
-| unavailable | SQLite busy/full/unopenable, audit precondition unavailable, selected adapter unhealthy | none acknowledged |
-| internal/corrupt | schema incompatibility, corrupt stored outcome, impossible state | fail closed; readiness false |
+| unavailable | SQLite busy/full/unopenable, audit/key precondition unavailable, selected adapter unhealthy, required key generation revoked | none acknowledged |
+| internal/corrupt | schema incompatibility, corrupt stored outcome, ciphertext/tag/nonce/generation mismatch, impossible state | fail closed; readiness false |
 
 Wire adapters map these typed classes to their protocol without making status
 codes the domain model. Logs carry class, operation, correlation id, policy and
@@ -336,8 +397,8 @@ the same suite. It proves:
 - same-key/same-digest replay returns byte-equivalent semantic outcome and does
   not duplicate employee, lifecycle, audit/outbox, workflow, or payroll intent;
 - same-key/different-digest replay returns conflict without mutation;
-- domain, authorization, overlay, and adapter failures preserve no partial
-  state or sensitive disclosure;
+- domain, authorization, overlay, encryption/key, and adapter failures preserve
+  no partial state, plaintext persistence, or sensitive disclosure;
 - schema N/N+1 open, migrate, reopen, and supported rollback boundaries are
   explicit.
 
@@ -361,8 +422,9 @@ outbox lag/redelivery, reopen/migration result, and saturation. Cardinality is
 bounded; employee, person, evidence, and idempotency values are not labels.
 
 Readiness is false when the selected durable adapter cannot open or commit, its
-schema is outside the supported window, policy authority is unusable, or a
-required pre-ack audit path cannot satisfy the request class. Health does not
+schema is outside the supported window, the active encryption key generation
+cannot seal/open or is revoked, policy authority is unusable, or a required
+pre-ack audit path cannot satisfy the request class. Health does not
 claim durable, network, or downstream capability merely because pure domain
 tests pass. The PRD SLO remains unqualified until these signals and the declared
 load envelope are exercised in promotion evidence.

@@ -100,16 +100,19 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   Installed-pack resolution, Policy/IAM authorization evidence, and Audit/
   outbox delivery each require an accepted provider contract and a production
   HR-owned adapter whose outage behavior fails closed for the operation class.
-- Encrypt durable sensitive fields through a selected adapter and prevent
-  secrets, credentials, raw sensitive values, or policy proofs from entering
-  logs and metrics.
+- Encrypt durable sensitive fields through an HR-owned record-encryption port
+  and an accepted authenticated-encryption/key-service adapter. Persist no
+  employee, person, evidence, lifecycle, request, outcome, or outbox plaintext;
+  prevent secrets, keys, credentials, raw sensitive values, or policy proofs
+  from entering database pages, backups, logs, and metrics.
 
 ## Durability and portability
 
 - Persist runtime state through HR-owned ports; no employee, install, or
   idempotency database lives in git.
 - Ship a SQLite v1 adapter with atomic mutation/idempotency/outbox semantics and
-  format migrations. A tenant uses one active adapter per port.
+  format migrations. It requires the selected record-encryption port before it
+  opens a production database. A tenant uses one active adapter per port.
 - Run the same behavioral and fault contract against the in-memory reference,
   SQLite, and each promoted commodity or Oyatie-cloud adapter.
 - Keep app core free of database, network, IAM, Data, Storage, Gateway, and
@@ -123,8 +126,8 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   outbox lag, adapter health, migration revision, and installed overlay
   generation without employee identifiers or sensitive values.
 - Provide readiness only when the selected adapter is open, migrations are
-  admitted, installed-pack authority is usable, and required policy/audit paths
-  satisfy the operation's fail-closed contract.
+  admitted, installed-pack and encryption/key authorities are usable, and
+  required policy/audit paths satisfy the operation's fail-closed contract.
 - Bound queues and in-flight work; reject retryably before unbounded memory or
   lock contention. Background delivery may not starve foreground reads/writes.
 
@@ -171,8 +174,12 @@ objectives as unqualified rather than manufacturing availability evidence.
   of HR-written framing, gRPC framing, or trailers before any listener
   promotion.
 - The production process composes concrete Packs/install, Policy/IAM evidence,
-  Audit/outbox, SQLite, and generated-Connect adapters; each provider outage is
-  proven before route activation and before a non-empty tenant cohort.
+  Audit/outbox, authenticated record-encryption/key service, SQLite, and
+  generated-Connect adapters; each provider outage is proven before route
+  activation and before a non-empty tenant cohort.
+- Real-file and backup inspection finds none of the injected sensitive
+  sentinels; fresh-process reopen, key rotation/re-encryption, planned and
+  emergency revocation, and replay preserve the declared durability contract.
 - Success and error responses, stored replay outcomes, returned strings, and
   repeated fields stay within exact hard ceilings under checked accounting;
   oversized state produces no partial response or sensitive fallback error.
@@ -193,6 +200,10 @@ objectives as unqualified rather than manufacturing availability evidence.
 - A routed cohort uses an in-memory/test authority, omits a required production
   provider adapter, emits a partial oversized response, truncates a collection,
   or interpolates sensitive state into an error.
+- SQLite or its backup contains a sensitive plaintext sentinel, reuses a nonce,
+  accepts a caller/process-local fallback key, acknowledges with an unsealed
+  field, or stays ready after its required key generation is unavailable or
+  revoked.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 
@@ -212,8 +223,14 @@ objectives as unqualified rather than manufacturing availability evidence.
   saturation, exact and limit-plus-one output/repeated-field/error sizes, and
   encode failure before headers; every case fails before repository mutation
   or partial response.
-- Independently remove Packs/install, Policy/IAM, and Audit service reachability
-  before process boot and during an admitted request; readiness drops, required
-  operations fail closed, reservations drain, and no cohort is routed on a fake.
+- Independently remove Packs/install, Policy/IAM, Audit, and encryption/key-
+  service reachability before process boot and during an admitted request;
+  readiness drops, required operations fail closed, reservations drain, and no
+  cohort is routed on a fake.
+- Crash before and after ciphertext persistence and each key-rotation CAS;
+  reopen from the same database and backup with a fresh process, replay the
+  request, revoke the old generation at zero and nonzero reference counts, and
+  prove either one authenticated value or a typed fail-closed result—never
+  plaintext, mixed generations without metadata, or an implicit fallback key.
 
 </acceptance>
