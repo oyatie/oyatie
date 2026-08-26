@@ -133,7 +133,7 @@ evidence only.
 
 Class: structure only; depends on L3b and is the next sole `Cargo.lock` writer.
 
-Create eleven package identities with scanners and empty semantic streams:
+Create twelve package identities with scanners and empty semantic streams:
 
 ```text
 compliance/ports/draft/pack-source/Cargo.toml
@@ -168,6 +168,10 @@ compliance/ports/draft/export-store/Cargo.toml
 compliance/ports/draft/export-store/BUCK
 compliance/ports/draft/export-store/build.rs
 compliance/ports/draft/export-store/src/lib.rs
+compliance/ports/draft/pagination-session/Cargo.toml
+compliance/ports/draft/pagination-session/BUCK
+compliance/ports/draft/pagination-session/build.rs
+compliance/ports/draft/pagination-session/src/lib.rs
 compliance/core/evidence-domain/Cargo.toml
 compliance/core/evidence-domain/BUCK
 compliance/core/evidence-domain/build.rs
@@ -210,11 +214,12 @@ slice's acceptance evidence. L3c-B alone installs the first fail-closed process
 outcome without changing package/build structure; Gateway never loads the
 library as an in-process plugin.
 
-The five added local port package names are
+The six added local port package names are
 `compliance-policy-client-draft`, `compliance-evidence-source-draft`,
 `compliance-audit-sink-draft`, `compliance-projection-target-draft`, and
-`compliance-export-store-draft`. Their path leaf, Cargo package, rustc crate,
-and Buck target identities follow D-30 exactly.
+`compliance-export-store-draft`, plus
+`compliance-pagination-session-draft`. Their path leaf, Cargo package, rustc
+crate, and Buck target identities follow D-30 exactly.
 
 Exact Cargo and Buck dependency directions are frozen here; each line reads
 `consumer <- provider`:
@@ -228,6 +233,7 @@ compliance-evidence-domain <- compliance-evidence-source-draft
 compliance-evidence-domain <- compliance-audit-sink-draft
 compliance-evidence-domain <- compliance-projection-target-draft
 compliance-evidence-domain <- compliance-export-store-draft
+compliance-evidence-domain <- compliance-pagination-session-draft
 compliance-evidence-domain <- data-classification
 compliance-evidence-domain <- cell-clock-api
 compliance-evidence-domain <- semver
@@ -242,6 +248,7 @@ compliance-cas-app <- compliance-evidence-source-draft
 compliance-cas-app <- compliance-audit-sink-draft
 compliance-cas-app <- compliance-projection-target-draft
 compliance-cas-app <- compliance-export-store-draft
+compliance-cas-app <- compliance-pagination-session-draft
 compliance-cas-app <- cell-clock-api
 ```
 
@@ -251,10 +258,12 @@ supplies bounded bytes, while the latter owns the `TrustedKeyResolver` and
 `PackAuthenticator` and consumes an injected `TrustedKeyResolver`; the core
 depends on the auth port and invokes the authenticator, never the crypto
 adapter. `cas-app` is the composition boundary and is the only edge that
-selects `pack-auth-awslc`. The other five owner-local ports freeze the use cases
+selects `pack-auth-awslc`. Five other owner-local ports freeze the use cases
 required by L3 fake composition: Policy compiler/decision evidence, verified
 Audit reads, pre-ACK Audit writes, generation-bound target application, and
-immutable export storage. They have no provider adapter yet.
+immutable export storage. `pagination-session` separately freezes the durable,
+opaque continuation-handle use case; it has only an in-memory fake in L3 and no
+provider adapter yet.
 
 The exact Cell provider is Cargo package `cell-clock-api` at
 `cell/ports/clock` and Buck target `//cell/ports/clock:cell-clock-api`.
@@ -262,21 +271,24 @@ The exact Cell provider is Cargo package `cell-clock-api` at
 `compliance/facade/cas-app` name that same dependency in both manifests and
 Buck targets. The Rust identities are exactly `cell_clock_api::Clock` and
 `cell_clock_api::Interval`; no local clock trait, point-time wrapper, or
-trusted-time DTO is admitted.
+trusted-time DTO is admitted. This edge freezes only the semantic type and fake
+contract for L3. The current provider implementation based on `SystemTime` and
+a static uncertainty cannot prove production time-source health, freshness, or
+loss, and therefore cannot satisfy L4 composition or promotion.
 
 `data-classification`, `cell-clock-api`, `semver`, and `aws-lc-rs` already
-exist in the workspace/lock. The lock delta adds exactly eleven local package
+exist in the workspace/lock. The lock delta adds exactly twelve local package
 blocks and their edges, but no Data/Cell block or dependency version. Root
 workspace globs discover the packages; root `Cargo.toml` is unchanged.
 
-Build/test closure is all eleven packages under Cargo and Buck plus the exact
+Build/test closure is all twelve packages under Cargo and Buck plus the exact
 `data-classification` and `cell-clock-api` provider targets. There are no
 reverse consumers outside this set. Required reviewers are Compliance, Data,
 Cell, root Packs ownership, Policy, Audit, Storage, Secrets/IAM security,
 Pipeline/Buck, and architecture. This is D-29 because it binds agreed Data and
 Cell ports and freezes future provider-adapter seams.
 
-Success: both graphs expose the same eleven empty/scanner packages and
+Success: both graphs expose the same twelve empty/scanner packages and
 dependency edges plus one compiler-only facade binary and empty process-test
 target; every handwritten file is at or below 300 lines, the exact lock delta
 is fresh, and no product type, parser, limit, state transition, diagnostic,
@@ -285,10 +297,11 @@ listener, readiness result, executable process assertion, or route exists.
 Failure: semantic behavior/tests or any asserted boot/exit/refusal outcome
 lands, the stub emits a diagnostic/listens/reports readiness, dependency
 direction differs, core imports `aws-lc-rs`, a draft port gains an external
-consumer, a manual inventory is tracked, or the lockfile contains unrelated
+consumer, current `cell_clock_api::NtpClock` is represented as production time
+authority, a manual inventory is tracked, or the lockfile contains unrelated
 churn.
 
-Rollback: remove the eleven unrouted packages and exact lock blocks.
+Rollback: remove the twelve unrouted packages and exact lock blocks.
 
 Fault evidence: scanner-only disposable add/rename/remove/non-Rust fixtures
 prove Cargo/Buck membership parity without editing any stable root.
@@ -349,13 +362,17 @@ compliance/ports/draft/pack-auth/src/items/b_key_resolution.rs
 compliance/ports/draft/pack-auth/src/items/c_receipt.rs
 compliance/ports/draft/pack-auth/src/items/d_frame.rs
 compliance/ports/draft/pack-auth/src/items/e_commit_authorization.rs
+compliance/ports/draft/pack-auth/src/items/f_descriptor_identity.rs
 compliance/ports/draft/pack-auth/src/test_items/a_contract.rs
 compliance/ports/draft/pack-auth/src/test_items/b_golden_frame.rs
 compliance/ports/draft/pack-auth/src/test_items/c_revocation_order.rs
+compliance/ports/draft/pack-auth/src/test_items/d_descriptor_identity.rs
 compliance/ports/draft/cas/src/items/a_requests.rs
 compliance/ports/draft/cas/src/items/b_responses.rs
 compliance/ports/draft/cas/src/items/c_errors.rs
+compliance/ports/draft/cas/src/items/d_request_identity.rs
 compliance/ports/draft/cas/src/test_items/a_contract.rs
+compliance/ports/draft/cas/src/test_items/b_request_identity.rs
 compliance/ports/draft/policy-client/src/items/a_contract.rs
 compliance/ports/draft/policy-client/src/test_items/a_contract.rs
 compliance/ports/draft/evidence-source/src/items/a_contract.rs
@@ -366,6 +383,8 @@ compliance/ports/draft/projection-target/src/items/a_contract.rs
 compliance/ports/draft/projection-target/src/test_items/a_contract.rs
 compliance/ports/draft/export-store/src/items/a_contract.rs
 compliance/ports/draft/export-store/src/test_items/a_contract.rs
+compliance/ports/draft/pagination-session/src/items/a_contract.rs
+compliance/ports/draft/pagination-session/src/test_items/a_contract.rs
 compliance/core/evidence-domain/src/items/a_identifiers.rs
 compliance/core/evidence-domain/src/items/b_catalog_binding.rs
 compliance/core/evidence-domain/src/items/c_projection_manifest.rs
@@ -383,15 +402,23 @@ Freeze the records and typed errors from `SPEC.md`, exact
 `data-classification` identity, all numeric/default/hard ceilings, canonical
 SemVer, the complete tagged v1 frame/type/tag/enum/collection grammar,
 millisecond interval endpoints, SHA-256 payload/key/preimage derivations,
+the equality `descriptor_digest = verified_preimage_digest`, the exact
+domain-separated v1 privileged-request frame and server-only fingerprint
+derivation, the opaque 32-byte pagination handle and complete durable-session
+binding,
 32-byte trusted-key contract, 64-byte Ed25519 signature, key-resolution
 refusal, signer commit-fence records/outcomes, and immutable registry record.
 `pack-auth` defines both
 `TrustedKeyResolver` and `PackAuthenticator`; only an authenticator invocation
-can produce the receipt the core accepts. A caller-supplied receipt is not a
-request field. The five dependency ports freeze Policy compiler/decision
+can produce the receipt the core accepts. A caller-supplied receipt,
+fingerprint, or descriptor digest is not a trusted request field. Five
+dependency ports freeze Policy compiler/decision
 evidence, verified Audit source references, transition-bound durable pre-ACK
 Audit receipts,
 generation-bound projection acknowledgements, and immutable export receipts.
+The sixth, `pagination-session`, freezes mint, resolve, consume, expire, and
+restore operations over the complete tenant/principal/list/snapshot/filter/
+cursor/page-size/schema binding; L3 uses an in-memory fake only.
 L3 tests implement fakes only against these traits; core/facade packages may
 not hide substitute traits.
 
@@ -407,6 +434,10 @@ Touching or straddling the exclusive upper boundary, straddling the lower
 boundary, choosing a midpoint, truncating uncertainty, or replacing the Cell
 type with a local DTO is invalid. This slice does not perform cryptography.
 Protobuf is not added and the facade remains an owner-local semantic trait.
+The exact Cell type is sufficient for deterministic L3 boundary tests, but no
+production listener, route, or promotion may use the current static-uncertainty
+clock. That join remains non-dispatchable until the Cell-owned L4c-T receipt and
+measured-time adapter exist.
 
 `TrustedKeyResolver` also freezes `authorize_catalog_commit` exactly as
 `SPEC.md`: resolution evidence is not authority; the commit request binds the
@@ -416,7 +447,7 @@ Cell interval; success carries a monotonic key-use ordinal. The stable
 contract. L3 fakes implement one per-key total order so both race outcomes are
 executable without claiming production Secrets authority.
 
-Cargo/Buck closure is all eleven L3c-S packages plus the exact
+Cargo/Buck closure is all twelve L3c-S packages plus the exact
 `data-classification` and `cell-clock-api` targets; the empty auth adapter must
 still build so dependency drift is visible. No external reverse consumer is
 allowed. Required reviewers are Compliance, Data, Cell, Packs, Secrets/IAM
@@ -429,6 +460,9 @@ same byte-identical preimage and frozen expected byte array. The contract also
 freezes expected payload/key/preimage digest, public-key, and Ed25519-signature
 byte arrays for one deterministic seed; L3d-P performs the crypto comparison.
 Every tag/type/length/value byte has a one-byte corruption fixture;
+independent encoders also freeze descriptor-digest equality and every
+privileged-operation fingerprint. Pagination tests prove exact handle length,
+complete session binding, constant-work redacted lookup, and expiry semantics;
 limit and limit-plus-one fixtures return stable errors before allocation/state;
 the exact classification and Cell interval types cross port/core/facade; both
 signer race orders return the exact receipt/refusal; every dependency fake
@@ -441,6 +475,9 @@ differs. A local clock type, caller-supplied trusted time, unchecked Unix-ms
 conversion, midpoint decision, or boundary-straddling acceptance also fails.
 A copied revocation generation, signer receipt without the Policy/Audit/
 catalog-generation binding, or changed-fingerprint replay also fails.
+A caller-selected fingerprint/descriptor digest, ambiguous operation frame,
+page handle containing state, unbound cursor continuation, or a claim that the
+static Cell clock is production-ready also fails.
 
 Rollback: remove only these scanner-discovered files; the empty packages remain
 unrouted.
@@ -449,6 +486,11 @@ Fault evidence: truncation, duplicate/trailing fields, noncanonical ids/SemVer,
 unknown enums, overflow, every exact-limit/limit-plus-one pair, changed
 fingerprints, cross-namespace references, pre-epoch/overflowing timestamps,
 reversed/widened intervals, and intervals just below/on/across both boundaries.
+Identity cases also permute every field, corrupt every tag/type/length/value,
+swap descriptor digests, and replay fingerprints across tenant/principal/
+operation/idempotency scopes. Pagination cases cover forged, unknown, expired,
+foreign-tenant/principal, stale-snapshot, changed-filter/cursor/page-size, and
+limit-plus-one handles with one uniform public refusal.
 Signer fixtures force resolve-then-revoke and authorize-then-revoke orders,
 stale fences, expiry, binding mismatch, duplicate delivery, and authority
 outage.
@@ -474,6 +516,9 @@ validity/revocation generation, and the exact trusted
 `cell_clock_api::Interval` supplied by composition. The engine
 invokes that port, validates the returned request/preimage/key binding, and
 enforces canonical framing, bounds, the L3c-C full-interval validity predicate,
+stores `descriptor_digest` as the exact verified preimage digest, derives the
+privileged-operation fingerprint from the frozen server frame after authority
+resolution and normalization,
 compiler-receipt shape plus default-deny transition authorization through
 `policy-client`, durable transition evidence through `audit-sink`, commit-time
 `authorize_catalog_commit`, catalog compare-and-swap, and lower/equal-
@@ -482,7 +527,8 @@ operation and expected generation; only admit consumes the signer receipt. The
 facade composition selects the
 aws-lc implementation and obtains time from an injected `cell_clock_api::Clock`
 but remains unrouted and has no production resolver until L4c. No request can
-inject a receipt or time value. Tests may inject fake authenticator, resolver,
+inject a receipt, fingerprint, descriptor digest, or time value. Tests may
+inject fake authenticator, resolver,
 Policy client, Audit sink, or Clock implementations only through their frozen
 ports. This
 is not a production Secrets adapter or pack filesystem loader.
@@ -497,7 +543,9 @@ file is at or below 300 lines.
 
 Success: aws-lc digest/verification results for the production frame and the
 independent reference frame match every frozen golden digest/public-key/
-signature byte; golden valid envelopes admit deterministically. Malformed,
+signature byte; the persisted descriptor digest equals that verified preimage
+digest and independent privileged-request encoders match every golden byte;
+golden valid envelopes admit deterministically. Malformed,
 oversized, unknown, unsigned, digest/signature-mismatched,
 untrusted/revoked/expired-key, unsupported-schema, stale, and conflicting
 versions, denied/forged/stale Policy decisions, Audit outage, transition-
@@ -506,7 +554,9 @@ conversion and intervals before, on, or straddling either pack/key boundary
 follow the frozen refusal matrix. Authorize-before-revoke can commit only the
 exact receipt-bound catalog generation and persists its key-use ordinal.
 
-Failure: another algorithm/preimage is accepted, parser work exceeds a hard
+Failure: another algorithm/preimage is accepted, caller identity bytes become
+trusted, the descriptor digest differs from the authenticated preimage, parser
+work exceeds a hard
 bound, Policy evaluation appears, a catalog transition lacks Policy/Audit, a
 copied revocation generation reaches CAS, or a test key becomes production
 trust.
@@ -514,6 +564,8 @@ trust.
 Rollback: remove the six unique files; the contract/scaffold remains unrouted.
 
 Fault evidence: bit flips across every preimage field/signature/payload,
+descriptor-digest substitution and privileged-frame field permutation/
+corruption/cross-operation replay,
 barrier-controlled resolve/revoke/authorize orderings, stale/expired/replayed
 fences, Secrets/Policy/Audit outage, forged or cross-transition receipts,
 limit-plus-one, stale catalog generation, and concurrent conflicting admission.
@@ -544,7 +596,8 @@ alternate enum/parser/wrapper is allowed. The 32-alias/64-byte bounds and the
 
 Every prepare, activate, supersede, and revoke transition consumes the frozen
 `policy-client` and `audit-sink` ports with operation, classification, source-
-digest, actor/tenant, idempotency, and expected-generation bindings before CAS.
+digest, actor/tenant, server-derived request fingerprint, idempotency, and
+expected-generation bindings before CAS.
 Prepare and activate resolve the current descriptor; activation requires exact
 equality with the prepared fence. Their atomic CAS verifies both the expected
 registry generation and unchanged catalog pack head. A catalog revoke or
@@ -615,7 +668,7 @@ those traits and Compliance never executes retention. The hard fan-out, page,
 queue, idempotency, evidence-reference, and export limits apply.
 
 Cargo/Buck closure is `pack-source`, `pack-auth`, `pack-auth-awslc`, `cas`,
-all five dependency ports, `evidence-domain`, `data-classification`, and
+all six dependency ports, `evidence-domain`, `data-classification`, and
 `cell-clock-api`; `cas-app` also compiles as the only local reverse consumer.
 Required reviewers are Compliance, Audit, Data, Storage, Cell, Policy, Packs,
 and architecture. No manifest/lock/build/root/generated changes; all files are
@@ -650,20 +703,26 @@ compliance/facade/cas-app/src/test_items/c_handlers.rs
 Implement default-deny handlers against fake ports: authenticate, verify Policy
 provenance, bind tenant/idempotency/admission context, enforce all request/page/
 queue bounds, obtain the exact interval from an injected
-`cell_clock_api::Clock`, and map typed engine results. The Policy and Audit
-fakes implement the L3c-C ports; no handler-local trait or caller-supplied
-decision, receipt, or trusted time is allowed. Do not add protobuf, Connect,
+`cell_clock_api::Clock`, derive the privileged request fingerprint after
+normalization, and map typed engine results. The Policy, Audit, and pagination-
+session fakes implement the L3c-C ports; list continuation resolves the opaque
+handle against the complete frozen session and returns one redacted error for
+forged/unknown/foreign handles. No handler-local trait or caller-supplied
+decision, receipt, fingerprint, descriptor digest, cursor, or trusted time is
+allowed. Do not add protobuf, Connect,
 gateway registration, persistence, or production adapters.
 
-Cargo/Buck closure is `cas-app`, `cas`, `evidence-domain`, and all transitive
-local contracts plus `cell-clock-api`. There are no external reverse consumers.
+Cargo/Buck closure is `cas-app`, `cas`, `evidence-domain`, `pagination-session`,
+and all transitive local contracts plus `cell-clock-api`. There are no external
+reverse consumers.
 Required reviewers are Compliance, Cell, IAM/Policy, Audit, Packs, and
 architecture. All files are at or below 300 lines; manifests/lock/build/root/
 generated paths are read-only.
 
 Success: tenant zero and ordinary tenants share one contract; forged/expired/
 wrong-audience Policy evidence, Audit outage, changed fingerprints, tenant
-mismatch, pagination drift, clock widening/boundary straddling, and overload
+mismatch, forged/foreign/expired page handles, pagination drift, clock
+widening/boundary straddling, and overload
 fail before disclosure/mutation.
 
 Failure: a private route, caller-asserted authorization, permit/forbid response,
@@ -672,7 +731,8 @@ unbounded work, or external owner import lands.
 Rollback: remove the four unique files. The product remains unavailable.
 
 Fault evidence: default-deny contract cases, cancellation/retry, tenant/page
-token swaps, exact bound edges, fake dependency outage, and queue saturation.
+handle swaps, forged/unknown/expired handles, stale restored snapshots, exact
+bound edges, fake dependency outage, and queue saturation.
 
 </sequence>
 
@@ -714,10 +774,14 @@ decision and implementation land.
 2. **L4a-C frozen schema:** add only
    `compliance/facade/proto/compliance/cas/v1/cas.proto`, with protobuf package
    `compliance.cas.v1`. The accepted repository compatibility checker consumes
-   that exact file through the L4a-S Buck target. This file is the one wire source of truth and transports the
-   L3c semantics and limits; it is never the pack-signing preimage. Protobuf
-   API review freezes field identities, reserved numbers, pagination,
-   idempotency, typed errors, compatibility, and retirement before behavior.
+   that exact file through the L4a-S Buck target. This file is the one wire
+   source of truth and transports the L3c semantics and limits; it is never the
+   pack-signing preimage. Protobuf
+   API review freezes field identities, reserved numbers, the exact opaque
+   32-byte page-handle field, idempotency, typed errors, compatibility, and
+   retirement before behavior. No public request carries a trusted fingerprint,
+   descriptor digest, snapshot ordinal, filter digest, cursor, or pagination-
+   session body; the service derives or resolves each on the trusted side.
    **Success:** generated descriptors preserve all L3 semantics and the accepted
    compatibility checker passes. **Failure:** the file exceeds 300 lines,
    signing uses protobuf bytes, a field is reused, or a second wire truth lands.
@@ -754,20 +818,24 @@ decision and implementation land.
    **Faults available:** accidental invocation, stale version, wrong audience,
    disabled-state corruption, and missing schema/service identity.
 5. **L4a-P production process boot:** behavior is non-dispatchable until L4a-A/
-   G, L4b-R, every mandatory L4c behavior row, and exact Cell composition have
+   G, L4b-R, the durable pagination-session adapter, every mandatory L4c
+   behavior row, and the accepted Cell-owned L4c-T production-time receipt have
    landed. Edit only the L3c-B fail-closed refusal
    `compliance/facade/cas-app/src/main.rs` and add
    `compliance/facade/cas-app/src/items/q_process_boot.rs` plus
    `compliance/facade/cas-app/src/test_items/q_process_boot.rs`. No manifest,
    build, lock, route, or foreign file changes. `main` accepts no CLI authority;
    it loads declarative cell composition, verifies durable restore and every
-   adapter/fence, then binds the internal Connect listener and publishes
-   readiness. Loss of a mandatory dependency withdraws readiness and drains
-   admitted work before exit; it never substitutes an in-memory fake.
+   adapter/fence, including the restored pagination-session root and a fresh
+   measured trusted-time result, then binds the internal Connect listener and
+   publishes readiness. Loss or staleness of a mandatory dependency withdraws
+   readiness and drains admitted work before exit; it never substitutes an
+   in-memory fake or current static-uncertainty clock.
    **Success:** the actual `compliance-cas-app` process cold-starts, serves only
    after the complete join, drains deterministically, and keeps Gateway disabled.
    **Failure:** a missing/corrupt config, failed restore, unavailable adapter,
-   stale signer fence, or bind error still produces readiness/listener state;
+   stale signer fence, missing pagination session state, unavailable/stale time
+   source, or bind error still produces readiness/listener state;
    any of the three handwritten files exceeds 300 lines. **Rollback:** restore
    the exact L3c-B `ProcessBootError::Uncomposed` exit-78 refusal and remove the
    two unique scanner files, leaving registration disabled. **Faults
@@ -776,12 +844,14 @@ decision and implementation land.
    driven drain, process death before/after listener bind, and restart replay.
 6. **L4a-R route activation:** this provider-owned D-29 behavior lane is not
    dispatchable after L4a-G alone. It joins on L4a-P process/readiness evidence,
-   L4b-R durable recovery/restore
+   L4b-R durable catalog plus pagination-session recovery/restore
    evidence and every required L4c adapter behavior row: pack source, trusted-
    key resolution, Policy client, Audit evidence source, pre-ACK Audit sink,
    all three projection targets, and Storage export. The join also requires
-   exact `cell_clock_api::Clock` composition and the L3c-C interval-boundary
-   refusal campaign. Only then may its separately accepted exact Gateway/IAM
+   the Cell-owned L4c-T measured-time adapter/plant receipt, live source-
+   freshness/health gate, and the L3c-C interval-boundary refusal campaign.
+   The current `cell_clock_api::NtpClock` static uncertainty is explicitly not
+   that evidence. Only then may its separately accepted exact Gateway/IAM
    files change disabled registration to admitted traffic with default-deny
    authn/Policy, mTLS, quota, pre-ACK Audit, version negotiation, rollback, and
    adapter-outage tests. Any missing/unavailable dependency keeps the route
@@ -795,7 +865,8 @@ decision and implementation land.
    edit. **Rollback:** restore the exact disabled registration without changing
    process/state formats. **Faults available:** every adapter outage, readiness
    withdrawal race, Gateway restart, version rollback, mTLS/Policy/Audit
-   failure, quota saturation, and route-cache staleness.
+   failure, opaque-handle-store outage/restore drift, time-source loss/staleness/
+   rollback, quota saturation, and route-cache staleness.
 
 Required reviewers: Compliance, Gateway, IAM/Policy, Audit, API compatibility,
 Connect/codegen owner, security, and architecture. Every handwritten Rust and
@@ -817,11 +888,13 @@ D-29 external-consumer decision. Until then every L4b stage is
 non-dispatchable.
 
 1. **L4b-S local persistence seam:** after that provider decision, create
-   exactly the two four-file roots
+   exactly the three four-file roots
    `compliance/ports/draft/catalog-store/{Cargo.toml,BUCK,build.rs,src/lib.rs}`
    (`compliance-catalog-store-draft`) and
    `compliance/adapters/draft/catalog-store-data/{Cargo.toml,BUCK,build.rs,src/lib.rs}`
-   (`compliance-catalog-store-data-draft`), update only
+   (`compliance-catalog-store-data-draft`), plus
+   `compliance/adapters/draft/pagination-session-data/{Cargo.toml,BUCK,build.rs,src/lib.rs}`
+   (`compliance-pagination-session-data-draft`), update only
    `compliance/core/evidence-domain/{Cargo.toml,BUCK}` and
    `compliance/facade/cas-app/{Cargo.toml,BUCK}`, and take the sole exact
    `Cargo.lock` delta. `catalog-store` is a Compliance-shaped repository for
@@ -831,16 +904,22 @@ non-dispatchable.
    and catalog-to-registry reconciliation, not another generic records
    contract. Under both graphs the exact directions are
    `evidence-domain <- catalog-store`, `catalog-store-data <- catalog-store +
-   data-records`, and `cas-app <- catalog-store-data`. Both new
-   roots inherit the full L3c-S D-41 scanner contract with fixed
+   data-records`, `pagination-session-data <- pagination-session + data-records
+   + aws-lc-rs`, and `cas-app <- catalog-store-data + pagination-session-data`.
+   The pagination adapter uses the already accepted `aws-lc-rs` OS-randomness
+   surface to mint the 32-byte handle; it introduces no signing key or new
+   third-party version. All three new roots inherit the full L3c-S D-41 scanner
+   contract with fixed
    `lib.generated.rs` / `tests.generated.rs` outputs, equivalent Buck
    `buildscript_run` inputs, and disposable add/rename/remove/non-Rust parity
-   evidence. The lock adds exactly two local blocks/edges and no provider or
-   third-party version. **Success:** both graphs expose the two empty packages
-   and exact three-edge closure with no behavior or draft external consumer.
+   evidence. The lock adds exactly three local blocks and the eight direct
+   edges above, but no provider or third-party version. **Success:** both graphs
+   expose the three empty packages and exact eight-edge closure with no behavior
+   or draft external consumer.
    **Failure:** a Data core/draft edge, generic-records fork, behavior, scanner
-   drift, or unrelated lock movement. **Rollback:** remove only the two roots,
-   four consumer graph files, and exact two-block lock delta. **Faults
+   drift, randomness behavior in the structural hop, or unrelated lock
+   movement. **Rollback:** remove only the three roots, four consumer graph
+   files, and exact three-block lock delta. **Faults
    available:** scanner add/rename/remove/non-Rust parity, old/wrong provider
    labels, reversed edges, and one-graph-only dependencies.
 2. **L4b-C persistence behavior:** add only these scanner-discovered files:
@@ -859,6 +938,10 @@ non-dispatchable.
    compliance/adapters/draft/catalog-store-data/src/items/d_reconciliation.rs
    compliance/adapters/draft/catalog-store-data/src/test_items/a_store.rs
    compliance/adapters/draft/catalog-store-data/src/test_items/b_registry_export.rs
+   compliance/adapters/draft/pagination-session-data/src/items/a_session.rs
+   compliance/adapters/draft/pagination-session-data/src/items/b_csprng.rs
+   compliance/adapters/draft/pagination-session-data/src/test_items/a_contract.rs
+   compliance/adapters/draft/pagination-session-data/src/test_items/b_failures.rs
    compliance/core/evidence-domain/src/items/m_durable_repository.rs
    compliance/core/evidence-domain/src/items/n_registry_repository.rs
    compliance/core/evidence-domain/src/items/o_export_repository.rs
@@ -873,32 +956,45 @@ non-dispatchable.
 
    Contract suites prove atomic generations, idempotency, durable Policy/Audit/
    signer/Storage-receipt binding, encryption references, and refusal before
-   the routed facade. **Success:** every catalog, registry, binding, projection,
+   the routed facade. Pagination-session creation commits the complete frozen
+   session into the same Data-backed snapshot/restore root before a next-page
+   handle is returned. Its OS-CSPRNG handle mint retries at most three detected
+   collisions, returns `CollisionExhausted` after the third collision and
+   `EntropyUnavailable` on CSPRNG failure, and never falls back
+   to time, counters, caller bytes, or a process-local map. **Success:** every
+   catalog, registry, binding, projection,
    acknowledgement, manifest/cursor, export-job/publication/idempotency, and
-   catalog-to-registry reconciliation transaction survives adapter round trips
-   with one commit ordinal, immutable history, and exact receipts. Queue
+   catalog-to-registry reconciliation transaction and live pagination session
+   survives adapter round trips with one commit ordinal, immutable history, and
+   exact receipts. Queue
    acknowledgement follows durable export-job/idempotency commit; a catalog
    transition atomically records required registry reconciliation. **Failure:**
    acknowledgement before durable CAS, receipt or registry history loss, an
    export job absent after accepted admission, an affected registry generation
    usable before reconciliation, cross-tenant state, behavior outside the
    unique files, or any handwritten file above 300 lines. **Rollback:** remove
-   only these 23 scanner files; the empty persistence seam stays unrouted.
+   only these 27 scanner files; the empty persistence seam stays unrouted.
    **Faults available:** transaction interruption immediately before/after each
    catalog/registry/export/reconciliation commit, duplicate/reordered CAS,
    stale source or registry generation, idempotency mismatch, process death
    around export queue/publication, encryption-reference mismatch, adapter
-   timeout, and cancellation.
+   timeout, cancellation, entropy outage, three consecutive collision results,
+   forged/unknown/foreign handles, and process death before/after session commit.
 3. **L4b-R recovery:** add only
    `compliance/adapters/draft/catalog-store-data/src/items/e_snapshot_restore.rs`,
    `compliance/adapters/draft/catalog-store-data/src/test_items/c_snapshot_restore.rs`,
+   `compliance/adapters/draft/pagination-session-data/src/items/c_snapshot_restore.rs`,
+   `compliance/adapters/draft/pagination-session-data/src/test_items/c_snapshot_restore.rs`,
    `compliance/core/evidence-domain/src/items/q_recovery.rs`,
    `compliance/core/evidence-domain/src/test_items/n_recovery.rs`,
    `compliance/facade/cas-app/src/items/g_recovery_gate.rs`, and
    `compliance/facade/cas-app/src/test_items/g_recovery_gate.rs`. Snapshot and
    restore cover the exact L4b-C root set; they cannot omit registry history/
    current generation, accepted export jobs/idempotent outcomes, or catalog-to-
-   registry reconciliation. **Success:** it proves process-death/durable-
+   registry reconciliation, live pagination sessions, or their retained
+   snapshot ordinals. Expired sessions may be collected only after the Cell
+   interval proves expiry; a restored handle can resume only its exact retained
+   immutable snapshot. **Success:** it proves process-death/durable-
    barrier, corrupt WAL/snapshot quarantine, cross-generation referential
    integrity, queued/writing export replay without duplicate publication,
    reconciliation completion or affected-generation blocking, quorum loss,
@@ -908,11 +1004,12 @@ non-dispatchable.
    repairs history, an accepted export job or reconciliation item disappears,
    stale registry state becomes usable, restore is unverified, readiness
    precedes recovery, or a handwritten file exceeds 300 lines. **Rollback:**
-   remove only these six scanner files and keep the route/process unready.
+   remove only these eight scanner files and keep the route/process unready.
    **Faults available:** death at every durable and export-publication boundary,
    torn/corrupt WAL and snapshot, missing catalog/registry/job generation,
    revoke/supersede during restore/reconciliation, quorum/cell loss, repeated
-   replay, N/N+1, downgrade, and restore interruption.
+   replay, forged/foreign/expired page handles, page-session/snapshot-root
+   mismatch, N/N+1, downgrade, and restore interruption.
 
 Required reviewers are Compliance, Data, Cell, Secrets, Audit, security, and
 architecture. Every handwritten Rust file is at or below 300 lines. Failure or
@@ -925,9 +1022,87 @@ closure. The ports and adapters are not aliases for provider contracts:
 Compliance ports express its required use cases, and adapters translate an
 accepted provider port into them. Draft ports remain owner-local.
 
-The five owner-local use-case ports and their contracts already exist from
-L3c-S/B/C before any oracle behavior. L4c neither recreates them nor moves
-traits out of core/facade after the fact.
+The five provider-adapted use-case ports and their contracts already exist from
+L3c-S/B/C before any oracle behavior; the sixth local port, pagination-session,
+is implemented by the Data-backed adapter in L4b. L4c neither recreates these
+ports nor moves traits out of core/facade after the fact.
+
+#### L4c-T — Cell-owned measured-time plant gate
+
+The current `cell-clock-api` is sufficient only for L3 semantic typing and
+fake boundary tests. Its `Clock::now() -> Interval` cannot return source loss,
+`NtpClock` reads `SystemTime` with a static 250 ms uncertainty, and
+`bind(ClockSource::Ntp)` succeeds without observing chrony. It is not a
+production trusted-time adapter or plant receipt. No Compliance process boot,
+route activation, SLO trial, or promotion may treat it as one.
+
+1. **L4c-T0 provider decision/contract:** a Cell-owned escalated D-29 receipt,
+   reviewed by Cell, Compliance, OS/K8s plant, Observability, security, API
+   compatibility, Pipeline/Buck, and architecture, must first name: the exact
+   `cell/ports/clock/{Cargo.toml,BUCK,src/lib.rs,tests/clock_port.rs}`
+   compatibility strategy; one literal provider adapter package root and Cargo/
+   Buck label; the literal Cell IR schema/materializer files that select only
+   `ntp`, `ptp_phc`, or `gnss_atomic`; every direct and reverse Cargo/Buck edge;
+   its exact `Cargo.lock` delta; mixed-version/removal rules; and the process
+   composition target. The accepted v1 read result must carry the exact Cell
+   `Interval`, source enum, source-generation fence, measurement timestamp,
+   maximum age, observed uncertainty, and rollback/leap state. Its stable error
+   set must distinguish source unavailable, insufficient healthy sources,
+   stale measurement, uncertainty over the accepted cell profile, rollback/
+   source-generation regression, malformed plant reply, and adapter not wired.
+   If changing the infallible trait would break a reverse consumer, the receipt
+   must define a versioned compatibility port and a complete D-29 consumer LSC;
+   Compliance does not privately copy the old or new trait. This decision is
+   non-dispatchable while any path, label, type, bound unit, consumer, or
+   reviewer remains unnamed.
+2. **L4c-T-S provider structure:** only after T0, a Cell-owned sole-lock lane
+   creates the one accepted empty/scanner adapter package, applies the exact
+   port/build/IR compatibility structure and lock delta named by the receipt,
+   and proves Cargo/Buck D-41 membership parity. No source polling, parser,
+   static uncertainty, default-success bind, or product behavior lands.
+   **Success:** both graphs expose exactly the agreed port/result/error identity,
+   closed source-selection IR, empty adapter, and complete reverse closure.
+   **Failure:** flags select the source, an unnamed consumer remains, either
+   graph differs, behavior lands, or unrelated lock/version movement occurs.
+   **Rollback:** revert only the receipt's exact structural paths and lock
+   delta. **Faults available:** old/wrong/reversed labels, source-enum drift,
+   missing reverse consumer, scanner add/rename/remove/non-Rust, and one-graph-
+   only dependency canaries.
+3. **L4c-T-C measured adapter/plant behavior:** a second Cell-owned lane adds
+   only the receipt's scanner-discovered adapter/plant files. For v1 NTP it
+   obtains an authenticated local chrony measurement through owned Rust—not a
+   shell/CLI scrape—checks source quorum, measurement age, offset/error bound,
+   leap/rollback state, and source generation before returning the bounded
+   interval. PTP/GNSS remain explicit fail-closed adapters until their plant
+   receipts exist. The suite records the accepted maximum age/uncertainty units
+   and independently proves exact, limit-plus-one, overflow, stale, rollback,
+   source-loss, source-generation-change, malformed-reply, restart, and
+   cancellation outcomes. **Success:** an unavailable/untrustworthy plant can
+   never yield `Ok`, while a healthy measured source yields the exact frozen
+   result with provenance. **Failure:** static/default uncertainty, process
+   wall time, stale cached measurement, silent source fallback, or flags can
+   authorize time. **Rollback:** remove only the behavior files; the empty
+   provider structure remains fail closed.
+4. **L4c-T-J Compliance composition/readiness join:** after Cell publishes T-C
+   evidence, a separate Compliance D-29 structural lane may add only the exact
+   accepted provider dependency to
+   `compliance/facade/cas-app/{Cargo.toml,BUCK}` and its literal `Cargo.lock`
+   edge; if Cell preserves `cell-clock-api` as the sole injectable target, this
+   hop is explicitly empty and records that fact instead. L4a-P then selects the
+   provider through declarative Cell IR, revalidates freshness before every
+   privileged commit, and maps any read refusal to
+   `TimeValidityError::TrustedClockUnavailable`. Source loss, staleness,
+   uncertainty growth, or generation rollback withdraws readiness immediately,
+   stops new admission, drains admitted work, and keeps Gateway disabled until
+   a new bounded result and full dependency join are current. **Success:** the
+   actual process readiness follows measured plant health and never current
+   static `NtpClock` availability. **Failure:** readiness stays true, a commit
+   uses a stale interval, a fake/static fallback runs, or Compliance owns a
+   private clock. **Rollback:** restore the uncomposed process refusal and
+   remove only the exact provider graph edge, never the Cell format. **Faults
+   available:** NTP/chrony outage, stale sample, source quorum loss, uncertainty
+   limit-plus-one, clock rollback, source-generation swap, adapter restart,
+   readiness race, in-flight drain, and recovery without a fresh result.
 
 1. **L4c-A-S adapter structure:** each following row is a separate sole-lock
    D-29/D-30 slice after L3d-F. It creates exactly the named four-file package
@@ -987,12 +1162,12 @@ traits out of core/facade after the fact.
    authorization orders, stale/expired/replayed fences, and process death after
    key-use authorization but before catalog CAS.
 
-Trusted time uses the L3c-S exact `cell-clock-api` Cargo/Buck edge directly;
-`cas-app` injects `cell_clock_api::Clock` and passes its exact `Interval`
-through the frozen validity contract. It does not invent a `cell-clock`
-adapter, point clock, or local DTO. Tenant identity and PDP evidence arrive
-through the canonical Gateway/Policy contract; Compliance does not add an
-`iam` adapter. Target receipts remain generation-bound, and Compliance never
+Trusted time therefore joins only through L4c-T. L3 continues to inject the
+exact `cell_clock_api::Clock` type for deterministic fakes, but current
+`NtpClock` is never production evidence. Compliance does not invent a private
+clock adapter, point clock, or local DTO. Tenant identity and PDP evidence
+arrive through the canonical Gateway/Policy contract; Compliance does not add
+an `iam` adapter. Target receipts remain generation-bound, and Compliance never
 executes an owner workflow.
 
 ### L4d — Generated SLOs, operations, and promotion
@@ -1083,21 +1258,28 @@ Handwritten Rust never lives under `observability/slos`. Sequence is:
 6. **L4d-O operations/promotion:** separately accepted Cell/Observability/
    deployment envelopes add metrics/traces/logs, reconciled snapshot/restore
    runbooks, mixed-version upgrade/rollback barriers, repair/reconciliation,
-   regional evacuation, and recurring fault campaigns. Exact foreign files and
+   pagination-session retention/GC and snapshot-root accounting, measured-time
+   source freshness/uncertainty/health/readiness signals, regional evacuation,
+   and recurring fault campaigns. Exact foreign files and
    reviewers are named by those D-29 receipts; this plan grants none and O is
    non-dispatchable before them. **Success:** every PRD objective is measured at
    the sold facade under steady/noisy/fault load and recurring restore/upgrade/
    evacuation campaigns pass. **Failure:** missing signal/owner/runbook,
-   unmeasured claim, failed recovery/adapter campaign, or over-budget handwritten
-   file. **Rollback:** withdraw production eligibility and revert only the exact
+   unmeasured claim, failed recovery/adapter/time-source campaign, current
+   static-uncertainty clock, or over-budget handwritten file. **Rollback:**
+   withdraw production eligibility and revert only the exact
    provider-owned operational envelope; do not roll back durable formats.
    **Faults available:** every PRD/fault-model campaign plus telemetry loss,
-   alert delay, runbook cancellation, and regional evacuation reversal.
+   alert delay, forged/foreign/expired page handles, lost/restored page sessions,
+   NTP/chrony loss, stale bound, source-generation rollback, readiness race,
+   runbook cancellation, and regional evacuation reversal.
 
 Production promotion requires all PRD SLOs measured at the sold facade under
 steady/noisy/fault load; signed pack/key rotation; registry replay; projection
-and evidence convergence; restore; mixed-version upgrade; and every external
-adapter outage. Until then no CaS availability, durability, evidence coverage,
+and evidence convergence; catalog plus pagination-session restore; accepted
+Cell measured-time plant evidence and readiness withdrawal; mixed-version
+upgrade; and every external adapter outage. Until then no CaS availability,
+durability, evidence coverage,
 certification, or compliance-conformance claim is valid.
 
 </production_sequence>
@@ -1111,7 +1293,7 @@ certification, or compliance-conformance claim is valid.
   package-add/delete lane. It creates every L3 dependency port and the exact
   Cell edge before behavior. L3c-B is the separate frozen-face content hop that
   installs/tests only the uncomposed boot refusal. L3c-C then freezes contracts
-  across the eleven-package closure and is behavior-only and lock-free.
+  across the twelve-package closure and is behavior-only and lock-free.
 - L3d-P follows L3c-C; L3d-R follows L3d-P because the registry resolves and
   fences the admitted catalog oracle. L3d-B then joins the admission and
   registry contracts; L3d-F follows the engine contract. Their scanner-
@@ -1121,12 +1303,15 @@ certification, or compliance-conformance claim is valid.
   and Connect-codegen structure owns its exact app build/lock delta; schema,
   app binding, and disabled Gateway registration follow as three distinct
   behavior/foreign-owner hops. L4b structure precedes persistence behavior and
-  recovery. L4c provider adapters serialize only their structure/lock hops and
+  recovery. L4c-T0/T-S/T-C are Cell-owned decision/structure/behavior lanes;
+  only their accepted receipt permits the separate Compliance T-J graph join.
+  L4c provider adapters serialize only their structure/lock hops and
   then fan out on unique behavior files because their local ports already froze
   in L3. L3c-S creates the compiler-only D-8 `src/main.rs` and empty process-
   test target; L3c-B installs their fail-closed uncomposed behavior. L4a-P alone
   replaces that refusal after L4b-R, every mandatory L4c adapter behavior, and
-  Cell interval evidence. L4a-R activation follows process boot/readiness and
+  L4c-T measured-time plant evidence. L4a-R activation follows process
+  boot/readiness and
   never precedes it. L4d IR structure precedes IR behavior, the separate one-way Observability
   materializer structure/behavior, generated publication, and operations. Every
   new L4 Rust package explicitly inherits the L3c-S D-41

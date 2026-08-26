@@ -60,6 +60,9 @@ these are current-state facts, not availability or conformance claims.
   preimage digest derivations. The engine invokes the owner-local `pack-auth`
   port; requests cannot supply a verification receipt. Resolve trusted keys
   through its provider adapter; envelope-provided keys are never trust.
+- Store `descriptor_digest` explicitly in every immutable catalog descriptor as
+  byte-for-byte equal to the verified canonical Pack v1 preimage digest. It is
+  never a second encoding or caller-selected value.
 - Immediately before catalog compare-and-swap, obtain a key-use commit receipt
   from the Secrets-backed `pack-auth` adapter. Secrets serializes that operation
   with revocation for the same key. A revocation ordered first refuses with the
@@ -74,6 +77,12 @@ these are current-state facts, not availability or conformance claims.
   both pack and key `[inclusive, exclusive)` validity windows. Any interval
   that touches/straddles the upper boundary, straddles the lower boundary, is
   reversed, or cannot convert fails before mutation.
+- Treat that exact interface as L3 semantic identity, not production-clock
+  evidence. Production boot/routing waits for a Cell-owned D-29 adapter/plant
+  receipt with measured-bound freshness, source health/loss, rollback handling,
+  cell-IR selection, exact Cargo/Buck closure, and readiness withdrawal. The
+  current infallible static-uncertainty NTP implementation cannot satisfy it,
+  and Compliance has no private clock or process-time fallback.
 - Support the v1 namespaces `us`, `eu`, `jp`, and `kr`; reject combinatoric
   country ids and unknown namespace, plane, dimension, or schema values.
 - Preserve immutable historical descriptors for evidence verification. A
@@ -92,8 +101,13 @@ these are current-state facts, not availability or conformance claims.
   expected catalog and binding generations, verified authorization, trusted
   interval, idempotency fingerprint, and durable audit receipt.
 - List only catalog entries and bindings visible to the verified tenant and
-  principal. Pagination tokens bind tenant, revision, cursor, filters, and
-  expiry.
+  principal. V1 returns only a server-minted opaque 32-byte durable page handle;
+  it is not a self-contained bearer claim. A `pagination-session` record binds
+  tenant/principal, list kind, immutable snapshot commit ordinal and catalog/
+  registry generations, normalized filters, exclusive cursor, fixed page size,
+  schema, and trusted expiry. The record and retained snapshot are part of the
+  catalog-store snapshot/restore root. Forged, unknown, and foreign handles have
+  one redacted failure and disclose neither existence nor cursor state.
 - Preview which package fragments and obligations match a proposed
   principal/action/resource/context input, but return no product authorization
   decision and do not compile a private policy snapshot.
@@ -150,6 +164,12 @@ these are current-state facts, not availability or conformance claims.
 
 ## Security and isolation
 
+- Derive every privileged mutation/export `request_fingerprint` on the server
+  from the exact versioned, domain-separated operation frame in `SPEC.md` after
+  semantic normalization. Public requests contain an idempotency key but no
+  trusted fingerprint. Policy, Audit, Secrets commit receipts, compare-and-swap,
+  and durable idempotency outcomes bind the same computed 32-byte value;
+  operation or semantic-field drift conflicts.
 - Authenticate and authorize before catalog disclosure; every catalog or
   registry transition; binding mutation; projection publication; target
   acknowledgement; or export admission.
@@ -164,8 +184,9 @@ these are current-state facts, not availability or conformance claims.
 - Keep any early Gateway service registration explicitly traffic-disabled.
   Route activation waits for durable catalog authority and restore evidence,
   production Pack/Secrets, Policy, Audit, projection-target and export
-  adapters, exact Cell clock composition, and their outage/refusal campaigns;
-  an in-memory fake never satisfies that join.
+  adapters, the durable pagination-session adapter, and the accepted Cell
+  measured-time composition/plant receipt plus their outage/refusal campaigns;
+  an in-memory fake or static uncertainty constant never satisfies that join.
 
 ## Portability and operations
 
@@ -180,7 +201,8 @@ these are current-state facts, not availability or conformance claims.
   catalog history/current pack heads, immutable registry history/current
   generation, bindings, projections/acknowledgements, manifests/evidence
   cursors, export jobs/publication/idempotency outcomes, and catalog-to-registry
-  reconciliation; restore validates their cross-generation references before
+  reconciliation, plus live pagination-session records and retained snapshot
+  ordinals; restore validates their cross-generation references before
   readiness.
 - Publish one Protobuf source of truth at
   `compliance/facade/proto/compliance/cas/v1/` through Connect. Do not create a
@@ -233,6 +255,11 @@ Production promotion requires:
 - independent production/reference encoders with exact golden frame, payload/
   key/preimage digest, public-key, Ed25519-signature, one-byte corruption,
   key-revocation, and hard-bound limit/limit-plus-one fixtures;
+- descriptor-digest equality plus independently encoded request-fingerprint
+  golden/permutation/corruption/N/N+1 fixtures for every operation code;
+- durable page-handle exact/limit-plus-one, collision, tenant/principal swap,
+  filter/page drift, expiry uncertainty, process-death, snapshot-retention, and
+  restore fixtures with uniform redacted forged/foreign failures;
 - registry compare-and-swap, supersession, replay, alias-conflict, and exact-
   type compatibility fixtures, including deterministic prepare/activate versus
   catalog revoke/supersede races and exact typed loser outcomes;
@@ -243,7 +270,8 @@ Production promotion requires:
 - deterministic signer resolve/revoke/commit races proving the Secrets order
   and stable typed loser outcome;
 - disabled-route refusal followed by activation only after the durable restore,
-  production dependency-adapter, and Cell-interval evidence join;
+  production dependency-adapter, and Cell measured-bound freshness/health
+  adapter receipt and outage evidence join;
 - cold-start, malformed-composition, dependency-loss, drain, cancellation, and
   process-death evidence from the runnable CaS process;
 - Audit-gap and target-receipt reconciliation under loss, duplication, reorder,

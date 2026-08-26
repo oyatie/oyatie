@@ -62,7 +62,7 @@ A catalog descriptor contains at least:
 pack_id: namespace/instrument
 semantic_version, schema_revision, plane
 projection_dimensions: principal/action/resource/context attributes
-content_digest, signature/key_generation, validity_interval
+content_digest, descriptor_digest, signature/key_generation, validity_interval
 policy and pre-ACK Audit receipt bindings
 key-use authorization ordinal and receipt digest when admitted
 state: CANDIDATE | ADMITTED | REVOKED | SUPERSEDED
@@ -156,7 +156,7 @@ new protocol version.
 | Registry entries per immutable admitted descriptor generation | n/a | 4,096 |
 | Projection targets per binding | 4 | 16 |
 | List page entries | 100 | 1,000 |
-| Pagination-token bytes | n/a | 4 KiB |
+| V1 durable page-handle bytes | n/a | exactly 32 |
 | Idempotency-key bytes | n/a | 128 |
 | Parser in-flight memory per request | n/a | 16 MiB |
 | Admitted queued operations per tenant/cell | 100 / 10,000 | 100 / 10,000 |
@@ -164,15 +164,167 @@ new protocol version.
 | Queued export jobs per tenant/cell | 100 / 10,000 | 100 / 10,000 |
 | Evidence references per export / export bytes | n/a | 100,000 / 10 GiB |
 
-The request fingerprint and SHA-256 digest are exactly 32 bytes; an Ed25519
+The request fingerprint, descriptor digest, and SHA-256 digest are exactly 32
+bytes; an Ed25519
 signature is exactly 64 bytes and verification key is exactly 32 bytes.
 Idempotency outcomes remain addressable for 30 days after terminal completion;
-active binding and export generations remain durable for their full lifetime.
-Overflow uses checked arithmetic. Limit-plus-one, allocation overflow, invalid
-UTF-8, and a configured value above a hard maximum return a stable typed error
-before candidate, queue, or binding mutation.
+active binding and export generations remain durable for their full lifetime. A
+page session lives for exactly 900,000 ms and retains its immutable snapshot
+until safe expiry collection. Overflow uses checked arithmetic. Limit-plus-one,
+allocation overflow, invalid UTF-8, and a configured value above a hard maximum
+return a stable typed error before candidate, queue, or binding mutation.
 
 </hard_limits>
+
+<canonical_identity_and_pagination>
+
+## Descriptor and request identity
+
+`content_digest` is exactly the Pack v1 `payload_digest`.
+`descriptor_digest` is exactly the 32-byte `verified_preimage_digest` from
+`<pack_admission>`: SHA-256 over the complete canonical signed Pack v1 preimage,
+including the `oyatie.compliance.pack.v1` domain. Admission copies that verified
+value into immutable catalog state and the signer receipt; it never re-encodes a
+catalog struct or accepts a caller digest. Catalog, registry, Policy, Audit, and
+Secrets fences compare those exact bytes.
+
+Every privileged request fingerprint is computed by the server after parsing,
+authorization-context resolution, canonical validation, sorting, and authority
+lookups. The public semantic request contains the idempotency key but no trusted
+fingerprint. The frame begins with the exact 28 ASCII bytes
+`oyatie.compliance.request.v1`, one `0x00`, `frame_version:u8 = 0x01`, an
+operation code, and `field_count:u8`. Required fields follow once each in
+strictly increasing tag order as
+`tag:u8 || type:u8 || length:u32_be || value[length]`. Type codes are
+`ASCII=0x01`, `U64_BE=0x02`, `I64_BE=0x03`, `DIGEST32=0x04`,
+`ENUM16_BE=0x05`, `ASCII_SET=0x06`, and `U64_SET=0x07`. Integers have exact
+8-/2-byte widths. ASCII uses the Pack v1 printable/canonical rules. A set is
+`count:u16_be` followed by `length:u16_be || value` elements, strictly sorted
+by raw encoded bytes with no duplicate; U64 elements have length 8. Empty sets
+are exactly `0x0000`. Unknown/missing/duplicate/out-of-order tags, wrong type or
+width, length disagreement, alternate normalization, and trailing bytes are
+invalid.
+
+All operations require these common fields:
+
+| Tag | Field | Type |
+|---:|---|---|
+| `0x01` | authority scope, exactly `tenant/<id>` or `pack-namespace/<id>` | ASCII |
+| `0x02` | verified principal subject | ASCII |
+| `0x03` | idempotency key | ASCII |
+| `0x04` | request schema revision, greater than zero | U64_BE |
+
+The remaining tag registry is global:
+
+| Tag | Field | Type |
+|---:|---|---|
+| `0x10` | pack id | ASCII |
+| `0x11` | descriptor digest | DIGEST32 |
+| `0x12` | predecessor descriptor digest | DIGEST32 |
+| `0x13` | successor descriptor digest | DIGEST32 |
+| `0x14` | reason code | ENUM16_BE |
+| `0x20` | registry id | ASCII |
+| `0x21` | canonical DataClassification label | ASCII |
+| `0x22` | prepared/active entry digest | DIGEST32 |
+| `0x23` | successor entry digest | DIGEST32 |
+| `0x24` | canonical label | ASCII |
+| `0x25` | aliases | ASCII_SET |
+| `0x26` | applicability selectors | ASCII_SET |
+| `0x27` | evidence obligations | ASCII_SET |
+| `0x28` / `0x29` | inclusive lower / exclusive upper Unix ms | I64_BE |
+| `0x2a` / `0x2b` | expected entry / registry generation | U64_BE |
+| `0x2c` | observed current pack-head generation | U64_BE |
+| `0x30` | binding id | ASCII |
+| `0x31` | registry generation | U64_BE |
+| `0x32` | scope selectors | ASCII_SET |
+| `0x33` | target owners | ASCII_SET |
+| `0x34` | expected binding generation | U64_BE |
+| `0x40` | projection payload digest | DIGEST32 |
+| `0x41` | expected projection generation | U64_BE |
+| `0x50` | export job id | ASCII |
+| `0x51` | manifest digest | DIGEST32 |
+| `0x52` / `0x53` | manifest / catalog generation | U64_BE |
+| `0x54` | binding generation | U64_BE |
+| `0x55` | projection generations | U64_SET |
+| `0x56` | expected export-job generation | U64_BE |
+
+Operation codes and their exact additional required fields are:
+
+| Code | Operation | Field count | Required tags after common fields |
+|---:|---|---:|---|
+| `0x01` | pack admit | `0x07` | `0x10,0x11,0x53` |
+| `0x02` | pack revoke | `0x08` | `0x10,0x11,0x14,0x53` |
+| `0x03` | pack supersede | `0x08` | `0x10,0x12,0x13,0x53` |
+| `0x10` | registry prepare | `0x10` | `0x11,0x20,0x21,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c` |
+| `0x11` | registry activate | `0x0a` | `0x11,0x20,0x22,0x2a,0x2b,0x2c` |
+| `0x12` | registry supersede | `0x0b` | `0x11,0x20,0x22,0x23,0x2a,0x2b,0x2c` |
+| `0x13` | registry revoke | `0x0b` | `0x11,0x14,0x20,0x22,0x2a,0x2b,0x2c` |
+| `0x20` | binding activate | `0x0c` | `0x11,0x28,0x29,0x30,0x31,0x32,0x33,0x34` |
+| `0x21` | projection publish | `0x09` | `0x30,0x33,0x40,0x41,0x54` |
+| `0x30` | export admit | `0x0c` | `0x31,0x50,0x51,0x52,0x53,0x54,0x55,0x56` |
+
+Reason codes are `administrative=0x0001`, `security=0x0002`,
+`superseded=0x0003`, `source_revoked=0x0004`, and `legal=0x0005`; free text is
+not fingerprint input. Digest fields are resolved from immutable authoritative
+records, not copied from requests. The server computes
+`request_fingerprint = SHA-256(frame)`. Including authority, principal, and
+idempotency identity confines equality to that replay slot. The value is never
+a telemetry label. Policy, Audit, Secrets commit authorization, compare-and-
+swap, and durable idempotency outcomes all consume the same computed bytes.
+Another operation code, normalized semantic value, expected generation, or
+schema revision must conflict. A v2 request uses another domain/version rather
+than ignoring N+1 fields under v1.
+
+## Durable pagination session
+
+The public v1 page token is exactly a 32-byte opaque `PageHandle`. It carries no
+self-asserted tenant, cursor, filter, or signature. On the first list request,
+the server opens one immutable catalog-store snapshot and atomically persists:
+
+```text
+PaginationSession {
+  page_handle,
+  tenant_id, verified_principal, list_kind,
+  snapshot_commit_ordinal, catalog_generation, registry_generation,
+  normalized_filter_frame, exclusive_cursor, fixed_page_size,
+  schema_revision, created_cell_interval, expires_at_unix_ms,
+}
+```
+
+The handle is minted by the production `pagination-session-data` adapter from
+the accepted CSPRNG, never from tenant/filter/cursor bytes. It retries a random
+collision at most three times, then returns
+`PageTokenError::CollisionExhausted`; a CSPRNG read failure returns
+`EntropyUnavailable`. No page is returned before the record and snapshot lease
+are durable. `expires_at_unix_ms` is checked signed-Unix-ms addition of
+`interval.latest + 900_000`; conversion/addition overflow returns
+`TimeUncertain`. A subsequent request is valid only when the complete fresh Cell
+interval remains before expiry. Subsequent requests supply only the handle;
+tenant/principal come from verified context and filter/page size remain those in
+the record. The store uses constant-time handle comparison and one redacted
+`NotFoundOrForeign` result for malformed, unknown, forged, and foreign-tenant/
+principal handles.
+
+The stable failures are `PageTokenError::{NotFoundOrForeign,Expired,
+TimeUncertain,SnapshotUnavailable,StoreUnavailable,EntropyUnavailable,
+CollisionExhausted}`. A 31-/33-byte, unknown, forged, or foreign handle maps to
+the same public `NotFoundOrForeign` result. A
+session never advances to a different snapshot after process death or restore.
+Its record and retained snapshot ordinal are part of the complete durable root,
+point-in-time restore, N/N+1 migration, and garbage-collection proof. Collection
+starts only after a fresh Cell interval proves expiry and no admitted page call
+is in flight. V1 has no pagination signing key or rotation path; replacing the
+durable handle with a stateless token requires a new protocol version and an
+accepted Secrets generation/rotation/revocation/outage contract.
+
+Production/reference encoders for descriptor and request identity share only
+typed inputs. Golden, permutation, field/value corruption, operation-swap,
+normalization, and N/N+1 vectors must match exactly. Page tests cover exact 32-
+byte and 31/33-byte handles, collision exhaustion, bit corruption, tenant/
+principal swap, snapshot/filter/page drift, expiry uncertainty, Cell loss,
+process death, snapshot restore, and uniform redacted errors.
+
+</canonical_identity_and_pagination>
 
 <pack_admission>
 
@@ -318,6 +470,20 @@ registry, projection, or key-use mutation. Implementations cannot floor/
 truncate endpoints to milliseconds, choose the midpoint/latest value, or
 discard uncertainty to manufacture acceptance.
 
+This is the L3 semantic predicate, not proof of a production time source. The
+current `cell_clock_api::Clock::now() -> Interval` and static-uncertainty
+`NtpClock` cannot report chrony/source loss, measurement age, rollback, or an
+unmeasured bound and therefore cannot satisfy production composition. Before
+L4 process boot, Cell must accept a D-29 provider contract whose fallible read
+result carries the exact interval plus measured-bound freshness/health
+provenance and whose typed error refuses source loss, staleness, rollback, or an
+unacceptable bound; its concrete adapter is selected by cell IR. The accepted
+maximum age, source-generation semantics, typed source loss, and rollback
+response are Cell types; Compliance does not wrap them. Any failed/stale read
+maps to `TimeValidityError::TrustedClockUnavailable`, removes
+readiness, and admits no new validity-dependent mutation. There is no process-
+clock fallback.
+
 </trusted_time>
 
 <signer_revocation>
@@ -350,7 +516,8 @@ one per-key authoritative order. Success durably returns:
 KeyUseCommitReceipt {
   namespace, key_id, key_generation, key_digest,
   revocation_generation, key_use_ordinal,
-  preimage_digest, payload_digest, request_fingerprint,
+  preimage_digest (= catalog descriptor_digest),
+  payload_digest, request_fingerprint,
   expected_catalog_generation,
   policy_receipt_digest, audit_receipt_digest,
   authorized_interval,
@@ -575,6 +742,7 @@ bindings, projections and target acknowledgements
 evidence manifests and source cursors
 export admission, job, publication and idempotency outcomes
 catalog-to-registry reconciliation work and terminal outcomes
+live pagination-session records and their retained snapshot ordinals
 Policy, pre-ACK Audit, signer and Storage receipt bindings for those records
 ```
 
@@ -589,11 +757,13 @@ Snapshots bind the last commit ordinal, schema versions, and every root above;
 snapshot creation cannot omit queued/running export jobs or reconciliation.
 Recovery validates framing, checksums, monotonic generations, immutable catalog
 and registry history, current-head references, export-job/output receipts, and
-cross-generation referential integrity before serving. It resumes accepted
-export jobs by immutable idempotency identity and completes or blocks catalog-
-to-registry reconciliation before affected state is available. Ambiguous or
-corrupt state is quarantined; it is never repaired by accepting a lower pack,
-registry, binding, job, or reconciliation generation.
+cross-generation referential integrity before serving. It also restores every
+unexpired pagination record against the exact retained snapshot ordinal; a
+missing or mismatched snapshot invalidates the session rather than moving its
+cursor. It resumes accepted export jobs by immutable idempotency identity and
+completes or blocks catalog-to-registry reconciliation before affected state is
+available. Ambiguous or corrupt state is quarantined; it is never repaired by
+accepting a lower pack, registry, binding, job, or reconciliation generation.
 
 Until that persistence port is agreed and implemented, L3d remains an unrouted
 in-memory/deterministic oracle and cannot claim acknowledged durability,
@@ -606,9 +776,11 @@ An early Gateway service registration is structurally disabled and cannot
 receive traffic. The CaS process may publish readiness or bind its internal
 listener only after declarative composition, durable restore, production pack/
 key, Policy, Audit source/sink, projection-target, export-store, exact Cell
-clock, and signer-fence checks pass. Activation additionally requires the same
-join and its fail-closed outage evidence. No in-memory store or fake dependency
-satisfies either gate, and process existence is not route eligibility.
+production-clock adapter/plant receipt, pagination-session adapter, and signer-
+fence checks pass. Activation additionally requires the same join and its fail-
+closed outage evidence. No in-memory store, static-uncertainty clock, or fake
+dependency satisfies either gate, and process existence is not route
+eligibility.
 
 </persistence_and_recovery>
 
@@ -623,10 +795,12 @@ UNCOMPOSED -> RECOVERING -> READY -> DRAINING -> STOPPED
 
 `compliance-cas-app` starts from declarative cell configuration and accepts no
 CLI authority. `RECOVERING` validates config/version, constructs the accepted
-durable store and every Pack/Secrets, Policy, Audit, projection, export, Cell,
-and Connect adapter, completes restore, and proves the signer commit-fence
-operation. It binds the internal listener and publishes readiness only after all
-checks pass. Gateway registration remains independently disabled until L4a-R.
+durable store and every Pack/Secrets, Policy, Audit, projection, export,
+pagination-session, Cell, and Connect adapter, completes restore, verifies a
+fresh Cell measured-bound/health receipt, and proves the signer commit-fence
+operation. It binds the internal listener and publishes readiness only after
+all checks pass. Gateway registration remains independently disabled until
+L4a-R.
 
 Stable boot refusals are:
 
@@ -636,6 +810,8 @@ ProcessBootError::MalformedConfiguration
 ProcessBootError::MissingAdapter
 ProcessBootError::RestoreUnready
 ProcessBootError::SignerFenceUnavailable
+ProcessBootError::TrustedClockUnavailable
+ProcessBootError::PaginationSessionUnavailable
 ProcessBootError::ListenerBind
 ProcessBootError::DependencyLost
 ProcessBootError::DrainTimeout
@@ -644,10 +820,12 @@ ProcessBootError::DrainTimeout
 Before readiness they produce no listener and a nonzero process result. After
 readiness, mandatory dependency loss atomically withdraws readiness, stops new
 admission, drains bounded in-flight work, and exits; it never switches to a fake
-or memory authority. Restart replays durable catalog and registry history,
-idempotency/receipt state, accepted export jobs, and catalog-to-registry
-reconciliation before readiness. A second instance cannot bypass the catalog/
-store authority epoch.
+or memory authority. Clock-source loss or stale measurement performs that
+withdrawal before another validity-dependent operation. Restart replays durable
+catalog and registry history, idempotency/receipt state, accepted export jobs,
+pagination sessions/snapshot leases, and catalog-to-registry reconciliation
+before readiness. A second instance cannot bypass the catalog/store authority
+epoch.
 
 Contract tests cover cold start, every missing adapter, corrupt configuration,
 failed restore, signer-fence refusal, bind conflict, dependency loss at each
@@ -705,8 +883,13 @@ transport, and adapter decision lands.
   projection target, and Storage export receipts.
 - Forged/expired or transition-mismatched Policy/Audit evidence, cross-tenant
   identifiers, revoked keys, Secrets fence outage/staleness/replay, Cell
-  clock rollback/widening, checked Unix-ms overflow, intervals before/on/across
+  NTP/chrony loss, stale measured bounds, source-generation change, clock
+  rollback/widening, checked Unix-ms overflow, intervals before/on/across
   inclusive/exclusive validity boundaries, Audit outage, and noisy tenants.
+- Descriptor/request independent golden, permutation, corruption, operation-
+  swap, and N/N+1 vectors; page-handle 31/32/33-byte, entropy collision, bit
+  corruption, tenant/principal swap, expiry uncertainty, snapshot drift, and
+  restore campaigns with uniform redacted foreign/forged outcomes.
 - Corrupt snapshots, missing registry history/current generation, missing
   accepted export jobs or reconciliation work, cross-generation reference
   corruption, missing Audit ranges, schema N/N+1 and downgrade barriers,

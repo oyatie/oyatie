@@ -156,6 +156,87 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 
 </pack_integrity>
 
+<request_and_pagination_integrity>
+
+## Decision: server-derived identities and durable page sessions
+
+- **achieves:** one reproducible authority/idempotency identity per semantic
+  mutation and tenant-safe pagination that survives restore without trusting
+  caller bytes.
+- **origin:** the catalog/registry fence names `descriptor_digest` without
+  deriving it, `request_fingerprint` is only a width, and the public page token
+  binds several fields only in prose. Independent implementations could hash
+  different requests or accept a forged, stale, or cross-tenant cursor.
+- **rule:** An immutable catalog descriptor MUST store `descriptor_digest` as
+  the exact `verified_preimage_digest` of the canonical signed Pack v1 frame;
+  no second descriptor encoder or caller-supplied digest is authoritative.
+  Every privileged transition MUST use the server-derived, versioned,
+  domain-separated request frame and operation table frozen in `SPEC.md`.
+  Callers MUST NOT supply a trusted fingerprint; Policy, Audit, Secrets commit
+  authorization, idempotency state, and durable outcomes MUST bind the same
+  computed 32-byte value. CaS v1 pagination MUST use a 32-byte server-minted
+  durable random handle, not a self-contained bearer assertion. Its
+  `pagination-session` record MUST bind verified tenant/principal, list kind,
+  immutable snapshot ordinal and generations, normalized filter, exclusive
+  cursor, fixed page size, trusted expiry, and schema version. The session MUST
+  join the catalog-store transaction/snapshot/restore root. Production handle
+  minting MUST occur only through the accepted Data-backed pagination adapter
+  and its reviewed CSPRNG; lookup MUST return one redacted result for forged,
+  unknown, and foreign-tenant handles. There is no pagination signing key to
+  rotate in v1. Replacing the durable handle with a stateless authenticated
+  token requires a separately accepted D-29 Secrets key-generation, rotation,
+  revocation, outage, and compatibility contract before any wire change.
+- **ensure:** independent production/reference encoders share only typed input
+  and match descriptor/fingerprint golden bytes across field permutations,
+  normalization, N/N+1, every byte corruption, changed semantic fields, and
+  operation-code swaps. Handle exact/limit-plus-one, random collision,
+  corruption, tenant/principal swap, filter/page drift, expiry uncertainty,
+  snapshot retention, process death, and restore tests disclose no cursor or
+  foreign state and never resume a different snapshot.
+- **overturn_when:** an independently reviewed identity/session design has one
+  canonical server derivation, equal cross-version verification, tenant-safe
+  unforgeability, bounded work, complete restore coverage, and an explicit
+  migration/rotation path.
+
+</request_and_pagination_integrity>
+
+<trusted_clock_production>
+
+## Decision: Cell proves production time; Compliance only consumes it
+
+- **achieves:** expired or not-yet-valid packs cannot be admitted because an
+  unsynchronized host still returns a plausible narrow interval.
+- **origin:** the live `cell-clock-api` preserves the correct `Interval` type,
+  but its current `NtpClock` computes `SystemTime::now() +/- 250 ms`, cannot
+  report read/freshness failure, and binds NTP without observing chrony, source
+  age, rollback, or measured uncertainty. Boundary tests over that value do not
+  establish a production clock plant.
+- **rule:** L3 MAY retain the exact Cell port/type and fakes for deterministic
+  interval semantics, but no L4 process boot, listener publication, route
+  activation, or tenant promotion is dispatchable until a Cell-owned D-29
+  owner-law and adapter receipt freezes the production clock contract. That
+  receipt MUST name the exact port/result/error identity, provider adapter path
+  and Cargo/Buck closure, cell-IR NTP/PTP/GNSS selection, measured uncertainty
+  and source generation, maximum bound age, rollback/regression detection,
+  startup and mid-request source-loss behavior, and the interval or typed read
+  result which necessarily makes Compliance refuse. `cas-app` MUST consume the
+  Cell-selected adapter, continuously join its freshness/health to readiness,
+  withdraw readiness and new admission before using a stale/lost source, and
+  drain bounded in-flight work. The current infallible static-uncertainty NTP
+  implementation MUST NOT satisfy that gate. Compliance MUST NOT create a
+  private clock, plant adapter, freshness flag, or fallback to process time.
+- **ensure:** exact Cargo/Buck reverse closure and named Cell/Compliance/SRE/
+  security reviewers precede composition. Cold start and live campaigns remove
+  NTP/chrony, stale the last measurement, regress system/source time, widen the
+  bound, change source generation, and lose PTP/GNSS; each produces the accepted
+  typed refusal, readiness withdrawal, no catalog/registry/binding mutation,
+  and deterministic recovery only after a fresh measured receipt.
+- **overturn_when:** Cell accepts another production-time contract that exposes
+  measured uncertainty/freshness and fail-closed source loss with equal
+  readiness, rollback, portability, and fault evidence.
+
+</trusted_clock_production>
+
 <projection>
 
 ## Decision: project obligations; do not execute owner workflows
@@ -264,10 +345,12 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   history/current pack heads, immutable registry history/current generation,
   bindings, projections and acknowledgements, manifests/evidence cursors,
   export admission/job/publication state, transition idempotency outcomes, and
-  catalog-to-registry reconciliation work. Snapshots, point-in-time restore,
-  process replay, and schema upgrades MUST cover the same root set. An affected
-  registry generation MUST remain unavailable to bind/project/export while its
-  source-pack transition is unreconciled.
+  catalog-to-registry reconciliation work, plus live pagination-session records
+  and the immutable snapshot ordinals they retain. Snapshots, point-in-time
+  restore, process replay, and schema upgrades MUST cover the same root set. An
+  affected registry generation MUST remain unavailable to bind/project/export
+  while its source-pack transition is unreconciled; an unrestored page session
+  MUST never restart at another snapshot.
 - **ensure:** death at every catalog/registry/export transaction boundary,
   corrupt or partial snapshots, queued/running export replay, supersede/revoke
   during registry activation, and N/N+1 restore prove one monotonic result with
@@ -292,10 +375,10 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   the CaS process; `src/lib.rs` MAY retain testable handlers and composition.
   The process MUST consume declarative cell configuration, compose only the
   accepted durable store, Pack/Secrets, Policy, Audit, projection, export,
-  Cell, and Connect adapters, and refuse readiness/listener publication when
-  any mandatory dependency or restore fence is absent. It MUST NOT become an
-  in-process Gateway plugin, accept CLI authority, or let process existence
-  satisfy route activation.
+  pagination-session, Cell, and Connect adapters, and refuse readiness/listener
+  publication when any mandatory dependency, restore fence, or Cell production-
+  time receipt is absent/stale. It MUST NOT become an in-process Gateway plugin,
+  accept CLI authority, or let process existence satisfy route activation.
 - **ensure:** L3c-S admits only a compiler shell and empty process-test target;
   the separate content-only L3c-B stage installs and executes the typed
   `ProcessBootError::Uncomposed` refusal while freezing the package/build face.
