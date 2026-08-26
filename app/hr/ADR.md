@@ -68,7 +68,10 @@ over-budget files are debt, not precedent.
   `app/hr/ports/`; `adapters/` MUST translate those ports to SQLite, commodity,
   or sold Oyatie facades; `facade/` MUST expose the stable application API. HR
   core MUST NOT import SQLite, HTTP, IAM, Storage, Data, Gateway, or another app
-  core/port, and no trusted-tenant or in-process cloud shortcut may exist.
+  core/port, and no trusted-tenant or in-process cloud shortcut may exist. The
+  reverse boundary is equally strict: no cloud capability package, including
+  IAM, may import an `app/hr` package; a sold HR facade is a network contract,
+  not permission to hide a cloud-to-app edge behind an HR client crate.
 - **ensure:** the same parameterized HR contract suite runs against the
   in-memory reference, SQLite v1, and each promoted commodity/cloud adapter;
   dependency tests reject `app/hr/core` foreign-engine edges and app-to-cloud
@@ -79,6 +82,41 @@ over-budget files are debt, not precedent.
   less coupling.
 
 </portable_architecture>
+
+<sold_people_boundary>
+
+## Decision: one protobuf contract over unary Connect, without a gRPC runtime
+
+- **achieves:** the sold People surface is byte-level interoperable with the
+  platform's one Connect-class HTTP contract instead of merely being described
+  as Connect while generated or served by gRPC machinery.
+- **origin:** the workspace currently admits protobuf/tonic tooling but has no
+  Connect runtime target; `tonic-prost-build` alone generates gRPC service
+  shapes and does not implement Connect framing, HTTP errors, or the no-trailer
+  rule in ADR-0719 D-4.
+- **rule:** `app/hr/facade/proto/hr/api/v1/people_service.proto` is the sole
+  People IDL. The owner-local `hr-transport-draft` port is implemented by the
+  mechanically matching provider adapter `hr-transport-connect-draft`, and
+  `hr-people-app` is the only sold HR facade process. No other owner may import
+  either draft crate; a future Rust consumer requires a separate D-28 promotion
+  and a consumer-owned client adapter. V1 methods are unary Connect POST with
+  `Content-Type: application/proto`, `Connect-Protocol-Version: 1`, a bare
+  protobuf body, meaningful HTTP status, and a Connect JSON error body. HR MUST
+  NOT generate or link a tonic client/server, accept a gRPC content type, emit
+  `grpc-status`/`grpc-message`, use HTTP trailers, or advertise streaming. Proto
+  messages are compiled by the separately admitted message-only `prost-build`
+  plus vendored `protoc` closure; the owned adapter implements the bounded
+  Connect request/response/error envelope.
+- **ensure:** Cargo and Buck dependency scans prove no `tonic`, `tonic-prost`,
+  or tonic-generated service symbol in either new runtime package; byte-golden
+  contract tests cover exact path/headers/bare-body success and Connect error
+  mapping, and reject malformed protobuf, a gRPC five-byte prefix, unsupported
+  streaming content types, `grpc-*` metadata, and trailer-dependent outcomes.
+- **overturn_when:** an accepted protocol decision replaces ADR-0719 D-4 and a
+  same-wave migration preserves one IDL, equivalent bounded wire evidence, and
+  no standing second protocol.
+
+</sold_people_boundary>
 
 <runtime_state>
 
@@ -146,9 +184,11 @@ over-budget files are debt, not precedent.
   separation; L2d structural draft-port/adapter admission, content-only
   dependency inversion, then structural removal of direct Data/Gateway edges;
   serialized SQLite dependency and adapter-face admission; content-only SQLite
-  parity and crash proof; structural sold People proto/Connect/facade admission;
-  and a content-only onboarding slice. A mandatory D-29 IAM consumer sequence
-  MUST then remove every one of the five IAM-to-HR internal dependency paths,
+  parity and crash proof; serialized message-only proto dependency admission;
+  structural sold People proto/matching Connect-adapter/facade admission; and a
+  content-only onboarding slice. A mandatory D-29 IAM
+  consumer sequence MUST then delete IAM-local HR composition and remove every
+  IAM Cargo/Buck/Rust edge into `app/hr` without substituting an HR client,
   after which a separate HR structural lane MUST retire the compatibility
   surfaces. No live route or production-readiness promotion may precede that
   zero-inverse-edge proof. Structural lanes MUST preserve public behavior and
@@ -157,8 +197,9 @@ over-budget files are debt, not precedent.
   closure, reviewer jurisdiction, rollback, before/after tests, no generated
   hand edits, and a protected PR. SQLite behavior begins only after the pinned
   binding, workspace/lock, port, adapter face, and Cargo/Buck membership
-  prerequisites are green and frozen; routing begins only after an inverse
-  Cargo/Buck scan proves the five IAM consumers no longer import HR internals.
+  prerequisites are green and frozen; routing begins only after an inverse scan
+  of the whole IAM cone proves no manifest, Buck label, or Rust import reaches
+  any `app/hr` package.
 - **overturn_when:** independently reviewed evidence shows two adjacent lanes
   cannot be separated safely and a replacement plan preserves the same rollback
   boundary and proof strength.
@@ -207,3 +248,7 @@ over-budget files are debt, not precedent.
   mixed with transaction, migration, replay, or recovery behavior.
 - A tracked generated module index, hand-maintained per-item `mod` list, or
   Cargo-only item scan that leaves Buck with different membership.
+- A tonic/gRPC client, server, service stub, content type, status trailer, or
+  fake transport presented as the Connect-class People boundary.
+- Any terminal Cargo, Buck, or Rust edge from `iam/**` into `app/hr/**`, even
+  through an HR-owned client adapter.

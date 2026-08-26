@@ -66,7 +66,7 @@ hr-employment-storage-inmemory
 hr-employment-infrastructure
 ```
 
-Until L2g.2 proves their HR-internal edges are zero, it also compiles and tests
+Until L2g.1 proves their HR-internal edges are zero, it also compiles and tests
 these exact five IAM packages through Cargo and Buck:
 
 ```text
@@ -104,13 +104,15 @@ The exact locked inverse graph at reviewed head
 
 The compatibility surfaces used by those packages are temporary migration
 devices, not a supported cross-owner architecture. L2b through L2f.1 keep the
-five IAM directories read-only and preserve their behavior. After the agreed HR
-People facade and Connect client exist, L2g.0 through L2g.2 are mandatory D-29
-IAM-owner PRs: add the agreed client edge, migrate the two direct callers, then
-remove every HR-internal Cargo/Buck edge and prove all five transitive consumers
-are clean. L2h is then a mandatory HR-owner structural retirement of the old
-compatibility packages. No live route, deployment, readiness, or SLO promotion
-may precede L2g.2 plus L2h.
+five IAM directories read-only and preserve their behavior. L2g.0 and L2g.1
+are mandatory D-29 IAM-owner PRs: delete the HR route/store rehearsal from IAM,
+then remove every Cargo/Buck/Rust edge from the complete IAM cone into
+`app/hr/`. IAM MUST NOT replace those internal edges with an HR client crate:
+cloud IAM authenticates/authorizes a separately deployed tenant product; it is
+not an HR product shell or a lawful consumer-side home for People composition.
+L2h is then a mandatory HR-owner structural retirement of the old compatibility
+packages. No live route, deployment, readiness, or SLO promotion may precede
+the terminal zero-IAM-to-HR proof plus L2h.
 
 One PR never writes both owner cones. HR compatibility preservation is not a
 reason to skip the IAM migration, and a failed migration blocks promotion
@@ -300,12 +302,12 @@ add/rename/remove canaries in both graphs.
 Class: serialized structural package/build mutation; depends on L2b.3.
 
 Create exact packages `app/hr/core/employment-usecase` and
-`app/hr/facade/employment-compat`. Each gets only `Cargo.toml`, `BUCK`,
+`app/hr/facade/employment-compat-app`. Each gets only `Cargo.toml`, `BUCK`,
 `build.rs`, stable `src/lib.rs`, `src/items/a_face.rs`,
 `src/test_items/a_face.rs`, stable `tests/contract.rs`, and
 `tests/items/a_face.rs`. The scanner sorts the two item directories into
 `OUT_DIR`; Buck models identical membership. `hr-employment-usecase` declares
-only the domain dependency; `hr-employment-compat` declares use-case, domain,
+only the domain dependency; `hr-employment-compat-app` declares use-case, domain,
 Serde, and Serde JSON dependencies.
 
 To keep the current packages green for the later content move, this lane may add
@@ -345,9 +347,9 @@ core/employment-usecase/tests/items/b_parity.rs
 Implement the existing JSON/wire translation only in:
 
 ```text
-facade/employment-compat/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive}.rs
-facade/employment-compat/src/test_items/b_contract.rs
-facade/employment-compat/tests/items/b_serialization.rs
+facade/employment-compat-app/src/items/{b_error,c_onboarding,d_compliance,e_leave,f_sensitive}.rs
+facade/employment-compat-app/src/test_items/b_contract.rs
+facade/employment-compat-app/tests/items/b_serialization.rs
 ```
 
 Turn exactly `facade/employment-app/src/lib.rs` and
@@ -384,7 +386,7 @@ app/hr/ports/draft/payroll-impact-dispatch
 app/hr/ports/draft/transport
 app/hr/ports/draft/runtime-context
 app/hr/adapters/draft/employment-repository-memory
-app/hr/adapters/draft/employment-transport-compat
+app/hr/adapters/draft/transport-employment-compat
 ```
 
 Each package receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
@@ -402,6 +404,14 @@ app/hr/adapters/employment-storage-inmemory/{Cargo.toml,BUCK}
 app/hr/adapters/employment-infrastructure/{Cargo.toml,BUCK}
 Cargo.lock
 ```
+
+The mapping is fixed: `employment-usecase` receives the eight draft port edges;
+the old storage adapter receives only `employment-repository` plus
+`employment-repository-memory`; and the old infrastructure adapter receives
+`authorization-evidence`, `transport`, `runtime-context`, and
+`transport-employment-compat`. This mapping remains frozen when L2f.0b adds the
+second matching transport adapter; an additional existing-package consumer
+stops the lane for a new structural envelope.
 
 Root membership is unchanged because accepted globs already enroll the faces.
 No trait, value, implementation, schema, route, auth, storage, or readiness
@@ -432,10 +442,10 @@ ports/draft/runtime-context/src/{items,test_items}/b_contract.rs
 adapters/draft/employment-repository-memory/src/items/b_repository.rs
 adapters/draft/employment-repository-memory/src/test_items/b_contract.rs
 adapters/draft/employment-repository-memory/tests/items/b_parity.rs
-adapters/draft/employment-transport-compat/src/items/b_transport.rs
-adapters/draft/employment-transport-compat/src/items/c_authority.rs
-adapters/draft/employment-transport-compat/src/test_items/b_contract.rs
-adapters/draft/employment-transport-compat/tests/items/b_parity.rs
+adapters/draft/transport-employment-compat/src/items/b_transport.rs
+adapters/draft/transport-employment-compat/src/items/c_authority.rs
+adapters/draft/transport-employment-compat/src/test_items/b_contract.rs
+adapters/draft/transport-employment-compat/tests/items/b_parity.rs
 ```
 
 Every file is at most 300 lines.
@@ -620,7 +630,7 @@ Rollback at this stage is **unrouted and test-only**: remove the unique behavior
 and migration files and discard only scratch test databases. No tenant has been
 routed and no production database or reader compatibility promise exists.
 Format-barrier rollback rules begin only in a later, separately reviewed routed
-promotion after L2g.2 and L2h; they are not claimed here.
+promotion after L2g.1 and L2h; they are not claimed here.
 
 Fault evidence interrupts after begin, idempotency insert, employee write,
 lifecycle write, outbox write, before commit, and after commit-before-response;
@@ -628,45 +638,88 @@ each case hard-closes, reopens, checks invariants, and replays. Also inject full
 disk, busy lock, corrupt/old schema, migration interruption, and duplicate
 outbox delivery.
 
-## L2f.0 — Admit the sold People proto, facade, and Connect client
+## L2f.0a — Admit message-only protobuf code generation
 
-Class: serialized external-contract/proto/package mutation; depends on L2e.
+Class: serialized repo-root dependency/generated-graph mutation; depends on
+L2e.
+
+Add exactly this direct workspace build dependency:
+
+```toml
+prost-build = "=0.14.3"
+```
+
+`prost-build` 0.14.3 is Apache-2.0 from crates.io/upstream
+`github.com/tokio-rs/prost`; it is already locked transitively and present in
+the generated third-party graph, so this hop promotes only its public direct
+alias. The closed write set is root `Cargo.toml` and regenerated
+`third-party/BUCK`; `Cargo.lock` must remain byte-identical. Run the configured
+Reindeer materializer twice and
+require an idempotent diff containing only `third-party//:prost-build`. No HR,
+IAM, proto, package, fixup, or runtime file changes.
+
+Build closure is locked/offline metadata, the generated prost-build/protoc
+targets, unchanged all-HR, and all five IAM packages. Required review is
+workspace/Build, supply chain, protocol/API, and HR. Success is one exact
+message-codegen alias with no new version or runtime dependency. Failure is a
+new crate/version, tonic alias, hand edit, unrelated generated churn, lock
+change, or behavior change. Rollback removes the workspace alias and reruns the
+materializer; no contract, code, or format exists yet.
+
+## L2f.0b — Admit the sold People proto, matching Connect adapter, and facade
+
+Class: serialized external-contract/proto/package mutation; depends on L2f.0a.
 
 Add the one sold contract at exact path
 `app/hr/facade/proto/hr/api/v1/people_service.proto` with protobuf package
-`hr.api.v1`, plus sibling `BUCK` and `OWNERS`. It declares only versioned
-onboard/read messages and service methods; no `draft`, REST, or second IDL.
+`hr.api.v1`, plus sibling `BUCK` and `OWNERS`. It declares only versioned unary
+onboard/read messages and service methods; no `draft`, JSON/REST, streaming, or
+second IDL.
 
-Create exact Rust packages `app/hr/facade/people-app` and
-`app/hr/adapters/people-connect-client`. Each receives only `Cargo.toml`,
-`BUCK`, `build.rs`, stable `src/lib.rs`, `src/items/a_unrouted.rs`,
-`src/test_items/a_face.rs`, stable `tests/contract.rs`, and
-`tests/items/a_face.rs`. The build scripts perform deterministic proto/item
-generation under `OUT_DIR`; Buck stages the same proto and item inputs. The
-existing prost/tonic/protoc workspace closure is reused; root dependencies and
-`third-party/BUCK` remain frozen. Only the two new workspace package entries may
-change `Cargo.lock`.
+Create exact Rust packages `app/hr/adapters/draft/transport-connect` with
+package `hr-transport-connect-draft`, and `app/hr/facade/people-app` with package
+`hr-people-app`. Each receives only `Cargo.toml`, `BUCK`, `build.rs`, stable
+`src/lib.rs`, `src/items/a_unrouted.rs`, `src/test_items/a_face.rs`, stable
+`tests/contract.rs`, and `tests/items/a_face.rs`. Both build scripts run the
+owned sorted D-41 item scanner. The adapter build script also runs
+`prost-build` over the one staged proto and writes message types only to
+`OUT_DIR`; Buck stages the identical proto/item inputs and generated outputs.
 
-The client is an agreed adapter because IAM consumes it in L2g; it exposes only
-the sold contract through an injected Connect transport. The facade's sole
-structural outcome is typed `Unrouted`. No handler, listener, route, authority,
+The adapter's runtime Cargo/Buck edges are exactly `hr-transport-draft`,
+`prost`, `bytes`, `serde`, and `serde_json`; its build edges are exactly
+`prost-build` and `protoc-bin-vendored`. `hr-people-app` depends only on the HR use case,
+required HR-owned ports, and `hr-transport-connect-draft`. Both adapters now
+mechanically name the matching `transport` provider port. Neither package may
+depend on `tonic`, `tonic-prost`, `tonic-build`, or `tonic-prost-build`, and no
+gRPC client/server/service code is generated. Only the two new workspace
+package entries may change `Cargo.lock`.
+
+No other owner may import either draft adapter or `hr-transport-draft`. A future
+Rust consumer must own its client adapter and first dispatch a separate D-28
+external-contract/API-review `git mv` from `ports/draft/transport` to
+`ports/transport`; cloud IAM is not that consumer. The sold v1 proto is the only
+cross-owner contract in this sequence.
+
+Closed write envelope is the three proto files, the fixed eight-file set inside
+each new package, and their exact lock entries. Root Cargo, generated third
+party, all existing draft packages, SQLite behavior, and IAM are frozen. The
+sole runtime value is typed `Unrouted`; no handler, listener, route, authority,
 storage, deployment, readiness, or SLO behavior lands.
 
-Closed write envelope is the three exact proto files, the fixed eight-file set
-inside each new Rust package, and their `Cargo.lock` entries. Build closure is
-proto lint/compile, both empty packages, all L2d/L2e packages, all HR, and five
-IAM packages. Required D-29 review is HR, IAM, API/architecture, Build,
-Gateway/protocol, security, and Data durability.
+Build closure is proto lint/compile, both empty packages, the draft transport
+contract, all L2d/L2e packages, all HR, and five IAM packages. Required D-29
+review is HR, architecture/API, Build, Gateway/protocol, IAM, security, and Data
+durability. Success: one `hr.api.v1` contract, one adapter that names its exact
+port, and one correctly named facade compile through Cargo/Buck with identical
+generation and no request can be served. Failure is behavior, a cross-owner
+draft dependency, second protocol, gRPC symbol/dependency, draft in sold IDL,
+manual index, root/generated churn, or readiness fiction. Rollback removes the
+proto, two empty packages, and only their lock entries; no network or format
+change occurs.
 
-Success: one `hr.api.v1` contract and two unrouted faces compile through Cargo
-and Buck with identical generation; no request can be served. Failure is
-behavior, second protocol truth, draft in sold IDL, parent/manual index, root
-dependency churn, or readiness fiction. Rollback removes the proto, empty
-packages, and only their lock entries; no network or format change occurs.
+## L2f.1 — Implement one unrouted People onboarding slice and Connect envelope
 
-## L2f.1 — Implement one unrouted People onboarding slice
-
-Class: content-only feature behavior; depends on L2f.0.
+Class: content-only feature behavior; depends on L2f.0b.
 
 The complete write set is:
 
@@ -674,7 +727,8 @@ The complete write set is:
 app/hr/facade/people-app/src/items/b_onboard.rs
 app/hr/facade/people-app/src/items/c_read.rs
 app/hr/facade/people-app/src/items/d_authority.rs
-app/hr/facade/people-app/src/items/e_readiness.rs
+app/hr/facade/people-app/src/items/e_connect_dispatch.rs
+app/hr/facade/people-app/src/items/f_readiness.rs
 app/hr/facade/people-app/src/test_items/b_contract.rs
 app/hr/facade/people-app/src/test_items/c_authority.rs
 app/hr/facade/people-app/src/test_items/d_readiness.rs
@@ -682,44 +736,97 @@ app/hr/facade/people-app/tests/items/b_onboarding.rs
 app/hr/facade/people-app/tests/items/c_recovery.rs
 app/hr/facade/people-app/tests/items/d_overload.rs
 app/hr/facade/people-app/tests/items/e_observability.rs
-app/hr/adapters/people-connect-client/src/items/b_people_client.rs
-app/hr/adapters/people-connect-client/src/test_items/b_contract.rs
-app/hr/adapters/people-connect-client/tests/items/b_wire.rs
+app/hr/adapters/draft/transport-connect/src/items/b_unary_request.rs
+app/hr/adapters/draft/transport-connect/src/items/c_unary_response.rs
+app/hr/adapters/draft/transport-connect/src/items/d_connect_error.rs
+app/hr/adapters/draft/transport-connect/src/test_items/b_contract.rs
+app/hr/adapters/draft/transport-connect/tests/items/b_wire.rs
+app/hr/adapters/draft/transport-connect/tests/items/c_malformed.rs
+app/hr/adapters/draft/transport-connect/tests/items/d_no_grpc_trailers.rs
 ```
 
 Every Rust file is at most 300 lines. Use the already-landed onboarding domain
 behavior and L2e repository to bind verified principal/PDP, installed-overlay
 generation, correlation/idempotency identity, one lifecycle event, and durable
 audit/outbox intent. Creating a record never silently marks onboarding ready or
-dispatches unowned work. The Connect client maps only the canonical proto and
-supports an injected fake transport for consumer tests.
+dispatches unowned work.
 
-All proto, manifests, BUCK/build scripts, stable parents, `a_unrouted.rs`, root/
-lock/generated files, schema, other HR, and IAM paths are frozen. The process
-remains `Unrouted`; this slice supplies no listener, deployment, readiness, or
-advertised SLO.
+The adapter implements exact unary Connect POST paths, version header,
+`application/proto` bare-message decode/encode, meaningful HTTP status, and the
+bounded Connect JSON error body described by SPEC. It takes and returns
+`hr-transport-draft` values; `people-app` performs dispatch. There is no client,
+listener, socket, tonic service, gRPC envelope, or fake transport claimed as
+wire proof. Header count/bytes, body bytes, decoded message, deadline,
+concurrency, and in-flight bytes are bounded before use-case dispatch.
 
-Build closure is both L2f packages, the full port/SQLite closure, all HR, and
-five IAM packages. Required review is HR plus independent IAM/security,
-protocol, durability, overload/performance, privacy, and observability
-reviewers.
+All proto, manifests, BUCK/build scripts, stable parents, generated message and
+item indexes, `a_unrouted.rs`, root/lock/generated files, schema, other HR, and
+IAM paths are frozen. The process remains `Unrouted`; this slice supplies no
+listener, deployment, readiness, or advertised SLO.
+
+Build closure is both L2f packages, message generation, the full port/SQLite
+closure, all HR, and five IAM packages. Required review is HR plus independent
+security, protocol, durability, overload/performance, privacy, observability,
+and byte-compatibility reviewers.
 
 Success: an authorized command commits exactly one employee, lifecycle event,
 idempotency outcome, and audit/outbox intent; read/replay after restart returns
-the same tenant-scoped result within the PRD test objective at the declared load
-envelope. Failure is duplicate/cross-tenant effect, stale authority/overlay,
-unqualified active/readiness state, unbounded queue/in-flight bytes, sensitive
+the same tenant-scoped result within the PRD test objective; exact golden bytes
+prove a Connect request, success, and error without gRPC framing or trailers.
+Failure is duplicate/cross-tenant effect, stale authority/overlay, unqualified
+active/readiness state, unbounded work, tonic/gRPC behavior, sensitive
 telemetry, or frozen-path edit. Rollback removes only these unique items; the
-unrouted structural faces and SQLite format remain. Fault evidence covers every
-transaction interruption, response loss/replay, authority expiry, adapter
-saturation, and outbox redelivery.
+unrouted structural faces and SQLite format remain.
 
-## L2g.0 — Add the agreed HR client to IAM graphs
+Fault evidence covers every transaction interruption, response loss/replay,
+authority expiry, saturation, cancellation, and outbox redelivery. Wire
+negative tests inject truncated/overlong protobuf, a gRPC five-byte prefix, two
+concatenated messages, wrong path/content/version, streaming content type,
+unsupported compression, `grpc-status`/`grpc-message`, attempted trailers, and
+oversized headers/body; every case fails before repository mutation.
 
-Class: mandatory serialized D-29 IAM structural graph migration; depends on
-L2f.1. Owner is IAM, not HR.
+## L2g.0 — Delete HR product composition from IAM
 
-Add `hr-people-connect-client` without removing the old HR dependencies in only:
+Class: mandatory D-29 IAM content-only retirement; depends on L2f.1. Owner is
+IAM, not HR.
+
+The complete write envelope is exactly:
+
+```text
+iam/facade/tenant-rbac-local-runtime-composition/src/lib.rs
+iam/facade/tenant-rbac-local-runtime-composition/tests/composition.rs
+iam/facade/tenant-rbac-local-inmemory-harness/src/lib.rs
+iam/facade/tenant-rbac-local-inmemory-harness/tests/harness.rs
+iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs
+```
+
+Delete HR route aggregation, HR in-memory store/error/snapshot/methods and HR
+test fixtures from the two IAM-local composition packages. Remove the hard-coded
+`app/hr/adapters/employment-infrastructure` workload implementation path from
+the IAM manifest; future tenant desired state identifies a sold workload, not
+an app-internal Rust package. Preserve every IAM, Payroll, Accounting, workflow,
+identity, and honest non-production flag behavior. Do not add an HR client,
+proto import, Connect fake, route replacement, or network/readiness claim.
+
+All Cargo/BUCK/lock files, every HR path, and all other IAM files are frozen;
+the now-unused HR graph edges remain until L2g.1. Build closure is both direct
+IAM packages, the workload-manifest package, and all five reverse-consumer
+packages. Required review is IAM, HR boundary, architecture/API, security, and
+the affected Payroll/Accounting owners.
+
+Success: IAM behavior and tests contain no HR product route/store composition
+or app-internal implementation path while all non-HR outputs remain equal.
+Failure is an HR client/fake substitution, lost IAM/Payroll/Accounting behavior,
+new cross-owner call, structural edit, or readiness fiction. Rollback restores
+these five content files while the old graph edges still exist. Fault evidence
+proves the remaining composition handles duplicate non-HR routes/store errors
+and that absence of HR cannot grant, mutate, or serve an HR request.
+
+## L2g.1 — Remove every IAM-to-HR graph and source edge
+
+Class: mandatory serialized D-29 IAM structural cleanup; depends on L2g.0.
+
+Remove every HR package edge from exactly:
 
 ```text
 iam/facade/tenant-rbac-local-runtime-composition/{Cargo.toml,BUCK}
@@ -727,63 +834,27 @@ iam/facade/tenant-rbac-local-inmemory-harness/{Cargo.toml,BUCK}
 Cargo.lock
 ```
 
-No HR, IAM source/test, other manifest, root manifest, or generated file changes.
-The other three IAM consumers are read-only verification paths. Build closure
-is the HR People client, both direct IAM packages, and all five IAM consumers.
-Required review is IAM, HR external-contract, architecture/API, Build, and
-security. Success is both old and new edges compiling with unchanged behavior;
-failure is consumer behavior, a draft dependency, root/generated churn, or
-missing transitive consumer. Rollback removes the additive edge and lock delta.
+No source, HR, root manifest, generated, or other IAM file changes. Build and
+test all five IAM reverse consumers and scan the complete `iam/**` Cargo, Buck,
+and Rust graph. The terminal proof rejects every `path` into `app/hr`, every
+`//app/hr` label, every `app/hr/` implementation literal, and every Rust import
+or extern edge for an HR workspace crate. It also proves none of the five
+packages reaches HR transitively. HR-related principal/resource vocabulary in
+an IAM-owned policy contract is not an executable package edge and is reviewed
+separately; it cannot name an app implementation path.
 
-## L2g.1 — Migrate the two direct IAM callers
-
-Class: mandatory D-29 IAM content-only migration; depends on L2g.0.
-
-Closed write envelope is exactly:
-
-```text
-iam/facade/tenant-rbac-local-runtime-composition/src/lib.rs
-iam/facade/tenant-rbac-local-runtime-composition/tests/composition.rs
-iam/facade/tenant-rbac-local-inmemory-harness/src/lib.rs
-iam/facade/tenant-rbac-local-inmemory-harness/tests/harness.rs
-```
-
-Replace HR runtime-route/internal-store calls with the agreed People client and
-its injected fake Connect transport. Preserve the IAM harness's honest local-
-rehearsal flags and existing non-HR behavior; do not make a network/readiness
-claim. All manifests/BUCK/lock, HR files, and other IAM files are frozen.
-
-Build closure is all five IAM consumers plus the HR client/facade contract.
-Required review is IAM, HR, architecture/API, and security. Success is equal
-route/fixture intent without any source import of `hr_employment_domain`,
-`hr_employment_app`, `hr_employment_storage_inmemory`, or
-`hr_employment_infrastructure`. Failure is an in-process privileged shortcut,
-semantic drift, network claim, or structural edit. Rollback restores these four
-IAM source/test files while both graph edges still exist. Fault evidence covers
-unavailable fake transport, denial, cross-tenant request, and client error
-mapping with no HR mutation.
-
-## L2g.2 — Remove all five IAM-to-HR internal edges
-
-Class: mandatory serialized D-29 IAM structural cleanup; depends on L2g.1.
-
-Remove the old HR package edges from only the four IAM Cargo/BUCK files named in
-L2g.0 and their exact `Cargo.lock` package-dependency entries. No source, HR,
-root manifest, or generated file changes. Build/test all five IAM packages and
-run inverse scans across every Cargo manifest and BUCK file.
-
-Success requires zero dependency or source reference from the five IAM
-consumers to `hr-employment-domain`, `hr-employment-app`,
-`hr-employment-api`, `hr-employment-storage-inmemory`, or
-`hr-employment-infrastructure`; their only HR edge is the agreed
-`hr-people-connect-client`. A residual direct or transitive internal edge is a
-failure and blocks L2h and all routing. Required review is IAM, HR,
-Build/architecture, API, and security. Rollback restores the old graph edges
-only while L2g.1 source remains client-based; no behavior or data format changes.
+Success is **zero IAM-to-`app/hr` dependency**, direct or transitive. There is
+no exception for `hr-transport-connect-draft`, `hr-people-app`, or any future HR
+client: cloud IAM provides its sold identity/authorization service and does not
+compose the tenant product. Any residual graph/source edge is failure and
+blocks L2h and every routing lane. Required review is IAM, HR,
+Build/architecture, API/protocol, and security. Rollback restores the old,
+unused graph edges only; full rollback then reverts L2g.0. No behavior or data
+format changes in this structural hop.
 
 ## L2h — Retire HR compatibility packages
 
-Class: mandatory serialized HR structural retirement; depends on L2g.2.
+Class: mandatory serialized HR structural retirement; depends on L2g.1.
 
 After the zero-inverse proof, delete exactly these old package trees and their
 workspace-package entries in `Cargo.lock`:
@@ -796,7 +867,7 @@ app/hr/adapters/employment-infrastructure
 ```
 
 The canonical domain, use-case, compatibility facade, HR-owned ports, memory/
-transport/SQLite adapters, People facade/proto/client, and all behavior remain
+transport/SQLite/Connect adapters, People facade/proto, and all behavior remain
 unchanged. Root membership needs no edit because the existing globs stop
 matching deleted directories. No source is moved or feature changed in this
 lane.
@@ -822,10 +893,12 @@ production readiness now.
 The HR chain is sequential because each slice freezes the paths used by the
 next. L2b.0 is a separate multi-owner build prerequisite. L2e.0a is the sole
 root dependency/lock/generated-third-party writer; L2e.0b is the sole adapter-
-face/lock writer. L2e and L2f.1 release shared hubs and write only their named
-unique content paths. L2g.0 through L2g.2 are IAM-owner lanes and serialize only
-against those four IAM graph/source path sets plus `Cargo.lock`; L2h returns to
-the HR owner.
+face/lock writer. L2f.0a is the sole prost-build root/generated-alias writer;
+L2f.0b is the sold proto/Connect-adapter/facade structural writer; L2e and
+L2f.1 release shared hubs and write only their named unique content paths.
+L2g.0 and L2g.1 are IAM-owner lanes
+and serialize against their five content paths, four graph files, and
+`Cargo.lock`; L2h returns to the HR owner.
 
 Other owners may advance concurrently only when both changed paths and practical
 Cargo/Buck build closures are disjoint from the exact sets above. Read-only

@@ -71,6 +71,8 @@ workflow/payroll/audit delivery, no recovery campaign, and no measured SLO.
   returning a stable blocker set rather than silently activating an employee.
 - Expose create/read and later update/list behavior through one versioned HR
   facade derived from the same use-case contract, not from adapter internals.
+- Serve that facade as binary-protobuf unary Connect with bounded request work,
+  meaningful HTTP/Connect errors, and no gRPC service, envelope, or trailers.
 
 ## Leave, payroll intent, and compliance
 
@@ -158,6 +160,9 @@ objectives as unqualified rather than manufacturing availability evidence.
   ambiguous partial HR mutation or sensitive disclosure.
 - SLO signals and readiness truthfully identify the selected adapter and policy
   generation.
+- Cargo/Buck and byte-golden tests prove the sold People proto, message-only
+  codegen, Connect request/success/error mapping, and absence of gRPC framing or
+  trailers before any listener promotion.
 
 ## Failure
 
@@ -169,6 +174,8 @@ objectives as unqualified rather than manufacturing availability evidence.
   or audit outage reaches mutation or sensitive disclosure.
 - HR core requires a Data/Gateway/cloud crate, adapter-specific schema, or
   trusted-tenant branch.
+- A cloud IAM package imports any HR package, or an HR facade accepts gRPC,
+  trailer-dependent, malformed, unbounded, or second-codec traffic.
 - A health endpoint claims durability, delivery, or SLO qualification absent
   corresponding evidence.
 
@@ -183,5 +190,8 @@ objectives as unqualified rather than manufacturing availability evidence.
   pack/PDP proof, cross-tenant input, downstream timeout, and outbox redelivery.
 - Kill the adapter during migration and prove it reopens at either the prior
   admitted version or the fully committed next version, never a hybrid.
+- Inject malformed/truncated protobuf, a gRPC five-byte prefix, wrong Connect
+  headers/content type, trailer metadata, and body/in-flight saturation; every
+  case fails before repository mutation.
 
 </acceptance>
