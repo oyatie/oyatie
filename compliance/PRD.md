@@ -54,9 +54,12 @@ these are current-state facts, not availability or conformance claims.
 - Apply the numeric parser, identifier, list, fan-out, queue, idempotency, and
   export ceilings in `SPEC.md`. Limit-plus-one fails before allocation or
   mutation; operators may lower but never raise protocol hard maxima.
-- Compute SHA-256 over exact payload bytes and verify Ed25519 over the v1
-  domain-separated canonical binary preimage. Resolve trusted verification
-  keys through the agreed key port; envelope-provided keys are never trust.
+- Compute SHA-256 over exact payload bytes and verify Ed25519 over the fully
+  tagged v1 binary grammar in `SPEC.md`, including exact field/type/enum codes,
+  widths, collection framing, millisecond interval endpoints, and payload/key/
+  preimage digest derivations. The engine invokes the owner-local `pack-auth`
+  port; requests cannot supply a verification receipt. Resolve trusted keys
+  through its provider adapter; envelope-provided keys are never trust.
 - Support the v1 namespaces `us`, `eu`, `jp`, and `kr`; reject combinatoric
   country ids and unknown namespace, plane, dimension, or schema values.
 - Preserve immutable historical descriptors for evidence verification. A
@@ -129,6 +132,10 @@ these are current-state facts, not availability or conformance claims.
 - Support deterministic replay, snapshots, point-in-time restore, mixed-version
   upgrades, schema negotiation, drain, and cell-loss recovery before
   production promotion.
+- Publish one Protobuf source of truth at
+  `compliance/facade/proto/compliance/cas/v1/` through Connect. Do not create a
+  parallel gRPC/tonic contract, duplicate Data's engine-neutral records port,
+  or place handwritten Rust under `observability/slos`.
 - Expose catalog/binding revision, projection lag, evidence gaps, export queue
   age, stale refusals, signature failures, per-tenant work/bytes, and unit cost.
 
@@ -165,8 +172,9 @@ and independent audit evidence measure it.
 Production promotion requires:
 
 - differential pack parsing and canonical digest fixtures;
-- independent golden canonical-preimage, SHA-256, Ed25519, key-revocation, and
-  hard-bound limit/limit-plus-one fixtures;
+- independent production/reference encoders with exact golden frame, payload/
+  key/preimage digest, public-key, Ed25519-signature, one-byte corruption,
+  key-revocation, and hard-bound limit/limit-plus-one fixtures;
 - registry compare-and-swap, supersession, replay, alias-conflict, and exact-
   type compatibility fixtures;
 - deterministic binding/projection replay and stale-generation fencing;

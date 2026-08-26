@@ -115,17 +115,21 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
 - **origin:** “signed pack” and “bounded parser” are not implementable contracts
   unless the preimage, digest, signature, key resolution, and hard ceilings are
   frozen before admission behavior lands.
-- **rule:** Pack v1 MUST use the canonical length-prefixed binary preimage and
-  limits in `SPEC.md`, SHA-256 content digests, and Ed25519 signatures with the
-  `oyatie.compliance.pack.v1` domain. Verification MUST resolve a trusted key
-  by namespace, key id, and key generation through an agreed port and MUST
-  reject unknown, ambiguous, revoked, expired, or self-asserted keys before
-  catalog mutation. Protobuf is the facade wire contract, not the signing
-  preimage.
-- **ensure:** golden preimages/digests/signatures cross independent encoders;
-  byte, depth, count, identifier, fan-out, and queue boundaries test exact
-  limit and limit-plus-one; a future crypto/key adapter requires Packs,
-  Secrets/IAM security, and architecture review.
+- **rule:** Pack v1 MUST use the complete tagged binary grammar, field/type/enum
+  codes, widths, collection framing, inclusive/exclusive millisecond interval,
+  and digest derivations frozen in `SPEC.md`, with SHA-256 and Ed25519 under the
+  `oyatie.compliance.pack.v1` domain. The engine MUST invoke verification
+  through its owner-local `pack-auth` port; it MUST NOT accept a
+  caller-constructed verification receipt. The port MUST resolve a trusted key
+  by namespace, key id, and key generation and reject unknown, ambiguous,
+  revoked, expired, or self-asserted keys before catalog mutation. Protobuf is
+  the facade wire contract, not the signing preimage.
+- **ensure:** a production encoder and an independently implemented test
+  encoder share only the frozen input record and match exact preimage, payload
+  digest, key digest, preimage digest, public key, and signature golden bytes;
+  field/header bit flips plus byte, depth, count, identifier, fan-out, and queue
+  limit-plus-one cases fail closed. Crypto and trusted-key adapters require
+  Packs, Secrets/IAM security, and architecture review.
 - **overturn_when:** an accepted Packs/Security/Compliance decision replaces
   the algorithm or canonicalization while preserving deterministic identity,
   domain separation, key provenance, bounded work, and rollback refusal.
@@ -187,8 +191,11 @@ publisher, network endpoint, production SLO, or horizontal-scale behavior.
   no tenant-zero shortcut or unaudited control mutation.
 - **origin:** the current tree has no facade; its DSR port trusts locally
   configured credentials and its Helm artifacts advertise private endpoints.
-- **rule:** the sold CaS contract MUST be versioned protobuf through the normal
-  Connect gateway. Every bind, projection publication, and evidence export
+- **rule:** the sold CaS contract MUST have one protobuf source of truth at
+  `compliance/facade/proto/compliance/cas/v1/` with package
+  `compliance.cas.v1`, served through the normal Connect gateway. A standing
+  gRPC/tonic contract or transport MUST NOT be introduced. Every bind,
+  projection publication, and evidence export
   MUST authenticate, obtain a verified Policy decision, bind tenant and
   idempotency identity, enforce bounded admission, and persist required Audit
   evidence before acknowledgement. Preview MUST disclose no foreign-tenant

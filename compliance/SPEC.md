@@ -37,8 +37,10 @@ Connect CaS facade -> catalog/binding/projection engine -> Policy compiler port
   authorization shortcut.
 - The engine owns catalog descriptors, tenant bindings, projection generations,
   evidence coverage/manifests, target acknowledgement state, and idempotency.
-- A pack-source adapter supplies bounded bytes and signature provenance. The
-  engine never reads root `packs/` from a facade request.
+- A pack-source adapter supplies bounded envelope and payload bytes. The engine
+  invokes the owner-local `pack-auth` port for trusted-key resolution and
+  verification; callers cannot construct or assert a verification receipt.
+  The engine never reads root `packs/` from a facade request.
 - Policy remains the only evaluator and compiler of serving snapshots. CaS can
   preview attachment/projection but cannot return permit/forbid.
 - Audit remains event authority; Data, Storage, and Audit remain authorities for
@@ -163,20 +165,59 @@ before candidate, queue, or binding mutation.
    semantics are sets are lexically sorted and duplicates are refused.
 3. `payload_digest` is SHA-256 over the exact raw Cedar+IR payload bytes. Its
    external label is `sha256:` plus 64 lowercase hexadecimal digits.
-4. The signing preimage is a fixed binary frame: ASCII domain
-   `oyatie.compliance.pack.v1` plus NUL, followed by field-number-ordered
-   fields encoded as a `u32` big-endian byte length and then the exact bytes
-   for pack id, canonical version,
-   schema revision, plane, sorted dimensions, validity interval, signer key id,
-   key generation, and the 32-byte payload digest. Integers are fixed-width
-   big-endian; unknown/duplicate fields and trailing bytes are invalid.
-5. The detached Ed25519 signature covers that preimage, not protobuf, JSON,
-   YAML, Markdown, or re-encoded payload bytes. Golden preimage bytes are part
-   of the contract.
-6. Verification resolves a trusted 32-byte public key by namespace, key id,
-   and key generation through the key-resolution port. The receipt binds key
-   digest, validity/revocation generation, verified preimage digest, and trusted
-   Cell interval. A key carried by the envelope is never a trust source.
+4. The signing preimage is the following complete v1 binary grammar. The fixed
+   prefix is the exact 25 ASCII bytes `oyatie.compliance.pack.v1`, one `0x00`
+   byte, `frame_version:u8 = 0x01`, and `field_count:u8 = 0x0b`. Exactly eleven
+   required fields follow once each in strictly increasing tag order. Every
+   field is `tag:u8 || type:u8 || length:u32_be || value[length]`; v1 has no
+   optional field. Type codes are `ASCII=0x01`, `U64_BE=0x02`,
+   `I64_BE=0x03`, `ENUM8=0x04`, `DIMENSION_SET=0x05`, and
+   `DIGEST32=0x06`.
+
+   | Tag | Type and exact value |
+   |---:|---|
+   | `0x01` | `ASCII`: namespace, 1..128 printable-ASCII bytes |
+   | `0x02` | `ASCII`: instrument, 1..128 printable-ASCII bytes |
+   | `0x03` | `ASCII`: canonical SemVer, 1..64 printable-ASCII bytes |
+   | `0x04` | `U64_BE`: schema revision, length 8, value greater than zero |
+   | `0x05` | `ENUM8`: plane, length 1; `serving=0x01`, `control=0x02` |
+   | `0x06` | `DIMENSION_SET`: collection grammar below |
+   | `0x07` | `I64_BE`: inclusive `not_before_unix_ms`, length 8 |
+   | `0x08` | `I64_BE`: exclusive `not_after_unix_ms`, length 8 and greater than tag `0x07` |
+   | `0x09` | `ASCII`: signer key id, 1..128 printable-ASCII bytes |
+   | `0x0a` | `U64_BE`: signer key generation, length 8, value greater than zero |
+   | `0x0b` | `DIGEST32`: payload digest, length 32 |
+
+   Printable ASCII is byte range `0x21..=0x7e`; NUL, whitespace, Unicode, and
+   alternate text normalization are invalid. `I64_BE` is signed two's-
+   complement Unix milliseconds. The dimension-set value is `count:u16_be`
+   followed by exactly `count` elements, where `0 <= count <= 64`; zero is the
+   exact two-byte value `0x0000` with no element bytes. Each element is
+   `kind:u8 || name_length:u16_be || name[name_length]`.
+   Kind codes are `principal=0x01`, `action=0x02`, `resource=0x03`, and
+   `context=0x04`; each name is 1..128 printable-ASCII bytes. Elements are
+   strictly sorted by `(kind_code, raw_name_bytes)` and duplicates are invalid.
+   The outer `length` covers the count and every element byte.
+
+   Wrong prefix/version/count, missing/unknown/duplicate/out-of-order tags,
+   wrong type/width, count/length disagreement, noncanonical collection order,
+   and trailing bytes are invalid. `payload_digest` is SHA-256 over the exact
+   raw Cedar+IR payload bytes. No protobuf, JSON, YAML, Markdown, integer text,
+   locale, host endianness, or re-encoding participates in the preimage.
+5. The detached signature uses RFC 8032 pure Ed25519, not Ed25519ph or
+   Ed25519ctx, and covers the complete canonical preimage bytes directly.
+   `verified_preimage_digest` is SHA-256 over those same bytes.
+   `key_digest` is SHA-256 over the exact 32 ASCII bytes
+   `oyatie.compliance.ed25519.key.v1`, one `0x00` byte, and the raw 32-byte
+   Ed25519 public key. Golden preimage, payload digest, key digest, preimage
+   digest, public key, and signature bytes are part of the v1 contract.
+6. The engine invokes `PackAuthenticator` through the owner-local `pack-auth`
+   port. That port resolves a trusted 32-byte public key by namespace, key id,
+   and key generation and returns a receipt bound to the request, both digests,
+   key validity/revocation generation, and trusted Cell interval. The engine
+   never accepts a caller-constructed receipt; production composition supplies
+   the crypto and key adapters. A key carried by the envelope is never a trust
+   source.
 7. It accepts only v1 namespaces `us`, `eu`, `jp`, and `kr`; a package id is one
    namespace plus one granular instrument, never a combinatoric jurisdiction.
 8. `plane` is `serving` or `control`. Every projection dimension maps to a
@@ -320,10 +361,13 @@ queues. Overload rejects early with typed retry information.
 
 ## Authority and restore
 
-Catalog, binding, projection, manifest, and idempotency state must use an owned
-durable records contract with engine commit ordinals and consensus-backed
-authority inside bounded cells. Compliance consumes trusted Cell intervals for
-validity and lease decisions; wall time is not a generation.
+Catalog, binding, projection, manifest, and idempotency state must use Data's
+accepted engine-neutral `data-records` provider through Compliance's narrower
+owner-local `catalog-store` port and `catalog-store-data` adapter. Compliance
+does not fork the generic records contract or import a Data core. The provider
+must expose commit ordinals and consensus-backed authority inside bounded
+cells. Compliance consumes trusted Cell intervals for validity and lease
+decisions; wall time is not a generation.
 
 Snapshots bind the last commit ordinal, schema versions, catalog/binding roots,
 projection acknowledgements, evidence cursors, and manifest digests. Recovery
@@ -350,9 +394,12 @@ projection publication/ack lag, missing/reordered target receipts, evidence
 coverage/gaps, Audit cursor lag, export age/bytes, recovery state, per-tenant
 work, and unit cost.
 
-The numeric objectives are in `PRD.md`. Aggregate throughput or current unit
-tests cannot substitute for tail latency, gap detection, isolation, restore,
-and fault evidence.
+The numeric objectives are in `PRD.md`. Their sole handwritten Rust IR lives in
+the accepted `compliance/ports/slo` package; only materializer-produced
+`*.generated.openslo.yaml` files may live under
+`compliance/observability/slos`. Aggregate throughput or current unit tests
+cannot substitute for tail latency, gap detection, isolation, restore, and
+fault evidence.
 
 </observability>
 
